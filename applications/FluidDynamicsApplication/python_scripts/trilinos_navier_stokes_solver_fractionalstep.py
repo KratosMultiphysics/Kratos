@@ -42,7 +42,7 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
             "pressure_linear_solver_settings": {
-                "solver_type"                        : "MultiLevelSolver",
+                "solver_type"                        : "multi_level",
                 "max_iteration"                      : 200,
                 "tolerance"                          : 1e-6,
                 "symmetric"                          : true,
@@ -51,7 +51,7 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
                 "verbosity"                          : 0
             },
             "velocity_linear_solver_settings": {
-                "solver_type"                        : "MultiLevelSolver",
+                "solver_type"                        : "multi_level",
                 "max_iteration"                      : 200,
                 "tolerance"                          : 1e-6,
                 "symmetric"                          : false,

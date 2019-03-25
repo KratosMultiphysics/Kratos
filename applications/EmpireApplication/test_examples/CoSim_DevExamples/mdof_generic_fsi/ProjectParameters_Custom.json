@@ -90,8 +90,8 @@
         "divergence_clearance_steps"      : 0,
         "reform_dofs_at_each_step"   : false,
         "velocity_linear_solver_settings" : {
-            "solver_type"   : "BICGSTABSolver",
-	    "preconditioner_type" : "ILU0Preconditioner",
+            "solver_type"   : "bicgstab",
+	    "preconditioner_type" : "ilu0",
             "max_iteration" : 200,
             "tolerance"     : 1e-6,
             "scaling"       : false

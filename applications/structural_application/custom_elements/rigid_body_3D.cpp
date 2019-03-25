@@ -211,8 +211,8 @@ void RigidBody3D::UpdateExtShape(ProcessInfo& rCurrentProcessInfo)
     double sy = sin(SpringRotation[1]);
     double cz = cos(SpringRotation[2]);
     double sz = sin(SpringRotation[2]);
-    boost::numeric::ublas::bounded_matrix<double,3,3> IncrementalRot;
-    boost::numeric::ublas::bounded_matrix<double,3,3> Rot;
+    BoundedMatrix<double,3,3> IncrementalRot;
+    BoundedMatrix<double,3,3> Rot;
 
     IncrementalRot(0,0) = cz*cy+sz*sx*sy;
     IncrementalRot(0,1) = sz*cx;
@@ -280,7 +280,7 @@ void RigidBody3D::UpdateExtShape(ProcessInfo& rCurrentProcessInfo)
 
     }
     //rotating the inertia matrix
-    boost::numeric::ublas::bounded_matrix<double,3,3> temp;
+    BoundedMatrix<double,3,3> temp;
     noalias(temp) = prod( mInertia, trans(Rot) );
     noalias( mRotatedInertia ) = prod( Rot , temp);
 
@@ -425,8 +425,8 @@ void RigidBody3D::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo
     noalias(rDampingMatrix) = ZeroMatrix(6,6);
 
     const array_1d<double,3> omega = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-    boost::numeric::ublas::bounded_matrix<double,3,3> cross_matrix;
-    boost::numeric::ublas::bounded_matrix<double,3,3> aux;
+    BoundedMatrix<double,3,3> cross_matrix;
+    BoundedMatrix<double,3,3> aux;
 
     cross_matrix(0,0) =  0.00;
     cross_matrix(0,1) = -omega[2];
@@ -455,7 +455,7 @@ void RigidBody3D::Initialize()
 {
     //saving the last rotation used in the database
     noalias(GetGeometry()[0].GetValue(ROTATION)) = ZeroVector(3);
-    noalias(mRot) = IdentityMatrix(3,3);
+    noalias(mRot) = IdentityMatrix(3);
 
 }
 

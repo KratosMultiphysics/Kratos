@@ -10,14 +10,6 @@ from math import *
 # Import the StatisticalVariable class
 from test_auxiliary_classes_utilities import StatisticalVariable
 
-# Import exaqute
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-# from exaqute.ExaquteTaskLocal import *      # to execute with python3
-'''
-get_value_from_remote is the equivalent of compss_wait_on: a synchronization point
-in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
-'''
 
 '''
 This utility contains the functions to perform the Monte Carlo (CMLMC) algorithm
@@ -209,9 +201,6 @@ class MonteCarlo(object):
         self.QoI.ComputeHStatistics(level)
         self.QoI.ComputeSkewnessKurtosis(level)
         self.CheckConvergence(level)
-        '''synchronization point needed to launch new tasks, if needed
-        put as in the end as possible the synchronization point'''
-        self.convergence = get_value_from_remote(self.convergence)
 
     '''
     function printing informations about initializing MLMC phase

@@ -118,6 +118,7 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
+            "name" : "ResidualBasedEliminationBuilderAndSolver"
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);

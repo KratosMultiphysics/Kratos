@@ -3,14 +3,6 @@ from __future__ import absolute_import, division # makes KratosMultiphysics back
 # Import packages
 import numpy as np
 
-# Import exaqute
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-# from exaqute.ExaquteTaskLocal import *      # to execute with python3
-'''
-get_value_from_remote is the equivalent of compss_wait_on: a synchronization point
-in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
-'''
 
 '''
 This utility contains the classes to perform the Continuation Multilevel Monte Carlo (CMLMC) and the Monte Carlo (MC) algorithms

@@ -47,7 +47,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ///  WARNING = mirar las funciones de los modelos
 ///  WARNING = mirar matrix
 
-
+#include "utilities/math_utils.h"
 #include "soft_hard_behavior/softening_hardening_criteria.h"
 #include "fluency_criteria/modified_morh_coulomb_yield_function.h"
 
@@ -134,7 +134,7 @@ void Modified_Morh_Coulomb_Yield_Function::ReturnMapping(const Vector& StrainVec
     //const double Bulk     = Young/(3.00 * (1.00-2.00*Poisson));
 
     Vector Aux_Trial_Stress;
-    Aux_Trial_Stress.resize(StressVector.size());
+    Aux_Trial_Stress.resize(StressVector.size(), false);
     noalias(Aux_Trial_Stress) =  StressVector;
 
     array_1d<double,3> Sigma = ZeroVector(3);
@@ -245,7 +245,7 @@ void Modified_Morh_Coulomb_Yield_Function::ReturnMapping(const Vector& StrainVec
 
                 /// Updating Rankine
                 Vector Imput_Parameters_R;
-                Imput_Parameters_R.resize(4);
+                Imput_Parameters_R.resize(4, false);
                 Imput_Parameters_R = ZeroVector(4);
                 Imput_Parameters_R[0] =  mlength;
                 Imput_Parameters_R[1] =  m_modified_morh_coulomb_maccumulated_plastic_strain_current;
@@ -360,6 +360,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     array_1d<double, 2> residual = ZeroVector(2);
     Matrix d                     = ZeroMatrix(2,2);
     Matrix d_inv                 = ZeroMatrix(2,2);
+    double detd;
 
 
 
@@ -410,9 +411,9 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     Vector Imput_Parameters_M;
     Vector Imput_Parameters_R;
 
-    Imput_Parameters_M.resize(4);
+    Imput_Parameters_M.resize(4, false);
     Imput_Parameters_M = ZeroVector(4);
-    Imput_Parameters_R.resize(4);
+    Imput_Parameters_R.resize(4, false);
     Imput_Parameters_R = ZeroVector(4);
 
 
@@ -500,7 +501,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
 
         d(1,1) = -2.00 * G * Partial_A_gama_b - K * Partial_D_gama_b - H * Partial_Ep_gama_b;
 
-//        singular       =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+        MathUtils<double>::InvertMatrix(d, d_inv, detd);
         ddgama         =  -Vector(prod(d_inv, residual));
 
         //Compute Newton-Raphson increment and update variables DGAMA and DGAMB
@@ -658,6 +659,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     array_1d<double, 3> residual = ZeroVector(3);
     Matrix d                     = ZeroMatrix(3,3);
     Matrix d_inv                 = ZeroMatrix(3,3);
+    double detd;
 
     unsigned iter                =  0;
     double sinphi                =   std::sin(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
@@ -727,9 +729,9 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     Vector Imput_Parameters_M;
     Vector Imput_Parameters_R;
 
-    Imput_Parameters_M.resize(4);
+    Imput_Parameters_M.resize(4, false);
     Imput_Parameters_M = ZeroVector(4);
-    Imput_Parameters_R.resize(4);
+    Imput_Parameters_R.resize(4, false);
     Imput_Parameters_R = ZeroVector(4);
 
 
@@ -905,7 +907,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
         d(2,2) = -2.00 * G * Partial_A_gama_c - K * Partial_D_gama_c;
 
 
-//        singular       =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+        MathUtils<double>::InvertMatrix(d, d_inv, detd);
         ddgama         =  -Vector(prod(d_inv, residual));
 
         //Compute Newton-Raphson increment and update variables DGAMA and DGAMB
@@ -1069,6 +1071,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     d_inv.resize(4,4,false);
     noalias(d)                   =   ZeroMatrix(4,4);
     noalias(d_inv)               =   ZeroMatrix(4,4);
+    double detd;
 
     unsigned iter                =   0;
     double sinphi                =   std::sin(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
@@ -1136,9 +1139,9 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     Vector Imput_Parameters_M;
     Vector Imput_Parameters_R;
 
-    Imput_Parameters_M.resize(4);
+    Imput_Parameters_M.resize(4, false);
     Imput_Parameters_M = ZeroVector(4);
-    Imput_Parameters_R.resize(4);
+    Imput_Parameters_R.resize(4, false);
     Imput_Parameters_R = ZeroVector(4);
 
 
@@ -1398,7 +1401,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
             }
              count++;
              */
-//            singular       =   SD_MathUtils<double>::InvertMatrix(d, d_inv);
+            MathUtils<double>::InvertMatrix(d, d_inv, detd);
         }
 
 
@@ -1597,7 +1600,7 @@ void Modified_Morh_Coulomb_Yield_Function::GetValue(const Variable<Matrix>& rVar
 
     if (rVariable==GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
     {
-        Result.resize(1, size);
+        Result.resize(1, size, false);
         for(unsigned int i = 0; i< size; i++ )
             Result(0,i) = mplastic_strain(i);
 
@@ -1633,12 +1636,12 @@ void Modified_Morh_Coulomb_Yield_Function::GetValue(const Variable<Vector>& rVar
     const int size = mplastic_strain.size();
     if(rVariable==ALMANSI_PLASTIC_STRAIN)
     {
-        Result.resize(size);
+        Result.resize(size, false);
         noalias(Result) = mplastic_strain;
     }
     if(rVariable==ALMANSI_ELASTIC_STRAIN)
     {
-        Result.resize(size);
+        Result.resize(size, false);
         noalias(Result) = mElastic_strain;
     }
 }

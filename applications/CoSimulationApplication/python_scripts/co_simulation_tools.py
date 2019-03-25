@@ -1,7 +1,6 @@
-import warnings
-from KratosMultiphysics.CoSimulationApplication import co_simulation_data_structure # @Aditya I thought this would work since its in the same folder, but it didn't work for me. I guess some path-manipulation is necessary for CoSim to also work in Python-only, we can discuss it
-cs_data_structure = co_simulation_data_structure.__DATA_STRUCTURE__
 import math
+cs_data_structure = None
+
 ## Class contains definition of colors. This is to be used as a struct
 #
 # Example usage print(bcolors.HEADER + "This is a header in header color" + bcolor.ENDC)
@@ -18,24 +17,33 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 
-## ImportDataStructure : Imports the data structre which is specified in the parameters file
+## ImportDataStructure : Imports the data structure which is specified in the parameters file
 #
 #  @param parameters_file_name   The JSON file name which contains the settings for the co-simulation
 def ImportDataStructure(parameters_file_name):
     import json
-    import sys
-    global cs_data_structure
-    with open(parameters_file_name,'r') as parameter_file:
-        parameters = json.load(parameter_file) # This is for getting the flag for database
-        if 'data_structure' in parameters['problem_data'].keys():
-            data_structure = parameters['problem_data']['data_structure']
-        else:
-            data_structure = "co_sim_app"
 
-        co_simulation_data_structure.Initialize(data_structure)
-        cs_data_structure = co_simulation_data_structure.__DATA_STRUCTURE__
+    global cs_data_structure
+
+    # Set default data_structure
+    data_structure_name = 'pyKratos'
+    # Read data_structure from parameter file if present
+    with open(parameters_file_name, 'r') as parameter_file:
+        parameters = json.load(parameter_file)
+        if 'data_structure' in parameters['problem_data'].keys():
+            data_structure_name = parameters['problem_data']['data_structure']
+
+    # Initialize cs_data_structure and import corresponding module
+    if cs_data_structure is None:
+        if data_structure_name == 'KratosMultiphysics':
+            cs_data_structure = __import__('KratosMultiphysics')
+        elif data_structure_name == 'pyKratos':
+            cs_data_structure = __import__('pyKratos')
+        else:
+            raise Exception('data_structure needs to be KratosMultiphysics or pyKratos')
 
     return cs_data_structure
+
 
 ## InnerProduct : Computes the inner product for two give vectors (as python lists)
 #

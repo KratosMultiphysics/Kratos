@@ -8,8 +8,8 @@
     },
     "coupled_solver_settings" :
     {
-        "name" : "mok_fsi",
-        "solver_type" : "gauss_seidel_loose_coupling",
+        "name" : "dummy",
+        "solver_type" : "gauss_seidel_loose",
         "echo_level" : 1,
         "num_coupling_iterations" : 20,
         "start_coupling_time" : 0.25,
@@ -42,29 +42,32 @@
         },
         "participants":
         [
-        {
-            "name": "dummy_one",
-            "input_data_list": [
-            ],
-            "output_data_list": [
-            ]
-        },
-        {
-            "name": "dummy_two",
-            "input_data_list": [
+            {
+                "name": "dummy_one",
+                "input_data_list": [
+                ],
+                "output_data_list": [
+                ]
+            },
+            {
+                "name": "dummy_two",
+                "input_data_list": [
                 {
                     "from_solver" : "dummy_one",
                     "data_name"   : "REACTION",
-                    "settings"   : {
+                    "settings"   :
+                    {
                         "destination_data":"POINT_LOAD",
-                        "mapper_settings":{
-                               "type":"nearest_neighbor",
-                               "flags":["swap_sign"]
+                        "mapper_settings":
+                        {
+                            "type":"nearest_neighbor",
+                            "flags":["swap_sign"]
                         }
                     }
                 }
             ],
-            "output_data_list": [
+            "output_data_list":
+            [
                 {
                     "to_solver" : "dummy_one",
                     "data_name"   : "MESH_DISPLACEMENT",
@@ -81,60 +84,64 @@
         ]
     },
     "solvers" :
+    {
+        "dummy_one":
         {
-            "dummy_one":
-            {
-                "solver_type" : "dummy_solver",
-                "settings":{
-                    "echo_level"  : 1,
-                    "working_directory" : "CFD",
-                    "input_file"  : "dummy_one.json"
-                },
-                "io_settings" : {
-                    "io_type"     : "dummy"
-                },
-                "data" : [
-                    {
-                        "name": "MESH_DISPLACEMENT",
-                        "geometry_name" : "NoSlip2D_FSI",
-                        "dimension"       : 3
-                    },
-                    {
-                        "name": "REACTION",
-                        "geometry_name" : "NoSlip2D_FSI",
-                        "dimension"       : 3
-                    }
-                ]
+            "solver_type" : "dummy_solver",
+            "settings":{
+                "echo_level"  : 1,
+                "working_directory" : "CFD",
+                "input_file"  : "dummy_one.json"
             },
-            "dummy_two" :
+            "io_settings" :
             {
-                "solver_type" : "dummy_solver",
-                "settings":{
-                    "echo_level"  : 1,
-                    "working_directory" : "CSD",
-                    "input_file"  : "dummy_two.json"
+                "io_type"     : "dummy"
+            },
+            "data" :
+            [
+                {
+                    "name": "MESH_DISPLACEMENT",
+                    "geometry_name" : "NoSlip2D_FSI",
+                    "dimension"       : 3
                 },
-                "io_settings" : {
-                    "io_type"     : "dummy"
+                {
+                    "name": "REACTION",
+                    "geometry_name" : "NoSlip2D_FSI",
+                    "dimension"       : 3
+                }
+            ]
+        },
+        "dummy_two" :
+        {
+            "solver_type" : "dummy_solver",
+            "settings":
+            {
+                "echo_level"  : 1,
+                "working_directory" : "CSD",
+                "input_file"  : "dummy_two.json"
+            },
+            "io_settings" :
+            {
+                "io_type"     : "dummy"
+            },
+            "data" :
+            [
+                {
+                    "name": "MESH_DISPLACEMENT",
+                    "geometry_name" : "GENERIC_FSI",
+                    "dimension"       : 3
                 },
-                "data" : [
-                    {
-                        "name": "MESH_DISPLACEMENT",
-                        "geometry_name" : "GENERIC_FSI",
-                        "dimension"       : 3
-                    },
-                    {
-                        "name": "POINT_LOAD",
-                        "geometry_name" : "GENERIC_FSI",
-                        "dimension"       : 3
-                    },
-                    {
-                        "name": "DISPLACEMENT",
-                        "geometry_name" : "GENERIC_FSI",
-                        "dimension"       : 3
-                    }
-                ]
-            }
+                {
+                    "name": "POINT_LOAD",
+                    "geometry_name" : "GENERIC_FSI",
+                    "dimension"       : 3
+                },
+                {
+                    "name": "DISPLACEMENT",
+                    "geometry_name" : "GENERIC_FSI",
+                    "dimension"       : 3
+                }
+            ]
         }
+    }
 }
-

@@ -95,7 +95,7 @@ namespace Kratos
     {
         return Element::Pointer( new KinematicLinear( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
     }
-    
+
     Element::Pointer KinematicLinear::Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
     {
         return Element::Pointer( new KinematicLinear( NewId, pGeom, pProperties ) );
@@ -293,7 +293,15 @@ namespace Kratos
 
         //Current displacements
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
-            noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
+        #ifdef KRATOS_USE_AMATRIX
+        {
+            const array_1d<double, 3>& disp = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
+            for (std::size_t i = 0; i < dim; ++i)
+                CurrentDisp(node, i) = disp[i];
+        }
+        #else
+            row( CurrentDisp, node ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
+        #endif
 
         //Declaration of the integration weight
         //    double Weight;
@@ -313,7 +321,7 @@ namespace Kratos
             //calculate material response
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
                 StrainVector,
-                ZeroMatrix( 1 ),
+                ZeroMatrix( 1, 1 ),
                 StressVector,
                 TanC,
                 rCurrentProcessInfo,
@@ -466,8 +474,16 @@ namespace Kratos
 
         //Current displacements
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
-            noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
-        
+        #ifdef KRATOS_USE_AMATRIX
+        {
+            const array_1d<double, 3>& disp = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
+            for (std::size_t i = 0; i < dim; ++i)
+                CurrentDisp(node, i) = disp[i];
+        }
+        #else
+            row( CurrentDisp, node ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
+        #endif
+
         //auxiliary terms
         const Vector& BodyForce = GetProperties()[BODY_FORCE];
 
@@ -492,11 +508,11 @@ namespace Kratos
             std::cout << "mInitialDisp: " << mInitialDisp << std::endl;
             std::cout << "StrainVector: " << StrainVector << std::endl;
             #endif
-            
+
             //calculate stress and consistent tangent
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
                 StrainVector,
-                ZeroMatrix( 1 ),
+                ZeroMatrix( 1, 1 ),
                 StressVector,
                 TanC,
                 rCurrentProcessInfo,
@@ -528,7 +544,7 @@ namespace Kratos
 
                 //contribution of gravity (if there is)
                 AddBodyForcesToRHS( rRightHandSideVector, row( Ncontainer, PointNumber ), IntToReferenceWeight, mDetJ0[PointNumber] );
-                
+
                 //contribution of internal forces
                 AddInternalForcesToRHS( rRightHandSideVector, B, StressVector, IntToReferenceWeight, mDetJ0[PointNumber] );
             }
@@ -657,7 +673,7 @@ namespace Kratos
             mConstitutiveLawVector[Point]->InitializeNonLinearIteration( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
         }
     }
-    
+
     void KinematicLinear::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
     {
         if(mConstitutiveLawVector[0]->Has(CURRENT_STRAIN_VECTOR))
@@ -677,7 +693,7 @@ namespace Kratos
             mConstitutiveLawVector[Point]->FinalizeNonLinearIteration( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
         }
     }
-    
+
     /**
      * THIS method is called from the scheme after each solution step, here the time step
      * start and end point variables can be transferred n --> n+1
@@ -991,7 +1007,7 @@ namespace Kratos
 
 //        unsigned int dim = GetGeometry().WorkingSpaceDimension();
 //        unsigned int strain_size = dim * (dim + 1) / 2;
-// 
+//
 //        for ( unsigned int prim = 0; prim < GetGeometry().size(); ++prim )
 //        {
 //            for ( unsigned int i = 0; i < dim; ++i )
@@ -1003,7 +1019,7 @@ namespace Kratos
 //            }
 //        }
 //        //         noalias(R) -= detJ * Weight * prod(trans(B_Operator), StressVector);
-// 
+//
 //        KRATOS_CATCH( "" )
 //    }
 
@@ -1014,7 +1030,7 @@ namespace Kratos
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
         unsigned int strain_size = dim * (dim + 1) / 2;
         Vector InternalForces(3);
-        
+
         for ( unsigned int prim = 0; prim < GetGeometry().size(); ++prim )
         {
             for ( unsigned int i = 0; i < dim; ++i )
@@ -1024,15 +1040,15 @@ namespace Kratos
                 {
                     InternalForces(i) += B_Operator( gamma, prim * dim + i ) * StressVector( gamma ) * detJ * Weight;
                 }
-                
+
                 R( prim * dim + i ) -= InternalForces(i);
             }
 //            GetGeometry()[prim].GetSolutionStepValue( REACTION ) += InternalForces;
         }
-        
+
         KRATOS_CATCH( "" )
     }
-    
+
     /**
      * Adds the Contribution of the current quadrature point to the load vector
      * @param K LHS Matrix
@@ -1246,7 +1262,7 @@ namespace Kratos
             if( GetProperties().Has( STRESS_RECOVERY_TYPE ) == true )
             {
                 int Type = GetProperties()[ STRESS_RECOVERY_TYPE ];
-            
+
                 if(Type == 0)
                 {
                     // no recovery
@@ -1255,21 +1271,21 @@ namespace Kratos
                 else if(Type == 1)
                 {
                     // new recovery method from Bathe
-                    
+
                     int ExpansionLevel = GetProperties()[ NEIGHBOUR_EXPANSION_LEVEL ];
-                    
+
                     BatheRecoverStressUtility StressUtils(ExpansionLevel);
                     StressUtils.CalculateImprovedStressOnIntegrationPoints( *this, rValues, rCurrentProcessInfo );
                 }
                 else
                     KRATOS_THROW_ERROR(std::logic_error, "The stress recovery type is not supported on element", Id());
-                
+
             }
             else
                 KRATOS_THROW_ERROR(std::logic_error, "The stress recovery method is not defined for element", Id());
-            
+
         }
-        
+
         if ( rVariable == INTERNAL_VARIABLES )
         {
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
@@ -1296,8 +1312,7 @@ namespace Kratos
 
             // extract current displacements
             for (unsigned int node = 0; node < GetGeometry().size(); ++node)
-                noalias(row(CurrentDisp, node)) =
-                    GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT);
+                row(CurrentDisp, node) = GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT);
 
             for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
             {
@@ -1501,7 +1516,7 @@ namespace Kratos
             rValues.resize(mConstitutiveLawVector.size());
             std::fill(rValues.begin(), rValues.end(), Id());
         }
-        
+
         if(rVariable == INTEGRATION_POINT_INDEX)
         {
             rValues.resize(mConstitutiveLawVector.size());

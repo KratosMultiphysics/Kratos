@@ -71,7 +71,7 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
 
 if(${USE_PORO_MPI} MATCHES ON)
 
-    include_directories( ${CMAKE_SOURCE_DIR}/applications/trilinos_application )
+    include_directories( ${CMAKE_SOURCE_DIR}/applications/TrilinosApplication )
     include_directories(${TRILINOS_INCLUDE_DIR})
 
     ## Define python interface sources
@@ -145,7 +145,8 @@ install(TARGETS KratosPoromechanicsCore DESTINATION libs )
 install(TARGETS KratosPoromechanicsApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/PoromechanicsApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/PoromechanicsApplication.py" DESTINATION "KratosMultiphysics/PoromechanicsApplication" RENAME "__init__.py")
+
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)

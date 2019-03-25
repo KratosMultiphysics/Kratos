@@ -118,7 +118,6 @@ protected:
 
         // Variables including all integration points
         Matrix CurrentDisp;
-        Matrix PreviousDisp;
 
         /**
          * sets the value of a specified pointer variable
@@ -334,14 +333,6 @@ public:
      * Called at the beginning of each solution step
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    void Calculate(const Variable<double>& rVariable,
-                   double& Output,
-                   const ProcessInfo& rCurrentProcessInfo) override;
-
-    void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
-                   array_1d<double, 3 > & Output,
-                   const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process

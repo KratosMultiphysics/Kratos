@@ -16,9 +16,6 @@
         },
         "compute_reactions"			   : false,
         "move_mesh_flag"                    : false,
-        "scheme_settings" : {
-            "scheme_type"              : "adjoint_structural"
-        },
         "response_function_settings" : {
             "response_type"     : "adjoint_local_stress",
             "use_kratos"        : true,
@@ -38,11 +35,11 @@
         },
         "echo_level"                   : 0,
         "problem_domain_sub_model_part_list" : ["Parts_AREAS"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC", "PointLoad3D_NODES", "Structure"],
         "computing_model_part_name" : "computing_domain",
         "rotation_dofs"                      : true,
         "linear_solver_settings"       : {
-            "solver_type"         : "ExternalSolversApplication.Super_LU"
+            "solver_type"         : "ExternalSolversApplication.super_lu"
         },
         "model_import_settings"        : {
             "input_type"     : "mdpa",

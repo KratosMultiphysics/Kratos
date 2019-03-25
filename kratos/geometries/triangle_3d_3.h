@@ -53,17 +53,17 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief A three node 3D triangle geometry with linear shape functions
  * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
- * The node ordering corresponds with: 
- *      v                                                              
- *      ^                                                               
- *      |                                                              
- *      2                                   
- *      |`\                   
- *      |  `\                   
- *      |    `\                 
- *      |      `\                
- *      |        `\                 
- *      0----------1 --> u  
+ * The node ordering corresponds with:
+ *      v
+ *      ^
+ *      |
+ *      2
+ *      |`\
+ *      |  `\
+ *      |    `\
+ *      |      `\
+ *      |        `\
+ *      0----------1 --> u
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -228,7 +228,7 @@ public:
         this->Points().push_back( pThirdPoint );
     }
 
-    Triangle3D3( const PointsArrayType& ThisPoints )
+    explicit Triangle3D3( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 3 )
@@ -261,7 +261,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Triangle3D3( Triangle3D3<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Triangle3D3( Triangle3D3<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -364,8 +364,18 @@ public:
         return rResult;
     }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
+    /**
+     * @brief Lumping factors for the calculation of the lumped mass matrix
+     * @param rResult Vector containing the lumping factors
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    Vector& LumpingFactors(
+        Vector& rResult,
+        const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
+        )  const override
     {
         rResult.resize( 3, false );
         std::fill( rResult.begin(), rResult.end(), 1.00 / 3.00 );
@@ -569,8 +579,14 @@ public:
         return (std::abs(V[index]) > std::abs(V[2])) ? index : 2;
 	}
 
-	bool HasIntersection(const GeometryType& ThisGeometry) override
-	{
+    /**
+     * @brief Test the intersection with another geometry
+     * @details decomposes in smaller triangles
+     * @param  ThisGeometry Geometry to intersect with
+     * @return True if the geometries intersect, False in any other case.
+     */
+    bool HasIntersection(const GeometryType& ThisGeometry) override
+    {
         // Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/opttritri.txt
         // and the article "A Fast Triangle-Triangle Intersection Test", Journal of Graphics Tools, 2(2), 1997:
         // http://web.stanford.edu/class/cs277/resources/papers/Moller1997b.pdf
@@ -641,7 +657,7 @@ public:
         if (isect1[1]<isect2[0] || isect2[1]<isect1[0]) return false;
         return true;
 
-	}
+    }
 
     /**
      * Check if an axis-aliged bounding box (AABB) intersects a triangle
