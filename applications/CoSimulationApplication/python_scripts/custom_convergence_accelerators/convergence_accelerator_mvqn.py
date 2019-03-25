@@ -16,8 +16,8 @@ except ModuleNotFoundError:
 from copy import deepcopy
 from collections import deque
 
-def Create(settings, solver):
-    accelerator = MultiVectorQuasiNewtonAccelerator(settings, solver)
+def Create(settings, data):
+    accelerator = MultiVectorQuasiNewtonAccelerator(settings, data)
     return accelerator
 
 
@@ -28,8 +28,8 @@ class MultiVectorQuasiNewtonAccelerator(CoSimulationBaseFilter):
     ## The constructor.
     # @param horizon Maximum number of vectors to be stored in each time step.
     # @param alpha Relaxation factor for computing the update, when no vectors available.
-    def __init__( self, settings, solver ):
-        super(MultiVectorQuasiNewtonAccelerator, self).__init__(settings, solver)
+    def __init__( self, settings, data ):
+        super(MultiVectorQuasiNewtonAccelerator, self).__init__(settings, data)
         default_settings = self._GetDefaultSettings()
         self.settings.RecursivelyValidateAndAssignDefaults(default_settings)
         self.horizon = self.settings["settings"]["horizon"].GetInt()
@@ -39,7 +39,7 @@ class MultiVectorQuasiNewtonAccelerator(CoSimulationBaseFilter):
         self.J = [] # size will be determined when first time get the input vector
         self.J_hat = []
         self.iteration = 0
-        self.data_name = self.settings["data"]["data_name"].GetString()
+        self.data_name = self.data.name
 
     ## _GetDefaultSettings :  Function to define the default parameters for this class
     #
@@ -47,10 +47,6 @@ class MultiVectorQuasiNewtonAccelerator(CoSimulationBaseFilter):
         default_setting = data_structure.Parameters("""
             {
                 "type"          : "mvqn",
-                "data" : {
-                        "solver"   : "",
-                        "data_name"     : ""
-                },
                 "settings":{
                     "horizon" : 15,
                     "alpha" : 0.10
@@ -69,6 +65,7 @@ class MultiVectorQuasiNewtonAccelerator(CoSimulationBaseFilter):
         col = len(self.R) - 1
         row = len(r)
         k = col
+        print( "Number of new modes: ", col )
 
         ## For the first iteration
         if k == 0:
@@ -97,7 +94,7 @@ class MultiVectorQuasiNewtonAccelerator(CoSimulationBaseFilter):
         ## Solve least norm problem
         rhs = V - np.dot(self.J, W)
         b = np.identity( row )
-        W_right_inverse = np.linalg.lstsq(W, b, rcond=None)[0]
+        W_right_inverse = np.linalg.lstsq(W, b, rcond=-1)[0]
         J_tilde = np.dot(rhs, W_right_inverse)
         self.J_hat = self.J + J_tilde
         delta_r = -self.R[0]
@@ -109,7 +106,17 @@ class MultiVectorQuasiNewtonAccelerator(CoSimulationBaseFilter):
     ## InitializeSolutionStep : Called once at the beginning of the solution step
     #
     def InitializeSolutionStep(self):
-        self.iteration = 0
+        self.old_data = np.array(self.data.GetPythonList())
+        print("##################")
+        print(np.linalg.norm(self.old_data))
+        print()
+        print()
+        #pass
+
+
+    ## FinalizeSolutionStep : Called once at the end of the solution step
+    #
+    def FinalizeSolutionStep(self):
         if self.J == []:
             return
 
@@ -119,33 +126,37 @@ class MultiVectorQuasiNewtonAccelerator(CoSimulationBaseFilter):
         for i in range(0, row):
             for j in range(0, col):
                 self.J[i][j] = self.J_hat[i][j]
+                pass
 
         ## Clear the buffer
         if self.R and self.X:
             self.R.clear()
             self.X.clear()
 
-    ## FinalizeSolutionStep : Called once at the end of the solution step
-    #
-    def FinalizeSolutionStep(self):
-        pass
+    def Apply(self):
+        self.new_data = np.array(self.data.GetPythonList())
+        self.residual = self._CalculateResidual()
+        if(self.iteration == 0):
+            self.update = np.zeros(len(self.new_data))
+        else:
+            self.update = self._CalculateUpdate(self.residual, np.array(self.old_data))
+        self.old_data = self.old_data + self.update
+        self._ApplyRelaxationToData(self.old_data)
 
     ## InitializeNonLinearIteration : Function initializes the non linear iteration (coupling iteration)
     #                               Called at the beginning of the nonlinear iteration (coupling iteration)
     #
-    def InitializeNonLinearIteration(self):
-        self.input_data_current_iter = cs_tools.GetDataAsList(self.solver, self.data_name)
+    def InitializeCouplingIteration(self):
+        #self.old_data = np.array(self.data.GetPythonList())
+        pass
 
 
-    ## FinalizeNonLinearIteration : Function finalizes the non linear iteration (coupling iteration)
+    ## FinalizeCouplingIteration : Function finalizes the non linear iteration (coupling iteration)
     #                               Called at the end of the nonlinear iteration (coupling iteration)
     #
-    def FinalizeNonLinearIteration(self):
-        self.output_data_current_iter = cs_tools.GetDataAsList(self.solver, self.data_name)
-        residual = self._CalculateResidual()
-        self.update = self._CalculateUpdate(residual, np.array(self.input_data_current_iter))
-        self._ApplyRelaxationToData()
+    def FinalizeCouplingIteration(self):
         self.iteration = self.iteration + 1
+
 
     ## PrintInfo : Function to print the information of the convergence accelerator
     #
@@ -164,23 +175,15 @@ class MultiVectorQuasiNewtonAccelerator(CoSimulationBaseFilter):
 
     ## _CalculateResidual : Calculates residual of the data specified in the settings
     #                       Numpy can be used in the variants of this class.
-    #                       residual = output_data_current_iter - input_data_current_iter
+    #                       residual = new_data - old_data
     def _CalculateResidual(self):
         if(self.iteration == 0):
-            return np.array( self.output_data_current_iter )
-
-        return np.array( self._Difference(self.output_data_current_iter , self.input_data_current_iter) )
+            return np.zeros(len(self.old_data))
+        else:
+            return self.new_data - self.old_data
 
     ## _ApplyRelaxationToData : updates the data with the update calculated
     #
-    def _ApplyRelaxationToData(self):
-        updated_data = [ input_data + update  for input_data, update in zip(self.input_data_current_iter, self.update)]
-        cs_tools.ApplyUpdateToData(self.solver, self.data_name, updated_data)
+    def _ApplyRelaxationToData(self, updated_data):
+        self.data.ApplyUpdateToData(updated_data)
 
-
-    ## _Difference : Calculates the difference of two vectors provided in terms of python lists
-    #
-    def _Difference(self, list_one, list_two):
-        diff = [ i-j for i,j in zip(list_one, list_two)]
-
-        return diff
