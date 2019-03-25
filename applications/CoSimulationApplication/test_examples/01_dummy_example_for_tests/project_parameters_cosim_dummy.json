@@ -18,11 +18,12 @@
             {
                 "type"          : "mvqn",
                 "data" :
-                    {
-                        "solver"        : "dummy_one",
-                        "data_name"     : "MESH_DISPLACEMENT"
-                    },
-                "settings":{
+                {
+                    "solver"        : "dummy_one",
+                    "data_name"     : "MESH_DISPLACEMENT"
+                },
+                "settings":
+                {
                     "horizon" : 5,
                     "alpha" : 0.10
                 }
@@ -44,43 +45,44 @@
         [
             {
                 "name": "dummy_one",
-                "input_data_list": [
-                ],
-                "output_data_list": [
-                ]
+                "input_data_list": [],
+                "output_data_list": []
             },
             {
                 "name": "dummy_two",
-                "input_data_list": [
-                {
-                    "from_solver" : "dummy_one",
-                    "data_name"   : "REACTION",
-                    "settings"   :
+                "input_data_list":
+                [
                     {
-                        "destination_data":"POINT_LOAD",
-                        "mapper_settings":
+                        "from_solver" : "dummy_one",
+                        "data_name"   : "REACTION",
+                        "settings"   :
                         {
-                            "type":"nearest_neighbor",
-                            "flags":["swap_sign"]
+                            "destination_data": "POINT_LOAD",
+                            "mapper_settings":
+                            {
+                                "type": "nearest_neighbor",
+                                "flags": ["swap_sign"]
+                            }
                         }
                     }
-                }
-            ],
-            "output_data_list":
-            [
-                {
-                    "to_solver" : "dummy_one",
-                    "data_name"   : "MESH_DISPLACEMENT",
-                    "settings"    : {
-                        "origin_data":"DISPLACEMENT",
-                        "mapper_settings":{
-                               "type":"nearest_neighbor",
-                               "flags":[]
+                ],
+                "output_data_list":
+                [
+                    {
+                        "to_solver" : "dummy_one",
+                        "data_name"   : "MESH_DISPLACEMENT",
+                        "settings"    :
+                        {
+                            "origin_data": "DISPLACEMENT",
+                            "mapper_settings":
+                            {
+                                "type": "nearest_neighbor",
+                                "flags": []
+                            }
                         }
                     }
-                }
-            ]
-        }
+                ]
+            }
         ]
     },
     "solvers" :
@@ -88,7 +90,8 @@
         "dummy_one":
         {
             "solver_type" : "dummy_solver",
-            "settings":{
+            "settings":
+            {
                 "echo_level"  : 1,
                 "working_directory" : "CFD",
                 "input_file"  : "dummy_one.json"
