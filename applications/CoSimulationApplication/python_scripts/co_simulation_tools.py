@@ -74,7 +74,7 @@ def CalculateNorm(residual_list): ## Can use numpy here.
 #  @param data_name     The name of the data which is to be obtained as a list
 def GetDataAsList(solver, data_name):
     data = []
-    data_def = solver.data_list[data_name]
+    data_def = solver.data_map[data_name]
     data_mesh = solver.model[data_def["geometry_name"].GetString()]
     data_variable = cs_data_structure.KratosGlobals.GetVariable(data_name)
     for node in data_mesh.Nodes:
@@ -90,7 +90,7 @@ def GetDataAsList(solver, data_name):
 #  @param data_name     The name of the data to which the update is to be applied
 #  @param update        The update list which is to be applied to the data with name data_name
 def ApplyUpdateToData(solver, data_name, updated_data):
-    data_def = solver.data_list[data_name]
+    data_def = solver.data_map[data_name]
     data_mesh = solver.model[data_def["geometry_name"].GetString()]
     data_variable = cs_data_structure.KratosGlobals.GetVariable(data_name)
     index = 0
@@ -125,7 +125,7 @@ def PrintWarning(label, *args):
 #                           CoSimulation.
 #
 class CouplingInterfaceData(object):
-    def __init__(self, custom_config):
+    def __init__(self, custom_config, solver):
 
         default_config = cs_data_structure.Parameters("""
         {
@@ -140,6 +140,7 @@ class CouplingInterfaceData(object):
         self.name = custom_config["name"].GetString()
         self.variable = None
         self.filters = []
+        self.solver = solver
         self.dimension = custom_config["dimension"].GetInt()
         self.location_on_mesh = custom_config["location_on_mesh"].GetString()
         self.mesh_name = custom_config["geometry_name"].GetString()
@@ -148,13 +149,35 @@ class CouplingInterfaceData(object):
         self.mapper_settings = None
 
     def ApplyFilters(self):
-        pass
+        for filter in self.filters:
+            #filter.InitializeNonLinearIteration()
+            filter.Apply()
+            #filter.FinalizeNonLinearIteration()
 
     def GetPythonList(self):
-        pass
+        data = []
+        data_mesh = self.solver.model[self.mesh_name]
+        data_variable = cs_data_structure.KratosGlobals.GetVariable(self.name)
+        for node in data_mesh.Nodes:
+            data_value = node.GetSolutionStepValue(data_variable,0) #TODO what if non-historical?
+            for value in data_value:
+                data.append(value)
+        return data
 
     def GetNumpyArray(self):
         pass
 
+    def ApplyUpdateToData(self, update):
+        data_mesh = self.solver.model[self.mesh_name]
+        data_variable = cs_data_structure.KratosGlobals.GetVariable(self.name)
+        index = 0
+        for node in data_mesh.Nodes: # #TODO: local nodes to also work in MPI?
+            updated_value = []
+            value = node.GetSolutionStepValue(data_variable,0)
+            # TODO: aditya the data might also be non-historical => GetValue
+            for value_i in value:
+                updated_value.append(update[index])
+                index = index + 1
+            node.SetSolutionStepValue(data_variable, 0, updated_value)
 
 
