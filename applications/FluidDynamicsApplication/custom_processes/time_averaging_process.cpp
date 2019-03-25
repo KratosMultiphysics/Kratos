@@ -31,31 +31,73 @@ namespace Kratos
 
 
 TimeAveragingProcess::TimeAveragingProcess(
-    ModelPart& rModelPart)
+    ModelPart& rModelPart, 
+    const bool is_velocity_averaged,  
+    const bool is_pressure_averaged,  
+    const bool is_reaction_averaged)
     : Process(), mrModelPart(rModelPart) {
-        rModelPart.AddNodalSolutionStepVariable(TIME_AVERAGED_VELOCITY);
-        rModelPart.AddNodalSolutionStepVariable(TIME_AVERAGED_PRESSURE);
+        mDoAveragedVelocity = is_velocity_averaged;
+        mDoAveragedPressure = is_pressure_averaged;
+        mDoAveragedReaction = is_reaction_averaged;
+        
+        if (mDoAveragedVelocity == 1){
+            std::cout << "TimeAveragingProcess: VELOCITY will be averaged." << std::endl;
+            if (TIME_AVERAGED_VELOCITY.Key() == 0){
+                rModelPart.AddNodalSolutionStepVariable(TIME_AVERAGED_VELOCITY);
+                std::cout << "TimeAveragingProcess: TIME_AVERAGED_VELOCITY added." << std::endl;
+            }
+        }
+
+        if (mDoAveragedPressure == 1){
+            std::cout << "TimeAveragingProcess: PRESSURE will be averaged." << std::endl;
+            if (TIME_AVERAGED_PRESSURE.Key() == 0){
+                rModelPart.AddNodalSolutionStepVariable(TIME_AVERAGED_PRESSURE);
+                std::cout << "TimeAveragingProcess: TIME_AVERAGED_PRESSURE added." << std::endl;
+            }
+        }
+
+        if (mDoAveragedReaction == 1){
+            std::cout << "TimeAveragingProcess: REACTION will be averaged." << std::endl;
+            if (TIME_AVERAGED_REACTION.Key() == 0){
+                rModelPart.AddNodalSolutionStepVariable(TIME_AVERAGED_REACTION);
+                std::cout << "TimeAveragingProcess: TIME_AVERAGED_REACTION added." << std::endl;
+            }
+        }
+
         std::cout << "TimeAveragingProcess: Initialized." << std::endl;
 }
 
 void TimeAveragingProcess::ExecuteInitialize() {
+
     int NumNodes = mrModelPart.NumberOfNodes();
     for (int i = 0; i < NumNodes; ++i)
     {
         auto inode = mrModelPart.NodesBegin() + i;
-        inode->SetValue(TIME_AVERAGED_VELOCITY,inode->FastGetSolutionStepValue(VELOCITY));
-        inode->SetValue(TIME_AVERAGED_PRESSURE,inode->FastGetSolutionStepValue(PRESSURE));
+        if (mDoAveragedVelocity  == true )
+            inode->SetValue(TIME_AVERAGED_VELOCITY,inode->FastGetSolutionStepValue(VELOCITY));
+        if (mDoAveragedPressure  == true )
+            inode->SetValue(TIME_AVERAGED_PRESSURE,inode->FastGetSolutionStepValue(PRESSURE));
+        if (mDoAveragedReaction  == true )
+            inode->SetValue(TIME_AVERAGED_REACTION,inode->FastGetSolutionStepValue(REACTION));
     }
 
 }
+
 
 void TimeAveragingProcess::ExecuteFinalizeSolutionStep() {
     int NumNodes = mrModelPart.NumberOfNodes();
     for (int i = 0; i < NumNodes; ++i)
     {
         ModelPart::NodeIterator inode = mrModelPart.NodesBegin() + i;
-        this->AverageVelocity(inode);
-        this->AveragePressure(inode);
+        if (mDoAveragedVelocity == true ){
+            this->AverageVelocity(inode);
+        }
+        if (mDoAveragedPressure == true ){
+            this->AveragePressure(inode);
+        }
+        if (mDoAveragedReaction == true ){
+            this->AverageReaction(inode);
+        }
     }
     std::cout << "TimeAveragingProcess: Nodal Quantities Averaged." << std::endl;
 }
@@ -63,32 +105,52 @@ void TimeAveragingProcess::ExecuteFinalizeSolutionStep() {
 /* Protected functions ****************************************************/
 
 void TimeAveragingProcess::AverageVelocity(ModelPart::NodeIterator& inode){
+    double T =  mrModelPart.GetProcessInfo()[TIME];
+    double Dt =  mrModelPart.GetProcessInfo()[DELTA_TIME];
+    double TimeDtep = mrModelPart.GetProcessInfo()[STEP];
+
     array_1d<double,3> current_vel = inode->FastGetSolutionStepValue(VELOCITY);
     array_1d<double,3> &prev_ave_vel = inode->FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY,1);
-    array_1d<double, 3 > &averaged_vel = inode->FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY);
-    double t =  mrModelPart.GetProcessInfo()[TIME];
-    double dt =  mrModelPart.GetProcessInfo()[DELTA_TIME];
-	int time_step = mrModelPart.GetProcessInfo()[STEP];
-    if (time_step == 1){
+    array_1d<double,3 > &averaged_vel = inode->FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY);
+
+    if (T == 0.0){
 		noalias(averaged_vel) = current_vel;
     } else {
-        noalias(averaged_vel) = ( prev_ave_vel * (t - dt) + current_vel * dt ) / t;
+        noalias(averaged_vel) = ( prev_ave_vel * (T - Dt) + current_vel * Dt ) / T;
+    }
+}
+
+void TimeAveragingProcess::AverageReaction(ModelPart::NodeIterator& inode){
+
+    double T =  mrModelPart.GetProcessInfo()[TIME];
+    double Dt =  mrModelPart.GetProcessInfo()[DELTA_TIME];
+    double TimeDtep = mrModelPart.GetProcessInfo()[STEP];
+    
+    array_1d<double,3> current_reaction = inode->FastGetSolutionStepValue(REACTION);
+    array_1d<double,3> &prev_ave_reaction = inode->FastGetSolutionStepValue(TIME_AVERAGED_REACTION,1);
+    array_1d<double,3> &averaged_reaction = inode->FastGetSolutionStepValue(TIME_AVERAGED_REACTION);
+
+    if (T == 0.0){
+		noalias(averaged_reaction) = averaged_reaction;
+    } else {
+        noalias(averaged_reaction) = ( prev_ave_reaction * (T - Dt) + current_reaction * Dt ) / T;
     }
 }
 
 void TimeAveragingProcess::AveragePressure(ModelPart::NodeIterator& inode){
-    double& current_pre = inode->FastGetSolutionStepValue(PRESSURE);
-    double& prev_ave_pre = inode->FastGetSolutionStepValue(TIME_AVERAGED_PRESSURE,1);
-    double& averaged_pre = inode->FastGetSolutionStepValue(TIME_AVERAGED_PRESSURE);
-    double t =  mrModelPart.GetProcessInfo()[TIME];
-    double dt =  mrModelPart.GetProcessInfo()[DELTA_TIME];
-    int time_step = mrModelPart.GetProcessInfo()[STEP];
-    // when current pressure does not converge at current step, ignore current value for averaging
-    if (time_step == 1){
+    double T =  mrModelPart.GetProcessInfo()[TIME];
+    double Dt =  mrModelPart.GetProcessInfo()[DELTA_TIME];
+    double TimeDtep = mrModelPart.GetProcessInfo()[STEP];
+    
+    double current_pre = inode->FastGetSolutionStepValue(PRESSURE);
+    double &prev_ave_pre = inode->FastGetSolutionStepValue(TIME_AVERAGED_PRESSURE,1);
+    double &averaged_pre = inode->FastGetSolutionStepValue(TIME_AVERAGED_PRESSURE);
+
+    if (T == 0.0){
 		averaged_pre = current_pre;
     }
     else {
-        averaged_pre = ( prev_ave_pre * (t - dt) + current_pre * dt ) / t;
+        averaged_pre = ( prev_ave_pre * (T - Dt) + current_pre * Dt ) / T;
     }
     inode->SetValue(TIME_AVERAGED_PRESSURE,averaged_pre);
 }

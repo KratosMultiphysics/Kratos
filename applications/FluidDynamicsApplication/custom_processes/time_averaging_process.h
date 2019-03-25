@@ -68,7 +68,10 @@ public:
     ///@{
 
     /// Constructor.
-	TimeAveragingProcess(ModelPart& rModelPart);
+	TimeAveragingProcess(ModelPart& rModelPart, 
+                         const bool is_velocity_averaged,  
+                         const bool is_pressure_averaged,  
+                         const bool is_reaction_averaged);
 
     /// Destructor.
     ~TimeAveragingProcess() override {}
@@ -127,6 +130,9 @@ private:
     ///@{
 
     ModelPart&                                       mrModelPart;
+    bool                                     mDoAveragedVelocity;
+    bool                                     mDoAveragedPressure;
+    bool                                     mDoAveragedReaction;
 
     ///@}
     ///@name Protected Operators
@@ -138,6 +144,7 @@ private:
 
     void AverageVelocity(ModelPart::NodeIterator& inode);
     void AveragePressure(ModelPart::NodeIterator& inode);
+    void AverageReaction(ModelPart::NodeIterator& inode);
 
     ///@}
     ///@name Private  Access
