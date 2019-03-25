@@ -29,10 +29,12 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
         self.project_parameters = KratosMultiphysics.Parameters(parameters)
 
     def Initialize(self):
+        super(KratosBaseFieldSolver, self).Initialize()
         self._GetAnalysisStage().Initialize()
-        self.InitializeIO()
+
 
     def Finalize(self):
+        super(KratosBaseFieldSolver, self).Finalize()
         self._GetAnalysisStage().Finalize()
 
     def AdvanceInTime(self, current_time):
@@ -42,12 +44,15 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
         return new_time
 
     def Predict(self):
+        super(KratosBaseFieldSolver, self).Predict()
         self._GetAnalysisStage()._GetSolver().Predict()
 
     def InitializeSolutionStep(self):
+        super(KratosBaseFieldSolver, self).InitializeSolutionStep()
         self._GetAnalysisStage().InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
+        super(KratosBaseFieldSolver, self).FinalizeSolutionStep()
         self._GetAnalysisStage().FinalizeSolutionStep()
 
     def OutputSolutionStep(self):

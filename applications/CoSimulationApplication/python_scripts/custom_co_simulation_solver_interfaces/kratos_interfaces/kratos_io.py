@@ -113,18 +113,18 @@ class KratosIo(CoSimulationBaseIO):
     def ExportCouplingInterfaceData(self, data_object, to_solver):
         if(to_solver):
             # exchange data from python cosim solver
-            if(data_object.Has("mapper_settings")):
-                dest_geo_name = data_object["destination_data_object"]["geometry_name"].GetString()
-                dest_var_name = data_object["destination_data_object"]["name"].GetString()
-                origin_geo_name = data_object["geometry_name"].GetString()
-                origin_var_name = data_object["name"].GetString()
+            if(data_object.mapper_settings!=None):
+                dest_geo_name = data_object.destination_data.mesh_name
+                dest_var_name = data_object.destination_data.name
+                origin_geo_name = data_object.mesh_name
+                origin_var_name = data_object.name
 
-                flags = data_object["mapper_settings"]["flags"]
+                flags = data_object.mapper_settings["flags"]
                 origin_var = KratosMultiphysics.KratosGlobals.GetVariable(origin_var_name)
                 dest_var = KratosMultiphysics.KratosGlobals.GetVariable(dest_var_name)
 
                 set_flags = KratosMultiphysics.Flags()
-                if data_object["mapper_settings"].Has("flags"):
+                if data_object.mapper_settings.Has("flags"):
                     num_flags = flags.size()
                     for i in range(num_flags):
                         flag_name = flags[i].GetString()
