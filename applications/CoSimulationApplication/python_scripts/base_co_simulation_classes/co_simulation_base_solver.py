@@ -86,13 +86,33 @@ class CoSimulationBaseSolver(object):
     #
     #  @param self            The object pointer.
     def InitializeSolutionStep(self):
-        pass
+        for name, data in self.data_map.items():
+            for filter in data.filters:
+                filter.InitializeSolutionStep()
 
     ## FinalizeSolutionStep : Called once at the end of the solution step
     #
     #  @param self            The object pointer.
     def FinalizeSolutionStep(self):
-        pass
+        for name, data in self.data_map.items():
+            for filter in data.filters:
+                filter.FinalizeSolutionStep()
+
+    ## InitializeCouplingIteration : Called once in the beginning of the coupled iteration
+    #
+    #  @param self            The object pointer.
+    def InitializeCouplingIteration(self):
+        for name, data in self.data_map.items():
+            for filter in data.filters:
+                filter.InitializeCouplingIteration()
+
+    ## FinalizeCouplingIteration : Called once at the end of the coupled iteration
+    #
+    #  @param self            The object pointer.
+    def FinalizeCouplingIteration(self):
+        for name, data in self.data_map.items():
+            for filter in data.filters:
+                filter.FinalizeCouplingIteration()
 
     ## OutputSolutionStep : Called once at the end of the solution step.
     #                       The output of the solvers and / or cosimulation output
@@ -211,7 +231,7 @@ class CoSimulationBaseSolver(object):
         num_data = self.cosim_solver_settings["data"].size()
         for data_conf in self.cosim_solver_settings["data"]:
             data_name = data_conf["name"].GetString()
-            data_obj = tools.CouplingInterfaceData(data_conf)
+            data_obj = tools.CouplingInterfaceData(data_conf, self)
             data_map[data_name] = data_obj
 
         return data_map
