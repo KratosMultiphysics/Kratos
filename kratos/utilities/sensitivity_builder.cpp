@@ -601,6 +601,28 @@ void SensitivityBuilder::UpdateSensitivities()
     KRATOS_CATCH("");
 }
 
+void SensitivityBuilder::Clear()
+{
+    KRATOS_TRY;
+
+    ClearFlags();
+    ClearSensitivities();
+
+    KRATOS_CATCH("");
+}
+
+void SensitivityBuilder::ClearFlags()
+{
+    KRATOS_TRY;
+    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
+                                             mpModelPart->Nodes());
+    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
+                                             mpModelPart->Elements());
+    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
+                                             mpModelPart->Conditions());
+    KRATOS_CATCH("");
+}
+
 void SensitivityBuilder::ClearSensitivities()
 {
     KRATOS_TRY;
@@ -612,19 +634,6 @@ void SensitivityBuilder::ClearSensitivities()
         mElementDataValueSensitivityVariables, mpModelPart->Elements());
     SetNonHistoricalSensitivityVariablesToZero(
         mConditionDataValueSensitivityVariables, mpModelPart->Conditions());
-    KRATOS_CATCH("");
-}
-
-void SensitivityBuilder::Clear()
-{
-    KRATOS_TRY;
-    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
-                                             mpModelPart->Nodes());
-    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
-                                             mpModelPart->Elements());
-    VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
-                                             mpModelPart->Conditions());
-    ClearSensitivities();
     KRATOS_CATCH("");
 }
 
