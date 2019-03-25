@@ -39,7 +39,7 @@ namespace Kratos {
 		{			
 			Model model;
 			unsigned int buffer_size = 5;
-			double exp_factor = 1.0;
+			double exp_factor = 1.01;
 			ModelPart& modelPart = model.CreateModelPart("Main",buffer_size);
 
 			// Variables addition
@@ -126,6 +126,7 @@ namespace Kratos {
 			pElement->Initialize(); // Initialize the element to initialize the constitutive law
 			KRATOS_WATCH("ELEMENT INITIALIZED")
 			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
+			KRATOS_WATCH(RHS)
 			KRATOS_WATCH("LOCAL SYSTEM CALCULATED")
 
 			// Compute the error of the perturbation
@@ -134,12 +135,14 @@ namespace Kratos {
 			std::vector<double> error_vel_norms;
 			std::vector<double> error_pres_norms;
 
-			for (unsigned int j=0; j<5; ++j)
+			for (unsigned int j=0; j<10; ++j)
 			{
-				modelPart.CloneTimeStep(current_time);
-				time_step += 1;
+				std::cout << "=======================================================================" << std::endl;
+				modelPart.CloneSolutionStep();
+				modelPart.GetProcessInfo()[STEP] += 1;
+				time_step = modelPart.GetProcessInfo()[STEP];
 				KRATOS_WATCH(time_step)
-				double previous_time_step = modelPart.GetProcessInfo().GetPreviousTimeStepInfo()[DELTA_TIME];
+				double previous_time_step = modelPart.GetProcessInfo()[DELTA_TIME];
 				KRATOS_WATCH(previous_time_step)
 				double next_delta_time = previous_time_step*exp_factor;
 				KRATOS_WATCH(next_delta_time)
@@ -167,12 +170,13 @@ namespace Kratos {
 				Vector RHS_obtained = ZeroVector(9);
 				Vector RHS_perturbed = ZeroVector(9);
 				Vector solution_increment = ZeroVector(9);
+				
 				pElement->CalculateRightHandSide(RHS_perturbed, modelPart.GetProcessInfo());
-
 				KRATOS_WATCH(RHS_perturbed)
-
+				
 				solution_increment = prod(LHS, perturbation_vector);
 				noalias(RHS_obtained) = RHS - solution_increment;
+				KRATOS_WATCH(RHS_obtained)
 				noalias(error) = RHS_perturbed - RHS_obtained;
 				error_norms.push_back(norm_2(error));
 			}
@@ -181,9 +185,11 @@ namespace Kratos {
 			// for(unsigned int i=1; i<error_norms.size(); ++i)
 			// 	KRATOS_CHECK_NEAR(error_norms[i-1]/error_norms[i], 4.0, 1e-1);
 
-			//Check quadratic convergence (if Picard has been selected when generating the element)
-			// for(unsigned int i=1; i<error_norms.size(); ++i)
-			// 	KRATOS_CHECK_NEAR(error_norms[i-1]/error_norms[i], 2.0, 2.5e-1);
+			// Check quadratic convergence (if Picard has been selected when generating the element)
+			for(unsigned int i=1; i<error_norms.size(); ++i){
+				KRATOS_WATCH(error_norms[i-1]/error_norms[i])
+				//KRATOS_CHECK_NEAR(error_norms[i-1]/error_norms[i], 2.0, 2.5e-1);
+			}
 
 			// for(unsigned int i=0;i<error_norms.size();++i){
 			// 	std::cout << "Error norm "<< i << " " << error_norms[i] << std::endl;
@@ -191,6 +197,110 @@ namespace Kratos {
 
 
 	    }
-	}
+	
+	
+		/** Checks the TimeAvergedNavierStokes2D3N element.
+		 * Checks the LHS and RHS stationary solid rigid movements.
+		 */
+	    KRATOS_TEST_CASE_IN_SUITE(ElementTimeAveragedNavierStokes2D3NStationary, FluidDynamicsApplicationFastSuite)
+		{
+			Model model;
+			ModelPart& modelPart = model.CreateModelPart("Main", 3);
 
-}
+			// Variables addition
+			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
+			modelPart.AddNodalSolutionStepVariable(DENSITY);
+			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
+			modelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(TIME_AVERAGED_PRESSURE);
+			modelPart.AddNodalSolutionStepVariable(TIME_AVERAGED_VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+
+			// Process info creation
+			double delta_time = 0.1;
+			modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.01);
+			modelPart.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+03);
+			modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+			Vector bdf_coefs(3);
+			bdf_coefs[0] = 0.0;
+			bdf_coefs[1] = 0.0;
+			bdf_coefs[2] = 0.0;
+			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+
+			// Set the element properties
+			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+			pElemProp->SetValue(DENSITY, 1.0);
+			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0);
+			Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
+			pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
+
+			// Geometry creation
+			modelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+			modelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+			modelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
+			std::vector<ModelPart::IndexType> elemNodes {1, 2, 3};
+			modelPart.CreateNewElement("TimeAveragedNavierStokes2D3N", 1, elemNodes, pElemProp);
+
+			Element::Pointer pElement = modelPart.pGetElement(1);
+
+			// Define the nodal values
+			array_1d<double, 3> velocity_values;
+			velocity_values[0] = 0.0;
+			velocity_values[1] = 0.0;
+			velocity_values[2] = 0.0;
+			double pressure_value = 0.0;
+
+			// Set the nodal values
+			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
+				it_node->FastGetSolutionStepValue(TIME_AVERAGED_PRESSURE) = pressure_value;
+				it_node->FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY) = velocity_values;
+				it_node->FastGetSolutionStepValue(DENSITY) = pElemProp->GetValue(DENSITY);
+				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
+			}
+
+			// Compute RHS and LHS
+			Vector RHS = ZeroVector(9);
+			Matrix LHS = ZeroMatrix(9,9);
+
+			pElement->Initialize(); // Initialize the element to initialize the constitutive law
+			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
+
+			// Check obtained RHS
+			double sum_RHS = 0.0;
+			for (unsigned int i=0; i<RHS.size(); ++i)
+				sum_RHS += RHS[i];
+			KRATOS_CHECK_NEAR(sum_RHS, 0.0, 1e-12);
+
+			// Check rigid movement modes
+			Vector a(9);
+			Vector rhs(9);
+			double sum_rhs;
+			// Mode 1 check
+			a[0] = 1.0; a[1] = 0.0; a[2] = 0.0;	a[3] = 1.0;	a[4] = 0.0;	a[5] = 0.0;	a[6] = 1.0;	a[7] = 0.0;	a[8] = 0.0;
+			sum_rhs = 0.0;
+			rhs = prod(LHS,a);
+			for (unsigned int i=0; i<rhs.size(); ++i)
+				sum_rhs += rhs[i];
+			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-12);
+			// Mode 2 check
+			a[0] = 0.0; a[1] = 1.0; a[2] = 0.0;	a[3] = 0.0;	a[4] = 1.0;	a[5] = 0.0;	a[6] = 0.0;	a[7] = 1.0;	a[8] = 0.0;
+			sum_rhs = 0.0;
+			rhs = prod(LHS,a);
+			for (unsigned int i=0; i<rhs.size(); ++i)
+				sum_rhs += rhs[i];
+			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-12);
+			// Mode 3 check
+			a[0] = 1.0; a[1] = 1.0; a[2] = 0.0;	a[3] = 1.0;	a[4] = 1.0;	a[5] = 0.0;	a[6] = 1.0;	a[7] = 1.0;	a[8] = 0.0;
+			sum_rhs = 0.0;
+			rhs = prod(LHS,a);
+			for (unsigned int i=0; i<rhs.size(); ++i)
+				sum_rhs += rhs[i];
+			KRATOS_CHECK_NEAR(sum_rhs, 0.0, 1e-12);
+
+	    }
+
+
+
+	} // namespace Testing
+}  // namespace Kratos.
