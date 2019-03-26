@@ -80,7 +80,7 @@
     {
         "pipe_flow":
         {
-            "solver_type" : "pipe_flow_interface.pipe_flow_solver",
+            "solver_type" : "pipe_interfaces.pipe_flow_solver",
             "settings":
             {
                 "echo_level"  : 1,
@@ -107,7 +107,7 @@
         },
         "pipe_structure" :
         {
-            "solver_type" : "pipe_structure_interface.pipe_structure_solver",
+            "solver_type" : "pipe_interfaces.pipe_structure_solver",
             "settings":
             {
                 "echo_level"  : 1,
