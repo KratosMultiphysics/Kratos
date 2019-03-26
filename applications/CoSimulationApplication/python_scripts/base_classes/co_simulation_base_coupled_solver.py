@@ -209,11 +209,6 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         for i_solver in range(num_solvers):
             solver_name = co_simulation_solver_settings[i_solver]["name"].GetString()
             solver_cs_details[solver_name] = co_simulation_solver_settings[i_solver]
-        # TODO check if the data is consistently defined! => maybe do at another place though...
-        # - input in one is output in another
-        # - one IO is defined for each data_name
-        # - if the same data is defined multiple times
-        # - check if data format has been specified
         return solver_cs_details
 
     ## _CreateFilters : Protected Function to make filter objects list and store in the datafield
@@ -222,7 +217,6 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     def _CreateFilters(self, co_simulation_solver_settings): # probably better in some utils file
         import KratosMultiphysics.CoSimulationApplication.custom_convergence_accelerators.co_simulation_convergence_accelerator_factory as cs_convergence_accelerator_factory
         num_solvers = co_simulation_solver_settings.size()
-        solver_cs_details = {}
         for i_solver in range(num_solvers):
             solver_name = co_simulation_solver_settings[i_solver]["name"].GetString()
             solver = self.participating_solvers[solver_name]

@@ -16,7 +16,6 @@ class GaussSeidelIterativeStrongCoupledSolver(CoSimulationBaseCoupledSolver):
         # Importing the Participant modules
         self.participants_setting_dict = self.full_settings["coupled_solver_settings"]["participants"]
         self.participating_solver_names = []
-
         for participant in range(0,self.number_of_participants) :
             self.participating_solver_names.append(self.participants_setting_dict[participant]['name'])
 
