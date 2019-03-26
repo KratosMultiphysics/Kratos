@@ -22,6 +22,7 @@ namespace Kratos {
                 .def("TransferStructuresSkinToDem", &DemStructuresCouplingUtilities::TransferStructuresSkinToDem)
                 .def("CheckProvidedProperties", &DemStructuresCouplingUtilities::CheckProvidedProperties)
                 .def("SmoothLoadTrasferredToFem", &DemStructuresCouplingUtilities::SmoothLoadTrasferredToFem)
+                .def("ComputeSandProduction", &DemStructuresCouplingUtilities::ComputeSandProduction)
             ;
 
             class_<ComputeDEMFaceLoadUtility> (m, "ComputeDEMFaceLoadUtility")

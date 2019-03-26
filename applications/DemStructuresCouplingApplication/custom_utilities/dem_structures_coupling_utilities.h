@@ -101,6 +101,38 @@ void SmoothLoadTrasferredToFem(ModelPart& r_model_part, const double portion_of_
     }
 }
 
+void ComputeSandProduction(ModelPart& dem_model_part, ModelPart& skin_model_part) {
+
+    const std::string filename = "sand_production_graph.txt";
+    std::ifstream ifile(filename.c_str());
+    static bool first_time_entered = true;
+    if ((bool) ifile && first_time_entered) {
+        std::remove("sand_production_graph.txt");
+        first_time_entered = false;
+    }
+
+    ModelPart::ElementsContainerType& pElements = dem_model_part.GetCommunicator().LocalMesh().Elements();
+    double current_total_mass_in_grams = 0.0;
+
+    for (unsigned int k = 0; k < pElements.size(); k++) {
+
+        ModelPart::ElementsContainerType::iterator it = pElements.ptr_begin() + k;
+        Element* raw_p_element = &(*it);
+        SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(raw_p_element);
+        const double particle_radius = p_sphere->GetRadius();
+        const double particle_density = p_sphere->GetDensity();
+        current_total_mass_in_grams += (4.0/3.0) * Globals::Pi * particle_density * particle_radius * particle_radius * particle_radius * 1000.0;
+    }
+    static const double initial_total_mass_in_grams = current_total_mass_in_grams;
+    const double cumulative_sand_mass_in_grams = initial_total_mass_in_grams - current_total_mass_in_grams;
+
+    ModelPart::NodesContainerType::iterator node_begin = skin_model_part.NodesBegin();
+    const double face_pressure_in_psi = node_begin->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) * 0.000145;
+
+    static std::ofstream sand_prod_file("sand_production_graph.txt", std::ios_base::out | std::ios_base::app);
+    sand_prod_file << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
+}
+
 //***************************************************************************************************************
 //***************************************************************************************************************
 
