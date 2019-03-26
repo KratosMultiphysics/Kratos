@@ -31,12 +31,12 @@
         ],
         "convergence_criteria" :
         [
-                {
-                    "solver"        : "dummy_one",
-                    "data_name"     : "MESH_DISPLACEMENT",
-                    "abs_tolerance" : 1e-6,
-                    "rel_tolerance" : 1e-4
-                }
+            {
+                "solver"        : "dummy_one",
+                "data_name"     : "MESH_DISPLACEMENT",
+                "abs_tolerance" : 1e-6,
+                "rel_tolerance" : 1e-4
+            }
         ],
         "participants":
         [
@@ -47,33 +47,34 @@
             },
             {
                 "name": "dummy_two",
-                "input_data_list": [
-                {
-                    "from_solver" : "dummy_one",
-                    "data_name"   : "REACTION",
-                    "destination_data":"POINT_LOAD",
-                    "mapper_settings":
+                "input_data_list":
+                [
                     {
-                        "type":"nearest_neighbor",
-                        "flags":["swap_sign"]
-                    },
-                    "filters":[]
-                }
-            ],
-            "output_data_list":
-            [
-                {
-                    "to_solver" : "dummy_one",
-                    "data_name"   : "MESH_DISPLACEMENT",
-                    "origin_data":"DISPLACEMENT",
-                    "mapper_settings":{
+                        "from_solver" : "dummy_one",
+                        "data_name"   : "REACTION",
+                        "destination_data":"POINT_LOAD",
+                        "mapper_settings":
+                        {
+                            "type":"nearest_neighbor",
+                            "flags":["swap_sign"]
+                        },
+                        "filters":[]
+                    }
+                ],
+                "output_data_list":
+                [
+                    {
+                        "to_solver" : "dummy_one",
+                        "data_name"   : "MESH_DISPLACEMENT",
+                        "origin_data":"DISPLACEMENT",
+                        "mapper_settings":{
                             "type":"nearest_neighbor",
                             "flags":[]
-                    },
-                    "filters":[]
-                }
-            ]
-        }
+                        },
+                        "filters":[]
+                    }
+                ]
+            }
         ]
     },
     "solvers" :

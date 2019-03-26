@@ -22,7 +22,7 @@ class CoSimulationBaseSolver(object):
         default_setting = cs_data_structure.Parameters("""
         {
             "solver_type" : "",
-            "io_settings":{},
+            "io_settings": {},
             "settings" : {},
             "data" : [],
             "echo_level" : 0
@@ -31,7 +31,7 @@ class CoSimulationBaseSolver(object):
         self.name = solver_name
         self.cs_solver_settings = cs_solver_settings
         self.cs_solver_settings.ValidateAndAssignDefaults(default_setting)
-        self.SetEchoLevel( self.cs_solver_settings["echo_level"].IsInt() )
+        self.SetEchoLevel(self.cs_solver_settings["echo_level"].IsInt())
         self.data_map = self._GetDataMap()
         self.geo_names = self._GetGeometryNames()
         self.model = cs_data_structure.Model() ## Where all the co-simulation meshes are stored.
