@@ -40,8 +40,6 @@
 #include "state_derivative/variable_utilities/direct_sensitivity_nodal_data_variable.h"
 #include "state_derivative/variable_utilities/direct_sensitivity_point_load_variable.h"
 
-// Adjoint postprocessing
-#include "custom_response_functions/response_utilities/adjoint_postprocess.h"
 
 // Direct sensitivity postprocess 
 #include "state_derivative/variable_utilities/direct_sensitivity_postprocess.h"
@@ -123,16 +121,8 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
 
     py::class_<DirectSensitivityNodalDisplacementResponseFunction, DirectSensitivityNodalDisplacementResponseFunction::Pointer, DirectSensitivityResponseFunction >
         (m, "DirectSensitivityNodalDisplacementResponseFunction")
-        .def(py::init<ModelPart&, Parameters, std::string&>());
-     
-    // Adjoint postprocess
-    py::class_<AdjointPostprocess, AdjointPostprocess::Pointer>
-      (m, "AdjointPostprocess")
-      .def(py::init<ModelPart&, AdjointResponseFunction&, Parameters>())
-      .def("Initialize", &AdjointPostprocess::Initialize)
-      .def("InitializeSolutionStep", &AdjointPostprocess::InitializeSolutionStep)
-      .def("FinalizeSolutionStep", &AdjointPostprocess::FinalizeSolutionStep)
-      .def("UpdateSensitivities", &AdjointPostprocess::UpdateSensitivities);
+        .def(py::init<ModelPart&, Parameters, std::string&>());     
+    
 
     // Direct sensitivity postprocess
     py::class_<DirectSensitivityPostprocess, DirectSensitivityPostprocess::Pointer>

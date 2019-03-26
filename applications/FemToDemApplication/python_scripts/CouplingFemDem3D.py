@@ -53,7 +53,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 	def InitializeSolutionStep(self):
 
         # modified for the remeshing
-		self.FEM_Solution.delta_time = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        self.FEM_Solution.delta_time = self.ComputeDeltaTime()
+        self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.FEM_Solution.delta_time
 		self.FEM_Solution.time = self.FEM_Solution.time + self.FEM_Solution.delta_time
 		self.FEM_Solution.main_model_part.CloneTimeStep(self.FEM_Solution.time)
 		self.FEM_Solution.step = self.FEM_Solution.step + 1

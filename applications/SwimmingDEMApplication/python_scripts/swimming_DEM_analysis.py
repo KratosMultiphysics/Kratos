@@ -96,6 +96,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.ModifyInputParametersForCoherence()
 
+        # self.project_parameters = self.pp.CFD_DEM  # seems not to be necessary
+
         self.SetDispersePhaseAlgorithm()
 
         self.disperse_phase_solution.coupling_analysis = weakref.proxy(self)
@@ -113,7 +115,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.spheres_model_part = self.disperse_phase_solution.spheres_model_part
         self.cluster_model_part = self.disperse_phase_solution.cluster_model_part
         self.rigid_face_model_part = self.disperse_phase_solution.rigid_face_model_part
-        self.DEM_inlet_model_part = self.disperse_phase_solution.DEM_inlet_model_part
+        self.dem_inlet_model_part = self.disperse_phase_solution.dem_inlet_model_part
         self.vars_man.ConstructListsOfVariables(self.project_parameters)
         super(SwimmingDEMAnalysis, self).__init__(model, self.project_parameters) # TODO: The DEM jason is now interpreted as the coupling json. This must be changed
 
@@ -210,11 +212,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.fluid_parameters["solver_settings"]["time_stepping"]["time_step"].SetDouble(self.fluid_time_step)
         self.project_parameters["dem_parameters"]["MaxTimeStep"].SetDouble(self.time_step)
 
-        if self.project_parameters["coupling_level_type"].GetInt() == 0:
-            self.project_parameters["project_at_every_substep_option"].SetBool(False)
-
-        # the fluid fraction is not projected from DEM (there may not
-        # be a DEM part) but is externally imposed:
+        # The fluid fraction is not projected from DEM (there may not
+        # be a DEM part) but is externally imposed instead:
         if self.project_parameters["flow_in_porous_medium_option"].GetBool():
             self.project_parameters["coupling_weighing_type"].SetInt(- 1)
 
@@ -389,15 +388,13 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.stationarity = False
 
         # setting up loop counters:
-        self.fluid_solve_counter          = self.GetFluidSolveCounter()
-        self.DEM_to_fluid_counter         = self.GetBackwardCouplingCounter()
-        self.derivative_recovery_counter  = self.GetRecoveryCounter()
-        self.stationarity_counter         = self.GetStationarityCounter()
-        self.print_counter_updated_DEM    = self.GetPrintCounterUpdatedDEM()
-        self.print_counter_updated_fluid  = self.GetPrintCounterUpdatedFluid()
-        self.debug_info_counter           = self.GetDebugInfo()
-        self.particles_results_counter    = self.GetParticlesResultsCounter()
-        self.quadrature_counter           = self.GetHistoryForceQuadratureCounter()
+        self.DEM_to_fluid_counter = self.GetBackwardCouplingCounter()
+        self.derivative_recovery_counter = self.GetRecoveryCounter()
+        self.stationarity_counter = self.GetStationarityCounter()
+        self.print_counter = self.GetPrintCounter()
+        self.debug_info_counter = self.GetDebugInfo()
+        self.particles_results_counter = self.GetParticlesResultsCounter()
+        self.quadrature_counter = self.GetHistoryForceQuadratureCounter()
         # Phantom
         self.disperse_phase_solution.analytic_data_counter = self.ProcessAnalyticDataCounter()
         self.mat_deriv_averager           = SDP.Averager(1, 3)
@@ -471,13 +468,13 @@ class SwimmingDEMAnalysis(AnalysisStage):
         SDP.AddExtraDofs(self.fluid_model_part,
                          self.spheres_model_part,
                          self.cluster_model_part,
-                         self.DEM_inlet_model_part,
+                         self.dem_inlet_model_part,
                          self.vars_man)
 
     def DispersePhaseInitialize(self):
         self.vars_man.__class__.AddNodalVariables(self.spheres_model_part, self.vars_man.dem_vars)
         self.vars_man.__class__.AddNodalVariables(self.rigid_face_model_part, self.vars_man.rigid_faces_vars)
-        self.vars_man.__class__.AddNodalVariables(self.DEM_inlet_model_part, self.vars_man.inlet_vars)
+        self.vars_man.__class__.AddNodalVariables(self.dem_inlet_model_part, self.vars_man.inlet_vars)
         self.vars_man.AddExtraProcessInfoVariablesToDispersePhaseModelPart(self.project_parameters,
                                                                            self.disperse_phase_solution.spheres_model_part)
 
@@ -504,9 +501,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
                 )
             self.calculate_distance_process.Execute()
 
-    def TheSimulationMustGoOn(self):
-        return self.time <= self.end_time
-
     def GetAnalyticFacesModelParts(self):
         analytic_face_submodelpart_number = 1
         analytic_face_submodelpart_name = self.rigid_face_model_part.GetSubModelPart(str(analytic_face_submodelpart_number))
@@ -515,15 +509,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def MakeAnalyticsMeasurements(self):
         self.analytic_face_watcher.MakeMeasurements()
         self.analytic_particle_watcher.MakeMeasurements()
-
-    def RunSolutionLoop(self):
-        while self.TheSimulationMustGoOn():
-            self.step, self.time = self._GetSolver().AdvanceInTime(self.step, self.time)
-            self.InitializeSolutionStep()
-            self._GetSolver().Predict()
-            self._GetSolver().SolveSolutionStep()
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
 
     def InitializeSolutionStep(self):
         self.TellTime()
@@ -555,7 +540,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def OutputSolutionStep(self):
         # printing if required
 
-        if self.print_counter_updated_fluid.Tick():
+        if self.print_counter.Tick():
             self.ComputePostProcessResults()
             self._Print()
 
@@ -630,9 +615,9 @@ class SwimmingDEMAnalysis(AnalysisStage):
             # Note that right now only inlets of a single type are possible.
             # This should be generalized.
             if self.project_parameters["type_of_inlet"].GetString() == 'VelocityImposed':
-                self.DEM_inlet = DEM_Inlet(self.DEM_inlet_model_part)
+                self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part)
             elif self.project_parameters["type_of_inlet"].GetString() == 'ForceImposed':
-                self.DEM_inlet = DEM_Force_Based_Inlet(self.DEM_inlet_model_part, self.project_parameters["inlet_force_vector"].GetVector())
+                self.DEM_inlet = DEM_Force_Based_Inlet(self.dem_inlet_model_part, self.project_parameters["inlet_force_vector"].GetVector())
 
             self.disperse_phase_solution.DEM_inlet = self.DEM_inlet
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.disperse_phase_solution.creator_destructor)
@@ -678,9 +663,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         Say(final_message)
 
-    def GetFluidSolveCounter(self):
-        return SDP.Counter(is_dead=(self.project_parameters["drag_force_type"].GetInt() == 9))
-
     def GetBackwardCouplingCounter(self):
         return SDP.Counter(1, 1, self.project_parameters["coupling_level_type"].GetInt() > 1)
 
@@ -696,23 +678,10 @@ class SwimmingDEMAnalysis(AnalysisStage):
             beginning_step=1,
             is_active=self.project_parameters["stationary_problem_option"].GetBool())
 
-    def GetPrintCounterUpdatedDEM(self):
-        counter = SDP.Counter(
-            steps_in_cycle=int(self.output_time / self.time_step + 0.5),
-            beginning_step=int(self.fluid_time_step / self.time_step))
-
-        if 'UpdatedDEM' != self.project_parameters["coupling_scheme_type"].GetString():
-            counter.Kill()
-        return counter
-
-    def GetPrintCounterUpdatedFluid(self):
-        counter = SDP.Counter(
-            steps_in_cycle=int(self.output_time / self.time_step + 0.5),
-            beginning_step=int(self.output_time / self.time_step),
-            is_dead = not self.do_print_results)
-
-        if 'UpdatedFluid' != self.project_parameters["coupling_scheme_type"].GetString():
-            counter.Kill()
+    def GetPrintCounter(self):
+        counter = SDP.Counter(steps_in_cycle=int(self.output_time / self.time_step + 0.5),
+                              beginning_step=int(self.output_time / self.time_step),
+                              is_dead = not self.do_print_results)
         return counter
 
     def GetDebugInfo(self):
@@ -787,9 +756,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def ApplyForwardCoupling(self, alpha='None'):
         self._GetSolver().projection_module.ApplyForwardCoupling(alpha)
-
-    def ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self, time=None):
-        self._GetSolver().projection_module.ApplyForwardCouplingOfVelocityToSlipVelocityOnly()
 
     def PerformFinalOperations(self, time=None):
         os.chdir(self.main_path)
