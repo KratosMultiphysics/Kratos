@@ -125,6 +125,7 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::TestCreateElements3D()
     {
         for (unsigned int face_i = 0; face_i < m_brep_model_vector[brep_i].GetFaceVector().size(); ++face_i)
         {
+            std::cout << "BREP " << brep_i << "- FACE " << face_i << std::endl; 
             const auto face = m_brep_model_vector[brep_i].GetFaceVector()[face_i];
 
             std::vector<std::vector<array_1d<double, 2>>> outer_polygon_uv;
