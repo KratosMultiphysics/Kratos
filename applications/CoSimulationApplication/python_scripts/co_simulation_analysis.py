@@ -82,8 +82,8 @@ class CoSimulationAnalysis(object):
             if num_solvers > 1 or num_solvers == 0:
                 raise Exception("More than one or no solvers defined without coupled solver!")
             else:
-                import co_simulation_solver_factory as solver_factory
-                self._solver = solver_factory.CreateSolverInterface(self.cs_settings["solvers"][0])
+                import KratosMultiphysics.CoSimulationApplication.custom_solver_interfaces.co_simulation_solver_factory as solver_factory
+                self._solver = solver_factory.CreateSolverInterface("Solver", self.cs_settings["solvers"][0])
                 return self._solver
 
 
