@@ -1,9 +1,9 @@
 from __future__ import print_function, absolute_import, division
 
 # Other imports
-import KratosMultiphysics.CoSimulationApplication.custom_solver_interfaces.co_simulation_io_factory as io_factory
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as tools
-cs_data_structure = tools.cs_data_structure
+import KratosMultiphysics.CoSimulationApplication.custom_solver_interfaces.co_simulation_io_factory as cs_io_factory
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+cs_data_structure = cs_tools.cs_data_structure
 import collections
 
 ##
@@ -17,8 +17,8 @@ class CoSimulationBaseSolver(object):
     #                  Deriving classes should call it in their constructors
     #
     #  @param self                      The object pointer.
-    #  @param cosim_solver_settings     python dictionary : with the solver settings.
-    def __init__(self, solver_name, cosim_solver_settings):
+    #  @param cs_solver_settings     python dictionary : with the solver settings.
+    def __init__(self, solver_name, cs_solver_settings):
         default_setting = cs_data_structure.Parameters("""
         {
             "solver_type" : "",
@@ -29,9 +29,9 @@ class CoSimulationBaseSolver(object):
         }
         """)
         self.name = solver_name
-        self.cosim_solver_settings = cosim_solver_settings
-        self.cosim_solver_settings.ValidateAndAssignDefaults(default_setting)
-        self.SetEchoLevel( self.cosim_solver_settings["echo_level"].IsInt() )
+        self.cs_solver_settings = cs_solver_settings
+        self.cs_solver_settings.ValidateAndAssignDefaults(default_setting)
+        self.SetEchoLevel( self.cs_solver_settings["echo_level"].IsInt() )
         self.data_map = self._GetDataMap()
         self.geo_names = self._GetGeometryNames()
         self.model = cs_data_structure.Model() ## Where all the co-simulation meshes are stored.
@@ -59,7 +59,7 @@ class CoSimulationBaseSolver(object):
         if self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is already initialized!')
 
-        self.io = io_factory.CreateIO(self.model, self._GetIOName(), self.cosim_solver_settings["io_settings"])
+        self.io = cs_io_factory.CreateIO(self.model, self._GetIOName(), self.cs_solver_settings["io_settings"])
         self.io.SetEchoLevel(io_echo_level)
         self.io_is_initialized = True
 
@@ -135,7 +135,7 @@ class CoSimulationBaseSolver(object):
         if data_name in self.data_map.keys():
             return self.data_map[data_name]
         else:
-            raise Exception(tools.bcolors.FAIL+ "Requested data field " + data_name + " does not exist in the solver "+self.name+tools.bcolors.ENDC)
+            raise Exception(cs_tools.bcolors.FAIL+ "Requested data field " + data_name + " does not exist in the solver "+self.name+cs_tools.bcolors.ENDC)
 
     ## ImportCouplingInterfaceData : This function imports the requested data from
     #               from_client
@@ -195,14 +195,14 @@ class CoSimulationBaseSolver(object):
     #
     #  @param self            The object pointer.
     def GetDeltaTime(self):
-        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseSolver : Calling GetDeltaTime function from base Co-Simulation Solver class!" + tools.bcolors.ENDC)
+        raise NotImplementedError(cs_tools.bcolors.FAIL + "CoSimulationBaseSolver : Calling GetDeltaTime function from base Co-Simulation Solver class!" + cs_tools.bcolors.ENDC)
 
     ## PrintInfo : Function to display information about the
     #              specifics of the coupled solver.
     #
     #  @param self            The object pointer.
     def PrintInfo(self):
-        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseSolver : Calling PrintInfo function from base Co-Simulation Solver class!" + tools.bcolors.ENDC)
+        raise NotImplementedError(cs_tools.bcolors.FAIL + "CoSimulationBaseSolver : Calling PrintInfo function from base Co-Simulation Solver class!" + cs_tools.bcolors.ENDC)
 
     ## SetEchoLevel : Function to set the Echo level for this solver
     #
@@ -215,23 +215,23 @@ class CoSimulationBaseSolver(object):
     #
     #  @param self            The object pointer.
     def Check(self):
-        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseSolver : Calling Check function from base Co-Simulation Solver class!" + tools.bcolors.ENDC)
+        raise NotImplementedError(cs_tools.bcolors.FAIL + "CoSimulationBaseSolver : Calling Check function from base Co-Simulation Solver class!" + cs_tools.bcolors.ENDC)
 
     ## _GetIOType : Private Function to obtain the type of IO this solver has as default
     #
     #  @param self            The object pointer.
     def _GetIOType(self):
-        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseSolver : Calling _GetIOName function from base Co-Simulation Solver class!" + tools.bcolors.ENDC)
+        raise NotImplementedError(cs_tools.bcolors.FAIL + "CoSimulationBaseSolver : Calling _GetIOName function from base Co-Simulation Solver class!" + cs_tools.bcolors.ENDC)
 
     ## _GetDataMap : Private Function to obtain the map of data objects
     #
     #  @param self            The object pointer.
     def _GetDataMap(self):
         data_map = collections.OrderedDict()
-        num_data = self.cosim_solver_settings["data"].size()
-        for data_conf in self.cosim_solver_settings["data"]:
+        num_data = self.cs_solver_settings["data"].size()
+        for data_conf in self.cs_solver_settings["data"]:
             data_name = data_conf["name"].GetString()
-            data_obj = tools.CouplingInterfaceData(data_conf, self)
+            data_obj = cs_tools.CouplingInterfaceData(data_conf, self)
             data_map[data_name] = data_obj
 
         return data_map
