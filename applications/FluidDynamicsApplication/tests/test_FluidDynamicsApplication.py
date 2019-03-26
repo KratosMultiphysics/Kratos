@@ -11,6 +11,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from artificial_compressibility_test import ArtificialCompressibilityTest
 from buoyancy_test import BuoyancyTest
 from darcy_channel_test import DarcyChannelTest
+from embedded_piston_test import EmbeddedPistonTest
 from embedded_reservoir_test import EmbeddedReservoirTest
 from embedded_reservoir_discontinuous_test import EmbeddedReservoirDiscontinuousTest
 from embedded_couette_test import EmbeddedCouetteTest
@@ -53,6 +54,7 @@ def AssembleTestSuites():
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipDevelopmentCouette2D'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasDevelopmentCouette2D'))
     smallSuite.addTest(EmbeddedCouetteImposedTest('testEmbeddedCouetteImposed2D'))
+    smallSuite.addTest(EmbeddedPistonTest('testEmbeddedPiston2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir2D'))
     smallSuite.addTest(EmbeddedVelocityInletEmulationTest('testEmbeddedVelocityInletEmulationEmbedded2D'))

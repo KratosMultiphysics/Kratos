@@ -222,16 +222,6 @@ protected:
         ) const;
 
     /**
-     * @brief This method computes the cross product matrix
-     * @param rM The matrix to be build
-     * @param rU The vector that defines the
-     */
-    void MakeCrossMatrix(
-        BoundedMatrix<double, 3, 3>& rM,
-        const array_1d<double, 3>& rU
-        ) const;
-
-    /**
      * @brief This method adds the pressure contribution to the RHS
      * @param rResidualVector The local contribution to the RHS
      * @param rN The corresponding shape function
