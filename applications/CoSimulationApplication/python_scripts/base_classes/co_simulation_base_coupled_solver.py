@@ -1,9 +1,8 @@
-# co simulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_solver import CoSimulationBaseSolver
-# Other imports
-cs_data_structure = cs_tools.cs_data_structure
 import collections
+cs_data_structure = cs_tools.cs_data_structure
+
 
 ##
 #  IMPORTANT : This is a BASE CLASS
@@ -11,35 +10,28 @@ import collections
 #
 #  This class is intended to server as the base class for all the coupled solvers.
 class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
+
     ## The constructor
     #
 
     #  @param custom_settings     parameters for configuring the CoSimulationBaseCoupledSolver
     def __init__(self, custom_settings):
-        ##settings string in json format
-        # default values for all available settings
-        # for mandatory settings, the type is defined
         self.full_settings = custom_settings
         self.settings= custom_settings['coupled_solver_settings']
-        #super(CoSimulationBaseCoupledSolver,self).__init__(custom_settings)
         default_setting = cs_data_structure.Parameters("""
         {
             "name" : "",
-            "solver_type" : "gauss_seidel_strong_coupling",
+            "solver_type" : "gauss_seidel_strong",
             "echo_level" : 0,
-            "num_coupling_iterations" : 10,
             "start_coupling_time" : 0.0,
             "convergence_accelerators" : [],
             "participants" : [],
             "convergence_criteria" : []
         }
         """)
-        #Comment predictors are missing (I think those can be optional, but also used for weak-coupling)
-        #Comment settings for predictor, conv_crit and accelerator should be consitently defined!
         self.settings.ValidateAndAssignDefaults(default_setting)
         self.number_of_participants = self.settings['participants'].size()
         self.echo_level = self.settings["echo_level"].GetInt()
-        self.num_coupling_iterations = self.settings["num_coupling_iterations"].GetInt() #Comment should not be here
 
         # Get the participating solvers a map with their names and objects
         self.participating_solvers = self._CreateSolvers(self.full_settings['solvers'])
@@ -48,11 +40,12 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         # With this setting the coupling can start later
         self.start_coupling_time = 0.0
         if self.settings.Has("start_coupling_time"):
-           self.start_coupling_time = self.settings["start_coupling_time"].GetDouble()
+            self.start_coupling_time = self.settings["start_coupling_time"].GetDouble()
         if self.start_coupling_time > 0.0:
             self.coupling_started = False
         else:
             self.coupling_started = True
+
     ## Initialize : Initialize function. Called only once
     #               all member variables are initialized here.
 
@@ -131,7 +124,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
 
     def Check(self):
         for solver_name, solver in self.participating_solvers.items():
-           solver.Check()
+            solver.Check()
 
     ## PrintInfo : Function to display information about the
     #              specifics of the coupled solver.
@@ -199,11 +192,10 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #
     def _CreateSolvers(self, SolversDataMap):
         solvers_map = collections.OrderedDict()
-        num_solvers = len(SolversDataMap.keys())
-        import KratosMultiphysics.CoSimulationApplication.custom_solver_interfaces.co_simulation_solver_factory as factory
+        import KratosMultiphysics.CoSimulationApplication.custom_solver_interfaces.co_simulation_solver_factory as cs_solver_factory
 
         for solver_name, settings in SolversDataMap.items():
-            solver = factory.CreateSolverInterface(solver_name,cs_data_structure.Parameters(settings))
+            solver = cs_solver_factory.CreateSolverInterface(solver_name, cs_data_structure.Parameters(settings))
             solvers_map[solver_name] = solver
 
         return solvers_map
@@ -213,29 +205,29 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #
     def _GetSolverCoSimulationDetails(self,co_simulation_solver_settings):
         num_solvers = co_simulation_solver_settings.size()
-        solver_cosim_details = {}
+        solver_cs_details = {}
         for i_solver in range(num_solvers):
             solver_name = co_simulation_solver_settings[i_solver]["name"].GetString()
-            solver_cosim_details[solver_name] = co_simulation_solver_settings[i_solver]
+            solver_cs_details[solver_name] = co_simulation_solver_settings[i_solver]
         # TODO check if the data is consistently defined! => maybe do at another place though...
         # - input in one is output in another
         # - one IO is defined for each data_name
         # - if the same data is defined multiple times
         # - check if data format has been specified
-        return solver_cosim_details
+        return solver_cs_details
 
     ## _CreateFilters : Protected Function to make filter objects list and store in the datafield
     #
     #  @param conv_acc_settings dict: setting of the convergence accelerator to be make
     def _CreateFilters(self, co_simulation_solver_settings): # probably better in some utils file
-        import KratosMultiphysics.CoSimulationApplication.custom_convergence_accelerators.co_simulation_convergence_accelerator_factory as factory
+        import KratosMultiphysics.CoSimulationApplication.custom_convergence_accelerators.co_simulation_convergence_accelerator_factory as cs_convergence_accelerator_factory
         num_solvers = co_simulation_solver_settings.size()
-        solver_cosim_details = {}
+        solver_cs_details = {}
         for i_solver in range(num_solvers):
             solver_name = co_simulation_solver_settings[i_solver]["name"].GetString()
             solver = self.participating_solvers[solver_name]
 
-            ## for all the input data
+            # For all the input data
             input_data_list = self.solver_settings[solver_name]["input_data_list"]
             num_input_data = input_data_list.size()
             for i in range(num_input_data):
@@ -243,11 +235,10 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
                 filters_list = input_data["filters"]
                 destination_data = solver.GetInterfaceData(input_data["destination_data"].GetString())
                 for filter in filters_list:
-                    accelerator = factory.CreateConvergenceAccelerator(filter, destination_data) ## TODO: should change to filter
+                    accelerator = cs_convergence_accelerator_factory.CreateConvergenceAccelerator(filter, destination_data) ## TODO: should change to filter
                     destination_data.filters.append(accelerator)
 
-
-            ## for all the output data
+            # For all the output data
             output_data_list = self.solver_settings[solver_name]["output_data_list"]
             num_output_data = output_data_list.size()
             for i in range(num_output_data):
@@ -255,7 +246,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
                 filters_list = output_data["filters"]
                 origin_data = solver.GetInterfaceData(output_data["origin_data"].GetString())
                 for filter in filters_list:
-                    accelerator = factory.CreateConvergenceAccelerator(filter, destination_data) ## TODO: should change to filter
+                    accelerator = cs_convergence_accelerator_factory.CreateConvergenceAccelerator(filter, destination_data) ## TODO: should change to filter
                     origin_data.filters.append(accelerator)
 
     ## _CreateConvergenceCriteria : Private Function to make convergence criteria objects list #Comment protected

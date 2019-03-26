@@ -16,8 +16,8 @@ class GaussSeidelLooseCoupledSolver(CoSimulationBaseCoupledSolver):
         self.participants_setting_dict = self.full_settings["coupled_solver_settings"]["participants"]
         self.participating_solver_names = []
 
-        for i, particip_settings in enumerate(self.participants_setting_dict):
-            self.participating_solver_names.append(particip_settings['name'])
+        for i, participant_settings in enumerate(self.participants_setting_dict):
+            self.participating_solver_names.append(participant_settings['name'])
 
     def Initialize(self):
         super(GaussSeidelLooseCoupledSolver, self).Initialize()

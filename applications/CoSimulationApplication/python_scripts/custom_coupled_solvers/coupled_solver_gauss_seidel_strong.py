@@ -11,13 +11,14 @@ class GaussSeidelIterativeStrongCoupledSolver(CoSimulationBaseCoupledSolver):
         super(GaussSeidelIterativeStrongCoupledSolver, self).__init__(custom_settings)
         if not self.number_of_participants == 2:
             raise Exception(cs_tools.bcolors.FAIL + "Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
+        self.num_coupling_iterations = self.custom_settings["num_coupling_iterations"].GetInt()
 
         # Importing the Participant modules
         self.participants_setting_dict = self.full_settings["coupled_solver_settings"]["participants"]
         self.participating_solver_names = []
 
-        for p in range(0,self.number_of_participants) :
-            self.participating_solver_names.append(self.participants_setting_dict[p]['name'])
+        for participant in range(0,self.number_of_participants) :
+            self.participating_solver_names.append(self.participants_setting_dict[participant]['name'])
 
         #Comment how the settings are specified has to be consistent!
         ### Making the convergence accelerator for this strategy

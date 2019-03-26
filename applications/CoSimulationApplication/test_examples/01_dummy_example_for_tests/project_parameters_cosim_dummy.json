@@ -11,7 +11,6 @@
         "name" : "dummy",
         "solver_type" : "gauss_seidel_loose",
         "echo_level" : 1,
-        "num_coupling_iterations" : 20,
         "start_coupling_time" : 0.25,
         "convergence_accelerators" :
         [
