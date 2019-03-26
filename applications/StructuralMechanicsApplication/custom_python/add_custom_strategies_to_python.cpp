@@ -161,7 +161,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Displacement and other DoF residual Convergence Criterion
     py::class_< ResidualDisplacementAndOtherDoFCriteriaType,typename ResidualDisplacementAndOtherDoFCriteriaType::Pointer, ConvergenceCriteriaType >(m,"ResidualDisplacementAndOtherDoFCriteria")
-        .def(py::init< double, double, std::string >())
+        .def(py::init< double, double, const std::string >())
         .def(py::init< double, double>())
         ;
 

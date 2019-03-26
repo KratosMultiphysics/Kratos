@@ -150,7 +150,7 @@ void ParallelForEach(TContainer& rContainer, TCallable&& Fun)
 {
 #pragma omp parallel
     {
-        auto local_fun{Fun};
+        auto local_fun(Fun);
 #pragma omp for
         for (int i = 0; i < static_cast<int>(rContainer.size()); ++i)
         {
