@@ -51,13 +51,13 @@
                     {
                         "from_solver" : "dummy_one",
                         "data_name"   : "REACTION",
-                        "destination_data":"POINT_LOAD",
+                        "destination_data": "POINT_LOAD",
                         "mapper_settings":
                         {
-                            "type":"nearest_neighbor",
-                            "flags":["swap_sign"]
+                            "type": "nearest_neighbor",
+                            "flags": ["swap_sign"]
                         },
-                        "filters":[]
+                        "filters": []
                     }
                 ],
                 "output_data_list":
@@ -65,12 +65,13 @@
                     {
                         "to_solver" : "dummy_one",
                         "data_name"   : "MESH_DISPLACEMENT",
-                        "origin_data":"DISPLACEMENT",
-                        "mapper_settings":{
-                            "type":"nearest_neighbor",
-                            "flags":[]
+                        "origin_data": "DISPLACEMENT",
+                        "mapper_settings":
+                        {
+                            "type": "nearest_neighbor",
+                            "flags": []
                         },
-                        "filters":[]
+                        "filters": []
                     }
                 ]
             }
