@@ -4,7 +4,7 @@
 # Date: Feb. 20, 2017
 
 
-from KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.co_simulation_base_filter import CoSimulationBaseFilter
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_filter import CoSimulationBaseFilter
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 data_structure = cs_tools.cs_data_structure
 

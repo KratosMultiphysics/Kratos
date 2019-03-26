@@ -5,7 +5,7 @@ try:
 except ModuleNotFoundError:
     raise ModuleNotFoundError(tools.bcolors.FAIL + 'KRATOS is not available! Please ensure that Kratos is available for usage!'+ tools.bcolors.ENDC)
 
-from KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.co_simulation_base_io import CoSimulationBaseIO
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_io import CoSimulationBaseIO
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as tools
 
 # Other imports
