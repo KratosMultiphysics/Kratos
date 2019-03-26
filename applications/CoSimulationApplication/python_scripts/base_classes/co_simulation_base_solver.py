@@ -59,7 +59,7 @@ class CoSimulationBaseSolver(object):
         if self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is already initialized!')
 
-        self.io = cs_io_factory.CreateIO(self.model, self._GetIOName(), self.cs_solver_settings["io_settings"])
+        self.io = cs_io_factory.CreateIO(self.model, self.cs_solver_settings["io_settings"])
         self.io.SetEchoLevel(io_echo_level)
         self.io_is_initialized = True
 

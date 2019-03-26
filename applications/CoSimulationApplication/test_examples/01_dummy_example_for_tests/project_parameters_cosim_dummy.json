@@ -81,7 +81,7 @@
     {
         "dummy_one":
         {
-            "solver_type" : "dummy_interface.dummy_co_simulation_solver",
+            "solver_type" : "dummy_interfaces.dummy_co_simulation_solver",
             "settings":
             {
                 "echo_level"  : 1,
@@ -90,7 +90,7 @@
             },
             "io_settings" :
             {
-                "io_type"     : "dummy"
+                "io_type"     : "dummy_interfaces.dummy_co_simulation_io"
             },
             "data" :
             [
@@ -108,7 +108,7 @@
         },
         "dummy_two" :
         {
-            "solver_type" : "dummy_interface.dummy_co_simulation_solver",
+            "solver_type" : "dummy_interfaces.dummy_co_simulation_solver",
             "settings":
             {
                 "echo_level"  : 1,
@@ -117,7 +117,7 @@
             },
             "io_settings" :
             {
-                "io_type"     : "dummy"
+                "io_type"     : "dummy_interfaces.dummy_co_simulation_io"
             },
             "data" :
             [
