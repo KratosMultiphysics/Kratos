@@ -71,8 +71,10 @@ void  AddProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    class_<HypoelasticStressCalculateProcess, HypoelasticStressCalculateProcess::Pointer, Process >(m,"HypoelasticStressCalculateProcess")
-    .def(init<ModelPart&, unsigned int>())
+
+
+    py::class_<HypoelasticStressCalculateProcess, HypoelasticStressCalculateProcess::Pointer, Process >(m,"HypoelasticStressCalculateProcess")
+    .def(py::init<ModelPart&, unsigned int>())
     ;
 
     py::class_<PressureCalculateProcess, PressureCalculateProcess::Pointer, Process >(m,"PressureCalculateProcess")
@@ -128,28 +130,28 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("RemoveAndSave", &RemoveAndSaveWallNodesProcess::RemoveAndSave)
     ;
 /////////////////////////////////////////////
-    class_<AddPeriodicConditionsProcess>(m,"AddPeriodicConditionsProcess")
-    .def(init<ModelPart&>())
+    py::class_<AddPeriodicConditionsProcess>(m,"AddPeriodicConditionsProcess")
+    .def(py::init<ModelPart&>())
     .def("AddTangentConditions3D", &AddPeriodicConditionsProcess::AddTangentConditions3D)
     .def("AddTangentConditions2D", &AddPeriodicConditionsProcess::AddTangentConditions2D)
     .def("AddNormalAndTangentConditions2D", &AddPeriodicConditionsProcess::AddNormalAndTangentConditions2D)
     ;  
 
-    class_<AddMeanVelocityConditionProcess>(m,"AddMeanVelocityConditionProcess")
-    .def(init<ModelPart&>())
+    py::class_<AddMeanVelocityConditionProcess>(m,"AddMeanVelocityConditionProcess")
+    .def(py::init<ModelPart&>())
     .def("AddMeanVelCond3D", &AddMeanVelocityConditionProcess::AddMeanVelCond3D)
     .def("AddMeanVelCond2D", &AddMeanVelocityConditionProcess::AddMeanVelCond2D)
     ;  
 
 
-    class_<AddWallProcess>(m,"AddWallProcess")
-    .def(init<> ())
+    py::class_<AddWallProcess>(m,"AddWallProcess")
+    .def(py::init<> ())
     .def("AddWall", &AddWallProcess::AddWall)
     ;  
 
 
-    class_<CalculateCurvature> (m,"CalculateCurvature")
-    .def(init<>())
+    py::class_<CalculateCurvature> (m,"CalculateCurvature")
+    .def(py::init<>())
     .def("CalculateCurvature2D", &CalculateCurvature::CalculateCurvature2D)
     .def("CalculateCurvature3D", &CalculateCurvature::CalculateCurvature3D)
     .def("CalculateCurvatureContactLine", &CalculateCurvature::CalculateCurvatureContactLine)

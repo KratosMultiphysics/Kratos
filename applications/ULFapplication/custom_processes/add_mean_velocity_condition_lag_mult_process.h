@@ -99,8 +99,13 @@ public:
     //ModelPart& fluid_model_part, ModelPart& structure_model_part, ModelPart& combined_model_part)
     //: mr_fluid_model_part(fluid_model_part), mr_structure_model_part(structure_model_part), mr_combined_model_part(combined_model_part)
     {
-	Check();
+	//Check();
 	//KRATOS_WATCH(" INSIDE ADD WALL NODES CONSTRUCTOR") 
+
+	KRATOS_CHECK_VARIABLE_KEY( NORMAL )
+        KRATOS_CHECK_VARIABLE_KEY( NODAL_AREA)
+        KRATOS_CHECK_VARIABLE_KEY( LAGRANGE_MULTIPLIER_VELOCITY)
+
     }
 
     /// Destructor.
@@ -283,6 +288,7 @@ public:
     ///@}
 
 protected:
+/*
 	void Check()
 		{
 			if(mr_model_part.NodesBegin()->SolutionStepsDataHas(NORMAL) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing NORMAL variable on solution step data","");
@@ -290,6 +296,7 @@ protected:
 			if(mr_model_part.NodesBegin()->SolutionStepsDataHas(NODAL_AREA) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing NODAL_AREA variable on solution step data","");
 			if(mr_model_part.NodesBegin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_VELOCITY) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing LAGRANGE_MULTIPLIER_VELOCITY variable 				on solution step data","");
 		}
+*/
     ///@name Protected static Member Variables
     ///@{
 

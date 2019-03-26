@@ -120,6 +120,9 @@ namespace Kratos
 		if(rRightHandSideVector.size() != 3)
 			rRightHandSideVector.resize(3,false);
 		rRightHandSideVector = ZeroVector(3);
+
+		//in 2D CASE THIS VECTOR STORES JUMPS IN THE TANGENTIAL (first entry) AND THE NORMAL (second entry) COMPONENTS.. third entry should be zero
+		array_1d<double,3>  jump_vector= rCurrentProcessInfo[AUX_VECTOR]; 
 		
 		//double Area;
 		//array_1d<double, 3 > N;
@@ -142,11 +145,11 @@ namespace Kratos
 			}
 		}
 
-		KRATOS_WATCH(LM_matrix)
-		KRATOS_WATCH(rLeftHandSideMatrix)
+		//KRATOS_WATCH(LM_matrix)
+		//KRATOS_WATCH(rLeftHandSideMatrix)
 		//rRightHandSideVector[2] = -20.0;
 		//rRightHandSideVector[2] = -80.0;
-		rRightHandSideVector[2] = 0.0;//-80.0;
+		rRightHandSideVector[2] = jump_vector[0];//-80.0;
 		
 		//SERGIOS IDEA ABOUT GRADUAL DIMINISHING OF G TO ZERO
 		/*

@@ -25,12 +25,15 @@ from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent
 
 #defining a model part for the fluid and one for the structure
-fluid_model_part = ModelPart("FluidPart");
-structure_model_part = ModelPart("StructurePart");  
-combined_model_part = ModelPart("CombinedPart");
-wall_model_part = ModelPart("WallPart");
+current_model = Model()
 
-temperature_model_part = ModelPart("TemperaturePart");
+#defining a model part for the fluid and one for the structure
+fluid_model_part = current_model.CreateModelPart("FluidPart");
+structure_model_part = current_model.CreateModelPart("StructurePart");  
+combined_model_part = current_model.CreateModelPart("CombinedPart");
+wall_model_part = current_model.CreateModelPart("WallPart");
+
+temperature_model_part = current_model.CreateModelPart("TemperaturePart");
 
 SolverType=problem_settings.SolverType
 

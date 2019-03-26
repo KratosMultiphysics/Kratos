@@ -43,8 +43,12 @@ variables_dictionary = {"PRESSURE" : PRESSURE,
                         "DENSITY": DENSITY,
                         "VISCOSITY": VISCOSITY}
 
-#defining a model part for the fluid
-lagrangian_model_part = ModelPart("LagrangianPart");
+
+current_model = Model()
+
+#defining a model part for the fluid and one for the structure
+lagrangian_model_part = current_model.CreateModelPart("LagrangianPart");
+
 
 SolverType=problem_settings.SolverType
 if (SolverType=="Incompressible_Modified_FracStep"):
@@ -58,7 +62,7 @@ SolverType = ProjectParameters.SolverType
 element_type = problem_settings.lagrangian_element
 import SurfaceTension_monolithic_solver as solver_lagr
 SolverSettings = ProjectParameters.FluidSolverConfiguration
-solver_lagr = import_solver(SolverSettings)
+#solver_lagr = import_solver(SolverSettings)
 solver_lagr.AddVariables(lagrangian_model_part, SolverSettings)
 
 compute_reactions=False

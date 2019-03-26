@@ -98,7 +98,13 @@ public:
     //ModelPart& fluid_model_part, ModelPart& structure_model_part, ModelPart& combined_model_part)
     //: mr_fluid_model_part(fluid_model_part), mr_structure_model_part(structure_model_part), mr_combined_model_part(combined_model_part)
     {
-	Check();
+	//Check();
+
+	KRATOS_CHECK_VARIABLE_KEY( NODE_PAIR_X_COMPONENT )
+        KRATOS_CHECK_VARIABLE_KEY( NODE_PAIR_Y_COMPONENT )
+        KRATOS_CHECK_VARIABLE_KEY( NODE_PAIR_PRESSURE)
+        KRATOS_CHECK_VARIABLE_KEY( NODE_PAIR_X_COMPONENT_ANTIPERIODIC)
+        KRATOS_CHECK_VARIABLE_KEY( NODE_PAIR_Y_COMPONENT_ANTIPERIODIC)
 	//KRATOS_WATCH(" INSIDE ADD WALL NODES CONSTRUCTOR") 
     }
 
@@ -1012,7 +1018,8 @@ public:
 
     ///@}
 protected:
-
+//THE CHECK IS NOW DONE IN THE CONSTRUCTOR
+/*
 		void Check()
 		{
 			if(mr_model_part.NodesBegin()->SolutionStepsDataHas(NODE_PAIR_X_COMPONENT) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing NODE_PAIR_X_COMPONENT variable on solution step data","");
@@ -1023,6 +1030,7 @@ protected:
 
 		}
 
+*/
 	private:
 		ModelPart& mr_model_part;
 

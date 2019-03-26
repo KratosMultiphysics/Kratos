@@ -26,15 +26,16 @@ from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 
 
+current_model = Model()
 
 #defining a model part for the fluid and one for the structure
-fluid_model_part = ModelPart("FluidPart");
-structure_model_part = ModelPart("StructurePart");  
-combined_model_part = ModelPart("CombinedPart");
+fluid_model_part = current_model.CreateModelPart("FluidPart");
+structure_model_part = current_model.CreateModelPart("StructurePart");  
+combined_model_part = current_model.CreateModelPart("CombinedPart");
 
 SolverType=fluid_ulf_var.SolverType
 if (SolverType=="Incompressible_Modified_FracStep" or SolverType=="FracStep"):
-    fluid_only_model_part = ModelPart("FluidOnlyPart");
+    fluid_only_model_part = current_model.CreateModelPart("FluidOnlyPart");
 
 #############################################
 ##importing the solvers needed

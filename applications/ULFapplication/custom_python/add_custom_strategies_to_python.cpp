@@ -79,12 +79,12 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 			//********************************************************************
 			//********************************************************************
 
-class_< ResidualBasedEliminationBuilderAndSolverPeriodicNormalOnly< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+py::class_< ResidualBasedEliminationBuilderAndSolverPeriodicNormalOnly< SparseSpaceType, LocalSpaceType, LinearSolverType >,
 		typename ResidualBasedEliminationBuilderAndSolverPeriodicNormalOnly< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
 		ResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > >
 		//BaseSolvingStrategyType>
 		(m,"ResidualBasedEliminationBuilderAndSolverPeriodicNormalOnly")
-		.def(init<LinearSolverType::Pointer, const Variable<int>& >());
+		.def(py::init<LinearSolverType::Pointer, const Variable<int>& >());
 
 
 
@@ -96,11 +96,11 @@ py::class_< ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalS
                     .def(py::init< double >()
                     );
 
-    class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeAleFsi< SparseSpaceType, LocalSpaceType >,
+py::class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeAleFsi< SparseSpaceType, LocalSpaceType >,
             typename ResidualBasedPredictorCorrectorVelocityBossakSchemeAleFsi< SparseSpaceType, LocalSpaceType >::Pointer,
            ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<SparseSpaceType, LocalSpaceType>  >
             (m,"ResidualBasedPredictorCorrectorVelocityBossakSchemeAleFsi")
-            .def(init<double,double,unsigned int >())// constructor without a turbulence model
+            .def(py::init<double,double,unsigned int >())// constructor without a turbulence model
             ;
 
 

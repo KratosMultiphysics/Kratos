@@ -26,7 +26,12 @@ from KratosMultiphysics.ULFApplication import *
 
 
 #defining a model part for the fluid and one for the structure
-Qcomp_model_part = ModelPart("pFluidPart");
+
+current_model = Model()
+
+#defining a model part for the fluid and one for the structure
+Qcomp_model_part = current_model.CreateModelPart("pFluidPart");
+
 
 import runge_kutta_frac_step_solver
 runge_kutta_frac_step_solver.AddVariables(Qcomp_model_part)

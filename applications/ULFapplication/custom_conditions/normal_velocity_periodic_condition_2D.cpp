@@ -127,6 +127,10 @@ namespace Kratos
 		boost::numeric::ublas::bounded_matrix<double, 1, 3 > LM_matrix = ZeroMatrix(1, 3) ; //(gradient)
 		Geometry<Node<3> >& geom = this->GetGeometry();
 		//GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Area);
+
+		//in 2D CASE THIS VECTOR STORES JUMPS IN THE TANGENTIAL (first entry) AND THE NORMAL (second entry) COMPONENTS.. third entry should be zero
+		array_1d<double,3>  jump_vector= rCurrentProcessInfo[AUX_VECTOR]; 
+		
 			
 
 		LM_matrix(0, 0 ) = 1.0; // du/dy : we use DNi/DNy
@@ -146,10 +150,10 @@ namespace Kratos
 		//		   [0 -80]
 		//horizontal walls
 		if(fabs(GetGeometry()[0].X()-GetGeometry()[1].X())<0.00001)
-			rRightHandSideVector[2] = -80.0;//00.0;
+			rRightHandSideVector[2] = jump_vector[1];// -80.0;//00.0;
 
 		else if(fabs(GetGeometry()[0].Y()-GetGeometry()[1].Y())<0.00001)
-			rRightHandSideVector[2] = 80.0;//00.0;
+			rRightHandSideVector[2] = -jump_vector[1];//80.0;//00.0;
 
 			
 		//substracting:
