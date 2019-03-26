@@ -145,8 +145,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		self.WritePostListFile()
 
 		# Print required info
-		if self.DoRemeshing == False:
-			self.PrintPlotsFiles()
+		self.PrintPlotsFiles()
 
 #============================================================================================================================
 	def GenerateDEM(self): # 3D version
