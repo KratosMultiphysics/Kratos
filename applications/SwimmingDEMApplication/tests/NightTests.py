@@ -2,6 +2,7 @@
 
 # Import TestFactory
 import TestFactory as TF
+import SPFEMTestFactory as SPFEMTF
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -26,6 +27,10 @@ class candelier_with_history_hinsberg_test(TF.TestFactory):
      file_name = "candelier_tests/candelier"
      file_parameters = "candelier_tests/ProjectParametersWithHistoryHinsberg.json"
 
+class sdem_pfem_coupling_one_way_test(SPFEMTF.TestFactory):
+     file_name = "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test"
+     file_parameters = "PFEM-DEM_tests/ProjectParameters.json"
+
 # This test is ready to run but the implementation is not complete
 # (it is non-trivial), so the result is not correct
 class candelier_with_history_non_inertial_test(TF.TestFactory):
@@ -41,7 +46,8 @@ def SetTestSuite(suites):
           candelier_no_history_with_lift_test,
           candelier_no_history_non_inertial_test,
           candelier_with_history_test,
-          candelier_with_history_hinsberg_test
+          candelier_with_history_hinsberg_test,
+          sdem_pfem_coupling_one_way_test
           ])
     )
 

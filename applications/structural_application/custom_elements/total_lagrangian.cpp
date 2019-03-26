@@ -160,19 +160,19 @@ namespace Kratos
         else
             StrainSize = 6;
 
-        Matrix B( StrainSize, number_of_nodes * dim );
+        MatrixType B( StrainSize, number_of_nodes * dim );
 
-        Matrix F( dim, dim );
+        MatrixType F( dim, dim );
 
-        Matrix D( StrainSize, StrainSize );
+        MatrixType D( StrainSize, StrainSize );
 
-        Matrix C( dim, dim );
+        MatrixType C( dim, dim );
 
         Vector StrainVector( StrainSize );
 
         Vector StressVector( StrainSize );
 
-        Matrix DN_DX( number_of_nodes, dim );
+        MatrixType DN_DX( number_of_nodes, dim );
 
 
 
@@ -203,7 +203,7 @@ namespace Kratos
         const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
 
-        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+        const MatrixType& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
 
         //calculating actual jacobian
@@ -260,7 +260,7 @@ namespace Kratos
             if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
             {
                 //contributions to stiffness matrix calculated on the reference config
-                noalias( rLeftHandSideMatrix ) += prod( trans( B ), ( IntToReferenceWeight ) * Matrix( prod( D, B ) ) ); //to be optimized to remove the temporary
+                noalias( rLeftHandSideMatrix ) += prod( trans( B ), ( IntToReferenceWeight ) * MatrixType( prod( D, B ) ) ); //to be optimized to remove the temporary
                 CalculateAndAddKg( rLeftHandSideMatrix, DN_DX, StressVector, IntToReferenceWeight );
             }
 
@@ -289,7 +289,7 @@ namespace Kratos
         //calculation flags
         bool CalculateStiffnessMatrixFlag = false;
         bool CalculateResidualVectorFlag = true;
-        MatrixType temp = Matrix();
+        MatrixType temp = MatrixType();
 
         CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
     }
@@ -415,20 +415,20 @@ namespace Kratos
 
     void TotalLagrangian::CalculateAndAddKg(
         MatrixType& K,
-        Matrix& DN_DX,
+        MatrixType& DN_DX,
         Vector& StressVector,
         double weight )
     {
         KRATOS_TRY
         // unsigned int dimension = mpReferenceGeometry->WorkingSpaceDimension();
-        //Matrix<double> StressTensor = MathUtils<double>::StressVectorToTensor(StressVector);
-        //Matrix<double> ReducedKg(DN_Dx.RowsNumber(),DN_Dx.RowsNumber());
-        //Matrix<double>::MatMulAndAdd_B_D_Btrans(ReducedKg,weight,DN_Dx,StressTensor);
+        //MatrixType<double> StressTensor = MathUtils<double>::StressVectorToTensor(StressVector);
+        //MatrixType<double> ReducedKg(DN_Dx.RowsNumber(),DN_Dx.RowsNumber());
+        //MatrixType<double>::MatMulAndAdd_B_D_Btrans(ReducedKg,weight,DN_Dx,StressTensor);
         //MathUtils<double>::ExpandAndAddReducedMatrix(K,ReducedKg,dimension);
 
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        Matrix StressTensor = MathUtils<double>::StressVectorToTensor( StressVector );
-        Matrix ReducedKg = prod( DN_DX, weight * Matrix( prod( StressTensor, trans( DN_DX ) ) ) ); //to be optimized
+        MatrixType StressTensor = MathUtils<double>::StressVectorToTensor( StressVector );
+        MatrixType ReducedKg = prod( DN_DX, weight * MatrixType( prod( StressTensor, trans( DN_DX ) ) ) ); //to be optimized
         MathUtils<double>::ExpandAndAddReducedMatrix( K, ReducedKg, dimension );
 
         KRATOS_CATCH( "" )
@@ -438,7 +438,7 @@ namespace Kratos
 //************************************************************************************
 
     void TotalLagrangian::CalculateStrain(
-        const Matrix& C,
+        const MatrixType& C,
         Vector& StrainVector )
     {
         KRATOS_TRY
@@ -485,9 +485,9 @@ namespace Kratos
 //************************************************************************************
 
     void TotalLagrangian::CalculateB(
-        Matrix& B,
-        Matrix& F,
-        Matrix& DN_DX,
+        MatrixType& B,
+        MatrixType& F,
+        MatrixType& DN_DX,
         unsigned int StrainSize )
     {
         KRATOS_TRY
@@ -497,7 +497,7 @@ namespace Kratos
         //unsigned int dim2 = number_of_nodes*dimension;
         //if(B.size1() != StrainSize || B.size2()!=dim2)
         // B.resize(StrainSize,dim2);
-        //Matrix Bi;
+        //MatrixType Bi;
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
@@ -698,7 +698,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void TotalLagrangian::CalculateOnIntegrationPoints( const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo )
+    void TotalLagrangian::CalculateOnIntegrationPoints( const Variable<MatrixType >& rVariable, std::vector< MatrixType >& Output, const ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
 
@@ -711,24 +711,24 @@ namespace Kratos
         else
             StrainSize = 6;
 
-        Matrix F( dim, dim );
+        MatrixType F( dim, dim );
 
-        Matrix D( StrainSize, StrainSize );
+        MatrixType D( StrainSize, StrainSize );
 
-        Matrix C( dim, dim );
+        MatrixType C( dim, dim );
 
         Vector StrainVector( StrainSize );
 
         Vector StressVector( StrainSize );
 
-        Matrix DN_DX( number_of_nodes, dim );
+        MatrixType DN_DX( number_of_nodes, dim );
 
-        Matrix PlasticStrainVector( GetGeometry().size(), GetGeometry().WorkingSpaceDimension() );
+        MatrixType PlasticStrainVector( GetGeometry().size(), GetGeometry().WorkingSpaceDimension() );
 
         //reading integration points and local gradients
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+        const MatrixType& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
         //calculating actual jacobian
         GeometryType::JacobiansType J;
@@ -784,7 +784,7 @@ namespace Kratos
             else if ( rVariable == GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR )
             {
                 double size = StrainVector.size();
-                PlasticStrainVector.resize( 1, size );
+                PlasticStrainVector.resize( 1, size, false );
 
                 if ( Output[PointNumber].size2() != StrainVector.size() )
                     Output[PointNumber].resize( 1, size, false );
@@ -833,7 +833,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void TotalLagrangian::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void TotalLagrangian::SetValueOnIntegrationPoints( const Variable<MatrixType>& rVariable, std::vector<MatrixType>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         for ( unsigned int PointNumber = 0; PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(); PointNumber++ )
         {
@@ -924,8 +924,8 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void TotalLagrangian::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-            std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void TotalLagrangian::GetValueOnIntegrationPoints( const Variable<MatrixType>& rVariable,
+            std::vector<MatrixType>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
         {

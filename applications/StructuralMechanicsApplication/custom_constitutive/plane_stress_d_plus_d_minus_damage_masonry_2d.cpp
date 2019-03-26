@@ -516,11 +516,9 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressCompression(
 	const double alpha_factor = 1.0 / (1.0 - alpha);
 	const double beta = (yield_compression / yield_tension) * (1.0 - alpha) - (1.0 + alpha);
 	
-	double I1,I2,J2;
+	double I1,J2;
 	ConstitutiveLawUtilities<3>::CalculateI1Invariant(rPredictiveStressVector, I1);
 	array_1d<double, 3> deviator = ZeroVector(VoigtSize);
-    ConstitutiveLawUtilities<3>::CalculateI2Invariant(rPredictiveStressVector, I2);
-    //double J2_temp = (1.0 / 3.0) * std::pow(I1,2) - I2;
 	ConstitutiveLawUtilities<3>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
 	
 	array_1d<double, 2> rPrincipalStressVector;
@@ -528,11 +526,9 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressCompression(
 	const double principal_stress_1 = rPrincipalStressVector[0];
 	const double principal_stress_2 = rPrincipalStressVector[1];
 	const double smax_macaulay = std::max(principal_stress_1, 0.0);
-	
 	if (principal_stress_2 < 0.0){
 		rEquivalentStress = alpha_factor * (alpha*I1 + std::sqrt(3.0 * J2) + beta * shear_compression_reductor * smax_macaulay);
 	}
-	
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -712,7 +708,7 @@ double DamageDPlusDMinusMasonry2DLaw::EvaluateBezierCurve(
     double C = x1 - Xi;
     if (std::abs(A) < 1.0e-12) {
         x2 = x2 + 1.0E-6 * (x3-x1);
-        A =  x1 - 2.0 * x2 + x2;
+        A =  x1 - 2.0 * x2 + x3;
         B = 2.0 * (x2 - x1);
         C = x1 - Xi;
     }

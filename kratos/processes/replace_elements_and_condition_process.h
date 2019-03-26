@@ -8,7 +8,8 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//
+//                   Vicente Mataix Ferrandiz
+//                   Philipp Bucher
 //
 
 #if !defined(KRATOS_REPLACE_ELEMENTS_AND_CONDITIONS_PROCESS_H_INCLUDED )
@@ -64,16 +65,18 @@ public:
     {
         KRATOS_TRY
 
-        Parameters default_parameters( R"(
-        {
-            "element_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-            "condition_name": "PLEASE_PRESCRIBE_VARIABLE_NAME"
-        }  )" );
+        Parameters default_parameters( R"({
+            "element_name"   : "PLEASE_CHOOSE_MODEL_PART_NAME",
+            "condition_name" : "PLEASE_PRESCRIBE_VARIABLE_NAME"
+        } )" );
 
-        // Some vvalues need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
+        const std::string element_name = Settings["element_name"].GetString();
+        const std::string condition_name = Settings["condition_name"].GetString();
+
+        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
         // so that an error is thrown if they don't exist
-        KRATOS_ERROR_IF_NOT(KratosComponents< Element >::Has( Settings["element_name"].GetString() )) << "Element name not found in KratosComponents< Element > -- name is " << Settings["element_name"].GetString() << std::endl;
-        KRATOS_ERROR_IF_NOT(KratosComponents< Condition >::Has( Settings["condition_name"].GetString())) << "Condition name not found in KratosComponents< Condition > -- name is " << Settings["condition_name"].GetString() << std::endl;
+        KRATOS_ERROR_IF(element_name != "" && !KratosComponents<Element>::Has(element_name)) << "Element name not found in KratosComponents< Element > -- name is " << element_name << std::endl;
+        KRATOS_ERROR_IF(condition_name != "" && !KratosComponents<Condition>::Has(condition_name)) << "Condition name not found in KratosComponents< Condition > -- name is " << condition_name << std::endl;
 
         // Now validate agains defaults -- this also ensures no type mismatch
         Settings.ValidateAndAssignDefaults(default_parameters);
@@ -135,22 +138,6 @@ protected:
 
     ModelPart& mrModelPart; /// The main model part where the elements and conditions will be replaced
     Parameters mSettings;   /// The settings of the problem (names of the conditions and elements)
-
-    ///@}
-
-private:
-    ///@name Private Operations
-    ///@{
-
-    /**
-     * @brief This method updates the current elements and conditions ina given model part
-     * @param rModelPart The model part where the elements and conditions are assigned
-     * @param rRootModelPart The root model part
-     */
-    void UpdateSubModelPart(
-        ModelPart& rModelPart,
-        ModelPart& rRootModelPart
-        );
 
     ///@}
 

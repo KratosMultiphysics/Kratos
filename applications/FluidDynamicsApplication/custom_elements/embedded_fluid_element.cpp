@@ -200,11 +200,33 @@ void EmbeddedFluidElement<TBaseElement>::Calculate(
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+// Access
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::GetValueOnIntegrationPoints(
+    const Variable<array_1d<double, 3>> &rVariable,
+    std::vector<array_1d<double, 3>> &rValues,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    if (rVariable == EMBEDDED_VELOCITY) {
+        const auto &r_geom = this->GetGeometry();
+        const auto &r_integration_points = r_geom.IntegrationPoints(this->GetIntegrationMethod());
+        const std::size_t n_gauss_pts = r_integration_points.size();
+        rValues.resize(n_gauss_pts);
+        for (std::size_t i_gauss = 0; i_gauss < n_gauss_pts; ++i_gauss) {
+            rValues[i_gauss] = this->GetValue(EMBEDDED_VELOCITY);
+        }
+    } else {
+        TBaseElement::GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    }
+}
+
 // Inquiry
 
 template <class TBaseElement>
 int EmbeddedFluidElement<TBaseElement>::Check(
-    const ProcessInfo& rCurrentProcessInfo) {
+    const ProcessInfo &rCurrentProcessInfo)
+{
 
     int out = EmbeddedElementData::Check(*this,rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)

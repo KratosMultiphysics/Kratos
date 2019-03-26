@@ -33,12 +33,12 @@ class ProjectionModule:
 
         # Create projector_parameters
         self.projector_parameters = Parameters("{}")
-        self.projector_parameters.AddValue("min_fluid_fraction",project_parameters["min_fluid_fraction"])
-        self.projector_parameters.AddValue("coupling_type",project_parameters["coupling_weighing_type"])
-        self.projector_parameters.AddValue("time_averaging_type",project_parameters["time_averaging_type"])
-        self.projector_parameters.AddValue("viscosity_modification_type",project_parameters["viscosity_modification_type"])
-        self.projector_parameters.AddValue("n_particles_per_depth_distance",project_parameters["n_particles_in_depth"])
-        self.projector_parameters.AddValue("body_force_per_unit_mass_variable_name",project_parameters["body_force_per_unit_mass_variable_name"])
+        self.projector_parameters.AddValue("min_fluid_fraction", project_parameters["min_fluid_fraction"])
+        self.projector_parameters.AddValue("coupling_type", project_parameters["coupling_weighing_type"])
+        self.projector_parameters.AddValue("time_averaging_type", project_parameters["time_averaging_type"])
+        self.projector_parameters.AddValue("viscosity_modification_type", project_parameters["viscosity_modification_type"])
+        self.projector_parameters.AddValue("n_particles_per_depth_distance", project_parameters["n_particles_in_depth"])
+        self.projector_parameters.AddValue("body_force_per_unit_mass_variable_name", project_parameters["body_force_per_unit_mass_variable_name"])
 
         if self.dimension == 3:
 
@@ -74,11 +74,6 @@ class ProjectionModule:
         for var in time_filtered_vars:
             self.projector.AddFluidVariableToBeTimeFiltered(var, 0.004)
 
-        # calculating the fluid nodal areas that are needed for the coupling
-
-        self.area_calculator = CalculateNodalAreaProcess(self.fluid_model_part, self.dimension)
-        self.area_calculator.Execute()
-
     def UpdateDatabase(self, HMin):
 
         if self.dimension == 3:
@@ -103,6 +98,7 @@ class ProjectionModule:
             self.InterpolateVelocityOnSlipVelocity()
 
     def ProjectFromFluid(self, alpha):
+
         self.projector.InterpolateFromFluidMesh(self.fluid_model_part,
                                                 self.particles_model_part,
                                                 self.project_parameters,
