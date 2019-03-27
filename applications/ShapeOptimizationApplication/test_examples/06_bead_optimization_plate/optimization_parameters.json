@@ -28,10 +28,11 @@
             "type"       : "minimization",
             "use_kratos" : true,
             "kratos_response_settings":{
-                "response_type"          : "strain_energy",
+                "response_type"          : "adjoint_non_linear_strain_energy",
                 "primal_settings"        : "analysis_parameters.json",
+                "adjoint_settings"  : "plate_adjoint_analysis_parameters.json",
                 "gradient_mode"          : "semi_analytic",
-                "step_size"              : 1e-7
+                "step_size"              : 1e-5
             },
             "project_gradient_on_surface_normals" : false
         }],

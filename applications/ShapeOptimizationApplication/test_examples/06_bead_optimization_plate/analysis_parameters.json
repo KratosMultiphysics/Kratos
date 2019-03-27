@@ -3,17 +3,17 @@
       "problem_name"    : "Plate",
       "parallel_type"   : "OpenMP",
       "start_time"      : 0.0,
-      "end_time"        : 1.0,
+      "end_time"        : 0.99,
       "echo_level"      : 0
   },
   "solver_settings"          : {
       "solver_type"     : "static",
       "echo_level"      : 0,
-      "analysis_type"   : "linear",
+      "analysis_type"   : "non_linear",
       "model_part_name" : "plate",
       "domain_size"     : 3,
       "time_stepping" : {
-          "time_step"       : 1.0
+          "time_step"       : 0.1
       },
       "model_import_settings"              : {
           "input_type"     : "use_input_model_part",
@@ -71,11 +71,32 @@
             "mesh_id"         : 0,
             "model_part_name" : "plate.load_point",
             "variable_name"   : "POINT_LOAD",
-            "modulus"         : 100.0,
+            "modulus"         : "100.0*t",
             "constrained"     : false,
             "direction"       : [0.0,0.0,-1.0]
         }
-    }]
+    }],
+    "list_other_processes"     : [
+        {
+            "kratos_module" : "KratosMultiphysics.HDF5Application",
+            "python_module" : "single_mesh_temporal_output_process",
+            "help"          : "",
+            "process_name"  : "",
+            "Parameters" : {
+                "model_part_name" : "plate",
+                "file_settings" : {
+                    "file_access_mode" : "truncate"
+                },
+                "nodal_solution_step_data_settings" : {
+                    "list_of_variables": ["DISPLACEMENT", "ROTATION", "POINT_LOAD", "REACTION"]
+                },
+                "output_time_settings" : {
+                    "output_step_frequency": 1,
+                    "file_name" : "primal_output"
+                }
+            }
+        }
+    ]
   },
   "output_processes" : {
     "gid_output" : [{
