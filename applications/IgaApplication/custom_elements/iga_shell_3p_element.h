@@ -1,5 +1,6 @@
-#if !defined(KRATOS_IGA_SHELL_5P_ELEMENT_H_INCLUDED)
-#define  KRATOS_IGA_SHELL_5P_ELEMENT_H_INCLUDED
+
+#if !defined(KRATOS_IGA_SHELL_3P_ELEMENT_H_INCLUDED)
+#define  KRATOS_IGA_SHELL_3P_ELEMENT_H_INCLUDED
 
 
 // System includes
@@ -18,37 +19,37 @@ namespace Kratos
 ///@{
 /// Short class definition.
 /** 
- * @class IgaShell5pElement
+ * @class IgaShell3pElement
  * @ingroup IGAApplication
  * @brief Reissner-Mindlin 5-Parameter hierarchic shell element by Echter et al. (2013)
     */
-class IgaShell5pElement
+class IgaShell3pElement
     : public BaseDiscreteElement
 {
 public:
     ///@name Type Definitions
     ///@{
-    /// Counted pointer of IgaShell5pElement
-    KRATOS_CLASS_POINTER_DEFINITION(IgaShell5pElement);
+    /// Counted pointer of IgaShell3pElement
+    KRATOS_CLASS_POINTER_DEFINITION(IgaShell3pElement);
     ///@}
     ///@name Life Cycle
     ///@{
     /// Default constructor.
     // Constructor using an array of nodes
-    IgaShell5pElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    IgaShell3pElement(IndexType NewId, GeometryType::Pointer pGeometry)
         : BaseDiscreteElement(NewId, pGeometry)
     {};
     // Constructor using an array of nodes with properties
-    IgaShell5pElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    IgaShell3pElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseDiscreteElement(NewId, pGeometry, pProperties)
     {};
 
     // default constructor necessary for serialization
-    IgaShell5pElement() : BaseDiscreteElement() 
+    IgaShell3pElement() : BaseDiscreteElement() 
     {};
 
     /// Destructor.
-    virtual ~IgaShell5pElement() override
+    virtual ~IgaShell3pElement() override
     {};
 
     /**
@@ -67,7 +68,7 @@ public:
         
         KRATOS_WATCH("CreateStart");
         
-        return Kratos::make_shared<IgaShell5pElement>(
+        return Kratos::make_shared<IgaShell3pElement>(
             NewId, pGeom, pProperties);
     };
 
@@ -80,7 +81,7 @@ public:
 
         KRATOS_WATCH("CreateStart");
         
-        return Kratos::make_shared<IgaShell5pElement>(
+        return Kratos::make_shared<IgaShell3pElement>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -162,7 +163,7 @@ public:
         KRATOS_WATCH("Check");
 
         std::stringstream buffer;
-        buffer << "IgaShell5pElement #" << Id();
+        buffer << "IgaShell3pElement #" << Id();
         KRATOS_WATCH(GetValue(SHAPE_FUNCTION_VALUES));
         KRATOS_WATCH(GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES));
         KRATOS_WATCH(GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES));
@@ -176,7 +177,7 @@ public:
         
         KRATOS_WATCH("PrintInfo");
         
-        rOStream << "IgaShell5pElement #" << Id();
+        rOStream << "IgaShell3pElement #" << Id();
     };
 
     // function not checked yet, just copied from surface_base, needed? (ML)
@@ -202,8 +203,7 @@ private:
     {
         Vector gab; // covariant metric (only in-plane, g_11, g_22, g_12)       // not used for sure (ML)
         Vector gab_con; // contravariant metric (only in-plane)     // not used for sure (ML)
-        // probably not needed (ML)
-		Vector curvature; //
+        Vector curvature; //
         Matrix J; //Jacobian
         double  detJ;     // not used for sure (ML)
         Vector g1, g2, g3; //base vector 1, 2, 3
@@ -347,12 +347,15 @@ private:
      */
     void CalculateCurvature(
         Vector& rCurvatureVector,
-        MetricVariables& rActualMetric);
+        const MetricVariables& rActualMetric);
     
     // function not checked yet, just copied from surface_base, needed? (ML)
-    void CalculateBMembrane(
+    void CalculateBMembrane(        
         Matrix& rB,
-        const MetricVariables& metric) {KRATOS_WATCH("CalculateBMembrane");};
+        const MetricVariables& rMetric,
+        const Matrix& rDN_De,
+        const unsigned int& rNumberOfNodes,
+        const unsigned int& rMatSize);
 
     // function not checked yet, just copied from surface_base, needed? (ML)
     void CalculateBCurvature(
@@ -379,7 +382,7 @@ private:
 
     ///@}
 
-};     // Class IgaShell5pElement
+};     // Class IgaShell3pElement
 ///@}
 
 }  // namespace Kratos.

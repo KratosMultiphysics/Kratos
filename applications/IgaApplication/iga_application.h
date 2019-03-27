@@ -174,6 +174,7 @@ private:
 
     const IgaTrussElement mIgaTrussElement;
     const ShellKLDiscreteElement mShellKLDiscreteElement;
+    const IgaShell3pElement mIgaShell3pElement;
     const IgaShell5pElement mIgaShell5pElement;
 
     const CouplingPenaltyDiscreteCondition mCouplingPenaltyDiscreteCondition;

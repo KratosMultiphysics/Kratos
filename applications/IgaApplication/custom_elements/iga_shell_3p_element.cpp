@@ -17,13 +17,13 @@
 // External includes
 
 // Project includes
-#include "custom_elements/iga_shell_5p_element.h"
+#include "custom_elements/iga_shell_3p_element.h"
 #include "custom_utilities/geometry_utilities/iga_geometry_utilities.h"
 
 
 namespace Kratos
 {
-    void IgaShell5pElement::Initialize()
+    void IgaShell3pElement::Initialize()
     {
         KRATOS_TRY
 
@@ -45,7 +45,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void IgaShell5pElement::CalculateAll(
+    void IgaShell3pElement::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
@@ -57,11 +57,11 @@ namespace Kratos
         
         KRATOS_WATCH("here: CalculateAllStart");
 
-        // definition of problem size
+        // 1. definition of problem size
         const unsigned int number_of_nodes = GetGeometry().size();
-        unsigned int mat_size = number_of_nodes * 5;        // considers number of parameters
+        unsigned int mat_size = number_of_nodes * 3;        // considers number of parameters 3
 
-        //set up properties for Constitutive Law
+        //2. set up properties for Constitutive Law
         ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);        // direct initialisation of the structure 'Values' (name) of the type Parameters
 
         /** decides where the strains, stresses and the constitutive tensor are calculated
@@ -71,14 +71,17 @@ namespace Kratos
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-        //resizing as needed the LHS
+        // this is done for each node again and again even though LHS and RHS are global (ML)
+        // -> could be more effective (ML)
+        // 3. resizing of solving matrices LHS and RHS      
+        // resizing as needed the LHS
         if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
         {
             if (rLeftHandSideMatrix.size1() != mat_size)
                 rLeftHandSideMatrix.resize(mat_size, mat_size);
             noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
         }
-        //resizing as needed the RHS
+        // resizing as needed the RHS
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
             if (rRightHandSideVector.size() != mat_size)
@@ -86,15 +89,18 @@ namespace Kratos
             rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
         }
 
-        //reading in of integration weight, shape function values and shape function derivatives
+        // 3. reading in integration weight, shape function values and shape function derivatives
         double integration_weight = GetValue(INTEGRATION_WEIGHT);
         Vector   N     = GetValue(SHAPE_FUNCTION_VALUES);
+        // rDN_De(i, m): derivative of form function at node i w.r.t. convective coordinate m
         Matrix  DN_De  = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
         Matrix DDN_DDe = GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
 
+        // 4. calculate actual metric
         MetricVariables actual_metric(3);
         CalculateMetric(actual_metric);
         
+        // 5. calculate strains
         m_Dv_D1 = actual_metric.g1 - m_initial_metric.g1;
         m_Dv_D2 = actual_metric.g2 - m_initial_metric.g2;
         CalculateRotationVector(actual_metric);
@@ -106,10 +112,11 @@ namespace Kratos
             Values, 
             ConstitutiveLaw::StressMeasure_PK2);
 
-        // calculate B MATRICES
+        // 6. calculate B MATRICES
+        // size of matrix depending on number of strain entries (here: eps11, eps22, eps12) and mat_size
         Matrix BMembrane = ZeroMatrix(3, mat_size);
         Matrix BCurvature = ZeroMatrix(3, mat_size);
-        CalculateBMembrane(BMembrane, actual_metric);
+        CalculateBMembrane(BMembrane, actual_metric, DN_De, number_of_nodes, mat_size);
         CalculateBCurvature(BCurvature, actual_metric);
 
         // // Nonlinear Deformation
@@ -157,7 +164,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void IgaShell5pElement::CalculateMetric(
+    void IgaShell3pElement::CalculateMetric(
         MetricVariables& rMetric)
     {
         KRATOS_WATCH("CalculateMetricStart");
@@ -291,7 +298,7 @@ namespace Kratos
         KRATOS_WATCH("CalculateMetricEnd");
     }
  
-    void IgaShell5pElement::CalculateRotationVector(
+    void IgaShell3pElement::CalculateRotationVector(
         MetricVariables& rActualMetric)
     {   
         m_phi1 = MathUtils<double>::Dot3(m_Dv_D2, m_initial_metric.g3)
@@ -303,7 +310,7 @@ namespace Kratos
         m_DPhi_D2 = m_phi1 * m_initial_metric.Dg1_D2 + m_phi2 * m_initial_metric.Dg2_D2;
     }
     
-    void IgaShell5pElement::CalculateConstitutiveVariables(
+    void IgaShell3pElement::CalculateConstitutiveVariables(
         MetricVariables& rActualMetric,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
@@ -345,7 +352,7 @@ namespace Kratos
             trans(rThisConstitutiveVariablesCurvature.D), rThisConstitutiveVariablesCurvature.E);
     }
 
-    void IgaShell5pElement::CalculateStrain(
+    void IgaShell3pElement::CalculateStrain(
         Vector& rStrainVector)
     {
         rStrainVector[0] = MathUtils<double>::Dot3(m_Dv_D1, m_initial_metric.g1) 
@@ -359,9 +366,9 @@ namespace Kratos
         KRATOS_WATCH(rStrainVector);
     }
 
-    void IgaShell5pElement::CalculateCurvature(
+    void IgaShell3pElement::CalculateCurvature(
         Vector& rCurvatureVector,
-        MetricVariables& rActualMetric)
+        const MetricVariables& rActualMetric)
     {
         rCurvatureVector[0] = MathUtils<double>::Dot3(m_initial_metric.Dg1_D1, m_initial_metric.g3)
             - MathUtils<double>::Dot3(rActualMetric.Dg1_D1, rActualMetric.g3);
@@ -370,8 +377,88 @@ namespace Kratos
         rCurvatureVector[0] = 2 * (MathUtils<double>::Dot3(m_initial_metric.Dg1_D2, m_initial_metric.g3)
             - MathUtils<double>::Dot3(rActualMetric.Dg1_D2, rActualMetric.g3));
     }
+    
+    void IgaShell3pElement::CalculateBMembrane(
+        Matrix& rB,
+        const MetricVariables& rMetric,
+        const Matrix& rDN_De,
+        const unsigned int& rNumberOfNodes,
+        const unsigned int& rMatSize)
+    {
+        if (rB.size1() != rMatSize || rB.size2() != rMatSize)
+            rB.resize(rMatSize, rMatSize);
+        rB = ZeroMatrix(3, rMatSize);
 
-    void IgaShell5pElement::EquationIdVector(
+        //0ML
+        for (int r = 0; r < static_cast<int>(rMatSize); r++)
+        {
+            // local node number kr and dof direction dirr
+            int kr = r / 3;
+            int dirr = r % 3;
+
+            Vector dE_curvilinear = ZeroVector(3);
+            // strain
+            dE_curvilinear[0] = DN_De(kr, 0)*metric.g1(dirr);
+            dE_curvilinear[1] = DN_De(kr, 1)*metric.g2(dirr);
+            dE_curvilinear[2] = 0.5*(DN_De(kr, 0)*metric.g2(dirr) + metric.g1(dirr)*DN_De(kr, 1));
+
+            rB(0, r) = mInitialMetric.Q(0, 0)*dE_curvilinear[0] + mInitialMetric.Q(0, 1)*dE_curvilinear[1] + mInitialMetric.Q(0, 2)*dE_curvilinear[2];
+            rB(1, r) = mInitialMetric.Q(1, 0)*dE_curvilinear[0] + mInitialMetric.Q(1, 1)*dE_curvilinear[1] + mInitialMetric.Q(1, 2)*dE_curvilinear[2];
+            rB(2, r) = mInitialMetric.Q(2, 0)*dE_curvilinear[0] + mInitialMetric.Q(2, 1)*dE_curvilinear[1] + mInitialMetric.Q(2, 2)*dE_curvilinear[2];
+        }
+
+
+        //if (this->Has(SHAPE_FUNCTION_LOCAL_DERIVATIVES))
+        //{
+        //    const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+
+        //    const int number_of_control_points = GetGeometry().size();
+        //    const int rMatSize = number_of_control_points * 3;
+
+        //    if (rB.size1() != rMatSize || rB.size2() != rMatSize)
+        //        rB.resize(rMatSize, rMatSize);
+        //    rB = ZeroMatrix(rMatSize, rMatSize);
+
+        //    Matrix b = ZeroMatrix(3, rMatSize);
+
+        //    for (unsigned int i = 0; i < number_of_control_points; i++)
+        //    {
+        //        unsigned int index = 3 * i;
+
+        //        //first line
+        //        b(0, index) = DN_De(i, 0) * metric.g1[0];
+        //        b(0, index + 1) = DN_De(i, 0) * metric.g1[1];
+        //        b(0, index + 2) = DN_De(i, 0) * metric.g1[2];
+
+        //        //second line
+        //        b(1, index) = DN_De(i, 1) * metric.g2[0];
+        //        b(1, index + 1) = DN_De(i, 1) * metric.g2[1];
+        //        b(1, index + 2) = DN_De(i, 1) * metric.g2[2];
+
+        //        //third line
+        //        b(2, index) = 0.5*(DN_De(i, 1) * metric.g1[0] + DN_De(i, 0) * metric.g2[0]);
+        //        b(2, index + 1) = 0.5*(DN_De(i, 1) * metric.g1[1] + DN_De(i, 0) * metric.g2[1]);
+        //        b(2, index + 2) = 0.5*(DN_De(i, 1) * metric.g1[2] + DN_De(i, 0) * metric.g2[2]);
+
+        //        //const int index = 3 * i;
+
+        //        //for (int n = 0; n < 3; ++n)
+        //        //{
+        //        //    b(0, index + n) = DN_De(i, 0) * metric.g1[n];
+        //        //    b(1, index + n) = DN_De(i, 1) * metric.g2[n];
+        //        //    b(2, index + n) = 0.5*(DN_De(i, 1) * metric.g1[n] + DN_De(i, 0) * metric.g2[n]);
+        //        //}
+        //    }
+        //    rB = prod(metric.Q, b);
+        //}
+        //else
+        //{
+        //    KRATOS_ERROR << "Element does not provide SHAPE_FUNCTION_LOCAL_DERIVATIVES" << std::endl;
+        //}
+        //KRATOS_CATCH("")
+    }
+
+    void IgaShell3pElement::EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo
     )
@@ -401,7 +488,7 @@ namespace Kratos
 
     // /***********************************************************************************/
     // /***********************************************************************************/
-    void IgaShell5pElement::GetDofList(
+    void IgaShell3pElement::GetDofList(
         DofsVectorType& rElementalDofList,
         ProcessInfo& rCurrentProcessInfo)
     {
@@ -432,7 +519,7 @@ namespace Kratos
 
     // //************************************************************************************
     // //************************************************************************************
-    int IgaShell5pElement::Check(const ProcessInfo& rCurrentProcessInfo)
+    int IgaShell3pElement::Check(const ProcessInfo& rCurrentProcessInfo)
     {
         
         KRATOS_WATCH("CheckStart");

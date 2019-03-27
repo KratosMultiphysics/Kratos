@@ -32,6 +32,9 @@ namespace Kratos
     )
     {
         KRATOS_TRY
+
+        KRATOS_WATCH("here: CalculateAll");
+
         // definition of problem size
         const unsigned int number_of_nodes = GetGeometry().size();
         unsigned int mat_size = number_of_nodes * 3;
@@ -134,6 +137,9 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo
     )
     {
+        
+        KRATOS_WATCH("CalculateOnIntegrationPoints");
+        
         if (rOutput.size() != 1)
             rOutput.resize(1);
 
@@ -220,6 +226,9 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo
     )
     {
+        
+        KRATOS_WATCH("CalculateOnIntegrationPoints_Vector");
+        
         if (rValues.size() != 1)
         {
             rValues.resize(1);
@@ -337,7 +346,8 @@ namespace Kratos
         metric.g2[2] = metric.J(2, 1);
 
         //basis vector g3
-        MathUtils<double>::CrossProduct(metric.g3, metric.g1, metric.g2);
+        metric.g3 = MathUtils<double>::CrossProduct(metric.g1, metric.g2);
+        metric.g3 = metric.g3 / norm_2(metric.g3);       // normalization
         //differential area dA
         metric.dA = norm_2(metric.g3);
         //normal vector _n
