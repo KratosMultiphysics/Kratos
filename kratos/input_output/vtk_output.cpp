@@ -43,6 +43,24 @@ VtkOutput::VtkOutput(ModelPart& rModelPart, Parameters Parameters)
             << " not recognised!\n Possible output formats "
             << "options are: \"ascii\", \"binary\"" << std::endl;
     }
+
+    if(mOutputSettings["gauss_point_solution_step_data_variables"].size() > 0)
+    {
+
+        Parameters gauss_intergration_param = Parameters(R"(
+        {
+            "echo_level"                 : 0,
+            "area_average"               : true,
+            "average_variable"           : "NODAL_AREA",
+            "list_of_variables"          : [],
+            "extrapolate_non_historical" : true
+        })");
+
+        gauss_intergration_param["list_of_variables"]  =  mOutputSettings["gauss_point_solution_step_data_variables"];
+
+        // Making the gauss point to nodes process if any gauss point result is requested for
+        mpGaussToNodesProcessHistorical = Kratos::make_shared<IntegrationValuesExtrapolationToNodesProcess>(gauss_intergration_param);
+    }
 }
 
 /***********************************************************************************/
