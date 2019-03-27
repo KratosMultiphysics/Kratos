@@ -34,7 +34,6 @@ class CoSimulationAnalysis(object):
             self.OutputSolutionStep()
 
     def Initialize(self):
-        # Initialize solver
         self._GetSolver().Initialize()
         self._GetSolver().Check()
         self._GetSolver().PrintInfo()

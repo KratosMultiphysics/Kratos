@@ -230,16 +230,14 @@ class CoSimulationBaseSolver(object):
         data_map = collections.OrderedDict()
         for data_conf in self.cs_solver_settings["data"]:
             data_name = data_conf["name"].GetString()
-            data_obj = cs_tools.CouplingInterfaceData(data_conf, self)
-            data_map[data_name] = data_obj
-
+            data_object = cs_tools.CouplingInterfaceData(data_conf, self)
+            data_map[data_name] = data_object
         return data_map
 
     def _GetGeometryNames(self):
-        geo_name_list = []
+        geometry_name_list = []
         for name, data in self.data_map.items():
-            mesh_name = data.mesh_name
-            if(mesh_name not in geo_name_list):
-                geo_name_list.append( mesh_name )
-        return geo_name_list
-
+            geometry_name = data.geometry_name
+            if geometry_name not in geometry_name_list:
+                geometry_name_list.append(geometry_name)
+        return geometry_name_list

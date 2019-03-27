@@ -86,7 +86,7 @@ def GetDataAsList(solver, data_name):
     data_mesh = solver.model[data_def["geometry_name"].GetString()]
     data_variable = cs_data_structure.KratosGlobals.GetVariable(data_name)
     for node in data_mesh.Nodes:
-        data_value = node.GetSolutionStepValue(data_variable,0) #TODO what if non-historical?
+        data_value = node.GetSolutionStepValue(data_variable, 0) #TODO what if non-historical?
         for value in data_value:
             data.append(value)
 
@@ -151,7 +151,7 @@ class CouplingInterfaceData(object):
         self.solver = solver
         self.dimension = custom_config["dimension"].GetInt()
         self.location_on_mesh = custom_config["location_on_mesh"].GetString()
-        self.mesh_name = custom_config["geometry_name"].GetString()
+        self.geometry_name = custom_config["geometry_name"].GetString()
         self.destination_data = None
         self.origin_data = None
         self.mapper_settings = None
@@ -164,7 +164,7 @@ class CouplingInterfaceData(object):
 
     def GetPythonList(self):
         data = []
-        data_mesh = self.solver.model[self.mesh_name]
+        data_mesh = self.solver.model[self.geometry_name]
         data_variable = cs_data_structure.KratosGlobals.GetVariable(self.name)
         for node in data_mesh.Nodes:
             data_value = node.GetSolutionStepValue(data_variable,0) #TODO what if non-historical?
@@ -176,16 +176,14 @@ class CouplingInterfaceData(object):
         pass
 
     def ApplyUpdateToData(self, update):
-        data_mesh = self.solver.model[self.mesh_name]
+        data_mesh = self.solver.model[self.geometry_name]
         data_variable = cs_data_structure.KratosGlobals.GetVariable(self.name)
         index = 0
         for node in data_mesh.Nodes: # #TODO: local nodes to also work in MPI?
             updated_value = []
-            value = node.GetSolutionStepValue(data_variable,0)
+            value = node.GetSolutionStepValue(data_variable, 0)
             # TODO: aditya the data might also be non-historical => GetValue
             for value_i in value:
                 updated_value.append(update[index])
                 index = index + 1
             node.SetSolutionStepValue(data_variable, 0, updated_value)
-
-
