@@ -1,11 +1,11 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
-//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
-//        | |  | | |___ ___) |  _  || || |\  | |_| |
-//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -19,7 +19,7 @@
 // Include the point locator
 #include "utilities/math_utils.h"
 #include "utilities/variable_utils.h"
-#include "custom_processes/integration_values_extrapolation_to_nodes_process.h"
+#include "processes/integration_values_extrapolation_to_nodes_process.h"
 
 namespace Kratos
 {
@@ -37,7 +37,7 @@ IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNo
         "extrapolate_non_historical" : true
     })");
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
-    
+
     mEchoLevel = ThisParameters["echo_level"].GetInt();
     mExtrapolateNonHistorical = ThisParameters["extrapolate_non_historical"].GetBool();
     mAreaAverage = ThisParameters["area_average"].GetBool();
