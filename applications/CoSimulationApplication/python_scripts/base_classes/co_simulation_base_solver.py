@@ -45,7 +45,7 @@ class CoSimulationBaseSolver(object):
     #  @param self                      The object pointer. especially the geometries
     def Initialize(self):
         # Initialize IO
-        if(not self.io_is_initialized):
+        if not self.io_is_initialized:
             self.InitializeIO(self.echo_level)
 
         # Initialize data (and geometries)
@@ -228,7 +228,6 @@ class CoSimulationBaseSolver(object):
     #  @param self            The object pointer.
     def _GetDataMap(self):
         data_map = collections.OrderedDict()
-        num_data = self.cs_solver_settings["data"].size()
         for data_conf in self.cs_solver_settings["data"]:
             data_name = data_conf["name"].GetString()
             data_obj = cs_tools.CouplingInterfaceData(data_conf, self)

@@ -22,7 +22,7 @@
                     "solver"        : "pipe_flow",
                     "data_name"     : "MESH_DISPLACEMENT"
                 },
-                "settings":
+                "settings" :
                 {
                 }
             }
@@ -36,41 +36,41 @@
                 "rel_tolerance" : 1e-4
             }
         ],
-        "participants":
+        "participants" :
         [
             {
-                "name": "pipe_flow",
-                "input_data_list": [],
-                "output_data_list": []
+                "name" : "pipe_flow",
+                "input_data_list" : [],
+                "output_data_list" : []
             },
             {
-                "name": "pipe_structure",
-                "input_data_list":
+                "name" : "pipe_structure",
+                "input_data_list" :
                 [
                     {
                         "from_solver" : "pipe_flow",
                         "data_name"   : "PRESSURE",
-                        "destination_data": "PRESSURE",
-                        "mapper_settings":
+                        "destination_data" : "PRESSURE",
+                        "mapper_settings" :
                         {
-                            "type": "nearest_neighbor",
-                            "flags": ["swap_sign"]
+                            "type" : "nearest_neighbor",
+                            "flags" : ["swap_sign"]
                         },
-                        "filters": []
+                        "filters" : []
                     }
                 ],
-                "output_data_list":
+                "output_data_list" :
                 [
                     {
                         "to_solver" : "pipe_flow",
                         "data_name" : "DISPLACEMENT",
-                        "origin_data": "DISPLACEMENT",
-                        "mapper_settings":
+                        "origin_data" : "DISPLACEMENT",
+                        "mapper_settings" :
                         {
-                            "type": "nearest_neighbor",
-                            "flags": []
+                            "type" : "nearest_neighbor",
+                            "flags" : []
                         },
-                        "filters": []
+                        "filters" : []
                     }
                 ]
             }
@@ -78,10 +78,10 @@
     },
     "solvers" :
     {
-        "pipe_flow":
+        "pipe_flow" :
         {
             "solver_type" : "pipe_interfaces.pipe_flow_solver",
-            "settings":
+            "settings" :
             {
                 "echo_level"  : 1,
                 "working_directory" : "CFD",
@@ -94,12 +94,12 @@
             "data" :
             [
                 {
-                    "name": "DISPLACEMENT",
+                    "name" : "DISPLACEMENT",
                     "geometry_name" : "wall",
                     "dimension"       : 1
                 },
                 {
-                    "name": "PRESSURE",
+                    "name" : "PRESSURE",
                     "geometry_name" : "wall",
                     "dimension"       : 1
                 }
@@ -108,7 +108,7 @@
         "pipe_structure" :
         {
             "solver_type" : "pipe_interfaces.pipe_structure_solver",
-            "settings":
+            "settings" :
             {
                 "echo_level"  : 1,
                 "working_directory" : "CSD",
@@ -121,12 +121,12 @@
             "data" :
             [
                 {
-                    "name": "DISPLACEMENT",
+                    "name" : "DISPLACEMENT",
                     "geometry_name" : "wall",
                     "dimension"       : 1
                 },
                 {
-                    "name": "PRESSURE",
+                    "name" : "PRESSURE",
                     "geometry_name" : "wall",
                     "dimension"       : 1
                 }
