@@ -42,9 +42,10 @@ C. Bayer, H. Hoel, E. von Schwerin, R. Tempone; On NonAsymptotyc optimal stoppin
 """
 
 
-# TODO: check in CheckConvergence if I can use only sample variance-h2 and not two of them
+# TODO: in CheckConvergence convert formulas from unbiased to biased
 # TODO: in [3] formula 4.1 I use unbiased formula, not biased, as sample moments. Check it's fine
 # TODO: now batch_size = difference_number_samples, in future it may have flags for different behaviours
+# TODO: now we are using scipy so we can avoid _ComputeCDFStandardNormalDistribution
 
 
 """
@@ -317,7 +318,7 @@ class MonteCarlo(object):
     """
     def CheckConvergence(self,level):
         current_number_samples = self.QoI.number_samples[level]
-        current_mean = self.QoI.mean[level]
+        current_mean = self.QoI.raw_moment_1[level]
         current_h2 = self.QoI.h_statistics_2[level]
         current_h3 = self.QoI.h_statistics_3[level]
         current_sample_central_moment_3_absolute = self.QoI.central_moment_from_scratch_3_absolute[level]
@@ -380,13 +381,13 @@ class MonteCarlo(object):
             raise Exception ("current work level must be = 0 in the Monte Carlo algorithm")
         # update statistics of the QoI
         for i_sample in range(self.previous_number_samples[current_level],self.number_samples[current_level]):
-            self.QoI.UpdateOnePassMomentsVariance(current_level,i_sample)
             self.QoI.UpdateOnePassPowerSums(current_level,i_sample)
         # compute the central moments we can't derive from the unbiased h statistics
         # we compute from scratch the absolute central moment because we can't retrieve it from the h statistics
-        self.QoI.central_moment_from_scratch_3_absolute_to_compute = True
-        self.QoI.ComputeSampleCentralMomentsFromScratch(current_level,self.number_samples[current_level]) # not possible to use self.StatisticalVariable.number_samples[current_level]
-                                                                                                  # inside the function because it is a pycompss.runtime.binding.Future object
+        if (self.convergence_criteria == "MC_higher_moments_sequential_stopping_rule"):
+            self.QoI.central_moment_from_scratch_3_absolute_to_compute = True
+            self.QoI.ComputeSampleCentralMomentsFromScratch(current_level,self.number_samples[current_level]) # not possible to use self.StatisticalVariable.number_samples[current_level]
+                                                                                                              # inside the function because it is a pycompss.runtime.binding.Future object
         self.QoI.ComputeHStatistics(current_level)
         self.QoI.ComputeSkewnessKurtosis(current_level)
         self.CheckConvergence(current_level)
@@ -410,7 +411,7 @@ class MonteCarlo(object):
         print("samples computed in this iteration",self.difference_number_samples)
         print("current number of samples = ",self.number_samples)
         print("previous number of samples = ",self.previous_number_samples)
-        print("monte carlo mean and variance QoI estimators = ",self.QoI.mean,self.QoI.sample_variance)
+        print("monte carlo mean and variance QoI estimators = ",self.QoI.h_statistics_1,self.QoI.h_statistics_2)
         print("convergence = ",self.convergence)
 
     """
