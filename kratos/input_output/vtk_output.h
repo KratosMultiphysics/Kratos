@@ -22,7 +22,7 @@
 // Project includes
 #include "includes/kratos_parameters.h"
 #include "includes/io.h"
-
+#include "processes/integration_values_extrapolation_to_nodes_process.h"
 
 namespace Kratos
 {
@@ -90,6 +90,11 @@ protected:
     unsigned int mDefaultPrecision;
     std::unordered_map<int, int> mKratosIdToVtkId;
     bool mShouldSwap = false;
+
+    ## pointer to object of the extrapolation from gauss point to nodes process
+    IntegrationValuesExtrapolationToNodesProcess mpGaussToNodesProcessHistorical;
+    IntegrationValuesExtrapolationToNodesProcess mpGaussToNodesProcessNonHistorical;
+
 
     ///@}
     ///@name Operations
