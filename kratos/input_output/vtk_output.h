@@ -101,6 +101,13 @@ protected:
     ///@{
 
     /**
+     * @brief Interpolates the gauss point results on to the node using IntegrationValuesExtrapolationToNodesProcess
+     */
+    void PrepareGaussPointResults();
+
+
+
+    /**
      * @brief Print the given rModelPart as VTK file together with the requested results
      * @param rModelPart modelpart which is beging output
      * @param IsSubModelPart whether the modelpart is to be treated as a submodelpart
