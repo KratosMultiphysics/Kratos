@@ -27,7 +27,7 @@
             },
         "sensitivity_settings" : {
                 "sensitivity_model_part_name" : "Parts_Beam",
-                "nodal_sensitivity_variables"  : ["SHAPE"],
+                "nodal_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
                 "element_sensitivity_variables"  : ["I22"],
                 "condition_sensitivity_variables"  : ["POINT_LOAD"],
                 "build_mode": "static"
