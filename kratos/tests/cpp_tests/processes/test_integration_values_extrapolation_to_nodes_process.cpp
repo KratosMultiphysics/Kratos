@@ -9,7 +9,7 @@
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
-#ifdef INCLUDE_MMG
+
 // System includes
 
 // External includes
@@ -21,10 +21,9 @@
 #include "containers/model.h"
 #include "includes/kratos_flags.h"
 // #include "includes/gid_io.h"
-#include "meshing_application.h"
 
 /* Processes */
-#include "custom_processes/integration_values_extrapolation_to_nodes_process.h"
+#include "processes/integration_values_extrapolation_to_nodes_process.h"
 #include "includes/mat_variables.h"
 
 namespace Kratos
@@ -208,4 +207,3 @@ namespace Kratos
         }
     } // namespace Testing
 }  // namespace Kratos.
-#endif
