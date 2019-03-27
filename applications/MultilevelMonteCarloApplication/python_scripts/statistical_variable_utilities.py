@@ -22,10 +22,12 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 
 # TODO: check absolute third moment from scratch is correct
 # TODO: add computation of raw moments, only the mean is now computed
+# TODO: remove self.power_sum_3_absolute
+# TODO: check that number samples is updated only once using updateonepasscentralmoments and updateonepasspowersums (for now MC uses powersums and cmlmc uses centralmoments so it is fine)
 
 
 """
-auxiliary function of UpdateOnePassMomentsVariance of the StatisticalVariable class
+auxiliary function of UpdateOnePassCentralMoments of the StatisticalVariable class
 input:  sample: new value that will update the statistics
         old_mean:             old mean
         old_central_moment_1: old first central moment
@@ -46,7 +48,7 @@ output: new_mean:             updated mean
         nsamples:             updated number of samples
 """
 @ExaquteTask(returns=7)
-def UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_central_moment_1,compute_M1,old_central_moment_2,compute_M2,old_central_moment_3,compute_M3,old_central_moment_4,compute_M4,nsamples):
+def UpdateOnePassCentralMomentsAux_Task(sample,old_mean,old_central_moment_1,compute_M1,old_central_moment_2,compute_M2,old_central_moment_3,compute_M3,old_central_moment_4,compute_M4,nsamples):
     old_M1 = old_central_moment_1 * nsamples
     old_M2 = old_central_moment_2 * nsamples
     old_M3 = old_central_moment_3 * nsamples
@@ -69,7 +71,7 @@ def UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_central_moment_1,co
         if (compute_M2):
             new_M2 = old_M2 + delta*np.subtract(sample,new_mean)
         else:
-            raise Exception ("Not computing StatisticalVariable.central_moment_2, please set StatisticalVariable.central_moment_2_to_compute to True")
+            raise Exception ("Not computing StatisticalVariable.central_moment_2, set StatisticalVariable.central_moment_2_to_compute to True")
         new_sample_variance = np.divide(new_M2,np.subtract(nsamples,1))
         if (compute_M3):
             new_M3 = old_M3 - 3.0*old_M2*np.divide(delta,nsamples) + np.divide(np.multiply((nsamples-1)*(nsamples-2),(delta**3)),(nsamples**2))
@@ -94,15 +96,16 @@ input:  sample: new value that will update the statistics
         old_S3: old third power sum
         old_S3_absolute: old third power sum absolute value
         old_S4: old fourth power sum
-        nsamples: number of samples, it has already been updated in UpdateOnePassMomentsVarianceAux_Task
+        nsamples: number of samples, it has already been updated in UpdateOnePassCentralMomentsAux_Task
 output: new_S1: updated first power sum
         new_s2: updated second power sum
         new_S3: updated third power sum
         new_S3_absolute: updated third power sum absolute value
         new_S4: updated fourth power sum with absolute value
 """
-@ExaquteTask(returns=5)
+@ExaquteTask(returns=6)
 def UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S3_absolute,old_S4,nsamples):
+    nsamples = nsamples + 1
     if nsamples == 1:
         new_S1 = sample
         new_S2 = sample**2
@@ -115,7 +118,7 @@ def UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S3_absolute,o
         new_S3 = old_S3 + sample**3
         new_S3_absolute = old_S3_absolute + np.abs(sample**3)
         new_S4 = old_S4 + sample**4
-    return new_S1,new_S2,new_S3,new_S3_absolute,new_S4
+    return new_S1,new_S2,new_S3,new_S3_absolute,new_S4,nsamples
 
 
 """
@@ -132,7 +135,7 @@ output: h1_level: first h statistics for defined level
 """
 @ExaquteTask(returns=4)
 def ComputeHStatisticsAux_Task(S1_level,S2_level,S3_level,S4_level,number_samples_level):
-    h1_level = 0
+    h1_level = S1_level / number_samples_level
     h2_level = (number_samples_level*S2_level-S1_level**2) / ((number_samples_level-1)*number_samples_level)
     h3_level = (number_samples_level**2*S3_level-3*number_samples_level*S2_level*S1_level+2*S1_level**3) / \
         ((number_samples_level-2)*(number_samples_level-1)*number_samples_level)
@@ -208,9 +211,9 @@ class StatisticalVariable(object):
         # values of the variable, organized per level
         self.values = []
         # mean of the variable per each level
-        self.mean = []
+        self.raw_moment_1 = []
         # sample variance of the variable per each level
-        self.sample_variance = []
+        self.unbiased_central_moment_2 = []
         # moments of the variable per each level M_p  = n * mu_p
         #                                        mu_p = p-th central moment
         #                                        n    = number of values
@@ -219,10 +222,10 @@ class StatisticalVariable(object):
         self.central_moment_3 = []
         self.central_moment_4 = []
         # set which central moments will be computed (moment_2 is mandatory to be computed because it is exploited in the mean evaluation)
-        self.central_moment_1_to_compute = False
+        self.central_moment_1_to_compute = True
         self.central_moment_2_to_compute = True
-        self.central_moment_3_to_compute = False
-        self.central_moment_4_to_compute = False
+        self.central_moment_3_to_compute = True
+        self.central_moment_4_to_compute = True
         # bias error of the variable
         self.bias_error = None
         # statistical error of the variable
@@ -268,12 +271,12 @@ class StatisticalVariable(object):
     """
     def InitializeLists(self,number_levels):
         self.values = [[] for _ in range (number_levels)]
-        self.mean = [[] for _ in range (number_levels)]
+        self.raw_moment_1 = [[] for _ in range (number_levels)]
         self.central_moment_1 = [[] for _ in range (number_levels)]
         self.central_moment_2 = [[] for _ in range (number_levels)]
         self.central_moment_3 = [[] for _ in range (number_levels)]
         self.central_moment_4 = [[] for _ in range (number_levels)]
-        self.sample_variance = [[] for _ in range (number_levels)]
+        self.unbiased_central_moment_2 = [[] for _ in range (number_levels)]
         self.power_sum_1 = [[] for _ in range (number_levels)]
         self.power_sum_2 = [[] for _ in range (number_levels)]
         self.power_sum_3 = [[] for _ in range (number_levels)]
@@ -297,10 +300,10 @@ class StatisticalVariable(object):
             level:    defined level
             i_sample: defined level in level
     """
-    def UpdateOnePassMomentsVariance(self,level,i_sample):
+    def UpdateOnePassCentralMoments(self,level,i_sample):
         number_samples_level = self.number_samples[level]
         sample = self.values[level][i_sample]
-        old_mean = self.mean[level]
+        old_mean = self.raw_moment_1[level]
         # old_M1 = self.central_moment_1[level] * number_samples_level
         old_central_moment_1 = self.central_moment_1[level]
         compute_M1 = self.central_moment_1_to_compute
@@ -314,9 +317,9 @@ class StatisticalVariable(object):
         old_central_moment_4 = self.central_moment_4[level]
         compute_M4 = self.central_moment_4_to_compute
         new_mean,new_sample_variance,new_central_moment_1,new_central_moment_2,new_central_moment_3,new_central_moment_4,number_samples_level \
-            = UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_central_moment_1,compute_M1,old_central_moment_2,compute_M2,old_central_moment_3,compute_M3,old_central_moment_4,compute_M4,number_samples_level)
-        self.mean[level] = new_mean
-        self.sample_variance[level] = new_sample_variance
+            = UpdateOnePassCentralMomentsAux_Task(sample,old_mean,old_central_moment_1,compute_M1,old_central_moment_2,compute_M2,old_central_moment_3,compute_M3,old_central_moment_4,compute_M4,number_samples_level)
+        self.raw_moment_1[level] = new_mean
+        self.unbiased_central_moment_2[level] = new_sample_variance
         self.central_moment_1[level] = new_central_moment_1
         self.central_moment_2[level] = new_central_moment_2
         self.central_moment_3[level] = new_central_moment_3
@@ -337,12 +340,13 @@ class StatisticalVariable(object):
         old_S3_absolute = self.power_sum_3_absolute[level]
         old_S4 = self.power_sum_4[level]
         number_samples_level = self.number_samples[level]
-        new_S1,new_S2,new_S3,new_S3_absolute,new_S4 = UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S3_absolute,old_S4,number_samples_level)
+        new_S1,new_S2,new_S3,new_S3_absolute,new_S4,number_samples_level = UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S3_absolute,old_S4,number_samples_level)
         self.power_sum_1[level] = new_S1
         self.power_sum_2[level] = new_S2
         self.power_sum_3[level] = new_S3
         self.power_sum_3_absolute[level] = new_S3_absolute
         self.power_sum_4[level] = new_S4
+        self.number_samples[level] = number_samples_level
 
     """
     function computing the h statistics h_p from the power sums
@@ -368,7 +372,7 @@ class StatisticalVariable(object):
             level: defined level
     """
     def ComputeSampleCentralMomentsFromScratch(self,level,number_samples_level):
-        curr_mean = self.mean[level]
+        curr_mean = self.raw_moment_1[level]
         # initialize central moements
         central_moment_from_scratch_1 = 0.0
         central_moment_from_scratch_2 = 0.0
