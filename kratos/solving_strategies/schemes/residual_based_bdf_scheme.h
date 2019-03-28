@@ -241,12 +241,12 @@ public:
     {
         KRATOS_TRY;
 
-        ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         ImplicitBaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
 
-        const double delta_time = current_process_info[DELTA_TIME];
-        const double previous_delta_time = current_process_info.GetPreviousTimeStepInfo(1)[DELTA_TIME];
+        const double delta_time = r_current_process_info[DELTA_TIME];
+        const double previous_delta_time = r_current_process_info.GetPreviousTimeStepInfo(1)[DELTA_TIME];
 
         // Calculate the BDF coefficients
         const double rho = previous_delta_time / delta_time;
@@ -301,7 +301,7 @@ public:
         Vector bdf_vector(mOrder + 1);
         for (std::size_t i_order = 0; i_order < mOrder + 1; ++i_order)
             bdf_vector[i_order] = mBDF[i_order];
-        current_process_info(BDF_COEFFICIENTS) = bdf_vector;
+        r_current_process_info.SetValue(BDF_COEFFICIENTS, bdf_vector);
 
         KRATOS_CATCH( "" );
     }
