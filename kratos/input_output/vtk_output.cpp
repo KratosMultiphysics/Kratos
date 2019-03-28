@@ -585,7 +585,7 @@ void VtkOutput::WriteVectorSolutionStepVariable(
     const TVarType& rVariable,
     std::ofstream& rFileStream) const
 {
-    KRATOS_WARNING_IF("", rContainer.size() == 0) << "Empty container!" << std::endl;
+    KRATOS_WARNING_IF("VtkOutput" , rContainer.size() == 0) << "Empty container!" << std::endl;
 
     const int res_size = static_cast<int>((rContainer.begin()->FastGetSolutionStepValue(rVariable)).size());
 
