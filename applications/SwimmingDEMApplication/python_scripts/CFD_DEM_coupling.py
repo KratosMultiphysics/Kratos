@@ -20,23 +20,24 @@ class ProjectionModule:
                 flow_field=None,
                 domain_size=3):
 
-        self.fluid_model_part            = fluid_model_part
-        self.particles_model_part        = balls_model_part
-        self.FEM_DEM_model_part          = FEM_DEM_model_part
-        self.project_parameters          = project_parameters
-        self.dimension                   = domain_size
-        self.coupling_type               = project_parameters["coupling_weighing_type"].GetInt()
-        self.meso_scale_length           = project_parameters["meso_scale_length"].GetDouble()
-        self.shape_factor                = project_parameters["shape_factor"].GetDouble()
-        self.do_impose_flow_from_field   = project_parameters["do_impose_flow_from_field_option"].GetBool()
-        self.flow_field                  = flow_field
+        self.fluid_model_part = fluid_model_part
+        self.particles_model_part = balls_model_part
+        self.FEM_DEM_model_part = FEM_DEM_model_part
+        self.project_parameters = project_parameters
+        self.dimension = domain_size
+        self.coupling_type = project_parameters["coupling"]["coupling_weighing_type"].GetInt()
+        self.backward_coupling_parameters = project_parameters["coupling"]["backward_coupling"]
+        self.meso_scale_length = self.backward_coupling_parameters["meso_scale_length"].GetDouble()
+        self.shape_factor = self.backward_coupling_parameters["shape_factor"].GetDouble()
+        self.do_impose_flow_from_field = project_parameters["custom_fluid"]["do_impose_flow_from_field_option"].GetBool()
+        self.flow_field = flow_field
 
         # Create projector_parameters
         self.projector_parameters = Parameters("{}")
-        self.projector_parameters.AddValue("min_fluid_fraction", project_parameters["min_fluid_fraction"])
-        self.projector_parameters.AddValue("coupling_type", project_parameters["coupling_weighing_type"])
-        self.projector_parameters.AddValue("time_averaging_type", project_parameters["time_averaging_type"])
-        self.projector_parameters.AddValue("viscosity_modification_type", project_parameters["viscosity_modification_type"])
+        self.projector_parameters.AddValue("backward_coupling", project_parameters["coupling"]["backward_coupling"])
+        self.projector_parameters.AddValue("coupling_type", project_parameters["coupling"]["coupling_weighing_type"])
+        self.projector_parameters.AddValue("time_averaging_type", project_parameters["coupling"]["time_averaging_type"])
+        self.projector_parameters.AddValue("viscosity_modification_type", project_parameters["coupling"]["backward_coupling"]["viscosity_modification_type"])
         self.projector_parameters.AddValue("n_particles_per_depth_distance", project_parameters["n_particles_in_depth"])
         self.projector_parameters.AddValue("body_force_per_unit_mass_variable_name", project_parameters["body_force_per_unit_mass_variable_name"])
 
