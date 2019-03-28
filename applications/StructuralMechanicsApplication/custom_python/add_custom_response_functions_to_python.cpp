@@ -85,7 +85,6 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
         (m, "AdjointNonlinearStrainEnergyResponseFunction")
         .def(py::init<ModelPart&, Parameters>());
 
-    // Adjoint postprocess
     py::class_<AdjointNodalReactionResponseFunction, AdjointNodalReactionResponseFunction::Pointer, AdjointResponseFunction>
         (m, "AdjointNodalReactionResponseFunction")
         .def(py::init<ModelPart&, Parameters>());

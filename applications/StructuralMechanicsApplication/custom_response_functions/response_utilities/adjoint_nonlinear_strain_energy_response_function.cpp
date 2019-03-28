@@ -38,6 +38,20 @@ namespace Kratos
     {
     }
 
+    // void AdjointNonlinearStrainEnergyResponseFunction::InitializeSolutionStep()
+    // {
+    //     auto condition_pointer = rModelPart.Conditions().begin();
+    //     auto cond = *condition_pointer;
+    //     Matrix residual_gradient;
+    //     Vector scaling_factor_vector;
+    //     Vector adjoint_values;
+    //     double load_factor_ratio;
+    //     ProcessInfo r_process_info = rModelPart.GetProcessInfo();
+    //     this->CalculateFirstDerivativesGradient(cond, residual_gradient,scaling_factor_vector, r_process_info);
+    //     load_factor_ratio = scaling_factor_vector[0];
+    //     KRATOS_WATCH(load_factor_ratio)
+    //     mpModelPart->GetProcessInfo().SetValue(ADJOINT_CORRECTION_FACTOR, load_factor_ratio);
+    // }
     double AdjointNonlinearStrainEnergyResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
@@ -237,8 +251,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        if (rSensitivityGradient.size() != 0)
-            rSensitivityGradient.resize(0, false);
+        rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
         KRATOS_CATCH("");
     }
@@ -252,8 +265,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if (rSensitivityGradient.size() != 0)
-            rSensitivityGradient.resize(0, false);
+        rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
         KRATOS_CATCH("");
     }
@@ -266,10 +278,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if (rSensitivityGradient.size() != 0)
-            rSensitivityGradient.resize(0, false);
-
-
+        rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
         KRATOS_CATCH("");
     }
@@ -287,7 +296,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        KRATOS_ERROR_IF( rVariable != SHAPE )
+        KRATOS_ERROR_IF( rVariable != SHAPE_SENSITIVITY )
             << "Calculation of nonlinear strain energy sensitivity is available only for shape variables!" << std::endl;
 
         // TODO Mahmoud: This copy assignment is expensive

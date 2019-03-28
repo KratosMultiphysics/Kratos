@@ -133,7 +133,21 @@ struct LocalSensitivityBuilder
             << "PartialSensitivity.size(): " << PartialSensitivity.size()
             << " incompatible with SensitivityMatrix.size1(): "
             << SensitivityMatrix.size1() << ". Variable: " << rVariable << std::endl;
+
         noalias(LocalSensitivity) = prod(SensitivityMatrix, AdjointVector) + PartialSensitivity;
+
+        if(rProcessInfo(IS_NONLINEAR) == true && rProcessInfo(STEP) > 1)
+        {
+            Vector AdjointVector_1;
+            Matrix SensitivityMatrix_1;
+            double ScalingFactor;
+            rElement.GetValuesVector(AdjointVector_1, 1);
+            SensitivityMatrix_1 = rElement.GetValue(ELEMENT_SENSITIVITY_MATRIX);
+            ScalingFactor = rProcessInfo.GetValue(ADJOINT_CORRECTION_FACTOR);
+
+            LocalSensitivity -=  ScalingFactor*prod(SensitivityMatrix_1, AdjointVector_1);
+        }
+        rElement.GetValue(ELEMENT_SENSITIVITY_MATRIX) = SensitivityMatrix;
         return *this;
         KRATOS_CATCH("");
     }
@@ -568,6 +582,29 @@ void SensitivityBuilder::UpdateSensitivities()
     {
         scaling_factor = 1.0;
         ClearSensitivities();
+    }
+    else if (mBuildMode == "static-non-linear-strain-energy")
+    {
+        scaling_factor = 1.0;
+        // set process info
+        mpModelPart->GetProcessInfo().SetValue(IS_NONLINEAR, true);
+
+        // calculates the correction scaling factor here
+        if( mBuildMode == "static-non-linear-strain-energy")
+        {
+            auto condition_pointer = mpModelPart->Conditions().begin();
+            auto cond = *condition_pointer;
+            Matrix residual_gradient;
+            Vector scaling_factor_vector;
+            Vector adjoint_values;
+            double load_factor_ratio;
+            ProcessInfo r_process_info = mpModelPart->GetProcessInfo();
+            mpResponseFunction->CalculateFirstDerivativesGradient(cond, residual_gradient,
+                                                                    scaling_factor_vector, r_process_info);
+            load_factor_ratio = scaling_factor_vector[0];
+            KRATOS_WATCH(load_factor_ratio)
+            mpModelPart->GetProcessInfo().SetValue(ADJOINT_CORRECTION_FACTOR, load_factor_ratio);
+        }
     }
     else
     {

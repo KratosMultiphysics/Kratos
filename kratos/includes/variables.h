@@ -193,6 +193,10 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(bool, UPDATE_SENSITIVITIES )
     KRATOS_DEFINE_VARIABLE(AdjointExtensions::Pointer, ADJOINT_EXTENSIONS )
 
+    KRATOS_DEFINE_VARIABLE( Matrix, ELEMENT_SENSITIVITY_MATRIX)
+    KRATOS_DEFINE_VARIABLE( bool, IS_NONLINEAR)
+    KRATOS_DEFINE_VARIABLE( double, ADJOINT_CORRECTION_FACTOR)
+
     // For MeshingApplication
     KRATOS_DEFINE_VARIABLE( double, NODAL_ERROR )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( NODAL_ERROR_COMPONENTS )
@@ -423,7 +427,7 @@ namespace Kratos
 
     //for Structural application:
     KRATOS_DEFINE_VARIABLE( Matrix, INERTIA )
-    
+
     //for General kratos application:
 
     //for Structural application:
