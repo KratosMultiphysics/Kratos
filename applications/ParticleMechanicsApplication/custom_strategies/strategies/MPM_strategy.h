@@ -801,7 +801,8 @@ public:
 
                         // Evaluation of geometric length/area
                         const double area = rGeom.Area();
-                        MPC_Area = area / (rGeom.size() + integration_point_per_conditions);
+                        MPC_Area = area / (1 + integration_point_per_conditions);
+                        const double MPC_Nodal_Area = MPC_Area / rGeom.size();
 
                         // Check condition variables
                         if (i->Has(DISPLACEMENT))
@@ -927,7 +928,7 @@ public:
                             // TODO: If any variable is added or remove here, please add and remove also at the first loop above
                             p_condition->SetValue(MPC_CONDITION_ID, MPC_Condition_Id);
                             p_condition->SetValue(MPC_COORD, mpc_xg);
-                            p_condition->SetValue(MPC_AREA, MPC_Area);
+                            p_condition->SetValue(MPC_AREA, MPC_Nodal_Area);
                             p_condition->SetValue(MPC_NORMAL, MPC_Normal);
                             p_condition->SetValue(MPC_DISPLACEMENT, MPC_Displacement);
                             p_condition->SetValue(MPC_IMPOSED_DISPLACEMENT, MPC_Imposed_Displacement);
