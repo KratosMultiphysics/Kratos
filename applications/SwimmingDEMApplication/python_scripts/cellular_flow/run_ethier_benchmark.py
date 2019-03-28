@@ -9,7 +9,7 @@ from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import ProjectParameters as pp
 import DEM_explicit_solver_var as DEM_parameters
-from DEM_procedures import KratosPrint as Say
+from DEM_procedures import KratosPrintInfo as Say
 import case_runner
 
 class MeshType:
