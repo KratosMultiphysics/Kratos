@@ -97,11 +97,17 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometr
 template<class TEntity>
 void FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::SetOctreeBoundingBox()
 {
-    PointType low(BaseType::mrModelPart1.NodesBegin()->Coordinates());
-    PointType high(BaseType::mrModelPart1.NodesBegin()->Coordinates());
+    // Getting first iterators
+    const auto it_node_begin_1 = BaseType::mrModelPart1.NodesBegin();
+    const auto it_node_begin_2 = BaseType::mrModelPart2.NodesBegin();
+
+    // Setting initial guess
+    PointType low(it_node_begin_1->Coordinates());
+    PointType high(it_node_begin_1->Coordinates());
 
     // Loop over all nodes in first modelpart
-    for (auto it_node = BaseType::mrModelPart1.NodesBegin(); it_node != BaseType::mrModelPart1.NodesEnd(); it_node++) {
+    for (IndexType i_node = 0 ; i_node < BaseType::mrModelPart1.NumberOfNodes(); ++i_node) {
+        auto it_node = it_node_begin_1 + i_node;
         const array_1d<double,3>& r_coordinates = it_node->Coordinates();
         for (IndexType i = 0; i < 3; i++) {
             low[i] = r_coordinates[i] < low[i] ? r_coordinates[i] : low[i];
@@ -110,7 +116,8 @@ void FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::SetOctreeBounding
     }
 
     // Loop over all skin nodes
-    for (auto it_node = BaseType::mrModelPart2.NodesBegin(); it_node != BaseType::mrModelPart2.NodesEnd(); it_node++) {
+    for (IndexType i_node = 0 ; i_node < BaseType::mrModelPart2.NumberOfNodes(); ++i_node) {
+        auto it_node = it_node_begin_2 + i_node;
         const array_1d<double,3>& r_coordinates = it_node->Coordinates();
         for (IndexType i = 0; i < 3; i++) {
             low[i] = r_coordinates[i] < low[i] ? r_coordinates[i] : low[i];
