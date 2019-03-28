@@ -184,6 +184,8 @@ namespace Kratos
                 pScheme->Clear();
                 pnode->pGetDof(DISPLACEMENT_X)->FreeDof();
                 pnode->pGetDof(VELOCITY_X)->FixDof();
+                time = -DeltaTime;
+                r_model_part.CloneTimeStep(time);
                 time = 0.0;
                 r_model_part.CloneTimeStep(time);
 
@@ -225,7 +227,9 @@ namespace Kratos
                 pnode->pGetDof(DISPLACEMENT_X)->FreeDof();
                 pnode->pGetDof(VELOCITY_X)->FreeDof();
                 pnode->pGetDof(ACCELERATION_X)->FixDof();
-                time = 0;
+                time = -DeltaTime;
+                r_model_part.CloneTimeStep(time);
+                time = 0.0;
                 r_model_part.CloneTimeStep(time);
 
                 pnode->FastGetSolutionStepValue(DISPLACEMENT_X) = std::cos(time);
@@ -408,7 +412,7 @@ namespace Kratos
 
             const double delta_time = 1.0e-4;
 
-            TestScheme(p_scheme, delta_time, "DISPLACEMENT", true);
+            TestScheme(p_scheme, delta_time, "DISPLACEMENT", true, true);
         }
 
         /**
