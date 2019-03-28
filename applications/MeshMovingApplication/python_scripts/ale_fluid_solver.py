@@ -26,7 +26,7 @@ class AleFluidSolver(PythonSolver):
         solver_settings.ValidateAndAssignDefaults(default_settings)
 
         super(AleFluidSolver, self).__init__(model, solver_settings)
-        
+
         self.start_fluid_solution_time = self.settings["start_fluid_solution_time"].GetDouble()
 
         self.parallelism = parallelism
@@ -197,8 +197,9 @@ class AleFluidSolver(PythonSolver):
         self.fluid_solver.FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
+        is_converged = True
         for mesh_solver in self.mesh_motion_solvers:
-            mesh_solver.SolveSolutionStep()
+            is_converged &= mesh_solver.SolveSolutionStep()
 
         for mesh_solver in self.mesh_motion_solvers:
             KMM.CalculateMeshVelocities(
@@ -207,7 +208,9 @@ class AleFluidSolver(PythonSolver):
 
         if self.fluid_solver.GetComputingModelPart().ProcessInfo[KM.TIME] >= self.start_fluid_solution_time:
             self.__ApplyALEBoundaryCondition()
-            self.fluid_solver.SolveSolutionStep()
+            is_converged &= self.fluid_solver.SolveSolutionStep()
+
+        return is_converged
 
     def Check(self):
         for mesh_solver in self.mesh_motion_solvers:
