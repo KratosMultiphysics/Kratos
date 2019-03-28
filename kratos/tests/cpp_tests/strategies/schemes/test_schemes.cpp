@@ -425,7 +425,7 @@ namespace Kratos
 
             const double delta_time = 1.0e-4;
 
-            TestScheme(p_scheme, delta_time, "DISPLACEMENT", true);
+            TestScheme(p_scheme, delta_time, "DISPLACEMENT", true, true);
         }
 
     } // namespace Testing

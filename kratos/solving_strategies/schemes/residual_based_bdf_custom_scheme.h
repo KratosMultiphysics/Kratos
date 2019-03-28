@@ -218,6 +218,88 @@ public:
     }
 
     /**
+     * @brief It initializes time step solution. Only for reasons if the time step solution is restarted
+     * @param rModelPart The model part of the problem to solve
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
+     */
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY;
+
+        BDFBaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
+
+        // Updating time derivatives (nodally for efficiency)
+        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
+        const auto it_node_begin = rModelPart.Nodes().begin();
+
+        // Auxiliar fixed value
+        bool fixed = false;
+
+        #pragma omp parallel for private(fixed)
+        for(int i = 0;  i < num_nodes; ++i) {
+            auto it_node = it_node_begin + i;
+
+            std::size_t counter = 0;
+            for (auto p_var : mDoubleVariable) {
+
+                fixed = false;
+
+                // Derivatives
+                const auto& dvar = *mFirstDoubleDerivatives[counter];
+                const auto& d2var = *mSecondDoubleDerivatives[counter];
+
+                if (it_node->HasDofFor(d2var)) {
+                    if (it_node->IsFixed(d2var)) {
+                        it_node->Fix(*p_var);
+                        fixed = true;
+                    }
+                }
+
+                if (it_node->HasDofFor(dvar)) {
+                    if (it_node->IsFixed(dvar) && !fixed) {
+                        it_node->Fix(*p_var);
+                    }
+                }
+
+                counter++;
+            }
+
+            counter = 0;
+            for (auto p_var : mArrayVariable) {
+
+                fixed = false;
+
+                // Derivatives
+                const auto& dvar = *mFirstArrayDerivatives[counter];
+                const auto& d2var = *mSecondArrayDerivatives[counter];
+
+                if (it_node->HasDofFor(d2var)) {
+                    if (it_node->IsFixed(d2var)) {
+                        it_node->Fix(*p_var);
+                        fixed = true;
+                    }
+                }
+
+                if (it_node->HasDofFor(dvar)) {
+                    if (it_node->IsFixed(dvar) && !fixed) {
+                        it_node->Fix(*p_var);
+                    }
+                }
+                counter++;
+            }
+        }
+
+        KRATOS_CATCH("ResidualBasedBDFCustomScheme.InitializeSolutionStep");
+    }
+
+    /**
      * @brief Performing the prediction of the solution
      * @details It predicts the solution for the current step x = xold + vold * Dt
      * @param rModelPart The model of the problem to solve
