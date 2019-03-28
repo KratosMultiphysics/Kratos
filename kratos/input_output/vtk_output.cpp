@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Aditya Ghantasala, Philipp Bucher
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 //
 
@@ -24,9 +25,17 @@
 namespace Kratos
 {
 
-VtkOutput::VtkOutput(ModelPart& rModelPart, Parameters Parameters)
-    : mrModelPart(rModelPart), mOutputSettings(Parameters)
+VtkOutput::VtkOutput(
+    ModelPart& rModelPart,
+    Parameters ThisParameters
+    ) : mrModelPart(rModelPart),
+        mOutputSettings(ThisParameters)
 {
+    // The default parameters
+    Parameters default_parameters = GetDefaultParameters();
+    mOutputSettings.ValidateAndAssignDefaults(default_parameters);
+
+    // Initialize other variables
     mDefaultPrecision = mOutputSettings["output_precision"].GetInt();
     const std::string file_format = mOutputSettings["file_format"].GetString();
     if (file_format == "ascii") {
@@ -58,48 +67,8 @@ void VtkOutput::PrintOutput()
     if(print_sub_model_parts) {
         for (auto& r_sub_model_part : mrModelPart.SubModelParts()) {
             if (r_sub_model_part.NumberOfNodes() == 0 && (r_sub_model_part.NumberOfConditions() != 0 || r_sub_model_part.NumberOfElements() != 0)) {
-
-                // Getting model and creating auxiliar model part
-                auto& r_model = mrModelPart.GetModel();
-                const std::string& r_name_model_part = r_sub_model_part.Name();
-                auto& r_auxiliar_model_part = r_model.CreateModelPart("AUXILIAR_" + r_name_model_part);
-
-                // Tranfering entities of the submodelpart
-                FastTransferBetweenModelPartsProcess(r_auxiliar_model_part, r_sub_model_part).Execute();
-
-                // Tranfering nodes from root model part
-                FastTransferBetweenModelPartsProcess(r_auxiliar_model_part, mrModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODES).Execute();
-
-                // Marking to remove the nodes
-                for (auto& r_node : r_auxiliar_model_part.Nodes()) {
-                    r_node.Set(TO_ERASE, true);
-                }
-
-                // Checking nodes from conditions
-                for (auto& r_cond : r_auxiliar_model_part.Conditions()) {
-                    auto& r_geometry = r_cond.GetGeometry();
-                    for (auto& r_node : r_geometry) {
-                        r_node.Set(TO_ERASE, false);
-                    }
-                }
-
-                // Checking nodes from elements
-                for (auto& r_elem : r_auxiliar_model_part.Elements()) {
-                    auto& r_geometry = r_elem.GetGeometry();
-                    for (auto& r_node : r_geometry) {
-                        r_node.Set(TO_ERASE, false);
-                    }
-                }
-
-                // Removing unused nodes
-                r_auxiliar_model_part.RemoveNodes(TO_ERASE);
-
-                // Actually writing the
-                WriteModelPartToFile(r_auxiliar_model_part, true);
-
-                // Deletin auxiliar modek part
-                r_model.DeleteModelPart("AUXILIAR_" + r_name_model_part);
-            } else {
+                WriteModelPartWithoutNodesToFile(r_sub_model_part);
+            } else if (r_sub_model_part.NumberOfNodes() != 0) {
                 WriteModelPartToFile(r_sub_model_part, true);
             }
         }
@@ -679,6 +648,77 @@ void VtkOutput::ForceBigEndian(unsigned char* pBytes) const
         pBytes[1] = pBytes[2];
         pBytes[2] = tmp;
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VtkOutput::WriteModelPartWithoutNodesToFile(ModelPart& rModelPart)
+{
+    // Getting model and creating auxiliar model part
+    auto& r_model = mrModelPart.GetModel();
+    const std::string& r_name_model_part = rModelPart.Name();
+    auto& r_auxiliar_model_part = r_model.CreateModelPart("AUXILIAR_" + r_name_model_part);
+
+    // Tranfering entities of the submodelpart
+    FastTransferBetweenModelPartsProcess(r_auxiliar_model_part, rModelPart).Execute();
+
+    // Tranfering nodes from root model part
+    FastTransferBetweenModelPartsProcess(r_auxiliar_model_part, mrModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODES).Execute();
+
+    // Marking to remove the nodes
+    for (auto& r_node : r_auxiliar_model_part.Nodes()) {
+        r_node.Set(TO_ERASE, true);
+    }
+
+    // Checking nodes from conditions
+    for (auto& r_cond : r_auxiliar_model_part.Conditions()) {
+        auto& r_geometry = r_cond.GetGeometry();
+        for (auto& r_node : r_geometry) {
+            r_node.Set(TO_ERASE, false);
+        }
+    }
+
+    // Checking nodes from elements
+    for (auto& r_elem : r_auxiliar_model_part.Elements()) {
+        auto& r_geometry = r_elem.GetGeometry();
+        for (auto& r_node : r_geometry) {
+            r_node.Set(TO_ERASE, false);
+        }
+    }
+
+    // Removing unused nodes
+    r_auxiliar_model_part.RemoveNodes(TO_ERASE);
+
+    // Actually writing the
+    WriteModelPartToFile(r_auxiliar_model_part, true);
+
+    // Deletin auxiliar modek part
+    r_model.DeleteModelPart("AUXILIAR_" + r_name_model_part);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters VtkOutput::GetDefaultParameters()
+{
+    Parameters default_parameters = Parameters(R"(
+    {
+        "model_part_name"                    : "PLEASE_SPECIFY_MODEL_PART_NAME",
+        "file_format"                        : "ascii",
+        "output_precision"                   : 7,
+        "output_control_type"                : "step",
+        "output_frequency"                   : 1.0,
+        "output_sub_model_parts"             : false,
+        "folder_name"                        : "VTK_Output",
+        "save_output_files_in_folder"        : true,
+        "nodal_solution_step_data_variables" : [],
+        "nodal_data_value_variables"         : [],
+        "element_data_value_variables"       : [],
+        "condition_data_value_variables"     : []
+    })" );
+
+    return default_parameters;
 }
 
 } // namespace Kratos
