@@ -284,7 +284,7 @@ void CrisfieldTrussElement::CalculateMassMatrix(MatrixType& rMassMatrix, Process
 {
     KRATOS_TRY
     int MatSize = number_of_nodes * dimension;
-    rMassMatrix.resize(MatSize,MatSize);
+    rMassMatrix.resize(MatSize,MatSize,false);
     rMassMatrix = ZeroMatrix(MatSize,MatSize);
     KRATOS_CATCH("")
 }
@@ -299,7 +299,7 @@ void CrisfieldTrussElement::CalculateDampingMatrix(MatrixType& rDampingMatrix, P
 {
     KRATOS_TRY
     int MatSize = number_of_nodes * dimension;
-    rDampingMatrix.resize(MatSize,MatSize);
+    rDampingMatrix.resize(MatSize,MatSize,false);
     noalias(rDampingMatrix)= ZeroMatrix(MatSize,MatSize);
     KRATOS_CATCH("")
 }

@@ -22,7 +22,7 @@ class ParticleMPMSolver(PythonSolver):
         self._add_model_part_containers()
 
         # Default settings
-        self.min_buffer_size = 3
+        self.min_buffer_size = 2
 
         # There is only a single rank in OpenMP, we always print
         self.is_printing_rank = True
@@ -305,8 +305,6 @@ class ParticleMPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MOMENTUM)
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_INERTIA)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_VELOCITY)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_ACCELERATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
 
         # Add variables for arbitrary slope with slip

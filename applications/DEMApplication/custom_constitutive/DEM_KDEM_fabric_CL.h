@@ -27,7 +27,7 @@ namespace Kratos {
                                     double LocalCoordSystem[3][3],
                                     double& normal_force,
                                     double calculation_area,
-                                    Matrix* mSymmStressTensor,
+                                    BoundedMatrix<double, 3, 3>* mSymmStressTensor,
                                     SphericContinuumParticle* element1,
                                     SphericContinuumParticle* element2,
                                     const ProcessInfo& r_process_info,

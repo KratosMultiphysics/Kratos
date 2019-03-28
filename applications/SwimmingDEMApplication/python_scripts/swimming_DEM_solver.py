@@ -5,7 +5,7 @@ import KratosMultiphysics
 from python_solver import PythonSolver
 
 # Import applications
-import KratosMultiphysics.SwimmingDEMApplication as SwimmingDEMApplication
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import swimming_DEM_procedures as SDP
 import CFD_DEM_coupling
 import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
@@ -17,25 +17,62 @@ def Say(*args):
 
 class SwimmingDEMSolver(PythonSolver):
     def _ValidateSettings(self, project_parameters):
+
+        default_processes_settings = KratosMultiphysics.Parameters("""{
+                "python_module" : "calculate_nodal_area_process",
+                "kratos_module" : "KratosMultiphysics",
+                "process_name"  : "CalculateNodalAreaProcess",
+                "Parameters"    : {
+                    "model_part_name" : "FluidModelPart",
+                    "domain_size" : 3,
+                    "fixed_mesh": false
+                }
+            }
+
+        """)
+
+        if not project_parameters["processes"].Has('non_optional_solver_processes'):
+            project_parameters["processes"].AddEmptyArray("non_optional_solver_processes")
+
+        else: # reconstruct non_optional_solver_processes list making sure calculate_nodal_area_process is not added twice
+            non_optional_processes_list = list(project_parameters["processes"]["non_optional_solver_processes"])
+            project_parameters["processes"].Remove("non_optional_solver_processes")
+            project_parameters["processes"].AddEmptyArray("non_optional_solver_processes")
+
+            for process in non_optional_processes_list:
+                if process["python_module"].GetString() != 'calculate_nodal_area_process':
+                    project_parameters["processes"]["non_optional_solver_processes"].Append(process)
+
+        non_optional_solver_processes = project_parameters["processes"]["non_optional_solver_processes"]
+        non_optional_solver_processes.Append(default_processes_settings)
+        nodal_area_process_parameters = non_optional_solver_processes[non_optional_solver_processes.size() -1]["Parameters"]
+        nodal_area_process_parameters["model_part_name"].SetString(self.fluid_solver.main_model_part.Name)
+        nodal_area_process_parameters["domain_size"].SetInt(self.fluid_domain_dimension)
+
+        if self.fluid_solver.settings.Has('move_mesh_flag'):
+            the_mesh_moves = self.fluid_solver.settings["move_mesh_flag"].GetBool()
+            nodal_area_process_parameters["fixed_mesh"].SetBool(not the_mesh_moves)
+
         return project_parameters
 
-    def __init__(self, model, project_parameters, fluid_solver, dem_solver, pp):
+    def __init__(self, model, project_parameters, field_utility, fluid_solver, dem_solver, variables_manager):
         # Validate settings
-        self.pp = pp
-        self.project_parameters = self._ValidateSettings(project_parameters)
+        self.field_utility = field_utility
+        self.vars_man = variables_manager
+        self.fluid_domain_dimension = project_parameters["fluid_parameters"]["solver_settings"]["domain_size"].GetInt()
         self.fluid_solver = fluid_solver
         self.dem_solver = dem_solver
-        self.fluid_step = 0
-        self.calculating_fluid_in_current_step = True
+        self.project_parameters = self._ValidateSettings(project_parameters)
         self.next_time_to_solve_fluid = project_parameters['problem_data']['start_time'].GetDouble()
         self.coupling_level_type = project_parameters["coupling_level_type"].GetInt()
-        self.coupling_scheme_type = project_parameters["coupling_scheme_type"].GetString()
         self.interaction_start_time = project_parameters["interaction_start_time"].GetDouble()
-        self.project_at_every_substep_option = project_parameters["project_at_every_substep_option"].GetBool()
         self.integration_scheme = project_parameters["TranslationalIntegrationScheme"].GetString()
         self.fluid_dt = fluid_solver.settings["time_stepping"]["time_step"].GetDouble()
         self.do_solve_dem = project_parameters["do_solve_dem"].GetBool()
         self.solve_system = not self.project_parameters["fluid_already_calculated"].GetBool()
+
+        self.fluid_step = 0
+        self.calculating_fluid_in_current_step = True
         self.first_DEM_iteration = True
         self.ConstructStationarityTool()
         self.ConstructDerivativeRecoverer()
@@ -63,12 +100,12 @@ class SwimmingDEMSolver(PythonSolver):
         self.fluid_solver.main_model_part,
         self.dem_solver.spheres_model_part,
         self.dem_solver.all_model_parts.Get("RigidFacePart"),
-        self.pp.CFD_DEM,
-        self.pp.coupling_dem_vars,
-        self.pp.coupling_fluid_vars,
-        self.pp.time_filtered_vars,
-        flow_field=self.pp.field_utility,
-        domain_size=self.pp.domain_size
+        self.project_parameters,
+        self.vars_man.coupling_dem_vars,
+        self.vars_man.coupling_fluid_vars,
+        self.vars_man.time_filtered_vars,
+        flow_field=self.field_utility,
+        domain_size=self.fluid_domain_dimension
         )
 
         projection_module.UpdateDatabase(self.h_min)
@@ -80,13 +117,13 @@ class SwimmingDEMSolver(PythonSolver):
         self.using_hinsberg_method = bool(self.project_parameters["basset_force_type"].GetInt() >= 3 or
                                           self.project_parameters["basset_force_type"].GetInt() == 1)
         self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
-            self.pp,
+            self.project_parameters,
             self.fluid_solver.main_model_part,
-            SDP.FunctionsCalculator(self.pp.domain_size))
+            SDP.FunctionsCalculator(self.fluid_domain_dimension))
 
     def ConstructHistoryForceUtility(self):
         self.quadrature_counter = self.GetHistoryForceQuadratureCounter()
-        self.basset_force_tool = SwimmingDEMApplication.BassetForceTools()
+        self.basset_force_tool = SDEM.BassetForceTools()
 
     def GetStationarityCounter(self):
         return SDP.Counter(
@@ -101,19 +138,24 @@ class SwimmingDEMSolver(PythonSolver):
         return SDP.Counter(1, 1, there_is_something_to_recover)
 
     def GetHistoryForceQuadratureCounter(self):
-        return SDP.Counter(
-            self.pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt(),
-            1,
-            self.pp.CFD_DEM["basset_force_type"].GetInt())
+        for prop in self.project_parameters["properties"].values():
+            if prop["hydrodynamic_law_parameters"].Has("history_force_parameters"):
+                history_force_parameters =  prop["hydrodynamic_law_parameters"]["history_force_parameters"]
+                if history_force_parameters.Has("time_steps_per_quadrature_step"):
+                    time_steps_per_quadrature_step = history_force_parameters["time_steps_per_quadrature_step"].GetInt()
 
-    def AdvanceInTime(self, step, time):
-        self.step, self.time = self.dem_solver.AdvanceInTime(step, time)
-        self.calculating_fluid_in_current_step = bool(time >= self.next_time_to_solve_fluid)
+                    return SDP.Counter(steps_in_cycle=time_steps_per_quadrature_step, beginning_step=1)
+
+        return SDP.Counter(is_dead=True)
+
+    def AdvanceInTime(self, time):
+        self.time = self.dem_solver.AdvanceInTime(time)
+        self.calculating_fluid_in_current_step = bool(time >= self.next_time_to_solve_fluid - 0.5 * self.dem_solver.dt)
         if self.calculating_fluid_in_current_step:
             self.next_time_to_solve_fluid = self.fluid_solver.AdvanceInTime(time)
             self.fluid_step += 1
 
-        return self.step, self.time
+        return self.time
 
     def UpdateALEMeshMovement(self, time): # TODO: move to derived solver
         if self.project_parameters["ALE_option"].GetBool():
@@ -145,8 +187,8 @@ class SwimmingDEMSolver(PythonSolver):
     def ApplyForwardCoupling(self, alpha='None'):
         self._GetProjectionModule().ApplyForwardCoupling(alpha)
 
-    def ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self, time=None):
-        self._GetProjectionModule().ApplyForwardCouplingOfVelocityToSlipVelocityOnly()
+    def ApplyForwardCouplingOfVelocityToAuxVelocityOnly(self, alpha=None):
+        self._GetProjectionModule().ApplyForwardCouplingOfVelocityToAuxVelocityOnly(alpha)
 
     def _GetProjectionModule(self):
         if not hasattr(self, 'projection_module'):
@@ -162,7 +204,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.solve_system = not self.project_parameters["fluid_already_calculated"].GetBool() and not self.stationarity
 
         if self.CannotIgnoreFluidNow():
-            self.SolveFluid()
+            self.SolveFluidSolutionStep()
         else:
             Say("Skipping solving system for the fluid phase...\n")
 
@@ -180,39 +222,37 @@ class SwimmingDEMSolver(PythonSolver):
         Say('Solving DEM... (', self.dem_solver.spheres_model_part.NumberOfElements(0), 'elements )')
         self.SolveDEM()
 
-    def SolveFluid(self):
+    def SolveFluidSolutionStep(self):
         self.fluid_solver.SolveSolutionStep()
+
+    def SolveDEMSolutionStep(self):
+        self.dem_solver.SolveSolutionStep()
 
     def SolveDEM(self):
         #self.PerformEmbeddedOperations() TO-DO: it's crashing
 
-        it_is_time_to_forward_couple = (
-            self.time >= self.interaction_start_time and
-            self.coupling_level_type and
-            (self.project_at_every_substep_option or self.calculating_fluid_in_current_step)
-        )
+        it_is_time_to_forward_couple = (self.time >= self.interaction_start_time
+                                        and self.coupling_level_type)
+
+        alpha = 1.0 - (self.next_time_to_solve_fluid - self.time) / self.fluid_dt
 
         if it_is_time_to_forward_couple or self.first_DEM_iteration:
-
-            if self.coupling_scheme_type == "UpdatedDEM":
-                self.ApplyForwardCoupling()
-
-            else:
-                alpha = 1.0 - (self.next_time_to_solve_fluid - self.time) / self.fluid_dt
-                self.ApplyForwardCoupling(alpha)
+            self.ApplyForwardCoupling(alpha)
 
         if self.quadrature_counter.Tick():
             self.AppendValuesForTheHistoryForce()
 
         if self.integration_scheme in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}:
             # Advance in space only
-            self.dem_solver.SolveSolutionStep()
-            self.ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self.time)
+            if self.do_solve_dem:
+                self.SolveDEMSolutionStep()
+            if it_is_time_to_forward_couple or self.first_DEM_iteration:
+                self.ApplyForwardCouplingOfVelocityToAuxVelocityOnly(alpha)
 
         # Performing the time integration of the DEM part
 
         if self.do_solve_dem:
-            self.dem_solver.SolveSolutionStep()
+            self.SolveDEMSolutionStep()
 
         self.first_DEM_iteration = False
 

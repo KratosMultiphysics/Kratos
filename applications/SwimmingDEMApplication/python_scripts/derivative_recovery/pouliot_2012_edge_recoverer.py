@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from . import recoverer
-
+import parameters_tools as PT
 
 class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
     def GetFieldUtility(self):
@@ -15,14 +15,16 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         space_time_set = SpaceTimeSet()
         self.field_utility = FluidFieldUtility(space_time_set, self.flow_field, 1000.0, 1e-6)
         return self.field_utility
-    def __init__(self, pp, model_part):
-        recoverer.DerivativesRecoverer.__init__(self, pp, model_part)
-        self.dimension = pp.domain_size
+    def __init__(self, project_parameters, model_part):
+        recoverer.DerivativesRecoverer.__init__(self, project_parameters, model_part)
+        self.dimension = self.project_parameters["fluid_parameters"]["solver_settings"]["domain_size"].GetInt()
         self.model_part = model_part
-        self.use_lumped_mass_matrix = pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 3
+        self.use_lumped_mass_matrix = project_parameters["material_acceleration_calculation_type"].GetInt() == 3
         self.recovery_model_part = ModelPart("PostGradientFluidPart")
         self.custom_functions_tool = CustomFunctionsCalculator3D()
-        self.calculate_vorticity = pp.CFD_DEM["vorticity_calculation_type"].GetInt() > 0
+        self.calculate_vorticity = (parameters["vorticity_calculation_type"].GetInt() > 0
+                                    or PT.RecursiveFindParametersWithCondition(parameters["properties"],
+                                                                               'vorticity_induced_lift_parameters'))
         self.GetFieldUtility()
         self.CreateCPluPlusStrategies()
 
@@ -90,13 +92,16 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
             self.custom_functions_tool.SetValueOfAllNotes(self.recovery_model_part, ZeroVector(3), variable)
 
 class Pouliot2012EdgeGradientRecoverer(Pouliot2012EdgeDerivativesRecoverer, recoverer.VorticityRecoverer):
-    def __init__(self, pp, model_part):
-        Pouliot2012EdgeDerivativesRecoverer.__init__(self, pp, model_part)
+    def __init__(self, project_parameters, model_part):
+        Pouliot2012EdgeDerivativesRecoverer.__init__(self, project_parameters, model_part)
         self.element_type = self.GetElementType(pp)
         self.FillUpModelPart(self.element_type)
         self.DOFs = self.GetDofs(pp)
         self.AddDofs(self.DOFs)
-        self.calculate_vorticity = self.pp.CFD_DEM["lift_force_type"].GetInt()
+        self.calculate_vorticity = (parameters["vorticity_calculation_type"].GetInt() > 0
+                                    or PT.RecursiveFindParametersWithCondition(parameters["properties"],
+                                                                               'vorticity_induced_lift_parameters'))
+        self.domain_size = project_parameters["fluid_parameters"]["solver_settings"]["domain_size"].GetInt()
 
     def Solve(self):
         print("\nSolving for the fluid acceleration...")
@@ -124,22 +129,22 @@ class Pouliot2012EdgeGradientRecoverer(Pouliot2012EdgeDerivativesRecoverer, reco
         if self.calculate_vorticity:
             self.cplusplus_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.model_part, VELOCITY_COMPONENT_GRADIENT, VORTICITY)
 
-    def GetElementType(self, pp):
-        if pp.domain_size == 2:
+    def GetElementType(self, parameters):
+        if self.domain_size == 2:
             return 'ComputeGradientPouliot20122DEdge'
         else:
             return 'ComputeGradientPouliot20123DEdge'
 
-    def GetDofs(self, pp):
-        if pp.domain_size == 2:
+    def GetDofs(self, parameters):
+        if self.domain_size == 2:
             return (VELOCITY_COMPONENT_GRADIENT_X, VELOCITY_COMPONENT_GRADIENT_Y)
         else:
             return (VELOCITY_COMPONENT_GRADIENT_X, VELOCITY_COMPONENT_GRADIENT_Y, VELOCITY_COMPONENT_GRADIENT_Z)
 
 class Pouliot2012EdgeMaterialAccelerationRecoverer(Pouliot2012EdgeGradientRecoverer, recoverer.MaterialAccelerationRecoverer):
-    def __init__(self, pp, model_part):
-        Pouliot2012EdgeGradientRecoverer.__init__(self, pp, model_part)
-        self.store_full_gradient = self.pp.CFD_DEM["store_full_gradient_option"].GetBool()
+    def __init__(self, project_parameters, model_part):
+        Pouliot2012EdgeGradientRecoverer.__init__(self, project_parameters, model_part)
+        self.store_full_gradient = self.project_parameters["store_full_gradient_option"].GetBool()
 
     def RecoverMaterialAcceleration(self):
         if self.store_full_gradient:
@@ -154,33 +159,34 @@ class Pouliot2012EdgeMaterialAccelerationRecoverer(Pouliot2012EdgeGradientRecove
             self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, VELOCITY_COMPONENT_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)
 
 class Pouliot2012EdgeLaplacianRecoverer(Pouliot2012EdgeMaterialAccelerationRecoverer, recoverer.LaplacianRecoverer):
-    def __init__(self, pp, model_part):
-        Pouliot2012EdgeDerivativesRecoverer.__init__(self, pp, model_part)
-        self.element_type = self.GetElementType(pp)
-        self.condition_type = self.GetConditionType(pp)
+    def __init__(self, project_parameters, model_part):
+        Pouliot2012EdgeMaterialAccelerationRecoverer.__init__(self, project_parameters, model_part)
+        self.element_type = self.GetElementType(project_parameters)
+        self.condition_type = self.GetConditionType(project_parameters)
         self.FillUpModelPart(self.element_type)
-        self.DOFs = self.GetDofs(pp)
+        self.DOFs = self.GetDofs(project_parameters)
         self.AddDofs(self.DOFs)
+        self.domain_size = project_parameters["fluid_parameters"]["solver_settings"]["domain_size"].GetInt()
 
     def RecoverVelocityLaplacian(self):
         print("\nSolving for the laplacian...")
         self.SetToZero(VELOCITY_LAPLACIAN)
         self.recovery_strategy.Solve()
 
-    def GetElementType(self, pp):
-        if pp.domain_size == 2:
+    def GetElementType(self, parameters):
+        if self.domain_size == 2:
             return 'ComputeVelocityLaplacianSimplex2D'
         else:
             return 'ComputeVelocityLaplacianSimplex3D'
 
-    def GetConditionType(self, pp):
-        if pp.domain_size == 2:
+    def GetConditionType(self, parameters):
+        if self.domain_size == 2:
             return 'ComputeLaplacianSimplexCondition2D'
         else:
             return 'ComputeLaplacianSimplexCondition3D'
 
-    def GetDofs(self, pp):
-        if pp.domain_size == 2:
+    def GetDofs(self, parameters):
+        if self.domain_size == 2:
             return (VELOCITY_LAPLACIAN_X, VELOCITY_LAPLACIAN_Y)
         else:
             return (VELOCITY_LAPLACIAN_X, VELOCITY_LAPLACIAN_Y, VELOCITY_LAPLACIAN_Z)

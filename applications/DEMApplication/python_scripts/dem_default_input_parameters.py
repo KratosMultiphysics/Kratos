@@ -39,7 +39,8 @@ def GetDefaultInputParameters():
             "RotationOption"                   : true,
             "CleanIndentationsOption"          : false,
             "RemoveBallsInEmbeddedOption"      : false,
-            "strategy_parameters" :{
+            "solver_settings" :{
+                "strategy"                 : "deprecated_key.invalid_strategy",
                 "RemoveBallsInitiallyTouchingWalls": false
             },
             "echo_level"                  : 1,
@@ -74,6 +75,7 @@ def GetDefaultInputParameters():
             }],
             "DeltaOption"                      : "Absolute",
             "SearchTolerance"                  : 0.0,
+            "search_tolerance_against_walls"   : 0.0,
             "CoordinationNumber"               : 10,
             "AmplifiedSearchRadiusExtension"   : 0.0,
             "MaxAmplificationRatioOfSearchRadius" : 10,
@@ -129,6 +131,7 @@ def GetDefaultInputParameters():
             "PostTotalForces"                  : false,
             "PostRigidElementForces"           : false,
             "PostSkinSphere"                   : false,
+            "PostGluedSphere"                  : false,
             "PostPoissonRatio"                 : false,
             "PostRadius"                       : false,
             "PostAngularVelocity"              : false,

@@ -251,7 +251,7 @@ void LinearElement::CalculateAll( MatrixType& rLeftHandSideMatrix,
         //mConstitutiveLawVector[PointNumber]->CalculateStress(StrainVector,StressVector);
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
             StrainVector,
-            ZeroMatrix( 1 ),
+            ZeroMatrix( 1, 1 ),
             StressVector,
             D,
             rCurrentProcessInfo,

@@ -16,9 +16,6 @@
         },
         "compute_reactions"			   : false,
         "move_mesh_flag"                    : false,
-        "scheme_settings" : {
-            "scheme_type"              : "adjoint_structural"
-        },
         "response_function_settings" : {
             "response_type"     : "adjoint_linear_strain_energy",
             "use_kratos"        : true,
@@ -27,14 +24,14 @@
         },
         "sensitivity_settings" : {
             "sensitivity_model_part_name" :"Parts_AREAS",
-            "nodal_sensitivity_variables"  : ["SHAPE"],
-            "element_sensitivity_variables"  : ["THICKNESS"],
-            "condition_sensitivity_variables"  : ["POINT_LOAD"],
+            "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+            "element_data_value_sensitivity_variables"  : ["THICKNESS"],
+            "condition_data_value_sensitivity_variables"  : ["POINT_LOAD"],
             "build_mode": "static"
         },
         "echo_level"                   : 0,
         "problem_domain_sub_model_part_list" : ["Parts_AREAS"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC", "PointLoad3D_NODES", "Structure"],
         "computing_model_part_name" : "computing_domain",
         "rotation_dofs"                      : true,
         "linear_solver_settings"       : {
