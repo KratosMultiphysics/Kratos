@@ -1,0 +1,31 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_bottomfem",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElastic3DLaw"
+            },
+            "Variables"        : {
+                "DENSITY"       : 2575.0,
+                "YOUNG_MODULUS" : 7000000000.0,
+                "POISSON_RATIO" : 0.16
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_topfem",
+        "properties_id"   : 2,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElastic3DLaw"
+            },
+            "Variables"        : {
+                "DENSITY"       : 2575.0,
+                "YOUNG_MODULUS" : 7000000000.0,
+                "POISSON_RATIO" : 0.16
+            },
+            "Tables"           : {}
+        }
+    }]
+}
