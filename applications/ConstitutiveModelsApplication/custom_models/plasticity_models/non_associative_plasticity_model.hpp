@@ -542,7 +542,7 @@ namespace Kratos
                for (unsigned int i = 0; i < 6; i++) {
                   denom += AuxF(i)*PlasticPotentialDerivative(i);
                   for (unsigned int j = 0; j < 6; j++) {
-                     PlasticUpdateMatrix(i,j) = AuxF(i) * AuxG(j);
+                     PlasticUpdateMatrix(i,j) = AuxG(i) * AuxF(j);
                   }
                }
 
@@ -972,7 +972,7 @@ namespace Kratos
             virtual void InitializeVariables(ModelDataType& rValues, PlasticDataType& rVariables)
             {
                KRATOS_TRY
-
+std::cout<<"InitializeVariables IN non_associative_plasticity_model"<<std::endl;
                //set model data pointer
                rVariables.SetModelData(rValues);
 

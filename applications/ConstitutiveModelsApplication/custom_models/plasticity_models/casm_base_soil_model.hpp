@@ -314,7 +314,7 @@ namespace Kratos
                double & rPlasticMultiplier = rVariables.Internal.Variables[0];
                double & rPlasticVolDef = rVariables.Internal.Variables[1]; 
                double & rPlasticDevDef = rVariables.Internal.Variables[2];
-               double & rBondingB      = rVariables.Internal.Variables[4];
+               //double & rBondingB      = rVariables.Internal.Variables[4];
                double & rPreconsolidation = rVariables.Internal.Variables[5];
 
                Matrix ElasticMatrix(6,6);
