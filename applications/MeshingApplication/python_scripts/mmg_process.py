@@ -113,6 +113,12 @@ class MmgProcess(KratosMultiphysics.Process):
             "minimal_size"                     : 0.1,
             "force_max"                        : false,
             "maximal_size"                     : 10.0,
+            "sizing_parameters":
+            {
+                "reference_variable_name"          : "DISTANCE",
+                "boundary_layer_max_distance"      : 1.0,
+                "interpolation"                    : "constant"
+            },
             "advanced_parameters"                  :
             {
                 "force_hausdorff_value"               : false,
@@ -352,6 +358,8 @@ class MmgProcess(KratosMultiphysics.Process):
         if self.strategy == "LevelSet":
             level_set_parameters = KratosMultiphysics.Parameters("""{}""")
             level_set_parameters.AddValue("minimal_size",self.settings["minimal_size"])
+            level_set_parameters.AddValue("maximal_size",self.settings["maximal_size"])
+            level_set_parameters.AddValue("sizing_parameters",self.settings["sizing_parameters"])
             level_set_parameters.AddValue("enforce_current",self.settings["enforce_current"])
             level_set_parameters.AddValue("anisotropy_remeshing",self.settings["anisotropy_remeshing"])
             level_set_parameters.AddValue("anisotropy_parameters",self.settings["anisotropy_parameters"])

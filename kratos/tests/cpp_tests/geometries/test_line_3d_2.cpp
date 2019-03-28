@@ -122,7 +122,7 @@ namespace Testing {
 
         // Compute the global coordinates of the baricentre
         const Geometry<Point>::PointsArrayType geom_pts = p_geom->Points();
-        Point centre = geom_pts[0] + geom_pts[1];
+        Point centre = Point{geom_pts[0] + geom_pts[1]};
         centre *= 1.0/2.0;
 
         // Compute the centre local coordinates

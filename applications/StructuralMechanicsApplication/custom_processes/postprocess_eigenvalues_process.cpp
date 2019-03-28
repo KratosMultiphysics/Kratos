@@ -17,6 +17,7 @@
 
 
 // Project includes
+#include "utilities/constraint_utilities.h"
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "structural_mechanics_application_variables.h"
 
@@ -87,10 +88,8 @@ namespace Kratos
         const auto& eigenvalue_vector = mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR];
         // Note: this is omega^2
         const SizeType num_eigenvalues = eigenvalue_vector.size();
-
+        const auto nodes_begin = mrModelPart.NodesBegin();
         const SizeType num_animation_steps = mOutputParameters["animation_steps"].GetInt();
-        double angle = 0.0;
-        std::string label = "";
 
         std::vector<Variable<double>> requested_double_results;
         std::vector<Variable<array_1d<double,3>>> requested_vector_results;
@@ -98,26 +97,31 @@ namespace Kratos
 
         gid_eigen_io.InitializeResults(0.0, mrModelPart.GetMesh());
 
-        for (SizeType i=0; i < num_animation_steps; ++i)
-        {
-            angle = 2 * Globals::Pi * i / num_animation_steps;
+        for (SizeType i=0; i < num_animation_steps; ++i) {
+            const double cos_angle = std::cos(2 * Globals::Pi * i / num_animation_steps);
 
-            for(SizeType j=0; j<num_eigenvalues; ++j)
-            {
-                label = GetLabel(j, eigenvalue_vector[j]);
+            for (SizeType j=0; j<num_eigenvalues; ++j) {
+                const std::string label = GetLabel(j, eigenvalue_vector[j]);
 
-                for(auto& r_node : mrModelPart.Nodes())
-                {
+                #pragma omp parallel for
+                for (int i=0; i<static_cast<int>(mrModelPart.NumberOfNodes()); ++i) {
                     // Copy the eigenvector to the Solutionstepvariable. Credit to Michael Andre
-                    DofsContainerType& r_node_dofs = r_node.GetDofs();
-                    Matrix& r_node_eigenvectors = r_node.GetValue(EIGENVECTOR_MATRIX);
+                    DofsContainerType& r_node_dofs = (nodes_begin+i)->GetDofs();
+                    Matrix& r_node_eigenvectors = (nodes_begin+i)->GetValue(EIGENVECTOR_MATRIX);
 
                     KRATOS_ERROR_IF_NOT(r_node_dofs.size() == r_node_eigenvectors.size2())
-                        << "Number of results on node " << r_node.Id() << " is wrong" << std::endl;
+                        << "Number of results on node " << (nodes_begin+i)->Id() << " is wrong" << std::endl;
 
                     SizeType k = 0;
-                    for (auto& r_dof : r_node_dofs)
-                        r_dof.GetSolutionStepValue(0) = std::cos(angle) * r_node_eigenvectors(j,k++);
+                    for (auto& r_dof : r_node_dofs) {
+                        r_dof.GetSolutionStepValue(0) = cos_angle * r_node_eigenvectors(j,k++);
+                    }
+                }
+
+                // Reconstruct the animation on slave-dofs
+                if (mrModelPart.NumberOfMasterSlaveConstraints() > 0) {
+                    ConstraintUtilities::ResetSlaveDofs(mrModelPart);
+                    ConstraintUtilities::ApplyConstraints(mrModelPart);
                 }
 
                 for (const auto& variable : requested_double_results) {
