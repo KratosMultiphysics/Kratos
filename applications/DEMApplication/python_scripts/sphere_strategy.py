@@ -495,15 +495,6 @@ class ExplicitStrategy(object):
 
         if name_rotational == 'Direct_Integration' or name_rotational == 'same_as_translational':
             class_name = self.TranslationalIntegrationSchemeTranslator(name_translational)
-        # These lines seems to be unnecessary
-        # elif name_translational == 'Forward_Euler':
-        #     class_name = 'ForwardEulerScheme'
-        # elif name_translational == 'Symplectic_Euler':
-        #     class_name = 'SymplecticEulerScheme'
-        # elif name_translational == 'Taylor_Scheme':
-        #     class_name = 'TaylorScheme'
-        # elif name_translational == 'Velocity_Verlet':
-        #     class_name = 'VelocityVerletScheme'
         elif name_rotational == 'Runge_Kutta':
             class_name = 'RungeKuttaScheme'
         elif name_rotational == 'Quaternion_Integration':
