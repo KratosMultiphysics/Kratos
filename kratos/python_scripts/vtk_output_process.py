@@ -26,7 +26,7 @@ class VtkOutputProcess(KratosMultiphysics.Process):
             "nodal_data_value_variables"         : [],
             "element_data_value_variables"       : [],
             "condition_data_value_variables"     : [],
-            "gauss_point_variables" : []
+            "gauss_point_variables"              : []
         }""")
 
         model_part_name = settings["model_part_name"].GetString()
