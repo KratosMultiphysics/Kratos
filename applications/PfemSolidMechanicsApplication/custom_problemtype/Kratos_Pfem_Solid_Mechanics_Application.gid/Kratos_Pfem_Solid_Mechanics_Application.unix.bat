@@ -1,4 +1,4 @@
-#!/bin/bash -i
+#!/bin/bash
 # OutputFile: $2/$1.info
 # ErrorFile: $2/$1.err
 
@@ -36,6 +36,8 @@ if [ ${script_type} == "Use_Default" ]; then
 elif [ $script_type == "Copy_From" ]; then
  cp "$script_path" "${2}/script.py"
 fi
+
+export PYTHONPATH=~/kratos_rep_nov17/Kratos/:$PYTHONPATH; export LD_LIBRARY_PATH=~/kratos_rep_nov17/Kratos/libs:$LD_LIBRARY_PATH; export PATH=~/kratos_rep_nov17/Kratos/:$PATH
 
 # Launch the script
 if [ -f "${2}/script.py" ]; then

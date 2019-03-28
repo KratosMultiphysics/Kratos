@@ -23,6 +23,9 @@ def AssignMaterial(Properties):
 *elseif(strcmp(MatProp(Type),"GensNovaPlasticity")==0)
     model = *MatProp(CONSTITUTIVE_LAW_NAME)()
     mat = *MatProp(DIMENSION_OF_THE_PROBLEM)(model)
+*elseif(strcmp(MatProp(Type),"CasmStructuredSoilPlasticity")==0)
+    model = *MatProp(CONSTITUTIVE_LAW_NAME)()
+    mat = *MatProp(DIMENSION_OF_THE_PROBLEM)(model)
 *else
     mat = *MatProp(CONSTITUTIVE_LAW_NAME)()
 *endif

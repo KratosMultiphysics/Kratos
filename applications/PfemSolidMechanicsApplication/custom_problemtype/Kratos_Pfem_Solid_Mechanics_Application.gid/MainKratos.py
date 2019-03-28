@@ -7,9 +7,9 @@ import KratosMultiphysics.UmatApplication
 import KratosMultiphysics.PfemApplication
 import KratosMultiphysics.ContactMechanicsApplication
 import KratosMultiphysics.PfemSolidMechanicsApplication
-import MainSolid
+import MainSolidRestart
 
 
 model = KratosMultiphysics.Model()
-MainSolid.Solution(model).Run()
+MainSolidRestart.Solution(model).Run()
 
