@@ -226,7 +226,7 @@ class AleFluidSolver(PythonSolver):
         return self.fluid_solver
 
     def GetMeshMotionSolver(self):
-        if len(self.mesh_motion_solvers > 1):
+        if len(self.mesh_motion_solvers) > 1:
             raise Exception('More than one mesh-motion-solver \
                 exists, please use "GetMeshMotionSolvers"')
         return self.mesh_motion_solvers[0]
