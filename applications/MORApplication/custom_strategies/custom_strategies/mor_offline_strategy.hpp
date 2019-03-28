@@ -22,13 +22,16 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/builtin_timer.h"
+#include "custom_utilities/mor_qr_utility.hpp"
 #include "utilities/qr_utility.h"
-//#include "custom_strategies/custom_strategies/frequency_response_analysis_strategy.hpp"
+#include "custom_utilities/eigen_qr_utility.hpp"
+#include "custom_strategies/custom_strategies/frequency_response_analysis_strategy.hpp"
+#include <Eigen/QR>
+#include "custom_utilities/ublas_wrapper.h"
 
 
 //default builder and solver
 #include "custom_strategies/custom_builder_and_solvers/system_matrix_builder_and_solver.hpp"
-//#include "custom_utilities/MOR_QR.h"
 
 namespace Kratos
 {
@@ -88,8 +91,6 @@ class MorOfflineStrategy
     typedef typename TDenseSpace::MatrixPointerType TDenseMatrixPointerType;
 
     typedef typename BaseType::TSchemeType TSchemeType;
-
-    //typedef typename BaseType::DofSetType DofSetType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
@@ -162,7 +163,6 @@ class MorOfflineStrategy
         mpAr = TSparseSpace::CreateEmptyMatrixPointer();
         mpMr = TSparseSpace::CreateEmptyMatrixPointer();
         mpRHSr = TSparseSpace::CreateEmptyVectorPointer();
-        // mpBasis = TDenseSpace::CreateEmptyMatrixPointer();
         mpBasis = TSparseSpace::CreateEmptyMatrixPointer();
         mpSr = TSparseSpace::CreateEmptyMatrixPointer();
 
@@ -269,42 +269,6 @@ class MorOfflineStrategy
         GetBuilderAndSolver()->SetEchoLevel(Level);
     }
 
-    //*********************************************************************************
-    /**OPERATIONS ACCESSIBLE FROM THE INPUT: **/
-
-    /**
-     * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
-    values of the solution step of interest are assumed equal to the old values
-     */
-    // void Predict() override
-    // {
-    //     KRATOS_TRY
-    //     //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
-    //     //if the operations needed were already performed this does nothing
-    //     if (mInitializeWasPerformed == false)
-    //         Initialize();
-
-    //     //initialize solution step
-    //     if (mSolutionStepIsInitialized == false)
-    //         InitializeSolutionStep();
-
-    //     TSystemMatrixType& rA  = *mpA;
-    //     TSystemMatrixType& rM = *mpM;
-    //     TSystemVectorType& rRHS  = *mpRHS;
-
-    //     DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
-
-    //     GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rRHS, rRHS);
-
-    //     GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rM, rRHS, rRHS);
-
-    //     //move the mesh if needed
-    //     if (this->MoveMeshFlag() == true)
-    //         BaseType::MoveMesh();
-
-    //     KRATOS_CATCH("")
-    // }
-
     /**
      * @brief Initialization of member variables and prior operations
      */
@@ -376,10 +340,6 @@ class MorOfflineStrategy
 
         if (mSolutionStepIsInitialized == false)
         {
-            // std::cout << "system matrices before initialize solution step" << std::endl;
-            // KRATOS_WATCH(*mpA)
-            // KRATOS_WATCH(*mpM)
-            // KRATOS_WATCH(*mpRHS)
             //pointers needed in the solution
             typename TSchemeType::Pointer p_scheme = GetScheme();
             typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
@@ -436,10 +396,6 @@ class MorOfflineStrategy
             p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rS, rRHS, rRHS);
 
             mSolutionStepIsInitialized = true;
-            // std::cout << "system matrices after initialize solution step" << std::endl;
-            // KRATOS_WATCH(*mpA)
-            // KRATOS_WATCH(*mpM)
-            // KRATOS_WATCH(*mpRHS)
         }
 
         KRATOS_CATCH("");
@@ -508,16 +464,7 @@ class MorOfflineStrategy
         TSystemVectorType& rRHS  = *mpRHS;
         SparseSpaceType::Set(rRHS,0.0); //why??
 
-        // std::cout << "system matrices before initialization" << std::endl;
-        // KRATOS_WATCH(rA)
-        // KRATOS_WATCH(rM)
-        // KRATOS_WATCH(rRHS)
-
         TSystemVectorType tmp(rA.size1(), 0.0);
-        //std::cout<<"temp = "<<rA.size1()<<std::endl;
-
-        //TSystemVectorType tmp1(rS.size1(), 0.0);
-        //std::cout<<"temp1 = "<<rS.size1()<<std::endl;
 
         p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), rA, tmp);
 
@@ -533,14 +480,7 @@ class MorOfflineStrategy
         p_builder_and_solver->BuildDampingMatrix(p_scheme, BaseType::GetModelPart(), rS, tmp);
 
         p_builder_and_solver->ApplyDirichletConditionsForDampingMatrix(p_scheme, BaseType::GetModelPart(), rS);
-        
-        //std::cout<<"Damping matrix is "<<rS<<std::endl;
-        
-        //std::cout<<"\nDamping matrix"<<std::endl<<rS<<std::endl;
-        //std::cout<<"\nMass Matrix"<<std::endl<<rM<<std::endl;
-        //std::cout<<"\nStiffness matrix"<<std::endl<<rA<<std::endl;
 
-        // EchoInfo(0);
         const unsigned int system_size = p_builder_and_solver->GetEquationSystemSize();
         //sampling points
         KRATOS_WATCH(mSamplingPoints)
@@ -568,56 +508,61 @@ class MorOfflineStrategy
         auto tmp_basis = DenseSpaceType::CreateEmptyMatrixPointer();
         auto& r_tmp_basis = *tmp_basis;
         DenseSpaceType::Resize(r_tmp_basis, system_size, reduced_system_size);
-        // mpBasis = SparseSpaceType::CreateEmptyMatrixPointer();
-        // auto r_basis = *mpBasis;
-        // SparseSpaceType::Resize(r_basis, system_size, reduced_system_size);
-        // DenseSpaceType::Resize(r_basis, system_size, reduced_system_size);
+
+        // dummy vector to store the solution evaluated at sampling points and perfrom QR decomposition
+        // using custom mor qr utility
+        auto tmp_basis_mor_qr = DenseSpaceType::CreateEmptyMatrixPointer();
+        auto& r_tmp_basis_mor_qr = *tmp_basis_mor_qr;
+        DenseSpaceType::Resize(tmp_basis_mor_qr, system_size, reduced_system_size);
+  
+        // dummy vector to store the solution evaluated at sampling points and perfrom QR decomposition
+        // using Eigen Library
+        auto tmp_basis_eigen_qr = DenseSpaceType::CreateEmptyMatrixPointer();
+        auto& r_tmp_basis_eigen_qr = *tmp_basis_eigen_qr;
+        DenseSpaceType::Resize(r_tmp_basis_eigen_qr, system_size, reduced_system_size);
 
         vector< double > aux;
-        //vector <double > Q_vector;
-        
+
         for( size_t i = 0; i < n_sampling_points; ++i )
         {
             KRATOS_WATCH( mSamplingPoints(i) )
-            // KRATOS_WATCH( std::pow( mSamplingPoints(i), 2.0) )
             r_kdyn = rA - ( std::pow( mSamplingPoints(i), 2.0 ) * rM );    // Without Damping  
             //r_kdyn = rA - ( std::pow( mSamplingPoints(i), 2.0 ) * rM )-rS;  With Damping
             
-            // KRATOS_WATCH(r_kdyn)
-            // KRATOS_WATCH(rRHS)
-            // std::cout << "rs vorher" << std::endl;
-            // KRATOS_WATCH(rs)
-            // KRATOS_WATCH(r_force_vector)
             p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rs, rRHS );
-            // KRATOS_WATCH(rs)
+
             aux = prod( rM, rs );
-            //KRATOS_WATCH(aux)
+
             p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rAs, aux );
             aux = prod( rM, rAs );
             p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rAAs, aux );
-
-            // KRATOS_WATCH(rs)
-            // KRATOS_WATCH(rAs)
-            // KRATOS_WATCH(rAAs)
 
             column( r_tmp_basis, (i*3) ) = rs;
             column( r_tmp_basis, (i*3)+1 ) = rAs;
             column( r_tmp_basis, (i*3)+2 ) = rAAs;
 
+            //storing the columns for QR decomposition using Eigen
+            column( r_tmp_basis_eigen_qr, (i*3) ) = rs;
+            column( r_tmp_basis_eigen_qr, (i*3)+1 ) = rAs;
+            column( r_tmp_basis_eigen_qr, (i*3)+2 ) = rAAs;
 
-            // KRATOS_WATCH(r_tmp_basis)
+            //storing the columns for QR decomposition using custom mor qr utility
+            column( r_tmp_basis_mor_qr, (i*3) ) = rs;
+            column( r_tmp_basis_mor_qr, (i*3)+1 ) = rAs;
+            column( r_tmp_basis_mor_qr, (i*3)+2 ) = rAAs;
+
         }
 
-        //orthogonalize the basis -> basis_r
-        // mQR_decomposition.compute( system_size, 3*n_sampling_points, &(r_basis)(0,0) );
         mQR_decomposition.compute( system_size, 3*n_sampling_points, &(r_tmp_basis)(0,0) );
-        // std::cout << "yo2" << std::endl;
-        // KRATOS_WATCH(r_basis)
+
+        // QR decomposition done using custom mor utility
+        mQR_decomposition_test.compute( system_size, 3*n_sampling_points, &(r_tmp_basis_mor_qr)(0,0) );
+
         mQR_decomposition.compute_q();
 
-        // auto basis_r = SparseSpaceType::CreateEmptyMatrixPointer();
-        // auto& r_basis_r = *mpReducedBasis;
-        // SparseSpaceType::Resize(r_basis_r, system_size, 3*n_sampling_points);        
+        // QR decomposition done using custom mor utility
+        mQR_decomposition_test.compute_q();
+
         auto& r_basis = *mpBasis;
         SparseSpaceType::Resize(r_basis, system_size, reduced_system_size);
         
@@ -630,28 +575,38 @@ class MorOfflineStrategy
             }
         }
 
-        //std::cout<<Q_vector.size()<<std::endl;
-        // auto r_basis_r = r_basis;
+        // Entire Q matrix is obtained and stored in std::vector<double> Q_vector
+        // This Q_vector needs to be converted to Spacetype datatype
+        mQR_decomposition_test.GetQ(Q_vector);
+
+        std::cout<<"Q vector obtained from utility : size is "<<Q_vector.size()<<std::endl;
+ 
         auto& r_force_vector_reduced = *mpRHSr;
-        // mpForceVectorReduced = ZeroMatrix( 3*n_sampling_points );
         r_force_vector_reduced = (prod( rRHS, r_basis ));
         auto& r_stiffness_matrix_reduced = *mpAr;
         auto& r_mass_matrix_reduced = *mpMr;
         auto& r_damping_reduced = *mpSr;   // Reduced damping matrix
 
-        // KRATOS_WATCH( prod( matrix<double>(prod(trans(r_basis_r),r_stiffness_matrix)), r_basis_r))
         r_stiffness_matrix_reduced = prod( matrix< double >( prod( trans( r_basis ),rA ) ), r_basis );
         r_mass_matrix_reduced = prod( matrix< double >( prod( trans( r_basis ),rM ) ), r_basis );
 
         r_damping_reduced = prod( matrix< double >( prod( trans( r_basis ),rS ) ), r_basis );
-        // KRATOS_WATCH(r_force_vector_reduced)
-        // KRATOS_WATCH(r_stiffness_matrix_reduced)
-        // KRATOS_WATCH(r_mass_matrix_reduced)
-        // KRATOS_WATCH(r_basis)
-        //std::cout<<"Calling Eigen"<<std::endl;
-        //Call_Eigen();
+
         std::cout << "MOR offline solve finished" << std::endl;
-		//std::cout << "Compiled succesfully finally after long time"<<std::endl;
+
+        DenseSpaceType::Resize(r_tmp_basis_eigen_qr, system_size*reduced_system_size, 1);
+
+        std::cout<<r_tmp_basis_eigen_qr.size1()<<std::endl;
+        std::cout<<r_tmp_basis_eigen_qr.size2()<<std::endl;
+        auto Eigentestvector = SparseSpaceType::CreateEmptyVectorPointer();
+        
+        //UblasWrapper Test(r_tmp_basis_eigen_qr);
+        EigenQrUtility EigenQRTest(system_size, 3*n_sampling_points);
+
+
+        //Eigen::Map<Eigen::Matrix> QRTest(r_tmp_basis_eigen_qr,system_size, reduced_system_size);
+        //std::cout<<"Map created "<<std::endl;    
+
 		return true;
         KRATOS_CATCH("");
         
@@ -686,7 +641,7 @@ class MorOfflineStrategy
     ///@{
 
     ///@}
-    ///@name Access
+    ///@name Access*
 
     ///@{
 
@@ -827,8 +782,14 @@ class MorOfflineStrategy
     TSystemMatrixPointerType mpBasis;
     TSystemMatrixPointerType mpSr;
 
+    //TSystemVectorPointerType Q_vector_new;
+
     vector< double > mSamplingPoints;
     QR<double, row_major> mQR_decomposition;
+    std::vector<double> Q_vector;
+    
+    // New object of class MorQrUtility
+    MorQrUtility<double, row_major_mor> mQR_decomposition_test;
 
     /**
      * @brief Flag telling if it is needed to reform the DofSet at each

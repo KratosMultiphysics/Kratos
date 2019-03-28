@@ -23,12 +23,9 @@
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/qr_utility.h"
-//#include "custom_strategies/custom_strategies/frequency_response_analysis_strategy.hpp"
-
 
 //default builder and solver
 #include "custom_strategies/custom_builder_and_solvers/system_matrix_builder_and_solver.hpp"
-//#include "custom_utilities/MOR_QR.h"
 
 namespace Kratos
 {
@@ -89,8 +86,6 @@ class FrequencyResponseAnalysisStrategy
 
     typedef typename BaseType::TSchemeType TSchemeType;
 
-    //typedef typename BaseType::DofSetType DofSetType;
-
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
@@ -104,6 +99,12 @@ class FrequencyResponseAnalysisStrategy
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
+
+    typedef std::complex<double> ComplexType;
+
+    typedef DenseVector<ComplexType> ComplexVectorType;
+
+    typedef DenseMatrix<ComplexType> ComplexMatrixType;
 
     ///@}
     ///@name Life Cycle
@@ -120,7 +121,6 @@ class FrequencyResponseAnalysisStrategy
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
-        //vector< double > samplingPoints,
         bool MoveMeshFlag = false)
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
     {
@@ -128,8 +128,6 @@ class FrequencyResponseAnalysisStrategy
 
         // Saving the scheme
         mpScheme = pScheme;
-
-        //std::cout<<"Frequency_response_function_called"<<std::endl;
 
         // Setting up the default builder and solver
          mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
@@ -159,15 +157,6 @@ class FrequencyResponseAnalysisStrategy
         mpS = TSparseSpace::CreateEmptyMatrixPointer();
         mpM = TSparseSpace::CreateEmptyMatrixPointer();
         mpRHS = TSparseSpace::CreateEmptyVectorPointer();
-
-       /* mpAr = TSparseSpace::CreateEmptyMatrixPointer();
-        mpMr = TSparseSpace::CreateEmptyMatrixPointer();
-        mpRHSr = TSparseSpace::CreateEmptyVectorPointer();
-        // mpBasis = TDenseSpace::CreateEmptyMatrixPointer();
-        mpBasis = TSparseSpace::CreateEmptyMatrixPointer();
-        mpSr = TSparseSpace::CreateEmptyMatrixPointer();*/
-
-        //mSamplingPoints = samplingPoints;
 
         KRATOS_CATCH("");
     }
@@ -270,42 +259,6 @@ class FrequencyResponseAnalysisStrategy
         GetBuilderAndSolver()->SetEchoLevel(Level);
     }
 
-    //*********************************************************************************
-    /**OPERATIONS ACCESSIBLE FROM THE INPUT: **/
-
-    /**
-     * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
-    values of the solution step of interest are assumed equal to the old values
-     */
-    // void Predict() override
-    // {
-    //     KRATOS_TRY
-    //     //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
-    //     //if the operations needed were already performed this does nothing
-    //     if (mInitializeWasPerformed == false)
-    //         Initialize();
-
-    //     //initialize solution step
-    //     if (mSolutionStepIsInitialized == false)
-    //         InitializeSolutionStep();
-
-    //     TSystemMatrixType& rA  = *mpA;
-    //     TSystemMatrixType& rM = *mpM;
-    //     TSystemVectorType& rRHS  = *mpRHS;
-
-    //     DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
-
-    //     GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rRHS, rRHS);
-
-    //     GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rM, rRHS, rRHS);
-
-    //     //move the mesh if needed
-    //     if (this->MoveMeshFlag() == true)
-    //         BaseType::MoveMesh();
-
-    //     KRATOS_CATCH("")
-    // }
-
     /**
      * @brief Initialization of member variables and prior operations
      */
@@ -316,7 +269,7 @@ class FrequencyResponseAnalysisStrategy
         if (mInitializeWasPerformed == false)
         {
 
-            std::cout << "This is the frequency response strategy" << std::endl;
+            std::cout << "This is the frequency response strategy !!" << std::endl;
             //pointers needed in the solution
             typename TSchemeType::Pointer p_scheme = GetScheme();
 
@@ -334,6 +287,8 @@ class FrequencyResponseAnalysisStrategy
 
             mInitializeWasPerformed = true;
         }
+
+        
 
         KRATOS_CATCH("");
     }
@@ -379,11 +334,9 @@ class FrequencyResponseAnalysisStrategy
 
         if (mSolutionStepIsInitialized == false)
         {
-            //std::cout << "system matrices before initialize solution step" << std::endl;
-            // KRATOS_WATCH(*mpA)
-            // KRATOS_WATCH(*mpM)
-            // KRATOS_WATCH(*mpRHS)
-            //pointers needed in the solution
+            
+            
+
             typename TSchemeType::Pointer p_scheme = GetScheme();
             typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
@@ -438,10 +391,6 @@ class FrequencyResponseAnalysisStrategy
             p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rS, rRHS, rRHS);
 
             mSolutionStepIsInitialized = true;
-            // std::cout << "system matrices after initialize solution step" << std::endl;
-             //KRATOS_WATCH(*mpA)
-             //KRATOS_WATCH(*mpM)
-             //KRATOS_WATCH(*mpRHS)
         }
 
         KRATOS_CATCH("");
@@ -522,7 +471,6 @@ class FrequencyResponseAnalysisStrategy
     bool SolveSolutionStep() override
     {
         KRATOS_TRY;
-        //std::cout << "Hello!! Frequency resposne for different frequencies are being evaluated" << std::endl;
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
         TSystemMatrixType& rA  = *mpA;
@@ -531,16 +479,7 @@ class FrequencyResponseAnalysisStrategy
         TSystemVectorType& rRHS  = *mpRHS;
         SparseSpaceType::Set(rRHS,0.0); //why??
 
-        // std::cout << "system matrices before initialization" << std::endl;
-        // KRATOS_WATCH(rA)
-        // KRATOS_WATCH(rM)
-        // KRATOS_WATCH(rRHS)
-
         TSystemVectorType tmp(rA.size1(), 0.0);
-        //std::cout<<"temp = "<<rA.size1()<<std::endl;
-
-        //TSystemVectorType tmp1(rS.size1(), 0.0);
-        //std::cout<<"temp1 = "<<rS.size1()<<std::endl;
 
         p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), rA, tmp);
 
@@ -557,33 +496,27 @@ class FrequencyResponseAnalysisStrategy
 
         p_builder_and_solver->ApplyDirichletConditionsForDampingMatrix(p_scheme, BaseType::GetModelPart(), rS);
         
-        //std::cout<<"Damping matrix is "<<rS<<std::endl;
-        
-        //std::cout<<"\nDamping matrix"<<std::endl<<rS<<std::endl;
-        //std::cout<<"\nMass Matrix"<<std::endl<<rM<<std::endl;
-        //std::cout<<"\nStiffness matrix"<<std::endl<<rA<<std::endl;
 
-        // EchoInfo(0);
+
         const unsigned int system_size = p_builder_and_solver->GetEquationSystemSize();
-        //std::cout<<"system_size is "<<system_size<<std::endl;
-        //sampling points
-        /*KRATOS_WATCH(mSamplingPoints)
-        const std::size_t n_sampling_points = mSamplingPoints.size();
-        const std::size_t reduced_system_size = 3 * n_sampling_points;*/
-        
+
         //initialize sb, As, AAs vectors
         auto s = SparseSpaceType::CreateEmptyVectorPointer();
         auto& rs = *s;
         SparseSpaceType::Resize(rs,system_size);
         SparseSpaceType::Set(rs,0.0);
-        /*auto As = SparseSpaceType::CreateEmptyVectorPointer();
-        auto& rAs = *As;
-        SparseSpaceType::Resize(rAs,system_size);
-        SparseSpaceType::Set(rAs,0.0);
-        auto AAs = SparseSpaceType::CreateEmptyVectorPointer();
-        auto& rAAs = *AAs;
-        SparseSpaceType::Resize(rAAs,system_size);
-        SparseSpaceType::Set(rAAs,0.0);*/
+
+        
+        /*ComplexMatrixType Damping_matrix;
+        Damping_matrix.resize(system_size, system_size,false);
+
+        ComplexMatrixType System_matrix;
+        System_matrix.resize(system_size, system_size,false);
+
+        
+        //test = ZeroMatrix(system_size,system_size);
+
+        Damping_matrix = rS;*/
 
         auto kdyn = SparseSpaceType::CreateEmptyMatrixPointer();
         auto& r_kdyn = *kdyn;
@@ -592,51 +525,7 @@ class FrequencyResponseAnalysisStrategy
         auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
         double excitation_frequency = r_process_info[TIME];
 
-        //std::cout<<"Excitation_frequency is "<<excitation_frequency<<std::endl;
-
-        //auto tmp_basis = DenseSpaceType::CreateEmptyMatrixPointer();
-        //auto& r_tmp_basis = *tmp_basis;
-        //DenseSpaceType::Resize(r_tmp_basis, system_size, reduced_system_size);
-        // mpBasis = SparseSpaceType::CreateEmptyMatrixPointer();
-        // auto r_basis = *mpBasis;
-        // SparseSpaceType::Resize(r_basis, system_size, reduced_system_size);
-        // DenseSpaceType::Resize(r_basis, system_size, reduced_system_size);
-
-        //vector< double > aux;
-        //vector <double > Q_vector;
-        
-        /*for( size_t i = 0; i < n_sampling_points; ++i )
-        {
-            KRATOS_WATCH( mSamplingPoints(i) )
-            // KRATOS_WATCH( std::pow( mSamplingPoints(i), 2.0) )
-            r_kdyn = rA - ( std::pow( mSamplingPoints(i), 2.0 ) * rM );    // Without Damping  
-            //r_kdyn = rA - ( std::pow( mSamplingPoints(i), 2.0 ) * rM )-rS;  With Damping
-            
-            // KRATOS_WATCH(r_kdyn)
-            // KRATOS_WATCH(rRHS)
-            // std::cout << "rs vorher" << std::endl;
-            // KRATOS_WATCH(rs)
-            // KRATOS_WATCH(r_force_vector)
-            p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rs, rRHS );
-            // KRATOS_WATCH(rs)
-            aux = prod( rM, rs );
-            //KRATOS_WATCH(aux)
-            p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rAs, aux );
-            aux = prod( rM, rAs );
-            p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rAAs, aux );
-
-            // KRATOS_WATCH(rs)
-            // KRATOS_WATCH(rAs)
-            // KRATOS_WATCH(rAAs)
-
-            column( r_tmp_basis, (i*3) ) = rs;
-            column( r_tmp_basis, (i*3)+1 ) = rAs;
-            column( r_tmp_basis, (i*3)+2 ) = rAAs;
-
-
-            // KRATOS_WATCH(r_tmp_basis)
-        }*/
-
+        //Building the system matrix
         r_kdyn = rA - ( std::pow(excitation_frequency, 2.0 ) * rM );  
         p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rs, rRHS );
 
@@ -644,54 +533,10 @@ class FrequencyResponseAnalysisStrategy
         displacement.resize( system_size, false );
         displacement = ZeroVector( system_size );
 
+        //assigning the computed displacement
         displacement = rs;
         AssignVariables(displacement);
 
-
-        /*//orthogonalize the basis -> basis_r
-        // mQR_decomposition.compute( system_size, 3*n_sampling_points, &(r_basis)(0,0) );
-        mQR_decomposition.compute( system_size, 3*n_sampling_points, &(r_tmp_basis)(0,0) );
-        // std::cout << "yo2" << std::endl;
-        // KRATOS_WATCH(r_basis)
-        mQR_decomposition.compute_q();*/
-
-        // auto basis_r = SparseSpaceType::CreateEmptyMatrixPointer();
-        // auto& r_basis_r = *mpReducedBasis;
-        // SparseSpaceType::Resize(r_basis_r, system_size, 3*n_sampling_points);        
-        /*auto& r_basis = *mpBasis;
-        SparseSpaceType::Resize(r_basis, system_size, reduced_system_size);
-        
-        for( size_t i = 0; i < system_size; ++i )
-        {
-            for( size_t j = 0; j < (3*n_sampling_points); ++j )
-            {
-                r_basis(i,j) = mQR_decomposition.Q(i,j);
-                
-            }
-        }*/
-
-        //std::cout<<Q_vector.size()<<std::endl;
-        // auto r_basis_r = r_basis;
-        //auto& r_force_vector_reduced = *mpRHSr;
-        // mpForceVectorReduced = ZeroMatrix( 3*n_sampling_points );
-        //r_force_vector_reduced = (prod( rRHS, r_basis ));
-        //auto& r_stiffness_matrix_reduced = *mpAr;
-        //auto& r_mass_matrix_reduced = *mpMr;
-        //auto& r_damping_reduced = *mpSr;   // Reduced damping matrix
-
-        // KRATOS_WATCH( prod( matrix<double>(prod(trans(r_basis_r),r_stiffness_matrix)), r_basis_r))
-        //r_stiffness_matrix_reduced = prod( matrix< double >( prod( trans( r_basis ),rA ) ), r_basis );
-        //r_mass_matrix_reduced = prod( matrix< double >( prod( trans( r_basis ),rM ) ), r_basis );
-
-        //r_damping_reduced = prod( matrix< double >( prod( trans( r_basis ),rS ) ), r_basis );
-        // KRATOS_WATCH(r_force_vector_reduced)
-        // KRATOS_WATCH(r_stiffness_matrix_reduced)
-        // KRATOS_WATCH(r_mass_matrix_reduced)
-        // KRATOS_WATCH(r_basis)
-        //std::cout<<"Calling Eigen"<<std::endl;
-        //Call_Eigen();
-        //std::cout << "Response evaluated for given frequency" << std::endl;
-		//std::cout << "Compiled succesfully finally after long time"<<std::endl;
 		return true;
         KRATOS_CATCH("");
         
@@ -858,27 +703,8 @@ class FrequencyResponseAnalysisStrategy
     TSystemMatrixPointerType mpM; /// The Mass matrix of the system of equations
     TSystemMatrixPointerType mpS; /// The Damping matrix of the system of equations
 
-    double omega;
+    double omega;  //excitation frequency
 
-
-    // reduced matrices
-    /*TSystemVectorPointerType mpRHSr; //reduced RHS
-    TSystemMatrixPointerType mpAr;
-    TSystemMatrixPointerType mpMr;
-    // TDenseMatrixPointerType mpBasis;
-    TSystemMatrixPointerType mpBasis;
-    TSystemMatrixPointerType mpSr;
-
-    vector< double > mSamplingPoints;
-    QR<double, row_major> mQR_decomposition;*/
-
-    /**
-     * @brief Flag telling if it is needed to reform the DofSet at each
-    solution step or if it is possible to form it just once
-    * @details Default = false
-        - true  : Reforme at each time step
-        - false : Form just one (more efficient)
-     */
     bool mReformDofSetAtEachStep;
 
     bool mSolutionStepIsInitialized; /// Flag to set as initialized the solution step

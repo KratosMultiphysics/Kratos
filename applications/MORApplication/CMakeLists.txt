@@ -7,6 +7,8 @@ include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
+INCLUDE_DIRECTORIES (D:/TUM/HiWi/Eigen_Test/Eigen/eigen)	
+
 # generate variables with the sources
 set( KRATOS_MOR_APPLICATION_SOURCES
     ## MAIN FILES
@@ -16,6 +18,7 @@ set( KRATOS_MOR_APPLICATION_SOURCES
     ## PYTHON
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/mor_python_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+
 )
 
 # define library Kratos which defines the basic python interface

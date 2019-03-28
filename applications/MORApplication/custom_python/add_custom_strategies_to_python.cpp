@@ -31,7 +31,6 @@
 #include "custom_strategies/custom_strategies/linear_mor_matrix_output_strategy.hpp"
 #include "custom_strategies/custom_strategies/mor_offline_strategy.hpp"
 #include "custom_strategies/custom_strategies/mor_online_strategy.hpp"
-//#include "custom_strategies/custom_strategies/frequency_response_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/frequency_response_analysis_strategy.hpp"
 
 // Builders and solvers
