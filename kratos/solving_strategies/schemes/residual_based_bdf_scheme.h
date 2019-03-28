@@ -248,6 +248,9 @@ public:
         const double delta_time = r_current_process_info[DELTA_TIME];
         const double previous_delta_time = r_current_process_info.GetPreviousTimeStepInfo(1)[DELTA_TIME];
 
+        KRATOS_ERROR_IF(delta_time < 1.0e-24) << "Detected delta_time equal to zero or negative in the Solution Scheme DELTA_TIME. PLEASE : check if the time step is created correctly for the current time step" << std::endl;
+        KRATOS_ERROR_IF(previous_delta_time < 1.0e-24) << "Detected previous_delta_time equal to zero or negative in the Solution Scheme DELTA_TIME. PLEASE : check if the time step is created correctly for the current time step" << std::endl;
+
         // Calculate the BDF coefficients
         const double rho = previous_delta_time / delta_time;
         double time_coeff = 0.0;
