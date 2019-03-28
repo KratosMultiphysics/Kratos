@@ -22,8 +22,8 @@
 namespace Kratos
 {
 
-VtkOutput::VtkOutput(ModelPart& rModelPart, Parameters Parameters)
-    : mrModelPart(rModelPart), mOutputSettings(Parameters)
+VtkOutput::VtkOutput(ModelPart& rModelPart, Parameters ThisParameters)
+    : mrModelPart(rModelPart), mOutputSettings(ThisParameters)
 {
     mDefaultPrecision = mOutputSettings["output_precision"].GetInt();
     const std::string file_format = mOutputSettings["file_format"].GetString();
@@ -44,26 +44,7 @@ VtkOutput::VtkOutput(ModelPart& rModelPart, Parameters Parameters)
             << "options are: \"ascii\", \"binary\"" << std::endl;
     }
 
-    if(mOutputSettings["gauss_point_solution_step_data_variables"].size() > 0)
-    {
-
-        Parameters gauss_intergration_param = Parameters(R"(
-        {
-            "echo_level"                 : 0,
-            "area_average"               : true,
-            "average_variable"           : "NODAL_AREA",
-            "list_of_variables"          : [],
-            "extrapolate_non_historical" : false
-        })");
-
-        gauss_intergration_param["list_of_variables"]  =  mOutputSettings["gauss_point_solution_step_data_variables"];
-        mOutputSettings["nodal_solution_step_data_variables"].Append(mOutputSettings["gauss_point_solution_step_data_variables"]);
-
-        // Making the gauss point to nodes process if any gauss point result is requested for
-        mpGaussToNodesProcessHistorical = Kratos::make_shared<IntegrationValuesExtrapolationToNodesProcess>(gauss_intergration_param);
-    }
-
-    if(mOutputSettings["gauss_point_data_value_variables"].size() > 0)
+    if(mOutputSettings["gauss_point_variables"].size() > 0)
     {
 
         Parameters gauss_intergration_param_non_hist = Parameters(R"(
@@ -75,22 +56,21 @@ VtkOutput::VtkOutput(ModelPart& rModelPart, Parameters Parameters)
             "extrapolate_non_historical" : true
         })");
 
-        gauss_intergration_param_non_hist["list_of_variables"]  =  mOutputSettings["gauss_point_data_value_variables"];
-        mOutputSettings["nodal_data_value_variables"].Append(mOutputSettings["gauss_point_data_value_variables"]);
+        gauss_intergration_param_non_hist["list_of_variables"]  =  mOutputSettings["gauss_point_variables"];
+
+        for(auto const& gauss_var : mOutputSettings["gauss_point_variables"])
+            mOutputSettings["nodal_data_value_variables"].Append(gauss_var);
 
         // Making the gauss point to nodes process if any gauss point result is requested for
-        mpGaussToNodesProcessNonHistorical = Kratos::make_shared<IntegrationValuesExtrapolationToNodesProcess>(gauss_intergration_param_non_hist);
+        mpGaussToNodesProcess = Kratos::make_unique<IntegrationValuesExtrapolationToNodesProcess>(rModelPart, gauss_intergration_param_non_hist);
     }
 
 }
 
 void VtkOutput::PrepareGaussPointResults()
 {
-    if(mOutputSettings["gauss_point_solution_step_data_variables"].size() > 0)
-        mpGaussToNodesProcessHistorical.Execute()
-
-    if(mOutputSettings["gauss_point_data_value_variables"].size() > 0)
-        mpGaussToNodesProcessNonHistorical.Execute()
+    if(mOutputSettings["gauss_point_variables"].size() > 0)
+        mpGaussToNodesProcess->Execute();
 }
 
 
@@ -603,7 +583,7 @@ void VtkOutput::WriteVectorSolutionStepVariable(
     const TVarType& rVariable,
     std::ofstream& rFileStream) const
 {
-    KRATOS_DEBUG_ERROR_IF(rContainer.size() == 0) << "Empty container!" << std::endl;
+    KRATOS_ERROR_IF(rContainer.size() == 0) << "Empty container!" << std::endl;
 
     const int res_size = static_cast<int>((rContainer.begin()->FastGetSolutionStepValue(rVariable)).size());
 
@@ -645,7 +625,7 @@ void VtkOutput::WriteVectorContainerVariable(
     const TVarType& rVariable,
     std::ofstream& rFileStream) const
 {
-    KRATOS_DEBUG_ERROR_IF(rContainer.size() == 0) << "Empty container!" << std::endl;
+    KRATOS_ERROR_IF(rContainer.size() == 0) << "Empty container!" << std::endl;
 
     const int res_size = static_cast<int>((rContainer.begin()->GetValue(rVariable)).size());
 
