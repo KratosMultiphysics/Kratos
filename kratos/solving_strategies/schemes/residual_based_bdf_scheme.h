@@ -294,8 +294,7 @@ public:
         }
 
         const double tolerance = 1.0e-24;
-        if (mOrder > 2 && std::abs(delta_time - previous_delta_time) > tolerance)
-            std::cout << "For higher orders than 2 the time step is assumed to be constant. Sorry for the inconveniences" << std::endl;
+        KRATOS_WARNING_IF("ResidualBasedBDFScheme", mOrder > 2 && std::abs(delta_time - previous_delta_time) > tolerance) << "For higher orders than 2 the time step is assumed to be constant. Sorry for the inconveniences" << std::endl;
 
         // Adding to the process info
         Vector bdf_vector(mOrder + 1);
@@ -307,14 +306,11 @@ public:
     }
 
     /**
-     * @brief This function is designed to be called once to perform all the checks needed
-     * on the input provided.
-     * @details Checks can be "expensive" as the function is designed
-     * to catch user's errors.
+     * @brief This function is designed to be called once to perform all the checks needed on the input provided.
+     * @details Checks can be "expensive" as the function is designed to catch user's errors.
      * @param rModelPart The model of the problem to solve
      * @return Zero means  all ok
      */
-
     int Check(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
@@ -387,8 +383,8 @@ protected:
     };
 
     const std::size_t mOrder; /// The integration order
-    Vector mBDF; /// The BDF coefficients
-    GeneralVectors mVector; /// The structure containing the  derivatives
+    Vector mBDF;              /// The BDF coefficients
+    GeneralVectors mVector;   /// The structure containing the  derivatives
 
     ///@}
     ///@name Protected Operators
