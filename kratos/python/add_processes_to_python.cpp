@@ -58,7 +58,6 @@
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "processes/find_intersected_geometrical_objects_with_obb_process.h"
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
-#include "includes/node.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
