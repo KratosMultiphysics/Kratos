@@ -61,7 +61,7 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         self.print_on_rank_zero("::[StaticMechanicalSolver]:: ", "Finished initialization.")
 
     def SolveSolutionStep(self):
-        super(StaticMechanicalSolver, self).SolveSolutionStep()
+        is_converged = super(StaticMechanicalSolver, self).SolveSolutionStep()
         if self.settings["analysis_type"].GetString() == "arc_length":
             raise Exception('"arc_length is not available at the moment"')
             # it is not clear if this should be called after SolveSolutionStep or FinalizeSolutionStep
@@ -70,6 +70,8 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             if self.settings["echo_level"].GetInt() > 0:
                 self.print_on_rank_zero("LAMBDA: ", lambda_value)
             self._update_arc_length_point_load(lambda_value)
+
+        return is_converged
 
     #### Private functions ####
 
