@@ -15,8 +15,8 @@
                 "KratosMultiphysics.OVER_CONSOLIDATION_RATIO": 1.0,
                 "KratosMultiphysics.CRITICAL_STATE_LINE": 0.9,
                 "KratosMultiphysics.INTERNAL_FRICTION_ANGLE": 0.0,
-                "KratosMultiphysics.ConstitutiveModelsApplication.SPACING_RATIO": 2.0,
-                "KratosMultiphysics.ConstitutiveModelsApplication.SHAPE_PARAMETER": 1.5,
+                "KratosMultiphysics.ConstitutiveModelsApplication.SPACING_RATIO": 3.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.SHAPE_PARAMETER": 2.0,
                 "KratosMultiphysics.ConstitutiveModelsApplication.INITIAL_BONDING": 1.0,
                 "KratosMultiphysics.ConstitutiveModelsApplication.DEGRADATION_THRESHOLD": 0.0,
                 "KratosMultiphysics.ConstitutiveModelsApplication.DEGRADATION_RATE_COMPRESSION": 10.0,
@@ -32,6 +32,6 @@
             },
             "echo_level" : 0,
 	    "parametric_analysis_variable": "INITIAL_BONDING",
-	    "parametric_analysis_values": [ 1.0],
+	    "parametric_analysis_values": [ 0.0, 1.0, 2.0, 3.0],
 	    "initial_stress_state": [-80.0, -80.0, -80.0]
 }

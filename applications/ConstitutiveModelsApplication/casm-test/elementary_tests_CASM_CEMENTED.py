@@ -606,6 +606,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
     
         self.parameters.SetDeformationGradientF(self.F)
         self.parameters.SetDeterminantF(self.detF)
+        print('_compute_strain_driven_problem')
         self.material_law.CalculateMaterialResponseKirchhoff(self.parameters)
         self.material_law.FinalizeMaterialResponseKirchhoff(self.parameters)
 
@@ -627,6 +628,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             #Compute
             self.parameters.SetDeformationGradientF( self.F )
             self.parameters.SetDeterminantF( self.detF )
+            print('_compute_strain_driven_problem')
             self.material_law.CalculateMaterialResponseKirchhoff( self.parameters )
             self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
 
@@ -773,6 +775,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         self.parameters.SetProcessInfo( self.model_part.ProcessInfo )
         self.parameters.SetMaterialProperties( self.properties )
         self.parameters.SetElementGeometry( self.geometry )
+        print(self.parameters.GetProcessInfo)
 
         #parametric analysis
         if ( self.size_parametric_analysis == 0):
