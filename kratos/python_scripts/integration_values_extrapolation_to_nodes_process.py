@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Import applications
-import KratosMultiphysics.MeshingApplication as MeshingApplication
-
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -39,7 +36,7 @@ class IntegrationValuesExtrapolationToNodesProcess(KratosMultiphysics.Process):
         extrapolation_parameters.AddValue("area_average", settings["area_average"])
         extrapolation_parameters.AddValue("list_of_variables", settings["list_of_variables"])
         extrapolation_parameters.AddValue("extrapolate_non_historical", settings["extrapolate_non_historical"])
-        self.integration_values_extrapolation_to_nodes_process = MeshingApplication.IntegrationValuesExtrapolationToNodesProcess(self.model_part, extrapolation_parameters)
+        self.integration_values_extrapolation_to_nodes_process = KratosMultiphysics.IntegrationValuesExtrapolationToNodesProcess(self.model_part, extrapolation_parameters)
 
     def ExecuteInitialize(self):
         pass
