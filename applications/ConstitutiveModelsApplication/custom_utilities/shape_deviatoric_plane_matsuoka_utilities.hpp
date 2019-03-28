@@ -81,12 +81,12 @@ namespace Kratos
             double chi = std::sin(Friction) * ( pow( std::cos(Friction), 2.0) + 8.0 );
             chi /= pow( 4.0 - pow( std::cos(Friction), 2.0), 3.0/2.0);
 
-            rDerivative = -chi*std::sin(std::acos(chi*std::sin(-3.0*rLodeAngle)))*std::cos(-3.0*rLodeAngle);
-            rDerivative /= std::cos(1.0/3.0*std::acos(-chi*1.0))*std::sqrt(1-std::pow(chi*std::sin(-3.0*rLodeAngle),2.0));
+            rDerivative = -chi*std::sin(1.0/3.0*std::acos(-chi*std::sin(3.0*rLodeAngle)))*std::cos(3.0*rLodeAngle);
+            rDerivative /= std::cos(1.0/3.0*std::acos(-chi*1.0))*std::sqrt(1-std::pow(chi*std::sin(3.0*rLodeAngle),2.0));
 
-            //std::cout<<"rDerivative: "<<rDerivative<<std::endl;
-            return rDerivative;
-/*
+ /*           std::cout<<"rDerivative1: "<<rDerivative<<std::endl;
+            //return rDerivative;
+
             double t2 = rLodeAngle*3.0;
             double t3 = std::cos(Friction);
             double t4 = t3*t3;
@@ -100,9 +100,9 @@ namespace Kratos
             double t11 = std::sin(t2);
             rDerivative = -(t8*t9*t10*std::sin(t7-std::acos(t8*t9*t10*t11)*(1.0/3.0))*std::cos(t2)*1.0/sqrt(1.0/(t5*t5*t5)*(t8*t8)*(t9*t9)*(t11*t11)+1.0))/std::cos(t7-acos(t8*t9*t10*8.939966636005579E-1)*(1.0/3.0));
 
-
+            std::cout<<"rDerivative2: "<<rDerivative<<std::endl;*/
             return rDerivative;
-*/
+
             KRATOS_CATCH("")
 
          }

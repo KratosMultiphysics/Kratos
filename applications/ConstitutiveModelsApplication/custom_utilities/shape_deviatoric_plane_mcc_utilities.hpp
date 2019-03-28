@@ -43,13 +43,13 @@ namespace Kratos
             KRATOS_TRY
 
             rEffect = 1.0;
-            std::cout<<"rLodeAngle: "<<rLodeAngle<<std::endl;
+            //std::cout<<"rLodeAngle: "<<rLodeAngle<<std::endl;
             if ( rFriction < 1e-6)
                return rEffect;
 
             double Derivative = 0;
             CalculateKLodeCoefficients( rEffect, Derivative, rLodeAngle, rFriction);
-            std::cout<<"rEffect: "<<rEffect<<std::endl;
+            //std::cout<<"rEffect: "<<rEffect<<std::endl;
             return rEffect;
 
             KRATOS_CATCH("")
