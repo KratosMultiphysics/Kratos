@@ -56,7 +56,8 @@ VtkOutput::VtkOutput(ModelPart& rModelPart, Parameters ThisParameters)
             "extrapolate_non_historical" : true
         })");
 
-        gauss_intergration_param_non_hist["list_of_variables"]  =  mOutputSettings["gauss_point_variables"];
+        gauss_intergration_param_non_hist.SetValue("list_of_variables", mOutputSettings["gauss_point_variables"]);
+        //gauss_intergration_param_non_hist["list_of_variables"] = mOutputSettings["gauss_point_variables"];
 
         for(auto const& gauss_var : mOutputSettings["gauss_point_variables"])
             mOutputSettings["nodal_data_value_variables"].Append(gauss_var);
@@ -69,8 +70,9 @@ VtkOutput::VtkOutput(ModelPart& rModelPart, Parameters ThisParameters)
 
 void VtkOutput::PrepareGaussPointResults()
 {
-    if(mOutputSettings["gauss_point_variables"].size() > 0)
+    if(mOutputSettings["gauss_point_variables"].size() > 0){
         mpGaussToNodesProcess->Execute();
+    }
 }
 
 
