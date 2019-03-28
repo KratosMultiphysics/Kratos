@@ -16,6 +16,7 @@
 #include "../dem_structures_coupling_application.h"
 #include "../dem_structures_coupling_application_variables.h"
 #include "add_custom_utilities_to_python.h"
+#include "add_custom_processes_to_python.h"
 
 
 namespace Kratos
@@ -34,6 +35,7 @@ PYBIND11_MODULE(KratosDemStructuresCouplingApplication, m)
 
     //AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
+    AddCustomProcessesToPython(m);
 
     //registering variables in python
 
