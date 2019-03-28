@@ -26,21 +26,8 @@ def Say(*args):
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI.
 # For other implementations of MPI it will not work.
-if "OMPI_COMM_WORLD_SIZE" in os.environ:
-    # Kratos MPI
-    from KratosMultiphysics.MetisApplication import *
-    from KratosMultiphysics.MPISearchApplication import *
-    from KratosMultiphysics.mpi import *
 
-    # DEM Application MPI
-    import DEM_procedures_mpi as DP
-    # import DEM_material_test_script_mpi as DEM_material_test_script
-    Say('Running under MPI...........\n')
-else:
-    # DEM Application
-    import DEM_procedures as DP
-    # import DEM_material_test_script
-    Say('Running under OpenMP........\n')
+import DEM_procedures as DP
 
 class SDEMLogger(object):
     def __init__(self, do_print_file=False):

@@ -25,7 +25,9 @@ def GetDefaultInputParameters():
                 "parallel_type" : "OpenMP",
                 "echo_level"    : 1,
                 "start_time"    : 0.0,
-                "end_time"      : 1
+                "end_time"      : 1,
+                "parallel_type": "OpenMP",
+                "number_of_threads": 1
             },
 
             "ControlTime" : 4.0,
