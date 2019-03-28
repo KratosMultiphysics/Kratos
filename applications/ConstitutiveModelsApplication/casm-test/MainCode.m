@@ -1,13 +1,17 @@
 function [] = MainCode()
 
-for i = [1:3, 10]
+for i = [1:3]
     figure(i)
     hold off;
 end
 
 global M;
+global ShapeN;
+global SpacingR;
 
-M = 1.4;
+M = 1.0;
+ShapeN = 3;
+SpacingR = 4;
 
 for i = 0:1000
     ThisExists = MakeThisFile([num2str(i), 'drained_triaxial.csv']);
@@ -16,8 +20,8 @@ for i = 0:1000
     if (ThisExists == false )
         return
     end
-%     MakeThisFile([num2str(i),'drained_biaxial.csv']);
-    MakeThisFile([num2str(i),'undrained_triaxial.csv']);
+     MakeThisFile([num2str(i),'undrained_triaxial.csv']);
+%     MakeThisFile([num2str(i),'undrained_triaxial.csv']);
 %     MakeThisFile([num2str(i),'oedometer.csv']);
 %     MakeThisFile([num2str(i),'isotropic.csv']);
 end
@@ -26,42 +30,6 @@ end
 
 % MakeThisFileOed('oedometer.csv')
 % MakeThisFileOed('isotropic.csv')
-
-
-function [] = MakeThisFileOed(XFILE)
-
-rawData = csvread(XFILE);
-
-Stress = rawData(:,2:7);
-Strain = rawData(:,8:13);
-
-ps = rawData(:,14);
-pt = rawData(:,15);
-pc = rawData(:,16);
-
-[p, J] = ComputeStressInvariants( Stress);
-[eVol, eDev] = ComputeStrainInvariants( Strain);
-
-% Triaxial plane
-figure(1)
-plot(p, J);
-xlabel('p')
-ylabel('q')
-axis equal
-
-figure(2)
-plot( eDev, J);
-xlabel('eDev')
-ylabel('sDev')
-hold on
-
-
-figure(3)
-semilogx( p, eVol);
-xlabel('p')
-ylabel('eVol')
-hold on
-
 
 
 function [ThisExists] = MakeThisFile(XFILE)
@@ -93,11 +61,11 @@ pc = rawData(:,16);
 
 
 figure(1)
-PlotYieldSurface( ps(1), pt(1), pc(1), 'k');
-PlotYieldSurface( ps(end), pt(end), pc(end), 'g-.');
+PlotYieldSurface( ps(1),  'k');
+PlotYieldSurface( ps(end), 'g-.');
 
 % Triaxial plane
-plot(p, J)
+plot(p, J, 'linewidth', 1.5);
 xlabel('p')
 ylabel('q')
 axis equal
@@ -116,21 +84,29 @@ ylabel('eVol')
 hold on
 
 
-function PlotYieldSurface( ps, pt, pc, SPEC)
+function PlotYieldSurface( p0, SPEC)
 
 global M;
+global ShapeN;
+global SpacingR;
+n = ShapeN;
+r = SpacingR;
 
-pp = linspace(0, -pc, 400);
-jj = M * sqrt(-pp.*(pp+pc));
+p0 = -p0;
 
-plot( pp, M*pp, 'r-.')
+
+pp = linspace(0, p0, 1000);
+
+qq = M*pp .* ( -log(pp/p0)/log(r)).^(1/n);
+plot(pp, qq, SPEC, 'linewidth', 1.0)
 hold on
-plot(pp+pt, jj, SPEC, 'linewidth', 2.0)
+
+plot([0, 0.6*p0], M*[0, 0.6*p0], 'r-.')
+
+axis equal
 
 
-pp = linspace(0, -ps, 400);
-jj = M * sqrt(-pp.*(pp+ps));
-plot(pp, jj, SPEC, 'linewidth', 1.0)
+
 
 function [p, J] = ComputeStressInvariants( Stress)
 
