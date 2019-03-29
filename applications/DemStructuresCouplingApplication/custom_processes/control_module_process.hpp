@@ -49,7 +49,9 @@ public:
                 "model_part_name":"MODEL_PART_NAME",
                 "variable_name": "VARIABLE_NAME",
                 "reaction_variable_name": "REACTION_VARIABLE_NAME",
-                "target_stress_table" : 1,
+                "target_stress_variable_name": "TARGET_STRESS_VARIABLE_NAME",
+                "reaction_stress_variable_name": "REACTION_STRESS_VARIABLE_NAME",
+                "target_stress_table_id" : 1,
                 "initial_velocity" : 0.0,
                 "compression_length" : 0.0,
                 "young_modulus" : 1.0e7,
@@ -61,8 +63,9 @@ public:
 
         mVariableName = rParameters["variable_name"].GetString();
         mReactionVariableName = rParameters["reaction_variable_name"].GetString();
-        unsigned int TableId = rParameters["target_stress_table"].GetInt();
-        mpTargetStressTable = rModelPart.pGetTable(TableId);
+        mTargetStressVariableName = rParameters["target_stress_variable_name"].GetString();
+        mReactionStressVariableName = rParameters["reaction_stress_variable_name"].GetString();
+        mpTargetStressTableId = rParameters["target_stress_table_id"].GetInt();
         mVelocity = rParameters["initial_velocity"].GetDouble();
         mCompressionLength = rParameters["compression_length"].GetDouble();
         mYoungModulus = rParameters["young_modulus"].GetDouble();
@@ -135,7 +138,7 @@ public:
 
         const double CurrentTime = mrModelPart.GetProcessInfo()[TIME];
 
-        if(CurrentTime >= mStartTime)
+        if(CurrentTime >= mStartTime && mpTargetStressTableId > 0)
         {
             const int NCons = static_cast<int>(mrModelPart.Conditions().size());
             ModelPart::ConditionsContainerType::iterator con_begin = mrModelPart.ConditionsBegin();
@@ -163,11 +166,23 @@ public:
                 FaceReaction += it->FastGetSolutionStepValue(ReactionVarComponent);
             }
 
-            const double ReactionStress = std::abs(FaceReaction)/FaceArea;
-            const double TargetStress = std::abs(mpTargetStressTable->GetValue(CurrentTime));
+            const double ReactionStress = FaceReaction/FaceArea;
+            TableType::Pointer pTargetStressTable = mrModelPart.pGetTable(mpTargetStressTableId);
+            const double TargetStress = pTargetStressTable->GetValue(CurrentTime);
             const double DeltaTime = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
             mVelocity = (TargetStress - ReactionStress)*mCompressionLength/(mYoungModulus*DeltaTime);
+
+            ComponentType TargetStressVarComponent = KratosComponents< ComponentType >::Get(mTargetStressVariableName);
+            ComponentType ReactionStressVarComponent = KratosComponents< ComponentType >::Get(mReactionStressVariableName);
+            #pragma omp parallel for reduction(+:FaceReaction)
+            for(int i = 0; i<NNodes; i++)
+            {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                it->FastGetSolutionStepValue(TargetStressVarComponent) = TargetStress;
+                it->FastGetSolutionStepValue(ReactionStressVarComponent) = ReactionStress;
+            }
         }
 
         KRATOS_CATCH("");
@@ -200,7 +215,9 @@ protected:
     ModelPart& mrModelPart;
     std::string mVariableName;
     std::string mReactionVariableName;
-    TableType::Pointer mpTargetStressTable;
+    std::string mTargetStressVariableName;
+    std::string mReactionStressVariableName;
+    unsigned int mpTargetStressTableId;
     double mVelocity;
     double mCompressionLength;
     double mYoungModulus;

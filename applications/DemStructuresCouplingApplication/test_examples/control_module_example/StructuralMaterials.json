@@ -1,6 +1,6 @@
 {
     "properties" : [{
-        "model_part_name" : "Structure.Parts_bottomfem",
+        "model_part_name" : "Structure.Parts_BotPart",
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
@@ -8,13 +8,13 @@
             },
             "Variables"        : {
                 "DENSITY"       : 2575.0,
-                "YOUNG_MODULUS" : 7000000000.0,
+                "YOUNG_MODULUS" : 7.0e9,
                 "POISSON_RATIO" : 0.16
             },
             "Tables"           : {}
         }
     },{
-        "model_part_name" : "Structure.Parts_topfem",
+        "model_part_name" : "Structure.Parts_TopPart",
         "properties_id"   : 2,
         "Material"        : {
             "constitutive_law" : {
@@ -22,7 +22,7 @@
             },
             "Variables"        : {
                 "DENSITY"       : 2575.0,
-                "YOUNG_MODULUS" : 7000000000.0,
+                "YOUNG_MODULUS" : 7.0e9,
                 "POISSON_RATIO" : 0.16
             },
             "Tables"           : {}

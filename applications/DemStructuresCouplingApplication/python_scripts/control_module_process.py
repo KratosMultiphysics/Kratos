@@ -14,9 +14,9 @@ class ControlModuleProcess(KratosMultiphysics.Process):
 
         model_part = Model[settings["model_part_name"].GetString()]
         variable_name = settings["variable_name"].GetString()
-
-        print('holaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
-        print(model_part)
+        reaction_variable_name = settings["reaction_variable_name"].GetString()
+        target_stress_variable_name = settings["target_stress_variable_name"].GetString()
+        reaction_stress_variable_name = settings["reaction_stress_variable_name"].GetString()
 
         self.components_process_list = []
 
@@ -24,8 +24,10 @@ class ControlModuleProcess(KratosMultiphysics.Process):
             x_params = KratosMultiphysics.Parameters("{}")
             x_params.AddValue("model_part_name",settings["model_part_name"])
             x_params.AddEmptyValue("variable_name").SetString(variable_name+"_X")
-            x_params.AddEmptyValue("reaction_variable_name").SetString(variable_name+"_X")
-            x_params.AddValue("target_stress_table",settings["target_stress_table"][0])
+            x_params.AddEmptyValue("reaction_variable_name").SetString(reaction_variable_name+"_X")
+            x_params.AddEmptyValue("target_stress_variable_name").SetString(target_stress_variable_name+"_X")
+            x_params.AddEmptyValue("reaction_stress_variable_name").SetString(reaction_stress_variable_name+"_X")
+            x_params.AddValue("target_stress_table_id",settings["target_stress_table_id"][0])
             x_params.AddValue("initial_velocity",settings["initial_velocity"][0])
             x_params.AddValue("compression_length",settings["compression_length"])
             x_params.AddValue("young_modulus",settings["young_modulus"])
@@ -36,8 +38,10 @@ class ControlModuleProcess(KratosMultiphysics.Process):
             y_params = KratosMultiphysics.Parameters("{}")
             y_params.AddValue("model_part_name",settings["model_part_name"])
             y_params.AddEmptyValue("variable_name").SetString(variable_name+"_Y")
-            y_params.AddEmptyValue("reaction_variable_name").SetString(variable_name+"_Y")
-            y_params.AddValue("target_stress_table",settings["target_stress_table"][1])
+            y_params.AddEmptyValue("reaction_variable_name").SetString(reaction_variable_name+"_Y")
+            y_params.AddEmptyValue("target_stress_variable_name").SetString(target_stress_variable_name+"_Y")
+            y_params.AddEmptyValue("reaction_stress_variable_name").SetString(reaction_stress_variable_name+"_Y")
+            y_params.AddValue("target_stress_table_id",settings["target_stress_table_id"][1])
             y_params.AddValue("initial_velocity",settings["initial_velocity"][1])
             y_params.AddValue("compression_length",settings["compression_length"])
             y_params.AddValue("young_modulus",settings["young_modulus"])
@@ -48,8 +52,10 @@ class ControlModuleProcess(KratosMultiphysics.Process):
             z_params = KratosMultiphysics.Parameters("{}")
             z_params.AddValue("model_part_name",settings["model_part_name"])
             z_params.AddEmptyValue("variable_name").SetString(variable_name+"_Z")
-            z_params.AddEmptyValue("reaction_variable_name").SetString(variable_name+"_Z")
-            z_params.AddValue("target_stress_table",settings["target_stress_table"][2])
+            z_params.AddEmptyValue("reaction_variable_name").SetString(reaction_variable_name+"_Z")
+            z_params.AddEmptyValue("target_stress_variable_name").SetString(target_stress_variable_name+"_Z")
+            z_params.AddEmptyValue("reaction_stress_variable_name").SetString(reaction_stress_variable_name+"_Z")
+            z_params.AddValue("target_stress_table_id",settings["target_stress_table_id"][2])
             z_params.AddValue("initial_velocity",settings["initial_velocity"][2])
             z_params.AddValue("compression_length",settings["compression_length"])
             z_params.AddValue("young_modulus",settings["young_modulus"])
