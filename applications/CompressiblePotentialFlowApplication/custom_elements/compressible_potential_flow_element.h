@@ -10,8 +10,8 @@
 //  Main authors:    Inigo Lopez and Riccardo Rossi
 //
 
-#if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H)
-#define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H
+#if !defined(KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H)
+#define KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H
 
 // System includes
 
@@ -366,4 +366,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H  defined
+#endif // KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H  defined
