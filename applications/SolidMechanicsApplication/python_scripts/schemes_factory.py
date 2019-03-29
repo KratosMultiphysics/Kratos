@@ -68,7 +68,7 @@ class SolutionScheme:
                     variables = variables + [KratosMultiphysics.KratosGlobals.GetVariable(variable)]
 
                 integration_method = None
-                vector_integration_method = getattr(KratosSolver,integration_method_name+'VectorIntegration')
+                vector_integration_method = getattr(KratosSolid,integration_method_name+'VectorIntegration')
                 if( len(variables) == 4 ):
                     integration_method = vector_integration_method(variables[0],variables[1],variables[2],variables[3])
                 elif( len(variables) == 1 ):
