@@ -15,8 +15,6 @@ from KratosMultiphysics.python_solver import PythonSolver
 import KratosMultiphysics.FSIApplication as KratosFSI
 import KratosMultiphysics.MappingApplication as KratosMapping
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-# import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
-# import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 def CreateSolver(model, project_parameters):
     return PartitionedEmbeddedFSIBaseSolver(model, project_parameters)
@@ -353,7 +351,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         distance_modification_settings = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "",
             "distance_factor": 2.0,
-            "distance_threshold": 1e-3,
+            "distance_threshold": 1e-5,
             "continuous_distance": true,
             "check_at_each_time_step": true,
             "avoid_almost_empty_elements": true,
@@ -437,15 +435,15 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Compute STRUCTURE_VELOCITY
         # dt = self.structure_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]
         # for node in self.model.GetModelPart(self._get_structure_interface_model_part_name()).Nodes:
-            # u_n = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1)
-            # u_n_1 = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0)
-            # node.SetSolutionStepValue(KratosMultiphysics.STRUCTURE_VELOCITY, 0, (1/dt)*(u_n_1-u_n))
+        #     u_n = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1)
+        #     u_n_1 = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0)
+        #     node.SetSolutionStepValue(KratosMultiphysics.STRUCTURE_VELOCITY, 0, (1/dt)*(u_n_1-u_n))
 
         # Recompute the EMBEDDED_VELOCITY field
-        self._get_distance_to_skin_process().CalculateEmbeddedVariableFromSkin(
-            KratosMultiphysics.VELOCITY,
-            #KratosMultiphysics.STRUCTURE_VELOCITY,
-            KratosMultiphysics.EMBEDDED_VELOCITY)
+        # self._get_distance_to_skin_process().CalculateEmbeddedVariableFromSkin(
+        #     # KratosMultiphysics.VELOCITY,
+        #     KratosMultiphysics.STRUCTURE_VELOCITY,
+        #     KratosMultiphysics.EMBEDDED_VELOCITY)
 
         # Recompute the new embedded intersections model part
         self._get_embedded_skin_utility().GenerateSkin()
