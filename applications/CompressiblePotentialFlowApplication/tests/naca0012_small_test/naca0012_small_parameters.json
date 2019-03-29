@@ -31,7 +31,6 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "FarFieldProcess",
             "Parameters"    : {
-                "mesh_id"           : 0,
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "inlet_phi"         : 1.0,
                 "velocity_infinity" : [10.0,0.0,0.0]
@@ -41,9 +40,8 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "DefineWakeProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "body_model_part_name" : "MainModelPart.Body2D_Body",
-                "wake_direction"       : [1.0,0.0,0.0],
+                "model_part_name" : "MainModelPart.Body2D_Body",
+                "wake_direction"  : [1.0,0.0,0.0],
                 "epsilon"         : 1e-9
             }
         },{
@@ -51,8 +49,7 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "ComputeLiftProcess3D",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "body_model_part_name" : "MainModelPart.Body2D_Body",
+                "model_part_name" : "MainModelPart.Body2D_Body",
                 "velocity_infinity" : [10.0,0.0,0.0],
                 "create_output_file": true
             }
@@ -61,15 +58,13 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "PlaceholderProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "body_model_part_name" : "MainModelPart.Body2D_Body"
+                "model_part_name" : "MainModelPart.Body2D_Body"
             }
         },{
             "python_module" : "placeholder_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "PlaceholderProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "MainModelPart.Body2D_LowerSurface"
             }
         }],

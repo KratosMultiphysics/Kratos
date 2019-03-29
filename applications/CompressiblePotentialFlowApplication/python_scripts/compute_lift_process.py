@@ -11,18 +11,16 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
-        default_parameters = KratosMultiphysics.Parameters("""
-            {
-                "mesh_id": 0,
-                "body_model_part_name" : "please specify the model part that contains the surface nodes",
-                "velocity_infinity": [1.0,0.0,0],
-                "reference_area": 1,
-                "create_output_file": false
-            }  """)
+        default_parameters = KratosMultiphysics.Parameters(r'''{
+            "model_part_name": "please specify the model part that contains the surface nodes",
+            "velocity_infinity": [1.0,0.0,0],
+            "reference_area": 1.0,
+            "create_output_file": false
+        }''')
 
         settings.ValidateAndAssignDefaults(default_parameters)
 
-        self.body_model_part = Model[settings["body_model_part_name"].GetString()]
+        self.body_model_part = Model[settings["model_part_name"].GetString()]
         self.velocity_infinity = [0,0,0]
         self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
