@@ -421,10 +421,6 @@ namespace Kratos
 						 VectorType& rRightHandSideVector,
 						 ProcessInfo& rCurrentProcessInfo) override;
 
-      void GetPressureVelocityValues(Vector& rValues,
-				     const int Step);
-
-
       void GetPressureAccelerationValues(Vector& rValues,
 					 const int Step);
 

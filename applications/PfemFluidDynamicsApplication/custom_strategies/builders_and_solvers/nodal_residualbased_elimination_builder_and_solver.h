@@ -214,7 +214,7 @@ void BuildNodally(
 				  double secondLame=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
 	        double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*secondLame/3.0;
          
-				  if(itNode->Is(FLUID))
+				  if(itNode->Is(FLUID) && volumetricCoeff>0)
 					{
             double bulkReduction=density*nodalVolume/(timeInterval*volumetricCoeff);
             volumetricCoeff*=bulkReduction;
@@ -223,6 +223,11 @@ void BuildNodally(
           firstRow=0;
           firstCol=0;
 
+          if(itNode->Is(FREE_SURFACE)){
+            itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS)=1;
+          }else{
+            itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS)=0;
+          }
            /* const unsigned int xDofPos = itNode->GetDofPosition(VELOCITY_X); */
           if(dimension==2)
           {
@@ -266,7 +271,6 @@ void BuildNodally(
 
             for (unsigned int i = 0; i< neighSize; i++)
             {
-
               dNdXi=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstCol];
               dNdYi=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstCol+1];
 
@@ -294,6 +298,9 @@ void BuildNodally(
               {
                 EquationId[firstCol]=neighb_nodes[i].GetDof(VELOCITY_X,xDofPos).EquationId();
                 EquationId[firstCol+1]=neighb_nodes[i].GetDof(VELOCITY_Y,xDofPos+1).EquationId();
+                if(neighb_nodes[i].Is(FREE_SURFACE) && itNode->Is(FREE_SURFACE)){
+                  itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS)+=1;
+                }
               }
 
             }
@@ -391,6 +398,9 @@ void BuildNodally(
                   EquationId[firstCol]  =neighb_nodes[i].GetDof(VELOCITY_X,xDofPos).EquationId();
                   EquationId[firstCol+1]=neighb_nodes[i].GetDof(VELOCITY_Y,xDofPos+1).EquationId();
                   EquationId[firstCol+2]=neighb_nodes[i].GetDof(VELOCITY_Z,xDofPos+2).EquationId();
+                  if(neighb_nodes[i].Is(FREE_SURFACE) && itNode->Is(FREE_SURFACE)){
+                    itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS)+=1;
+                  }
                 }
 
               }

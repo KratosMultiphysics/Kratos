@@ -440,6 +440,9 @@ namespace Kratos
       void GetAccelerationValues(Vector& rValues,
 				 const int Step = 0);
 
+      void GetPressureVelocityValues(Vector& rValues,
+				     const int Step);
+
 
       void GetElementalAcceleration(Vector& rValues,
 				    const int Step,

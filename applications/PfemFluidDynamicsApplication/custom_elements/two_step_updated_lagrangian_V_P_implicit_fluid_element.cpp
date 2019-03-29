@@ -1981,22 +1981,6 @@ namespace Kratos {
 
   }
 
-
-  template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::GetPressureVelocityValues(Vector& rValues,
-										       const int Step)
-  {
-    GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
-
-    if (rValues.size() != NumNodes) rValues.resize(NumNodes);
-
-    for (SizeType i = 0; i < NumNodes; ++i){
-      rValues[i] = rGeom[i].FastGetSolutionStepValue(PRESSURE_VELOCITY,Step);
-
-    }
-  }
-
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::GetPressureAccelerationValues(Vector& rValues,
 											   const int Step)
