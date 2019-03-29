@@ -18,9 +18,6 @@
 
 
 // Project includes
-#include "geometries/triangle_2d_3.h"
-#include "geometries/line_2d.h"
-#include "geometries/point_2d.h"
 #include "multilevel_monte_carlo_application.h"
 #include "multilevel_monte_carlo_application_variables.h"
 
@@ -34,7 +31,11 @@ KratosMultilevelMonteCarloApplication::KratosMultilevelMonteCarloApplication():
 void KratosMultilevelMonteCarloApplication::Register() {
  	// calling base class register to register Kratos components
  	KratosApplication::Register();
- 	std::cout << "Initializing KratosMultilevelMonteCarloApplication... " << std::endl;
+	KRATOS_INFO("") <<
+    " KRATOS __ __ _   __ __  __ " << std::endl <<
+    "       |  V  | | |  V  |/ _|" << std::endl <<
+    "       | \\_/ | |_| \\_/ | (_ " << std::endl <<
+    "       |_| |_|___|_| |_|\\__|APPLICATION" << std::endl;
 
 
 }

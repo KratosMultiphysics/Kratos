@@ -1,7 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "taylor_patch_test",
-		"parallel_type"   : "OpenMP",
+        "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -29,7 +29,7 @@
         "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : true,
-        "reform_dofs_at_each_step"	         : true,
+        "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
@@ -37,17 +37,17 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
-            "solver_type" : "SkylineLUFactorizationSolver"
+            "solver_type" : "skyline_lu_factorization"
         },
-        "problem_domain_sub_model_part_list" : ["Parts_foundation","Parts_punch"],
-        "processes_sub_model_part_list"      : ["Contact_Part",
+        "problem_domain_sub_model_part_list" : ["Structure","Parts_foundation","Parts_punch"],
+        "processes_sub_model_part_list"      : ["Structure","Contact_Part",
                                                 "Parts_foundation",
-        										"Parts_punch",
-        										"DISPLACEMENT_fixed_support",
-        										"DISPLACEMENT_rolling_support_y",
-        										"DISPLACEMENT_rolling_support_x",
-        										"LineLoad2D_line_load"
-        										]
+                                                "Parts_punch",
+                                                "DISPLACEMENT_fixed_support",
+                                                "DISPLACEMENT_rolling_support_y",
+                                                "DISPLACEMENT_rolling_support_x",
+                                                "LineLoad2D_line_load"
+                                                ]
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -103,7 +103,7 @@
         }],
         "contact_process_list" :[{
             "python_module"   : "alm_contact_process",
-            "kratos_module"   : "ContactStructuralMechanicsApplication",
+            "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
             "help"                  : "",
             "process_name"          : "ALMContactProcess",
             "Parameters"            : {
@@ -139,25 +139,25 @@
                 "model_part_name"        : "Structure.computing_domain",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1.0,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","LAGRANGE_MULTIPLIER_CONTACT_PRESSURE","WEIGHTED_GAP"],
-            "nodal_nonhistorical_results": ["NORMAL"],
-            "nodal_flags_results": ["ACTIVE","SLAVE"],
-            "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
-        },
-        "point_data_configuration"  : []}}}]
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "step",
+                        "output_control_type" : "step",
+                        "output_frequency"    : 1.0,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","LAGRANGE_MULTIPLIER_CONTACT_PRESSURE","WEIGHTED_GAP"],
+                        "nodal_nonhistorical_results": ["NORMAL"],
+                        "nodal_flags_results": ["ACTIVE","SLAVE"],
+                        "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
+                    },
+                    "point_data_configuration"  : []}}}]
     },
     "_json_output_process" : [
     {
@@ -172,15 +172,5 @@
             "time_frequency"       : 1.00
         }
     }
-    ],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    }
+    ]
 }

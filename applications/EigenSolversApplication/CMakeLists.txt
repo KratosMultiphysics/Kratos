@@ -82,4 +82,4 @@ if(USE_COTIRE MATCHES ON)
 endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/__init__.py" DESTINATION "KratosMultiphysics/EigenSolversApplication")
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/EigenSolversApplication.py" DESTINATION "KratosMultiphysics/EigenSolversApplication" RENAME "__init__.py")

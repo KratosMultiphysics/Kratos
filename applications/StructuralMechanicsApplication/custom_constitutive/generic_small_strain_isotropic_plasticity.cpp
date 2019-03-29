@@ -23,6 +23,7 @@
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
 #include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
 #include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/mohr_coulomb_yield_surface.h"
 #include "custom_constitutive/yield_surfaces/rankine_yield_surface.h"
 #include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
 #include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
@@ -33,6 +34,7 @@
 #include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/tresca_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/mohr_coulomb_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
 
 namespace Kratos
@@ -82,17 +84,15 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if (first_computation) { // First computation always pure elastic for elemements not providing the strain
-        if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ) ) {
+        if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ) ) {
             BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
         }
-
-        if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-            BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
-        }
-
-        if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
+        if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
+            r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             Vector& r_stress_vector = rValues.GetStressVector();
-            if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+            if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+                Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+                BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
                 noalias(r_stress_vector) = prod( r_constitutive_matrix, r_strain_vector);
             } else {
                 BaseType::CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
@@ -103,21 +103,13 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
         Vector& integrated_stress_vector = rValues.GetStressVector();
         const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
 
-        if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ) ) {
+        if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
             BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
         }
 
-        // Elastic Matrix
-        if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-            BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
-        }
-
-        // We compute the stress
-        if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
-            // Elastic Matrix
-            if( r_constitutive_law_options.IsNot( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-                this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
-            }
+        // We compute the stress or the constitutive matrix
+        if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
+            r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
 
             // We get some variables
             double threshold = this->GetThreshold();
@@ -125,11 +117,13 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
             Vector plastic_strain = this->GetPlasticStrain();
 
             BoundedArrayType predictive_stress_vector;
-            if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
+            if (r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW)) {
                 predictive_stress_vector = rValues.GetStressVector();
             } else {
-                // S0 = r_constitutive_matrix:(E-Ep)
-                predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
+                // S0 = Elastic stress with strain (E-Ep)
+                Vector aux_stress = ZeroVector(VoigtSize);
+                BaseType::CalculatePK2Stress(r_strain_vector - plastic_strain, aux_stress, rValues);
+                noalias(predictive_stress_vector) = aux_stress;
             }
 
             // Initialize Plastic Parameters
@@ -138,6 +132,10 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
             BoundedArrayType g_flux = ZeroVector(VoigtSize); // DG/DS
             BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
 
+            // Elastic Matrix
+            this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
+
+            // Compute the plastic parameters
             const double F = TConstLawIntegratorType::CalculatePlasticParameters(
                 predictive_stress_vector, r_strain_vector, uniaxial_stress,
                 threshold, plastic_denominator, f_flux, g_flux,
@@ -244,7 +242,6 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::InitializeM
 template <class TConstLawIntegratorType>
 void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    // TODO: Add somethig if necessary
 }
 
 /***********************************************************************************/
@@ -295,7 +292,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
     // Integrate Stress plasticity
     const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
 
-    if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ) ) {
+    if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
     }
 
@@ -309,7 +306,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
     Vector plastic_strain = this->GetPlasticStrain();
 
     BoundedArrayType predictive_stress_vector;
-    if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
+    if (r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW)) {
         predictive_stress_vector = rValues.GetStressVector();
     } else {
         // S0 = r_constitutive_matrix:(E-Ep)
@@ -343,7 +340,6 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
     mPlasticDissipation = plastic_dissipation;
     mPlasticStrain = plastic_strain;
     mThreshold = threshold;
-    mUniaxialStress = uniaxial_stress;
 }
 
 /***********************************************************************************/
@@ -352,9 +348,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
 template <class TConstLawIntegratorType>
 bool GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Has(const Variable<double>& rThisVariable)
 {
-    if (rThisVariable == UNIAXIAL_STRESS) {
-        return true;
-    } else if (rThisVariable == PLASTIC_DISSIPATION) {
+    if (rThisVariable == PLASTIC_DISSIPATION) {
         return true;
     } else {
         return BaseType::Has(rThisVariable);
@@ -396,9 +390,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::SetValue(
     const double& rValue,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rThisVariable == UNIAXIAL_STRESS) {
-        mUniaxialStress = rValue;
-    } else if (rThisVariable == PLASTIC_DISSIPATION) {
+    if (rThisVariable == PLASTIC_DISSIPATION) {
         mPlasticDissipation = rValue;
     } else {
         BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
@@ -431,9 +423,7 @@ double& GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::GetValue
     double& rValue
     )
 {
-    if (rThisVariable == UNIAXIAL_STRESS) {
-        rValue = mUniaxialStress;
-    } else if (rThisVariable == PLASTIC_DISSIPATION) {
+    if (rThisVariable == PLASTIC_DISSIPATION) {
         rValue = mPlasticDissipation;
     } else {
         BaseType::GetValue(rThisVariable, rValue);
@@ -488,13 +478,51 @@ double& GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Calculat
     double& rValue
     )
 {
-    if (rThisVariable == EQUIVALENT_PLASTIC_STRAIN) {
+    if (rThisVariable == UNIAXIAL_STRESS) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+
         // Calculate the stress vector
-        Vector stress_vector;
-        this->CalculateValue(rParameterValues, PK2_STRESS_VECTOR, stress_vector);
+        CalculateMaterialResponseCauchy(rParameterValues);
+        const Vector& r_stress_vector = rParameterValues.GetStressVector();
+        const Vector& r_strain_vector = rParameterValues.GetStrainVector();
+
+        BoundedArrayType aux_stress_vector = r_stress_vector;
+        TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress( aux_stress_vector, r_strain_vector, rValue, rParameterValues);
+
+        // Previous flags restored
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+    } else if (rThisVariable == EQUIVALENT_PLASTIC_STRAIN) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+
+        // Calculate the stress vector
+        CalculateMaterialResponseCauchy(rParameterValues);
+        const Vector& r_stress_vector = rParameterValues.GetStressVector();
+
+        // Previous flags restored
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
 
         // Compute the equivalent plastic strain
-        TConstLawIntegratorType::CalculateEquivalentPlasticStrain(stress_vector, mUniaxialStress, mPlasticStrain, 0.0, rParameterValues, rValue);
+        double uniaxial_stress;
+        this->CalculateValue(rParameterValues, UNIAXIAL_STRESS, uniaxial_stress);
+        TConstLawIntegratorType::CalculateEquivalentPlasticStrain(r_stress_vector, uniaxial_stress, mPlasticStrain, 0.0, rParameterValues, rValue);
         return rValue;
     } else {
         return this->GetValue(rThisVariable, rValue);
@@ -526,33 +554,11 @@ Matrix& GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Calculat
     Matrix& rValue
     )
 {
-    if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
-        //1.-Compute total deformation gradient
-        const Matrix& DeformationGradientF = rParameterValues.GetDeformationGradientF();
-        //2.-Right Cauchy-Green tensor C
-        const Matrix right_cauchy_green = prod(trans(DeformationGradientF), DeformationGradientF);
-        Vector strain_vector = ZeroVector(6);
-
-        //E= 0.5*(FT*F-1) or E = 0.5*(C-1)
-        strain_vector[0] = 0.5 * (right_cauchy_green(0, 0) - 1.00);
-        strain_vector[1] = 0.5 * (right_cauchy_green(1, 1) - 1.00);
-        strain_vector[2] = 0.5 * (right_cauchy_green(2, 2) - 1.00);
-        strain_vector[3] = right_cauchy_green(0, 1); // xy
-        strain_vector[4] = right_cauchy_green(1, 2); // yz
-        strain_vector[5] = right_cauchy_green(0, 2); // xz
-
-        Matrix constitutive_matrix;
-        this->CalculateElasticMatrix(constitutive_matrix, rParameterValues);
-
-        array_1d<double,VoigtSize> tmp = prod(constitutive_matrix, strain_vector - mPlasticStrain);
-        rValue = MathUtils<double>::StressVectorToTensor(tmp);
-        return rValue;
-    } else if (this->Has(rThisVariable)) {
+    if (this->Has(rThisVariable)) {
         return this->GetValue(rThisVariable, rValue);
     } else {
         return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
     }
-    
     return rValue;
 }
 
@@ -567,13 +573,9 @@ int GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Check(
     )
 {
     const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
-
     const int check_integrator = TConstLawIntegratorType::Check(rMaterialProperties);
-
     KRATOS_ERROR_IF_NOT(VoigtSize == this->GetStrainSize()) << "You are combining not compatible constitutive laws" << std::endl;
-    
     if ((check_base + check_integrator) > 0) return 1;
-
     return 0;
 }
 
@@ -596,5 +598,12 @@ template class GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawInteg
 template class GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
 template class GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>>;
 template class GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+template class GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+template class GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>;
+template class GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+template class GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>>;
 
 } // namespace Kratos

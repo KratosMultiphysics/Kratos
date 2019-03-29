@@ -20,9 +20,6 @@ namespace Kratos
 
 class StressToNodesProcess : public Process
 {
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
   protected:
     struct NodeStresses
     {
@@ -39,7 +36,6 @@ class StressToNodesProcess : public Process
             Damage = 0.0;
         }
     };
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   public:
     /// Pointer definition of ApplyMultipointConstraintsProcess
@@ -48,17 +44,16 @@ class StressToNodesProcess : public Process
     typedef ModelPart::ElementsContainerType ElementsArrayType;
 
     // Constructor
-    StressToNodesProcess(ModelPart &r_model_part, int Dimension) : mr_model_part(r_model_part)
+    StressToNodesProcess(ModelPart &r_model_part, int Dimension) : mrModelPart(r_model_part)
     {
-        mNNodes = mr_model_part.NumberOfNodes();
-        mNElements = mr_model_part.NumberOfElements();
+        mNNodes = mrModelPart.NumberOfNodes();
+        mNElements = mrModelPart.NumberOfElements();
         mDimension = Dimension;
     }
 
     // Destructor
     virtual ~StressToNodesProcess() {}
 
-    // --------------------------------------------------------------------
     void Execute()
     {
         int max_id;
@@ -68,78 +63,78 @@ class StressToNodesProcess : public Process
         delete[] NodeStressesVector;
     }
 
-    // --------------------------------------------------------------------
     void StressExtrapolationAndSmoothing(NodeStresses *pNodeStressesVector)
     {
-
-        Vector GaussPointsStresses;
+        Vector gauss_point_stress;
+        double gauss_point_damage;
         // Loop over elements to extrapolate the stress to the nodes
-        for (ElementsArrayType::ptr_iterator it = mr_model_part.Elements().ptr_begin(); it != mr_model_part.Elements().ptr_end(); ++it) {
-            bool condition_is_active = true;
-            if ((*it)->IsDefined(ACTIVE)) {
-                condition_is_active = (*it)->Is(ACTIVE);
-            }
-            if (condition_is_active) {
-                if ((*it)->GetGeometry().PointsNumber() == 3) {
-                    GaussPointsStresses = (*it)->GetValue(STRESS_VECTOR);
-                    for (unsigned int i = 0; i < 3; i++) {
-                        pNodeStressesVector[(*it)->GetGeometry().GetPoint(i).Id() - 1].EffectiveStressVector[0] += GaussPointsStresses[0];
-                        pNodeStressesVector[(*it)->GetGeometry().GetPoint(i).Id() - 1].EffectiveStressVector[1] += GaussPointsStresses[1];
-                        pNodeStressesVector[(*it)->GetGeometry().GetPoint(i).Id() - 1].EffectiveStressVector[3] += GaussPointsStresses[2];
-                        pNodeStressesVector[(*it)->GetGeometry().GetPoint(i).Id() - 1].NElems += 1;
-                    }
-                } else {
-                    GaussPointsStresses = (*it)->GetValue(STRESS_VECTOR);
+        for (ElementsArrayType::ptr_iterator it = mrModelPart.Elements().ptr_begin(); it != mrModelPart.Elements().ptr_end(); ++it) {
+            auto& r_geometry = (*it)->GetGeometry();
+            gauss_point_stress = (*it)->GetValue(STRESS_VECTOR);
+            gauss_point_damage = (*it)->GetValue(DAMAGE_ELEMENT);
 
-                    for (unsigned int i = 0; i < 4; i++) {
-                        pNodeStressesVector[(*it)->GetGeometry().GetPoint(i).Id() - 1].EffectiveStressVector[0] += GaussPointsStresses[0];
-                        pNodeStressesVector[(*it)->GetGeometry().GetPoint(i).Id() - 1].EffectiveStressVector[1] += GaussPointsStresses[1];
-                        pNodeStressesVector[(*it)->GetGeometry().GetPoint(i).Id() - 1].EffectiveStressVector[2] += GaussPointsStresses[2];
-                        pNodeStressesVector[(*it)->GetGeometry().GetPoint(i).Id() - 1].EffectiveStressVector[3] += GaussPointsStresses[3];
-                        pNodeStressesVector[(*it)->GetGeometry().GetPoint(i).Id() - 1].EffectiveStressVector[4] += GaussPointsStresses[4];
-                        pNodeStressesVector[(*it)->GetGeometry().GetPoint(i).Id() - 1].EffectiveStressVector[5] += GaussPointsStresses[5];
-                        pNodeStressesVector[(*it)->GetGeometry().GetPoint(i).Id() - 1].NElems += 1;
-                    }
+            if (r_geometry.PointsNumber() == 3) { // 2D version
+                for (unsigned int i = 0; i < 3; i++) {
+                    const int node_id = r_geometry.GetPoint(i).Id();
+                    pNodeStressesVector[node_id - 1].EffectiveStressVector[0] += gauss_point_stress[0];
+                    pNodeStressesVector[node_id - 1].EffectiveStressVector[1] += gauss_point_stress[1];
+                    pNodeStressesVector[node_id - 1].EffectiveStressVector[3] += gauss_point_stress[2];
+                    pNodeStressesVector[node_id - 1].Damage += gauss_point_damage;
+                    pNodeStressesVector[node_id - 1].NElems += 1;
+                }
+            } else { // 3D version
+                for (unsigned int i = 0; i < 4; i++) {
+                    const int node_id = r_geometry.GetPoint(i).Id();
+                    pNodeStressesVector[node_id - 1].EffectiveStressVector[0] += gauss_point_stress[0];
+                    pNodeStressesVector[node_id - 1].EffectiveStressVector[1] += gauss_point_stress[1];
+                    pNodeStressesVector[node_id - 1].EffectiveStressVector[2] += gauss_point_stress[2];
+                    pNodeStressesVector[node_id - 1].EffectiveStressVector[3] += gauss_point_stress[3];
+                    pNodeStressesVector[node_id - 1].EffectiveStressVector[4] += gauss_point_stress[4];
+                    pNodeStressesVector[node_id - 1].EffectiveStressVector[5] += gauss_point_stress[5];
+                    pNodeStressesVector[node_id - 1].Damage += gauss_point_damage;
+                    pNodeStressesVector[node_id - 1].NElems += 1;
                 }
             }
         }
 
         // Ponderate over the elements coincident on that node
         for (unsigned int i = 0; i < mNNodes; i++) {
-            pNodeStressesVector[i].EffectiveStressVector = pNodeStressesVector[i].EffectiveStressVector / pNodeStressesVector[i].NElems;
+            pNodeStressesVector[i].EffectiveStressVector /= pNodeStressesVector[i].NElems;
+            pNodeStressesVector[i].Damage /= pNodeStressesVector[i].NElems;
         }
 
-        // Loop to compute the max eq. stress in order to normalize
-        for (ModelPart::NodeIterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); ++it) {
+        // Loop to compute the equivalent streses at each node
+        for (ModelPart::NodeIterator it = mrModelPart.NodesBegin(); it != mrModelPart.NodesEnd(); ++it) {
             int Id = (*it).Id();
-            const Vector nodal_stress = pNodeStressesVector[Id - 1].EffectiveStressVector;
+            const Vector& r_nodal_stress = pNodeStressesVector[Id - 1].EffectiveStressVector;
 
             // Compute the norm of the vector -> Put VonMises stress
             double &norm = it->GetSolutionStepValue(EQUIVALENT_NODAL_STRESS);
-            norm = this->CalculateStressInvariant(nodal_stress);
+            norm = this->CalculateVonMisesStress(r_nodal_stress);
         }
 
-        // Loop to compute the max eq. stress and normalize
-        double MaxEqStress = 0.0;
-        for (ModelPart::NodeIterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); ++it) {
-            double &norm = it->GetSolutionStepValue(EQUIVALENT_NODAL_STRESS);
-            if (norm > MaxEqStress)
-                MaxEqStress = norm;
+        // Loop to compute the max eq. stress to normalize the inidicator
+        double max_equivalent_stress = 0.0;
+        for (ModelPart::NodeIterator it = mrModelPart.NodesBegin(); it != mrModelPart.NodesEnd(); ++it) {
+            const double &norm = it->GetSolutionStepValue(EQUIVALENT_NODAL_STRESS);
+            if (norm > max_equivalent_stress)
+                max_equivalent_stress = norm;
         }
 
-        for (ModelPart::NodeIterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); ++it) {
+        for (ModelPart::NodeIterator it = mrModelPart.NodesBegin(); it != mrModelPart.NodesEnd(); ++it) {
             double &norm = it->GetSolutionStepValue(EQUIVALENT_NODAL_STRESS);
-            norm /= (MaxEqStress * 1.0e4);
-            // norm /= (MaxEqStress);
+            int Id = (*it).Id();
+            double nodal_damage = pNodeStressesVector[Id - 1].Damage;
+            // if (nodal_damage >= 0.9 && norm < max_equivalent_stress / 1.0e2) norm = max_equivalent_stress / 1.0e2;
+            norm /= (max_equivalent_stress * 1.0e4);
         }
     }
 
     // --------------------------------------------------------------------
-    double CalculateStressInvariant(const Vector &StressVector) // Returns Von Mises stress
+    double CalculateVonMisesStress(const Vector& rStressVector) // Returns Von Mises stress
     {
-        const double I1 = StressVector[0] + StressVector[1] + StressVector[2];
-
-        Vector Deviator = StressVector;
+        const double I1 = rStressVector[0] + rStressVector[1] + rStressVector[2];
+        Vector Deviator = rStressVector;
         const double Pmean = I1 / 3.0;
 
         Deviator[0] -= Pmean;
@@ -157,7 +152,7 @@ class StressToNodesProcess : public Process
         int aux = 0;
         int id;
 
-        for (ModelPart::NodeIterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); ++it) {
+        for (ModelPart::NodeIterator it = mrModelPart.NodesBegin(); it != mrModelPart.NodesEnd(); ++it) {
             id = (*it).Id();
             if (id > aux)
                 aux = id;
@@ -165,14 +160,12 @@ class StressToNodesProcess : public Process
         rmax_id = aux;
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
   protected:
     // Member Variables
-    ModelPart &mr_model_part;
+    ModelPart& mrModelPart;
     unsigned int mNNodes, mNElements, mDimension;
 
-}; // Class
+}; // Class StressToNodesProcess
 
 } // namespace Kratos
 

@@ -126,6 +126,15 @@ public:
     // needed for serialization
     virtual MapperInterfaceInfo::Pointer Create() const = 0;
 
+    /**
+    * @brief returning the type of construction for the InterfaceObject
+    * The returned type is used to create the object for the bin-search
+    * It is tightly coupled to this class since it decides which information
+    * can be extracted by this class
+    * @author Philipp Bucher
+    */
+    virtual InterfaceObject::ConstructionType GetInterfaceObjectType() const = 0;
+
     IndexType GetLocalSystemIndex() const { return mSourceLocalSystemIndex; }
 
     IndexType GetSourceRank() const { return mSourceRank; }

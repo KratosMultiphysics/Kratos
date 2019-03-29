@@ -8,7 +8,7 @@
 #include "custom_utilities/GeometryFunctions.h"
 
 namespace Kratos {
-    
+
     using namespace GeometryFunctions;
 
 //***********************************************************************************
@@ -64,95 +64,169 @@ void RigidFace3D::Initialize() {
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                         ProcessInfo& r_process_info)
-{
+void RigidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) {
     const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
-    
-    if (rRightHandSideVector.size() != MatSize)
-    {
+
+    if (rRightHandSideVector.size() != MatSize) {
         rRightHandSideVector.resize(MatSize, false);
     }
     rRightHandSideVector = ZeroVector(MatSize);
-    
+
+    std::vector<SphericParticle*>& vector_of_glued_particles = GetVectorOfGluedParticles();
+    for (unsigned int i=0; i<vector_of_glued_particles.size(); i++) {
+        SphericParticle* p_particle = vector_of_glued_particles[i];
+        DEMIntegrationScheme& dem_scheme = p_particle->GetTranslationalIntegrationScheme();
+        GluedToWallScheme* p_glued_scheme = dynamic_cast<GluedToWallScheme*>(&dem_scheme);
+        #ifdef KRATOS_DEBUG
+        Condition* p_condition = p_glued_scheme->pGetCondition();
+        if(p_condition != this) {
+            KRATOS_ERROR << "Inconsistency in the pointers to faces of the glued spheres!! Condition with id: " <<this->Id()<<" used a sphere with Id: "<<p_particle->Id()<<" glued to it, but the sphere was actually glued to a Condition with Id: "<<p_condition->Id()<<std::endl;
+        }
+        #endif
+        array_1d<double, 3> force = ZeroVector(3);
+        std::vector<double> weights_vector(number_of_nodes, 0.0);
+        noalias(force) = p_particle->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
+        Vector& r_shape_functions_values = p_glued_scheme->GetShapeFunctionsValues();
+        for(size_t j=0; j<r_shape_functions_values.size(); j++) {
+            weights_vector[j] = r_shape_functions_values[j];
+        }
+        for (unsigned int k=0; k< number_of_nodes; k++) {
+            rRightHandSideVector[k * 3 + 0] += force[0] * weights_vector[k];
+            rRightHandSideVector[k * 3 + 1] += force[1] * weights_vector[k];
+            rRightHandSideVector[k * 3 + 2] += force[2] * weights_vector[k];
+        }
+
+        //AddForcesDueToTorque(rRightHandSideVector, r_shape_functions_values, weights_vector, force, p_particle);
+    }
+
     std::vector<SphericParticle*>& rNeighbours = this->mNeighbourSphericParticles;
-    
-    for (unsigned int i=0; i<rNeighbours.size(); i++)
-    {
+    for (unsigned int i=0; i<rNeighbours.size(); i++) {
         if(rNeighbours[i]->Is(BLOCKED)) continue; //Inlet Generator Spheres are ignored when integrating forces.
-        
-        std::vector<DEMWall*>& rRFnei = rNeighbours[i]->mNeighbourRigidFaces;
-                
-        for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
-        {
-            int Contact_Type = rNeighbours[i]->mContactConditionContactTypes[i_nei];
-            
-            if ( ( rRFnei[i_nei]->Id() == this->Id() ) && (Contact_Type > 0 ) )
-            {
-                
-                array_1d<double, 4> weights_vector = rNeighbours[i]->mContactConditionWeights[i_nei];
-                double weight = 0.0;
-                
-                double ContactForce[3] = {0.0};
+        array_1d<double, 3> force = ZeroVector(3);
+        std::vector<double> weights_vector(number_of_nodes, 0.0);
+        ComputeForceAndWeightsOfSphereOnThisFace(rNeighbours[i], force, weights_vector);
 
-                const array_1d<double, 3>& neighbour_rigid_faces_contact_force = rNeighbours[i]->mNeighbourRigidFacesTotalContactForce[i_nei];
+        for (unsigned int k=0; k< number_of_nodes; k++) {
+            rRightHandSideVector[k * 3 + 0] += -force[0] * weights_vector[k];
+            rRightHandSideVector[k * 3 + 1] += -force[1] * weights_vector[k];
+            rRightHandSideVector[k * 3 + 2] += -force[2] * weights_vector[k];
+        }
+    }
+}
 
-                ContactForce[0] = neighbour_rigid_faces_contact_force[0];
-                ContactForce[1] = neighbour_rigid_faces_contact_force[1];
-                ContactForce[2] = neighbour_rigid_faces_contact_force[2];
+void RigidFace3D::AddForcesDueToTorque(VectorType& rRightHandSideVector, Vector& r_shape_functions_values, std::vector<double>& weights_vector, array_1d<double, 3>& force, SphericParticle* p_particle) {
+    DEMIntegrationScheme& dem_scheme = p_particle->GetTranslationalIntegrationScheme();
+    GluedToWallScheme* p_glued_scheme = dynamic_cast<GluedToWallScheme*>(&dem_scheme);
+    array_1d<double, 3> inner_point = ZeroVector(3);
+    for(size_t j=0; j<r_shape_functions_values.size(); j++) {
+        noalias(inner_point) += weights_vector[j] * GetGeometry()[j];
+    }
+    array_1d<double, 3> unit_normal;
+    noalias(unit_normal) = GetGeometry().UnitNormal(GetGeometry()[0]);
 
-                for (unsigned int k=0; k< number_of_nodes; k++)
-                {
-                    weight = weights_vector[k];
-  
-                    unsigned int w =  k * 3;
+    array_1d<double, 3> normal_force;
+    const double dot_product_force_unit_normal = force[0]*unit_normal[0] + force[1]*unit_normal[1] + force[2]*unit_normal[2];
+    noalias(normal_force) = dot_product_force_unit_normal * unit_normal;
+    array_1d<double, 3> tangential_force;
+    noalias(tangential_force) = force - normal_force;
+    const double modulus_of_tangential_force = MathUtils<double>::Norm3(tangential_force);
+    array_1d<double, 3> torque;
+    array_1d<double, 3> inner_to_ball = p_glued_scheme->GetDistanceSignedWithNormal() * unit_normal;
+    MathUtils<double>::CrossProduct(torque, inner_to_ball, tangential_force);
+    array_1d<double, 3> unit_tangential_force = tangential_force;
+    double aux_inv_modulus = 1.0 / modulus_of_tangential_force;
+    unit_tangential_force[0] *= aux_inv_modulus;
+    unit_tangential_force[1] *= aux_inv_modulus;
+    unit_tangential_force[2] *= aux_inv_modulus;
+    array_1d<double, 3> unit_perpendicular_to_tangential_force;
+    MathUtils<double>::CrossProduct(unit_perpendicular_to_tangential_force, unit_normal, tangential_force);
+    aux_inv_modulus = 1.0 / MathUtils<double>::Norm3(unit_perpendicular_to_tangential_force);
+    unit_perpendicular_to_tangential_force[0] *= aux_inv_modulus;
+    unit_perpendicular_to_tangential_force[1] *= aux_inv_modulus;
+    unit_perpendicular_to_tangential_force[2] *= aux_inv_modulus;
+    const double modulus_of_torque = MathUtils<double>::Norm3(torque);
+    array_1d<double, 3> inner_to_node;
+    noalias(inner_to_node) = GetGeometry()[0] - inner_point;
+    const double d1 = MathUtils<double>::Dot3(inner_to_node, unit_tangential_force);
+    const double dp1 = MathUtils<double>::Dot3(inner_to_node, unit_perpendicular_to_tangential_force);
+    noalias(inner_to_node) = GetGeometry()[1] - inner_point;
+    const double d2 = MathUtils<double>::Dot3(inner_to_node, unit_tangential_force);
+    const double dp2 = MathUtils<double>::Dot3(inner_to_node, unit_perpendicular_to_tangential_force);
+    noalias(inner_to_node) = GetGeometry()[2] - inner_point;
+    const double d3 = MathUtils<double>::Dot3(inner_to_node, unit_tangential_force);
+    const double dp3 = MathUtils<double>::Dot3(inner_to_node, unit_perpendicular_to_tangential_force);
+    const double aux = 1.0 / (dp2 - dp3);
+    const double f1 = -1.0 * modulus_of_torque / (d1 - d2*dp1*aux + d2*dp3*aux - d3 + d3*dp1*aux - d3*dp3*aux);
+    const double f2 = (dp3-dp1)*f1*aux;
+    const double f3 = -f1 -f2;
 
-                    rRightHandSideVector[w + 0] += -ContactForce[0] * weight;
-                    rRightHandSideVector[w + 1] += -ContactForce[1] * weight;
-                    rRightHandSideVector[w + 2] += -ContactForce[2] * weight;
-                }
-                
-            }//if the condition neighbour of my sphere neighbour is myself.
-        }//Loop spheres neighbours (condition)
-    }//Loop condition neighbours (spheres)
-}//CalculateRightHandSide
+    std::vector<array_1d<double, 3> > forces_due_to_torque;
+    forces_due_to_torque.resize(3);
+    noalias(forces_due_to_torque[0]) = f1 * unit_normal;
+    noalias(forces_due_to_torque[1]) = f2 * unit_normal;
+    noalias(forces_due_to_torque[2]) = f3 * unit_normal;
+
+    const unsigned int number_of_nodes = GetGeometry().size();
+    for (unsigned int k=0; k< number_of_nodes; k++) {
+        rRightHandSideVector[k * 3 + 0] += forces_due_to_torque[k][0];
+        rRightHandSideVector[k * 3 + 1] += forces_due_to_torque[k][1];;
+        rRightHandSideVector[k * 3 + 2] += forces_due_to_torque[k][2];;
+    }
+}
+
+void RigidFace3D::ComputeForceAndWeightsOfSphereOnThisFace(SphericParticle* p_particle, array_1d<double, 3>& force, std::vector<double>& weights_vector) {
+    if(p_particle->Is(DEMFlags::STICKY)) return;
+
+    std::vector<DEMWall*>& rRFnei = p_particle->mNeighbourRigidFaces;
+
+    for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++) {
+        int Contact_Type = p_particle->mContactConditionContactTypes[i_nei];
+
+        if ( (rRFnei[i_nei] == this) && (Contact_Type > 0 ) ) {
+            for(size_t i=0; i<weights_vector.size(); i++) weights_vector[i] = p_particle->mContactConditionWeights[i_nei][i];
+            const array_1d<double, 3>& neighbour_rigid_faces_contact_force = p_particle->mNeighbourRigidFacesTotalContactForce[i_nei];
+            noalias(force) = neighbour_rigid_faces_contact_force;
+        }//if the condition neighbour of my sphere neighbour is myself.
+    }
+
+}
 
 void RigidFace3D::CalculateElasticForces(VectorType& rElasticForces,
                                          ProcessInfo& r_process_info)
 {
-   
-  
+
+
   const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
-    
+
     if (rElasticForces.size() != MatSize)
     {
         rElasticForces.resize(MatSize, false);
     }
     rElasticForces = ZeroVector(MatSize);
-    
+
     std::vector<SphericParticle*>& rNeighbours = this->mNeighbourSphericParticles;
-    
+
     for (unsigned int i=0; i<rNeighbours.size(); i++)
     {
-        
+
         if(rNeighbours[i]->Is(BLOCKED)) continue; //Inlet Generator Spheres are ignored when integrating forces.
-          
+
         std::vector<DEMWall*>& rRFnei = rNeighbours[i]->mNeighbourRigidFaces;
 
         for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
         {
             int Contact_Type = rNeighbours[i]->mContactConditionContactTypes[i_nei];
-            
+
             if ( ( rRFnei[i_nei]->Id() == this->Id() ) && (Contact_Type > 0 ) )
             {
-                array_1d<double, 4> weights_vector = rNeighbours[i]->mContactConditionWeights[i_nei];
+                const array_1d<double, 4>& weights_vector = rNeighbours[i]->mContactConditionWeights[i_nei];
                 double weight = 0.0;
-                
+
                 double ContactElasticForce[3] = {0.0};
 
-                const array_1d<double, 3>& neighbour_rigid_faces_elastic_contact_force = rNeighbours[i]->mNeighbourRigidFacesElasticContactForce[i_nei];                    
+                const array_1d<double, 3>& neighbour_rigid_faces_elastic_contact_force = rNeighbours[i]->mNeighbourRigidFacesElasticContactForce[i_nei];
                 ContactElasticForce[0] = neighbour_rigid_faces_elastic_contact_force[0];
                 ContactElasticForce[1] = neighbour_rigid_faces_elastic_contact_force[1];
                 ContactElasticForce[2] = neighbour_rigid_faces_elastic_contact_force[2];
@@ -160,7 +234,7 @@ void RigidFace3D::CalculateElasticForces(VectorType& rElasticForces,
                 for (unsigned int k=0; k< number_of_nodes; k++)
                 {
                     weight = weights_vector[k];
-  
+
                     unsigned int w =  k * 3;
 
                     rElasticForces[w + 0] += -ContactElasticForce[0] * weight;
@@ -226,8 +300,8 @@ void RigidFace3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
       {
         Output.resize(MatSize, false);
       }
-      Output = ZeroVector(MatSize); 
-        
+      Output = ZeroVector(MatSize);
+
       double delta_t     = r_process_info[DELTA_TIME];
       double CyclePerSec = r_process_info[RIGID_FACE_ROTA_SPEED];
       double NormalV     = r_process_info[RIGID_FACE_AXIAL_SPEED];
@@ -240,30 +314,30 @@ void RigidFace3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
       double Ynormal     = r_process_info[RIGID_FACE_ROTA_AXIAL_DIR][1];
       double Znormal     = r_process_info[RIGID_FACE_ROTA_AXIAL_DIR][2];
 
-      double Xorigin    = r_process_info[RIGID_FACE_ROTA_ORIGIN_COORD][0];   
+      double Xorigin    = r_process_info[RIGID_FACE_ROTA_ORIGIN_COORD][0];
       double Yorigin    = r_process_info[RIGID_FACE_ROTA_ORIGIN_COORD][1];
-      double Zorigin    = r_process_info[RIGID_FACE_ROTA_ORIGIN_COORD][2]; 
-      
+      double Zorigin    = r_process_info[RIGID_FACE_ROTA_ORIGIN_COORD][2];
+
       ///movement of the original point
-      int time_step           = r_process_info[TIME_STEPS];			
+      int time_step           = r_process_info[TIME_STEPS];
       double begin_time       = r_process_info[RIGID_FACE_BEGIN_TIME];
       double real_rota_time   = delta_t * time_step - begin_time;
-          
-      
+
+
       double n[3] = {Xnormal, Ynormal, Znormal};
       GeometryFunctions::normalize(n);
 
       double omiga = CyclePerSec * 2.0 * Globals::Pi;
-      
+
       double vel = NormalV;
 
       double g_v[3] = {GXvel, GYvel, GZvel};
 
-      Xorigin += (g_v[0] + n[0] * vel) * real_rota_time; 
-      Yorigin += (g_v[1] + n[1] * vel) * real_rota_time; 
-      Zorigin += (g_v[2] + n[2] * vel) * real_rota_time; 
+      Xorigin += (g_v[0] + n[0] * vel) * real_rota_time;
+      Yorigin += (g_v[1] + n[1] * vel) * real_rota_time;
+      Zorigin += (g_v[2] + n[2] * vel) * real_rota_time;
 
-      
+
       double origin[3] = {Xorigin, Yorigin, Zorigin};
 
       double vector1[3], vector2[3];
@@ -271,7 +345,7 @@ void RigidFace3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
 
       double a[3][3];
       double local_vel[3],global_vel[3];
-      
+
         for(unsigned int j = 0; j < number_of_nodes; j++)
         {
           const array_1d<double, 3>& Nodecoord = this->GetGeometry()[j].Coordinates();
@@ -298,13 +372,13 @@ void RigidFace3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
             local_vel[2] = vel;
 
             GeometryFunctions::normalize(vector1);
-            
+
             GeometryFunctions::CrossProduct(n,vector1,vector2);
-            
-            GeometryFunctions::normalize(vector2);  
-            
+
+            GeometryFunctions::normalize(vector2);
+
             GeometryFunctions::CrossProduct(vector2,n,vector1);
-            
+
             GeometryFunctions::normalize(vector1);
 
             a[0][0] = vector1[0];
@@ -319,32 +393,32 @@ void RigidFace3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
             a[2][1] = n[1];
             a[2][2] = n[2];
 
-            GeometryFunctions::VectorLocal2Global(a,local_vel,global_vel);	
+            GeometryFunctions::VectorLocal2Global(a,local_vel,global_vel);
           }
-          
+
           Output[3 * j + 0] = (global_vel[0] + g_v[0]);
           Output[3 * j + 1] = (global_vel[1] + g_v[1]);
-          Output[3 * j + 2] = (global_vel[2] + g_v[2]);			
+          Output[3 * j + 2] = (global_vel[2] + g_v[2]);
         }
     }
-    
+
 }
 
 array_1d<double, 3> RigidFace3D::GetVelocity() {
-        
+
     size_t FE_size = this->GetGeometry().size();
     array_1d<double, 3> rigid_face_velocity = ZeroVector(3);
     double factor = 1.0;
-    
+
     for (std::size_t inode = 0; inode < FE_size; inode++) {
-        
+
         DEM_ADD_SECOND_TO_FIRST(rigid_face_velocity, this->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY))
     }
-    
+
     if (FE_size) factor /= FE_size;
-    
+
     DEM_MULTIPLY_BY_SCALAR_3(rigid_face_velocity, factor)
-    
+
     return rigid_face_velocity;
 }
 
@@ -358,7 +432,7 @@ void RigidFace3D::ComputeConditionRelativeData(int rigid_neighbour_index,
                                                int& ContactType)
 {
     size_t FE_size = this->GetGeometry().size();
-    
+
     std::vector<double> TempWeight;
     TempWeight.resize(FE_size);
 
@@ -469,9 +543,9 @@ bool RigidFace3D::CheckProjectionFallsInside(SphericParticle *p_particle)
     return falls_inside;
 }
 
-void RigidFace3D::FinalizeSolutionStep(ProcessInfo& r_process_info)   
+void RigidFace3D::FinalizeSolutionStep(ProcessInfo& r_process_info)
 {
-  
+
 }
 
 //***********************************************************************************

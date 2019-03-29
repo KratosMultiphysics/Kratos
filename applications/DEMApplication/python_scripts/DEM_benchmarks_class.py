@@ -1,12 +1,12 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *                                  # importing the Kratos Library
 from KratosMultiphysics.DEMApplication import *
-CheckForPreviousImport()                                          # check that KratosMultiphysics was imported in the main script
 import shutil
 from glob import glob
-from math import pi, sin, cos, tan, atan, fabs
+from math import pi, sin, cos, tan, atan, sqrt
 
 from os import system
+import os, sys
 
 def initialize_time_parameters(benchmark_number):
 
@@ -224,6 +224,13 @@ def initialize_time_parameters(benchmark_number):
         graph_print_interval            = 1e-2
         number_of_points_in_the_graphic = 1
 
+    elif benchmark_number==40:
+
+        end_time                      = 1
+        dt                              = 5e-5
+        graph_print_interval            = 1e-2
+        number_of_points_in_the_graphic = 1
+
     else: #benchmark_number==68:        #
 
         end_time                      = 1e-3
@@ -244,6 +251,20 @@ def PrintResultsMessage(test_number, it_is_success, error, elapsed_time, error_f
                              + str(round(elapsed_time, 2)) + 's.'')\n')
         else:
             error_file.write(' KO!........ Test ' + name + ' FAILED (error: ' + str(error) + ')\n')
+
+def GetDisplacement(node):
+    displacement = [0]*3
+    displacement[0] = node.X-node.X0
+    displacement[1] = node.Y-node.Y0
+    displacement[2] = node.Z-node.Z0
+    return displacement
+
+def MeasureError(node, variable):
+    return sqrt(sum([node.GetSolutionStepValue(variable)[i]**2 for i in range(3)]))
+
+def GetNodeDisplacement(node):
+    return sqrt(sum([GetDisplacement(node)[i]**2 for i in range(3)]))
+
 
 class Benchmark1:
 
@@ -300,7 +321,7 @@ class Benchmark1:
                 parts = line.split()
                 DEM_data.append(float(parts[7]))
 
-        error = fabs(max(DEM_data) - float(Chung_data[0]))/float(Chung_data[0])
+        error = abs(max(DEM_data) - float(Chung_data[0]))/float(Chung_data[0])
 
         print("Error in restitution numbers =", 100*error,"%")
 
@@ -363,7 +384,7 @@ class Benchmark2:
                 parts = line.split()
                 DEM_data.append(float(parts[9]))
 
-        error = fabs(max(DEM_data) - float(Chung_data[0]))/float(Chung_data[0])
+        error = abs(max(DEM_data) - float(Chung_data[0]))/float(Chung_data[0])
 
         print("Error in restitution numbers =", 100*error,"%")
 
@@ -469,7 +490,7 @@ class Benchmark3:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            generated_data_error+=fabs(i-j)
+            generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_Chung_data
 
         print("Error in restitution numbers =", 100*generated_data_error,"%")
@@ -614,7 +635,7 @@ class Benchmark4:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            final_tangential_restitution_coefficient_error+=fabs(i-j)
+            final_tangential_restitution_coefficient_error+=abs(i-j)
         final_tangential_restitution_coefficient_error/=summation_of_Chung_data
         print("Error in tangential restitution coefficient =", 100*final_tangential_restitution_coefficient_error,"%")
 
@@ -639,7 +660,7 @@ class Benchmark4:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            final_angular_vel_total_error+=fabs(i-j)
+            final_angular_vel_total_error+=abs(i-j)
         final_angular_vel_total_error/=summation_of_Chung_data
         print("Error in final angular vel =", 100*final_angular_vel_total_error,"%")
 
@@ -664,7 +685,7 @@ class Benchmark4:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            final_rebound_angle_error+=fabs(i-j)
+            final_rebound_angle_error+=abs(i-j)
         final_rebound_angle_error/=summation_of_Chung_data
         print("Error in final rebound angle =", 100*final_rebound_angle_error,"%")
 
@@ -787,7 +808,7 @@ class Benchmark5:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            final_Vst_prima_div_mu_per_Vcn_prima_error+=fabs(i-j)
+            final_Vst_prima_div_mu_per_Vcn_prima_error+=abs(i-j)
 
         final_Vst_prima_div_mu_per_Vcn_prima_error/=summation_of_Chung_data
 
@@ -814,7 +835,7 @@ class Benchmark5:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            final_r_w1_prima_div_mu_per_Vcn_error+=fabs(i-j)
+            final_r_w1_prima_div_mu_per_Vcn_error+=abs(i-j)
 
         final_r_w1_prima_div_mu_per_Vcn_error/=summation_of_Chung_data
         print("Error in final r w1 prima div mu per Vcn =", 100*final_r_w1_prima_div_mu_per_Vcn_error,"%")
@@ -944,7 +965,7 @@ class Benchmark6:
 
         DEM_data.reverse()
         for i, j in zip(DEM_data, Chung_data):
-            final_beta_list_outfile_name_error+=fabs(i-j)
+            final_beta_list_outfile_name_error+=abs(i-j)
 
         final_beta_list_outfile_name_error/=summation_of_Chung_data
         print("Error in final beta =", 100*final_beta_list_outfile_name_error,"%")
@@ -972,7 +993,7 @@ class Benchmark6:
 
 
         for i, j in zip(DEM_data, Chung_data):
-            final_Vst_prima_div_Vcn_prima_error+=fabs(i-j)
+            final_Vst_prima_div_Vcn_prima_error+=abs(i-j)
 
         final_Vst_prima_div_Vcn_prima_error/=summation_of_Chung_data
         print("Error in final Vst prima div Vcn =", 100*final_Vst_prima_div_Vcn_prima_error,"%")
@@ -1097,7 +1118,7 @@ class Benchmark7:
         final_tangential_center_vel_error = 0
 
         for i, j in zip(DEM_data, Chung_data):
-            final_tangential_center_vel_error+=fabs(i-j)
+            final_tangential_center_vel_error+=abs(i-j)
         print("Error in final tangential center vel =", final_tangential_center_vel_error)
 
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
@@ -1121,7 +1142,7 @@ class Benchmark7:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            final_angular_vel_error+=fabs(i-j)
+            final_angular_vel_error+=abs(i-j)
 
         final_angular_vel_error/=summation_of_Chung_data
         print("Error in final angular vel =", 100*final_angular_vel_error,"%")
@@ -1252,7 +1273,7 @@ class Benchmark8:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            final_beta_list_outfile_name_error+=fabs(i-j)
+            final_beta_list_outfile_name_error+=abs(i-j)
 
         final_beta_list_outfile_name_error/=summation_of_Chung_data
         print("Error in final beta =", 100*final_beta_list_outfile_name_error,"%")
@@ -1282,7 +1303,7 @@ class Benchmark8:
 
         DEM_data.reverse()
         for i, j in zip(DEM_data, Chung_data):
-            final_Vst_prima_div_Vcn_prima_error+=fabs(i-j)
+            final_Vst_prima_div_Vcn_prima_error+=abs(i-j)
 
         final_Vst_prima_div_Vcn_prima_error/=summation_of_Chung_data
         print("Error in final Vst prima div Vcn =", 100*final_Vst_prima_div_Vcn_prima_error,"%")
@@ -1397,7 +1418,7 @@ class Benchmark9:
             summation_of_Chung_data+=abs(j)
 
         for i, j in zip(DEM_data, Chung_data):
-            generated_data_error+=fabs(i-j)
+            generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_Chung_data
 
         print("Error in restitution numbers =", 100*generated_data_error,"%")
@@ -1590,7 +1611,7 @@ class Benchmark10: ########## LINEAR THORNTON
             summation_of_Thornton_data+=abs(j)
 
         for i, j in zip(DEM_data, Thornton_data):
-            final_normalized_rebound_tangential_surface_vel_error+=fabs(i-j)
+            final_normalized_rebound_tangential_surface_vel_error+=abs(i-j)
 
         final_normalized_rebound_tangential_surface_vel_error/=summation_of_Thornton_data
 
@@ -1619,7 +1640,7 @@ class Benchmark10: ########## LINEAR THORNTON
             summation_of_Thornton_data+=abs(j)
 
         for i, j in zip(DEM_data, Thornton_data):
-            final_normalized_rebound_angular_velocity_error+=fabs(i-j)
+            final_normalized_rebound_angular_velocity_error+=abs(i-j)
 
         final_normalized_rebound_angular_velocity_error/=summation_of_Thornton_data
         print("Error in normalized rebound angular velocity =", 100*final_normalized_rebound_angular_velocity_error,"%")
@@ -1647,7 +1668,7 @@ class Benchmark10: ########## LINEAR THORNTON
             summation_of_Thornton_data+=abs(j)
 
         for i, j in zip(DEM_data, Thornton_data):
-            final_tangential_coefficient_of_restitution_error+=fabs(i-j)
+            final_tangential_coefficient_of_restitution_error+=abs(i-j)
 
         final_tangential_coefficient_of_restitution_error/=summation_of_Thornton_data
         print("Error in final tangential coefficient of restitution =", 100*final_tangential_coefficient_of_restitution_error,"%")
@@ -1847,7 +1868,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
             summation_of_Thornton_data+=abs(j)
 
         for i, j in zip(DEM_data, Thornton_data):
-            final_normalized_rebound_tangential_surface_vel_error+=fabs(i-j)
+            final_normalized_rebound_tangential_surface_vel_error+=abs(i-j)
 
         final_normalized_rebound_tangential_surface_vel_error/=summation_of_Thornton_data
 
@@ -1876,7 +1897,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
             summation_of_Thornton_data+=abs(j)
 
         for i, j in zip(DEM_data, Thornton_data):
-            final_normalized_rebound_angular_velocity_error+=fabs(i-j)
+            final_normalized_rebound_angular_velocity_error+=abs(i-j)
 
         final_normalized_rebound_angular_velocity_error/=summation_of_Thornton_data
         print("Error in normalized rebound angular velocity =", 100*final_normalized_rebound_angular_velocity_error,"%")
@@ -1904,7 +1925,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
             summation_of_Thornton_data+=abs(j)
 
         for i, j in zip(DEM_data, Thornton_data):
-            final_tangential_coefficient_of_restitution_error+=fabs(i-j)
+            final_tangential_coefficient_of_restitution_error+=abs(i-j)
 
         final_tangential_coefficient_of_restitution_error/=summation_of_Thornton_data
         print("Error in final tangential coefficient of restitution =", 100*final_tangential_coefficient_of_restitution_error,"%")
@@ -2002,7 +2023,7 @@ class Benchmark12: ########## ROLLING FRICTION
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            generated_data_error+=fabs(i-j)
+            generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
         print("Error in simulation =", 100*generated_data_error,"%")
@@ -2370,15 +2391,15 @@ class Benchmark16: ########## DEM-FEM Grid
             summation_of_ref_data3+=abs(l)
 
         for i, j in zip(DEM_data1, ref_data1):
-            final_velocity_1_error+=fabs(i-j)
+            final_velocity_1_error+=abs(i-j)
         final_velocity_1_error/=summation_of_ref_data1
 
         for k, l in zip(DEM_data2, ref_data2):
-            final_velocity_2_error+=fabs(k-l)
+            final_velocity_2_error+=abs(k-l)
         final_velocity_2_error/=summation_of_ref_data2
 
         for m, n in zip(DEM_data3, ref_data3):
-            final_velocity_3_error+=fabs(m-n)
+            final_velocity_3_error+=abs(m-n)
         final_velocity_3_error/=summation_of_ref_data3
 
         #for t, v1,v2,v3 in zip(times, DEM_data1, DEM_data2, DEM_data3):
@@ -2575,7 +2596,7 @@ class Benchmark20:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            generated_data_error+=fabs(i-j)
+            generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
         print("Error in simulation =", 100*generated_data_error,"%")
@@ -2674,7 +2695,7 @@ class Benchmark21:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            generated_data_error+=fabs(i-j)
+            generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
         print("Error in simulation =", 100*generated_data_error,"%")
@@ -2761,7 +2782,7 @@ class Benchmark22:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            generated_data_error+=fabs(i-j)
+            generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
         print("Error in simulation =", 100*generated_data_error,"%")
@@ -2850,7 +2871,7 @@ class Benchmark23:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            generated_data_error+=fabs(i-j)
+            generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
         print("Error in simulation =", 100*generated_data_error,"%")
@@ -2907,10 +2928,7 @@ class Benchmark24:
                 node.Y = relative_node_coords[1] + centroid[1]
                 node.Z = relative_node_coords[2] + centroid[2]
 
-                displacement = [0]*3
-                displacement[0] = node.X - node.X0
-                displacement[1] = node.Y - node.Y0
-                displacement[2] = node.Z - node.Z0
+                displacement = GetDisplacement(node)
                 node.SetSolutionStepValue(DISPLACEMENT, displacement)
 
                 velocity = [0]*3
@@ -3001,7 +3019,7 @@ class Benchmark24:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            generated_data_error+=fabs(i-j)
+            generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
         print("Error in simulation =", 100*generated_data_error,"%")
@@ -3058,10 +3076,7 @@ class Benchmark25:
                 node.Y = relative_node_coords[1] + centroid[1]
                 node.Z = relative_node_coords[2] + centroid[2]
 
-                displacement = [0]*3
-                displacement[0] = node.X - node.X0
-                displacement[1] = node.Y - node.Y0
-                displacement[2] = node.Z - node.Z0
+                displacement = GetDisplacement(node)
                 node.SetSolutionStepValue(DISPLACEMENT, displacement)
 
                 velocity = [0]*3
@@ -3153,7 +3168,7 @@ class Benchmark25:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            generated_data_error+=fabs(i-j)
+            generated_data_error+=abs(i-j)
         generated_data_error/=summation_of_analytics_data
 
         print("Error in simulation =", 100*generated_data_error,"%")
@@ -3267,10 +3282,7 @@ class Benchmark27:
                 node.Y = relative_node_coords[1] + centroid[1]
                 node.Z = relative_node_coords[2] + centroid[2]
 
-                displacement = [0]*3
-                displacement[0] = node.X - node.X0
-                displacement[1] = node.Y - node.Y0
-                displacement[2] = node.Z - node.Z0
+                displacement = GetDisplacement(node)
                 node.SetSolutionStepValue(DISPLACEMENT, displacement)
 
                 velocity = [0]*3
@@ -3423,7 +3435,7 @@ class Benchmark27:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            dem_error1+=fabs(i-j)
+            dem_error1+=abs(i-j)
         dem_error1/=summation_of_analytics_data
 
         print("Error in total force at the reference particle =", 100*dem_error1,"%")
@@ -3448,7 +3460,7 @@ class Benchmark27:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            dem_error2+=fabs(i-j)
+            dem_error2+=abs(i-j)
         dem_error2/=summation_of_analytics_data
 
         print("Error in angular velocity at the reference particle =", 100*dem_error2,"%")
@@ -3474,7 +3486,7 @@ class Benchmark27:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            dem_error3+=fabs(i-j)
+            dem_error3+=abs(i-j)
         dem_error3/=summation_of_analytics_data
 
         print("Error in delta displacement at the reference particle =", 100*dem_error3,"%")
@@ -3489,7 +3501,8 @@ class Benchmark27:
         reference_data = lines_FEM = list(range(0, 1000));
         analytics_data = []; FEM_data = []; summation_of_analytics_data = 0
         i = 0
-        with open('paper_data/reference_graph_benchmark_rigid' + '27' + '.dat') as reference:
+        with open('paper_data/reference_rigid_graph_benchmark' + '27' + '.dat') as reference:
+
             for line in reference:
                 if i in reference_data:
                     parts = line.split()
@@ -3508,7 +3521,7 @@ class Benchmark27:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(FEM_data, analytics_data):
-            final_error+=fabs(i-j)
+            final_error+=abs(i-j)
         final_error/=summation_of_analytics_data
 
         print("Error in FEM axial force =", 100*final_error,"%")
@@ -3575,10 +3588,7 @@ class Benchmark28:   #pendulo3D
                 node.Y = relative_node_coords[1] + centroid[1]
                 node.Z = relative_node_coords[2] + centroid[2]
 
-                displacement = [0]*3
-                displacement[0] = node.X - node.X0
-                displacement[1] = node.Y - node.Y0
-                displacement[2] = node.Z - node.Z0
+                displacement = GetDisplacement(node)
                 node.SetSolutionStepValue(DISPLACEMENT, displacement)
 
                 velocity = [0]*3
@@ -3705,7 +3715,7 @@ class Benchmark28:   #pendulo3D
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            dem_error1+=fabs(i-j)
+            dem_error1+=abs(i-j)
         dem_error1/=summation_of_analytics_data
 
         print("Error in total force at the reference particle =", 100*dem_error1,"%")
@@ -3730,7 +3740,7 @@ class Benchmark28:   #pendulo3D
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            dem_error2+=fabs(i-j)
+            dem_error2+=abs(i-j)
         dem_error2/=summation_of_analytics_data
 
         print("Error in angular velocity at the reference particle =", 100*dem_error2,"%")
@@ -3756,7 +3766,7 @@ class Benchmark28:   #pendulo3D
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            dem_error3+=fabs(i-j)
+            dem_error3+=abs(i-j)
         dem_error3/=summation_of_analytics_data
 
         print("Error in delta displacement at the reference particle =", 100*dem_error3,"%")
@@ -3867,15 +3877,15 @@ class Benchmark30: ########## Cylinder with imposed angular velocity (Velocity V
             summation_of_ref_data3+=abs(l)
 
         for i, j in zip(DEM_data1, ref_data1):
-            final_local_angular_velocity_x_error+=fabs(i-j)
+            final_local_angular_velocity_x_error+=abs(i-j)
         final_local_angular_velocity_x_error/=summation_of_ref_data1
 
         for k, l in zip(DEM_data2, ref_data2):
-            final_local_angular_velocity_y_error+=fabs(k-l)
+            final_local_angular_velocity_y_error+=abs(k-l)
         final_local_angular_velocity_y_error/=summation_of_ref_data2
 
         for m, n in zip(DEM_data3, ref_data3):
-            final_local_angular_velocity_z_error+=fabs(m-n)
+            final_local_angular_velocity_z_error+=abs(m-n)
         final_local_angular_velocity_z_error/=summation_of_ref_data3
 
         print("Error in local angular velocity X =", 100*final_local_angular_velocity_x_error,"%")
@@ -3982,15 +3992,15 @@ class Benchmark31: ########## Cylinder with imposed angular velocity (Symplectic
             summation_of_ref_data3+=abs(l)
 
         for i, j in zip(DEM_data1, ref_data1):
-            final_local_angular_velocity_x_error+=fabs(i-j)
+            final_local_angular_velocity_x_error+=abs(i-j)
         final_local_angular_velocity_x_error/=summation_of_ref_data1
 
         for k, l in zip(DEM_data2, ref_data2):
-            final_local_angular_velocity_y_error+=fabs(k-l)
+            final_local_angular_velocity_y_error+=abs(k-l)
         final_local_angular_velocity_y_error/=summation_of_ref_data2
 
         for m, n in zip(DEM_data3, ref_data3):
-            final_local_angular_velocity_z_error+=fabs(m-n)
+            final_local_angular_velocity_z_error+=abs(m-n)
         final_local_angular_velocity_z_error/=summation_of_ref_data3
 
         print("Error in local angular velocity X =", 100*final_local_angular_velocity_x_error,"%")
@@ -4062,7 +4072,7 @@ class Benchmark32: ########## Fiber cluster bouncing without any damping (Veloci
 
     def compute_errors(self, output_filename):  #FINALIZATION STEP
 
-        lines_analytics = lines_DEM = list(range(0, 100));
+        lines_analytics = lines_DEM = list(range(0, 100))
         ref_data1 = []; ref_data2 = []; DEM_data1 = []; DEM_data1 = []; DEM_data2 = []; summation_of_ref_data1 = 0; summation_of_ref_data2 = 0
         i = 0
         with open('paper_data/benchmark' + str(sys.argv[1]) + '_graph.dat') as inf:  #with open('paper_data/reference_graph_benchmark32.dat') as inf:
@@ -4089,11 +4099,11 @@ class Benchmark32: ########## Fiber cluster bouncing without any damping (Veloci
             summation_of_ref_data2+=abs(k)
 
         for i, j in zip(DEM_data1, ref_data1):
-            final_velocity_z_error+=fabs(i-j)
+            final_velocity_z_error+=abs(i-j)
         final_velocity_z_error/=summation_of_ref_data1
 
         for k, l in zip(DEM_data2, ref_data2):
-            final_angular_velocity_y_error+=fabs(k-l)
+            final_angular_velocity_y_error+=abs(k-l)
         final_angular_velocity_y_error/=summation_of_ref_data2
 
         print("Error in velocity Z =", 100*final_velocity_z_error,"%")
@@ -4188,11 +4198,11 @@ class Benchmark33: ########## Fiber cluster bouncing without any damping (Veloci
             summation_of_ref_data2+=abs(k)
 
         for i, j in zip(DEM_data1, ref_data1):
-            final_velocity_z_error+=fabs(i-j)
+            final_velocity_z_error+=abs(i-j)
         final_velocity_z_error/=summation_of_ref_data1
 
         for k, l in zip(DEM_data2, ref_data2):
-            final_angular_velocity_y_error+=fabs(k-l)
+            final_angular_velocity_y_error+=abs(k-l)
         final_angular_velocity_y_error/=summation_of_ref_data2
 
         print("Error in velocity Z =", 100*final_velocity_z_error,"%")
@@ -4205,6 +4215,551 @@ class Benchmark33: ########## Fiber cluster bouncing without any damping (Veloci
 
         return error1, error2
 
+
+
+class Benchmark40: # multiple benchmarks for general code verification.
+
+    def __init__(self):
+        self.generated_data = None
+        self.balls_graph_counter = 1
+        self.rigid_graph_counter = 1
+
+        self.number_of_DEM_benchmarks = 15
+        self.number_of_FEM_benchmarks = 8
+
+    def ApplyNodalRotation(self, time, dt, modelpart):
+        pass
+
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):
+        pass
+
+
+    def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
+        pass
+
+
+    def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
+
+        #self.graph_frequency = int(5e-7/dt)   #graph_print_interval/dt
+        self.graph_frequency = int(graph_print_interval/dt)   #1 veces mas grf que bin
+        if self.graph_frequency < 1:
+           self.graph_frequency = 1
+
+        if (self.balls_graph_counter == self.graph_frequency):
+            self.balls_graph_counter = 0
+
+            for node in modelpart.Nodes:
+                if node.Id == 10:           ### stage 0 - simple dem
+
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
+
+                    i=0
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+            for node in modelpart.Nodes:
+                if node.Id == 42:           ### stage 1
+
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
+
+                    i=1
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+            for node in modelpart.Nodes:
+                if node.Id == 71:           ### stage 2
+
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
+
+                    i=2
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+            for node in modelpart.Nodes:
+                if node.Id == 1354:           ### stage 3
+
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
+
+                    i=3
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+            for node in modelpart.Nodes:
+                if node.Id == 1534:           ### stage 4 - particle injected by inlet
+
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
+
+                    i=4
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+            for node in modelpart.Nodes:
+                if node.Id == 1416:           ### stage 5 - inlet movement
+
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
+
+                    i=5
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+            for node in modelpart.Nodes:
+                if node.Id == 1337:           ### stage 6 - dem with initial velocity
+
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
+
+                    i=6
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+            for node in modelpart.Nodes:
+                if node.Id == 663:           ### stage 8 - gravity on sphere of spheres
+
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
+
+                    i=7
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+            for node in modelpart.Nodes:
+                if node.Id == 758:           ### stage 9 - dem with reduced degrees of freedom
+
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
+
+                    i=8
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+            for node in modelpart.Nodes:
+                if node.Id == 789:           ### stage 10 - dem falling pink
+
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
+
+                    i=9
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+            for node in modelpart.Nodes:
+                if node.Id == 913:           ### stage 13 - dem falling green fem
+
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
+
+                    i=10
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+            for node in modelpart.Nodes:
+                if node.Id == 974:           ### stage 14 - dem falling  orange
+
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
+
+                    i=11
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+            for node in modelpart.Nodes:
+                if node.Id == 1061:           ### stage 15 - dem imposed period
+
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
+
+                    i=12
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+
+            for node in modelpart.Nodes:
+                if node.Id == 1180:           ### stage 16 - dem initial
+
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
+
+                    i=13
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+            for node in modelpart.Nodes:
+                if node.Id == 1290:           ### stage 17 - dem contra fem rotatori force
+
+                    force_node = MeasureError(node, TOTAL_FORCES)
+                    angular_node = MeasureError(node, ANGULAR_VELOCITY)
+                    displacement_node = GetNodeDisplacement(node)
+
+                    i=14
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+        self.balls_graph_counter += 1
+
+
+        if (self.rigid_graph_counter == self.graph_frequency):
+            self.rigid_graph_counter = 0
+            for sub_part in rigid_face_model_part.SubModelParts:
+
+                if sub_part.Name == '0':
+
+                    name = int(sub_part.Name)
+                    mesh_nodes = sub_part.GetMesh(0).Nodes
+                    force_node = 0.0
+
+                    for node in mesh_nodes:
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
+
+                    i=name  # beware
+                    data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+                if sub_part.Name == '1':
+
+                    name = int(sub_part.Name)
+                    mesh_nodes = sub_part.GetMesh(0).Nodes
+                    force_node = 0.0
+
+                    for node in mesh_nodes:
+
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
+
+                    i=name
+                    data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+                if sub_part.Name == '2':
+
+                    name = int(sub_part.Name)
+                    mesh_nodes = sub_part.GetMesh(0).Nodes
+                    force_node = 0.0
+
+                    for node in mesh_nodes:
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
+
+                    i=name
+                    data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+                if sub_part.Name == '3':
+
+                    name = int(sub_part.Name)
+                    mesh_nodes = sub_part.GetMesh(0).Nodes
+                    force_node = 0.0
+
+                    for node in mesh_nodes:
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
+
+                    i=name
+                    data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+                if sub_part.Name == '4':
+
+                    name = int(sub_part.Name)
+                    mesh_nodes = sub_part.GetMesh(0).Nodes
+                    force_node = 0.0
+
+                    for node in mesh_nodes:
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
+
+                    i=name
+                    data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+                if sub_part.Name == '5':
+
+                    name = int(sub_part.Name)
+                    mesh_nodes = sub_part.GetMesh(0).Nodes
+                    force_node = 0.0
+
+                    for node in mesh_nodes:
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
+
+                    i=name
+                    data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+                if sub_part.Name == '6':
+
+                    name = int(sub_part.Name)
+                    mesh_nodes = sub_part.GetMesh(0).Nodes
+                    force_node = 0.0
+
+                    for node in mesh_nodes:
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
+
+                    i=name
+                    data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+                if sub_part.Name == '7':
+
+                    name = int(sub_part.Name)
+                    mesh_nodes = sub_part.GetMesh(0).Nodes
+                    force_node = 0.0
+
+                    for node in mesh_nodes:
+                        force_node += MeasureError(node, ELASTIC_FORCES)
+                        displacement_node += GetNodeDisplacement(node)
+
+                    i=name
+                    data  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+        self.rigid_graph_counter += 1
+
+
+
+    def print_results(self, number_of_points_in_the_graphic, dt=0, elapsed_time=0.0):
+
+        error1, error2, error3 = self.compute_errors()     # TOTAL_FORCES, ANGULAR_VELOCITY, NODE DISPLACEMENT FROM INITIAL POS
+        error4, error5 = self.compute_rigid_errors()       # TOTAL_FORCES, AVG DISPLACEMENT FROM INITIAL POS
+
+        error_filename = 'errors.err'
+        error_file = open(error_filename, 'a')
+
+        for index in range(self.number_of_DEM_benchmarks):
+            error_file.write("DEM Benchmark 40:")
+            if (error1[index] < 10.0 and error2[index] < 10.0 and error3[index] < 10.0):
+                error_file.write(" OK!........ Test 40_%s SUCCESSFUL (spheres)\n" % index)
+                #shutil.rmtree('benchmark40_Post_Files', ignore_errors = True)
+            else:
+                error_file.write(" KO!........ Test 40_%s FAILED (spheres)\n" % index)
+
+
+        for index in range(self.number_of_FEM_benchmarks):
+            error_file.write("DEM Benchmark 40:")
+            if (error4[index] < 10.0 and error5[index] < 10.0):
+                error_file.write(" OK!........ Test 40_%s SUCCESSFUL (finite elements)\n" % index)
+            else:
+                error_file.write(" KO!........ Test 40_%s FAILED (finite elements)\n" % index)
+
+        error_file.close()
+
+    def compute_errors(self):
+        error1 = []
+        error2 = []
+        error3 = []
+
+        for index in range(self.number_of_DEM_benchmarks):
+            reference_data = lines_DEM = list(range(0, 1000))
+            analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
+            i = 0
+            with open('paper_data/reference_graph_benchmark' + '40_%s' % index + '.dat') as reference:
+                for line in reference:
+                    if i in reference_data:
+                        parts = line.split()
+                        analytics_data.append(float(parts[1]))      # ref TOTAL_FORCES
+                    i+=1
+            i = 0
+            with open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % index) as current_data:
+                for line in current_data:
+                    if i in lines_DEM:
+                        parts = line.split()
+                        DEM_data.append(float(parts[1]))            # TOTAL_FORCES
+                    i+=1
+            dem_error1 = 0
+
+            for j in analytics_data:
+                summation_of_analytics_data+=abs(j)
+
+            for i, j in zip(DEM_data, analytics_data):
+                dem_error1+=abs(i-j)                               # (test_data[0]-reference_data[0]) + ...
+            dem_error1/=summation_of_analytics_data                 # relative error of the above against sum of reference data
+
+            print("Error in total force at the reference particle =", 100*dem_error1,"%")
+
+            i = 0
+            with open('paper_data/reference_graph_benchmark' +  '40_%s' % index + '.dat') as reference:
+                for line in reference:
+                    if i in reference_data:
+                        parts = line.split()
+                        analytics_data.append(float(parts[2]))      # ref ANGULAR_VELOCITY
+                    i+=1
+            i = 0
+            with open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % index) as current_data:
+                for line in current_data:
+                    if i in lines_DEM:
+                        parts = line.split()
+                        DEM_data.append(float(parts[2]))            # ANGULAR_VELOCITY
+                    i+=1
+            dem_error2 = 0
+
+            for j in analytics_data:
+                summation_of_analytics_data+=abs(j)
+
+            for i, j in zip(DEM_data, analytics_data):
+                dem_error2+=abs(i-j)                               # (test_data[0]-reference_data[0]) + ...
+            dem_error2/=summation_of_analytics_data                 # relative error of the above against sum of reference data
+
+            print("Error in angular velocity at the reference particle =", 100*dem_error2,"%")
+
+
+            i = 0
+            with open('paper_data/reference_graph_benchmark' + '40_%s' % index + '.dat') as reference:
+                for line in reference:
+                    if i in reference_data:
+                        parts = line.split()
+                        analytics_data.append(float(parts[3]))      # ref displacement from initial pos
+                    i+=1
+            i = 0
+            with open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % index) as current_data:
+                for line in current_data:
+                    if i in lines_DEM:
+                        parts = line.split()
+                        DEM_data.append(float(parts[3]))            # displacement from initial pos
+                    i+=1
+            dem_error3 = 0
+
+            for j in analytics_data:
+                summation_of_analytics_data+=abs(j)
+
+            for i, j in zip(DEM_data, analytics_data):
+                dem_error3+=abs(i-j)
+            dem_error3/=summation_of_analytics_data
+
+            print("Error in delta displacement at the reference particle =", 100*dem_error3,"%")
+
+            error1.append(100*dem_error1)
+            error2.append(100*dem_error2)
+            error3.append(100*dem_error3)
+
+        return error1, error2, error3
+
+
+
+    def compute_rigid_errors(self):
+        error4 = []
+        error5 = []
+
+        for index in range(self.number_of_FEM_benchmarks):
+            reference_data = lines_DEM = list(range(0, 1000))
+            analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
+            i = 0
+            with open('paper_data/reference_rigid_graph_benchmark' + '40_%s' % index + '.dat') as reference:
+                for line in reference:
+                    if i in reference_data:
+                        parts = line.split()
+                        analytics_data.append(float(parts[1]))      # REFERENCE TOTAL_FORCES
+                    i+=1
+            i = 0
+            with open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % index) as current_data:
+                for line in current_data:
+                    if i in lines_DEM:
+                        parts = line.split()
+                        DEM_data.append(float(parts[1]))            # TOTAL_FORCES
+                    i+=1
+            dem_error1 = 0
+
+            for j in analytics_data:
+                summation_of_analytics_data+=abs(j)
+
+            for i, j in zip(DEM_data, analytics_data):
+                dem_error1+=abs(i-j)
+            if summation_of_analytics_data!=0.0:                     # (test_data[0]-reference_data[0]) + ...
+                dem_error1/=summation_of_analytics_data              # relative error of the above against sum of reference data
+
+            print("Error in total force at the reference FEM subpart =", 100*dem_error1,"%")
+
+
+            i = 0
+            with open('paper_data/reference_rigid_graph_benchmark' + '40_%s' % index + '.dat') as reference:
+                for line in reference:
+                    if i in reference_data:
+                        parts = line.split()
+                        analytics_data.append(float(parts[2]))      # displacement from initial pos
+                    i+=1
+            i = 0
+            with open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % index) as current_data:
+                for line in current_data:
+                    if i in lines_DEM:
+                        parts = line.split()
+                        DEM_data.append(float(parts[2]))            # ref displacement from initial pos
+                    i+=1
+            dem_error2 = 0
+
+            for j in analytics_data:
+                summation_of_analytics_data+=abs(j)
+
+            for i, j in zip(DEM_data, analytics_data):
+                dem_error2+=abs(i-j)
+            dem_error2/=summation_of_analytics_data
+
+            print("Error in delta displacement at the reference FEM subpart =", 100*dem_error2,"%")
+
+            error4.append(100*dem_error1)
+            error5.append(100*dem_error2)
+
+        return error4, error5
+
+
+    def create_gnuplot_scripts(self, output_filename, dt):
+        pass
+
+
 def delete_archives():
 
     #.......................Removing extra files
@@ -4213,6 +4768,9 @@ def delete_archives():
     files_to_delete_list.extend(glob('*.gp'))
     files_to_delete_list.extend(glob('*.txt'))
     files_to_delete_list.extend(glob('*.lst'))
+    files_to_delete_list.extend(glob('*.info'))
+    files_to_delete_list.extend(glob('*.err'))
+    files_to_delete_list.extend(glob('*.hdf5'))
 
     for to_erase_file in files_to_delete_list:
         os.remove(to_erase_file)

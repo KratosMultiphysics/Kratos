@@ -1,6 +1,6 @@
 {
     "properties" : [{
-        "model_part_name" : "Parts_Parts_Auto1",
+        "model_part_name" : "Initial_MPM_Material.Parts_Parts_Auto1",
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
@@ -8,6 +8,7 @@
             },
             "Variables"        : {
                 "THICKNESS"     : 1.0,
+                "PARTICLES_PER_ELEMENT" : 4,
                 "DENSITY"       : 7850.0,
                 "YOUNG_MODULUS" : 210000000000.0,
                 "POISSON_RATIO" : 0

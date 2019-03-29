@@ -36,7 +36,7 @@ SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement( IndexType NewId,
 //Constructor 2
 SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : Element( NewId, pGeometry, pProperties )
 {
-    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+    mThisIntegrationMethod = this->GetIntegrationMethod();
 }
 
 //----------------------------------------------------------------------------------------

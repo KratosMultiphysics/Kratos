@@ -33,7 +33,7 @@
         "processes_sub_model_part_list"      : ["Parts_Central","Parts_exterior","DISPLACEMENT_fijado","DISPLACEMENT_displ"],
         "rotation_dofs"                      : false,
         "linear_solver_settings":{
-            "solver_type": "AMGCL"
+            "solver_type": "amgcl"
         }
     },
     "processes" : {

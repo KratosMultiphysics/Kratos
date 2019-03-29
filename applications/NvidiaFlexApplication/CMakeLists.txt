@@ -77,4 +77,4 @@ install(TARGETS KratosNvidiaFlexCore DESTINATION libs )
 install(TARGETS KratosNvidiaFlexApplication DESTINATION libs )
 
 # Add to the KratosMultiphysics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/NvidiaFlexApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/NvidiaFlexApplication.py" DESTINATION "KratosMultiphysics/NvidiaFlexApplication" RENAME "__init__.py")

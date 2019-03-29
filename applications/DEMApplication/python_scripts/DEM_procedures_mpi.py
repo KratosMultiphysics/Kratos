@@ -44,7 +44,7 @@ class Procedures(DEM_procedures.Procedures):
         model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
         model_part.AddNodalSolutionStepVariable(PARTITION_MASK)
 
-    def CreateDirectories(self, main_path, problem_name):
+    def CreateDirectories(self, main_path, problem_name, do_print_results=True):
 
         root             = main_path + '/' + problem_name
         post_path        = root + '_Post_Files'
@@ -52,7 +52,7 @@ class Procedures(DEM_procedures.Procedures):
         graphs_path      = root + '_Graphs'
         MPI_results      = root + '_MPI_results'
 
-        if mpi.rank == 0:
+        if mpi.rank == 0 and do_print_results:
             for directory in [post_path, data_and_results, graphs_path, MPI_results]:
                 if not os.path.isdir(directory):
                     os.makedirs(str(directory))
@@ -81,7 +81,7 @@ class Procedures(DEM_procedures.Procedures):
             for to_erase_file in files_to_delete_list:
                 os.remove(to_erase_file)
 
-    def KRATOSprint(self, message):
+    def KratosPrintInfo(self, message):
         if (mpi.rank == 0):
             Logger.Print(*args, label="DEM")
             Logger.Flush()
@@ -92,9 +92,9 @@ class DEMFEMProcedures(DEM_procedures.DEMFEMProcedures):
         if (mpi.rank == 0):
             super(DEMFEMProcedures,self).PrintGraph(time)
 
-    def FinalizeGraphs(self,RigidFace_model_part):
+    def FinalizeGraphs(self,rigid_face_model_part):
         if (mpi.rank == 0):
-            super(DEMFEMProcedures,self).FinalizeGraphs(RigidFace_model_part)
+            super(DEMFEMProcedures,self).FinalizeGraphs(rigid_face_model_part)
 
     def FinalizeBallsGraphs(self,spheres_model_part):
         if (mpi.rank == 0):

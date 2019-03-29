@@ -18,6 +18,7 @@
 
 // Project includes
 #include "custom_models/constitutive_model.hpp"
+#include "umat_application_variables.h" 
 
 namespace Kratos
 {
@@ -218,6 +219,11 @@ namespace Kratos
          ///@name Inquiry
          ///@{
 
+         ///@}
+         ///@name Access
+         ///@{
+
+         double& GetValue(const Variable<double> & , double& rValue) override;
 
          ///@}
          ///@name Input and output
@@ -275,6 +281,11 @@ namespace Kratos
          ///@}
          ///@name Protected Operations
          ///@{
+
+
+         virtual void InitializeStateVariables( Vector & rStateVariables, const Properties & rMaterialProperties)
+         {
+         };
 
 
          //************//

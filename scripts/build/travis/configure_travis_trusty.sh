@@ -76,7 +76,7 @@ C_WARN_FLAGS="-Wall"
 CXX_WARN_FLAGS="-Wall -Werror=suggest-override -Werror=unused-variable \
 -Werror=misleading-indentation -Werror=return-type \
 -Werror=sign-compare -Werror=unused-but-set-variable \
--Werror=unused-local-typedefs -Werror=reorder"
+-Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized"
 
 # Other flags
 #    Indicate any other flag you want to add here
@@ -112,6 +112,7 @@ CMAKE_LIBS=(
 # List of applications to compile. Set to ON/OFF
 
 CMAKE_APPLICATION=(
+  -DMESH_MOVING_APPLICATION=ON
   -DEXTERNAL_SOLVERS_APPLICATION=ON
   -DSTRUCTURAL_MECHANICS_APPLICATION=ON
   -DFLUID_DYNAMICS_APPLICATION=ON
@@ -141,9 +142,8 @@ CMAKE_BUILD=(
   -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -std=c++11 ${CXX_PERF_FLAGS} ${CXX_WARN_FLAGS} ${CXX_CUSTOM_FLAGS}"
 
   # Build type
-  # NOTE: This is better commented for travis since we don't want to use
-  # a default configuration. (-O0 is prefered here)
-  # -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
+  # NOTE: Force Custom mode to prevent to default to Release
+  -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
 
   # Install info
   -DCMAKE_INSTALL_RPATH="${KRATOS_ROOT}/libs"
