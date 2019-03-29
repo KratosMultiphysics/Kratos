@@ -57,7 +57,6 @@ VtkOutput::VtkOutput(ModelPart& rModelPart, Parameters ThisParameters)
         })");
 
         gauss_intergration_param_non_hist.SetValue("list_of_variables", mOutputSettings["gauss_point_variables"]);
-        //gauss_intergration_param_non_hist["list_of_variables"] = mOutputSettings["gauss_point_variables"];
 
         for(auto const& gauss_var : mOutputSettings["gauss_point_variables"])
             mOutputSettings["nodal_data_value_variables"].Append(gauss_var);
@@ -585,7 +584,10 @@ void VtkOutput::WriteVectorSolutionStepVariable(
     const TVarType& rVariable,
     std::ofstream& rFileStream) const
 {
-    KRATOS_WARNING_IF("VtkOutput" , rContainer.size() == 0) << "Empty container!" << std::endl;
+    if (rContainer.size() == 0) {
+        KRATOS_WARNING("VtkOutput") << "Empty container!" << std::endl;
+        return void();
+    }
 
     const int res_size = static_cast<int>((rContainer.begin()->FastGetSolutionStepValue(rVariable)).size());
 
@@ -627,7 +629,10 @@ void VtkOutput::WriteVectorContainerVariable(
     const TVarType& rVariable,
     std::ofstream& rFileStream) const
 {
-    KRATOS_WARNING_IF("VtkOutput", rContainer.size() == 0) << "Empty container!" << std::endl;
+    if (rContainer.size() == 0) {
+        KRATOS_WARNING("VtkOutput") << "Empty container!" << std::endl;
+        return void();
+    }
 
     const int res_size = static_cast<int>((rContainer.begin()->GetValue(rVariable)).size());
 

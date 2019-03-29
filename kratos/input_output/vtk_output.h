@@ -20,6 +20,7 @@
 // External includes
 
 // Project includes
+#include "includes/kratos_parameters.h"
 #include "includes/io.h"
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
 
