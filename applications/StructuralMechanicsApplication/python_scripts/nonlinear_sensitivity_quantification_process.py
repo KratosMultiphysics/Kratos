@@ -21,6 +21,14 @@ def zero_vector(size):
     return v
 
 
+def zero_matrix(row_size, column_size):
+    m = KratosMultiphysics.Matrix(row_size, column_size)
+    for row_index in range(row_size):
+        for column_index in range(column_size):
+            m[row_index, column_index] = 0.0
+    return m
+
+
 def ComputeEFCurvature(response_value_array, load_factor_array, take_absolute_value):
     if take_absolute_value == True:
         for i in range(len(response_value_array)):
@@ -140,7 +148,7 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
 
         self.file_name = parameter["file_name"].GetString()
         self.nodal_variables = self.__GenerateVariableListFromInput(parameter["nodal_variables"])
-        self.gauss_points_nodal_variables = self.__GenerateVariableListFromInput(parameter["gauss_point_variables"])
+        self.gauss_points_variables = self.__GenerateVariableListFromInput(parameter["gauss_point_variables"])
         self.historical_value = parameter["historical_value"].GetBool()
         self.absolute_value = parameter["curvature_absolute_value"].GetBool() # defines if the curvature computation is done with absolute values
         self.resultant_solution = parameter["resultant_solution"].GetBool()
@@ -157,12 +165,25 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
 
-        # TODO optimize and do it also for other variables
-        for variable in self.gauss_points_nodal_variables:
+        for variable in self.nodal_variables:
+            if variable.Name() == "DISPLACEMENT":
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(DISPLACEMENT_NL_SENSITIVITY, zero_vector(3), self.model_part.Nodes)
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(DISPLACEMENT_NL_SENSITIVITY_FIRST_ORDER, zero_vector(3), self.model_part.Nodes)
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(DISPLACEMENT_NL_SENSITIVITY_SECOND_ORDER, zero_vector(3), self.model_part.Nodes)
+        for variable in self.gauss_points_variables:
             if variable.Name() == "FORCE":
                 KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(FORCE_NL_SENSITIVITY, zero_vector(3), self.model_part.Elements)
                 KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(FORCE_NL_SENSITIVITY_FIRST_ORDER, zero_vector(3), self.model_part.Elements)
                 KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(FORCE_NL_SENSITIVITY_SECOND_ORDER, zero_vector(3), self.model_part.Elements)
+            elif variable.Name() == "SHELL_MOMENT_GLOBAL":
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(SHELL_MOMENT_GLOBAL_NL_SENSITIVITY, zero_matrix(3, 3), self.model_part.Elements)
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(SHELL_MOMENT_GLOBAL_NL_SENSITIVITY_FIRST_ORDER, zero_matrix(3, 3), self.model_part.Elements)
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(SHELL_MOMENT_GLOBAL_NL_SENSITIVITY_SECOND_ORDER, zero_matrix(3, 3), self.model_part.Elements)
+            elif variable.Name() == "VON_MISES_STRESS":
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(VON_MISES_STRESS_NL_SENSITIVITY, 0.0, self.model_part.Elements)
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(VON_MISES_STRESS_NL_SENSITIVITY_FIRST_ORDER, 0.0, self.model_part.Elements)
+                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(VON_MISES_STRESS_NL_SENSITIVITY_SECOND_ORDER, 0.0, self.model_part.Elements)
+
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed before starting the time loop
@@ -237,7 +258,7 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
                 else:
                     data["RESULTANT"] = {}
 
-                for variable in self.gauss_points_nodal_variables:
+                for variable in self.gauss_points_variables:
                     variable_name = variable.Name()
                     variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
 
@@ -391,7 +412,7 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
                 compute = self.__CheckFlag(elem)
 
                 if (compute == True):
-                    for variable in self.gauss_points_nodal_variables:
+                    for variable in self.gauss_points_variables:
                         variable_name = variable.Name()
                         variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
                         value = elem.CalculateOnIntegrationPoints(variable, self.sensitivity_model_part.ProcessInfo)
@@ -534,7 +555,7 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
                 sen_first_array = KratosMultiphysics.Array3()
                 sen_second_array = KratosMultiphysics.Array3()
                 if (compute == True):
-                    for variable in self.gauss_points_nodal_variables:
+                    for variable in self.gauss_points_variables:
                         variable_name = variable.Name()
                         variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
 
