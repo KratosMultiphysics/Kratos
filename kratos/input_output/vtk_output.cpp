@@ -24,7 +24,6 @@
 
 namespace Kratos
 {
-
 VtkOutput::VtkOutput(
     ModelPart& rModelPart,
     Parameters ThisParameters
@@ -52,13 +51,46 @@ VtkOutput::VtkOutput(
             << " not recognised!\n Possible output formats "
             << "options are: \"ascii\", \"binary\"" << std::endl;
     }
+
+    if(mOutputSettings["gauss_point_variables"].size() > 0)
+    {
+
+        Parameters gauss_intergration_param_non_hist = Parameters(R"(
+        {
+            "echo_level"                 : 0,
+            "area_average"               : true,
+            "average_variable"           : "NODAL_AREA",
+            "list_of_variables"          : [],
+            "extrapolate_non_historical" : true
+        })");
+
+        gauss_intergration_param_non_hist.SetValue("list_of_variables", mOutputSettings["gauss_point_variables"]);
+
+        for(auto const& gauss_var : mOutputSettings["gauss_point_variables"])
+            mOutputSettings["nodal_data_value_variables"].Append(gauss_var);
+
+        // Making the gauss point to nodes process if any gauss point result is requested for
+        mpGaussToNodesProcess = Kratos::make_unique<IntegrationValuesExtrapolationToNodesProcess>(rModelPart, gauss_intergration_param_non_hist);
+    }
+
 }
+
+void VtkOutput::PrepareGaussPointResults()
+{
+    if(mOutputSettings["gauss_point_variables"].size() > 0){
+        mpGaussToNodesProcess->Execute();
+    }
+}
+
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 void VtkOutput::PrintOutput()
 {
+    // For Gauss point results
+    PrepareGaussPointResults();
+
     // For whole model part
     WriteModelPartToFile(mrModelPart, false);
 
@@ -546,7 +578,10 @@ void VtkOutput::WriteVectorSolutionStepVariable(
     const TVarType& rVariable,
     std::ofstream& rFileStream) const
 {
-    KRATOS_DEBUG_ERROR_IF(rContainer.size() == 0) << "Empty container!" << std::endl;
+    if (rContainer.size() == 0) {
+        KRATOS_WARNING("VtkOutput") << "Empty container!" << std::endl;
+        return void();
+    }
 
     const int res_size = static_cast<int>((rContainer.begin()->FastGetSolutionStepValue(rVariable)).size());
 
@@ -588,7 +623,10 @@ void VtkOutput::WriteVectorContainerVariable(
     const TVarType& rVariable,
     std::ofstream& rFileStream) const
 {
-    KRATOS_WARNING_IF("VtkOutput", rContainer.size() == 0) << "Empty container!" << std::endl;
+    if (rContainer.size() == 0) {
+        KRATOS_WARNING("VtkOutput") << "Empty container!" << std::endl;
+        return void();
+    }
 
     const int res_size = static_cast<int>((rContainer.begin()->GetValue(rVariable)).size());
 
