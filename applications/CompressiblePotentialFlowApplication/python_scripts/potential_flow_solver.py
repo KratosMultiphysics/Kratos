@@ -28,7 +28,7 @@ class LaplacianSolver(PythonSolver):
             "echo_level": 1,
             "relative_tolerance": 1e-5,
             "absolute_tolerance": 1e-9,
-            "maximum_iterations": 1,
+            "maximum_iterations": 10,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
             "calculate_solution_norm" : false,
@@ -98,20 +98,38 @@ class LaplacianSolver(PythonSolver):
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
-        self.incompressible_solution_stratety = KratosMultiphysics.ResidualBasedLinearStrategy(
-            self.main_model_part,
-            time_scheme,
-            self.linear_solver,
-            self.settings["compute_reactions"].GetBool(),
-            self.settings["reform_dofs_at_each_step"].GetBool(),
-            self.settings["calculate_solution_norm"].GetBool(),
-            self.move_mesh_flag)
+        if(self.settings["element_replace_settings"]["element_name"].GetString() == "IncompressiblePotentialFlowElement2D3N"):
+            self.solution_strategy = KratosMultiphysics.ResidualBasedLinearStrategy(
+                self.main_model_part,
+                time_scheme,
+                self.linear_solver,
+                self.settings["compute_reactions"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool(),
+                self.settings["calculate_solution_norm"].GetBool(),
+                self.move_mesh_flag)
+        elif(self.settings["element_replace_settings"]["element_name"].GetString() == "CompressiblePotentialFlowElement2D3N"):
+            conv_criteria = KratosMultiphysics.ResidualCriteria(
+                self.settings["relative_tolerance"].GetDouble(), 
+                self.settings["absolute_tolerance"].GetDouble())
+            max_iterations = self.settings["maximum_iterations"].GetInt()
 
-        (self.incompressible_solution_stratety).SetEchoLevel(self.settings["echo_level"].GetInt())
-        self.incompressible_solution_stratety.Initialize()
+            self.solution_strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
+                self.main_model_part,
+                time_scheme,
+                self.linear_solver,
+                conv_criteria,
+                max_iterations,
+                self.settings["compute_reactions"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool(),
+                self.move_mesh_flag)
+        else:
+            raise Exception("Element not implemented")
+
+        (self.solution_strategy).SetEchoLevel(self.settings["echo_level"].GetInt())
+        self.solution_strategy.Initialize()
 
     def Check(self):
-        self.incompressible_solution_stratety.Check()
+        self.solution_strategy.Check()
 
     def ImportModelPart(self):
 
@@ -152,22 +170,22 @@ class LaplacianSolver(PythonSolver):
         return self.main_model_part
 
     def InitializeSolutionStep(self):
-        self.incompressible_solution_stratety.InitializeSolutionStep()
+        self.solution_strategy.InitializeSolutionStep()
 
     def Predict(self):
-        self.incompressible_solution_stratety.Predict()
+        self.solution_strategy.Predict()
 
     def SolveSolutionStep(self):
-        self.incompressible_solution_stratety.SolveSolutionStep()
+        self.solution_strategy.SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
-        self.incompressible_solution_stratety.FinalizeSolutionStep()
+        self.solution_strategy.FinalizeSolutionStep()
 
     def SetEchoLevel(self, level):
-        self.incompressible_solution_stratety.SetEchoLevel(level)
+        self.solution_strategy.SetEchoLevel(level)
 
     def Clear(self):
-        self.incompressible_solution_stratety.Clear()
+        self.solution_strategy.Clear()
 
     def AdvanceInTime(self, current_time):
         raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
