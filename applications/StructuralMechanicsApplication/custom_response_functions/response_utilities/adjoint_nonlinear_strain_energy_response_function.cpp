@@ -43,12 +43,10 @@ namespace Kratos
     void AdjointNonlinearStrainEnergyResponseFunction::FinalizeSolutionStep()
     {
         auto condition_pointer = mpModelPart->Conditions().begin();
-        auto cond = *condition_pointer;
         Matrix residual_gradient;
         Vector adjoint_values;
-        double load_factor_ratio;
         ProcessInfo r_process_info = mpModelPart->GetProcessInfo();
-        load_factor_ratio = this->CalculateAdjointScalingFactor(cond, residual_gradient, r_process_info);
+        double load_factor_ratio = this->CalculateAdjointScalingFactor(*condition_pointer, residual_gradient, r_process_info);
         mpModelPart->GetProcessInfo().SetValue(ADJOINT_CORRECTION_FACTOR, load_factor_ratio);
     }
 
@@ -66,10 +64,6 @@ namespace Kratos
         << "Calculate value for strain energy response is only available when using primal elements" << std::endl;
 
         // sum all elemental strain energy increment values calculated by trapezoidal rule: E = 0.5 * (f_ext_i - f_ext_i-1) * (u_i - u_i-1)
-
-
-        //const int num_elem = static_cast<int> (rModelPart.NumberOfElements());
-
         // TODO Mahmoud: Calculation using the exact value for the external force at the last time step, not just an approximation
         #pragma omp parallel
         {
