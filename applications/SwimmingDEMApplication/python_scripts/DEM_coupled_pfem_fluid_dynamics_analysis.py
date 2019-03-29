@@ -12,7 +12,7 @@ class DEMCoupledPFEMFluidDynamicsAnalysis(PfemFluidDynamicsAnalysis):
         self.model = model
         self.sdem_project_parameters = parameters
         self.project_parameters = self.sdem_project_parameters['fluid_parameters']
-        self.dimension = self.project_parameters["problem_data"]["dimension"].GetInt()
+        self.dimension = self.project_parameters["solver_settings"]["domain_size"].GetInt()
         self.vars_man = variables_management
         variables_management.nodal_results, variables_management.gauss_points_results = [], []
 

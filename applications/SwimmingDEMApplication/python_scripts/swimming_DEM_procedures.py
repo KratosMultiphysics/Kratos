@@ -4,7 +4,7 @@ import os
 from KratosMultiphysics import *
 import KratosMultiphysics.DEMApplication as DEMApp
 import KratosMultiphysics.SwimmingDEMApplication as SDEMApp
-import DEM_procedures
+import DEM_procedures as DP
 import shutil
 import os
 import weakref
@@ -16,7 +16,7 @@ def Say(*args):
 def AddExtraDofs(fluid_model_part,
                  spheres_model_part,
                  cluster_model_part,
-                 DEM_inlet_model_part,
+                 dem_inlet_model_part,
                  variables_manager):
 
     if VELOCITY_LAPLACIAN in variables_manager.fluid_vars:
@@ -78,7 +78,6 @@ def InitializeVariablesWithNonZeroValues(parameters, fluid_model_part, balls_mod
         SetModelPartSolutionStepValue(fluid_model_part, FLUID_FRACTION_OLD, 1.0)
     if checker.ModelPartHasNodalVariableOrNot(balls_model_part, FLUID_FRACTION_PROJECTED):
         SetModelPartSolutionStepValue(balls_model_part, FLUID_FRACTION_PROJECTED, 1.0)
-        SetModelPartSolutionStepValue(balls_model_part, BASSET_FORCE, Vector([0.]*3)) #TODO: investigate this
 
 def FixModelPart(model_part):
 
@@ -241,6 +240,7 @@ class IOTools:
                                     "VELOCITY": VELOCITY,
                                     "BUOYANCY": BUOYANCY,
                                     "DRAG_FORCE": DRAG_FORCE,
+                                    "LIFT_FORCE": LIFT_FORCE,
                                     "MU": MU}
 
             for node in model_part.Nodes:
@@ -282,7 +282,7 @@ class ProjectionDebugUtils:
         self.UpdateDataAndPrint(domain_volume, False)
 
     def UpdateDataAndPrint(self, domain_volume, is_time_to_print = True):
-        self.granul_utils                         = DEM_procedures.GranulometryUtils(domain_volume, self.balls_model_part)
+        self.granul_utils                         = DP.GranulometryUtils(domain_volume, self.balls_model_part)
         self.domain_volume                        = domain_volume
         self.number_of_balls                      = self.balls_model_part.NumberOfElements(0)
         self.discr_domain_volume                  = self.custom_utils.CalculateDomainVolume(self.fluid_model_part)
@@ -545,44 +545,6 @@ class ResultsFileCreator:
                 for entry in result:
                     line += str('%.17f' % entry) + ' '
                 f.write(line + ' \n')
-
-# The following function creates a run_code to be appended to the name of the PostFiles directory for the benchmark marine_rain (2013 Guseva)
-def CreateRunCode(parameters):
-    code = []
-
-    if parameters["basset_force_type"].GetInt() > 0:
-        history_or_not = 'H'
-    else:
-        history_or_not = 'NH'
-
-    code.append(history_or_not)
-
-    if parameters["basset_force_type"].GetInt() == 4:
-        method_name = 'Hinsberg'
-        number_of_exponentials = 'm=' + str(parameters.number_of_exponentials)
-        time_window = 'tw=' + str(parameters["time_window"].GetDouble())
-        code.append(method_name)
-        code.append(number_of_exponentials)
-        code.append(time_window)
-
-    elif parameters["basset_force_type"].GetInt() > 0:
-        method_name = 'Daitche'
-        code.append(method_name)
-    else:
-        method_name = parameters["TranslationalIntegrationScheme"].GetString()
-        code.append(method_name)
-
-    DEM_dt = 'Dt=' + str(parameters["MaxTimeStep"].GetDouble())
-    code.append(DEM_dt)
-
-    if parameters["basset_force_type"].GetInt() > 0:
-        phi = 'phi=' + str(round(1 / parameters["time_steps_per_quadrature_step"].GetInt(), 3))
-        code.append(phi)
-
-    quadrature_order = 'QuadOrder=' + str(parameters["quadrature_order"].GetInt())
-    code.append(quadrature_order)
-
-    return '_' + '_'.join(code)
 
 def CopyInputFilesIntoFolder(files_path, folder_path):
     import glob, os, shutil
