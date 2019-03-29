@@ -82,9 +82,14 @@ void IgaMembraneElement::EquationIdVector(
             KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
 
 
-        MetricVariables initial_metric(3);
+        /*MetricVariables initial_metric(3);
         CalculateMetric(initial_metric);
-        mInitialMetric = initial_metric;
+        mInitialMetric = initial_metric;*/
+        MetricVariables reference_metric(3);
+        CalculateMetric(reference_metric);
+        mInitialMetric = reference_metric;
+
+        std::cout << "Initialize Membrane" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -128,7 +133,8 @@ KRATOS_WATCH(rLeftHandSideMatrix)
         ConstitutiveVariables constitutive_variables_membrane(3);
         CalculateConstitutiveVariables(actual_metric,
             constitutive_variables_membrane,
-            Values, ConstitutiveLaw::StressMeasure_PK2);
+            Values, 
+            ConstitutiveLaw::StressMeasure_PK2);
 
         //Calculate B Matrix 
         Matrix BMembrane = ZeroMatrix (3, mat_size);
@@ -156,18 +162,23 @@ KRATOS_WATCH(rLeftHandSideMatrix)
         double thickness = this->GetProperties().GetValue(THICKNESS);
         
         Vector S_prestress = this->GetProperties().GetValue(PRESTRESS);
-        //Vector S_prestress_nichttransformiert = this->GetProperties().GetValue(PRESTRESS);
-        //Vector S_prestress = prod(mInitialMetric.Q, S_prestress_nichttransformiert); //* thickness; 
-        constitutive_variables_membrane.S = ZeroVector(3);
+        /*Vector S_prestress_nichttransformiert = this->GetProperties().GetValue(PRESTRESS);
+        PrestresstransVariables prestresstrans_variables(3);
+        CalculateTransformationmatrixPrestress(
+            actual_metric,
+            prestresstrans_variables 
+        );
+        Vector S_prestress = prod(prestresstrans_variables.Tpre, S_prestress_nichttransformiert); //* thickness; */
+        //constitutive_variables_membrane.S = ZeroVector(3);
         Vector S_total = constitutive_variables_membrane.S + S_prestress;
         //Vector S_total = S_prestress;
 
         //KRATOS_WATCH(thickness)
-        /*KRATOS_WATCH(S_prestress)
-        KRATOS_WATCH(constitutive_variables_membrane.E)
-        KRATOS_WATCH(constitutive_variables_membrane.S)
-        KRATOS_WATCH(constitutive_variables_membrane.D)
-        KRATOS_WATCH(S_total)*/
+        if(this->Id() == 0){KRATOS_WATCH(S_prestress)};
+        if(this->Id() == 0){KRATOS_WATCH(constitutive_variables_membrane.E)};
+        if(this->Id() == 0){KRATOS_WATCH(constitutive_variables_membrane.S)};
+        if(this->Id() == 0){KRATOS_WATCH(constitutive_variables_membrane.D)};
+        if(this->Id() == 0){KRATOS_WATCH(S_total)};
 
     //KRATOS_WATCH(rLeftHandSideMatrix)
 
@@ -184,7 +195,7 @@ KRATOS_WATCH(rLeftHandSideMatrix)
                 integration_weight);
 
     /*KRATOS_WATCH(rLeftHandSideMatrix)
-    KRATOS_WATCH(constitutive_variables_membrane.D)*/
+     if(this->Id() == 0){KRATOS_WATCH(constitutive_variables_membrane.D)*/
 
             // adding  non-linear-contribution to Stiffness-Matrix
             CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
@@ -337,7 +348,7 @@ void IgaMembraneElement::CalculateMetric(
 
         StrainVector[0] = 0.5 * (gab[0] - gab0[0]);
         StrainVector[1] = 0.5 * (gab[1] - gab0[1]);
-        StrainVector[2] = 0.5 * (gab[2] - gab0[2]);
+        StrainVector[2] = 0.5 * (gab[2] - gab0[2]); //FAKTOR 2
 
         KRATOS_CATCH("")
     }
@@ -356,10 +367,13 @@ void IgaMembraneElement::CalculateMetric(
             const rThisConstitutiveVariablesMembrane.E == [0, 0, 0 ]; }
         else {
         CalculateStrain(strain_vector, rActualMetric.gab, mInitialMetric.gab);
-        rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.T, strain_vector); //geändert Q->T
+        rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.Q, strain_vector); //geändert Q->T
         }*/
         CalculateStrain(strain_vector, rActualMetric.gab, mInitialMetric.gab);
-        rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.T, strain_vector);
+        rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.Q, strain_vector); //HIER
+
+        if (this->Id() == 0) {KRATOS_WATCH(rActualMetric.gab)}
+        if (this->Id() == 0) {KRATOS_WATCH(mInitialMetric.gab)}
 
         //Constitive Matrices DMembrane and DCurvature
         rValues.SetStrainVector(rThisConstitutiveVariablesMembrane.E); //this is the input parameter
@@ -375,13 +389,14 @@ void IgaMembraneElement::CalculateMetric(
         
         //Local Cartesian Forces and Moments
         rThisConstitutiveVariablesMembrane.S = prod(
-            trans(rThisConstitutiveVariablesMembrane.D), rThisConstitutiveVariablesMembrane.E);
+           trans(rThisConstitutiveVariablesMembrane.D), rThisConstitutiveVariablesMembrane.E); //TRANS
+           // rThisConstitutiveVariablesMembrane.D, rThisConstitutiveVariablesMembrane.E);
     }
 
 
         void IgaMembraneElement::CalculateBMembrane(
         Matrix& rB,
-        const MetricVariables& metric)
+        const MetricVariables& metric) 
     {
         const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 
@@ -404,9 +419,9 @@ void IgaMembraneElement::CalculateMetric(
             dE_curvilinear[1] = DN_De(kr, 1)*metric.g2(dirr);
             dE_curvilinear[2] = 0.5*(DN_De(kr, 0)*metric.g2(dirr) + metric.g1(dirr)*DN_De(kr, 1));
 
-            rB(0, r) = mInitialMetric.T(0, 0)*dE_curvilinear[0] + mInitialMetric.T(0, 1)*dE_curvilinear[1] + mInitialMetric.T(0, 2)*dE_curvilinear[2];  //geändert Q->T
-            rB(1, r) = mInitialMetric.T(1, 0)*dE_curvilinear[0] + mInitialMetric.T(1, 1)*dE_curvilinear[1] + mInitialMetric.T(1, 2)*dE_curvilinear[2];  //geändert Q->T
-            rB(2, r) = mInitialMetric.T(2, 0)*dE_curvilinear[0] + mInitialMetric.T(2, 1)*dE_curvilinear[1] + mInitialMetric.T(2, 2)*dE_curvilinear[2];  //geändert Q->T
+            rB(0, r) = mInitialMetric.Q(0, 0)*dE_curvilinear[0] + mInitialMetric.Q(0, 1)*dE_curvilinear[1] + mInitialMetric.Q(0, 2)*dE_curvilinear[2];  //geändert Q->T HIER
+            rB(1, r) = mInitialMetric.Q(1, 0)*dE_curvilinear[0] + mInitialMetric.Q(1, 1)*dE_curvilinear[1] + mInitialMetric.Q(1, 2)*dE_curvilinear[2];  //geändert Q->T HIER
+            rB(2, r) = mInitialMetric.Q(2, 0)*dE_curvilinear[0] + mInitialMetric.Q(2, 1)*dE_curvilinear[1] + mInitialMetric.Q(2, 2)*dE_curvilinear[2];  //geändert Q->T HIER
         }
     }
 
@@ -440,9 +455,9 @@ void IgaMembraneElement::CalculateSecondVariationStrain(
                     ddE_curvilinear[2] = 0.5*(DN_De(kr, 0)*DN_De(ks, 1) + DN_De(kr, 1)*DN_De(ks, 0));
                 }
 
-                rSecondVariationsStrain.B11(r, s) = mInitialMetric.T(0, 0)*ddE_curvilinear[0] + mInitialMetric.T(0, 1)*ddE_curvilinear[1] + mInitialMetric.T(0, 2)*ddE_curvilinear[2];
-                rSecondVariationsStrain.B22(r, s) = mInitialMetric.T(1, 0)*ddE_curvilinear[0] + mInitialMetric.T(1, 1)*ddE_curvilinear[1] + mInitialMetric.T(1, 2)*ddE_curvilinear[2];
-                rSecondVariationsStrain.B12(r, s) = mInitialMetric.T(2, 0)*ddE_curvilinear[0] + mInitialMetric.T(2, 1)*ddE_curvilinear[1] + mInitialMetric.T(2, 2)*ddE_curvilinear[2];
+                rSecondVariationsStrain.B11(r, s) = mInitialMetric.Q(0, 0)*ddE_curvilinear[0] + mInitialMetric.Q(0, 1)*ddE_curvilinear[1] + mInitialMetric.Q(0, 2)*ddE_curvilinear[2]; //HIER
+                rSecondVariationsStrain.B22(r, s) = mInitialMetric.Q(1, 0)*ddE_curvilinear[0] + mInitialMetric.Q(1, 1)*ddE_curvilinear[1] + mInitialMetric.Q(1, 2)*ddE_curvilinear[2]; //HIER
+                rSecondVariationsStrain.B12(r, s) = mInitialMetric.Q(2, 0)*ddE_curvilinear[0] + mInitialMetric.Q(2, 1)*ddE_curvilinear[1] + mInitialMetric.Q(2, 2)*ddE_curvilinear[2]; //HIER
             }
         }
     }
@@ -495,5 +510,83 @@ void IgaMembraneElement::CalculateSecondVariationStrain(
             }
         }
         KRATOS_CATCH("")
+    }
+
+    //Transformationsmatrix für Prestress
+    void IgaMembraneElement::CalculateTransformationmatrixPrestress(
+        const MetricVariables& metric,
+        /*Vector& t1,
+        Vector& t2,
+        Vector& t3,
+        Vector& e1,
+        Vector& e2,
+        Vector& e3,
+        double& eG11,
+        double& eG12,
+        double& eG21,
+        double& eG22,*/
+        PrestresstransVariables& Prestresstrans
+         )
+    {
+    //Creation of T1==>Projection of A on the tangential plane
+    //t1=cross_prod(mInitialMetric.g2,metric.g3);
+    Vector t1;
+    MathUtils<double>::CrossProduct(t1, mInitialMetric.g2, mInitialMetric.g3); //REF
+    //The frame must be orthogonal so T3==G3
+    //t3 == metric.g3;
+
+    //Then T2can only be the cross product between T1 and T3
+    //t2=cross_prod(t3,t1);
+    Vector t2;
+    MathUtils<double>::CrossProduct(t2, mInitialMetric.g3, t1); //t3 == metric.g3; //REF
+    //Normalization of the vectors
+    Vector t1_n = t1/norm_2(t1); //REF
+    Vector t2_n = t2/norm_2(t2); //REF
+    Vector t3_n = mInitialMetric.g3/norm_2(mInitialMetric.g3); //t3 == metric.g3; //REF
+/*
+    //GetcovariantMetric
+        metric.gab[0] = pow(metric.g1[0], 2) + pow(metric.g1[1], 2) + pow(metric.g1[2], 2);
+        metric.gab[1] = pow(metric.g2[0], 2) + pow(metric.g2[1], 2) + pow(metric.g2[2], 2);
+        metric.gab[2] = metric.g1[0] * metric.g2[0] + metric.g1[1] * metric.g2[1] + metric.g1[2] * metric.g2[2];
+
+       
+        //contravariant metric gab_con and base vectors g_con
+        //Vector gab_con = ZeroVector(3);
+        double invdetGab = 1.0 / (metric.gab[0] * metric.gab[1] - metric.gab[2] * metric.gab[2]);
+        metric.gab_con[0] = invdetGab*metric.gab[1];
+        metric.gab_con[2] = -invdetGab*metric.gab[2];
+        metric.gab_con[1] = invdetGab*metric.gab[0];
+*/
+
+        //array_1d<double, 3> g_con_1 = metric.g1*metric.gab_con[0] + metric.g2*metric.gab_con[2];
+        Vector g_con_2 = mInitialMetric.g1*mInitialMetric.gab_con[2] + mInitialMetric.g2*mInitialMetric.gab_con[1]; //REF
+
+    //local cartesian coordinates oriented along the 1st base vector in the ref. config.
+    //e1 = metric.g1/norm_2(metric.g1);
+    //e2 = g_con_2/norm_2(g_con_2);
+        double lg1 = norm_2(mInitialMetric.g1); //REF
+        array_1d<double, 3> e1 = mInitialMetric.g1 / lg1;//REF
+        double lg_con2 = norm_2(g_con_2); 
+        array_1d<double, 3> e2 = g_con_2 / lg_con2;
+
+    //Transformation matrix from the projected basis T to the local cartesian basis
+   
+    double eG11 = inner_prod(e1,t1);
+    double eG12 = inner_prod(e1,t2);
+    double eG21 = inner_prod(e2,t1);
+    double eG22 = inner_prod(e2,t2);
+
+    Prestresstrans.Tpre = ZeroMatrix(3, 3);
+    Prestresstrans.Tpre(0,0) = eG11*eG11;
+    Prestresstrans.Tpre(0,1) = eG12*eG12;
+    Prestresstrans.Tpre(0,2) = 2.0*eG11*eG12;
+
+    Prestresstrans.Tpre(1,0) = eG21*eG21;
+    Prestresstrans.Tpre(1,1) = eG22*eG22;
+    Prestresstrans.Tpre(1,2) = 2.0*eG21*eG22;
+
+    Prestresstrans.Tpre(2,0) = eG11*eG21;
+    Prestresstrans.Tpre(2,1) = eG12*eG22;
+    Prestresstrans.Tpre(2,2) = eG11*eG22+eG12*eG21;
     }
 }//namespace Kratos

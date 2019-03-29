@@ -15,7 +15,7 @@ def CreateSolver(main_model_part, custom_settings):
     return FormfindingMechanicalSolver(main_model_part, custom_settings)
 
 
-class FormfindingMechanicaSolver(structural_mechanics_solver.MechanicalSolver):
+class FormfindingMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     """The structural mechanics formfinding solver.
 
     This class creates the mechanical solver for formdinding.

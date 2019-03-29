@@ -121,7 +121,7 @@ namespace IgaIntegrationUtilities
                         shape.Compute(
                             pSurface->KnotsU(),
                             pSurface->KnotsV(),
-                            //pSurface->Weights(),
+                            pSurface->Weights(),
                             integration_points[i].u,
                             integration_points[i].v);
 
@@ -207,7 +207,7 @@ namespace IgaIntegrationUtilities
                             shape.Compute(
                                 pSurface->KnotsU(),
                                 pSurface->KnotsV(),
-                                //pSurface->Weights(),
+                                pSurface->Weights(),
                                 integration_point_polygon.IntegrationPoint(i).u,
                                 integration_point_polygon.IntegrationPoint(i).v);
 

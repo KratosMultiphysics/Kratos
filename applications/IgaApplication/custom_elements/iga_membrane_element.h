@@ -122,6 +122,16 @@ struct SecondVariations
             B12 = ZeroMatrix(mat_size, mat_size);
         }
     };
+
+struct PrestresstransVariables
+    {
+        Matrix Tpre;
+        
+        PrestresstransVariables(const unsigned int& Dimension)
+        {
+           Matrix Tpre = ZeroMatrix(3, 3);
+        }
+    };
     
 
 public:
@@ -221,6 +231,21 @@ void CalculateAndAddKm(
 void CalculateSecondVariationStrainMembrane(
         SecondVariations& rSecondVariationsStrain,
         const MetricVariables& rMetric);
+
+void CalculateTransformationmatrixPrestress(
+       const MetricVariables& metric,
+        /*Vector& t1,
+        Vector& t2,
+        Vector& t3,
+        Vector& e1,
+        Vector& e2,
+        Vector& e3,
+        double& eG11,
+        double& eG12,
+        double& eG21,
+        double& eG22,*/
+        PrestresstransVariables& Prestresstrans
+         );
 /*
 static void IgaGeometryUtilities::CalculateJacobian(    //aus iga_geometry_utilities.h
         const Element::GeometryType& rGeometry,

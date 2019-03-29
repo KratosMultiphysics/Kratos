@@ -88,7 +88,7 @@ void IgaEdgeCableElement::Initialize()
         {
         mReferenceBaseVector = GetActualBaseVector();
         }*/
-    std::cout << "initialize Cable" << std::endl;
+    //std::cout << "initialize Cable" << std::endl;
     mReferenceBaseVector = GetActualBaseVector();
     
 }
@@ -206,15 +206,15 @@ KRATOS_WATCH(reference_aa)
 */
     // green-lagrange strain
 
-    const double e11_membrane = 0; // 0.5 * (actual_aa - reference_aa);
+    const double e11_membrane = 0.5 * (actual_aa - reference_aa);
 
     // normal force
 
     const double s11_membrane = prestress * A + e11_membrane * A * E / reference_aa;
 
 //KRATOS_WATCH(prestress)
+//KRATOS_WATCH(e11_membrane)
 //KRATOS_WATCH(s11_membrane)
-//if(this->Id() == 0){KRATOS_WATCH(s11_membrane)}
 
     //for (std::size_t k = 0; k < NumberOfDofs(); k++){
     //    const double dof_type_m[NumberOfDofs()];
