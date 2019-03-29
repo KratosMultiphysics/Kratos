@@ -51,11 +51,6 @@ class TrilinosMeshSolverBase(MeshSolverBase):
             self._communicator = TrilinosApplication.CreateCommunicator()
         return self._communicator
 
-    def print_on_rank_zero(self, *args):
-        KratosMPI.mpi.world.barrier()
-        if KratosMPI.mpi.rank == 0:
-            print(" ".join(map(str,args)))
-
     #### Private functions ####
 
     def _create_linear_solver(self):
