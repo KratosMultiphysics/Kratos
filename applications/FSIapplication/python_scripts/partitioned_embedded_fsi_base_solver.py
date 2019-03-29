@@ -46,6 +46,8 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
     def __init__(self, model, project_parameters):
 
+        self.riccardo = open("riccardo.txt","w")
+
         # Validate settings
         project_parameters = self._ValidateSettings(project_parameters)
 
@@ -87,6 +89,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
         # FSI coupling required variables addition
         self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_PROJECTED)
         self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
         self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRUCTURE_VELOCITY)
@@ -224,6 +227,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
             self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
             self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+            self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
             self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
         return self._embedded_intersections_model_part
 
@@ -250,6 +254,19 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
             # Update the EMBEDDED_VELOCITY and solve the fluid problem
             self._solve_fluid()
+
+            node = self.fluid_solver.GetComputingModelPart().Nodes[77427]
+            self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 0)) + " ")
+            self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 1)) + " ")
+            self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 2)) + " ")
+            self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 0)) + " ")
+            self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)) + " ")
+            self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 2)) + " ")
+            self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 0)) + " ")
+            self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 1)) + " ")
+            self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 2)) + " ")
+            self.riccardo.write("\n")
+            self.riccardo.flush()
 
             # Compute the structure interface VELOCITY residual vector
             pres_residual = self._compute_pressure_residual()
@@ -433,16 +450,21 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self._get_distance_modification_process().Execute()
 
         # Compute STRUCTURE_VELOCITY
-        dt = self.structure_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        for node in self.model.GetModelPart(self._get_structure_interface_model_part_name()).Nodes:
-            u_n = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1)
-            u_n_1 = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0)
-            node.SetSolutionStepValue(KratosMultiphysics.STRUCTURE_VELOCITY, 0, (1/dt)*(u_n_1-u_n))
+        # dt = self.structure_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        # for node in self.model.GetModelPart(self._get_structure_interface_model_part_name()).Nodes:
+        #     u_n = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1)
+        #     u_n_1 = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0)
+        #     node.SetSolutionStepValue(KratosMultiphysics.STRUCTURE_VELOCITY, 0, (1/dt)*(u_n_1-u_n))
+
+        self._get_embedded_skin_utility().InterpolateMeshVariableToSkin(
+            KratosMultiphysics.MESH_VELOCITY,
+            KratosMultiphysics.MESH_VELOCITY)
 
         # Recompute the EMBEDDED_VELOCITY field
         self._get_distance_to_skin_process().CalculateEmbeddedVariableFromSkin(
             # KratosMultiphysics.VELOCITY,
-            KratosMultiphysics.STRUCTURE_VELOCITY,
+            # KratosMultiphysics.STRUCTURE_VELOCITY,
+            KratosMultiphysics.MESH_VELOCITY,
             KratosMultiphysics.EMBEDDED_VELOCITY)
 
         # Recompute the new embedded intersections model part
