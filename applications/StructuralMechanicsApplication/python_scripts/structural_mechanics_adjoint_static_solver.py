@@ -50,10 +50,12 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
             {
                 "element_name_table" :
                 {
-                    "ShellThinElement3D3N"           : "AdjointFiniteDifferencingShellThinElement3D3N",
-                    "CrLinearBeamElement3D2N"        : "AdjointFiniteDifferenceCrBeamElementLinear3D2N",
-                    "TrussLinearElement3D2N"         : "AdjointFiniteDifferenceTrussLinearElement3D2N",
-                    "TrussElement3D2N"               : "AdjointFiniteDifferenceTrussElement3D2N"
+                    "ShellThinElement3D3N"               : "AdjointFiniteDifferencingShellThinElement3D3N",
+                    "ShellThickElementCorotational3D3N"  : "AdjointFiniteDifferencingShellThinElement3D3N",
+                    "ShellThinElementCorotational3D3N"   : "AdjointFiniteDifferencingShellThinElement3D3N",
+                    "CrLinearBeamElement3D2N"            : "AdjointFiniteDifferenceCrBeamElementLinear3D2N",
+                    "TrussLinearElement3D2N"             : "AdjointFiniteDifferenceTrussLinearElement3D2N",
+                    "TrussElement3D2N"                   : "AdjointFiniteDifferenceTrussElement3D2N"
                 },
                 "condition_name_table" :
                 {

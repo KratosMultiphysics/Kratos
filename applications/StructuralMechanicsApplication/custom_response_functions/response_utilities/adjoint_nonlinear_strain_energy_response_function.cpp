@@ -376,7 +376,6 @@ namespace Kratos
 
         // passing the value of the partial derivative matrix to a member variable
         mExternalForceDesignVariableDerivative = partial_derivative_matrix;
-    }
 
         KRATOS_CATCH("");
     }

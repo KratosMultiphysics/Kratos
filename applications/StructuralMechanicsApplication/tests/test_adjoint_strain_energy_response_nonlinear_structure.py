@@ -8,7 +8,7 @@ import structural_response_function_factory
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
 class AdjointSensitivityNonlinearTruss(KratosUnittest.TestCase):
-    def _removeH5Files(self, model_part_name):
+    def _removeH5AndRestFiles(self, model_part_name):
         for name in os.listdir():
             if name.find(model_part_name) == 0:
                 kratos_utils.DeleteFileIfExisting(name)
@@ -57,7 +57,8 @@ class AdjointSensitivityNonlinearTruss(KratosUnittest.TestCase):
         self.assertAlmostEqual(node_sensitivity[2][0], -1.5669897149417131, 3)
         self.assertAlmostEqual(node_sensitivity[2][1], 0.626750518458256, 3)
 
-        self._removeH5Files("primal_output_truss")
+        self._removeH5AndRestFiles("primal_output_truss")
+        self._removeH5AndRestFiles("test_restart_file")
 
     def testStructureWithMultipleLoads(self):
         with open("response_function_tests/adjoint_strain_energy_response_parameters_truss_multiple_loads.json",'r') as parameter_file:
@@ -102,7 +103,8 @@ class AdjointSensitivityNonlinearTruss(KratosUnittest.TestCase):
         self.assertAlmostEqual(node_sensitivity[2][0],  -2.5522806761345747, 3)
         self.assertAlmostEqual(node_sensitivity[2][1], 1.9604805174396722, 3)
 
-        self._removeH5Files("primal_output_truss")
+        self._removeH5AndRestFiles("primal_output_truss")
+        self._removeH5AndRestFiles("test_restart_file")
 
     def testThreeDimensionalStructure(self):
         with open("response_function_tests/adjoint_strain_energy_response_parameters_3D_truss.json",'r') as parameter_file:
@@ -149,7 +151,8 @@ class AdjointSensitivityNonlinearTruss(KratosUnittest.TestCase):
         self.assertAlmostEqual(node_sensitivity[2][1], -3.3626700765001027, 3)
         self.assertAlmostEqual(node_sensitivity[2][2], -3.1435037362864993, 3)
 
-        self._removeH5Files("primal_output_truss")
+        self._removeH5AndRestFiles("primal_output_truss")
+        self._removeH5AndRestFiles("test_restart_file")
 
     def testMisesTrussStructure(self):
         with open("response_function_tests/adjoint_strain_energy_response_parameters_truss.json",'r') as parameter_file:
@@ -184,7 +187,8 @@ class AdjointSensitivityNonlinearTruss(KratosUnittest.TestCase):
         self.assertAlmostEqual(node_sensitivity[1][0], -14.4823766392479, 3)
         self.assertAlmostEqual(node_sensitivity[1][1], 2.9728211538028146, 3)
 
-        self._removeH5Files("primal_output_truss")
+        self._removeH5AndRestFiles("primal_output_truss")
+        self._removeH5AndRestFiles("test_restart_file")
 
 ## Most of the time required for the test is used in reading and wrting out file
 if __name__ == '__main__':
