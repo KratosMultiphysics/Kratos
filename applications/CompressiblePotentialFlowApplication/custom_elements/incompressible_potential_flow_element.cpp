@@ -55,9 +55,9 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0) // Normal element (non-wake) - eventually an embedded
-        CalculateLocalSystemNormalElement(rLeftHandSideMatrix, rRightHandSideVector);
+        CalculateLocalSystemNormalElement(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
     else // Wake element
-        CalculateLocalSystemWakeElement(rLeftHandSideMatrix, rRightHandSideVector);
+        CalculateLocalSystemWakeElement(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 }
 
 template <int Dim, int NumNodes>
@@ -374,7 +374,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListWakeElement(Do
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNormalElement(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     if (rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
         rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
@@ -387,7 +387,9 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNorm
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    ComputeLHSGaussPointContribution(data.vol, rLeftHandSideMatrix, data);
+    const double density_infinity = rCurrentProcessInfo[DENSITY];
+
+    ComputeLHSGaussPointContribution(data.vol*density_infinity, rLeftHandSideMatrix, data);
 
     GetPotentialOnNormalElement(data.phis);
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
@@ -395,7 +397,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNorm
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWakeElement(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     // Note that the lhs and rhs have double the size
     if (rLeftHandSideMatrix.size1() != 2 * NumNodes ||
@@ -411,18 +413,21 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
+    const double density_infinity = rCurrentProcessInfo[DENSITY];
+
     GetWakeDistances(data.distances);
+    KRATOS_WATCH(data.distances);
 
     Matrix lhs_total = ZeroMatrix(NumNodes, NumNodes);
 
-    ComputeLHSGaussPointContribution(data.vol, lhs_total, data);
+    ComputeLHSGaussPointContribution(data.vol*density_infinity, lhs_total, data);
 
     if (this->Is(STRUCTURE))
     {
         Matrix lhs_positive = ZeroMatrix(NumNodes, NumNodes);
         Matrix lhs_negative = ZeroMatrix(NumNodes, NumNodes);
 
-        CalculateLocalSystemSubdividedElement(lhs_positive, lhs_negative);
+        CalculateLocalSystemSubdividedElement(lhs_positive, lhs_negative, rCurrentProcessInfo);
         AssignLocalSystemSubdividedElement(rLeftHandSideMatrix, lhs_positive,
                                            lhs_negative, lhs_total, data);
     }
@@ -431,17 +436,20 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
 
     Vector split_element_values(2*NumNodes);
     GetPotentialOnWakeElement(split_element_values,data.distances);
+    KRATOS_WATCH(split_element_values);
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
 }
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubdividedElement(
-    Matrix& lhs_positive, Matrix& lhs_negative)
+    Matrix& lhs_positive, Matrix& lhs_negative, ProcessInfo& rCurrentProcessInfo)
 {
     ElementalData<NumNodes, Dim> data;
 
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+    const double density_infinity = rCurrentProcessInfo[DENSITY];
 
     GetWakeDistances(data.distances);
 
@@ -472,9 +480,9 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
     for (unsigned int i = 0; i < nsubdivisions; ++i)
     {
         if (PartitionsSign[i] > 0)
-            ComputeLHSGaussPointContribution(Volumes[i], lhs_positive, data);
+            ComputeLHSGaussPointContribution(Volumes[i]*density_infinity, lhs_positive, data);
         else
-            ComputeLHSGaussPointContribution(Volumes[i], lhs_negative, data);
+            ComputeLHSGaussPointContribution(Volumes[i]*density_infinity, lhs_negative, data);
     }
 }
 
