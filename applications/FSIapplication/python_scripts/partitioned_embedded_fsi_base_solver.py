@@ -433,17 +433,17 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self._get_distance_modification_process().Execute()
 
         # Compute STRUCTURE_VELOCITY
-        # dt = self.structure_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        # for node in self.model.GetModelPart(self._get_structure_interface_model_part_name()).Nodes:
-        #     u_n = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1)
-        #     u_n_1 = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0)
-        #     node.SetSolutionStepValue(KratosMultiphysics.STRUCTURE_VELOCITY, 0, (1/dt)*(u_n_1-u_n))
+        dt = self.structure_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        for node in self.model.GetModelPart(self._get_structure_interface_model_part_name()).Nodes:
+            u_n = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1)
+            u_n_1 = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0)
+            node.SetSolutionStepValue(KratosMultiphysics.STRUCTURE_VELOCITY, 0, (1/dt)*(u_n_1-u_n))
 
         # Recompute the EMBEDDED_VELOCITY field
-        # self._get_distance_to_skin_process().CalculateEmbeddedVariableFromSkin(
-        #     # KratosMultiphysics.VELOCITY,
-        #     KratosMultiphysics.STRUCTURE_VELOCITY,
-        #     KratosMultiphysics.EMBEDDED_VELOCITY)
+        self._get_distance_to_skin_process().CalculateEmbeddedVariableFromSkin(
+            # KratosMultiphysics.VELOCITY,
+            KratosMultiphysics.STRUCTURE_VELOCITY,
+            KratosMultiphysics.EMBEDDED_VELOCITY)
 
         # Recompute the new embedded intersections model part
         self._get_embedded_skin_utility().GenerateSkin()
