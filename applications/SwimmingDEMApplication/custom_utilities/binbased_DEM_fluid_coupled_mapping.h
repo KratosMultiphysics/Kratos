@@ -146,9 +146,9 @@ BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
         }  )" );
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
-    mMinFluidFraction = rParameters["coupling"]["backward_coupling"]["min_fluid_fraction"].GetDouble();
+    mMinFluidFraction = rParameters["backward_coupling"]["min_fluid_fraction"].GetDouble();
     mCouplingType = rParameters["coupling_type"].GetInt();
-    mTimeAveragingType = rParameters["coupling"]["time_averaging_type"].GetInt();
+    mTimeAveragingType = rParameters["time_averaging_type"].GetInt();
     mViscosityModificationType = rParameters["viscosity_modification_type"].GetInt();
     mParticlesPerDepthDistance = rParameters["n_particles_per_depth_distance"].GetInt();
     mpBodyForcePerUnitMassVariable = &( KratosComponents< Variable<array_1d<double,3>> >::Get(rParameters["body_force_per_unit_mass_variable_name"].GetString()) );
