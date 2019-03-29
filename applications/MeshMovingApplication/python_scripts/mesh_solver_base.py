@@ -177,9 +177,8 @@ class MeshSolverBase(PythonSolver):
     #### Private functions ####
 
     def _create_linear_solver(self):
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-        linear_solver = linear_solver_factory.ConstructSolver(self.settings["mesh_motion_linear_solver_settings"])
-        return linear_solver
+        from KratosMultiphysics.python_linear_solver_factory import ConstructSolver
+        return ConstructSolver(self.settings["mesh_motion_linear_solver_settings"])
 
     def _create_mesh_motion_solving_strategy(self):
         """Create the mesh motion solving strategy.
