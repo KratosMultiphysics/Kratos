@@ -22,7 +22,7 @@
 // Project includes
 #include "includes/kratos_parameters.h"
 #include "includes/io.h"
-
+#include "processes/integration_values_extrapolation_to_nodes_process.h"
 
 namespace Kratos
 {
@@ -51,7 +51,7 @@ public:
      * @param rModelPart The modelpart which is used for output
      * @param Parameters Parameters including settings for the output
      */
-    VtkOutput(ModelPart& rModelPart, Parameters Parameters);
+    explicit VtkOutput(ModelPart& rModelPart, Parameters ThisParameters);
 
     /// Destructor.
     virtual ~VtkOutput() = default;
@@ -91,9 +91,20 @@ protected:
     std::unordered_map<int, int> mKratosIdToVtkId;
     bool mShouldSwap = false;
 
+    // pointer to object of the extrapolation from gauss point to nodes process
+    IntegrationValuesExtrapolationToNodesProcess::UniquePointer mpGaussToNodesProcess;
+
+
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Interpolates the gauss point results on to the node using IntegrationValuesExtrapolationToNodesProcess
+     */
+    void PrepareGaussPointResults();
+
+
 
     /**
      * @brief Print the given rModelPart as VTK file together with the requested results
