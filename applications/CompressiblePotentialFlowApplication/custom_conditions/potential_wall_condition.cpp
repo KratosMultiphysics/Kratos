@@ -83,7 +83,16 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& 
                                                                     ProcessInfo& rCurrentProcessInfo)
 {
     VectorType RHS;
-    this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
+    CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void PotentialWallCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                                                     ProcessInfo& rCurrentProcessInfo)
+{
+    // TODO: improve speed
+    Matrix tmp;
+    CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

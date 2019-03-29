@@ -609,15 +609,17 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnNormalElemen
     const CompressiblePotentialFlowElement& r_this = *this;
     const int kutta = r_this.GetValue(KUTTA);
 
+    auto& r_geometry = GetGeometry();
+
     if (kutta == 0)
         for (unsigned int i = 0; i < NumNodes; i++)
-            phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+            phis[i] = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
     else
         for (unsigned int i = 0; i < NumNodes; i++)
-            if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
-                phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+            if (!r_geometry[i].GetValue(TRAILING_EDGE))
+                phis[i] = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
             else
-                phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+                phis[i] = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
 }
 
 template <int Dim, int NumNodes>
