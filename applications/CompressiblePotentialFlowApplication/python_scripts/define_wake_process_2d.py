@@ -22,7 +22,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             "epsilon": 1e-9
         }''')
         settings.ValidateAndAssignDefaults(default_settings)
-        
+
         # Extract and check data from custom settings
         self.wake_direction = settings["wake_direction"].GetVector()
         if(self.wake_direction.Size() != 3):
