@@ -23,7 +23,7 @@ class TrilinosMeshSolverLaplacian(TrilinosMeshSolverBase):
         else: # overwritting baseclass-default
             custom_settings.AddEmptyValue("buffer_size").SetInt(2)
         super(TrilinosMeshSolverLaplacian, self).__init__(mesh_model_part, custom_settings)
-        self.print_on_rank_zero("::[TrilinosMeshSolverLaplacian]:: Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverLaplacian]:: Construction finished")
 
     #### Private functions ####
 

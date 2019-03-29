@@ -22,27 +22,27 @@ class TrilinosMeshSolverBase(MeshSolverBase):
             }""")
             custom_settings.AddValue("mesh_motion_linear_solver_settings", linear_solver_settings)
         super(TrilinosMeshSolverBase, self).__init__(mesh_model_part, custom_settings)
-        self.print_on_rank_zero("::[TrilinosMeshSolverBase]:: Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]:: Construction finished")
 
     #### Public user interface functions ####
 
     def AddVariables(self):
         super(TrilinosMeshSolverBase, self).AddVariables()
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        self.print_on_rank_zero("::[TrilinosMeshSolverBase]:: Variables ADDED.")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]:: Variables ADDED.")
 
     def ImportModelPart(self):
-        self.print_on_rank_zero("::[TrilinosMeshSolverBase]:: ", "Importing model part.")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]:: ", "Importing model part.")
         from trilinos_import_model_part_utility import TrilinosImportModelPartUtility
         self.trilinos_model_part_importer = TrilinosImportModelPartUtility(self.mesh_model_part, self.settings)
         self.trilinos_model_part_importer.ImportModelPart()
-        self.print_on_rank_zero("::[TrilinosMeshSolverBase]:: ", "Finished importing model part.")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]:: ", "Finished importing model part.")
 
     def PrepareModelPart(self):
         super(TrilinosMeshSolverBase, self).PrepareModelPart()
         # Construct the mpi-communicator
         self.trilinos_model_part_importer.CreateCommunicators()
-        self.print_on_rank_zero("::[TrilinosMeshSolverBase]::", "ModelPart prepared for Solver.")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]::", "ModelPart prepared for Solver.")
 
     #### Specific internal functions ####
 
