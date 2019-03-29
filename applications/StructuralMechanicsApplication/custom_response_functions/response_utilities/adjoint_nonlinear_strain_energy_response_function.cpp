@@ -22,6 +22,7 @@ namespace Kratos
     AdjointNonlinearStrainEnergyResponseFunction::AdjointNonlinearStrainEnergyResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
     : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     {
+        mpModelPart = &rModelPart;
         for(auto cond_it = rModelPart.ConditionsBegin(); cond_it != rModelPart.ConditionsEnd(); ++cond_it)
         {
             // ToDO Mahmoud: the size of condition RHS is going to change for some condtion
@@ -31,6 +32,7 @@ namespace Kratos
             SizeType vec_size = number_of_nodes * dimension;
             mConditionsRHS[cond_it->Id()] = ZeroVector(vec_size);
             mResponseGradient_0[cond_it->Id()] = ZeroVector(vec_size);
+            mResponseGradient_1[cond_it->Id()] = ZeroVector(vec_size);
         }
     }
 
@@ -38,20 +40,18 @@ namespace Kratos
     {
     }
 
-    // void AdjointNonlinearStrainEnergyResponseFunction::InitializeSolutionStep()
-    // {
-    //     auto condition_pointer = rModelPart.Conditions().begin();
-    //     auto cond = *condition_pointer;
-    //     Matrix residual_gradient;
-    //     Vector scaling_factor_vector;
-    //     Vector adjoint_values;
-    //     double load_factor_ratio;
-    //     ProcessInfo r_process_info = rModelPart.GetProcessInfo();
-    //     this->CalculateFirstDerivativesGradient(cond, residual_gradient,scaling_factor_vector, r_process_info);
-    //     load_factor_ratio = scaling_factor_vector[0];
-    //     KRATOS_WATCH(load_factor_ratio)
-    //     mpModelPart->GetProcessInfo().SetValue(ADJOINT_CORRECTION_FACTOR, load_factor_ratio);
-    // }
+    void AdjointNonlinearStrainEnergyResponseFunction::FinalizeSolutionStep()
+    {
+        auto condition_pointer = mpModelPart->Conditions().begin();
+        auto cond = *condition_pointer;
+        Matrix residual_gradient;
+        Vector adjoint_values;
+        double load_factor_ratio;
+        ProcessInfo r_process_info = mpModelPart->GetProcessInfo();
+        load_factor_ratio = this->CalculateAdjointScalingFactor(cond, residual_gradient, r_process_info);
+        mpModelPart->GetProcessInfo().SetValue(ADJOINT_CORRECTION_FACTOR, load_factor_ratio);
+    }
+
     double AdjointNonlinearStrainEnergyResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
@@ -210,24 +210,21 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    // TODO Mahmoud: This is not the correct place to implement the scaling factor, another function should be added
-    // to the base class to be used for calculating the scaling factor
     // This calculate a scaling factor for the current response gradient w.r.t the response gradient of the last step
     // Later this should be replaced with a more general approach that is suitable for follower loads
     // a scaling factor would give accurate results for non-follower loads, however it should be used carefully for follower loads
     // frac{\partial E_i}{\partial u_i} / frac{\partial E_i-1}{\partial u_i-1}
-    void AdjointNonlinearStrainEnergyResponseFunction::CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
+    double AdjointNonlinearStrainEnergyResponseFunction::CalculateAdjointScalingFactor(const Condition& rAdjointCondition,
                                                    const Matrix& rResidualGradient,
-                                                   Vector& rResponseGradient,
                                                    const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY
 
         Vector response_gradient_0;
         Vector response_gradient_1;
+        double scaling_factor = 0;
         response_gradient_0 = mResponseGradient_0[rAdjointCondition.Id()];
         response_gradient_1 = mResponseGradient_1[rAdjointCondition.Id()];
-        rResponseGradient = ZeroVector(1);
         const double tolerance = 1e-5;
 
         // Here a scalar value is calculated (lambda_1 / lambda_0)
@@ -235,11 +232,13 @@ namespace Kratos
         {
             if( std::abs(response_gradient_0[i]) > tolerance )
             {
-                rResponseGradient[0] = response_gradient_1[i] / response_gradient_0[i];
+                scaling_factor = response_gradient_1[i] / response_gradient_0[i];
                 break;
             }
         }
         mResponseGradient_0[rAdjointCondition.Id()] = response_gradient_1;
+        return scaling_factor;
+
         KRATOS_CATCH("");
     }
 

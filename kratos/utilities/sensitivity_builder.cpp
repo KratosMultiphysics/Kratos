@@ -586,25 +586,8 @@ void SensitivityBuilder::UpdateSensitivities()
     else if (mBuildMode == "static-non-linear-strain-energy")
     {
         scaling_factor = 1.0;
-        // set process info
+        // Sets a flag for nonlinear static analysis
         mpModelPart->GetProcessInfo().SetValue(IS_NONLINEAR, true);
-
-        // calculates the correction scaling factor here
-        if( mBuildMode == "static-non-linear-strain-energy")
-        {
-            auto condition_pointer = mpModelPart->Conditions().begin();
-            auto cond = *condition_pointer;
-            Matrix residual_gradient;
-            Vector scaling_factor_vector;
-            Vector adjoint_values;
-            double load_factor_ratio;
-            ProcessInfo r_process_info = mpModelPart->GetProcessInfo();
-            mpResponseFunction->CalculateFirstDerivativesGradient(cond, residual_gradient,
-                                                                    scaling_factor_vector, r_process_info);
-            load_factor_ratio = scaling_factor_vector[0];
-            KRATOS_WATCH(load_factor_ratio)
-            mpModelPart->GetProcessInfo().SetValue(ADJOINT_CORRECTION_FACTOR, load_factor_ratio);
-        }
     }
     else
     {
