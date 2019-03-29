@@ -405,7 +405,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
             for i in range(0,primal_parameters["processes"]["constraints_process_list"].size()):
                 process = adjoint_parameters["processes"]["constraints_process_list"][i]
                 variable_name = process["Parameters"]["variable_name"].GetString()
-            process["Parameters"]["variable_name"].SetString("ADJOINT_"+variable_name)
+                process["Parameters"]["variable_name"].SetString("ADJOINT_"+variable_name)
 
             # Neumann conditions - do not modify to read the same load values as in primal:
 

@@ -98,6 +98,17 @@ void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateConstitutiveMatrixPK2
     rConstitutiveMatrix(2,2) = c3;
 }
 
+void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculatePK2Stress(
+    const Vector& rStrainVector,
+    Vector& rStressVector,
+    const double YoungModulus,
+    const double PoissonCoefficient)
+{
+    Matrix D;
+    this->CalculateConstitutiveMatrixPK2(D, YoungModulus, PoissonCoefficient);
+    noalias(rStressVector) = prod(D, rStrainVector);
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 

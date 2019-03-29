@@ -22,6 +22,7 @@ namespace Kratos
     AdjointNonlinearStrainEnergyResponseFunction::AdjointNonlinearStrainEnergyResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
     : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     {
+        mpModelPart = &rModelPart;
         for(auto cond_it = rModelPart.ConditionsBegin(); cond_it != rModelPart.ConditionsEnd(); ++cond_it)
         {
             // ToDO Mahmoud: the size of condition RHS is going to change for some condtion
@@ -31,11 +32,22 @@ namespace Kratos
             SizeType vec_size = number_of_nodes * dimension;
             mConditionsRHS[cond_it->Id()] = ZeroVector(vec_size);
             mResponseGradient_0[cond_it->Id()] = ZeroVector(vec_size);
+            mResponseGradient_1[cond_it->Id()] = ZeroVector(vec_size);
         }
     }
 
     AdjointNonlinearStrainEnergyResponseFunction::~AdjointNonlinearStrainEnergyResponseFunction()
     {
+    }
+
+    void AdjointNonlinearStrainEnergyResponseFunction::FinalizeSolutionStep()
+    {
+        auto condition_pointer = mpModelPart->Conditions().begin();
+        Matrix residual_gradient;
+        Vector adjoint_values;
+        ProcessInfo r_process_info = mpModelPart->GetProcessInfo();
+        double load_factor_ratio = this->CalculateAdjointScalingFactor(*condition_pointer, residual_gradient, r_process_info);
+        mpModelPart->GetProcessInfo().SetValue(ADJOINT_CORRECTION_FACTOR, load_factor_ratio);
     }
 
     double AdjointNonlinearStrainEnergyResponseFunction::CalculateValue(ModelPart& rModelPart)
@@ -51,7 +63,8 @@ namespace Kratos
         KRATOS_ERROR_IF( r_current_process_info.Has(IS_ADJOINT) && r_current_process_info[IS_ADJOINT] )
         << "Calculate value for strain energy response is only available when using primal elements" << std::endl;
 
-        // Sums all elemental strain energy increment values calculated by trapezoidal rule: E = 0.5 * (f_ext_i - f_ext_i-1) * (u_i - u_i-1)
+        // sum all elemental strain energy increment values calculated by trapezoidal rule: E = 0.5 * (f_ext_i - f_ext_i-1) * (u_i - u_i-1)
+        // TODO Mahmoud: Calculation using the exact value for the external force at the last time step, not just an approximation
         #pragma omp parallel
         {
         Matrix LHS;
@@ -194,24 +207,21 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    // TODO Mahmoud: This is not the correct place to implement the scaling factor, another function should be added
-    // to the base class to be used for calculating the scaling factor
     // This calculate a scaling factor for the current response gradient w.r.t the response gradient of the last step
     // Later this should be replaced with a more general approach that is suitable for follower loads
     // a scaling factor would give accurate results for non-follower loads, however it should be used carefully for follower loads
     // frac{\partial E_i}{\partial u_i} / frac{\partial E_i-1}{\partial u_i-1}
-    void AdjointNonlinearStrainEnergyResponseFunction::CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
+    double AdjointNonlinearStrainEnergyResponseFunction::CalculateAdjointScalingFactor(const Condition& rAdjointCondition,
                                                    const Matrix& rResidualGradient,
-                                                   Vector& rResponseGradient,
                                                    const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY
 
         Vector response_gradient_0;
         Vector response_gradient_1;
+        double scaling_factor = 0;
         response_gradient_0 = mResponseGradient_0[rAdjointCondition.Id()];
         response_gradient_1 = mResponseGradient_1[rAdjointCondition.Id()];
-        rResponseGradient = ZeroVector(1);
         const double tolerance = 1e-5;
 
         // Here a scalar value is calculated (lambda_1 / lambda_0)
@@ -219,11 +229,13 @@ namespace Kratos
         {
             if( std::abs(response_gradient_0[i]) > tolerance )
             {
-                rResponseGradient[0] = response_gradient_1[i] / response_gradient_0[i];
+                scaling_factor = response_gradient_1[i] / response_gradient_0[i];
                 break;
             }
         }
         mResponseGradient_0[rAdjointCondition.Id()] = response_gradient_1;
+        return scaling_factor;
+
         KRATOS_CATCH("");
     }
 
@@ -235,8 +247,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        if (rSensitivityGradient.size() != 0)
-            rSensitivityGradient.resize(0, false);
+        rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
         KRATOS_CATCH("");
     }
@@ -250,8 +261,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if (rSensitivityGradient.size() != 0)
-            rSensitivityGradient.resize(0, false);
+        rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
         KRATOS_CATCH("");
     }
@@ -264,8 +274,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if (rSensitivityGradient.size() != 0)
-            rSensitivityGradient.resize(0, false);
+        rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
         KRATOS_CATCH("");
     }
@@ -283,8 +292,9 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-    if(rVariable == SHAPE)
-    {
+        KRATOS_ERROR_IF( rVariable != SHAPE_SENSITIVITY )
+            << "Calculation of nonlinear strain energy sensitivity is available only for shape variables!" << std::endl;
+
         // TODO Mahmoud: This copy assignment is expensive
         ProcessInfo process_info = rProcessInfo;
 

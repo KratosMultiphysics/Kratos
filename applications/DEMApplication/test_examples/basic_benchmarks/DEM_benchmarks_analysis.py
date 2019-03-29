@@ -69,35 +69,8 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ModelPartIO(modelpart)
 
-    def SetSolverStrategy(self):
-        # Strategy object
-        element_type = self.DEM_parameters["ElementType"].GetString()
-        if (element_type == "SphericPartDEMElement3D" or element_type == "CylinderPartDEMElement2D"):
-            import sphere_strategy as SolverStrategy
-        elif (element_type == "SphericContPartDEMElement3D" or element_type == "CylinderContPartDEMElement2D"):
-            import continuum_sphere_strategy as SolverStrategy
-        elif (element_type == "ThermalSphericContPartDEMElement3D"):
-            import thermal_continuum_sphere_strategy as SolverStrategy
-        elif (element_type == "ThermalSphericPartDEMElement3D"):
-            import thermal_sphere_strategy as SolverStrategy
-        elif (element_type == "SinteringSphericConPartDEMElement3D"):
-            import thermal_continuum_sphere_strategy as SolverStrategy
-        elif (element_type == "IceContPartDEMElement3D"):
-            import ice_continuum_sphere_strategy as SolverStrategy
-        else:
-            self.KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
-
-        return SolverStrategy
-
-    def SetSolver(self):
-        return self.solver_strategy.ExplicitStrategy(self.all_model_parts,
-                                                     self.creator_destructor,
-                                                     self.dem_fem_search,
-                                                     self.DEM_parameters,
-                                                     self.procedures)
-
     def SetDt(self):
-        self.solver.dt = dt
+        self._GetSolver().dt = dt
 
     def Initialize(self):
         self.DEM_parameters["problem_name"].SetString('benchmark' + str(benchmark_number))
@@ -137,12 +110,12 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
 
     def _BeforeSolveOperations(self, time):
         super(DEMBenchamarksAnalysisStage, self)._BeforeSolveOperations(time)
-        benchmark.ApplyNodalRotation(time, self.solver.dt, self.spheres_model_part)
+        benchmark.ApplyNodalRotation(time, self._GetSolver().dt, self.spheres_model_part)
 
     def BeforePrintingOperations(self, time):
         super(DEMBenchamarksAnalysisStage, self).BeforePrintingOperations(time)
         self.SetDt()
-        benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.graph_print_interval, self.solver.dt)
+        benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.graph_print_interval, self._GetSolver().dt)
 
     def Finalize(self):
         benchmark.get_final_data(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part)

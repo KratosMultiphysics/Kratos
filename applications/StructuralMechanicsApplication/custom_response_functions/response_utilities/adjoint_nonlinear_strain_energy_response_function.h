@@ -80,9 +80,9 @@ public:
     ///@name Operations
     ///@{
 
-    double CalculateValue(ModelPart& rModelPart) override;
+    void FinalizeSolutionStep() override;
 
-    //void CalculateResponseIncrement(ModelPart& rModelPart);
+    double CalculateValue(ModelPart& rModelPart) override;
 
     void CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,
@@ -118,11 +118,9 @@ public:
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo) override;
 
-
-    void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
+    double CalculateAdjointScalingFactor(const Condition& rAdjointCondition,
                                                    const Matrix& rResidualGradient,
-                                                   Vector& rResponseGradient,
-                                                   const ProcessInfo& rProcessInfo) override;
+                                                   const ProcessInfo& rProcessInfo);
 
     //void GetGradientVector(const Condition& rAdjointCondition, Vector& rResponseGradient);
 
@@ -181,6 +179,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    ModelPart* mpModelPart = nullptr;
     double m_response_value = 0.0;
 
     Matrix mExternalForceDisplacementDerivative;

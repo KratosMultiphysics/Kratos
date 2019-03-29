@@ -35,18 +35,18 @@ class ModelPartController:
             },
             "design_surface_sub_model_part_name" : "DESIGN_SURFACE_NAME",
             "damping" : {
-                "apply_damping"   : false,
-                "damping_regions" : []
+                "apply_damping"      : false,
+                "max_neighbor_nodes" : 10000,
+                "damping_regions"    : []
             },
             "mesh_motion" : {
-                "apply_mesh_solver" : false,
-                "solver_settings" : { },
-                "boundary_conditions_process_list" : []
+                "apply_mesh_solver" : false
             }
         }""")
 
         self.model_settings.ValidateAndAssignDefaults(default_settings)
         self.model_settings["model_import_settings"].ValidateAndAssignDefaults(default_settings["model_import_settings"])
+        self.model_settings["damping"].ValidateAndAssignDefaults(default_settings["damping"])
 
         self.model = model
 
@@ -146,7 +146,7 @@ class ModelPartController:
             self.design_surface = self.optimization_model_part.GetSubModelPart(nameOfDesignSurface)
             print("\n> The following design surface was defined:\n\n",self.design_surface)
         else:
-            raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesingSurface)
+            raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesignSurface)
 
     # --------------------------------------------------------------------------
     def __IdentifyDampingRegions(self):
