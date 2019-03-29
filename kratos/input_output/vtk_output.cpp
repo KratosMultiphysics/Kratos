@@ -753,7 +753,8 @@ Parameters VtkOutput::GetDefaultParameters()
         "nodal_solution_step_data_variables" : [],
         "nodal_data_value_variables"         : [],
         "element_data_value_variables"       : [],
-        "condition_data_value_variables"     : []
+        "condition_data_value_variables"     : [],
+        "gauss_point_variables"              : []
     })" );
 
     return default_parameters;
