@@ -199,7 +199,7 @@ class AleFluidSolver(PythonSolver):
     def SolveSolutionStep(self):
         is_converged = True
         for mesh_solver in self.mesh_motion_solvers:
-            is_converged &= bool(mesh_solver.SolveSolutionStep()) # explicit bool conversion is only needed bcs "Solve" i currently called
+            is_converged &= mesh_solver.SolveSolutionStep()
 
         for mesh_solver in self.mesh_motion_solvers:
             KMM.CalculateMeshVelocities(
