@@ -97,7 +97,7 @@ private:
     ///@{
 
     const CompressiblePotentialFlowElement<2,3> mCompressiblePotentialFlowElement2D3N;
-    const CompressiblePotentialFlowElement<3,4> mCompressiblePotentialFlowElement3D4N;
+    //const CompressiblePotentialFlowElement<3,4> mCompressiblePotentialFlowElement3D4N;
 
     const IncompressiblePotentialFlowElement<2,3> mIncompressiblePotentialFlowElement2D3N;
 

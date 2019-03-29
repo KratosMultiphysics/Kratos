@@ -45,7 +45,7 @@ namespace Kratos
 ///@{
 
 template <int Dim, int NumNodes>
-class IncompressiblePotentialFlowElement : public Element
+class CompressiblePotentialFlowElement : public Element
 {
 public:
     template <unsigned int TNumNodes, unsigned int TDim>
@@ -65,8 +65,8 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of IncompressiblePotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(IncompressiblePotentialFlowElement);
+    /// Pointer definition of CompressiblePotentialFlowElement
+    KRATOS_CLASS_POINTER_DEFINITION(CompressiblePotentialFlowElement);
 
     ///@}
     ///@name Life Cycle
@@ -78,24 +78,24 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    explicit IncompressiblePotentialFlowElement(IndexType NewId = 0){}
+    explicit CompressiblePotentialFlowElement(IndexType NewId = 0){}
 
     /**
      * Constructor using an array of nodes
      */
-    IncompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes)
+    CompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes)
         : Element(NewId, ThisNodes){}
 
     /**
      * Constructor using Geometry
      */
-    IncompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    CompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry){}
 
     /**
      * Constructor using Properties
      */
-    IncompressiblePotentialFlowElement(IndexType NewId,
+    CompressiblePotentialFlowElement(IndexType NewId,
                                        GeometryType::Pointer pGeometry,
                                        PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties){}
@@ -103,24 +103,24 @@ public:
     /**
      * Copy Constructor
      */
-    IncompressiblePotentialFlowElement(IncompressiblePotentialFlowElement const& rOther) = delete;
+    CompressiblePotentialFlowElement(CompressiblePotentialFlowElement const& rOther) = delete;
 
     /**
      * Move Constructor
      */
-    IncompressiblePotentialFlowElement(IncompressiblePotentialFlowElement&& rOther) = delete;
+    CompressiblePotentialFlowElement(CompressiblePotentialFlowElement&& rOther) = delete;
 
     /**
      * Destructor
      */
-    ~IncompressiblePotentialFlowElement() override{}
+    ~CompressiblePotentialFlowElement() override{}
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement const& rOther)
+    CompressiblePotentialFlowElement& operator=(CompressiblePotentialFlowElement const& rOther)
     {
         BaseType::operator=(rOther);
         Flags::operator=(rOther);
@@ -128,7 +128,7 @@ public:
     }
 
     /// Move operator.
-    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement&& rOther)
+    CompressiblePotentialFlowElement& operator=(CompressiblePotentialFlowElement&& rOther)
     {
         BaseType::operator=(rOther);
         Flags::operator=(rOther);
@@ -351,7 +351,7 @@ private:
 
     ///@}
 
-}; // Class IncompressiblePotentialFlowElement
+}; // Class CompressiblePotentialFlowElement
 
 ///@}
 
