@@ -175,7 +175,7 @@ public:
 
             ComponentType TargetStressVarComponent = KratosComponents< ComponentType >::Get(mTargetStressVariableName);
             ComponentType ReactionStressVarComponent = KratosComponents< ComponentType >::Get(mReactionStressVariableName);
-            #pragma omp parallel for reduction(+:FaceReaction)
+            #pragma omp parallel for
             for(int i = 0; i<NNodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
