@@ -241,7 +241,7 @@ public:
 
         const double c3 = 0.0;
 
-        const double friction_angle = r_material_properties[FRICTION_ANGLE];
+        const double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0;;
         const double sin_phi = std::sin(friction_angle);
         const double Root3 = std::sqrt(3.0);
 
