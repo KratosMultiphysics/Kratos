@@ -200,10 +200,10 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", dimension = "2D"):
             "output_sub_model_parts"             : true,
             "folder_name"                        : "test_vtk_output",
             "nodal_solution_step_data_variables" : ["PRESSURE","DISPLACEMENT", "VELOCITY"],
-            "nodal_flag"                         : ["BOUNDARY"],
+            "nodal_flags"                        : ["BOUNDARY"],
             "element_data_value_variables"       : ["DETERMINANT"],
             "condition_data_value_variables"     : ["DENSITY", "YOUNG_MODULUS"],
-            "condition_flag"                     : ["BOUNDARY"]
+            "condition_flags"                    : ["BOUNDARY"]
         }
     }""")
 
