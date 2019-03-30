@@ -445,17 +445,20 @@ class MmgProcess(KratosMultiphysics.Process):
         for metric_process in self.metric_processes:
             metric_process.Execute()
 
+        # Debug before remesh
+        if self.settings["debug_mode"].GetString() == "GiD": # GiD
+            self._debug_output_gid(self.step, "", "BEFORE_")
+        elif self.settings["debug_mode"].GetString() == "VTK": # VTK
+            self._debug_output_vtk(self.step, "", "BEFORE_")
+
         KratosMultiphysics.Logger.PrintInfo("MMG Remeshing Process", "Remeshing")
         self.mmg_process.Execute()
 
+        # Debug after remesh
         if self.settings["debug_mode"].GetString() == "GiD": # GiD
-            self.gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostBinary
-            self.singlefile = KratosMultiphysics.MultiFileFlag.SingleFile
-            self.deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteUndeformed
-            self.write_conditions = KratosMultiphysics.WriteConditionsFlag.WriteConditions
-            self._debug_output_gid(self.step, "")
+            self._debug_output_gid(self.step, "", "AFTER_")
         elif self.settings["debug_mode"].GetString() == "VTK": # VTK
-            self._debug_output_vtk(self.step, "")
+            self._debug_output_vtk(self.step, "", "AFTER_")
 
         if self.strategy == "LevelSet":
             self.local_gradient.Execute() # Recalculate gradient after remeshing
@@ -529,15 +532,19 @@ class MmgProcess(KratosMultiphysics.Process):
 
       return variable_list
 
-    def _debug_output_gid(self, label, name):
+    def _debug_output_gid(self, label, name, prefix):
         '''Debug postprocess with GiD.'''
-        gid_io = KratosMultiphysics.GidIO("REMESHING_"+name+"_STEP_"+str(label), self.gid_mode, self.singlefile, self.deformed_mesh_flag, self.write_conditions)
+        gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostBinary
+        singlefile = KratosMultiphysics.MultiFileFlag.SingleFile
+        deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteUndeformed
+        write_conditions = KratosMultiphysics.WriteConditionsFlag.WriteConditions
+        gid_io = KratosMultiphysics.GidIO(prefix + "REMESHING_" + name + "_STEP_" + str(label), gid_mode, singlefile, deformed_mesh_flag, write_conditions)
 
         gid_io.InitializeMesh(label)
         gid_io.WriteMesh(self.main_model_part.GetMesh())
         gid_io.FinalizeMesh()
         gid_io.InitializeResults(label, self.main_model_part.GetMesh())
-        if (self.settings["framework"].GetString() ==  "Lagrangian"):
+        if self.settings["framework"].GetString() ==  "Lagrangian":
             gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT, self.main_model_part.Nodes, label, 0)
             for var in self.internal_variable_interpolation_list:
                 gid_io.PrintOnGaussPoints(var, self.main_model_part, label)
@@ -547,17 +554,17 @@ class MmgProcess(KratosMultiphysics.Process):
 
         #raise NameError("DEBUG")
 
-    def _debug_output_vtk(self, label, name):
+    def _debug_output_vtk(self, label, name, prefix):
         '''Debug postprocess with VTK.'''
-        settings = KratosMultiphysics.Parameters("""{
+        vtk_settings = KratosMultiphysics.Parameters("""{
             "model_part_name"                    : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "file_format"                        : "ascii",
             "output_precision"                   : 7,
             "output_control_type"                : "step",
             "output_frequency"                   : 1.0,
             "output_sub_model_parts"             : false,
-            "folder_name"                        : "VTK_Output",
-            "save_output_files_in_folder"        : true,
+            "custom_name_prefix"                 : "",
+            "save_output_files_in_folder"        : false,
             "nodal_solution_step_data_variables" : [],
             "nodal_data_value_variables"         : [],
             "element_data_value_variables"       : [],
@@ -565,15 +572,15 @@ class MmgProcess(KratosMultiphysics.Process):
             "gauss_point_variables"              : []
         }""")
 
-        settings["folder_name"].SetString("REMESHING_"+name+"_STEP_"+str(label))
-        if (self.settings["framework"].GetString() ==  "Lagrangian"):
-            settings["nodal_solution_step_data_variables"].Append("DISPLACEMENT")
+        vtk_settings["custom_name_prefix"].SetString(prefix + "REMESHING_" + name + "_STEP_" + str(label) + "_")
+        if self.settings["framework"].GetString() ==  "Lagrangian":
+            vtk_settings["nodal_solution_step_data_variables"].Append("DISPLACEMENT")
             for var in self.internal_variable_interpolation_list:
-                settings["gauss_point_variables"].Append(var.Name())
+                vtk_settings["gauss_point_variables"].Append(var.Name())
         else:
-            settings["nodal_solution_step_data_variables"].Append("VELOCITY")
+            vtk_settings["nodal_solution_step_data_variables"].Append("VELOCITY")
 
-        vtk_io = KratosMultiphysics.VtkOutput(self.main_model_part, settings)
+        vtk_io = KratosMultiphysics.VtkOutput(self.main_model_part, vtk_settings)
         vtk_io.PrintOutput()
 
         #raise NameError("DEBUG")
