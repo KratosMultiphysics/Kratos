@@ -37,6 +37,23 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCu
     // Convert imposition of velocity and acceleration to displacement
     // NOTE: This only consider translational velocity and acceleration: no angular
     MPC_Imposed_Displacement += (MPC_Imposed_Velocity * delta_time) + (0.5 * MPC_Imposed_Acceleration * delta_time * delta_time);
+
+    // Prepare variables
+    GeneralVariables Variables;
+    const array_1d<double, 3 > & xg_c = this->GetValue(MPC_COORD);
+    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
+
+    // Get NODAL_AREA from MPC_Area
+    GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.PointsNumber();
+    const double & MPC_Area = this->GetIntegrationWeight();
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        rGeom[i].SetLock();
+        rGeom[i].FastGetSolutionStepValue(NODAL_AREA, 0) += Variables.N[i] * MPC_Area;
+        rGeom[i].UnSetLock();
+    }
+
 }
 
 //************************************************************************************

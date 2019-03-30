@@ -254,6 +254,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
     // Prepare variables
     GeneralVariables Variables;
     const array_1d<double, 3 > & xg_c = this->GetValue(MPC_COORD);
+    const double & MPC_Area = this->GetValue(MPC_AREA);
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
 
     // Interpolate the force to MPC_Force assuming linear shape function
@@ -262,34 +263,38 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
     {
         // Check whether there is material point inside the node
         const double& nodal_mass = rGeom[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+        const double nodal_area  = rGeom[i].FastGetSolutionStepValue(NODAL_AREA, 0);
         const Vector nodal_force = rGeom[i].FastGetSolutionStepValue(REACTION);
 
         if (nodal_mass > std::numeric_limits<double>::epsilon())
         {
-            MPC_Force += Variables.N[i] * nodal_force;
+            MPC_Force += Variables.N[i] * nodal_force * MPC_Area / nodal_area;
         }
     }
 
-    // Apply only in the normal direction
-    array_1d<double, 3 > & unit_normal_vector = this->GetValue(MPC_NORMAL);
-    ParticleMechanicsMathUtilities<double>::Normalize(unit_normal_vector);
-    const double normal_force = MathUtils<double>::Dot(MPC_Force,unit_normal_vector);
+    if (Is(CONTACT))
+    {
+        // Apply only in the normal direction
+        array_1d<double, 3 > & unit_normal_vector = this->GetValue(MPC_NORMAL);
+        ParticleMechanicsMathUtilities<double>::Normalize(unit_normal_vector);
+        const double normal_force = MathUtils<double>::Dot(MPC_Force,unit_normal_vector);
 
-    // if((this->GetId() == 8554 ||this->GetId() == 8560 )){
-    //     std::cout << "=================================================" << std::endl;
-    //     std::cout << "CONDITION ID: " << this->GetId() << std::endl;
-    //     std::cout << "MPC_Imposed_Displacement" << this->GetValue(MPC_IMPOSED_DISPLACEMENT) << std::endl;
-    //     std::cout << "MPC_Force: " << MPC_Force << std::endl;
-    //     std::cout << "unit_normal_vector: " << unit_normal_vector << std::endl;
-    //     std::cout << "normal_force: " << normal_force << std::endl;
-    //     std::cout << "=================================================" << std::endl;
-    // }
+        // if((this->GetId() == 8554 ||this->GetId() == 8560 )){
+        //     std::cout << "=================================================" << std::endl;
+        //     std::cout << "CONDITION ID: " << this->GetId() << std::endl;
+        //     std::cout << "MPC_Imposed_Displacement" << this->GetValue(MPC_IMPOSED_DISPLACEMENT) << std::endl;
+        //     std::cout << "MPC_Force: " << MPC_Force << std::endl;
+        //     std::cout << "unit_normal_vector: " << unit_normal_vector << std::endl;
+        //     std::cout << "normal_force: " << normal_force << std::endl;
+        //     std::cout << "=================================================" << std::endl;
+        // }
 
-    // This check is done to avoid sticking forces
-    if (normal_force > 0.0)
-        MPC_Force = -1.0 * normal_force * unit_normal_vector;
-    else
-        MPC_Force = ZeroVector(3);
+        // This check is done to avoid sticking forces
+        if (normal_force > 0.0)
+            MPC_Force = -1.0 * normal_force * unit_normal_vector;
+        else
+            MPC_Force = ZeroVector(3);
+    }
 
     // Set Contact Force
     this->SetValue(MPC_CONTACT_FORCE, MPC_Force);
