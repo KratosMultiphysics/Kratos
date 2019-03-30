@@ -12,10 +12,9 @@ class PouliotBenchmark2DAnalysis(BaseAnalysis):
     def ReadFluidModelParts(self):
         model_part_io_fluid = ModelPartIO('benchmark2D')
         os.chdir(self.main_path)
-        model_part_io_fluid.ReadModelPart(self.fluid_solution.fluid_model_part)
+        model_part_io_fluid.ReadModelPart(self._GetFluidAnalysis().fluid_model_part)
 
     def GetFieldUtility(self):
-        print('PouliotFlowField2D')
         self.flow_field = PouliotFlowField2D()
         space_time_set = SpaceTimeSet()
         self.field_utility = FluidFieldUtility(space_time_set, self.flow_field, 1000.0, 1e-6)
@@ -25,21 +24,21 @@ class PouliotBenchmark2DAnalysis(BaseAnalysis):
         pass
 
     def FluidInitialize(self):
-        self.fluid_model_part = self.fluid_solution.fluid_model_part
-        self.fluid_solution.vars_man=self.vars_man
-        self.fluid_solution.SetFluidSolverModule()
-        self.fluid_solution.AddFluidVariables()
+        self.fluid_model_part = self._GetFluidAnalysis().fluid_model_part
+        self._GetFluidAnalysis().vars_man=self.vars_man
+        self._GetFluidAnalysis().SetFluidSolverModule()
+        self._GetFluidAnalysis().AddFluidVariables()
         self.AddExtraProcessInfoVariablesToFluid()
         self.ReadFluidModelParts()
-        self.fluid_solution.SetFluidBufferSizeAndAddDofs()
+        self._GetFluidAnalysis().SetFluidBufferSizeAndAddDofs()
         SDP.AddExtraDofs(self.fluid_model_part,
-                         self.disperse_phase_solution.spheres_model_part,
-                         self.disperse_phase_solution.cluster_model_part,
-                         self.disperse_phase_solution.dem_inlet_model_part,
+                         self._GetDEMAnalysis().spheres_model_part,
+                         self._GetDEMAnalysis().cluster_model_part,
+                         self._GetDEMAnalysis().dem_inlet_model_part,
                          self.vars_man)
-        self.fluid_solution.SetFluidSolver()
-        self.fluid_solution.fluid_solver.Initialize()
-        self.fluid_solution.ActivateTurbulenceModel()
+        self._GetFluidAnalysis().SetFluidSolver()
+        self._GetFluidAnalysis().fluid_solver.Initialize()
+        self._GetFluidAnalysis().ActivateTurbulenceModel()
 
     def GetDebugInfo(self):
         return SDP.Counter(is_dead = True)
