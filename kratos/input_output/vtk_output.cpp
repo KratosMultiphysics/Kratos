@@ -52,9 +52,8 @@ VtkOutput::VtkOutput(
             << "options are: \"ascii\", \"binary\"" << std::endl;
     }
 
-    if(mOutputSettings["gauss_point_variables"].size() > 0)
-    {
-
+    // Adding GP variables to nodal data variables list
+    if(mOutputSettings["gauss_point_variables"].size() > 0) {
         Parameters gauss_intergration_param_non_hist = Parameters(R"(
         {
             "echo_level"                 : 0,
@@ -72,8 +71,10 @@ VtkOutput::VtkOutput(
         // Making the gauss point to nodes process if any gauss point result is requested for
         mpGaussToNodesProcess = Kratos::make_unique<IntegrationValuesExtrapolationToNodesProcess>(rModelPart, gauss_intergration_param_non_hist);
     }
-
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void VtkOutput::PrepareGaussPointResults()
 {
@@ -81,7 +82,6 @@ void VtkOutput::PrepareGaussPointResults()
         mpGaussToNodesProcess->Execute();
     }
 }
-
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -346,8 +346,7 @@ void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& r
         int cell_type = -1;
         if (geo_type_vtk_cell_type_map.count(r_entity.GetGeometry().GetGeometryType()) > 0) {
             cell_type = geo_type_vtk_cell_type_map.at(r_entity.GetGeometry().GetGeometryType());
-        }
-        else {
+        } else {
             KRATOS_ERROR << "Modelpart contains elements or conditions with "
              << "geometries for which no VTK-output is implemented!" << std::endl;
         }
@@ -373,21 +372,30 @@ void VtkOutput::WriteNodalResultsToFile(const ModelPart& rModelPart, std::ofstre
     // write nodal results header
     Parameters nodal_solution_step_results = mOutputSettings["nodal_solution_step_data_variables"];
     Parameters nodal_variable_data_results = mOutputSettings["nodal_data_value_variables"];
+    Parameters nodal_flag = mOutputSettings["nodal_flag"];
     rFileStream << "POINT_DATA " << rModelPart.NumberOfNodes() << "\n";
-    rFileStream << "FIELD FieldData " << nodal_solution_step_results.size() + nodal_variable_data_results.size()<< "\n";
+    rFileStream << "FIELD FieldData " << nodal_solution_step_results.size() + nodal_variable_data_results.size() + nodal_flag.size() << "\n";
 
     // Writing nodal_solution_step_results
     for (IndexType entry = 0; entry < nodal_solution_step_results.size(); ++entry) {
         // write nodal results variable header
-        const std::string nodal_result_name = nodal_solution_step_results[entry].GetString();
-        WriteNodalContainerResults(nodal_result_name, rModelPart.Nodes(), true, rFileStream);
+        const std::string& r_nodal_result_name = nodal_solution_step_results[entry].GetString();
+        WriteNodalContainerResults(r_nodal_result_name, rModelPart.Nodes(), true, rFileStream);
     }
 
     // Writing nodal_variable_data_results
     for (IndexType entry = 0; entry < nodal_variable_data_results.size(); ++entry) {
         // write nodal results variable header
-        const std::string nodal_result_name = nodal_variable_data_results[entry].GetString();
+        const std::string& nodal_result_name = nodal_variable_data_results[entry].GetString();
         WriteNodalContainerResults(nodal_result_name, rModelPart.Nodes(), false, rFileStream);
+    }
+
+    // Writing nodal_flag
+    for (IndexType entry = 0; entry < nodal_flag.size(); ++entry) {
+        // write nodal results variable header
+        const std::string& r_nodal_result_name = nodal_flag[entry].GetString();
+        const Flags flag = KratosComponents<Flags>::Get(r_nodal_result_name);
+        WriteFlagContainerVariable(rModelPart.Nodes(), flag, r_nodal_result_name, rFileStream);
     }
 }
 
@@ -397,7 +405,8 @@ void VtkOutput::WriteNodalResultsToFile(const ModelPart& rModelPart, std::ofstre
 void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream)
 {
     const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
-    Parameters element_results = mOutputSettings["element_data_value_variables"];
+    Parameters element_data_value_variables = mOutputSettings["element_data_value_variables"];
+    Parameters element_flag = mOutputSettings["element_flag"];
 
     int num_elements = static_cast<int>(r_local_mesh.NumberOfElements());
     rModelPart.GetCommunicator().SumAll(num_elements);
@@ -405,10 +414,18 @@ void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofst
     if (num_elements > 0) {
         // write cells header
         rFileStream << "CELL_DATA " << r_local_mesh.NumberOfElements() << "\n";
-        rFileStream << "FIELD FieldData " << element_results.size() << "\n";
-        for (IndexType entry = 0; entry < element_results.size(); ++entry) {
-            const std::string element_result_name = element_results[entry].GetString();
-            WriteGeometricalContainerResults(element_result_name,r_local_mesh.Elements(),rFileStream);
+        rFileStream << "FIELD FieldData " << element_data_value_variables.size() + element_flag.size() << "\n";
+        for (IndexType entry = 0; entry < element_data_value_variables.size(); ++entry) {
+            const std::string& r_element_result_name = element_data_value_variables[entry].GetString();
+            WriteGeometricalContainerResults(r_element_result_name,r_local_mesh.Elements(),rFileStream);
+        }
+
+        // Writing element_flag
+        for (IndexType entry = 0; entry < element_flag.size(); ++entry) {
+            // write nodal results variable header
+            const std::string& r_element_result_name = element_flag[entry].GetString();
+            const Flags flag = KratosComponents<Flags>::Get(r_element_result_name);
+            WriteFlagContainerVariable(rModelPart.Elements(), flag, r_element_result_name, rFileStream);
         }
     }
 }
@@ -420,6 +437,7 @@ void VtkOutput::WriteConditionResultsToFile(const ModelPart& rModelPart, std::of
 {
     const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
     Parameters condition_results = mOutputSettings["condition_data_value_variables"];
+    Parameters condition_flag = mOutputSettings["condition_flag"];
 
     int num_elements = static_cast<int>(r_local_mesh.NumberOfElements());
     rModelPart.GetCommunicator().SumAll(num_elements);
@@ -427,13 +445,21 @@ void VtkOutput::WriteConditionResultsToFile(const ModelPart& rModelPart, std::of
     int num_conditions = static_cast<int>(r_local_mesh.NumberOfConditions());
     rModelPart.GetCommunicator().SumAll(num_conditions);
 
-    if (num_elements == 0 && num_conditions > 0) {
-        // write cells header
+    if (num_elements == 0 && num_conditions > 0) { // TODO: Can we have conditions and elements at the same time?
+        // Write cells header
         rFileStream << "CELL_DATA " << r_local_mesh.NumberOfConditions() << "\n";
-        rFileStream << "FIELD FieldData " << condition_results.size() << "\n";
+        rFileStream << "FIELD FieldData " << condition_results.size() + condition_flag.size() << "\n";
         for (IndexType entry = 0; entry < condition_results.size(); ++entry) {
             const std::string& r_condition_result_name = condition_results[entry].GetString();
             WriteGeometricalContainerResults(r_condition_result_name,r_local_mesh.Conditions(),rFileStream);
+        }
+
+        // Writing condition_flag
+        for (IndexType entry = 0; entry < condition_flag.size(); ++entry) {
+            // write nodal results variable header
+            const std::string& r_condition_result_name = condition_flag[entry].GetString();
+            const Flags flag = KratosComponents<Flags>::Get(r_condition_result_name);
+            WriteFlagContainerVariable(rModelPart.Conditions(), flag, r_condition_result_name, rFileStream);
         }
     }
 }
@@ -449,6 +475,9 @@ void VtkOutput::WriteNodalContainerResults(
 {
     if (KratosComponents<Variable<double>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<double>>::Get(rVariableName);
+        WriteNodalScalarValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
+    } else if (KratosComponents<Variable<bool>>::Has(rVariableName)){
+        const auto& var_to_write = KratosComponents<Variable<bool>>::Get(rVariableName);
         WriteNodalScalarValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
     } else if (KratosComponents<Variable<int>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<int>>::Get(rVariableName);
@@ -485,6 +514,9 @@ void VtkOutput::WriteGeometricalContainerResults(
 {
     if (KratosComponents<Variable<double>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<double>>::Get(rVariableName);
+        WriteScalarContainerVariable(rContainer, var_to_write, rFileStream);
+    } else if (KratosComponents<Variable<bool>>::Has(rVariableName)){
+        const auto& var_to_write = KratosComponents<Variable<bool>>::Get(rVariableName);
         WriteScalarContainerVariable(rContainer, var_to_write, rFileStream);
     } else if (KratosComponents<Variable<int>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<int>>::Get(rVariableName);
@@ -592,6 +624,26 @@ void VtkOutput::WriteVectorSolutionStepVariable(
     for (const auto& r_entity : rContainer) {
         const auto& r_result = r_entity.FastGetSolutionStepValue(rVariable);
         WriteVectorDataToFile(r_result, rFileStream);
+        if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<typename TContainerType>
+void VtkOutput::WriteFlagContainerVariable(
+    const TContainerType& rContainer,
+    const Flags Flag,
+    const std::string& rFlagName,
+    std::ofstream& rFileStream) const
+{
+    rFileStream << rFlagName << " 1 "
+                << rContainer.size() << "  float\n";
+
+    for (const auto& r_entity : rContainer) {
+        const bool result = r_entity.Is(Flag);
+        WriteScalarDataToFile((float)result, rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
     }
 }
@@ -754,8 +806,11 @@ Parameters VtkOutput::GetDefaultParameters()
         "save_output_files_in_folder"        : true,
         "nodal_solution_step_data_variables" : [],
         "nodal_data_value_variables"         : [],
+        "nodal_flag"                         : [],
         "element_data_value_variables"       : [],
+        "element_flag"                       : [],
         "condition_data_value_variables"     : [],
+        "condition_flag"                     : [],
         "gauss_point_variables"              : []
     })" );
 

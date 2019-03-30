@@ -73,6 +73,12 @@ def SetupModelPart2D(model_part):
     bcs.AddNodes([1, 2, 5])
     bcs.AddConditions([1,2])
 
+    # Setting flags
+    for node in bcs.Nodes:
+        node.Set(KratosMultiphysics.BOUNDARY)
+    for cond in bcs.Conditions:
+        node.Set(KratosMultiphysics.BOUNDARY)
+
     bcmn = model_part.CreateSubModelPart("MovingNodes")
     bcmn.AddNodes([13, 14, 15])
     bcmn.AddConditions([3,4])
@@ -124,6 +130,12 @@ def SetupModelPart3D(model_part):
     bcs = model_part.CreateSubModelPart("FixedEdgeNodes")
     bcs.AddNodes([1, 2, 5])
     bcs.AddConditions([1,2])
+
+    # Setting flags
+    for node in bcs.Nodes:
+        node.Set(KratosMultiphysics.BOUNDARY)
+    for cond in bcs.Conditions:
+        node.Set(KratosMultiphysics.BOUNDARY)
 
     bcmn = model_part.CreateSubModelPart("MovingNodes")
     bcmn.AddNodes([13, 14, 15])
@@ -188,8 +200,10 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", dimension = "2D"):
             "output_sub_model_parts"             : true,
             "folder_name"                        : "test_vtk_output",
             "nodal_solution_step_data_variables" : ["PRESSURE","DISPLACEMENT", "VELOCITY"],
+            "nodal_flag"                         : ["BOUNDARY"],
             "element_data_value_variables"       : ["DETERMINANT"],
-            "condition_data_value_variables"     : ["DENSITY", "YOUNG_MODULUS"]
+            "condition_data_value_variables"     : ["DENSITY", "YOUNG_MODULUS"],
+            "condition_flag"                     : ["BOUNDARY"]
         }
     }""")
 

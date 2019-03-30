@@ -529,6 +529,12 @@ public:
         return true;
     }
 
+    bool SynchronizeVariable(Variable<bool> const& rThisVariable) override
+    {
+        SynchronizeVariable<bool,bool>(rThisVariable);
+        return true;
+    }
+
     bool SynchronizeVariable(Variable<int> const& rThisVariable) override
     {
         SynchronizeVariable<int,int>(rThisVariable);
@@ -574,6 +580,12 @@ public:
     bool SynchronizeVariable(Variable<Matrix> const& rThisVariable) override
     {
         SynchronizeVariable<Matrix,double>(rThisVariable);
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalVariable(Variable<bool> const& rThisVariable) override
+    {
+        SynchronizeNonHistoricalVariable<bool,bool>(rThisVariable);
         return true;
     }
 
