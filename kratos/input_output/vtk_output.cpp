@@ -170,7 +170,8 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
     if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
         output_file_name += mOutputSettings["folder_name"].GetString() + "/";
     }
-    output_file_name += model_part_name + "_" + std::to_string(rank) + "_" + label + ".vtk";
+    const std::string& custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
+    output_file_name += custom_name_prefix + model_part_name + "_" + std::to_string(rank) + "_" + label + ".vtk";
 
     return output_file_name;
 }
@@ -749,6 +750,7 @@ Parameters VtkOutput::GetDefaultParameters()
         "output_frequency"                   : 1.0,
         "output_sub_model_parts"             : false,
         "folder_name"                        : "VTK_Output",
+        "custom_name_prefix"                 : "",
         "save_output_files_in_folder"        : true,
         "nodal_solution_step_data_variables" : [],
         "nodal_data_value_variables"         : [],
