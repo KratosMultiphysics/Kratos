@@ -146,8 +146,6 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosStructuralMechanicsFas
     DP::CalculateYieldSurfaceDerivative(Stress, Deviator, J2, TestDP, aux_param);
     T::CalculateYieldSurfaceDerivative(Stress, Deviator, J2, TestT, aux_param);
 
-    KRATOS_WATCH(TestDP)
-
     // Check the results!
     for (int comp = 0; comp < 6; comp++) {
         KRATOS_CHECK_NEAR(MCres[comp], TestMC[comp], 1.0e-3);
