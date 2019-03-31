@@ -239,7 +239,7 @@ class MmgProcess(KratosMultiphysics.Process):
             self.scalar_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.settings["level_set_strategy_parameters"]["scalar_variable"].GetString() )
             self.gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.settings["level_set_strategy_parameters"]["gradient_variable"].GetString() )
         elif self.strategy == "Hessian":
-            self.metric_variable = self.__generate_variable_list_from_input(self.settings["hessian_strategy_parameters"]["metric_variable"])
+            self.metric_variables = self.__generate_variable_list_from_input(self.settings["hessian_strategy_parameters"]["metric_variable"])
             mesh_dependent_constant = self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()
             if mesh_dependent_constant == 0.0:
                 self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(0.5 * (self.domain_size/(self.domain_size + 1))**2.0)
@@ -392,7 +392,7 @@ class MmgProcess(KratosMultiphysics.Process):
             hessian_parameters.AddValue("anisotropy_remeshing",self.settings["anisotropy_remeshing"])
             hessian_parameters.AddValue("anisotropy_parameters",self.settings["anisotropy_parameters"])
             hessian_parameters["anisotropy_parameters"].RemoveValue("boundary_layer_min_size_ratio")
-            for current_metric_variable in self.metric_variable:
+            for current_metric_variable in self.metric_variables:
                 self.metric_processes.append(MeshingApplication.ComputeHessianSolMetricProcess(self.main_model_part, current_metric_variable, hessian_parameters))
         elif self.strategy == "superconvergent_patch_recovery":
             if not structural_dependencies:
@@ -550,6 +550,16 @@ class MmgProcess(KratosMultiphysics.Process):
                 gid_io.PrintOnGaussPoints(var, self.main_model_part, label)
         else:
             gid_io.WriteNodalResults(KratosMultiphysics.VELOCITY, self.main_model_part.Nodes, label, 0)
+
+        if self.strategy == "LevelSet":
+            gid_io.WriteNodalResults(self.scalar_variable, self.main_model_part.Nodes, label, 0)
+            gid_io.WriteNodalResults(self.gradation_value, self.main_model_part.Nodes, label, 0)
+        elif self.strategy == "Hessian":
+            variables = self.settings["hessian_strategy_parameters"]["metric_variable"]
+            for i in range( 0,variables.size()):
+                aux_var = KratosMultiphysics.KratosGlobals.GetVariable( variables[i].GetString() )
+                gid_io.WriteNodalResults(aux_var, self.main_model_part.Nodes, label, 0)
+
         gid_io.FinalizeResults()
 
         #raise NameError("DEBUG")
@@ -579,6 +589,14 @@ class MmgProcess(KratosMultiphysics.Process):
                 vtk_settings["gauss_point_variables"].Append(var.Name())
         else:
             vtk_settings["nodal_solution_step_data_variables"].Append("VELOCITY")
+
+        if self.strategy == "LevelSet":
+            vtk_settings["nodal_solution_step_data_variables"].Append(self.scalar_variable.Name())
+            vtk_settings["nodal_solution_step_data_variables"].Append(self.gradation_value.Name())
+        elif self.strategy == "Hessian":
+            variables = self.settings["hessian_strategy_parameters"]["metric_variable"]
+            for i in range( 0,variables.size()):
+                vtk_settings["nodal_solution_step_data_variables"].Append(variables[i].GetString())
 
         vtk_io = KratosMultiphysics.VtkOutput(self.main_model_part, vtk_settings)
         vtk_io.PrintOutput()
