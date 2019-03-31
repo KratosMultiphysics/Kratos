@@ -204,9 +204,9 @@ if __name__ == "__main__":
         err_msg =  'Too many input arguments!\n'
         err_msg += 'Use this script in the following way:\n'
         err_msg += '- With default ProjectParameters (read from "ProjectParameters.json"):\n'
-        err_msg += '    "python3 contact_structural_mechanics_analysis.py"\n'
+        err_msg += '    "python3 adaptative_remeshing_structural_mechanics_analysis.py"\n'
         err_msg += '- With custom ProjectParameters:\n'
-        err_msg += '    "python3 contact_structural_mechanics_analysis.py CustomProjectParameters.json"\n'
+        err_msg += '    "python3 adaptative_remeshing_structural_mechanics_analysis.py CustomProjectParameters.json"\n'
         raise Exception(err_msg)
 
     if len(argv) == 2: # ProjectParameters is being passed from outside
