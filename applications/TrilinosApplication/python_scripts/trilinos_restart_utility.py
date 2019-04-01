@@ -18,7 +18,7 @@ class TrilinosRestartUtility(RestartUtility):
         super(TrilinosRestartUtility, self).__init__(model_part, settings)
 
         self.set_mpi_communicator = settings["set_mpi_communicator"].GetBool()
-        self.rank = Kratos.DataCommunicator.GetDefault().Rank()
+        self.rank = model_part.GetCommunicator().MyPID()
 
     #### Protected functions ####
 
