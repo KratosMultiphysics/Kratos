@@ -73,7 +73,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
     // Integrate Stress Damage
     Vector& r_integrated_stress_vector = rValues.GetStressVector();
     const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
-    array_1d<double, VoigtSize> auxiliar_integrated_stress_vector = integrated_stress_vector;
+    array_1d<double, VoigtSize> auxiliar_integrated_stress_vector = r_integrated_stress_vector;
     Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
@@ -131,7 +131,27 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
 
         // Verification threshold for the plastic-damage process
         if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) && damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
-            const Vector damage_yield_flux = ZeroVector(VoigtSize);
+            array_1d<double, VoigtSize> damage_yield_flux = ZeroVector(VoigtSize);
+            TDamageIntegratorType::CalculateYieldSurfaceDerivative(predictive_stress_vector, damage_yield_flux, rValues);
+
+            const double scalar_prod_dam_yield_sigma_eff = inner_prod(damage_yield_flux, predictive_stress_vector / (1.0 - damage));
+            const double scalar_prod_plast_yield_sigma_eff = inner_prod(f_flux, predictive_stress_vector / (1.0 - damage));
+
+            double innerprod_dam_yield_elastic_tensor = 0.0, HKG = 0.0, fact1 = 0.0;
+            Vector hcapa = ZeroVector(VoigtSize);
+            for (IndexType i = 0; i < VoigtSize; ++i) {
+                for (IndexType j = 0; j < VoigtSize; ++j) {
+                    innerprod_dam_yield_elastic_tensor += damage_yield_flux[j] * r_constitutive_matrix(i,j);
+                }
+                hcapa[i] = predictive_stress_vector[i] / uniaxial_stress_plasticity;
+                HKG +=  hcapa[i] * g_flux[i];
+                fact1 += innerprod_dam_yield_elastic_tensor * g_flux[i]; // ?????
+            }
+            fact1 *= (1.0 - damage);
+            const double factorA = scalar_prod_plast_yield_sigma_eff;
+            const double factorB = 1 / plastic_denominator; // ?? ABETA
+            // const double factorC = scalar_prod_dam_yield_sigma_eff + hard_damage_slope;
+
         }
 
 

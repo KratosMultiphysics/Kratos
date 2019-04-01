@@ -415,6 +415,7 @@ protected:
     Vector mPlasticStrain = ZeroVector(VoigtSize);
 	double mThresholdDamage = 0.0;
 	double mDamage = 0.0;
+	double mDamageDissipation = 0.0;
 
     ///@}
     ///@name Private Operators
@@ -454,6 +455,7 @@ protected:
         rSerializer.save("PlasticStrain", mPlasticStrain);
         rSerializer.save("ThresholdDamage", mThresholdDamage);
         rSerializer.save("Damage", mDamage);
+        rSerializer.save("DamageDissipation", mDamageDissipation);
     }
 
     void load(Serializer &rSerializer) override
@@ -464,6 +466,7 @@ protected:
         rSerializer.load("PlasticStrain", mPlasticStrain);
         rSerializer.load("ThresholdDamage", mThresholdDamage);
         rSerializer.load("Damage", mDamage);
+        rSerializer.load("DamageDissipation", mDamageDissipation);
     }
 
     ///@}
