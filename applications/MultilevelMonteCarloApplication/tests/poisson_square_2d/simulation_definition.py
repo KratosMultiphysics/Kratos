@@ -46,7 +46,7 @@ class SimulationScenario(AnalysisStage):
             coord_y = node.Y
             # forcing = -432.0 * coord_x * (coord_x - 1) * coord_y * (coord_y - 1)
             forcing = -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)
-            node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX,forcing*self.sample)
+            node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX,forcing*self.sample[0])
 
     """
     function evaluating the QoI of the problem: int_{domain} TEMPERATURE(x,y) dx dy
