@@ -70,8 +70,72 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
 template <class TPlasticityIntegratorType, class TDamageIntegratorType>
 void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
+    // Integrate Stress Damage
+    Vector& r_integrated_stress_vector = rValues.GetStressVector();
+    const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+    array_1d<double, VoigtSize> auxiliar_integrated_stress_vector = integrated_stress_vector;
+    Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
+    const Flags& r_constitutive_law_options = rValues.GetOptions();
+
+    // We get the strain vector
+    Vector& r_strain_vector = rValues.GetStrainVector();
+
+    //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
+    if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+        this->CalculateValue(rValues, STRAIN, r_strain_vector);
+    }
+
+    // Elastic Matrix
+    if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+    }
+
+    // We compute the stress
+    if(r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        // Elastic Matrix
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+
+        if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+            BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
+        }
+
+        // Converged values
+        double threshold_plasticity = mThresholdPlasticity;
+        double threshold_damage = mThresholdDamage;
+        double damage = mDamage;
+        double plastic_dissipation = mPlasticDissipation;
+        Vector plastic_strain = mPlasticStrain;
+
+        // Stress Predictor S = (1-d)C:(E-Ep)
+        array_1d<double, VoigtSize> predictive_stress_vector = (1.0 - damage) * prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
+
+        // Initialize Plastic Parameters
+        double uniaxial_stress_plasticity = 0.0, plastic_denominator = 0.0, uniaxial_stress_damage = 0.0;
+        BoundedArrayType f_flux = ZeroVector(VoigtSize); // DF/DS
+        BoundedArrayType g_flux = ZeroVector(VoigtSize); // DG/DS
+        BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
+
+        // Compute the plastic parameters
+        const double plasticity_indicator = TPlasticityIntegratorType::CalculatePlasticParameters(
+                                        predictive_stress_vector, r_strain_vector, uniaxial_stress_plasticity,
+                                        threshold_plasticity, plastic_denominator, f_flux, g_flux,
+                                        plastic_dissipation, plastic_strain_increment,
+                                        r_constitutive_matrix, rValues, characteristic_length,
+                                        plastic_strain);
+
+        // Compute Damage Parameters
+        TDamageIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress_damage, rValues);
+        const double damage_indicator = uniaxial_stress_damage - threshold_damage;
+
+        // Verification threshold for the plastic-damage process
+        if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) && damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
+            const Vector damage_yield_flux = ZeroVector(VoigtSize);
+        }
 
 
+    }
 
 } // End CalculateMaterialResponseCauchy
 
