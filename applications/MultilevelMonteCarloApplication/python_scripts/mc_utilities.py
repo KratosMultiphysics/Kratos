@@ -318,7 +318,7 @@ class MonteCarlo(object):
     """
     def CheckConvergence(self,level):
         current_number_samples = self.QoI.number_samples[level]
-        current_mean = self.QoI.raw_moment_1[level]
+        current_mean = self.QoI.h_statistics_1[level]
         current_h2 = self.QoI.h_statistics_2[level]
         current_h3 = self.QoI.h_statistics_3[level]
         current_sample_central_moment_3_absolute = self.QoI.central_moment_from_scratch_3_absolute[level]
