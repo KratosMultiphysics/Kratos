@@ -9,7 +9,7 @@ import structural_mechanics_analysis
 import time as timer
 
 
-with open("adjoint_strain_energy_response_parameters_nonlinear_structure.json",'r') as parameter_file:
+with open("adjoint_strain_energy_response_parameters_plate.json",'r') as parameter_file:
     parameters = KratosMultiphysics.Parameters( parameter_file.read())
 
 model = KratosMultiphysics.Model()
@@ -56,7 +56,7 @@ response_function.RunCalculation(calculate_gradient=True)
 # rest_utility.LoadRestart()
 
 
-model_part_name = "rectangular_plate_structure_primal"
+model_part_name = "primal_output"
 serialization_files = "test_restart_file"
 for name in os.listdir():
     if name.find(model_part_name) == 0:

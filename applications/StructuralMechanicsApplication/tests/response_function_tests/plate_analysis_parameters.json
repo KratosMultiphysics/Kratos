@@ -3,7 +3,7 @@
       "problem_name"    : "Plate",
       "parallel_type"   : "OpenMP",
       "start_time"      : 0.0,
-      "end_time"        : 19.99,
+      "end_time"        : 0.99,
       "echo_level"      : 0
   },
   "solver_settings"          : {
@@ -37,7 +37,8 @@
       },
       "problem_domain_sub_model_part_list" : ["structure"],
       "processes_sub_model_part_list"      : ["corner_points","load_point"],
-      "rotation_dofs"                      : true
+      "rotation_dofs"                      : true,
+      "serialization"                      : true
   },
   "processes": {
     "constraints_process_list" : [{

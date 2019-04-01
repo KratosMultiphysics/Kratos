@@ -74,7 +74,8 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             self._update_arc_length_point_load(lambda_value)
 
         ## TODO Mahmoud: a condition should be added so serialization is done only when it is needed
-        self._save_serialized_model()
+        if self.settings["serialization"].GetBool() == True:
+            self._save_serialized_model()
 
 
     #### Private functions ####

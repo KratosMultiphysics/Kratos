@@ -30,7 +30,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        //TODO Mahmoud: use OpenMP
+        #pragma omp parallel for
         for(int i=0; i<static_cast<int>(mrMainModelPart.NumberOfElements()); ++i)
         {
             auto it = mrMainModelPart.ElementsBegin() + i;

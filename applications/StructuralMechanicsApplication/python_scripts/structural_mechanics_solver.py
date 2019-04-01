@@ -68,6 +68,7 @@ class MechanicalSolver(PythonSolver):
             "move_mesh_flag": true,
             "multi_point_constraints_used": true,
             "convergence_criterion": "residual_criterion",
+            "serialization": false,
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
             "residual_relative_tolerance": 1.0e-4,

@@ -114,9 +114,10 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
             node.Z = node.Z0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)[2]
 
         # Replacing pointers to primal elements with pointers to the serialized elements
-        self._load_serialized_model()
-        StructuralMechanicsApplication.ReplaceElementsWithSerializedElementsProcess(self.main_model_part, self.loaded_model_part).Execute()
-        self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "replace primal elements with serialized elements")
+        if self.settings["serialization"].GetBool() == True:
+            self._load_serialized_model()
+            StructuralMechanicsApplication.ReplaceElementsWithSerializedElementsProcess(self.main_model_part, self.loaded_model_part).Execute()
+            self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "replace primal elements with serialized elements")
 
         self.response_function.InitializeSolutionStep()
 

@@ -31,11 +31,12 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_AREAS"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC","PointLoad3D_BC_NEUMANN", "PointLoad3D_BC_NEUMANN_1", "PointLoad3D_BC_NEUMANN_2"],
+        "processes_sub_model_part_list"      : ["rectangular_plate_structure","DISPLACEMENT_DIR_BC","PointLoad3D_BC_NEUMANN", "PointLoad3D_BC_NEUMANN_1", "PointLoad3D_BC_NEUMANN_2", "rectangular_plate_structure"],
         "linear_solver_settings"       : {
             "solver_type"         : "ExternalSolversApplication.super_lu"
         },
-        "rotation_dofs"                      : true
+        "rotation_dofs"                      : true,
+        "serialization"                      : true
     },
     "processes" : {
     "constraints_process_list" : [{

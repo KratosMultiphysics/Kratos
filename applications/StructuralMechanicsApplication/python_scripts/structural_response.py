@@ -428,7 +428,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
         return adjoint_parameters
 
 # ==============================================================================
-class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
+class NonlinearAdjointStrainEnergy(AdjointResponseFunction):
     """nonlinear static adjoint strain energy response function.
     - runs the primal analysis (writes the primal results to an .h5 file)
     - reads the primal results from the .h5 file into the adjoint model part
@@ -442,6 +442,7 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
     """
     def __init__(self, identifier, project_parameters, model):
         self.identifier = identifier
+        self.response_settings = project_parameters
 
         # Create the primal solver
         with open(project_parameters["primal_settings"].GetString(),'r') as parameter_file:
@@ -472,7 +473,7 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
         # synchronize the modelparts # TODO this should happen automatically
         Logger.PrintInfo("\n> Synchronize primal and adjoint modelpart for response:", self.identifier)
 
-        #self._SynchronizeAdjointFromPrimal()
+        self._SynchronizeAdjointFromPrimal()
 
         # Run the primal analysis.
         # TODO if primal_analysis.status==solved: return
@@ -513,37 +514,3 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
         self.adjoint_analysis.RunSolutionLoop()
         Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
 
-    def GetValue(self):
-        return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
-
-
-    def GetShapeGradient(self):
-        gradient = {}
-        for node in self.adjoint_model_part.Nodes:
-            gradient[node.Id] = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
-        return gradient
-
-    # TODO Mahmoud: check whether this function is needed or not
-    def FinalizeSolutionStep(self):
-        self.adjoint_analysis.OutputSolutionStep()
-
-
-    def Finalize(self):
-        self.primal_analysis.Finalize()
-        self.adjoint_analysis.Finalize()
-
-    def _GetResponseFunctionUtility(self):
-        return self.adjoint_analysis._GetSolver().response_function
-
-
-    def _SynchronizeAdjointFromPrimal(self):
-        if len(self.primal_model_part.Nodes) != len(self.adjoint_model_part.Nodes):
-            raise RuntimeError("_SynchronizeAdjointFromPrimal: Model parts have a different number of nodes!")
-
-        for primal_node, adjoint_node in zip(self.primal_model_part.Nodes, self.adjoint_model_part.Nodes):
-            adjoint_node.X0 = primal_node.X0
-            adjoint_node.Y0 = primal_node.Y0
-            adjoint_node.Z0 = primal_node.Z0
-            adjoint_node.X = primal_node.X
-            adjoint_node.Y = primal_node.Y
-            adjoint_node.Z = primal_node.Z
