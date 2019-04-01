@@ -83,7 +83,7 @@ input:  current_number_samples:                   current number of samples comp
 output: convergence_boolean: boolean setting if convergence is achieved
 """
 @ExaquteTask(returns=1,priority=True)
-def CheckConvergenceAux_Task(current_number_samples,current_mean,current_sample_variance,current_h2,current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_delta,convergence_criteria):
+def CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_delta,convergence_criteria):
     convergence_boolean = False
     # TODO: rempve below lines later
     cphi_confidence = norm.ppf(1.0-current_delta) # confidence + error probability = 1.0
@@ -94,7 +94,7 @@ def CheckConvergenceAux_Task(current_number_samples,current_mean,current_sample_
     # TODO: remove above lines later
     if(convergence_criteria == "MC_sample_variance_sequential_stopping_rule"):
         # define local variables
-        current_convergence_coefficient = np.sqrt(current_number_samples) * current_tol / np.sqrt(current_sample_variance)
+        current_convergence_coefficient = np.sqrt(current_number_samples) * current_tol / np.sqrt(current_h2)
         # evaluate probability of failure
         main_contribute = 2*(1-_ComputeCDFStandardNormalDistribution(current_convergence_coefficient))
         if(main_contribute < current_delta):
@@ -378,7 +378,6 @@ class MonteCarlo(object):
     def CheckConvergence(self,level):
         current_number_samples = self.QoI.number_samples[level]
         current_mean = self.QoI.mean[level]
-        current_sample_variance = self.QoI.sample_variance[level]
         current_h2 = self.QoI.h_statistics_2[level]
         current_h3 = self.QoI.h_statistics_3[level]
         current_sample_central_moment_3_absolute = self.QoI.central_moment_from_scratch_3_absolute[level]
@@ -386,7 +385,7 @@ class MonteCarlo(object):
         current_tol = self.settings["tolerance"].GetDouble()
         current_error_probability = self.settings["error_probability"].GetDouble() # the "delta" in [3] in the convergence criteria is the error probability
         convergence_criteria = self.convergence_criteria
-        convergence_boolean = CheckConvergenceAux_Task(current_number_samples,current_mean,current_sample_variance,current_h2,\
+        convergence_boolean = CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,\
             current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_error_probability,convergence_criteria)
         self.convergence = convergence_boolean
 
@@ -460,14 +459,16 @@ class MonteCarlo(object):
         if (current_level != 0):
             raise Exception ("current work level must be = 0 in the Monte Carlo algorithm")
         # update statistics of the QoI
-        self.QoI.UpdateOnePassMomentsVariance(current_level,self.previous_number_samples[current_level],self.number_samples[current_level])
         self.QoI.UpdateOnePassPowerSums(current_level,self.previous_number_samples[current_level],self.number_samples[current_level])
         #for i_sample in range(self.previous_number_samples[current_level],self.number_samples[current_level]):
 
         # compute the central moments we can't derive from the unbiased h statistics
         # we compute from scratch the absolute central moment because we can't retrieve it from the h statistics
         # self.QoI.central_moment_from_scratch_3_absolute_to_compute = True # by default set to true
-        self.QoI.ComputeSampleCentralMomentsFromScratch(current_level,self.number_samples[current_level])
+        if (self.convergence_criteria == "MC_higher_moments_sequential_stopping_rule"):
+            self.QoI.central_moment_from_scratch_3_absolute_to_compute = True
+            self.QoI.ComputeSampleCentralMomentsFromScratch(current_level,self.number_samples[current_level]) # not possible to use self.StatisticalVariable.number_samples[current_level]
+                                                                                                              # inside the function because it is a pycompss.runtime.binding.Future object
         self.QoI.ComputeHStatistics(current_level)
         self.QoI.ComputeSkewnessKurtosis(current_level)
         self.CheckConvergence(current_level)
@@ -476,9 +477,8 @@ class MonteCarlo(object):
         self.convergence = get_value_from_remote(self.convergence)
         # bring to master what is needed to print
         self.number_samples = get_value_from_remote(self.number_samples)
-        self.QoI.mean = get_value_from_remote(self.QoI.mean)
-        self.QoI.sample_variance = get_value_from_remote(self.QoI.sample_variance)
-        self.QoI.values = get_value_from_remote(self.QoI.values)
+        self.QoI.h_statistics_1 = get_value_from_remote(self.QoI.h_statistics_1)
+        self.QoI.h_statistics_2 = get_value_from_remote(self.QoI.h_statistics_2)
 
     """
     function printing informations about initializing MLMC phase
@@ -496,7 +496,7 @@ class MonteCarlo(object):
         print("samples computed in this iteration",self.difference_number_samples)
         print("current number of samples = ",self.number_samples)
         print("previous number of samples = ",self.previous_number_samples)
-        print("monte carlo mean and variance QoI estimators = ",self.QoI.mean,self.QoI.sample_variance)
+        print("monte carlo mean and variance QoI estimators = ",self.QoI.h_statistics_1,self.QoI.h_statistics_2)
         print("convergence = ",self.convergence)
 
     """

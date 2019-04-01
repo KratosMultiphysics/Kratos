@@ -116,7 +116,7 @@ output: new_S1: updated first power sum
         new_S3_absolute: updated third power sum absolute value
         new_S4: updated fourth power sum with absolute value
 """
-@ExaquteTask(returns=5,priority=True)
+@ExaquteTask(returns=6,priority=True)
 def UpdateOnePassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S3_absolute,old_S4,nsamples,previous_number_samples,current_number_samples,samples):
     if previous_number_samples == 0:
         new_S1 = samples[0]
@@ -128,10 +128,12 @@ def UpdateOnePassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S3_absolute,old_S4,n
         old_S2 = new_S2
         old_S3 = new_S3
         old_S4 = new_S4
+        nsamples = 1
         samples=samples[1:current_number_samples]
     else:
         samples = samples[previous_number_samples:current_number_samples]
     for sample in samples:
+        nsamples = nsamples + 1
         new_S1 = old_S1 + sample
         new_S2 = old_S2 + sample**2
         new_S3 = old_S3 + sample**3
@@ -141,7 +143,7 @@ def UpdateOnePassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S3_absolute,old_S4,n
         old_S2 = new_S2
         old_S3 = new_S3
         old_S4 = new_S4
-    return new_S1,new_S2,new_S3,new_S3_absolute,new_S4
+    return new_S1,new_S2,new_S3,new_S3_absolute,new_S4,nsamples
 
 
 """
@@ -158,7 +160,7 @@ output: h1_level: first h statistics for defined level
 """
 @ExaquteTask(returns=4)
 def ComputeHStatisticsAux_Task(S1_level,S2_level,S3_level,S4_level,number_samples_level):
-    h1_level = 0.0
+    h1_level = S1_level / number_samples_level
     h2_level = (number_samples_level*S2_level-S1_level**2) / ((number_samples_level-1)*number_samples_level)
     h3_level = (number_samples_level**2*S3_level-3*number_samples_level*S2_level*S1_level+2*S1_level**3) / \
         ((number_samples_level-2)*(number_samples_level-1)*number_samples_level)
@@ -366,12 +368,13 @@ class StatisticalVariable(object):
         old_S3_absolute = self.power_sum_3_absolute[level]
         old_S4 = self.power_sum_4[level]
         number_samples_level = self.number_samples[level]
-        new_S1,new_S2,new_S3,new_S3_absolute,new_S4 = UpdateOnePassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S3_absolute,old_S4,number_samples_level,previous_number_samples,current_number_samples,samples)
+        new_S1,new_S2,new_S3,new_S3_absolute,new_S4,number_samples_level = UpdateOnePassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S3_absolute,old_S4,number_samples_level,previous_number_samples,current_number_samples,samples)
         self.power_sum_1[level] = new_S1
         self.power_sum_2[level] = new_S2
         self.power_sum_3[level] = new_S3
         self.power_sum_3_absolute[level] = new_S3_absolute
         self.power_sum_4[level] = new_S4
+        self.number_samples[level] = number_samples_level
 
     """
     function computing the h statistics h_p from the power sums
