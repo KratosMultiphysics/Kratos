@@ -146,7 +146,7 @@ output:
         pickled_finer_project_parameters: pickled finer parameters
 """
 @ExaquteTask(returns=3)
-def ExecuteInstance_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,mesh_sizes,sample,current_level,current_analysis_stage,mlmc_results):
+def ExecuteInstanceAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,mesh_sizes,recursive_maximal_size,sample,current_level,current_analysis_stage,mlmc_results):
     # unpickle model and build Kratos Model object
     serialized_model = pickle.loads(pickled_coarse_model)
     current_model = KratosMultiphysics.Model()
@@ -169,9 +169,15 @@ def ExecuteInstance_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_
         serialized_custom_metric_refinement_parameters.Load("MetricRefinementParametersSerialization",current_custom_metric_refinement_parameters)
         serialized_custom_remesh_refinement_parameters.Load("RemeshRefinementParametersSerialization",current_custom_remesh_refinement_parameters)
         del(serialized_custom_metric_refinement_parameters,serialized_custom_remesh_refinement_parameters)
+        # set minimal and maximal mesh sizes
+        minimal_mesh_size_level = mesh_sizes[current_level]
+        if (recursive_maximal_size == "True"):
+            maximal_mesh_size_level = mesh_sizes[current_level-1]
+        else:
+            maximal_mesh_size_level = 10.0
         # refine the model Kratos object
         refined_model,refined_project_parameters = \
-            hessian_metric_refinement.ComputeRefinementHessianMetric(current_model,current_project_parameters,mesh_sizes[current_level],mesh_sizes[current_level-1],current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters)
+            hessian_metric_refinement.ComputeRefinementHessianMetric(current_model,current_project_parameters,minimal_mesh_size_level,maximal_mesh_size_level,current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters)
         # initialize the model Kratos object
         simulation = current_analysis_stage(refined_model,refined_project_parameters,sample)
         simulation.Initialize()
@@ -248,6 +254,7 @@ class MultilevelMonteCarlo(object):
         # maximum_number_levels: maximum number of levels
         # mesh_refinement_coefficient: coefficient of mesh refinement
         # initial_mesh_size: size of coarsest/initial mesh
+        # recursive_maximal_size : set as maximal mesh size the minimal mesh size of the previous coarser level, otherwise maximal mesh size default equal to 10.0 (directly set into ExecuteInstanceAux_Task)
         # minimum_samples_add: minimum number of samples to add if at least one is going to be added
         # k0: certainty Parameter 0 rates (confidence in the variance models)
         # k1: certainty Parameter 1 rates (confidence in the weak convergence model)
@@ -267,6 +274,7 @@ class MultilevelMonteCarlo(object):
             "levels_screening" : 2,
             "maximum_number_levels" : 4,
             "mesh_refinement_coefficient" : 2,
+            "recursive_maximal_size" : "False",
             "initial_mesh_size" : 0.5,
             "minimum_samples_add_level" : 6.0,
             "splitting_parameter_max" : 0.9,
@@ -404,6 +412,7 @@ class MultilevelMonteCarlo(object):
         pickled_coarse_model = self.pickled_model
         pickled_coarse_project_parameters = self.pickled_project_parameters
         mesh_sizes = self.mesh_sizes
+        recursive_maximal_size = self.settings["recursive_maximal_size"].GetString() # check if setting or not maximal mesh size
         pickled_custom_metric_refinement_parameters = self.pickled_custom_metric_refinement_parameters
         pickled_custom_remesh_refinement_parameters = self.pickled_custom_remesh_refinement_parameters
         current_analysis = self.analysis
@@ -414,11 +423,11 @@ class MultilevelMonteCarlo(object):
         if (current_MLMC_level == 0):
             current_level = 0
             mlmc_results,pickled_current_model,pickled_current_project_parameters = \
-                ExecuteInstance_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,mesh_sizes,sample,current_level,current_analysis,mlmc_results)
+                ExecuteInstanceAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,mesh_sizes,recursive_maximal_size,sample,current_level,current_analysis,mlmc_results)
         else:
             for current_level in range(current_MLMC_level+1):
                 mlmc_results,pickled_current_model,pickled_current_project_parameters = \
-                    ExecuteInstance_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,mesh_sizes,sample,current_level,current_analysis,mlmc_results)
+                    ExecuteInstanceAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,mesh_sizes,recursive_maximal_size,sample,current_level,current_analysis,mlmc_results)
                 del(pickled_coarse_model,pickled_coarse_project_parameters)
                 pickled_coarse_model = pickled_current_model
                 pickled_coarse_project_parameters = pickled_current_project_parameters
