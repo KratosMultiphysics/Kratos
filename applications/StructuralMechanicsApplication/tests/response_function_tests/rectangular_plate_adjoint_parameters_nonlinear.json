@@ -2,7 +2,7 @@
     "problem_data"             : {
         "problem_name"    : "rectangular_plate_structure",
         "start_time"      : 0.0,
-        "end_time"        : 1.0,
+        "end_time"        : 0.99,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0
     },
@@ -13,13 +13,13 @@
         "domain_size"     : 3,
         "time_stepping"                      : {
             "automatic_time_step" : false,
-            "time_step" : 0.01
+            "time_step" : 0.1
         },
         "compute_reactions"			         : false,
         "move_mesh_flag"                     : false,
         "sensitivity_settings" : {
             "sensitivity_model_part_name" :"sensitivity_mp",
-            "nodal_sensitivity_variables"  : ["SHAPE"],
+            "nodal_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
             "element_sensitivity_variables"  : [],
             "condition_sensitivity_variables"  : [],
             "build_mode": "static-non-linear-strain-energy"

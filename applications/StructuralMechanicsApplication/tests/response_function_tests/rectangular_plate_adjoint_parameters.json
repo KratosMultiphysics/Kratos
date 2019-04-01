@@ -16,7 +16,7 @@
         "move_mesh_flag"                     : false,
         "sensitivity_settings" : {
             "sensitivity_model_part_name" :"Parts_AREAS",
-            "nodal_sensitivity_variables"  : ["SHAPE"],
+            "nodal_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
             "element_sensitivity_variables"  : [],
             "condition_sensitivity_variables"  : [],
             "build_mode": "static"

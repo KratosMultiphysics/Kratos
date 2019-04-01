@@ -88,8 +88,6 @@ public:
 
     void Execute() override;
 
-    template <class TPrimalElement> void TypeCast(TPrimalElement Element);
-
     ///@}
     ///@name Access
     ///@{
