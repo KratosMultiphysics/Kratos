@@ -409,6 +409,10 @@ private:
     const AdjointFiniteDifferenceTrussElement<TrussElement3D2N> mAdjointFiniteDifferenceTrussElement3D2N;
     const AdjointFiniteDifferenceTrussElementLinear<TrussElementLinear3D2N> mAdjointFiniteDifferenceTrussLinearElement3D2N;
     const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint2D3N;
+    const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint2D4N;
+    const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint2D6N;
+    const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint3D4N;
+    const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint3D8N;
 
     /* CONDITIONS*/
     // Point load

@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Aditya Ghantasala, Philipp Bucher
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 //
 
@@ -18,46 +19,90 @@
 
 // Project includes
 #include "vtk_output.h"
+#include "containers/model.h"
+#include "processes/fast_transfer_between_model_parts_process.h"
 
 namespace Kratos
 {
-
-VtkOutput::VtkOutput(ModelPart& rModelPart, Parameters Parameters)
-    : mrModelPart(rModelPart), mOutputSettings(Parameters)
+VtkOutput::VtkOutput(
+    ModelPart& rModelPart,
+    Parameters ThisParameters
+    ) : mrModelPart(rModelPart),
+        mOutputSettings(ThisParameters)
 {
+    // The default parameters
+    Parameters default_parameters = GetDefaultParameters();
+    mOutputSettings.ValidateAndAssignDefaults(default_parameters);
+
+    // Initialize other variables
     mDefaultPrecision = mOutputSettings["output_precision"].GetInt();
     const std::string file_format = mOutputSettings["file_format"].GetString();
     if (file_format == "ascii") {
         mFileFormat = VtkOutput::FileFormat::VTK_ASCII;
-    }
-    else if (file_format == "binary") {
+    } else if (file_format == "binary") {
         mFileFormat = VtkOutput::FileFormat::VTK_BINARY;
         // test for endian-format
         int num = 1;
         if (*(char *)&num == 1) {
             mShouldSwap = true;
         }
-    }
-    else {
+    } else {
         KRATOS_ERROR << "Option for \"file_format\": " << file_format
             << " not recognised!\n Possible output formats "
             << "options are: \"ascii\", \"binary\"" << std::endl;
     }
+
+    if(mOutputSettings["gauss_point_variables"].size() > 0)
+    {
+
+        Parameters gauss_intergration_param_non_hist = Parameters(R"(
+        {
+            "echo_level"                 : 0,
+            "area_average"               : true,
+            "average_variable"           : "NODAL_AREA",
+            "list_of_variables"          : [],
+            "extrapolate_non_historical" : true
+        })");
+
+        gauss_intergration_param_non_hist.SetValue("list_of_variables", mOutputSettings["gauss_point_variables"]);
+
+        for(auto const& gauss_var : mOutputSettings["gauss_point_variables"])
+            mOutputSettings["nodal_data_value_variables"].Append(gauss_var);
+
+        // Making the gauss point to nodes process if any gauss point result is requested for
+        mpGaussToNodesProcess = Kratos::make_unique<IntegrationValuesExtrapolationToNodesProcess>(rModelPart, gauss_intergration_param_non_hist);
+    }
+
 }
+
+void VtkOutput::PrepareGaussPointResults()
+{
+    if(mOutputSettings["gauss_point_variables"].size() > 0){
+        mpGaussToNodesProcess->Execute();
+    }
+}
+
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 void VtkOutput::PrintOutput()
 {
+    // For Gauss point results
+    PrepareGaussPointResults();
+
     // For whole model part
     WriteModelPartToFile(mrModelPart, false);
 
     // For sub model parts
     const bool print_sub_model_parts = mOutputSettings["output_sub_model_parts"].GetBool();
     if(print_sub_model_parts) {
-        for (const auto& r_sub_model_part : mrModelPart.SubModelParts()) {
-            WriteModelPartToFile(r_sub_model_part, true);
+        for (auto& r_sub_model_part : mrModelPart.SubModelParts()) {
+            if (r_sub_model_part.NumberOfNodes() == 0 && (r_sub_model_part.NumberOfConditions() != 0 || r_sub_model_part.NumberOfElements() != 0)) {
+                WriteModelPartWithoutNodesToFile(r_sub_model_part);
+            } else if (r_sub_model_part.NumberOfNodes() != 0) {
+                WriteModelPartToFile(r_sub_model_part, true);
+            }
         }
     }
 }
@@ -99,8 +144,7 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
 
     if (IsSubModelPart) {
         model_part_name = rModelPart.GetParentModelPart()->Name() + "_" + rModelPart.Name();
-    }
-    else {
+    } else {
         model_part_name = rModelPart.Name();
     }
 
@@ -126,7 +170,8 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
     if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
         output_file_name += mOutputSettings["folder_name"].GetString() + "/";
     }
-    output_file_name += model_part_name + "_" + std::to_string(rank) + "_" + label + ".vtk";
+    const std::string& custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
+    output_file_name += custom_name_prefix + model_part_name + "_" + std::to_string(rank) + "_" + label + ".vtk";
 
     return output_file_name;
 }
@@ -405,32 +450,25 @@ void VtkOutput::WriteNodalContainerResults(
     if (KratosComponents<Variable<double>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<double>>::Get(rVariableName);
         WriteNodalScalarValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
-    }
-    else if (KratosComponents<Variable<int>>::Has(rVariableName)){
+    } else if (KratosComponents<Variable<int>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<int>>::Get(rVariableName);
         WriteNodalScalarValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
-    }
-    else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName)){
+    } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 3>>>::Get(rVariableName);
         WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
-    }
-    else if (KratosComponents<Variable<Vector>>::Has(rVariableName)){
+    } else if (KratosComponents<Variable<Vector>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<Vector>>::Get(rVariableName);
         WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
-    }
-    else if (KratosComponents<Variable<array_1d<double, 4>>>::Has(rVariableName)){
+    } else if (KratosComponents<Variable<array_1d<double, 4>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 4>>>::Get(rVariableName);
         WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
-    }
-    else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(rVariableName)){
+    } else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 6>>>::Get(rVariableName);
         WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
-    }
-    else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)){
+    } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
         WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
-    }
-    else {
+    } else {
         KRATOS_WARNING_ONCE(rVariableName) << "Variable \"" << rVariableName << "\" is "
             << "not suitable for VtkOutput, skipping it" << std::endl;
     }
@@ -448,36 +486,28 @@ void VtkOutput::WriteGeometricalContainerResults(
     if (KratosComponents<Variable<double>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<double>>::Get(rVariableName);
         WriteScalarContainerVariable(rContainer, var_to_write, rFileStream);
-    }
-    else if (KratosComponents<Variable<int>>::Has(rVariableName)){
+    } else if (KratosComponents<Variable<int>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<int>>::Get(rVariableName);
         WriteScalarContainerVariable(rContainer, var_to_write, rFileStream);
-    }
-    else if (KratosComponents<Variable<Flags>>::Has(rVariableName)){
+    } else if (KratosComponents<Variable<Flags>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<Flags>>::Get(rVariableName);
         WriteScalarContainerVariable(rContainer, var_to_write, rFileStream);
-    }
-    else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName)){
+    } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 3>>>::Get(rVariableName);
         WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
-    }
-    else if (KratosComponents<Variable<Vector>>::Has(rVariableName)){
+    } else if (KratosComponents<Variable<Vector>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<Vector>>::Get(rVariableName);
         WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
-    }
-    else if (KratosComponents<Variable<array_1d<double, 4>>>::Has(rVariableName)){
+    } else if (KratosComponents<Variable<array_1d<double, 4>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 4>>>::Get(rVariableName);
         WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
-    }
-    else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(rVariableName)){
+    } else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 6>>>::Get(rVariableName);
         WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
-    }
-    else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)){
+    } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
         WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
-    }
-    else {
+    } else {
         KRATOS_WARNING_ONCE(rVariableName) << "Variable \"" << rVariableName << "\" is "
             << "not suitable for VtkOutput, skipping it" << std::endl;
     }
@@ -496,8 +526,7 @@ void VtkOutput::WriteNodalScalarValues(
     if (IsHistoricalValue) {
         mrModelPart.GetCommunicator().SynchronizeVariable(rVariable);
         WriteScalarSolutionStepVariable(rNodes, rVariable, rFileStream);
-    }
-    else {
+    } else {
         mrModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rVariable);
         WriteScalarContainerVariable(rNodes, rVariable, rFileStream);
     }
@@ -516,8 +545,7 @@ void VtkOutput::WriteNodalVectorValues(
     if (IsHistoricalValue) {
         mrModelPart.GetCommunicator().SynchronizeVariable(rVariable);
         WriteVectorSolutionStepVariable(rNodes, rVariable, rFileStream);
-    }
-    else {
+    } else {
         mrModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rVariable);
         WriteVectorContainerVariable(rNodes, rVariable, rFileStream);
     }
@@ -551,7 +579,10 @@ void VtkOutput::WriteVectorSolutionStepVariable(
     const TVarType& rVariable,
     std::ofstream& rFileStream) const
 {
-    KRATOS_DEBUG_ERROR_IF(rContainer.size() == 0) << "Empty container!" << std::endl;
+    if (rContainer.size() == 0) {
+        KRATOS_WARNING("VtkOutput") << "Empty container!" << std::endl;
+        return void();
+    }
 
     const int res_size = static_cast<int>((rContainer.begin()->FastGetSolutionStepValue(rVariable)).size());
 
@@ -593,12 +624,14 @@ void VtkOutput::WriteVectorContainerVariable(
     const TVarType& rVariable,
     std::ofstream& rFileStream) const
 {
-    KRATOS_DEBUG_ERROR_IF(rContainer.size() == 0) << "Empty container!" << std::endl;
+    if (rContainer.size() == 0) {
+        KRATOS_WARNING("VtkOutput") << "Empty container!" << std::endl;
+        return void();
+    }
 
     const int res_size = static_cast<int>((rContainer.begin()->GetValue(rVariable)).size());
 
-    rFileStream << rVariable.Name() << " " << res_size
-                << " " << rContainer.size() << "  float\n";
+    rFileStream << rVariable.Name() << " " << res_size << " " << rContainer.size() << "  float\n";
 
     for (const auto& r_entity : rContainer) {
         const auto& r_result = r_entity.GetValue(rVariable);
@@ -615,8 +648,7 @@ void VtkOutput::WriteScalarDataToFile(const TData& rData, std::ofstream& rFileSt
 {
     if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
         rFileStream << rData;
-    }
-    else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) {
+    } else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) {
         TData data = rData;
         ForceBigEndian(reinterpret_cast<unsigned char *>(&data));
         rFileStream.write(reinterpret_cast<char *>(&data), sizeof(TData));
@@ -633,9 +665,7 @@ void VtkOutput::WriteVectorDataToFile(const TData& rData, std::ofstream& rFileSt
         for (const auto& r_data_comp : rData) {
             rFileStream << r_data_comp << " ";
         }
-    }
-    else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY)
-    {
+    } else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) {
         for (const auto& r_data_comp : rData ) {
             float data_comp_local = (float)r_data_comp; // should not be const or a reference for enforcing big endian
             ForceBigEndian(reinterpret_cast<unsigned char *>(&data_comp_local));
@@ -657,6 +687,79 @@ void VtkOutput::ForceBigEndian(unsigned char* pBytes) const
         pBytes[1] = pBytes[2];
         pBytes[2] = tmp;
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VtkOutput::WriteModelPartWithoutNodesToFile(ModelPart& rModelPart)
+{
+    // Getting model and creating auxiliar model part
+    auto& r_model = mrModelPart.GetModel();
+    const std::string& r_name_model_part = rModelPart.Name();
+    auto& r_auxiliar_model_part = r_model.CreateModelPart("AUXILIAR_" + r_name_model_part);
+
+    // Tranfering entities of the submodelpart
+    FastTransferBetweenModelPartsProcess(r_auxiliar_model_part, rModelPart).Execute();
+
+    // Tranfering nodes from root model part
+    FastTransferBetweenModelPartsProcess(r_auxiliar_model_part, mrModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODES).Execute();
+
+    // Marking to remove the nodes
+    for (auto& r_node : r_auxiliar_model_part.Nodes()) {
+        r_node.Set(TO_ERASE, true);
+    }
+
+    // Checking nodes from conditions
+    for (auto& r_cond : r_auxiliar_model_part.Conditions()) {
+        auto& r_geometry = r_cond.GetGeometry();
+        for (auto& r_node : r_geometry) {
+            r_node.Set(TO_ERASE, false);
+        }
+    }
+
+    // Checking nodes from elements
+    for (auto& r_elem : r_auxiliar_model_part.Elements()) {
+        auto& r_geometry = r_elem.GetGeometry();
+        for (auto& r_node : r_geometry) {
+            r_node.Set(TO_ERASE, false);
+        }
+    }
+
+    // Removing unused nodes
+    r_auxiliar_model_part.RemoveNodes(TO_ERASE);
+
+    // Actually writing the
+    WriteModelPartToFile(r_auxiliar_model_part, true);
+
+    // Deletin auxiliar modek part
+    r_model.DeleteModelPart("AUXILIAR_" + r_name_model_part);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters VtkOutput::GetDefaultParameters()
+{
+    Parameters default_parameters = Parameters(R"(
+    {
+        "model_part_name"                    : "PLEASE_SPECIFY_MODEL_PART_NAME",
+        "file_format"                        : "ascii",
+        "output_precision"                   : 7,
+        "output_control_type"                : "step",
+        "output_frequency"                   : 1.0,
+        "output_sub_model_parts"             : false,
+        "folder_name"                        : "VTK_Output",
+        "custom_name_prefix"                 : "",
+        "save_output_files_in_folder"        : true,
+        "nodal_solution_step_data_variables" : [],
+        "nodal_data_value_variables"         : [],
+        "element_data_value_variables"       : [],
+        "condition_data_value_variables"     : [],
+        "gauss_point_variables"              : []
+    })" );
+
+    return default_parameters;
 }
 
 } // namespace Kratos

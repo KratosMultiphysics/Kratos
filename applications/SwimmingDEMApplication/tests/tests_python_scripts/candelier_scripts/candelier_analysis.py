@@ -22,9 +22,16 @@ import parameters_tools as PT
 class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
     def __init__(self, model, varying_parameters = Parameters("{}")):
         super(CandelierBenchmarkAnalysis, self).__init__(model, varying_parameters)
-        self._GetSolver().is_rotating_frame = self.project_parameters["frame_of_reference_type"].GetInt()
-        self.disperse_phase_solution.mdpas_folder_path = os.path.join(self.disperse_phase_solution.main_path, 'candelier_tests')
+        self._GetSolver().is_rotating_frame = self.project_parameters["frame_of_reference"]["frame_type"].GetInt()
+        self._GetDEMAnalysis().mdpas_folder_path = os.path.join(self._GetDEMAnalysis().main_path, 'candelier_tests')
         Logger.GetDefaultOutput().SetSeverity(Logger.Severity.DETAIL)
+        candelier_pp.include_history_force = self.vars_man.do_include_history_force
+        candelier_pp.include_lift = PT.RecursiveFindParametersWithCondition(self.project_parameters["properties"],
+                                                                            'vorticity_induced_lift_parameters',
+                                                                            condition=lambda value: not (value['name']=='default'))
+        candelier.sim = candelier.AnalyticSimulator(candelier_pp)
+        self.project_parameters["custom_fluid"]["fluid_already_calculated"].SetBool(True)
+        self.project_parameters.AddEmptyValue("load_derivatives").SetBool(False)
 
     def GetEmbeddedCounter(self):
         return SDP.Counter(is_dead=True)
@@ -34,16 +41,6 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
 
     def GetDebugInfo(self):
         return SDP.Counter(self.project_parameters["debug_tool_cycle"].GetInt(), 1, is_dead = 1)
-
-    def SetCustomBetaParameters(self, custom_parameters): # These are input parameters that have not yet been transferred to the interface
-        super(CandelierBenchmarkAnalysis, self).SetCustomBetaParameters(custom_parameters)
-        candelier_pp.include_history_force = bool(self.project_parameters["basset_force_type"].GetInt())
-        candelier_pp.include_lift = PT.RecursiveFindParametersWithCondition(custom_parameters["properties"],
-                                                                            'vorticity_induced_lift_parameters',
-                                                                            condition=lambda value: not (value['name']=='default'))
-        candelier.sim = candelier.AnalyticSimulator(candelier_pp)
-        self.project_parameters["fluid_already_calculated"].SetBool(True)
-        self.project_parameters.AddEmptyValue("load_derivatives").SetBool(False)
 
     def SetUpResultsDatabase(self):
         import candelier_scripts.candelier_hdf5 as candelier_hdf5
@@ -77,8 +74,8 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
         return sdem_solver.CandelierDEMSolver(self.model,
                                               self.project_parameters,
                                               self.GetFieldUtility(),
-                                              self.fluid_solution._GetSolver(),
-                                              self.disperse_phase_solution._GetSolver(),
+                                              self._GetFluidAnalysis()._GetSolver(),
+                                              self._GetDEMAnalysis()._GetSolver(),
                                               self.vars_man)
 
     def FinalizeSolutionStep(self):

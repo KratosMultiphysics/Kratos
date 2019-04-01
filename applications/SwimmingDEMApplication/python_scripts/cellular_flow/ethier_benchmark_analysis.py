@@ -12,6 +12,7 @@ BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 class EthierBenchmarkAnalysis(BaseAnalysis):
     def __init__(self, varying_parameters = Parameters("{}")):
         BaseAnalysis.__init__(self, varying_parameters)
+        self.SetCustomBetaParameters()
 
     def SetBetaParameters(self):
         BaseAnalysis.SetBetaParameters(self)
@@ -25,9 +26,7 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
         Add("print_VELOCITY_LAPLACIAN_option").SetBool(True)
         Add("print_VECTORIAL_ERROR_option").SetBool(True)
 
-    def SetCustomBetaParameters(self, custom_parameters):
-        BaseAnalysis.SetCustomBetaParameters(self, custom_parameters)
-        self.project_parameters.size_parameter = self.project_parameters["size_parameter"].GetDouble()
+    def SetCustomBetaParameters(self):
         self.field_identifier = self.project_parameters["field_identifier"].GetString()
         self.mesh_tag = self.project_parameters["mesh_tag"].GetString()
         # Creating a code for the used input variables
@@ -46,12 +45,12 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
         tag =  self.project_parameters["mesh_tag"].GetString()
 
         if is_regular_mesh:
-            mdpa_name = problem_name + '_ndiv_' + str(int(self.project_parameters.size_parameter)) + tag + 'Fluid'
+            mdpa_name = problem_name + '_ndiv_' + str(int(self.project_parameters["size_parameter"].GetDouble())) + tag + 'Fluid'
         else:
-            mdpa_name = problem_name + '_h_' + str(self.project_parameters.size_parameter) + 'Fluid'
+            mdpa_name = problem_name + '_h_' + str(self.project_parameters["size_parameter"].GetDouble()) + 'Fluid'
 
         model_part_io_fluid = ModelPartIO(mdpa_name)
-        model_part_io_fluid.ReadModelPart(self.fluid_solution.fluid_model_part)
+        model_part_io_fluid.ReadModelPart(self._GetFluidAnalysis().fluid_model_part)
 
     def AddExtraVariables(self, run_code = ''):
         BaseAnalysis.AddExtraVariables(self, self.run_code)
@@ -72,7 +71,7 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
         return self.field_utility
 
     def GetRecoveryCounter(self):
-        return SDP.Counter(1, 1, self.project_parameters["coupling_level_type"].GetInt() or self.project_parameters.print_PRESSURE_GRADIENT_option)
+        return SDP.Counter(1, 1, self.project_parameters["coupling"]["coupling_level_type"].GetInt() or self.project_parameters.print_PRESSURE_GRADIENT_option)
 
     def GetRunCode(self):
         return self.run_code
@@ -180,7 +179,7 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
         file_name = self.main_path + '/errors_recorded/recovery_errors.hdf5'
         # with h5py.File(self.file_name, 'r+') as f:
         #     f.create_dataset('material_derivative', shape = self.shape, dtype = np.float32)
-        size_parameter = self.project_parameters.size_parameter
+        size_parameter = self.project_parameters["size_parameter"].GetInt()
         is_regular_mesh = self.project_parameters["regular_mesh_option"].GetBool()
 
         with h5py.File(file_name) as f:
