@@ -139,6 +139,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         # Setting body_force_per_unit_mass_variable_name
         Add("body_force_per_unit_mass_variable_name").SetString('BODY_FORCE')
+        self.project_parameters["dem_parameters"].AddEmptyValue("do_print_results_option").SetBool(self.do_print_results)
 
     # This step is added to allow modifications to the possibly incompatibilities
     # between the individual parameters coming from each sub-application
@@ -172,8 +173,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         if self.project_parameters["coupling"]["coupling_level_type"].GetInt() > 1:
             self.project_parameters["stationarity"]["stationary_problem_option"].SetBool(False)
-
-
 
         self.SetDoSolveDEMVariable()
 

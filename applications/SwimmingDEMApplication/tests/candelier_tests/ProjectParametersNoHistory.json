@@ -135,21 +135,20 @@
             "model_part_name"      : "SpheresPart",
             "time_frequency"       : 0.5
         }
-        }]
+    }]
+},
 
-    },
-
-    "json_output_process"  : [{
-        "python_module" : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "JsonOutputProcess",
-        "Parameters"    : {
-            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "output_file_name"     : "candelier_tests/candelier_errors_no_history.json",
-            "model_part_name"      : "SpheresPart",
-            "time_frequency"       : 0.5
-        }
-    }],
+"json_output_process"  : [{
+    "python_module" : "json_output_process",
+    "kratos_module" : "KratosMultiphysics",
+    "process_name"  : "JsonOutputProcess",
+    "Parameters"    : {
+        "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+        "output_file_name"     : "candelier_tests/candelier_errors_no_history.json",
+        "model_part_name"      : "SpheresPart",
+        "time_frequency"       : 0.5
+    }
+}],
 
 "fluid_parameters" : {
     "problem_data"     : {
@@ -311,6 +310,7 @@
         "problem_name" : "Candelier",
         "GraphExportFreq"                  : 1e-3,
         "VelTrapGraphExportFreq"           : 1e-3,
+        "OutputTimeStep"                   : 0.5,
         "PostDisplacement"                 : true,
         "PostVelocity"                     : true,
         "PostElasticForces"                : false,

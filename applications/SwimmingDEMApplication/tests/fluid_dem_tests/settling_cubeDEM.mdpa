@@ -2,11 +2,6 @@ Begin ModelPartData
 //  VARIABLE_NAME value
 End ModelPartData
 
-Begin Properties 0
-    DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Hertz_viscous_Coulomb
-    DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
-End Properties
-
 Begin Properties 1
     PARTICLE_DENSITY 2500.0
     YOUNG_MODULUS 100000.0
@@ -42,12 +37,12 @@ Begin Elements SphericSwimmingParticle3D// GUI group identifier: DEM
 End Elements
 
 Begin NodalData RADIUS // GUI group identifier: DEM
-        188 0  0.0000730108
-        127 0  0.0000897382
-        134 0   0.000085659
-        187 0  0.0000725707
-        182 0  0.0000700512
-        131 0  0.0000761211
+        188 1  0.0000730108
+        127 1  0.0000897382
+        134 1   0.000085659
+        187 1  0.0000725707
+        182 1  0.0000700512
+        131 1  0.0000761211
 End NodalData
 
 Begin SubModelPart Parts_DEM // Group DEM // Subtree Parts
