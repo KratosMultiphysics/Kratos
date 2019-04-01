@@ -77,7 +77,7 @@ def SetupModelPart2D(model_part):
     for node in bcs.Nodes:
         node.Set(KratosMultiphysics.BOUNDARY)
     for cond in bcs.Conditions:
-        node.Set(KratosMultiphysics.BOUNDARY)
+        cond.Set(KratosMultiphysics.BOUNDARY)
 
     bcmn = model_part.CreateSubModelPart("MovingNodes")
     bcmn.AddNodes([13, 14, 15])
