@@ -90,7 +90,7 @@ def worker(queue):
         try:
             print(Benchmark_text[benchmark - 1])
             run(benchmark)
-        except Exception as e:# catch exceptions to avoid exiting the thread prematurely
+        except Exception:# catch exceptions to avoid exiting the thread prematurely
             print("A problem was found in DEM Benchmark " + str(benchmark) + "... Resuming...\n")
             g = open("errors.err", "a")
             g.write("DEM Benchmark " + str(benchmark) + ": KO!........ Test " + str(benchmark) + " FAILED\n")
