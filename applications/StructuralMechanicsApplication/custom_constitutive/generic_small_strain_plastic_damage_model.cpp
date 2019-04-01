@@ -40,8 +40,8 @@
 
 namespace Kratos
 {
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -49,8 +49,8 @@ void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -58,8 +58,8 @@ void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -67,8 +67,8 @@ void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
 
 
@@ -78,8 +78,8 @@ void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
@@ -100,8 +100,8 @@ void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::InitializeMaterial(
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues
@@ -120,8 +120,8 @@ void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     InitializeMaterialResponseCauchy(rValues);
@@ -130,8 +130,8 @@ void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     InitializeMaterialResponseCauchy(rValues);
@@ -140,8 +140,8 @@ void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     InitializeMaterialResponseCauchy(rValues);
@@ -150,26 +150,16 @@ void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
-{
-    // Small deformation so we can call the Cauchy method
-    FinalizeMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     FinalizeMaterialResponseCauchy(rValues);
@@ -178,8 +168,8 @@ void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method
     FinalizeMaterialResponseCauchy(rValues);
@@ -188,8 +178,18 @@ void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+{
+    // Small deformation so we can call the Cauchy method
+    FinalizeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
 
 
@@ -201,8 +201,8 @@ void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-bool GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::Has(const Variable<double>& rThisVariable)
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+bool GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::Has(const Variable<double>& rThisVariable)
 {
     if (rThisVariable == PLASTIC_DISSIPATION) {
         return true;
@@ -216,8 +216,8 @@ bool GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-bool GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::Has(const Variable<Vector>& rThisVariable)
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+bool GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::Has(const Variable<Vector>& rThisVariable)
 {
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         return true;
@@ -231,8 +231,8 @@ bool GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-bool GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::Has(const Variable<Matrix>& rThisVariable)
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+bool GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::Has(const Variable<Matrix>& rThisVariable)
 {
     return BaseType::Has(rThisVariable);
 }
@@ -240,8 +240,8 @@ bool GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::SetValue(
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::SetValue(
     const Variable<double>& rThisVariable,
     const double& rValue,
     const ProcessInfo& rCurrentProcessInfo)
@@ -256,8 +256,8 @@ void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::SetValue(
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::SetValue(
     const Variable<Vector>& rThisVariable,
     const Vector& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -273,8 +273,8 @@ void GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-double& GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::GetValue(
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+double& GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
     )
@@ -291,8 +291,8 @@ double& GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, cl
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-Vector& GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::GetValue(
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+Vector& GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::GetValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValue
     )
@@ -309,8 +309,8 @@ Vector& GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, cl
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-Matrix& GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::GetValue(
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+Matrix& GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::GetValue(
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
     )
@@ -327,71 +327,22 @@ Matrix& GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, cl
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-double& GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::CalculateValue(
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+double& GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
     double& rValue
     )
 {
-    if (rThisVariable == UNIAXIAL_STRESS) {
-        // Get Values to compute the constitutive law:
-        Flags& r_flags = rParameterValues.GetOptions();
-
-        // Previous flags saved
-        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
-
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
-
-        // Calculate the stress vector
-        CalculateMaterialResponseCauchy(rParameterValues);
-        const Vector& r_stress_vector = rParameterValues.GetStressVector();
-        const Vector& r_strain_vector = rParameterValues.GetStrainVector();
-
-        BoundedArrayType aux_stress_vector = r_stress_vector;
-        class TPlasticityIntegratorType, class TDamageIntegratorType::YieldSurfaceType::CalculateEquivalentStress( aux_stress_vector, r_strain_vector, rValue, rParameterValues);
-
-        // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
-    } else if (rThisVariable == EQUIVALENT_PLASTIC_STRAIN) {
-        // Get Values to compute the constitutive law:
-        Flags& r_flags = rParameterValues.GetOptions();
-
-        // Previous flags saved
-        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
-
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
-
-        // Calculate the stress vector
-        CalculateMaterialResponseCauchy(rParameterValues);
-        const Vector& r_stress_vector = rParameterValues.GetStressVector();
-
-        // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
-
-        // Compute the equivalent plastic strain
-        double uniaxial_stress;
-        this->CalculateValue(rParameterValues, UNIAXIAL_STRESS, uniaxial_stress);
-        class TPlasticityIntegratorType, class TDamageIntegratorType::CalculateEquivalentPlasticStrain(r_stress_vector, uniaxial_stress, mPlasticStrain, 0.0, rParameterValues, rValue);
-        return rValue;
-    } else {
-        return this->GetValue(rThisVariable, rValue);
-    }
-
+ 
     return rValue;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-Vector& GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::CalculateValue(
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+Vector& GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Vector>& rThisVariable,
     Vector& rValue
@@ -403,8 +354,8 @@ Vector& GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, cl
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-Matrix& GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::CalculateValue(
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+Matrix& GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
@@ -421,17 +372,18 @@ Matrix& GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, cl
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class class TPlasticityIntegratorType, class TDamageIntegratorType>
-int GenericSmallStrainPlasticDamageModel<class TPlasticityIntegratorType, class TDamageIntegratorType>::Check(
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+int GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
     const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
-    const int check_integrator = class TPlasticityIntegratorType, class TDamageIntegratorType::Check(rMaterialProperties);
+    const int check_integrator_plasticity = TPlasticityIntegratorType::Check(rMaterialProperties);
+	const int check_integrator_damage = TDamageIntegratorType::Check(rMaterialProperties);
     KRATOS_ERROR_IF_NOT(VoigtSize == this->GetStrainSize()) << "You are combining not compatible constitutive laws" << std::endl;
-    if ((check_base + check_integrator) > 0) return 1;
+    if ((check_base + check_integrator_plasticity + check_integrator_damage) > 0) return 1;
     return 0;
 }
 

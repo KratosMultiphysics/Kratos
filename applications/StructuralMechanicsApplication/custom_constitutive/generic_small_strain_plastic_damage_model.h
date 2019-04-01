@@ -55,7 +55,7 @@ namespace Kratos
  */
 template <class TPlasticityIntegratorType, class TDamageIntegratorType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainPlasticDamageModel
-    : public std::conditional<TConstLawIntegratorType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
+    : public std::conditional<TPlasticityIntegratorType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
 {
 public:
     ///@name Type Definitions
@@ -101,7 +101,7 @@ public:
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<GenericSmallStrainPlasticDamageModel<TConstLawIntegratorType>>(*this);
+        return Kratos::make_shared<GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>>(*this);
     }
 
     /**
@@ -110,8 +110,10 @@ public:
     GenericSmallStrainPlasticDamageModel(const GenericSmallStrainPlasticDamageModel &rOther)
         : BaseType(rOther),
           mPlasticDissipation(rOther.mPlasticDissipation),
-          mThreshold(rOther.mThreshold),
-          mPlasticStrain(rOther.mPlasticStrain)
+          mThresholdPlasticity(rOther.mThresholdPlasticity),
+          mPlasticStrain(rOther.mPlasticStrain),
+		  mThresholdDamage(rOther.mThresholdDamage),
+          mDamage(rOther.mDamage)
     {
     }
 
@@ -374,11 +376,11 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    double& GetThreshold() { return mThreshold; }
+    double& GetThresholdPlasticity() { return mThresholdPlasticity; }
     double& GetPlasticDissipation() { return mPlasticDissipation; }
     Vector& GetPlasticStrain() { return mPlasticStrain; }
 
-    void SetThreshold(const double Threshold) { mThreshold = Threshold; }
+    void SetThresholdPlasticity(const double ThresholdPlasticity) { mThresholdPlasticity = ThresholdPlasticity; }
     void SetPlasticDissipation(const double PlasticDissipation) { mPlasticDissipation = PlasticDissipation; }
     void SetPlasticStrain(const array_1d<double, VoigtSize>& rPlasticStrain) { mPlasticStrain = rPlasticStrain; }
 
@@ -411,8 +413,8 @@ protected:
     double mPlasticDissipation = 0.0;
     double mThresholdPlasticity = 0.0;
     Vector mPlasticStrain = ZeroVector(VoigtSize);
-    Vector mThresholdDamage = 0.0;
-    Vector mDamage = 0.0;
+	double mThresholdDamage = 0.0;
+	double mDamage = 0.0;
 
     ///@}
     ///@name Private Operators
@@ -448,7 +450,7 @@ protected:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.save("PlasticDissipation", mPlasticDissipation);
-        rSerializer.save("Threshold", mThreshold);
+        rSerializer.save("ThresholdPlasticity", mThresholdPlasticity);
         rSerializer.save("PlasticStrain", mPlasticStrain);
         rSerializer.save("ThresholdDamage", mThresholdDamage);
         rSerializer.save("Damage", mDamage);
@@ -458,7 +460,7 @@ protected:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.load("PlasticDissipation", mPlasticDissipation);
-        rSerializer.load("Threshold", mThreshold);
+        rSerializer.load("ThresholdPlasticity", mThresholdPlasticity);
         rSerializer.load("PlasticStrain", mPlasticStrain);
         rSerializer.load("ThresholdDamage", mThresholdDamage);
         rSerializer.load("Damage", mDamage);
