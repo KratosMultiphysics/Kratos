@@ -150,7 +150,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
             fact1 *= (1.0 - damage);
             const double factorA = scalar_prod_plast_yield_sigma_eff;
             const double factorB = 1 / plastic_denominator; // ?? ABETA
-            // const double factorC = scalar_prod_dam_yield_sigma_eff + hard_damage_slope;
+            //const double factorC = scalar_prod_dam_yield_sigma_eff + hard_damage_slope;
 
         }
 
@@ -481,7 +481,87 @@ int GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInteg
 
 /***********************************************************************************/
 /***********************************************************************************/
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+void CalculateDamageParameters(
+    array_1d<double, 6>& rPredictiveStressVector,
+    Vector& rStrainVector,
+    double& rUniaxialStress,
+    double& rThreshold,
+    double& rDamageDissipation,
+    const Matrix& rConstitutiveMatrix,
+    ConstitutiveLaw::Parameters& rValues,
+    const double CharacteristicLength,  
+    array_1d<double, 6>& rFflux
+)
+{
+    array_1d<double, VoigtSize> deviator = ZeroVector(6);
+    array_1d<double, VoigtSize> h_capa = ZeroVector(6);
+    double J2, tensile_indicator_factor, compression_indicator_factor, slope, hardening_parameter;
 
+    YieldSurfaceType::CalculateEquivalentStress( rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
+    const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
+    ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+    YieldSurfaceType::CalculateYieldSurfaceDerivative(rPredictiveStressVector, deviator, J2, rFflux, rValues);
+    CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor);
+    TPlasticityIntegratorType::CalculatePlasticDissipation(rPredictiveStressVector, tensile_indicator_factor,compression_indicator_factor, rPlasticStrainIncrement,rPlasticDissipation, h_capa, rValues, CharacteristicLength);
+    TPlasticityIntegratorType::CalculateHardeningParameter(rFflux, slope, h_capa, hardening_parameter);
+
+
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+void CalculateIndicatorsFactors(
+    const array_1d<double, 6>& rPredictiveStressVector,
+    double& rTensileIndicatorFactor,
+    double& rCompressionIndicatorFactor,
+    const double SumPrincipalStresses
+)
+{
+        // We do an initial check
+        if (norm_2(rPredictiveStressVector) < 1.0e-8) {
+            rTensileIndicatorFactor = 0.0;
+            rCompressionIndicatorFactor = 0.0;
+            return;
+        }
+
+        // We proceed as usual
+        array_1d<double, Dimension> principal_stresses = ZeroVector(Dimension);
+        ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses, rPredictiveStressVector);
+
+        double suma = 0.0, sumb = 0.0, sumc = 0.0;
+        double aux_sa;
+
+        for (IndexType i = 0; i < Dimension; ++i) {
+            aux_sa = std::abs(principal_stresses[i]);
+            suma += aux_sa;
+            sumb += 0.5 * (principal_stresses[i] + aux_sa);
+            sumc += 0.5 * (-principal_stresses[i] + aux_sa);
+        }
+        SumPrincipalStresses = suma;
+
+        if (std::abs(suma) > tolerance) {
+            rTensileIndicatorFactor = sumb / suma;
+            rCompressionIndicatorFactor = sumc / suma;
+        } else {
+            rTensileIndicatorFactor = sumb;
+            rCompressionIndicatorFactor = sumc;
+        }
+
+        // Final check
+        if ((std::abs(rTensileIndicatorFactor) + std::abs(rCompressionIndicatorFactor)) < tolerance) {
+            rTensileIndicatorFactor = 0.0;
+            rCompressionIndicatorFactor = 0.0;
+            return;
+        }
+}
+
+
+
+/***********************************************************************************/
+/***********************************************************************************/
 template class GenericSmallStrainPlasticDamageModel<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
 
 

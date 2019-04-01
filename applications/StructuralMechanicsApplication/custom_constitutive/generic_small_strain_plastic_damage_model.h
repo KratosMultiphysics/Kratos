@@ -346,6 +346,23 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+
+    void CalculateDamageParameters(
+        array_1d<double, VoigtSize>& rPredictiveStressVector,
+        Vector& rStrainVector,
+        double& rUniaxialStress,
+        double& rThreshold,
+        double& rDamageDissipation,
+        const Matrix& rConstitutiveMatrix,
+        ConstitutiveLaw::Parameters& rValues,
+        const double CharacteristicLength,  
+        array_1d<double, VoigtSize>& rFflux);
+
+    void CalculateIndicatorsFactors(
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        double& rTensileIndicatorFactor,
+        double& rCompressionIndicatorFactor,
+        const double SumPrincipalStresses);
     ///@}
     ///@name Access
     ///@{
