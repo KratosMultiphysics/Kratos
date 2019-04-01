@@ -48,7 +48,7 @@ class PotentialAdjointSolver(LaplacianSolver):
         else:
             raise Exception("invalid response_type: " + self.response_function_settings["response_type"].GetString())
 
-        self.adjoint_postprocess=KratosMultiphysics.StructuralMechanicsApplication.AdjointPostprocess(self.main_model_part, self.response_function, self.sensitivity_settings)
+        self.adjoint_postprocess=KratosMultiphysics.SensitivityBuilder(self.sensitivity_settings,self.main_model_part, self.response_function)
         self.adjoint_postprocess.Initialize()
 
         scheme = KratosMultiphysics.ResidualBasedAdjointStaticScheme(self.response_function)

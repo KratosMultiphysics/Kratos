@@ -70,11 +70,7 @@ namespace Kratos
                                    const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
-
-        if (rResponseGradient.size() != rResidualGradient.size1())
-            rResponseGradient.resize(rResidualGradient.size1(), false);
-
-        rResponseGradient.clear();
+        rResponseGradient = ZeroVector(rResidualGradient.size1());
         KRATOS_CATCH("");
     }
   
@@ -85,12 +81,9 @@ namespace Kratos
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo)
     {
-        KRATOS_TRY
-
-        if (rSensitivityGradient.size() != 0)
-            rSensitivityGradient.resize(0, false);
-
-        KRATOS_CATCH("")
+        KRATOS_TRY;
+        rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
+        KRATOS_CATCH("");
     }
 
     void AdjointLiftJumpCoordinatesResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
@@ -100,10 +93,7 @@ namespace Kratos
                                              const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
-
-        if (rSensitivityGradient.size() != 0)
-            rSensitivityGradient.resize(0, false);
-
+        rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
         KRATOS_CATCH("");
     }
 
@@ -113,12 +103,9 @@ namespace Kratos
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo)
     {
-        KRATOS_TRY
-
-        if (rSensitivityGradient.size() != 0)
-            rSensitivityGradient.resize(0, false);
-
-        KRATOS_CATCH("")
+        KRATOS_TRY;
+        rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
+        KRATOS_CATCH("");
     }
 
     void AdjointLiftJumpCoordinatesResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
@@ -128,11 +115,7 @@ namespace Kratos
                                              const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
-
-
-        if (rSensitivityGradient.size() != 0)
-            rSensitivityGradient.resize(0, false);
-     
+        rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
         KRATOS_CATCH("");
     }
 
