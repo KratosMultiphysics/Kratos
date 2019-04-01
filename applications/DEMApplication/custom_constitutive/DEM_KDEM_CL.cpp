@@ -23,6 +23,18 @@ namespace Kratos {
     void DEM_KDEM::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
         KRATOS_INFO("DEM") << "Assigning DEM_KDEM to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+        this->Check(pProp);
+    }
+
+    void DEM_KDEM::Check(Properties::Pointer pProp) const {
+        DEMContinuumConstitutiveLaw::Check(pProp);
+
+        if(!pProp->Has(ROTATIONAL_MOMENT_COEFFICIENT)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable ROTATIONAL_MOMENT_COEFFICIENT should be present in the properties when using DEM_KDEM. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(ROTATIONAL_MOMENT_COEFFICIENT) = 0.0;
+        }
     }
 
     void DEM_KDEM::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
@@ -425,6 +437,8 @@ namespace Kratos {
 
         if (!r_process_info[POISSON_EFFECT_OPTION]) return;
         if (element1->mIniNeighbourFailureId[i_neighbor_count] > 0  &&  indentation < 0.0) return;
+        if (element1->IsSkin() || element2->IsSkin()) return;
+        if (element1->Is(DEMFlags::STICKY) || element2->Is(DEMFlags::STICKY)) return;
 
         double force[3];
         BoundedMatrix<double, 3, 3> average_stress_tensor = ZeroMatrix(3,3);
@@ -473,7 +487,8 @@ namespace Kratos {
                                                               SphericContinuumParticle* element2) {
 
         if (element1->mSymmStressTensor == NULL) return;
-        //if(element1->IsSkin() || element2->IsSkin()) return;
+        if (element1->IsSkin() || element2->IsSkin()) return;
+        if (element1->Is(DEMFlags::STICKY) || element2->Is(DEMFlags::STICKY)) return;
 
         double average_stress_tensor[3][3];
 

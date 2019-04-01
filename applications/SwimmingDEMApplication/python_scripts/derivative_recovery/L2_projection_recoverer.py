@@ -3,15 +3,18 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from . import recoverer
+import parameters_tools as PT
 
 class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
-    def __init__(self, pp, model_part):
-        recoverer.DerivativesRecoverer.__init__(self, pp, model_part)
+    def __init__(self, project_parameters, model_part):
+        recoverer.DerivativesRecoverer.__init__(self, project_parameters, model_part)
         self.model_part = model_part
-        self.use_lumped_mass_matrix = pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 3
+        self.use_lumped_mass_matrix = project_parameters["material_acceleration_calculation_type"].GetInt() == 3
         self.recovery_model_part = ModelPart("PostGradientFluidPart")
         self.custom_functions_tool = CustomFunctionsCalculator3D()
-        self.calculate_vorticity = pp.CFD_DEM["vorticity_calculation_type"].GetInt() > 0
+        self.calculate_vorticity = (parameters["vorticity_calculation_type"].GetInt() > 0
+                                    or PT.RecursiveFindParametersWithCondition(parameters["properties"],
+                                                                               'vorticity_induced_lift_parameters'))
 
         if self.use_lumped_mass_matrix:
             self.model_part.ProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = 1
@@ -59,14 +62,16 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
             self.custom_functions_tool.SetValueOfAllNotes(self.model_part, ZeroVector(3), variable)
 
 class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.VorticityRecoverer):
-    def __init__(self, pp, model_part):
-        L2ProjectionDerivativesRecoverer.__init__(self, pp, model_part)
+    def __init__(self, project_parameters, model_part):
+        L2ProjectionDerivativesRecoverer.__init__(self, project_parameters, model_part)
         self.element_type = "ComputeComponentGradientSimplex3D"
         self.condition_type = "ComputeLaplacianSimplexCondition3D"
         self.FillUpModelPart(self.element_type, self.condition_type)
         self.DOFs = (VELOCITY_COMPONENT_GRADIENT_X, VELOCITY_COMPONENT_GRADIENT_Y, VELOCITY_COMPONENT_GRADIENT_Z)
         self.AddDofs(self.DOFs)
-        self.calculate_vorticity = self.pp.CFD_DEM["lift_force_type"].GetInt()
+        self.calculate_vorticity = (parameters["vorticity_calculation_type"].GetInt() > 0
+                                    or PT.RecursiveFindParametersWithCondition(parameters["properties"],
+                                                                               'vorticity_induced_lift_parameters'))
 
     def Solve(self):
         print("\nSolving for the fluid acceleration...")
@@ -95,9 +100,9 @@ class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.
             self.cplusplus_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.model_part, VELOCITY_COMPONENT_GRADIENT, VORTICITY)
 
 class L2ProjectionMaterialAccelerationRecoverer(L2ProjectionGradientRecoverer, recoverer.MaterialAccelerationRecoverer):
-    def __init__(self, pp, model_part):
-        L2ProjectionGradientRecoverer.__init__(self, pp, model_part)
-        self.store_full_gradient = self.pp.CFD_DEM["store_full_gradient_option"].GetBool()
+    def __init__(self, project_parameters, model_part):
+        L2ProjectionGradientRecoverer.__init__(self, project_parameters, model_part)
+        self.store_full_gradient = self.project_parameters["store_full_gradient_option"].GetBool()
 
     def RecoverMaterialAcceleration(self):
         if self.store_full_gradient:
@@ -112,8 +117,8 @@ class L2ProjectionMaterialAccelerationRecoverer(L2ProjectionGradientRecoverer, r
             self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, VELOCITY_COMPONENT_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)
 
 class L2ProjectionDirectMaterialAccelerationRecoverer(L2ProjectionMaterialAccelerationRecoverer):
-    def __init__(self, pp, model_part):
-        L2ProjectionDerivativesRecoverer.__init__(self, pp, model_part)
+    def __init__(self, project_parameters, model_part):
+        L2ProjectionDerivativesRecoverer.__init__(self, project_parameters, model_part)
         self.element_type = "ComputeMaterialDerivativeSimplex3D"
         self.condition_type = "ComputeLaplacianSimplexCondition3D"
         self.FillUpModelPart(self.element_type, self.condition_type)
@@ -125,8 +130,8 @@ class L2ProjectionDirectMaterialAccelerationRecoverer(L2ProjectionMaterialAccele
         self.recovery_strategy.Solve()
 
 class L2ProjectionLaplacianRecoverer(L2ProjectionMaterialAccelerationRecoverer, recoverer.LaplacianRecoverer):
-    def __init__(self, pp, model_part):
-        L2ProjectionDerivativesRecoverer.__init__(self, pp, model_part)
+    def __init__(self, project_parameters, model_part):
+        L2ProjectionDerivativesRecoverer.__init__(self, project_parameters, model_part)
         self.element_type = "ComputeVelocityLaplacianSimplex3D"
         self.condition_type = "ComputeLaplacianSimplexCondition3D"
         self.FillUpModelPart(self.element_type, self.condition_type)

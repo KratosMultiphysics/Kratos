@@ -115,8 +115,9 @@ class PartitionedFSIBaseSolver(PythonSolver):
         # Get the minimum buffer size between the mesh, fluid and structure solvers
         self._GetAndSetMinimumBufferSize()
         # Fluid and structure solvers PrepareModelPart() call
-        self.fluid_solver.PrepareModelPart()
         self.structure_solver.PrepareModelPart()
+        self.fluid_solver.PrepareModelPart()
+        self.mesh_solver.PrepareModelPart()
 
     def AddDofs(self):
         # Add DOFs structure
@@ -145,14 +146,16 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
     def InitializeSolutionStep(self):
         # Initialize solution step of fluid, structure and coupling solvers
-        self.fluid_solver.InitializeSolutionStep()
         self.structure_solver.InitializeSolutionStep()
+        self.fluid_solver.InitializeSolutionStep()
+        self.mesh_solver.InitializeSolutionStep()
         self._GetConvergenceAccelerator().InitializeSolutionStep()
 
     def Predict(self):
         # Perform fluid and structure solvers predictions
-        self.fluid_solver.Predict()
         self.structure_solver.Predict()
+        self.fluid_solver.Predict()
+        self.mesh_solver.Predict()
 
     def GetComputingModelPart(self):
         err_msg =  'Calling GetComputingModelPart() method in a partitioned solver.\n'
@@ -236,9 +239,10 @@ class PartitionedFSIBaseSolver(PythonSolver):
         self._PrintInfoOnRankZero("","\tNL residual norm: ", nl_res_norm)
         self._PrintInfoOnRankZero("","\tMesh residual norm: ", mesh_res_norm)
 
-        ## Finalize solution step
-        self.fluid_solver.FinalizeSolutionStep()
+    def FinalizeSolutionStep(self):
         self.structure_solver.FinalizeSolutionStep()
+        self.fluid_solver.FinalizeSolutionStep()
+        self.mesh_solver.FinalizeSolutionStep()
         self._GetConvergenceAccelerator().FinalizeSolutionStep()
 
     def SetEchoLevel(self, structure_echo_level, fluid_echo_level):

@@ -554,6 +554,17 @@ std::string Parameters::GetString() const
     return mpValue->get<std::string>();
 }
 
+std::vector<std::string> Parameters::GetStringArray() const
+{
+    KRATOS_ERROR_IF_NOT(this->IsArray()) << "Argument must be an array" << std::endl;
+    std::vector<std::string> result(this->size());
+    for (std::size_t i = 0; i < result.size(); ++i)
+    {
+        result[i] = this->GetArrayItem(i).GetString();
+    }
+    return result;
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
