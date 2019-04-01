@@ -4,8 +4,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 def AdaptativeRemeshingRunSolutionLoop(analysis):
-    """This function executes the solution loop of the AnalysisStage
-    It can be overridden by derived classes
+    """This function executes the solution loop of the AnalysisStage for cases where remeshing may be considered
+
+        Keyword arguments:
+        analysis The AnalysisStage to be reinitialized
     """
 
     # If we remesh using a process
@@ -28,7 +30,11 @@ def AdaptativeRemeshingRunSolutionLoop(analysis):
         analysis.OutputSolutionStep()
 
 def ReInitializeSolver(analysis):
-    """ This reinitializes after remesh """
+    """ This reinitializes after remesh
+
+        Keyword arguments:
+        analysis The AnalysisStage to be reinitialized
+    """
     analysis._GetSolver().Clear()
     # WE INITIALIZE THE SOLVER
     analysis._GetSolver().Initialize()
