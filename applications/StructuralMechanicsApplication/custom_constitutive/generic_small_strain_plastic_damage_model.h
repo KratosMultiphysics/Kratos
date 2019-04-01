@@ -10,8 +10,8 @@
 // 
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_PLASTICITY_3D_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_PLASTICITY_3D_H_INCLUDED
+#if !defined(KRATOS_GENERIC_SMALL_STRAIN_PLASTIC_DAMAGE_MODEL_H_INCLUDED)
+#define KRATOS_GENERIC_SMALL_STRAIN_PLASTIC_DAMAGE_MODEL_H_INCLUDED
 
 // System includes
 
@@ -46,15 +46,15 @@ namespace Kratos
 ///@{
 
 /**
- * @class GenericSmallStrainIsotropicPlasticity
+ * @class GenericSmallStrainPlasticDamageModel
  * @ingroup StructuralMechanicsApplication
- * @brief This class is the base class which define all the constitutive laws for plasticity in small deformation
+ * @brief This class is the base class which define the Plastic Damage model developed by Luccioni B. and Oller S.
  * @details This class considers a constitutive law integrator as an intermediate utility to compute the plasticity
  * @tparam TConstLawIntegratorType The constitutive law integrator considered
- * @author Alejandro Cornejo & Lucia Barbu
+ * @author Alejandro Cornejo & Sergio Jimenez
  */
-template <class TConstLawIntegratorType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPlasticity
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainPlasticDamageModel
     : public std::conditional<TConstLawIntegratorType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
 {
 public:
@@ -62,10 +62,10 @@ public:
     ///@{
 
     /// The define the working dimension size, already defined in the integrator
-    static constexpr SizeType Dimension = TConstLawIntegratorType::Dimension;
+    static constexpr SizeType Dimension = TPlasticityIntegratorType::Dimension;
 
     /// The define the Voigt size, already defined in the  integrator
-    static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
+    static constexpr SizeType VoigtSize = TPlasticityIntegratorType::VoigtSize;
     
     /// Definition of the base class
     typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
@@ -76,8 +76,8 @@ public:
     /// The definition of the bounded matrix type
     typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
 
-    /// Counted pointer of GenericSmallStrainIsotropicPlasticity
-    KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicPlasticity);
+    /// Counted pointer of GenericSmallStrainPlasticDamageModel
+    KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainPlasticDamageModel);
     
     /// The node definition
     typedef Node<3> NodeType;
@@ -92,7 +92,7 @@ public:
     /**
     * Default constructor.
     */
-    GenericSmallStrainIsotropicPlasticity()
+    GenericSmallStrainPlasticDamageModel()
     {
     }
 
@@ -101,13 +101,13 @@ public:
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>>(*this);
+        return Kratos::make_shared<GenericSmallStrainPlasticDamageModel<TConstLawIntegratorType>>(*this);
     }
 
     /**
     * Copy constructor.
     */
-    GenericSmallStrainIsotropicPlasticity(const GenericSmallStrainIsotropicPlasticity &rOther)
+    GenericSmallStrainPlasticDamageModel(const GenericSmallStrainPlasticDamageModel &rOther)
         : BaseType(rOther),
           mPlasticDissipation(rOther.mPlasticDissipation),
           mThreshold(rOther.mThreshold),
@@ -118,7 +118,7 @@ public:
     /**
     * Destructor.
     */
-    ~GenericSmallStrainIsotropicPlasticity() override
+    ~GenericSmallStrainPlasticDamageModel() override
     {
     }
 
@@ -409,8 +409,10 @@ protected:
 
     // Converged values
     double mPlasticDissipation = 0.0;
-    double mThreshold = 0.0;
+    double mThresholdPlasticity = 0.0;
     Vector mPlasticStrain = ZeroVector(VoigtSize);
+    Vector mThresholdDamage = 0.0;
+    Vector mDamage = 0.0;
 
     ///@}
     ///@name Private Operators
@@ -448,6 +450,8 @@ protected:
         rSerializer.save("PlasticDissipation", mPlasticDissipation);
         rSerializer.save("Threshold", mThreshold);
         rSerializer.save("PlasticStrain", mPlasticStrain);
+        rSerializer.save("ThresholdDamage", mThresholdDamage);
+        rSerializer.save("Damage", mDamage);
     }
 
     void load(Serializer &rSerializer) override
@@ -456,6 +460,8 @@ protected:
         rSerializer.load("PlasticDissipation", mPlasticDissipation);
         rSerializer.load("Threshold", mThreshold);
         rSerializer.load("PlasticStrain", mPlasticStrain);
+        rSerializer.load("ThresholdDamage", mThresholdDamage);
+        rSerializer.load("Damage", mDamage);
     }
 
     ///@}
