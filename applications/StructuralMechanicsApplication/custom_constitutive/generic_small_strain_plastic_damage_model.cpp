@@ -491,21 +491,45 @@ void CalculateDamageParameters(
     const Matrix& rConstitutiveMatrix,
     ConstitutiveLaw::Parameters& rValues,
     const double CharacteristicLength,  
-    array_1d<double, 6>& rFflux
+    array_1d<double, 6>& rFflux,
+    const Vector& rPlasticStrain,
+    const double Damage,
+    const double DamageIncrement
 )
 {
     array_1d<double, VoigtSize> deviator = ZeroVector(6);
     array_1d<double, VoigtSize> h_capa = ZeroVector(6);
-    double J2, tensile_indicator_factor, compression_indicator_factor, slope, hardening_parameter;
+    double J2, tensile_indicator_factor, compression_indicator_factor, slope, hardening_parameter, suma;
 
     YieldSurfaceType::CalculateEquivalentStress( rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
     const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
     ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
     YieldSurfaceType::CalculateYieldSurfaceDerivative(rPredictiveStressVector, deviator, J2, rFflux, rValues);
-    CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor);
-    TPlasticityIntegratorType::CalculatePlasticDissipation(rPredictiveStressVector, tensile_indicator_factor,compression_indicator_factor, rPlasticStrainIncrement,rPlasticDissipation, h_capa, rValues, CharacteristicLength);
-    TPlasticityIntegratorType::CalculateHardeningParameter(rFflux, slope, h_capa, hardening_parameter);
+    CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor, suma);
+    // TPlasticityIntegratorType::CalculatePlasticDissipation(rPredictiveStressVector, tensile_indicator_factor,compression_indicator_factor, rPlasticStrainIncrement,rPlasticDissipation, h_capa, rValues, CharacteristicLength);
+    // TPlasticityIntegratorType::CalculateHardeningParameter(rFflux, slope, h_capa, hardening_parameter);
 
+    auto& r_matProps = rValues.GetMaterialProperties();
+    const bool has_symmetric_yield_stress = r_matProps.Has(YIELD_STRESS);
+    const double yield_compression = has_symmetric_yield_stress ? r_matProps[YIELD_STRESS] : r_matProps[YIELD_STRESS_COMPRESSION];
+    const double yield_tension = has_symmetric_yield_stress ? r_matProps[YIELD_STRESS] : r_matProps[YIELD_STRESS_TENSION];
+    const double yield_ratio = yield_compression / yield_tension;
+
+    const double fracture_energy_tension = r_matProps[FRACTURE_ENERGY] / CharacteristicLength;
+    const double fracture_energy_compression = fracture_energy_tension * std::pow(yield_ratio, 2.0);
+
+    const double constant1 = tensile_indicator_factor * std::abs(rUniaxialStress / yield_ratio) / (fracture_energy_tension * suma);
+    const double constant2 = compression_indicator_factor * std::abs(rUniaxialStress) / (fracture_energy_compression * suma);
+    const double constant = constant1 + constant2;
+
+    // Free Energy Undamaged
+    const double free_energy_undamaged = 0.5 * (inner_prod(rStrainVector - rPlasticStrain), rPredictiveStressVector / (1.0 - Damage));
+    const double hcapd = constant * free_energy_undamaged;
+    const double damage_dissipation_increment = hcapd * DamageIncrement;
+    if (damage_dissipation_increment > 1.0 || damage_dissipation_increment <tolerance) damage_dissipation_increment = 0.0;
+    rDamageDissipation += damage_dissipation_increment;
+    if (rDamageDissipation > 1.0) rDamageDissipation = 0.99999;
+    Vector slopes(2), thresholds(2);
 
 }
 

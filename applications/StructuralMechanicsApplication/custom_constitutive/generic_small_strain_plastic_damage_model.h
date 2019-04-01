@@ -356,7 +356,10 @@ public:
         const Matrix& rConstitutiveMatrix,
         ConstitutiveLaw::Parameters& rValues,
         const double CharacteristicLength,  
-        array_1d<double, VoigtSize>& rFflux);
+        array_1d<double, VoigtSize>& rFflux,
+        const Vector& rPlasticStrain,
+        const double Damage,
+        const double DamageIncrement);
 
     void CalculateIndicatorsFactors(
         const array_1d<double, VoigtSize>& rPredictiveStressVector,
