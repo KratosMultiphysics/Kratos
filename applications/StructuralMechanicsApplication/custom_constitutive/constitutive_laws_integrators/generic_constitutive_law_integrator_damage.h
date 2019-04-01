@@ -223,8 +223,8 @@ class GenericConstitutiveLawIntegratorDamage
      * @param rFlux The derivative of the yield surface
      */
     static void CalculateYieldSurfaceDerivative(
-        const Vector& rStressVector,
-        Vector& rFlux,
+        const array_1d<double, VoigtSize>& rStressVector,
+        array_1d<double, VoigtSize>& rFlux,
         ConstitutiveLaw::Parameters& rValues
     )
     {
@@ -232,7 +232,7 @@ class GenericConstitutiveLawIntegratorDamage
         double J2;
         const double I1 = rStressVector[0] + rStressVector[1] + rStressVector[2];
         ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rStressVector, I1, deviator, J2);
-        YieldSurfaceType::CalculateYieldSurfaceDerivative(rStressVector, rDeviator, J2, rFlux, rValues);
+        YieldSurfaceType::CalculateYieldSurfaceDerivative(rStressVector, deviator, J2, rFlux, rValues);
     }
 
     ///@}
