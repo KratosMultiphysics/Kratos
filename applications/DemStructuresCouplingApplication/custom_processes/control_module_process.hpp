@@ -168,10 +168,10 @@ public:
 
             const double ReactionStress = FaceReaction/FaceArea;
             TableType::Pointer pTargetStressTable = mrModelPart.pGetTable(mpTargetStressTableId);
-            const double TargetStress = pTargetStressTable->GetValue(CurrentTime);
             const double DeltaTime = mrModelPart.GetProcessInfo()[DELTA_TIME];
+            const double NextTargetStress = pTargetStressTable->GetValue(CurrentTime+DeltaTime);
 
-            mVelocity = (TargetStress - ReactionStress)*mCompressionLength/(mYoungModulus*DeltaTime);
+            mVelocity = (NextTargetStress - ReactionStress)*mCompressionLength/(mYoungModulus*DeltaTime);
 
             ComponentType TargetStressVarComponent = KratosComponents< ComponentType >::Get(mTargetStressVariableName);
             ComponentType ReactionStressVarComponent = KratosComponents< ComponentType >::Get(mReactionStressVariableName);
@@ -180,7 +180,7 @@ public:
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                it->FastGetSolutionStepValue(TargetStressVarComponent) = TargetStress;
+                it->FastGetSolutionStepValue(TargetStressVarComponent) = pTargetStressTable->GetValue(CurrentTime);
                 it->FastGetSolutionStepValue(ReactionStressVarComponent) = ReactionStress;
             }
         }
