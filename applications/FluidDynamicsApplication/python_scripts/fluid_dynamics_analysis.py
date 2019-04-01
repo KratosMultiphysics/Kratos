@@ -39,7 +39,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
         It can be overridden by derived classes
         """
 
-        import auxiliar_methods_adaptative_remeshing
+        import KratosMultiphysics.auxiliar_methods_adaptative_remeshing as auxiliar_methods_adaptative_remeshing
         auxiliar_methods_adaptative_remeshing.AdaptativeRemeshingRunSolutionLoop(self)
 
     def _CreateSolver(self):
