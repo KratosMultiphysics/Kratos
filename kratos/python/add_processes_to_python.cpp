@@ -55,6 +55,7 @@
 #include "processes/simple_mortar_mapper_wrapper_process.h"
 #include "processes/skin_detection_process.h"
 #include "processes/apply_periodic_boundary_condition_process.h"
+#include "processes/integration_values_extrapolation_to_nodes_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -321,12 +322,14 @@ void  AddProcessesToPython(pybind11::module& m)
     // Continuous distance computation methods
     py::class_<CalculateDistanceToSkinProcess<2>, CalculateDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDistanceToSkinProcess2D")
         .def(py::init<ModelPart&, ModelPart&>())
+        .def(py::init<ModelPart&, ModelPart&, double>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
 
     py::class_<CalculateDistanceToSkinProcess<3>, CalculateDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDistanceToSkinProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
+        .def(py::init<ModelPart&, ModelPart&, double>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
@@ -508,6 +511,12 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyPeriodicConditionProcess, ApplyPeriodicConditionProcess::Pointer, Process>(m,"ApplyPeriodicConditionProcess")
             .def(py::init<ModelPart&,ModelPart&, Parameters>())
+    ;
+
+    // The process to recover internal variables
+    py::class_<IntegrationValuesExtrapolationToNodesProcess, IntegrationValuesExtrapolationToNodesProcess::Pointer, Process>(m, "IntegrationValuesExtrapolationToNodesProcess")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
     ;
 }
 

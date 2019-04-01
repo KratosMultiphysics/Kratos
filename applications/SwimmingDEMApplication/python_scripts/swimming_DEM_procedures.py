@@ -4,7 +4,7 @@ import os
 from KratosMultiphysics import *
 import KratosMultiphysics.DEMApplication as DEMApp
 import KratosMultiphysics.SwimmingDEMApplication as SDEMApp
-import DEM_procedures
+import DEM_procedures as DP
 import shutil
 import os
 import weakref
@@ -13,15 +13,19 @@ def Say(*args):
     Logger.PrintInfo("SwimmingDEM", *args)
     Logger.Flush()
 
-def AddExtraDofs(project_parameters, fluid_model_part, spheres_model_part, cluster_model_part, DEM_inlet_model_part):
+def AddExtraDofs(fluid_model_part,
+                 spheres_model_part,
+                 cluster_model_part,
+                 dem_inlet_model_part,
+                 variables_manager):
 
-    if VELOCITY_LAPLACIAN in project_parameters.fluid_vars:
+    if VELOCITY_LAPLACIAN in variables_manager.fluid_vars:
         for node in fluid_model_part.Nodes:
             node.AddDof(VELOCITY_LAPLACIAN_X)
             node.AddDof(VELOCITY_LAPLACIAN_Y)
             node.AddDof(VELOCITY_LAPLACIAN_Z)
 
-    if VELOCITY_LAPLACIAN_RATE in project_parameters.fluid_vars:
+    if VELOCITY_LAPLACIAN_RATE in variables_manager.fluid_vars:
         for node in fluid_model_part.Nodes:
             node.AddDof(VELOCITY_LAPLACIAN_RATE_X)
             node.AddDof(VELOCITY_LAPLACIAN_RATE_Y)
@@ -34,7 +38,7 @@ def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_fac
 
     if must_renumber:
 
-        Logger.PrintWarning("SwimmingDEM","WARNING!, the DEM model part and the fluid model part have some ID values in common. Renumbering...")
+        Logger.PrintWarning("SwimmingDEM", "WARNING!, the DEM model part and the fluid model part have some ID values in common. Renumbering...")
 
         for node in dem_model_part.Nodes:
             node.Id += max_fluid_id
@@ -44,17 +48,17 @@ def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_fac
 
         Logger.PrintWarning("SwimmingDEM","The DEM model part and the fem-DEM model parts Ids have been renumbered")
 
-def RenumberModelPartNodesFromGivenId(model_part, id):
+def RenumberModelPartNodesFromGivenId(model_part, my_id):
 
-    new_id = id + 1
+    new_id = my_id + 1
 
     for node in model_part.Nodes:
         node.Id = new_id
         new_id = new_id + 1
 
-def RenumberModelPartElementsFromGivenId(model_part, id):
+def RenumberModelPartElementsFromGivenId(model_part, my_id):
 
-    new_id = id + 1
+    new_id = my_id + 1
 
     for element in model_part.Elements:
         element.Id = new_id
@@ -66,7 +70,7 @@ def SetModelPartSolutionStepValue(model_part, var, value):
     for node in model_part.Nodes:
         node.SetSolutionStepValue(var, 0, value)
 
-def InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part, pp):
+def InitializeVariablesWithNonZeroValues(parameters, fluid_model_part, balls_model_part):
     checker = SDEMApp.VariableChecker()
 
     if checker.ModelPartHasNodalVariableOrNot(fluid_model_part, FLUID_FRACTION):
@@ -102,17 +106,17 @@ def NormOfDifference(v1, v2):
     return math.sqrt((v1[0] - v2[0]) ** 2 + (v1[1] - v2[1]) ** 2 + (v1[2] - v2[2]) ** 2)
 
 def FindClosestNode(model_part, coors):
-     relative_coors_nodes = [[node.X - coors[0], node.Y - coors[1], node.Z - coors[2]] for node in model_part.Nodes]
-     nodes = [node for node in model_part.Nodes]
-     min_dist = Norm(coors_nodes[0])
-     min_i = 0
-     for i in range(len(nodes)):
-         norm_i = Norm(relative_coors_nodes[i])
-         if min_dist > norm_i:
-             min_dist = norm_i
-             min_i = i
+    relative_coors_nodes = [[node.X - coors[0], node.Y - coors[1], node.Z - coors[2]] for node in model_part.Nodes]
+    nodes = [node for node in model_part.Nodes]
+    min_dist = Norm(coors_nodes[0])
+    min_i = 0
+    for i in range(len(nodes)):
+        norm_i = Norm(relative_coors_nodes[i])
+        if min_dist > norm_i:
+            min_dist = norm_i
+            min_i = i
 
-     return nodes[min_i]
+    return nodes[min_i]
 
 class FluidFractionFieldUtility:
 
@@ -224,9 +228,8 @@ def FunctionsCalculator(domain_size=3):
 
 class IOTools:
 
-    def __init__(self, Param):
-
-        self.param = Param
+    def __init__(self, parameters):
+        self.parameters = parameters
 
     def PrintParticlesResults(self, variables, time, model_part):
 
@@ -237,6 +240,7 @@ class IOTools:
                                     "VELOCITY": VELOCITY,
                                     "BUOYANCY": BUOYANCY,
                                     "DRAG_FORCE": DRAG_FORCE,
+                                    "LIFT_FORCE": LIFT_FORCE,
                                     "MU": MU}
 
             for node in model_part.Nodes:
@@ -260,7 +264,7 @@ class IOTools:
 
     def ControlEcho(self, step, incremental_time, total_steps_expected):
 
-        if incremental_time > self.param.ControlTime:
+        if incremental_time > self.parameters["ControlTime"].GetDouble():
             percentage = 100.0 * (float(step) / total_steps_expected)
 
             Say('Real time calculation: ' + str(incremental_time))
@@ -278,7 +282,7 @@ class ProjectionDebugUtils:
         self.UpdateDataAndPrint(domain_volume, False)
 
     def UpdateDataAndPrint(self, domain_volume, is_time_to_print = True):
-        self.granul_utils                         = DEM_procedures.GranulometryUtils(domain_volume, self.balls_model_part)
+        self.granul_utils                         = DP.GranulometryUtils(domain_volume, self.balls_model_part)
         self.domain_volume                        = domain_volume
         self.number_of_balls                      = self.balls_model_part.NumberOfElements(0)
         self.discr_domain_volume                  = self.custom_utils.CalculateDomainVolume(self.fluid_model_part)
@@ -332,20 +336,20 @@ class ProjectionDebugUtils:
 class Counter:
 
     def __init__(self,
-                 steps_in_cycle = 1,
-                 beginning_step = 1,
-                 is_active = True,
-                 is_dead = False):
+                 steps_in_cycle=1,
+                 beginning_step=1,
+                 is_active=True,
+                 is_dead=False):
 
-        if steps_in_cycle <= 0 or not isinstance(steps_in_cycle , int):
+        if steps_in_cycle <= 0 or (not isinstance(steps_in_cycle, int) and not isinstance(steps_in_cycle, long)):
             raise ValueError("Error: The input steps_in_cycle must be a strictly positive integer")
 
-        self.beginning_step    = beginning_step
-        self.step              = 1
-        self.steps_in_cycle    = steps_in_cycle
-        self.step_in_cycle     = steps_in_cycle
-        self.is_active         = is_active
-        self.is_dead           = is_dead
+        self.beginning_step = beginning_step
+        self.step = 1
+        self.steps_in_cycle = steps_in_cycle
+        self.step_in_cycle = steps_in_cycle
+        self.is_active = is_active
+        self.is_dead = is_dead
         self.accumulated_ticks = 0
 
     def Tick(self):
@@ -409,6 +413,7 @@ class Averager:
         self.average = 0.0
         self.average_error = 0.0
         self.step = 0
+        self.sum_exact = 0
     def Norm(self, v):
         if self.counter.Tick():
             self.step += 1
@@ -437,6 +442,7 @@ class PostUtils:
     def __init__(self,
                  gid_io,
                  project_parameters,
+                 variables_manager,
                  fluid_model_part,
                  balls_model_part,
                  clusters_model_part,
@@ -444,19 +450,21 @@ class PostUtils:
                  mixed_model_part):
 
         self.gid_io                 = weakref.proxy(gid_io)
+        self.project_parameters     = project_parameters
         self.fluid_model_part       = fluid_model_part
         self.balls_model_part       = balls_model_part
         self.clusters_model_part    = clusters_model_part
         self.rigid_faces_model_part = rigid_faces_model_part
         self.mixed_model_part       = mixed_model_part
-        self.pp                     = project_parameters
+        self.vars_man               = variables_manager
         self.post_utilities         = DEMApp.PostUtilities()
 
     def Writeresults(self, time):
 
         Logger.PrintInfo("SwimmingDEM","*******************  PRINTING RESULTS FOR GID  ***************************")
         Logger.Flush()
-        if self.pp.GiDMultiFileFlag == "Multiples":
+
+        if self.project_parameters['Multifile'].GetString() == "multiple_files":
             renumbering_utility = SDEMApp.RenumberingNodesUtility(self.fluid_model_part, self.rigid_faces_model_part, self.balls_model_part)
             renumbering_utility.Renumber()
 
@@ -473,35 +481,15 @@ class PostUtils:
                                                self.clusters_model_part,
                                                self.rigid_faces_model_part,
                                                self.mixed_model_part,
-                                               self.pp.nodal_results,
-                                               self.pp.dem_nodal_results,
-                                               self.pp.clusters_nodal_results,
-                                               self.pp.rigid_faces_nodal_results,
-                                               self.pp.mixed_nodal_results,
-                                               self.pp.gauss_points_results)
+                                               self.vars_man.nodal_results,
+                                               self.vars_man.dem_nodal_results,
+                                               self.vars_man.clusters_nodal_results,
+                                               self.vars_man.rigid_faces_nodal_results,
+                                               self.vars_man.mixed_nodal_results,
+                                               self.vars_man.gauss_points_results)
 
-        if self.pp.GiDMultiFileFlag == "Multiples":
+        if self.project_parameters['Multifile'].GetString() == "multiple_files":
             renumbering_utility.UndoRenumber()
-
-    def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
-
-        if self.pp.dem.VelocityTrapOption:
-            average_velocity = Array3()
-            low_point = Array3()
-            low_point[0] = self.pp.dem.VelocityTrapMinX
-            low_point[1] = self.pp.dem.VelocityTrapMinY
-            low_point[2] = self.pp.dem.VelocityTrapMinZ
-            high_point = Array3()
-            high_point[0] = self.pp.dem.VelocityTrapMaxX
-            high_point[1] = self.pp.dem.VelocityTrapMaxY
-            high_point[2] = self.pp.dem.VelocityTrapMaxZ
-
-            average_velocity = self.post_utilities.VelocityTrap(self.balls_model_part, low_point, high_point)
-            f = open(file_name, 'a')
-            tmp = str(time_dem) + "   " + str(average_velocity[0]) + "   " + str(average_velocity[1]) + "   " + str(average_velocity[2]) + "\n"
-            f.write(tmp)
-            f.flush()
-            f.close()
 
 class ResultsFileCreator:
     def __init__(self, model_part, node_id, scalar_vars_list = None, vector_vars_list = None):
@@ -558,44 +546,6 @@ class ResultsFileCreator:
                 for entry in result:
                     line += str('%.17f' % entry) + ' '
                 f.write(line + ' \n')
-
-# The following function creates a run_code to be appended to the name of the PostFiles directory for the benchmark marine_rain (2013 Guseva)
-def CreateRunCode(pp):
-    code = []
-
-    if pp.CFD_DEM["basset_force_type"].GetInt() > 0:
-        history_or_not = 'H'
-    else:
-        history_or_not = 'NH'
-
-    code.append(history_or_not)
-
-    if pp.CFD_DEM["basset_force_type"].GetInt() == 4:
-        method_name = 'Hinsberg'
-        number_of_exponentials = 'm=' + str(pp.CFD_DEM.number_of_exponentials)
-        time_window = 'tw=' + str(pp.CFD_DEM["time_window"].GetDouble())
-        code.append(method_name)
-        code.append(number_of_exponentials)
-        code.append(time_window)
-
-    elif pp.CFD_DEM["basset_force_type"].GetInt() > 0:
-        method_name = 'Daitche'
-        code.append(method_name)
-    else:
-        method_name = pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
-        code.append(method_name)
-
-    DEM_dt = 'Dt=' + str(pp.CFD_DEM["MaxTimeStep"].GetDouble())
-    code.append(DEM_dt)
-
-    if pp.CFD_DEM["basset_force_type"].GetInt() > 0:
-        phi = 'phi=' + str(round(1 / pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt(), 3))
-        code.append(phi)
-
-    quadrature_order = 'QuadOrder=' + str(pp.CFD_DEM["quadrature_order"].GetInt())
-    code.append(quadrature_order)
-
-    return '_' + '_'.join(code)
 
 def CopyInputFilesIntoFolder(files_path, folder_path):
     import glob, os, shutil

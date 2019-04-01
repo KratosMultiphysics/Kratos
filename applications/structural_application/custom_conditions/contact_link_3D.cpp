@@ -95,8 +95,8 @@ ContactLink3D::ContactLink3D( IndexType NewId, GeometryType::Pointer pGeometry,
                               PropertiesType::Pointer pProperties,
                               Condition::Pointer Master,
                               Condition::Pointer Slave,
-                             Point& MasterContactLocalPoint,
-                             Point& SlaveContactLocalPoint,
+                             array_1d<double, 3>& MasterContactLocalPoint,
+                             array_1d<double, 3>& SlaveContactLocalPoint,
                               int SlaveIntegrationPointIndex
                             )
     : Condition( NewId, pGeometry, pProperties )
@@ -2566,7 +2566,7 @@ void ContactLink3D::GetDofList( DofsVectorType& ConditionalDofList,
 
 //new functions includes
 
-Point& ContactLink3D::GlobalCoordinates( Condition::Pointer Surface,Point& rResult,Point const& LocalCoordinates )
+array_1d<double, 3>& ContactLink3D::GlobalCoordinates( Condition::Pointer Surface,array_1d<double, 3>& rResult,array_1d<double, 3> const& LocalCoordinates )
 {
     noalias( rResult ) = ZeroVector( 3 );
 

@@ -27,8 +27,8 @@ namespace Kratos {
 KratosCompressiblePotentialFlowApplication::KratosCompressiblePotentialFlowApplication():
     KratosApplication("CompressiblePotentialFlowApplication"),
     mCompressiblePotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mIncompressiblePotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mCompressiblePotentialFlowElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mIncompressiblePotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mPotentialWallCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
     mPotentialWallCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3))))
   {}
@@ -37,7 +37,7 @@ void KratosCompressiblePotentialFlowApplication::Register()
 {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    std::cout << "Initializing KratosCompressiblePotentialFlowApplication... " << std::endl;
+    KRATOS_INFO("") << "Initializing KratosCompressiblePotentialFlowApplication..." << std::endl;
 
     // Register Variables (defined in compressible_potential_flow_application_variables.h)
     // Degrees of freedom

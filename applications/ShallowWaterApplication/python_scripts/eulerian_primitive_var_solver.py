@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 ## Import base class file
 from shallow_water_base_solver import ShallowWaterBaseSolver
 
@@ -29,14 +26,14 @@ class EulerianPrimitiveVarSolver(ShallowWaterBaseSolver):
         self.print_on_rank_zero("::[EulerianPrimitiveVarSolver]::", "Shallow water solver DOFs added correctly.")
 
     def SolveSolutionStep(self):
-        if self._TimeBufferIsInitialized:
-            # If a node and it's neighbours are dry, set ACTIVE flag to false
+        if self._TimeBufferIsInitialized():
+            # If all the nodes of an element are dry, set ACTIVE flag False
             self.ShallowVariableUtils.SetDryWetState()
-            # Solve equations on mesh
+            # Solve equations on the mesh
             is_converged = self.solver.SolveSolutionStep()
             # Compute free surface
             self.ShallowVariableUtils.ComputeFreeSurfaceElevation()
             # If water height is negative or close to zero, reset values
-            self.ShallowVariableUtils.CheckDryPrimitiveVariables()
+            # self.ShallowVariableUtils.CheckDryPrimitiveVariables()
 
             return is_converged

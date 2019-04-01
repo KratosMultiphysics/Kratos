@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-class TestPatchTestMembrane(KratosUnittest.TestCase):
+class BasePatchTestMembrane(KratosUnittest.TestCase):
 
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -292,6 +292,35 @@ class TestPatchTestMembrane(KratosUnittest.TestCase):
 
         return mp
 
+    def __post_process(self, main_model_part):
+        from gid_output_process import GiDOutputProcess
+        self.gid_output = GiDOutputProcess(main_model_part,
+                                    "gid_output",
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "result_file_configuration" : {
+                                                "gidpost_flags": {
+                                                    "GiDPostMode": "GiD_PostBinary",
+                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                    "WriteConditionsFlag": "WriteConditions",
+                                                    "MultiFileFlag": "SingleFile"
+                                                },
+                                                "nodal_results"       : ["DISPLACEMENT"],
+                                                "gauss_point_results" : []
+                                            }
+                                        }
+                                        """)
+                                    )
+
+        self.gid_output.ExecuteInitialize()
+        self.gid_output.ExecuteBeforeSolutionLoop()
+        self.gid_output.ExecuteInitializeSolutionStep()
+        self.gid_output.PrintOutput()
+        self.gid_output.ExecuteFinalizeSolutionStep()
+        self.gid_output.ExecuteFinalize()
+
+
+class StaticPatchTestMembrane(BasePatchTestMembrane):
 
     def test_membrane_3d3n_static(self):
         displacement_results = [-4.628753e-12 , -0.04937043 , -6.483677e-12]
@@ -319,6 +348,7 @@ class TestPatchTestMembrane(KratosUnittest.TestCase):
 
         #self.__post_process(mp)
 
+class DynamicPatchTestMembrane(BasePatchTestMembrane):
 
     def test_membrane_3d3n_dynamic(self):
 
@@ -377,34 +407,6 @@ class TestPatchTestMembrane(KratosUnittest.TestCase):
             self._check_dynamic_results(mp.Nodes[9],step-1,displacement_results)
 
         #self.__post_process(mp)
-
-
-    def __post_process(self, main_model_part):
-        from gid_output_process import GiDOutputProcess
-        self.gid_output = GiDOutputProcess(main_model_part,
-                                    "gid_output",
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "nodal_results"       : ["DISPLACEMENT"],
-                                                "gauss_point_results" : []
-                                            }
-                                        }
-                                        """)
-                                    )
-
-        self.gid_output.ExecuteInitialize()
-        self.gid_output.ExecuteBeforeSolutionLoop()
-        self.gid_output.ExecuteInitializeSolutionStep()
-        self.gid_output.PrintOutput()
-        self.gid_output.ExecuteFinalizeSolutionStep()
-        self.gid_output.ExecuteFinalize()
 
 if __name__ == '__main__':
     KratosUnittest.main()

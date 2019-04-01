@@ -14,22 +14,14 @@
 #include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "includes/checks.h"
-#include "custom_elements/cr_beam_element_3D2N.hpp"
+#include "custom_elements/cr_beam_element_linear_3D2N.hpp"
 
 
 namespace Kratos
 {
 
-AdjointFiniteDifferenceCrBeamElement::AdjointFiniteDifferenceCrBeamElement(Element::Pointer pPrimalElement)
-    : AdjointFiniteDifferencingBaseElement(pPrimalElement, true)
-{
-}
-
-AdjointFiniteDifferenceCrBeamElement::~AdjointFiniteDifferenceCrBeamElement()
-{
-}
-
-void AdjointFiniteDifferenceCrBeamElement::Calculate(const Variable<Vector >& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo)
+template <class TPrimalElement>
+void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::Calculate(const Variable<Vector >& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -43,15 +35,17 @@ void AdjointFiniteDifferenceCrBeamElement::Calculate(const Variable<Vector >& rV
 
         KRATOS_ERROR_IF(rOutput.size() != element_size) << "Size of particular solution does not fit!" << std::endl;
 
-        CrBeamElement3D2N::Pointer p_primal_beam_element = dynamic_pointer_cast<CrBeamElement3D2N>(this->pGetPrimalElement());
-        BoundedMatrix<double, element_size, element_size> transformation_matrix = p_primal_beam_element->CalculateInitialLocalCS();
+        //CrBeamElement3D2N::Pointer p_primal_beam_element = dynamic_pointer_cast<CrBeamElement3D2N>(this->pGetPrimalElement());
+        BoundedMatrix<double, element_size, element_size> transformation_matrix = this->GetPrimalElement().CalculateInitialLocalCS();
+        KRATOS_WATCH(transformation_matrix)
         rOutput = prod(transformation_matrix, rOutput);
     }
 
     KRATOS_CATCH("")
 }
 
-void AdjointFiniteDifferenceCrBeamElement::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+template <class TPrimalElement>
+void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					      std::vector< array_1d<double, 3 > >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)
 {
@@ -116,17 +110,19 @@ void AdjointFiniteDifferenceCrBeamElement::CalculateOnIntegrationPoints(const Va
     KRATOS_CATCH("")
 }
 
-int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
+template <class TPrimalElement>
+int AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    int return_value = AdjointFiniteDifferencingBaseElement::Check(rCurrentProcessInfo);
+    int return_value = BaseType::Check(rCurrentProcessInfo);
 
-    KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
+    KRATOS_ERROR_IF_NOT(this->mHasRotationDofs) << "Adjoint beam element does not have rotation dofs!" << std::endl;
+    KRATOS_ERROR_IF_NOT(this->mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
     //TODO: Check() of primal element should be called, but is not possible because of DOF check!
 
-    KRATOS_ERROR_IF(GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
+    KRATOS_ERROR_IF(this->GetGeometry().WorkingSpaceDimension() != 3 || this->GetGeometry().size() != 2)
     << "The beam element works only in 3D and with 2 noded elements" << "" << std::endl;
 
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
@@ -138,7 +134,7 @@ int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProce
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
 
     // check dofs
-    const GeometryType& r_geom = GetGeometry();
+    const GeometryType& r_geom = this->GetGeometry();
     for (IndexType i = 0; i < r_geom.size(); i++)
     {
         const auto& r_node = r_geom[i];
@@ -179,15 +175,19 @@ int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProce
     KRATOS_CATCH("")
 }
 
-void AdjointFiniteDifferenceCrBeamElement::save(Serializer& rSerializer) const
+template <class TPrimalElement>
+void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, AdjointFiniteDifferencingBaseElement);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
 }
 
-void AdjointFiniteDifferenceCrBeamElement::load(Serializer& rSerializer)
+template <class TPrimalElement>
+void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, AdjointFiniteDifferencingBaseElement);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
 }
+
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferenceCrBeamElement<CrBeamElementLinear3D2N>;
 
 } // namespace Kratos.
 

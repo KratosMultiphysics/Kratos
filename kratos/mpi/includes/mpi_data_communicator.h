@@ -409,7 +409,7 @@ class MPIDataCommunicator: public DataCommunicator
     ///@name Operations
     ///@{
 
-    void CheckMPIErrorCode(const int ierr, const std::string MPICallName) const;
+    void CheckMPIErrorCode(const int ierr, const std::string& MPICallName) const;
 
     template<class TDataType> void ReduceDetail(
         const TDataType& rLocalValues,
