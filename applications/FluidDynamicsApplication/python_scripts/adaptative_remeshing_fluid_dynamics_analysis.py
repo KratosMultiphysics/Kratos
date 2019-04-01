@@ -2,13 +2,12 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication
 
 # Other imports
 import sys
 
 # Import the base structural analysis
-from fluid_dynamics_analysis import FluidDynamicsAnalysis as BaseClass
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis as BaseClass
 
 class AdaptativeRemeshingFluidDynamicsAnalysis(BaseClass):
     """
@@ -16,14 +15,6 @@ class AdaptativeRemeshingFluidDynamicsAnalysis(BaseClass):
 
     It can be imported and used as "black-box"
     """
-    def __init__(self, model, project_parameters):
-
-        # Construct the base analysis.
-        super(AdaptativeRemeshingFluidDynamicsAnalysis, self).__init__(model, project_parameters)
-
-    def Initialize(self):
-        """ Initializing the Analysis """
-        super(AdaptativeRemeshingFluidDynamicsAnalysis, self).Initialize()
 
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
