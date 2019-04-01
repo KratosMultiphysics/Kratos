@@ -22,8 +22,9 @@ FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersectedGeometr
     ModelPart& rPart1,
     ModelPart& rPart2,
     const double BoundingBoxFactor,
-    const bool DebugOBB
-    ) : BaseType(rPart1, rPart2, BoundingBoxFactor, DebugOBB)
+    const bool DebugOBB,
+    const OBBHasIntersectionType IntersectionType
+    ) : BaseType(rPart1, rPart2, BoundingBoxFactor, DebugOBB, IntersectionType)
 {
 }
 

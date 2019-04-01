@@ -100,7 +100,8 @@ public:
         ModelPart& rPart1,
         ModelPart& rPart2,
         const double BoundingBoxFactor = -1.0,
-        const bool DebugOBB = false
+        const bool DebugOBB = false,
+        OBBHasIntersectionType IntersectionType = OBBHasIntersectionType::SeparatingAxisTheorem
         );
 
     /**
