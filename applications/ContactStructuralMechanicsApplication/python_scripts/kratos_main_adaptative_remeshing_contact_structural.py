@@ -2,11 +2,8 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics as KM
-import KratosMultiphysics.MeshingApplication as MA
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
-import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
-import adaptative_remeshing_contact_structural_mechanics_analysis as Analysis
+from KratosMultiphysics.ContactStructuralMechanicsApplication.adaptative_remeshing_contact_structural_mechanics_analysis import AdaptativeRemeshingContactStructuralMechanicsAnalysis
 
 ## Import define_output
 with open("ProjectParameters.json",'r') as parameter_file:
@@ -14,6 +11,5 @@ with open("ProjectParameters.json",'r') as parameter_file:
 
 # Creating the test
 model = KM.Model()
-analysis = Analysis.AdaptativeRemeshingContactStructuralMechanicsAnalysis(model, ProjectParameters)
-KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.INFO)
+analysis = AdaptativeRemeshingContactStructuralMechanicsAnalysis(model, ProjectParameters)
 analysis.Run()
