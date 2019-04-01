@@ -108,7 +108,8 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         double plastic_dissipation = mPlasticDissipation;
         Vector plastic_strain = mPlasticStrain;
         double damage_dissipation = mDamageDissipation;
-        double damage_increment = 0.0;
+        double damage_increment = 0.0;  // dDamage
+        double plastic_consistency_increment = 0.0; // dlambda
         double hard_damage = 0.0;
 
         // Stress Predictor S = (1-d)C:(E-Ep)
@@ -131,7 +132,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
 
         // Compute Damage Parameters
         this->CalculateDamageParameters(
-                predictive_stress_vector, r_strain_vector, 
+                predictive_stress_vector, r_strain_vector,
                 uniaxial_stress_damage, threshold_damage, 
                 damage_dissipation, r_constitutive_matrix,
                 rValues, characteristic_length, damage_yield_flux,
@@ -161,7 +162,14 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
             fact1 *= (1.0 - damage);
             const double factorA = scalar_prod_plast_yield_sigma_eff;
             const double factorB = 1 / plastic_denominator; // ?? ABETA
-            //const double factorC = scalar_prod_dam_yield_sigma_eff + hard_damage_slope;
+            const double factorC = scalar_prod_dam_yield_sigma_eff + hard_damage;
+            const double factorD = fact1;
+            const double denominator = factorA * factorD - factorB * factorC;
+
+            if (std::abs(denominator) > tolerance) {
+                damage_increment = (factorD * plasticity_indicator - factorB * damage_indicator) / denominator;
+                plastic_consistency_increment = (factorA * damage_indicator - factorC * plasticity_indicator) / denominator;
+            }
 
         }
 
