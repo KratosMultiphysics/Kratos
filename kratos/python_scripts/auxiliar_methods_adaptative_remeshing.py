@@ -14,7 +14,7 @@ def AdaptativeRemeshingRunSolutionLoop(analysis):
     computing_model_part = analysis._GetSolver().GetComputingModelPart()
     root_model_part = computing_model_part.GetRootModelPart()
 
-    while analysis.time < analysis.end_time:
+    while analysis.KeepAdvancingSolutionLoop():
         analysis.time = analysis._GetSolver().AdvanceInTime(analysis.time)
         # We reinitialize if remeshed previously
         if root_model_part.Is(KratosMultiphysics.MODIFIED):
