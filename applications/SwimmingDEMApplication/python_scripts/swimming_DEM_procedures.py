@@ -38,7 +38,7 @@ def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_fac
 
     if must_renumber:
 
-        Logger.PrintWarning("SwimmingDEM","WARNING!, the DEM model part and the fluid model part have some ID values in common. Renumbering...")
+        Logger.PrintWarning("SwimmingDEM", "WARNING!, the DEM model part and the fluid model part have some ID values in common. Renumbering...")
 
         for node in dem_model_part.Nodes:
             node.Id += max_fluid_id
@@ -48,17 +48,17 @@ def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_fac
 
         Logger.PrintWarning("SwimmingDEM","The DEM model part and the fem-DEM model parts Ids have been renumbered")
 
-def RenumberModelPartNodesFromGivenId(model_part, id):
+def RenumberModelPartNodesFromGivenId(model_part, my_id):
 
-    new_id = id + 1
+    new_id = my_id + 1
 
     for node in model_part.Nodes:
         node.Id = new_id
         new_id = new_id + 1
 
-def RenumberModelPartElementsFromGivenId(model_part, id):
+def RenumberModelPartElementsFromGivenId(model_part, my_id):
 
-    new_id = id + 1
+    new_id = my_id + 1
 
     for element in model_part.Elements:
         element.Id = new_id
@@ -106,17 +106,17 @@ def NormOfDifference(v1, v2):
     return math.sqrt((v1[0] - v2[0]) ** 2 + (v1[1] - v2[1]) ** 2 + (v1[2] - v2[2]) ** 2)
 
 def FindClosestNode(model_part, coors):
-     relative_coors_nodes = [[node.X - coors[0], node.Y - coors[1], node.Z - coors[2]] for node in model_part.Nodes]
-     nodes = [node for node in model_part.Nodes]
-     min_dist = Norm(coors_nodes[0])
-     min_i = 0
-     for i in range(len(nodes)):
-         norm_i = Norm(relative_coors_nodes[i])
-         if min_dist > norm_i:
-             min_dist = norm_i
-             min_i = i
+    relative_coors_nodes = [[node.X - coors[0], node.Y - coors[1], node.Z - coors[2]] for node in model_part.Nodes]
+    nodes = [node for node in model_part.Nodes]
+    min_dist = Norm(coors_nodes[0])
+    min_i = 0
+    for i in range(len(nodes)):
+        norm_i = Norm(relative_coors_nodes[i])
+        if min_dist > norm_i:
+            min_dist = norm_i
+            min_i = i
 
-     return nodes[min_i]
+    return nodes[min_i]
 
 class FluidFractionFieldUtility:
 
@@ -264,7 +264,7 @@ class IOTools:
 
     def ControlEcho(self, step, incremental_time, total_steps_expected):
 
-        if incremental_time > self.param.ControlTime:
+        if incremental_time > self.parameters["ControlTime"].GetDouble():
             percentage = 100.0 * (float(step) / total_steps_expected)
 
             Say('Real time calculation: ' + str(incremental_time))
@@ -336,20 +336,20 @@ class ProjectionDebugUtils:
 class Counter:
 
     def __init__(self,
-                 steps_in_cycle = 1,
-                 beginning_step = 1,
-                 is_active = True,
-                 is_dead = False):
+                 steps_in_cycle=1,
+                 beginning_step=1,
+                 is_active=True,
+                 is_dead=False):
 
-        if steps_in_cycle <= 0 or not isinstance(steps_in_cycle , int):
+        if steps_in_cycle <= 0 or (not isinstance(steps_in_cycle, int) and not isinstance(steps_in_cycle, long)):
             raise ValueError("Error: The input steps_in_cycle must be a strictly positive integer")
 
-        self.beginning_step    = beginning_step
-        self.step              = 1
-        self.steps_in_cycle    = steps_in_cycle
-        self.step_in_cycle     = steps_in_cycle
-        self.is_active         = is_active
-        self.is_dead           = is_dead
+        self.beginning_step = beginning_step
+        self.step = 1
+        self.steps_in_cycle = steps_in_cycle
+        self.step_in_cycle = steps_in_cycle
+        self.is_active = is_active
+        self.is_dead = is_dead
         self.accumulated_ticks = 0
 
     def Tick(self):
@@ -413,6 +413,7 @@ class Averager:
         self.average = 0.0
         self.average_error = 0.0
         self.step = 0
+        self.sum_exact = 0
     def Norm(self, v):
         if self.counter.Tick():
             self.step += 1
