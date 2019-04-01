@@ -36,6 +36,34 @@ namespace Kratos
 
     AdjointLiftJumpCoordinatesResponseFunction::~AdjointLiftJumpCoordinatesResponseFunction(){}
 
+    double AdjointLiftJumpCoordinatesResponseFunction::CalculateValue(ModelPart& rModelPart)
+    {
+        KRATOS_TRY;
+
+        Element tracedElem = rModelPart.GetElement(mpNeighboringElement->Id());
+        const array_1d<double, 3> v_inf = rModelPart.GetProcessInfo().GetValue(VELOCITY_INFINITY);
+        double vinfinity_norm = norm_2(v_inf);
+        unsigned int NumNodes = tracedElem.GetGeometry().size();
+        double lift_coefficient;
+        for(IndexType i = 0; i < NumNodes; ++i)
+        {
+            if(tracedElem.GetGeometry()[i].GetValue(TRAILING_EDGE))
+            {   
+                double potential = tracedElem.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+                double aux_potential = tracedElem.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+
+                if (potential>aux_potential)
+                    lift_coefficient = 2.0 / vinfinity_norm * (potential - aux_potential);
+                else
+                    lift_coefficient = 2.0 / vinfinity_norm * (aux_potential - potential);
+            }
+        }
+
+        return lift_coefficient;
+
+        KRATOS_CATCH("");
+    }
+
     void AdjointLiftJumpCoordinatesResponseFunction::CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,

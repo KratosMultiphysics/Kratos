@@ -78,6 +78,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    double CalculateValue(ModelPart& rModelPart) override;
 
     void CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,
