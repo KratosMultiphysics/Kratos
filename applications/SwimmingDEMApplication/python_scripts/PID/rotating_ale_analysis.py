@@ -27,7 +27,7 @@ class RotatingAleAnalysis(BaseAnalysis):
         Add("stationary_start_time").SetDouble(0.0)
 
     def UpdateALEMeshMovement(self, time):
-        if self.project_parameters["ALE_option"].GetBool():
+        if self.project_parameters["custom_fluid"]["ALE_option"].GetBool():
             self.rotator.RotateMesh(self.fluid_model_part, time)
             self.projection_module.UpdateDatabase(self.h_min)
 
@@ -44,9 +44,9 @@ class RotatingAleAnalysis(BaseAnalysis):
             import hdf5_io_tools_PID
             import average_field
 
-            rotation_axis_initial_point = self.project_parameters["frame_rotation_axis_initial_point"].GetVector()
-            rotation_axis_final_point = self.project_parameters["frame_rotation_axis_final_point"].GetVector()
-            angular_velocity_module = self.project_parameters["angular_velocity_magnitude"].GetDouble()
+            rotation_axis_initial_point = self.project_parameters['frame_of_reference']["frame_rotation_axis_initial_point"].GetVector()
+            rotation_axis_final_point = self.project_parameters['frame_of_reference']["frame_rotation_axis_final_point"].GetVector()
+            angular_velocity_module = self.project_parameters['frame_of_reference']["angular_velocity_magnitude"].GetDouble()
             dataset_name = 'stationary_field'
             original_file_name = self.project_parameters["prerun_fluid_file_name"].GetString()
             initial_averaging_time = self.project_parameters["initial_averaging_time"].GetDouble()

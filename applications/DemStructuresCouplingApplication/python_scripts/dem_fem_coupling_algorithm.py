@@ -37,10 +37,9 @@ class Algorithm(object):
 
     def AddDEMVariablesToStructural(self):
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.DEM_SURFACE_LOAD)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.DEM_SURFACE_LOAD_OLD)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.DEM_SURFACE_LOAD_OLD2)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.CURRENT_STRUCTURAL_VELOCITY)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.CURRENT_STRUCTURAL_DISPLACEMENT)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.BACKUP_LAST_STRUCTURAL_VELOCITY)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.BACKUP_LAST_STRUCTURAL_DISPLACEMENT)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.SMOOTHED_STRUCTURAL_VELOCITY)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.DELTA_DISPLACEMENT)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.DEM_PRESSURE)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.DEM_NODAL_AREA)
@@ -118,7 +117,11 @@ class Algorithm(object):
         self.structural_mp = self.structural_solution._GetSolver().GetComputingModelPart()
         self.skin_mp = self.structural_mp.GetSubModelPart("DetectedByProcessSkinModelPart")
         dem_walls_mp = self.dem_solution.rigid_face_model_part
-        props = Kratos.Properties(0)
+        max_prop_id = 0
+        for prop in dem_walls_mp.Properties:
+            if prop.Id > max_prop_id:
+                max_prop_id = prop.Id
+        props = Kratos.Properties(max_prop_id + 1)
         props[Dem.FRICTION] = 0.5773502691896257
         props[Dem.WALL_COHESION] = 0.0
         props[Dem.COMPUTE_WEAR] = False
@@ -135,13 +138,14 @@ class Algorithm(object):
         self.dem_solution.step = 0
         self.dem_solution.time = 0.0
         self.dem_solution.time_old_print = 0.0
-        self.time_dem   = 0.0
+        self.time_dem = 0.0
         self.Dt_structural = self.structural_solution._GetSolver().settings["time_stepping"]["time_step"].GetDouble()
 
         while self.structural_solution.time < self.structural_solution.end_time:
-            for node in self.structural_mp.Nodes:
-                averaged_force =0.1666666666666 * ( node.GetSolutionStepValue(DemFem.DEM_SURFACE_LOAD) + 2.0*node.GetSolutionStepValue(DemFem.DEM_SURFACE_LOAD_OLD) + 3.0*node.GetSolutionStepValue(DemFem.DEM_SURFACE_LOAD_OLD2) )
-                node.SetSolutionStepValue(DemFem.DEM_SURFACE_LOAD, averaged_force)
+
+            portion_of_the_force_which_is_new = 0.01
+            DemFem.DemStructuresCouplingUtilities().SmoothLoadTrasferredToFem(self.dem_solution.rigid_face_model_part, portion_of_the_force_which_is_new)
+
             self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
             self.structural_solution.InitializeSolutionStep()
             self.structural_solution._GetSolver().Predict()
@@ -157,7 +161,6 @@ class Algorithm(object):
             DemFem.ComputeDEMFaceLoadUtility().ClearDEMFaceLoads(self.skin_mp)
 
             for self.dem_solution.time_dem in self.yield_DEM_time(self.dem_solution.time, time_final_DEM_substepping, self.Dt_DEM):
-
                 self.dem_solution.InitializeTimeStep()
                 self.dem_solution.time = self.dem_solution.time + self.dem_solution.solver.dt
 
@@ -184,7 +187,7 @@ class Algorithm(object):
 
                 stepinfo = self.dem_solution.report.StepiReport(timer, self.dem_solution.time, self.dem_solution.step)
                 if stepinfo:
-                    self.dem_solution.KRATOSprint(stepinfo)
+                    self.dem_solution.KratosPrintInfo(stepinfo)
 
                 #### PRINTING GRAPHS ####
                 os.chdir(self.dem_solution.graphs_path)

@@ -115,8 +115,7 @@ namespace Kratos
         }
         else
         {
-            if (rSensitivityGradient.size() != 0)
-                rSensitivityGradient.resize(0, false);
+            rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
         }
 
         KRATOS_CATCH("")
@@ -130,8 +129,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if (rSensitivityGradient.size() != 0)
-            rSensitivityGradient.resize(0, false);
+        rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
         KRATOS_CATCH("");
     }
@@ -152,8 +150,7 @@ namespace Kratos
         }
         else
         {
-            if (rSensitivityGradient.size() != 0)
-                rSensitivityGradient.resize(0, false);
+            rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
         }
 
         KRATOS_CATCH("");
@@ -167,8 +164,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if (rSensitivityGradient.size() != 0)
-            rSensitivityGradient.resize(0, false);
+        rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
         KRATOS_CATCH("");
     }

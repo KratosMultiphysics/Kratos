@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from . import recoverer
-
+import parameters_tools as PT
 
 class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
     def GetFieldUtility(self):
@@ -22,7 +22,9 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         self.use_lumped_mass_matrix = project_parameters["material_acceleration_calculation_type"].GetInt() == 3
         self.recovery_model_part = ModelPart("PostGradientFluidPart")
         self.custom_functions_tool = CustomFunctionsCalculator3D()
-        self.calculate_vorticity = project_parameters["vorticity_calculation_type"].GetInt() > 0
+        self.calculate_vorticity = (parameters["vorticity_calculation_type"].GetInt() > 0
+                                    or PT.RecursiveFindParametersWithCondition(parameters["properties"],
+                                                                               'vorticity_induced_lift_parameters'))
         self.GetFieldUtility()
         self.CreateCPluPlusStrategies()
 
@@ -96,7 +98,9 @@ class Pouliot2012EdgeGradientRecoverer(Pouliot2012EdgeDerivativesRecoverer, reco
         self.FillUpModelPart(self.element_type)
         self.DOFs = self.GetDofs(pp)
         self.AddDofs(self.DOFs)
-        self.calculate_vorticity = self.project_parameters["lift_force_type"].GetInt()
+        self.calculate_vorticity = (parameters["vorticity_calculation_type"].GetInt() > 0
+                                    or PT.RecursiveFindParametersWithCondition(parameters["properties"],
+                                                                               'vorticity_induced_lift_parameters'))
         self.domain_size = project_parameters["fluid_parameters"]["solver_settings"]["domain_size"].GetInt()
 
     def Solve(self):
