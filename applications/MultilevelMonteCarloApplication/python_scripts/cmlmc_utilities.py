@@ -75,7 +75,7 @@ input:  ConstructorCallback:       an instance of the MultilevelMonteCarlo class
         aux_current_number_levels: current number of levels of the MultilevelMonteCarlo class
         aux_current_iteration:     current iteration of the MultilevelMonteCarlo class
         aux_number_samples:        number of samples of the Multilevel Monte Carlo class
-        *args:                     list containing difference_QoI.mean, difference_QoI.sample_variance and time_ML.mean
+        *args:                     list containing difference_QoI.raw_moment_1, difference_QoI.unbiased_central_moment_2 and time_ML.raw_moment_1
 output: auxiliary_MLMC_object.rates_error:       rates error of the MultilevelMonteCarlo class
         auxiliary_MLMC_object.bayesian_variance: bayesian variance of the MultilevelMonteCarlo class
         auxiliary_MLMC_object.mean_mlmc_QoI:     multilevel monte carlo mean estimator of the MultilevelMonteCarlo class
@@ -103,9 +103,9 @@ aux_current_number_levels,aux_current_iteration,aux_number_samples,*args):
     aux_custom_remesh_refinement_parameters = "auxiliary_custom_settings_remesh_refinement"
     auxiliary_MLMC_object = ConstructorCallback(aux_settings,aux_project_parameters_path,aux_custom_metric_refinement_parameters,aux_custom_remesh_refinement_parameters,aux_analysis)
     print(auxiliary_MLMC_object.settings)
-    auxiliary_MLMC_object.difference_QoI.mean = difference_QoI_mean
-    auxiliary_MLMC_object.difference_QoI.sample_variance = difference_QoI_sample_variance
-    auxiliary_MLMC_object.time_ML.mean = time_ML_mean
+    auxiliary_MLMC_object.difference_QoI.raw_moment_1 = difference_QoI_mean
+    auxiliary_MLMC_object.difference_QoI.unbiased_central_moment_2 = difference_QoI_sample_variance
+    auxiliary_MLMC_object.time_ML.raw_moment_1 = time_ML_mean
     auxiliary_MLMC_object.mesh_parameters = aux_mesh_parameters
     auxiliary_MLMC_object.current_number_levels = aux_current_number_levels
     auxiliary_MLMC_object.current_iteration = aux_current_iteration
@@ -508,14 +508,14 @@ class MultilevelMonteCarlo(object):
     """
     def FinalizeScreeningPhase(self):
         # prepare lists
-        self.difference_QoI.mean = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
-        self.difference_QoI.sample_variance = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
+        self.difference_QoI.raw_moment_1 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
+        self.difference_QoI.unbiased_central_moment_2 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
         self.difference_QoI.central_moment_1 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
         self.difference_QoI.central_moment_2 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
         self.difference_QoI.central_moment_3 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
         self.difference_QoI.central_moment_4 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
-        self.time_ML.mean = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
-        self.time_ML.sample_variance = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
+        self.time_ML.raw_moment_1 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
+        self.time_ML.unbiased_central_moment_2 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
         self.time_ML.central_moment_1 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
         self.time_ML.central_moment_2 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
         self.time_ML.central_moment_3 = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)]
@@ -523,8 +523,8 @@ class MultilevelMonteCarlo(object):
         # compute mean, sample variance and second moment for difference QoI and time ML
         for level in range (self.current_number_levels+1):
             for i_sample in range(self.number_samples[level]):
-                self.difference_QoI.UpdateOnePassMomentsVariance(level,i_sample)
-                self.time_ML.UpdateOnePassMomentsVariance(level,i_sample)
+                self.difference_QoI.UpdateOnePassCentralMoments(level,i_sample)
+                self.time_ML.UpdateOnePassCentralMoments(level,i_sample)
         # compute i_E, number of iterations of Multilevel Monte Carlo algorithm
         self.ComputeNumberIterationsMLMC()
         """
@@ -533,11 +533,11 @@ class MultilevelMonteCarlo(object):
         self.EstimateBayesianVariance(self.current_number_levels)
         """
         # store lists in synchro_element to execute FinalizePhaseAux_Task
-        synchro_elements = [x for x in self.difference_QoI.mean]
+        synchro_elements = [x for x in self.difference_QoI.raw_moment_1]
         synchro_elements.extend(["%%%"])
-        synchro_elements.extend(self.difference_QoI.sample_variance)
+        synchro_elements.extend(self.difference_QoI.unbiased_central_moment_2)
         synchro_elements.extend(["%%%"])
-        synchro_elements.extend(self.time_ML.mean)
+        synchro_elements.extend(self.time_ML.raw_moment_1)
         # create a StreamSerializer Kratos object containing the problem settings
         serial_settings = KratosMultiphysics.StreamSerializer()
         serial_settings.Save("ParametersSerialization", self.settings)
@@ -550,9 +550,9 @@ class MultilevelMonteCarlo(object):
         self.current_iteration,self.number_samples,*synchro_elements)
         # synchronization point needed to compute the other functions of MLMC algorithm
         # put as in the end as possible the synchronization point
-        self.difference_QoI.mean = get_value_from_remote(self.difference_QoI.mean)
-        self.difference_QoI.sample_variance = get_value_from_remote(self.difference_QoI.sample_variance)
-        self.time_ML.mean = get_value_from_remote(self.time_ML.mean)
+        self.difference_QoI.raw_moment_1 = get_value_from_remote(self.difference_QoI.raw_moment_1)
+        self.difference_QoI.unbiased_central_moment_2 = get_value_from_remote(self.difference_QoI.unbiased_central_moment_2)
+        self.time_ML.raw_moment_1 = get_value_from_remote(self.time_ML.raw_moment_1)
         self.total_error = get_value_from_remote(self.total_error)
         self.rates_error = get_value_from_remote(self.rates_error)
         self.bayesian_variance = get_value_from_remote(self.bayesian_variance)
@@ -586,15 +586,15 @@ class MultilevelMonteCarlo(object):
     def FinalizeMLMCPhase(self):
         # prepare lists
         for _ in range (self.current_number_levels - self.previous_number_levels): # append a list for the new level
-            self.difference_QoI.mean.append([])
-            self.difference_QoI.sample_variance.append([])
+            self.difference_QoI.raw_moment_1.append([])
+            self.difference_QoI.unbiased_central_moment_2.append([])
             self.difference_QoI.central_moment_1.append([])
             self.difference_QoI.central_moment_2.append([])
             self.difference_QoI.central_moment_3.append([])
             self.difference_QoI.central_moment_4.append([])
             self.difference_QoI.number_samples.append(0)
-            self.time_ML.mean.append([])
-            self.time_ML.sample_variance.append([])
+            self.time_ML.raw_moment_1.append([])
+            self.time_ML.unbiased_central_moment_2.append([])
             self.time_ML.central_moment_1.append([])
             self.time_ML.central_moment_2.append([])
             self.time_ML.central_moment_3.append([])
@@ -603,8 +603,8 @@ class MultilevelMonteCarlo(object):
         # compute mean, sample variance and second moment for difference QoI and time ML
         for level in range (self.current_number_levels+1):
             for i_sample in range(self.previous_number_samples[level],self.number_samples[level]):
-                self.difference_QoI.UpdateOnePassMomentsVariance(level,i_sample)
-                self.time_ML.UpdateOnePassMomentsVariance(level,i_sample)
+                self.difference_QoI.UpdateOnePassCentralMoments(level,i_sample)
+                self.time_ML.UpdateOnePassCentralMoments(level,i_sample)
         # update number of levels
         self.previous_number_levels = self.current_number_levels
         """
@@ -615,11 +615,11 @@ class MultilevelMonteCarlo(object):
         self.ComputeTotalErrorMLMC()
         """
         # store lists in synchro_element to execute FinalizePhaseAux_Task
-        synchro_elements = [x for x in self.difference_QoI.mean]
+        synchro_elements = [x for x in self.difference_QoI.raw_moment_1]
         synchro_elements.extend(["%%%"])
-        synchro_elements.extend(self.difference_QoI.sample_variance)
+        synchro_elements.extend(self.difference_QoI.unbiased_central_moment_2)
         synchro_elements.extend(["%%%"])
-        synchro_elements.extend(self.time_ML.mean)
+        synchro_elements.extend(self.time_ML.raw_moment_1)
         # create a StreamSerializer Kratos object containing the problem settings
         serial_settings = KratosMultiphysics.StreamSerializer()
         serial_settings.Save("ParametersSerialization", self.settings)
@@ -632,9 +632,9 @@ class MultilevelMonteCarlo(object):
         self.current_iteration,self.number_samples,*synchro_elements)
         # synchronization point needed to compute the other functions of MLMC algorithm
         # put as in the end as possible the synchronization point
-        self.difference_QoI.mean = get_value_from_remote(self.difference_QoI.mean)
-        self.difference_QoI.sample_variance = get_value_from_remote(self.difference_QoI.sample_variance)
-        self.time_ML.mean = get_value_from_remote(self.time_ML.mean)
+        self.difference_QoI.raw_moment_1 = get_value_from_remote(self.difference_QoI.raw_moment_1)
+        self.difference_QoI.unbiased_central_moment_2 = get_value_from_remote(self.difference_QoI.unbiased_central_moment_2)
+        self.time_ML.raw_moment_1 = get_value_from_remote(self.time_ML.raw_moment_1)
         self.total_error = get_value_from_remote(self.total_error)
         self.rates_error = get_value_from_remote(self.rates_error)
         self.bayesian_variance = get_value_from_remote(self.bayesian_variance)
@@ -657,8 +657,8 @@ class MultilevelMonteCarlo(object):
         print("\n","#"*50," SCREENING PHASE ","#"*50,"\n")
         # print("values computed of QoI = ",self.difference_QoI.values)
         # print("values computed time_ML",self.time_ML.values)
-        print("mean and variance difference_QoI = ",self.difference_QoI.mean,self.difference_QoI.sample_variance)
-        print("mean time_ML",self.time_ML.mean)
+        print("mean and variance difference_QoI = ",self.difference_QoI.raw_moment_1,self.difference_QoI.unbiased_central_moment_2)
+        print("mean time_ML",self.time_ML.raw_moment_1)
         print("rates coefficient = ",self.rates_error)
         print("estimated Bayesian variance = ",self.bayesian_variance)
         print("minimum number of MLMC iterations = ",self.number_iterations_iE)
@@ -685,8 +685,8 @@ class MultilevelMonteCarlo(object):
         # print("values computed of QoI = ",self.difference_QoI.values)
         # print("values computed time_ML",self.time_ML.values)
         print("current number of samples",self.number_samples)
-        print("mean and variance difference_QoI = ",self.difference_QoI.mean,self.difference_QoI.sample_variance)
-        print("mean time_ML",self.time_ML.mean)
+        print("mean and variance difference_QoI = ",self.difference_QoI.raw_moment_1,self.difference_QoI.unbiased_central_moment_2)
+        print("mean time_ML",self.time_ML.raw_moment_1)
         print("rates coefficient = ",self.rates_error)
         print("estimated Bayesian variance = ",self.bayesian_variance)
         print("multilevel monte carlo mean estimator = ",self.mean_mlmc_QoI)
@@ -730,9 +730,9 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def ComputeRatesLS(self):
-        bias_ratesLS = np.abs(self.difference_QoI.mean)
-        variance_ratesLS = self.difference_QoI.sample_variance
-        cost_ML_ratesLS = self.time_ML.mean
+        bias_ratesLS = np.abs(self.difference_QoI.raw_moment_1)
+        variance_ratesLS = self.difference_QoI.unbiased_central_moment_2
+        cost_ML_ratesLS = self.time_ML.raw_moment_1
         mesh_param_ratesLS = self.mesh_parameters[0:self.current_number_levels+1]
         # mean - alpha
         # linear fit
@@ -774,8 +774,8 @@ class MultilevelMonteCarlo(object):
         beta  = self.rates_error["beta"]
         mesh_param = self.mesh_parameters
         # use local variables, in order to not modify the global variables
-        mean_local = copy.copy(self.difference_QoI.mean)
-        variance_local = copy.copy(self.difference_QoI.sample_variance)
+        mean_local = copy.copy(self.difference_QoI.raw_moment_1)
+        variance_local = copy.copy(self.difference_QoI.unbiased_central_moment_2)
         nsam_local = copy.copy(self.number_samples)
         # append null values to evaluate the Bayesian variance for all levels
         if len(mean_local) < (levels+1):
@@ -953,7 +953,7 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def ComputeMeanMLMCQoI(self):
-        self.mean_mlmc_QoI = np.sum(self.difference_QoI.mean)
+        self.mean_mlmc_QoI = np.sum(self.difference_QoI.raw_moment_1)
 
     """
     function computing the total error:
@@ -961,7 +961,7 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def ComputeTotalErrorMLMC(self):
-        self.difference_QoI.bias_error = np.abs(self.difference_QoI.mean[self.current_number_levels])
+        self.difference_QoI.bias_error = np.abs(self.difference_QoI.raw_moment_1[self.current_number_levels])
         variance_from_bayesian = np.zeros(np.size(self.number_samples))
         for lev in range(self.current_number_levels+1):
             variance_from_bayesian[lev] = self.bayesian_variance[lev]/self.number_samples[lev]

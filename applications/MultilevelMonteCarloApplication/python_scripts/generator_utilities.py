@@ -9,5 +9,5 @@ def GenerateSample():
     alpha = 2.0
     beta = 6.0
     number_samples = 1
-    sample = np.random.beta(alpha,beta,number_samples)
+    sample = list(np.random.beta(alpha,beta,number_samples))
     return sample
