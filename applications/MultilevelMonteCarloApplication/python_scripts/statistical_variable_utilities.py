@@ -94,31 +94,27 @@ input:  sample: new value that will update the statistics
         old_S1: old first power sum
         old_S2: old second power sum
         old_S3: old third power sum
-        old_S3_absolute: old third power sum absolute value
         old_S4: old fourth power sum
         nsamples: number of samples, it has already been updated in UpdateOnePassCentralMomentsAux_Task
 output: new_S1: updated first power sum
         new_s2: updated second power sum
         new_S3: updated third power sum
-        new_S3_absolute: updated third power sum absolute value
-        new_S4: updated fourth power sum with absolute value
+        new_S4: updated fourth power sum
 """
-@ExaquteTask(returns=6)
-def UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S3_absolute,old_S4,nsamples):
+@ExaquteTask(returns=5)
+def UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S4,nsamples):
     nsamples = nsamples + 1
     if nsamples == 1:
         new_S1 = sample
         new_S2 = sample**2
         new_S3 = sample**3
-        new_S3_absolute = np.abs(sample**3)
         new_S4 = sample**4
     else:
         new_S1 = old_S1 + sample
         new_S2 = old_S2 + sample**2
         new_S3 = old_S3 + sample**3
-        new_S3_absolute = old_S3_absolute + np.abs(sample**3)
         new_S4 = old_S4 + sample**4
-    return new_S1,new_S2,new_S3,new_S3_absolute,new_S4,nsamples
+    return new_S1,new_S2,new_S3,new_S4,nsamples
 
 
 """
@@ -238,7 +234,6 @@ class StatisticalVariable(object):
         self.power_sum_1 = []
         self.power_sum_2 = []
         self.power_sum_3 = []
-        self.power_sum_3_absolute = [] # S_p = \sum_{i=1}^{n} abs(Q(sample_i)**p)
         self.power_sum_4 = []
         # sample central moments \mu_p = \sum_{i=1}^{n} (Q(sample_i)-mean_n)**p / n, organized per level
         self.central_moment_from_scratch_1 = []
@@ -280,7 +275,6 @@ class StatisticalVariable(object):
         self.power_sum_1 = [[] for _ in range (number_levels)]
         self.power_sum_2 = [[] for _ in range (number_levels)]
         self.power_sum_3 = [[] for _ in range (number_levels)]
-        self.power_sum_3_absolute = [[] for _ in range (number_levels)]
         self.power_sum_4 = [[] for _ in range (number_levels)]
         self.h_statistics_1 = [[] for _ in range (number_levels)]
         self.h_statistics_2 = [[] for _ in range (number_levels)]
@@ -337,14 +331,12 @@ class StatisticalVariable(object):
         old_S1 = self.power_sum_1[level]
         old_S2 = self.power_sum_2[level]
         old_S3 = self.power_sum_3[level]
-        old_S3_absolute = self.power_sum_3_absolute[level]
         old_S4 = self.power_sum_4[level]
         number_samples_level = self.number_samples[level]
-        new_S1,new_S2,new_S3,new_S3_absolute,new_S4,number_samples_level = UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S3_absolute,old_S4,number_samples_level)
+        new_S1,new_S2,new_S3,new_S4,number_samples_level = UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S4,number_samples_level)
         self.power_sum_1[level] = new_S1
         self.power_sum_2[level] = new_S2
         self.power_sum_3[level] = new_S3
-        self.power_sum_3_absolute[level] = new_S3_absolute
         self.power_sum_4[level] = new_S4
         self.number_samples[level] = number_samples_level
 
