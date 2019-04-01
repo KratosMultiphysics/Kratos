@@ -24,6 +24,7 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 # TODO: add computation of raw moments, only the mean is now computed
 # TODO: remove self.power_sum_3_absolute
 # TODO: check that number samples is updated only once using updateonepasscentralmoments and updateonepasspowersums (for now MC uses powersums and cmlmc uses centralmoments so it is fine)
+# TODO: in h_statistics_1 we have the unbiased first central raw moment (i.e. the mean)
 
 
 """
