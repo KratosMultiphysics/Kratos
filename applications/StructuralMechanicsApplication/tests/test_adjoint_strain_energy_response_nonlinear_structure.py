@@ -175,7 +175,7 @@ class AdjointSensitivityNonlinearTruss(KratosUnittest.TestCase):
         self.assertAlmostEqual(node_primal_displacement[0][1], -0.28480876916354353, 5)
 
         ## Testing Adjoint Displacement
-        self.assertAlmostEqual(node_adjoint_displacement[0][1], -0.6471369201631015, 5)
+        self.assertAlmostEqual(node_adjoint_displacement[0][1], -0.6471369201631015, 4)
 
         # ## Testing Adjoint sensitivity values with Finite difference results
         self.assertAlmostEqual(node_sensitivity[0][1], -5.925022561292791, 1)
@@ -188,6 +188,55 @@ class AdjointSensitivityNonlinearTruss(KratosUnittest.TestCase):
         self.assertAlmostEqual(node_sensitivity[1][1], 2.9728211538028146, 3)
 
         self._removeH5AndRestFiles("primal_output_truss")
+        self._removeH5AndRestFiles("test_restart_file")
+
+    def testThickShellStructure(self):
+        with open("response_function_tests/adjoint_strain_energy_response_parameters_nonlinear_structure.json",'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters( parameter_file.read())
+
+        model = KratosMultiphysics.Model()
+        response_function = structural_response_function_factory.CreateResponseFunction("dummy", parameters["kratos_response_settings"], model)
+        model_part_adjoint = response_function.adjoint_model_part
+        response_function.RunCalculation(calculate_gradient=True)
+
+        node_primal_displacement = []
+        node_adjoint_displacement = []
+        node_sensitivity = []
+        for i in range(4,10):
+            node_sensitivity.append( model_part_adjoint.GetNode(i).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY) )
+            node_adjoint_displacement.append( model_part_adjoint.GetNode(i).GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT) )
+            node_primal_displacement.append( model_part_adjoint.GetNode(i).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT) )
+
+        ## Testing Primal Displacement
+        self.assertAlmostEqual(node_primal_displacement[5][1], 0.3594939823791553, 5)
+        self.assertAlmostEqual(node_primal_displacement[5][2], 0.7873034436481292, 5)
+
+        ## Testing Adjoint Displacement
+        self.assertAlmostEqual(node_adjoint_displacement[5][1], 0.32234729813716384, 5)
+        self.assertAlmostEqual(node_adjoint_displacement[5][2], 0.28211849486597773, 5)
+
+        ## Testing the Implementation
+        self.assertAlmostEqual(node_sensitivity[0][0], 0.11103597470787194, 5)
+        self.assertAlmostEqual(node_sensitivity[0][1], 0.43866198490768604, 5)
+        self.assertAlmostEqual(node_sensitivity[0][2], 0.27514421409649337, 5)
+        self.assertAlmostEqual(node_sensitivity[1][2],  0.22171521858225285, 5)
+
+        self.assertAlmostEqual(node_sensitivity[2][0], -0.09996784337216753, 5)
+        self.assertAlmostEqual(node_sensitivity[2][1], 0.40379398660077026, 5)
+        self.assertAlmostEqual(node_sensitivity[2][2], 0.2306230957482736, 5)
+
+        self.assertAlmostEqual(node_sensitivity[3][1], -0.2956722449688707, 5)
+        self.assertAlmostEqual(node_sensitivity[3][2], -0.3135344440155797, 5)
+
+        self.assertAlmostEqual(node_sensitivity[4][1], -0.296582114991923, 5)
+        self.assertAlmostEqual(node_sensitivity[4][2], -0.21369097199038822, 5)
+
+        self.assertAlmostEqual(node_sensitivity[5][1], -0.31173182957715273, 5)
+        self.assertAlmostEqual(node_sensitivity[5][2], -0.3433681880518615, 5)
+
+
+
+        self._removeH5AndRestFiles("rectangular_plate_structure_primal")
         self._removeH5AndRestFiles("test_restart_file")
 
 ## Most of the time required for the test is used in reading and wrting out file

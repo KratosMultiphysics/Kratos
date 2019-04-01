@@ -57,6 +57,9 @@ response_function.RunCalculation(calculate_gradient=True)
 
 
 model_part_name = "rectangular_plate_structure_primal"
+serialization_files = "test_restart_file"
 for name in os.listdir():
     if name.find(model_part_name) == 0:
+        kratos_utils.DeleteFileIfExisting(name)
+    if name.find(serialization_files) == 0:
         kratos_utils.DeleteFileIfExisting(name)

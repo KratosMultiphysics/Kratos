@@ -17,11 +17,11 @@
         "domain_size"     : 3,
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "rectangular_plate_structure_rigid_body_rotation",
+            "input_filename"   : "response_function_tests/rectangular_plate_structure_rigid_body_rotation",
             "input_file_label" : 0
         },
         "material_import_settings"           : {
-            "materials_filename" : "StructuralMaterials.json"
+            "materials_filename" : "response_function_tests/StructuralMaterials.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
@@ -80,7 +80,7 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "model_part_name" : "PointLoad3D_BC_NEUMANN",
+            "model_part_name" : "rectangular_plate_structure.PointLoad3D_BC_NEUMANN",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : "1.0*t",
             "direction"       : [0.0,0.0,1.0],
@@ -94,7 +94,7 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "model_part_name" : "PointLoad3D_BC_NEUMANN_1",
+            "model_part_name" : "rectangular_plate_structure.PointLoad3D_BC_NEUMANN_1",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : "1.0*t",
             "direction"       : [0.0,0.0,1.0],
@@ -108,7 +108,7 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "model_part_name" : "PointLoad3D_BC_NEUMANN_2",
+            "model_part_name" : "rectangular_plate_structure.PointLoad3D_BC_NEUMANN_2",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : "1.0*t",
             "direction"       : [0.0,0.0,1.0],

@@ -7,7 +7,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
 
 
-with open("response_function_tests/adjoint_strain_energy_response_parameters_3D_truss.json",'r') as parameter_file:
+with open("response_function_tests/adjoint_strain_energy_response_parameters_nonlinear_structure.json",'r') as parameter_file:
     parameters = KratosMultiphysics.Parameters( parameter_file.read())
 
 model = KratosMultiphysics.Model()
@@ -18,7 +18,10 @@ model_part_adjoint = response_function.adjoint_model_part
 
 response_function.RunCalculation(calculate_gradient=True)
 
-model_part_name = "primal_output_truss"
+model_part_name = "rectangular_plate_structure_primal"
+serialization_files = "test_restart_file"
 for name in os.listdir():
     if name.find(model_part_name) == 0:
+        kratos_utils.DeleteFileIfExisting(name)
+    if name.find(serialization_files) == 0:
         kratos_utils.DeleteFileIfExisting(name)
