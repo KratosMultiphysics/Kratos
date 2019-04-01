@@ -85,6 +85,8 @@ public:
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
 
+    /// The machine precision tolerance
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
     ///@}
     ///@name Life Cycle
     ///@{
@@ -348,25 +350,25 @@ public:
 
 
     void CalculateDamageParameters(
-        array_1d<double, VoigtSize>& rPredictiveStressVector,
+        array_1d<double, 6>& rPredictiveStressVector,
         Vector& rStrainVector,
         double& rUniaxialStress,
-        double& rThreshold,
+        double& rDamageThreshold,
         double& rDamageDissipation,
         const Matrix& rConstitutiveMatrix,
         ConstitutiveLaw::Parameters& rValues,
         const double CharacteristicLength,  
-        array_1d<double, VoigtSize>& rFflux,
+        array_1d<double, 6>& rFflux,
         const Vector& rPlasticStrain,
         const double Damage,
         const double DamageIncrement,
         double& rHardd);
 
     void CalculateIndicatorsFactors(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, 6>& rPredictiveStressVector,
         double& rTensileIndicatorFactor,
         double& rCompressionIndicatorFactor,
-        const double SumPrincipalStresses);
+        double& rSumPrincipalStresses);
     ///@}
     ///@name Access
     ///@{

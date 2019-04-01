@@ -107,12 +107,16 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         double damage = mDamage;
         double plastic_dissipation = mPlasticDissipation;
         Vector plastic_strain = mPlasticStrain;
+        double damage_dissipation = mDamageDissipation;
+        double damage_increment = 0.0;
+        double hard_damage = 0.0;
 
         // Stress Predictor S = (1-d)C:(E-Ep)
         array_1d<double, VoigtSize> predictive_stress_vector = (1.0 - damage) * prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
 
         // Initialize Plastic Parameters
         double uniaxial_stress_plasticity = 0.0, plastic_denominator = 0.0, uniaxial_stress_damage = 0.0;
+        BoundedArrayType damage_yield_flux = ZeroVector(VoigtSize); // DF/DS
         BoundedArrayType f_flux = ZeroVector(VoigtSize); // DF/DS
         BoundedArrayType g_flux = ZeroVector(VoigtSize); // DG/DS
         BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
@@ -126,7 +130,14 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                                         plastic_strain);
 
         // Compute Damage Parameters
-        TDamageIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress_damage, rValues);
+        this->CalculateDamageParameters(
+                predictive_stress_vector, r_strain_vector, 
+                uniaxial_stress_damage, threshold_damage, 
+                damage_dissipation, r_constitutive_matrix,
+                rValues, characteristic_length, damage_yield_flux,
+                plastic_strain, damage, damage_increment, 
+                hard_damage);
+        
         const double damage_indicator = uniaxial_stress_damage - threshold_damage;
 
         // Verification threshold for the plastic-damage process
@@ -482,7 +493,7 @@ int GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInteg
 /***********************************************************************************/
 /***********************************************************************************/
 template <class TPlasticityIntegratorType, class TDamageIntegratorType>
-void CalculateDamageParameters(
+void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::CalculateDamageParameters(
     array_1d<double, 6>& rPredictiveStressVector,
     Vector& rStrainVector,
     double& rUniaxialStress,
@@ -500,13 +511,13 @@ void CalculateDamageParameters(
 {
     array_1d<double, VoigtSize> deviator = ZeroVector(6);
     array_1d<double, VoigtSize> h_capa = ZeroVector(6);
-    double J2, tensile_indicator_factor, compression_indicator_factor, slope, hardening_parameter, suma;
+    double J2, tensile_indicator_factor, compression_indicator_factor, slope, hardening_parameter, suma = 0.0;
 
-    YieldSurfaceType::CalculateEquivalentStress( rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
+    TDamageIntegratorType::YieldSurfaceType::CalculateEquivalentStress(rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
     const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
     ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
-    YieldSurfaceType::CalculateYieldSurfaceDerivative(rPredictiveStressVector, deviator, J2, rFflux, rValues);
-    CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor, suma);
+    TDamageIntegratorType::YieldSurfaceType::CalculateYieldSurfaceDerivative(rPredictiveStressVector, deviator, J2, rFflux, rValues);
+    this->CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor, suma);
 
     auto& r_matProps = rValues.GetMaterialProperties();
     const bool has_symmetric_yield_stress = r_matProps.Has(YIELD_STRESS);
@@ -522,15 +533,15 @@ void CalculateDamageParameters(
     const double constant = constant1 + constant2;
 
     // Free Energy Undamaged
-    const double free_energy_undamaged = 0.5 * (inner_prod(rStrainVector - rPlasticStrain), rPredictiveStressVector / (1.0 - Damage));
+    const double free_energy_undamaged = 0.5 * (inner_prod(rStrainVector - rPlasticStrain, rPredictiveStressVector) / (1.0 - Damage));
     const double hcapd = constant * free_energy_undamaged;
-    const double damage_dissipation_increment = hcapd * DamageIncrement;
+    double damage_dissipation_increment = hcapd * DamageIncrement;
     if (damage_dissipation_increment > 1.0 || damage_dissipation_increment <tolerance) damage_dissipation_increment = 0.0;
     rDamageDissipation += damage_dissipation_increment;
     if (rDamageDissipation > 1.0) rDamageDissipation = 0.99999;
 
     Vector slopes(2), thresholds(2);
-    for (Indextype i = 0; i < 2; ++i) {
+    for (IndexType i = 0; i < 2; ++i) {
         thresholds[i] = yield_tension * (1.0 - rDamageDissipation);
         slopes[i] = -yield_tension;
     }
@@ -543,11 +554,11 @@ void CalculateDamageParameters(
 /***********************************************************************************/
 /***********************************************************************************/
 template <class TPlasticityIntegratorType, class TDamageIntegratorType>
-void CalculateIndicatorsFactors(
+void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::CalculateIndicatorsFactors(
     const array_1d<double, 6>& rPredictiveStressVector,
     double& rTensileIndicatorFactor,
     double& rCompressionIndicatorFactor,
-    const double SumPrincipalStresses
+    double& rSumPrincipalStresses
 )
 {
         // We do an initial check
@@ -570,7 +581,7 @@ void CalculateIndicatorsFactors(
             sumb += 0.5 * (principal_stresses[i] + aux_sa);
             sumc += 0.5 * (-principal_stresses[i] + aux_sa);
         }
-        SumPrincipalStresses = suma;
+		rSumPrincipalStresses = suma;
 
         if (std::abs(suma) > tolerance) {
             rTensileIndicatorFactor = sumb / suma;
