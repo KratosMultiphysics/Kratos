@@ -12,10 +12,11 @@ BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 class EthierBenchmarkAnalysis(BaseAnalysis):
     def __init__(self, varying_parameters = Parameters("{}")):
         BaseAnalysis.__init__(self, varying_parameters)
+        self.SetCustomBetaParameters()
 
     def SetBetaParameters(self):
         BaseAnalysis.SetBetaParameters(self)
-        Add = self.pp.CFD_DEM.AddEmptyValue
+        Add = self.project_parameters.AddEmptyValue
         Add("field_identifier").SetString('ethier')
         Add("pressure_grad_recovery_type")
         Add("size_parameter").SetDouble(1)
@@ -25,33 +26,31 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
         Add("print_VELOCITY_LAPLACIAN_option").SetBool(True)
         Add("print_VECTORIAL_ERROR_option").SetBool(True)
 
-    def SetCustomBetaParameters(self, custom_parameters):
-        BaseAnalysis.SetCustomBetaParameters(self, custom_parameters)
-        self.pp.CFD_DEM.size_parameter = self.pp.CFD_DEM["size_parameter"].GetDouble()
-        self.field_identifier = self.pp.CFD_DEM["field_identifier"].GetString()
-        self.mesh_tag = self.pp.CFD_DEM["mesh_tag"].GetString()
+    def SetCustomBetaParameters(self):
+        self.field_identifier = self.project_parameters["field_identifier"].GetString()
+        self.mesh_tag = self.project_parameters["mesh_tag"].GetString()
         # Creating a code for the used input variables
         self.run_code = '_ndiv_' \
-                      + str(self.pp.CFD_DEM["size_parameter"].GetDouble()) \
+                      + str(self.project_parameters["size_parameter"].GetDouble()) \
                       + '_mat_deriv_type_' \
-                      + str(self.pp.CFD_DEM["material_acceleration_calculation_type"].GetInt()) \
+                      + str(self.project_parameters["material_acceleration_calculation_type"].GetInt()) \
                       + '_lapl_type_' \
-                      + str(self.pp.CFD_DEM["laplacian_calculation_type"].GetInt()) \
+                      + str(self.project_parameters["laplacian_calculation_type"].GetInt()) \
                       + '_' + self.field_identifier \
                       + '_' + self.mesh_tag
 
     def ReadFluidModelParts(self):
         problem_name = self.pp.problem_name.replace('Fluid', '')
-        is_regular_mesh = self.pp.CFD_DEM["regular_mesh_option"].GetBool()
-        tag =  self.pp.CFD_DEM["mesh_tag"].GetString()
+        is_regular_mesh = self.project_parameters["regular_mesh_option"].GetBool()
+        tag =  self.project_parameters["mesh_tag"].GetString()
 
         if is_regular_mesh:
-            mdpa_name = problem_name + '_ndiv_' + str(int(self.pp.CFD_DEM.size_parameter)) + tag + 'Fluid'
+            mdpa_name = problem_name + '_ndiv_' + str(int(self.project_parameters["size_parameter"].GetDouble())) + tag + 'Fluid'
         else:
-            mdpa_name = problem_name + '_h_' + str(self.pp.CFD_DEM.size_parameter) + 'Fluid'
+            mdpa_name = problem_name + '_h_' + str(self.project_parameters["size_parameter"].GetDouble()) + 'Fluid'
 
         model_part_io_fluid = ModelPartIO(mdpa_name)
-        model_part_io_fluid.ReadModelPart(self.fluid_solution.fluid_model_part)
+        model_part_io_fluid.ReadModelPart(self._GetFluidAnalysis().fluid_model_part)
 
     def AddExtraVariables(self, run_code = ''):
         BaseAnalysis.AddExtraVariables(self, self.run_code)
@@ -59,7 +58,7 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
     def GetParticlesResultsCounter(self):
         return SDP.Counter()
 
-    def GetPrintCounterUpdatedDEM(self):
+    def GetPrintCounter(self):
         return SDP.Counter(is_dead=True)
 
     def GetFieldUtility(self):
@@ -72,7 +71,7 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
         return self.field_utility
 
     def GetRecoveryCounter(self):
-        return SDP.Counter(1, 1, self.pp.CFD_DEM["coupling_level_type"].GetInt() or self.pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
+        return SDP.Counter(1, 1, self.project_parameters["coupling"]["coupling_level_type"].GetInt() or self.project_parameters.print_PRESSURE_GRADIENT_option)
 
     def GetRunCode(self):
         return self.run_code
@@ -180,19 +179,19 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
         file_name = self.main_path + '/errors_recorded/recovery_errors.hdf5'
         # with h5py.File(self.file_name, 'r+') as f:
         #     f.create_dataset('material_derivative', shape = self.shape, dtype = np.float32)
-        size_parameter = self.pp.CFD_DEM.size_parameter
-        is_regular_mesh = self.pp.CFD_DEM["regular_mesh_option"].GetBool()
+        size_parameter = self.project_parameters["size_parameter"].GetInt()
+        is_regular_mesh = self.project_parameters["regular_mesh_option"].GetBool()
 
         with h5py.File(file_name) as f:
-            field_identifier = self.pp.CFD_DEM["field_identifier"].GetString()
+            field_identifier = self.project_parameters["field_identifier"].GetString()
             field_group = f.require_group(field_identifier)
             mat_deriv_grp = field_group.require_group('material derivative')
-            mat_deriv_mthd_group = mat_deriv_grp.require_group('method = ' + str(self.pp.CFD_DEM["material_acceleration_calculation_type"].GetInt()))
+            mat_deriv_mthd_group = mat_deriv_grp.require_group('method = ' + str(self.project_parameters["material_acceleration_calculation_type"].GetInt()))
             laplacian_grp = field_group.require_group('laplacian')
-            laplacian_mthd_group = laplacian_grp.require_group('method = ' + str(self.pp.CFD_DEM["laplacian_calculation_type"].GetInt()))
+            laplacian_mthd_group = laplacian_grp.require_group('method = ' + str(self.project_parameters["laplacian_calculation_type"].GetInt()))
 
             if is_regular_mesh:
-                mesh_tag = self.pp.CFD_DEM["mesh_tag"].GetString()
+                mesh_tag = self.project_parameters["mesh_tag"].GetString()
                 mesh_grp_mat_deriv = mat_deriv_mthd_group.require_group('regular mesh (' + mesh_tag + ')')
                 mesh_grp_laplacian = laplacian_mthd_group.require_group('regular mesh (' + mesh_tag + ')')
                 dset_mat_deriv = mesh_grp_mat_deriv.require_dataset('n_div = ' + str(size_parameter),

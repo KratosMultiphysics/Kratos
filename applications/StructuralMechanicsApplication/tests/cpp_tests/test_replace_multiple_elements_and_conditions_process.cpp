@@ -133,7 +133,7 @@ namespace Kratos
                 "condition_name_table"    : {
                     "Condition3D" : "SurfaceLoadCondition3D3N"
                 },
-                "throw_error" : false
+                "ignore_undefined_types" : true
             })" );
 
             ReplaceMultipleElementsAndConditionsProcess replacement_process(this_model_part, parameters);

@@ -149,7 +149,10 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mAdjointFiniteDifferenceTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mAdjointFiniteDifferenceTrussLinearElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mTotalLagrangianAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
-
+      mTotalLagrangianAdjoint2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mTotalLagrangianAdjoint2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<NodeType >(Element::GeometryType::PointsArrayType(6)))),
+      mTotalLagrangianAdjoint3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mTotalLagrangianAdjoint3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
       /* CONDITIONS */
       // Adding point load conditions
       mPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
@@ -192,6 +195,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(LOCAL_MATERIAL_AXIS_3);
     KRATOS_REGISTER_VARIABLE(CENTER_OF_GRAVITY);
     KRATOS_REGISTER_VARIABLE(MASS_MOMENT_OF_INERTIA);
+    KRATOS_REGISTER_VARIABLE(ELASTICITY_TENSOR);
+
 
     // Generalized eigenvalue problem
     KRATOS_REGISTER_VARIABLE(BUILD_LEVEL)
@@ -381,6 +386,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(EFFECTIVE_COMPRESSION_STRESS_VECTOR)
     KRATOS_REGISTER_VARIABLE(EXPONENTIAL_SATURATION_YIELD_STRESS)
     KRATOS_REGISTER_VARIABLE(ACCUMULATED_PLASTIC_STRAIN)
+    KRATOS_REGISTER_VARIABLE(BACK_STRESS_VECTOR)
+    KRATOS_REGISTER_VARIABLE(BACK_STRESS_TENSOR)
 
     // D+D- Damage Constitutive laws variables
     KRATOS_REGISTER_VARIABLE(DAMAGE_TENSION)
@@ -420,7 +427,6 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( AREA_EFFECTIVE_Y_SENSITIVITY );
     KRATOS_REGISTER_VARIABLE( AREA_EFFECTIVE_Z_SENSITIVITY );
     KRATOS_REGISTER_VARIABLE( IS_ADJOINT );
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( SHAPE );
 
     // Variables to for computing parts of sensitivity analysis
     KRATOS_REGISTER_VARIABLE( TRACED_STRESS_TYPE );
@@ -542,7 +548,11 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceTrussElement3D2N", mAdjointFiniteDifferenceTrussElement3D2N)
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceTrussLinearElement3D2N", mAdjointFiniteDifferenceTrussLinearElement3D2N)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement2D3N", mTotalLagrangianAdjoint2D3N)
-
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement2D4N", mTotalLagrangianAdjoint2D4N)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement2D6N", mTotalLagrangianAdjoint2D6N)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement3D4N", mTotalLagrangianAdjoint3D4N)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement3D8N", mTotalLagrangianAdjoint3D8N)
+    
     // Register the conditions
     // Point loads
     KRATOS_REGISTER_CONDITION("PointLoadCondition2D1N", mPointLoadCondition2D1N)
@@ -591,8 +601,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlaneStrain2DLaw", mHyperElasticIsotropicNeoHookeanPlaneStrain2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainJ2PlasticityPlaneStrain2DLaw", mSmallStrainJ2PlasticityPlaneStrain2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainJ2Plasticity3DLaw", mSmallStrainJ2Plasticity3D);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearIsotropicDamagePlaneStrain2DLaw", mLinearIsotropicDamagePlaneStrain2D);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearIsotropicDamage3DLaw", mLinearIsotropicDamage3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamagePlaneStrain2DLaw", mSmallStrainIsotropicDamagePlaneStrain2D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamage3DLaw", mSmallStrainIsotropicDamage3D);
 
     // Damage and plasticity
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicPlasticityFactory", mSmallStrainIsotropicPlasticityFactory);

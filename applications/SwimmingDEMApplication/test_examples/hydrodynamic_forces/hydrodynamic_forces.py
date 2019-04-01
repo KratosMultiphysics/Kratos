@@ -20,62 +20,62 @@ Header = "KRATOS_BENCHMARK"
 def AddVariables(model_part, pp):
     AddNodalVariables(model_part)
     AddAndInitializeProcessInfoVariables(model_part, pp)
-        
+
 def InitializeVariables(model_part, pp):
     InitializeNodalVariables(model_part, pp)
-    AddAndInitializeProcessInfoVariables(model_part, pp)       
+    AddAndInitializeProcessInfoVariables(model_part, pp)
 
 def InitializeNodalVariables(model_part, pp):
-    
+
     for node in model_part.Nodes:
         node.X = pp.coor_x
         node.Y = pp.coor_y
         node.Z = pp.coor_z
-        
+
         node.SetSolutionStepValue(DISPLACEMENT_X, pp.displ_x)
         node.SetSolutionStepValue(DISPLACEMENT_Y, pp.displ_y)
         node.SetSolutionStepValue(DISPLACEMENT_Z, pp.displ_z)
-        
+
         node.SetSolutionStepValue(VELOCITY_X, pp.velocity_x)
         node.SetSolutionStepValue(VELOCITY_Y, pp.velocity_y)
         node.SetSolutionStepValue(VELOCITY_Z, pp.velocity_z)
-              
+
         node.SetSolutionStepValue(VELOCITY_X, 1, pp.velocity_old_x)
         node.SetSolutionStepValue(VELOCITY_Y, 1, pp.velocity_old_y)
         node.SetSolutionStepValue(VELOCITY_Z, 1, pp.velocity_old_z)
-        
+
         node.SetSolutionStepValue(PARTICLE_ROTATION_ANGLE_X, pp.rot_angle_x)
         node.SetSolutionStepValue(PARTICLE_ROTATION_ANGLE_Y, pp.rot_angle_y)
-        node.SetSolutionStepValue(PARTICLE_ROTATION_ANGLE_Z, pp.rot_angle_z)     
-        
+        node.SetSolutionStepValue(PARTICLE_ROTATION_ANGLE_Z, pp.rot_angle_z)
+
         node.SetSolutionStepValue(EULER_ANGLES_X, pp.euler_angle_x)
         node.SetSolutionStepValue(EULER_ANGLES_Y, pp.euler_angle_y)
-        node.SetSolutionStepValue(EULER_ANGLES_Z, pp.euler_angle_z)          
-        
+        node.SetSolutionStepValue(EULER_ANGLES_Z, pp.euler_angle_z)
+
         node.SetSolutionStepValue(ANGULAR_VELOCITY_X, pp.ang_vel_x)
         node.SetSolutionStepValue(ANGULAR_VELOCITY_Y, pp.ang_vel_y)
         node.SetSolutionStepValue(ANGULAR_VELOCITY_Z, pp.ang_vel_z)
-               
+
         node.SetSolutionStepValue(TOTAL_FORCES_X, pp.tota_force_x)
         node.SetSolutionStepValue(TOTAL_FORCES_Y, pp.tota_force_y)
-        node.SetSolutionStepValue(TOTAL_FORCES_Z, pp.tota_force_z)       
-        
+        node.SetSolutionStepValue(TOTAL_FORCES_Z, pp.tota_force_z)
+
         node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, pp.fluid_velocity_x)
         node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, pp.fluid_velocity_y)
-        node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, pp.fluid_velocity_z)        
-        
+        node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, pp.fluid_velocity_z)
+
         node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_X, pp.fluid_acceleration_x)
         node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Y, pp.fluid_acceleration_y)
-        node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Z, pp.fluid_acceleration_z)        
-        
+        node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Z, pp.fluid_acceleration_z)
+
         node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_X, pp.fluid_vorticity_x)
         node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_Y, pp.fluid_vorticity_y)
         node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_Z, pp.fluid_vorticity_z)
-        
+
         node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_X, pp.pressure_gradient_x)
         node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Y, pp.pressure_gradient_y)
-        node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Z, pp.pressure_gradient_z)                    
-        
+        node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Z, pp.pressure_gradient_z)
+
         node.SetSolutionStepValue(RADIUS, pp.radius)
         node.SetSolutionStepValue(PARTICLE_SPHERICITY, pp.sphericity)
         node.SetSolutionStepValue(SQRT_OF_MASS, pp.sqrt_of_mass)
@@ -84,22 +84,22 @@ def InitializeNodalVariables(model_part, pp):
         node.SetSolutionStepValue(FLUID_DENSITY_PROJECTED, pp.fluid_density)
         node.SetSolutionStepValue(FLUID_VISCOSITY_PROJECTED, pp.kinematic_viscosity)
         node.SetSolutionStepValue(POWER_LAW_N, pp.power_law_n)
-        node.SetSolutionStepValue(POWER_LAW_K, pp.power_law_k)    
-        node.SetSolutionStepValue(YIELD_STRESS, pp.yield_stress)   
-        node.SetSolutionStepValue(SHEAR_RATE_PROJECTED, pp.shear_rate_projected)           
-    
+        node.SetSolutionStepValue(POWER_LAW_K, pp.power_law_k)
+        node.SetSolutionStepValue(YIELD_STRESS, pp.yield_stress)
+        node.SetSolutionStepValue(SHEAR_RATE_PROJECTED, pp.shear_rate_projected)
+
 def AddVariables(model_part):
     # COMMON
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
-    model_part.AddNodalSolutionStepVariable(GROUP_ID)   
+    model_part.AddNodalSolutionStepVariable(GROUP_ID)
 
     # KINEMATIC
     model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
     model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
-    
+
     # FORCES
     model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
     model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
@@ -126,16 +126,16 @@ def AddVariables(model_part):
 
     # FLAGS
     model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
-    
+
     # ONLY VISUALIZATION
     model_part.AddNodalSolutionStepVariable(EXPORT_ID)
     #model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
-    
+
     # SWIMMING
     model_part.AddNodalSolutionStepVariable(REYNOLDS_NUMBER)
     model_part.AddNodalSolutionStepVariable(PRESSURE_GRAD_PROJECTED)
     model_part.AddNodalSolutionStepVariable(HYDRODYNAMIC_FORCE)
-    model_part.AddNodalSolutionStepVariable(HYDRODYNAMIC_MOMENT)    
+    model_part.AddNodalSolutionStepVariable(HYDRODYNAMIC_MOMENT)
     model_part.AddNodalSolutionStepVariable(FLUID_VEL_PROJECTED)
     model_part.AddNodalSolutionStepVariable(FLUID_ACCEL_PROJECTED)
     model_part.AddNodalSolutionStepVariable(FLUID_FRACTION_PROJECTED)
@@ -144,7 +144,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(BUOYANCY)
     model_part.AddNodalSolutionStepVariable(DRAG_FORCE)
     model_part.AddNodalSolutionStepVariable(VIRTUAL_MASS_FORCE)
-    model_part.AddNodalSolutionStepVariable(LIFT_FORCE)    
+    model_part.AddNodalSolutionStepVariable(LIFT_FORCE)
     model_part.AddNodalSolutionStepVariable(FLUID_VORTICITY_PROJECTED)
     model_part.AddNodalSolutionStepVariable(SHEAR_RATE_PROJECTED)
     model_part.AddNodalSolutionStepVariable(FLUID_ACCEL_PROJECTED)
@@ -152,14 +152,14 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(POWER_LAW_N)
     model_part.AddNodalSolutionStepVariable(POWER_LAW_K)
     model_part.AddNodalSolutionStepVariable(POWER_LAW_K)
-    model_part.AddNodalSolutionStepVariable(YIELD_STRESS)   
-    
-def AddAndInitializeProcessInfoVariables(model_part, pp):    
+    model_part.AddNodalSolutionStepVariable(YIELD_STRESS)
+
+def AddAndInitializeProcessInfoVariables(model_part, pp):
     # SIMULATION FLAGS
-    
+
     model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, 0)
     model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, 0)
-    model_part.ProcessInfo.SetValue(ROTATION_OPTION, 1)       
+    model_part.ProcessInfo.SetValue(ROTATION_OPTION, 1)
 
     # GLOBAL MATERIAL PROPERTIES
     model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, pp.nodal_mass_coeff)
@@ -173,26 +173,17 @@ def AddAndInitializeProcessInfoVariables(model_part, pp):
 
     # TIME RELATED PARAMETERS
     model_part.ProcessInfo.SetValue(DELTA_TIME, pp.delta_time)
-    
+
     # SWIMMING
-    model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, pp.buoyancy_force_type)
-    model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, pp.drag_force_type)
-    model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, pp.virtual_mass_force_type)
-    model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, pp.lift_force_type)
-    model_part.ProcessInfo.SetValue(MAGNUS_FORCE_TYPE, pp.magnus_force_type)
-    model_part.ProcessInfo.SetValue(HYDRO_TORQUE_TYPE, pp.hydro_torque_type)    
-    model_part.ProcessInfo.SetValue(DRAG_POROSITY_CORRECTION_TYPE, pp.drag_porosity_correction_type)
+    model_part.ProcessInfo.SetValue(HYDRO_TORQUE_TYPE, pp.hydro_torque_type)
     model_part.ProcessInfo.SetValue(FLUID_MODEL_TYPE, pp.fluid_model_type)
-    model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, pp.manually_imposed_drag_law_option)
     model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, pp.drag_modifier_type)
-    model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, pp.initial_drag_force)
-    model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, pp.drag_law_slope)
-    model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, pp.power_law_tol)    
+    model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, pp.power_law_tol)
     model_part.ProcessInfo.SetValue(GRAVITY_X, pp.gravity_x)
     model_part.ProcessInfo.SetValue(GRAVITY_Y, pp.gravity_y)
     model_part.ProcessInfo.SetValue(GRAVITY_Z, pp.gravity_z)
-    
-           
+
+
     model_part.ProcessInfo.SetValue(CASE_OPTION, 1)
     model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, 0)
     model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, 0)
@@ -201,7 +192,7 @@ def AddAndInitializeProcessInfoVariables(model_part, pp):
     model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0);
     model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, 0)
     #model_part.ProcessInfo.SetValue(ACTIVATE_SEARCH, 1)  # needed in the basic for the continuum.
-    
+
 def AddDofs(model_part):
 
     for node in model_part.Nodes:
@@ -214,95 +205,95 @@ def AddDofs(model_part):
 
 def InsertHeader(my_string):
     lines = my_string.split('\n')
- 
+
     my_string = ""
-    
+
     for line in lines:
         my_string += "\n" + Header + line
-        
+
     return my_string
- 
-def PadWithSpaces(lines):    
+
+def PadWithSpaces(lines):
     widths = GetColumsMaxWidths(lines, 2)
 
     for line in lines:
-        
+
         for i_entry in range(0, len(line)):
-            line[i_entry] = line[i_entry].ljust(widths[i_entry])     
-   
+            line[i_entry] = line[i_entry].ljust(widths[i_entry])
+
     aux = copy.deepcopy(lines)
-    
+
     del lines[:]
-    
+
     for line_aux in aux:
         line = ""
-        
+
         for entry in line_aux:
             line += entry
-         
+
         lines += [line]
-   
-    return sum(widths)       
-    
+
+    return sum(widths)
+
 def GetColumsMaxWidths(lines, margin):
     widths = []
-    
+
     if not len(lines):
-        return widths    
-        
+        return widths
+
     for entry in lines[0]:
         widths += [1]
-    
+
     for line in lines:
         i = 0
-        
+
         for entry in line:
-            
+
             if len(str(entry)) > widths[i]:
-                widths[i] = len(str(entry))              
-                
+                widths[i] = len(str(entry))
+
             i += 1
-        
+
     for i in range(0, len(widths)):
         widths[i] += margin
 
     return widths
-   
+
 def Norm(v):
     return math.sqrt(v[0] ** 2 + v[1] ** 2 + v[2] ** 2)
-    
+
 def Distance(v1, v2):
     return math.sqrt((v1[0] - v2 [0]) ** 2 + (v1[1] - v2 [1]) ** 2 + (v1[2] - v2 [2]) ** 2)
 
 def Dot(v1, v2):
     return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]
-    
+
 def Normalize(v, modulus = 1.0):
-    
+
     if Norm(v) == 0.0:
         return
-    
+
     else:
         coeff = modulus / Norm(v)
         v[0] *= coeff
         v[1] *= coeff
         v[2] *= coeff
-        
+
 def Cross(u, v):
     w = Vector(3)
     w[0] = u[1] * v[2] - u[2] * v[1]
     w[1] = u[2] * v[0] - u[0] * v[2]
     w[2] = u[0] * v[1] - u[1] * v[0]
-    
+
     return w
-        
+
 def RandomVector(modulus = 1.0):
     v = Vector(3)
     v[0] = random.choice([-1, 1]) * random.random()
     v[1] = random.choice([-1, 1]) * random.random()
     v[2] = random.choice([-1, 1]) * random.random()
     Normalize(v, modulus)
-    
+
     return v
 
 def CleanStaticVars():
@@ -318,115 +309,115 @@ def CleanStaticVars():
 class Benchmark:
     def __init__(self):
         pass
-    
+
     tests = []
     number_of_fails = 0
     text_to_print ="\n========== Swimming DEM Aplication ==========\n" + "\nRunning verification tests...\n"
-    
+
     @staticmethod
     def ConvertToStrings(results):
-         
+
         if results[4]:
             word = "OK"
         else:
             word = "Fail"
-            
+
         return [str(results[0]), str(results[1]), str(results[2]), "{0:.2e}".format(results[3]), word]
-    
+
     @staticmethod
     def PrintResults(title, tests, debug_mode = True):
         lines = []
 
         if debug_mode:
             lines += [["Test id", "Description", "Target", "Calculated", "Error", "Veredict"]]
-        
+
         else:
             lines += [["Test id", "Description", "Veredict"]]
         # gathering spacing and numbering results
-        
+
         i_test = 0
-        
+
         for test in tests:
-            
+
             if test.has_results:
-                
-                if not debug_mode:                    
-                    lines += [[str(i_test)] + [test.string_results[0], test.string_results[4]]]  
-                    
+
+                if not debug_mode:
+                    lines += [[str(i_test)] + [test.string_results[0], test.string_results[4]]]
+
                 else:
-                    lines += [[str(i_test)] + test.string_results]            
+                    lines += [[str(i_test)] + test.string_results]
                 i_test += 1
 
         total_width = PadWithSpaces(lines)
-        
+
         # forming string to be printed
         string_to_print = ""
         string_to_print += " " * total_width + "\n"
         string_to_print += "=" * total_width + "\n"
         string_to_print += title + "\n"
-        string_to_print += "-" * total_width + "\n"  
-        
+        string_to_print += "-" * total_width + "\n"
+
         for entry in lines[0]:
             string_to_print += entry
- 
-        string_to_print += "\n" + "-" * total_width + "\n"                
-        
+
+        string_to_print += "\n" + "-" * total_width + "\n"
+
         for i in range(1, i_test + 1):
-            
+
             for entry in lines[i]:
                 string_to_print += entry
-                
+
             string_to_print += "\n"
-            
+
         string_to_print += "=" * total_width
         Benchmark.text_to_print += string_to_print + "\n"
-    
-    @staticmethod  
+
+    @staticmethod
     def PrintFailedTestsParameters():
-        
+
         my_string = ""
-        
+
         for test in Benchmark.tests:
 
             if not test.results[4]:
                 my_string += "\nTest with description '" + test.results[0] + "'" " failed with parameters:\n"
                 my_string += test.pp.GetParametersString() + "\n"
-                
+
         return my_string
-    
-    @staticmethod  
+
+    @staticmethod
     def ErrorMetric(v1, v2):
-        
+
         if Norm(v1) == 0.0 and Norm(v2) == 0.0:
             return 0.0
-            
+
         else:
             return Distance(v1, v2) / (Norm(v1) + Norm(v2))
-        
-class BuoyancyBenchmark(Benchmark):    
+
+class BuoyancyBenchmark(Benchmark):
     title = "Buoyancy force test results"
     tests = []
-    
+
     @staticmethod
     def PrintResults(debug_mode = True):
         Benchmark.PrintResults(BuoyancyBenchmark.title, BuoyancyBenchmark.tests, debug_mode)
-           
+
     def __init__(self, pp, buoyancy_force_type, drag_force_type, pressure_gradient, description):
-        self.pp = copy.deepcopy(pp) 
+        self.pp = copy.deepcopy(pp)
         self.buoyancy_tol = 10e-12
-       
+
         self.pp.pressure_gradient_x = pressure_gradient[0]
         self.pp.pressure_gradient_y = pressure_gradient[1]
         self.pp.pressure_gradient_z = pressure_gradient[2]
         self.pp.drag_force_type = drag_force_type
         self.pp.buoyancy_force_type = buoyancy_force_type
-        
+
         self.description = description
         self.has_results = False
-        
+
         BuoyancyBenchmark.tests += [self]
         Benchmark.tests += [self]
-     
+
     def Test(self, model_part, benchmark_utils, target_buoyancy):
         self.target_buoyancy = target_buoyancy
         InitializeVariables(model_part, self.pp)
@@ -434,50 +425,50 @@ class BuoyancyBenchmark(Benchmark):
 
         for node in model_part.Nodes:
             buoyancy = node.GetSolutionStepValue(BUOYANCY)
-                  
+
         error = Benchmark.ErrorMetric(buoyancy, self.target_buoyancy)
-        
+
         if error < self.buoyancy_tol:
             veredict = True
-            
+
         else:
             Benchmark.number_of_fails += 1
             veredict = False
-            
-        self.results = [self.description, self.target_buoyancy, buoyancy, error, veredict] 
+
+        self.results = [self.description, self.target_buoyancy, buoyancy, error, veredict]
         self.string_results = Benchmark.ConvertToStrings(self.results)
         self.has_results = True
 
 class DragBenchmark(Benchmark):
     title = "Drag force test results"
     tests = []
-    
+
     @staticmethod
     def PrintResults(debug_mode = True):
         Benchmark.PrintResults(DragBenchmark.title, DragBenchmark.tests, debug_mode)
-               
+
     def __init__(self, pp, drag_force_type, particle_reynolds, fluid_fraction, sphericity, description):
-        self.pp = copy.deepcopy(pp) 
-        self.pp.drag_force_type = drag_force_type 
+        self.pp = copy.deepcopy(pp)
+        self.pp.drag_force_type = drag_force_type
         self.pp.fluid_fraction = fluid_fraction
         self.pp.sphericity = sphericity
         self.description = description
 
-        self.drag_tol = 10e-12       
+        self.drag_tol = 10e-12
         self.CalculateFlowVariables(particle_reynolds)
 
-        self.has_results = False        
+        self.has_results = False
         DragBenchmark.tests += [self]
         Benchmark.tests += [self]
-    
+
     def CalculateFlowVariables(self, reynolds):
-        
+
         if reynolds < 0:
             raise ValueError("The particle's Reynolds number should be non-negative")
-        
+
         elif reynolds == 0.0:
             pass
-            
+
         else:
             velocity = RandomVector()
             fluid_velocity = RandomVector()
@@ -489,59 +480,59 @@ class DragBenchmark(Benchmark):
             self.pp.fluid_velocity_z = fluid_velocity[2]
             slip_vel = fluid_velocity - velocity
             r = self.pp.radius
-           
+
             self.pp.kinematic_viscosity = 2 * r * Norm(slip_vel) / reynolds
-            
+
     def Test(self, model_part, benchmark_utils, target_drag):
-        self.target_drag = target_drag  
+        self.target_drag = target_drag
         InitializeVariables(model_part, self.pp)
         benchmark_utils.ComputeHydrodynamicForces(model_part)
 
         for node in model_part.Nodes:
             drag = node.GetSolutionStepValue(DRAG_FORCE)
-                  
+
         error = Benchmark.ErrorMetric(drag, self.target_drag)
-        
+
         if error < self.drag_tol:
             veredict = True
-            
+
         else:
             Benchmark.number_of_fails += 1
             veredict = False
-            
-        self.results = [self.description, self.target_drag, drag, error, veredict] 
+
+        self.results = [self.description, self.target_drag, drag, error, veredict]
         self.string_results = Benchmark.ConvertToStrings(self.results)
         self.has_results = True
-    
-class VirtualMassBenchmark(Benchmark):    
+
+class VirtualMassBenchmark(Benchmark):
     title = "Virtual mass force test results"
     tests = []
-    
+
     @staticmethod
     def PrintResults(debug_mode = True):
         Benchmark.PrintResults(VirtualMassBenchmark.title, VirtualMassBenchmark.tests, debug_mode)
-    
+
     def __init__(self, pp, virtual_mass_force_type, acceleration_number, fluid_fraction, description):
-        self.pp = copy.deepcopy(pp) 
+        self.pp = copy.deepcopy(pp)
         self.virtual_mass_tol = 10e-12 / self.pp.delta_time
-        
+
         self.pp.virtual_mass_force_type = virtual_mass_force_type
         self.pp.fluid_fraction = fluid_fraction
         self.description = description
         self.has_results = False
         self.CalculateFlowVariables(acceleration_number)
-        
+
         VirtualMassBenchmark.tests += [self]
         Benchmark.tests += [self]
-        
+
     def CalculateFlowVariables(self, acceleration_number):
-        
+
         if acceleration_number < 0:
             raise ValueError("The particle's acceleration number should be non-negative")
-        
+
         elif acceleration_number == 0.0:
             pass
-            
+
         else:
             velocity = RandomVector()
             fluid_velocity = RandomVector()
@@ -556,14 +547,14 @@ class VirtualMassBenchmark(Benchmark):
             self.pp.velocity_old_z = velocity_old[2]
             self.pp.accel_x = acceleration[0]
             self.pp.accel_y = acceleration[1]
-            self.pp.accel_z = acceleration[2]                        
+            self.pp.accel_z = acceleration[2]
             self.pp.fluid_velocity_x = fluid_velocity[0]
             self.pp.fluid_velocity_y = fluid_velocity[1]
             self.pp.fluid_velocity_z = fluid_velocity[2]
             self.pp.fluid_acceleration_x = fluid_acceleration[0]
             self.pp.fluid_acceleration_y = fluid_acceleration[1]
-            self.pp.fluid_acceleration_z = fluid_acceleration[2]            
-            
+            self.pp.fluid_acceleration_z = fluid_acceleration[2]
+
             slip_vel = fluid_velocity - velocity
             slip_accel = fluid_acceleration - acceleration
             self.pp.radius = Norm(slip_vel) ** 3 / abs(2 * acceleration_number * Dot(slip_vel, slip_accel))
@@ -575,62 +566,62 @@ class VirtualMassBenchmark(Benchmark):
 
         for node in model_part.Nodes:
             virtual_mass = node.GetSolutionStepValue(VIRTUAL_MASS_FORCE)
-                  
+
         error = Benchmark.ErrorMetric(virtual_mass, self.target_virtual_mass)
-        
+
         if error < self.virtual_mass_tol:
             veredict = True
-            
+
         else:
-            Benchmark.number_of_fails += 1            
+            Benchmark.number_of_fails += 1
             veredict = False
-            
-        self.results = [self.description, self.target_virtual_mass, virtual_mass, error, veredict] 
+
+        self.results = [self.description, self.target_virtual_mass, virtual_mass, error, veredict]
         self.string_results = Benchmark.ConvertToStrings(self.results)
-        self.has_results = True   
-     
-class SaffmanBenchmark(Benchmark):    
+        self.has_results = True
+
+class SaffmanBenchmark(Benchmark):
     title = "Saffman force test results"
     tests = []
-    
+
     @staticmethod
     def PrintResults(debug_mode = True):
         Benchmark.PrintResults(SaffmanBenchmark.title, SaffmanBenchmark.tests, debug_mode)
-    
+
     def __init__(self, pp, saffman_force_type, reynolds, reynolds_shear, description):
-        self.pp = copy.deepcopy(pp) 
+        self.pp = copy.deepcopy(pp)
         self.saffman_tol = 10e-12
-        
+
         self.pp.lift_force_type = saffman_force_type
         self.description = description
-        
+
         self.has_results = False
         self.CalculateFlowVariables(reynolds, reynolds_shear)
-        
+
         SaffmanBenchmark.tests += [self]
         Benchmark.tests += [self]
-        
+
     def CalculateFlowVariables(self, reynolds, reynolds_shear):
-        
+
         if reynolds < 0 or reynolds_shear < 0:
             raise ValueError("The particle's Reynold's number and shear Reynold's numbers should be non-negative")
-        
+
         elif reynolds_shear * reynolds == 0.0:
             pass
-            
+
         else:
             velocity = RandomVector()
             fluid_velocity = RandomVector()
             ang_velocity = RandomVector()
             vorticity = RandomVector()
-            
+
             self.pp.velocity_x = velocity[0]
             self.pp.velocity_y = velocity[1]
-            self.pp.velocity_z = velocity[2]                                
+            self.pp.velocity_z = velocity[2]
             self.pp.fluid_velocity_x = fluid_velocity[0]
             self.pp.fluid_velocity_y = fluid_velocity[1]
-            self.pp.fluid_velocity_z = fluid_velocity[2]    
-            
+            self.pp.fluid_velocity_z = fluid_velocity[2]
+
             slip_vel = fluid_velocity - velocity
             r = self.pp.radius
             dens = self.pp.fluid_density
@@ -639,7 +630,7 @@ class SaffmanBenchmark(Benchmark):
             Normalize(vorticity, vorticity_norm)
             self.pp.fluid_vorticity_x = vorticity[0]
             self.pp.fluid_vorticity_y = vorticity[1]
-            self.pp.fluid_vorticity_z = vorticity[2]  
+            self.pp.fluid_vorticity_z = vorticity[2]
 
     def Test(self, model_part, benchmark_utils, target_saffman):
         self.target_saffman = target_saffman
@@ -648,62 +639,62 @@ class SaffmanBenchmark(Benchmark):
 
         for node in model_part.Nodes:
             lift = node.GetSolutionStepValue(LIFT_FORCE)
-                  
+
         error = Benchmark.ErrorMetric(lift, self.target_saffman)
-        
+
         if error < self.saffman_tol:
             veredict = True
-            
-        else:
-            Benchmark.number_of_fails += 1            
-            veredict = False
-            
-        self.results = [self.description, self.target_saffman, lift, error, veredict] 
-        self.string_results = Benchmark.ConvertToStrings(self.results)
-        self.has_results = True  
 
-class MagnusBenchmark(Benchmark):    
+        else:
+            Benchmark.number_of_fails += 1
+            veredict = False
+
+        self.results = [self.description, self.target_saffman, lift, error, veredict]
+        self.string_results = Benchmark.ConvertToStrings(self.results)
+        self.has_results = True
+
+class MagnusBenchmark(Benchmark):
     title = "Magnus force test results"
     tests = []
-    
+
     @staticmethod
     def PrintResults(debug_mode = True):
         Benchmark.PrintResults(MagnusBenchmark.title, MagnusBenchmark.tests, debug_mode)
- 
+
     def __init__(self, pp, magnus_force_type, reynolds, reynolds_rot, description):
-        self.pp = copy.deepcopy(pp) 
+        self.pp = copy.deepcopy(pp)
         self.magnus_tol = 10e-12
-        
-        self.pp.magnus_force_type = magnus_force_type               
+
+        self.pp.magnus_force_type = magnus_force_type
         self.description = description
-        
+
         self.has_results = False
         self.CalculateFlowVariables(reynolds, reynolds_rot)
-        
+
         MagnusBenchmark.tests += [self]
         Benchmark.tests += [self]
-        
+
     def CalculateFlowVariables(self, reynolds, reynolds_rot):
-        
+
         if reynolds < 0 or reynolds_rot < 0:
             raise ValueError("The particle's Reynold's number and rotation Reynold's numbers should be non-negative")
-        
+
         elif reynolds_rot * reynolds == 0.0:
             pass
-            
+
         else:
             velocity = RandomVector()
             fluid_velocity = RandomVector()
             ang_velocity = RandomVector()
             vorticity = RandomVector()
-            
+
             self.pp.velocity_x = velocity[0]
             self.pp.velocity_y = velocity[1]
-            self.pp.velocity_z = velocity[2]                               
+            self.pp.velocity_z = velocity[2]
             self.pp.fluid_velocity_x = fluid_velocity[0]
             self.pp.fluid_velocity_y = fluid_velocity[1]
-            self.pp.fluid_velocity_z = fluid_velocity[2]    
-            
+            self.pp.fluid_velocity_z = fluid_velocity[2]
+
             slip_vel = fluid_velocity - velocity
             slip_rot = 0.5 * vorticity - ang_velocity
             r = self.pp.radius
@@ -714,10 +705,10 @@ class MagnusBenchmark(Benchmark):
             Normalize(vorticity, slip_rot_norm)
             self.ang_vel_x = ang_velocity[0]
             self.ang_vel_y = ang_velocity[1]
-            self.ang_vel_z = ang_velocity[2] 
+            self.ang_vel_z = ang_velocity[2]
             self.pp.fluid_vorticity_x = vorticity[0]
             self.pp.fluid_vorticity_y = vorticity[1]
-            self.pp.fluid_vorticity_z = vorticity[2]  
+            self.pp.fluid_vorticity_z = vorticity[2]
 
     def Test(self, model_part, benchmark_utils, target_magnus):
         self.target_magnus = target_magnus
@@ -726,62 +717,62 @@ class MagnusBenchmark(Benchmark):
 
         for node in model_part.Nodes:
             lift = node.GetSolutionStepValue(LIFT_FORCE)
-                  
+
         error = Benchmark.ErrorMetric(lift, self.target_magnus)
-        
+
         if error < self.magnus_tol:
             veredict = True
-            
-        else:
-            Benchmark.number_of_fails += 1            
-            veredict = False
-            
-        self.results = [self.description, self.target_magnus, lift, error, veredict] 
-        self.string_results = Benchmark.ConvertToStrings(self.results)
-        self.has_results = True  
 
-class TorqueBenchmark(Benchmark):    
+        else:
+            Benchmark.number_of_fails += 1
+            veredict = False
+
+        self.results = [self.description, self.target_magnus, lift, error, veredict]
+        self.string_results = Benchmark.ConvertToStrings(self.results)
+        self.has_results = True
+
+class TorqueBenchmark(Benchmark):
     title = "Torque test results"
     tests = []
-    
+
     @staticmethod
     def PrintResults(debug_mode = True):
         Benchmark.PrintResults(TorqueBenchmark.title, TorqueBenchmark.tests, debug_mode)
-            
+
     def __init__(self, pp, hydro_torque_type, reynolds_rot, description):
-        self.pp = copy.deepcopy(pp) 
+        self.pp = copy.deepcopy(pp)
         self.torque_tol = 10e-12
-    
-        self.pp.hydro_torque_type = hydro_torque_type  
+
+        self.pp.hydro_torque_type = hydro_torque_type
         self.description = description
-        
+
         self.has_results = False
         self.CalculateFlowVariables(reynolds_rot)
-        
+
         TorqueBenchmark.tests += [self]
         Benchmark.tests += [self]
-        
+
     def CalculateFlowVariables(self, reynolds_rot):
-        
+
         if reynolds_rot < 0:
             raise ValueError("The particle's rotation Reynold's number should be non-negative")
-        
+
         elif reynolds_rot == 0.0:
             pass
-            
+
         else:
             velocity = RandomVector()
             fluid_velocity = RandomVector()
             ang_velocity = RandomVector()
             vorticity = RandomVector()
-            
+
             self.pp.velocity_x = velocity[0]
             self.pp.velocity_y = velocity[1]
-            self.pp.velocity_z = velocity[2]                               
+            self.pp.velocity_z = velocity[2]
             self.pp.fluid_velocity_x = fluid_velocity[0]
             self.pp.fluid_velocity_y = fluid_velocity[1]
-            self.pp.fluid_velocity_z = fluid_velocity[2]    
-            
+            self.pp.fluid_velocity_z = fluid_velocity[2]
+
             slip_rot = 0.5 * vorticity - ang_velocity
             r = self.pp.radius
             dens = self.pp.fluid_density
@@ -790,10 +781,10 @@ class TorqueBenchmark(Benchmark):
             Normalize(vorticity, slip_rot_norm)
             self.ang_vel_x = ang_velocity[0]
             self.ang_vel_y = ang_velocity[1]
-            self.ang_vel_z = ang_velocity[2] 
+            self.ang_vel_z = ang_velocity[2]
             self.pp.fluid_vorticity_x = vorticity[0]
             self.pp.fluid_vorticity_y = vorticity[1]
-            self.pp.fluid_vorticity_z = vorticity[2]  
+            self.pp.fluid_vorticity_z = vorticity[2]
 
     def Test(self, model_part, benchmark_utils, target_torque):
         self.target_torque = target_torque
@@ -802,24 +793,24 @@ class TorqueBenchmark(Benchmark):
 
         for node in model_part.Nodes:
             torque = node.GetSolutionStepValue(HYDRODYNAMIC_MOMENT)
-                  
+
         error = Benchmark.ErrorMetric(torque, self.target_torque)
-        
+
         if error < self.torque_tol:
             veredict = True
-            
+
         else:
-            Benchmark.number_of_fails += 1            
+            Benchmark.number_of_fails += 1
             veredict = False
-            
-        self.results = [self.description, self.target_torque, torque, error, veredict] 
+
+        self.results = [self.description, self.target_torque, torque, error, veredict]
         self.string_results = Benchmark.ConvertToStrings(self.results)
-        self.has_results = True          
+        self.has_results = True
 #***************************************************************************************************************************
-   
+
 # BENCHMARKS
 
-#***************************************************************************************************************************  
+#***************************************************************************************************************************
 
 def Run(debug_mode = False):
     CleanStaticVars()
@@ -908,7 +899,7 @@ def Run(debug_mode = False):
     density = drag_test_2.pp.fluid_density
     radius = drag_test_2.pp.radius
     drag_target_2 = 0.5 * math.pi * radius ** 2 * density * Norm(slip_vel) * slip_vel
-    drag_target_2 *= 0.44 
+    drag_target_2 *= 0.44
 
     drag_test_2.Test(model_part, benchmark_utils, drag_target_2)
     #***************************************************************************************************************************
@@ -1277,7 +1268,7 @@ def Run(debug_mode = False):
         C = 12.9 / math.sqrt(reynolds_rot) + 128.4 / reynolds_rot
     else:
         C = 64 * math.pi / reynolds_rot
-        
+
     torque_target_1 = 0.5 * dens * r ** 5 * C * norm_of_slip_rot * slip_rot
 
     torque_test_1.Test(model_part, benchmark_utils, torque_target_1)
@@ -1309,7 +1300,7 @@ def Run(debug_mode = False):
         C = 12.9 / math.sqrt(reynolds_rot) + 128.4 / reynolds_rot
     else:
         C = 64 * math.pi / reynolds_rot
-        
+
     torque_target_2 = 0.5 * dens * r ** 5 * C * norm_of_slip_rot * slip_rot
 
     torque_test_2.Test(model_part, benchmark_utils, torque_target_2)
@@ -1317,18 +1308,18 @@ def Run(debug_mode = False):
 
     TorqueBenchmark.PrintResults(debug_mode)
     Benchmark.text_to_print += Benchmark.PrintFailedTestsParameters()
-    
+
     if Benchmark.number_of_fails > 0:
         Benchmark.text_to_print += "\n\nWARNING!!!\n"
-        
+
     Benchmark.text_to_print += "\nTotal number of fails (hydrodyamic forces): " + str(Benchmark.number_of_fails) + "\n"
-        
+
     return Benchmark.text_to_print
 
-if __name__ == '__main__':    
+if __name__ == '__main__':
     #print(Run(True))
     text_to_print = Run(False)
     f = open("hydrodynamic_forces.txt",'w')
     f.write(text_to_print)
     f.close
-    
+

@@ -5,41 +5,19 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import swimming_DEM_procedures as SDP
-import variables_management as vars_man
 import swimming_DEM_analysis
 BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 sys.path.insert(0,'')
 
-class DEMPFEMAnalysis(BaseAnalysis):
-
-    def SetFluidAlgorithm(self):
-        import pfem_fluid_ready_for_dem_coupling as fluid_solution
-        self.fluid_solution = fluid_solution.Solution(self.model)
-        self.fluid_solution.main_path = self.main_path
-
-    def SetCouplingParameters(self, parameters):
-
-        super(Algorithm,self).SetCouplingParameters(varying_parameters)
-        self.pp.domain_size = self.fluid_solution.ProjectParameters["problem_data"]["dimension"].GetInt()
+class SDEMPFEMAnalysis(BaseAnalysis):
 
     def SetBetaParameters(self):
-
-        self.pp.Dt = self.fluid_solution.GetDeltaTimeFromParameters()
-        super(Algorithm,self).SetBetaParameters()
-        self.pp.CFD_DEM["body_force_per_unit_mass_variable_name"].SetString('VOLUME_ACCELERATION')
-
-    #def SetCouplingParameters(self, varying_parameters):
-        #parameters_file = open("ProjectParametersDEM.json",'r')
-        #self.pp.CFD_DEM = Parameters(parameters_file.read())
-        #self.SetDoSolveDEMVariable()
-        #self.pp.Dt = self.fluid_solution.GetDeltaTimeFromParameters()
-        #self.SetBetaParameters()
-        #self.SetCustomBetaParameters(varying_parameters)
-        #self.pp.domain_size = self.fluid_solution.ProjectParameters["problem_data"]["domain_size"].GetInt()
-        #super(Algorithm,self).SetCouplingParameters(varying_parameters)
+        super(SDEMPFEMAnalysis,self).SetBetaParameters()
+        self.project_parameters["body_force_per_unit_mass_variable_name"].SetString('VOLUME_ACCELERATION')
+        self.project_parameters["material_acceleration_calculation_type"].SetInt(8)
 
     def SetAllModelParts(self):
-        self.all_model_parts = self.disperse_phase_solution.all_model_parts
+        self.all_model_parts = self._GetDEMAnalysis().all_model_parts
 
         # defining a fluid model
         self.all_model_parts.Add(self.fluid_model_part, "FluidPart")
@@ -50,27 +28,27 @@ class DEMPFEMAnalysis(BaseAnalysis):
         self.mixed_model_part = self.all_model_parts.Get('MixedPart')
 
     def Initialize(self):
-        super(Algorithm,self).Initialize()
+        super(SDEMPFEMAnalysis,self).Initialize()
         self.TransferWallsFromPfemToDem()
 
     def TransferWallsFromPfemToDem(self):
-        destination_model_part = self.disperse_phase_solution.rigid_face_model_part
-        bodies_parts_list = self.fluid_solution.ProjectParameters["solver_settings"]["bodies_list"]
+        destination_model_part = self._GetDEMAnalysis().rigid_face_model_part
+        bodies_parts_list = self._GetFluidAnalysis().project_parameters["solver_settings"]["bodies_list"]
         for i in range(bodies_parts_list.size()):
             body_model_part_type = bodies_parts_list[i]["body_type"].GetString()
             if body_model_part_type == "Rigid":
                 body_model_part_name = bodies_parts_list[i]["body_name"].GetString()
-                source_model_part = self.fluid_solution.main_model_part.GetSubModelPart(body_model_part_name)
+                source_model_part = self._GetFluidAnalysis().main_model_part.GetSubModelPart(body_model_part_name)
                 SwimmingDemInPfemUtils().TransferWalls(source_model_part, destination_model_part)
 
     def TransferGravityFromDisperseToFluid(self):
         # setting fluid's body force to the same as DEM's
-        if self.pp.CFD_DEM["body_force_on_fluid_option"].GetBool():
+        if self.project_parameters["custom_fluid"]["body_force_on_fluid_option"].GetBool():
 
             for node in self.fluid_model_part.Nodes:
-                node.SetSolutionStepValue(VOLUME_ACCELERATION_X, 0, self.pp.CFD_DEM["GravityX"].GetDouble())
-                node.SetSolutionStepValue(VOLUME_ACCELERATION_Y, 0, self.pp.CFD_DEM["GravityY"].GetDouble())
-                node.SetSolutionStepValue(VOLUME_ACCELERATION_Z, 0, self.pp.CFD_DEM["GravityZ"].GetDouble())
+                node.SetSolutionStepValue(VOLUME_ACCELERATION_X, 0, self.project_parameters["GravityX"].GetDouble())
+                node.SetSolutionStepValue(VOLUME_ACCELERATION_Y, 0, self.project_parameters["GravityY"].GetDouble())
+                node.SetSolutionStepValue(VOLUME_ACCELERATION_Z, 0, self.project_parameters["GravityZ"].GetDouble())
 
     def AssignKinematicViscosityFromDynamicViscosity(self):
         for node in self.fluid_model_part.Nodes:
@@ -79,34 +57,34 @@ class DEMPFEMAnalysis(BaseAnalysis):
 
     def FluidInitialize(self):
 
-        self.fluid_solution.vars_man=vars_man
-        self.fluid_solution.Initialize()
-        bodies_parts_list = self.fluid_solution.ProjectParameters["solver_settings"]["bodies_list"]
+        self._GetFluidAnalysis().vars_man=self.vars_man
+        self._GetFluidAnalysis().Initialize()
+        bodies_parts_list = self._GetFluidAnalysis().project_parameters["solver_settings"]["bodies_list"]
         for i in range(bodies_parts_list.size()):
             body_model_part_type = bodies_parts_list[i]["body_type"].GetString()
             if body_model_part_type == "Fluid":
                 body_model_part_name = bodies_parts_list[i]["body_name"].GetString()
-                self.fluid_model_part = self.fluid_solution.main_model_part.GetSubModelPart(body_model_part_name)
+                self.fluid_model_part = self._GetFluidAnalysis().main_model_part.GetSubModelPart(body_model_part_name)
                 break
 
     def TransferTimeToFluidSolver(self):
         if self.step < self.GetFirstStepForFluidComputation() or self.stationarity:
-            self.fluid_solution.time = self.time
-            #self.fluid_solution.step = self.step #DO NOT INCREASE STEP IN PFEM, IT CRASHES (PROBABLY IT MUST DO SPECIAL THINGS FOR STEP=0)
-            #self.fluid_solution.main_model_part.ProcessInfo[STEP] = self.step #DO NOT INCREASE STEP IN PFEM, IT CRASHES (PROBABLY IT MUST DO SPECIAL THINGS FOR STEP=0)
+            self._GetFluidAnalysis().time = self.time
+            #self._GetFluidAnalysis().step = self.step #DO NOT INCREASE STEP IN PFEM, IT CRASHES (PROBABLY IT MUST DO SPECIAL THINGS FOR STEP=0)
+            #self._GetFluidAnalysis().main_model_part.ProcessInfo[STEP] = self.step #DO NOT INCREASE STEP IN PFEM, IT CRASHES (PROBABLY IT MUST DO SPECIAL THINGS FOR STEP=0)
             print(" [STEP:",self.step," TIME:",self.time,"]")
 
     def CloneTimeStep(self):
         self.TransferTimeToFluidSolver()
 
         if self.step < self.GetFirstStepForFluidComputation() or self.stationarity:
-            self.fluid_solution.main_model_part.CloneTimeStep(self.time)
+            self._GetFluidAnalysis().main_model_part.CloneTimeStep(self.time)
 
     def FluidSolve(self, time = 'None', solve_system = True):
 
-        self.fluid_solution.InitializeSolutionStep()
-        self.fluid_solution.SolveSolutionStep()
-        self.fluid_solution.FinalizeSolutionStep()
+        self._GetFluidAnalysis().InitializeSolutionStep()
+        self._GetFluidAnalysis().SolveSolutionStep()
+        self._GetFluidAnalysis().FinalizeSolutionStep()
         self.projection_module.UpdateDatabase(self.h_min)
 
 
@@ -131,21 +109,29 @@ class DEMPFEMAnalysis(BaseAnalysis):
             self.fluid_model_part.AddNodalSolutionStepVariable(REACTION)
         if "DISTANCE" in self.pp.nodal_results:
             self.fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
-        self.vars_man.AddNodalVariables(self.fluid_model_part, self.pp.fluid_vars)
+        self.vars_man.AddNodalVariables(self.fluid_model_part, self.vars_man.fluid_vars)
         if self.pp.type_of_inlet == 'ForceImposed':
-            self.DEM_inlet = DEM_Force_Based_Inlet(self.DEM_inlet_model_part, self.pp.force)
+            self.DEM_inlet = DEM_Force_Based_Inlet(self.dem_inlet_model_part, self.pp.force)
 
     def SetPostUtils(self):
-        general_model_part = self.fluid_solution.main_model_part
+        general_model_part = self._GetFluidAnalysis().main_model_part
         self.post_utils = SDP.PostUtils(self.swimming_DEM_gid_io,
-                                        self.pp,
+                                        self.project_parameters,
+                                        self.vars_man,
                                         general_model_part,
-                                        self.disperse_phase_solution.spheres_model_part,
-                                        self.disperse_phase_solution.cluster_model_part,
-                                        self.disperse_phase_solution.rigid_face_model_part,
+                                        self._GetDEMAnalysis().spheres_model_part,
+                                        self._GetDEMAnalysis().cluster_model_part,
+                                        self._GetDEMAnalysis().rigid_face_model_part,
                                         self.mixed_model_part)
     def SetEmbeddedTools(self):
         pass
 
     def PerformEmbeddedOperations(self):
         pass
+
+    def _GetFluidAnalysis(self):
+        if not hasattr(self, '_fluid_phase_analysis'):
+            import DEM_coupled_pfem_fluid_dynamics_analysis as fluid_analysis
+            self._fluid_phase_analysis = fluid_analysis.DEMCoupledPFEMFluidDynamicsAnalysis(self.model, self.project_parameters, self.vars_man)
+            self._fluid_phase_analysis.main_path = self.main_path
+        return self._fluid_phase_analysis

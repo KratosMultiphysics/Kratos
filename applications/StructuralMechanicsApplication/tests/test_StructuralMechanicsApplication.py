@@ -36,13 +36,16 @@ from test_patch_test_cr_beam import TestCrBeam2D2N as TTestCrBeam2D2N
 from test_patch_test_shells_stress import TestPatchTestShellsStressRec as TTestPatchTestShellsStressRec
 from test_patch_test_shells_orthotropic import TestPatchTestShellsOrthotropic as TTestPatchTestShellsOrthotropic
 from test_patch_test_formfinding import TestPatchTestFormfinding as TTestPatchTestFormfinding
-from test_patch_test_membrane import TestPatchTestMembrane as TTestPatchTestMembrane
+from test_patch_test_membrane import StaticPatchTestMembrane as TStaticPatchTestMembrane
+from test_patch_test_membrane import DynamicPatchTestMembrane as TDynamicPatchTestMembrane
 # Test loading conditions
 from test_loading_conditions_point import TestLoadingConditionsPoint as TTestLoadingConditionsPoint
 from test_loading_conditions_line import TestLoadingConditionsLine as TTestLoadingConditionsLine
 from test_loading_conditions_surface import TestLoadingConditionsSurface as TTestLoadingConditionsSurface
 # Nodal damping test
 from test_nodal_damping import NodalDampingTests as TNodalDampingTests
+# RVE test
+from test_rve_analytic import TestRVESimplestTest as TTestRVESimplestTest
 # Spring damper element test
 from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
 # Harmonic analysis tests
@@ -60,10 +63,10 @@ from test_cr_beam_adjoint_element_3d2n import TestCrBeamAdjointElement as TTestC
 from test_linear_thin_shell_adjoint_element_3d3n import TestShellThinAdjointElement3D3N as TTestShellThinAdjointElement3D3N
 from test_truss_adjoint_element_3d2n import TestTrussAdjointElement as TTestTrussAdjointElement
 from test_truss_adjoint_element_3d2n import TestTrussLinearAdjointElement as TTestTrussLinearAdjointElement
-from test_adjoint_sensitity_analysis_beam_3d2n_structure import TestAdjointSensitivityAnalysisBeamStructure as TTestAdjointSensitivityAnalysisBeamStructure
-from test_adjoint_sensitity_analysis_shell_3d3n_structure import TestAdjointSensitivityAnalysisShell3D3NStructure as TTestAdjointSensitivityAnalysisShell3D3NStructure
-from test_adjoint_sensitity_analysis_truss_3d2n_structure import TestAdjointSensitivityAnalysisLinearTrussStructure as TTestAdjointSensitivityAnalysisLinearTrussStructure
-from test_adjoint_sensitity_analysis_truss_3d2n_structure import TestAdjointSensitivityAnalysisNonLinearTrussStructure as TTestAdjointSensitivityAnalysisNonLinearTrussStructure
+from test_adjoint_sensitivity_analysis_beam_3d2n_structure import TestAdjointSensitivityAnalysisBeamStructure as TTestAdjointSensitivityAnalysisBeamStructure
+from test_adjoint_sensitivity_analysis_shell_3d3n_structure import TestAdjointSensitivityAnalysisShell3D3NStructure as TTestAdjointSensitivityAnalysisShell3D3NStructure
+from test_adjoint_sensitivity_analysis_truss_3d2n_structure import TestAdjointSensitivityAnalysisLinearTrussStructure as TTestAdjointSensitivityAnalysisLinearTrussStructure
+from test_adjoint_sensitivity_analysis_truss_3d2n_structure import TestAdjointSensitivityAnalysisNonLinearTrussStructure as TTestAdjointSensitivityAnalysisNonLinearTrussStructure
 
 ##### SMALL TESTS #####
 # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -233,7 +236,7 @@ def AssembleTestSuites():
     ### Adding the self-contained tests
     # Constitutive Law tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestConstitutiveLaw]))
-    smallSuite.addTest(TSimpleSmallDeformationPlasticityMCTest('test_execution'))
+    nightSuite.addTest(TSimpleSmallDeformationPlasticityMCTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityVMTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityDPTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityTTest('test_execution'))
@@ -257,7 +260,8 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsOrthotropic])) # TODO should be in smallSuite but is too slow
     # Membranes
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestFormfinding]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestMembrane]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TStaticPatchTestMembrane]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicPatchTestMembrane]))
     # Trusses
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTruss3D2N]))
     # Beams
@@ -280,6 +284,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestShellThinAdjointElement3D3N]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussAdjointElement]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussLinearAdjointElement]))
+    # RVE tests
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestRVESimplestTest]))
 
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
