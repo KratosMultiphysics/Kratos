@@ -3,6 +3,7 @@
 # Import TestFactory
 import InterpolationTestFactory as InterpolationTF
 import TestFactory as TF
+import FluidDEMTestFactory as FDEMTF
 import SPFEMTestFactory as SPFEMTF
 
 # Import KratosUnittest
@@ -42,6 +43,10 @@ class interpolation_test_nonlinear_time_no_substepping(InterpolationTF.TestFacto
      file_name = "interpolation_tests/cube"
      file_parameters = "interpolation_tests/ProjectParametersCubeNonlinearTimeNoSubstepping.json"
 
+class fluid_dem_coupling_one_way_test(FDEMTF.TestFactory):
+     file_name = "fluid_dem_tests/settling_cube"
+     file_parameters = "fluid_dem_tests/ProjectParameters.json"
+
 class sdem_pfem_coupling_one_way_test(SPFEMTF.TestFactory):
      file_name = "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test"
      file_parameters = "PFEM-DEM_tests/ProjectParameters.json"
@@ -51,14 +56,15 @@ def SetTestSuite(suites):
 
     night_suite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-          candelier_no_history_test,
-          candelier_no_history_with_lift_test,
-          candelier_no_history_non_inertial_test,
-          candelier_with_history_test,
-          candelier_with_history_hinsberg_test,
-          interpolation_test_linear,
-          interpolation_test_nonlinear_time_no_substepping,
-          sdem_pfem_coupling_one_way_test
+          # candelier_no_history_test,
+          # candelier_no_history_with_lift_test,
+          # candelier_no_history_non_inertial_test,
+          # candelier_with_history_test,
+          # candelier_with_history_hinsberg_test,
+          # interpolation_test_linear,
+          # interpolation_test_nonlinear_time_no_substepping,
+          fluid_dem_coupling_one_way_test,
+          # sdem_pfem_coupling_one_way_test
           ])
     )
 
