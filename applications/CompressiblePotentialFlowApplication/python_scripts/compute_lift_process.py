@@ -1,5 +1,4 @@
 import KratosMultiphysics
-import itertools
 
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
