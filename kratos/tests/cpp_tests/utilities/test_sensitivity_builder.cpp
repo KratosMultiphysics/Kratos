@@ -253,12 +253,12 @@ KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNodalSolutionStepSensitivi
         KRATOS_CHECK_NEAR(val_x, RefValue[0], tolerance);
         KRATOS_CHECK_NEAR(val_y, RefValue[1], tolerance);
     };
-    CheckNode(model_part.GetNode(1), {100., -48.});
-    CheckNode(model_part.GetNode(2), {216., 0.});
-    CheckNode(model_part.GetNode(3), {16., 96.});
-    CheckNode(model_part.GetNode(4), {4., -16.});
-    CheckNode(model_part.GetNode(5), {-16., 208.});
-    CheckNode(model_part.GetNode(6), {-48., 16.});
+    CheckNode(model_part.GetNode(1), {{100., -48.}});
+    CheckNode(model_part.GetNode(2), {{216., 0.}});
+    CheckNode(model_part.GetNode(3), {{16., 96.}});
+    CheckNode(model_part.GetNode(4), {{4., -16.}});
+    CheckNode(model_part.GetNode(5), {{-16., 208.}});
+    CheckNode(model_part.GetNode(6), {{-48., 16.}});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNodalSolutionStepSensitivities_InactiveNodes,

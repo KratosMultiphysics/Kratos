@@ -89,6 +89,7 @@ public:
 protected:
 
 private:
+    void AddForcesDueToTorque(VectorType& rRightHandSideVector, Vector& r_shape_functions_values, std::vector<double>& weights_vector, array_1d<double, 3>& force, SphericParticle* p_particle);
 
     friend class Serializer;
 

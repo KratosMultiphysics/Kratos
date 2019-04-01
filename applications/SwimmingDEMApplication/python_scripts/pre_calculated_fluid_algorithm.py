@@ -36,7 +36,7 @@ class Algorithm(BaseAlgorithm):
                                                           self.main_path)
 
     def FluidSolve(self, time = 'None', solve_system = True):
-        if not self.project_parameters["fluid_already_calculated"].GetBool():
+        if not self.project_parameters["custom_fluid"]["fluid_already_calculated"].GetBool():
             BaseAlgorithm.FluidSolve(self, time, solve_system = solve_system)
             if self.project_parameters["do_write_results_to_hdf5"].GetBool():
                 self.fluid_loader.FillFluidDataStep()
@@ -48,12 +48,12 @@ class Algorithm(BaseAlgorithm):
     def GetFluidLoaderCounter(self):
         return SDP.Counter(steps_in_cycle = self.project_parameters["DEM_steps_per_fluid_load_step"].GetInt(),
                            beginning_step = 1,
-                           is_dead = not self.project_parameters["fluid_already_calculated"].GetBool())
+                           is_dead = not self.project_parameters["custom_fluid"]["fluid_already_calculated"].GetBool())
 
     def GetRunCode(self):
-        code = SDP.CreateRunCode(self.project_parameters)
+        code = ""
 
-        if self.project_parameters["fluid_already_calculated"].GetBool():
+        if self.project_parameters["custom_fluid"]["fluid_already_calculated"].GetBool():
             return code + '_precalculated_fluid'
         else:
             return code
@@ -61,7 +61,7 @@ class Algorithm(BaseAlgorithm):
     def TheSimulationMustGoOn(self):
         it_must_go_on = self.time <= self.end_time
 
-        if self.project_parameters["fluid_already_calculated"].GetBool():
+        if self.project_parameters["custom_fluid"]["fluid_already_calculated"].GetBool():
             return it_must_go_on and self.fluid_loader.CanLoadMoreSteps()
         else:
             return it_must_go_on
