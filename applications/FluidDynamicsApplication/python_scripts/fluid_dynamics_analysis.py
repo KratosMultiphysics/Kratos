@@ -34,6 +34,14 @@ class FluidDynamicsAnalysis(AnalysisStage):
 
         super(FluidDynamicsAnalysis,self).__init__(model,parameters)
 
+    def RunSolutionLoop(self):
+        """This function executes the solution loop of the AnalysisStage
+        It can be overridden by derived classes
+        """
+
+        import auxiliar_methods_adaptative_remeshing
+        auxiliar_methods_adaptative_remeshing.AdaptativeRemeshingRunSolutionLoop(self)
+
     def _CreateSolver(self):
         import python_solvers_wrapper_fluid
         return python_solvers_wrapper_fluid.CreateSolver(self.model, self.project_parameters)
@@ -49,7 +57,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
         # Note 1: gravity is constructed first. Outlet process might need its information.
         # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
         if parameter_name == "processes":
-            processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
+            processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list","recursive_remeshing_process"]
             if len(list_of_processes) == 0: # Processes are given in the old format
                 info_msg  = "Using the old way to create the processes, this will be removed!\n"
                 info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
@@ -83,7 +91,8 @@ class FluidDynamicsAnalysis(AnalysisStage):
         return ["gravity",
                 "initial_conditions_process_list",
                 "boundary_conditions_process_list",
-                "auxiliar_process_list"]
+                "auxiliar_process_list",
+                "recursive_remeshing_process"]
 
 
     def _SetUpGiDOutput(self):
