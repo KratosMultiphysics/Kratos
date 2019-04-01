@@ -22,6 +22,16 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		self.FEM_Solution.Initialize()
 		self.DEM_Solution.Initialize()
 
+		# Initialize the "flag" IS_DEM in all the nodes
+		KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.IS_DEM, False, self.FEM_Solution.main_model_part.Nodes)
+		# Initialize the "flag" NODAL_FORCE_APPLIED in all the nodes
+		KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.NODAL_FORCE_APPLIED, False, self.FEM_Solution.main_model_part.Nodes)
+		# Initialize the "flag" RADIUS in all the nodes
+		KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, False, self.FEM_Solution.main_model_part.Nodes)
+
+		# Initialize IP variables to zero
+		self.InitializeIntegrationPointsVariables()
+
 		self.SpheresModelPart = self.DEM_Solution.spheres_model_part
 		self.DEMParameters = self.DEM_Solution.DEM_parameters
 		self.DEMProperties = self.SpheresModelPart.GetProperties()[1]
@@ -53,8 +63,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 	def InitializeSolutionStep(self):
 
         # modified for the remeshing
-        self.FEM_Solution.delta_time = self.ComputeDeltaTime()
-        self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.FEM_Solution.delta_time
+		self.FEM_Solution.delta_time = self.ComputeDeltaTime()
+		self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.FEM_Solution.delta_time
 		self.FEM_Solution.time = self.FEM_Solution.time + self.FEM_Solution.delta_time
 		self.FEM_Solution.main_model_part.CloneTimeStep(self.FEM_Solution.time)
 		self.FEM_Solution.step = self.FEM_Solution.step + 1
@@ -135,8 +145,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		self.WritePostListFile()
 
 		# Print required info
-		if self.DoRemeshing == False:
-			self.PrintPlotsFiles()
+		self.PrintPlotsFiles()
 
 #============================================================================================================================
 	def GenerateDEM(self): # 3D version
@@ -1037,3 +1046,15 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 				self.DEM_Solution.PrintResultsForGid(self.DEM_Solution.time)
 				self.DEM_Solution.time_old_print = self.DEM_Solution.time
+
+#============================================================================================================================
+
+	def InitializeIntegrationPointsVariables(self):
+		for elem in self.FEM_Solution.main_model_part.Elements:
+			elem.SetValue(KratosFemDem.STRESS_THRESHOLD, 0.0)
+			elem.SetValue(KratosFemDem.DAMAGE_ELEMENT, 0.0)
+			elem.SetValue(KratosFemDem.PRESSURE_EXPANDED, 0)
+			elem.SetValue(KratosFemDem.IS_SKIN, 0)
+			elem.SetValue(KratosFemDem.SMOOTHING, 0)
+			elem.SetValue(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0,0.0,0.0,0.0])
+			elem.SetValue(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0,0.0,0.0,0.0])

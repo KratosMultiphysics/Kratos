@@ -12,7 +12,7 @@ from swimming_DEM_analysis import Say
 class InterpolationTestAnalysis(SwimmingDEMAnalysis):
     def __init__(self, model, varying_parameters = Parameters("{}")):
         super(InterpolationTestAnalysis, self).__init__(model, varying_parameters)
-        self.disperse_phase_solution.mdpas_folder_path = os.path.join(self.disperse_phase_solution.main_path, 'interpolation_tests')
+        self._GetDEMAnalysis().mdpas_folder_path = os.path.join(self._GetDEMAnalysis().main_path, 'interpolation_tests')
 
     def GetDebugInfo(self):
         return SDP.Counter(is_dead = 1)
@@ -22,8 +22,8 @@ class InterpolationTestAnalysis(SwimmingDEMAnalysis):
         return sdem_solver.InterpolationTestSolver(self.model,
                                                    self.project_parameters,
                                                    self.GetFieldUtility(),
-                                                   self.fluid_solution._GetSolver(),
-                                                   self.disperse_phase_solution._GetSolver(),
+                                                   self._GetFluidAnalysis()._GetSolver(),
+                                                   self._GetDEMAnalysis()._GetSolver(),
                                                    self.vars_man)
 
     def FinalizeSolutionStep(self):
