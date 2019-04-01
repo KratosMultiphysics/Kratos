@@ -486,7 +486,7 @@ void CalculateDamageParameters(
     array_1d<double, 6>& rPredictiveStressVector,
     Vector& rStrainVector,
     double& rUniaxialStress,
-    double& rThreshold,
+    double& rDamageThreshold,
     double& rDamageDissipation,
     const Matrix& rConstitutiveMatrix,
     ConstitutiveLaw::Parameters& rValues,
@@ -494,7 +494,8 @@ void CalculateDamageParameters(
     array_1d<double, 6>& rFflux,
     const Vector& rPlasticStrain,
     const double Damage,
-    const double DamageIncrement
+    const double DamageIncrement,
+    double& rHardd
 )
 {
     array_1d<double, VoigtSize> deviator = ZeroVector(6);
@@ -506,8 +507,6 @@ void CalculateDamageParameters(
     ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
     YieldSurfaceType::CalculateYieldSurfaceDerivative(rPredictiveStressVector, deviator, J2, rFflux, rValues);
     CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor, suma);
-    // TPlasticityIntegratorType::CalculatePlasticDissipation(rPredictiveStressVector, tensile_indicator_factor,compression_indicator_factor, rPlasticStrainIncrement,rPlasticDissipation, h_capa, rValues, CharacteristicLength);
-    // TPlasticityIntegratorType::CalculateHardeningParameter(rFflux, slope, h_capa, hardening_parameter);
 
     auto& r_matProps = rValues.GetMaterialProperties();
     const bool has_symmetric_yield_stress = r_matProps.Has(YIELD_STRESS);
@@ -529,8 +528,15 @@ void CalculateDamageParameters(
     if (damage_dissipation_increment > 1.0 || damage_dissipation_increment <tolerance) damage_dissipation_increment = 0.0;
     rDamageDissipation += damage_dissipation_increment;
     if (rDamageDissipation > 1.0) rDamageDissipation = 0.99999;
-    Vector slopes(2), thresholds(2);
 
+    Vector slopes(2), thresholds(2);
+    for (Indextype i = 0; i < 2; ++i) {
+        thresholds[i] = yield_tension * (1.0 - rDamageDissipation);
+        slopes[i] = -yield_tension;
+    }
+    rDamageThreshold = (tensile_indicator_factor * thresholds[0]) + (compression_indicator_factor * thresholds[1]);
+    const double hsigr = rDamageThreshold * (tensile_indicator_factor * slopes[0] / thresholds[0] + compression_indicator_factor * slopes[1] / thresholds[1]);  
+    rHardd = hcapd * hsigr;
 }
 
 

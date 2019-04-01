@@ -359,7 +359,8 @@ public:
         array_1d<double, VoigtSize>& rFflux,
         const Vector& rPlasticStrain,
         const double Damage,
-        const double DamageIncrement);
+        const double DamageIncrement,
+        double& rHardd);
 
     void CalculateIndicatorsFactors(
         const array_1d<double, VoigtSize>& rPredictiveStressVector,
