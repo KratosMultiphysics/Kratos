@@ -6,15 +6,12 @@ import KratosMultiphysics
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
-try:
+import KratosMultiphysics.kratos_utilities as kratos_utilities
+if kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication"):
     import KratosMultiphysics.MeshingApplication as MeshingApplication
-    missing_meshing_dependencies = False
-    missing_application = ''
-except ImportError as e:
     missing_meshing_dependencies = True
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''','{0}'.format(e)).group(1)
+else:
+    missing_meshing_dependencies = False
 
 class AdaptativeRemeshingMechanicalUtilities(object):
     """These are common utilities for adaptative remeshing
@@ -84,7 +81,7 @@ class AdaptativeRemeshingMechanicalUtilities(object):
                 return adaptative_error_criteria
 
         # Regular convergence criteria
-        import convergence_criteria_factory
+        from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
         convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_settings)
 
         # If we combine the regular convergence criteria with adaptative
