@@ -2,14 +2,12 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics as KM
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
-import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 # Other imports
 import sys
 
 # Import the base structural analysis
-from contact_structural_mechanics_analysis import ContactStructuralMechanicsAnalysis as BaseClass
+from KratosMultiphysics.ContactStructuralMechanicsApplication.contact_structural_mechanics_analysis import ContactStructuralMechanicsAnalysis as BaseClass
 
 class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
     """

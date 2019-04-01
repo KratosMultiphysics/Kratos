@@ -4,21 +4,15 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics as KM
 
 # Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
-import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
-
-try:
+import KratosMultiphysics.kratos_utilities as kratos_utilities
+if kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication"):
     import KratosMultiphysics.MeshingApplication as MA
-    missing_meshing_dependencies = False
-    missing_application = ''
-except ImportError as e:
     missing_meshing_dependencies = True
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''','{0}'.format(e)).group(1)
+else:
+    missing_meshing_dependencies = False
 
 # Import base class file
-import contact_structural_mechanics_static_solver
+from KratosMultiphysics.ContactStructuralMechanicsApplication import contact_structural_mechanics_static_solver
 
 def CreateSolver(model, custom_settings):
     return AdaptativeRemeshingContactStaticMechanicalSolver(model, custom_settings)
