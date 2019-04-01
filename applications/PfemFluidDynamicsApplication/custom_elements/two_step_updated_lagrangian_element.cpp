@@ -564,6 +564,52 @@ namespace Kratos {
   }
 
 
+
+  template<>
+  void TwoStepUpdatedLagrangianElement<2>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
+  {
+
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 2*NumNodes;
+
+    if (rValues.size() != LocalSize) rValues.resize(LocalSize);
+
+    SizeType Index = 0;
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+        rValues[Index++] = rGeom[i].X();
+        rValues[Index++] = rGeom[i].Y();
+        // rValues[Index++] = rGeom[i].X0();
+        // rValues[Index++] = rGeom[i].Y0();
+      }
+  }
+
+
+  template<>
+  void TwoStepUpdatedLagrangianElement<3>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
+  {
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 3*NumNodes;
+
+    if (rValues.size() != LocalSize) rValues.resize(LocalSize);
+
+    SizeType Index = 0;
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+          rValues[Index++] = rGeom[i].X();
+          rValues[Index++] = rGeom[i].Y();
+          rValues[Index++] = rGeom[i].Z();
+          // rValues[Index++] = rGeom[i].X0();
+          // rValues[Index++] = rGeom[i].Y0();
+          // rValues[Index++] = rGeom[i].Z0();
+      }
+  }
+
+
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianElement<TDim>::CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
 								    Matrix &NContainer,
@@ -927,7 +973,6 @@ namespace Kratos {
     return computeElement;
 
   }
-
 
 
 

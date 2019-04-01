@@ -330,10 +330,6 @@ namespace Kratos
   
       void ComputeBulkMatrixRHS(MatrixType& BulkMatrix,
 				const double Weight) override;
-      
-      void GetPositions(Vector& rValues,
-			const ProcessInfo& rCurrentProcessInfo,
-			const double theta) override;
 	
       void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 					    double TimeStep,

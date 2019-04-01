@@ -380,15 +380,6 @@ namespace Kratos
 				      const ShapeFunctionDerivativesType& rShapeDeriv,
 				      const double Weight) override;
 
-      /* bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables, */
-      /* 				const ProcessInfo& rCurrentProcessInfo, */
-      /* 				const ShapeFunctionDerivativesType& rDN_DX, */
-      /* 				unsigned int g); */
-
-      void GetPositions(Vector& rValues,
-			const ProcessInfo& rCurrentProcessInfo,
-			const double theta) override;
-
       void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 					    double TimeStep,
 					    unsigned int g) override;

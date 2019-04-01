@@ -381,12 +381,6 @@ namespace Kratos
 	return 1.0;
       };
       
-  
-
-      void GetPositions(Vector& rValues,
-			const ProcessInfo& rCurrentProcessInfo,
-			const double theta) override{};
-
       void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
 						 double& MeanValue,
 						 const ShapeFunctionDerivativesType& rShapeDeriv,

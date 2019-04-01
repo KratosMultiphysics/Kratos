@@ -433,9 +433,9 @@ namespace Kratos
       void GetDisplacementValues(Vector& rValues,
 				 const int Step = 0);
 
-      virtual void GetPositions(Vector& rValues,
+      void GetPositions(Vector& rValues,
 				const ProcessInfo& rCurrentProcessInfo,
-				const double theta){};
+				const double theta);
 
       void GetAccelerationValues(Vector& rValues,
 				 const int Step = 0);
