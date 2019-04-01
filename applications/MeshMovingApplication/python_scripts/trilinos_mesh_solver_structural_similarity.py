@@ -17,7 +17,7 @@ def CreateSolver(mesh_model_part, custom_settings):
 class TrilinosMeshSolverStructuralSimilarity(TrilinosMeshSolverBase):
     def __init__(self, mesh_model_part, custom_settings):
         super(TrilinosMeshSolverStructuralSimilarity, self).__init__(mesh_model_part, custom_settings)
-        self.print_on_rank_zero("::[TrilinosMeshSolverStructuralSimilarity]:: Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverStructuralSimilarity]:: Construction finished")
 
     #### Private functions ####
 
