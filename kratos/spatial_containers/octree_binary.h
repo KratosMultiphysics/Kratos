@@ -8,7 +8,8 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Abel
+//  Main authors:    Abel Coll
+//                   Pooyan Dadvand
 //
 
 
@@ -84,6 +85,10 @@ namespace Kratos {
         typedef typename cell_type::configuration_type configuration_type;
 
         typedef double coordinate_type;
+
+        typedef Node<3> NodeType;
+
+        typedef Geometry<NodeType> GeometryType;
 
         enum {
             CHILDREN_NUMBER = cell_type::CHILDREN_NUMBER,
@@ -1236,17 +1241,9 @@ namespace Kratos {
 
         }
 
-
-
-
-
-
   //////////////////////////////////////////////////////////
 
-
-
-
-       inline bool  IsIntersected(typename cell_type::pointer_type rObject, double Tolerance, const double* rLowPoint, const double* rHighPoint)
+    inline bool  IsIntersected(typename cell_type::pointer_type rObject, double Tolerance, const double* rLowPoint, const double* rHighPoint)
     {
         Point low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
         Point high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
@@ -1255,14 +1252,15 @@ namespace Kratos {
         return HasIntersection(rObject->GetGeometry(), low_point, high_point);
     }
 
-
-
-
-    /// detect if  triangle and box are intersected
-      virtual bool HasIntersection(Geometry<Node<3> >& geom_1, const Point& rLowPoint, const Point& rHighPoint )
+    /**
+     * @brief Detect if  triangle and box are intersected
+     */
+    virtual bool HasIntersection(
+        GeometryType& rGeometry1,
+        const Point& rLowPoint,
+        const Point& rHighPoint
+        )
     {
-//        const BaseType& geom_1 = rGeometry;
-
         Point boxcenter;
         Point boxhalfsize;
 
@@ -1271,58 +1269,78 @@ namespace Kratos {
         boxcenter[2]   = 0.50 * ( rLowPoint[2] + rHighPoint[2] );
 
         boxhalfsize[0] = 0.50 * ( rHighPoint[0] - rLowPoint[0] );
-
         boxhalfsize[1] = 0.50 * ( rHighPoint[1] - rLowPoint[1] );
         boxhalfsize[2] = 0.50 * ( rHighPoint[2] - rLowPoint[2] );
 
-        std::size_t size = geom_1.size();
+        const auto geometry_type = rGeometry1.GetGeometryType();
+        const std::size_t size = rGeometry1.size();
 
-        std::vector<Point> triverts;
+        std::vector<Point> triverts(size);
 
-        triverts.resize( size );
-
-        for ( unsigned int i = 0; i < size; i++ )
-        {
-            triverts[i] =  geom_1.GetPoint( i );
+        for ( std::size_t i = 0; i < size; ++i ) {
+            triverts[i] = rGeometry1.GetPoint( i );
         }
 
-        if (size == 2) { // object is a line
+        if (geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2) { // Object is a line
             return LinBoxOverlap( boxcenter, boxhalfsize, triverts);
-        } else if(size == 3) { // object is just a triangle
+        } else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3 || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) { // Object is just a triangle
             return TriBoxOverlap( boxcenter, boxhalfsize, triverts );
-        } else if(size == 4) { // object is a tetrahedra --> consider 4 triangles
-        // Having 4 Intersection nodes, one can build 4 triangles. The 4 possible combinations are defined by indices in a matrix.
-        BoundedMatrix<unsigned int,4,3> IndexNodesTriangles;
+        } else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) { // Object is just a quadrilateral --> consider 2 triangles
+            // Having 4 Intersection nodes, one can build 2 triangles. The 2 possible combinations are defined by indices in a matrix.
+            BoundedMatrix<std::size_t,2,3> indes_nodes_triangles;
 
-        IndexNodesTriangles(0,0) = 0;
-        IndexNodesTriangles(0,1) = 1;
-        IndexNodesTriangles(0,2) = 2;
+            indes_nodes_triangles(0,0) = 0;
+            indes_nodes_triangles(0,1) = 1;
+            indes_nodes_triangles(0,2) = 2;
 
-        IndexNodesTriangles(1,0) = 1;
-        IndexNodesTriangles(1,1) = 2;
-        IndexNodesTriangles(1,2) = 3;
+            indes_nodes_triangles(1,0) = 2;
+            indes_nodes_triangles(1,1) = 3;
+            indes_nodes_triangles(1,2) = 0;
 
-        IndexNodesTriangles(2,0) = 0;
-        IndexNodesTriangles(2,1) = 1;
-        IndexNodesTriangles(2,2) = 3;
+            for( std::size_t i = 0; i < 2 ; i++ ) {
+                triverts[0] = rGeometry1.GetPoint( indes_nodes_triangles(i,0) );
+                triverts[1] = rGeometry1.GetPoint( indes_nodes_triangles(i,1) );
+                triverts[2] = rGeometry1.GetPoint( indes_nodes_triangles(i,2) );
 
-        IndexNodesTriangles(3,0) = 0;
-        IndexNodesTriangles(3,1) = 2;
-        IndexNodesTriangles(3,2) = 3;
-
-            for( unsigned int i = 0; i < 4 ; i++ )
-            {
-                triverts[0] = geom_1.GetPoint( IndexNodesTriangles(i,0) );
-                triverts[1] = geom_1.GetPoint( IndexNodesTriangles(i,1) );
-                triverts[2] = geom_1.GetPoint( IndexNodesTriangles(i,2) );
-
-                if(TriBoxOverlap( boxcenter, boxhalfsize, triverts ) == true)
+                if(TriBoxOverlap( boxcenter, boxhalfsize, triverts )) {
                     return true;
+                }
             }
             return false;
-        }
-        else
+        } else if(geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) { // Object is a tetrahedra --> consider 4 triangles
+            // Having 4 Intersection nodes, one can build 4 triangles. The 4 possible combinations are defined by indices in a matrix.
+            BoundedMatrix<std::size_t,4,3> indes_nodes_triangles;
+
+            indes_nodes_triangles(0,0) = 0;
+            indes_nodes_triangles(0,1) = 1;
+            indes_nodes_triangles(0,2) = 2;
+
+            indes_nodes_triangles(1,0) = 1;
+            indes_nodes_triangles(1,1) = 2;
+            indes_nodes_triangles(1,2) = 3;
+
+            indes_nodes_triangles(2,0) = 0;
+            indes_nodes_triangles(2,1) = 1;
+            indes_nodes_triangles(2,2) = 3;
+
+            indes_nodes_triangles(3,0) = 0;
+            indes_nodes_triangles(3,1) = 2;
+            indes_nodes_triangles(3,2) = 3;
+
+            for( std::size_t i = 0; i < 4 ; i++ ) {
+                triverts[0] = rGeometry1.GetPoint( indes_nodes_triangles(i,0) );
+                triverts[1] = rGeometry1.GetPoint( indes_nodes_triangles(i,1) );
+                triverts[2] = rGeometry1.GetPoint( indes_nodes_triangles(i,2) );
+
+                if(TriBoxOverlap( boxcenter, boxhalfsize, triverts )) {
+                    return true;
+                }
+            }
             return false;
+        } else {
+            KRATOS_WARNING("OctreeBinary") << "Geometry cannot be identified. Check that is listed on HasIntersection method on octree_binary.h" << std::endl;
+            return false;
+        }
     }
 
     inline bool LinBoxOverlap(
@@ -1342,8 +1360,9 @@ namespace Kratos {
         return int_id;
     }
 
-        inline bool TriBoxOverlap( Point& boxcenter, Point& boxhalfsize, std::vector< Point >& triverts )
+    inline bool TriBoxOverlap( Point& boxcenter, Point& boxhalfsize, std::vector< Point >& triverts )
     {
+        // NOTE: This may be possible to replace with HasIntersection from triangle_3d_3.h
 
         /*    use separating axis theorem to test overlap between triangle and box */
         /*    need to test for overlap in these directions: */
