@@ -80,6 +80,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
     def AddVariables(self):
         # Structure solver variables addition
         self.structure_solver.AddVariables()
+        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
 
         # Fluid solver variables addition
         self.fluid_solver.AddVariables()
@@ -168,24 +169,11 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # give a better approximation of the level-set position at the end of step.
         # self.structure_solver.Predict()
 
-        # Update the level set position and EMBEDDED_VELOCITY
-        # self._update_level_set()
+        # Update the level set position
+        self._update_level_set()
 
-        # # This is required to do the FM-ALE operations with the previous structure position
-        # # Note that the structure coordinates have been updated in the structure Predict()
-        # for node in self.structure_solver.GetComputingModelPart().Nodes:
-        #     node.X = node.X0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,1)
-        #     node.Y = node.Y0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,1)
-        #     node.Z = node.Z0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,1)
-
-        # Fluid solver prediction (FM-ALE operations are done in here)
-        # self.fluid_solver.Predict()
-
-        # Restore the previous structure coordinates
-        # for node in self.structure_solver.GetComputingModelPart().Nodes:
-        #     node.X = node.X0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0)
-        #     node.Y = node.Y0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0)
-        #     node.Z = node.Z0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0)
+        # Fluid solver prediction
+        self.fluid_solver.Predict()
 
     def GetComputingModelPart(self):
         err_msg =  'Calling GetComputingModelPart() method in a partitioned solver.\n'
@@ -449,26 +437,21 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Correct the distance field
         self._get_distance_modification_process().Execute()
 
-        # Compute STRUCTURE_VELOCITY
-        # dt = self.structure_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        # for node in self.model.GetModelPart(self._get_structure_interface_model_part_name()).Nodes:
-        #     u_n = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1)
-        #     u_n_1 = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0)
-        #     node.SetSolutionStepValue(KratosMultiphysics.STRUCTURE_VELOCITY, 0, (1/dt)*(u_n_1-u_n))
-
-        self._get_embedded_skin_utility().InterpolateMeshVariableToSkin(
-            KratosMultiphysics.MESH_VELOCITY,
-            KratosMultiphysics.MESH_VELOCITY)
-
-        # Recompute the EMBEDDED_VELOCITY field
-        self._get_distance_to_skin_process().CalculateEmbeddedVariableFromSkin(
-            # KratosMultiphysics.VELOCITY,
-            # KratosMultiphysics.STRUCTURE_VELOCITY,
-            KratosMultiphysics.MESH_VELOCITY,
-            KratosMultiphysics.EMBEDDED_VELOCITY)
-
         # Recompute the new embedded intersections model part
         self._get_embedded_skin_utility().GenerateSkin()
+
+        # # TODO: Improve it to interpolate it from the nodes to the Gauss pts.
+        # # Map the MESH_VELOCITY to the skin (auxiliary operation to interpolate it from the skin)
+        # # Then compute the EMBEDDED_VELOCITY from it. This makes the interface Lagrangian.
+        # self._get_embedded_skin_utility().InterpolateMeshVariableToSkin(
+        #     KratosMultiphysics.MESH_VELOCITY,
+        #     KratosMultiphysics.MESH_VELOCITY)
+
+        # self._get_distance_to_skin_process().CalculateEmbeddedVariableFromSkin(
+        #     # KratosMultiphysics.VELOCITY,
+        #     # KratosMultiphysics.STRUCTURE_VELOCITY,
+        #     KratosMultiphysics.MESH_VELOCITY,
+        #     KratosMultiphysics.EMBEDDED_VELOCITY)
 
     def _solve_fluid(self):
         # Update the current iteration level-set position
@@ -476,6 +459,38 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
         # Do FM-ALE operations
         self.fluid_solver._do_fm_ale_operations()
+
+        # TODO: Improve it to interpolate it from the nodes to the Gauss pts.
+        # Map the MESH_VELOCITY to the skin (auxiliary operation to interpolate it from the skin)
+        # Then compute the EMBEDDED_VELOCITY from it. This makes the interface Lagrangian.
+        self._get_embedded_skin_utility().InterpolateMeshVariableToSkin(
+            KratosMultiphysics.MESH_VELOCITY,
+            KratosMultiphysics.MESH_VELOCITY)
+
+        # Maps the PRESSURE value from the generated intersections skins to the structure skin.
+        # Note that the SurfaceLoadCondition in the StructuralMechanicsApplication uses the
+        # variable POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE as nodal surface loads.
+        mapper_project_parameters = KratosMultiphysics.Parameters("""{
+            "mapper_type" : "",
+            "interface_submodel_part_origin" : "",
+            "interface_submodel_part_destination" : ""
+        }""")
+        mapper_project_parameters["mapper_type"].SetString("nearest_element")
+        mapper_project_parameters["interface_submodel_part_origin"].SetString("SkinEmbeddedIntersectionsModelPart")
+        mapper_project_parameters["interface_submodel_part_destination"].SetString(self.GetStructureSkinModelPart().Name)
+
+        KratosMapping.MapperFactory.CreateMapper(
+            self.model.GetModelPart("EmbeddedIntersectionsModelPart"),
+            self.structure_solver.main_model_part,
+            mapper_project_parameters).Map(
+                KratosMultiphysics.MESH_VELOCITY,
+                KratosMultiphysics.MESH_VELOCITY)
+
+        self._get_distance_to_skin_process().CalculateEmbeddedVariableFromSkin(
+            # KratosMultiphysics.VELOCITY,
+            # KratosMultiphysics.STRUCTURE_VELOCITY,
+            KratosMultiphysics.MESH_VELOCITY,
+            KratosMultiphysics.EMBEDDED_VELOCITY)
 
         # Solve fluid problem
         self.fluid_solver.SolveSolutionStep()

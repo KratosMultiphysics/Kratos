@@ -177,6 +177,10 @@ private:
     ///@name Private Operations
     ///@{
 
+    void CreateExtraStructureNodes();
+
+    void RemoveExtraStructureNodes();
+
     /**
     * According to mSearchRadius, performs the bins search of the close structure nodes for each fluid node
     * @return rSearchResults vector containing the the rStructureModelPart nodes inside

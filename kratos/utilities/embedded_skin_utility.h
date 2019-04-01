@@ -53,7 +53,7 @@ namespace Kratos
 ///@{
 
 /// Utility to compute the skin representation from a distance function.
-/** Provided either a continuous or discontinuous distance function, this 
+/** Provided either a continuous or discontinuous distance function, this
  *  utility reconstructs the skin representation coming from such distance
  *  function. This is done by computing the element intersections and saving
  *  them in an empty provided model part. Note that such skin representation
@@ -97,8 +97,8 @@ public:
     /**
      * @brief Call to generate the embedded skin model part
      * This method collects all the operations required to generate
-     * the embedded skin model part. The new geometries will be stored 
-     * inside the skin model part provided in the constructor. 
+     * the embedded skin model part. The new geometries will be stored
+     * inside the skin model part provided in the constructor.
      */
     void GenerateSkin();
 
@@ -200,13 +200,13 @@ private:
 		const Variable<TVarType> &rSkinVariable)
     {
 		// Check requested variables
-		KRATOS_ERROR_IF((mrModelPart.NodesBegin())->SolutionStepsDataHas(rMeshVariable) == false) 
+		KRATOS_ERROR_IF((mrModelPart.NodesBegin())->SolutionStepsDataHas(rMeshVariable) == false)
 			<< "Mesh model part solution step data missing variable: " << rMeshVariable << std::endl;
-		KRATOS_ERROR_IF((mrSkinModelPart.NodesBegin())->SolutionStepsDataHas(rSkinVariable) == false) 
+		KRATOS_ERROR_IF((mrSkinModelPart.NodesBegin())->SolutionStepsDataHas(rSkinVariable) == false)
 			<< "Generated skin model part solution step data missing variable: " << rSkinVariable << std::endl;
 
         // Check that the mesh model part has elements
-        KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "Mesh model part has no elements."; 
+        KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "Mesh model part has no elements.";
 
         // Set the binbased fast point locator utility
         BinBasedFastPointLocator<TDim> bin_based_point_locator(mrModelPart);
@@ -277,8 +277,8 @@ private:
         const Condition::NodesArrayType &rNewNodesArray);
 
     /**
-     * @brief Set the Skin Entities Properties 
-     * This method checks which is the last properties id. and 
+     * @brief Set the Skin Entities Properties
+     * This method checks which is the last properties id. and
      * sets a new one accordingly to be used as skin conditions property
      * @return Properties::Pointer pointer to the new skin entities property
      */
