@@ -154,7 +154,9 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
         Vector r_stress_vector_pos = r_stress_vector;
         ComputePositiveStressVector(r_stress_vector_pos, r_stress_vector);
 
-        const double strain_norm = std::sqrt(inner_prod(r_stress_vector_pos, r_strain_vector));
+        // we add abs() as the product may be a small negative instead of zero
+        // due to machine precision error
+        const double strain_norm = std::sqrt(std::fabs(inner_prod(r_stress_vector_pos, r_strain_vector)));
         if (strain_norm <= mStrainVariable)
         {
             // ELASTIC
