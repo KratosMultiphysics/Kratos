@@ -108,13 +108,15 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
     )
 {
     // We construct the CL parameters
-    // ProcessInfo dummy_process_info;
-    // ConstitutiveLaw::Parameters aux_param(rElementGeometry, rMaterialProperties, dummy_process_info);
+    ProcessInfo dummy_process_info;
+    ConstitutiveLaw::Parameters aux_param(rElementGeometry, rMaterialProperties, dummy_process_info);
 
     // // We call the integrator
-    // double initial_threshold;
-    // class TPlasticityIntegratorType, class TDamageIntegratorType::GetInitialUniaxialThreshold(aux_param, initial_threshold);
-    // this->SetThreshold(initial_threshold);
+    double initial_threshold_plast, initial_threshold_damage;
+    TPlasticityIntegratorType::GetInitialUniaxialThreshold(aux_param, initial_threshold_plast);
+    TDamageIntegratorType::GetInitialUniaxialThreshold(aux_param, initial_threshold_damage);
+    mThresholdPlasticity = initial_threshold_plast;
+    mThresholdDamage = initial_threshold_damage;
 }
 
 /***********************************************************************************/
@@ -191,6 +193,12 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
 template <class TPlasticityIntegratorType, class TDamageIntegratorType>
 void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
+
+
+
+
+
+
 
 
 
@@ -334,7 +342,7 @@ double& GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageI
     double& rValue
     )
 {
- 
+    // todo
     return rValue;
 }
 
