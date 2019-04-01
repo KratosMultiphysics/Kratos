@@ -4,8 +4,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 # Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 if kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication"):
     import KratosMultiphysics.MeshingApplication as MeshingApplication
@@ -14,10 +12,10 @@ else:
     missing_meshing_dependencies = False
 
 # Import base class file
-import structural_mechanics_implicit_dynamic_solver
+from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_implicit_dynamic_solver
 
 # Import auxiliar methods
-import auxiliar_methods_adaptative_solvers
+from KratosMultiphysics.StructuralMechanicsApplication import auxiliar_methods_adaptative_solvers
 
 def CreateSolver(model, custom_settings):
     return AdaptativeRemeshingImplicitMechanicalSolver(model, custom_settings)
@@ -28,7 +26,7 @@ class AdaptativeRemeshingImplicitMechanicalSolver(structural_mechanics_implicit_
     """
     def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings.
-        import adaptative_remeshing_structural_mechanics_utilities
+        from KratosMultiphysics.StructuralMechanicsApplication import adaptative_remeshing_structural_mechanics_utilities
         self.adaptative_remeshing_utilities = adaptative_remeshing_structural_mechanics_utilities.AdaptativeRemeshingMechanicalUtilities()
         adaptative_remesh_parameters = self.adaptative_remeshing_utilities.GetDefaultParameters()
 

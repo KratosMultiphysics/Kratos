@@ -2,13 +2,12 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics as KM
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
 # Other imports
 import sys
 
 # Import the base structural analysis
-from structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
 
 class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
     """
@@ -151,7 +150,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
         ## Solver construction
-        import python_solvers_wrapper_adaptative_remeshing_structural
+        from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_adaptative_remeshing_structural
         return python_solvers_wrapper_adaptative_remeshing_structural.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
@@ -165,7 +164,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
             processes_block_names = ["recursive_remeshing_process"]
             if len(list_of_processes) == 0: # Processes are given in the old format
                 KM.Logger.PrintWarning("AdaptativeRemeshingStructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
-                from process_factory import KratosProcessFactory
+                from KratosMultiphysics.process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
                     if self.project_parameters.Has(process_name):
