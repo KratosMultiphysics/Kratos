@@ -1,13 +1,13 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics
-from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_solver import LaplacianSolver
+from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_solver import PotentialFlowSolver
 import KratosMultiphysics.StructuralMechanicsApplication
 
 def CreateSolver(model, custom_settings):
-    return PotentialAdjointSolver(model, custom_settings)
+    return PotentialFlowAdjointSolver(model, custom_settings)
 
-class PotentialAdjointSolver(LaplacianSolver):
+class PotentialFlowAdjointSolver(PotentialFlowSolver):
     def __init__(self, model, custom_settings):
         adjoint_settings = KratosMultiphysics.Parameters("""
         {
@@ -26,16 +26,16 @@ class PotentialAdjointSolver(LaplacianSolver):
         custom_settings.RemoveValue("response_function_settings")
         custom_settings.RemoveValue("sensitivity_settings")
         # Construct the base solver.
-        super(PotentialAdjointSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[PotentialAdjointSolver]:: ", "Construction finished")
+        super(PotentialFlowAdjointSolver, self).__init__(model, custom_settings)
+        self.print_on_rank_zero("::[PotentialFlowAdjointSolver]:: ", "Construction finished")
 
     def AddVariables(self):
-        super(PotentialAdjointSolver, self).AddVariables()
+        super(PotentialFlowAdjointSolver, self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
 
-        self.print_on_rank_zero("::[PotentialAdjointSolver]:: ", "Variables ADDED")
+        self.print_on_rank_zero("::[PotentialFlowAdjointSolver]:: ", "Variables ADDED")
 
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL, self.main_model_part)
@@ -55,7 +55,7 @@ class PotentialAdjointSolver(LaplacianSolver):
         move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-        self.incompressible_solution_stratety = KratosMultiphysics.ResidualBasedLinearStrategy(
+        self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
             self.main_model_part,
             scheme,
             self.linear_solver,
@@ -65,14 +65,14 @@ class PotentialAdjointSolver(LaplacianSolver):
             self.settings["calculate_solution_norm"].GetBool(),
             move_mesh_flag)
 
-        (self.incompressible_solution_stratety).SetEchoLevel(self.settings["echo_level"].GetInt())
-        self.incompressible_solution_stratety.Check()
+        self.solver.SetEchoLevel(self.settings["echo_level"].GetInt())
+        self.solver.Check()
 
         self.response_function.Initialize()
 
-        self.print_on_rank_zero("::[PotentialAdjointSolver]:: ", "Finished initialization.")
+        self.print_on_rank_zero("::[PotentialFlowAdjointSolver]:: ", "Finished initialization.")
     def PrepareModelPart(self):
-        super(PotentialAdjointSolver, self).PrepareModelPart()
+        super(PotentialFlowAdjointSolver, self).PrepareModelPart()
        # defines how the primal elements should be replaced with their adjoint counterparts
         replacement_settings = KratosMultiphysics.Parameters("""
             {
@@ -88,17 +88,17 @@ class PotentialAdjointSolver(LaplacianSolver):
         """)
 
         KratosMultiphysics.StructuralMechanicsApplication.ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
-        self.print_on_rank_zero("::[PotentialAdjointSolver]:: ", "ModelPart prepared for Solver.")
+        self.print_on_rank_zero("::[PotentialFlowAdjointSolver]:: ", "ModelPart prepared for Solver.")
 
     def InitializeSolutionStep(self):
-        super(PotentialAdjointSolver, self).InitializeSolutionStep()
+        super(PotentialFlowAdjointSolver, self).InitializeSolutionStep()
         self.response_function.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
-        super(PotentialAdjointSolver, self).FinalizeSolutionStep()
+        super(PotentialFlowAdjointSolver, self).FinalizeSolutionStep()
         self.response_function.FinalizeSolutionStep()
         self.adjoint_postprocess.UpdateSensitivities()
 
     def SolveSolutionStep(self):
-        super(PotentialAdjointSolver, self).SolveSolutionStep()
+        super(PotentialFlowAdjointSolver, self).SolveSolutionStep()
 

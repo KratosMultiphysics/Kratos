@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:		     BSD License
+//					         Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -97,9 +97,6 @@ public:
 private:
     ///@name Member Variables
     ///@{
-
-    const CompressiblePotentialFlowElement<2,3> mCompressiblePotentialFlowElement2D3N;
-    const CompressiblePotentialFlowElement<3,4> mCompressiblePotentialFlowElement3D4N;
 
     const IncompressiblePotentialFlowElement<2,3> mIncompressiblePotentialFlowElement2D3N;
     const AdjointIncompressiblePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>> mAdjointIncompressiblePotentialFlowElement2D3N;
