@@ -314,7 +314,7 @@ namespace Kratos {
 
         for (unsigned int i = 0; element->mNeighbourRigidFaces.size(); i++) {
             if (element->mNeighbourRigidFaces[i]->Id() == wall->Id()) {
-                equiv_cohesion = std::min(element->GetParticleCohesion(), equiv_amount_of_cohesion * element->mNeighbourRigidContactStress[i]);
+                equiv_cohesion = std::min(0.5 * (element->GetParticleCohesion() + wall->GetProperties()[WALL_COHESION]), equiv_amount_of_cohesion * element->mNeighbourRigidContactStress[i]);
                 double contact_stress = normal_contact_force / (Globals::Pi * equiv_radius * equiv_radius);
                 element->mNeighbourRigidContactStress[i] = std::max(element->mNeighbourRigidContactStress[i], contact_stress);
                 break;
