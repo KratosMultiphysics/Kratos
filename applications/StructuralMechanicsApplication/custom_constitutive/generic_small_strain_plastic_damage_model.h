@@ -349,7 +349,7 @@ public:
         ) override;
 
 
-    void CalculateDamageParameters(
+    double CalculateDamageParameters(
         array_1d<double, 6>& rPredictiveStressVector,
         Vector& rStrainVector,
         double& rUniaxialStress,
@@ -362,13 +362,18 @@ public:
         const Vector& rPlasticStrain,
         const double Damage,
         const double DamageIncrement,
-        double& rHardd);
+        double& rHardd,
+        double& rHcapd);
 
     void CalculateIndicatorsFactors(
         const array_1d<double, 6>& rPredictiveStressVector,
         double& rTensileIndicatorFactor,
         double& rCompressionIndicatorFactor,
         double& rSumPrincipalStresses);
+
+    
+    void CheckInternalVariable(
+        double& rInternalVariable);
     ///@}
     ///@name Access
     ///@{
