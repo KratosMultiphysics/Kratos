@@ -177,7 +177,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CreateExtraStructureNodes();
+    void CreateExtraStructureNodes(const GeometryData::IntegrationMethod &rIntegrationMethod = GeometryData::GI_GAUSS_5);
 
     void RemoveExtraStructureNodes();
 

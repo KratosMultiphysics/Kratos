@@ -95,10 +95,15 @@ namespace Kratos
         VectorResultNodesContainerType search_results;
         DistanceVectorContainerType search_distance_results;
 
+        KRATOS_WATCH("About to create extra nodes...")
+        KRATOS_WATCH(mrStructureModelPart.NumberOfNodes())
         CreateExtraStructureNodes();
+        KRATOS_WATCH(mrStructureModelPart.NumberOfNodes())
         SearchStructureNodes(search_results, search_distance_results);
         ComputeMeshDisplacement(search_results, search_distance_results);
+        KRATOS_WATCH("ComputeMeshDisplacement done!")
         RemoveExtraStructureNodes();
+        KRATOS_WATCH("RemoveExtraStructureNodes done!")
         TimeDiscretization::BDF1 time_disc_BDF1;
         mrVirtualModelPart.GetProcessInfo()[DELTA_TIME] = DeltaTime;
         MeshVelocityCalculation::CalculateMeshVelocities(mrVirtualModelPart, time_disc_BDF1);
@@ -196,16 +201,23 @@ namespace Kratos
 
     /* Private functions *******************************************************/
 
-    void ExplicitMeshMovingUtilities::CreateExtraStructureNodes()
+    void ExplicitMeshMovingUtilities::CreateExtraStructureNodes(const GeometryData::IntegrationMethod &rIntegrationMethod)
     {
-        unsigned int new_node_id = mrStructureModelPart.Nodes().back().Id() + 1;
-        const unsigned int n_cond = (mrStructureModelPart.Conditions()).size();
+        unsigned int new_node_id = 0;
+        for (int i_node = 0; i_node < mrStructureModelPart.GetRootModelPart().NumberOfNodes(); ++i_node) {
+            auto it_node = mrStructureModelPart.GetRootModelPart().NodesBegin() + i_node;
+            if (it_node->Id() > new_node_id) {
+                new_node_id = it_node->Id();
+            }
+        }
+        new_node_id++;
+        KRATOS_WATCH(new_node_id)
 
         // Loop all the structure conditions
-        for (int i_cond = 0; i_cond < static_cast<int>(n_cond); ++i_cond) {
+        for (int i_cond = 0; i_cond < mrStructureModelPart.NumberOfConditions(); ++i_cond) {
             const auto it_cond = mrStructureModelPart.ConditionsBegin() + i_cond;
             const auto &r_geom = it_cond->GetGeometry();
-            const auto gauss_pts = r_geom.IntegrationPoints(GeometryData::GI_GAUSS_5);
+            const auto gauss_pts = r_geom.IntegrationPoints(rIntegrationMethod);
 
             // Get the current condition nodal values
             const unsigned int n_nodes = r_geom.PointsNumber();
@@ -221,10 +233,11 @@ namespace Kratos
                 // Create an auxiliary node in the Gauss pt. position
                 array_1d<double, 3> aux_coords;
                 r_geom.GlobalCoordinates(aux_coords, gauss_pts[i_gauss].Coordinates());
-                Node<3>::Pointer p_new_node = mrStructureModelPart.CreateNewNode(new_node_id++, aux_coords[0], aux_coords[1], aux_coords[2]);
+                // TODO: REIMPLEMENT THE ID COUNTER FOR THE PARALLEL LOOP
+                auto p_new_node = mrStructureModelPart.CreateNewNode(new_node_id, aux_coords[0], aux_coords[1], aux_coords[2]);
+                new_node_id++;
 
                 // Flag it to be removed afterwards
-                p_new_node->Set(MARKER, true);
                 p_new_node->Set(TO_ERASE, true);
 
                 // Interpolate the displacements in the auxiliary node
@@ -242,14 +255,10 @@ namespace Kratos
         }
     }
 
-    void ExplicitMeshMovingUtilities::RemoveExtraStructureNodes()
+    inline void ExplicitMeshMovingUtilities::RemoveExtraStructureNodes()
     {
         // Remove the auxiliary structure nodes after computing the MESH_DISPLACEMENT
-        for (auto &r_i_node : mrStructureModelPart.Nodes()) {
-            if (r_i_node.Is(TO_ERASE)) {
-                mrStructureModelPart.RemoveNode(r_i_node);
-            }
-        }
+        mrStructureModelPart.RemoveNodesFromAllLevels(TO_ERASE);
     }
 
     void ExplicitMeshMovingUtilities::SearchStructureNodes(
@@ -334,9 +343,6 @@ namespace Kratos
 
                 // Current step structure pt. DISPLACEMENT values
                 if (str_node_ptr) {
-                    if (str_node_ptr->Is(MARKER)) {
-                        KRATOS_WATCH(*str_node_ptr)
-                    }
                     const double weight = this->ComputeKernelValue(min_distance);
                     const auto &r_str_disp_0 = str_node_ptr->FastGetSolutionStepValue(DISPLACEMENT,0);
                     const auto &r_str_disp_1 = str_node_ptr->FastGetSolutionStepValue(DISPLACEMENT,1);
