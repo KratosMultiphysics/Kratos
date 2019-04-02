@@ -77,6 +77,12 @@ public:
 
     void UpdateSensitivities();
 
+    void Clear();
+
+    /// Clear the flags which are indicating the membership of a node, element or condition in the sensitivity model part
+    void ClearFlags();
+
+    /// Clear sensitivities in historical and non-historical database
     void ClearSensitivities();
 
     ///@}
