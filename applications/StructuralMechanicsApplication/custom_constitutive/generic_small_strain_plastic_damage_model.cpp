@@ -151,82 +151,93 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
             // Integration loop
             while (!is_converged || number_iteration >  max_iter) {
                 number_iteration++;
-//
-                if (plasticity_indicator < 1.0e-4 * threshold_plasticity) {
+
+                // Damage case without plasticity
+                if (plasticity_indicator < 1.0e-4 * threshold_plasticity) { 
                     non_linear_case = 0.5;
-                    if (plastic_consistency_increment > tolerance) // GOTO 100
+                    // if (plastic_consistency_increment > tolerance) // GOTO 100 TODO
                     plastic_consistency_increment = 0.0;
                     denominator = hard_damage;
-                }
 
+                    denominator += inner_prod(damage_yield_flux, predictive_stress_vector / (1.0 - damage));
+                    damage_increment = damage_indicator / denominator;
 
+                // Plasticity case without damage
+                } else if (damage_indicator < std::abs(1.0e-4 * threshold_damage)) { 
+                    non_linear_case = -0.5;
+                    // if (damage_increment > 0.0) // goto 100 todo
+                    damage_increment = 0.0;
+                    plastic_consistency_increment = plasticity_indicator * plastic_denominator;
 
-
-
-
-
-//
-                const double scalar_prod_dam_yield_sigma_eff   = inner_prod(damage_yield_flux, predictive_stress_vector / (1.0 - damage));
-                const double scalar_prod_plast_yield_sigma_eff = inner_prod(f_flux, predictive_stress_vector / (1.0 - damage));
-
-                double innerprod_dam_yield_elastic_tensor = 0.0, HKG = 0.0, fact1 = 0.0;
-                Vector hcapa = ZeroVector(VoigtSize);
-                for (IndexType i = 0; i < VoigtSize; ++i) {
-                    for (IndexType j = 0; j < VoigtSize; ++j) {
-                        innerprod_dam_yield_elastic_tensor += damage_yield_flux[j] * r_constitutive_matrix(i,j);
-                    }
-                    hcapa[i] = predictive_stress_vector[i] / uniaxial_stress_plasticity;
-                    HKG +=  hcapa[i] * g_flux[i];
-                    fact1 += innerprod_dam_yield_elastic_tensor * g_flux[i]; // ?????
-                }
-                fact1 *= (1.0 - damage);
-                const double factorA = scalar_prod_plast_yield_sigma_eff;
-                const double factorB = 1.0 / plastic_denominator; // ?? ABETA
-                const double factorC = scalar_prod_dam_yield_sigma_eff + hard_damage;
-                const double factorD = fact1;
-                denominator = factorA * factorD - factorB * factorC;
-
-                if (std::abs(denominator) > tolerance) {
-                    damage_increment = (factorD * plasticity_indicator - factorB * damage_indicator) / denominator;
-                    plastic_consistency_increment = (factorA * damage_indicator - factorC * plasticity_indicator) / denominator;
+                // Plastic-Damage case
                 } else {
-                    damage_increment = plasticity_indicator / (factorA + factorD * hcapd / HKG);
-                    plastic_consistency_increment = plasticity_indicator / (factorD + factorA * HKG / hcapd);
+                    const double scalar_prod_dam_yield_sigma_eff   = inner_prod(damage_yield_flux, predictive_stress_vector / (1.0 - damage));
+                    const double scalar_prod_plast_yield_sigma_eff = inner_prod(f_flux, predictive_stress_vector / (1.0 - damage));
+
+                    double innerprod_dam_yield_elastic_tensor = 0.0, HKG = 0.0, fact1 = 0.0;
+                    Vector hcapa = ZeroVector(VoigtSize);
+                    for (IndexType i = 0; i < VoigtSize; ++i) {
+                        for (IndexType j = 0; j < VoigtSize; ++j) {
+                            innerprod_dam_yield_elastic_tensor += damage_yield_flux[j] * r_constitutive_matrix(i,j);
+                        }
+                        hcapa[i] = predictive_stress_vector[i] / uniaxial_stress_plasticity;
+                        HKG +=  hcapa[i] * g_flux[i];
+                        fact1 += innerprod_dam_yield_elastic_tensor * g_flux[i]; // ?????
+                    }
+                    fact1 *= (1.0 - damage);
+                    const double factorA = scalar_prod_plast_yield_sigma_eff;
+                    const double factorB = 1.0 / plastic_denominator; // ?? ABETA
+                    const double factorC = scalar_prod_dam_yield_sigma_eff + hard_damage;
+                    const double factorD = fact1;
+                    denominator = factorA * factorD - factorB * factorC;
+
+                    if (std::abs(denominator) > tolerance) {
+                        damage_increment = (factorD * plasticity_indicator - factorB * damage_indicator) / denominator;
+                        plastic_consistency_increment = (factorA * damage_indicator - factorC * plasticity_indicator) / denominator;
+                    } else {
+                        damage_increment = plasticity_indicator / (factorA + factorD * hcapd / HKG);
+                        plastic_consistency_increment = plasticity_indicator / (factorD + factorA * HKG / hcapd);
+                    }
+
+                    // Update internal variables damage
+                    if (damage_increment > tolerance) damage += damage_increment;
+                    this->CheckInternalVariable(damage); // Just check te upper-lower bounds
+
+                    // Update internals variables plasticity
+                    if (plastic_consistency_increment > tolerance) plastic_strain_increment = plastic_consistency_increment * g_flux;
+                    else plastic_consistency_increment = 0.0;
+                    noalias(plastic_strain) += plastic_strain_increment;
+                    array_1d<double, VoigtSize> delta_sigma = prod(r_constitutive_matrix, plastic_strain_increment);
+
+                    // Return mapping
+                    predictive_stress_vector /= (1.0 - damage);
+                    noalias(predictive_stress_vector) -= delta_sigma;
+                    predictive_stress_vector *= (1.0 - damage);
+                    const double undamaged_free_energy = 0.5 * inner_prod(r_strain_vector - plastic_strain - plastic_strain_increment, predictive_stress_vector / (1.0 - damage)); 
+
+                    // Verification to check wether we are inside the yield surfaces
+                    plasticity_indicator = TPlasticityIntegratorType::CalculatePlasticParameters(
+                                    predictive_stress_vector, r_strain_vector, uniaxial_stress_plasticity,
+                                    threshold_plasticity, plastic_denominator, f_flux, g_flux,
+                                    plastic_dissipation, plastic_strain_increment,
+                                    r_constitutive_matrix, rValues, characteristic_length,
+                                    plastic_strain);
+                    damage_indicator = this->CalculateDamageParameters(
+                            predictive_stress_vector, r_strain_vector,
+                            uniaxial_stress_damage, threshold_damage, 
+                            damage_dissipation, r_constitutive_matrix,
+                            rValues, characteristic_length, damage_yield_flux,
+                            plastic_strain, damage, damage_increment, 
+                            hard_damage, hcapd);
                 }
 
-                // Update internal variables damage
-                if (damage_increment > tolerance) damage += damage_increment;
-                this->CheckInternalVariable(damage); // Just check te upper-lower bounds
-
-                // Update internals variables plasticity
-                if (plastic_consistency_increment > tolerance) plastic_strain_increment = plastic_consistency_increment * g_flux;
-                else plastic_consistency_increment = 0.0;
-                noalias(plastic_strain) += plastic_strain_increment;
-                array_1d<double, VoigtSize> delta_sigma = prod(r_constitutive_matrix, plastic_strain_increment);
-
-                // Return mapping
-                predictive_stress_vector /= (1.0 - damage);
-                noalias(predictive_stress_vector) -= delta_sigma;
-                predictive_stress_vector *= (1.0 - damage);
-                const double undamaged_free_energy = 0.5 * inner_prod(r_strain_vector - plastic_strain - plastic_strain_increment, predictive_stress_vector / (1.0 - damage)); 
-
-                // Verification to check wether we are inside the yield surfaces
-                plasticity_indicator = TPlasticityIntegratorType::CalculatePlasticParameters(
-                                        predictive_stress_vector, r_strain_vector, uniaxial_stress_plasticity,
-                                        threshold_plasticity, plastic_denominator, f_flux, g_flux,
-                                        plastic_dissipation, plastic_strain_increment,
-                                        r_constitutive_matrix, rValues, characteristic_length,
-                                        plastic_strain);
-                damage_indicator = this->CalculateDamageParameters(
-                        predictive_stress_vector, r_strain_vector,
-                        uniaxial_stress_damage, threshold_damage, 
-                        damage_dissipation, r_constitutive_matrix,
-                        rValues, characteristic_length, damage_yield_flux,
-                        plastic_strain, damage, damage_increment, 
-                        hard_damage, hcapd);
-
-
+                // Final check
+                if (plasticity_indicator < std::abs(1.0e-4 * threshold_plasticity) && damage_indicator < std::abs(1.0e-4 * threshold_damage)) {
+                    // There is convergence
+                    is_converged = true;
+                }
             }
+            KRATOS_WARNING_IF("Backward Euler Plastic-Damage Model", number_iteration > max_iter) << "Maximum iterations in Plastic-Damage return mapping" << std::endl;
         }
 
 
