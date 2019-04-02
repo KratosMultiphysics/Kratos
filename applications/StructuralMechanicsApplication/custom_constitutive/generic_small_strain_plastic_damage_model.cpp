@@ -73,7 +73,6 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
     // Integrate Stress Damage
     Vector& r_integrated_stress_vector = rValues.GetStressVector();
     const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
-    array_1d<double, VoigtSize> auxiliar_integrated_stress_vector = r_integrated_stress_vector;
     Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
@@ -241,9 +240,18 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 }
             }
             KRATOS_WARNING_IF("Backward Euler Plastic-Damage Model", number_iteration > max_iter) << "Maximum iterations in Plastic-Damage return mapping" << std::endl;
+
+            // Updated Values
+            noalias(r_integrated_stress_vector) = predictive_stress_vector;
+            if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+                this->CalculateTangentTensor(rValues);
+            } 
+        } else {
+			noalias(r_integrated_stress_vector) = predictive_stress_vector;
+            if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+                noalias(r_tangent_tensor) = (1.0 - damage) * r_constitutive_matrix;
+            }
         }
-
-
     }
 
 } // End CalculateMaterialResponseCauchy
@@ -616,7 +624,7 @@ CalculateDamageParameters(
     const double free_energy_undamaged = 0.5 * (inner_prod(rStrainVector - rPlasticStrain, rPredictiveStressVector) / (1.0 - Damage));
     rHcapd = constant * free_energy_undamaged;
     double damage_dissipation_increment = rHcapd * DamageIncrement;
-    if (damage_dissipation_increment > 1.0 || damage_dissipation_increment <tolerance) damage_dissipation_increment = 0.0;
+    this->CheckInternalVariable(damage_dissipation_increment);
     rDamageDissipation += damage_dissipation_increment;
     if (rDamageDissipation > 1.0) rDamageDissipation = 0.99999;
 
