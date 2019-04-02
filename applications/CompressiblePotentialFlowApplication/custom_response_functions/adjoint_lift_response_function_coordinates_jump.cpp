@@ -44,7 +44,7 @@ namespace Kratos
         const array_1d<double, 3> v_inf = rModelPart.GetProcessInfo().GetValue(VELOCITY_INFINITY);
         double vinfinity_norm = norm_2(v_inf);
         unsigned int NumNodes = tracedElem.GetGeometry().size();
-        double lift_coefficient;
+        double lift_coefficient=0.0;
         for(IndexType i = 0; i < NumNodes; ++i)
         {
             if(tracedElem.GetGeometry()[i].GetValue(TRAILING_EDGE))
