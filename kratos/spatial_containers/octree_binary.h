@@ -1126,79 +1126,82 @@ namespace Kratos {
 
 #else
 
+    /**
+    * @brief This method fills the intersected leaves
+    * @param pObject Pointer to the object of interest containing the geometry to check the intersection
+    * @param rLeaves Leaves to be filled for search
+    * @param ToleranceCoefficient The proportion of the minimal size to compute the tolerance (0.1% of the min size by default)
+    */
+    void GetIntersectedLeaves(
+        typename cell_type::pointer_type pObject,
+        std::vector<cell_type*>& rLeaves,
+        const double ToleranceCoefficient = 0.001  // 0.1% of the min size
+        )
+    {
+        const double tolerance = ToleranceCoefficient * double(1 << MIN_LEVEL) / double(1 << ROOT_LEVEL);
 
-        void GetIntersectedLeaves(typename cell_type::pointer_type object, std::vector<cell_type*>& leaves){
+        double min_coord[3]={0.00, 0.00, 0.00};
+        double max_coord[3]={0.00, 0.00, 0.00};
 
-            const double tolerance = 0.001 * double(1 << MIN_LEVEL) / double(1 << ROOT_LEVEL) ; // 0.1% of the min size
+        // TODO: To be added to configure
 
-            double min_coord[3]={0.00, 0.00, 0.00};
-            double max_coord[3]={0.00, 0.00, 0.00};
+        configuration_type::GetBoundingBox(pObject, min_coord,  max_coord);
+        NormalizeCoordinates(min_coord);
+        NormalizeCoordinates(max_coord);
 
+        key_type min_x_key = CalcKeyNormalized(min_coord[0]);
+        key_type min_y_key = CalcKeyNormalized(min_coord[1]);
+        key_type min_z_key = CalcKeyNormalized(min_coord[2]);
 
+        key_type max_x_key = CalcKeyNormalized(max_coord[0]);
+        key_type max_y_key = CalcKeyNormalized(max_coord[1]);
+        key_type max_z_key = CalcKeyNormalized(max_coord[2]);
 
-            //
-            // to be added to configure
+        key_type delta_x = min_x_key^max_x_key;
+        key_type delta_y = min_y_key^max_y_key;
+        key_type delta_z = min_z_key^max_z_key;
 
-            configuration_type::GetBoundingBox(object, min_coord,  max_coord);
-            NormalizeCoordinates(min_coord);
-            NormalizeCoordinates(max_coord);
-            //KRATOS_THROW_ERROR(std::logic_error,"To be added to configure", "")
+        // Finding the level of the cell containing the entire region
+        std::size_t min_level_1 = ROOT_LEVEL;
+        std::size_t min_level_2 = ROOT_LEVEL;
+        std::size_t min_level = ROOT_LEVEL;
 
-            key_type min_x_key = CalcKeyNormalized(min_coord[0]);
-            key_type min_y_key = CalcKeyNormalized(min_coord[1]);
-            key_type min_z_key = CalcKeyNormalized(min_coord[2]);
+        const std::size_t one = 1;
+        while (!(delta_x & (one << min_level_1)) && (min_level_1 > MIN_LEVEL)) min_level_1--;
+        while (!(delta_y & (one << min_level_2)) && (min_level_2 > min_level_1)) min_level_2--;
+        while (!(delta_z & (one << min_level)) && (min_level > min_level_2)) min_level--;
+        min_level++;
 
-            key_type max_x_key = CalcKeyNormalized(max_coord[0]);
-            key_type max_y_key = CalcKeyNormalized(max_coord[1]);
-            key_type max_z_key = CalcKeyNormalized(max_coord[2]);
+        cell_type* range_cell = root_;
 
-            key_type delta_x = min_x_key^max_x_key;
-            key_type delta_y = min_y_key^max_y_key;
-            key_type delta_z = min_z_key^max_z_key;
-
-            // finding the level of the cell containing the entire region
-            std::size_t min_level_1 = ROOT_LEVEL;
-            std::size_t min_level_2 = ROOT_LEVEL;
-            std::size_t min_level = ROOT_LEVEL;
-
-            const std::size_t one = 1;
-            while (!(delta_x & (one << min_level_1)) && (min_level_1 > MIN_LEVEL)) min_level_1--;
-            while (!(delta_y & (one << min_level_2)) && (min_level_2 > min_level_1)) min_level_2--;
-            while (!(delta_z & (one << min_level)) && (min_level > min_level_2)) min_level--;
-            min_level++;
-
-            cell_type* range_cell = root_;
-
-            for (std::size_t i = ROOT_LEVEL; i > min_level ; i--) {
-                if (range_cell->IsLeaf()) {
-                    //SubdivideCell(range_cell);
-                  break;
-                }
-                range_cell = range_cell->pGetChild(min_x_key, min_y_key, min_z_key);
-
+        for (std::size_t i = ROOT_LEVEL; i > min_level ; i--) {
+            if (range_cell->IsLeaf()) {
+                //SubdivideCell(range_cell);
+                break;
             }
+            range_cell = range_cell->pGetChild(min_x_key, min_y_key, min_z_key);
+        }
 
-
-            // Now we have the cell (or leaf) containing the entire range and from now on we have to intersect the object with all childs
-            std::vector<cell_type*> cells_stack;
-            cells_stack.push_back(range_cell);
-            while (!cells_stack.empty()) {
-              cell_type* cell = cells_stack.back();
-              cells_stack.pop_back();
-              if (cell->HasChildren()) {
-                for (std::size_t i = 0; i < CHILDREN_NUMBER; i++){
-                  //abel. to be optimized
-                  cell_type* child=cell->pGetChild(i);
-                  double low[3];
-                  double high[3];
-                  child->GetMinPointNormalized(low);
-                  child->GetMaxPointNormalized(high);
-
-                  if (Collides(min_coord, max_coord, low, high))
-                    cells_stack.push_back(child);
+        // Now we have the cell (or leaf) containing the entire range and from now on we have to intersect the pObject with all childs
+        std::vector<cell_type*> cells_stack;
+        cells_stack.push_back(range_cell);
+        while (!cells_stack.empty()) {
+            cell_type* cell = cells_stack.back();
+            cells_stack.pop_back();
+            if (cell->HasChildren()) {
+                for (std::size_t i = 0; i < CHILDREN_NUMBER; i++) {
+                    // TODO: Abel. to be optimized
+                    cell_type* child=cell->pGetChild(i);
+                    double low[3];
+                    double high[3];
+                    child->GetMinPointNormalized(low);
+                    child->GetMaxPointNormalized(high);
+                    if (Collides(min_coord, max_coord, low, high)) {
+                        cells_stack.push_back(child);
+                    }
                 }
-              } else{
-                // we are in a leaf and we can check if it intersects with the object
+            } else {
+                // we are in a leaf and we can check if it intersects with the pObject
                 double cell_min_point[3];
                 double cell_max_point[3];
 
@@ -1209,15 +1212,16 @@ namespace Kratos {
                 ScaleBackToOriginalCoordinate(cell_min_point);
                 ScaleBackToOriginalCoordinate(cell_max_point);
 
-                const int is_intersected = /*configuration_type::*/IsIntersected(object,tolerance, cell_min_point, cell_max_point);
+                const bool is_intersected = IsIntersected(pObject,tolerance, cell_min_point, cell_max_point);
 
-               if(is_intersected)
-                  leaves.push_back(cell);
-              }
+                if(is_intersected) {
+                    rLeaves.push_back(cell);
+                }
             }
         }
+    }
 
-  //////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
 
     inline bool  IsIntersected(typename cell_type::pointer_type rObject, double Tolerance, const double* rLowPoint, const double* rHighPoint)
     {
@@ -1336,10 +1340,12 @@ namespace Kratos {
         return int_id;
     }
 
-    inline bool TriBoxOverlap( Point& boxcenter, Point& boxhalfsize, std::vector< Point >& triverts )
+    inline bool TriBoxOverlap(
+        Point& rBoxCenter,
+        Point& rBoxHalfSize,
+        std::vector< Point >& rTriangleVertex
+        )
     {
-        // NOTE: This may be possible to replace with HasIntersection from triangle_3d_3.h
-
         /*    use separating axis theorem to test overlap between triangle and box */
         /*    need to test for overlap in these directions: */
         /*    1) the {x,y,z}-directions (actually, since we use the AABB of the triangle */
@@ -1352,65 +1358,62 @@ namespace Kratos {
         array_1d<double, 3 > v0, v1, v2;
         array_1d<double, 3 > axis;
         array_1d<double, 3 > normal, e0, e1 , e2;
-//
-//     /* This is the fastest branch on Sun */
-//     /* move everything so that the boxcenter is in (0,0,0) */
-        noalias( v0 ) = triverts[0] - boxcenter;
-        noalias( v1 ) = triverts[1] - boxcenter;
-        noalias( v2 ) = triverts[2] - boxcenter;
-//
-//     /* compute triangle edges */
+
+        /* This is the fastest branch on Sun */
+        /* move everything so that the boxcenter is in (0,0,0) */
+        noalias( v0 ) = rTriangleVertex[0] - rBoxCenter;
+        noalias( v1 ) = rTriangleVertex[1] - rBoxCenter;
+        noalias( v2 ) = rTriangleVertex[2] - rBoxCenter;
+
+        /* Compute triangle edges */
         noalias( e0 ) = v1 - v0;    /* tri edge 0 */
         noalias( e1 ) = v2 - v1;    /* tri edge 1 */
         noalias( e2 ) = v0 - v2;    /* tri edge 2 */
-//
-//     /* Bullet 3:  */
-//     /*  test the 9 tests first (this was faster) */
-        fex = fabs( e0[0] );
-        fey = fabs( e0[1] );
-        fez = fabs( e0[2] );
+
+        /* Bullet 3:  */
+        /*  test the 9 tests first (this was faster) */
+        fex = std::abs( e0[0] );
+        fey = std::abs( e0[1] );
+        fez = std::abs( e0[2] );
         //AXISTEST_X01(e0[2], e0[1], fez, fey);
 
-        if ( AxisTest_X01( e0[2], e0[1], fez, fey, p0, p2, min, max, rad, v0, v2, boxhalfsize ) == 0 ) return false;
+        if ( AxisTest_X01( e0[2], e0[1], fez, fey, p0, p2, min, max, rad, v0, v2, rBoxHalfSize ) == 0 ) return false;
 
         //AXISTEST_Y02(e0[2], e0[0], fez, fex);
-        if ( AxisTest_Y02( e0[2], e0[0], fez, fex, p0, p2, min, max, rad, v0, v2, boxhalfsize ) == 0 ) return false;
+        if ( AxisTest_Y02( e0[2], e0[0], fez, fex, p0, p2, min, max, rad, v0, v2, rBoxHalfSize ) == 0 ) return false;
 
         //AXISTEST_Z12(e0[1], e0[0], fey, fex);
-        if ( AxisTest_Z12( e0[1], e0[0], fey, fex, p1, p2, min, max, rad, v1, v2, boxhalfsize ) == 0 ) return false;
+        if ( AxisTest_Z12( e0[1], e0[0], fey, fex, p1, p2, min, max, rad, v1, v2, rBoxHalfSize ) == 0 ) return false;
 
+        fex = std::abs( e1[0] );
 
+        fey = std::abs( e1[1] );
 
-        fex = fabs( e1[0] );
-
-        fey = fabs( e1[1] );
-
-        fez = fabs( e1[2] );
+        fez = std::abs( e1[2] );
 
         //AXISTEST_X01(e1[2], e1[1], fez, fey);
-        if ( AxisTest_X01( e1[2], e1[1], fez, fey, p0, p2, min, max, rad, v0, v2, boxhalfsize ) == 0 ) return false;
+        if ( AxisTest_X01( e1[2], e1[1], fez, fey, p0, p2, min, max, rad, v0, v2, rBoxHalfSize ) == 0 ) return false;
 
         //AXISTEST_Y02(e1[2], e1[0], fez, fex);
-        if ( AxisTest_Y02( e1[2], e1[0], fez, fex, p0, p2, min, max, rad, v0, v2, boxhalfsize ) == 0 ) return false;
+        if ( AxisTest_Y02( e1[2], e1[0], fez, fex, p0, p2, min, max, rad, v0, v2, rBoxHalfSize ) == 0 ) return false;
 
         //AXISTEST_Z0(e1[1], e1[0], fey, fex);
-        if ( AxisTest_Z0( e1[1], e1[0], fey, fex, p0,  p1, min, max, rad, v0, v1, boxhalfsize ) == 0 ) return false;
+        if ( AxisTest_Z0( e1[1], e1[0], fey, fex, p0,  p1, min, max, rad, v0, v1, rBoxHalfSize ) == 0 ) return false;
 
+        fex = std::abs( e2[0] );
 
-        fex = fabs( e2[0] );
+        fey = std::abs( e2[1] );
 
-        fey = fabs( e2[1] );
-
-        fez = fabs( e2[2] );
+        fez = std::abs( e2[2] );
 
         //AXISTEST_X2(e2[2], e2[1], fez, fey);
-        if ( AxisTest_X2( e2[2], e2[1], fez, fey, p0, p1, min, max, rad, v0, v1, boxhalfsize ) == 0 ) return false;
+        if ( AxisTest_X2( e2[2], e2[1], fez, fey, p0, p1, min, max, rad, v0, v1, rBoxHalfSize ) == 0 ) return false;
 
         //AXISTEST_Y1(e2[2], e2[0], fez, fex);
-        if ( AxisTest_Y1( e2[2], e2[0], fez, fex, p0, p1, min, max, rad, v0, v1, boxhalfsize ) == 0 ) return false;
+        if ( AxisTest_Y1( e2[2], e2[0], fez, fex, p0, p1, min, max, rad, v0, v1, rBoxHalfSize ) == 0 ) return false;
 
         //AXISTEST_Z12(e2[1], e2[0], fey, fex);
-        if ( AxisTest_Z12( e2[1], e2[0], fey, fex, p1, p2, min, max, rad, v1, v2, boxhalfsize ) == 0 ) return false;
+        if ( AxisTest_Z12( e2[1], e2[0], fey, fex, p1, p2, min, max, rad, v1, v2, rBoxHalfSize ) == 0 ) return false;
 
 
         /* Bullet 1: */
@@ -1422,17 +1425,17 @@ namespace Kratos {
         /* test in X-direction */
         FindMinMax( v0[0], v1[0], v2[0], min, max );
 
-        if ( min > boxhalfsize[0] || max < -boxhalfsize[0] ) return false;
+        if ( min > rBoxHalfSize[0] || max < -rBoxHalfSize[0] ) return false;
 
         /* test in Y-direction */
         FindMinMax( v0[1], v1[1], v2[1], min, max );
 
-        if ( min > boxhalfsize[1] || max < -boxhalfsize[1] ) return false;
+        if ( min > rBoxHalfSize[1] || max < -rBoxHalfSize[1] ) return false;
 
         /* test in Z-direction */
         FindMinMax( v0[2], v1[2], v2[2], min, max );
 
-        if ( min > boxhalfsize[2] || max < -boxhalfsize[2] ) return false;
+        if ( min > rBoxHalfSize[2] || max < -rBoxHalfSize[2] ) return false;
 
         /* Bullet 2: */
         /*  test if the box intersects the plane of the triangle */
@@ -1441,7 +1444,7 @@ namespace Kratos {
 
         d = -inner_prod( normal, v0 );  /* plane eq: normal.x+d=0 */
 
-        if ( !planeBoxOverlap( normal, d, boxhalfsize ) ) return false;
+        if ( !planeBoxOverlap( normal, d, rBoxHalfSize ) ) return false;
 
         return true;   /* box and triangle overlaps */
     }
