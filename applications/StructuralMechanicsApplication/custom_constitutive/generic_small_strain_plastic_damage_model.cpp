@@ -148,7 +148,6 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) && damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
             bool is_converged = false;
             int number_iteration = 0;
-            double non_linear_case;
             const int max_iter = 100;
 
             KRATOS_WATCH(plasticity_indicator)
@@ -161,7 +160,6 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
 
                 // Damage case without plasticity
                 if (plasticity_indicator < 1.0e-4 * threshold_plasticity) { 
-                    non_linear_case = 0.5;
 
                     if (plastic_consistency_increment > tolerance) {
                         this->CalculateIncrementsPlasticDamageCase(
@@ -181,7 +179,6 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
 
                 // Plasticity case without damage
                 } else if (damage_indicator < std::abs(1.0e-4 * threshold_damage)) { 
-                    non_linear_case = -0.5;
                     if (damage_increment > 0.0) {
                         this->CalculateIncrementsPlasticDamageCase(
                             damage_yield_flux, effective_predictive_stress_vector,
@@ -200,7 +197,6 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                         damage_increment = 0.0;
                         plastic_consistency_increment = plasticity_indicator * plastic_denominator;
                     } else {
-                        non_linear_case = 0.0;
                         this->CalculateIncrementsPlasticDamageCase(
                             damage_yield_flux, effective_predictive_stress_vector,
                             damage, f_flux, g_flux, r_constitutive_matrix,
@@ -217,11 +213,11 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 KRATOS_WATCH(plastic_consistency_increment)
 
                 // Update internals variables plasticity
-                if (plastic_consistency_increment > tolerance) plastic_strain_increment = plastic_consistency_increment * g_flux;
-                else plastic_consistency_increment = 0.0;
+                // if (plastic_consistency_increment > tolerance) plastic_strain_increment = plastic_consistency_increment * g_flux;
+                // else plastic_consistency_increment = 0.0;
 
                 // OJO
-                // plastic_strain_increment = plastic_consistency_increment * g_flux;
+                plastic_strain_increment = std::abs(plastic_consistency_increment) * g_flux;
 
 
 
@@ -254,6 +250,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 KRATOS_WATCH(damage)
                 KRATOS_WATCH(plastic_dissipation)
                 KRATOS_WATCH(plastic_strain)
+                KRATOS_WATCH(damage_dissipation)
 
                 // Final check
                 if (plasticity_indicator < std::abs(1.0e-4 * threshold_plasticity) && damage_indicator < std::abs(1.0e-4 * threshold_damage)) {
@@ -472,7 +469,6 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) && damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
             bool is_converged = false;
             int number_iteration = 0;
-            double non_linear_case;
             const int max_iter = 100;
 
             // Integration loop
@@ -481,7 +477,6 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
 
                 // Damage case without plasticity
                 if (plasticity_indicator < 1.0e-4 * threshold_plasticity) { 
-                    non_linear_case = 0.5;
 
                     if (plastic_consistency_increment > tolerance) {
                         this->CalculateIncrementsPlasticDamageCase(
@@ -501,7 +496,6 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
 
                 // Plasticity case without damage
                 } else if (damage_indicator < std::abs(1.0e-4 * threshold_damage)) { 
-                    non_linear_case = -0.5;
                     if (damage_increment > 0.0) {
                         this->CalculateIncrementsPlasticDamageCase(
                             damage_yield_flux, effective_predictive_stress_vector,
@@ -520,7 +514,6 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                         damage_increment = 0.0;
                         plastic_consistency_increment = plasticity_indicator * plastic_denominator;
                     } else {
-                        non_linear_case = 0.0;
                         this->CalculateIncrementsPlasticDamageCase(
                             damage_yield_flux, effective_predictive_stress_vector,
                             damage, f_flux, g_flux, r_constitutive_matrix,
@@ -535,8 +528,11 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 this->CheckInternalVariable(damage); // Just check te upper-lower bounds
 
                 // Update internals variables plasticity
-                if (plastic_consistency_increment > tolerance) plastic_strain_increment = plastic_consistency_increment * g_flux;
-                else plastic_consistency_increment = 0.0;
+                // if (plastic_consistency_increment > tolerance) plastic_strain_increment = plastic_consistency_increment * g_flux;
+                // else plastic_consistency_increment = 0.0;
+
+                plastic_strain_increment = std::abs(plastic_consistency_increment) * g_flux;
+
                 noalias(plastic_strain) += plastic_strain_increment;
                 noalias(deepp) += plastic_strain_increment;
                 array_1d<double, VoigtSize> delta_sigma = prod(r_constitutive_matrix, plastic_strain_increment);
