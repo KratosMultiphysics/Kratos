@@ -242,6 +242,10 @@ void  AddContainersToPython(pybind11::module& m)
     .def("__str__", PrintObject<Variable<Quaternion<double> >>)
     ;
 
+    py::class_<Variable<Parameters::Pointer>, VariableData>(m, "ParametersVariable")
+    .def("__str__",PrintObject<Variable<Parameters::Pointer>>)
+    ;
+
     //***********************************************************************
     //AUTOMATIC REGISTRATION OF VARIABLES_IN_PYTHON
 //     RegisterInPythonVariables< Variable<bool> >(m);
@@ -292,6 +296,7 @@ void  AddContainersToPython(pybind11::module& m)
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1D9ComponentVariable >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Quaternion<double>> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<std::string> >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Parameters::Pointer> >(DataValueBinder);
 
     typedef py::class_<VariablesListDataValueContainer, VariablesListDataValueContainer::Pointer> VariableDataValueContainerBinderType;
     VariableDataValueContainerBinderType VariableDataValueBinder(m, "VariablesListDataValueContainer" );
@@ -312,6 +317,7 @@ void  AddContainersToPython(pybind11::module& m)
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1D9ComponentVariable >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Quaternion<double>> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<std::string> >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Parameters::Pointer> >(VariableDataValueBinder);
 
 
     py::class_<Flags, Flags::Pointer>(m,"Flags")
