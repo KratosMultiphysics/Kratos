@@ -42,6 +42,10 @@ class TrilinosMeshSolverBase(MeshSolverBase):
         self.trilinos_model_part_importer.CreateCommunicators()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]::", "ModelPart prepared for Solver.")
 
+    def Finalize(self):
+        super(TrilinosMeshSolverBase, self).Finalize()
+        self.get_mesh_motion_solving_strategy().Clear() # needed for proper finalization of MPI
+
     #### Specific internal functions ####
 
     def get_communicator(self):
