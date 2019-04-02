@@ -78,7 +78,7 @@ namespace Kratos {
             ViscoDampingLocalContactForce[2] = -1.0 * LocalElasticContactForce[2];
         }
 
-        cohesive_force = CalculateCohesiveNormalForceModified(element1, element2, normal_contact_force, indentation);
+        cohesive_force = CalculateCohesiveNormalForce(element1, element2, normal_contact_force, indentation);
 
         double AuxElasticShearForce;
         double MaximumAdmisibleShearForce;
@@ -171,7 +171,7 @@ namespace Kratos {
             ViscoDampingLocalContactForce[2] = -1.0 * LocalElasticContactForce[2];
         }
 
-        cohesive_force = CalculateCohesiveNormalForceWithFEMModified(element1, element2, normal_contact_force, indentation);
+        cohesive_force = CalculateCohesiveNormalForceWithFEM(element, wall, normal_contact_force, indentation);
 
         double AuxElasticShearForce;
         double MaximumAdmisibleShearForce;
@@ -305,7 +305,7 @@ namespace Kratos {
         return cohesive_force;
     }
 
-    double DEM_D_Stress_Dependent_Cohesive::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation) {
+    double DEM_D_Stress_Dependent_Cohesive::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double normal_contact_force, const double indentation) {
 
         double equiv_cohesion = 0.0;
         double equiv_amount_of_cohesion = element->GetAmountOfCohesion();
@@ -314,7 +314,7 @@ namespace Kratos {
 
         for (unsigned int i = 0; element->mNeighbourRigidFaces.size(); i++) {
             if (element->mNeighbourRigidFaces[i]->Id() == wall->Id()) {
-                equiv_cohesion = std::min(0.5 * (element->GetParticleCohesion() + wall->GetParticleCohesion()), equiv_amount_of_cohesion * element->mNeighbourRigidContactStress[i]);
+                equiv_cohesion = std::min(element->GetParticleCohesion(), equiv_amount_of_cohesion * element->mNeighbourRigidContactStress[i]);
                 double contact_stress = normal_contact_force / (Globals::Pi * equiv_radius * equiv_radius);
                 element->mNeighbourRigidContactStress[i] = std::max(element->mNeighbourRigidContactStress[i], contact_stress);
                 break;

@@ -104,7 +104,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         ;
 
-    py::class_<DEM_D_Stress_dependent_cohesive_CL, DEM_D_Stress_dependent_cohesive_CL::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Stress_dependent_cohesive_CL")
+    py::class_<DEM_D_Stress_Dependent_Cohesive, DEM_D_Stress_Dependent_Cohesive::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Stress_Dependent_Cohesive")
         .def(py::init<>())
         ;
 
