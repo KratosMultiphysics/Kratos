@@ -62,16 +62,6 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             self._epetra_communicator = self._create_epetra_communicator()
         return self._epetra_communicator
 
-    def print_on_rank_zero(self, *args):
-        KratosMPI.mpi.world.barrier()
-        if KratosMPI.mpi.rank == 0:
-            KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
-
-    def print_warning_on_rank_zero(self, *args):
-        KratosMPI.mpi.world.barrier()
-        if KratosMPI.mpi.rank == 0:
-            KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
-
     #### Private functions ####
 
     def _create_epetra_communicator(self):
