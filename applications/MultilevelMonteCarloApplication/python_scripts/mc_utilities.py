@@ -151,11 +151,11 @@ def ExecuteInstanceAux_Task(pickled_model,pickled_project_parameters,current_ana
 
 class MonteCarlo(object):
     """The base class for the MonteCarlo-classes"""
-    def __init__(self,custom_settings,project_parameters_path,custom_analysis):
+    def __init__(self,custom_parameters_path,project_parameters_path,custom_analysis):
         """constructor of the MonteCarlo-Object
         Keyword arguments:
         self:                    an instance of the class
-        custom_settings:         settings of the Monte Carlo simulation
+        custom_parameters_path:  path of the Monte Carlo simulation
         project_parameters_path: path of the project parameters file
         custom_analysis:         analysis stage of the problem
         """
@@ -174,23 +174,29 @@ class MonteCarlo(object):
         # tolerance:            tolerance
         # confidence:           confidence on tolerance
         # batch_size:           number of samples per batch size
-        # convergence_criteria: convergence criteria to get if convergence is achieved
+        # convergence_criteria: convergence criteria to compute convergence
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "tolerance" : 1e-1,
+            "run_monte_carlo" : "True",
+            "tolerance"  : 1e-1,
             "confidence" : 9e-1,
             "batch_size" : 50,
-            "convergence_criteria" : "MC_higher_moments_sequential_stopping_rule"
+            "convergence_criteria" : "MC_sample_variance_sequential_stopping_rule"
         }
         """)
-        self.settings = custom_settings
+        # set XMC parameters
+        self.custom_parameters_path = custom_parameters_path
+        self.SetXMCParameters()
         # validate and assign default parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
         # convergence: boolean variable defining if MC algorithm has converged
         self.convergence = False
+        # handle confidence = 1.0
+        if (self.settings["confidence"].GetDouble()==1.0):
+            self.settings["confidence"].SetDouble(0.999) # reduce confidence to not get +inf for cphi_confidence (coefficient used in convergence criterias)
         # set error probability = 1.0 - confidence on given tolerance
         self.settings.AddEmptyValue("error_probability")
-        self.settings["error_probability"].SetDouble(1-self.settings["confidence"].GetDouble())
+        self.settings["error_probability"].SetDouble(1.0-self.settings["confidence"].GetDouble())
         # current_number_levels: number of levels of MC by default = 0 (we only have level 0)
         self.current_number_levels = 0
         # current_level: current level of work, current_level = 0 for MC
@@ -232,12 +238,16 @@ class MonteCarlo(object):
     input: self: an instance of the class
     """
     def Run(self):
-        while self.convergence is not True:
-            self.InitializeMCPhase()
-            self.ScreeningInfoInitializeMCPhase()
-            self.LaunchEpoch()
-            self.FinalizeMCPhase()
-            self.ScreeningInfoFinalizeMCPhase()
+        if (self.settings["run_monte_carlo"].GetString() == "True"):
+            while self.convergence is not True:
+                self.InitializeMCPhase()
+                self.ScreeningInfoInitializeMCPhase()
+                self.LaunchEpoch()
+                self.FinalizeMCPhase()
+                self.ScreeningInfoFinalizeMCPhase()
+        else:
+            print("\n","#"*50,"Not running Monte Carlo algorithm","#"*50)
+            pass
 
     """
     function running one Monte Carlo epoch
@@ -296,6 +306,15 @@ class MonteCarlo(object):
         print("\n","#"*50," SERIALIZATION COMPLETED ","#"*50,"\n")
 
     """
+    function reading the XMC parameters passed from json file
+    input:  self: an instance of the class
+    """
+    def SetXMCParameters(self):
+        with open(self.custom_parameters_path,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        self.settings = parameters["monte_carlo"]
+
+    """
     function defining the Kratos specific application analysis stage of the problem
     input:  self: an instance of the class
             application_analysis_stage: working analysis stage Kratos class
@@ -321,13 +340,13 @@ class MonteCarlo(object):
     """
     def CheckConvergence(self,level):
         current_number_samples = self.QoI.number_samples[level]
-        current_mean = self.QoI.raw_moment_1[level]
+        current_mean = self.QoI.h_statistics_1[level]
         current_h2 = self.QoI.h_statistics_2[level]
         current_h3 = self.QoI.h_statistics_3[level]
         current_sample_central_moment_3_absolute = self.QoI.central_moment_from_scratch_3_absolute[level]
         current_h4 = self.QoI.h_statistics_4[level]
         current_tol = self.settings["tolerance"].GetDouble()
-        current_error_probability = self.settings["error_probability"].GetDouble() # the "delta" in [3] is the convergence criteria is the error probability
+        current_error_probability = self.settings["error_probability"].GetDouble() # the "delta" in [3] in the convergence criteria is the error probability
         convergence_criteria = self.convergence_criteria
         convergence_boolean,current_stat_error = CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,\
             current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_error_probability,convergence_criteria)
