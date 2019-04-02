@@ -23,16 +23,9 @@ if __name__ == '__main__':
     # set the ProjectParameters.json path
     project_parameters_path = "problem_settings/parameters_poisson_square_2d_coarse.json"
     # customize setting parameters of the MC simulation"""
-    settings_MC_simulation = KratosMultiphysics.Parameters("""
-    {
-        "tolerance"  : 0.1,
-        "confidence" : 0.9,
-        "batch_size" : 20,
-        "convergence_criteria" : "MC_sample_variance_sequential_stopping_rule"
-    }
-    """)
+    parameters_x_monte_carlo_path = "problem_settings/parameters_x_monte_carlo.json"
     # contruct MonteCarlo or MultilevelMonteCarlo class
-    mc_manager = mc_utilities.MonteCarlo(settings_MC_simulation,project_parameters_path,SimulationScenario)
+    mc_manager = mc_utilities.MonteCarlo(parameters_x_monte_carlo_path,project_parameters_path,SimulationScenario)
     # execute algorithm
     mc_manager.Run()
 
@@ -46,40 +39,9 @@ if __name__ == '__main__':
     # set the ProjectParameters.json path
     project_parameters_path = "problem_settings/parameters_poisson_square_2d_coarse.json"
     # customize setting parameters of the MLMC simulation
-    settings_MLMC_simulation = KratosMultiphysics.Parameters("""
-    {
-        "initial_tolerance"             : 0.25,
-        "tolerance"                     : 0.1,
-        "confidence"                    : 0.9,
-        "number_samples_screening"      : 25,
-        "levels_screening"              : 2,
-        "initial_mesh_size"             : 0.5
-    }
-    """)
-    # customize setting parameters of the metric of the adaptive refinement utility
-    custom_metric_refinement_parameters = KratosMultiphysics.Parameters("""
-        {
-            "hessian_strategy_parameters"           :{
-                    "metric_variable"               : ["TEMPERATURE"],
-                    "estimate_interpolation_error"  : false,
-                    "interpolation_error"           : 0.004
-            },
-            "anisotropy_remeshing"                  : true,
-            "anisotropy_parameters":{
-                "reference_variable_name"           : "TEMPERATURE",
-                "hmin_over_hmax_anisotropic_ratio"  : 0.15,
-                "boundary_layer_max_distance"       : 1.0,
-                "interpolation"                     : "Linear"
-            },
-            "local_gradient_variable"               : "TEMPERATURE"
-        }
-    """)
-    # customize setting parameters of the remesh of the adaptive refinement utility
-    custom_remesh_refinement_settings = KratosMultiphysics.Parameters("""
-        {
-            "echo_level"                            : 0
-        }
-    """)
+    parameters_x_monte_carlo_path = "problem_settings/parameters_x_monte_carlo.json"
+    # customize setting parameters of the metric of the adaptive refinement utility and setting parameters of the remesh of the adaptive refinement utility
+    parameters_refinement_path = "problem_settings/parameters_refinement.json"
     # contruct MultilevelMonteCarlo class
-    mlmc_manager = cmlmc_utilities.MultilevelMonteCarlo(settings_MLMC_simulation,project_parameters_path,custom_metric_refinement_parameters,custom_remesh_refinement_settings,SimulationScenario)
+    mlmc_manager = cmlmc_utilities.MultilevelMonteCarlo(parameters_x_monte_carlo_path,project_parameters_path,parameters_refinement_path,SimulationScenario)
     mlmc_manager.Run()
