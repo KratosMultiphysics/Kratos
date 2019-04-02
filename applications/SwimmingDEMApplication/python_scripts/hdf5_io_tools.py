@@ -4,7 +4,7 @@ import h5py
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
-from DEM_procedures import KratosPrint as Say
+from DEM_procedures import KratosPrintInfo as Say
 import json
 
 def DeleteDataSet(file_or_group, dset_name):
@@ -66,7 +66,7 @@ class FluidHDF5Loader:
         self.file_name = self.GetFileName()
         self.file_path = main_path + self.file_name
 
-        if project_parameters["fluid_already_calculated"].GetBool():
+        if project_parameters["custom_fluid"]["fluid_already_calculated"].GetBool():
 
             with h5py.File(self.file_path, 'r') as f:
                 nodes_ids = np.array([node_id for node_id in f['nodes'][:, 0]])

@@ -23,6 +23,14 @@
 #include "containers/array_1d.h"
 #include "includes/define.h"
 
+// Using a macro instead of a function to get the correct line in the error message.
+#ifndef KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK
+#define KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(Size1, Size2, CheckedFunction) \
+    KRATOS_DEBUG_ERROR_IF(Size1 != Size2) \
+    << "Input error in call to DataCommunicator::" << CheckedFunction \
+    << ": The sizes of the local and distributed buffers do not match." << std::endl;
+#endif
+
 namespace Kratos
 {
 ///@addtogroup Kratos Core
@@ -138,7 +146,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues,
         const int Root) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Sum");
+        rGlobalValues = Sum(rLocalValues, Root);
+    }
 
     /// Sum rLocalValues across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Reduce.
@@ -150,7 +161,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues,
         const int Root) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Sum");
+        rGlobalValues = Sum(rLocalValues, Root);
+    }
 
     /// Obtain the minimum of rLocalValue across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Reduce.
@@ -217,7 +231,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues,
         const int Root) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Min");
+        rGlobalValues = Min(rLocalValues, Root);
+    }
 
     /// Obtain the minimum (for each term) of rLocalValues across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Reduce.
@@ -229,7 +246,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues,
         const int Root) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Min");
+        rGlobalValues = Min(rLocalValues, Root);
+    }
 
     /// Obtain the maximum of rLocalValue across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Reduce.
@@ -296,7 +316,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues,
         const int Root) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Max");
+        rGlobalValues = Max(rLocalValues, Root);
+    }
 
     /// Obtain the maximum (for each term) of rLocalValues across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Reduce.
@@ -308,7 +331,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues,
         const int Root) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "Max");
+        rGlobalValues = Max(rLocalValues, Root);
+    }
 
     // Allreduce operations
 
@@ -370,7 +396,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void SumAll(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "SumAll");
+        rGlobalValues = SumAll(rLocalValues);
+    }
 
     /// Sum rLocalValues across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Allreduce.
@@ -380,7 +409,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void SumAll(
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "SumAll");
+        rGlobalValues = SumAll(rLocalValues);
+    }
 
     /// Obtain the minimum of rLocalValue across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Allreduce.
@@ -440,7 +472,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void MinAll(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MinAll");
+        rGlobalValues = MinAll(rLocalValues);
+    }
 
     /// Obtain the minimum (for each term) of rLocalValues across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Allreduce.
@@ -450,7 +485,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void MinAll(
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MinAll");
+        rGlobalValues = MinAll(rLocalValues);
+    }
 
     /// Obtain the maximum of rLocalValue across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Allreduce.
@@ -510,7 +548,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void MaxAll(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MaxAll");
+        rGlobalValues = MaxAll(rLocalValues);
+    }
 
     /// Obtain the maximum (for each term) of rLocalValues across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Allreduce.
@@ -520,7 +561,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void MaxAll(
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MaxAll");
+        rGlobalValues = MaxAll(rLocalValues);
+    }
 
     // Scan operations
 
@@ -577,7 +621,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void ScanSum(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rPartialSums) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rPartialSums.size(), "ScanSum");
+        rPartialSums = ScanSum(rLocalValues);
+    }
 
     /// Compute the partial sums of rLocalValues across all ranks in the Communicator (double version).
     /** The partial sum is the sum of a quantity from rank 0 to the current rank (included).
@@ -588,7 +635,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void ScanSum(
         const std::vector<double>& rLocalValues,
         std::vector<double>& rPartialSums) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rPartialSums.size(), "ScanSum");
+        rPartialSums = ScanSum(rLocalValues);
+    }
 
     // Sendrecv operations
 
@@ -609,14 +659,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const int SendDestination,
         const int RecvSource) const
     {
-        if (SendDestination == RecvSource)
-        {
-            return rSendValues;
-        }
-        else
-        {
-            return std::vector<int>(0);
-        }
+        KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+
+        return rSendValues;
     }
 
     /// Exchange data with other ranks (double version).
@@ -636,14 +682,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const int SendDestination,
         const int RecvSource) const
     {
-        if (SendDestination == RecvSource)
-        {
-            return rSendValues;
-        }
-        else
-        {
-            return std::vector<double>(0);
-        }
+        KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+
+        return rSendValues;
     }
 
     /// Exchange data with other ranks (string version).
@@ -663,14 +705,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const int SendDestination,
         const int RecvSource) const
     {
-        if (SendDestination == RecvSource)
-        {
-            return rSendValues;
-        }
-        else
-        {
-            return std::string("");
-        }
+        KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+
+        return rSendValues;
     }
 
     /// Exchange data with other ranks (int version).
@@ -685,7 +723,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void SendRecv(
         const std::vector<int>& rSendValues, const int SendDestination, const int SendTag,
         std::vector<int>& rRecvValues, const int RecvSource, const int RecvTag) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(), rRecvValues.size(), "SendRecv");
+        rRecvValues = SendRecv(rSendValues, SendDestination, RecvSource);
+    }
 
     /// Exchange data with other ranks (double version).
     /** This is a wrapper for MPI_Sendrecv.
@@ -699,7 +740,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void SendRecv(
         const std::vector<double>& rSendValues, const int SendDestination, const int SendTag,
         std::vector<double>& rRecvValues, const int RecvSource, const int RecvTag) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(), rRecvValues.size(), "SendRecv");
+        rRecvValues = SendRecv(rSendValues, SendDestination, RecvSource);
+    }
 
     /// Exchange data with other ranks (string version).
     /** This is a wrapper for MPI_Sendrecv.
@@ -713,7 +757,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void SendRecv(
         const std::string& rSendValues, const int SendDestination, const int SendTag,
         std::string& rRecvValues, const int RecvSource, const int RecvTag) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(), rRecvValues.size(), "SendRecv");
+        rRecvValues = SendRecv(rSendValues, SendDestination, RecvSource);
+    }
 
     // Broadcast
 
@@ -773,14 +820,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rSendValues,
         const int SourceRank) const
     {
-        if (Rank() == SourceRank)
-        {
-            return rSendValues;
-        }
-        else
-        {
-            return std::vector<int>(0);
-        }
+        KRATOS_ERROR_IF( Rank() != SourceRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        return rSendValues;
     }
 
     /// Wrapper for MPI_Scatter calls (double version).
@@ -797,14 +839,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rSendValues,
         const int SourceRank) const
     {
-        if (Rank() == SourceRank)
-        {
-            return rSendValues;
-        }
-        else
-        {
-            return std::vector<double>(0);
-        }
+        KRATOS_ERROR_IF( Rank() != SourceRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        return rSendValues;
     }
 
     /// Wrapper for MPI_Scatter calls (int version).
@@ -817,7 +854,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues,
         const int SourceRank) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"Scatter");
+        rRecvValues = Scatter(rSendValues, SourceRank);
+    }
 
     /// Wrapper for MPI_Scatter calls (double version).
     /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
@@ -829,7 +869,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rSendValues,
         std::vector<double>& rRecvValues,
         const int SourceRank) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"Scatter");
+        rRecvValues = Scatter(rSendValues, SourceRank);
+    }
 
     // Scatterv operations
 
@@ -849,15 +892,11 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<std::vector<int>>& rSendValues,
         const int SourceRank) const
     {
-        int rank = Rank();
-        if (rank == SourceRank && rank < static_cast<int>(rSendValues.size()) )
-        {
-            return rSendValues[rank];
-        }
-        else
-        {
-            return std::vector<int>(0);
-        }
+        KRATOS_ERROR_IF( Rank() != SourceRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        KRATOS_ERROR_IF( static_cast<unsigned int>(Size()) != rSendValues.size() )
+        << "Unexpected number of sends in DataCommuncatior::Scatterv (serial DataCommunicator always assumes a single process)." << std::endl;
+        return rSendValues[0];
     }
 
     /// Wrapper for MPI_Scatterv calls (double version).
@@ -876,15 +915,11 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<std::vector<double>>& rSendValues,
         const int SourceRank) const
     {
-        int rank = Rank();
-        if (rank == SourceRank && rank < static_cast<int>(rSendValues.size()) )
-        {
-            return rSendValues[rank];
-        }
-        else
-        {
-            return std::vector<double>(0);
-        }
+        KRATOS_ERROR_IF( Rank() != SourceRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        KRATOS_ERROR_IF( static_cast<unsigned int>(Size()) != rSendValues.size() )
+        << "Unexpected number of sends in DataCommuncatior::Scatterv (serial DataCommunicator always assumes a single process)." << std::endl;
+        return rSendValues[0];
     }
 
     /// Wrapper for MPI_Scatterv calls (int version).
@@ -901,7 +936,14 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rSendOffsets,
         std::vector<int>& rRecvValues,
         const int SourceRank) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvValues.size(), rSendValues.size(), "Scatterv (values check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendCounts.size(), 1, "Scatterv (counts check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendOffsets.size(), 1, "Scatterv (offsets check)");
+        KRATOS_ERROR_IF( Rank() != SourceRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        rRecvValues = rSendValues;
+    }
 
     /// Wrapper for MPI_Scatterv calls (double version).
     /** @param[in] rSendValues Values to be scattered (meaningul only on SourceRank).
@@ -917,7 +959,14 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rSendOffsets,
         std::vector<double>& rRecvValues,
         const int SourceRank) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvValues.size(), rSendValues.size(), "Scatterv (values check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendCounts.size(), 1, "Scatterv (counts check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendOffsets.size(), 1, "Scatterv (offsets check)");
+        KRATOS_ERROR_IF( Rank() != SourceRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        rRecvValues = rSendValues;
+    }
 
     // Gather operations
 
@@ -935,14 +984,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rSendValues,
         const int DestinationRank) const
     {
-        if (Rank() == DestinationRank)
-        {
-            return rSendValues;
-        }
-        else
-        {
-            return std::vector<int>();
-        }
+        KRATOS_ERROR_IF( Rank() != DestinationRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        return rSendValues;
     }
 
     /// Wrapper for MPI_Gather calls (double version).
@@ -959,14 +1003,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rSendValues,
         const int DestinationRank) const
     {
-        if (Rank() == DestinationRank)
-        {
-            return rSendValues;
-        }
-        else
-        {
-            return std::vector<double>();
-        }
+        KRATOS_ERROR_IF( Rank() != DestinationRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        return rSendValues;
     }
 
     /// Wrapper for MPI_Gather calls (int version).
@@ -980,7 +1019,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues,
         const int DestinationRank) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"Gather");
+        rRecvValues = Gather(rSendValues, DestinationRank);
+    }
 
     /// Wrapper for MPI_Gather calls (double version).
     /** @param[in] rSendValues Values to be gathered from this rank.
@@ -993,7 +1035,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rSendValues,
         std::vector<double>& rRecvValues,
         const int DestinationRank) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"Gather");
+        rRecvValues = Gather(rSendValues, DestinationRank);
+    }
 
     // Gatherv operations
 
@@ -1013,13 +1058,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rSendValues,
         const int DestinationRank) const
     {
-        std::vector<std::vector<int>> output(0);
-        if (Rank() == DestinationRank)
-        {
-            output.resize(1);
-            output[0] = rSendValues;
-        }
-        return output;
+        KRATOS_ERROR_IF( Rank() != DestinationRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        return std::vector<std::vector<int>>{rSendValues};
     }
 
     /// Wrapper for MPI_Gatherv calls (double version).
@@ -1038,13 +1079,9 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<double>& rSendValues,
         const int DestinationRank) const
     {
-        std::vector<std::vector<double>> output(0);
-        if (Rank() == DestinationRank)
-        {
-            output.resize(1);
-            output[0] = rSendValues;
-        }
-        return output;
+        KRATOS_ERROR_IF( Rank() != DestinationRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        return std::vector<std::vector<double>>{rSendValues};
     }
 
     /// Wrapper for MPI_Gatherv calls (int version).
@@ -1061,7 +1098,14 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rRecvCounts,
         const std::vector<int>& rRecvOffsets,
         const int DestinationRank) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvValues.size(), rSendValues.size(), "Gatherv (values check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvCounts.size(), 1, "Gatherv (counts check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvOffsets.size(), 1, "Gatherv (offset check)");
+        KRATOS_ERROR_IF( Rank() != DestinationRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        rRecvValues = rSendValues;
+    }
 
     /// Wrapper for MPI_Gatherv calls (int version).
     /** @param[in] rSendValues Values to be gathered from this rank.
@@ -1077,7 +1121,14 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         const std::vector<int>& rRecvCounts,
         const std::vector<int>& rRecvOffsets,
         const int DestinationRank) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvValues.size(), rSendValues.size(), "Gatherv (values check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvCounts.size(), 1, "Gatherv (counts check)");
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvOffsets.size(), 1, "Gatherv (offset check)");
+        KRATOS_ERROR_IF( Rank() != DestinationRank )
+        << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;
+        rRecvValues = rSendValues;
+    }
 
     // Allgather operations
 
@@ -1117,7 +1168,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void AllGather(
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"AllGather");
+        rRecvValues = AllGather(rSendValues);
+    }
 
     /// Wrapper for MPI_Allgather calls (double version).
     /** @param rSendValues[in] Values to be gathered from this rank.
@@ -1127,7 +1181,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     virtual void AllGather(
         const std::vector<double>& rSendValues,
         std::vector<double>& rRecvValues) const
-    {}
+    {
+        KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"AllGather");
+        rRecvValues = AllGather(rSendValues);
+    }
 
     ///@}
     ///@name Inquiry
@@ -1338,5 +1395,7 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 ///@} addtogroup block
 
 } // namespace Kratos.
+
+#undef KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK
 
 #endif // KRATOS_DATA_COMMUNICATOR_H_INCLUDED  defined

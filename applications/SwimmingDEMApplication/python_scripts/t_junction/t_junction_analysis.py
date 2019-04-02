@@ -24,7 +24,7 @@ class TJunctionAnalysis(BaseAnalysis):
         import hdf5_io_tools
         self.particles_loader = hdf5_io_tools.ParticleHistoryLoader(self.project_parameters,
                                                                     self.all_model_parts.Get('SpheresPart'),
-                                                                    self.disperse_phase_solution.watcher,
+                                                                    self._GetDEMAnalysis().watcher,
                                                                     self.main_path)
 
     def FluidSolve(self, time = 'None', solve_system = True):

@@ -83,5 +83,9 @@ class Naca0012SmallTest(PotentialFlowTestFactory):
     file_name = "naca0012_small"
     work_folder = "naca0012_small_test"
 
+class SmallLiftJumpTest(PotentialFlowTestFactory):
+    file_name = "small_lift_jump"
+    work_folder = "naca0012_small_test"
+
 if __name__ == '__main__':
     UnitTest.main()
