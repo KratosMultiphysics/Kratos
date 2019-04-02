@@ -24,7 +24,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 "fluid_part_name"           : "MainModelPart",
                 "wake_direction"                 : [1.0,0.0,0.0],
                 "velocity_infinity": [1.0,0.0,0],
-                "epsilon"    : 1e-9
+                "epsilon"    : 1e-9,
+                "create_output_file": false
             }
             """)
 
@@ -63,6 +64,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
         self.wake_model_part = self.fluid_model_part.CreateSubModelPart(
             "wake_model_part")
+
+        self.create_output_file = settings["create_output_file"].GetBool()
 
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,
                                                                        self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
@@ -246,27 +249,25 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 # Compute the projection of the distance vector in the wake normal direction
                 distance_to_wake = x_distance_to_te*self.wake_normal[0] + \
                     y_distance_to_te*self.wake_normal[1]
+                
+                # Nodes laying on the wake have a positive distance
+                if(abs(distance_to_wake) < self.epsilon):
+                    distance_to_wake = self.epsilon
 
                 if distance_to_wake>0:
                     node_velocity_potential_above = node.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
                     node_auxiliary_velocity_potential_above = node.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
                     potential_jump_phi_minus_psi_above = node_velocity_potential_above - node_auxiliary_velocity_potential_above
-                    CL_phi_minus_psi = 2*potential_jump_phi_minus_psi_above/self.velocity_infinity[0]
-                    print ('potential jump Phi - Psi (above the wake) = ', potential_jump_phi_minus_psi_above, '=> CL = ',CL_phi_minus_psi)
+                    Cl = 2*potential_jump_phi_minus_psi_above/self.velocity_infinity[0]
+                    print ('potential jump Phi - Psi (above the wake) = ', potential_jump_phi_minus_psi_above, '=> CL = ',Cl)
                 else:
                     node_velocity_potential_below = node.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
                     node_auxiliary_velocity_potential_below = node.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
                     potential_jump_psi_minus_phi_below = -(node_velocity_potential_below - node_auxiliary_velocity_potential_below)
-                    CL_psi_minus_phi = 2*potential_jump_psi_minus_phi_below/self.velocity_infinity[0]
-                    print ('potential jump Psi - Phi (below the wake) = ', potential_jump_psi_minus_phi_below, '=> CL = ',CL_psi_minus_phi)
-                if node_velocity_potential_above!=0 and node_velocity_potential_below!=0:
-                    potential_jump_delta_phi = node_velocity_potential_above - node_velocity_potential_below
-                    CL_delta_phi = 2*potential_jump_delta_phi/self.velocity_infinity[0]                  
-                    print ('potential jump delta Phi (above - below) = ', potential_jump_delta_phi, '=> CL = ',CL_delta_phi )
-                    #input()
+                    Cl = 2*potential_jump_psi_minus_phi_below/self.velocity_infinity[0]
+                    print ('potential jump Psi - Phi (below the wake) = ', potential_jump_psi_minus_phi_below, '=> CL = ',Cl)
+            break
 
-        #print('trailing edge Y coordinate',self.te.Y)
-        #print(len(self.wake_model_part.Nodes))
-        #print(len(self.wake_model_part.Elements))
-        
-        #ALTERNATIVE: "for node in self.wake_model_part.Nodes:" # Get each wake element node only once
+        if self.create_output_file:
+             with open("cl_jump.dat", 'w') as cl_file:
+                 cl_file.write('{0:15.12f}'.format(Cl))
