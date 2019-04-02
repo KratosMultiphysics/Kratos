@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //Project includes
 #include "includes/define.h"
 #include "containers/array_1d.h"
+#include "geometries/point.h"
 #include "custom_utilities/sd_math_utils.h"
 
 namespace Kratos
@@ -80,11 +81,11 @@ public:
     /**
      * Constructor.
      */
-    Circle3D(Point M,Point e1,Point e2 )
+    Circle3D(array_1d<double, 3> M,array_1d<double, 3> e1,array_1d<double, 3> e2 )
         :mM(M),mE1(e1),mE2(e2)
     {
-        r1 = mE1-M;
-        r2 = mE2-M;
+        noalias(r1) = mE1-M;
+        noalias(r2) = mE2-M;
         radius = MathUtils<double>::Norm(r1);
         radius2 = radius*radius;
         std::cout << "Circle created" << std::endl;
@@ -99,7 +100,7 @@ public:
     /**
      *
      */
-   Point& GetCenter()
+   array_1d<double, 3>& GetCenter()
     {
         return mM;
     }
@@ -107,7 +108,7 @@ public:
     /**
      *
      */
-   Point& GetPoint(Point& result, double s )
+   array_1d<double, 3>& GetPoint(array_1d<double, 3>& result, double s )
     {
         result = cos( s/radius )*r1 + sin( s/radius )*r2 + mM;
         return result;
@@ -173,9 +174,9 @@ public:
 
 private:
 
-   Point mM;
-   Point mE1;
-   Point mE2;
+   array_1d<double, 3> mM;
+   array_1d<double, 3> mE1;
+   array_1d<double, 3> mE2;
     array_1d<double, 3> r1;
     array_1d<double, 3> r2;
     double radius;

@@ -75,6 +75,8 @@ public:
     ///@name Life Cycle
     ///@{
 
+    virtual ~LinearSolverFactory(){}
+
     ///@}
     ///@name Operators
     ///@{
@@ -98,11 +100,18 @@ public:
      */
     virtual typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer Create(Kratos::Parameters Settings)
     {
-        if(KratosComponents< FactoryType >::Has( Settings["solver_type"].GetString())== false) {
-            KRATOS_ERROR << "Trying to construct a Linear solver with solver_type = " << Settings["solver_type"].GetString() << std::endl << "which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
-                         KratosComponents< FactoryType >() << std::endl;
-        }
-        const auto& aux = KratosComponents< FactoryType >::Get( Settings["solver_type"].GetString()  );
+        std::string solver_name = Settings["solver_type"].GetString();
+        // remove name of the application (if passed)
+        // e.g. "ExternalSolversApplication.super_lu" => "super_lu"
+        solver_name = solver_name.substr(solver_name.find(".") + 1);
+
+        KRATOS_ERROR_IF_NOT(Has(solver_name))
+            << "Trying to construct a Linear solver with solver_type:\n\""
+            << solver_name << "\" which does not exist.\n"
+            << "The list of available options (for currently loaded applications) is:\n"
+            << KratosComponents< FactoryType >() << std::endl;
+
+        const auto& aux = KratosComponents< FactoryType >::Get(solver_name);
         return aux.CreateSolver( Settings );
     }
 
@@ -148,6 +157,8 @@ typedef TUblasDenseSpace<double> LocalSparseSpaceType;
 
 typedef LinearSolverFactory<SparseSpaceType,  LocalSparseSpaceType> LinearSolverFactoryType;
 
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactoryType>;
+
 #ifdef KRATOS_REGISTER_LINEAR_SOLVER
 #undef KRATOS_REGISTER_LINEAR_SOLVER
 #endif
@@ -159,11 +170,14 @@ typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSparseSpaceType;
 
 typedef LinearSolverFactory<ComplexSparseSpaceType,  ComplexLocalSparseSpaceType> ComplexLinearSolverFactoryType;
 
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ComplexLinearSolverFactoryType>;
+
 #ifdef KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER
 #undef KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER
 #endif
 #define KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER(name, reference) \
     KratosComponents<ComplexLinearSolverFactoryType>::Add(name, reference);
+
 
 }  // namespace Kratos.
 

@@ -12,6 +12,7 @@
 // System includes
 
 // External includes
+#include "boost/numeric/ublas/vector.hpp"
 
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -29,7 +30,6 @@
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
 #include "custom_strategies/custom_schemes/explicit_central_differences_scheme.hpp"
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
-#include "custom_response_functions/adjoint_schemes/adjoint_structural_static_scheme.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -49,7 +49,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
@@ -76,7 +76,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
     typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
     typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
-    typedef AdjointStructuralStaticScheme< SparseSpaceType, LocalSpaceType > AdjointStructuralStaticSchemeType;
 
 
     // Custom convergence criterion types
@@ -149,9 +148,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< Parameters>())
         ;
 
-    py::class_<AdjointStructuralStaticSchemeType, AdjointStructuralStaticSchemeType::Pointer, BaseSchemeType>(m, "AdjointStructuralStaticScheme")
-        .def(py::init<Parameters, AdjointStructuralResponseFunction::Pointer>());
-
 
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
@@ -165,7 +161,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Displacement and other DoF residual Convergence Criterion
     py::class_< ResidualDisplacementAndOtherDoFCriteriaType,typename ResidualDisplacementAndOtherDoFCriteriaType::Pointer, ConvergenceCriteriaType >(m,"ResidualDisplacementAndOtherDoFCriteria")
-        .def(py::init< double, double, std::string >())
+        .def(py::init< double, double, const std::string >())
         .def(py::init< double, double>())
         ;
 

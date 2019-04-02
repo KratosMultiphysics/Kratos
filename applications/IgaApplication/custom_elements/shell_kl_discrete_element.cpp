@@ -13,9 +13,7 @@
 
 
 // System includes
-#include "includes/define.h"
 #include "utilities/math_utils.h"
-#include "geometries/geometry.h"
 
 // External includes
 
@@ -23,7 +21,6 @@
 #include "custom_elements/shell_kl_discrete_element.h"
 
 // Application includes
-#include "iga_application.h"
 #include "iga_application_variables.h"
 
 namespace Kratos
@@ -75,8 +72,8 @@ namespace Kratos
         CalculateMetric(actual_metric);
         ConstitutiveVariables constitutive_variables_membrane(3);
         ConstitutiveVariables constitutive_variables_curvature(3);
-        CalculateConstitutiveVariables(actual_metric, 
-            constitutive_variables_membrane, constitutive_variables_curvature, 
+        CalculateConstitutiveVariables(actual_metric,
+            constitutive_variables_membrane, constitutive_variables_curvature,
             Values, ConstitutiveLaw::StressMeasure_PK2);
 
         // calculate B MATRICES
@@ -214,7 +211,7 @@ namespace Kratos
         //    // PK2 moment in G1,G2
         //    Vector m_pk2_con = prod(mInitialMetric.T, m_pk2_local_ca);
         //    // Cauchy moment in g1,g2
-        //    array_1d<double, 3> m_cau = 1.0 / detF*m_pk2_con; 
+        //    array_1d<double, 3> m_cau = 1.0 / detF*m_pk2_con;
 
 
         //    Vector m = ZeroVector(8);
@@ -333,7 +330,7 @@ namespace Kratos
             const int& number_of_nodes = GetGeometry().size();
             Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
             Vector external_forces_vector = ZeroVector(3);
-            for (SizeType i = 0; i < number_of_nodes; i++)
+            for (int i = 0; i < number_of_nodes; i++)
             {
                 const NodeType & iNode = GetGeometry()[i];
                 const Vector& forces = iNode.GetValue(EXTERNAL_FORCES_VECTOR);
@@ -479,7 +476,7 @@ namespace Kratos
         rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesMembrane.D); //this is an ouput parameter
         //rValues.CheckAllParameters();
         mConstitutiveLawVector[0]->CalculateMaterialResponse(rValues, ThisStressMeasure);
-        
+
         double thickness = this->GetProperties().GetValue(THICKNESS);
         rThisConstitutiveVariablesCurvature.D = rThisConstitutiveVariablesMembrane.D*(pow(thickness, 2) / 12);
 

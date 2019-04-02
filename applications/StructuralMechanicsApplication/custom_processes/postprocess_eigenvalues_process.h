@@ -86,7 +86,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PostprocessEigenvaluesProcess
     ///@name Operations
     ///@{
 
-    void Execute() override;
+    void ExecuteFinalizeSolutionStep() override;
 
     ///@}
     ///@name Access

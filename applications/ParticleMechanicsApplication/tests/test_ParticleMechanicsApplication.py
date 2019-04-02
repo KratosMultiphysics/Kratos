@@ -1,12 +1,12 @@
 # import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.ParticleMechanicsApplication
 import run_cpp_unit_tests
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import from Test Factories (with general analysis flows)
+from particle_mechanics_test_factory import AxisSymmetricCircularPlate2DTriTest as TAxisSymmetricCircularPlate2DTriTest
 from particle_mechanics_test_factory import BeamCantileverStaticLinearElasticPointLoad2DTriTest as TBeamCantileverStaticLinearElasticPointLoad2DTriTest
 from particle_mechanics_test_factory import BeamCantileverStaticLinearElasticLineLoad2DQuadTest as TBeamCantileverStaticLinearElasticLineLoad2DQuadTest
 from particle_mechanics_test_factory import BeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest as TBeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest
@@ -16,10 +16,12 @@ from particle_mechanics_test_factory import CooksMembraneUPCompressibleTest as T
 from particle_mechanics_test_factory import CooksMembraneUPIncompressibleTest as TCooksMembraneUPIncompressibleTest
 from particle_mechanics_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
 from particle_mechanics_test_factory import GravityApplicationTest as TGravityApplicationTest
+from particle_mechanics_test_factory import PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
 from particle_mechanics_test_factory import SlipBoundaryTest as TSlipBoundaryTest
 
 # Import from Test Factories (with different analysis flows)
 from test_generate_mpm_particle             import TestGenerateMPMParticle            as TTestGenerateMPMParticle
+from test_generate_mpm_particle_condition   import TestGenerateMPMParticleCondition   as TTestGenerateMPMParticleCondition
 from test_particle_erase_process            import TestParticleEraseProcess           as TTestParticleEraseProcess
 from test_search_mpm_particle               import TestSearchMPMParticle              as TTestSearchMPMParticle
 from test_static_loading_conditions_point   import TestStaticLoadingConditionsPoint   as TTestStaticLoadingConditionsPoint
@@ -50,19 +52,26 @@ def AssembleTestSuites():
     smallSuite = suites['small']
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestGenerateMPMParticle]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestGenerateMPMParticleCondition]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestParticleEraseProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSearchMPMParticle]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsPoint]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsLine]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsSurface]))
+
+    # TODO: Look further into these three tests as they are still failing for AMatrix
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsPoint]))    # FIXME:
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsLine]))     # FIXME:
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsSurface]))  # FIXME:
 
     smallSuite.addTest(TCLLinearElastic3DQuadTest('test_execution'))
     smallSuite.addTest(TGravityApplicationTest('test_execution'))
-    smallSuite.addTest(TSlipBoundaryTest('test_execution'))
+
+    # TODO: Look further into this test as they are still failing for AMatrix
+    smallSuite.addTest(TSlipBoundaryTest('test_execution')) # FIXME:
 
     ## These tests are executed in the nightly build
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
+
+    nightSuite.addTest(TAxisSymmetricCircularPlate2DTriTest('test_execution'))
 
     nightSuite.addTest(TBeamCantileverStaticLinearElasticPointLoad2DTriTest('test_execution'))
     nightSuite.addTest(TBeamCantileverStaticLinearElasticLineLoad2DQuadTest('test_execution'))
@@ -72,6 +81,8 @@ def AssembleTestSuites():
     nightSuite.addTest(TCooksMembraneCompressibleTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPCompressibleTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPIncompressibleTest('test_execution'))
+
+    nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
 
     ### Adding Validation Tests
     ## For very long tests that should not be in nighly and you can use to validate

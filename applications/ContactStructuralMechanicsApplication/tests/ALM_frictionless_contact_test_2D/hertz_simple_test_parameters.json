@@ -37,10 +37,10 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 20,
         "linear_solver_settings"             : {
-            "solver_type" : "SkylineLUFactorizationSolver"
+            "solver_type" : "skyline_lu_factorization"
         },
-        "problem_domain_sub_model_part_list" : ["Parts_parts_hemisphere","Parts_parts_plate"],
-        "processes_sub_model_part_list"      : ["Contact_Part","DISPLACEMENT_bc_fix","LineLoad2D_bc_pressure", "Parts_parts_hemisphere","Parts_parts_plate"],
+        "problem_domain_sub_model_part_list" : ["Structure","Parts_parts_hemisphere","Parts_parts_plate"],
+        "processes_sub_model_part_list"      : ["Structure","Contact_Part","DISPLACEMENT_bc_fix","LineLoad2D_bc_pressure", "Parts_parts_hemisphere","Parts_parts_plate"],
         "rotation_dofs"                      : false
     },
     "processes" : {
@@ -85,7 +85,7 @@
         "contact_process_list" :[
         {
             "python_module"   : "alm_contact_process",
-            "kratos_module"   : "ContactStructuralMechanicsApplication",
+            "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
             "help"                  : "",
             "process_name"          : "ALMContactProcess",
             "Parameters"            : {
@@ -134,25 +134,25 @@
                 "model_part_name"        : "Structure.computing_domain",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1.0,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","LAGRANGE_MULTIPLIER_CONTACT_PRESSURE","WEIGHTED_GAP"],
-            "nodal_nonhistorical_results": ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
-            "nodal_flags_results": ["ACTIVE","SLAVE"],
-            "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
-        },
-        "point_data_configuration"  : []}}}]
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "step",
+                        "output_control_type" : "step",
+                        "output_frequency"    : 1.0,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","LAGRANGE_MULTIPLIER_CONTACT_PRESSURE","WEIGHTED_GAP"],
+                        "nodal_nonhistorical_results": ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
+                        "nodal_flags_results": ["ACTIVE","SLAVE"],
+                        "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
+                    },
+                    "point_data_configuration"  : []}}}]
     },
     "_json_output_process" : [
     {
@@ -180,15 +180,5 @@
             "time_frequency"       : 1.00
         }
     }
-    ],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    }
+    ]
 }

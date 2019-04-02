@@ -2,19 +2,9 @@ from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 
 import KratosMultiphysics.KratosUnittest as UnitTest
+import KratosMultiphysics.kratos_utilities as KratosUtilities
 
 import vms_monolithic_solver
-
-class WorkFolderScope:
-    def __init__(self, work_folder):
-        self.currentPath = os.getcwd()
-        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        os.chdir(self.currentPath)
 
 class TimeIntegratedFluidElementTest(UnitTest.TestCase):
 
@@ -37,16 +27,11 @@ class TimeIntegratedFluidElementTest(UnitTest.TestCase):
         self.oss_switch = 0
 
     def tearDown(self):
-        import os
-        with WorkFolderScope(self.work_folder):
-            try:
-                os.remove(self.input_file+'.time')
-            except FileNotFoundError as e:
-                pass
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
+            KratosUtilities.DeleteFileIfExisting(self.input_file+'.time')
 
     def testCavity(self):
-
-        with WorkFolderScope(self.work_folder):
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
             self.setUpModel()
             self.setUpProblem()
             self.setUpSolvers()
@@ -95,8 +80,10 @@ class TimeIntegratedFluidElementTest(UnitTest.TestCase):
         self.fluid_solver.conv_criteria.SetEchoLevel(0)
 
         self.fluid_solver.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
-        precond = DiagonalPreconditioner()
-        self.fluid_solver.linear_solver = BICGSTABSolver(1e-6, 5000, precond)
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+        self.fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(Parameters(r'''{
+                "solver_type" : "amgcl"
+            }'''))
         builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.fluid_solver.linear_solver)
         self.fluid_solver.max_iter = 50
         self.fluid_solver.compute_reactions = False

@@ -4,9 +4,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication","TrilinosApplication")
-
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
@@ -27,7 +24,7 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def __init__(self, model, custom_settings):
         if not custom_settings.Has("linear_solver_settings"): # Override defaults in the base class.
             linear_solver_settings = KratosMultiphysics.Parameters("""{
-                "solver_type" : "AmesosSolver",
+                "solver_type" : "amesos",
                 "amesos_solver_type" : "Amesos_Klu"
             }""")
             custom_settings.AddValue("linear_solver_settings", linear_solver_settings)

@@ -481,7 +481,7 @@ template <typename TDataType, std::size_t TSize1, std::size_t TSize2> using Boun
 
 template <typename TDataType, std::size_t TSize> using BoundedVector=Internals::Matrix<TDataType,TSize, 1>;
 
-template <typename T> T& noalias(T& TheMatrix){return TheMatrix.noalias();}
+template <typename T> T& noalias(T& TheMatrix){return TheMatrix;}
 
 template <typename T> AMatrix::TransposeMatrix<const T> trans(const T& TheMatrix){ return AMatrix::TransposeMatrix<const T>(TheMatrix);}
 
@@ -608,6 +608,18 @@ typename TExpression1Type::data_type inner_prod(
     return result;
 
 }
+
+    template <typename TExpressionType, std::size_t TCategory>
+    typename TExpressionType::data_type norm_1(
+        AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
+            using data_type = typename TExpressionType::data_type;
+            auto& the_expression = TheExpression.expression();
+            data_type result = data_type();
+            for (std::size_t i = 0; i < the_expression.size(); ++i) {
+                result += std::abs(the_expression[i]);
+            }
+        return result;
+    }
 
 template <typename TExpressionType, std::size_t TCategory>
     typename TExpressionType::data_type norm_2(

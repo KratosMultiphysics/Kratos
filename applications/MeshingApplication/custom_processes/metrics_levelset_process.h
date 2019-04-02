@@ -197,14 +197,18 @@ private:
     ///@name Private member Variables
     ///@{
 
-    ModelPart& mThisModelPart;                        /// The model part to compute
-    Variable<array_1d<double,3>> mVariableGradient;   /// The gradient variable
-    std::string mRatioReferenceVariable = "DISTANCE"; /// Variable used to compute the anisotropic ratio
-    double mMinSize;                                  /// The minimal size of the elements
-    bool mEnforceCurrent;                             /// With this we choose if we inforce the current nodal size (NODAL_H)
-    double mAnisotropicRatio;                         /// The minimal anisotropic ratio (0 < ratio < 1)
-    double mBoundLayer;                               /// The boundary layer limit Distance
-    Interpolation mInterpolation;                     /// The interpolation type
+    ModelPart& mThisModelPart;                            /// The model part to compute
+    const Variable<array_1d<double,3>> mVariableGradient; /// The gradient variable
+    std::string mRatioReferenceVariable = "DISTANCE";     /// Variable used to compute the anisotropic ratio
+    std::string mSizeReferenceVariable = "DISTANCE";      /// Variable used to compute the element size
+    double mMinSize;                                      /// The minimal size of the elements
+    double mMaxSize;                                      /// The maximal size of the elements
+    bool mEnforceCurrent;                                 /// With this we choose if we inforce the current nodal size (NODAL_H)
+    double mAnisotropicRatio;                             /// The minimal anisotropic ratio (0 < ratio < 1)
+    double mBoundLayer;                                   /// The boundary layer limit Distance for the anisotropic ratio
+    double mSizeBoundLayer;                               /// The boundary layer limit Distance for the element size
+    Interpolation mInterpolation;                         /// The interpolation type for the anisotropic ratio
+    Interpolation mSizeInterpolation;                     /// The interpolation type for the element size
 
     ///@}
     ///@name Private Operators
@@ -235,11 +239,11 @@ private:
 
     Interpolation ConvertInter(const std::string& Str)
     {
-        if(Str == "Constant" || Str == "CONSTANT")
+        if(Str == "Constant" || Str == "CONSTANT" || Str == "constant")
             return Interpolation::CONSTANT;
-        else if(Str == "Linear" || Str == "LINEAR")
+        else if(Str == "Linear" || Str == "LINEAR"  || Str == "linear")
             return Interpolation::LINEAR;
-        else if(Str == "Exponential" || Str == "EXPONENTIAL")
+        else if(Str == "Exponential" || Str == "EXPONENTIAL"  || Str == "exponential")
             return Interpolation::EXPONENTIAL;
         else
             return Interpolation::LINEAR;
@@ -254,10 +258,12 @@ private:
      */
 
     double CalculateAnisotropicRatio(
+        const double Distance
+        );
+
+    double CalculateElementSize(
         const double Distance,
-        const double AnisotropicRatio,
-        const double BoundLayer,
-        const Interpolation& rInterpolation
+        const double NodalH
         );
 
     ///@}

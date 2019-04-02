@@ -216,16 +216,11 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         #check free vibration of cantilever tip
         disp_y_simulated = mp.Nodes[nr_nodes].GetSolutionStepValue(
             KratosMultiphysics.DISPLACEMENT_Y)
-        disp_y_analytical = [-2.8662420382165618e-06,-6.5284595740263744e-06,
-            -8.667247023317519e-06,-1.5193910085875024e-05,-2.4013659391608225e-05,
-            -3.2183559803816915e-05,-4.43709426806417e-05,-5.9041345875279067e-05,
-            -7.330044103901265e-05,-9.107969267628107e-05,-0.00011105794571720542,
-            -0.0001304810033530728,-0.00015308391062689988,-0.00017782947133379302,
-            -0.00020200606491067104,-0.00022918489563129963,-0.00025850356356149775,
-            -0.00028714489980093377,-0.0003185138569101933,-0.0003519411006451715,
-            -0.0003845236264241205,-0.000419580648891076,-0.0004566985915125524,
-            -0.0004929004674252967,-0.0005314362205181631,-0.0005721203453514332,
-            -0.0006117811911574032]
+        disp_y_analytical = [-2.8662420382165618e-06, -7.324435068359769e-06,
+         -1.1284349973901058e-05, -1.832745727658638e-05, -2.7392682029790193e-05,
+          -3.725949945576998e-05, -5.039573129445816e-05, -6.550420107648481e-05,
+           -8.13072032132872e-05, -9.994712970365864e-05, -0.00012023689482204995,
+            -0.00014100714864344788]
 
         self.assertAlmostEqual(disp_y_analytical[time_step], disp_y_simulated,6)
 
@@ -253,6 +248,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -295,6 +291,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             nr_elements = nr_nodes-1
             current_model = KratosMultiphysics.Model()
             mp = current_model.CreateModelPart("solid_part")
+            mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
             self._add_variables(mp)
             self._apply_material_properties(mp,dim)
 
@@ -339,6 +336,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -388,6 +386,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,False)
@@ -447,6 +446,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,True)
@@ -506,6 +506,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             nr_elements = nr_nodes-1
             current_model = KratosMultiphysics.Model()
             mp = current_model.CreateModelPart("solid_part")
+            mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
             self._add_variables(mp)
             _add_explicit_variables(mp)
             self._apply_material_properties(mp,dim)
@@ -564,6 +565,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -810,16 +812,16 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         #check free vibration of cantilever tip
         disp_y_simulated = mp.Nodes[nr_nodes].GetSolutionStepValue(
             KratosMultiphysics.DISPLACEMENT_Y)
-        disp_y_analytical = [-2.8662420382165618e-06,-6.5284598580628135e-06,
-            -8.661766714284483e-06,-1.5166844659226568e-05,-2.3974692146734503e-05,
-            -3.213060541808351e-05,-4.4284460087458615e-05,-5.8937873140393946e-05,
-            -7.318106720395262e-05,-9.09215604293434e-05,-0.00011088212163774735,
-            -0.00013029114264297788,-0.00015285402390510065,-0.00017758464802435417,
-            -0.0002017526913999827,-0.00022889337656467832,-0.00025820171682640884,
-            -0.0002868413100380328,-0.000318174460796471,-0.0003515951807656998,
-            -0.00038418182365403656,-0.0004192072728098697,-0.0004563324503910268,
-            -0.0004925439930684863,-0.0005309736146781797,-0.0005715335001692381,
-            -0.0006112486419960861]
+        disp_y_analytical = [-2.8662420382165618e-06, -7.324435639692502e-06,
+         -1.127338906783505e-05, -1.8295247730107807e-05, -2.734628604381698e-05,
+          -3.719359531899879e-05, -5.0300379791890316e-05, -6.539083979597516e-05,
+           -8.117215311130154e-05, -9.977925134032038e-05, -0.000120050918560219,
+            -0.00014080087213487295, -0.00016415937456847792, -0.00018914916567586786,
+             -0.00021458569402846208, -0.00024252485909649984, -0.0002720522349491637,
+              -0.0003018687112562826, -0.00033395260872105294, -0.0003674971920367386,
+               -0.00040114613492046235, -0.0004368853206358216, -0.00047407303279122377,
+                -0.0005112724218782807, -0.0005504051808475501, -0.000590998050641702,
+                 -0.0006317027806857927]
 
 
         self.assertAlmostEqual(disp_y_analytical[time_step], disp_y_simulated)
@@ -847,6 +849,7 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -891,6 +894,7 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -949,6 +953,7 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -999,6 +1004,7 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -1057,6 +1063,7 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
             nr_elements = nr_nodes-1
             current_model = KratosMultiphysics.Model()
             mp = current_model.CreateModelPart("solid_part")
+            mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
             self._add_variables(mp)
             _add_explicit_variables(mp)
             self._apply_material_properties(mp,dim)

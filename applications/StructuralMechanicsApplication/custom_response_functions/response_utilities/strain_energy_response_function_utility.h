@@ -92,7 +92,6 @@ public:
 		else
 			KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: semi_analytic" << std::endl;
 
-		mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
 	}
 
 	/// Destructor.
@@ -171,9 +170,6 @@ public:
 		CalculateResponseDerivativePartByFiniteDifferencing();
 		CalculateAdjointField();
 		CalculateStateDerivativePartByFiniteDifferencing();
-
-		if (mConsiderDiscretization)
-			this->ConsiderDiscretization();
 
 		KRATOS_CATCH("");
 	}
@@ -270,15 +266,15 @@ protected:
 				Vector derived_RHS = Vector(0);
 
 				// x-direction
-				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, SHAPE_X, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_X, node_i, mDelta, derived_RHS, CurrentProcessInfo);
 				gradient_contribution[0] = inner_prod(lambda, derived_RHS);
 
                 // y-direction
-				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, SHAPE_Y, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Y, node_i, mDelta, derived_RHS, CurrentProcessInfo);
 				gradient_contribution[1] = inner_prod(lambda, derived_RHS);
 
                 // z-direction
-				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, SHAPE_Z, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Z, node_i, mDelta, derived_RHS, CurrentProcessInfo);
 				gradient_contribution[2] = inner_prod(lambda, derived_RHS);
 
 				// Assemble sensitivity to node
@@ -409,33 +405,6 @@ protected:
 		KRATOS_CATCH("");
 	}
 
-	// --------------------------------------------------------------------------
-  	virtual void ConsiderDiscretization()
-	{
-
-
-		// Start process to identify element neighbors for every node
-		FindNodalNeighboursProcess neigbhorFinder = FindNodalNeighboursProcess(mrModelPart, 10, 10);
-		neigbhorFinder.Execute();
-
-		std::cout<< "> Considering discretization size!" << std::endl;
-		for(auto& node_i : mrModelPart.Nodes())
-		{
-			WeakPointerVector<Element >& ng_elem = node_i.GetValue(NEIGHBOUR_ELEMENTS);
-
-			double scaling_factor = 0.0;
-			for(std::size_t i = 0; i < ng_elem.size(); i++)
-			{
-				Kratos::Element& ng_elem_i = ng_elem[i];
-				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
-
-				scaling_factor += element_geometry.DomainSize();
-			}
-
-			node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY) /= scaling_factor;
-		}
-	}
-
 	// ==============================================================================
 
 	///@}
@@ -462,7 +431,6 @@ private:
 
 	ModelPart &mrModelPart;
 	double mDelta;
-	bool mConsiderDiscretization;
 
 	///@}
 ///@name Private Operators

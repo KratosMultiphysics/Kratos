@@ -21,7 +21,7 @@
 #include "includes/properties.h"
 #include "custom_constitutive/hencky_plastic_3D_law.hpp"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
-#include "particle_mechanics_application.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -179,36 +179,14 @@ void HenckyElasticPlastic3DLaw::InitializeMaterial(const Properties& rProps,
         const Vector& rShapeFunctionsValues)
 {
     mDeterminantF0                = 1;
-    mInverseDeformationGradientF0 = identity_matrix<double> (3);
-    mElasticLeftCauchyGreen       = identity_matrix<double> (3);
+    mInverseDeformationGradientF0 = IdentityMatrix(3);
+    mElasticLeftCauchyGreen       = IdentityMatrix(3);
 
     mPlasticRegion = 0;
 
     mpMPMFlowRule->InitializeMaterial(mpYieldCriterion, mpHardeningLaw, rProps);
 }
-//************************************************************************************
-//************************************************************************************
 
-
-void HenckyElasticPlastic3DLaw::InitializeSolutionStep( const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry, //this is just to give the array of nodes
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-    mpHardeningLaw->SetProperties(rMaterialProperties);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-
-void HenckyElasticPlastic3DLaw::FinalizeSolutionStep( const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry, //this is just to give the array of nodes
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-
-}
 
 //************* COMPUTING  METHODS
 //************************************************************************************
@@ -247,7 +225,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     //0.- Initialize parameters
     MaterialResponseVariables ElasticVariables;
     PlasticMaterialResponseVariables PlasticVariables;
-    ElasticVariables.Identity = identity_matrix<double> ( 3 );
+    ElasticVariables.Identity = IdentityMatrix(3);
 
     ElasticVariables.SetElementGeometry(domain_geometry);
     ElasticVariables.SetShapeFunctionsValues(shape_functions);

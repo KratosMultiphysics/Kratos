@@ -13,13 +13,12 @@ from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
 from KratosMultiphysics import *
-from KratosMultiphysics.MeshMovingApplication import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # Additional imports
 import time as timer
 from mesh_controller_base import MeshController
-from mesh_moving_analysis import MeshMovingAnalysis
+from KratosMultiphysics.MeshMovingApplication.mesh_moving_analysis import MeshMovingAnalysis
 
 # # ==============================================================================
 class MeshControllerWithSolver(MeshController) :
@@ -29,17 +28,18 @@ class MeshControllerWithSolver(MeshController) :
         {
             "apply_mesh_solver" : true,
             "solver_settings" : {
-                "solver_type" : "mesh_solver_structural_similarity",
-                "model_part_name"       : "",
+                "domain_size"     : 3,
+                "echo_level"      : 0,
+                "solver_type"     : "structural_similarity",
+                "model_part_name" : "NONE",
                 "model_import_settings"              : {
                     "input_type"     : "use_input_model_part"
                 },
                 "time_stepping" : {
                     "time_step"       : 1.0
                 },
-                "domain_size"     : 3,
-                "linear_solver_settings" : {
-                    "solver_type" : "AMGCL",
+                "mesh_motion_linear_solver_settings" : {
+                    "solver_type" : "amgcl",
                     "smoother_type":"ilu0",
                     "krylov_type": "gmres",
                     "coarsening_type": "aggregation",
@@ -50,10 +50,18 @@ class MeshControllerWithSolver(MeshController) :
                 "compute_reactions"         : false,
                 "calculate_mesh_velocities" : false
             },
-            "boundary_conditions_process_list" : []
+            "processes" : {
+                "boundary_conditions_process_list" : []
+            }
         }""")
         self.MeshSolverSettings = MeshSolverSettings
         self.MeshSolverSettings.ValidateAndAssignDefaults(default_settings)
+        self.MeshSolverSettings["solver_settings"].ValidateAndAssignDefaults(default_settings["solver_settings"])
+        self.MeshSolverSettings["processes"].ValidateAndAssignDefaults(default_settings["processes"])
+
+        if not self.MeshSolverSettings["solver_settings"].Has("mesh_motion_linear_solver_settings"):
+            MeshSolverSettings.AddValue("mesh_motion_linear_solver_settings", default_settings["solver_settings"]["mesh_motion_linear_solver_settings"])
+            print("::[MeshControllerWithSolver]::INFO using default linear solver for mesh motion.")
 
         if not MeshSolverSettings.Has("problem_data"):
             self.__AddDefaultProblemData(self.MeshSolverSettings)
@@ -62,7 +70,7 @@ class MeshControllerWithSolver(MeshController) :
 
         self.OptimizationModelPart = model[self.MeshSolverSettings["solver_settings"]["model_part_name"].GetString()]
 
-        if self.MeshSolverSettings["boundary_conditions_process_list"].size() == 0:
+        if self.MeshSolverSettings["processes"]["boundary_conditions_process_list"].size() == 0:
             self.__FixWholeSurface(self.OptimizationModelPart, self.MeshSolverSettings)
             self.has_automatic_boundary_process = True
         else:
@@ -82,17 +90,26 @@ class MeshControllerWithSolver(MeshController) :
         print("\n> Starting to update the mesh...")
         startTime = timer.time()
 
-        VariableUtils().CopyVectorVar(variable, MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
+        time_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(TIME)
+        step_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(STEP)
+        delta_time_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(DELTA_TIME)
 
-        time_before_mesh_update = self.OptimizationModelPart.ProcessInfo.GetValue(TIME)
+        # Reset step/time iterators such that they match the current iteration after calling RunSolutionLoop (which internally calls CloneTimeStep)
+        self.OptimizationModelPart.ProcessInfo.SetValue(STEP, step_before_update-1)
+        self.OptimizationModelPart.ProcessInfo.SetValue(TIME, time_before_update-1)
+        self.OptimizationModelPart.ProcessInfo.SetValue(DELTA_TIME, 0)
+
+        VariableUtils().CopyVectorVar(variable, MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
 
         if not self._mesh_moving_analysis.time < self._mesh_moving_analysis.end_time:
             self._mesh_moving_analysis.end_time += 1
         self._mesh_moving_analysis.RunSolutionLoop()
 
-        self.OptimizationModelPart.ProcessInfo.SetValue(TIME, time_before_mesh_update)
-
         MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(MESH_DISPLACEMENT)
+
+        self.OptimizationModelPart.ProcessInfo.SetValue(STEP, step_before_update)
+        self.OptimizationModelPart.ProcessInfo.SetValue(TIME, time_before_update)
+        self.OptimizationModelPart.ProcessInfo.SetValue(DELTA_TIME, delta_time_before_update)
 
         print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 
@@ -104,9 +121,9 @@ class MeshControllerWithSolver(MeshController) :
     @staticmethod
     def __AddDefaultProblemData(mesh_solver_settings):
         problem_data = Parameters("""{
-            "echo_level" : 0,
-            "start_time" : 0.0,
-            "end_time" : 1.0,
+            "echo_level"    : 0,
+            "start_time"    : 0.0,
+            "end_time"      : 1.0,
             "parallel_type" : "OpenMP"
         }""")
 
@@ -132,8 +149,7 @@ class MeshControllerWithSolver(MeshController) :
             }
             """)
 
-        print("Add automatic process to fix the whole surface to mesh motion solver:")
-        print(auto_process_settings)
-        mesh_solver_settings["boundary_conditions_process_list"].Append(auto_process_settings)
+        print("> Add automatic process to fix the whole surface to mesh motion solver:")
+        mesh_solver_settings["processes"]["boundary_conditions_process_list"].Append(auto_process_settings)
 
 # ==============================================================================

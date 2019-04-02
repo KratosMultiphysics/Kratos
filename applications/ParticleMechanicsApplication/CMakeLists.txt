@@ -19,27 +19,34 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_UP.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_quadrilateral.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_axisymmetry.cpp
 
 	###constitutive laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_plane_stress_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_UP_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plane_strain_UP_2D_law.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_axisym_2D_law.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_UP_3D_law.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_plane_strain_UP_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_plane_strain_2D_law.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_plane_strain_UP_2D_law.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_3D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_axisym_2D_law.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_UP_3D_law.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_plane_strain_UP_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_strain_softening_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_strain_softening_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_strain_softening_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_borja_cam_clay_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_borja_cam_clay_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_borja_cam_clay_axisym_2D_law.cpp
 
 	###yield criteria
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/yield_criteria/mc_yield_criterion.cpp
@@ -57,9 +64,13 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 
 	###conditions
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_base_load_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_point_load_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_line_load_condition_2d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_surface_load_condition_3d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/grid_based_conditions/mpm_grid_point_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/grid_based_conditions/mpm_grid_axisym_point_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/grid_based_conditions/mpm_grid_line_load_condition_2d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/grid_based_conditions/mpm_grid_axisym_line_load_condition_2d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/grid_based_conditions/mpm_grid_surface_load_condition_3d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/particle_based_conditions/mpm_particle_base_dirichlet_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/particle_based_conditions/mpm_particle_penalty_dirichlet_condition.cpp
 )
 
 ## generate variables with the testing sources
@@ -97,4 +108,4 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ParticleMechanicsApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ParticleMechanicsApplication.py" DESTINATION "KratosMultiphysics/ParticleMechanicsApplication" RENAME "__init__.py")

@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 ## Import base class file
 from shallow_water_base_solver import ShallowWaterBaseSolver
 
@@ -19,7 +16,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
         # Set the element and condition names for the replace settings
         self.element_name = "ShallowElement"
         self.condition_name = "Condition"
-        self.min_buffer_size = 1
+        self.min_buffer_size = 2
 
         # Pfem2 settings
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
@@ -92,7 +89,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
             # Compute free surface
             self.ShallowVariableUtils.ComputeFreeSurfaceElevation()
             # If water height is negative or close to zero, reset values
-            self.ShallowVariableUtils.CheckDryPrimitiveVariables()
+            # self.ShallowVariableUtils.CheckDryPrimitiveVariables()
 
             return is_converged
 

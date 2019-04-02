@@ -135,10 +135,10 @@ public:
 
         double I1, J2;
         ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
-        array_1d<double, VoigtSize> Deviator(VoigtSize, 0.0);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, Deviator, J2);
+        array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
 
-        if (I1 == 0.0) {
+        if (std::abs(I1) < tolerance) {
             rEquivalentStress = 0.0;
         } else {
             const double CFL = -root_3 * (3.0 - sin_phi) / (3.0 * sin_phi - 3.0);
@@ -237,11 +237,8 @@ public:
         array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
         ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
         ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
 
-        const double c3 = 0.0;
-
-        const double friction_angle = r_material_properties[FRICTION_ANGLE];
+        const double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0;;
         const double sin_phi = std::sin(friction_angle);
         const double Root3 = std::sqrt(3.0);
 
@@ -249,7 +246,7 @@ public:
         const double c1 = CFL * 2.0 * sin_phi / (Root3 * (3.0 - sin_phi));
         const double c2 = CFL;
 
-        noalias(rFFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+        noalias(rFFlux) = c1 * first_vector + c2 * second_vector;
     }
 
     /**

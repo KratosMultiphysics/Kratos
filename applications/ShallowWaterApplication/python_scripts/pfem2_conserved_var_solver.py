@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 ## Import base class file
 from pfem2_primitive_var_solver import Pfem2PrimitiveVarSolver
 
@@ -19,7 +16,7 @@ class Pfem2ConservedVarSolver(Pfem2PrimitiveVarSolver):
         # Set the element and condition names for the replace settings
         self.element_name = "ConservedVarElement"
         self.condition_name = "Condition"
-        self.min_buffer_size = 1
+        self.min_buffer_size = 2
 
         # Pfem2 settings
         self.settings["pfem2_settings"]["convection_vector_variable"].SetString("MOMENTUM")

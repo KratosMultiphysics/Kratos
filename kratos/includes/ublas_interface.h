@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
@@ -31,14 +31,14 @@
 
 
 // External includes
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
     #include "includes/amatrix_interface.h"
 #else
+    #include <boost/numeric/ublas/matrix.hpp>
     #include <boost/numeric/ublas/vector.hpp>
     #include <boost/numeric/ublas/vector_proxy.hpp>
     #include <boost/numeric/ublas/vector_sparse.hpp>
     #include <boost/numeric/ublas/vector_expression.hpp>
-    #include <boost/numeric/ublas/matrix.hpp>
     #include <boost/numeric/ublas/matrix_proxy.hpp>
     #include <boost/numeric/ublas/symmetric.hpp>
     #include <boost/numeric/ublas/hermitian.hpp>
@@ -46,7 +46,6 @@
     #include <boost/numeric/ublas/triangular.hpp>
 	#include <boost/numeric/ublas/lu.hpp>
 #endif // ifdef KRATOS_USE_AMATRIX
-
 
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix_sparse.hpp>
@@ -66,7 +65,7 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-#ifndef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#ifndef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
     using namespace boost::numeric::ublas;
 
     template <typename TDataType> using DenseMatrix = boost::numeric::ublas::matrix<TDataType>;
@@ -137,7 +136,7 @@ typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrix;
 
 }  // namespace Kratos.
 
-#endif // KRATOS_UBLAS_INTERFACE_H_INCLUDED  defined 
+#endif // KRATOS_UBLAS_INTERFACE_H_INCLUDED  defined
 
 
 

@@ -14,12 +14,15 @@ set( KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/euler_prim_var_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/euler_cons_var_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/nothing_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/initial_perturbation_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_sinusoidal_function_process.cpp
 )
 
 ## define python interface sources
 set(KRATOS_SHALLOW_WATER_APPLICATION_PYTHON_INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/shallow_water_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 )
 
 ## define fluid dynamics test sources
@@ -38,7 +41,7 @@ pybind11_add_module( KratosShallowWaterApplication MODULE THIN_LTO ${KRATOS_SHAL
 target_link_libraries( KratosShallowWaterApplication PRIVATE KratosShallowWaterCore )
 set_target_properties( KratosShallowWaterApplication PROPERTIES PREFIX "" )
 
-# changing the .dll suffix to .pyd 
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosShallowWaterApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -57,4 +60,4 @@ if(${INSTALL_TESTING_FILES} MATCHES ON)
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Add to the KratosMultiphysics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ShallowWaterApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ShallowWaterApplication.py" DESTINATION "KratosMultiphysics/ShallowWaterApplication" RENAME "__init__.py")

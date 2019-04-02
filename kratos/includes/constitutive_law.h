@@ -821,6 +821,7 @@ public:
      * @param rShapeFunctionsValues the shape functions values in the current integration point
      * @param the current ProcessInfo instance
      */
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - Use InitializeMaterialResponse instead\"")
     virtual void InitializeSolutionStep(const Properties& rMaterialProperties,
                                         const GeometryType& rElementGeometry, //this is just to give the array of nodes
                                         const Vector& rShapeFunctionsValues,
@@ -834,6 +835,7 @@ public:
      * @param rShapeFunctionsValues the shape functions values in the current integration point
      * @param the current ProcessInfo instance
      */
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - Use FinalizeMaterialResponse instead\"")
     virtual void FinalizeSolutionStep(const Properties& rMaterialProperties,
                                       const GeometryType& rElementGeometry,
                                       const Vector& rShapeFunctionsValues,
@@ -849,6 +851,7 @@ public:
      * @param rShapeFunctionsValues the shape functions values in the current integration point
      * @param the current ProcessInfo instance
      */
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - There is no equivalent for this\"")
     virtual void InitializeNonLinearIteration(const Properties& rMaterialProperties,
 					      const GeometryType& rElementGeometry,
 					      const Vector& rShapeFunctionsValues,
@@ -864,6 +867,7 @@ public:
      * @param rShapeFunctionsValues the shape functions values in the current integration point
      * @param the current ProcessInfo instance
      */
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - There is no equivalent for this\"")
     virtual void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
 					    const GeometryType& rElementGeometry,
 					    const Vector& rShapeFunctionsValues,
@@ -1153,6 +1157,7 @@ public:
      * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
      * @param SaveInternalVariables flag whether or not to store internal (history) variables
      */
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - Use version with ConstitutiveLaw::Parameters instead \"")
     virtual void CalculateMaterialResponse(const Vector& StrainVector,
                                            const Matrix& DeformationGradient,
                                            Vector& StressVector,
@@ -1181,6 +1186,7 @@ public:
      * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
      * @param SaveInternalVariables flag whether or not to store internal (history) variables
      */
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - use CalculateMaterialResponse instead\"")
     virtual void CalculateVolumetricResponse(const double VolumetricStrain,
 					     const Matrix& DeformationGradient,
 					     double& VolumetricStress,
@@ -1211,6 +1217,7 @@ public:
 
      * TODO: add proper definition for algorithmic tangent
      */
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method\"")
     virtual void CalculateDeviatoricResponse(const Vector& StrainVector,
 					     const Matrix& DeformationGradient,
 					     Vector& StressVector,
@@ -1459,8 +1466,8 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 ///@}
 ///@} addtogroup block
 
-template class KRATOS_API(KRATOS_CORE) KratosComponents<ConstitutiveLaw >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents< Variable<ConstitutiveLaw::Pointer> >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ConstitutiveLaw >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents< Variable<ConstitutiveLaw::Pointer> >;
 
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, ConstitutiveLaw const& ThisComponent);
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<ConstitutiveLaw::Pointer> const& ThisComponent);
