@@ -374,6 +374,17 @@ public:
     
     void CheckInternalVariable(
         double& rInternalVariable);
+
+    void CalculateIncrementsPlasticDamageCase(
+        const Vector& rFluxDamageYield,
+        const Vector& rStressVector,
+        const double Damage,
+        const Vector& rPlasticityFlux,
+        const Matrix& rElasticMatrix,
+        const double UniaxialStressPlasticity,
+        double& rDamageIncrement,
+        double& rPlasticConsistencyIncrement);
+
     ///@}
     ///@name Access
     ///@{
