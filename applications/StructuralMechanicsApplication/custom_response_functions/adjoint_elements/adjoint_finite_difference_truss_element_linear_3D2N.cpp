@@ -69,7 +69,7 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateOnInteg
         if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS))
         {
             GeneralizedInfluenceFunctionsExtension my_extension = *(this->GetValue(INFLUENCE_FUNCTIONS_EXTENSIONS));
-            my_extension.CalculatePseudoQuantityOnIntegrationPoints(*pGetPrimalElement(), rVariable, rOutput, rCurrentProcessInfo);
+            my_extension.CalculatePseudoQuantityOnIntegrationPoints(this->GetPrimalElement(), rVariable, rOutput, rCurrentProcessInfo);
         }
         else
             KRATOS_ERROR << "'GeneralizedInfluenceFunctionsExtension' is necessary to compute "<< rVariable.Name() << "!" << std::endl;
