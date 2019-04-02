@@ -568,6 +568,14 @@ public:
 
     }
 
+    virtual bool SynchronizeVariable(Variable<bool> const& rThisVariable)
+    {
+        // #if defined(KRATOS_USING_MPI )
+        //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
+        // #endif
+        return true;
+    }
+
     virtual bool SynchronizeVariable(Variable<int> const& rThisVariable)
     {
         // #if defined(KRATOS_USING_MPI )
@@ -620,6 +628,11 @@ public:
         // #if defined(KRATOS_USING_MPI )
         //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
         // #endif
+        return true;
+    }
+
+    virtual bool SynchronizeNonHistoricalVariable(Variable<bool> const& rThisVariable)
+    {
         return true;
     }
 
