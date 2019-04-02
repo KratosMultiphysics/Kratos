@@ -126,11 +126,11 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
 
         // Compute the plastic parameters
         double plasticity_indicator = TPlasticityIntegratorType::CalculatePlasticParameters(
-                                        predictive_stress_vector, r_strain_vector, uniaxial_stress_plasticity,
-                                        threshold_plasticity, plastic_denominator, f_flux, g_flux,
-                                        plastic_dissipation, plastic_strain_increment,
-                                        r_constitutive_matrix, rValues, characteristic_length,
-                                        plastic_strain);
+                predictive_stress_vector, r_strain_vector, uniaxial_stress_plasticity,
+                threshold_plasticity, plastic_denominator, f_flux, g_flux,
+                plastic_dissipation, plastic_strain_increment,
+                r_constitutive_matrix, rValues, characteristic_length,
+                plastic_strain);
 
         // Compute Damage Parameters
         double damage_indicator = this->CalculateDamageParameters(
@@ -605,7 +605,7 @@ CalculateDamageParameters(
     const double yield_tension = has_symmetric_yield_stress ? r_matProps[YIELD_STRESS] : r_matProps[YIELD_STRESS_TENSION];
     const double yield_ratio = yield_compression / yield_tension;
 
-    const double fracture_energy_tension = r_matProps[FRACTURE_ENERGY] / CharacteristicLength;
+    const double fracture_energy_tension = r_matProps[FRACTURE_ENERGY_DAMAGE_PROCESS] / CharacteristicLength;
     const double fracture_energy_compression = fracture_energy_tension * std::pow(yield_ratio, 2.0);
 
     const double constant1 = tensile_indicator_factor * std::abs(rUniaxialStress / yield_ratio) / (fracture_energy_tension * suma);
@@ -622,8 +622,10 @@ CalculateDamageParameters(
 
     Vector slopes(2), thresholds(2);
     for (IndexType i = 0; i < 2; ++i) {
-        thresholds[i] = yield_tension * (1.0 - rDamageDissipation);
-        slopes[i] = -yield_tension;
+        double initial_threshold;
+        TDamageIntegratorType::GetInitialUniaxialThreshold(rValues, initial_threshold);
+        thresholds[i] = initial_threshold * (1.0 - rDamageDissipation);
+        slopes[i] = -initial_threshold;
     }
     rDamageThreshold = (tensile_indicator_factor * thresholds[0]) + (compression_indicator_factor * thresholds[1]);
     const double hsigr = rDamageThreshold * (tensile_indicator_factor * slopes[0] / thresholds[0] + compression_indicator_factor * slopes[1] / thresholds[1]);  

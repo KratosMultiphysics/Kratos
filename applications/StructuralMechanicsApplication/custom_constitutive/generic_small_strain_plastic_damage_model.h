@@ -30,8 +30,8 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    // The size type definition
-    typedef std::size_t SizeType;
+// The size type definition
+typedef std::size_t SizeType;
     
 ///@}
 ///@name  Enum's
@@ -49,8 +49,8 @@ namespace Kratos
  * @class GenericSmallStrainPlasticDamageModel
  * @ingroup StructuralMechanicsApplication
  * @brief This class is the base class which define the Plastic Damage model developed by Luccioni B. and Oller S.
- * @details This class considers a constitutive law integrator as an intermediate utility to compute the plasticity
- * @tparam TConstLawIntegratorType The constitutive law integrator considered
+ * @details This class considers a constitutive law integrator for the damage and another one for the plasticity process
+ * @tparam TPlasticityIntegratorType and TDamageIntegratorType The constitutive law integrators considered
  * @author Alejandro Cornejo & Sergio Jimenez
  */
 template <class TPlasticityIntegratorType, class TDamageIntegratorType>
