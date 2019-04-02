@@ -24,7 +24,6 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
         super(CandelierBenchmarkAnalysis, self).__init__(model, varying_parameters)
         self._GetSolver().is_rotating_frame = self.project_parameters["frame_of_reference"]["frame_type"].GetInt()
         self._GetDEMAnalysis().mdpas_folder_path = os.path.join(self._GetDEMAnalysis().main_path, 'candelier_tests')
-        Logger.GetDefaultOutput().SetSeverity(Logger.Severity.DETAIL)
         candelier_pp.include_history_force = self.vars_man.do_include_history_force
         candelier_pp.include_lift = PT.RecursiveFindParametersWithCondition(self.project_parameters["properties"],
                                                                             'vorticity_induced_lift_parameters',
