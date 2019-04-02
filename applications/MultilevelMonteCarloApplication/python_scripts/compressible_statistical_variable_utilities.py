@@ -264,6 +264,11 @@ class StatisticalVariable(object):
         self.power_sum_2 = []
         self.power_sum_3 = []
         self.power_sum_4 = []
+        # TODO: power sums batches
+        self.power_sum_batches_1 = []
+        self.power_sum_batches_2 = []
+        self.power_sum_batches_3 = []
+        self.power_sum_batches_4 = []
         # sample central moments \mu_p = \sum_{i=1}^{n} (Q(sample_i)-mean_n)**p / n, organized per level
         self.central_moment_from_scratch_1 = []
         self.central_moment_from_scratch_2 = []
@@ -293,8 +298,8 @@ class StatisticalVariable(object):
     input:  self:          an instance of the class
             number_levels: number of levels considered
     """
-    def InitializeLists(self,number_levels):
-        self.values = [[] for _ in range (number_levels)]
+    def InitializeLists(self,number_levels,number_initial_batches):
+        self.values = [[[] for _ in range (number_levels)] for _ in range (number_initial_batches)]
         self.raw_moment_1 = [[] for _ in range (number_levels)]
         self.central_moment_1 = [[] for _ in range (number_levels)]
         self.central_moment_2 = [[] for _ in range (number_levels)]
@@ -305,6 +310,10 @@ class StatisticalVariable(object):
         self.power_sum_2 = [[] for _ in range (number_levels)]
         self.power_sum_3 = [[] for _ in range (number_levels)]
         self.power_sum_4 = [[] for _ in range (number_levels)]
+        self.power_sum_batches_1 = [[[] for _ in range (number_levels)] for _ in range (number_initial_batches)]
+        self.power_sum_batches_2 = [[[] for _ in range (number_levels)] for _ in range (number_initial_batches)]
+        self.power_sum_batches_3 = [[[] for _ in range (number_levels)] for _ in range (number_initial_batches)]
+        self.power_sum_batches_4 = [[[] for _ in range (number_levels)] for _ in range (number_initial_batches)]
         self.h_statistics_1 = [[] for _ in range (number_levels)]
         self.h_statistics_2 = [[] for _ in range (number_levels)]
         self.h_statistics_3 = [[] for _ in range (number_levels)]
@@ -355,7 +364,7 @@ class StatisticalVariable(object):
             level:    defined level
             i_sample: defined level in level
     """
-    def UpdateOnePassPowerSums(self,level,previous_number_samples,current_number_samples):
+    def UpdateOnePassPowerSums(self,level,previous_number_samples,current_number_samples,batch_size=250):
         samples = self.values[level]
         old_S1 = self.power_sum_1[level]
         old_S2 = self.power_sum_2[level]
@@ -368,6 +377,21 @@ class StatisticalVariable(object):
         self.power_sum_3[level] = new_S3
         self.power_sum_4[level] = new_S4
         self.number_samples[level] = number_samples_level
+
+    def UpdateBatchesPassPowerSums(self,level,batch_size=250):
+        samples = self.values[level]
+        old_S1 = self.power_sum_1[level]
+        old_S2 = self.power_sum_2[level]
+        old_S3 = self.power_sum_3[level]
+        old_S4 = self.power_sum_4[level]
+        number_samples_level = self.number_samples[level]
+        new_S1,new_S2,new_S3,new_S4,number_samples_level = UpdateOnePassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,number_samples_level,previous_number_samples,current_number_samples,samples)
+        self.power_sum_1[level] = new_S1
+        self.power_sum_2[level] = new_S2
+        self.power_sum_3[level] = new_S3
+        self.power_sum_4[level] = new_S4
+        self.number_samples[level] = number_samples_level
+
 
     """
     function computing the h statistics h_p from the power sums
