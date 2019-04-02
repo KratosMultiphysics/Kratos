@@ -3,7 +3,7 @@
 
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import weakref
@@ -55,11 +55,11 @@ class GradientRecoverer(EmptyGradientRecoverer):
     def __init__(self, project_parameters, model_part):
         DerivativesRecoverer.__init__(self, project_parameters, model_part)
     def RecoverGradientOfVelocity(self):
-        self.RecoverGradientOfVector(VELOCITY, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT)
+        self.RecoverGradientOfVector(KM.VELOCITY, KM.VELOCITY_X_GRADIENT, KM.VELOCITY_Y_GRADIENT, KM.VELOCITY_Z_GRADIENT)
     def RecoverPressureGradient(self):
-        self.RecoverGradientOfScalar(PRESSURE, PRESSURE_GRADIENT)
+        self.RecoverGradientOfScalar(KM.PRESSURE, KM.PRESSURE_GRADIENT)
     def RecoverFluidFractionGradient(self):
-        self.RecoverGradientOfScalar(FLUID_FRACTION, FLUID_FRACTION_GRADIENT)
+        self.RecoverGradientOfScalar(KM.FLUID_FRACTION, KM.FLUID_FRACTION_GRADIENT)
 
 class MaterialAccelerationRecoverer(GradientRecoverer, EmptyMaterialAccelerationRecoverer):
     def __init__(self, project_parameters, model_part):
@@ -67,18 +67,30 @@ class MaterialAccelerationRecoverer(GradientRecoverer, EmptyMaterialAcceleration
     def RecoverMaterialAcceleration(self):
         self.RecoverMaterialAccelerationFromGradient()
     def RecoverMaterialAccelerationFromGradient(self):
-        self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeFromGradient(self.model_part, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)
+        self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeFromGradient(self.model_part,
+                                                                                   KM.VELOCITY_X_GRADIENT,
+                                                                                   KM.VELOCITY_Y_GRADIENT,
+                                                                                   KM.VELOCITY_Z_GRADIENT,
+                                                                                   KM.ACCELERATION,
+                                                                                   KM.MATERIAL_ACCELERATION)
 
 class VorticityRecoverer(GradientRecoverer, EmptyVorticityRecoverer):
     def __init__(self, project_parameters, model_part):
         GradientRecoverer.__init__(self, project_parameters, model_part)
     def RecoverVorticityFromGradient(self):
-        self.cplusplus_recovery_tool.CalculateVorticityFromGradient(self.model_part, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT, VORTICITY)
+        self.cplusplus_recovery_tool.CalculateVorticityFromGradient(self.model_part,
+                                                                    KM.VELOCITY_X_GRADIENT,
+                                                                    KM.VELOCITY_Y_GRADIENT,
+                                                                    KM.VELOCITY_Z_GRADIENT,
+                                                                    KM.VORTICITY)
+
     def CalculateVorticityContributionOfTheGradientOfAComponent(self):
-        self.cplusplus_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.model_part, VELOCITY_COMPONENT_GRADIENT, VORTICITY)
+        self.cplusplus_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.model_part,
+                                                                                             KM.VELOCITY_COMPONENT_GRADIENT,
+                                                                                             KM.VORTICITY)
 
 class LaplacianRecoverer(GradientRecoverer, EmptyLaplacianRecoverer):
     def __init__(self, project_parameters, model_part):
         GradientRecoverer.__init__(self, project_parameters, model_part)
     def RecoverVelocityLaplacian(self):
-        self.RecoverVectorLaplacian(VELOCITY, VELOCITY_LAPLACIAN)
+        self.RecoverVectorLaplacian(KM.VELOCITY, KM.VELOCITY_LAPLACIAN)

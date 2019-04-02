@@ -1,12 +1,12 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import math
 import os
-from KratosMultiphysics import *
-import KratosMultiphysics.DEMApplication as DEMApp
-import KratosMultiphysics.SwimmingDEMApplication as SDEMApp
+import KratosMultiphysics as KM
+from KratosMultiphysics import Vector, Array3, Logger, Parameters
+import KratosMultiphysics.DEMApplication as DEM
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import DEM_procedures as DP
 import shutil
-import os
 import weakref
 
 def Say(*args):
@@ -19,17 +19,17 @@ def AddExtraDofs(fluid_model_part,
                  dem_inlet_model_part,
                  variables_manager):
 
-    if VELOCITY_LAPLACIAN in variables_manager.fluid_vars:
+    if KM.VELOCITY_LAPLACIAN in variables_manager.fluid_vars:
         for node in fluid_model_part.Nodes:
-            node.AddDof(VELOCITY_LAPLACIAN_X)
-            node.AddDof(VELOCITY_LAPLACIAN_Y)
-            node.AddDof(VELOCITY_LAPLACIAN_Z)
+            node.AddDof(KM.VELOCITY_LAPLACIAN_X)
+            node.AddDof(KM.VELOCITY_LAPLACIAN_Y)
+            node.AddDof(KM.VELOCITY_LAPLACIAN_Z)
 
-    if VELOCITY_LAPLACIAN_RATE in variables_manager.fluid_vars:
+    if KM.VELOCITY_LAPLACIAN_RATE in variables_manager.fluid_vars:
         for node in fluid_model_part.Nodes:
-            node.AddDof(VELOCITY_LAPLACIAN_RATE_X)
-            node.AddDof(VELOCITY_LAPLACIAN_RATE_Y)
-            node.AddDof(VELOCITY_LAPLACIAN_RATE_Z)
+            node.AddDof(KM.VELOCITY_LAPLACIAN_RATE_X)
+            node.AddDof(KM.VELOCITY_LAPLACIAN_RATE_Y)
+            node.AddDof(KM.VELOCITY_LAPLACIAN_RATE_Z)
 
 def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_faces_model_part):
 
@@ -71,20 +71,20 @@ def SetModelPartSolutionStepValue(model_part, var, value):
         node.SetSolutionStepValue(var, 0, value)
 
 def InitializeVariablesWithNonZeroValues(parameters, fluid_model_part, balls_model_part):
-    checker = SDEMApp.VariableChecker()
+    checker = SDEM.VariableChecker()
 
-    if checker.ModelPartHasNodalVariableOrNot(fluid_model_part, FLUID_FRACTION):
-        SetModelPartSolutionStepValue(fluid_model_part, FLUID_FRACTION, 1.0)
-        SetModelPartSolutionStepValue(fluid_model_part, FLUID_FRACTION_OLD, 1.0)
-    if checker.ModelPartHasNodalVariableOrNot(balls_model_part, FLUID_FRACTION_PROJECTED):
-        SetModelPartSolutionStepValue(balls_model_part, FLUID_FRACTION_PROJECTED, 1.0)
+    if checker.ModelPartHasNodalVariableOrNot(fluid_model_part, KM.FLUID_FRACTION):
+        SetModelPartSolutionStepValue(fluid_model_part, KM.FLUID_FRACTION, 1.0)
+        SetModelPartSolutionStepValue(fluid_model_part, KM.FLUID_FRACTION_OLD, 1.0)
+    if checker.ModelPartHasNodalVariableOrNot(balls_model_part, KM.FLUID_FRACTION_PROJECTED):
+        SetModelPartSolutionStepValue(balls_model_part, KM.FLUID_FRACTION_PROJECTED, 1.0)
 
 def FixModelPart(model_part):
 
     for node in model_part.Nodes:
-        node.Fix(VELOCITY_X)
-        node.Fix(VELOCITY_Y)
-        node.Fix(VELOCITY_Z)
+        node.Fix(KM.VELOCITY_X)
+        node.Fix(KM.VELOCITY_Y)
+        node.Fix(KM.VELOCITY_Z)
 
 def GetWordWithSpaces(word, total_length):
 
@@ -96,8 +96,8 @@ def GetWordWithSpaces(word, total_length):
 def TransferFacePressuresToPressure(model_part):
 
     for node in model_part.Nodes:
-        total_pressure = node.GetSolutionStepValue(POSITIVE_FACE_PRESSURE) + node.GetSolutionStepValue(NEGATIVE_FACE_PRESSURE)
-        node.SetSolutionStepValue(PRESSURE, total_pressure)
+        total_pressure = node.GetSolutionStepValue(KM.POSITIVE_FACE_PRESSURE) + node.GetSolutionStepValue(KM.NEGATIVE_FACE_PRESSURE)
+        node.SetSolutionStepValue(KM.PRESSURE, total_pressure)
 
 def Norm(my_list):
     return math.sqrt(sum([value ** 2 for value in my_list]))
@@ -173,12 +173,12 @@ class FluidFractionFieldUtility:
         for field in self.field_list:
 
             for node in self.fluid_model_part.Nodes:
-                fluid_fraction = node.GetSolutionStepValue(FLUID_FRACTION, 0)
+                fluid_fraction = node.GetSolutionStepValue(KM.FLUID_FRACTION, 0)
 
                 if self.CheckIsInside([node.X, node.Y, node.Z], field.low, field.high):
                     value = fluid_fraction + field.frac_0 + field.frac_grad[0] * node.X + field.frac_grad[1] * node.Y + field.frac_grad[2] * node.Z
                     value = min(max(value, 0.0), self.min_fluid_fraction)
-                    node.SetSolutionStepValue(FLUID_FRACTION, 0, value)
+                    node.SetSolutionStepValue(KM.FLUID_FRACTION, 0, value)
 
 def MultiplyNodalVariableByFactor(model_part, variable, factor):
 
@@ -204,8 +204,8 @@ def ApplySimilarityTransformations(fluid_model_part, transformation_type, mod_ov
 
             fluid_density_factor = mod_over_real
             fluid_viscosity_factor = mod_over_real * mod_over_real
-            MultiplyNodalVariableByFactor(fluid_model_part, DENSITY, fluid_density_factor)
-            MultiplyNodalVariableByFactor(fluid_model_part, VISCOSITY, fluid_viscosity_factor)
+            MultiplyNodalVariableByFactor(fluid_model_part, KM.DENSITY, fluid_density_factor)
+            MultiplyNodalVariableByFactor(fluid_model_part, KM.VISCOSITY, fluid_viscosity_factor)
     else:
 
         Logger.PrintWarning("SwimmingDEM",('The entered value similarity_transformation_type = ', transformation_type, 'is not currently supported'))
@@ -219,10 +219,10 @@ def FindMaxElementId(fluid_model_part):
 
 def FunctionsCalculator(domain_size=3):
     if domain_size == 2:
-        custom_functions_tool = SDEMApp.CustomFunctionsCalculator2D()
+        custom_functions_tool = SDEM.CustomFunctionsCalculator2D()
 
     elif domain_size == 3:
-        custom_functions_tool = SDEMApp.CustomFunctionsCalculator3D()
+        custom_functions_tool = SDEM.CustomFunctionsCalculator3D()
 
     return custom_functions_tool
 
@@ -236,12 +236,12 @@ class IOTools:
         for variablename in variables:
             outstring = "Particles_" + variablename + ".csv"
             outputfile = open(outstring, 'a')
-            variables_dictionary = {"PRESSURE": PRESSURE,
-                                    "VELOCITY": VELOCITY,
-                                    "BUOYANCY": BUOYANCY,
-                                    "DRAG_FORCE": DRAG_FORCE,
-                                    "LIFT_FORCE": LIFT_FORCE,
-                                    "MU": MU}
+            variables_dictionary = {"PRESSURE": KM.PRESSURE,
+                                    "VELOCITY": KM.VELOCITY,
+                                    "BUOYANCY": KM.BUOYANCY,
+                                    "DRAG_FORCE": KM.DRAG_FORCE,
+                                    "LIFT_FORCE": KM.LIFT_FORCE,
+                                    "MU": KM.MU}
 
             for node in model_part.Nodes:
                 Results_value = node.GetSolutionStepValue(variables_dictionary[variablename])
@@ -456,7 +456,7 @@ class PostUtils:
         self.rigid_faces_model_part = rigid_faces_model_part
         self.mixed_model_part       = mixed_model_part
         self.vars_man               = variables_manager
-        self.post_utilities         = DEMApp.PostUtilities()
+        self.post_utilities         = DEM.PostUtilities()
 
     def Writeresults(self, time):
 
@@ -464,7 +464,7 @@ class PostUtils:
         Logger.Flush()
 
         if self.project_parameters['Multifile'].GetString() == "multiple_files":
-            renumbering_utility = SDEMApp.RenumberingNodesUtility(self.fluid_model_part, self.rigid_faces_model_part, self.balls_model_part)
+            renumbering_utility = SDEM.RenumberingNodesUtility(self.fluid_model_part, self.rigid_faces_model_part, self.balls_model_part)
             renumbering_utility.Renumber()
 
             self.mixed_model_part.Elements.clear()

@@ -1,4 +1,5 @@
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
+from KratosMultiphysics import Parameters
 import ethier_benchmark_analysis
 BaseAnalysis = ethier_benchmark_analysis.EthierBenchmarkAnalysis
 

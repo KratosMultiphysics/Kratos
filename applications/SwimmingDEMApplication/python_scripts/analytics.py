@@ -3,7 +3,7 @@ import math
 import os
 import numpy as np
 
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.DEMApplication import *
@@ -23,7 +23,7 @@ class Gauge:
         self.n_vars = len(variables_to_measure)
         self.n_instants = int(math.ceil(self.end_time / self.Dt + 1))
         self.current_instant = 0
-        self.counter = swimming_DP.Counter(steps_between_measurements, 1, activity)
+        self.counter = swimming_DEM_procedures.Counter(steps_between_measurements, 1, activity)
 
     def ConstructArrayOfNodes(self, condition):
         self.nodes = [node for node in self.model_part.Nodes if condition(node)]
@@ -35,8 +35,8 @@ class Gauge:
 
     def MakeNodalMeasurement(self):
         if self.counter.Tick():
-            self.times[self.current_instant] = self.model_part.ProcessInfo[TIME]
-            print(self.model_part.ProcessInfo[TIME] / self.end_time)
+            self.times[self.current_instant] = self.model_part.ProcessInfo[KM.TIME]
+            print(self.model_part.ProcessInfo[KM.TIME] / self.end_time)
             print(self.current_instant / self.n_instants)
             i_node = 0
             for node in self.nodes:

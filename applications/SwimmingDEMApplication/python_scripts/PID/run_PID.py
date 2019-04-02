@@ -1,4 +1,5 @@
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
+from KratosMultiphysics import Parameters
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *

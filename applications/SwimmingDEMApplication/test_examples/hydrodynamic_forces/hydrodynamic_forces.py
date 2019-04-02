@@ -6,7 +6,7 @@ import sys
 import os
 
 sys.stdout = open(os.devnull, 'w')
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from KratosMultiphysics.MeshingApplication import *
@@ -32,127 +32,127 @@ def InitializeNodalVariables(model_part, pp):
         node.Y = pp.coor_y
         node.Z = pp.coor_z
 
-        node.SetSolutionStepValue(DISPLACEMENT_X, pp.displ_x)
-        node.SetSolutionStepValue(DISPLACEMENT_Y, pp.displ_y)
-        node.SetSolutionStepValue(DISPLACEMENT_Z, pp.displ_z)
+        node.SetSolutionStepValue(KM.DISPLACEMENT_X, pp.displ_x)
+        node.SetSolutionStepValue(KM.DISPLACEMENT_Y, pp.displ_y)
+        node.SetSolutionStepValue(KM.DISPLACEMENT_Z, pp.displ_z)
 
-        node.SetSolutionStepValue(VELOCITY_X, pp.velocity_x)
-        node.SetSolutionStepValue(VELOCITY_Y, pp.velocity_y)
-        node.SetSolutionStepValue(VELOCITY_Z, pp.velocity_z)
+        node.SetSolutionStepValue(KM.VELOCITY_X, pp.velocity_x)
+        node.SetSolutionStepValue(KM.VELOCITY_Y, pp.velocity_y)
+        node.SetSolutionStepValue(KM.VELOCITY_Z, pp.velocity_z)
 
-        node.SetSolutionStepValue(VELOCITY_X, 1, pp.velocity_old_x)
-        node.SetSolutionStepValue(VELOCITY_Y, 1, pp.velocity_old_y)
-        node.SetSolutionStepValue(VELOCITY_Z, 1, pp.velocity_old_z)
+        node.SetSolutionStepValue(KM.VELOCITY_X, 1, pp.velocity_old_x)
+        node.SetSolutionStepValue(KM.VELOCITY_Y, 1, pp.velocity_old_y)
+        node.SetSolutionStepValue(KM.VELOCITY_Z, 1, pp.velocity_old_z)
 
-        node.SetSolutionStepValue(PARTICLE_ROTATION_ANGLE_X, pp.rot_angle_x)
-        node.SetSolutionStepValue(PARTICLE_ROTATION_ANGLE_Y, pp.rot_angle_y)
-        node.SetSolutionStepValue(PARTICLE_ROTATION_ANGLE_Z, pp.rot_angle_z)
+        node.SetSolutionStepValue(KM.PARTICLE_ROTATION_ANGLE_X, pp.rot_angle_x)
+        node.SetSolutionStepValue(KM.PARTICLE_ROTATION_ANGLE_Y, pp.rot_angle_y)
+        node.SetSolutionStepValue(KM.PARTICLE_ROTATION_ANGLE_Z, pp.rot_angle_z)
 
-        node.SetSolutionStepValue(EULER_ANGLES_X, pp.euler_angle_x)
-        node.SetSolutionStepValue(EULER_ANGLES_Y, pp.euler_angle_y)
-        node.SetSolutionStepValue(EULER_ANGLES_Z, pp.euler_angle_z)
+        node.SetSolutionStepValue(KM.EULER_ANGLES_X, pp.euler_angle_x)
+        node.SetSolutionStepValue(KM.EULER_ANGLES_Y, pp.euler_angle_y)
+        node.SetSolutionStepValue(KM.EULER_ANGLES_Z, pp.euler_angle_z)
 
-        node.SetSolutionStepValue(ANGULAR_VELOCITY_X, pp.ang_vel_x)
-        node.SetSolutionStepValue(ANGULAR_VELOCITY_Y, pp.ang_vel_y)
-        node.SetSolutionStepValue(ANGULAR_VELOCITY_Z, pp.ang_vel_z)
+        node.SetSolutionStepValue(KM.ANGULAR_VELOCITY_X, pp.ang_vel_x)
+        node.SetSolutionStepValue(KM.ANGULAR_VELOCITY_Y, pp.ang_vel_y)
+        node.SetSolutionStepValue(KM.ANGULAR_VELOCITY_Z, pp.ang_vel_z)
 
-        node.SetSolutionStepValue(TOTAL_FORCES_X, pp.tota_force_x)
-        node.SetSolutionStepValue(TOTAL_FORCES_Y, pp.tota_force_y)
-        node.SetSolutionStepValue(TOTAL_FORCES_Z, pp.tota_force_z)
+        node.SetSolutionStepValue(KM.TOTAL_FORCES_X, pp.tota_force_x)
+        node.SetSolutionStepValue(KM.TOTAL_FORCES_Y, pp.tota_force_y)
+        node.SetSolutionStepValue(KM.TOTAL_FORCES_Z, pp.tota_force_z)
 
-        node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, pp.fluid_velocity_x)
-        node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, pp.fluid_velocity_y)
-        node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, pp.fluid_velocity_z)
+        node.SetSolutionStepValue(KM.FLUID_VEL_PROJECTED_X, pp.fluid_velocity_x)
+        node.SetSolutionStepValue(KM.FLUID_VEL_PROJECTED_Y, pp.fluid_velocity_y)
+        node.SetSolutionStepValue(KM.FLUID_VEL_PROJECTED_Z, pp.fluid_velocity_z)
 
-        node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_X, pp.fluid_acceleration_x)
-        node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Y, pp.fluid_acceleration_y)
-        node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Z, pp.fluid_acceleration_z)
+        node.SetSolutionStepValue(KM.FLUID_ACCEL_PROJECTED_X, pp.fluid_acceleration_x)
+        node.SetSolutionStepValue(KM.FLUID_ACCEL_PROJECTED_Y, pp.fluid_acceleration_y)
+        node.SetSolutionStepValue(KM.FLUID_ACCEL_PROJECTED_Z, pp.fluid_acceleration_z)
 
-        node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_X, pp.fluid_vorticity_x)
-        node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_Y, pp.fluid_vorticity_y)
-        node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED_Z, pp.fluid_vorticity_z)
+        node.SetSolutionStepValue(KM.FLUID_VORTICITY_PROJECTED_X, pp.fluid_vorticity_x)
+        node.SetSolutionStepValue(KM.FLUID_VORTICITY_PROJECTED_Y, pp.fluid_vorticity_y)
+        node.SetSolutionStepValue(KM.FLUID_VORTICITY_PROJECTED_Z, pp.fluid_vorticity_z)
 
-        node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_X, pp.pressure_gradient_x)
-        node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Y, pp.pressure_gradient_y)
-        node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Z, pp.pressure_gradient_z)
+        node.SetSolutionStepValue(KM.PRESSURE_GRAD_PROJECTED_X, pp.pressure_gradient_x)
+        node.SetSolutionStepValue(KM.PRESSURE_GRAD_PROJECTED_Y, pp.pressure_gradient_y)
+        node.SetSolutionStepValue(KM.PRESSURE_GRAD_PROJECTED_Z, pp.pressure_gradient_z)
 
-        node.SetSolutionStepValue(RADIUS, pp.radius)
-        node.SetSolutionStepValue(PARTICLE_SPHERICITY, pp.sphericity)
-        node.SetSolutionStepValue(SQRT_OF_MASS, pp.sqrt_of_mass)
-        node.SetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA, pp.inertia)
-        node.SetSolutionStepValue(FLUID_FRACTION_PROJECTED, pp.fluid_fraction)
-        node.SetSolutionStepValue(FLUID_DENSITY_PROJECTED, pp.fluid_density)
-        node.SetSolutionStepValue(FLUID_VISCOSITY_PROJECTED, pp.kinematic_viscosity)
-        node.SetSolutionStepValue(POWER_LAW_N, pp.power_law_n)
-        node.SetSolutionStepValue(POWER_LAW_K, pp.power_law_k)
-        node.SetSolutionStepValue(YIELD_STRESS, pp.yield_stress)
-        node.SetSolutionStepValue(SHEAR_RATE_PROJECTED, pp.shear_rate_projected)
+        node.SetSolutionStepValue(KM.RADIUS, pp.radius)
+        node.SetSolutionStepValue(KM.PARTICLE_SPHERICITY, pp.sphericity)
+        node.SetSolutionStepValue(KM.SQRT_OF_MASS, pp.sqrt_of_mass)
+        node.SetSolutionStepValue(KM.PARTICLE_MOMENT_OF_INERTIA, pp.inertia)
+        node.SetSolutionStepValue(KM.FLUID_FRACTION_PROJECTED, pp.fluid_fraction)
+        node.SetSolutionStepValue(KM.FLUID_DENSITY_PROJECTED, pp.fluid_density)
+        node.SetSolutionStepValue(KM.FLUID_VISCOSITY_PROJECTED, pp.kinematic_viscosity)
+        node.SetSolutionStepValue(KM.POWER_LAW_N, pp.power_law_n)
+        node.SetSolutionStepValue(KM.POWER_LAW_K, pp.power_law_k)
+        node.SetSolutionStepValue(KM.YIELD_STRESS, pp.yield_stress)
+        node.SetSolutionStepValue(KM.SHEAR_RATE_PROJECTED, pp.shear_rate_projected)
 
 def AddVariables(model_part):
     # COMMON
-    model_part.AddNodalSolutionStepVariable(VELOCITY)
-    model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
-    model_part.AddNodalSolutionStepVariable(GROUP_ID)
+    model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
+    model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(KM.TOTAL_FORCES)
+    model_part.AddNodalSolutionStepVariable(KM.GROUP_ID)
 
     # KINEMATIC
-    model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
-    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
+    model_part.AddNodalSolutionStepVariable(KM.DELTA_DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(KM.PARTICLE_ROTATION_ANGLE)
+    model_part.AddNodalSolutionStepVariable(KM.ANGULAR_VELOCITY)
 
     # FORCES
-    model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
-    model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
-    model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE)
+    model_part.AddNodalSolutionStepVariable(KM.ELASTIC_FORCES)
+    model_part.AddNodalSolutionStepVariable(KM.DAMP_FORCES)
+    model_part.AddNodalSolutionStepVariable(KM.PARTICLE_MOMENT)
+    model_part.AddNodalSolutionStepVariable(KM.EXTERNAL_APPLIED_FORCE)
 
     # BASIC PARTICLE PROPERTIES
-    model_part.AddNodalSolutionStepVariable(RADIUS)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_SPHERICITY)
-    model_part.AddNodalSolutionStepVariable(SQRT_OF_MASS)
-    model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA)
-    model_part.AddNodalSolutionStepVariable(CHARACTERISTIC_LENGTH)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
+    model_part.AddNodalSolutionStepVariable(KM.RADIUS)
+    model_part.AddNodalSolutionStepVariable(KM.PARTICLE_SPHERICITY)
+    model_part.AddNodalSolutionStepVariable(KM.SQRT_OF_MASS)
+    model_part.AddNodalSolutionStepVariable(KM.PRINCIPAL_MOMENTS_OF_INERTIA)
+    model_part.AddNodalSolutionStepVariable(KM.CHARACTERISTIC_LENGTH)
+    model_part.AddNodalSolutionStepVariable(KM.PARTICLE_DENSITY)
 
     # ROTATION RELATED PROPERTIES
-    model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
+    model_part.AddNodalSolutionStepVariable(KM.PARTICLE_MOMENT_OF_INERTIA)
+    model_part.AddNodalSolutionStepVariable(KM.PARTICLE_ROTATION_DAMP_RATIO)
 
     # OTHER PROPERTIES
-    model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
+    model_part.AddNodalSolutionStepVariable(KM.PARTICLE_MATERIAL)   # Colour defined in GiD
 
     # LOCAL AXIS
-    model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
+    model_part.AddNodalSolutionStepVariable(KM.EULER_ANGLES)
 
     # FLAGS
-    model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
+    model_part.AddNodalSolutionStepVariable(KM.GROUP_ID)            # Differencied groups for plotting, etc..
 
     # ONLY VISUALIZATION
-    model_part.AddNodalSolutionStepVariable(EXPORT_ID)
-    #model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
+    model_part.AddNodalSolutionStepVariable(KM.EXPORT_ID)
+    #model_part.AddNodalSolutionStepVariable(KM.EXPORT_GROUP_ID)
 
     # SWIMMING
-    model_part.AddNodalSolutionStepVariable(REYNOLDS_NUMBER)
-    model_part.AddNodalSolutionStepVariable(PRESSURE_GRAD_PROJECTED)
-    model_part.AddNodalSolutionStepVariable(HYDRODYNAMIC_FORCE)
-    model_part.AddNodalSolutionStepVariable(HYDRODYNAMIC_MOMENT)
-    model_part.AddNodalSolutionStepVariable(FLUID_VEL_PROJECTED)
-    model_part.AddNodalSolutionStepVariable(FLUID_ACCEL_PROJECTED)
-    model_part.AddNodalSolutionStepVariable(FLUID_FRACTION_PROJECTED)
-    model_part.AddNodalSolutionStepVariable(FLUID_DENSITY_PROJECTED)
-    model_part.AddNodalSolutionStepVariable(FLUID_VISCOSITY_PROJECTED)
-    model_part.AddNodalSolutionStepVariable(BUOYANCY)
-    model_part.AddNodalSolutionStepVariable(DRAG_FORCE)
-    model_part.AddNodalSolutionStepVariable(VIRTUAL_MASS_FORCE)
-    model_part.AddNodalSolutionStepVariable(LIFT_FORCE)
-    model_part.AddNodalSolutionStepVariable(FLUID_VORTICITY_PROJECTED)
-    model_part.AddNodalSolutionStepVariable(SHEAR_RATE_PROJECTED)
-    model_part.AddNodalSolutionStepVariable(FLUID_ACCEL_PROJECTED)
-    model_part.AddNodalSolutionStepVariable(DISTANCE)
-    model_part.AddNodalSolutionStepVariable(POWER_LAW_N)
-    model_part.AddNodalSolutionStepVariable(POWER_LAW_K)
-    model_part.AddNodalSolutionStepVariable(POWER_LAW_K)
-    model_part.AddNodalSolutionStepVariable(YIELD_STRESS)
+    model_part.AddNodalSolutionStepVariable(KM.REYNOLDS_NUMBER)
+    model_part.AddNodalSolutionStepVariable(KM.PRESSURE_GRAD_PROJECTED)
+    model_part.AddNodalSolutionStepVariable(KM.HYDRODYNAMIC_FORCE)
+    model_part.AddNodalSolutionStepVariable(KM.HYDRODYNAMIC_MOMENT)
+    model_part.AddNodalSolutionStepVariable(KM.FLUID_VEL_PROJECTED)
+    model_part.AddNodalSolutionStepVariable(KM.FLUID_ACCEL_PROJECTED)
+    model_part.AddNodalSolutionStepVariable(KM.FLUID_FRACTION_PROJECTED)
+    model_part.AddNodalSolutionStepVariable(KM.FLUID_DENSITY_PROJECTED)
+    model_part.AddNodalSolutionStepVariable(KM.FLUID_VISCOSITY_PROJECTED)
+    model_part.AddNodalSolutionStepVariable(KM.BUOYANCY)
+    model_part.AddNodalSolutionStepVariable(KM.DRAG_FORCE)
+    model_part.AddNodalSolutionStepVariable(KM.VIRTUAL_MASS_FORCE)
+    model_part.AddNodalSolutionStepVariable(KM.LIFT_FORCE)
+    model_part.AddNodalSolutionStepVariable(KM.FLUID_VORTICITY_PROJECTED)
+    model_part.AddNodalSolutionStepVariable(KM.SHEAR_RATE_PROJECTED)
+    model_part.AddNodalSolutionStepVariable(KM.FLUID_ACCEL_PROJECTED)
+    model_part.AddNodalSolutionStepVariable(KM.DISTANCE)
+    model_part.AddNodalSolutionStepVariable(KM.POWER_LAW_N)
+    model_part.AddNodalSolutionStepVariable(KM.POWER_LAW_K)
+    model_part.AddNodalSolutionStepVariable(KM.POWER_LAW_K)
+    model_part.AddNodalSolutionStepVariable(KM.YIELD_STRESS)
 
 def AddAndInitializeProcessInfoVariables(model_part, pp):
     # SIMULATION FLAGS

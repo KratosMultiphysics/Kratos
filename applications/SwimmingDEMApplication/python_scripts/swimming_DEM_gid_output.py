@@ -1,6 +1,8 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
+from KratosMultiphysics import MultiFileFlag
+from KratosMultiphysics import GiDPostMode
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import gid_output

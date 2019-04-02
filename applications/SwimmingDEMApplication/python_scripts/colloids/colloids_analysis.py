@@ -1,4 +1,4 @@
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
 from KratosMultiphysics.DEMApplication import *
 import swimming_DEM_procedures as SDP
 import math
@@ -31,7 +31,7 @@ class ColloidsAnalysis(BaseAnalysis):
                                              / self.project_parameters["time_stepping"]["time_step"].GetDouble()))
 
             for node in self.spheres_model_part.Nodes:
-                node.SetSolutionStepValue(CATION_CONCENTRATION, self.concentration)
+                node.SetSolutionStepValue(KM.CATION_CONCENTRATION, self.concentration)
 
             if self.cation_concentration_counter.SuperTick(1000):
                 print()

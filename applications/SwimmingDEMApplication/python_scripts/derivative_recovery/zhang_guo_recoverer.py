@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from . import recoverer
@@ -11,17 +11,17 @@ class ZhangGuoGradientRecoverer(recoverer.GradientRecoverer):
     def RecoverGradientOfScalar(self, scalar_variable, gradient_variable):
         self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, scalar_variable, gradient_variable)
     def RecoverGradientOfVelocity(self):
-        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, VELOCITY_X, VELOCITY_X_GRADIENT)
-        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, VELOCITY_Y, VELOCITY_Y_GRADIENT)
-        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, VELOCITY_Z, VELOCITY_Z_GRADIENT)
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, KM.VELOCITY_X, KM.VELOCITY_X_GRADIENT)
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, KM.VELOCITY_Y, KM.VELOCITY_Y_GRADIENT)
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, KM.VELOCITY_Z, KM.VELOCITY_Z_GRADIENT)
     def RecoverPressureGradient(self):
-        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, PRESSURE, RECOVERED_PRESSURE_GRADIENT)
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, KM.PRESSURE, KM.RECOVERED_PRESSURE_GRADIENT)
 
 class ZhangGuoMaterialAccelerationRecoverer(recoverer.MaterialAccelerationRecoverer, ZhangGuoGradientRecoverer):
     def __init__(self, project_parameters, model_part):
         recoverer.MaterialAccelerationRecoverer.__init__(self, project_parameters, model_part)
     def RecoverMaterialAcceleration(self):
-        self.cplusplus_recovery_tool.CalculateVectorMaterialDerivative(self.model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)
+        self.cplusplus_recovery_tool.CalculateVectorMaterialDerivative(self.model_part, KM.VELOCITY, KM.ACCELERATION, KM.MATERIAL_ACCELERATION)
 
 class ZhangGuoDirectLaplacianRecoverer(recoverer.LaplacianRecoverer):
     def __init__(self, project_parameters, model_part):
@@ -36,4 +36,4 @@ class ZhangGuoMaterialAccelerationAndLaplacianRecoverer(recoverer.LaplacianRecov
         self.RecoverGradientOfVelocity()
         self.RecoverMaterialAccelerationFromGradient()
     def RecoverVelocityLaplacian(self):
-        self.cplusplus_recovery_tool.RecoverSuperconvergentVelocityLaplacianFromGradient(self.model_part, VELOCITY, VELOCITY_LAPLACIAN)
+        self.cplusplus_recovery_tool.RecoverSuperconvergentVelocityLaplacianFromGradient(self.model_part, KM.VELOCITY, KM.VELOCITY_LAPLACIAN)

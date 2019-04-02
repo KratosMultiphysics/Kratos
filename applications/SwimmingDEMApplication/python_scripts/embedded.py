@@ -1,7 +1,9 @@
 from __future__ import print_function, absolute_import, division
 import math
 import os
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
+from KratosMultiphysics import Vector
+from python_solver import PythonSolver
 from KratosMultiphysics.DEMApplication import *
 
 def VectSum(v, w):
@@ -70,25 +72,25 @@ def RotateRightHandedBasisAroundAxis(e1, e2, axis, ang):
 def ApplyEmbeddedBCsToFluid(model_part):
 
     for node in model_part.Nodes:
-        old_dist = node.GetSolutionStepValue(DISTANCE, 1)
-        dist     = node.GetSolutionStepValue(DISTANCE)
+        old_dist = node.GetSolutionStepValue(KM.DISTANCE, 1)
+        dist     = node.GetSolutionStepValue(KM.DISTANCE)
 
         if (dist < 0.0):
-            node.Fix(PRESSURE)
-            node.Fix(VELOCITY_X)
-            node.Fix(VELOCITY_Y)
-            node.Fix(VELOCITY_Z)
-            node.SetSolutionStepValue(PRESSURE, 0.0)
-            node.SetSolutionStepValue(VELOCITY_X, 0.0)
-            node.SetSolutionStepValue(VELOCITY_Y, 0.0)
-            node.SetSolutionStepValue(VELOCITY_Z, 0.0)
+            node.Fix(KM.PRESSURE)
+            node.Fix(KM.VELOCITY_X)
+            node.Fix(KM.VELOCITY_Y)
+            node.Fix(KM.VELOCITY_Z)
+            node.SetSolutionStepValue(KM.PRESSURE, 0.0)
+            node.SetSolutionStepValue(KM.VELOCITY_X, 0.0)
+            node.SetSolutionStepValue(KM.VELOCITY_Y, 0.0)
+            node.SetSolutionStepValue(KM.VELOCITY_Z, 0.0)
 
         elif (old_dist < 0.0):
-            node.Free(PRESSURE)
-            node.Free(VELOCITY_X)
-            node.Free(VELOCITY_Y)
-            node.Free(VELOCITY_Z)
-            
+            node.Free(KM.PRESSURE)
+            node.Free(KM.VELOCITY_X)
+            node.Free(KM.VELOCITY_Y)
+            node.Free(KM.VELOCITY_Z)
+
     if model_part.NumberOfMeshes() > 1:
 
         for mesh_number in range(2, model_part.NumberOfMeshes()):
@@ -99,33 +101,32 @@ def ApplyEmbeddedBCsToFluid(model_part):
             if (model_part.Properties[mesh_number][IMPOSED_VELOCITY_X] == 1 or model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y] == 1 or model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z] == 1):
 
                 for node in mesh_nodes:
-                    dist = node.GetSolutionStepValue(DISTANCE)
+                    dist = node.GetSolutionStepValue(KM.DISTANCE)
 
                     if (dist > 0.0):
-                        node.Free(PRESSURE)
+                        node.Free(KM.PRESSURE)
                         if (model_part.Properties[mesh_number][IMPOSED_VELOCITY_X]):
-                            node.Fix(VELOCITY_X)
-                            node.SetSolutionStepValue(VELOCITY_X, model_part.Properties[mesh_number][IMPOSED_VELOCITY_X_VALUE])
+                            node.Fix(KM.VELOCITY_X)
+                            node.SetSolutionStepValue(KM.VELOCITY_X, model_part.Properties[mesh_number][IMPOSED_VELOCITY_X_VALUE])
                         if (model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y]):
-                            node.Fix(VELOCITY_Y)
-                            node.SetSolutionStepValue(VELOCITY_Y, model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y_VALUE])
+                            node.Fix(KM.VELOCITY_Y)
+                            node.SetSolutionStepValue(KM.VELOCITY_Y, model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y_VALUE])
                         if (model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z]):
-                            node.Fix(VELOCITY_Z)
-                            node.SetSolutionStepValue(VELOCITY_Z, model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z_VALUE])
+                            node.Fix(KM.VELOCITY_Z)
+                            node.SetSolutionStepValue(KM.VELOCITY_Z, model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z_VALUE])
 
             # OUTLETS
             if (model_part.Properties[mesh_number][IMPOSED_PRESSURE] == 1):
                 # here I assume all nodes of this outlet have the same body force and density!!
 
                 for node in mesh_nodes:
-                    bf = node.GetSolutionStepValue(BODY_FORCE)
+                    bf = node.GetSolutionStepValue(KM.BODY_FORCE)
                     mod_bf = Norm(bf)
                     normalized_bf = Normalize(bf)
-                    outlet_density = node.GetSolutionStepValue(DENSITY)
+                    outlet_density = node.GetSolutionStepValue(KM.DENSITY)
                     break
 
                 for node in mesh_nodes:
-                    #coord = Vector(node)
                     height = - InnerProd([node.X, node.Y, node.Z], normalized_bf)
                     maxheight = -1.0e90
 
@@ -136,36 +137,36 @@ def ApplyEmbeddedBCsToFluid(model_part):
                 base_pressure = model_part.Properties[mesh_number][PRESSURE]
 
                 for node in mesh_nodes:
-                    dist = node.GetSolutionStepValue(DISTANCE)
+                    dist = node.GetSolutionStepValue(KM.DISTANCE)
                     distance_to_highest = maxheight - InnerProd(VectTimes([node.X, node.Y, node.Z], -1), normalized_bf)
 
                     if (dist > 0.0):
-                        node.Fix(PRESSURE)
+                        node.Fix(KM.PRESSURE)
                         actual_pressure = base_pressure + outlet_density * mod_bf * distance_to_highest
-                        node.SetSolutionStepValue(PRESSURE, actual_pressure)
-                        node.Free(VELOCITY_X)
-                        node.Free(VELOCITY_Y)
-                        node.Free(VELOCITY_Z)
+                        node.SetSolutionStepValue(KM.PRESSURE, actual_pressure)
+                        node.Free(KM.VELOCITY_X)
+                        node.Free(KM.VELOCITY_Y)
+                        node.Free(KM.VELOCITY_Z)
 
 def ApplyEmbeddedBCsToBalls(model_part, DEMParameters):
 
     for node in model_part.Nodes:
-        dist = node.GetSolutionStepValue(DISTANCE)
+        dist = node.GetSolutionStepValue(KM.DISTANCE)
 
         if (dist < 0.0):
 
-            if node.Is(BLOCKED):
-                node.Set(ACTIVE, True)
+            if node.Is(KM.BLOCKED):
+                node.Set(KM.ACTIVE, True)
 
             elif (DEMParameters.RemoveBallsInEmbeddedOption):
                 #print("--------------- One particle was erased because it entered an embedded structure -------------------")
-                node.Set(TO_ERASE,True)
+                node.Set(KM.TO_ERASE,True)
 
 
 class SearchEmbeddedDEMTools:
 
     def __init__(self):
-        self.search_tools = DemSearchUtilities(OMP_DEMSearch())
+        self.search_tools = KM.DemSearchUtilities(KM.OMP_DEMSearch())
 
     def SearchNodeNeighboursDistances(self, model_part, dem_model_part, search_radius):
         self.search_tools.SearchNodeNeighboursDistances(model_part, dem_model_part, search_radius, DISTANCE)
@@ -173,21 +174,21 @@ class SearchEmbeddedDEMTools:
     def CalculateElementNeighbourDistances(self, model_part, intersecting_surface_semi_thickness):
 
         for node in model_part.Nodes:
-            distance = node.GetSolutionStepValue(DISTANCE) - intersecting_surface_semi_thickness
-            node.SetSolutionStepValue(DISTANCE, 0, distance)
+            distance = node.GetSolutionStepValue(KM.DISTANCE) - intersecting_surface_semi_thickness
+            node.SetSolutionStepValue(KM.DISTANCE, 0, distance)
 
             if (distance < 0):
-                node.Fix(PRESSURE)
-                node.Fix(VELOCITY_X)
-                node.Fix(VELOCITY_Y)
-                node.Fix(VELOCITY_Z)
+                node.Fix(KM.PRESSURE)
+                node.Fix(KM.VELOCITY_X)
+                node.Fix(KM.VELOCITY_Y)
+                node.Fix(KM.VELOCITY_Z)
 
         for element in model_part.Elements:
             negative = 0
             positive = 0
 
             for node in element.GetNodes():
-                d = node.GetSolutionStepValue(DISTANCE)
+                d = node.GetSolutionStepValue(KM.DISTANCE)
 
                 if (d >= 0.0):
                     positive = positive + 1
@@ -198,11 +199,11 @@ class SearchEmbeddedDEMTools:
             if ((negative > 0) and (positive > 0)):
                 tmp = Vector(4)
                 i = 0
-                element.SetValue(SPLIT_ELEMENT, True)
+                element.SetValue(KM.SPLIT_ELEMENT, True)
 
                 for node in element.GetNodes():
-                    d = node.GetSolutionStepValue(DISTANCE)
+                    d = node.GetSolutionStepValue(KM.DISTANCE)
                     tmp[i] = d
                     i = i + 1
 
-                element.SetValue(ELEMENTAL_DISTANCES, tmp)
+                element.SetValue(KM.ELEMENTAL_DISTANCES, tmp)

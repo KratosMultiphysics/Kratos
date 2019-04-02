@@ -1,4 +1,5 @@
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
+from KratosMultiphysics import Vector, Parameters
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import math
@@ -86,9 +87,9 @@ class RotatingAleAnalysis(BaseAnalysis):
     def SetInletVelocity(self, time):
         if time <= self.time_full_flow:
             alpha = math.sin(0.5 * math.pi * time / self.time_full_flow)
-            self.fluid_model_part.GetProperties()[self.inlet_group_number][IMPOSED_VELOCITY_Z_VALUE] = alpha * self.inlet_velocity
+            self.fluid_model_part.GetProperties()[self.inlet_group_number][KM.IMPOSED_VELOCITY_Z_VALUE] = alpha * self.inlet_velocity
 
             for node in self.fluid_model_part.GetMesh(self.inlet_group_number).Nodes:
-                node.SetSolutionStepValue(VELOCITY_Z, alpha * self.inlet_velocity)
+                node.SetSolutionStepValue(KM.VELOCITY_Z, alpha * self.inlet_velocity)
         else:
             pass

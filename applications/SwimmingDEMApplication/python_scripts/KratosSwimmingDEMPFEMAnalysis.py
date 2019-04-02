@@ -7,7 +7,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Kratos
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
@@ -19,9 +19,9 @@ from KratosMultiphysics.ExternalSolversApplication import *
 from swimming_DEM_PFEM_analysis import SDEMPFEMAnalysis
 
 class SDEMPFEMAnalysisWithFlush(SDEMPFEMAnalysis):
-    def __init__(self, model, algorithm = None, parameters = Parameters("{}")):
+    def __init__(self, model, algorithm = None, parameters = KM.Parameters("{}")):
         with open('ProjectParameters.json','r') as parameter_file:
-                parameters = Parameters(parameter_file.read())
+                parameters = KM.Parameters(parameter_file.read())
         super(SDEMPFEMAnalysisWithFlush, self).__init__(model, parameters)
     def __enter__ (self):
         return self

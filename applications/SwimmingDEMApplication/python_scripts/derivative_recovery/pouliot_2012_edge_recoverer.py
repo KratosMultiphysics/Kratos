@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
+from KratosMultiphysics import Vector
 from KratosMultiphysics.SwimmingDEMApplication import *
 from . import recoverer
 import parameters_tools as PT
@@ -23,7 +24,7 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         self.recovery_model_part = ModelPart("PostGradientFluidPart")
         self.custom_functions_tool = CustomFunctionsCalculator3D()
         self.calculate_vorticity = (parameters["vorticity_calculation_type"].GetInt() > 0
-                                    or PT.RecursiveFindParametersWithCondition(parameters["properties"],
+                                    or PT.RecursiveFindParametersWithCondition(project_parameters["properties"],
                                                                                'vorticity_induced_lift_parameters'))
         self.GetFieldUtility()
         self.CreateCPluPlusStrategies()
@@ -52,9 +53,9 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
         # from KratosMultiphysics.ExternalSolversApplication import SuperLUSolver
         # linear_solver = SuperLUIterativeSolver()
-        scheme = ResidualBasedIncrementalUpdateStaticScheme()
-        amgcl_smoother = AMGCLSmoother.SPAI0
-        amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK
+        scheme = KM.ResidualBasedIncrementalUpdateStaticScheme()
+        amgcl_smoother = KM.AMGCLSmoother.SPAI0
+        amgcl_krylov_type = KM.AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK
         tolerance = 1e-8
         max_iterations = 400
         verbosity = 2 #0->shows no information, 1->some information, 2->all the information
@@ -63,7 +64,7 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         # if self.use_lumped_mass_matrix:
         #     linear_solver = CGSolver()
         # else:
-        linear_solver = AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
+        linear_solver = KM.AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
         # linear_solver = SuperLUIterativeSolver()
         # linear_solver = CGSolver()
         # linear_solver = SkylineLUFactorizationSolver()
@@ -71,7 +72,7 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         # linear_solver = ITSOL_ARMS_Solver()
         # linear_solver = MKLPardisoSolver()
         # linear_solver = AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
-        self.recovery_strategy = ResidualBasedDerivativeRecoveryStrategy(self.recovery_model_part, scheme, linear_solver, False, False, False, False)
+        self.recovery_strategy = KM.ResidualBasedDerivativeRecoveryStrategy(self.recovery_model_part, scheme, linear_solver, False, False, False, False)
 
         self.recovery_strategy.SetEchoLevel(echo_level)
 
@@ -98,7 +99,7 @@ class Pouliot2012EdgeGradientRecoverer(Pouliot2012EdgeDerivativesRecoverer, reco
         self.FillUpModelPart(self.element_type)
         self.DOFs = self.GetDofs(pp)
         self.AddDofs(self.DOFs)
-        self.calculate_vorticity = (parameters["vorticity_calculation_type"].GetInt() > 0
+        self.calculate_vorticity = (project_parameters["vorticity_calculation_type"].GetInt() > 0
                                     or PT.RecursiveFindParametersWithCondition(parameters["properties"],
                                                                                'vorticity_induced_lift_parameters'))
         self.domain_size = project_parameters["fluid_parameters"]["solver_settings"]["domain_size"].GetInt()
@@ -106,28 +107,34 @@ class Pouliot2012EdgeGradientRecoverer(Pouliot2012EdgeDerivativesRecoverer, reco
     def Solve(self):
         print("\nSolving for the fluid acceleration...")
         sys.stdout.flush()
-        self.SetToZero(VELOCITY_COMPONENT_GRADIENT)
+        self.SetToZero(KM.VELOCITY_COMPONENT_GRADIENT)
         self.recovery_strategy.Solve()
 
     def RecoverGradientOfVelocity(self):
-        self.model_part.ProcessInfo[CURRENT_COMPONENT] = 0
+        self.model_part.ProcessInfo[KM.CURRENT_COMPONENT] = 0
         self.Solve()
-        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, VELOCITY_COMPONENT_GRADIENT, VELOCITY_X_GRADIENT)
-        self.model_part.ProcessInfo[CURRENT_COMPONENT] = 1
+        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.VELOCITY_X_GRADIENT)
+        self.model_part.ProcessInfo[KM.CURRENT_COMPONENT] = 1
         self.Solve()
-        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, VELOCITY_COMPONENT_GRADIENT, VELOCITY_Y_GRADIENT)
-        self.model_part.ProcessInfo[CURRENT_COMPONENT] = 2
+        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.VELOCITY_Y_GRADIENT)
+        self.model_part.ProcessInfo[KM.CURRENT_COMPONENT] = 2
         self.Solve() # and there is no need to copy anything
-        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, VELOCITY_COMPONENT_GRADIENT, VELOCITY_Z_GRADIENT)
+        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.VELOCITY_Z_GRADIENT)
 
         if self.calculate_vorticity:
-            self.cplusplus_recovery_tool.CalculateVorticityFromGradient(self.model_part, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT, VORTICITY)
+            self.cplusplus_recovery_tool.CalculateVorticityFromGradient(self.model_part,
+                                                                        KM.VELOCITY_X_GRADIENT,
+                                                                        KM.VELOCITY_Y_GRADIENT,
+                                                                        KM.VELOCITY_Z_GRADIENT,
+                                                                        KM.VORTICITY)
 
     def RecoverGradientOfVelocityComponent(self, component):
         self.model_part.ProcessInfo[CURRENT_COMPONENT] = component
         self.Solve()
         if self.calculate_vorticity:
-            self.cplusplus_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.model_part, VELOCITY_COMPONENT_GRADIENT, VORTICITY)
+            self.cplusplus_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.model_part,
+                                                                                                 KM.VELOCITY_COMPONENT_GRADIENT,
+                                                                                                 KM.VORTICITY)
 
     def GetElementType(self, parameters):
         if self.domain_size == 2:
@@ -137,9 +144,9 @@ class Pouliot2012EdgeGradientRecoverer(Pouliot2012EdgeDerivativesRecoverer, reco
 
     def GetDofs(self, parameters):
         if self.domain_size == 2:
-            return (VELOCITY_COMPONENT_GRADIENT_X, VELOCITY_COMPONENT_GRADIENT_Y)
+            return (KM.VELOCITY_COMPONENT_GRADIENT_X, KM.VELOCITY_COMPONENT_GRADIENT_Y)
         else:
-            return (VELOCITY_COMPONENT_GRADIENT_X, VELOCITY_COMPONENT_GRADIENT_Y, VELOCITY_COMPONENT_GRADIENT_Z)
+            return (KM.VELOCITY_COMPONENT_GRADIENT_X, KM.VELOCITY_COMPONENT_GRADIENT_Y, KM.VELOCITY_COMPONENT_GRADIENT_Z)
 
 class Pouliot2012EdgeMaterialAccelerationRecoverer(Pouliot2012EdgeGradientRecoverer, recoverer.MaterialAccelerationRecoverer):
     def __init__(self, project_parameters, model_part):
@@ -152,11 +159,11 @@ class Pouliot2012EdgeMaterialAccelerationRecoverer(Pouliot2012EdgeGradientRecove
             self.RecoverMaterialAccelerationFromGradient()
         else:
             self.RecoverGradientOfVelocityComponent(0)
-            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, VELOCITY_COMPONENT_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)
+            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.ACCELERATION, KM.MATERIAL_ACCELERATION)
             self.RecoverGradientOfVelocityComponent(1)
-            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, VELOCITY_COMPONENT_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)
+            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.ACCELERATION, KM.MATERIAL_ACCELERATION)
             self.RecoverGradientOfVelocityComponent(2)
-            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, VELOCITY_COMPONENT_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)
+            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.ACCELERATION, KM.MATERIAL_ACCELERATION)
 
 class Pouliot2012EdgeLaplacianRecoverer(Pouliot2012EdgeMaterialAccelerationRecoverer, recoverer.LaplacianRecoverer):
     def __init__(self, project_parameters, model_part):
@@ -187,6 +194,6 @@ class Pouliot2012EdgeLaplacianRecoverer(Pouliot2012EdgeMaterialAccelerationRecov
 
     def GetDofs(self, parameters):
         if self.domain_size == 2:
-            return (VELOCITY_LAPLACIAN_X, VELOCITY_LAPLACIAN_Y)
+            return (KM.VELOCITY_LAPLACIAN_X, KM.VELOCITY_LAPLACIAN_Y)
         else:
-            return (VELOCITY_LAPLACIAN_X, VELOCITY_LAPLACIAN_Y, VELOCITY_LAPLACIAN_Z)
+            return (KM.VELOCITY_LAPLACIAN_X, KM.VELOCITY_LAPLACIAN_Y, KM.VELOCITY_LAPLACIAN_Z)

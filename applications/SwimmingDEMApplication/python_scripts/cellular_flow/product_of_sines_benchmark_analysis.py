@@ -1,11 +1,11 @@
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
 from KratosMultiphysics.SwimmingDEMApplication import *
 from KratosMultiphysics.DEMApplication import *
 import ethier_benchmark_analysis
 BaseAnalysis = ethier_benchmark_analysis.EthierBenchmarkAnalysis
 
 class ProductOfSinesBenchmarkAnalysis(BaseAnalysis):
-    def __init__(self, varying_parameters = Parameters("{}")):
+    def __init__(self, varying_parameters = KM.Parameters("{}")):
         BaseAnalysis.__init__(self, varying_parameters)
 
     def SetBetaParameters(self):

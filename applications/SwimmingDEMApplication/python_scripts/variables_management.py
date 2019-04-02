@@ -1,8 +1,9 @@
 from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
+from KratosMultiphysics import Vector, Logger
 from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysics.DEMApplication as DEM
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import ast
 import parameters_tools as PT
 def Say(*args):
@@ -41,13 +42,13 @@ class VariablesManager:
     @staticmethod
     def AddFrameOfReferenceRelatedVariables(parameters, model_part):
         frame_of_reference_type = parameters["frame_of_reference"]["frame_type"].GetInt()
-        model_part.ProcessInfo.SetValue(FRAME_OF_REFERENCE_TYPE, frame_of_reference_type)
+        model_part.ProcessInfo.SetValue(KM.FRAME_OF_REFERENCE_TYPE, frame_of_reference_type)
 
         if frame_of_reference_type == 1: # Rotating frame
             angular_velocity_of_frame = Vector(3)
             angular_velocity_of_frame[:] = [parameters['frame_of_reference']["angular_velocity_of_frame" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
 
-            model_part.ProcessInfo.SetValue(ANGULAR_VELOCITY_MOVING_FRAME, angular_velocity_of_frame)
+            model_part.ProcessInfo.SetValue(KM.ANGULAR_VELOCITY_MOVING_FRAME, angular_velocity_of_frame)
 
             if frame_of_reference_type >= 2: # Gemeral frame
                 angular_velocity_of_frame_old = Vector(3)
@@ -56,9 +57,9 @@ class VariablesManager:
                 acceleration_of_frame_origin[:] = [parameters['frame_of_reference']["acceleration_of_frame_origin" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
                 angular_acceleration_of_frame = Vector(3)
                 angular_acceleration_of_frame[:] = [parameters['frame_of_reference']["angular_acceleration_of_frame" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
-                model_part.ProcessInfo.SetValue(ANGULAR_VELOCITY_MOVING_FRAME_OLD, angular_velocity_of_frame_old)
-                model_part.ProcessInfo.SetValue(ACCELERATION_MOVING_FRAME_ORIGIN, acceleration_of_frame_origin)
-                model_part.ProcessInfo.SetValue(ANGULAR_ACCELERATION_MOVING_FRAME, angular_acceleration_of_frame)
+                model_part.ProcessInfo.SetValue(KM.ANGULAR_VELOCITY_MOVING_FRAME_OLD, angular_velocity_of_frame_old)
+                model_part.ProcessInfo.SetValue(KM.ACCELERATION_MOVING_FRAME_ORIGIN, acceleration_of_frame_origin)
+                model_part.ProcessInfo.SetValue(KM.ANGULAR_ACCELERATION_MOVING_FRAME, angular_acceleration_of_frame)
 
 
     def SetOptions(self, parameters):
@@ -78,47 +79,47 @@ class VariablesManager:
 
         VariablesManager.AddFrameOfReferenceRelatedVariables(parameters, fluid_model_part)
 
-        fluid_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1)
+        fluid_model_part.ProcessInfo.SetValue(KM.FRACTIONAL_STEP, 1)
         gravity = Vector(3)
         if parameters["custom_fluid"]["body_force_on_fluid_option"].GetBool():
             gravity[0] = parameters["GravityX"].GetDouble()
             gravity[1] = parameters["GravityY"].GetDouble()
             gravity[2] = parameters["GravityZ"].GetDouble()
-        fluid_model_part.ProcessInfo.SetValue(GRAVITY, gravity)
+        fluid_model_part.ProcessInfo.SetValue(KM.GRAVITY, gravity)
 
         if parameters["laplacian_calculation_type"].GetInt() == 3: # recovery through solving a system
-            fluid_model_part.ProcessInfo.SetValue(COMPUTE_LUMPED_MASS_MATRIX, 1)
+            fluid_model_part.ProcessInfo.SetValue(KM.COMPUTE_LUMPED_MASS_MATRIX, 1)
         elif (parameters["material_acceleration_calculation_type"].GetInt() == 4
               or parameters["material_acceleration_calculation_type"].GetInt() == 5
               or parameters["material_acceleration_calculation_type"].GetInt() == 6): # recovery by solving a system
-            fluid_model_part.ProcessInfo.SetValue(COMPUTE_LUMPED_MASS_MATRIX, 0)
+            fluid_model_part.ProcessInfo.SetValue(KM.COMPUTE_LUMPED_MASS_MATRIX, 0)
 
         if parameters["material_acceleration_calculation_type"].GetInt() == 5 or parameters["material_acceleration_calculation_type"].GetInt() == 6:
-            fluid_model_part.ProcessInfo.SetValue(CURRENT_COMPONENT, 0)
+            fluid_model_part.ProcessInfo.SetValue(KM.CURRENT_COMPONENT, 0)
 
         if parameters["non_newtonian_fluid"]["non_newtonian_option"].GetBool():
-            fluid_model_part.ProcessInfo.SetValue(YIELD_STRESS, parameters["non_newtonian_fluid"]["yield_stress"].GetDouble())
-            fluid_model_part.ProcessInfo.SetValue(REGULARIZATION_COEFFICIENT, parameters["non_newtonian_fluid"]["regularization_coefficient"].GetDouble())
-            fluid_model_part.ProcessInfo.SetValue(POWER_LAW_K, parameters["non_newtonian_fluid"]["power_law_k"].GetDouble())
-            fluid_model_part.ProcessInfo.SetValue(POWER_LAW_N, parameters["non_newtonian_fluid"]["power_law_n"].GetDouble())
+            fluid_model_part.ProcessInfo.SetValue(KM.YIELD_STRESS, parameters["non_newtonian_fluid"]["yield_stress"].GetDouble())
+            fluid_model_part.ProcessInfo.SetValue(KM.REGULARIZATION_COEFFICIENT, parameters["non_newtonian_fluid"]["regularization_coefficient"].GetDouble())
+            fluid_model_part.ProcessInfo.SetValue(KM.POWER_LAW_K, parameters["non_newtonian_fluid"]["power_law_k"].GetDouble())
+            fluid_model_part.ProcessInfo.SetValue(KM.POWER_LAW_N, parameters["non_newtonian_fluid"]["power_law_n"].GetDouble())
 
     def AddExtraProcessInfoVariablesToDispersePhaseModelPart(self, parameters, dem_model_part):
 
         VariablesManager.AddFrameOfReferenceRelatedVariables(parameters, dem_model_part)
-        dem_model_part.ProcessInfo.SetValue(COUPLING_TYPE, parameters["coupling"]["coupling_level_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(FLUID_MODEL_TYPE, parameters["custom_fluid"]["fluid_model_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, parameters["drag_modifier_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, parameters["non_newtonian_fluid"]["power_law_tol"].GetDouble())
+        dem_model_part.ProcessInfo.SetValue(KM.COUPLING_TYPE, parameters["coupling"]["coupling_level_type"].GetInt())
+        dem_model_part.ProcessInfo.SetValue(KM.FLUID_MODEL_TYPE, parameters["custom_fluid"]["fluid_model_type"].GetInt())
+        dem_model_part.ProcessInfo.SetValue(KM.DRAG_MODIFIER_TYPE, parameters["drag_modifier_type"].GetInt())
+        dem_model_part.ProcessInfo.SetValue(KM.POWER_LAW_TOLERANCE, parameters["non_newtonian_fluid"]["power_law_tol"].GetDouble())
 
         if self.do_include_history_force:
-            dem_model_part.ProcessInfo.SetValue(NUMBER_OF_INIT_BASSET_STEPS, self.history_force_parameters["n_init_basset_steps"].GetInt())
-            dem_model_part.ProcessInfo.SetValue(TIME_STEPS_PER_QUADRATURE_STEP, self.history_force_parameters["time_steps_per_quadrature_step"].GetInt())
-            dem_model_part.ProcessInfo.SetValue(LAST_TIME_APPENDING, 0.0)
-            dem_model_part.ProcessInfo.SetValue(QUADRATURE_ORDER, self.history_force_parameters["quadrature_order"].GetInt())
+            dem_model_part.ProcessInfo.SetValue(KM.NUMBER_OF_INIT_BASSET_STEPS, self.history_force_parameters["n_init_basset_steps"].GetInt())
+            dem_model_part.ProcessInfo.SetValue(KM.TIME_STEPS_PER_QUADRATURE_STEP, self.history_force_parameters["time_steps_per_quadrature_step"].GetInt())
+            dem_model_part.ProcessInfo.SetValue(KM.LAST_TIME_APPENDING, 0.0)
+            dem_model_part.ProcessInfo.SetValue(KM.QUADRATURE_ORDER, self.history_force_parameters["quadrature_order"].GetInt())
 
         if parameters["non_newtonian_fluid"]["non_newtonian_option"].GetBool():
-            dem_model_part.ProcessInfo.SetValue(POWER_LAW_K, parameters["non_newtonian_fluid"]["power_law_k"].GetDouble())
-            dem_model_part.ProcessInfo.SetValue(POWER_LAW_N, parameters["non_newtonian_fluid"]["power_law_n"].GetDouble())
+            dem_model_part.ProcessInfo.SetValue(KM.POWER_LAW_K, parameters["non_newtonian_fluid"]["power_law_k"].GetDouble())
+            dem_model_part.ProcessInfo.SetValue(KM.POWER_LAW_N, parameters["non_newtonian_fluid"]["power_law_n"].GetDouble())
 
     def ConstructListsOfVariables(self, parameters):
         # PRINTING VARIABLES
@@ -147,98 +148,98 @@ class VariablesManager:
 
         # fluid variables
         self.fluid_vars = []
-        self.fluid_vars += [TORQUE]
+        self.fluid_vars += [KM.TORQUE]
         self.fluid_vars += self.fluid_printing_vars
         self.fluid_vars += self.coupling_fluid_vars
 
         if parameters["pressure_grad_recovery_type"].GetInt() > 0:
-            self.fluid_vars += [RECOVERED_PRESSURE_GRADIENT]
+            self.fluid_vars += [KM.RECOVERED_PRESSURE_GRADIENT]
 
         if (parameters["gradient_calculation_type"].GetInt() > 1
             or parameters["pressure_grad_recovery_type"].GetInt() > 1
             or parameters["material_acceleration_calculation_type"].GetInt() == 7
             or parameters["laplacian_calculation_type"].GetInt() > 1):
-            self.fluid_vars += [NODAL_WEIGHTS]
+            self.fluid_vars += [KM.NODAL_WEIGHTS]
 
         if parameters["material_acceleration_calculation_type"].GetInt():
-            self.fluid_vars += [MATERIAL_ACCELERATION]
-            self.fluid_vars += [VELOCITY_COMPONENT_GRADIENT]
+            self.fluid_vars += [KM.MATERIAL_ACCELERATION]
+            self.fluid_vars += [KM.VELOCITY_COMPONENT_GRADIENT]
 
             if (parameters["material_acceleration_calculation_type"].GetInt() == 5
                 or parameters["material_acceleration_calculation_type"].GetInt() == 6):
                 if parameters["store_full_gradient_option"].GetBool():
-                    self.fluid_vars += [VELOCITY_X_GRADIENT]
-                    self.fluid_vars += [VELOCITY_Y_GRADIENT]
-                    self.fluid_vars += [VELOCITY_Z_GRADIENT]
+                    self.fluid_vars += [KM.VELOCITY_X_GRADIENT]
+                    self.fluid_vars += [KM.VELOCITY_Y_GRADIENT]
+                    self.fluid_vars += [KM.VELOCITY_Z_GRADIENT]
 
         if (parameters["vorticity_calculation_type"].GetInt() > 0
             or PT.RecursiveFindParametersWithCondition(parameters["properties"], 'vorticity_induced_lift_parameters')):
-            self.fluid_vars += [VORTICITY]
+            self.fluid_vars += [KM.VORTICITY]
 
         if parameters["laplacian_calculation_type"].GetInt():
-            self.fluid_vars += [VELOCITY_LAPLACIAN]
+            self.fluid_vars += [KM.VELOCITY_LAPLACIAN]
 
         if PT.RecursiveFindTrueBoolInParameters(parameters["properties"], 'do_apply_faxen_corrections'):
-            self.fluid_vars += [VELOCITY_LAPLACIAN_RATE]
+            self.fluid_vars += [KM.VELOCITY_LAPLACIAN_RATE]
 
         if parameters["coupling"]["backward_coupling"]["calculate_diffusivity_option"].GetBool():
-            self.fluid_vars += [CONDUCTIVITY]
+            self.fluid_vars += [KM.CONDUCTIVITY]
 
         # dem variables
         self.dem_vars = []
         self.dem_vars += self.dem_printing_vars
         self.dem_vars += self.coupling_dem_vars
-        self.dem_vars += [BUOYANCY]
-        self.dem_vars += [VELOCITY_OLD]
+        self.dem_vars += [KM.BUOYANCY]
+        self.dem_vars += [KM.VELOCITY_OLD]
 
         if self.do_include_history_force:
-            self.dem_vars += [BASSET_FORCE]
+            self.dem_vars += [KM.BASSET_FORCE]
 
         if parameters["frame_of_reference"]["frame_type"].GetInt() and self.do_include_history_force > 0:
-            self.dem_vars += [DISPLACEMENT_OLD]
-            self.dem_vars += [VELOCITY_OLD_OLD]
+            self.dem_vars += [KM.DISPLACEMENT_OLD]
+            self.dem_vars += [KM.VELOCITY_OLD_OLD]
 
         if (parameters["custom_dem"]["translational_integration_scheme"].GetString()
             in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}
             or self.do_include_history_force):
-            self.dem_vars += [VELOCITY_OLD]
-            self.dem_vars += [ADDITIONAL_FORCE_OLD]
-            self.dem_vars += [AUX_VEL]
+            self.dem_vars += [KM.VELOCITY_OLD]
+            self.dem_vars += [KM.ADDITIONAL_FORCE_OLD]
+            self.dem_vars += [KM.AUX_VEL]
 
         if parameters["add_each_hydro_force_option"].GetBool():
-            self.dem_vars += [DRAG_FORCE]
+            self.dem_vars += [KM.DRAG_FORCE]
 
-        self.dem_vars += [PARTICLE_SPHERICITY] # TODO: add only when needed
+        self.dem_vars += [KM.PARTICLE_SPHERICITY] # TODO: add only when needed
 
         if (PT.RecursiveFindParametersWithCondition(parameters["properties"], 'vorticity_induced_lift_parameters')
             and parameters["add_each_hydro_force_option"].GetBool()):
-            self.dem_vars += [LIFT_FORCE]
+            self.dem_vars += [KM.LIFT_FORCE]
 
         if parameters["add_each_hydro_force_option"].GetBool():
-            self.dem_vars += [VIRTUAL_MASS_FORCE]
+            self.dem_vars += [KM.VIRTUAL_MASS_FORCE]
 
         # clusters variables
         self.clusters_vars = []
 
         # rigid faces variables
-        self.rigid_faces_vars = [VELOCITY,
-                                 ANGULAR_VELOCITY,
-                                 DISPLACEMENT,
-                                 DELTA_DISPLACEMENT,
-                                 DELTA_ROTATION,
-                                 CONTACT_FORCES,
-                                 DEM_PRESSURE,
-                                 ELASTIC_FORCES,
-                                 PRESSURE,
-                                 TANGENTIAL_ELASTIC_FORCES,
-                                 SHEAR_STRESS,
-                                 NODAL_AREA,
-                                 VELOCITY_OLD]
+        self.rigid_faces_vars = [KM.VELOCITY,
+                                 KM.ANGULAR_VELOCITY,
+                                 KM.DISPLACEMENT,
+                                 DEM.DELTA_DISPLACEMENT,
+                                 KM.DELTA_ROTATION,
+                                 DEM.CONTACT_FORCES,
+                                 DEM.DEM_PRESSURE,
+                                 DEM.ELASTIC_FORCES,
+                                 KM.PRESSURE,
+                                 DEM.TANGENTIAL_ELASTIC_FORCES,
+                                 DEM.SHEAR_STRESS,
+                                 KM.NODAL_AREA,
+                                 KM.VELOCITY_OLD]
 
         if parameters["custom_fluid"]["embedded_option"].GetBool():
-            self.rigid_faces_vars += [FORCE]
-            self.rigid_faces_vars += [POSITIVE_FACE_PRESSURE]
-            self.rigid_faces_vars += [NEGATIVE_FACE_PRESSURE]
+            self.rigid_faces_vars += [KM.FORCE]
+            self.rigid_faces_vars += [KM.POSITIVE_FACE_PRESSURE]
+            self.rigid_faces_vars += [KM.NEGATIVE_FACE_PRESSURE]
 
         self.fluid_vars += self.rigid_faces_vars
 
@@ -294,20 +295,20 @@ class VariablesManager:
         self.time_filtered_vars = []
 
         for variable in self.nodal_results:
-            self.fluid_printing_vars += [eval(variable)]
+            self.fluid_printing_vars += [eval('KM.' + variable)]
 
         for variable in self.dem_nodal_results:
-            self.dem_printing_vars += [eval(variable)]
+            self.dem_printing_vars += [eval('KM.' + variable)]
 
         for variable in self.clusters_nodal_results:
-            self.clusters_printing_vars += [eval(variable)]
+            self.clusters_printing_vars += [eval('KM.' + variable)]
 
         for variable in self.rigid_faces_nodal_results:
-            self.rigid_faces_printing_vars += [eval(variable)]
+            self.rigid_faces_printing_vars += [eval('KM.' + variable)]
 
         for variable in self.mixed_nodal_results:
-            self.dem_printing_vars += [eval(variable)]
-            self.fluid_printing_vars += [eval(variable)]
+            self.dem_printing_vars += [eval('KM.' + variable)]
+            self.fluid_printing_vars += [eval('KM.' + variable)]
 
         for var in self.mixed_nodal_results:
 
@@ -322,98 +323,98 @@ class VariablesManager:
 
         # fluid coupling variables
         self.coupling_fluid_vars = []
-        self.coupling_fluid_vars += [MATERIAL_ACCELERATION]
+        self.coupling_fluid_vars += [KM.MATERIAL_ACCELERATION]
 
-        self.coupling_fluid_vars += [KratosGlobals.GetVariable(parameters["body_force_per_unit_mass_variable_name"].GetString() )]
+        self.coupling_fluid_vars += [KM.KratosGlobals.GetVariable(parameters["body_force_per_unit_mass_variable_name"].GetString() )]
 
         if parameters["custom_fluid"]["fluid_model_type"].GetInt() == 0:
-            self.coupling_fluid_vars += [AVERAGED_FLUID_VELOCITY]
+            self.coupling_fluid_vars += [SDEM.AVERAGED_FLUID_VELOCITY]
 
         if (parameters["custom_fluid"]["fluid_model_type"].GetInt() == 0
             or parameters["coupling"]["coupling_level_type"].GetInt() > 1):
-            self.coupling_fluid_vars += [FLUID_FRACTION]
-            self.coupling_fluid_vars += [FLUID_FRACTION_OLD]
+            self.coupling_fluid_vars += [KM.FLUID_FRACTION]
+            self.coupling_fluid_vars += [KM.FLUID_FRACTION_OLD]
 
             if 'DISPERSE_FRACTION' in self.nodal_results:
-                self.coupling_fluid_vars += [DISPERSE_FRACTION]
+                self.coupling_fluid_vars += [KM.DISPERSE_FRACTION]
 
             if parameters["coupling"]["backward_coupling"]["filter_velocity_option"].GetBool():
-                self.coupling_fluid_vars += [PARTICLE_VEL_FILTERED]
-                self.coupling_fluid_vars += [TIME_AVERAGED_ARRAY_3]
-                self.coupling_fluid_vars += [PHASE_FRACTION]
+                self.coupling_fluid_vars += [KM.PARTICLE_VEL_FILTERED]
+                self.coupling_fluid_vars += [KM.TIME_AVERAGED_ARRAY_3]
+                self.coupling_fluid_vars += [KM.PHASE_FRACTION]
 
         if parameters["custom_fluid"]["fluid_model_type"].GetInt() >= 1:
-            self.coupling_fluid_vars += [FLUID_FRACTION_GRADIENT]
-            self.coupling_fluid_vars += [FLUID_FRACTION_RATE]
+            self.coupling_fluid_vars += [KM.FLUID_FRACTION_GRADIENT]
+            self.coupling_fluid_vars += [KM.FLUID_FRACTION_RATE]
 
         if parameters["coupling"]["coupling_level_type"].GetInt() >= 1:
-            self.coupling_fluid_vars += [HYDRODYNAMIC_REACTION]
+            self.coupling_fluid_vars += [KM.HYDRODYNAMIC_REACTION]
 
         if parameters["coupling"]["coupling_level_type"].GetInt() >= 1 and parameters["coupling"]["time_averaging_type"].GetInt() > 0:
-            self.coupling_fluid_vars += [MEAN_HYDRODYNAMIC_REACTION]
+            self.coupling_fluid_vars += [KM.MEAN_HYDRODYNAMIC_REACTION]
 
         if parameters["non_newtonian_fluid"]["non_newtonian_option"].GetBool():
-            self.coupling_fluid_vars += [POWER_LAW_N]
-            self.coupling_fluid_vars += [POWER_LAW_K]
-            self.coupling_fluid_vars += [YIELD_STRESS]
-            # self.coupling_fluid_vars += [GEL_STRENGTH] # TODO: make specific option for this
+            self.coupling_fluid_vars += [KM.POWER_LAW_N]
+            self.coupling_fluid_vars += [KM.POWER_LAW_K]
+            self.coupling_fluid_vars += [KM.YIELD_STRESS]
+            # self.coupling_fluid_vars += [KM.GEL_STRENGTH] # TODO: make specific option for this
 
         if parameters["coupling"]["backward_coupling"]["viscosity_modification_type"].GetInt():
-            self.coupling_fluid_vars += [VISCOSITY]
+            self.coupling_fluid_vars += [KM.VISCOSITY]
 
         if parameters["custom_fluid"]["embedded_option"].GetBool():
-            self.coupling_fluid_vars += [DISTANCE]
+            self.coupling_fluid_vars += [KM.DISTANCE]
 
         # dem coupling variables
         self.coupling_dem_vars = []
 
         if parameters["coupling"]["coupling_level_type"].GetInt() > 0:
-            self.coupling_dem_vars += [FLUID_VEL_PROJECTED]
-            self.coupling_dem_vars += [FLUID_ACCEL_PROJECTED]
-            self.coupling_dem_vars += [FLUID_DENSITY_PROJECTED]
-            self.coupling_dem_vars += [FLUID_VISCOSITY_PROJECTED]
-            self.coupling_dem_vars += [HYDRODYNAMIC_FORCE]
-            self.coupling_dem_vars += [HYDRODYNAMIC_MOMENT]
-            self.coupling_dem_vars += [MATERIAL_FLUID_ACCEL_PROJECTED]
-            self.coupling_dem_vars += [FLUID_ACCEL_PROJECTED]
-            self.coupling_dem_vars += [FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED]
-            self.coupling_dem_vars += [ADDITIONAL_FORCE] # Here for safety for the moment
+            self.coupling_dem_vars += [KM.FLUID_VEL_PROJECTED]
+            self.coupling_dem_vars += [KM.FLUID_ACCEL_PROJECTED]
+            self.coupling_dem_vars += [KM.FLUID_DENSITY_PROJECTED]
+            self.coupling_dem_vars += [KM.FLUID_VISCOSITY_PROJECTED]
+            self.coupling_dem_vars += [KM.HYDRODYNAMIC_FORCE]
+            self.coupling_dem_vars += [KM.HYDRODYNAMIC_MOMENT]
+            self.coupling_dem_vars += [KM.MATERIAL_FLUID_ACCEL_PROJECTED]
+            self.coupling_dem_vars += [KM.FLUID_ACCEL_PROJECTED]
+            self.coupling_dem_vars += [KM.FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED]
+            self.coupling_dem_vars += [KM.ADDITIONAL_FORCE] # Here for safety for the moment
 
             if PT.RecursiveFindTrueBoolInParameters(parameters["properties"], 'do_apply_faxen_corrections'):
-                self.coupling_dem_vars += [FLUID_VEL_LAPL_PROJECTED]
-                self.coupling_dem_vars += [FLUID_VEL_LAPL_RATE_PROJECTED]
+                self.coupling_dem_vars += [KM.FLUID_VEL_LAPL_PROJECTED]
+                self.coupling_dem_vars += [KM.FLUID_VEL_LAPL_RATE_PROJECTED]
 
             if self.do_include_history_force:
-                self.coupling_dem_vars += [FLUID_VEL_PROJECTED_RATE]
+                self.coupling_dem_vars += [KM.FLUID_VEL_PROJECTED_RATE]
 
         if parameters["coupling"]["coupling_level_type"].GetInt() >= 1 or parameters["custom_fluid"]["fluid_model_type"].GetInt() == 0:
-            self.coupling_dem_vars += [FLUID_FRACTION_PROJECTED]
+            self.coupling_dem_vars += [KM.FLUID_FRACTION_PROJECTED]
 
         if (parameters["coupling"]["coupling_level_type"].GetInt() >= 1
             and 'FLUID_FRACTION_GRADIENT_PROJECTED' in self.dem_printing_vars):
-            self.coupling_dem_vars += [FLUID_FRACTION_GRADIENT_PROJECTED]
+            self.coupling_dem_vars += [KM.FLUID_FRACTION_GRADIENT_PROJECTED]
 
         if parameters["non_newtonian_fluid"]["non_newtonian_option"].GetBool():
-            self.coupling_dem_vars += [POWER_LAW_N]
-            self.coupling_dem_vars += [POWER_LAW_K]
-            self.coupling_dem_vars += [YIELD_STRESS]
+            self.coupling_dem_vars += [KM.POWER_LAW_N]
+            self.coupling_dem_vars += [KM.POWER_LAW_K]
+            self.coupling_dem_vars += [KM.YIELD_STRESS]
 
         if PT.RecursiveFindParametersWithCondition(parameters["properties"], 'vorticity_induced_lift_parameters'):
-            self.coupling_dem_vars += [FLUID_VORTICITY_PROJECTED]
-            self.coupling_dem_vars += [SHEAR_RATE_PROJECTED]
+            self.coupling_dem_vars += [KM.FLUID_VORTICITY_PROJECTED]
+            self.coupling_dem_vars += [KM.SHEAR_RATE_PROJECTED]
 
         if parameters["custom_fluid"]["embedded_option"].GetBool():
-            self.coupling_dem_vars += [DISTANCE]
+            self.coupling_dem_vars += [KM.DISTANCE]
 
         if 'REYNOLDS_NUMBER' in self.dem_nodal_results:
-            self.coupling_dem_vars += [REYNOLDS_NUMBER]
+            self.coupling_dem_vars += [KM.REYNOLDS_NUMBER]
 
         if self.do_backward_coupling:
             if parameters["coupling"]["backward_coupling"]["apply_time_filter_to_fluid_fraction_option"].GetBool():
-                self.time_filtered_vars += [FLUID_FRACTION_FILTERED]
+                self.time_filtered_vars += [KM.FLUID_FRACTION_FILTERED]
 
         if parameters["coupling"]["backward_coupling"]["filter_velocity_option"].GetBool():
-            self.time_filtered_vars += [PARTICLE_VEL_FILTERED]
+            self.time_filtered_vars += [KM.PARTICLE_VEL_FILTERED]
 
 
     def ChangeListOfFluidNodalResultsToPrint(self, parameters):

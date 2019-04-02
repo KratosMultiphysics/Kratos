@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import math
 import os
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
 from KratosMultiphysics.SwimmingDEMApplication import *
 
 class PouliotRecoveryTools:
@@ -9,7 +9,7 @@ class PouliotRecoveryTools:
         pass
 
     def MakeRecoveryModelPart(self, model_part):
-        edges_model_part = ModelPart("Edges")
+        edges_model_part = KM.ModelPart("Edges")
         set_of_all_edges = set()
         for elem in model_part.Elements:
             for i, first_node in enumerate(elem.Nodes[:-1]):

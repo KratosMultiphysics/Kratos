@@ -9,11 +9,11 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import sys
 
 # Kratos
-from KratosMultiphysics import *
+import KratosMultiphysics
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysics.SwimmingDEMApplication
 from KratosMultiphysics.PfemApplication import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.PfemSolidMechanicsApplication import *

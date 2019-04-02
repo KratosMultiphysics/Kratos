@@ -8,7 +8,8 @@ import math
 import time as timer
 import weakref
 
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
+from KratosMultiphysics import Vector, Logger
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 
@@ -64,7 +65,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def __exit__(self, exception_type, exception_value, traceback):
         pass
 
-    def __init__(self, model, parameters = Parameters("{}")):
+    def __init__(self, model, parameters = KM.Parameters("{}")):
         sys.stdout = SDEMLogger()
         self.StartTimer()
         self.model = model
@@ -289,7 +290,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
                 self.spheres_model_part.NumberOfElements(0) > 0)
 
             if default_meso_scale_length_needed:
-                biggest_size = (2 * dem_physics_calculator.CalculateMaxNodalVariable(self.spheres_model_part, RADIUS))
+                biggest_size = (2 * dem_physics_calculator.CalculateMaxNodalVariable(self.spheres_model_part, KM.RADIUS))
                 self.project_parameters["coupling"]["backward_coupling"]["meso_scale_length"].SetDouble(20 * biggest_size)
 
             elif self.spheres_model_part.NumberOfElements(0) == 0:
@@ -324,9 +325,9 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.step = 0
         self.time = self.fluid_parameters["problem_data"]["start_time"].GetDouble()
         self.fluid_time_step = self._GetFluidAnalysis()._GetSolver()._ComputeDeltaTime()
-        self.time_step = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
-        self.rigid_face_model_part.ProcessInfo[DELTA_TIME] = self.time_step
-        self.cluster_model_part.ProcessInfo[DELTA_TIME] = self.time_step
+        self.time_step = self.spheres_model_part.ProcessInfo.GetValue(KM.DELTA_TIME)
+        self.rigid_face_model_part.ProcessInfo[KM.DELTA_TIME] = self.time_step
+        self.cluster_model_part.ProcessInfo[KM.DELTA_TIME] = self.time_step
         self.stationarity = False
 
         # setting up loop counters:
@@ -362,7 +363,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         if self.project_parameters["perform_analytics_option"].GetBool():
             import analytics
-            variables_to_measure = [PRESSURE]
+            variables_to_measure = [KM.PRESSURE]
             steps_between_measurements = 100
             gauge = analytics.Gauge(
                 self.fluid_model_part,
@@ -437,7 +438,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
     # creating a distance calculation process for the embedded technology
         # (used to calculate elemental distances defining the structure embedded in the fluid mesh)
         if self.project_parameters["custom_fluid"]["embedded_option"].GetBool():
-            self.calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(
+            self.calculate_distance_process = KM.CalculateSignedDistanceTo3DSkinProcess(
                 self.rigid_face_model_part,
                 self.fluid_model_part
                 )

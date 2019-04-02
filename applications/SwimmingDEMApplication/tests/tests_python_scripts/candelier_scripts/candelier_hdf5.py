@@ -1,7 +1,7 @@
 import h5py
 import numpy as np
 import math
-from KratosMultiphysics import *
+import KratosMultiphysics
 import candelier
 import candelier_parameters as ch_pp
 import parameters_tools as PT

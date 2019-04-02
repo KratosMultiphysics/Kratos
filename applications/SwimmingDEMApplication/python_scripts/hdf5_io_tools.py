@@ -1,7 +1,7 @@
 import bisect as bi
 import numpy as np
 import h5py
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from DEM_procedures import KratosPrintInfo as Say
@@ -82,8 +82,8 @@ class FluidHDF5Loader:
             viscosity = 1e-6
             density = 1000. # BIG TODO: READ THIS FROM NODES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             for node in self.fluid_model_part.Nodes:
-                node.SetSolutionStepValue(VISCOSITY, viscosity)
-                node.SetSolutionStepValue(DENSITY, density)
+                node.SetSolutionStepValue(KM.VISCOSITY, viscosity)
+                node.SetSolutionStepValue(KM.DENSITY, density)
         else:
             self.dtype = np.float64
             if project_parameters["store_fluid_in_single_precision"].GetBool():
@@ -91,8 +91,8 @@ class FluidHDF5Loader:
 
             self.compression_type = 'gzip'
             for node in self.fluid_model_part.Nodes:
-                viscosity = node.GetSolutionStepValue(VISCOSITY)
-                density = node.GetSolutionStepValue(DENSITY)
+                viscosity = node.GetSolutionStepValue(KM.VISCOSITY)
+                density = node.GetSolutionStepValue(KM.DENSITY)
                 break
 
             with h5py.File(self.file_path, 'w') as f:
@@ -147,7 +147,7 @@ class FluidHDF5Loader:
         with h5py.File(self.file_path, 'r+') as f:
             f.create_dataset(name, compression = self.compression_type, shape = self.shape, dtype = self.dtype)
             for i_node, node in enumerate(self.fluid_model_part.Nodes):
-                self.current_data_array[i_node, variable_index_in_temp_array] = node.GetSolutionStepValue(variable)
+                self.current_data_array[i_node, variable_index_in_temp_array] = node.GetSolutionStepValue(KM.variable)
             f[name][:] = self.current_data_array[:, variable_index_in_temp_array]
 
     def FillFluidDataStep(self):
@@ -159,23 +159,23 @@ class FluidHDF5Loader:
 
         index = Index()
         if not self.last_time == time:
-            self.FillUpSingleDataset(name + '/vx', VELOCITY_X, next(index))
-            self.FillUpSingleDataset(name + '/vy', VELOCITY_Y, next(index))
-            self.FillUpSingleDataset(name + '/vz', VELOCITY_Z, next(index))
+            self.FillUpSingleDataset(name + '/vx', KM.VELOCITY_X, next(index))
+            self.FillUpSingleDataset(name + '/vy', KM.VELOCITY_Y, next(index))
+            self.FillUpSingleDataset(name + '/vz', KM.VELOCITY_Z, next(index))
 
             if self.store_pressure:
-                self.FillUpSingleDataset(name + '/p', PRESSURE, next(index))
+                self.FillUpSingleDataset(name + '/p', KM.PRESSURE, next(index))
 
         if self.store_gradient:
-            self.FillUpSingleDataset(name + '/dvxx', VELOCITY_X_GRADIENT_X, next(index))
-            self.FillUpSingleDataset(name + '/dvxy', VELOCITY_X_GRADIENT_Y, next(index))
-            self.FillUpSingleDataset(name + '/dvxz', VELOCITY_X_GRADIENT_Z, next(index))
-            self.FillUpSingleDataset(name + '/dvyx', VELOCITY_Y_GRADIENT_X, next(index))
-            self.FillUpSingleDataset(name + '/dvyy', VELOCITY_Y_GRADIENT_Y, next(index))
-            self.FillUpSingleDataset(name + '/dvyz', VELOCITY_Y_GRADIENT_Z, next(index))
-            self.FillUpSingleDataset(name + '/dvzx', VELOCITY_Z_GRADIENT_X, next(index))
-            self.FillUpSingleDataset(name + '/dvzy', VELOCITY_Z_GRADIENT_Y, next(index))
-            self.FillUpSingleDataset(name + '/dvzz', VELOCITY_Z_GRADIENT_Z, next(index))
+            self.FillUpSingleDataset(name + '/dvxx', KM.VELOCITY_X_GRADIENT_X, next(index))
+            self.FillUpSingleDataset(name + '/dvxy', KM.VELOCITY_X_GRADIENT_Y, next(index))
+            self.FillUpSingleDataset(name + '/dvxz', KM.VELOCITY_X_GRADIENT_Z, next(index))
+            self.FillUpSingleDataset(name + '/dvyx', KM.VELOCITY_Y_GRADIENT_X, next(index))
+            self.FillUpSingleDataset(name + '/dvyy', KM.VELOCITY_Y_GRADIENT_Y, next(index))
+            self.FillUpSingleDataset(name + '/dvyz', KM.VELOCITY_Y_GRADIENT_Z, next(index))
+            self.FillUpSingleDataset(name + '/dvzx', KM.VELOCITY_Z_GRADIENT_X, next(index))
+            self.FillUpSingleDataset(name + '/dvzy', KM.VELOCITY_Z_GRADIENT_Y, next(index))
+            self.FillUpSingleDataset(name + '/dvzz', KM.VELOCITY_Z_GRADIENT_Z, next(index))
 
         self.last_time = time
 
@@ -207,7 +207,7 @@ class FluidHDF5Loader:
           + alpha_future * self.data_array_future[:, variable_index])
 
         for i, node in enumerate(self.fluid_model_part.Nodes):
-            node.SetSolutionStepValue(variable, self.current_data_array[i, variable_index])
+            node.SetSolutionStepValue(KM.variable, self.current_data_array[i, variable_index])
 
     def GetDatasetName(self, time_index_future):
         return self.times_str[time_index_future]
@@ -224,23 +224,23 @@ class FluidHDF5Loader:
             self.data_array_past, self.data_array_future = self.data_array_future, self.data_array_past
 
         index = Index()
-        self.UpdateFluidVariable(future_step_dataset_name + '/vx', VELOCITY_X, next(index), must_load_from_database, alpha_past, alpha_future)
-        self.UpdateFluidVariable(future_step_dataset_name + '/vy', VELOCITY_Y, next(index), must_load_from_database, alpha_past, alpha_future)
-        self.UpdateFluidVariable(future_step_dataset_name + '/vz', VELOCITY_Z, next(index), must_load_from_database, alpha_past, alpha_future)
+        self.UpdateFluidVariable(future_step_dataset_name + '/vx', KM.VELOCITY_X, next(index), must_load_from_database, alpha_past, alpha_future)
+        self.UpdateFluidVariable(future_step_dataset_name + '/vy', KM.VELOCITY_Y, next(index), must_load_from_database, alpha_past, alpha_future)
+        self.UpdateFluidVariable(future_step_dataset_name + '/vz', KM.VELOCITY_Z, next(index), must_load_from_database, alpha_past, alpha_future)
 
         if self.store_pressure:
-            self.UpdateFluidVariable(future_step_dataset_name + '/p', PRESSURE, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/p', KM.PRESSURE, next(index), must_load_from_database, alpha_past, alpha_future)
 
         if self.load_derivatives:
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvxx', VELOCITY_X_GRADIENT_X, next(index), must_load_from_database, alpha_past, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvxy', VELOCITY_X_GRADIENT_Y, next(index), must_load_from_database, alpha_past, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvxz', VELOCITY_X_GRADIENT_Z, next(index), must_load_from_database, alpha_past, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvyx', VELOCITY_Y_GRADIENT_X, next(index), must_load_from_database, alpha_past, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvyy', VELOCITY_Y_GRADIENT_Y, next(index), must_load_from_database, alpha_past, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvyz', VELOCITY_Y_GRADIENT_Z, next(index), must_load_from_database, alpha_past, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvzx', VELOCITY_Z_GRADIENT_X, next(index), must_load_from_database, alpha_past, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvzy', VELOCITY_Z_GRADIENT_Y, next(index), must_load_from_database, alpha_past, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvzz', VELOCITY_Z_GRADIENT_Z, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvxx', KM.VELOCITY_X_GRADIENT_X, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvxy', KM.VELOCITY_X_GRADIENT_Y, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvxz', KM.VELOCITY_X_GRADIENT_Z, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvyx', KM.VELOCITY_Y_GRADIENT_X, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvyy', KM.VELOCITY_Y_GRADIENT_Y, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvyz', KM.VELOCITY_Y_GRADIENT_Z, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvzx', KM.VELOCITY_Z_GRADIENT_X, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvzy', KM.VELOCITY_Z_GRADIENT_Y, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvzz', KM.VELOCITY_Z_GRADIENT_Z, next(index), must_load_from_database, alpha_past, alpha_future)
 
         if self.time_index_past == - 1: # it is the first upload
             self.data_array_past[:] = self.data_array_future[:]
@@ -264,12 +264,12 @@ class ParticleHistoryLoader:
 
     def CreateAllParticlesFileIfNecessary(self):
         if not self.parameters["full_particle_history_watcher"].GetString() == 'Empty':
-            nodes = [node for node in self.model_part.Nodes if node.IsNot(BLOCKED)]
+            nodes = [node for node in self.model_part.Nodes if node.IsNot(KM.BLOCKED)]
             Ids = np.array([node.Id for node in nodes], dtype = int)
             X0s = np.array([node.X0 for node in nodes])
             Y0s = np.array([node.Y0 for node in nodes])
             Z0s = np.array([node.Z0 for node in nodes])
-            radii = np.array([node.GetSolutionStepValue(RADIUS) for node in nodes])
+            radii = np.array([node.GetSolutionStepValue(KM.RADIUS) for node in nodes])
             times = np.array([0.0 for node in nodes])
 
             with h5py.File(self.particles_list_file_name, 'w') as f:
@@ -300,7 +300,7 @@ class ParticleHistoryLoader:
         time = self.model_part.ProcessInfo[TIME]
 
         def IsInside(node):
-            is_a_particle = node.IsNot(BLOCKED)
+            is_a_particle = node.IsNot(KM.BLOCKED)
             is_inside = self.bounding_box.CheckIfRuleIsMet(time, node.X, node.Y, node.Z)
             return is_a_particle and is_inside
 
@@ -309,7 +309,7 @@ class ParticleHistoryLoader:
         X0s_inside = np.array([node.X0 for node in nodes_inside])
         Y0s_inside = np.array([node.Y0 for node in nodes_inside])
         Z0s_inside = np.array([node.Z0 for node in nodes_inside])
-        radii_inside = np.array([node.GetSolutionStepValue(RADIUS) for node in nodes_inside])
+        radii_inside = np.array([node.GetSolutionStepValue(KM.RADIUS) for node in nodes_inside])
 
         if len(radii_inside):
             mean_radius = sum(radii_inside) / len(radii_inside)

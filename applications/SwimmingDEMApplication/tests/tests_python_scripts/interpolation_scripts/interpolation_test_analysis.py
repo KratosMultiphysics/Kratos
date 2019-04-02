@@ -1,8 +1,9 @@
-from KratosMultiphysics import *
+import KratosMultiphysics as KM
 from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import swimming_DEM_procedures as SDP
-import math
+import os
+import sys
 file_path = os.path.abspath(__file__)
 dir_path = os.path.dirname(file_path)
 sys.path.insert(0, dir_path)
@@ -10,7 +11,7 @@ from swimming_DEM_analysis import SwimmingDEMAnalysis
 from swimming_DEM_analysis import Say
 
 class InterpolationTestAnalysis(SwimmingDEMAnalysis):
-    def __init__(self, model, varying_parameters = Parameters("{}")):
+    def __init__(self, model, varying_parameters = KM.Parameters("{}")):
         super(InterpolationTestAnalysis, self).__init__(model, varying_parameters)
         self._GetDEMAnalysis().mdpas_folder_path = os.path.join(self._GetDEMAnalysis().main_path, 'interpolation_tests')
 
@@ -34,13 +35,13 @@ if __name__ == "__main__":
     # Setting parameters
 
     with open('ProjectParameters.json','r') as parameter_file:
-        parameters = Parameters(parameter_file.read())
+        parameters = KM.Parameters(parameter_file.read())
 
     # Create Model
     model = Model()
 
     # To avoid too many prints
-    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
+    KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
     test = InterpolationTestAnalysis(model, parameters)
     test.Run()
