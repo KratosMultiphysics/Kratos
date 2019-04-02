@@ -29,9 +29,13 @@ class AnalysisStage(object):
         self.project_parameters = project_parameters
 
         ## Get echo level and parallel type
-        self.echo_level = 0 # default to zero
-        if self.project_parameters["problem_data"].Has("echo_level"):
-            self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
+        problem_data_default_settings = KratosMultiphysics.Parameters("""{
+            "echo_level" : 0
+        }""")
+
+        self.project_parameters["problem_data"].AddMissingParameters(problem_data_default_settings)
+
+        self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
         self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
 
         if (self.parallel_type == "MPI"):
