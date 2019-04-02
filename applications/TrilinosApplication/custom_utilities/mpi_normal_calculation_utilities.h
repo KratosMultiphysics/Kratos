@@ -65,7 +65,7 @@ public:
     ///@name Operations
     ///@{
 
-    int Check(ModelPart& rModelPart);
+    int Check(ModelPart& rModelPart) override;
 
     void OrientFaces(ModelPart& rModelPart,
                      bool OutwardsPositive);
