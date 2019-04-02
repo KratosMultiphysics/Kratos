@@ -63,13 +63,13 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
         Vector gauss_point_stress;
         double gauss_point_damage;
         // Loop over elements to extrapolate the stress to the nodes
-        for (ElementsArrayType::ptr_iterator it = mrModelPart.Elements().ptr_begin(); it != mrModelPart.Elements().ptr_end(); ++it) {
-            auto& r_geometry = (*it)->GetGeometry();
-            auto& r_mat_properties = (*it)->GetProperties();
+        for (auto it_elem = mrModelPart.Elements().ptr_begin(); it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
+            auto& r_geometry = (*it_elem)->GetGeometry();
+            auto& r_mat_properties = (*it_elem)->GetProperties();
 
-            const Vector& r_strain_vector = (*it)->GetValue(STRAIN_VECTOR);
-            const Vector& r_stress_vector = (*it)->GetValue(STRESS_VECTOR);
-            const double damage = (*it)->GetValue(DAMAGE_ELEMENT);
+            const Vector& r_strain_vector = (*it_elem)->GetValue(STRAIN_VECTOR);
+            const Vector& r_stress_vector = (*it_elem)->GetValue(STRESS_VECTOR);
+            const double damage = (*it_elem)->GetValue(DAMAGE_ELEMENT);
 
             // Compute Normalized Free Energy on that element
             const double normalized_free_energy = this->CalculateNormalizedFreeEnergy(r_strain_vector,
@@ -91,11 +91,11 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
         }
 
         // Loop over nodes to assign the variable
-        for (ModelPart::NodeIterator it = mrModelPart.NodesBegin(); it != mrModelPart.NodesEnd(); ++it) {
-            int Id = (*it).Id();
+        for (ModelPart::NodeIterator it_node = mrModelPart.NodesBegin(); it_node != mrModelPart.NodesEnd(); ++it_node) {
+            int Id = (*it_node).Id();
             const double nodal_free_energy = pNodeNormalizedFreeEnergyVector[Id - 1].NormalizedFreeEnergy;
 
-            double &norm = it->GetSolutionStepValue(EQUIVALENT_NODAL_STRESS);
+            double &norm = it_node->GetSolutionStepValue(EQUIVALENT_NODAL_STRESS);
             norm = nodal_free_energy;
         }
     }
@@ -114,6 +114,9 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
         const double fracture_energy_compression = fracture_energy_tension * std::pow(ratio, 2.0);
         const double density = rMatProps[DENSITY];
         double normalized_free_energy;
+
+        KRATOS_ERROR_IF(yield_tension < tolerance) << "The yield_tension is null or not assigned" << std::endl;
+        KRATOS_ERROR_IF(yield_compression < tolerance) << "The yield_compression is null or not assigned" << std::endl;
         KRATOS_ERROR_IF(fracture_energy_tension < tolerance) << "The Fracture Energy is null or not assigned" << std::endl;
         KRATOS_ERROR_IF(density < tolerance) << "The density is null or not assigned" << std::endl;
 
@@ -137,6 +140,7 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
             normalized_free_energy /= (2.0 * density);
             normalized_free_energy *= (r / g_t + (1.0 - r) / g_c);
             return normalized_free_energy;
+            
         } else {
             KRATOS_ERROR << "Dimension is wrong..." << std::endl;
         }
@@ -254,8 +258,8 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
         int aux = 0;
         int id;
 
-        for (ModelPart::NodeIterator it = mrModelPart.NodesBegin(); it != mrModelPart.NodesEnd(); ++it) {
-            id = (*it).Id();
+        for (ModelPart::NodeIterator it_node = mrModelPart.NodesBegin(); it_node != mrModelPart.NodesEnd(); ++it_node) {
+            id = (*it_node).Id();
             if (id > aux)
                 aux = id;
         }

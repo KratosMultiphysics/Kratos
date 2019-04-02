@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Aditya Ghantasala, Philipp Bucher
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 //
 
@@ -22,7 +23,7 @@
 // Project includes
 #include "includes/kratos_parameters.h"
 #include "includes/io.h"
-
+#include "processes/integration_values_extrapolation_to_nodes_process.h"
 
 namespace Kratos
 {
@@ -51,7 +52,7 @@ public:
      * @param rModelPart The modelpart which is used for output
      * @param Parameters Parameters including settings for the output
      */
-    VtkOutput(ModelPart& rModelPart, Parameters Parameters);
+    explicit VtkOutput(ModelPart& rModelPart, Parameters ThisParameters);
 
     /// Destructor.
     virtual ~VtkOutput() = default;
@@ -83,17 +84,29 @@ public:
 protected:
     ///@name Member Variables
     ///@{
-    ModelPart& mrModelPart;
-    VtkOutput::FileFormat mFileFormat;
 
-    Parameters mOutputSettings;
-    unsigned int mDefaultPrecision;
-    std::unordered_map<int, int> mKratosIdToVtkId;
-    bool mShouldSwap = false;
+    ModelPart& mrModelPart;                        /// The main model part to post process
+    VtkOutput::FileFormat mFileFormat;             /// The file format considered
+
+    Parameters mOutputSettings;                    /// The configuration parameters
+    unsigned int mDefaultPrecision;                /// The default precision
+    std::unordered_map<int, int> mKratosIdToVtkId; /// The map storing the relationship between the Kratos ID and VTK ID
+    bool mShouldSwap = false;                      /// If it should swap
+
+    // pointer to object of the extrapolation from gauss point to nodes process
+    IntegrationValuesExtrapolationToNodesProcess::UniquePointer mpGaussToNodesProcess;
+
 
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Interpolates the gauss point results on to the node using IntegrationValuesExtrapolationToNodesProcess
+     */
+    void PrepareGaussPointResults();
+
+
 
     /**
      * @brief Print the given rModelPart as VTK file together with the requested results
@@ -333,6 +346,23 @@ protected:
      * @param pBytes bytes on which the big endian format is to be applied
      */
     void ForceBigEndian(unsigned char* pBytes) const;
+
+    ///@}
+
+private:
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Print the given rModelPart as VTK file together with the requested results (Only for model parts without nodes)
+     * @param rModelPart modelpart which is beging output
+     */
+    void WriteModelPartWithoutNodesToFile(ModelPart& rModelPart);
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    Parameters GetDefaultParameters();
 
     ///@}
 };
