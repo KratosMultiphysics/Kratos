@@ -23,7 +23,7 @@ class Gauge:
         self.n_vars = len(variables_to_measure)
         self.n_instants = int(math.ceil(self.end_time / self.Dt + 1))
         self.current_instant = 0
-        self.counter = swimming_DEM_procedures.Counter(steps_between_measurements, 1, activity)
+        self.counter = swimming_DP.Counter(steps_between_measurements, 1, activity)
 
     def ConstructArrayOfNodes(self, condition):
         self.nodes = [node for node in self.model_part.Nodes if condition(node)]

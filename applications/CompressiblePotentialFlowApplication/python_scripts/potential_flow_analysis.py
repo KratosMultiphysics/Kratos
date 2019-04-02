@@ -50,7 +50,7 @@ class PotentialFlowAnalysis(AnalysisStage):
         list_of_processes = super(PotentialFlowAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
-            processes_block_names = ["initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
+            processes_block_names = ["boundary_conditions_process_list", "auxiliar_process_list"]
             if len(list_of_processes) == 0: # Processes are given in the old format
                 info_msg  = "Using the old way to create the processes, this will be removed!\n"
                 info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
