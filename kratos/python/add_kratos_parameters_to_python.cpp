@@ -60,14 +60,6 @@ Parameters GetArrayItem(Parameters &rParameters, const std::size_t Index) {
     return rParameters.GetArrayItem(Index);
 }
 
-void ValidateAndAssignDefaults(Parameters &rParameters, Parameters &rDefaultParameters) {
-    rParameters.ValidateAndAssignDefaults(rDefaultParameters);
-}
-
-void RecursivelyValidateAndAssignDefaults(Parameters &rParameters, Parameters &rDefaultParameters) {
-    rParameters.RecursivelyValidateAndAssignDefaults(rDefaultParameters);
-}
-
 void  AddKratosParametersToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -84,8 +76,12 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("AddEmptyValue", &Parameters::AddEmptyValue)
     .def("AddEmptyArray", &Parameters::AddEmptyArray)
     .def("RemoveValue", &Parameters::RemoveValue)
-    .def("ValidateAndAssignDefaults",ValidateAndAssignDefaults)
-    .def("RecursivelyValidateAndAssignDefaults",RecursivelyValidateAndAssignDefaults)
+    .def("ValidateAndAssignDefaults", &Parameters::ValidateAndAssignDefaults)
+    .def("RecursivelyValidateAndAssignDefaults", &Parameters::RecursivelyValidateAndAssignDefaults)
+    .def("AddMissingParameters", &Parameters::AddMissingParameters)
+    .def("RecursivelyAddMissingParameters", &Parameters::RecursivelyAddMissingParameters)
+    .def("ValidateDefaults", &Parameters::ValidateDefaults)
+    .def("RecursivelyValidateDefaults", &Parameters::RecursivelyValidateDefaults)
     .def("IsEquivalentTo",&Parameters::IsEquivalentTo)
     .def("HasSameKeysAndTypeOfValuesAs",&Parameters::HasSameKeysAndTypeOfValuesAs)
     //.def("GetValue", GetValue) //Do not export this method. users shall adopt the operator [] syntax
