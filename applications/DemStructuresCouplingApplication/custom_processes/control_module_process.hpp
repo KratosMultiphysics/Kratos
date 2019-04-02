@@ -53,6 +53,7 @@ public:
                 "reaction_stress_variable_name": "REACTION_STRESS_VARIABLE_NAME",
                 "target_stress_table_id" : 1,
                 "initial_velocity" : 0.0,
+                "velocity_factor" : 1.0,
                 "compression_length" : 0.0,
                 "young_modulus" : 1.0e7,
                 "start_time" : 0.0
@@ -67,6 +68,7 @@ public:
         mReactionStressVariableName = rParameters["reaction_stress_variable_name"].GetString();
         mpTargetStressTableId = rParameters["target_stress_table_id"].GetInt();
         mVelocity = rParameters["initial_velocity"].GetDouble();
+        mVelocityFactor = rParameters["velocity_factor"].GetDouble();
         mCompressionLength = rParameters["compression_length"].GetDouble();
         mYoungModulus = rParameters["young_modulus"].GetDouble();
         mStartTime = rParameters["start_time"].GetDouble();
@@ -171,7 +173,8 @@ public:
             const double DeltaTime = mrModelPart.GetProcessInfo()[DELTA_TIME];
             const double NextTargetStress = pTargetStressTable->GetValue(CurrentTime+DeltaTime);
 
-            mVelocity = (NextTargetStress - ReactionStress)*mCompressionLength/(mYoungModulus*DeltaTime);
+            const double DeltaVelocity = (NextTargetStress - ReactionStress)*mCompressionLength/(mYoungModulus*DeltaTime) - mVelocity;
+            mVelocity += mVelocityFactor * DeltaVelocity;
 
             ComponentType TargetStressVarComponent = KratosComponents< ComponentType >::Get(mTargetStressVariableName);
             ComponentType ReactionStressVarComponent = KratosComponents< ComponentType >::Get(mReactionStressVariableName);
@@ -219,6 +222,7 @@ protected:
     std::string mReactionStressVariableName;
     unsigned int mpTargetStressTableId;
     double mVelocity;
+    double mVelocityFactor;
     double mCompressionLength;
     double mYoungModulus;
     double mStartTime;
