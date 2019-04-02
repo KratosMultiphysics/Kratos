@@ -328,6 +328,7 @@ template <typename TContainerType>
 void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& rFileStream) const
 {
     // IMPORTANT: The map geo_type_vtk_cell_type_map is to be extended to support new geometries
+    // NOTE: See https://vtk.org/wp-content/uploads/2015/04/file-formats.pdf
     const std::map<GeometryData::KratosGeometryType, int> geo_type_vtk_cell_type_map = {
         { GeometryData::KratosGeometryType::Kratos_Point2D,          1 },
         { GeometryData::KratosGeometryType::Kratos_Point3D,          1 },
