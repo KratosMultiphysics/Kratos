@@ -134,18 +134,6 @@ protected:
 
 private:
 
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    bool mInitializeWasPerformed = false;
-    ElementWeakPointerType mpElement;
-
-    void CalculateNormal2D(array_1d<double, 3>& An) const;
-
-    void CalculateNormal3D(array_1d<double, 3>& An) const;
-
     ///@}
     ///@name Serialization
     ///@{
@@ -156,20 +144,6 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    inline ElementPointerType pGetElement() const;
-
-    void GetElementCandidates(WeakPointerVector<Element>& ElementCandidates,
-                              const GeometryType& rGeom) const;
-
-    void GetSortedIds(std::vector<IndexType>& Ids, const GeometryType& rGeom) const;
-
-    void FindParentElement(std::vector<IndexType>& NodeIds,
-                           std::vector<IndexType>& ElementNodeIds,
-                           WeakPointerVector<Element> ElementCandidates);
 
 
 }; // Class AdjointIncompressiblePotentialWallCondition
