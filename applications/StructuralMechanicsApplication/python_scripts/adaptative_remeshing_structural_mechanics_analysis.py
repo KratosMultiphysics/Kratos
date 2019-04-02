@@ -9,6 +9,9 @@ import sys
 # Import the base structural analysis
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
 
+# Import auxiliar methods
+import KratosMultiphysics.auxiliar_methods_adaptative_remeshing as auxiliar_methods_adaptative_remeshing
+
 class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
     """
     This class is the main-script of the StructuralMechanicsApplication when using adaptative remeshing put in a class
@@ -34,10 +37,10 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         else:
             project_parameters["solver_settings"].AddValue("analysis_type", default_params["analysis_type"])
         self.process_remesh = False
-        if project_parameters.Has("recursive_remeshing_process"):
+        if project_parameters.Has("mesh_adaptivity_processes"):
             self.process_remesh = True
         if project_parameters.Has("processes"):
-            if project_parameters["processes"].Has("recursive_remeshing_process"):
+            if project_parameters["processes"].Has("mesh_adaptivity_processes"):
                 self.process_remesh = True
         super(AdaptativeRemeshingStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
@@ -89,20 +92,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         computing_model_part = self._GetSolver().GetComputingModelPart()
         root_model_part = computing_model_part.GetRootModelPart()
         if self.process_remesh:
-            while self.time < self.end_time:
-                self.time = self._GetSolver().AdvanceInTime(self.time)
-                # We reinitialize if remeshed previously
-                if root_model_part.Is(KM.MODIFIED):
-                    self._ReInitializeSolver()
-                self.InitializeSolutionStep()
-                # We reinitialize if remeshed on the InitializeSolutionStep
-                if root_model_part.Is(KM.MODIFIED):
-                    self._ReInitializeSolver()
-                    self.InitializeSolutionStep()
-                self._GetSolver().Predict()
-                self._GetSolver().SolveSolutionStep()
-                self.FinalizeSolutionStep()
-                self.OutputSolutionStep()
+            auxiliar_methods_adaptative_remeshing.AdaptativeRemeshingRunSolutionLoop(self)
         else: # Remeshing adaptively
             metric_process = self._GetSolver().get_metric_process()
             remeshing_process = self._GetSolver().get_remeshing_process()
@@ -115,7 +105,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
                 non_linear_iteration = 1
                 while non_linear_iteration <= self.non_linear_iterations:
                     if root_model_part.Is(KM.MODIFIED):
-                        self._ReInitializeSolver()
+                        auxiliar_methods_adaptative_remeshing.ReInitializeSolver(self)
                     if non_linear_iteration == 1 or root_model_part.Is(KM.MODIFIED):
                         self.InitializeSolutionStep()
                         self._GetSolver().Predict()
@@ -161,7 +151,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         list_of_processes = super(AdaptativeRemeshingStructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
-            processes_block_names = ["recursive_remeshing_process"]
+            processes_block_names = ["mesh_adaptivity_processes"]
             if len(list_of_processes) == 0: # Processes are given in the old format
                 KM.Logger.PrintWarning("AdaptativeRemeshingStructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
                 from KratosMultiphysics.process_factory import KratosProcessFactory
@@ -179,22 +169,6 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
             raise NameError("wrong parameter name")
 
         return list_of_processes
-
-    def _ReInitializeSolver(self):
-        """ This reinitializes after remesh """
-        self._GetSolver().Clear()
-        # WE INITIALIZE THE SOLVER
-        self._GetSolver().Initialize()
-        # WE RECOMPUTE THE PROCESSES AGAIN
-        ## Processes initialization
-        for process in self._GetListOfProcesses():
-            process.ExecuteInitialize()
-        ## Processes before the loop
-        for process in self._GetListOfProcesses():
-            process.ExecuteBeforeSolutionLoop()
-        ## Processes of initialize the solution step
-        for process in self._GetListOfProcesses():
-            process.ExecuteInitializeSolutionStep()
 
 if __name__ == "__main__":
     from sys import argv

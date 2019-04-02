@@ -9,6 +9,9 @@ import sys
 # Import the base structural analysis
 from KratosMultiphysics.ContactStructuralMechanicsApplication.contact_structural_mechanics_analysis import ContactStructuralMechanicsAnalysis as BaseClass
 
+# Import auxiliar methods
+import KratosMultiphysics.auxiliar_methods_adaptative_remeshing as auxiliar_methods_adaptative_remeshing
+
 class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
     """
     This class is the main-script of the ContactStructuralMechanicsApplication when using adaptative remeshing put in a class
@@ -45,10 +48,10 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         else:
             project_parameters["solver_settings"].AddValue("contact_settings", default_params["contact_settings"])
         self.process_remesh = False
-        if project_parameters.Has("recursive_remeshing_process"):
+        if project_parameters.Has("mesh_adaptivity_processes"):
             self.process_remesh = True
         if project_parameters.Has("processes"):
-            if project_parameters["processes"].Has("recursive_remeshing_process"):
+            if project_parameters["processes"].Has("mesh_adaptivity_processes"):
                 self.process_remesh = True
         if not self.process_remesh:
             project_parameters["solver_settings"]["analysis_type"].SetString("linear")
@@ -101,21 +104,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         computing_model_part = self._GetSolver().GetComputingModelPart()
         root_model_part = computing_model_part.GetRootModelPart()
         if self.process_remesh:
-            while self.time < self.end_time:
-                self.time = self._GetSolver().AdvanceInTime(self.time)
-                # We reinitialize if remeshed previously
-                if root_model_part.Is(KM.MODIFIED):
-                    self._ReInitializeSolver()
-                self.InitializeSolutionStep()
-                # We reinitialize if remeshed on the InitializeSolutionStep
-                if root_model_part.Is(KM.MODIFIED):
-                    self._ReInitializeSolver()
-                    self.InitializeSolutionStep()
-                self._GetSolver().Predict()
-                self._GetSolver().SolveSolutionStep()
-                self._transfer_slave_to_master()
-                self.FinalizeSolutionStep()
-                self.OutputSolutionStep()
+            auxiliar_methods_adaptative_remeshing.AdaptativeRemeshingRunSolutionLoop(self)
         else: # Remeshing adaptively
             metric_process = self._GetSolver().get_metric_process()
             remeshing_process = self._GetSolver().get_remeshing_process()
@@ -128,17 +117,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
                 non_linear_iteration = 1
                 while non_linear_iteration <= self.non_linear_iterations:
                     if computing_model_part.Is(KM.MODIFIED):
-                        self._GetSolver().Clear()
-                        # WE RECOMPUTE THE PROCESSES AGAIN
-                        # Processes initialization
-                        for process in self._GetListOfProcesses():
-                            process.ExecuteInitialize()
-                        ## Processes before the loop
-                        for process in self._GetListOfProcesses():
-                            process.ExecuteBeforeSolutionLoop()
-                        ## Processes of initialize the solution step
-                        for process in self._GetListOfProcesses():
-                            process.ExecuteInitializeSolutionStep()
+                        auxiliar_methods_adaptative_remeshing.ReInitializeSolver(self)
                     if non_linear_iteration == 1 or computing_model_part.Is(KM.MODIFIED):
                         self.InitializeSolutionStep()
                         self._GetSolver().Predict()
@@ -196,7 +175,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         list_of_processes = super(AdaptativeRemeshingContactStructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
-            processes_block_names = ["recursive_remeshing_process"]
+            processes_block_names = ["mesh_adaptivity_processes"]
             if len(list_of_processes) == 0: # Processes are given in the old format
                 KM.Logger.PrintWarning("AdaptativeRemeshingContactStructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory
@@ -255,22 +234,6 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
 
         mortar_mapping = KM.SimpleMortarMapperProcess(slave_interface_model_part, master_interface_model_part, map_parameters)
         mortar_mapping.Execute()
-
-    def _ReInitializeSolver(self):
-        """ This reinitializes after remesh """
-        self._GetSolver().Clear()
-        # WE INITIALIZE THE SOLVER
-        self._GetSolver().Initialize()
-        # WE RECOMPUTE THE PROCESSES AGAIN
-        ## Processes initialization
-        for process in self._GetListOfProcesses():
-            process.ExecuteInitialize()
-        ## Processes before the loop
-        for process in self._GetListOfProcesses():
-            process.ExecuteBeforeSolutionLoop()
-        ## Processes of initialize the solution step
-        for process in self._GetListOfProcesses():
-            process.ExecuteInitializeSolutionStep()
 
 if __name__ == "__main__":
     from sys import argv

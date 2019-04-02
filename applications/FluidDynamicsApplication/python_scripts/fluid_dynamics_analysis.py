@@ -57,7 +57,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
         # Note 1: gravity is constructed first. Outlet process might need its information.
         # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
         if parameter_name == "processes":
-            processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list","recursive_remeshing_process"]
+            processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list","mesh_adaptivity_processes"]
             if len(list_of_processes) == 0: # Processes are given in the old format
                 info_msg  = "Using the old way to create the processes, this will be removed!\n"
                 info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
@@ -92,7 +92,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
                 "initial_conditions_process_list",
                 "boundary_conditions_process_list",
                 "auxiliar_process_list",
-                "recursive_remeshing_process"]
+                "mesh_adaptivity_processes"]
 
 
     def _SetUpGiDOutput(self):
