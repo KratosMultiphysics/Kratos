@@ -52,10 +52,7 @@ namespace Kratos
                 double potential = tracedElem.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
                 double aux_potential = tracedElem.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
 
-                if (potential>aux_potential)
-                    lift_coefficient = 2.0 / vinfinity_norm * (potential - aux_potential);
-                else
-                    lift_coefficient = 2.0 / vinfinity_norm * (aux_potential - potential);
+                lift_coefficient = 2.0 / vinfinity_norm * std::abs(potential - aux_potential);
             }
         }
 
