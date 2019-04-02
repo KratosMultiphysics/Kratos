@@ -105,7 +105,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-8,1e-8)
+        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-12,1e-8)
         convergence_criterion.SetEchoLevel(0)
 
         max_iters = 1000
@@ -253,7 +253,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
 
         self.assertAlmostEqual(disp_u_2, 0.022296019142446475,6)
-        self.assertAlmostEqual(r_u_1, -100000000.00093779,6)
+        self.assertAlmostEqual(r_u_1, -Force_X, 6)
         self.assertAlmostEqual(r_u_3, 0.00 ,4)
 
     def _check_results_dynamic_explicit(self,mp,time_i,time_step,linear_flag):

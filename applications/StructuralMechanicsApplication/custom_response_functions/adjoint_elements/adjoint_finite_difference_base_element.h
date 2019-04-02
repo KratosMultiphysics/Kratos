@@ -385,7 +385,7 @@ public:
                                             const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * Calculates the pseudo-load of the design variable SHAPE (coordinates of nodes) contribution of the element.
+     * Calculates the pseudo-load of the design variable SHAPE_SENSITIVITY (coordinates of nodes) contribution of the element.
      * This is done by finite differencing of the RHS of the primal element when perturbing a nodal coordinate.
      * This operation is currently NOT thread-save!
      */

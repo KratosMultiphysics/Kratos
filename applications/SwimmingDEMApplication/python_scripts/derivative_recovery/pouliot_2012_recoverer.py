@@ -4,6 +4,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from . import recoverer
 from . import L2_projection_recoverer
+import parameters_tools as PT
 
 class Pouliot2012GradientRecoverer(L2_projection_recoverer.L2ProjectionGradientRecoverer):
     def __init__(self, project_parameters, model_part):
@@ -13,7 +14,9 @@ class Pouliot2012GradientRecoverer(L2_projection_recoverer.L2ProjectionGradientR
         self.FillUpModelPart(self.element_type, self.condition_type)
         self.DOFs = (VELOCITY_COMPONENT_GRADIENT_X, VELOCITY_COMPONENT_GRADIENT_Y, VELOCITY_COMPONENT_GRADIENT_Z)
         self.AddDofs(self.DOFs)
-        self.calculate_vorticity = self.project_parameters["lift_force_type"].GetInt()
+        self.calculate_vorticity = (parameters["vorticity_calculation_type"].GetInt() > 0
+                                    or PT.RecursiveFindParametersWithCondition(parameters["properties"],
+                                                                               'vorticity_induced_lift_parameters'))
 
 class Pouliot2012MaterialAccelerationRecoverer(Pouliot2012GradientRecoverer, L2_projection_recoverer.L2ProjectionMaterialAccelerationRecoverer):
     def __init__(self, model_part, do_pre_recovery = False):
