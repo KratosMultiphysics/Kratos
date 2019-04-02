@@ -51,6 +51,10 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         self.trilinos_model_part_importer.CreateCommunicators()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]::", "ModelPart prepared for Solver.")
 
+    def Finalize(self):
+        super(TrilinosMechanicalSolver, self).Finalize()
+        self.get_mechanical_solution_strategy().Clear() # needed for proper finalization of MPI
+
     #### Specific internal functions ####
 
     def get_epetra_communicator(self):
