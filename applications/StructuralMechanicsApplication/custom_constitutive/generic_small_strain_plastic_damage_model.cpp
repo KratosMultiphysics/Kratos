@@ -700,8 +700,14 @@ CalculateIncrementsPlasticDamageCase(
     const Vector& rStressVector,
     const double Damage,
     const Vector& rPlasticityFlux,
+    const Vector& rPlasticityGFlux,
     const Matrix& rElasticMatrix,
     const double UniaxialStressPlasticity,
+    const double DamageIndicator,
+    const double PlasticityIndicator,
+    const double DamageHardParameter,
+    const double PlasticDenominator,
+    const double Hcapd,
     double& rDamageIncrement,
     double& rPlasticConsistencyIncrement
 )
@@ -715,23 +721,23 @@ CalculateIncrementsPlasticDamageCase(
         for (IndexType j = 0; j < VoigtSize; ++j) {
             innerprod_dam_yield_elastic_tensor += rFluxDamageYield[j] * rElasticMatrix(i,j);
         }
-        hcapa[i] = rStressVector[i] / uniaxial_stress_plasticity;
-        HKG +=  hcapa[i] * g_flux[i];
-        fact1 += innerprod_dam_yield_elastic_tensor * g_flux[i]; // ?????
+        hcapa[i] = rStressVector[i] / UniaxialStressPlasticity;
+        HKG +=  hcapa[i] * rPlasticityGFlux[i];
+        fact1 += innerprod_dam_yield_elastic_tensor * rPlasticityGFlux[i]; // ?????
     }
     fact1 *= (1.0 - Damage);
     const double factorA = scalar_prod_plast_yield_sigma_eff;
-    const double factorB = 1.0 / plastic_denominator; // ?? ABETA
-    const double factorC = scalar_prod_dam_yield_sigma_eff + hard_damage;
+    const double factorB = 1.0 / PlasticDenominator; // ?? ABETA
+    const double factorC = scalar_prod_dam_yield_sigma_eff + DamageHardParameter;
     const double factorD = fact1;
-    denominator = factorA * factorD - factorB * factorC;
+    const double denominator = factorA * factorD - factorB * factorC;
 
     if (std::abs(denominator) > tolerance) {
-        damage_increment = (factorD * plasticity_indicator - factorB * damage_indicator) / denominator;
-        plastic_consistency_increment = (factorA * damage_indicator - factorC * plasticity_indicator) / denominator;
+		rDamageIncrement = (factorD * PlasticityIndicator - factorB * DamageIndicator) / denominator;
+		rPlasticConsistencyIncrement = (factorA * DamageIndicator - factorC * PlasticityIndicator) / denominator;
     } else {
-        damage_increment = plasticity_indicator / (factorA + factorD * hcapd / HKG);
-        plastic_consistency_increment = plasticity_indicator / (factorD + factorA * HKG / hcapd);
+		rDamageIncrement = PlasticityIndicator / (factorA + factorD * Hcapd / HKG);
+		rPlasticConsistencyIncrement = PlasticityIndicator / (factorD + factorA * HKG / Hcapd);
     }
 }
 

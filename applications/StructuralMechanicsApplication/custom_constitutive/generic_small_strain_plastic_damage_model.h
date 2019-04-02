@@ -380,8 +380,14 @@ public:
         const Vector& rStressVector,
         const double Damage,
         const Vector& rPlasticityFlux,
+        const Vector& rPlasticityGFlux,
         const Matrix& rElasticMatrix,
         const double UniaxialStressPlasticity,
+        const double DamageIndicator,
+        const double PlasticityIndicator,
+        const double DamageHardParameter,
+        const double PlasticDenominator,
+        const double Hcapd,
         double& rDamageIncrement,
         double& rPlasticConsistencyIncrement);
 
