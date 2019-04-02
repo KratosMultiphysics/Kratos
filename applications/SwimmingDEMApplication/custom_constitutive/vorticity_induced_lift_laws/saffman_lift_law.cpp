@@ -42,14 +42,14 @@ namespace Kratos {
                                       double particle_radius,
                                       double fluid_density,
                                       double fluid_kinematic_viscosity,
-                                      array_1d<double, 3>& slip_velocity,
+                                      array_1d<double, 3>& minus_slip_velocity,
                                       array_1d<double, 3>& vorticity_induced_lift,
                                       const ProcessInfo& r_current_process_info)
     {
         Node<3>& node = r_geometry[0];
         const array_1d<double, 3>& vorticity = node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED);
         array_1d<double, 3> vort_cross_slip_vel;
-        SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(slip_velocity, vorticity, vort_cross_slip_vel)
+        SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(minus_slip_velocity, vorticity, vort_cross_slip_vel)
         const double norm_of_vorticity = SWIMMING_MODULUS_3(vorticity);
         const double lift_coeff = ComputeSaffmanLiftCoefficient(fluid_density, fluid_kinematic_viscosity, particle_radius, norm_of_vorticity);
 

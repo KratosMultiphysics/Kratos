@@ -1,10 +1,14 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
-#from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import ast
+import parameters_tools as PT
+def Say(*args):
+    Logger.PrintInfo("SwimmingDEM", *args)
+    Logger.Flush()
+    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.DETAIL)
 
 class VariablesManager:
     @staticmethod
@@ -26,7 +30,7 @@ class VariablesManager:
 
     def __init__(self, parameters):
         self.project_parameters = parameters
-
+        self.SetOptions(parameters)
     # constructing lists of variables to add
     # * Performing modifications to the input parameters for consistency (provisional until interface does it)
     # * Choosing the variables to be printed
@@ -36,25 +40,39 @@ class VariablesManager:
     #       Note that additional variables may be added as well by the fluid and/or DEM strategies.
     @staticmethod
     def AddFrameOfReferenceRelatedVariables(parameters, model_part):
-        frame_of_reference_type = parameters["frame_of_reference_type"].GetInt()
+        frame_of_reference_type = parameters["frame_of_reference"]["frame_type"].GetInt()
         model_part.ProcessInfo.SetValue(FRAME_OF_REFERENCE_TYPE, frame_of_reference_type)
 
         if frame_of_reference_type == 1: # Rotating frame
             angular_velocity_of_frame = Vector(3)
-            angular_velocity_of_frame[:] = [parameters["angular_velocity_of_frame" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
+            angular_velocity_of_frame[:] = [parameters['frame_of_reference']["angular_velocity_of_frame" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
 
             model_part.ProcessInfo.SetValue(ANGULAR_VELOCITY_MOVING_FRAME, angular_velocity_of_frame)
 
             if frame_of_reference_type >= 2: # Gemeral frame
                 angular_velocity_of_frame_old = Vector(3)
-                angular_velocity_of_frame_old[:] = [parameters["angular_velocity_of_frame_old" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
+                angular_velocity_of_frame_old[:] = [parameters['frame_of_reference']["angular_velocity_of_frame_old" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
                 acceleration_of_frame_origin = Vector(3)
-                acceleration_of_frame_origin[:] = [parameters["acceleration_of_frame_origin" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
+                acceleration_of_frame_origin[:] = [parameters['frame_of_reference']["acceleration_of_frame_origin" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
                 angular_acceleration_of_frame = Vector(3)
-                angular_acceleration_of_frame[:] = [parameters["angular_acceleration_of_frame" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
+                angular_acceleration_of_frame[:] = [parameters['frame_of_reference']["angular_acceleration_of_frame" + comp].GetDouble() for comp in ['_X', '_Y', '_Z']][:]
                 model_part.ProcessInfo.SetValue(ANGULAR_VELOCITY_MOVING_FRAME_OLD, angular_velocity_of_frame_old)
                 model_part.ProcessInfo.SetValue(ACCELERATION_MOVING_FRAME_ORIGIN, acceleration_of_frame_origin)
                 model_part.ProcessInfo.SetValue(ANGULAR_ACCELERATION_MOVING_FRAME, angular_acceleration_of_frame)
+
+
+    def SetOptions(self, parameters):
+        self.do_include_history_force = (PT.RecursiveFindParametersWithCondition(
+                                         parameters["properties"], 'history_force_parameters',
+                                         condition=lambda value: value['name'].GetString() != 'default'))
+
+        if self.do_include_history_force: #TODO: extend to multiple properties
+            for prop in parameters["properties"].values():
+                self.history_force_parameters =  prop["hydrodynamic_law_parameters"]["history_force_parameters"]
+                break
+
+        self.do_backward_coupling = parameters["coupling"]["coupling_level_type"].GetInt() > 1
+        self.backward_coupling_tools = parameters["coupling"]["backward_coupling"]
 
     def AddExtraProcessInfoVariablesToFluidModelPart(self, parameters, fluid_model_part):
 
@@ -62,7 +80,7 @@ class VariablesManager:
 
         fluid_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1)
         gravity = Vector(3)
-        if parameters["body_force_on_fluid_option"].GetBool():
+        if parameters["custom_fluid"]["body_force_on_fluid_option"].GetBool():
             gravity[0] = parameters["GravityX"].GetDouble()
             gravity[1] = parameters["GravityY"].GetDouble()
             gravity[2] = parameters["GravityZ"].GetDouble()
@@ -78,55 +96,51 @@ class VariablesManager:
         if parameters["material_acceleration_calculation_type"].GetInt() == 5 or parameters["material_acceleration_calculation_type"].GetInt() == 6:
             fluid_model_part.ProcessInfo.SetValue(CURRENT_COMPONENT, 0)
 
-        if parameters["non_newtonian_option"].GetBool():
-            fluid_model_part.ProcessInfo.SetValue(YIELD_STRESS, parameters["yield_stress"].GetDouble())
-            fluid_model_part.ProcessInfo.SetValue(REGULARIZATION_COEFFICIENT, parameters["regularization_coefficient"].GetDouble())
-            fluid_model_part.ProcessInfo.SetValue(POWER_LAW_K, parameters["power_law_k"].GetDouble())
-            fluid_model_part.ProcessInfo.SetValue(POWER_LAW_N, parameters["power_law_n"].GetDouble())
+        if parameters["non_newtonian_fluid"]["non_newtonian_option"].GetBool():
+            fluid_model_part.ProcessInfo.SetValue(YIELD_STRESS, parameters["non_newtonian_fluid"]["yield_stress"].GetDouble())
+            fluid_model_part.ProcessInfo.SetValue(REGULARIZATION_COEFFICIENT, parameters["non_newtonian_fluid"]["regularization_coefficient"].GetDouble())
+            fluid_model_part.ProcessInfo.SetValue(POWER_LAW_K, parameters["non_newtonian_fluid"]["power_law_k"].GetDouble())
+            fluid_model_part.ProcessInfo.SetValue(POWER_LAW_N, parameters["non_newtonian_fluid"]["power_law_n"].GetDouble())
 
     def AddExtraProcessInfoVariablesToDispersePhaseModelPart(self, parameters, dem_model_part):
 
         VariablesManager.AddFrameOfReferenceRelatedVariables(parameters, dem_model_part)
-        dem_model_part.ProcessInfo.SetValue(COUPLING_TYPE, parameters["coupling_level_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, parameters["buoyancy_force_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, parameters["drag_force_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, parameters["virtual_mass_force_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(BASSET_FORCE_TYPE, parameters["basset_force_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, parameters["lift_force_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(MAGNUS_FORCE_TYPE, parameters["magnus_force_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(HYDRO_TORQUE_TYPE, parameters["hydro_torque_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(FLUID_MODEL_TYPE, parameters["fluid_model_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, parameters["manually_imposed_drag_law_option"].GetBool())
+        dem_model_part.ProcessInfo.SetValue(COUPLING_TYPE, parameters["coupling"]["coupling_level_type"].GetInt())
+        dem_model_part.ProcessInfo.SetValue(FLUID_MODEL_TYPE, parameters["custom_fluid"]["fluid_model_type"].GetInt())
         dem_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, parameters["drag_modifier_type"].GetInt())
-        dem_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, parameters["initial_drag_force"].GetDouble())
-        dem_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, parameters["drag_law_slope"].GetDouble())
-        dem_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, parameters["power_law_tol"].GetDouble())
-        dem_model_part.ProcessInfo.SetValue(DRAG_POROSITY_CORRECTION_TYPE, parameters["drag_porosity_correction_type"].GetInt())
+        dem_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, parameters["non_newtonian_fluid"]["power_law_tol"].GetDouble())
 
-        for prop in parameters["properties"].values():
-            if prop["hydrodynamic_law_parameters"].Has("history_force_parameters"):
-                history_force_parameters =  prop["hydrodynamic_law_parameters"]["history_force_parameters"]
+        if self.do_include_history_force:
+            dem_model_part.ProcessInfo.SetValue(NUMBER_OF_INIT_BASSET_STEPS, self.history_force_parameters["n_init_basset_steps"].GetInt())
+            dem_model_part.ProcessInfo.SetValue(TIME_STEPS_PER_QUADRATURE_STEP, self.history_force_parameters["time_steps_per_quadrature_step"].GetInt())
+            dem_model_part.ProcessInfo.SetValue(LAST_TIME_APPENDING, 0.0)
+            dem_model_part.ProcessInfo.SetValue(QUADRATURE_ORDER, self.history_force_parameters["quadrature_order"].GetInt())
 
-                if (prop["hydrodynamic_law_parameters"]["name"].GetString() != "default"
-                    and history_force_parameters["name"].GetString() != "default"):
-                    dem_model_part.ProcessInfo.SetValue(NUMBER_OF_INIT_BASSET_STEPS, history_force_parameters["n_init_basset_steps"].GetInt())
-                    dem_model_part.ProcessInfo.SetValue(TIME_STEPS_PER_QUADRATURE_STEP, history_force_parameters["time_steps_per_quadrature_step"].GetInt())
-                    dem_model_part.ProcessInfo.SetValue(LAST_TIME_APPENDING, 0.0)
-                    dem_model_part.ProcessInfo.SetValue(QUADRATURE_ORDER, history_force_parameters["quadrature_order"].GetInt())
-                    break
-
-        if parameters["drag_force_type"].GetInt() in {13} or parameters["lift_force_type"].GetInt() == 1:
-            dem_model_part.ProcessInfo.SetValue(POWER_LAW_K, parameters["power_law_k"].GetDouble())
-            dem_model_part.ProcessInfo.SetValue(POWER_LAW_N, parameters["power_law_n"].GetDouble())
+        if parameters["non_newtonian_fluid"]["non_newtonian_option"].GetBool():
+            dem_model_part.ProcessInfo.SetValue(POWER_LAW_K, parameters["non_newtonian_fluid"]["power_law_k"].GetDouble())
+            dem_model_part.ProcessInfo.SetValue(POWER_LAW_N, parameters["non_newtonian_fluid"]["power_law_n"].GetDouble())
 
     def ConstructListsOfVariables(self, parameters):
         # PRINTING VARIABLES
         # constructing lists of variables to be printed
+
+        self.nodal_results, self.gauss_points_results = [], []
+        self.fluid_parameters = parameters['fluid_parameters']
+        if self.fluid_parameters.Has('sdem_output_processes'):
+            gid_output_options = self.fluid_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]
+            result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
+            gauss_point_results = result_file_configuration["gauss_point_results"]
+            nodal_variables = self.fluid_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]["postprocess_parameters"]["result_file_configuration"]["nodal_results"]
+            self.nodal_results = [nodal_variables[i].GetString() for i in range(nodal_variables.size())]
+            self.gauss_points_results = [gauss_point_results[i].GetString() for i in range(gauss_point_results.size())]
+
         self.ConstructListsOfResultsToPrint(parameters)
 
         # COUPLING VARIABLES
         # listing the variables involved in the fluid-particles coupling
-        self.ConstructListsOfVariablesForCoupling(parameters)
+
+        if parameters["coupling"]["coupling_level_type"].GetInt():
+            self.ConstructListsOfVariablesForCoupling(parameters)
 
         # VARIABLES TO ADD
         # listing nodal variables to be added to the model parts (memory will be allocated for them)
@@ -157,16 +171,17 @@ class VariablesManager:
                     self.fluid_vars += [VELOCITY_Y_GRADIENT]
                     self.fluid_vars += [VELOCITY_Z_GRADIENT]
 
-        if parameters["vorticity_calculation_type"].GetInt() == 1 or parameters["lift_force_type"].GetInt() == 1:
+        if (parameters["vorticity_calculation_type"].GetInt() > 0
+            or PT.RecursiveFindParametersWithCondition(parameters["properties"], 'vorticity_induced_lift_parameters')):
             self.fluid_vars += [VORTICITY]
 
         if parameters["laplacian_calculation_type"].GetInt():
             self.fluid_vars += [VELOCITY_LAPLACIAN]
 
-            if parameters["include_faxen_terms_option"].GetBool():
-                self.fluid_vars += [VELOCITY_LAPLACIAN_RATE]
+        if PT.RecursiveFindTrueBoolInParameters(parameters["properties"], 'do_apply_faxen_corrections'):
+            self.fluid_vars += [VELOCITY_LAPLACIAN_RATE]
 
-        if parameters["calculate_diffusivity_option"].GetBool():
+        if parameters["coupling"]["backward_coupling"]["calculate_diffusivity_option"].GetBool():
             self.fluid_vars += [CONDUCTIVITY]
 
         # dem variables
@@ -176,38 +191,31 @@ class VariablesManager:
         self.dem_vars += [BUOYANCY]
         self.dem_vars += [VELOCITY_OLD]
 
-        if parameters["frame_of_reference_type"].GetInt() and parameters["basset_force_type"].GetInt() > 0:
+        if self.do_include_history_force:
+            self.dem_vars += [BASSET_FORCE]
+
+        if parameters["frame_of_reference"]["frame_type"].GetInt() and self.do_include_history_force > 0:
             self.dem_vars += [DISPLACEMENT_OLD]
             self.dem_vars += [VELOCITY_OLD_OLD]
 
-        if (parameters["TranslationalIntegrationScheme"].GetString()
+        if (parameters["custom_dem"]["translational_integration_scheme"].GetString()
             in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}
-            or parameters["basset_force_type"].GetInt() > 0):
+            or self.do_include_history_force):
             self.dem_vars += [VELOCITY_OLD]
             self.dem_vars += [ADDITIONAL_FORCE_OLD]
-            self.dem_vars += [SLIP_VELOCITY]
+            self.dem_vars += [AUX_VEL]
 
-        if parameters["drag_force_type"].GetInt() > 0 and parameters["add_each_hydro_force_option"].GetBool():
+        if parameters["add_each_hydro_force_option"].GetBool():
             self.dem_vars += [DRAG_FORCE]
 
-        if parameters["drag_force_type"].GetInt() > 1:
-            self.dem_vars += [PARTICLE_SPHERICITY]
+        self.dem_vars += [PARTICLE_SPHERICITY] # TODO: add only when needed
 
-        if parameters["lift_force_type"].GetInt() > 0 and parameters["add_each_hydro_force_option"].GetBool():
+        if (PT.RecursiveFindParametersWithCondition(parameters["properties"], 'vorticity_induced_lift_parameters')
+            and parameters["add_each_hydro_force_option"].GetBool()):
             self.dem_vars += [LIFT_FORCE]
 
-        if parameters["virtual_mass_force_type"].GetInt() > 0 and parameters["add_each_hydro_force_option"].GetBool():
+        if parameters["add_each_hydro_force_option"].GetBool():
             self.dem_vars += [VIRTUAL_MASS_FORCE]
-
-        will_need_basset_force_variable = False
-        for prop in parameters["properties"].values():
-            if prop["hydrodynamic_law_parameters"].Has("history_force_parameters"):
-                if prop["hydrodynamic_law_parameters"]["history_force_parameters"]["name"].GetString() != 'default':
-                    will_need_basset_force_variable = True
-                    break
-
-        if will_need_basset_force_variable:
-            self.dem_vars += [BASSET_FORCE]
 
         # clusters variables
         self.clusters_vars = []
@@ -227,7 +235,7 @@ class VariablesManager:
                                  NODAL_AREA,
                                  VELOCITY_OLD]
 
-        if parameters["embedded_option"].GetBool():
+        if parameters["custom_fluid"]["embedded_option"].GetBool():
             self.rigid_faces_vars += [FORCE]
             self.rigid_faces_vars += [POSITIVE_FACE_PRESSURE]
             self.rigid_faces_vars += [NEGATIVE_FACE_PRESSURE]
@@ -238,12 +246,10 @@ class VariablesManager:
         self.inlet_vars = self.dem_vars
 
     def ConstructListsOfResultsToPrint(self, parameters):
-        self.dem_nodal_results = []
+        dem_list = self.project_parameters["dem_nodal_results"]
+        self.dem_nodal_results = [key for key in dem_list.keys() if dem_list[key].GetBool()]
         self.clusters_nodal_results = []
         self.rigid_faces_nodal_results = []
-
-        if parameters["print_SLIP_VELOCITY_option"].GetBool():
-            self.dem_nodal_results += ["SLIP_VELOCITY"]
 
         if parameters['dem_parameters']["PostRadius"].GetBool():
             self.dem_nodal_results += ["RADIUS"]
@@ -265,65 +271,7 @@ class VariablesManager:
             if parameters.PostCationConcentration:
                 self.dem_nodal_results += ["CATION_CONCENTRATION"]
 
-        if parameters["coupling_level_type"].GetInt() > 0:
-
-            if parameters["print_REYNOLDS_NUMBER_option"].GetBool():
-                self.dem_nodal_results += ["REYNOLDS_NUMBER"]
-
-            if parameters["print_PRESSURE_GRAD_PROJECTED_option"].GetBool():
-                self.dem_nodal_results += ["PRESSURE_GRAD_PROJECTED"]
-
-            if parameters["print_HYDRODYNAMIC_FORCE_option"].GetBool():
-                self.dem_nodal_results += ["HYDRODYNAMIC_FORCE"]
-
-            if parameters["print_HYDRODYNAMIC_MOMENT_option"].GetBool():
-                self.dem_nodal_results += ["HYDRODYNAMIC_MOMENT"]
-
-            if parameters["print_FLUID_VEL_PROJECTED_option"].GetBool():
-                self.dem_nodal_results += ["FLUID_VEL_PROJECTED"]
-
-            if parameters["print_FLUID_VEL_PROJECTED_RATE_option"].GetBool():
-                self.dem_nodal_results += ["FLUID_VEL_PROJECTED_RATE"]
-
-            if parameters["print_FLUID_VEL_LAPL_PROJECTED_option"].GetBool():
-                self.dem_nodal_results += ["FLUID_VEL_LAPL_PROJECTED"]
-
-            if parameters["print_FLUID_VEL_LAPL_RATE_PROJECTED_option"].GetBool():
-                self.dem_nodal_results += ["FLUID_VEL_LAPL_RATE_PROJECTED"]
-
-            if parameters["print_FLUID_ACCEL_PROJECTED_option"].GetBool():
-                self.dem_nodal_results += ["FLUID_ACCEL_PROJECTED"]
-
-            if parameters["print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option"].GetBool():
-                self.dem_nodal_results += ["FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED"]
-
-            if parameters["print_FLUID_FRACTION_PROJECTED_option"].GetBool():
-                self.dem_nodal_results += ["FLUID_FRACTION_PROJECTED"]
-
-            if parameters["print_FLUID_FRACTION_GRADIENT_PROJECTED_option"].GetBool():
-                self.dem_nodal_results += ["FLUID_FRACTION_GRADIENT_PROJECTED"]
-
-            if parameters["print_FLUID_VISCOSITY_PROJECTED_option"].GetBool():
-                self.dem_nodal_results += ["FLUID_VISCOSITY_PROJECTED"]
-
-            if parameters["print_BUOYANCY_option"].GetBool():
-                self.dem_nodal_results += ["BUOYANCY"]
-
-        if parameters["add_each_hydro_force_option"].GetBool():
-
-            if parameters["print_DRAG_FORCE_option"].GetBool():
-                self.dem_nodal_results += ["DRAG_FORCE"]
-
-            if parameters["print_VIRTUAL_MASS_FORCE_option"].GetBool():
-                self.dem_nodal_results += ["VIRTUAL_MASS_FORCE"]
-
-            if parameters["print_BASSET_FORCE_option"].GetBool():
-                self.dem_nodal_results += ["BASSET_FORCE"]
-
-            if parameters["print_LIFT_FORCE_option"].GetBool():
-                self.dem_nodal_results += ["LIFT_FORCE"]
-
-        if parameters["embedded_option"].GetBool():
+        if parameters["custom_fluid"]["embedded_option"].GetBool():
             self.rigid_faces_nodal_results += ["POSITIVE_FACE_PRESSURE"]
             self.rigid_faces_nodal_results += ["NEGATIVE_FACE_PRESSURE"]
 
@@ -366,10 +314,6 @@ class VariablesManager:
             if var in self.nodal_results:
                 self.nodal_results.remove(var)
 
-        if not parameters["print_PRESSURE_option"].GetBool():
-            if "PRESSURE" in self.nodal_results:
-                self.nodal_results.remove("PRESSURE")
-
         VariablesManager.EliminateRepeatedValuesFromList(self.nodal_results)
         VariablesManager.EliminateRepeatedValuesFromList(self.dem_nodal_results)
         VariablesManager.EliminateRepeatedValuesFromList(self.mixed_nodal_results)
@@ -382,52 +326,50 @@ class VariablesManager:
 
         self.coupling_fluid_vars += [KratosGlobals.GetVariable(parameters["body_force_per_unit_mass_variable_name"].GetString() )]
 
-        if parameters["fluid_model_type"].GetInt() == 0:
+        if parameters["custom_fluid"]["fluid_model_type"].GetInt() == 0:
             self.coupling_fluid_vars += [AVERAGED_FLUID_VELOCITY]
 
-        if (parameters["fluid_model_type"].GetInt() == 0
-            or parameters["coupling_level_type"].GetInt() > 1
-            or parameters["drag_force_type"].GetInt() == 4):
+        if (parameters["custom_fluid"]["fluid_model_type"].GetInt() == 0
+            or parameters["coupling"]["coupling_level_type"].GetInt() > 1):
             self.coupling_fluid_vars += [FLUID_FRACTION]
             self.coupling_fluid_vars += [FLUID_FRACTION_OLD]
 
-            if parameters["print_DISPERSE_FRACTION_option"].GetBool():
+            if 'DISPERSE_FRACTION' in self.nodal_results:
                 self.coupling_fluid_vars += [DISPERSE_FRACTION]
 
-            if parameters["filter_velocity_option"].GetBool():
+            if parameters["coupling"]["backward_coupling"]["filter_velocity_option"].GetBool():
                 self.coupling_fluid_vars += [PARTICLE_VEL_FILTERED]
                 self.coupling_fluid_vars += [TIME_AVERAGED_ARRAY_3]
                 self.coupling_fluid_vars += [PHASE_FRACTION]
 
-        if parameters["fluid_model_type"].GetInt() >= 1:
+        if parameters["custom_fluid"]["fluid_model_type"].GetInt() >= 1:
             self.coupling_fluid_vars += [FLUID_FRACTION_GRADIENT]
             self.coupling_fluid_vars += [FLUID_FRACTION_RATE]
 
-        if parameters["coupling_level_type"].GetInt() >= 1:
+        if parameters["coupling"]["coupling_level_type"].GetInt() >= 1:
             self.coupling_fluid_vars += [HYDRODYNAMIC_REACTION]
 
-        if parameters["coupling_level_type"].GetInt() >= 1 and parameters["time_averaging_type"].GetInt() > 0:
+        if parameters["coupling"]["coupling_level_type"].GetInt() >= 1 and parameters["coupling"]["time_averaging_type"].GetInt() > 0:
             self.coupling_fluid_vars += [MEAN_HYDRODYNAMIC_REACTION]
 
-        if parameters["drag_force_type"].GetInt() in {2} or parameters["lift_force_type"].GetInt() == 1:
+        if parameters["non_newtonian_fluid"]["non_newtonian_option"].GetBool():
             self.coupling_fluid_vars += [POWER_LAW_N]
             self.coupling_fluid_vars += [POWER_LAW_K]
             self.coupling_fluid_vars += [YIELD_STRESS]
+            # self.coupling_fluid_vars += [GEL_STRENGTH] # TODO: make specific option for this
 
-            if parameters["drag_force_type"].GetInt() == 2:
-                self.coupling_fluid_vars += [GEL_STRENGTH]
-
-        if parameters["viscosity_modification_type"].GetInt():
+        if parameters["coupling"]["backward_coupling"]["viscosity_modification_type"].GetInt():
             self.coupling_fluid_vars += [VISCOSITY]
 
-        if parameters["embedded_option"].GetBool():
+        if parameters["custom_fluid"]["embedded_option"].GetBool():
             self.coupling_fluid_vars += [DISTANCE]
 
         # dem coupling variables
         self.coupling_dem_vars = []
 
-        if parameters["coupling_level_type"].GetInt() > 0:
+        if parameters["coupling"]["coupling_level_type"].GetInt() > 0:
             self.coupling_dem_vars += [FLUID_VEL_PROJECTED]
+            self.coupling_dem_vars += [FLUID_ACCEL_PROJECTED]
             self.coupling_dem_vars += [FLUID_DENSITY_PROJECTED]
             self.coupling_dem_vars += [FLUID_VISCOSITY_PROJECTED]
             self.coupling_dem_vars += [HYDRODYNAMIC_FORCE]
@@ -437,107 +379,52 @@ class VariablesManager:
             self.coupling_dem_vars += [FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED]
             self.coupling_dem_vars += [ADDITIONAL_FORCE] # Here for safety for the moment
 
-            if parameters["buoyancy_force_type"].GetInt() != 2 and parameters["drag_force_type"].GetInt() != 2:
-                self.coupling_dem_vars += [PRESSURE_GRAD_PROJECTED]
-
-            if parameters["include_faxen_terms_option"].GetBool():
+            if PT.RecursiveFindTrueBoolInParameters(parameters["properties"], 'do_apply_faxen_corrections'):
                 self.coupling_dem_vars += [FLUID_VEL_LAPL_PROJECTED]
                 self.coupling_dem_vars += [FLUID_VEL_LAPL_RATE_PROJECTED]
 
-            if parameters["basset_force_type"].GetInt() > 0:
+            if self.do_include_history_force:
                 self.coupling_dem_vars += [FLUID_VEL_PROJECTED_RATE]
 
-        if parameters["coupling_level_type"].GetInt() >= 1 or parameters["fluid_model_type"].GetInt() == 0:
+        if parameters["coupling"]["coupling_level_type"].GetInt() >= 1 or parameters["custom_fluid"]["fluid_model_type"].GetInt() == 0:
             self.coupling_dem_vars += [FLUID_FRACTION_PROJECTED]
 
-        if (parameters["coupling_level_type"].GetInt() >= 1
-            and parameters["print_FLUID_FRACTION_GRADIENT_PROJECTED_option"].GetBool()):
+        if (parameters["coupling"]["coupling_level_type"].GetInt() >= 1
+            and 'FLUID_FRACTION_GRADIENT_PROJECTED' in self.dem_printing_vars):
             self.coupling_dem_vars += [FLUID_FRACTION_GRADIENT_PROJECTED]
 
-        if parameters["drag_force_type"].GetInt() in {2} or parameters["lift_force_type"].GetInt() == 1:
+        if parameters["non_newtonian_fluid"]["non_newtonian_option"].GetBool():
             self.coupling_dem_vars += [POWER_LAW_N]
             self.coupling_dem_vars += [POWER_LAW_K]
             self.coupling_dem_vars += [YIELD_STRESS]
 
-        if parameters["lift_force_type"].GetInt() == 1:
+        if PT.RecursiveFindParametersWithCondition(parameters["properties"], 'vorticity_induced_lift_parameters'):
             self.coupling_dem_vars += [FLUID_VORTICITY_PROJECTED]
             self.coupling_dem_vars += [SHEAR_RATE_PROJECTED]
 
-        if parameters["virtual_mass_force_type"].GetInt() or parameters["basset_force_type"].GetInt() >= 1:
-            self.coupling_dem_vars += [FLUID_ACCEL_PROJECTED]
-
-        if parameters["embedded_option"].GetBool():
+        if parameters["custom_fluid"]["embedded_option"].GetBool():
             self.coupling_dem_vars += [DISTANCE]
 
-        if parameters["print_REYNOLDS_NUMBER_option"].GetBool():
+        if 'REYNOLDS_NUMBER' in self.dem_nodal_results:
             self.coupling_dem_vars += [REYNOLDS_NUMBER]
 
-        if parameters["apply_time_filter_to_fluid_fraction_option"].GetBool():
-            self.time_filtered_vars += [FLUID_FRACTION_FILTERED]
+        if self.do_backward_coupling:
+            if parameters["coupling"]["backward_coupling"]["apply_time_filter_to_fluid_fraction_option"].GetBool():
+                self.time_filtered_vars += [FLUID_FRACTION_FILTERED]
 
-        if parameters["filter_velocity_option"].GetBool():
+        if parameters["coupling"]["backward_coupling"]["filter_velocity_option"].GetBool():
             self.time_filtered_vars += [PARTICLE_VEL_FILTERED]
 
 
     def ChangeListOfFluidNodalResultsToPrint(self, parameters):
 
-        if parameters["store_full_gradient_option"].GetBool() and parameters["print_VELOCITY_GRADIENT_option"].GetBool():
+        if parameters["store_full_gradient_option"].GetBool() and 'VELOCITY_GRADIENT' in self.nodal_results:
             self.nodal_results += ["VELOCITY_X_GRADIENT"]
             self.nodal_results += ["VELOCITY_Y_GRADIENT"]
             self.nodal_results += ["VELOCITY_Z_GRADIENT"]
 
-        if parameters["print_PRESSURE_GRADIENT_option"].GetBool():
-            self.nodal_results += ["PRESSURE_GRADIENT"]
-
-        if parameters["print_FLUID_FRACTION_option"].GetBool():
-            self.nodal_results += ["FLUID_FRACTION"]
-
-        if parameters["print_PARTICLE_VEL_option"].GetBool():
-            self.nodal_results += ["PARTICLE_VEL_FILTERED"]
-
-        if parameters["print_FLUID_FRACTION_GRADIENT_option"].GetBool():
-            self.nodal_results += ["FLUID_FRACTION_GRADIENT"]
-
-        if parameters["print_DISPERSE_FRACTION_option"].GetBool():
-            self.nodal_results += ["DISPERSE_FRACTION"]
-            self.nodal_results += ["PHASE_FRACTION"]
-
-        if parameters["fluid_model_type"].GetInt() == 0 and parameters["print_AVERAGED_FLUID_VELOCITY_option"].GetBool():
+        if parameters["custom_fluid"]["fluid_model_type"].GetInt() == 0 and 'AVERAGED_FLUID_VELOCITY' in self.nodal_results:
             self.nodal_results += ["AVERAGED_FLUID_VELOCITY"]
 
-        if parameters["fluid_model_type"].GetInt() == 1 and parameters["print_FLUID_FRACTION_GRADIENT_option"].GetBool():
+        if parameters["custom_fluid"]["fluid_model_type"].GetInt() == 1 and 'FLUID_FRACTION_GRADIENT' in self.nodal_results:
             self.nodal_results += ["FLUID_FRACTION_GRADIENT"]
-
-        if parameters["print_VISCOSITY_option"].GetBool():
-            self.nodal_results += ["VISCOSITY"]
-
-        if parameters["body_force_on_fluid_option"].GetBool() and parameters["print_BODY_FORCE_option"].GetBool():
-            self.nodal_results += ["BODY_FORCE"]
-
-        if parameters["print_HYDRODYNAMIC_REACTION_option"].GetBool():
-            self.nodal_results += ["HYDRODYNAMIC_REACTION"]
-
-        if parameters["print_MEAN_HYDRODYNAMIC_REACTION_option"].GetBool():
-            self.nodal_results += ["MEAN_HYDRODYNAMIC_REACTION"]
-
-        if parameters["embedded_option"].GetBool() and parameters["print_distance_option"].GetBool():
-            self.nodal_results += ["DISTANCE"]
-
-        if parameters["print_MATERIAL_ACCELERATION_option"].GetBool():
-            self.nodal_results += ["MATERIAL_ACCELERATION"]
-
-        if parameters["print_VORTICITY_option"].GetBool():
-            self.nodal_results += ["VORTICITY"]
-
-        if parameters["print_VELOCITY_LAPLACIAN_option"].GetBool():
-            self.nodal_results += ["VELOCITY_LAPLACIAN"]
-
-        if parameters["print_VELOCITY_LAPLACIAN_RATE_option"].GetBool():
-            self.nodal_results += ["VELOCITY_LAPLACIAN_RATE"]
-
-        if parameters["print_CONDUCTIVITY_option"].GetBool():
-            self.nodal_results += ["CONDUCTIVITY"]
-
-        if parameters["print_VECTORIAL_ERROR_option"].GetBool():
-            self.nodal_results += ["VECTORIAL_ERROR"]
-            self.nodal_results += ["VECTORIAL_ERROR_1"]

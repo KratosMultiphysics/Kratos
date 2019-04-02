@@ -795,7 +795,7 @@ void MPIDataCommunicator::PrintData(std::ostream &rOStream) const
 
 // Error checking
 
-void MPIDataCommunicator::CheckMPIErrorCode(const int ierr, const std::string MPICallName) const
+void MPIDataCommunicator::CheckMPIErrorCode(const int ierr, const std::string& MPICallName) const
 {
     KRATOS_ERROR_IF_NOT(ierr == MPI_SUCCESS) << MPICallName << " failed with error code " << ierr << "." << std::endl;
 }
