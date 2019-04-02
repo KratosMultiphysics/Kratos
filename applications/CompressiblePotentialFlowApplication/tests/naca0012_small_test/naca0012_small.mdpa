@@ -192,9 +192,10 @@ Begin SubModelPart Wake2D_Wake_Auto1 // Group Wake Auto1 // Subtree Wake2D
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart Body2D_UpperSurface // Group Body Auto1Body2D_UpperSurface // Subtree Body2D
+Begin SubModelPart Body2D_Body // Group Body Auto1Body2D_UpperSurface // Subtree Body2D
     Begin SubModelPartNodes
          6
+         9
         10
         13
     End SubModelPartNodes
@@ -203,17 +204,6 @@ Begin SubModelPart Body2D_UpperSurface // Group Body Auto1Body2D_UpperSurface //
     Begin SubModelPartConditions
         15
         16
-    End SubModelPartConditions
-End SubModelPart
-Begin SubModelPart Body2D_LowerSurface // Group Body Auto2Body2D_LowerSurface // Subtree Body2D
-    Begin SubModelPartNodes
-         6
-         9
-        13
-    End SubModelPartNodes
-    Begin SubModelPartElements
-    End SubModelPartElements
-    Begin SubModelPartConditions
         17
         18
     End SubModelPartConditions
