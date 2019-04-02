@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # importing the Kratos Library
 import KratosMultiphysics as KM
 from KratosMultiphysics import Vector, ModelPart
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 from . import recoverer
 import parameters_tools as PT
 
@@ -12,9 +12,9 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
         self.model_part = model_part
         self.use_lumped_mass_matrix = project_parameters["material_acceleration_calculation_type"].GetInt() == 3
         self.recovery_model_part = ModelPart("PostGradientFluidPart")
-        self.custom_functions_tool = CustomFunctionsCalculator3D()
-        self.calculate_vorticity = (parameters["vorticity_calculation_type"].GetInt() > 0
-                                    or PT.RecursiveFindParametersWithCondition(parameters["properties"],
+        self.custom_functions_tool = SDEM.CustomFunctionsCalculator3D()
+        self.calculate_vorticity = (project_parameters["vorticity_calculation_type"].GetInt() > 0
+                                    or PT.RecursiveFindParametersWithCondition(project_parameters["properties"],
                                                                                'vorticity_induced_lift_parameters'))
 
         if self.use_lumped_mass_matrix:
@@ -60,7 +60,7 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
         if type(variable).__name__ == 'DoubleVariable':
             self.custom_functions_tool.SetValueOfAllNotes(self.model_part, 0.0, variable)
         elif type(variable).__name__ == 'Array1DVariable3':
-            self.custom_functions_tool.SetValueOfAllNotes(self.model_part, ZeroVector(3), variable)
+            self.custom_functions_tool.SetValueOfAllNotes(self.model_part, Vector([0,0,0]), variable)
 
 class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.VorticityRecoverer):
     def __init__(self, project_parameters, model_part):
@@ -70,8 +70,8 @@ class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.
         self.FillUpModelPart(self.element_type, self.condition_type)
         self.DOFs = (KM.VELOCITY_COMPONENT_GRADIENT_X, KM.VELOCITY_COMPONENT_GRADIENT_Y, KM.VELOCITY_COMPONENT_GRADIENT_Z)
         self.AddDofs(self.DOFs)
-        self.calculate_vorticity = (parameters["vorticity_calculation_type"].GetInt() > 0
-                                    or PT.RecursiveFindParametersWithCondition(parameters["properties"],
+        self.calculate_vorticity = (project_parameters["vorticity_calculation_type"].GetInt() > 0
+                                    or PT.RecursiveFindParametersWithCondition(project_parameters["properties"],
                                                                                'vorticity_induced_lift_parameters'))
 
     def Solve(self):
@@ -103,7 +103,7 @@ class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.
 class L2ProjectionMaterialAccelerationRecoverer(L2ProjectionGradientRecoverer, recoverer.MaterialAccelerationRecoverer):
     def __init__(self, project_parameters, model_part):
         L2ProjectionGradientRecoverer.__init__(self, project_parameters, model_part)
-        self.store_full_gradient = self.project_parameters["store_full_gradient_option"].GetBool()
+        self.store_full_gradient = project_parameters["store_full_gradient_option"].GetBool()
 
     def RecoverMaterialAcceleration(self):
         if self.store_full_gradient:

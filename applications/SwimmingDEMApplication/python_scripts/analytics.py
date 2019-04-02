@@ -4,11 +4,6 @@ import os
 import numpy as np
 
 import KratosMultiphysics as KM
-from KratosMultiphysics.IncompressibleFluidApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
-
 import swimming_DEM_procedures
 import matplotlib.pyplot as plt
 import numpy.fft as fft

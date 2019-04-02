@@ -2,8 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # importing the Kratos Library
 import KratosMultiphysics as KM
 from KratosMultiphysics import Parameters
-from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
 from . import recoverer
 
 class StandardGradientRecoverer(recoverer.GradientRecoverer):

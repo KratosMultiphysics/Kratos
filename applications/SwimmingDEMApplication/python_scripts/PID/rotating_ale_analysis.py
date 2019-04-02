@@ -1,7 +1,7 @@
 import KratosMultiphysics as KM
 from KratosMultiphysics import Vector, Parameters
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysics.DEMApplication as DEM
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import math
 import pre_calculated_fluid_analysis
 BaseAnalysis = pre_calculated_fluid_analysis.PreCalculatedFluidAnalysis

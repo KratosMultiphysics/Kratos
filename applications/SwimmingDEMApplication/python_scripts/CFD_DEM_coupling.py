@@ -1,10 +1,8 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics as KM
 from KratosMultiphysics import Vector, Logger, Parameters
-#from KratosMultiphysics.IncompressibleFluidApplication import *
-#from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysics.DEMApplication as DEM
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import sys
 
 class ProjectionModule:
@@ -44,18 +42,18 @@ class ProjectionModule:
         if self.dimension == 3:
 
             if project_parameters["ElementType"].GetString() == "SwimmingNanoParticle":
-                self.projector = BinBasedNanoDEMFluidCoupledMapping3D(self.projector_parameters)
+                self.projector = SDEM.BinBasedNanoDEMFluidCoupledMapping3D(self.projector_parameters)
 
             else:
-                self.projector = BinBasedDEMFluidCoupledMapping3D(self.projector_parameters)
+                self.projector = SDEM.BinBasedDEMFluidCoupledMapping3D(self.projector_parameters)
             self.bin_of_objects_fluid = KM.BinBasedFastPointLocator3D(fluid_model_part)
 
         else:
             if project_parameters["ElementType"].GetString() == "SwimmingNanoParticle":
-                self.projector = BinBasedNanoDEMFluidCoupledMapping2D(self.projector_parameters)
+                self.projector = SDEM.BinBasedNanoDEMFluidCoupledMapping2D(self.projector_parameters)
 
             else:
-                self.projector = BinBasedDEMFluidCoupledMapping2D(self.projector_parameters)
+                self.projector = SDEM.BinBasedDEMFluidCoupledMapping2D(self.projector_parameters)
             self.bin_of_objects_fluid = KM.BinBasedFastPointLocator2D(fluid_model_part)
 
         # telling the projector which variables we are interested in modifying

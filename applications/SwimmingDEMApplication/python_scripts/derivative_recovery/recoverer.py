@@ -4,14 +4,12 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics as KM
-from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
-import weakref
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 
 class DerivativesRecoverer:
     def __init__(self, project_parameters, model_part):
         self.model_part = model_part
-        self.cplusplus_recovery_tool = DerivativeRecoveryTool3D(model_part, project_parameters)
+        self.cplusplus_recovery_tool = SDEM.DerivativeRecoveryTool3D(model_part, project_parameters)
 
 class EmptyGradientRecoverer(DerivativesRecoverer):
     def __init__(self, project_parameters, model_part):

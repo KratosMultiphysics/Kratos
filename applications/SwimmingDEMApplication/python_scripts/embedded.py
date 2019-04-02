@@ -4,7 +4,6 @@ import os
 import KratosMultiphysics as KM
 from KratosMultiphysics import Vector
 from python_solver import PythonSolver
-from KratosMultiphysics.DEMApplication import *
 
 def VectSum(v, w):
     return [x + y for x, y in zip(v, w)]
@@ -98,25 +97,27 @@ def ApplyEmbeddedBCsToFluid(model_part):
             # print model_part.Properties[mesh_number]
 
             # INLETS
-            if (model_part.Properties[mesh_number][IMPOSED_VELOCITY_X] == 1 or model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y] == 1 or model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z] == 1):
+            if (model_part.Properties[mesh_number][KM.IMPOSED_VELOCITY_X] == 1
+                or model_part.Properties[mesh_number][KM.IMPOSED_VELOCITY_Y] == 1
+                or model_part.Properties[mesh_number][KM.IMPOSED_VELOCITY_Z] == 1):
 
                 for node in mesh_nodes:
                     dist = node.GetSolutionStepValue(KM.DISTANCE)
 
                     if (dist > 0.0):
                         node.Free(KM.PRESSURE)
-                        if (model_part.Properties[mesh_number][IMPOSED_VELOCITY_X]):
+                        if (model_part.Properties[mesh_number][KM.IMPOSED_VELOCITY_X]):
                             node.Fix(KM.VELOCITY_X)
-                            node.SetSolutionStepValue(KM.VELOCITY_X, model_part.Properties[mesh_number][IMPOSED_VELOCITY_X_VALUE])
-                        if (model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y]):
+                            node.SetSolutionStepValue(KM.VELOCITY_X, model_part.Properties[mesh_number][KM.IMPOSED_VELOCITY_X_VALUE])
+                        if (model_part.Properties[mesh_number][KM.IMPOSED_VELOCITY_Y]):
                             node.Fix(KM.VELOCITY_Y)
-                            node.SetSolutionStepValue(KM.VELOCITY_Y, model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y_VALUE])
-                        if (model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z]):
+                            node.SetSolutionStepValue(KM.VELOCITY_Y, model_part.Properties[mesh_number][KM.IMPOSED_VELOCITY_Y_VALUE])
+                        if (model_part.Properties[mesh_number][KM.IMPOSED_VELOCITY_Z]):
                             node.Fix(KM.VELOCITY_Z)
-                            node.SetSolutionStepValue(KM.VELOCITY_Z, model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z_VALUE])
+                            node.SetSolutionStepValue(KM.VELOCITY_Z, model_part.Properties[mesh_number][KM.IMPOSED_VELOCITY_Z_VALUE])
 
             # OUTLETS
-            if (model_part.Properties[mesh_number][IMPOSED_PRESSURE] == 1):
+            if (model_part.Properties[mesh_number][KM.IMPOSED_PRESSURE] == 1):
                 # here I assume all nodes of this outlet have the same body force and density!!
 
                 for node in mesh_nodes:
@@ -134,7 +135,7 @@ def ApplyEmbeddedBCsToFluid(model_part):
                         maxheight = height
                         highest_node = node
 
-                base_pressure = model_part.Properties[mesh_number][PRESSURE]
+                base_pressure = model_part.Properties[mesh_number][KM.PRESSURE]
 
                 for node in mesh_nodes:
                     dist = node.GetSolutionStepValue(KM.DISTANCE)
@@ -169,7 +170,7 @@ class SearchEmbeddedDEMTools:
         self.search_tools = KM.DemSearchUtilities(KM.OMP_DEMSearch())
 
     def SearchNodeNeighboursDistances(self, model_part, dem_model_part, search_radius):
-        self.search_tools.SearchNodeNeighboursDistances(model_part, dem_model_part, search_radius, DISTANCE)
+        self.search_tools.SearchNodeNeighboursDistances(model_part, dem_model_part, search_radius, KM.DISTANCE)
 
     def CalculateElementNeighbourDistances(self, model_part, intersecting_surface_semi_thickness):
 

@@ -1,10 +1,11 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics as KM
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 from . import recoverer
 from . import L2_projection_recoverer
 import parameters_tools as PT
+import sys
 
 class Pouliot2012GradientRecoverer(L2_projection_recoverer.L2ProjectionGradientRecoverer):
     def __init__(self, project_parameters, model_part):
@@ -14,12 +15,12 @@ class Pouliot2012GradientRecoverer(L2_projection_recoverer.L2ProjectionGradientR
         self.FillUpModelPart(self.element_type, self.condition_type)
         self.DOFs = (KM.VELOCITY_COMPONENT_GRADIENT_X, KM.VELOCITY_COMPONENT_GRADIENT_Y, KM.VELOCITY_COMPONENT_GRADIENT_Z)
         self.AddDofs(self.DOFs)
-        self.calculate_vorticity = (parameters["vorticity_calculation_type"].GetInt() > 0
-                                    or PT.RecursiveFindParametersWithCondition(parameters["properties"],
+        self.calculate_vorticity = (project_parameters["vorticity_calculation_type"].GetInt() > 0
+                                    or PT.RecursiveFindParametersWithCondition(project_parameters["properties"],
                                                                                'vorticity_induced_lift_parameters'))
 
 class Pouliot2012MaterialAccelerationRecoverer(Pouliot2012GradientRecoverer, L2_projection_recoverer.L2ProjectionMaterialAccelerationRecoverer):
-    def __init__(self, model_part, do_pre_recovery = False):
+    def __init__(self, model_part, project_parameters, do_pre_recovery = False):
         L2_projection_recoverer.L2ProjectionMaterialAccelerationRecoverer.__init__(self, project_parameters, model_part)
         Pouliot2012GradientRecoverer.__init__(self, project_parameters, model_part)
         self.do_pre_recovery = do_pre_recovery

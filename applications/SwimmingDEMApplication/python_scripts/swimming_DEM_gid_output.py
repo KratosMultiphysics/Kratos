@@ -3,8 +3,8 @@ import os
 import KratosMultiphysics as KM
 from KratosMultiphysics import MultiFileFlag
 from KratosMultiphysics import GiDPostMode
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysics.DEMApplication as DEM
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import gid_output
 
 

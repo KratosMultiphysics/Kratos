@@ -2,8 +2,8 @@ import bisect as bi
 import numpy as np
 import h5py
 import KratosMultiphysics as KM
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysics.DEMApplication as DEM
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 from DEM_procedures import KratosPrintInfo as Say
 import json
 
@@ -151,7 +151,7 @@ class FluidHDF5Loader:
             f[name][:] = self.current_data_array[:, variable_index_in_temp_array]
 
     def FillFluidDataStep(self):
-        time = self.fluid_model_part.ProcessInfo[TIME]
+        time = self.fluid_model_part.ProcessInfo[KM.TIME]
         name = str(time)
         with h5py.File(self.file_path) as f:
             f.create_group(name = name)
@@ -295,9 +295,9 @@ class ParticleHistoryLoader:
     # This function records the particles initial positions in an hdf5 file.
     # It records both the particles that fall within an input bounding box
     # and all the particles in the model part.
-    def RecordParticlesInBox(self, bounding_box = BoundingBoxRule()):
+    def RecordParticlesInBox(self, bounding_box = SDEM.BoundingBoxRule()):
         self.bounding_box = bounding_box
-        time = self.model_part.ProcessInfo[TIME]
+        time = self.model_part.ProcessInfo[KM.TIME]
 
         def IsInside(node):
             is_a_particle = node.IsNot(KM.BLOCKED)

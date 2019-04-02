@@ -1,7 +1,7 @@
 import KratosMultiphysics as KM
 from KratosMultiphysics import Vector
-from KratosMultiphysics.SwimmingDEMApplication import *
-from KratosMultiphysics.DEMApplication import *
+import KratosMultiphysics.DEMApplication as DEM
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import swimming_DEM_procedures as SDP
 import math
 import numpy as np

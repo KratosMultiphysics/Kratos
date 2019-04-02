@@ -8,11 +8,11 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 # Kratos
 import KratosMultiphysics
-from KratosMultiphysics.ExternalSolversApplication   import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
-
+from KratosMultiphysics import Model, Parameters
+import KratosMultiphysics.ExternalSolversApplication
+import KratosMultiphysics.FluidDynamicsApplication
+import KratosMultiphysics.DEMApplication
+import KratosMultiphysics.SwimmingDEMApplication
 from swimming_DEM_analysis import SwimmingDEMAnalysis
 
 class SwimmingDEMAnalysisWithFlush(SwimmingDEMAnalysis):

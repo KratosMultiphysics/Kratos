@@ -1,7 +1,7 @@
 import KratosMultiphysics as KM
 from KratosMultiphysics import Vector, Parameters
-from KratosMultiphysics.SwimmingDEMApplication import *
-from KratosMultiphysics.DEMApplication import *
+import KratosMultiphysics.DEMApplication as DEM
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import math
 import swimming_DEM_analysis
 BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
@@ -19,9 +19,9 @@ class MarineRainAnalysis(BaseAnalysis):
         self.project_parameters.omega = math.pi
 
     def GetFieldUtility(self):
-        self.flow_field = CellularFlowField(self.project_parameters.L, self.project_parameters.U, self.project_parameters.k, self.project_parameters.omega)
-        space_time_set = SpaceTimeSet()
-        self.field_utility = FluidFieldUtility(space_time_set, self.flow_field, 1000.0, 1e-6)
+        self.flow_field = SDEM.CellularFlowField(self.project_parameters.L, self.project_parameters.U, self.project_parameters.k, self.project_parameters.omega)
+        space_time_set = SDEM.SpaceTimeSet()
+        self.field_utility = SDEM.FluidFieldUtility(space_time_set, self.flow_field, 1000.0, 1e-6)
         return self.field_utility
 
     def PerformZeroStepInitializations(self):

@@ -3,8 +3,8 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import sys
 import KratosMultiphysics as KM
 from KratosMultiphysics import Vector, Logger, Parameters
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysics.DEMApplication as DEM
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import swimming_DEM_procedures as SDP
 import swimming_DEM_analysis
 BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
@@ -40,7 +40,7 @@ class SDEMPFEMAnalysis(BaseAnalysis):
             if body_model_part_type == "Rigid":
                 body_model_part_name = bodies_parts_list[i]["body_name"].GetString()
                 source_model_part = self._GetFluidAnalysis().main_model_part.GetSubModelPart(body_model_part_name)
-                SwimmingDemInPfemUtils().TransferWalls(source_model_part, destination_model_part)
+                SDEM.SwimmingDemInPfemUtils().TransferWalls(source_model_part, destination_model_part)
 
     def TransferGravityFromDisperseToFluid(self):
         # setting fluid's body force to the same as DEM's
@@ -57,7 +57,6 @@ class SDEMPFEMAnalysis(BaseAnalysis):
             node.SetSolutionStepValue(KM.VISCOSITY, 0, kinematic_viscosity)
 
     def FluidInitialize(self):
-
         self._GetFluidAnalysis().vars_man=self.vars_man
         self._GetFluidAnalysis().Initialize()
         bodies_parts_list = self._GetFluidAnalysis().project_parameters["solver_settings"]["bodies_list"]
@@ -102,7 +101,6 @@ class SDEMPFEMAnalysis(BaseAnalysis):
         pass
 
     def SetFluidSolverParameters(self):
-
         self.time           = self.pp.Start_time
         self.Dt             = self.pp.Dt
         self.out            = self.Dt
@@ -112,7 +110,7 @@ class SDEMPFEMAnalysis(BaseAnalysis):
             self.fluid_model_part.AddNodalSolutionStepVariable(KM.DISTANCE)
         self.vars_man.AddNodalVariables(self.fluid_model_part, self.vars_man.fluid_vars)
         if self.pp.type_of_inlet == 'ForceImposed':
-            self.DEM_inlet = DEM_Force_Based_Inlet(self.dem_inlet_model_part, self.pp.force)
+            self.DEM_inlet = DEM.DEM_Force_Based_Inlet(self.dem_inlet_model_part, self.pp.force)
 
     def SetPostUtils(self):
         general_model_part = self._GetFluidAnalysis().main_model_part

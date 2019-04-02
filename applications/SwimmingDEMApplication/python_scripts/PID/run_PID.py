@@ -1,8 +1,8 @@
 import KratosMultiphysics as KM
 from KratosMultiphysics import Parameters
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysicFluidDynamicsApplication
+import KratosMultiphysics.FluidDynamicsApplication
+import KratosMultiphysics.SwimmingDEMApplication
 import rotating_ale_algorithm
 
 import json

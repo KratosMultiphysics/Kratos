@@ -10,8 +10,8 @@ import weakref
 
 import KratosMultiphysics as KM
 from KratosMultiphysics import Vector, Logger
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysics.DEMApplication as DEM
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 
 from analysis_stage import AnalysisStage
 
@@ -281,7 +281,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         # creating an IOTools object to perform other printing tasks
         self.io_tools = SDP.IOTools(self.project_parameters)
 
-        dem_physics_calculator = SphericElementGlobalPhysicsCalculator(
+        dem_physics_calculator = DEM.SphericElementGlobalPhysicsCalculator(
             self.spheres_model_part)
 
         if self.project_parameters["coupling"]["coupling_level_type"].GetInt():
