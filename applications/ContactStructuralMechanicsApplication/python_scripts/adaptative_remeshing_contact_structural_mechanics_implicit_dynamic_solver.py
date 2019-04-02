@@ -4,12 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics as KM
 
 # Import applications
-import KratosMultiphysics.kratos_utilities as kratos_utilities
-if kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication"):
-    import KratosMultiphysics.MeshingApplication as MA
-    missing_meshing_dependencies = True
-else:
-    missing_meshing_dependencies = False
+import KratosMultiphysics.MeshingApplication as MA
 
 # Import base class file
 from KratosMultiphysics.ContactStructuralMechanicsApplication import contact_structural_mechanics_implicit_dynamic_solver
@@ -44,8 +39,7 @@ class AdaptativeRemeshingContactImplicitMechanicalSolver(contact_structural_mech
 
     def AddVariables(self):
         super(AdaptativeRemeshingContactImplicitMechanicalSolver, self).AddVariables()
-        if (missing_meshing_dependencies is False):
-            self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H)
         self.print_on_rank_zero("::[AdaptativeRemeshingContactImplicitMechanicalSolver]:: ", "Variables ADDED")
 
     def get_remeshing_process(self):

@@ -3,14 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Import applications
-import KratosMultiphysics.kratos_utilities as kratos_utilities
-if kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication"):
-    import KratosMultiphysics.MeshingApplication as MeshingApplication
-    missing_meshing_dependencies = True
-else:
-    missing_meshing_dependencies = False
-
 # Import base class file
 from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_implicit_dynamic_solver
 
@@ -43,8 +35,7 @@ class AdaptativeRemeshingImplicitMechanicalSolver(structural_mechanics_implicit_
 
     def AddVariables(self):
         super(AdaptativeRemeshingImplicitMechanicalSolver, self).AddVariables()
-        if not missing_meshing_dependencies:
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.print_on_rank_zero("::[AdaptativeRemeshingImplicitMechanicalSolver]:: ", "Variables ADDED")
 
     def get_remeshing_process(self):
