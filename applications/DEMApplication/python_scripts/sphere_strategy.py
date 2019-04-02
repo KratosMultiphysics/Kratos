@@ -482,6 +482,16 @@ class ExplicitStrategy(object):
 
         return math.sqrt(1.0/(1.0 - (1.0+e)*(1.0+e) * math.exp(alpha)) - 1.0)
 
+    def SinAlphaConicalDamage(self, e):
+
+        if e < 0.001:
+            sinAlpha = 0.001
+
+        else:
+            sinAlpha = math.sin(math.radians(e))
+
+        return (1-sinAlpha)/sinAlpha
+
     def TranslationalIntegrationSchemeTranslator(self, name):
         class_name = None
 
@@ -570,19 +580,33 @@ class ExplicitStrategy(object):
 
             write_gamma = False
 
+            write_AlphaFunction = False
+
             if (type_of_law == 'Linear'):
                 gamma = self.RootByBisection(self.coeff_of_rest_diff, 0.0, 16.0, 0.0001, 300, coefficient_of_restitution)
                 write_gamma = True
 
-            elif (type_of_law == 'Hertz' or type_of_law == 'Dependent_friction'):
+            elif (type_of_law == 'Hertz'):
                 gamma = self.GammaForHertzThornton(coefficient_of_restitution)
                 write_gamma = True
+
+            elif (type_of_law == 'Dependent_friction'):
+                gamma = self.GammaForHertzThornton(coefficient_of_restitution)
+                write_gamma = True
+                alpha = properties[ALPHA]
+                AlphaFunction = self.SinAlphaConicalDamage(alpha)
+                write_AlphaFunction = True
+                if not properties.Has(LEVEL_OF_FOULING):
+                    properties[LEVEL_OF_FOULING] = 0.0
 
             else:
                 pass
 
             if write_gamma == True:
                 properties[DAMPING_GAMMA] = gamma
+
+            if write_AlphaFunction == True:
+                properties[ALPHA_FUNCTION] = AlphaFunction
 
             if properties.Has(CLUSTER_FILE_NAME):
                 cluster_file_name = properties[CLUSTER_FILE_NAME]

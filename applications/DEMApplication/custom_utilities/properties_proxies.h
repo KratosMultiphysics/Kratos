@@ -95,7 +95,11 @@ namespace Kratos {
         double  GetParticleGamma();
         double* pGetParticleGamma();
         void    SetParticleGammaFromProperties(double* particle_gamma);
-        
+
+        double  GetLevelOfFouling();
+        double* pGetLevelOfFouling();
+        void    SetLevelOfFoulingFromProperties(double* level_of_fouling);
+
         double  GetContactSigmaMin();
         double* pGetContactSigmaMin();
         void    SetContactSigmaMinFromProperties(double* contact_sigma_min);
@@ -129,7 +133,8 @@ namespace Kratos {
         //Dependent Friction
         double* mParticleContactRadius;
         double* mParticleMaxStress;
-        double* mParticleGamma;        
+        double* mParticleGamma;
+        double* mLevelOfFouling;
         double* mContactSigmaMin;
         double* mContactTauZero;
         double* mContactInternalFricc;

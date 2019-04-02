@@ -172,7 +172,10 @@ KRATOS_CREATE_VARIABLE(double, K_NORMAL)
 KRATOS_CREATE_VARIABLE(double, K_TANGENTIAL)
 KRATOS_CREATE_VARIABLE(double, CONTACT_RADIUS)
 KRATOS_CREATE_VARIABLE(double, MAX_STRESS)
+KRATOS_CREATE_VARIABLE(double, ALPHA)
+KRATOS_CREATE_VARIABLE(double, ALPHA_FUNCTION)
 KRATOS_CREATE_VARIABLE(double, GAMMA)
+KRATOS_CREATE_VARIABLE(double, LEVEL_OF_FOULING)
 KRATOS_CREATE_VARIABLE(double, EXCENTRICITY)
 KRATOS_CREATE_VARIABLE(double, EXCENTRICITY_STANDARD_DEVIATION)
 KRATOS_CREATE_VARIABLE(double, ROTATIONAL_MOMENT_COEFFICIENT)
@@ -424,6 +427,7 @@ KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication
       mNanoParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mAnalyticSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+      mSphericDiscreteContactFeaturesParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mIceContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mThermalSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mThermalSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
@@ -582,7 +586,10 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(K_TANGENTIAL)
     KRATOS_REGISTER_VARIABLE(CONTACT_RADIUS)
     KRATOS_REGISTER_VARIABLE(MAX_STRESS)
+    KRATOS_REGISTER_VARIABLE(ALPHA)
+    KRATOS_REGISTER_VARIABLE(ALPHA_FUNCTION)
     KRATOS_REGISTER_VARIABLE(GAMMA)
+    KRATOS_REGISTER_VARIABLE(LEVEL_OF_FOULING)
     KRATOS_REGISTER_VARIABLE(EXCENTRICITY)
     KRATOS_REGISTER_VARIABLE(EXCENTRICITY_STANDARD_DEVIATION)
     KRATOS_REGISTER_VARIABLE(ROTATIONAL_MOMENT_COEFFICIENT)
@@ -810,6 +817,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_ELEMENT("NanoParticle3D", mNanoParticle3D)
     KRATOS_REGISTER_ELEMENT("AnalyticSphericParticle3D", mAnalyticSphericParticle3D)
     KRATOS_REGISTER_ELEMENT("SphericContinuumParticle3D", mSphericContinuumParticle3D)
+    KRATOS_REGISTER_ELEMENT("SphericDiscreteContactFeaturesParticle3D", mSphericDiscreteContactFeaturesParticle3D)
     KRATOS_REGISTER_ELEMENT("IceContinuumParticle3D", mIceContinuumParticle3D)
     KRATOS_REGISTER_ELEMENT("ThermalSphericContinuumParticle3D", mThermalSphericContinuumParticle3D)
     KRATOS_REGISTER_ELEMENT("ThermalSphericParticle3D", mThermalSphericParticle3D)

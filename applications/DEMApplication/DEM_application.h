@@ -90,6 +90,7 @@ private:
     const NanoParticle mNanoParticle3D;
     const AnalyticSphericParticle mAnalyticSphericParticle3D;
     const SphericContinuumParticle mSphericContinuumParticle3D;
+    const SphericDiscreteContactFeaturesParticle mSphericDiscreteContactFeaturesParticle3D;
     const IceContinuumParticle mIceContinuumParticle3D;
     const ThermalSphericParticle<SphericContinuumParticle> mThermalSphericContinuumParticle3D;
     const ThermalSphericParticle<SphericParticle> mThermalSphericParticle3D;

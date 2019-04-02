@@ -16,7 +16,6 @@
 
 namespace Kratos
 {
-// using namespace GeometryFunctions;
 
 SphericDiscreteContactFeaturesParticle::SphericDiscreteContactFeaturesParticle()
     : SphericParticle() {}

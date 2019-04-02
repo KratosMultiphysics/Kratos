@@ -1,8 +1,8 @@
 // Authors: J. Irazábal (CIMNE)
-// Date: March 2019
+// Date: April 2019
 
 #include "DEM_D_Stress_dependent_cohesive_CL.h"
-#include "custom_elements/spheric_particle.h"
+#include "custom_elements/spheric_discrete_contact_features_particle.h"
 
 namespace Kratos {
 
@@ -32,7 +32,7 @@ namespace Kratos {
     // DEM-DEM INTERACTION //
     /////////////////////////
 
-    void DEM_D_Stress_Dependent_Cohesive::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
+    void DEM_D_Stress_Dependent_Cohesive::InitializeContact(SphericDiscreteContactFeaturesParticle* const element1, SphericDiscreteContactFeaturesParticle* const element2, const double indentation) {
         //Get equivalent Radius
         const double equiv_radius    = 0.5 * (element1->GetRadius() + element2->GetRadius());
 
@@ -48,6 +48,7 @@ namespace Kratos {
         const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
         const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
 
+        //Normal and Tangent elastic constants
         mKn = 0.5 * Globals::Pi * equiv_young * equiv_radius;
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
@@ -61,13 +62,13 @@ namespace Kratos {
                                                           double previous_indentation,
                                                           double ViscoDampingLocalContactForce[3],
                                                           double& cohesive_force,
-                                                          SphericParticle* element1,
-                                                          SphericParticle* element2,
+                                                          SphericDiscreteContactFeaturesParticle* element1,
+                                                          SphericDiscreteContactFeaturesParticle* element2,
                                                           bool& sliding, double LocalCoordSystem[3][3]) {
 
         InitializeContact(element1, element2, indentation);
 
-        LocalElasticContactForce[2]  = CalculateNormalForce(element1, element2, indentation, LocalCoordSystem );
+        LocalElasticContactForce[2]  = CalculateNormalForce(indentation);
 
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, element1, element2);
 
@@ -101,8 +102,8 @@ namespace Kratos {
 
     void DEM_D_Stress_Dependent_Cohesive::CalculateViscoDampingForce(double LocalRelVel[3],
                                                                      double ViscoDampingLocalContactForce[3],
-                                                                     SphericParticle* const element1,
-                                                                     SphericParticle* const element2) {
+                                                                     SphericDiscreteContactFeaturesParticle* const element1,
+                                                                     SphericDiscreteContactFeaturesParticle* const element2) {
 
         const double my_mass    = element1->GetMass();
         const double other_mass = element2->GetMass();
@@ -125,7 +126,7 @@ namespace Kratos {
     // DEM-FEM INTERACTION //
     /////////////////////////
 
-    void DEM_D_Stress_Dependent_Cohesive::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
+    void DEM_D_Stress_Dependent_Cohesive::InitializeContactWithFEM(SphericDiscreteContactFeaturesParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
         //Get effective Radius
         const double effective_radius    = element->GetRadius() - ini_delta;
 
@@ -154,7 +155,7 @@ namespace Kratos {
                                                                  double previous_indentation,
                                                                  double ViscoDampingLocalContactForce[3],
                                                                  double& cohesive_force,
-                                                                 SphericParticle* const element,
+                                                                 SphericDiscreteContactFeaturesParticle* const element,
                                                                  Condition* const wall,
                                                                  bool& sliding) {
 
@@ -199,7 +200,7 @@ namespace Kratos {
                                                                                 double ViscoDampingLocalContactForce[3],
                                                                                 const double LocalDeltDisp[3],
                                                                                 bool& sliding,
-                                                                                SphericParticle* const element,
+                                                                                SphericDiscreteContactFeaturesParticle* const element,
                                                                                 NeighbourClassType* const neighbour,
                                                                                 double indentation,
                                                                                 double previous_indentation,
@@ -266,7 +267,7 @@ namespace Kratos {
 
     void DEM_D_Stress_Dependent_Cohesive::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
                                                                          double ViscoDampingLocalContactForce[3],
-                                                                         SphericParticle* const element,
+                                                                         SphericDiscreteContactFeaturesParticle* const element,
                                                                          Condition* const wall) {
 
         const double my_mass    = element->GetMass();
@@ -284,7 +285,7 @@ namespace Kratos {
         return mKn * indentation;
     }
 
-    double DEM_D_Stress_Dependent_Cohesive::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double normal_contact_force, const double indentation) {
+    double DEM_D_Stress_Dependent_Cohesive::CalculateCohesiveNormalForce(SphericDiscreteContactFeaturesParticle* const element1, SphericDiscreteContactFeaturesParticle* const element2, const double normal_contact_force, const double indentation) {
 
         double equiv_cohesion       = 0.0;
         double equiv_amount_of_cohesion = 0.5 * (element1->GetAmountOfCohesion() + element2->GetAmountOfCohesion());
@@ -305,7 +306,7 @@ namespace Kratos {
         return cohesive_force;
     }
 
-    double DEM_D_Stress_Dependent_Cohesive::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double normal_contact_force, const double indentation) {
+    double DEM_D_Stress_Dependent_Cohesive::CalculateCohesiveNormalForceWithFEM(SphericDiscreteContactFeaturesParticle* const element, Condition* const wall, const double normal_contact_force, const double indentation) {
 
         double equiv_cohesion = 0.0;
         double equiv_amount_of_cohesion = element->GetAmountOfCohesion();
