@@ -151,6 +151,10 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
             double non_linear_case;
             const int max_iter = 100;
 
+            KRATOS_WATCH(plasticity_indicator)
+            KRATOS_WATCH(damage_indicator)
+            KRATOS_WATCH(hard_damage)
+
             // Integration loop
             while (!is_converged && number_iteration <= max_iter) {
                 number_iteration++;
@@ -210,9 +214,17 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 if (damage_increment > tolerance) damage += damage_increment;
                 this->CheckInternalVariable(damage); // Just check te upper-lower bounds
 
+                KRATOS_WATCH(plastic_consistency_increment)
+
                 // Update internals variables plasticity
                 if (plastic_consistency_increment > tolerance) plastic_strain_increment = plastic_consistency_increment * g_flux;
                 else plastic_consistency_increment = 0.0;
+
+                // OJO
+                // plastic_strain_increment = plastic_consistency_increment * g_flux;
+
+
+
                 noalias(plastic_strain) += plastic_strain_increment;
                 noalias(deepp) += plastic_strain_increment;
                 array_1d<double, VoigtSize> delta_sigma = prod(r_constitutive_matrix, plastic_strain_increment);
@@ -236,6 +248,12 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                         rValues, characteristic_length, damage_yield_flux,
                         plastic_strain, damage, damage_increment, 
                         hard_damage, hcapd, undamaged_free_energy);
+
+                KRATOS_WATCH(plasticity_indicator)
+                KRATOS_WATCH(damage_indicator)
+                KRATOS_WATCH(damage)
+                KRATOS_WATCH(plastic_dissipation)
+                KRATOS_WATCH(plastic_strain)
 
                 // Final check
                 if (plasticity_indicator < std::abs(1.0e-4 * threshold_plasticity) && damage_indicator < std::abs(1.0e-4 * threshold_damage)) {
@@ -918,7 +936,7 @@ CalculateIncrementsPlasticDamageCase(
         for (IndexType j = 0; j < VoigtSize; ++j) {
             innerprod_dam_yield_elastic_tensor += rFluxDamageYield[j] * rElasticMatrix(i,j);
         }
-        hcapa[i] = rEffectiveStressVector[i] / UniaxialStressPlasticity;
+        hcapa[i] = rEffectiveStressVector[i] * (1.0 - Damage) / UniaxialStressPlasticity;
         HKG +=  hcapa[i] * rPlasticityGFlux[i];
         fact1 += innerprod_dam_yield_elastic_tensor * rPlasticityGFlux[i]; // ?????
     }
