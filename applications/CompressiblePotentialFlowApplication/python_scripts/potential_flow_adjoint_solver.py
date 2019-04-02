@@ -9,17 +9,6 @@ def CreateSolver(model, custom_settings):
 
 class PotentialFlowAdjointSolver(PotentialFlowSolver):
     def __init__(self, model, custom_settings):
-        adjoint_settings = KratosMultiphysics.Parameters("""
-        {
-            "element_replace_settings" : {
-                "element_name":"IncompressibleAdjointPotentialFlowElement",
-                "condition_name": "IncompressibleAdjointPotentialWallCondition"
-            }
-        }
-        """)
-
-        self.validate_and_transfer_matching_settings(custom_settings, adjoint_settings)
-        self.element_replace_settings=adjoint_settings["element_replace_settings"]
 
         self.response_function_settings = custom_settings["response_function_settings"].Clone()
         self.sensitivity_settings = custom_settings["sensitivity_settings"].Clone()
@@ -52,7 +41,6 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         self.adjoint_postprocess.Initialize()
 
         scheme = KratosMultiphysics.ResidualBasedAdjointStaticScheme(self.response_function)
-        move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
@@ -63,7 +51,7 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
             self.settings["compute_reactions"].GetBool(),
             self.settings["reform_dofs_at_each_step"].GetBool(),
             self.settings["calculate_solution_norm"].GetBool(),
-            move_mesh_flag)
+            self.settings["move_mesh_flag"].GetBool())
 
         self.solver.SetEchoLevel(self.settings["echo_level"].GetInt())
         self.solver.Check()
@@ -98,7 +86,3 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         super(PotentialFlowAdjointSolver, self).FinalizeSolutionStep()
         self.response_function.FinalizeSolutionStep()
         self.adjoint_postprocess.UpdateSensitivities()
-
-    def SolveSolutionStep(self):
-        super(PotentialFlowAdjointSolver, self).SolveSolutionStep()
-
