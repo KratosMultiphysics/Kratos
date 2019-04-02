@@ -31,6 +31,7 @@
 #include "custom_constitutive/DEM_D_JKR_cohesive_law.h"
 #include "custom_constitutive/DEM_D_Bentonite_Colloid_CL.h"
 #include "custom_constitutive/DEM_D_DMT_cohesive_law.h"
+#include "custom_constitutive/DEM_D_Stress_dependent_cohesive_CL.h"
 #include "custom_constitutive/dem_d_linear_custom_constants_cl.h"
 #include "custom_constitutive/DEM_D_Hertz_dependent_friction_CL.h"
 #include "custom_constitutive/DEM_KDEM_fabric_CL.h"
@@ -135,6 +136,7 @@ KRATOS_CREATE_VARIABLE(int, CONCRETE_TEST_OPTION)
 KRATOS_CREATE_VARIABLE(int, COHESIVE_GROUP)
 KRATOS_CREATE_VARIABLE(double, PARTICLE_TENSION)
 KRATOS_CREATE_VARIABLE(double, PARTICLE_COHESION)
+KRATOS_CREATE_VARIABLE(double, AMOUNT_OF_COHESION)
 KRATOS_CREATE_VARIABLE(int, IF_BOUNDARY_ELEMENT)
 KRATOS_CREATE_VARIABLE(Vector, IF_BOUNDARY_FACE)
 KRATOS_CREATE_VARIABLE(DenseVector<int>, PARTICLE_CONTACT_FAILURE_ID)
@@ -546,6 +548,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(COHESIVE_GROUP)
     KRATOS_REGISTER_VARIABLE(PARTICLE_TENSION)
     KRATOS_REGISTER_VARIABLE(PARTICLE_COHESION)
+    KRATOS_REGISTER_VARIABLE(AMOUNT_OF_COHESION)
     KRATOS_REGISTER_VARIABLE(IF_BOUNDARY_ELEMENT)
     KRATOS_REGISTER_VARIABLE(IF_BOUNDARY_FACE)
     KRATOS_REGISTER_VARIABLE(PARTICLE_CONTACT_FAILURE_ID)
@@ -845,6 +848,7 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEM_D_JKR_Cohesive_Law", DEM_D_JKR_Cohesive_Law());
     Serializer::Register("DEM_D_Bentonite_Colloid", DEM_D_Bentonite_Colloid());
     Serializer::Register("DEM_D_DMT_Cohesive_Law", DEM_D_DMT_Cohesive_Law());
+    Serializer::Register("DEM_D_Stress_Dependent_Cohesive", DEM_D_Stress_Dependent_Cohesive());
     Serializer::Register(
         "DEM_D_Linear_Custom_Constants", DEM_D_Linear_Custom_Constants());
     Serializer::Register(

@@ -214,6 +214,8 @@ virtual int    GetParticleMaterial();
 void   SetParticleMaterialFromProperties(int* particle_material);
 virtual double GetParticleCohesion();
 void   SetParticleCohesionFromProperties(double* particle_cohesion);
+virtual double GetAmountOfCohesion();
+void   SetAmountOfCohesionFromProperties(double* amount_of_cohesion);
 virtual double GetParticleKNormal();
 void   SetParticleKNormalFromProperties(double* particle_k_normal);
 virtual double GetParticleKTangential();
@@ -245,6 +247,7 @@ double SlowGetTgOfFrictionAngle();
 double SlowGetCoefficientOfRestitution();
 double SlowGetDensity();
 double SlowGetParticleCohesion();
+double SlowGetAmountOfCohesion();
 int    SlowGetParticleMaterial();
 
 /// Turn back information as a string.
@@ -280,6 +283,8 @@ std::vector<array_1d<double, 3> > mNeighbourRigidFacesTotalContactForce;
 std::vector<array_1d<double, 3> > mNeighbourRigidFacesElasticContactForce;
 std::vector<array_1d<double, 3> > mNeighbourElasticContactForces;
 std::vector<array_1d<double, 3> > mNeighbourElasticExtraContactForces;
+std::vector<double>               mNeighbourContactStress;
+std::vector<double>               mNeighbourRigidContactStress;
 
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);

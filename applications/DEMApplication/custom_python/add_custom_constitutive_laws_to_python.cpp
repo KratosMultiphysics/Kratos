@@ -20,6 +20,7 @@
 #include "../custom_constitutive/DEM_D_Hertz_viscous_Coulomb_2D_CL.h"
 #include "../custom_constitutive/DEM_D_JKR_cohesive_law.h"
 #include "../custom_constitutive/DEM_D_DMT_cohesive_law.h"
+#include "../custom_constitutive/DEM_D_Stress_dependent_cohesive_CL.h"
 
 #include "../custom_constitutive/DEM_D_Hertz_confined_CL.h"
 #include "../custom_constitutive/DEM_D_Linear_confined_CL.h"
@@ -100,6 +101,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEM_D_Linear_Custom_Constants, DEM_D_Linear_Custom_Constants::Pointer, DEM_D_Linear_viscous_Coulomb>(m, "DEM_D_Linear_Custom_Constants")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_D_Stress_dependent_cohesive_CL, DEM_D_Stress_dependent_cohesive_CL::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Stress_dependent_cohesive_CL")
         .def(py::init<>())
         ;
 

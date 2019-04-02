@@ -362,9 +362,13 @@ namespace Kratos {
                 injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
                 injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
                 injector_spheric_particle->mNeighbourElasticExtraContactForces.push_back(zero_vector);
+                injector_spheric_particle->mNeighbourContactStress.push_back(0.0);
+                injector_spheric_particle->mNeighbourRigidContactStress.push_back(0.0);
                 spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
                 spheric_p_particle->mNeighbourElasticContactForces.push_back(zero_vector);
                 spheric_p_particle->mNeighbourElasticExtraContactForces.push_back(zero_vector);
+                spheric_p_particle->mNeighbourContactStress.push_back(0.0);
+                spheric_p_particle->mNeighbourRigidContactStress.push_back(0.0);
             }
         }
 
@@ -670,9 +674,13 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
                 injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
                 injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
                 injector_spheric_particle->mNeighbourElasticExtraContactForces.push_back(zero_vector);
+                injector_spheric_particle->mNeighbourContactStress.push_back(0.0);
+                injector_spheric_particle->mNeighbourRigidContactStress.push_back(0.0);
                 spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
                 spheric_p_particle->mNeighbourElasticContactForces.push_back(zero_vector);
                 spheric_p_particle->mNeighbourElasticExtraContactForces.push_back(zero_vector);
+                spheric_p_particle->mNeighbourContactStress.push_back(0.0);
+                spheric_p_particle->mNeighbourRigidContactStress.push_back(0.0);
             }
 
             spheric_p_particle->Set(NEW_ENTITY);
@@ -1440,6 +1448,8 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             analytic_sample_element->mNeighbourElements.push_back(regular_sample_element->mNeighbourElements[i_neigh]);
             analytic_sample_element->mNeighbourElasticContactForces.push_back(regular_sample_element->mNeighbourElasticContactForces[i_neigh]);
             analytic_sample_element->mNeighbourElasticExtraContactForces.push_back(regular_sample_element->mNeighbourElasticExtraContactForces[i_neigh]);
+            analytic_sample_element->mNeighbourContactStress.push_back(regular_sample_element->mNeighbourContactStress[i_neigh]);
+            analytic_sample_element->mNeighbourRigidContactStress.push_back(regular_sample_element->mNeighbourRigidContactStress[i_neigh]);
         }
         analytic_sample_element->Initialize(spheres_model_part.GetProcessInfo());
         return p_elem;
