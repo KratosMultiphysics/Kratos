@@ -363,7 +363,8 @@ public:
         const double Damage,
         const double DamageIncrement,
         double& rHardd,
-        double& rHcapd);
+        double& rHcapd,
+        const double UndamagedFreeEnergy);
 
     void CalculateIndicatorsFactors(
         const array_1d<double, 6>& rPredictiveStressVector,
