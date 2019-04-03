@@ -17,7 +17,6 @@
 
 // Project includes
 #include "includes/element.h"
-#include "includes/kratos_flags.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "incompressible_potential_flow_element.h"
 
