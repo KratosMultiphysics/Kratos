@@ -27,6 +27,7 @@
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
 #include "EpetraExt_CrsMatrixIn.h"
+#include <EpetraExt_VectorIn.h>
 #include <EpetraExt_RowMatrixOut.h>
 #include <EpetraExt_MultiVectorOut.h>
 
@@ -492,7 +493,7 @@ public:
 
     //***********************************************************************
 
-    static void GatherValues(const VectorType& x, const std::vector<std::size_t>& IndexArray, double* pValues)
+    static void GatherValues(const VectorType& x, const std::vector<int>& IndexArray, double* pValues)
     {
         KRATOS_TRY
         double tot_size = IndexArray.size();
@@ -511,7 +512,7 @@ public:
         if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
 
 
-        temp.ExtractView(&pValues);
+        temp.ExtractCopy(&pValues);
 
         x.Comm().Barrier();
         KRATOS_CATCH("")
@@ -571,6 +572,46 @@ public:
         delete pp;
 
         return paux;
+        KRATOS_CATCH("");
+    }
+
+    VectorPointerType ReadMatrixMarketVector(const std::string FileName,Epetra_MpiComm& Comm, int n)
+    {
+        KRATOS_TRY
+
+        Epetra_Map MyMap(n, 0, Comm);
+        Epetra_Vector* pv = nullptr;
+
+        int error_code = EpetraExt::MatrixMarketFileToVector(FileName.c_str(), MyMap, pv);
+
+        if(error_code != 0)
+            KRATOS_ERROR << "error thrown while reading Matrix Market Vector file "<<FileName
+                         << " error code is : " << error_code;
+
+        Comm.Barrier();
+
+        IndexType NumMyRows = MyMap.NumMyElements();
+        std::vector<int> gids(NumMyRows);
+        MyMap.MyGlobalElements(gids.data());
+
+        std::vector<double> values(NumMyRows);
+        pv->ExtractCopy(values.data());
+
+        VectorPointerType final_vector = Kratos::make_shared<VectorType>(MyMap);
+        int ierr = final_vector->ReplaceGlobalValues(gids.size(),gids.data(), values.data());
+        if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
+
+        final_vector->GlobalAssemble();
+
+        //defining the importer class
+        //Epetra_Import importer(MyMap, MyMap);
+
+        //importing in the new temp vector the values
+        //int ierr = aaa->Import(pv, importer, Insert);
+        //if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
+
+        delete pv;
+        return final_vector;
         KRATOS_CATCH("");
     }
 
