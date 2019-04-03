@@ -22,7 +22,8 @@
             "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
             "element_data_value_sensitivity_variables"  : [],
             "condition_data_value_sensitivity_variables"  : [],
-            "build_mode": "static-non-linear-strain-energy"
+            "build_mode": "static-non-linear-strain-energy",
+            "serialization"  : true
         },
         "echo_level"                         : 0,
         "model_import_settings"              : {
@@ -45,8 +46,7 @@
         "linear_solver_settings"       : {
             "solver_type"         : "ExternalSolversApplication.super_lu"
         },
-        "rotation_dofs"                      : true,
-        "serialization"                      : true
+        "rotation_dofs"                      : true
     },
     "processes" : {
     "constraints_process_list" : [{

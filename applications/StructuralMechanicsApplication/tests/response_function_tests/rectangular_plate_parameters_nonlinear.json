@@ -35,8 +35,7 @@
         "linear_solver_settings"       : {
             "solver_type"         : "ExternalSolversApplication.super_lu"
         },
-        "rotation_dofs"                      : true,
-        "serialization"                      : true
+        "rotation_dofs"                      : true
     },
     "processes" : {
     "constraints_process_list" : [{
@@ -83,7 +82,8 @@
             "model_part_name"              : "rectangular_plate_structure",
             "restart_save_frequency"       : 1.0,
             "save_restart_files_in_folder" : false,
-            "restart_control_type"         : "time"
+            "restart_control_type"         : "time",
+            "save_restart_files"           : true
         }
     }
 ],

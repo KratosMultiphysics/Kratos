@@ -37,8 +37,7 @@
       },
       "problem_domain_sub_model_part_list" : ["structure"],
       "processes_sub_model_part_list"      : ["corner_points","load_point"],
-      "rotation_dofs"                      : true,
-      "serialization"                      : true
+      "rotation_dofs"                      : true
   },
   "processes": {
     "constraints_process_list" : [{

@@ -45,8 +45,7 @@
         "linear_solver_settings"       : {
             "solver_type"         : "ExternalSolversApplication.super_lu"
         },
-        "rotation_dofs"                      : true,
-        "serialization"                      : true
+        "rotation_dofs"                      : true
     },
     "processes" : {
     "constraints_process_list" : [{

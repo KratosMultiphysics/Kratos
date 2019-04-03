@@ -19,6 +19,7 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
 
         self.response_function_settings = custom_settings["response_function_settings"].Clone()
         self.sensitivity_settings = custom_settings["sensitivity_settings"].Clone()
+        print(self.sensitivity_settings)
         custom_settings.RemoveValue("response_function_settings")
         custom_settings.RemoveValue("sensitivity_settings")
         # Construct the base solver.
@@ -115,8 +116,8 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
             node.Y = node.Y0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)[1]
             node.Z = node.Z0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)[2]
 
-        # Replacing pointers to primal elements with pointers to the serialized elements
-        if self.settings["serialization"].GetBool() == True:
+        ## Replacing pointers to primal elements with pointers to the serialized elements
+        if self.sensitivity_settings["serialization"].GetBool() == True:
             self._load_serialized_model()
             StructuralMechanicsApplication.ReplaceElementsWithSerializedElementsProcess(self.main_model_part, self.loaded_model_part).Execute()
             self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "replace primal elements with serialized elements")
@@ -127,6 +128,8 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         super(StructuralMechanicsAdjointStaticSolver, self).FinalizeSolutionStep()
         self.response_function.FinalizeSolutionStep()
         self.sensitivity_builder.UpdateSensitivities()
+
+        #print("Shape sensitivity node 9", self.main_model_part.GetNode(9).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY))
 
     def SolveSolutionStep(self):
         if self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
@@ -159,7 +162,7 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
     def _create_solution_scheme(self):
         return KratosMultiphysics.ResidualBasedAdjointStaticScheme(self.response_function)
 
-    #TODO Mahmoud: check if this could be done directly from json file instead of doing it here
+    #TODO Mahmoud: Move this to the restart process
     def _load_serialized_model(self):
         loaded_model = KratosMultiphysics.Model()
         model_part_name = self.settings["model_part_name"].GetString()

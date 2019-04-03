@@ -478,6 +478,7 @@ SensitivityBuilder::SensitivityBuilder(Parameters Settings,
                                   "condition_data_value_sensitivity_variables");
     ReplaceDeprecatedNameIfExists(Settings, "condition_sensitivity_variables",
                                   "condition_data_value_sensitivity_variables");
+    // TODO Mahmoud : remove the serialization parameter
     Parameters default_settings(R"(
         {
             "sensitivity_model_part_name": "PLEASE_SPECIFY_SENSITIVITY_MODEL_PART",
@@ -485,6 +486,7 @@ SensitivityBuilder::SensitivityBuilder(Parameters Settings,
             "element_data_value_sensitivity_variables" : [],
             "condition_data_value_sensitivity_variables" : [],
             "build_mode": "static",
+            "serialization" : false,
             "nodal_solution_step_sensitivity_calculation_is_thread_safe" : false
         })");
     Settings.ValidateAndAssignDefaults(default_settings);
