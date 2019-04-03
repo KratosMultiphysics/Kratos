@@ -25,6 +25,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_parameters);
         
         self.model_part = Model[settings["model_part_name"].GetString()]
+        self.fluid_model_part = self.model_part.GetRootModelPart()
         self.velocity_infinity = KratosMultiphysics.Vector(3)#array('d', [1.0, 2.0, 3.14])#np.array([0,0,0])#np.zeros(3)#vector(3)
         self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
@@ -35,6 +36,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         
         self.model_part.ProcessInfo.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY,self.velocity_infinity)
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, self.density_infinity)
+        self.fluid_model_part.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY, self.density_infinity)
         
         
         

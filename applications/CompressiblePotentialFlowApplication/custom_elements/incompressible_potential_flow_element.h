@@ -260,16 +260,13 @@ private:
     void GetDofListWakeElement(DofsVectorType& rElementalDofList) const;
 
     void CalculateLocalSystemNormalElement(MatrixType& rLeftHandSideMatrix,
-                                           VectorType& rRightHandSideVector,
-                                           ProcessInfo& rCurrentProcessInfo);
+                                           VectorType& rRightHandSideVector);
 
     void CalculateLocalSystemWakeElement(MatrixType& rLeftHandSideMatrix,
-                                         VectorType& rRightHandSideVector,
-                                         ProcessInfo& rCurrentProcessInfo);
+                                         VectorType& rRightHandSideVector);
 
     void CalculateLocalSystemSubdividedElement(Matrix& lhs_positive,
-                                               Matrix& lhs_negative,
-                                               ProcessInfo& rCurrentProcessInfo);
+                                               Matrix& lhs_negative);
 
     void ComputeLHSGaussPointContribution(const double weight,
                                           Matrix& lhs,

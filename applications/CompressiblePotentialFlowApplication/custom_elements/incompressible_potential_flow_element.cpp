@@ -55,9 +55,9 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0) // Normal element (non-wake) - eventually an embedded
-        CalculateLocalSystemNormalElement(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+        CalculateLocalSystemNormalElement(rLeftHandSideMatrix, rRightHandSideVector);
     else // Wake element
-        CalculateLocalSystemWakeElement(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+        CalculateLocalSystemWakeElement(rLeftHandSideMatrix, rRightHandSideVector);
 }
 
 template <int Dim, int NumNodes>
@@ -374,7 +374,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListWakeElement(Do
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNormalElement(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector)
 {
     if (rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
         rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
@@ -387,7 +387,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNorm
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double density_infinity = rCurrentProcessInfo[DENSITY];
+    const double density_infinity = GetProperties().GetValue(DENSITY);
 
     ComputeLHSGaussPointContribution(data.vol*density_infinity, rLeftHandSideMatrix, data);
 
@@ -397,7 +397,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNorm
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWakeElement(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector)
 {
     // Note that the lhs and rhs have double the size
     if (rLeftHandSideMatrix.size1() != 2 * NumNodes ||
@@ -413,10 +413,9 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double density_infinity = rCurrentProcessInfo[DENSITY];
+    const double density_infinity = GetProperties().GetValue(DENSITY);
 
     GetWakeDistances(data.distances);
-    KRATOS_WATCH(data.distances);
 
     Matrix lhs_total = ZeroMatrix(NumNodes, NumNodes);
 
@@ -427,7 +426,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
         Matrix lhs_positive = ZeroMatrix(NumNodes, NumNodes);
         Matrix lhs_negative = ZeroMatrix(NumNodes, NumNodes);
 
-        CalculateLocalSystemSubdividedElement(lhs_positive, lhs_negative, rCurrentProcessInfo);
+        CalculateLocalSystemSubdividedElement(lhs_positive, lhs_negative);
         AssignLocalSystemSubdividedElement(rLeftHandSideMatrix, lhs_positive,
                                            lhs_negative, lhs_total, data);
     }
@@ -436,20 +435,19 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
 
     Vector split_element_values(2*NumNodes);
     GetPotentialOnWakeElement(split_element_values,data.distances);
-    KRATOS_WATCH(split_element_values);
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
 }
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubdividedElement(
-    Matrix& lhs_positive, Matrix& lhs_negative, ProcessInfo& rCurrentProcessInfo)
+    Matrix& lhs_positive, Matrix& lhs_negative)
 {
     ElementalData<NumNodes, Dim> data;
 
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double density_infinity = rCurrentProcessInfo[DENSITY];
+    const double density_infinity = GetProperties().GetValue(DENSITY);
 
     GetWakeDistances(data.distances);
 

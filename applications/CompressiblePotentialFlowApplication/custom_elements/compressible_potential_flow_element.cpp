@@ -56,9 +56,9 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0) // Normal element (non-wake) - eventually an embedded
-        CalculateLocalSystemNormalElement(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+        CalculateLocalSystemNormalElement(rLeftHandSideMatrix, rRightHandSideVector);
     else // Wake element
-        CalculateLocalSystemWakeElement(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+        CalculateLocalSystemWakeElement(rLeftHandSideMatrix, rRightHandSideVector);
 }
 
 template <int Dim, int NumNodes>
@@ -375,7 +375,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListWakeElement(Dofs
 
 template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNormalElement(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector)
 {
     if (rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
         rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
@@ -388,7 +388,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNormal
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double density_infinity = rCurrentProcessInfo[DENSITY];
+    const double density_infinity = GetProperties().GetValue(DENSITY);
 
     ComputeLHSGaussPointContribution(data.vol*density_infinity, rLeftHandSideMatrix, data);
 
@@ -398,7 +398,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNormal
 
 template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWakeElement(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector)
 {
     // Note that the lhs and rhs have double the size
     if (rLeftHandSideMatrix.size1() != 2 * NumNodes ||
@@ -414,7 +414,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWakeEl
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double density_infinity = rCurrentProcessInfo[DENSITY];
+    const double density_infinity = GetProperties().GetValue(DENSITY);
 
     GetWakeDistances(data.distances);
 
@@ -427,7 +427,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWakeEl
         Matrix lhs_positive = ZeroMatrix(NumNodes, NumNodes);
         Matrix lhs_negative = ZeroMatrix(NumNodes, NumNodes);
 
-        CalculateLocalSystemSubdividedElement(lhs_positive, lhs_negative, rCurrentProcessInfo);
+        CalculateLocalSystemSubdividedElement(lhs_positive, lhs_negative);
         AssignLocalSystemSubdividedElement(rLeftHandSideMatrix, lhs_positive,
                                            lhs_negative, lhs_total, data);
     }
@@ -441,14 +441,14 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWakeEl
 
 template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubdividedElement(
-    Matrix& lhs_positive, Matrix& lhs_negative, ProcessInfo& rCurrentProcessInfo)
+    Matrix& lhs_positive, Matrix& lhs_negative)
 {
     ElementalData<NumNodes, Dim> data;
 
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double density_infinity = rCurrentProcessInfo[DENSITY];
+    const double density_infinity = GetProperties().GetValue(DENSITY);
     KRATOS_WATCH(density_infinity);
 
     GetWakeDistances(data.distances);
