@@ -328,7 +328,6 @@ namespace Kratos {
         return cohesive_force;
     }
 
-    //MSIMSI
     void DEM_D_Stress_Dependent_Cohesive::CalculateElasticEnergyDEM(double& elastic_energy, double indentation, double LocalElasticContactForce[3])
     {
         double normal_elastic         = 0.25*LocalElasticContactForce[2]*indentation; //each ball in a contact with another ball receives half the contact energy
