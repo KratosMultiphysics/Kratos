@@ -52,7 +52,7 @@ namespace Kratos {
                                                        double& indentation,
                                                        const double normal_contact_force) {
         //Get new Equivalent Radius
-        double equiv_radius_new = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(Globals::Pi * element1->GetParticleMaxStress(),1.5));
+        double equiv_radius_new = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(Globals::Pi * element1->GetParticleConicalDamageMaxStress(),1.5));
 
         double offset = 0.0;
         if (equiv_radius_new > equiv_level_of_fouling * equiv_radius) {
@@ -93,8 +93,8 @@ namespace Kratos {
                                                          double LocalCoordSystem[3][3]) {
 
         //Get equivalent Radius
-        const double my_radius      = element1->GetParticleContactRadius();
-        const double other_radius   = element2->GetParticleContactRadius();
+        const double my_radius      = element1->GetParticleConicalDamageContactRadius();
+        const double other_radius   = element2->GetParticleConicalDamageContactRadius();
         const double radius_sum     = my_radius + other_radius;
         const double radius_sum_inv = 1.0 / radius_sum;
         double equiv_radius         = my_radius * other_radius * radius_sum_inv;
@@ -135,7 +135,7 @@ namespace Kratos {
 
             double contact_stress = (3 * LocalElasticContactForce[2]) / (2 * Globals::Pi * equiv_level_of_fouling * equiv_radius * elastic_indentation);
 
-            if (contact_stress > element1->GetParticleMaxStress()) {
+            if (contact_stress > element1->GetParticleConicalDamageMaxStress()) {
                 DamageContact(element1, element2, equiv_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation, LocalElasticContactForce[2]);
                 LocalElasticContactForce[2] = CalculateNormalForce(elastic_indentation);
                 cohesive_force              = CalculateCohesiveNormalForce(element1, element2, elastic_indentation);
@@ -204,7 +204,7 @@ namespace Kratos {
 
     void DEM_D_Conical_damage::DamageContactWithFEM(SphericParticle* const element, Condition* const wall, double& effective_radius, const double equiv_level_of_fouling, const double equiv_young, const double equiv_shear, double& indentation, const double normal_contact_force) {
         //Get new Equivalent Radius
-        double effective_radius_new = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(Globals::Pi * element->GetParticleMaxStress(),1.5));
+        double effective_radius_new = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(Globals::Pi * element->GetParticleConicalDamageMaxStress(),1.5));
 
         double offset = 0.0;
         if (effective_radius_new > equiv_level_of_fouling * effective_radius) {
@@ -244,7 +244,7 @@ namespace Kratos {
                                                                 bool& sliding) {
 
         //Get effective Radius
-        double effective_radius    = element->GetParticleContactRadius();
+        double effective_radius    = element->GetParticleConicalDamageContactRadius();
 
         double elastic_indentation = indentation;
 
@@ -283,7 +283,7 @@ namespace Kratos {
 
             double contact_stress = (3 * LocalElasticContactForce[2]) / (2 * Globals::Pi * equiv_level_of_fouling * effective_radius * elastic_indentation);
 
-            if (contact_stress > element->GetParticleMaxStress()) {
+            if (contact_stress > element->GetParticleConicalDamageMaxStress()) {
                 DamageContactWithFEM(element, wall, effective_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation, LocalElasticContactForce[2]);
                 LocalElasticContactForce[2] = CalculateNormalForce(elastic_indentation);
                 cohesive_force              = CalculateCohesiveNormalForceWithFEM(element, wall, elastic_indentation);

@@ -130,10 +130,9 @@ namespace Kratos {
         double* mAmountOfCohesion;
         double* mParticleKNormal;
         double* mParticleKTangential;
-        //Dependent Friction
-        double* mParticleContactRadius;
-        double* mParticleMaxStress;
-        double* mParticleGamma;
+        double* mParticleConicalDamageContactRadius;
+        double* mParticleConicalDamageMaxStress;
+        double* mParticleConicalDamageGamma;
         double* mLevelOfFouling;
         double* mContactSigmaMin;
         double* mContactTauZero;
