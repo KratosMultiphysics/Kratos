@@ -480,7 +480,6 @@ class ExplicitStrategy(object):
         return gamma
 
     def GammaForHertzThornton(self, e):
-
         if e < 0.001:
             e = 0.001
 
@@ -537,10 +536,10 @@ class ExplicitStrategy(object):
         return class_name
 
     def GetTranslationalSchemeInstance(self, class_name):
-             return globals().get(class_name)()
+        return eval(class_name)()
 
     def GetRotationalSchemeInstance(self, class_name):
-             return globals().get(class_name)()
+        return eval(class_name)()
 
     def GetTranslationalScheme(self, name):
         class_name = self.TranslationalIntegrationSchemeTranslator(name)

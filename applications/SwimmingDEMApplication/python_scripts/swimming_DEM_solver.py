@@ -1,16 +1,13 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-# Importing the Kratos Library
-from KratosMultiphysics import *
+from KratosMultiphysics import Logger, Parameters
 from python_solver import PythonSolver
-
-# Import applications
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
+import math
 import swimming_DEM_procedures as SDP
 import parameters_tools as PT
 import CFD_DEM_coupling
 import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
-import math
 
 def Say(*args):
     Logger.PrintInfo("SwimmingDEM", *args)
