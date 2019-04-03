@@ -73,10 +73,6 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                 self.print_on_rank_zero("LAMBDA: ", lambda_value)
             self._update_arc_length_point_load(lambda_value)
 
-        ## TODO Mahmoud: a condition should be added so serialization is done only when it is needed
-        if self.settings["serialization"].GetBool() == True:
-            self._save_serialized_model()
-
 
     #### Private functions ####
 
@@ -142,17 +138,3 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                                                                 self.settings["compute_reactions"].GetBool(),
                                                                 self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                 self.settings["move_mesh_flag"].GetBool())
-
-    #TODO Mahmoud: check if this could be done directly from json file instead of doing it here
-    def _save_serialized_model(self):
-        ## serialization hard coded
-        restart_parameters = KratosMultiphysics.Parameters("""
-        {
-            "input_filename"               : "test_restart_file",
-            "restart_save_frequency"       : 1.0,
-            "serializer_trace"               : "no_trace",
-            "save_restart_files_in_folder" : false
-        }
-        """)
-        rest_utility = restart_utility.RestartUtility(self.main_model_part, restart_parameters)
-        rest_utility.SaveRestart()

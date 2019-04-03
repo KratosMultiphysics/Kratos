@@ -74,6 +74,19 @@
             }
         }
     }],
+    "output_process_list"      : [ {
+        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "python_module" : "save_restart_files_process",
+        "help"          : "This process writes restart files",
+        "process_name"  : "SaveRestartFilesProcess",
+        "Parameters"    : {
+            "model_part_name"              : "rectangular_plate_structure",
+            "restart_save_frequency"       : 1.0,
+            "save_restart_files_in_folder" : false,
+            "restart_control_type"         : "time"
+        }
+    }
+],
     "loads_process_list"       : [{
         "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
