@@ -12,6 +12,7 @@ F. Alauzet, Metric-based anisotropic mesh adaptation, CEA-EDF-INRIA schools: Num
 Kratos wiki: https://github.com/KratosMultiphysics/Kratos/wiki/MMG-Process
 """
 
+
 """
 function computing the refinement of the model based on the solution on the coarse mesh,
 exploiting the hessian metric of the solution
