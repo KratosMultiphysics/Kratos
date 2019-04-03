@@ -14,21 +14,6 @@
 #ifndef KRATOS_INCOMPRESSIBLE_ADJOINT_POTENTIAL_WALL_CONDITION_H
 #define KRATOS_INCOMPRESSIBLE_ADJOINT_POTENTIAL_WALL_CONDITION_H
 
-
-#include "includes/kratos_flags.h"
-
-// External includes
-
-// Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/condition.h"
-#include "includes/process_info.h"
-#include "potential_wall_condition.h"
-
-// Application includes
-#include "compressible_potential_flow_application_variables.h"
-
 namespace Kratos
 {
 

@@ -11,6 +11,7 @@
 //  Main authors:    Marc Nuñez, based on A. Geiser, M. Fusseder, I. Lopez and R. Rossi work
 //
 
+#include "potential_wall_condition.h"
 #include "incompressible_adjoint_potential_wall_condition.h"
 
 
@@ -126,7 +127,7 @@ int AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::Check(const P
 {
     KRATOS_TRY;
 
-    int Check = Condition::Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
+    int Check = mpPrimalCondition->Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
 
     if (Check != 0)
     {
@@ -134,23 +135,13 @@ int AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::Check(const P
     }
     else
     {
-        // Check that all required variables have been registered
-        if(ADJOINT_VELOCITY_POTENTIAL.Key() == 0)
-            KRATOS_ERROR << "ADJOINT_VELOCITY_POTENTIAL Key is 0. Check if the application was correctly registered.";
-        if(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL.Key() == 0)
-            KRATOS_ERROR << "ADJOINT_AUXILIARY_VELOCITY_POTENTIAL Key is 0. Check if the application was correctly registered.";
-
-        // Checks on nodes
-
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
         {
-
-            if(this->GetGeometry()[i].SolutionStepsDataHas(ADJOINT_VELOCITY_POTENTIAL) == false)
-                KRATOS_ERROR << "missing ADJOINT_VELOCITY_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
-            if(this->GetGeometry()[i].SolutionStepsDataHas(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL) == false)
-                KRATOS_ERROR << "missing ADJOINT_AUXILIARY_VELOCITY_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
-
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_VELOCITY_POTENTIAL,
+                                                this->GetGeometry()[i]);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL,
+                                                    this->GetGeometry()[i]);
 
             return Check;
         }
@@ -246,12 +237,14 @@ template <class TPrimalCondition>
 void AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::save(Serializer& rSerializer) const 
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
+    rSerializer.save("mpPrimalCondition", mpPrimalCondition);
 }
 
 template <class TPrimalCondition>
 void AdjointIncompressiblePotentialWallCondition<TPrimalCondition>::load(Serializer& rSerializer) 
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
+    rSerializer.load("mpPrimalCondition", mpPrimalCondition);
 }
 
 template class AdjointIncompressiblePotentialWallCondition<PotentialWallCondition<2,2>>;

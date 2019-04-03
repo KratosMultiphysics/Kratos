@@ -10,7 +10,8 @@
 //
 //  Main authors:    Marc Nuñez, based on A. Geiser, M. Fusseder, I. Lopez and R. Rossi work
 //
-
+#include "compressible_potential_flow_application_variables.h"
+#include "incompressible_potential_flow_element.h"
 #include "incompressible_adjoint_potential_flow_element.h"
 
 namespace Kratos
@@ -301,21 +302,23 @@ namespace Kratos
 
         KRATOS_TRY
 
-        if (this->Id() < 1)
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "AdjointIncompressiblePotentialFlowElement found with Id 0 or negative", "")
-        }
+        int Check = mpPrimalElement -> Check(rCurrentProcessInfo);
 
-        if (this->GetGeometry().Area() <= 0)
+        if (Check != 0)
         {
-            std::cout << "error on AdjointIncompressiblePotentialFlowElement -> " << this->Id() << std::endl;
-            KRATOS_THROW_ERROR(std::logic_error, "Area cannot be less than or equal to 0", "")
+            return Check;
         }
-
-        for (unsigned int i = 0; i < this->GetGeometry().size(); i++)
+        else
         {
-            if (this->GetGeometry()[i].SolutionStepsDataHas(ADJOINT_VELOCITY_POTENTIAL) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument, "missing variable ADJOINT_VELOCITY_POTENTIAL on node ", this->GetGeometry()[i].Id())
+            for (unsigned int i = 0; i < this->GetGeometry().size(); i++)
+            {
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_VELOCITY_POTENTIAL,
+                                                this->GetGeometry()[i]);
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL,
+                                                    this->GetGeometry()[i]);
+
+                return Check;
+            }
         }
 
         return 0;
@@ -395,12 +398,14 @@ namespace Kratos
     void AdjointIncompressiblePotentialFlowElement<TPrimalElement>::save(Serializer& rSerializer) const 
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
+        rSerializer.save("mpPrimalElement", mpPrimalElement);
     }
 
     template <class TPrimalElement>
     void AdjointIncompressiblePotentialFlowElement<TPrimalElement>::load(Serializer& rSerializer) 
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
+        rSerializer.load("mpPrimalElement", mpPrimalElement);
     }
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Template class instantiation
