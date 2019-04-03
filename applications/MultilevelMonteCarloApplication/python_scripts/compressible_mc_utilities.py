@@ -490,7 +490,13 @@ class MonteCarlo(object):
         for batch in range (len(self.batches_samples)):
             if (self.batches_execution_finished[batch] is True and self.batches_analysis_finished[batch] is not True): # consider batches completed and not already analysed
                 print(self.QoI.values[batch])
-                self.QoI.UpdateBatchesPassPowerSum(current_level)
+                self.QoI.UpdateBatchesPassPowerSum(current_level,batch,batch_size=2)
+                self.batches_analysis_finished[batch]
+
+
+            # here update global power sums from local power sums
+            self.batches_analysis_finished[batch] = True
+
         stop
 
         # update statistics of the QoI

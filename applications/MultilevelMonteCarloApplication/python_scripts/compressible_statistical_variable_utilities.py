@@ -22,6 +22,7 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 
 # TODO: check absolute third moment from scratch is correct
 # TODO: add computation of raw moments, only the mean is now computed
+# TODO: constructor without number levels!!
 
 
 """
@@ -129,6 +130,35 @@ def UpdateOnePassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,nsamples,previous
         old_S4 = new_S4
         nsamples = 1
         samples=samples[1:current_number_samples]
+    else:
+        samples = samples[previous_number_samples:current_number_samples]
+    for sample in samples:
+        nsamples = nsamples + 1
+        new_S1 = old_S1 + sample
+        new_S2 = old_S2 + sample**2
+        new_S3 = old_S3 + sample**3
+        new_S4 = old_S4 + sample**4
+        old_S1 = new_S1
+        old_S2 = new_S2
+        old_S3 = new_S3
+        old_S4 = new_S4
+    return new_S1,new_S2,new_S3,new_S4,nsamples
+
+
+@ExaquteTask(returns=5,priority=True)
+def UpdateBatchesPassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,nsamples,samples):
+    if nsamples == 0:
+        new_S1 = samples[0]
+        new_S2 = samples[0]**2
+        new_S3 = samples[0]**3
+        new_S4 = samples[0]**4
+        old_S1 = new_S1
+        old_S2 = new_S2
+        old_S3 = new_S3
+        old_S4 = new_S4
+        nsamples = 1
+        samples=samples[1:]
+        stop
     else:
         samples = samples[previous_number_samples:current_number_samples]
     for sample in samples:
@@ -259,6 +289,7 @@ class StatisticalVariable(object):
         self.type = None
         # number of samples of the variable
         self.number_samples = [0 for _ in range(number_levels+1)]
+        self.batches_number_samples = []
         # power sums S_p = \sum_{i=1}^{n} Q(sample_i)**p, organized per level
         self.power_sum_1 = []
         self.power_sum_2 = []
@@ -325,6 +356,7 @@ class StatisticalVariable(object):
         self.central_moment_from_scratch_3 = [[] for _ in range (number_levels)]
         self.central_moment_from_scratch_3_absolute = [[] for _ in range (number_levels)]
         self.central_moment_from_scratch_4 = [[] for _ in range (number_levels)]
+        self.batches_number_samples = [[0 for _ in range (number_levels)] for _ in range (number_initial_batches)]
 
     """
     function updating statistic moments and number of samples
@@ -378,14 +410,26 @@ class StatisticalVariable(object):
         self.power_sum_4[level] = new_S4
         self.number_samples[level] = number_samples_level
 
-    def UpdateBatchesPassPowerSums(self,level,batch_size=250):
-        samples = self.values[level]
-        old_S1 = self.power_sum_1[level]
-        old_S2 = self.power_sum_2[level]
-        old_S3 = self.power_sum_3[level]
-        old_S4 = self.power_sum_4[level]
-        number_samples_level = self.number_samples[level]
-        new_S1,new_S2,new_S3,new_S4,number_samples_level = UpdateOnePassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,number_samples_level,previous_number_samples,current_number_samples,samples)
+
+    def UpdateBatchesPassPowerSum(self,level,batch_counter,batch_size=250):
+        samples = self.values[batch_counter][level]
+        print(samples)
+        old_S1 = self.power_sum_batches_1[batch_counter][level]
+        old_S2 = self.power_sum_batches_2[batch_counter][level]
+        old_S3 = self.power_sum_batches_3[batch_counter][level]
+        old_S4 = self.power_sum_batches_4[batch_counter][level]
+        number_samples_batches_level = self.batches_number_samples[batch_counter][level]
+
+        counter = 0
+        while (counter < len(samples)):
+            batches_samples = samples[counter:counter+batch_size]
+            counter = counter + batch_size
+            new_S1,new_S2,new_S3,new_S4,number_samples_batches_level = UpdateBatchesPassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,number_samples_batches_level,samples)
+
+
+        stop
+        new_S1,new_S2,new_S3,new_S4,number_samples_batches_level = UpdateBatchesPassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,number_samples_batches_level,samples)
+
         self.power_sum_1[level] = new_S1
         self.power_sum_2[level] = new_S2
         self.power_sum_3[level] = new_S3
