@@ -38,13 +38,8 @@ target_link_libraries(KratosCompressiblePotentialFlowCore PUBLIC KratosCore Krat
 set_target_properties(KratosCompressiblePotentialFlowCore PROPERTIES COMPILE_DEFINITIONS "COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION=EXPORT,API")
 
 # define library Kratos which defines the basic python interface
-<<<<<<< HEAD
-pybind11_add_module(KratosCompressiblePotentialFlowApplication MODULE ${KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION_SOURCES})
-target_link_libraries(KratosCompressiblePotentialFlowApplication PRIVATE KratosCore )
-=======
 pybind11_add_module(KratosCompressiblePotentialFlowApplication MODULE THIN_LTO ${KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosCompressiblePotentialFlowApplication PRIVATE KratosCompressiblePotentialFlowCore )
->>>>>>> origin/master
 set_target_properties(KratosCompressiblePotentialFlowApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd (Windows)

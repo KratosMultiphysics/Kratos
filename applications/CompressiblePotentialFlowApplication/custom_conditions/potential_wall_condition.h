@@ -93,10 +93,6 @@ public:
 
     typedef Element::Pointer ElementPointerType;
 
-    typedef Element::WeakPointer ElementWeakPointerType;
-    
-    typedef Element::Pointer ElementPointerType;
-
     ///@}
     ///@name Life Cycle
     ///@{

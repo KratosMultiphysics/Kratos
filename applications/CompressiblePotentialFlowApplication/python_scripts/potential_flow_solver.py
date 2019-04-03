@@ -60,7 +60,15 @@ class PotentialFlowSolver(FluidSolver):
         self.condition_name = "PotentialWallCondition"
         self.min_buffer_size = 1
 
-        # Construct the linear solvers
+        self.domain_size = custom_settings["domain_size"].GetInt()
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, 1.225)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.MIU,5)#geometry angle
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.LAMBDA, 1.4)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY, 340.0)
+
+
+        #construct the linear solvers
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
@@ -72,6 +80,7 @@ class PotentialFlowSolver(FluidSolver):
         # Kratos variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
