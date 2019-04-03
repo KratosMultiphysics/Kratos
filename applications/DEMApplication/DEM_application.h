@@ -28,7 +28,6 @@
 #include "custom_elements/thermal_spheric_particle.h"
 #include "custom_elements/sintering_spheric_continuum_particle.h"
 #include "custom_elements/bonding_spheric_continuum_particle.h"
-#include "custom_elements/spheric_discrete_contact_features_particle.h"
 #include "custom_elements/custom_clusters/singlespherecluster3D.h"
 #include "custom_conditions/mapping_condition.h"
 #include "custom_conditions/SolidFace.h"
@@ -90,7 +89,6 @@ private:
     const NanoParticle mNanoParticle3D;
     const AnalyticSphericParticle mAnalyticSphericParticle3D;
     const SphericContinuumParticle mSphericContinuumParticle3D;
-    const SphericDiscreteContactFeaturesParticle mSphericDiscreteContactFeaturesParticle3D;
     const IceContinuumParticle mIceContinuumParticle3D;
     const ThermalSphericParticle<SphericContinuumParticle> mThermalSphericContinuumParticle3D;
     const ThermalSphericParticle<SphericParticle> mThermalSphericParticle3D;

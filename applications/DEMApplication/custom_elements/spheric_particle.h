@@ -282,6 +282,12 @@ std::vector<array_1d<double, 3> > mNeighbourRigidFacesTotalContactForce;
 std::vector<array_1d<double, 3> > mNeighbourRigidFacesElasticContactForce;
 std::vector<array_1d<double, 3> > mNeighbourElasticContactForces;
 std::vector<array_1d<double, 3> > mNeighbourElasticExtraContactForces;
+std::vector<double>               mNeighbourContactRadius;
+std::vector<double>               mNeighbourRigidContactRadius;
+std::vector<double>               mNeighbourIndentation;
+std::vector<double>               mNeighbourRigidIndentation;
+std::vector<double>               mNeighbourContactStress;
+std::vector<double>               mNeighbourRigidContactStress;
 
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);

@@ -2,7 +2,7 @@
 // Date: November 2016
 
 #include "DEM_D_Hertz_dependent_friction_CL.h"
-#include "custom_elements/spheric_discrete_contact_features_particle.h"
+#include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
 
@@ -32,14 +32,25 @@ namespace Kratos {
     // DEM-DEM INTERACTION //
     /////////////////////////
 
-    void DEM_D_Hertz_dependent_friction::InitializeDependentContact(double equiv_radius, const double equiv_level_of_fouling, const double equiv_young, const double equiv_shear, const double indentation) {
+    void DEM_D_Hertz_dependent_friction::InitializeDependentContact(double equiv_radius,
+                                                                    const double equiv_level_of_fouling,
+                                                                    const double equiv_young,
+                                                                    const double equiv_shear,
+                                                                    const double indentation) {
         //Normal and Tangent elastic constants
         const double sqrt_equiv_radius_and_indentation = sqrt(equiv_level_of_fouling * equiv_radius * indentation);
         mKn = 2.0 * equiv_young * sqrt_equiv_radius_and_indentation;
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
 
-    void DEM_D_Hertz_dependent_friction::DamageContact(SphericDiscreteContactFeaturesParticle* const element1, SphericDiscreteContactFeaturesParticle* const element2, double& equiv_radius, const double equiv_level_of_fouling, const double equiv_young, const double equiv_shear, double& indentation, const double normal_contact_force) {
+    void DEM_D_Hertz_dependent_friction::DamageContact(SphericParticle* const element1,
+                                                       SphericParticle* const element2,
+                                                       double& equiv_radius,
+                                                       const double equiv_level_of_fouling,
+                                                       const double equiv_young,
+                                                       const double equiv_shear,
+                                                       double& indentation,
+                                                       const double normal_contact_force) {
         //Get new Equivalent Radius
         double equiv_radius_new = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(Globals::Pi * element1->GetParticleMaxStress(),1.5));
 
@@ -76,8 +87,8 @@ namespace Kratos {
                                                          double previous_indentation,
                                                          double ViscoDampingLocalContactForce[3],
                                                          double& cohesive_force,
-                                                         SphericDiscreteContactFeaturesParticle* element1,
-                                                         SphericDiscreteContactFeaturesParticle* element2,
+                                                         SphericParticle* element1,
+                                                         SphericParticle* element2,
                                                          bool& sliding,
                                                          double LocalCoordSystem[3][3]) {
 
@@ -160,8 +171,8 @@ namespace Kratos {
 
     void DEM_D_Hertz_dependent_friction::CalculateViscoDampingForce(double LocalRelVel[3],
                                                                     double ViscoDampingLocalContactForce[3],
-                                                                    SphericDiscreteContactFeaturesParticle* const element1,
-                                                                    SphericDiscreteContactFeaturesParticle* const element2) {
+                                                                    SphericParticle* const element1,
+                                                                    SphericParticle* const element2) {
 
         const double my_mass    = element1->GetMass();
         const double other_mass = element2->GetMass();
@@ -191,7 +202,7 @@ namespace Kratos {
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
 
-    void DEM_D_Hertz_dependent_friction::DamageContactWithFEM(SphericDiscreteContactFeaturesParticle* const element, Condition* const wall, double& effective_radius, const double equiv_level_of_fouling, const double equiv_young, const double equiv_shear, double& indentation, const double normal_contact_force) {
+    void DEM_D_Hertz_dependent_friction::DamageContactWithFEM(SphericParticle* const element, Condition* const wall, double& effective_radius, const double equiv_level_of_fouling, const double equiv_young, const double equiv_shear, double& indentation, const double normal_contact_force) {
         //Get new Equivalent Radius
         double effective_radius_new = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(Globals::Pi * element->GetParticleMaxStress(),1.5));
 
@@ -228,7 +239,7 @@ namespace Kratos {
                                                                 double previous_indentation,
                                                                 double ViscoDampingLocalContactForce[3],
                                                                 double& cohesive_force,
-                                                                SphericDiscreteContactFeaturesParticle* const element,
+                                                                SphericParticle* const element,
                                                                 Condition* const wall,
                                                                 bool& sliding) {
 
@@ -312,8 +323,8 @@ namespace Kratos {
                                                                   double ViscoDampingLocalContactForce[3],
                                                                   const double LocalDeltDisp[3],
                                                                   bool& sliding,
-                                                                  SphericDiscreteContactFeaturesParticle* const element1,
-                                                                  SphericDiscreteContactFeaturesParticle* const element2,
+                                                                  SphericParticle* const element1,
+                                                                  SphericParticle* const element2,
                                                                   const double equiv_radius,
                                                                   const double equiv_young,
                                                                   double indentation,
@@ -401,7 +412,7 @@ namespace Kratos {
                                                                          double ViscoDampingLocalContactForce[3],
                                                                          const double LocalDeltDisp[3],
                                                                          bool& sliding,
-                                                                         SphericDiscreteContactFeaturesParticle* const element,
+                                                                         SphericParticle* const element,
                                                                          Condition* const wall,
                                                                          const double equiv_radius,
                                                                          const double equiv_young,
@@ -477,7 +488,7 @@ namespace Kratos {
 
     void DEM_D_Hertz_dependent_friction::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
                                                                            double ViscoDampingLocalContactForce[3],
-                                                                           SphericDiscreteContactFeaturesParticle* const element,
+                                                                           SphericParticle* const element,
                                                                            Condition* const wall) {
 
         const double my_mass    = element->GetMass();
@@ -495,11 +506,11 @@ namespace Kratos {
         return 0.666666666666666666667 * mKn * indentation;
     }
 
-    double DEM_D_Hertz_dependent_friction::CalculateCohesiveNormalForce(SphericDiscreteContactFeaturesParticle* const element1, SphericDiscreteContactFeaturesParticle* const element2, const double indentation){
+    double DEM_D_Hertz_dependent_friction::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation){
         return 0.0;
     }
 
-    double DEM_D_Hertz_dependent_friction::CalculateCohesiveNormalForceWithFEM(SphericDiscreteContactFeaturesParticle* const element, Condition* const wall, const double indentation){
+    double DEM_D_Hertz_dependent_friction::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation){
         return 0.0;
     }
 

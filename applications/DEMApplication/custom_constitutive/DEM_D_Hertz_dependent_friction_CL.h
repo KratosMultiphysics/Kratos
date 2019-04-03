@@ -10,7 +10,7 @@
 
 namespace Kratos {
 
-    class SphericDiscreteContactFeaturesParticle;
+    class SphericParticle;
 
     class KRATOS_API(DEM_APPLICATION) DEM_D_Hertz_dependent_friction : public DEMDiscontinuumConstitutiveLaw {
 
@@ -39,8 +39,8 @@ namespace Kratos {
                                         const double equiv_shear,
                                         const double indentation);
 
-        void DamageContact(SphericDiscreteContactFeaturesParticle* const element1,
-                           SphericDiscreteContactFeaturesParticle* const element2,
+        void DamageContact(SphericParticle* const element1,
+                           SphericParticle* const element2,
                            double& equiv_radius,
                            const double equiv_level_of_fouling,
                            const double equiv_young,
@@ -53,7 +53,7 @@ namespace Kratos {
                                                const double equiv_shear,
                                                const double indentation);
 
-        void DamageContactWithFEM(SphericDiscreteContactFeaturesParticle* const element,
+        void DamageContactWithFEM(SphericParticle* const element,
                                   Condition* const wall,
                                   double& effective_radius,
                                   const double equiv_level_of_fouling,
@@ -71,10 +71,10 @@ namespace Kratos {
                              double previous_indentation,
                              double ViscoDampingLocalContactForce[3],
                              double& cohesive_force,
-                             SphericDiscreteContactFeaturesParticle* element1,
-                             SphericDiscreteContactFeaturesParticle* element2,
+                             SphericParticle* element1,
+                             SphericParticle* element2,
                              bool& sliding,
-                             double LocalCoordSystem[3][3]);
+                             double LocalCoordSystem[3][3]) override;
 
         void CalculateForcesWithFEM(ProcessInfo& r_process_info,
                                     const double OldLocalElasticContactForce[3],
@@ -85,19 +85,19 @@ namespace Kratos {
                                     double previous_indentation,
                                     double ViscoDampingLocalContactForce[3],
                                     double& cohesive_force,
-                                    SphericDiscreteContactFeaturesParticle* const element,
+                                    SphericParticle* const element,
                                     Condition* const wall,
-                                    bool& sliding);
+                                    bool& sliding) override;
 
         double CalculateNormalForce(const double indentation) override;
 
-        double CalculateCohesiveNormalForce(SphericDiscreteContactFeaturesParticle* const element1,
-                                            SphericDiscreteContactFeaturesParticle* const element2,
-                                            const double indentation);
+        double CalculateCohesiveNormalForce(SphericParticle* const element1,
+                                            SphericParticle* const element2,
+                                            const double indentation) override;
 
-        double CalculateCohesiveNormalForceWithFEM(SphericDiscreteContactFeaturesParticle* const element,
+        double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element,
                                                    Condition* const wall,
-                                                   const double indentation);
+                                                   const double indentation) override;
 
         void CalculateTangentialForce(const double normal_contact_force,
                                       const double OldLocalElasticContactForce[3],
@@ -105,8 +105,8 @@ namespace Kratos {
                                       double ViscoDampingLocalContactForce[3],
                                       const double LocalDeltDisp[3],
                                       bool& sliding,
-                                      SphericDiscreteContactFeaturesParticle* const element1,
-                                      SphericDiscreteContactFeaturesParticle* const element2,
+                                      SphericParticle* const element1,
+                                      SphericParticle* const element2,
                                       const double equiv_radius,
                                       const double equiv_young,
                                       double indentation,
@@ -120,7 +120,7 @@ namespace Kratos {
                                              double ViscoDampingLocalContactForce[3],
                                              const double LocalDeltDisp[3],
                                              bool& sliding,
-                                             SphericDiscreteContactFeaturesParticle* const element,
+                                             SphericParticle* const element,
                                              Condition* const wall,
                                              const double equiv_radius,
                                              const double equiv_young,
@@ -131,12 +131,12 @@ namespace Kratos {
 
         void CalculateViscoDampingForce(double LocalRelVel[3],
                                         double ViscoDampingLocalContactForce[3],
-                                        SphericDiscreteContactFeaturesParticle* const element1,
-                                        SphericDiscreteContactFeaturesParticle* const element2);
+                                        SphericParticle* const element1,
+                                        SphericParticle* const element2);
 
         void CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
                                         double ViscoDampingLocalContactForce[3],
-                                        SphericDiscreteContactFeaturesParticle* const element,
+                                        SphericParticle* const element,
                                         Condition* const wall);
 
         void CalculateElasticEnergyDEM(double& elastic_energy,

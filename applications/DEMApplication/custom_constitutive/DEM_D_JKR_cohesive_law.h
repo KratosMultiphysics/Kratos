@@ -2,7 +2,6 @@
 #define DEM_D_JKR_COHESIVE_LAW_H
 
 /* Project includes */
-//#include "../custom_elements/spheric_continuum_particle.h"
 #include "DEM_discontinuum_constitutive_law.h"
 
 namespace Kratos {
