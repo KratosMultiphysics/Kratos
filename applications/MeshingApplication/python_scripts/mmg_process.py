@@ -10,7 +10,6 @@ except ImportError as e:
     structural_dependencies = False
 
 from json_utilities import *
-import json
 import os
 
 def Factory(settings, Model):

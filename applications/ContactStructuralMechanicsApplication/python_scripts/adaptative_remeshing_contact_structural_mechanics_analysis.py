@@ -102,7 +102,6 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         """
         # If we remesh using a process
         computing_model_part = self._GetSolver().GetComputingModelPart()
-        root_model_part = computing_model_part.GetRootModelPart()
         if self.process_remesh:
             auxiliar_methods_adaptative_remeshing.AdaptativeRemeshingRunSolutionLoop(self)
         else: # Remeshing adaptively

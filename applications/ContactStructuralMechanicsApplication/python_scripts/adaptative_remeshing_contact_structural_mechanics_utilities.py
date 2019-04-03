@@ -45,9 +45,3 @@ class AdaptativeRemeshingContactMechanicalUtilities(adaptative_remeshing_structu
             convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
 
         return convergence_criterion.mechanical_convergence_criterion
-
-        # If we combine the regular convergence criteria with adaptative
-        if "with_adaptative_remesh" in error_criteria:
-            adaptative_error_criteria = CSMA.ContactErrorMeshCriteria(self.adaptative_remesh_parameters["compute_error_settings"])
-            convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
-        return convergence_criterion.mechanical_convergence_criterion
