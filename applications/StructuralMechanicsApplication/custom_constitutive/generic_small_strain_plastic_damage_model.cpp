@@ -935,7 +935,7 @@ CalculateIncrementsPlasticDamageCase(
         }
         hcapa[i] = rEffectiveStressVector[i] * (1.0 - Damage) / UniaxialStressPlasticity;
         HKG +=  hcapa[i] * rPlasticityGFlux[i];
-        fact1 += innerprod_dam_yield_elastic_tensor * rPlasticityGFlux[i]; // ?????
+        fact1 += innerprod_dam_yield_elastic_tensor * rPlasticityGFlux[i]; 
     }
     fact1 *= (1.0 - Damage);
     const double factorA = scalar_prod_plast_yield_sigma_eff;
