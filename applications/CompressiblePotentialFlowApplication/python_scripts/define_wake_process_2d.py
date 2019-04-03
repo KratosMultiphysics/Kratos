@@ -68,6 +68,10 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         KratosMultiphysics.FindNodalNeighboursProcess(
             self.fluid_model_part, avg_elem_num, avg_node_num).Execute()
 
+        for cond in self.body_model_part.Conditions:
+            for node in cond.GetNodes():
+                node.Set(KratosMultiphysics.SOLID)
+
     def ExecuteInitialize(self):
         # Save the trailing edge for further computations
         self.SaveTrailingEdgeNode()
@@ -111,7 +115,10 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                     elem.SetValue(CPFApp.WAKE, True)
                     elem.SetValue(
                         KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
-                    self.wake_model_part.AddElement(elem,0)
+                    counter=0
+                    for node in elem.GetNodes():
+                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,distances_to_wake[counter])
+                        counter += 1
 
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements finished...')
 
