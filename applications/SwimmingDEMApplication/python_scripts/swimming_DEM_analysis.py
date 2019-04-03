@@ -139,6 +139,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         # Setting body_force_per_unit_mass_variable_name
         Add("body_force_per_unit_mass_variable_name").SetString('BODY_FORCE')
+        self.project_parameters["dem_parameters"].AddEmptyValue("do_print_results_option").SetBool(self.do_print_results)
 
     # This step is added to allow modifications to the possibly incompatibilities
     # between the individual parameters coming from each sub-application
@@ -148,7 +149,15 @@ class SwimmingDEMAnalysis(AnalysisStage):
         output_time = self.project_parameters["output_interval"].GetDouble()
         self.output_time = int(output_time / self.time_step) * self.time_step
         self.project_parameters["output_interval"].SetDouble(self.output_time)
+
         self.fluid_time_step = self.fluid_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
+
+        if self.fluid_time_step < self.time_step:
+            error_message = ('The fluid time step (' + str(self.fluid_time_step)
+                             + ') must be larger or equal than the overall time step (' + str(self.time_step)
+                             + ')!')
+            raise Exception(error_message)
+
         self.fluid_time_step = int(self.fluid_time_step / self.time_step) * self.time_step
         self.fluid_parameters["solver_settings"]["time_stepping"]["time_step"].SetDouble(self.fluid_time_step)
         self.project_parameters["dem_parameters"]["MaxTimeStep"].SetDouble(self.time_step)
@@ -164,8 +173,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         if self.project_parameters["coupling"]["coupling_level_type"].GetInt() > 1:
             self.project_parameters["stationarity"]["stationary_problem_option"].SetBool(False)
-
-
 
         self.SetDoSolveDEMVariable()
 

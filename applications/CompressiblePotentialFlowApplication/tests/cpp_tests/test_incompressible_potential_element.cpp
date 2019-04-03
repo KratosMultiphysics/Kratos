@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Inigo Lopez
 //
@@ -45,14 +45,14 @@ namespace Kratos {
       rModelPart.CreateNewElement("IncompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
     }
 
-    /** Checks the CompressiblePotentialFlowElement element.
+    /** Checks the IncompressiblePotentialFlowElement element.
      * Checks the LHS and RHS computation.
      */
-    KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElement_CalculateLocalSystem, CompressiblePotentialApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(IncompressiblePotentialFlowElementCalculateLocalSystem, CompressiblePotentialApplicationFastSuite)
     {
       Model this_model;
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-      //ModelPart model_part("Main");
+
       GenerateElement(model_part);
       Element::Pointer pElement = model_part.pGetElement(1);
 
@@ -71,18 +71,18 @@ namespace Kratos {
 
       pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
-      // Check the RHS values (the RHS is computed as the LHS x previous_solution, 
+      // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
       KRATOS_CHECK_NEAR(RHS(0), 0.5, 1e-7);
       KRATOS_CHECK_NEAR(RHS(1), 0.0, 1e-7);
       KRATOS_CHECK_NEAR(RHS(2), -0.5, 1e-7);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElement_CalculateLocalSystemWake, CompressiblePotentialApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(IncompressiblePotentialFlowElementCalculateLocalSystemWake, CompressiblePotentialApplicationFastSuite)
     {
       Model this_model;
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-      //ModelPart model_part("Main");
+
       GenerateElement(model_part);
       Element::Pointer pElement = model_part.pGetElement(1);
 
@@ -99,7 +99,7 @@ namespace Kratos {
 
       pElement->GetValue(ELEMENTAL_DISTANCES) = distances;
       pElement->GetValue(WAKE) = true;
-      
+
       for (unsigned int i = 0; i < 3; i++){
         if (distances(i) > 0.0)
           pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
@@ -119,7 +119,7 @@ namespace Kratos {
 
       pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
-      // Check the RHS values (the RHS is computed as the LHS x previous_solution, 
+      // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
       KRATOS_CHECK_NEAR(RHS(0), 0.5, 1e-7);
       KRATOS_CHECK_NEAR(RHS(1), 0.0, 1e-7);
@@ -129,15 +129,15 @@ namespace Kratos {
       KRATOS_CHECK_NEAR(RHS(5), 0.5, 1e-7);
     }
 
-    /** Checks the CompressiblePotentialFlowElement element.
+    /** Checks the IncompressiblePotentialFlowElement element.
  * Checks the EquationIdVector.
  */
-    KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElement_EquationIdVector, CompressiblePotentialApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(IncompressiblePotentialFlowElementEquationIdVector, CompressiblePotentialApplicationFastSuite)
     {
 
       Model this_model;
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-      
+
       GenerateElement(model_part);
       Element::Pointer pElement = model_part.pGetElement(1);
 
@@ -159,15 +159,15 @@ namespace Kratos {
       KRATOS_CHECK(EquationIdVector[2] == 2);
     }
 
-    /** Checks the CompressiblePotentialFlowElement element.
+    /** Checks the IncompressiblePotentialFlowElement element.
  * Checks the EquationIdVector for the Wake.
  */
-    KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElement_EquationIdVector_Wake, CompressiblePotentialApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(IncompressiblePotentialFlowElementEquationIdVectorWake, CompressiblePotentialApplicationFastSuite)
     {
 
       Model this_model;
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-      
+
       GenerateElement(model_part);
       Element::Pointer pElement = model_part.pGetElement(1);
       pElement->SetValue(WAKE, true);

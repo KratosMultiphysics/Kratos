@@ -1333,6 +1333,13 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
 		puts $fileid "    \"RemoveBallsInitiallyTouchingWalls\"          : false"
     }
 
+	set SearchNeighboursOption [::xmlutils::setXml "$rootid//c.DEM-Options//c.DEM-Physical-opts//i.SearchNeighboursOption" dv]
+    if {$SearchNeighboursOption == "Yes"} {
+	puts $fileid "\"do_search_neighbours\"                   : true,"
+    } else {
+	puts $fileid "\"do_search_neighbours\"                   : false,"
+    }
+
 	puts $fileid "},"
 
     if {$KPriv(what_dempack_package) ne "C-DEMPack"} {
@@ -1626,12 +1633,6 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
 	puts $fileid "\"pick_individual_forces_option\"          : true,"
     } else {
 	puts $fileid "\"pick_individual_forces_option\"          : false,"
-    }
-    set SearchNeighboursOption [::xmlutils::setXml "$rootid//c.DEM-Options//c.DEM-Physical-opts//i.SearchNeighboursOption" dv]
-    if {$SearchNeighboursOption == "Yes"} {
-	puts $fileid "\"do_search_neighbours\"                   : true,"
-    } else {
-	puts $fileid "\"do_search_neighbours\"                   : false,"
     }
     if {$include_faxen_terms_option} {
 	puts $fileid "\"include_faxen_terms_option\"             : true,"

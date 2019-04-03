@@ -1,5 +1,4 @@
 import KratosMultiphysics
-import itertools
 
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
@@ -11,21 +10,16 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
-        default_parameters = KratosMultiphysics.Parameters("""
-            {
-                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "upper_surface_model_part_name" : "please specify the model part that contains the upper surface nodes",
-                "lower_surface_model_part_name" : "please specify the model part that contains the lower surface nodes",
-                "mesh_id": 0,
-                "velocity_infinity": [1.0,0.0,0],
-                "reference_area": 1,
-                "create_output_file": false
-            }  """)
+        default_parameters = KratosMultiphysics.Parameters(r'''{
+            "model_part_name": "please specify the model part that contains the surface nodes",
+            "velocity_infinity": [1.0,0.0,0],
+            "reference_area": 1.0,
+            "create_output_file": false
+        }''')
 
         settings.ValidateAndAssignDefaults(default_parameters)
 
-        self.upper_surface_model_part = Model[settings["upper_surface_model_part_name"].GetString()]
-        self.lower_surface_model_part = Model[settings["lower_surface_model_part_name"].GetString()]
+        self.body_model_part = Model[settings["model_part_name"].GetString()]
         self.velocity_infinity = [0,0,0]
         self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
@@ -40,7 +34,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
          ry = 0.0
          rz = 0.0
 
-         for cond in itertools.chain(self.upper_surface_model_part.Conditions, self.lower_surface_model_part.Conditions):
+         for cond in self.body_model_part.Conditions:
            n = cond.GetValue(KratosMultiphysics.NORMAL)
            cp = cond.GetValue(KratosMultiphysics.PRESSURE)
 
