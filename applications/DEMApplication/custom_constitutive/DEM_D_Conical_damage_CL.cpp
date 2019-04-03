@@ -180,7 +180,7 @@ namespace Kratos {
             double MaximumAdmisibleShearForce;
 
             CalculateTangentialForce(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
-                                     sliding, element1, element2, equiv_radius, equiv_young, indentation, previous_indentation, AuxElasticShearForce, MaximumAdmisibleShearForce);
+                                     sliding, element1, element2, equiv_radius, equiv_young, elastic_indentation, previous_indentation, AuxElasticShearForce, MaximumAdmisibleShearForce);
 
             double& elastic_energy = element1->GetElasticEnergy();
             DEM_D_Hertz_viscous_Coulomb::CalculateElasticEnergyDEM(elastic_energy, elastic_indentation, LocalElasticContactForce);
@@ -317,7 +317,7 @@ namespace Kratos {
             double MaximumAdmisibleShearForce;
 
             CalculateTangentialForceWithFEM(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
-                                            sliding, element, wall, effective_radius, equiv_young, indentation, previous_indentation, AuxElasticShearForce, MaximumAdmisibleShearForce);
+                                            sliding, element, wall, effective_radius, equiv_young, elastic_indentation, previous_indentation, AuxElasticShearForce, MaximumAdmisibleShearForce);
 
             double& elastic_energy = element->GetElasticEnergy();
             DEM_D_Hertz_viscous_Coulomb::CalculateElasticEnergyFEM(elastic_energy, elastic_indentation, LocalElasticContactForce);
