@@ -4583,7 +4583,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
 
         for index in range(self.number_of_DEM_benchmarks):
             error_file.write("DEM Benchmark 40:")
-            if (error1[index] < 10.0 and error2[index] < 10.0 and error3[index] < 10.0):
+            if (error1[index] < 1.0 and error2[index] < 1.0 and error3[index] < 1.0):
                 error_file.write(" OK!........ Test 40_%s SUCCESSFUL (spheres)\n" % index)
                 #shutil.rmtree('benchmark40_Post_Files', ignore_errors = True)
             else:
@@ -4592,7 +4592,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
 
         for index in range(self.number_of_FEM_benchmarks):
             error_file.write("DEM Benchmark 40:")
-            if (error4[index] < 10.0 and error5[index] < 10.0):
+            if (error4[index] < 1.0 and error5[index] < 1.0):
                 error_file.write(" OK!........ Test 40_%s SUCCESSFUL (finite elements)\n" % index)
             else:
                 error_file.write(" KO!........ Test 40_%s FAILED (finite elements)\n" % index)
@@ -4621,7 +4621,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                         parts = line.split()
                         DEM_data.append(float(parts[1]))            # TOTAL_FORCES
                     i+=1
-            dem_error1 = 0
+            dem_error1 = 0.0
 
             for j in analytics_data:
                 summation_of_analytics_data+=abs(j)
@@ -4646,7 +4646,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                         parts = line.split()
                         DEM_data.append(float(parts[2]))            # ANGULAR_VELOCITY
                     i+=1
-            dem_error2 = 0
+            dem_error2 = 0.0
 
             for j in analytics_data:
                 summation_of_analytics_data+=abs(j)
@@ -4672,7 +4672,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                         parts = line.split()
                         DEM_data.append(float(parts[3]))            # displacement from initial pos
                     i+=1
-            dem_error3 = 0
+            dem_error3 = 0.0
 
             for j in analytics_data:
                 summation_of_analytics_data+=abs(j)
@@ -4712,7 +4712,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                         parts = line.split()
                         DEM_data.append(float(parts[1]))            # TOTAL_FORCES
                     i+=1
-            dem_error1 = 0
+            dem_error1 = 0.0
 
             for j in analytics_data:
                 summation_of_analytics_data+=abs(j)
@@ -4739,7 +4739,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                         parts = line.split()
                         DEM_data.append(float(parts[2]))            # ref displacement from initial pos
                     i+=1
-            dem_error2 = 0
+            dem_error2 = 0.0
 
             for j in analytics_data:
                 summation_of_analytics_data+=abs(j)
