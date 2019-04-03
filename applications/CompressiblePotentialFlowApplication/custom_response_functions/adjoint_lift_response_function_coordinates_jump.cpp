@@ -17,7 +17,6 @@
 
 // Project includes
 #include "adjoint_lift_response_function_coordinates_jump.h"
-#include "compressible_potential_flow_application.h"
 #include "compressible_potential_flow_application_variables.h"
 
 namespace Kratos
