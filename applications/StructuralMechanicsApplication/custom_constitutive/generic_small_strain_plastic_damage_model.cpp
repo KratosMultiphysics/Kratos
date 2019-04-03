@@ -117,6 +117,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         array_1d<double, VoigtSize> effective_predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
 		array_1d<double, VoigtSize> predictive_stress_vector = (1.0 - damage) * effective_predictive_stress_vector;
 
+
         // Initialize Plastic Parameters
         double uniaxial_stress_plasticity = 0.0, plastic_denominator = 0.0, uniaxial_stress_damage = 0.0;
         BoundedArrayType damage_yield_flux = ZeroVector(VoigtSize); // DF/DS
@@ -144,13 +145,14 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 plastic_strain, damage, damage_increment, 
                 hard_damage, hcapd, undamaged_free_energy);
 
+        KRATOS_WATCH(uniaxial_stress_damage)
+        KRATOS_WATCH(uniaxial_stress_plasticity)
         // Verification threshold for the plastic-damage process
         if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) || damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
             bool is_converged = false;
             int number_iteration = 0;
             const int max_iter = 100;
 
- 
             // Integration loop
             while (!is_converged && number_iteration <= max_iter) {
 
@@ -180,8 +182,13 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                             plastic_consistency_increment, 3);   
                 } // Increments computed
 
+                // KRATOS_WATCH(damage_increment)
+                // KRATOS_WATCH(plastic_consistency_increment)
+				KRATOS_WATCH(number_iteration)
+
                 damage += damage_increment;
-                plastic_strain += plastic_consistency_increment * g_flux;
+                noalias(plastic_strain_increment) = plastic_consistency_increment * g_flux;
+				plastic_strain += plastic_strain_increment;
 
                 effective_predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
                 predictive_stress_vector = (1.0 - damage) * effective_predictive_stress_vector;
@@ -203,6 +210,17 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                         plastic_strain, damage, damage_increment, 
                         hard_damage, hcapd, undamaged_free_energy);
 
+                KRATOS_WATCH(plastic_strain)
+                KRATOS_WATCH(plastic_consistency_increment)
+                KRATOS_WATCH(plastic_dissipation)
+                KRATOS_WATCH(damage_indicator)
+                KRATOS_WATCH(plasticity_indicator)
+                KRATOS_WATCH(predictive_stress_vector)
+                KRATOS_WATCH(uniaxial_stress_plasticity)
+				KRATOS_WATCH(uniaxial_stress_damage)
+                KRATOS_WATCH(threshold_plasticity)
+					KRATOS_WATCH(threshold_plasticity)
+					KRATOS_WATCH(threshold_damage)
                 if (plasticity_indicator < std::abs(1.0e-4 * threshold_plasticity) && damage_indicator < std::abs(1.0e-4 * threshold_damage)) {
                     is_converged = true;
                 } else {
@@ -861,9 +879,14 @@ CalculateIncrementsPlasticDamageCase(
     const double jacobian_determinant = dFp_dlambda * dFd_ddam - dFp_ddam * dFd_dlamba;
 
     // todo try mcaully brackets
+    if (jacobian_determinant > tolerance) {
+        rPlasticConsistencyIncrement -=  (dFd_ddam * PlasticityIndicator - dFp_ddam * DamageIndicator) / jacobian_determinant;
+        rDamageIncrement -= (dFp_dlambda * DamageIndicator - dFd_dlamba * PlasticityIndicator) / jacobian_determinant;
+    } else { // If the two yield and stresses are the same
+        rPlasticConsistencyIncrement -= PlasticityIndicator / dFp_dlambda;
+        rDamageIncrement -= PlasticityIndicator / dFp_ddam;
+    }
 
-    rPlasticConsistencyIncrement -=  (dFd_ddam * PlasticityIndicator - dFp_ddam * DamageIndicator) / jacobian_determinant;
-    rDamageIncrement -= (dFp_dlambda * DamageIndicator - dFd_dlamba * PlasticityIndicator) / jacobian_determinant;
 }
 
 /***********************************************************************************/
