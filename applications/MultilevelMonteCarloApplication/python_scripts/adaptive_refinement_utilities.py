@@ -6,7 +6,6 @@ import KratosMultiphysics
 # Import applications
 import KratosMultiphysics.MeshingApplication as KratosMeshing
 
-
 """
 References:
 F. Alauzet, Metric-based anisotropic mesh adaptation, CEA-EDF-INRIA schools: Numerical Analysis Summer School. CEA, Cadarache, France
