@@ -372,6 +372,14 @@ namespace Kratos {
             }
         }
 
+        for (unsigned int i = 0; element1->mNeighbourElements.size(); i++) {
+            if (element1->mNeighbourElements[i]->Id() == element2->Id()) {
+                if (element1->mNeighbourTgOfFriAng[i] <= equiv_tg_of_fri_ang) equiv_tg_of_fri_ang = element1->mNeighbourTgOfFriAng[i];
+                else element1->mNeighbourTgOfFriAng[i] = equiv_tg_of_fri_ang;
+                break;
+            }
+        }
+
         MaximumAdmisibleShearForce = normal_contact_force * equiv_tg_of_fri_ang;
 
         const double tangential_contact_force_0 = LocalElasticContactForce[0] + ViscoDampingLocalContactForce[0];
@@ -451,6 +459,13 @@ namespace Kratos {
         const double wall_tg_of_friction_angle = wall->GetProperties()[FRICTION];
         double equiv_tg_of_fri_ang             = 0.5 * (my_tg_of_friction_angle + wall_tg_of_friction_angle);
 
+        for (unsigned int i = 0; element->mNeighbourRigidFaces.size(); i++) {
+            if (element->mNeighbourRigidFaces[i]->Id() == wall->Id()) {
+                if (element->mNeighbourRigidTgOfFriAng[i] <= equiv_tg_of_fri_ang) equiv_tg_of_fri_ang = element->mNeighbourRigidTgOfFriAng[i];
+                else element->mNeighbourRigidTgOfFriAng[i] = equiv_tg_of_fri_ang;
+                break;
+            }
+        }
 
         MaximumAdmisibleShearForce = normal_contact_force * equiv_tg_of_fri_ang;
 

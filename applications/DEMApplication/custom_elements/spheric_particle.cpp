@@ -388,6 +388,7 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<int>& temp_
     std::vector<array_1d<double, 3> > temp_neighbour_elastic_extra_contact_forces;
     std::vector<double> temp_neighbour_contact_radius;
     std::vector<double> temp_neighbour_indentation;
+    std::vector<double> temp_neighbour_tg_of_fri_ang;
     std::vector<double> temp_neighbour_contact_stress;
     unsigned int new_size = mNeighbourElements.size();
     array_1d<double, 3> vector_of_zeros = ZeroVector(3);
@@ -396,6 +397,7 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<int>& temp_
     temp_neighbour_elastic_extra_contact_forces.resize(new_size);
     temp_neighbour_contact_radius.resize(new_size);
     temp_neighbour_indentation.resize(new_size);
+    temp_neighbour_tg_of_fri_ang.resize(new_size);
     temp_neighbour_contact_stress.resize(new_size);
 
     DenseVector<int>& vector_of_ids_of_neighbours = GetValue(NEIGHBOUR_IDS);
@@ -405,6 +407,7 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<int>& temp_
         noalias(temp_neighbour_elastic_extra_contact_forces[i]) = vector_of_zeros;
         temp_neighbour_contact_radius[i] = 0.0;
         temp_neighbour_indentation[i] = 0.0;
+        temp_neighbour_tg_of_fri_ang[i] = 1e20;
         temp_neighbour_contact_stress[i] = 0.0;
 
         if (mNeighbourElements[i] == NULL) { // This is required by the continuum sphere which reorders the neighbors
@@ -420,6 +423,7 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<int>& temp_
                 noalias(temp_neighbour_elastic_extra_contact_forces[i]) = mNeighbourElasticExtraContactForces[j]; //TODO: remove this from discontinuum!!
                 temp_neighbour_contact_radius[i] = mNeighbourContactRadius[j];
                 temp_neighbour_indentation[i] = mNeighbourIndentation[j];
+                temp_neighbour_tg_of_fri_ang[i] = mNeighbourTgOfFriAng[j];
                 temp_neighbour_contact_stress[i] = mNeighbourContactStress[j];
                 break;
             }
@@ -431,6 +435,7 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<int>& temp_
     mNeighbourElasticExtraContactForces.swap(temp_neighbour_elastic_extra_contact_forces);
     mNeighbourContactRadius.swap(temp_neighbour_contact_radius);
     mNeighbourIndentation.swap(temp_neighbour_indentation);
+    mNeighbourTgOfFriAng.swap(temp_neighbour_tg_of_fri_ang);
     mNeighbourContactStress.swap(temp_neighbour_contact_stress);
 }
 
@@ -444,6 +449,7 @@ void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
     std::vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);
     std::vector<double> temp_contact_radius(new_size);
     std::vector<double> temp_indentation(new_size);
+    std::vector<double> temp_tg_of_fri_ang(new_size);
     std::vector<double> temp_contact_stress(new_size);
 
     for (unsigned int i = 0; i<rNeighbours.size(); i++){
@@ -452,6 +458,7 @@ void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
         noalias(temp_neighbours_contact_forces[i]) = vector_of_zeros;
         temp_contact_radius[i] = 0.0;
         temp_indentation[i] = 0.0;
+        temp_tg_of_fri_ang[i] = 1e20;
         temp_contact_stress[i] = 0.0;
 
         if (rNeighbours[i] == NULL) { // This is required by the continuum sphere which reorders the neighbors
@@ -467,6 +474,7 @@ void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
                 noalias(temp_neighbours_contact_forces[i]) = mNeighbourRigidFacesTotalContactForce[j];
                 temp_contact_radius[i] = mNeighbourRigidContactRadius[j];
                 temp_indentation[i] = mNeighbourRigidIndentation[j];
+                temp_tg_of_fri_ang[i] = mNeighbourRigidTgOfFriAng[j];
                 temp_contact_stress[i] = mNeighbourRigidContactStress[j];
                 break;
             }
@@ -478,6 +486,7 @@ void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
     mNeighbourRigidFacesTotalContactForce.swap(temp_neighbours_contact_forces);
     mNeighbourRigidContactRadius.swap(temp_contact_radius);
     mNeighbourRigidIndentation.swap(temp_indentation);
+    mNeighbourRigidTgOfFriAng.swap(temp_tg_of_fri_ang);
     mNeighbourRigidContactStress.swap(temp_contact_stress);
 }
 
