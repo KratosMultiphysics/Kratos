@@ -80,7 +80,7 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
             }
         """)
 
-        KratosMultiphysics.StructuralMechanicsApplication.ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
+        ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "ModelPart prepared for Solver.")
 
