@@ -40,7 +40,7 @@ if __name__ == "__main__":
     model = Model()
 
     # To avoid too many prints
-    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.DETAIL)
+    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 
     test = InterpolationTestAnalysis(model, parameters)
     test.Run()
