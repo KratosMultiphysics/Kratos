@@ -15,10 +15,11 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "inlet_phi": 1.0,
                 "velocity_infinity": [1.0,0.0,0],
-                "density_infinity"  : 1.225
+                "density_infinity"  : 1.225,
+                "mach_infinity": 0.3,
+                "gamma": 1.4
             }  """ );
         
             
@@ -26,20 +27,29 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.fluid_model_part = self.model_part.GetRootModelPart()
-        self.velocity_infinity = KratosMultiphysics.Vector(3)#array('d', [1.0, 2.0, 3.14])#np.array([0,0,0])#np.zeros(3)#vector(3)
+
+        self.inlet_phi = settings["inlet_phi"].GetDouble()
+        self.velocity_infinity = KratosMultiphysics.Vector(3)
         self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
         self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         self.density_infinity = settings["density_infinity"].GetDouble()
-        #self.density_infinity = settings["density_infinity"].GetDouble() #TODO: must read this from the properties
-        self.inlet_phi = settings["inlet_phi"].GetDouble()
+        self.mach_infinity = settings["mach_infinity"].GetDouble()
+        self.gamma = settings["gamma"].GetDouble()
         
-        self.model_part.ProcessInfo.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY,self.velocity_infinity)
-        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, self.density_infinity)
-        self.fluid_model_part.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY, self.density_infinity)
+        #self.model_part.ProcessInfo.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY,self.velocity_infinity)
+        #self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, self.density_infinity)
         
-        
-        
+        # For the conditions
+        self.fluid_model_part.GetProperties()[0].SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity)
+        self.fluid_model_part.GetProperties()[0].SetValue(CompressiblePotentialFlowApplication.DENSITY_INFINITY, self.density_infinity)
+
+        # For the elements
+        self.fluid_model_part.GetProperties()[1].SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity)
+        self.fluid_model_part.GetProperties()[1].SetValue(CompressiblePotentialFlowApplication.DENSITY_INFINITY, self.density_infinity)
+        self.fluid_model_part.GetProperties()[1].SetValue(CompressiblePotentialFlowApplication.MACH_INFINITY, self.mach_infinity)
+        self.fluid_model_part.GetProperties()[1].SetValue(CompressiblePotentialFlowApplication.GAMMA, self.gamma)
+
     def Execute(self):
         #KratosMultiphysics.VariableUtils().SetVectorVar(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity, self.model_part.Conditions)
         for cond in self.model_part.Conditions:

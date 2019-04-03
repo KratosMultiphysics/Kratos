@@ -36,7 +36,7 @@ namespace Kratos {
 
       // Set the element properties
       Properties::Pointer pElemProp = rModelPart.pGetProperties(0);
-      pElemProp->SetValue(DENSITY,1.0);
+      pElemProp->SetValue(DENSITY_INFINITY,1.0);
 
       // Geometry creation
       rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -86,7 +86,6 @@ namespace Kratos {
 
       GenerateElement(model_part);
       Element::Pointer pElement = model_part.pGetElement(1);
-      model_part.GetProcessInfo().SetValue(DENSITY,1.0);
 
       // Define the nodal values
       Vector potential(3);
