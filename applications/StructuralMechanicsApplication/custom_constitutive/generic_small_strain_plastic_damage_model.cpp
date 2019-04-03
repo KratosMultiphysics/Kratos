@@ -144,9 +144,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 rValues, characteristic_length, damage_yield_flux,
                 plastic_strain, damage, damage_increment, 
                 hard_damage, hcapd, undamaged_free_energy);
-
-        KRATOS_WATCH(uniaxial_stress_damage)
-        KRATOS_WATCH(uniaxial_stress_plasticity)
+                
         // Verification threshold for the plastic-damage process
         if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) || damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
             bool is_converged = false;
@@ -210,17 +208,17 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                         plastic_strain, damage, damage_increment, 
                         hard_damage, hcapd, undamaged_free_energy);
 
-                KRATOS_WATCH(plastic_strain)
-                KRATOS_WATCH(plastic_consistency_increment)
-                KRATOS_WATCH(plastic_dissipation)
-                KRATOS_WATCH(damage_indicator)
-                KRATOS_WATCH(plasticity_indicator)
-                KRATOS_WATCH(predictive_stress_vector)
-                KRATOS_WATCH(uniaxial_stress_plasticity)
-				KRATOS_WATCH(uniaxial_stress_damage)
-                KRATOS_WATCH(threshold_plasticity)
-					KRATOS_WATCH(threshold_plasticity)
-					KRATOS_WATCH(threshold_damage)
+                // KRATOS_WATCH(plastic_strain)
+                // KRATOS_WATCH(plastic_consistency_increment)
+                // KRATOS_WATCH(plastic_dissipation)
+                // KRATOS_WATCH(damage_indicator)
+                // KRATOS_WATCH(plasticity_indicator)
+                // KRATOS_WATCH(predictive_stress_vector)
+                // KRATOS_WATCH(uniaxial_stress_plasticity)
+				// KRATOS_WATCH(uniaxial_stress_damage)
+                // KRATOS_WATCH(threshold_plasticity)
+				// 	KRATOS_WATCH(threshold_plasticity)
+				// 	KRATOS_WATCH(threshold_damage)
                 if (plasticity_indicator < std::abs(1.0e-4 * threshold_plasticity) && damage_indicator < std::abs(1.0e-4 * threshold_damage)) {
                     is_converged = true;
                 } else {
@@ -471,7 +469,8 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 } // Increments computed
 
                 damage += damage_increment;
-                plastic_strain += plastic_consistency_increment * g_flux;
+                noalias(plastic_strain_increment) = plastic_consistency_increment * g_flux;
+				plastic_strain += plastic_strain_increment;
 
                 effective_predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
                 predictive_stress_vector = (1.0 - damage) * effective_predictive_stress_vector;
