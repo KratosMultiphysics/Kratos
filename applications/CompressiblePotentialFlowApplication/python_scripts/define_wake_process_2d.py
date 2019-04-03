@@ -60,6 +60,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
         self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
+        self.create_output_file = settings["create_output_file"].GetBool()
 
         # Find nodal neigbours util call
         avg_elem_num = 10
