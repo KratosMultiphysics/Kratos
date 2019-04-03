@@ -1,4 +1,3 @@
-import os
 import sys
 from KratosMultiphysics import Parameters
 import KratosSwimmingDEM as script
