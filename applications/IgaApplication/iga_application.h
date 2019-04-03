@@ -23,6 +23,7 @@
 
 #include "custom_elements/iga_truss_element.h"
 #include "custom_elements/shell_kl_discrete_element.h"
+#include "custom_elements/iga_shell_3p_element.h"
 #include "custom_elements/iga_shell_5p_element.h"
 
 #include "custom_conditions/coupling_penalty_discrete_condition.h"

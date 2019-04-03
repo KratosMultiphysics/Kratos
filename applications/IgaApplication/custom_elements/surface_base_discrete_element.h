@@ -60,9 +60,9 @@ protected:
 
             dA = 1.0;
 
-            Matrix H = ZeroMatrix(3, 3);
-            Matrix Q = ZeroMatrix(3, 3);
-            Matrix T = ZeroMatrix(3, 3);
+            H = ZeroMatrix(Dimension, Dimension);
+            Q = ZeroMatrix(Dimension, Dimension);
+            T = ZeroMatrix(Dimension, Dimension);
         }
     };
 

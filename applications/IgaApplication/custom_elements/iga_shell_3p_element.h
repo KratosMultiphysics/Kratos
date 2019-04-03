@@ -110,23 +110,6 @@ public:
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     ) override;
-    
-    // function not checked yet, just copied from surface_base, needed? (ML)
-    /**
-    * Calculation of the Material Stiffness Matrix. Km = B^T * D *B
-    */
-    void CalculateAndAddKm(
-        MatrixType& rLeftHandSideMatrix,
-        const Matrix& B,
-        const Matrix& D,
-        const double IntegrationWeight) {KRATOS_WATCH("CalculateAndAddKm");};
-
-    // function not checked yet, just copied from surface_base, needed? (ML)
-    void CalculateAndAddNonlinearKm(
-        Matrix& rLeftHandSideMatrix,
-        // const SecondVariations& SecondVariationsStrain,
-        const Vector& SD,
-        const double& rIntegrationWeight) {KRATOS_WATCH("CalculateAndAddNonlinearKm");};
    
     /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
@@ -241,9 +224,9 @@ private:
 
             dA = 1.0;
 
-            Matrix H = ZeroMatrix(Dimension, Dimension);
-            Matrix Q = ZeroMatrix(Dimension, Dimension);
-            Matrix T = ZeroMatrix(Dimension, Dimension);
+            H = ZeroMatrix(Dimension, Dimension);
+            Q = ZeroMatrix(Dimension, Dimension);
+            T = ZeroMatrix(Dimension, Dimension);
         }
     };
 
@@ -305,7 +288,25 @@ private:
     ///@{        
     ///@name Operations
     ///@{
-   
+
+    /**
+        * @brief Calculation of the linear part of the Material Stiffness Matrix. Km = B^T * D *B
+        */
+    void CalculateAndAddKm(
+        MatrixType& rLeftHandSideMatrix,
+        const Matrix& B,
+        const Matrix& D,
+        const double& rIntegrationWeight);
+        
+    /**
+        * @brief Calculation of the non-linear part of the Material Stiffness Matrix
+        */
+    void CalculateAndAddNonlinearKm(
+        MatrixType& rLeftHandSideMatrix,
+        const SecondVariations& SecondVariationsStrain,
+        const Vector& SD,
+        const double& rIntegrationWeight);
+
     /**
         * @brief This function calculates all metric variables
         */
@@ -339,7 +340,8 @@ private:
      * @param rStrainVector: container to save the calculated membrane strain
      */
     void CalculateStrain(
-        Vector& rStrainVector);
+        Vector& rStrainVector,
+        const Vector& rgab);
     
     /** 
      * @brief This function computes the strains due to bending (strains depending on theta3 (thickness direction))
@@ -347,20 +349,36 @@ private:
      */
     void CalculateCurvature(
         Vector& rCurvatureVector,
-        const MetricVariables& rActualMetric);
+        const Vector& rCurvature);
     
-    // function not checked yet, just copied from surface_base, needed? (ML)
-    void CalculateBMembrane(        
+    /** @brief Calculates the B-Matrix for the membrane part of the strain
+     * @details derivation and syntax based on Kiendl (2011)
+     */
+    void CalculateBMembrane(
         Matrix& rB,
         const MetricVariables& rMetric,
         const Matrix& rDN_De,
         const unsigned int& rNumberOfNodes,
         const unsigned int& rMatSize);
 
-    // function not checked yet, just copied from surface_base, needed? (ML)
+    /** @brief Calculates the B-Matrix for the curvature part of the strain
+     * @details derivation and syntax based on Kiendl (2011)
+     */
     void CalculateBCurvature(
         Matrix& rB,
-        const MetricVariables& metric) {KRATOS_WATCH("CalculateBCurvature");};
+        const MetricVariables& rMetric,
+        const Matrix& rDN_De,
+        const Matrix& rDDN_DDe,
+        const unsigned int& rNumberOfNodes,
+        const unsigned int& rMatSize);
+
+    /** @brief Calculates the second variations of the strain (membrane and curvature part)
+     * @details derivation and syntax based on Kiendl (2011)
+     */
+    void CalculateSecondVariationStrain(
+        SecondVariations& rSecondVariationsStrain,
+        SecondVariations& rSecondVariationsCurvature,
+        const MetricVariables& rMetric);
 
     ///@}
 

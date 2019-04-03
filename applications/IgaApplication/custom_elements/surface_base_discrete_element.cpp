@@ -32,6 +32,8 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        KRATOS_WATCH("Initialize");
+
         //Constitutive Law initialisation
         BaseDiscreteElement::Initialize();
 
@@ -67,6 +69,9 @@ namespace Kratos
     )
     {
         KRATOS_TRY
+        
+        KRATOS_WATCH("CalculateAndAddKm");
+
         noalias(rLeftHandSideMatrix) += IntegrationWeight * prod(trans(B), Matrix(prod(D, B)));
         //const int number_of_control_points = GetGeometry().size();
         //const int mat_size = number_of_control_points * 3;
@@ -106,6 +111,9 @@ namespace Kratos
 
     {
         KRATOS_TRY
+
+        KRATOS_WATCH("CalculateAndAddNonlinearKm");
+
         const int number_of_control_points = GetGeometry().size();
         const int mat_size = number_of_control_points * 3;
 
@@ -143,7 +151,7 @@ namespace Kratos
 
         StrainVector[0] = 0.5 * (gab[0] - gab0[0]);
         StrainVector[1] = 0.5 * (gab[1] - gab0[1]);
-        StrainVector[2] = 0.5 * (gab[2] - gab0[2]);
+        StrainVector[2] = (gab[2] - gab0[2]);
 
         KRATOS_CATCH("")
     }
@@ -159,7 +167,7 @@ namespace Kratos
 
         CurvatureVector[0] = (bv[0] - bv_ref[0]);
         CurvatureVector[1] = (bv[1] - bv_ref[1]);
-        CurvatureVector[2] = (bv[2] - bv_ref[2]);
+        CurvatureVector[2] = 0.5 * (bv[2] - bv_ref[2]);
 
         KRATOS_CATCH("")
     }
@@ -175,10 +183,11 @@ namespace Kratos
         const unsigned int number_of_control_points = GetGeometry().size();
         const unsigned int mat_size = number_of_control_points * 3;
 
-        if (rB.size1() != mat_size || rB.size2() != mat_size)
-            rB.resize(mat_size, mat_size);
+        if (rB.size1() != 3 || rB.size2() != mat_size)
+            rB.resize(3, mat_size);
         rB = ZeroMatrix(3, mat_size);
 
+        // loop over rows
         for (int r = 0; r<static_cast<int>(mat_size); r++)
         {
             // local node number kr and dof direction dirr
@@ -474,7 +483,7 @@ namespace Kratos
                     {
                         ddE_cu[0] = DN_De(kr, 0)*DN_De(ks, 0);
                         ddE_cu[1] = DN_De(kr, 1)*DN_De(ks, 1);
-                        ddE_cu[2] = 0.5*(DN_De(kr, 0)*DN_De(ks, 1) + DN_De(kr, 1)*DN_De(ks, 0));
+                        ddE_cu[2] = DN_De(kr, 0)*DN_De(ks, 1) + DN_De(kr, 1)*DN_De(ks, 0);
 
                         rSecondVariationsStrain.B11(r, s) = mInitialMetric.Q(0, 0)*ddE_cu[0] + mInitialMetric.Q(0, 1)*ddE_cu[1] + mInitialMetric.Q(0, 2)*ddE_cu[2];
                         rSecondVariationsStrain.B22(r, s) = mInitialMetric.Q(1, 0)*ddE_cu[0] + mInitialMetric.Q(1, 1)*ddE_cu[1] + mInitialMetric.Q(1, 2)*ddE_cu[2];

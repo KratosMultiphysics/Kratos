@@ -69,8 +69,10 @@ namespace IgaGeometryUtilities
             for (int i = 0; i < rWorkingSpaceDimension; ++i)
             {
                 for (int j = 0; j < rWorkingSpaceDimension; ++j)
-                {
-                    rHessian(i, j) += rDDN_DDe(k, j)*coords[i];
+                {   
+                    // rHessian(i, j): second derivative of coordinate i w.r.t. curvilinear coordinates 
+                    // (j = 1 -> 11, j = 2 -> 22, j = 3 -> 12)
+                    rHessian(i, j) += rDDN_DDe(k, j) * coords[i];
                 }
             }
         }

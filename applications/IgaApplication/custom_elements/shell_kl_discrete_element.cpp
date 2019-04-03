@@ -86,6 +86,12 @@ namespace Kratos
         CalculateBMembrane(BMembrane, actual_metric);
         CalculateBCurvature(BCurvature, actual_metric);
 
+
+        integration_weight = this->GetValue(INTEGRATION_WEIGHT) * mInitialMetric.dA; // *GetProperties()[THICKNESS];
+
+        // LEFT HAND SIDE MATRIX
+        if (CalculateStiffnessMatrixFlag == true)
+        {
         // Nonlinear Deformation
         SecondVariations second_variations_strain(mat_size);
         SecondVariations second_variations_curvature(mat_size);
@@ -93,13 +99,8 @@ namespace Kratos
             second_variations_strain,
             second_variations_curvature,
             actual_metric);
-
-        integration_weight = this->GetValue(INTEGRATION_WEIGHT) * mInitialMetric.dA; // *GetProperties()[THICKNESS];
-
-        // LEFT HAND SIDE MATRIX
-        if (CalculateStiffnessMatrixFlag == true)
-        {
-            //adding membrane contributions to the stiffness matrix
+            
+        //adding membrane contributions to the stiffness matrix
             CalculateAndAddKm(rLeftHandSideMatrix, BMembrane, constitutive_variables_membrane.D, integration_weight);
             //adding curvature contributions to the stiffness matrix
             CalculateAndAddKm(rLeftHandSideMatrix, BCurvature, constitutive_variables_curvature.D, integration_weight);
@@ -346,8 +347,7 @@ namespace Kratos
         metric.g2[2] = metric.J(2, 1);
 
         //basis vector g3
-        metric.g3 = MathUtils<double>::CrossProduct(metric.g1, metric.g2);
-        metric.g3 = metric.g3 / norm_2(metric.g3);       // normalization
+        MathUtils<double>::CrossProduct(metric.g3, metric.g1, metric.g2);
         //differential area dA
         metric.dA = norm_2(metric.g3);
         //normal vector _n
@@ -471,7 +471,7 @@ namespace Kratos
 
         //rValues.CheckAllParameters();
         mConstitutiveLawVector[0]->CalculateMaterialResponse(rValues, ThisStressMeasure);
-        double thickness = this->GetProperties().GetValue(THICKNESS);
+        double thickness = GetProperties().GetValue(THICKNESS);
 
         rThisConstitutiveVariablesMembrane.D *= thickness;
         rThisConstitutiveVariablesCurvature.D = rThisConstitutiveVariablesMembrane.D*(pow(thickness, 2) / 12);
