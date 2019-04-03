@@ -18,8 +18,7 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         # Construct the base solver.
         super(PotentialFlowAdjointSolver, self).__init__(model, custom_settings)
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Construction finished")
 
     def AddVariables(self):
         super(PotentialFlowAdjointSolver, self).AddVariables()
@@ -27,8 +26,7 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
  
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Variables ADDED")
 
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.ADJOINT_VELOCITY_POTENTIAL, self.main_model_part)
@@ -62,8 +60,8 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
 
         self.response_function.Initialize()
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Finished initialization.")
+        KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Finished initialization.")
+
     def PrepareModelPart(self):
         super(PotentialFlowAdjointSolver, self).PrepareModelPart()
        # defines how the primal elements should be replaced with their adjoint counterparts
@@ -81,8 +79,8 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         """)
 
         ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "ModelPart prepared for Solver.")
+
+        KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "ModelPart prepared for Solver.")
 
     def InitializeSolutionStep(self):
         super(PotentialFlowAdjointSolver, self).InitializeSolutionStep()
