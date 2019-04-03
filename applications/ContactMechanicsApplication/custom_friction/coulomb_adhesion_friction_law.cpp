@@ -13,39 +13,9 @@ namespace Kratos
 {
 
    /**
-    * Constructor.
-    */
-   CoulombAdhesionFrictionLaw::CoulombAdhesionFrictionLaw()
-      :FrictionLaw()
-   {
-   }
-
-
-   /**
-    * Destructor.
-    */
-   CoulombAdhesionFrictionLaw::~CoulombAdhesionFrictionLaw()
-   {
-   }
-
-
-   /**
-    * Clone function (has to be implemented by any derived class)
-    * @return a pointer to a new instance of this constitutive law
-    * NOTE: implementation scheme:
-    *      ConstitutiveLaw::Pointer p_clone(new ConstitutiveLaw());
-    *      return p_clone;
-    */
-   FrictionLaw::Pointer CoulombAdhesionFrictionLaw::Clone() const
-   {
-      CoulombAdhesionFrictionLaw::Pointer p_clone(new CoulombAdhesionFrictionLaw(*this));
-      return p_clone;
-   }
-
-   /**
     * Methods
-    */  
-   double CoulombAdhesionFrictionLaw::EvaluateHardening( const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) 
+    */
+   double CoulombAdhesionFrictionLaw::EvaluateHardening( const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables)
    {
       return 0.0;
    }
@@ -53,7 +23,7 @@ namespace Kratos
    /**
     * Methods
     */
-   double CoulombAdhesionFrictionLaw::EvaluateContactYield( const double& rTangentStress, const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) 
+   double CoulombAdhesionFrictionLaw::EvaluateContactYield( const double& rTangentStress, const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables)
    {
       double YieldFunction = fabs(rTangentStress) - rTangentVariables.FrictionCoefficient * fabs(rNormalStress) - rTangentVariables.Adhesion;
       return YieldFunction;
@@ -63,7 +33,7 @@ namespace Kratos
    /**
     * Methods
     */
-   void CoulombAdhesionFrictionLaw::EvaluateYieldDerivativeRespectStress( double& rdF_dt, double & rdF_dp, const double& rTangentStress, const double& rNormalStress, const double& Gamma, FrictionLawVariables& rTangentVariables ) 
+   void CoulombAdhesionFrictionLaw::EvaluateYieldDerivativeRespectStress( double& rdF_dt, double & rdF_dp, const double& rTangentStress, const double& rNormalStress, const double& Gamma, FrictionLawVariables& rTangentVariables )
    {
 
       rdF_dt = 1.0;

@@ -128,6 +128,7 @@ protected:
     ///@{
     void ActualizeSubModelPart(ModelPart& subpart);
     void OptimizeOrdering();
+    void ReorderElements();
 
     ///@}
     ///@name Private  Access

@@ -1,28 +1,13 @@
-/*
-==============================================================================
-Kratos Click2Cast Application
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2014
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-COPYRIGHT RESERVED.
-
-==============================================================================
- */
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Jordi Rubio$
-//   Date:                $Date: 2015-05-20 14:14:49 $
-//   Revision:            $Revision: 1.4 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Jordi Rubio
 //
 
 
@@ -41,7 +26,6 @@ COPYRIGHT RESERVED.
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
 #include "custom_elements/SUPG_conv_3d.h"
@@ -102,14 +86,14 @@ public:
     ///@name Operations
     ///@{
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
 	void CalculatePenalty(VectorType& penalty);
 
 	void CalculateDistanceGradient(array_1d<double,3>& grad_D);
-	
+
 	//void CalculateRightHandSide(VectorType	ightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
     //void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
@@ -133,13 +117,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "SUPGConvLevelSet " ;
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << Id();
     }
@@ -177,7 +161,7 @@ protected:
     //                                 );
 
     //const double ComputeDiscontinuityCapturingDiffusion(
-    //    const boost::numeric::ublas::bounded_matrix<double, 4, 3 >& DN_DX,
+    //    const BoundedMatrix<double, 4, 3 >& DN_DX,
     //    const array_1d<double,3>& gradT,
     //    const double& norm_gradT,
     //    const double& residual,
@@ -230,12 +214,12 @@ private:
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SUPGConv3D);
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SUPGConv3D);
     }
@@ -301,4 +285,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SUPG_CONV_DIFF_PHASE_CHANGE_3D_LINEARIZED_INCLUDED  defined 
+#endif // KRATOS_SUPG_CONV_DIFF_PHASE_CHANGE_3D_LINEARIZED_INCLUDED  defined

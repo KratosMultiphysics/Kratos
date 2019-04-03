@@ -56,7 +56,7 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Copy constructor.
@@ -74,7 +74,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~LinearElasticPlaneStress2DLaw();
+    ~LinearElasticPlaneStress2DLaw() override;
 
     /**
      * Operators
@@ -88,7 +88,7 @@ public:
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
      */
-    void GetLawFeatures(Features& rFeatures);
+    void GetLawFeatures(Features& rFeatures) override;
 
 
     /**
@@ -97,15 +97,15 @@ public:
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
+    //String Info() const override;
     /**
      * Print information about this object.
      */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
+    //void PrintInfo(std::ostream& rOStream) const override;
     /**
      * Print object's data.
      */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    //void PrintData(std::ostream& rOStream) const override;
 
 protected:
 
@@ -134,7 +134,7 @@ protected:
 
     void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix,
                                        const double &rYoungModulus,
-                                       const double &rPoissonCoefficient );
+                                       const double &rPoissonCoefficient ) override;
 
 
 
@@ -169,12 +169,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearElastic3DLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElastic3DLaw )
     }
@@ -182,4 +182,4 @@ private:
 
 }; // Class LinearElasticPlaneStress2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_LINEAR_ELASTIC_PLANE_STRESS_2D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_LINEAR_ELASTIC_PLANE_STRESS_2D_LAW_H_INCLUDED  defined

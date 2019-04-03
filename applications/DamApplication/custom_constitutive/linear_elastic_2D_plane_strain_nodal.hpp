@@ -1,8 +1,8 @@
 //
-//   Project Name:   
-//   Last modified by:    $Author:   
-//   Date:                $Date:  
-//   Revision:            $Revision:  
+//   Project Name:
+//   Last modified by:    $Author:
+//   Date:                $Date:
+//   Revision:            $Revision:
 //
 
 #if !defined (KRATOS_LINEAR_ELASTIC_2D_PLANE_STRAIN_NODAL_H_INCLUDED)
@@ -10,12 +10,12 @@
 
 // Project includes
 #include "includes/serializer.h"
-#include "custom_constitutive/linear_elastic_3D_law_nodal.hpp" 
+#include "custom_constitutive/linear_elastic_3D_law_nodal.hpp"
 
 namespace Kratos
 {
 
-class LinearElastic2DPlaneStrainNodal : public LinearElastic3DLawNodal
+class KRATOS_API(DAM_APPLICATION) LinearElastic2DPlaneStrainNodal : public LinearElastic3DLawNodal
 {
 
 public:
@@ -34,15 +34,15 @@ public:
     virtual ~LinearElastic2DPlaneStrainNodal();
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-   
-    ConstitutiveLaw::Pointer Clone() const;
-    
+
+    ConstitutiveLaw::Pointer Clone() const override;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /**
      * Dimension of the law:
      */
-    SizeType WorkingSpaceDimension()
+    SizeType WorkingSpaceDimension() override
     {
         return 2;
     };
@@ -50,7 +50,7 @@ public:
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize()
+    SizeType GetStrainSize() override
     {
         return 3;
     };
@@ -58,33 +58,33 @@ public:
 protected:
 
     // Member Variables
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,Vector& rStrainVector );
+    void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,Vector& rStrainVector ) override;
 
-    void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix, const double &rYoungModulus, const double &rPoissonCoefficient );
+    void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix, const double &rYoungModulus, const double &rPoissonCoefficient ) override;
 
-    void GetLawFeatures(Features& rFeatures);
+    void GetLawFeatures(Features& rFeatures) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
+
     // Serialization
-    
+
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearElastic3DLawNodal)
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElastic3DLawNodal)
     }
 
 }; // Class LinearElastic2DPlaneStrainNodal
 }  // namespace Kratos.
-#endif // KRATOS_LINEAR_ELASTIC_2D_PLANE_STRAIN_NODAL_H_INCLUDED  defined 
+#endif // KRATOS_LINEAR_ELASTIC_2D_PLANE_STRAIN_NODAL_H_INCLUDED  defined

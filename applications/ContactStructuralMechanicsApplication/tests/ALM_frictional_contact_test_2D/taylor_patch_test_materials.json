@@ -1,0 +1,40 @@
+{
+    "properties": [
+    {
+            "model_part_name": "Parts_foundation",
+            "properties_id": 1,
+            "Material": {
+                    "name": "Material",
+                    "constitutive_law": {
+                            "name": "LinearElasticPlaneStrain2DLaw"
+                    },
+                    "Variables": {
+                            "YOUNG_MODULUS": 1.00000E+3,
+                            "DENSITY": 7.85000E+03,
+                            "POISSON_RATIO": 4.00000E-01,
+                            "THICKNESS": 1.00000,
+                            "FRICTION_COEFFICIENT": 0.5
+                    },
+                    "Tables": {}
+            }
+    },
+    {
+            "model_part_name": "Parts_punch",
+            "properties_id": 2,
+            "Material": {
+                    "name": "Material",
+                    "constitutive_law": {
+                            "name": "LinearElasticPlaneStrain2DLaw"
+                    },
+                    "Variables": {
+                            "YOUNG_MODULUS": 1.00000E+3,
+                            "DENSITY": 7.85000E+03,
+                            "POISSON_RATIO": 4.00000E-01,
+                            "THICKNESS": 1.00000,
+                            "FRICTION_COEFFICIENT": 0.5
+                    },
+                    "Tables": {}
+            }
+    }
+    ]
+}

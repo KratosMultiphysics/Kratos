@@ -29,11 +29,9 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
-//conditions
-#include "custom_conditions/shape_optimization_condition.h"
-
 // Variables
 #include "includes/variables.h"
+
 
 // ==============================================================================
 
@@ -47,12 +45,30 @@ namespace Kratos
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(NORMALIZED_SURFACE_NORMAL);
 
     // Optimization variables
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(OBJECTIVE_SENSITIVITY);
-    KRATOS_DEFINE_VARIABLE(double,OBJECTIVE_SURFACE_SENSITIVITY);
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MAPPED_OBJECTIVE_SENSITIVITY);
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONSTRAINT_SENSITIVITY);
-    KRATOS_DEFINE_VARIABLE(double,CONSTRAINT_SURFACE_SENSITIVITY);
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MAPPED_CONSTRAINT_SENSITIVITY);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DF1DX);
+
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DF1DX_MAPPED);
+
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DC1DX);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DC2DX);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DC3DX);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DC4DX);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DC5DX);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DC6DX);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DC7DX);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DC8DX);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DC9DX);
+
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DC1DX_MAPPED);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DC2DX_MAPPED);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DC3DX_MAPPED);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DC4DX_MAPPED);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DC5DX_MAPPED);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DC6DX_MAPPED);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DC7DX_MAPPED);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DC8DX_MAPPED);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DC9DX_MAPPED);
+
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SEARCH_DIRECTION);
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_UPDATE);
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_CHANGE);
@@ -66,10 +82,22 @@ namespace Kratos
     // For mapping
     KRATOS_DEFINE_VARIABLE(int,MAPPING_ID);
 
-    // For Structure Sensitivity Analysis
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(STRAIN_ENERGY_SHAPE_GRADIENT);
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MASS_SHAPE_GRADIENT);
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(EIGENFREQUENCY_SHAPE_GRADIENT);
+	// For bead optimization
+    KRATOS_DEFINE_VARIABLE(double,ALPHA);
+    KRATOS_DEFINE_VARIABLE(double,ALPHA_MAPPED);
+    KRATOS_DEFINE_VARIABLE(double,DF1DALPHA);
+    KRATOS_DEFINE_VARIABLE(double,DF1DALPHA_MAPPED);
+    KRATOS_DEFINE_VARIABLE(double,DPDALPHA);
+    KRATOS_DEFINE_VARIABLE(double,DPDALPHA_MAPPED);
+    KRATOS_DEFINE_VARIABLE(double,DLDALPHA);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(BEAD_DIRECTION);
+
+    // For auxiliary operations
+    KRATOS_DEFINE_VARIABLE(double,SCALAR_VARIABLE);
+    KRATOS_DEFINE_VARIABLE(double,SCALAR_VARIABLE_MAPPED);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VECTOR_VARIABLE);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VECTOR_VARIABLE_MAPPED);
+
 
 	///@}
 	///@name Type Definitions
@@ -108,7 +136,7 @@ namespace Kratos
 		KratosShapeOptimizationApplication();
 
 		/// Destructor.
-		virtual ~KratosShapeOptimizationApplication(){}
+		~KratosShapeOptimizationApplication() override {}
 
 
 		///@}
@@ -120,7 +148,7 @@ namespace Kratos
 		///@name Operations
 		///@{
 
-		virtual void Register();
+	    void Register() override;
 
 
 
@@ -139,20 +167,20 @@ namespace Kratos
 		///@{
 
 		/// Turn back information as a string.
-		virtual std::string Info() const
+		std::string Info() const override
 		{
 			return "KratosShapeOptimizationApplication";
 		}
 
 		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
+		void PrintInfo(std::ostream& rOStream) const override
 		{
 			rOStream << Info();
 			PrintData(rOStream);
 		}
 
 		///// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
+       void PrintData(std::ostream& rOStream) const override
       {
       	KRATOS_WATCH("in my application");
       	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
@@ -222,14 +250,6 @@ namespace Kratos
 		///@}
 		///@name Member Variables
 		///@{
-
-        // elements
-
-        //conditions
-        const ShapeOptimizationCondition mShapeOptimizationCondition3D3N;
-		const ShapeOptimizationCondition mShapeOptimizationCondition3D4N;
-        const ShapeOptimizationCondition mShapeOptimizationCondition2D2N;
-
 
 		///@}
 		///@name Private Operators

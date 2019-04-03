@@ -47,13 +47,13 @@ public:
     SimoJuNonlocalDamage3DLaw (const SimoJuNonlocalDamage3DLaw& rOther);
 
     /// Destructor
-    virtual ~SimoJuNonlocalDamage3DLaw();
+    ~SimoJuNonlocalDamage3DLaw() override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
     
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -63,7 +63,7 @@ protected:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry );
+    void CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry ) override;
 
 private:
     
@@ -71,12 +71,12 @@ private:
     
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }

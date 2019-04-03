@@ -4,7 +4,7 @@
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticOrthotropic2DLaw"
+                "name" : "LinearElasticOrthotropic2DLaw"
             },
             "Variables"        : {
                 "SHELL_ORTHOTROPIC_LAYERS" : [
@@ -19,7 +19,7 @@
         "properties_id"   : 2,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticOrthotropic2DLaw"
+                "name" : "LinearElasticOrthotropic2DLaw"
             },
             "Variables"        : {
                 "SHELL_ORTHOTROPIC_LAYERS" : [
@@ -34,7 +34,7 @@
         "properties_id"   : 3,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticOrthotropic2DLaw"
+                "name" : "LinearElasticOrthotropic2DLaw"
             },
             "Variables"        : {
                 "SHELL_ORTHOTROPIC_LAYERS" : [
@@ -49,7 +49,7 @@
         "properties_id"   : 4,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticOrthotropic2DLaw"
+                "name" : "LinearElasticOrthotropic2DLaw"
             },
             "Variables"        : {
                 "SHELL_ORTHOTROPIC_LAYERS" : [

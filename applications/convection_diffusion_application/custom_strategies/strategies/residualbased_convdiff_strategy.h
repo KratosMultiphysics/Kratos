@@ -1,22 +1,20 @@
-/* *********************************************************
-*
-*   Last Modified by:    $Author: rrossi $
-*   Date:                $Date: 2007-03-06 10:30:32 $
-*   Revision:            $Revision: 1.2 $
-*
-* ***********************************************************/
-
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
+//
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:  Riccardo Rossi
+//
 
 #if !defined(KRATOS_RESIDUALBASED_CONVECTION_DIFFUSION_STRATEGY )
 #define  KRATOS_RESIDUALBASED_CONVECTION_DIFFUSION_STRATEGY
 
-
 /* System includes */
 
-
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
 
 /* Project includes */
 #include "includes/define.h"
@@ -185,7 +183,7 @@ public:
 
     //*********************************************************************************
     //**********************************************************************
-    double Solve()
+    double Solve() override
     {
       KRATOS_TRY
 
@@ -193,7 +191,7 @@ public:
         ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
       double Dt = rCurrentProcessInfo[DELTA_TIME];
       int stationary= rCurrentProcessInfo[STATIONARY];
-      
+
       double Dp_norm;
       if(stationary==1)
 	{
@@ -208,10 +206,10 @@ public:
 	      if(BaseType::GetModelPart().GetBufferSize() < 3)
                 KRATOS_THROW_ERROR(std::logic_error,"insufficient buffer size for BDF2","")
 		  double dt_old = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
-	      
+
 	      double rho = dt_old/Dt;
 	      double coeff = 1.0/(Dt*rho*rho+Dt*rho);
-	      
+
 	      rCurrentProcessInfo[BDF_COEFFICIENTS].resize(3);
 	      Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 	      BDFcoeffs[0] =	coeff*(rho*rho+2.0*rho);	//coefficient for step n+1
@@ -225,16 +223,16 @@ public:
 	      BDFcoeffs[0] =	1.0 / Dt;	//coefficient for step n+1
 	      BDFcoeffs[1] =	-1.0 / Dt;//coefficient for step n
 	    }
-	  
+
 	  //second order prediction for the velocity
 	  if(mprediction_order == 2)
 	    {
 	      if(BaseType::GetModelPart().GetBufferSize() < 3)
                 KRATOS_THROW_ERROR(std::logic_error,"insufficient buffer size for second order prediction","")
-		  
+
 		  ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 	      const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
-	      
+
 	      for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ;
                     i != BaseType::GetModelPart().NodesEnd() ; ++i)
 		{
@@ -242,20 +240,20 @@ public:
 		}
 	      CalculateProjection();
 	    }
-	  
+
 	  //SOLVING THE PROBLEM
 	  rCurrentProcessInfo[FRACTIONAL_STEP] = 1;
-	  
+
 	  Dp_norm = mstep1->Solve();
         CalculateProjection();
-	
+
 	}
       return Dp_norm;
       KRATOS_CATCH("")
 	}
-    
-    
-    
+
+
+
     //******************************************************************************************************
     //******************************************************************************************************
     //calculation of projection
@@ -298,17 +296,17 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         mstep1->SetEchoLevel(Level);
     }
 
-    virtual void Clear()
+    void Clear() override
     {
         mstep1->Clear();
     }
 
-    virtual int Check()
+    int Check() override
     {
         KRATOS_TRY
 
@@ -320,7 +318,7 @@ public:
         const Variable<double>& rSourceVar = my_settings->GetVolumeSourceVariable();
         const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
         const Variable<double>& rProjectionVariable = my_settings->GetProjectionVariable();
-        
+
         //const Variable<double>& rSpecificHeatVar = my_settings->GetSpecificHeatVariable();
         //const Variable<array_1d<double, 3 > >& rVelocityVar = my_settings->GetVelocityVariable();
 

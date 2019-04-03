@@ -65,14 +65,27 @@ public:
 
     Plane3D(array_1d<double, 3> const &rNormal, double DistanceToOrigin) : mD(DistanceToOrigin), mNormal(rNormal) {}
 
+    Plane3D(array_1d<double, 3> const &rNormal, const Point &rReferencePoint)
+    {
+        // Compute the unit normal
+        mNormal = rNormal;
+        auto normal_length = norm_2(mNormal);
+        KRATOS_DEBUG_CHECK_GREATER(normal_length, std::numeric_limits<double>::epsilon());
+        mNormal /= normal_length;
+        // Compute the distance to origin
+        mD = -inner_prod(mNormal,rReferencePoint);
+    }   
+
     Plane3D(const Point &Point1, const Point &Point2, const Point &Point3)
     {
+        // Compute the unit normal
         array_1d<double,3> v_1 = Point2 - Point1;
         array_1d<double,3> v_2 = Point3 - Point1;
         MathUtils<double>::CrossProduct(mNormal, v_1, v_2);
         auto normal_length = norm_2(mNormal);
         KRATOS_DEBUG_CHECK_GREATER(normal_length, std::numeric_limits<double>::epsilon());
         mNormal /= normal_length;
+        // Compute the distance to origin
         mD = -inner_prod(mNormal, Point1);
     }
 

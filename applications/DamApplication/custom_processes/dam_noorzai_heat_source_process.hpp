@@ -49,7 +49,7 @@ class DamNoorzaiHeatFluxProcess : public Process
                 "density"                             : 0.0,
                 "specific_heat"                        : 0.0,
                 "t_max"                               : 0.0,
-                "alpha"                               : 0.0            
+                "alpha"                               : 0.0
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -77,21 +77,29 @@ class DamNoorzaiHeatFluxProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize()
+    void Execute() override
+    {
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void ExecuteInitialize() override
     {
         KRATOS_TRY;
 
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
 
-        double time = mrModelPart.GetProcessInfo()[TIME];
-        double value = mDensity * mSpecificHeat * mAlpha * mTMax * (exp(-mAlpha * time));
+        const double time = mrModelPart.GetProcessInfo()[TIME];
+        const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
+
+        double value = mDensity * mSpecificHeat * mAlpha * mTMax * (exp(-mAlpha * time + 0.5 * delta_time));
 
         if (nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
-#pragma omp parallel for
+            #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -103,7 +111,7 @@ class DamNoorzaiHeatFluxProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
 
@@ -115,19 +123,19 @@ class DamNoorzaiHeatFluxProcess : public Process
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "DamNoorzaiHeatFluxProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "DamNoorzaiHeatFluxProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 

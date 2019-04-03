@@ -214,13 +214,13 @@ public:
 
     //***************************************************************************
 
-    virtual void Update(
+    void Update(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dv,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY
 
@@ -231,41 +231,16 @@ public:
         KRATOS_CATCH("")
     }
 
-    //***************************************************************************
-    virtual void BasicUpdateOperations(
-        ModelPart& rModelPart,
+    void BasicUpdateOperations(
+        ModelPart& r_model_part,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
-        TSystemVectorType& Dv,
-        TSystemVectorType& b
-    )
+        TSystemVectorType& Dx,
+        TSystemVectorType& b)
     {
-        KRATOS_TRY
-
-        int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector DofSetPartition;
-        OpenMPUtils::DivideInPartitions(rDofSet.size(),NumThreads,DofSetPartition);
-
-        //update of velocity (by DOF)
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            typename DofsArrayType::iterator DofSetBegin = rDofSet.begin() + DofSetPartition[k];
-            typename DofsArrayType::iterator DofSetEnd = rDofSet.begin() + DofSetPartition[k+1];
-
-            for (typename DofsArrayType::iterator itDof = DofSetBegin; itDof != DofSetEnd; itDof++)
-            {
-                if (itDof->IsFree())
-                {
-                    itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dv,itDof->EquationId());
-                }
-            }
-
-        }
-
-        KRATOS_CATCH("")
+        mpDofUpdater->UpdateDofs(rDofSet,Dx);
     }
+
 
     void AdditionalUpdateOperations(
         ModelPart& rModelPart,
@@ -322,13 +297,13 @@ public:
     //predicts the solution at the current step as
     // v = vold
 
-    virtual void Predict(
+    void Predict(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dv,
         TSystemVectorType& b
-    )
+    ) override
     {
 //             std::cout << "prediction" << std::endl;
 
@@ -415,7 +390,7 @@ public:
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
         ProcessInfo& CurrentProcessInfo
-    )
+    ) override
     {
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
@@ -447,7 +422,7 @@ public:
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         int k = OpenMPUtils::ThisThread();
 
@@ -476,7 +451,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
@@ -497,11 +472,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Condition_Calculate_RHS_Contribution(
+    void Condition_Calculate_RHS_Contribution(
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -532,7 +507,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
@@ -555,11 +530,11 @@ public:
     //*************************************************************************************
     //*************************************************************************************
 
-    virtual void InitializeNonLinIteration(
+    void InitializeNonLinIteration(
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -617,6 +592,11 @@ public:
     }
     //************************************************************************************************
     //************************************************************************************************
+
+    void Clear() override
+    {
+        this->mpDofUpdater->Clear();
+    }
 
     /*@} */
     /**@name Operations */
@@ -837,6 +817,9 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
+
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
+
     /*		Matrix mMass;
                     Matrix mDamp;
 

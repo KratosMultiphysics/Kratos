@@ -22,15 +22,15 @@ namespace Kratos
     //
     // =====================================================================================
 
-    SmallDisplacementInterfaceElement::SmallDisplacementInterfaceElement(IndexType NewId, 
+    SmallDisplacementInterfaceElement::SmallDisplacementInterfaceElement(IndexType NewId,
                                                GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
 		, mInitialized(false)
     {
     }
-    
-    SmallDisplacementInterfaceElement::SmallDisplacementInterfaceElement(IndexType NewId, 
-                                               GeometryType::Pointer pGeometry, 
+
+    SmallDisplacementInterfaceElement::SmallDisplacementInterfaceElement(IndexType NewId,
+                                               GeometryType::Pointer pGeometry,
                                                PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties)
 		, mInitialized(false)
@@ -46,7 +46,7 @@ namespace Kratos
         GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
         return Element::Pointer( new SmallDisplacementInterfaceElement(NewId, newGeom, pProperties ));
     }
-    
+
     void SmallDisplacementInterfaceElement::Initialize()
     {
 		/*
@@ -124,7 +124,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        GeometryType& geom = GetGeometry(); 
+        GeometryType& geom = GetGeometry();
 
 		SizeType ndim = geom.WorkingSpaceDimension();
 
@@ -187,7 +187,7 @@ namespace Kratos
 
 		SizeType dim = geom.WorkingSpaceDimension();
 		SizeType ndofs = dim * geom.size();
-        if(values.size() != ndofs)   
+        if(values.size() != ndofs)
             values.resize(ndofs,false);
 
         for (SizeType i = 0; i < geom.size(); i++)
@@ -209,7 +209,7 @@ namespace Kratos
 
 		SizeType dim = geom.WorkingSpaceDimension();
 		SizeType ndofs = dim * geom.size();
-        if(values.size() != ndofs)   
+        if(values.size() != ndofs)
             values.resize(ndofs,false);
 
         for (SizeType i = 0; i < geom.size(); i++)
@@ -231,7 +231,7 @@ namespace Kratos
 
 		SizeType dim = geom.WorkingSpaceDimension();
 		SizeType ndofs = dim * geom.size();
-        if(values.size() != ndofs)   
+        if(values.size() != ndofs)
             values.resize(ndofs,false);
 
         for (SizeType i = 0; i < geom.size(); i++)
@@ -295,7 +295,7 @@ namespace Kratos
                                                     VectorType& rRightHandSideVector,
                                                     ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true); 
+        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true);
     }
 
     void SmallDisplacementInterfaceElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
@@ -360,7 +360,7 @@ namespace Kratos
 		}
 		else
 		{
-			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++) 
+			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++)
 			{
 				SizeType j = i+half_num_gp;
 				res = 0.0;
@@ -379,7 +379,7 @@ namespace Kratos
 		if(rValues.size() != num_gp) rValues.resize(num_gp);
 		SizeType half_num_gp = num_gp / 2;
 		SizeType ndim = GetGeometry().WorkingSpaceDimension();
-		
+
 		if(rVariable == INTERFACE_DISPLACEMENT_JUMP || rVariable == INTERFACE_TRACTION)
 		{
 			std::vector<Vector> res;
@@ -394,7 +394,7 @@ namespace Kratos
 			}
 			else
 			{
-				for(SizeType i = 0; i < res.size(); i++) 
+				for(SizeType i = 0; i < res.size(); i++)
 				{
 					SizeType j = i+half_num_gp;
 					rValues[i] = res[i];
@@ -416,7 +416,7 @@ namespace Kratos
 			}
 			else
 			{
-				for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++) 
+				for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++)
 				{
 					SizeType j = i+half_num_gp;
 					res.clear();
@@ -436,7 +436,7 @@ namespace Kratos
 		if(rValues.size() != num_gp) rValues.resize(num_gp);
 		SizeType half_num_gp = num_gp / 2;
 		SizeType ndim = GetGeometry().WorkingSpaceDimension();
-		
+
 		Matrix res;
 		if(ndim == 2)
 		{
@@ -449,7 +449,7 @@ namespace Kratos
 		}
 		else
 		{
-			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++) 
+			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++)
 			{
 				SizeType j = i+half_num_gp;
 				res.clear();
@@ -460,15 +460,15 @@ namespace Kratos
 		}
     }
 
-    void SmallDisplacementInterfaceElement::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, 
-                                                           std::vector<array_1d<double,3> >& rValues, 
+    void SmallDisplacementInterfaceElement::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
+                                                           std::vector<array_1d<double,3> >& rValues,
                                                            const ProcessInfo& rCurrentProcessInfo)
     {
 		SizeType num_gp = GetGeometry().IntegrationPoints().size();
 		if(rValues.size() != num_gp) rValues.resize(num_gp);
 		SizeType half_num_gp = num_gp / 2;
 		SizeType ndim = GetGeometry().WorkingSpaceDimension();
-		
+
 		array_1d<double,3> res;
 		if(ndim == 2)
 		{
@@ -481,7 +481,7 @@ namespace Kratos
 		}
 		else
 		{
-			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++) 
+			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++)
 			{
 				SizeType j = i+half_num_gp;
 				res.clear();
@@ -492,15 +492,15 @@ namespace Kratos
 		}
     }
 
-    void SmallDisplacementInterfaceElement::GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, 
-                                                           std::vector<array_1d<double,6> >& rValues, 
+    void SmallDisplacementInterfaceElement::GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable,
+                                                           std::vector<array_1d<double,6> >& rValues,
                                                            const ProcessInfo& rCurrentProcessInfo)
     {
 		SizeType num_gp = GetGeometry().IntegrationPoints().size();
 		if(rValues.size() != num_gp) rValues.resize(num_gp);
 		SizeType half_num_gp = num_gp / 2;
 		SizeType ndim = GetGeometry().WorkingSpaceDimension();
-		
+
 		array_1d<double,6> res;
 		if(ndim == 2)
 		{
@@ -513,7 +513,7 @@ namespace Kratos
 		}
 		else
 		{
-			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++) 
+			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++)
 			{
 				SizeType j = i+half_num_gp;
 				res.clear();
@@ -584,8 +584,8 @@ namespace Kratos
 
 	void SmallDisplacementInterfaceElement::CalculateJacobianAndTransformationMatrix(const SizeType pointID,
 												                                     Matrix& delta_position,
-		                                                                             Matrix& jacobian, 
-												                                     double& J, 
+		                                                                             Matrix& jacobian,
+												                                     double& J,
 												                                     Matrix& iR)
 	{
 		GeometryType& geom = GetGeometry();
@@ -616,7 +616,7 @@ namespace Kratos
 			vy /= MathUtils<double>::Norm3(vy);
 			J = MathUtils<double>::Norm3(vz);
 			vz /= J;
-			for(SizeType i = 0; i < 3; i++) 
+			for(SizeType i = 0; i < 3; i++)
 			{
 				iR(0, i) = vx[i];
 				iR(1, i) = vy[i];
@@ -625,7 +625,7 @@ namespace Kratos
 		}
 	}
 
-	double SmallDisplacementInterfaceElement::CalculateIntegrationWeight(double J, 
+	double SmallDisplacementInterfaceElement::CalculateIntegrationWeight(double J,
 		                                                                 double iw)
 	{
 		// Note: here we multiply the integration weight by 2,
@@ -637,9 +637,9 @@ namespace Kratos
 		return dV;
 	}
 
-	void SmallDisplacementInterfaceElement::CalculateLocalDisplacementVector(const InterfaceIndexPermutation& P, 
+	void SmallDisplacementInterfaceElement::CalculateLocalDisplacementVector(const InterfaceIndexPermutation& P,
 		                                                                     const Matrix& R,
-		                                                                     const Vector& UG, 
+		                                                                     const Vector& UG,
 												                             Vector& UL)
 	{
 		GeometryType& geom = GetGeometry();
@@ -804,7 +804,7 @@ namespace Kratos
 		}
 	}
 
-	void SmallDisplacementInterfaceElement::CalculateBMatrix(const SizeType pointID, 
+	void SmallDisplacementInterfaceElement::CalculateBMatrix(const SizeType pointID,
 		                                                     Matrix& B)
 	{
 		GeometryType& geom = GetGeometry();
@@ -828,7 +828,7 @@ namespace Kratos
 	}
 
 	void SmallDisplacementInterfaceElement::CalculateGeneralizedStrains(const SizeType pointID,
-		                                                                const Matrix& B, 
+		                                                                const Matrix& B,
 		                                                                const Vector& U,
 											                            Vector& generalizedStrains)
 	{
@@ -851,7 +851,7 @@ namespace Kratos
 		bool use_reduced_integration = false;
 		if(props.Has(INTERFACE_REDUCED_INTEGRATION))
 			use_reduced_integration = (props[INTERFACE_REDUCED_INTEGRATION] != 0);
-		
+
 		// resize the LHS matrix
 		if(LHSrequired) {
 			if(rLeftHandSideMatrix.size1() != ndofs || rLeftHandSideMatrix.size2() != ndofs)
@@ -865,7 +865,7 @@ namespace Kratos
 				rRightHandSideVector.resize(ndofs, false);
 			noalias( rRightHandSideVector ) = ZeroVector(ndofs);
 		}
-		
+
 		// global and local displacement vectors
 		Vector globalDisplacements(ndofs);
 		Vector localDisplacements(ndofs);
@@ -981,12 +981,12 @@ namespace Kratos
 			if(RHSrequired) {
 				noalias( Rloc ) = -prod( trans( B ), dV*generalizedStresses );
 			}
-			TransformToGlobalAndAdd(permutation, iR, Kloc, Rloc, 
+			TransformToGlobalAndAdd(permutation, iR, Kloc, Rloc,
 									rLeftHandSideMatrix, rRightHandSideVector,
 									LHSrequired, RHSrequired);
 		}
 	}
-	
+
 	void SmallDisplacementInterfaceElement::CalculateStrain(std::vector<Vector>& strain, const ProcessInfo& rCurrentProcessInfo)
 	{
 		// init the output container. it will contain ngauss/2 output variables
@@ -998,7 +998,7 @@ namespace Kratos
 		SizeType ndim = geom.WorkingSpaceDimension();
 		SizeType nnodes = geom.size();
 		SizeType ndofs = ndim * nnodes;
-		
+
 		bool use_reduced_integration = false;
 		if(props.Has(INTERFACE_REDUCED_INTEGRATION))
 			use_reduced_integration = (props[INTERFACE_REDUCED_INTEGRATION] != 0);
@@ -1075,7 +1075,7 @@ namespace Kratos
 				//noalias(B) = B0;
 				for(unsigned int ii=0; ii < B.size2(); ii++)
 					B(1,ii)=B0(1,ii);
-			} 
+			}
 
 			// calculate generalized strains
 			CalculateGeneralizedStrains(intp_id, B, localDisplacements, generalizedStrains);
@@ -1091,7 +1091,7 @@ namespace Kratos
 			strain.push_back(vec3);
 		}
 	}
-	
+
 	void SmallDisplacementInterfaceElement::CalculateStress(std::vector<Vector>& stress, const ProcessInfo& rCurrentProcessInfo)
 	{
 		// init the output container. it will contain ngauss/2 output variables
@@ -1103,7 +1103,7 @@ namespace Kratos
 		SizeType ndim = geom.WorkingSpaceDimension();
 		SizeType nnodes = geom.size();
 		SizeType ndofs = ndim * nnodes;
-		
+
 		bool use_reduced_integration = false;
 		if(props.Has(INTERFACE_REDUCED_INTEGRATION))
 			use_reduced_integration = (props[INTERFACE_REDUCED_INTEGRATION] != 0);
@@ -1113,7 +1113,7 @@ namespace Kratos
 		Vector localDisplacements(ndofs);
 		GetValuesVector(globalDisplacements);
 
-		// delta position for the jacobian computation 
+		// delta position for the jacobian computation
 		// with respect to the reference configuration
 		Matrix delta_position;
 		CalculateDeltaPosition(delta_position);
@@ -1198,7 +1198,7 @@ namespace Kratos
 				//noalias(B) = B0;
 				for(unsigned int ii=0; ii < B.size2(); ii++)
 					B(1,ii)=B0(1,ii);
-			} 
+			}
 
 			// calculate generalized strains
 			CalculateGeneralizedStrains(intp_id, B, localDisplacements, generalizedStrains);

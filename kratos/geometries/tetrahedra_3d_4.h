@@ -30,7 +30,31 @@
 namespace Kratos
 {
 /**
- * An eight node hexahedra geometry with linear shape functions
+ * @class Tetrahedra3D4
+ * @ingroup KratosCore
+ * @brief A four node tetrahedra geometry with linear shape functions
+ * @details The node ordering corresponds with:       
+ *                             v
+ *                            .
+ *                          ,/
+ *                         /
+ *                      2                                                            
+ *                    ,/|`\                                                       
+ *                  ,/  |  `\                         
+ *                ,/    '.   `\                      
+ *              ,/       |     `\                 
+ *            ,/         |       `\                
+ *           0-----------'.--------1 --> u        
+ *            `\.         |      ,/               
+ *               `\.      |    ,/                     
+ *                  `\.   '. ,/                      
+ *                     `\. |/                                
+ *                        `3                                   
+ *                           `\.
+ *                              ` w       
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
 template<class TPointType> class Tetrahedra3D4 : public Geometry<TPointType>
 {
@@ -185,7 +209,7 @@ public:
         this->Points().push_back(pPoint4);
     }
 
-    Tetrahedra3D4( const PointsArrayType& ThisPoints)
+    explicit Tetrahedra3D4( const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
     {
         if( this->PointsNumber() != 4)
@@ -218,7 +242,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Tetrahedra3D4(Tetrahedra3D4<TOtherPointType> const& rOther)
+    template<class TOtherPointType> explicit Tetrahedra3D4(Tetrahedra3D4<TOtherPointType> const& rOther)
         : BaseType(rOther)
     {
     }
@@ -301,8 +325,18 @@ public:
     //     return p_clone;
     // }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors(Vector& rResult) const override
+    /**
+     * @brief Lumping factors for the calculation of the lumped mass matrix
+     * @param rResult Vector containing the lumping factors
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    Vector& LumpingFactors(
+        Vector& rResult,
+        const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
+        )  const override
     {
         if(rResult.size() != 4)
             rResult.resize(4, false);
@@ -331,8 +365,8 @@ public:
      */
     double Length() const override
     {
-        constexpr double factor = 2.0396489026555;                              // (12/sqrt(2)) ^ 1/3);
-        return  factor * std::pow(std::fabs(Volume()), 0.33333333333333);            // sqrt(fabs( DeterminantOfJacobian(PointType())));
+        constexpr double factor = 2.0396489026555;       // (12/sqrt(2)) ^ 1/3);
+        return  factor * std::cbrt(std::fabs(Volume())); // sqrt(fabs( DeterminantOfJacobian(PointType())));
     }
 
     /**
@@ -734,6 +768,133 @@ public:
       return normFactor * Volume() / std::pow(std::sqrt(1.0/6.0 * (sa + sb + sc + sd + se + sf)), 3.0);
     }
 
+
+    /** Calculates the min dihedral angle quality metric.
+     * Calculates the min dihedral angle quality metric.
+     * The min dihedral angle is min angle between two faces of the element 
+     * In radians
+     * @return [description]
+     */
+    double MinDihedralAngle() const override {
+      Vector dihedral_angles(6);
+      ComputeDihedralAngles(dihedral_angles);
+      double min_dihedral_angle = 1000.0;
+      for (unsigned int i = 0; i < 6; i++)
+      {
+         if (dihedral_angles[i]<min_dihedral_angle)  min_dihedral_angle=dihedral_angles[i];
+      } 
+      return min_dihedral_angle;
+    }
+
+    /** Calculates the max dihedral angle quality metric.
+     * Calculates the max dihedral angle quality metric.
+     * The max dihedral angle is max angle between two faces of the element
+     * In radians
+     * @return [description]
+     */
+    double MaxDihedralAngle() const override {
+        Vector dihedral_angles(6);
+        ComputeDihedralAngles(dihedral_angles);
+        double max_dihedral_angle = -1000.0;
+        for (unsigned int i = 0; i < 6; i++)
+        {
+            if (dihedral_angles[i] > max_dihedral_angle)  max_dihedral_angle = dihedral_angles[i];
+        }
+        return max_dihedral_angle;
+    }
+
+
+
+    /** Calculates the min solid angle quality metric.
+     * Calculates the min solid angle quality metric.
+     * The min solid angle  [stereoradians] is the lowest solid angle "seen" from any of the 4 nodes of the geometry
+     * In stereo radians
+     * @return [description]
+     */
+    double MinSolidAngle() const override {
+      Vector solid_angles(4);
+      ComputeSolidAngles(solid_angles);
+      double min_solid_angle = 1000.0;
+      for (unsigned int i = 0; i < 4; i++)
+      {
+        if (solid_angles[i]<min_solid_angle) min_solid_angle = solid_angles[i];
+      }
+      return min_solid_angle;
+
+    }
+
+
+    /** Implements the calculus of the 4 solid angles of the tetra
+     *Implements the calculus of the 4 solid angles of the tetra
+     *
+     * @return   The solid angles of the geometry
+    */
+    inline void ComputeSolidAngles(Vector& rSolidAngles) const override
+    {
+      if(rSolidAngles.size() != 4)
+          rSolidAngles.resize(4, false);
+
+      Vector dihedral_angles(6);
+      ComputeDihedralAngles(dihedral_angles); 
+
+      rSolidAngles[0] = dihedral_angles[0] + dihedral_angles[1] + dihedral_angles[2]  - Globals::Pi;     
+      rSolidAngles[1] = dihedral_angles[0] + dihedral_angles[3] + dihedral_angles[4]  - Globals::Pi;     
+      rSolidAngles[2] = dihedral_angles[2] + dihedral_angles[4] + dihedral_angles[5]  - Globals::Pi;     
+      rSolidAngles[3] = dihedral_angles[1] + dihedral_angles[3] + dihedral_angles[5]  - Globals::Pi;     
+    }
+
+
+    /** Implements the calculus of the 6 diheadral angles of the tetra
+     *Implements the calculus of the 6 diheadral angles of the tetra
+     *
+     * @return   The dihedral angles of the geometry
+    */
+    inline void ComputeDihedralAngles(Vector& rDihedralAngles) const override
+    {
+      if(rDihedralAngles.size() != 6)
+          rDihedralAngles.resize(6, false);
+
+
+      BoundedMatrix<double, 4, 3 > coords;
+      for (unsigned int i = 0; i < 4; i++)
+      {
+          const array_1d<double, 3 > & xyz = this->GetPoint(i);
+          for (unsigned int j = 0; j < 3; j++)
+              coords(i, j) = xyz[j];
+      }
+      //we have to check 6 different angles (one per edge)
+      //to get an easy-to-read algorithm, we find the angles by creating the normal planes to each face and then find the angles between them
+      //to do so, we create a list of 3 nodes per angle. face1 is defined with nodes 0,1,2a , and face2 is defined with nodes 0,1,2b
+      const int node0[]  = {0, 0, 0, 1, 1, 2};
+      const int node1[]  = {1, 3, 2, 3, 2, 3};
+      const int node2a[] = {2, 1, 1, 0, 0, 0};
+      const int node2b[] = {3, 2, 3, 2, 3, 1};
+        
+      array_1d<double,3> edge1,edge2a,edge2b,normal1,normal2;
+
+     //now we only loop through the six edges to see which one has the lowest angle
+      for (unsigned int i = 0; i < 6; i++)
+      {
+        //first we find the edges
+        for (unsigned int j = 0; j < 3; ++j)
+        {
+            edge1[j]  = coords(node1[i],j)  - coords(node0[i],j) ;
+            edge2a[j] = coords(node2a[i],j) - coords(node0[i],j) ;
+            edge2b[j] = coords(node2b[i],j) - coords(node0[i],j) ;
+        }
+        //now we find the normals to the planes
+        MathUtils<double>::CrossProduct(normal1,edge1,edge2a);
+        MathUtils<double>::CrossProduct(normal2,edge1,edge2b);
+        normal1 /= std::sqrt(normal1[0]*normal1[0] + normal1[1]*normal1[1] + normal1[2]*normal1[2]);
+        normal2 /= std::sqrt(normal2[0]*normal2[0] + normal2[1]*normal2[1] + normal2[2]*normal2[2]);
+
+        //and finally the cos of the angle:
+        const double angle_cos = (  normal1[0]*normal2[0] + normal1[1]*normal2[1] + normal1[2]*normal2[2] );
+        rDihedralAngles[i] = std::acos(angle_cos);
+      }
+
+    }
+
     /**
     * Returns a matrix of the local coordinates of all points
     * @param rResult a Matrix that will be overwritten by the results
@@ -768,9 +929,9 @@ public:
      * @return The vector containing the local coordinates of the point
      */
     CoordinatesArrayType& PointLocalCoordinates(
-            CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint
-            ) override
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint
+        ) const override
     {
         // Compute RHS
         array_1d<double,4> X;
@@ -778,7 +939,7 @@ public:
         X[1] = rPoint[0];
         X[2] = rPoint[1];
         X[3] = rPoint[2];
-        
+
         // Auxiliar coordinates
         const double x1 = this->GetPoint( 0 ).X();
         const double x2 = this->GetPoint( 1 ).X();
@@ -792,7 +953,7 @@ public:
         const double z2 = this->GetPoint( 1 ).Z();
         const double z3 = this->GetPoint( 2 ).Z();
         const double z4 = this->GetPoint( 3 ).Z();
-        
+
         // Auxiliar diff
         const double x12 = x1 - x2;
         const double x13 = x1 - x3;
@@ -824,9 +985,9 @@ public:
         const double z34 = z3 - z4;
         const double z42 = z4 - z2;
         const double z43 = z4 - z3;
-        
+
         // Compute LHS
-        bounded_matrix<double, 4,4> invJ;
+        BoundedMatrix<double, 4,4> invJ;
         const double aux_volume = 1.0/(6.0*this->Volume());
         invJ(0,0) = aux_volume * (x2*(y3*z4-y4*z3)+x3*(y4*z2-y2*z4)+x4*(y2*z3-y3*z2));
         invJ(1,0) = aux_volume * (x1*(y4*z3-y3*z4)+x3*(y1*z4-y4*z1)+x4*(y3*z1-y1*z3));
@@ -844,35 +1005,35 @@ public:
         invJ(1,3) = aux_volume * (x31*y43 - x34*y13);
         invJ(2,3) = aux_volume * (x24*y14 - x14*y24);
         invJ(3,3) = aux_volume * (x13*y21 - x12*y31);
-        
+
         const array_1d<double,4> result = prod(invJ, X);
-        
+
         if (rResult.size() != 3)
             rResult.resize(3, false);
-        
+
         rResult[0] = result[1];
         rResult[1] = result[2];
         rResult[2] = result[3];
 
         return rResult;
     }
-    
+
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    bool IsInside( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
+    bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
-        
+
         if( rResult[0] >= 0.0-Tolerance )
         {
             if( rResult[1] >= 0.0-Tolerance )
@@ -886,7 +1047,7 @@ public:
                 }
             }
         }
-        
+
         return false;
     }
 
@@ -963,7 +1124,7 @@ public:
     }
 
     //Connectivities of faces required
-    void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const override
+    void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
     {
         NumberNodesInFaces.resize(4, false);
         // Linear Tetrahedra have elements of 3 nodes as faces
@@ -975,28 +1136,32 @@ public:
     }
 
 
-    void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const override
+    void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
+        // faces in columns
+      if(NodesInFaces.size1() != 4 || NodesInFaces.size2() != 4)
         NodesInFaces.resize(4, 4, false);
-        NodesInFaces(0,0)=0;//face or other node
-        NodesInFaces(1,0)=1;
-        NodesInFaces(2,0)=2;
-        NodesInFaces(3,0)=3;
 
-        NodesInFaces(0,1)=1;//face or other node
-        NodesInFaces(1,1)=2;
-        NodesInFaces(2,1)=0;
-        NodesInFaces(3,1)=3;
-
-        NodesInFaces(0,2)=2;//face or other node
-        NodesInFaces(1,2)=0;
-        NodesInFaces(2,2)=1;
-        NodesInFaces(3,2)=3;
-
-        NodesInFaces(0,3)=3;//face or other node
-        NodesInFaces(1,3)=0;
-        NodesInFaces(2,3)=2;
-        NodesInFaces(3,3)=1;
+      //face 1
+      NodesInFaces(0,0)=0;//contrary node to the face
+      NodesInFaces(1,0)=1;
+      NodesInFaces(2,0)=2;
+      NodesInFaces(3,0)=3;
+      //face 2
+      NodesInFaces(0,1)=1;//contrary node to the face
+      NodesInFaces(1,1)=2;
+      NodesInFaces(2,1)=0;
+      NodesInFaces(3,1)=3;
+      //face 3
+      NodesInFaces(0,2)=2;//contrary node to the face
+      NodesInFaces(1,2)=0;
+      NodesInFaces(2,2)=1;
+      NodesInFaces(3,2)=3;
+      //face 4
+      NodesInFaces(0,3)=3;//contrary node to the face
+      NodesInFaces(1,3)=0;
+      NodesInFaces(2,3)=2;
+      NodesInFaces(3,3)=1;
 
     }
 
@@ -1012,7 +1177,6 @@ public:
      * value of the shape function is calculated
      *
      * @return the value of the shape function at the given point
-     * TODO: TO BE VERIFIED
      */
     double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint) const override
@@ -1099,7 +1263,7 @@ public:
         if(integration_points_number == 0)
             KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
-        boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+        BoundedMatrix<double,4,3> DN_DX;
         const double x10 = this->Points()[1].X() - this->Points()[0].X();
         const double y10 = this->Points()[1].Y() - this->Points()[0].Y();
         const double z10 = this->Points()[1].Z() - this->Points()[0].Z();
@@ -1151,7 +1315,7 @@ public:
         if(integration_points_number == 0)
             KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
-        boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+        BoundedMatrix<double,4,3> DN_DX;
         const double x10 = this->Points()[1].X() - this->Points()[0].X();
         const double y10 = this->Points()[1].Y() - this->Points()[0].Y();
         const double z10 = this->Points()[1].Z() - this->Points()[0].Z();
@@ -1240,7 +1404,7 @@ public:
             return true;
         if(Triangle3D3Type(this->pGetPoint(2),this->pGetPoint(3), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
             return true;
-        
+
         CoordinatesArrayType local_coordinates;
         // if there are no faces intersecting the box then or the box is inside the tetrahedron or it does not have intersection
         if(IsInside(rLowPoint,local_coordinates))
@@ -1519,9 +1683,6 @@ private:
      */
 
     /**
-     * TODO: TO BE VERIFIED
-     */
-    /**
      * Calculates the gradients in terms of local coordinateds
      * of all shape functions in a given point.
      *
@@ -1547,9 +1708,6 @@ private:
         return rResult;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     /**
      * Calculates the values of all shape function in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -1585,9 +1743,6 @@ private:
         return shape_function_values;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     /**
      * Calculates the local gradients of all shape functions in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -1670,9 +1825,6 @@ private:
         return shape_functions_values;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     static const ShapeFunctionsLocalGradientsContainerType
     AllShapeFunctionsLocalGradients()
     {

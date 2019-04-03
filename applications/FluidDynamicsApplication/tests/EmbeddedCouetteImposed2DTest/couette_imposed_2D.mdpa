@@ -571,7 +571,7 @@ Begin SubModelPart Parts_Fluid // Group Fluid // Subtree Parts
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart Inlet2D // Group Inlet // Subtree AutomaticInlet2D
+Begin SubModelPart Inlet // Group Inlet // Subtree AutomaticInlet2D
     Begin SubModelPartNodes
          1
          3

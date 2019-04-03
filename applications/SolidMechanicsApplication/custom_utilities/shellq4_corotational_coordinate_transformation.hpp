@@ -18,8 +18,8 @@ namespace Kratos
 
 /** \brief EICR ShellQ4_CorotationalCoordinateTransformation
  *
- * This class represents a corotational (nonlinear) coordinate transformation 
- * that can be used by any element whose geometry is a QUAD 4 in 3D space, 
+ * This class represents a corotational (nonlinear) coordinate transformation
+ * that can be used by any element whose geometry is a QUAD 4 in 3D space,
  * with 6 D.O.F.s per node.
  * It's main aim is to:
  * 1) Create the local coordinate system
@@ -29,7 +29,7 @@ namespace Kratos
  *    with rigid body displacements and rotations.
  *
  * Updated version:
- * - Makes use of Quaternions (Euler Parameters) to parametrize finite rotations 
+ * - Makes use of Quaternions (Euler Parameters) to parametrize finite rotations
  *   in an efficient and robust way.
  *
  * References:
@@ -50,7 +50,7 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
 
   typedef double RealType;
 
-  typedef bounded_matrix<RealType, 3, 3> TransformationMatrixType;
+  typedef BoundedMatrix<RealType, 3, 3> TransformationMatrixType;
 
   typedef array_1d<RealType, 3> Vector3Type;
 
@@ -68,20 +68,20 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
   {
   }
 
-  virtual ~ShellQ4_CorotationalCoordinateTransformation()
+  ~ShellQ4_CorotationalCoordinateTransformation() override
   {
   }
 
  public:
 
-  virtual ShellQ4_CoordinateTransformation::Pointer Create(GeometryType::Pointer pGeometry)const
+  ShellQ4_CoordinateTransformation::Pointer Create(GeometryType::Pointer pGeometry) const override
   {
     return ShellQ4_CorotationalCoordinateTransformation::Pointer( new ShellQ4_CorotationalCoordinateTransformation( pGeometry ) );
   }
 
-  virtual void Initialize()
+  void Initialize() override
   {
-    KRATOS_TRY 
+    KRATOS_TRY
 
         if(!mInitialized)
         {
@@ -107,7 +107,7 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
     KRATOS_CATCH("")
         }
 
-  virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override
   {
     for(int i = 0; i < 4; i++)
     {
@@ -115,8 +115,8 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
       mQN[i] = mQN_converged[i];
     }
   }
-    
-  virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+
+  void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override
   {
     for(int i = 0; i < 4; i++)
     {
@@ -124,12 +124,12 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
       mQN_converged[i] = mQN[i];
     }
   }
-    
-  virtual void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+
+  void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override
   {
   }
-    
-  virtual void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+
+  void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override
   {
     const GeometryType & geom = GetGeometry();
     Vector3Type incrementalRotation;
@@ -146,7 +146,7 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
     }
   }
 
-  virtual ShellQ4_LocalCoordinateSystem CreateLocalCoordinateSystem()const
+  ShellQ4_LocalCoordinateSystem CreateLocalCoordinateSystem() const override
   {
     const GeometryType & geom = GetGeometry();
 
@@ -189,13 +189,13 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
     // F = R*U -> find R such that R'*F = U
     double alpha = std::atan2( f21 - f12, f11 + f22 );
 
-    // this final coordinate system is the one in which 
+    // this final coordinate system is the one in which
     // the deformation gradient is equal to the stretch tensor
     return ShellQ4_LocalCoordinateSystem( geom[0], geom[1], geom[2], geom[3], alpha );
   }
 
-  virtual VectorType CalculateLocalDisplacements(const ShellQ4_LocalCoordinateSystem & LCS, 
-                                                 const VectorType & globalDisplacements)
+  VectorType CalculateLocalDisplacements(const ShellQ4_LocalCoordinateSystem & LCS,
+                                                 const VectorType & globalDisplacements) override
   {
     const GeometryType & geom = GetGeometry();
 
@@ -216,7 +216,7 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
       unsigned int index = i * 6;
 
       // get deformational displacements
-            
+
       noalias( deformationalDisplacements )  = prod( T , geom[i] - C );
       noalias( deformationalDisplacements ) -= prod( T0, geom[i].GetInitialPosition() - mC0 );
 
@@ -228,21 +228,21 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
 
       QuaternionType Qd = Q * mQN[i] * mQ0.conjugate();
 
-      Qd.ToRotationVector( localDisplacements[index + 3], 
-                           localDisplacements[index + 4], 
+      Qd.ToRotationVector( localDisplacements[index + 3],
+                           localDisplacements[index + 4],
                            localDisplacements[index + 5] );
     }
 
     return localDisplacements;
   }
 
-  virtual void FinalizeCalculations(const ShellQ4_LocalCoordinateSystem & LCS,
+  void FinalizeCalculations(const ShellQ4_LocalCoordinateSystem & LCS,
                                     const VectorType & globalDisplacements,
                                     const VectorType & localDisplacements,
                                     MatrixType & rLeftHandSideMatrix,
                                     VectorType & rRightHandSideVector,
                                     const bool RHSrequired,
-                                    const bool LHSrequired)
+                                    const bool LHSrequired) override
   {
     // Get the total rotation matrix (local - to - global)
     // Note: do NOT include the warpage correction matrix!
@@ -270,23 +270,23 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
     // so projectedLocalForces = - P' * Ke * U
 
     VectorType projectedLocalForces( prod( trans( P ), rRightHandSideVector ) );
-        
+
     // Compute the Right-Hand-Side vector in global coordinate system (- T' * P' * Km * U).
     // At this point the computation of the Right-Hand-Side is complete.
 
     noalias( rRightHandSideVector ) = prod( trans( T ), projectedLocalForces );
 
     // Begin the computation of the Left-Hand-Side Matrix :
-        
+
     if(!LHSrequired) return; // avoid useless calculations!
-        
+
     // This is a temporary matrix to store intermediate values
     // to avoid extra dynamic memory allocations!
 
     MatrixType temp(24, 24);
 
     // H: Axial Vector Jacobian
-    MatrixType H( EICR::Compute_H(localDisplacements) );  
+    MatrixType H( EICR::Compute_H(localDisplacements) );
 
     // Step 1: ( K.M : Material Stiffness Matrix )
     // Apply the projector to the Material Stiffness Matrix (Ke = P' * Km * H * P)
@@ -334,9 +334,9 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
     noalias( rLeftHandSideMatrix ) = prod( trans( T ), temp );
   }
 
-  virtual MatrixType GetNodalDeformationalRotationTensor(const ShellQ4_LocalCoordinateSystem & LCS,
+  MatrixType GetNodalDeformationalRotationTensor(const ShellQ4_LocalCoordinateSystem & LCS,
                                                          const Vector& globalDisplacements,
-                                                         size_t nodeid)
+                                                         size_t nodeid) override
   {
     if(nodeid>3) return IdentityMatrix(3,3);
 
@@ -349,9 +349,9 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
     return R;
   }
 
-  virtual MatrixType GetNodalDeformationalRotationTensor(const ShellQ4_LocalCoordinateSystem & LCS,
+  MatrixType GetNodalDeformationalRotationTensor(const ShellQ4_LocalCoordinateSystem & LCS,
                                                          const Vector& globalDisplacements,
-                                                         const Vector& N)
+                                                         const Vector& N) override
   {
     QuaternionType Q = QuaternionType::FromRotationMatrix( LCS.Orientation() );
 
@@ -395,9 +395,9 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
    * @param area the element area
    * @return the Spin Fitter Matrix
    */
-  inline MatrixType Compute_G(const Vector3Type & P1, 
-                              const Vector3Type & P2, 
-                              const Vector3Type & P3, 
+  inline MatrixType Compute_G(const Vector3Type & P1,
+                              const Vector3Type & P2,
+                              const Vector3Type & P3,
                               const Vector3Type & P4,
                               RealType area)
   {
@@ -417,9 +417,9 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
     RealType y31 = D13(1);
     RealType y13 = - y31;
 
-    // Note, assuming the input vectors are in local CR, 
+    // Note, assuming the input vectors are in local CR,
     // l12 is the length of the side 1-2 projected onto the xy plane.
-    RealType l12 = std::sqrt( D12(0)*D12(0) + D12(1)*D12(1) ); 
+    RealType l12 = std::sqrt( D12(0)*D12(0) + D12(1)*D12(1) );
 
     MatrixType G(3, 24, 0.0);
 
@@ -468,7 +468,7 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
     double aX1 = a.X1(); double aY1 = a.Y1();
     double aX2 = a.X2(); double aY2 = a.Y2();
     double aX3 = a.X3(); double aY3 = a.Y3();
-    double aX4 = a.X4(); double aY4 = a.Y4();		
+    double aX4 = a.X4(); double aY4 = a.Y4();
 
     double pert = std::sqrt(a.Area()) * 1.0E-2;
 
@@ -549,7 +549,7 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
 
   friend class Serializer;
 
-  virtual void save(Serializer& rSerializer) const
+  void save(Serializer& rSerializer) const override
   {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  ShellQ4_CoordinateTransformation );
     rSerializer.save("init", mInitialized);
@@ -561,7 +561,7 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
     rSerializer.save("RV_conv", mRV_converged);
   }
 
-  virtual void load(Serializer& rSerializer)
+  void load(Serializer& rSerializer) override
   {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  ShellQ4_CoordinateTransformation );
     rSerializer.load("init", mInitialized);
@@ -571,7 +571,7 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
     rSerializer.load("RV", mRV);
     rSerializer.load("QN_conv", mQN_converged);
     rSerializer.load("RV_conv", mRV_converged);
-			
+
   }
 
 };

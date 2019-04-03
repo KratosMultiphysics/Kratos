@@ -178,9 +178,9 @@ namespace Kratos
 	      }
       } else {
 	     this->GetProperties()[THICKNESS] = 1.0;
-      } 
+      }
 
-                  return correct;
+      return correct;
 
       KRATOS_CATCH( "" );
    }
@@ -214,6 +214,8 @@ namespace Kratos
       for (unsigned int Node = 0; Node < number_of_nodes; Node++) {
          double& DetFNodal = GetGeometry()[Node].GetSolutionStepValue(JACOBIAN );
          DetFNodal = 1.0;
+         double& DetFNodalPrev = GetGeometry()[Node].GetSolutionStepValue(JACOBIAN , 1);
+         DetFNodalPrev = 1.0;
       }
 
       KRATOS_CATCH( "" )
@@ -223,10 +225,12 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUJElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   void AxisymUpdatedLagrangianUJElement::InitializeElementData (ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
       // copy from a non-derived class
       const unsigned int number_of_nodes = GetGeometry().size();
+
+      rVariables.Initialize(4, 2, 3);
 
       rVariables.detF  = 1;
 
@@ -261,9 +265,8 @@ namespace Kratos
       //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
       rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
-
       //Calculate Delta Position
-      rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+      ElementUtilities::CalculateDeltaPosition(rVariables.DeltaPosition,this->GetGeometry());
 
       //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
       rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
@@ -337,8 +340,8 @@ namespace Kratos
 
    void AxisymUpdatedLagrangianUJElement::CalculateDeformationGradient(const Matrix& rDN_DX,
          Matrix& rF,
-         Matrix& rDeltaPosition, 
-         double & rCurrentRadius, 
+         Matrix& rDeltaPosition,
+         double & rCurrentRadius,
          double & rReferenceRadius)
    {
 
@@ -482,7 +485,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
 
    //*********************************COMPUTE KINEMATICS*********************************
    //************************************************************************************
-   void AxisymUpdatedLagrangianUJElement::CalculateKinematics(ElementVariables& rVariables,
+   void AxisymUpdatedLagrangianUJElement::CalculateKinematics(ElementDataType& rVariables,
          const double& rPointNumber)
 
    {
@@ -507,7 +510,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
       noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
       //Set Shape Functions Values for this integration point
-      rVariables.N=row( Ncontainer, rPointNumber);
+      noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
       //Calculate IntegrationPoint radius
       CalculateRadius (rVariables.CurrentRadius, rVariables.ReferenceRadius, rVariables.N);
@@ -523,7 +526,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
       MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
 
       //Compute cartesian derivatives [dN/dx_n+1]
-      rVariables.DN_DX = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
+      noalias( rVariables.DN_DX ) =  prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
 
       //Determinant of the Deformation Gradient F0
       rVariables.detF0 = mDeterminantF0[rPointNumber];
@@ -584,7 +587,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUJElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
    {
 
       double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
@@ -597,7 +600,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUJElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
 
       double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
@@ -610,7 +613,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
    //******************************** JACOBIAN FORCES  **********************************
    //************************************************************************************
    void AxisymUpdatedLagrangianUJElement::CalculateAndAddJacobianForces(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -652,7 +655,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
    //************************* defined in the Stab element ************************************
 
    void AxisymUpdatedLagrangianUJElement::CalculateAndAddStabilizedJacobian(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -666,9 +669,9 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
       // std::cout<<" Element "<<this->Id()<<" "<<std::endl;
 
       //use of this variable for the complete parameter: (deffault: 4)
-      double AlphaStabilization  = 4.0; 
+      double AlphaStabilization  = 4.0;
       double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_J];
-      AlphaStabilization *= StabilizationFactor; 
+      AlphaStabilization *= StabilizationFactor;
 
       const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
       const double& PoissonCoefficient    = GetProperties()[POISSON_RATIO];
@@ -683,7 +686,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
       if (YoungModulus < 0.00001)
       {
          AlphaStabilization = 4.0 * StabilizationFactor / 18.0;
-         AlphaStabilization *= mElementStabilizationNumber; 
+         AlphaStabilization *= mElementStabilizationNumber;
 
       }
 
@@ -722,7 +725,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
    //***************** It includes the pw geometric stiffness ************************
 
    void AxisymUpdatedLagrangianUJElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-         ElementVariables& rVariables,
+         ElementDataType& rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -752,7 +755,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
 
       ConstitutiveMatrix = prod( ConstitutiveMatrix, DeviatoricTensor);
 
-      if ( this->Id() == 0) 
+      if ( this->Id() == 0)
       {
          std::cout << " CONS 0 " << rVariables.ConstitutiveMatrix << std::endl;
          std::cout << " CONS 1 " << ConstitutiveMatrix << std::endl;
@@ -766,7 +769,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
          }
       }
 
-      if ( this->Id() == 0) 
+      if ( this->Id() == 0)
       {
          std::cout << " CONS 2 " << ConstitutiveMatrix << std::endl;
          std::cout << " AUX MATRIX " << AuxMatrix << std::endl;
@@ -775,7 +778,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
       }
 
 
-      Matrix Kuu = prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( ConstitutiveMatrix, rVariables.B ) ) ); 
+      Matrix Kuu = prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( ConstitutiveMatrix, rVariables.B ) ) );
 
       MatrixType Kh=rLeftHandSideMatrix;
 
@@ -799,7 +802,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
       }
 
       // std::cout<<std::endl;
-      //if ( this->Id() < 10) 
+      //if ( this->Id() < 10)
       //   std::cout<<" Kmat "<<rLeftHandSideMatrix-Kh<<std::endl;
 
       KRATOS_CATCH( "" )
@@ -809,11 +812,11 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
    //************************************************************************************
 
    void AxisymUpdatedLagrangianUJElement::CalculateAndAddKuJ (MatrixType& rLeftHandSideMatrix,
-         ElementVariables& rVariables,
+         ElementDataType& rVariables,
          double& rIntegrationWeight)
    {
 
-      
+
       KRATOS_TRY
 
       const unsigned int number_of_nodes = GetGeometry().size();
@@ -875,7 +878,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
    //*********************************************************************************
 
    void AxisymUpdatedLagrangianUJElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-         ElementVariables& rVariables,
+         ElementDataType& rVariables,
          double& rIntegrationWeight)
 
    {
@@ -949,7 +952,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
 
       KRATOS_CATCH( "" )
 
-   
+
    }
 
 
@@ -958,7 +961,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
    //************************************************************************************
 
    void AxisymUpdatedLagrangianUJElement::CalculateAndAddKJu (MatrixType& rLeftHandSideMatrix,
-         ElementVariables& rVariables,
+         ElementDataType& rVariables,
          double& rIntegrationWeight)
 
    {
@@ -985,7 +988,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
             {
                rLeftHandSideMatrix(indexp, indexup + k) += rVariables.N[i] * rVariables.DN_DX( j, k) * rIntegrationWeight ;
                if ( k == 0)
-                  rLeftHandSideMatrix(indexp, indexup + k) += rVariables.N[i] * rVariables.N[j] * ( 1.0/ rVariables.CurrentRadius) * rIntegrationWeight; 
+                  rLeftHandSideMatrix(indexp, indexup + k) += rVariables.N[i] * rVariables.N[j] * ( 1.0/ rVariables.CurrentRadius) * rIntegrationWeight;
             }
 
          }
@@ -1005,7 +1008,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
    // ^^^^^^^^^^^^^^^^^^^^^ KJJ ***************************************************
    // ********************************************************************************
    void AxisymUpdatedLagrangianUJElement::CalculateAndAddKJJ (MatrixType& rLeftHandSideMatrix,
-         ElementVariables& rVariables,
+         ElementDataType& rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -1044,7 +1047,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
    //************************************************************************************
 
    void AxisymUpdatedLagrangianUJElement::CalculateAndAddKJJStab (MatrixType& rLeftHandSideMatrix,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight)
    {
 
@@ -1062,9 +1065,9 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
       double consistent = 1.0;
 
       //use of this variable for the complete parameter: (deffault: 4)
-      double AlphaStabilization  = 4.0; 
+      double AlphaStabilization  = 4.0;
       double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_J];
-      AlphaStabilization *= StabilizationFactor; 
+      AlphaStabilization *= StabilizationFactor;
 
       const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
       const double& PoissonCoefficient    = GetProperties()[POISSON_RATIO];
@@ -1079,7 +1082,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
       if (YoungModulus < 0.00001)
       {
          AlphaStabilization = 4.0 * StabilizationFactor / 18.0;
-         AlphaStabilization *= mElementStabilizationNumber; 
+         AlphaStabilization *= mElementStabilizationNumber;
       }
 
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -1130,8 +1133,8 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
-      ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      ElementDataType Variables;
+      this->InitializeElementData(Variables,rCurrentProcessInfo);
 
 
       for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
@@ -1198,7 +1201,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUJElement::GetHistoricalVariables( ElementVariables& rVariables, const double& rPointNumber )
+   void AxisymUpdatedLagrangianUJElement::GetHistoricalVariables( ElementDataType& rVariables, const double& rPointNumber )
    {
       UpdatedLagrangianUJElement::GetHistoricalVariables(rVariables,rPointNumber);
 
@@ -1209,16 +1212,16 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
 
 
 
-   void AxisymUpdatedLagrangianUJElement::ComputeConstitutiveVariables(  ElementVariables& rVariables, Matrix& rFT, double& rDetFT)
+   void AxisymUpdatedLagrangianUJElement::ComputeConstitutiveVariables(  ElementDataType& rVariables, Matrix& rFT, double& rDetFT)
    {
       KRATOS_TRY
 
       const unsigned int number_of_nodes = GetGeometry().size();
 
-      double dimension_double = 3.0; 
+      double dimension_double = 3.0;
 
       rDetFT = 0;
-      for (unsigned int i = 0; i < number_of_nodes; i++) 
+      for (unsigned int i = 0; i < number_of_nodes; i++)
          rDetFT += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * rVariables.N[i];
 
       rFT = rVariables.H;
@@ -1246,7 +1249,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
 
       double detF0 = 0;
       unsigned int step = 1;
-      if ( mFinalizedStep ==  true) 
+      if ( this->Is(SolidElement::FINALIZED_STEP) )
          step = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++)
          detF0 += GetGeometry()[i].GetSolutionStepValue( JACOBIAN, step ) * rVariables.N[i];
@@ -1265,7 +1268,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
          std::cout << " CONSTITUTIVE INVERSE " << EECCInverseDefGrad[0] << std::endl;
          std::cout << "  CONSTITUTIVE " << EECCDefGrad << std::endl;
          std::cout << std::endl;
-         std::cout << " FINALIZED ?: " << mFinalizedStep << std::endl;
+         std::cout << " FINALIZED ?: " << this->Is(SolidElement::FINALIZED_STEP) << std::endl;
          std::cout << " NODAL " << detF0 << std::endl;
          std::cout << " PREVIOUS DISPL F " << rVariables.F0 << std::endl;
          std::cout << "   MAYBE " << rVariables.H << std::endl;

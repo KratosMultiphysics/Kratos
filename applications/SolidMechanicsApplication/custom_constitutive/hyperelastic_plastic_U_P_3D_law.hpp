@@ -21,11 +21,11 @@
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic isotropic constitutive law in 3D 
+ * Defines a hyperelastic-plastic isotropic constitutive law in 3D
  * With stress split in an isochoric and volumetric parts
  * This material law is defined by the parameters needed by the yield criterion:
 
- * The functionality is limited to large displacements 
+ * The functionality is limited to large displacements
  */
 
 class KRATOS_API(SOLID_MECHANICS_APPLICATION) HyperElasticPlasticUP3DLaw : public HyperElasticPlastic3DLaw
@@ -59,7 +59,7 @@ public:
     HyperElasticPlasticUP3DLaw();
 
 
-    HyperElasticPlasticUP3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    HyperElasticPlasticUP3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -77,12 +77,12 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Destructor.
      */
-    virtual ~HyperElasticPlasticUP3DLaw();
+    ~HyperElasticPlasticUP3DLaw() override;
 
     /**
      * Operators
@@ -97,7 +97,7 @@ public:
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
      */
-    void GetLawFeatures(Features& rFeatures);
+    void GetLawFeatures(Features& rFeatures) override;
 
     /**
      * This function is designed to be called once to perform all the checks needed
@@ -118,15 +118,15 @@ public:
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
+    //String Info() const override;
     /**
      * Print information about this object.
      */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
+    //void PrintInfo(std::ostream& rOStream) const override;
     /**
      * Print object's data.
      */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    //void PrintData(std::ostream& rOStream) const override;
 
 protected:
 
@@ -149,7 +149,7 @@ protected:
      * @param rPressure the calculated pressure to be returned
      */
     double& CalculateVolumetricPressure (const MaterialResponseVariables & rElasticVariables,
-					 double & rPressure);
+					 double & rPressure) override;
 
     /**
      * Calculates the Volumetric part factors
@@ -157,7 +157,7 @@ protected:
      * @param rFactors Volumetric stress factors
      */
     Vector& CalculateVolumetricPressureFactors (const MaterialResponseVariables & rElasticVariables,
-						Vector & rFactors);
+						Vector & rFactors) override;
 
 
 
@@ -193,12 +193,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElasticPlastic3DLaw);
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElasticPlastic3DLaw);
     }

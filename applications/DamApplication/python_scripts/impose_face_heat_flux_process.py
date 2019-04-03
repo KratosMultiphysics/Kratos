@@ -4,12 +4,12 @@ from KratosMultiphysics.DamApplication import *
 ## In this case, the scalar value is automatically fixed.
 
 def Factory(settings, Model):
-    if(type(settings) != Parameters):
+    if not isinstance(settings, Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ImposeFaceHeatFluxProcess(Model, settings["Parameters"])
 
 class ImposeFaceHeatFluxProcess(Process):
-    
+
     def __init__(self, Model, settings ):
 
         Process.__init__(self)
@@ -41,12 +41,12 @@ class ImposeFaceHeatFluxProcess(Process):
             t_ambient.AddEmptyValue("delta_R").SetDouble(0.0)
             t_ambient.AddEmptyValue("absorption_index").SetDouble(0.0)
             t_ambient.AddEmptyValue("total_insolation").SetDouble(0.0)
-            self.components_process_list.append(DamTSolAirHeatFluxProcess(model_part, t_ambient))        
+            self.components_process_list.append(DamTSolAirHeatFluxProcess(model_part, t_ambient))
 
         ## This process compute the heat flux according to q = h(t_sol_air - t_current)
         if ("TSolAirFluxCondition2D" in settings["model_part_name"].GetString()) or ("TSolAirFluxCondition3D" in settings["model_part_name"].GetString()):
             self.components_process_list.append(DamTSolAirHeatFluxProcess(model_part, settings))
-             
+
     def ExecuteInitialize(self):
         for component in self.components_process_list:
             component.ExecuteInitialize()

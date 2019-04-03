@@ -30,7 +30,7 @@
 namespace Kratos
 {
 
-   class SetMechanicalInitialStateProcess
+   class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) SetMechanicalInitialStateProcess
       : public Process 
    {
       public:
@@ -82,7 +82,7 @@ namespace Kratos
             Execute();
          }
 
-         virtual void Execute();
+         void Execute() override;
 
       protected:
 

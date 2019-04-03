@@ -346,7 +346,7 @@ namespace Kratos
 		}
 
 		noalias(strainVector) -= mInitStrain;
-		
+
 		SizeType size = GetStrainSize();
 		if (compute_stress)
 			if (stressVector.size() != size)
@@ -411,7 +411,7 @@ namespace Kratos
 
 		size_t strain_size = strainVector.size();
 		mStressVector.clear();
-		
+
 		//Initialize data for the interpolation
 		Vector Theta(strain_size - 1);
 		Vector eps(strain_size);
@@ -498,7 +498,7 @@ namespace Kratos
 		}
 		else
 		{
-			// local_x and y defines where to estimate the value on the interpolated line, 
+			// local_x and y defines where to estimate the value on the interpolated line,
 			// it is 0 at the first point and 1 and the second point
 			double local_x = (xy[0] - min_xy[0]); // / (max_tag[0] - min_tag[0]);
 			double local_y = (xy[1] - min_xy[1]); // / (max_tag[1] - min_tag[1]);
@@ -583,7 +583,7 @@ namespace Kratos
 		xi[1] = -1.0;				eta[1] = 1.0;
 		xi[2] = 1.0;				eta[2] = -1.0;
 		xi[3] = 1.0;				eta[3] = 1.0;
-		
+
 		Vector InterpDamageVector(n_damage, 0.0);
 		Vector InterpRadiusVector(n_damage, 0.0);
 		Vector InterpStressVectorXX(n_damage, 0.0);
@@ -608,7 +608,7 @@ namespace Kratos
 		}
 		else
 		{
-			// local_x and y defines where to estimate the value on the interpolated line, 
+			// local_x and y defines where to estimate the value on the interpolated line,
 			// it is 0 at the first point and 1 and the second point
 			double local_x = (real_tag[0] - min_tag[0]); // / (max_tag[0] - min_tag[0]);
 			double local_y = (real_tag[1] - min_tag[1]); // / (max_tag[1] - min_tag[1]);
@@ -691,7 +691,7 @@ namespace Kratos
 		//	std::wcout << "real_tag: " << real_tag << std::endl;
 		//	std::cout << "gf_ref*lch_ref: " << mGf_bar*1.0e3 << " ; gf*lch_macro: " << gf*lch_macro << std::endl;
 		//}
-		
+
 		if (real_radius < InterpRadiusVector[0])
 		{
 			//std::cout << "Is_Elastic = true\n";
@@ -721,11 +721,11 @@ namespace Kratos
 				// stress_vector[0] = InterpStressVectorXX[n_damage - 1] + (InterpStressVectorXX[n_damage - 1] - InterpStressVectorXX[n_damage - 2])*(x - x0) / diff;
 				// if (SIGMA_SIGN(stress_vector[0]) != SIGMA_SIGN(InterpStressVectorXX[n_damage - 2]))
 				// 	stress_vector[0] = 1.0e-3*InterpStressVectorXX[0];
-				// 
+				//
 				// stress_vector[1] = InterpStressVectorYY[n_damage - 1] + (InterpStressVectorYY[n_damage - 1] - InterpStressVectorYY[n_damage - 2])*(x - x0) / diff;
 				// if (SIGMA_SIGN(stress_vector[1]) != SIGMA_SIGN(InterpStressVectorYY[n_damage - 2]))
 				// 	stress_vector[1] = 1.0e-3*InterpStressVectorYY[0];
-				// 
+				//
 				// stress_vector[2] = InterpStressVectorXY[n_damage - 1] + (InterpStressVectorXY[n_damage - 1] - InterpStressVectorXY[n_damage - 2])*(x - x0) / diff;
 				// if (SIGMA_SIGN(stress_vector[2]) != SIGMA_SIGN(InterpStressVectorXY[n_damage - 2]))
 				// 	stress_vector[2] = 1.0e-3*InterpStressVectorXY[0];
@@ -793,10 +793,10 @@ namespace Kratos
 
 		//noalias(const_tensor) = (1 - EquivalentDamageConverged)*mC0;
 	}
-	
+
 	void InterpolatedConstitutiveLaw2D::BiLinearInterpolation(const size_t& m, const Vector& xy, const vector<int>& min_xy)
 	{
-		// local_x and y defines where to estimate the value on the interpolated line, 
+		// local_x and y defines where to estimate the value on the interpolated line,
 		// it is 0 at the first point and 1 and the second point
 		double local_x = (xy[0] - min_xy[0]); // / (max_tag[0] - min_tag[0]);
 		double local_y = (xy[1] - min_xy[1]); // / (max_tag[1] - min_tag[1]);
@@ -869,7 +869,7 @@ namespace Kratos
 			norm_s[i] = sqrt(sigma_xx[i] * sigma_xx[i] + sigma_yy[i] * sigma_yy[i] + 2.0*sigma_xy[i] * sigma_xy[i]);
 			//norm_s[i] = sqrt(sigma_xx[i] * sigma_xx[i] + sigma_yy[i] * sigma_yy[i] + sigma_xy[i] * sigma_xy[i]);
 		}
-		
+
 		//std::cout << "radius: " << radius << std::endl;
 		//std::cout << "norm_s: " << norm_s << std::endl;
 		auto biggest_ft = std::max_element(std::begin(norm_s), std::end(norm_s));
@@ -983,7 +983,7 @@ namespace Kratos
 		//std::cout << "lch_macro: " << lch_macro << std::endl;
 		//xx
 		Gf = mGf_bar * mult;
-		//mAlpha = lch_ref / lch_macro - 1.0; 
+		//mAlpha = lch_ref / lch_macro - 1.0;
 		mAlpha = ((Gf - mG0) / (mGf_bar - mG0)) - 1.0;
 		//std::cout << "mult: " << mult << std::endl;
 		//std::cout << "mG0: " << mG0 << std::endl;

@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Michael Andre, https://github.com/msandre
@@ -30,7 +30,7 @@ void VorticityUtilities<TDim>::CalculateQValue(
         rQValues.resize(integration_point_number);
     }
 
-    boost::numeric::ublas::bounded_matrix<double,TDim,TDim> velocity_gradients;
+    BoundedMatrix<double,TDim,TDim> velocity_gradients;
 
     // Loop on integration points
     for (unsigned int g = 0; g < integration_point_number; g++) {
@@ -73,7 +73,7 @@ void VorticityUtilities<TDim>::CalculateVorticityMagnitude(
     for (unsigned int g = 0; g < integration_point_number; g++) {
         const auto& rDN_DX = rShapeFunctionsGradients[g];
 
-        array_1d<double,3> vorticity(3,0.0);
+        array_1d<double,3> vorticity = ZeroVector(3);
 
         for (unsigned int i_node = 0; i_node < rGeometry.size(); i_node++) {
             const array_1d<double,3>& r_velocity = rGeometry[i_node].FastGetSolutionStepValue(VELOCITY);

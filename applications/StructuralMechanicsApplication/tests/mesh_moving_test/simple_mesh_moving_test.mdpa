@@ -4,11 +4,6 @@ End ModelPartData
 
 Begin Properties 0
 End Properties
-Begin Properties 1
-    DENSITY   7.85000E+03 
-    YOUNG_MODULUS   1.00000E+07 
-    POISSON_RATIO   0.00000E-00 
-End Properties
 
 Begin Nodes
     1        0.00000        1.00000        0.00000
@@ -23,10 +18,10 @@ Begin Nodes
 End Nodes
 
 Begin Elements TotalLagrangianElement2D4N
-         1          1          8          7          4          5 
-         2          1          9          8          5          6 
-         3          1          2          3          6          5 
-         4          1          2          5          4          1 
+         1          0          8          7          4          5
+         2          0          9          8          5          6
+         3          0          2          3          6          5
+         4          0          2          5          4          1
 End Elements
 
 Begin SubModelPart Parts_All// Group plate // Subtree Parts

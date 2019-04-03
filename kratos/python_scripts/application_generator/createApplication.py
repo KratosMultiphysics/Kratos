@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division
+
 import sys
 
 from classes.elementCreator import ElementCreator
@@ -22,8 +24,10 @@ debugApp = ApplicationGenerator(appNameCamel)
 
 # Add KratosVariables
 debugApp.AddVariables([
-    VariableCreator(name='1DVariable', vtype='double'),
-    VariableCreator(name='3DVariable', vtype='double', is3D=True),
+    VariableCreator(name='DOF_1', vtype='double'),
+    VariableCreator(name='DOF_2', vtype='double'),
+    VariableCreator(name='ScalarVariable', vtype='double'),
+    VariableCreator(name='VectorVariable', vtype='double', is3D=True),
 ])
 
 # Add test element
@@ -32,20 +36,14 @@ debugApp.AddElements([
     .AddDofs(['DOF_1', 'DOF_2'])
     .AddFlags(['FLAG_1', 'FLAG_2'])
     .AddClassMemberVariables([
-        ClassMemberCreator(name='Variable1', vtype='double *', default='nullptr'),
-        ClassMemberCreator(name='Variable2', vtype='int', default='0'),
-        ClassMemberCreator(name='Variable3', vtype='std::string &', default='0'),
-        # ClassMemberCreator(name='Warnvar1', vtype='std::string &',)
+        ClassMemberCreator(name='VariableA', vtype='double *', default='nullptr'),
+        ClassMemberCreator(name='VariableB', vtype='int', default='0'),
+        ClassMemberCreator(name='VariableC', vtype='std::string', default='"Usefull String"'),
     ])
 ])
 
 debugApp.AddConditions([
     ConditionCreator('CustomTestCondition')
-])
-
-debugApp.AddProcesses([
-    ProcessCreator('CustomTestProcessAlpha'),
-    ProcessCreator('CustomTestProcessDelta')
 ])
 
 debugApp.Generate()

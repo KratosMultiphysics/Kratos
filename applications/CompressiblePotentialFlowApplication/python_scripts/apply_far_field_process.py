@@ -1,12 +1,13 @@
 import KratosMultiphysics
-from math import *
+import KratosMultiphysics.CompressiblePotentialFlowApplication as CompressiblePotentialFlowApplication
+#from CompressiblePotentialFlowApplication import*
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if( not isinstance(settings,KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyFarFieldProcess(Model, settings["Parameters"])
 
-##all the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class ApplyFarFieldProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
@@ -38,27 +39,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.speed_sound_infinity   = settings["speed_sound_infinity"].GetDouble()
         self.AOAdeg                 = settings["AOAdeg"].GetDouble()
         
-
-        #convert angle to radians
-        self.AOArad = self.AOAdeg*pi/180
+        self.model_part.ProcessInfo.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY,self.velocity_infinity)
         
-        #rotate velocity vector according to the angle of attack
-        self.velocity_infinity[0]   = settings["velocity_infinity"][0].GetDouble()*cos(self.AOArad)
-        self.velocity_infinity[2]   = settings["velocity_infinity"][0].GetDouble()*sin(self.AOArad)
-        self.velocity_infinity[1]   = settings["velocity_infinity"][2].GetDouble()
-                
-        from numpy import linalg as LA
-        velocity_norm = LA.norm(self.velocity_infinity)
-        
-        self.mach                   = velocity_norm/self.speed_sound_infinity
-        
-        print('\nAngle of attack   =  \t'   , self.AOAdeg)
-        print('\nvelocity_infinity =  \t'   , self.velocity_infinity)
-        print('\nvelocity_norm     =  \t'   , velocity_norm)
-        print('\nmach =               \t'   , self.mach)
-        print('\ndensity_infinity =   \t'   , self.density_infinity)
-        print('\nspeed_sound_infinity =\t'  , self.speed_sound_infinity)
-        print('\ngamma =              \t'   , self.gamma)
         
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.VELOCITY,       self.velocity_infinity)
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY,        self.density_infinity)
@@ -77,8 +59,9 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part,self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])   
 
     def Execute(self):
+        #KratosMultiphysics.VariableUtils().SetVectorVar(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity, self.model_part.Conditions)
         for cond in self.model_part.Conditions:
-            cond.SetValue(KratosMultiphysics.VELOCITY, self.velocity_infinity)
+            cond.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity)
 
         #select the first node
         for node in self.model_part.Nodes:
@@ -110,8 +93,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             tmp = dx*self.velocity_infinity[0] + dy*self.velocity_infinity[1] + dz*self.velocity_infinity[2]
             
             if(tmp < pos+1e-9):
-                node.Fix(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-                node.SetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE,0,self.inlet_phi)
+                node.Fix(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL)
+                node.SetSolutionStepValue(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL,0,self.inlet_phi)
         
     def ExecuteInitializeSolutionStep(self):
         self.Execute()

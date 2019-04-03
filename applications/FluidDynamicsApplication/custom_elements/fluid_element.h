@@ -50,6 +50,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+// Forward decalration of auxiliary class
+namespace Internals {
+template <class TElementData, bool TDataKnowsAboutTimeIntegration>
+class FluidElementTimeIntegrationDetail;
+}
+
 template <class TElementData>
 class FluidElement : public Element
 {
@@ -86,7 +92,7 @@ public:
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
     /// Type for shape function values container
-    typedef boost::numeric::ublas::matrix_row< Matrix > ShapeFunctionsType;
+    typedef MatrixRow< Matrix > ShapeFunctionsType;
 
     /// Type for a matrix containing the shape function gradients
     typedef Kratos::Matrix ShapeFunctionDerivativesType;
@@ -178,7 +184,8 @@ public:
                             Properties::Pointer pProperties) const override;
 
     /// Set up the element for solution.
-    //* For FluidElement, this initializes the constitutive law using the data in the element's properties.
+    /** For FluidElement, this initializes the constitutive law using the data in the element's properties.
+     */
     void Initialize() override;
 
     /**
@@ -349,11 +356,51 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual double Interpolate(const typename TElementData::NodalScalarData& rValues,
-                               const typename TElementData::ShapeFunctionsType& rN) const;
+    /// Get information from TElementData at a given point.
+    /** This function serves as a wrapper so that the element does not need to
+     *  know if the data is an elemental value or interpolated at the point from nodal data.
+     *  @param[in] rValues The field to be read from TElementData.
+     *  @param[in] rN Values of the shape functions at the desired point.
+     *  @return The value evaluated at that coordinate.
+     */
+    virtual double GetAtCoordinate(
+        const typename TElementData::NodalScalarData& rValues,
+        const typename TElementData::ShapeFunctionsType& rN) const;
 
-    virtual array_1d<double, 3> Interpolate(const typename TElementData::NodalVectorData& rValues,
-                                            const typename TElementData::ShapeFunctionsType& rN) const;
+    /// Get information from TElementData at a given point.
+    /** This function serves as a wrapper so that the element does not need to
+     *  know if the data is an elemental value or interpolated at the point from nodal data.
+     *  @param[in] rValues The field to be read from TElementData.
+     *  @param[in] rN Values of the shape functions at the desired point.
+     *  @return The value evaluated at that coordinate.
+     */
+    virtual array_1d<double, 3> GetAtCoordinate(
+        const typename TElementData::NodalVectorData& rValues,
+        const typename TElementData::ShapeFunctionsType& rN) const;
+
+    /// Get information from TElementData at a given point.
+    /** This function serves as a wrapper so that the element does not need to
+     *  know if the data is an elemental value or interpolated at the point from nodal data.
+     *  @param[in] rValues The field to be read from TElementData.
+     *  @param[in] rN Values of the shape functions at the desired point.
+     *  @return The value evaluated at that coordinate.
+     */
+    virtual double GetAtCoordinate(
+        const double Value,
+        const typename TElementData::ShapeFunctionsType& rN) const;
+
+    /// Set up the element's data and constitutive law for the current integration point.
+    /** @param[in/out] rData Container for the current element's data.
+     *  @param[in] Weight Integration point weight.
+     *  @param[in] rN Values of nodal shape functions at the integration point.
+     *  @param[in] rDN_DX Values of nodal shape function gradients at the integration point.
+     */
+    virtual void UpdateIntegrationPointData(
+        TElementData& rData,
+        unsigned int IntegrationPointIndex,
+        double Weight,
+        const typename TElementData::MatrixRowType& rN,
+        const typename TElementData::ShapeDerivativesType& rDN_DX) const;
 
     virtual void CalculateMaterialResponse(TElementData& rData) const;
 
@@ -371,7 +418,7 @@ protected:
      */
     void ConvectionOperator(Vector& rResult,
                             const array_1d<double,3>& rConvVel,
-                            const ShapeFunctionDerivativesType& DN_DX);
+                            const ShapeFunctionDerivativesType& DN_DX) const;
 
     virtual void AddTimeIntegratedSystem(
         TElementData& rData,
@@ -395,7 +442,20 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix);
 
-    virtual void AddBoundaryIntegral(
+    /**
+     * @brief Adds the boundary traction component along a cut plane for embedded formulations.
+     * This method adds the boundary traction component to the LHS and RHS arrays.
+     * Such boundary integral must be implemented in all the fluid dynamics elements
+     * deriving from this one in accordance to the formulation used. This method is
+     * intended to be called from the derived elements to add the contribution of the
+     * tractions on the elemental cuts to enforce equilibrium. This means that what we
+     * call external traction is nothing but minus the base formulation boundary term.
+     * @param rData Element data structure
+     * @param rUnitNormal Outwards unit normal vector for the cut plane
+     * @param rLHS Reference to the Left Hand Side matrix
+     * @param rRHS Reference to the Right Hand Side vector
+     */
+    virtual void AddBoundaryTraction(
         TElementData& rData,
         const Vector& rUnitNormal,
         MatrixType& rLHS,
@@ -436,6 +496,12 @@ private:
 
     //// Constitutive relation for the element
     ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    friend class Internals::FluidElementTimeIntegrationDetail<TElementData, TElementData::ElementManagesTimeIntegration>;
 
     ///@}
     ///@name Serialization

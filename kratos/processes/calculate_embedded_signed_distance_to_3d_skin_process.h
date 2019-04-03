@@ -99,16 +99,16 @@ public:
     {
         std::cout << "Entering CalculateDistanceToSkinProcess" << std::endl;
         // Create a pointer to the discontinuous or continuos distance calculation process
-        CalculateDiscontinuousDistanceToSkinProcess::Pointer pdistance_calculator;
+        CalculateDiscontinuousDistanceToSkinProcess<3>::Pointer pdistance_calculator;
         if(mDiscontinuousDistance)
         {
-            pdistance_calculator = CalculateDiscontinuousDistanceToSkinProcess::Pointer(
-                new CalculateDiscontinuousDistanceToSkinProcess(mrFluidModelPart, mrSkinModelPart));
+            pdistance_calculator = CalculateDiscontinuousDistanceToSkinProcess<3>::Pointer(
+                new CalculateDiscontinuousDistanceToSkinProcess<3>(mrFluidModelPart, mrSkinModelPart));
         }
         else
         {
-            pdistance_calculator = CalculateDiscontinuousDistanceToSkinProcess::Pointer(
-                new CalculateDistanceToSkinProcess(mrFluidModelPart, mrSkinModelPart));
+            pdistance_calculator = CalculateDiscontinuousDistanceToSkinProcess<3>::Pointer(
+                new CalculateDistanceToSkinProcess<3>(mrFluidModelPart, mrSkinModelPart));
         }
 
         // Call the distance calculator methods

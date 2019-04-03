@@ -19,7 +19,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "geometries/line_2d.h"
+#include "geometries/line_2d_2.h"
 #include "thermo_mechanical_application.h"
 #include "includes/variables.h"
 
@@ -63,9 +63,9 @@ void KratosThermoMechanicalApplication::Register()
     KRATOS_REGISTER_ELEMENT("SUPGConvDiff3D", mSUPGConvDiff3D);
     KRATOS_REGISTER_ELEMENT("SUPGConv3D", mSUPGConv3D);
     KRATOS_REGISTER_ELEMENT("SUPGConv2D", mSUPGConv2D);
-    KRATOS_REGISTER_ELEMENT("SUPGConv3D", mSUPGConv3D);    
+    KRATOS_REGISTER_ELEMENT("SUPGConv3D", mSUPGConv3D);
     // KRATOS_REGISTER_ELEMENT("Poisson3D", mPoisson3D);
-	KRATOS_REGISTER_ELEMENT("SUPGConvLevelSet", mSUPGConvLevelSet); 
+	KRATOS_REGISTER_ELEMENT("SUPGConvLevelSet", mSUPGConvLevelSet);
 }
 
 }  // namespace Kratos.

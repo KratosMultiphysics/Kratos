@@ -1,9 +1,16 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:            January 2016 $
-//   Revision:            $Revision:                 1.0 $
+
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_POROMECHANICS_NEWTON_RAPHSON_NONLOCAL_STRATEGY)
 #define KRATOS_POROMECHANICS_NEWTON_RAPHSON_NONLOCAL_STRATEGY
@@ -28,7 +35,7 @@ class PoromechanicsNewtonRaphsonNonlocalStrategy : public PoromechanicsNewtonRap
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION(PoromechanicsNewtonRaphsonNonlocalStrategy);
-    
+
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> GrandMotherType;
     typedef PoromechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> MotherType;
@@ -65,7 +72,7 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
         ) : PoromechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,
-                pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag) 
+                pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
         {
             mNonlocalDamageIsInitialized = false;
             mSearchNeighboursAtEachStep = rParameters["search_neighbours_step"].GetBool();
@@ -74,18 +81,18 @@ public:
     //------------------------------------------------------------------------------------
 
     ///Destructor
-    virtual ~PoromechanicsNewtonRaphsonNonlocalStrategy() {}
+    ~PoromechanicsNewtonRaphsonNonlocalStrategy() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Initialize()
+    void Initialize() override
     {
         KRATOS_TRY
 
         if (mInitializeWasPerformed == false)
 		{
             MotherType::Initialize();
-            
+
             if(mNonlocalDamageIsInitialized == false)
             {
                 if(BaseType::GetModelPart().GetProcessInfo()[DOMAIN_SIZE]==2)
@@ -97,7 +104,7 @@ public:
                     mpNonlocalDamageUtility = new NonlocalDamage3DUtilities();
                 }
                 mpNonlocalDamageUtility->SearchGaussPointsNeighbours(mpParameters,BaseType::GetModelPart());
-                
+
                 mNonlocalDamageIsInitialized = true;
             }
         }
@@ -107,14 +114,14 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void InitializeSolutionStep()
+    void InitializeSolutionStep() override
     {
         KRATOS_TRY
 
         if (mSolutionStepIsInitialized == false)
 		{
             GrandMotherType::InitializeSolutionStep();
-            
+
             if(mNonlocalDamageIsInitialized == false)
             {
                 if(BaseType::GetModelPart().GetProcessInfo()[DOMAIN_SIZE]==2)
@@ -126,7 +133,7 @@ public:
                     mpNonlocalDamageUtility = new NonlocalDamage3DUtilities();
                 }
                 mpNonlocalDamageUtility->SearchGaussPointsNeighbours(mpParameters,BaseType::GetModelPart());
-                
+
                 mNonlocalDamageIsInitialized = true;
             }
         }
@@ -136,103 +143,110 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-	bool SolveSolutionStep()
+	bool SolveSolutionStep() override
 	{
         // ********** Prediction phase **********
-        
+
         // Initialize variables
 		DofsArrayType& rDofSet = mpBuilderAndSolver->GetDofSet();
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
 
+        //initializing the parameters of the iteration loop
+        unsigned int iteration_number = 1;
+        BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+        bool is_converged = false;
         mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
         mpNonlocalDamageUtility->CalculateNonlocalEquivalentStrain(mpParameters,BaseType::GetModelPart().GetProcessInfo());
-        
+        is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+
         TSparseSpace::SetToZero(mA);
         TSparseSpace::SetToZero(mb);
         TSparseSpace::SetToZero(mDx);
 
         mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
-        
+
         //update results
         mpScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
         //move the mesh if needed
         if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
-        
+
         // ********** Correction phase (iteration cicle) **********
-
-        //initializing the parameters of the iteration loop
-        
-        bool is_converged = false;
-        mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-        if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
+        if (is_converged == true)
         {
-            TSparseSpace::SetToZero(mb);
-            mpBuilderAndSolver->BuildRHS(mpScheme, BaseType::GetModelPart(), mb);
-        }
-        is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-        
-        unsigned int iteration_number = 0;
-        
-        while (is_converged == false && iteration_number < mMaxIterationNumber)
-        {
-            //setting the number of iteration
-            iteration_number += 1;
-            BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
-            
-            mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-            mpNonlocalDamageUtility->CalculateNonlocalEquivalentStrain(mpParameters,BaseType::GetModelPart().GetProcessInfo());
-            
-            TSparseSpace::SetToZero(mA);
-            TSparseSpace::SetToZero(mb);
-            TSparseSpace::SetToZero(mDx);
-            
-            mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
-                        
-            //update results
-            mpScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-
-            //move the mesh if needed
-            if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
-            
-            mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-            mpNonlocalDamageUtility->CalculateNonlocalEquivalentStrain(mpParameters,BaseType::GetModelPart().GetProcessInfo());
-            
-            // *** Check Convergence ***
-            
+            mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
             if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
             {
                 TSparseSpace::SetToZero(mb);
                 mpBuilderAndSolver->BuildRHS(mpScheme, BaseType::GetModelPart(), mb);
             }
             is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+        }
+
+        while (is_converged == false && iteration_number++ < mMaxIterationNumber)
+        {
+            //setting the number of iteration
+            BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+
+            mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+            mpNonlocalDamageUtility->CalculateNonlocalEquivalentStrain(mpParameters,BaseType::GetModelPart().GetProcessInfo());
+
+            is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+
+            TSparseSpace::SetToZero(mA);
+            TSparseSpace::SetToZero(mb);
+            TSparseSpace::SetToZero(mDx);
+
+            mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
+
+            //update results
+            mpScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+
+            //move the mesh if needed
+            if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+
+            mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+            mpNonlocalDamageUtility->CalculateNonlocalEquivalentStrain(mpParameters,BaseType::GetModelPart().GetProcessInfo());
+
+            // *** Check Convergence ***
+
+            if (is_converged == true)
+            {
+                if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
+                {
+                    TSparseSpace::SetToZero(mb);
+                    mpBuilderAndSolver->BuildRHS(mpScheme, BaseType::GetModelPart(), mb);
+                }
+                is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+            }
+
         }//While
-        
+
         //plots a warning if the maximum number of iterations is exceeded
         if (iteration_number >= mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
         {
             this->MaxIterationsExceeded();
         }
-        
+
         //calculate reactions if required
         if (mCalculateReactionsFlag == true)
         {
             mpBuilderAndSolver->CalculateReactions(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
         }
-                
+
 		return is_converged;
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void FinalizeSolutionStep()
+    void FinalizeSolutionStep() override
     {
         KRATOS_TRY
-        
+
         GrandMotherType::FinalizeSolutionStep();
-        
+
         if(mSearchNeighboursAtEachStep == true)
         {
             delete mpNonlocalDamageUtility;
@@ -244,7 +258,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Clear()
+    void Clear() override
     {
         KRATOS_TRY
 
@@ -270,73 +284,73 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    bool CheckConvergence()
+    bool CheckConvergence() override
     {
         // ********** Prediction phase **********
-        
+
         // Initialize variables
 		DofsArrayType& rDofSet = mpBuilderAndSolver->GetDofSet();
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
-        
+
         mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
         mpNonlocalDamageUtility->CalculateNonlocalEquivalentStrain(mpParameters,BaseType::GetModelPart().GetProcessInfo());
-                
+
         TSparseSpace::SetToZero(mA);
         TSparseSpace::SetToZero(mb);
         TSparseSpace::SetToZero(mDx);
-        
+
         mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
-        
+
         mpScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
         //move the mesh if needed
         if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
-        
+
         mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-        
+
         unsigned int iteration_number = 0;
         bool is_converged = false;
         double dofs_ratio = 1000.0;
         double ReferenceDofsNorm;
         double NormDx;
-        
+
         // ********** Correction phase (iteration cicle) **********
-        
+
         while (is_converged == false && iteration_number < mMaxIterationNumber)
         {
             //setting the number of iteration
             iteration_number += 1;
             BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
-            
+
             mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
             mpNonlocalDamageUtility->CalculateNonlocalEquivalentStrain(mpParameters,BaseType::GetModelPart().GetProcessInfo());
-            
+
             TSparseSpace::SetToZero(mA);
             TSparseSpace::SetToZero(mb);
             TSparseSpace::SetToZero(mDx);
-            
+
             mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
-            
+
             mpScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
             //move the mesh if needed
             if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
-            
+
             mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
             mpNonlocalDamageUtility->CalculateNonlocalEquivalentStrain(mpParameters,BaseType::GetModelPart().GetProcessInfo());
-            
+
             NormDx = TSparseSpace::TwoNorm(mDx);
             ReferenceDofsNorm = this->CalculateReferenceDofsNorm(rDofSet);
             dofs_ratio = NormDx/ReferenceDofsNorm;
-            std::cout << "TEST ITERATION: " << iteration_number << std::endl;
-            std::cout << "    Dofs Ratio = " << dofs_ratio << std::endl;
-            
+            KRATOS_INFO("Newton Raphson Nonlocal Strategy") << "TEST ITERATION: " << iteration_number << std::endl;
+            KRATOS_INFO("Newton Raphson Nonlocal Strategy") << "    Dofs Ratio = " << dofs_ratio << std::endl;
+
             if(dofs_ratio <= 1.0e-3)
                 is_converged = true;
         }
-        
+
         return is_converged;
     }
 

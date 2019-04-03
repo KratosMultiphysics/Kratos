@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +32,7 @@ THE SOFTWARE.
 \ingroup adapters
 */
 
-#include <boost/static_assert.hpp>
-#include <boost/type_traits.hpp>
+#include <type_traits>
 #include <boost/range/iterator_range.hpp>
 
 #include <amgcl/backend/interface.hpp>
@@ -44,9 +43,10 @@ namespace adapter {
 
 template <class Matrix>
 struct complex_adapter {
-    BOOST_STATIC_ASSERT( boost::is_complex<typename backend::value_type<Matrix>::type>::value );
+    static_assert(is_complex<typename backend::value_type<Matrix>::type>::value,
+            "value type should be complex");
 
-    typedef typename backend::value_type<Matrix>::type::value_type val_type;
+    typedef typename backend::value_type<Matrix>::type::value_type value_type;
 
     const Matrix &A;
 
@@ -89,7 +89,7 @@ struct complex_adapter {
                 return base.col() * 2 + 1;
         }
 
-        val_type value() const {
+        value_type value() const {
             if (row_real) {
                 if (col_real)
                     return std::real(base.value());
@@ -122,32 +122,32 @@ complex_adapter<Matrix> complex_matrix(const Matrix &A) {
 
 template <class Range>
 boost::iterator_range<
-    typename boost::add_pointer<
-        typename boost::conditional<
-            boost::is_const<Range>::value,
-            typename boost::add_const<
+    typename std::add_pointer<
+        typename std::conditional<
+            std::is_const<Range>::value,
+            typename std::add_const<
                 typename boost::range_value<
-                    typename boost::decay<Range>::type
+                    typename std::decay<Range>::type
                     >::type::value_type
                 >::type,
             typename boost::range_value<
-                typename boost::decay<Range>::type
+                typename std::decay<Range>::type
                 >::type::value_type
             >::type
         >::type
     >
 complex_range(Range &rng) {
     typedef
-        typename boost::add_pointer<
-            typename boost::conditional<
-                boost::is_const<Range>::value,
-                typename boost::add_const<
+        typename std::add_pointer<
+            typename std::conditional<
+                std::is_const<Range>::value,
+                typename std::add_const<
                     typename boost::range_value<
-                        typename boost::decay<Range>::type
+                        typename std::decay<Range>::type
                         >::type::value_type
                     >::type,
                 typename boost::range_value<
-                    typename boost::decay<Range>::type
+                    typename std::decay<Range>::type
                     >::type::value_type
                 >::type
             >::type
@@ -162,61 +162,11 @@ complex_range(Range &rng) {
 } // namespace adapter
 
 namespace backend {
-
-//---------------------------------------------------------------------------
-// Specialization of matrix interface
-//---------------------------------------------------------------------------
-template <class Matrix>
-struct value_type< adapter::complex_adapter<Matrix> >
-{
-    typedef typename adapter::complex_adapter<Matrix>::val_type type;
-};
-
-template <class Matrix>
-struct rows_impl< adapter::complex_adapter<Matrix> >
-{
-    static size_t get(const adapter::complex_adapter<Matrix> &A) {
-        return A.rows();
-    }
-};
-
-template <class Matrix>
-struct cols_impl< adapter::complex_adapter<Matrix> >
-{
-    static size_t get(const adapter::complex_adapter<Matrix> &A) {
-        return A.cols();
-    }
-};
-
-template <class Matrix>
-struct nonzeros_impl< adapter::complex_adapter<Matrix> >
-{
-    static size_t get(const adapter::complex_adapter<Matrix> &A) {
-        return A.nonzeros();
-    }
-};
-
-template <class Matrix>
-struct row_iterator< adapter::complex_adapter<Matrix> >
-{
-    typedef typename adapter::complex_adapter<Matrix>::row_iterator type;
-};
-
-template <class Matrix>
-struct row_begin_impl< adapter::complex_adapter<Matrix> >
-{
-    typedef adapter::complex_adapter<Matrix> CM;
-    static typename row_iterator<CM>::type
-    get(const CM &matrix, size_t row) {
-        return matrix.row_begin(row);
-    }
-};
-
 namespace detail {
 
 template <class Matrix>
 struct use_builtin_matrix_ops< amgcl::adapter::complex_adapter<Matrix> >
-    : boost::true_type
+    : std::true_type
 {};
 
 } // namespace detail

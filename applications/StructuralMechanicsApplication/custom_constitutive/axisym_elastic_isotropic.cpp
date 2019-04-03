@@ -3,16 +3,15 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 // System includes
 #include <iostream>
 
 // External includes
-// #include<cmath>
 
 // Project includes
 #include "custom_constitutive/axisym_elastic_isotropic.h"
@@ -77,12 +76,12 @@ void AxisymElasticIsotropic::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-void AxisymElasticIsotropic::CalculateElasticMatrix(
-    Matrix& C,
-    const double E,
-    const double NU
-)
+void AxisymElasticIsotropic::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
+    const Properties& MaterialProperties = rValues.GetMaterialProperties();
+    const double& E = MaterialProperties[YOUNG_MODULUS];
+    const double& NU = MaterialProperties[POISSON_RATIO];
+
     C.clear();
 
     const double c0 = (1.0-NU);
@@ -106,7 +105,7 @@ void AxisymElasticIsotropic::CalculateElasticMatrix(
 //************************************************************************************
 
 void AxisymElasticIsotropic::CalculateCauchyGreenStrain(
-    Parameters& rValues,
+    ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
 )
 {

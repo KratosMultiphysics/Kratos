@@ -55,7 +55,7 @@ namespace Kratos
 
 /// Point class.
 /** Point class. Stores coordinates of a point and have some basic
-    operations defined. 
+    operations defined.
 
 @see Geometry
 @see Node
@@ -89,13 +89,13 @@ public:
     ///@{
 
     /// Default constructor.
-    Point() : BaseType(mDimension)
+    Point() : BaseType()
     {
         SetAllCoordinates();
     }
 
     /// 3d constructor.
-    Point(double NewX, double NewY = 0, double NewZ = 0) : BaseType(mDimension)
+    Point(double NewX, double NewY = 0, double NewZ = 0) : BaseType()
     {
         this->operator()(0) = NewX;
         this->operator()(1) = NewY;
@@ -109,18 +109,18 @@ public:
 
     /** Constructor using coordinates stored in given array. Initialize
     this point with the coordinates in the array. */
-    Point(CoordinatesArrayType const &rOtherCoordinates)
+    explicit Point(CoordinatesArrayType const &rOtherCoordinates)
         : BaseType(rOtherCoordinates) {}
 
     /** Constructor using coordinates stored in given array. Initialize
     this point with the coordinates in the array. */
     template <class TVectorType>
-    Point(vector_expression<TVectorType> const &rOtherCoordinates)
+    explicit Point(vector_expression<TVectorType> const &rOtherCoordinates)
         : BaseType(rOtherCoordinates) {}
 
     /** Constructor using coordinates stored in given std::vector. Initialize
     this point with the coordinates in the array. */
-    Point(std::vector<double> const &rOtherCoordinates) : BaseType(mDimension)
+    explicit Point(std::vector<double> const &rOtherCoordinates) : BaseType()
     {
         SizeType size = rOtherCoordinates.size();
         size = (mDimension < size) ? mDimension : size;
@@ -263,8 +263,6 @@ public:
 }; // Class Point
 
 ///@}
-
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Point>;
 
 ///@name Type Definitions
 ///@{

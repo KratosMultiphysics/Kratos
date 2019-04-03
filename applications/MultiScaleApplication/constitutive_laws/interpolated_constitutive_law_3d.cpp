@@ -344,7 +344,7 @@ namespace Kratos
 		}
 
 		noalias(strainVector) -= mInitStrain;
-		
+
 		SizeType size = GetStrainSize();
 		if (compute_stress)
 			if (stressVector.size() != size)
@@ -408,7 +408,7 @@ namespace Kratos
 
 		size_t strain_size = strainVector.size();
 		mStressVector.clear();
-		
+
 		//Initialize data for the interpolation
 		Vector real_tag(strain_size - 1);
 		Vector Theta(strain_size - 1);
@@ -482,7 +482,7 @@ namespace Kratos
 		}
 		else
 		{
-			// local_x and y defines where to estimate the value on the interpolated line, 
+			// local_x and y defines where to estimate the value on the interpolated line,
 			// it is 0 at the first point and 1 and the second point
 			double local_x = (xy[0] - min_xy[0]);
 			double local_y = (xy[1] - min_xy[1]);
@@ -587,7 +587,7 @@ namespace Kratos
 		size_t strain_size = strain_vector.size();
 		double m = mpRveMaterialDatabase->NumberOfDivision();
 		const size_t n_damage = mpRveMaterialDatabase->DamageSize();
-		
+
 		Vector InterpDamageVector(n_damage, 0.0);
 		Vector InterpRadiusVector(n_damage, 0.0);
 		Vector InterpStressVectorXX(n_damage, 0.0);
@@ -618,7 +618,7 @@ namespace Kratos
 		}
 		else
 		{
-			// local_x and y defines where to estimate the value on the interpolated line, 
+			// local_x and y defines where to estimate the value on the interpolated line,
 			// it is 0 at the first point and 1 and the second point
 			double local_x = (real_tag[0] - min_tag[0]);
 			double local_y = (real_tag[1] - min_tag[1]);
@@ -725,7 +725,7 @@ namespace Kratos
 		//	std::wcout << "real_tag: " << real_tag << std::endl;
 		//	std::cout << "gf_ref*lch_ref: " << mGf_bar*1.0e3 << " ; gf*lch_macro: " << gf*lch_macro << std::endl;
 		//}
-		
+
 		if (real_radius < InterpRadiusVector[0])
 		{
 			//std::cout << "Is_Elastic = true\n";
@@ -837,10 +837,10 @@ namespace Kratos
 
 		//noalias(const_tensor) = (1 - EquivalentDamageConverged)*mC0;
 	}
-	
+
 	void InterpolatedConstitutiveLaw3D::BiLinearInterpolation(const size_t& m, const Vector& xy, const vector<int>& min_xy)
 	{
-		// local_x and y defines where to estimate the value on the interpolated line, 
+		// local_x and y defines where to estimate the value on the interpolated line,
 		// it is 0 at the first point and 1 and the second point
 		double local_x = (xy[0] - min_xy[0]); // / (max_tag[0] - min_tag[0]);
 		double local_y = (xy[1] - min_xy[1]); // / (max_tag[1] - min_tag[1]);
@@ -952,7 +952,7 @@ namespace Kratos
 		//std::cout << "lch_macro: " << lch_macro << std::endl;
 		//xx
 		Gf = mGf_bar * mult;
-		//mAlpha = lch_ref / lch_macro - 1.0; 
+		//mAlpha = lch_ref / lch_macro - 1.0;
 		mAlpha = (Gf - mG0) / (mGf_bar - mG0) - 1.0;
 		//std::cout << "mAlphaxx: " << mAlphaxx << std::endl;
 		if (mAlpha <= -1.0)
@@ -1031,7 +1031,7 @@ namespace Kratos
 		size_t theta_size = StrainVector.size() - 1;
 		//std::cout << "PredictStress2D -> StrainVector: " << StrainVector << std::endl;
 		Vector Theta(theta_size, 0.0);
-		
+
 		//Calculate Theta1
 		double theta_1 = acos(StrainVector[0] / sqrt(pow(StrainVector[5], 2) + pow(StrainVector[4], 2) + pow(StrainVector[3], 2) + pow(StrainVector[2], 2) + pow(StrainVector[1], 2) + pow(StrainVector[0], 2)));
 		if (abs(theta_1) > Globals::Pi)

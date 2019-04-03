@@ -2,27 +2,23 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//                    
+//
 //
 
 
 #if !defined(KRATOS_LEVELSET_CONVECTION_ELEMENT_SIMPLEX_INCLUDED )
 #define  KRATOS_LEVELSET_CONVECTION_ELEMENT_SIMPLEX_INCLUDED
 
-
 // System includes
 
-
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -30,9 +26,8 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
-
 #include "includes/cfd_variables.h"
-
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -65,7 +60,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of 
+    /// Counted pointer of
     KRATOS_CLASS_POINTER_DEFINITION(LevelSetConvectionElementSimplex);
 
     ///@}
@@ -122,7 +117,7 @@ public:
 
         const double delta_t = rCurrentProcessInfo[DELTA_TIME];
         const double dt_inv = 1.0 / delta_t;
-        
+
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
         const Variable<array_1d<double, 3 > >& rConvVar = my_settings->GetConvectionVariable();
@@ -130,17 +125,17 @@ public:
 
 
         //getting data for the given geometry
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim > DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim > DN_DX;
         array_1d<double, TNumNodes > N;
         double Volume;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
         double h = ComputeH(DN_DX, Volume);
-        
+
 
         //here we get all the variables we will need
         array_1d<double,TNumNodes> phi, phi_old;
         array_1d< array_1d<double,3 >, TNumNodes> v, vold;
-        
+
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
             phi[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
@@ -161,19 +156,19 @@ public:
         for (unsigned int i = 0; i < TNumNodes; i++)
             for(unsigned int k=0; k<TDim; k++)
                 div_v += 0.5*DN_DX(i,k)*(v[i][k] + vold[i][k]);
-            
+
         double beta = 0.0; //1.0;
-        
+
 //         unsigned int nneg=0;
 //         for(unsigned int i=0; i<TNumNodes; i++) if(phi[i] < 0.0) nneg++;
 //         if(nneg > 0) beta = 1.0; //beta = 0.1;
 
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
-        bounded_matrix<double,TNumNodes, TDim> tmp;
+        BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
+        BoundedMatrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
+        BoundedMatrix<double,TNumNodes, TDim> tmp;
 
-            
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
+
+        BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
         for(unsigned int igauss=0; igauss<TDim+1; igauss++)
         {
@@ -195,20 +190,20 @@ public:
             //terms multiplying dphi/dt (aux1)
             noalias(aux1) += (1.0+tau*beta*div_v)*outer_prod(N, N);
             noalias(aux1) +=  tau*outer_prod(a_dot_grad, N);
-            
+
             //terms which multiply the gradient of phi
             noalias(aux2) += (1.0+tau*beta*div_v)*outer_prod(N, a_dot_grad);
             noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
-            
-            //cross-wind term  
+
+            //cross-wind term
             if(norm_grad > 1e-3 && norm_vel > 1e-9)
             {
                 const double C = rCurrentProcessInfo.GetValue(CROSS_WIND_STABILIZATION_FACTOR);
                 const double time_derivative = dt_inv*(inner_prod(N,phi)-inner_prod(N,phi_old));
                 const double res = -time_derivative -inner_prod(vel_gauss, grad_phi_halfstep);
-                
+
                 const double disc_capturing_coeff = 0.5*C*h*fabs(res/norm_grad);
-                bounded_matrix<double,TDim,TDim> D = disc_capturing_coeff*( IdentityMatrix(TDim,TDim));
+                BoundedMatrix<double,TDim,TDim> D = disc_capturing_coeff*( IdentityMatrix(TDim));
                 const double norm_vel_squared = norm_vel*norm_vel;
                 D += (std::max( disc_capturing_coeff - tau*norm_vel_squared , 0.0) - disc_capturing_coeff)/(norm_vel_squared) * outer_prod(vel_gauss,vel_gauss);
 
@@ -216,15 +211,15 @@ public:
                 noalias(aux2) += prod(tmp,trans(DN_DX));
             }
         }
-        
+
         //adding the second and third term in the formulation
         noalias(rLeftHandSideMatrix)  = (dt_inv + 0.5*beta*div_v)*aux1; //the 0.5 comes from the use of Crank Nichlson
         noalias(rRightHandSideVector) = (dt_inv - 0.5*beta*div_v)*prod(aux1,phi_old); //the 0.5 comes from the use of Crank Nichlson
-        
+
         //terms in aux2
         noalias(rLeftHandSideMatrix) += 0.5*aux2; //the 0.5 comes from the use of Crank Nichlson
         noalias(rRightHandSideVector) -= 0.5*prod(aux2,phi_old); //the 0.5 comes from the use of Crank Nichlson
-        
+
         //take out the dirichlet part to finish computing the residual
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, phi);
 
@@ -235,17 +230,17 @@ public:
     }
 
 
-    
-    
-    
+
+
+
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_THROW_ERROR(std::runtime_error, "CalculateRightHandSide not implemented","");
     }
-    
-    
-    
-    
+
+
+
+
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override
     {
@@ -264,10 +259,10 @@ public:
         KRATOS_CATCH("")
 
     }
-    
-    
-    
-    
+
+
+
+
 
     void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo) override
     {
@@ -347,7 +342,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    double ComputeH(boost::numeric::ublas::bounded_matrix<double,TNumNodes, TDim>& DN_DX, const double Volume)
+    double ComputeH(BoundedMatrix<double,TNumNodes, TDim>& DN_DX, const double Volume)
     {
         double h=0.0;
                  for(unsigned int i=0; i<TNumNodes; i++)
@@ -362,24 +357,24 @@ protected:
         h = sqrt(h)/static_cast<double>(TNumNodes);
         return h;
     }
-    
+
     //gauss points for the 3D case
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,4, 4>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,4, 4>& Ncontainer)
     {
         Ncontainer(0,0) = 0.58541020; Ncontainer(0,1) = 0.13819660; Ncontainer(0,2) = 0.13819660; Ncontainer(0,3) = 0.13819660;
-        Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;	
+        Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;
         Ncontainer(2,0) = 0.13819660; Ncontainer(2,1) = 0.13819660; Ncontainer(2,2) = 0.58541020; Ncontainer(2,3) = 0.13819660;
         Ncontainer(3,0) = 0.13819660; Ncontainer(3,1) = 0.13819660; Ncontainer(3,2) = 0.13819660; Ncontainer(3,3) = 0.58541020;
     }
 
     //gauss points for the 2D case
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,3,3>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,3,3>& Ncontainer)
     {
         const double one_sixt = 1.0/6.0;
         const double two_third = 2.0/3.0;
-        Ncontainer(0,0) = one_sixt; Ncontainer(0,1) = one_sixt; Ncontainer(0,2) = two_third; 
-        Ncontainer(1,0) = one_sixt; Ncontainer(1,1) = two_third; Ncontainer(1,2) = one_sixt; 
-        Ncontainer(2,0) = two_third; Ncontainer(2,1) = one_sixt; Ncontainer(2,2) = one_sixt; 
+        Ncontainer(0,0) = one_sixt; Ncontainer(0,1) = one_sixt; Ncontainer(0,2) = two_third;
+        Ncontainer(1,0) = one_sixt; Ncontainer(1,1) = two_third; Ncontainer(1,2) = one_sixt;
+        Ncontainer(2,0) = two_third; Ncontainer(2,1) = one_sixt; Ncontainer(2,2) = one_sixt;
     }
 
 
@@ -456,7 +451,7 @@ private:
 
     ///@}
 
-}; 
+};
 
 ///@}
 
@@ -487,6 +482,6 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_LEVELSET_CONVECTION_ELEMENT_SIMPLEX_INCLUDED  defined 
+#endif // KRATOS_LEVELSET_CONVECTION_ELEMENT_SIMPLEX_INCLUDED  defined
 
 

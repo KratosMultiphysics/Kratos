@@ -1,16 +1,23 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:            January 2016 $
-//   Revision:            $Revision:                 1.0 $
+
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_POROMECHANICS_APPLICATION_H_INCLUDED )
 #define  KRATOS_POROMECHANICS_APPLICATION_H_INCLUDED
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 // Project includes
 #include "includes/define.h"
@@ -41,6 +48,8 @@
 
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
+#include "custom_constitutive/exponential_cohesive_3D_law.hpp"
+#include "custom_constitutive/exponential_cohesive_2D_law.hpp"
 
 #include "custom_constitutive/custom_flow_rules/local_damage_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/nonlocal_damage_flow_rule.hpp"
@@ -60,9 +69,9 @@
 namespace Kratos
 {
 
-class KratosPoromechanicsApplication : public KratosApplication
+class KRATOS_API(POROMECHANICS_APPLICATION) KratosPoromechanicsApplication : public KratosApplication
 {
-    
+
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION(KratosPoromechanicsApplication);
@@ -71,26 +80,26 @@ public:
     KratosPoromechanicsApplication();
 
     // Destructor
-    virtual ~KratosPoromechanicsApplication(){}
-    
+    ~KratosPoromechanicsApplication() override {}
 
-    virtual void Register();
+
+    void Register() override;
 
     // Turn back information as a string
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "KratosPoromechanicsApplication";
     }
 
     // Print information about this object
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     // Print object's data
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         KRATOS_WATCH("in my application");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
@@ -170,6 +179,8 @@ const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrde
 
 const BilinearCohesive3DLaw mBilinearCohesive3DLaw;
 const BilinearCohesive2DLaw mBilinearCohesive2DLaw;
+const ExponentialCohesive3DLaw mExponentialCohesive3DLaw;
+const ExponentialCohesive2DLaw mExponentialCohesive2DLaw;
 
 const LocalDamageFlowRule mLocalDamageFlowRule;
 const NonlocalDamageFlowRule mNonlocalDamageFlowRule;
@@ -192,9 +203,9 @@ KratosPoromechanicsApplication& operator=(KratosPoromechanicsApplication const& 
 // Copy constructor.
 KratosPoromechanicsApplication(KratosPoromechanicsApplication const& rOther);
 
-}; // Class KratosPoromechanicsApplication 
+}; // Class KratosPoromechanicsApplication
 }  // namespace Kratos.
 
-#endif // KRATOS_POROMECHANICS_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_POROMECHANICS_APPLICATION_H_INCLUDED  defined
 
 

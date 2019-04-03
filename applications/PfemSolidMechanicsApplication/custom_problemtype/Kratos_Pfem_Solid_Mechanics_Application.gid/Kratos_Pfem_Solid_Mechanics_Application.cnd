@@ -227,8 +227,8 @@ CONDITION: group_POINT_LOAD
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
 GROUPALLOW: points nodes
-QUESTION: Variable#CB#(POINT_LOAD)
-VALUE: POINT_LOAD
+QUESTION: Variable#CB#(FORCE_LOAD)
+VALUE: FORCE_LOAD
 QUESTION: ConditionType#CB#(PointLoadCondition2D1N,AxisymPointLoadCondition2D1N,PointLoadCondition3D1N)
 VALUE: PointLoadCondition2D1N
 QUESTION: by_function#CB#(True,False)
@@ -261,8 +261,8 @@ CONDITION: group_LINE_LOAD
 CONDTYPE: over groups
 CONDMESHTYPE: over elements faces 
 GROUPALLOW: lines nodes elements faces
-QUESTION: Variable#CB#(LINE_LOAD)
-VALUE: LINE_LOAD
+QUESTION: Variable#CB#(FORCE_LOAD)
+VALUE: FORCE_LOAD
 QUESTION: ConditionType#CB#(LineLoadCondition2D2N,AxisymLineLoadCondition2D2N)
 VALUE: LineLoadCondition2D2N
 QUESTION: by_function#CB#(True,False)
@@ -379,8 +379,8 @@ CONDITION: group_POINT_MOMENT
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
 GROUPALLOW: points nodes
-QUESTION: Variable#CB#(POINT_MOMENT)
-VALUE: POINT_MOMENT
+QUESTION: Variable#CB#(MOMENT_LOAD)
+VALUE: MOMENT_LOAD
 QUESTION: ConditionType#CB#(PointMomentCondition3D1N)
 VALUE: PointMomentCondition3D1N
 QUESTION: by_function#CB#(True,False)
@@ -453,6 +453,14 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
+CONDITION: surface_UpdatedLagrangianUJElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
 CONDITION: surface_AxisymUpdatedLagrangianElement2D3N
 CONDTYPE: over surfaces
 CONDMESHTYPE: over body elements
@@ -485,6 +493,14 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
+CONDITION: surface_UpdatedLagrangianUJWwPElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
 CONDITION: surface_UpdatedLagrangianUWElement2D3N
 CONDTYPE: over surfaces
 CONDMESHTYPE: over body elements
@@ -510,6 +526,14 @@ STATE: HIDDEN
 END CONDITION
 
 CONDITION: surface_AxisymUpdatedLagrangianUJwPElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: surface_AxisymUpdatedLagrangianUJWwPElement2D3N
 CONDTYPE: over surfaces
 CONDMESHTYPE: over body elements
 QUESTION: Automatic
@@ -614,7 +638,7 @@ DEPENDENCIES:(True,RESTORE,Critical_Mesh_Size,#CURRENT#,RESTORE,Dissipation_Vari
 DEPENDENCIES:(False,HIDE,Critical_Mesh_Size,#CURRENT#,HIDE,Dissipation_Variable,#CURRENT#,HIDE,Critical_Dissipation,#CURRENT#,HIDE,Error_Variable,#CURRENT#,HIDE,Critical_Error,#CURRENT#,HIDE,Tip_Radius_Refine,False,HIDE,Refine_on_box_only,False,HIDE,LSInterpolation,0)
 QUESTION: Critical_Mesh_Size
 VALUE: 0.025
-QUESTION: Dissipation_Variable#CB#(PLASTIC_DISSIPATION,PLASTIC_STRAIN,NORM_ISOCHORIC_STRESS)
+QUESTION: Dissipation_Variable#CB#(PLASTIC_DISSIPATION,PLASTIC_STRAIN,NORM_ISOCHORIC_STRESS,DELTA_PLASTIC_STRAIN)
 VALUE: PLASTIC_DISSIPATION
 QUESTION: Critical_Dissipation
 VALUE: 100
@@ -678,12 +702,18 @@ QUESTION: Wall_Circle:(Cx,Cy,Cz,Radius,Convexity)
 VALUE: #N# 5 0 0 0 0.004 1 
 QUESTION: Wall_Noses:(TipCx,TipCy,TipCz,Tip_Radius,Rake_Angle,Clearance_Angle,Convexity)
 VALUE: #N# 7 0 0 0 0.0004 5 5 1
-QUESTION: Wall_Cylinder:(Cx,Cy,Cz,Radius,C1x,C1y,C1z,Convexity)
+QUESTION: Wall_Cylinder:(Cx,Cy,Cz,Radius,C0x,C1y,C1z,Convexity)
 VALUE: #N# 8 0 0 0 0.004 0 0 0 1 
 QUESTION: Wall_Sphere:(Cx,Cy,Cz,Radius,Convexity)
 VALUE: #N# 5 0 0 0 0.004 1 
 QUESTION: Plane_Size
 VALUE: 1.0
+QUESTION: Hydraulic_Condition#CB#(False,True)
+VALUE: False
+DEPENDENCIES: (False,HIDE,Hydraulic_Contact_Condition,#CURRENT#)
+DEPENDENCIES: (True,RESTORE,Hydraulic_Contact_Condition,#CURRENT#)
+QUESTION: Hydraulic_Contact_Condition#CB#(HydraulicPointContactCondition2D1N,HydraulicAxisymPointContactCondition2D1N)
+VALUE: HydraulicPointContactCondition2D1N
 QUESTION: Imposed_Movement#CB#(False,True)
 VALUE: False
 DEPENDENCIES:(True,RESTORE,Linear_Velocity,#CURRENT#,RESTORE,Angular_Velocity,#CURRENT#,RESTORE,Rotation_Center,#CURRENT#)

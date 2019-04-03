@@ -17,10 +17,8 @@
 // Project includes
 #include "custom_solvers/solution_strategies/linear_strategy.hpp"
 
-//default builder and solver
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 //default convergence criterion
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "custom_solvers/convergence_criteria/convergence_criterion.hpp"
 
 #include "solid_mechanics_application_variables.h"
 
@@ -46,7 +44,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**   
+/**
  * @class NewtonRaphsonStrategy
  * @brief This is the base Newton Raphson strategy
  * @details This strategy iterates until the convergence is achieved (or the maximum number of iterations is surpassed) using a Newton Raphson algorithm
@@ -68,8 +66,8 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
   typedef LinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>              BaseType;
 
   typedef typename BaseType::LocalFlagType                                 LocalFlagType;
-  
-  typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>        ConvergenceCriterionType;
+
+  typedef ConvergenceCriterion<TSparseSpace, TDenseSpace>       ConvergenceCriterionType;
 
   typedef typename BaseType::BuilderAndSolverType                   BuilderAndSolverType;
 
@@ -95,14 +93,14 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
   ///@{
 
   /**
-   * Default constructor 
+   * Default constructor
    * @param rModelPart The model part of the problem
    * @param pScheme The integration scheme
    * @param pBuilderAndSolver The builder and solver employed
    * @param pConvergenceCriteria The convergence criteria employed
    * @param rOptions The solution options
    * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
-   */  
+   */
   NewtonRaphsonStrategy(ModelPart& rModelPart,
                         typename SchemeType::Pointer pScheme,
                         typename BuilderAndSolverType::Pointer pBuilderAndSolver,
@@ -112,19 +110,19 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
       : LinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pBuilderAndSolver, rOptions)
   {
     KRATOS_TRY
- 
+
     // Saving the convergence criteria to be used
     mpConvergenceCriteria = pConvergenceCriterion;
-       
+
     // Maximum iterations allowed
     mMaxIterationNumber = MaxIterations;
 
     KRATOS_CATCH("")
   }
-  
+
 
   /**
-   * Default constructor 
+   * Default constructor
    * @param rModelPart The model part of the problem
    * @param pScheme The integration scheme
    * @param pLinearSolver The linear solver employed
@@ -138,11 +136,11 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
                         typename ConvergenceCriterionType::Pointer pConvergenceCriterion,
                         Flags& rOptions,
                         unsigned int MaxIterations = 30)
-      : NewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, typename BuilderAndSolverType::Pointer(new BlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pLinearSolver)), pConvergenceCriterion, rOptions, MaxIterations)
+      : NewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, Kratos::make_shared<BlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(pLinearSolver), pConvergenceCriterion, rOptions, MaxIterations)
   {}
-    
 
-  /** 
+
+  /**
    * @brief Destructor.
    * @details In trilinos third party library, the linear solver's preconditioner should be freed before the system matrix. We control the deallocation order with Clear().
    */
@@ -159,7 +157,7 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
   ///@}
   ///@name Operations
   ///@{
-  
+
   /**
    * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
    */
@@ -168,11 +166,11 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
     KRATOS_TRY
 
     //set implex
-    if(this->mOptions.Is(LocalFlagType::IMPLEX) && this->GetModelPart().GetProcessInfo().Has(IMPLEX))
-      this->GetModelPart().GetProcessInfo()[IMPLEX] = 1;
+    if(this->mOptions.Is(LocalFlagType::IMPLEX))
+      this->GetModelPart().GetProcessInfo().SetValue(IMPLEX, true);
 
     BaseType::InitializeSolutionStep();
-    
+
     KRATOS_CATCH("")
   }
 
@@ -186,20 +184,21 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
     //Finalization of the solution step, operations to be done after achieving convergence
 
     //set implex calculation
-    if(this->mOptions.Is(LocalFlagType::IMPLEX) && this->GetModelPart().GetProcessInfo().Has(IMPLEX)){
-      this->GetModelPart().GetProcessInfo()[IMPLEX] = 0;
-      this->mpBuilderAndSolver->BuildRHS(this->mpScheme, this->GetModelPart(), (*this->mpb));
+    if(this->mOptions.Is(LocalFlagType::IMPLEX)){
+      this->GetModelPart().GetProcessInfo().SetValue(IMPLEX, false);
+      if(this->mOptions.IsNot(LocalFlagType::COMPUTE_REACTIONS))
+        this->mpBuilderAndSolver->BuildRHS(this->mpScheme, this->GetModelPart(), (*this->mpb));
     }
-   
+
     BaseType::FinalizeSolutionStep();
 
     KRATOS_CATCH("")
   }
 
-  
+
   /**
    * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
-   */   
+   */
   bool SolveSolutionStep() override
   {
     KRATOS_TRY
@@ -211,22 +210,23 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
     this->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
     this->Set(LocalFlagType::CONVERGED, this->SolveIteration());
-   
-    //Iteration Cicle... performed only for NonLinearProblems
+
+    //iteration cycle... performed only for NonLinearProblems
     while( this->IsNot(LocalFlagType::CONVERGED) && iteration_number++ < mMaxIterationNumber)
     {
       //setting the iteration number
       this->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
-      this->Set(LocalFlagType::CONVERGED, this->SolveIteration());      
+      this->Set(LocalFlagType::CONVERGED, this->SolveIteration());
     }
 
     //plots a warning if the maximum number of iterations is exceeded
     if(iteration_number >= mMaxIterationNumber)
     {
-      KRATOS_WARNING("Max Iterations Exceeded") << " **** Maximum iterations Exceeded [" << iteration_number << "] ****\n"; 
+      if( this->GetEchoLevel() >= 0 )
+        KRATOS_INFO("  [Iterative loop interrupted] ") << "[" << iteration_number << " iterations performed] \n";
     }
-    
+
     return (this->Is(LocalFlagType::CONVERGED));
 
     KRATOS_CATCH("")
@@ -236,42 +236,42 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
 
   /**
    * @brief Solves the iteration. This function returns true if a solution has been found, false otherwise.
-   */   
+   */
   bool SolveIteration() override
   {
     KRATOS_TRY
-        
+
     bool is_converged = false;
-   
+
     // Warning info
     if(!SparseSpaceType::Size((*this->mpDx)))
       KRATOS_WARNING("DOFS") << "solution has zero size, no free DOFs" << std::endl;
 
     // Initialize Iteration
     this->mpScheme->InitializeNonLinearIteration(this->GetModelPart());
-        
+
     is_converged = mpConvergenceCriteria->PreCriteria(this->GetModelPart(), this->mpBuilderAndSolver->GetDofSet(), (*this->mpA), (*this->mpDx), (*this->mpb));
 
-    //function to perform the building and the solving phase.
+    // Function to perform the building and the solving phase.
     if(this->mOptions.IsNot(LocalFlagType::CONSTANT_SYSTEM_MATRIX)){
 
       TSparseSpace::SetToZero((*this->mpA));
       TSparseSpace::SetToZero((*this->mpDx));
       TSparseSpace::SetToZero((*this->mpb));
-      
-      this->mpBuilderAndSolver->BuildAndSolve(this->mpScheme, this->GetModelPart(), (*this->mpA), (*this->mpDx), (*this->mpb));      
+
+      this->mpBuilderAndSolver->BuildAndSolve(this->mpScheme, this->GetModelPart(), (*this->mpA), (*this->mpDx), (*this->mpb));
     }
     else{
-      
+
       TSparseSpace::SetToZero((*this->mpDx));
       TSparseSpace::SetToZero((*this->mpb));
-      
+
       this->mpBuilderAndSolver->BuildRHSAndSolve(this->mpScheme, this->GetModelPart(), (*this->mpA), (*this->mpDx), (*this->mpb));
     }
 
     // EchoInfo
     this->mpBuilderAndSolver->EchoInfo(this->GetModelPart(), (*this->mpA), (*this->mpDx), (*this->mpb));
-    
+
     // Updating the results
     this->Update();
 
@@ -280,12 +280,12 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
 
     if(is_converged == true)
     {
-      //initialisation of the convergence criteria (after first calculation only)      
+      //initialisation of the convergence criteria (after first calculation only)
       if( this->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] == 1 ){
         mpConvergenceCriteria->InitializeSolutionStep(this->GetModelPart(), this->mpBuilderAndSolver->GetDofSet(), (*this->mpA), (*this->mpDx), (*this->mpb));
       }
-      
-      if(mpConvergenceCriteria->GetActualizeRHSflag() == true)
+
+      if(mpConvergenceCriteria->Is(CriterionLocalFlags::UPDATE_RHS))
       {
         TSparseSpace::SetToZero((*this->mpb));
 
@@ -293,14 +293,14 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
       }
 
       is_converged = mpConvergenceCriteria->PostCriteria(this->GetModelPart(), this->mpBuilderAndSolver->GetDofSet(), (*this->mpA), (*this->mpDx), (*this->mpb));
-    }   
-    
+    }
+
     return is_converged;
 
     KRATOS_CATCH("")
   }
 
-  
+
   /**
    * @brief Clears the internal storage
    */
@@ -321,7 +321,7 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
   {
     KRATOS_TRY
 
-    //check linear strategy    
+    //check linear strategy
     BaseType::Check();
 
     //check the convergence criterion
@@ -331,7 +331,7 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
 
     KRATOS_CATCH("")
   }
-  
+
 
   ///@}
   ///@name Access
@@ -340,7 +340,7 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
   /**
    * @brief This sets the level of echo for the solving strategy
    * @param Level of echo for the solving strategy
-   * @details 
+   * @details
    * {
    * 0 -> Mute... no echo at all
    * 1 -> Printing time and basic informations
@@ -350,9 +350,9 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
    */
   void SetEchoLevel(const int Level) override
   {
-    BaseType::SetEchoLevel(Level);      
+    BaseType::SetEchoLevel(Level);
   }
-  
+
   /**
    * @brief This method sets the flag mMaxIterationNumber
    * @param MaxIterationNumber This is the maximum number of on linear iterations
@@ -366,11 +366,11 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
    * @brief This method gets the flag mMaxIterationNumber
    * @return mMaxIterationNumber: This is the maximum number of on linear iterations
    */
-  unsigned int GetMaxIterationNumber()
+  unsigned int GetMaxIterationNumber() override
   {
     return mMaxIterationNumber;
   }
-  
+
   ///@}
   ///@name Inquiry
   ///@{
@@ -388,7 +388,7 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
   ///@}
   ///@name Protected member Variables
   ///@{
-  
+
   typename ConvergenceCriterionType::Pointer mpConvergenceCriteria; /// The pointer to the convergence criteria employed
 
   unsigned int mMaxIterationNumber; /// The maximum number of iterations, 30 by default
@@ -402,20 +402,16 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
 
   /**
    * @brief Initialization of member variables and prior operations
-   */    
+   */
   void Initialize() override
   {
     KRATOS_TRY
-        
-    //initialisation of the convergence criterion
-    if (mpConvergenceCriteria->IsInitialized() == false)
-      mpConvergenceCriteria->Initialize(this->GetModelPart());
-        
+
     BaseType::Initialize();
 
     KRATOS_CATCH("")
   }
-  
+
   ///@}
   ///@name Protected  Access
   ///@{
@@ -466,6 +462,6 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
 ///@}
 
 ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 #endif // KRATOS_NEWTON_RAPHSON_STRATEGY_H_INCLUDED defined

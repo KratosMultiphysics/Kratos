@@ -10,12 +10,11 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    def __base_test_mapping(self, input_filename, num_nodes, pure_implicit):
-        self.main_model_part = KratosMultiphysics.ModelPart("Structure")
-        self.main_model_part.SetBufferSize(2)
+    def __base_test_mapping(self, input_filename, num_nodes, master_num_nodes, pure_implicit, inverted):
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+        self.StructureModel = KratosMultiphysics.Model()
 
-        ## Creation of the Kratos model (build sub_model_parts or submeshes)
-        self.StructureModel = {"Structure": self.main_model_part}
+        self.main_model_part = self.StructureModel.CreateModelPart("Structure",2)
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
@@ -30,9 +29,12 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TEMPERATURE, self.main_model_part)
 
-        self.mapping_model_part = self.main_model_part.GetSubModelPart("DISPLACEMENT_Displacement_Auto2")
-        self.model_part_slave = self.main_model_part.GetSubModelPart("Parts_Parts_Auto1")
-        self.model_part_master = self.main_model_part.GetSubModelPart("Parts_Parts_Auto2")
+        if (inverted is True):
+            self.model_part_slave = self.main_model_part.GetSubModelPart("Parts_Parts_Auto2")
+            self.model_part_master = self.main_model_part.GetSubModelPart("Parts_Parts_Auto1")
+        else:
+            self.model_part_slave = self.main_model_part.GetSubModelPart("Parts_Parts_Auto1")
+            self.model_part_master = self.main_model_part.GetSubModelPart("Parts_Parts_Auto2")
 
         for node in self.model_part_master.Nodes:
             x = node.X
@@ -50,31 +52,24 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
             "absolute_convergence_tolerance"   : 1.0e-9,
             "relative_convergence_tolerance"   : 1.0e-4,
             "max_number_iterations"            : 10,
-            "integration_order"                : 2
+            "integration_order"                : 2,
+            "origin_variable"                  : "TEMPERATURE"
         }
         """)
 
         if (pure_implicit == True):
             #linear_solver = ExternalSolversApplication.SuperLUSolver()
             linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-
-            if (num_nodes == 3):
-                self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D3NDoubleHistorical(self.model_part_master, self.model_part_slave, KratosMultiphysics.TEMPERATURE, map_parameters, linear_solver)
-                self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D3NVectorHistorical(self.model_part_master, self.model_part_slave, KratosMultiphysics.DISPLACEMENT, map_parameters, linear_solver)
-            else:
-                self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D4NDoubleHistorical(self.model_part_master, self.model_part_slave, KratosMultiphysics.TEMPERATURE, map_parameters, linear_solver)
-                self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D4NVectorHistorical(self.model_part_master, self.model_part_slave, KratosMultiphysics.DISPLACEMENT, map_parameters, linear_solver)
         else:
-            if (num_nodes == 3):
-                self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D3NDoubleHistorical(self.model_part_master, self.model_part_slave, KratosMultiphysics.TEMPERATURE, map_parameters)
-                self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D3NVectorHistorical(self.model_part_master, self.model_part_slave, KratosMultiphysics.DISPLACEMENT, map_parameters)
-            else:
-                self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D4NDoubleHistorical(self.model_part_master, self.model_part_slave, KratosMultiphysics.TEMPERATURE, map_parameters)
-                self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D4NVectorHistorical(self.model_part_master, self.model_part_slave, KratosMultiphysics.DISPLACEMENT, map_parameters)
+            linear_solver = None
 
-    def _mapper_tests(self, input_filename, num_nodes, pure_implicit = False):
+        self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess(self.model_part_master, self.model_part_slave, map_parameters, linear_solver)
+        map_parameters["origin_variable"].SetString("DISPLACEMENT")
+        self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess(self.model_part_master, self.model_part_slave, map_parameters, linear_solver)
 
-        self.__base_test_mapping(input_filename, num_nodes, pure_implicit)
+    def _mapper_tests(self, input_filename, num_nodes, master_num_nodes, pure_implicit = False, inverted = False):
+
+        self.__base_test_mapping(input_filename, num_nodes, master_num_nodes, pure_implicit, inverted)
 
         self.mortar_mapping_double.Execute()
         self.mortar_mapping_vector.Execute()
@@ -93,15 +88,17 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         }
         """)
 
-        check_parameters["input_file_name"].SetString(input_filename+".json")
+        if (inverted is True):
+            check_parameters["input_file_name"].SetString(input_filename+"_inverted.json")
+        else:
+            check_parameters["input_file_name"].SetString(input_filename+".json")
 
         check = from_json_check_result_process.FromJsonCheckResultProcess(self.StructureModel, check_parameters)
         check.ExecuteInitialize()
         check.ExecuteBeforeSolutionLoop()
         check.ExecuteFinalizeSolutionStep()
 
-
-        # The following is used to create the solution database
+        ## The following is used to create the solution database
         #import json_output_process
 
         #out_parameters = KratosMultiphysics.Parameters("""
@@ -113,28 +110,43 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         #}
         #""")
 
-        #out_parameters["output_file_name"].SetString(input_filename+".json")
+        #if (inverted is True):
+            #out_parameters["output_file_name"].SetString(input_filename+"_inverted.json")
+        #else:
+            #out_parameters["output_file_name"].SetString(input_filename+".json")
 
         #out = json_output_process.JsonOutputProcess(self.StructureModel, out_parameters)
         #out.ExecuteInitialize()
         #out.ExecuteBeforeSolutionLoop()
         #out.ExecuteFinalizeSolutionStep()
 
+    def test_less_basic_mortar_mapping_triangle_pure_implicit(self):
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_integration_several_triangles"
+        self._mapper_tests(input_filename, 3, 3, True)
+
     def test_less_basic_mortar_mapping_triangle(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_integration_several_triangles"
-        self._mapper_tests(input_filename, 3, False)
+        self._mapper_tests(input_filename, 3, 3)
 
     def test_simple_curvature_mortar_mapping_triangle(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_simple_curvature"
-        self._mapper_tests(input_filename, 3, False)
+        self._mapper_tests(input_filename, 3, 3)
 
     def test_mortar_mapping_triangle(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_double_curvature_integration_triangle"
-        self._mapper_tests(input_filename, 3, False)
+        self._mapper_tests(input_filename, 3, 3)
 
     def test_mortar_mapping_quad(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_double_curvature_integration_quadrilateral"
-        self._mapper_tests(input_filename, 4, False)
+        self._mapper_tests(input_filename, 4, 4)
+
+    def test_mortar_mapping_quad_tri(self):
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_double_curvature_integration_triangle_quadrilateral"
+        self._mapper_tests(input_filename, 4, 3)
+
+    def test_mortar_mapping_tri_quad(self):
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_double_curvature_integration_triangle_quadrilateral"
+        self._mapper_tests(input_filename, 3, 4, False, True)
 
     def __post_process(self):
         from gid_output_process import GiDOutputProcess
@@ -146,7 +158,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
                                                 "gidpost_flags": {
                                                     "GiDPostMode": "GiD_PostBinary",
                                                     "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteElementsOnly",
+                                                    "WriteConditionsFlag": "WriteConditionsOnly",
                                                     "MultiFileFlag": "SingleFile"
                                                 },
                                                 "nodal_results"       : ["DISPLACEMENT","NORMAL","TEMPERATURE"],

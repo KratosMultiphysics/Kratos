@@ -44,7 +44,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) BakerJohnsonCookThermalHardeningRule 
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) BakerJohnsonCookThermalHardeningRule
     : public HardeningRule
   {
   public:
@@ -68,10 +68,10 @@ namespace Kratos
     BakerJohnsonCookThermalHardeningRule& operator=(BakerJohnsonCookThermalHardeningRule const& rOther);
 
     /// Clone.
-    virtual HardeningRule::Pointer Clone() const override;
-    
+    HardeningRule::Pointer Clone() const override;
+
     /// Destructor.
-    ~BakerJohnsonCookThermalHardeningRule();
+    ~BakerJohnsonCookThermalHardeningRule() override;
 
     ///@}
     ///@name Operators
@@ -82,21 +82,21 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    
+
     /**
      * Calculate Hardening functions
      */
 
-    virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening) override;
-      
+    double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening) override;
+
     /**
      * Calculate Hardening function derivatives
      */
 
-    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening) override;
+    double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening) override;
 
-    virtual double& CalculateDeltaThermalHardening(const PlasticDataType& rVariables, double& rDeltaThermalHardening) override;
-    
+    double& CalculateDeltaThermalHardening(const PlasticDataType& rVariables, double& rDeltaThermalHardening) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -112,7 +112,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "BakerJohnsonCookThermalHardeningRule" ;
@@ -120,16 +120,16 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "BakerJohnsonCookThermalHardeningRule";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "BakerJohnsonCookThermalHardeningRule Data";
-    }    
+    }
 
 
     ///@}
@@ -147,18 +147,18 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-	
-     
+
+
     ///@}
     ///@name Protected Operators
     ///@{
 
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
-    
-    
+
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -205,16 +205,16 @@ namespace Kratos
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningRule )
     }
-    
-    virtual void load(Serializer& rSerializer) override
+
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningRule )
     }
-    
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -246,6 +246,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BAKER_JOHNSON_COOK_THERMAL_HARDENING_RULE_H_INCLUDED  defined 
+#endif // KRATOS_BAKER_JOHNSON_COOK_THERMAL_HARDENING_RULE_H_INCLUDED  defined
 
 

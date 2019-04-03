@@ -63,25 +63,27 @@ public:
     /// Pointer definition of DistanceModificationProcess
     KRATOS_CLASS_POINTER_DEFINITION(DistanceModificationProcess);
 
-    typedef Node<3>                     NodeType;
-    typedef Geometry<NodeType>      GeometryType;
-
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
     DistanceModificationProcess(
-        ModelPart& rModelPart, 
-        const double FactorCoeff,
+        ModelPart& rModelPart,
+        const double FactorCoeff, //TODO: Remove it (here for legacy reasons)
         const double DistanceThreshold,
-        const bool CheckAtEachStep, 
+        const bool CheckAtEachStep,
         const bool NegElemDeactivation,
         const bool RecoverOriginalDistance);
 
     /// Constructor with Kratos parameters.
     DistanceModificationProcess(
         ModelPart& rModelPart,
+        Parameters& rParameters);
+
+    /// Constructor with Kratos model
+    DistanceModificationProcess(
+        Model& rModel,
         Parameters& rParameters);
 
     /// Destructor.
@@ -91,6 +93,16 @@ public:
     ///@name Operators
     ///@{
 
+    void Execute() override;
+
+    void ExecuteInitialize() override;
+
+    void ExecuteBeforeSolutionLoop() override;
+
+    void ExecuteInitializeSolutionStep() override;
+
+    void ExecuteFinalizeSolutionStep() override;
+
     ///@}
     ///@name Operations
     ///@{
@@ -98,17 +110,6 @@ public:
     ///@}
     ///@name Access
     ///@{
-
-    void ExecuteInitialize() override;
-
-
-    void ExecuteBeforeSolutionLoop() override;
-
-
-    void ExecuteInitializeSolutionStep() override;
-
-
-    void ExecuteFinalizeSolutionStep() override;
 
     ///@}
     ///@name Inquiry
@@ -132,6 +133,7 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
 
+
     ///@}
     ///@name Friends
     ///@{
@@ -142,20 +144,21 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
 
-    ModelPart&                                              mrModelPart;
-    double                                                 mFactorCoeff;
-    double                                           mDistanceThreshold;
-    bool                                               mCheckAtEachStep;
-    bool                                           mNegElemDeactivation;
-    bool                                       mRecoverOriginalDistance;
-    bool                                      mAvoidAlmostEmptyElements;
-    std::vector<std::vector<unsigned int>>        mModifiedDistancesIDs;
-    std::vector<std::vector<double>>           mModifiedDistancesValues;
+    ModelPart&                                       mrModelPart;
+    double                                    mDistanceThreshold;
+    bool                                             mIsModified;
+    bool                                     mContinuousDistance;
+    bool                                        mCheckAtEachStep;
+    bool                                    mNegElemDeactivation;
+    bool                               mAvoidAlmostEmptyElements;
+    bool                                mRecoverOriginalDistance;
+    std::vector<unsigned int>              mModifiedDistancesIDs;
+    std::vector<double>                 mModifiedDistancesValues;
+    std::vector<Vector>        mModifiedElementalDistancesValues;
 
     ///@}
     ///@name Protected Operators
@@ -165,11 +168,17 @@ private:
     ///@name Private Operations
     ///@{
 
-    unsigned int ModifyDistance();
+    void CheckDefaultsAndProcessSettings(Parameters &rParameters);
 
-    void SetElementalDistances();
+    void ModifyDistance();
+
+    void ModifyDiscontinuousDistance();
+
+    void RecoverDeactivationPreviousState();
 
     void RecoverOriginalDistance();
+
+    void RecoverOriginalDiscontinuousDistance();
 
     void DeactivateFullNegativeElements();
 

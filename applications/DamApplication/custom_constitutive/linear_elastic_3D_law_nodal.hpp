@@ -1,8 +1,8 @@
 //
-//   Project Name:   
-//   Last modified by:    $Author:   
-//   Date:                $Date:  
-//   Revision:            $Revision:  
+//   Project Name:
+//   Last modified by:    $Author:
+//   Date:                $Date:
+//   Revision:            $Revision:
 //
 
 #if !defined (KRATOS_LINEAR_ELASTIC_3D_LAW_NODAL_H_INCLUDED)
@@ -17,7 +17,7 @@
 namespace Kratos
 {
 
-class LinearElastic3DLawNodal : public LinearElastic3DLaw
+class KRATOS_API(DAM_APPLICATION) LinearElastic3DLawNodal : public LinearElastic3DLaw
 {
 
 public:
@@ -36,9 +36,9 @@ public:
     virtual ~LinearElastic3DLawNodal();
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-   
-    ConstitutiveLaw::Pointer Clone() const;
-    
+
+    ConstitutiveLaw::Pointer Clone() const override;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /**
@@ -47,14 +47,14 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues);
-    
+    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
 
     // Member Variables
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     double& CalculateNodalYoungModulus ( const MaterialResponseVariables & rElasticVariables, double & rYoungModulus);
@@ -62,21 +62,21 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
+
     // Serialization
-    
+
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearElastic3DLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElastic3DLaw )
     }
 
 }; // Class LinearElastic3DLawNodal
 }  // namespace Kratos.
-#endif // KRATOS_LINEAR_ELASTIC_3D_LAW_NODAL_H_INCLUDED  defined 
+#endif // KRATOS_LINEAR_ELASTIC_3D_LAW_NODAL_H_INCLUDED  defined

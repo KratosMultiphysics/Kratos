@@ -1,5 +1,5 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics 
+import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -8,26 +8,25 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
     def setUp(self):
         pass
-    
-
+        
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)  
-        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)      
-        
-    
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
+
+
     def _add_dofs(self,mp):
         # Adding the dofs AND their corresponding reaction!
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,mp)
 
 
     def _create_nodes(self,mp,element_name):
@@ -78,14 +77,14 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.3)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,1.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,1.0)
-        
+
         g = [0,0,0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
-        
+
         cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
 
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl) 
-        
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
+
 
     def _solve(self,mp):
         #define a minimal newton raphson solver
@@ -94,27 +93,27 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
         convergence_criterion.SetEchoLevel(0)
-        
+
         max_iters = 20
         compute_reactions = True
         reform_step_dofs = True
         calculate_norm_dx = False
         move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
-                                                                        scheme, 
-                                                                        linear_solver, 
-                                                                        convergence_criterion, 
-                                                                        builder_and_solver, 
-                                                                        max_iters, 
-                                                                        compute_reactions, 
-                                                                        reform_step_dofs, 
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
+                                                                        scheme,
+                                                                        linear_solver,
+                                                                        convergence_criterion,
+                                                                        builder_and_solver,
+                                                                        max_iters,
+                                                                        compute_reactions,
+                                                                        reform_step_dofs,
                                                                         move_mesh_flag)
         strategy.SetEchoLevel(0)
-        
+
         strategy.Check()
         strategy.Solve()
-        
-    
+
+
     def _check_results(self,node,displacement_results, rotation_results):
         ##check that the results are exact on the node
         disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
@@ -126,7 +125,7 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         self.assertAlmostEqual(rot[0], rotation_results[0], 10)
         self.assertAlmostEqual(rot[1], rotation_results[1], 10)
         self.assertAlmostEqual(rot[2], rotation_results[2], 10)
-        
+
 
     def _check_results_stress(self,element,stress_variable,reference_stress_results,processInfo):
         ##check that the results are exact on the first gauss point
@@ -140,8 +139,8 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         self.assertAlmostEqual(stress[2,2], reference_stress_results[5])
 
 
-    def execute_shell_test(self, element_name, displacement_results, rotation_results, shell_stress_middle_surface_results, shell_stress_top_surface_results, shell_stress_bottom_surface_results, shell_von_mises_result,do_post_processing):
-        mp = KratosMultiphysics.ModelPart("solid_part")
+    def execute_shell_test(self, current_model, element_name, displacement_results, rotation_results, shell_stress_middle_surface_results, shell_stress_top_surface_results, shell_stress_bottom_surface_results, shell_von_mises_result,do_post_processing):
+        mp = current_model.CreateModelPart("solid_part")
         mp.SetBufferSize(2)
 
         self._add_variables(mp)
@@ -149,7 +148,7 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         self._create_nodes(mp,element_name)
         self._add_dofs(mp)
         self._create_elements(mp,element_name)
-        
+
         #create a submodelpart for dirichlet boundary conditions
         bcs_dirichlet = mp.CreateSubModelPart("BoundaryCondtionsDirichlet")
         bcs_dirichlet.AddNodes([1,2,4])
@@ -157,14 +156,14 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         #create a submodelpart for neumann boundary conditions
         bcs_neumann = mp.CreateSubModelPart("BoundaryCondtionsNeumann")
         bcs_neumann.AddNodes([3])
-        
+
         self._apply_dirichlet_BCs(bcs_dirichlet)
         self._apply_neumann_BCs(bcs_neumann)
         self._solve(mp)
-        
+
         # Check displacements
         self._check_results(mp.Nodes[3],displacement_results, rotation_results)
-        
+
         # Check stresses at each surface
         self._check_results_stress(mp.Elements[1],
                                    StructuralMechanicsApplication.SHELL_STRESS_MIDDLE_SURFACE,
@@ -175,26 +174,28 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         self._check_results_stress(mp.Elements[1],
                                    StructuralMechanicsApplication.SHELL_STRESS_BOTTOM_SURFACE,
                                    shell_stress_bottom_surface_results,mp.ProcessInfo)
-        
+
         # Check results of doubles on 2nd element @ Gauss Point [0] only
-        self.assertAlmostEqual(mp.Elements[1].CalculateOnIntegrationPoints(StructuralMechanicsApplication.VON_MISES_STRESS, 
+        self.assertAlmostEqual(mp.Elements[1].CalculateOnIntegrationPoints(StructuralMechanicsApplication.VON_MISES_STRESS,
                                mp.ProcessInfo)[0], shell_von_mises_result, 9)
-                    
+
         if do_post_processing:
             self.__post_process(mp)
 
 
     def test_thin_shell_triangle(self):
         element_name = "ShellThinElementCorotational3D3N"
-        displacement_results = [0.0002324367992 , -0.0002233770349 , 0.0002567033724]
-        rotation_results     = [0.0003627558482 , -0.000192601191 , -0.0004682304553]
-        shell_stress_middle_surface_results = [1.3303075390101 , 0.264364591997 , 0.0 , 5.0167837539314 , 0.0 , 0.0]
-        shell_stress_top_surface_results    = [-1.2283221502342 , 0.4311013553375 , 0.0 , -1.6038795679008 , 0.0 , 0.0]
-        shell_stress_bottom_surface_results = [3.8889372282119 , 0.0976278286547 , 0.0 , 11.637447075717 , 0.0 , 0.0]
-        shell_von_mises_result = 6.844018189553676
+        displacement_results = [0.000232466935 , -0.00022337867 , 0.000256728258]
+        rotation_results     = [0.000362805651 , -0.000192603777 , -0.000468264833]
+        shell_stress_middle_surface_results = [1.330532185831 , 0.264532374393 , 0.0 , 5.017119730101 , 0.0 , 0.0]
+        shell_stress_top_surface_results    = [-1.227921495072 , 0.431252225426 , 0.0 , -1.60308025618 , 0.0 , 0.0]
+        shell_stress_bottom_surface_results = [3.888985866804 , 0.097812523361 , 0.0 , 11.637319716442 , 0.0 , 0.0]
+        shell_von_mises_result = 6.84404599900034
 
-        self.execute_shell_test(element_name, 
-                                displacement_results, 
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
+                                displacement_results,
                                 rotation_results,
                                 shell_stress_middle_surface_results,
                                 shell_stress_top_surface_results,
@@ -207,14 +208,16 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         element_name = "ShellThickElementCorotational3D3N"
         displacement_results = [7.18429456e-05 , -0.0001573361523 , 0.0005263535842]
         rotation_results     = [0.0003316611414 , -0.0002797797097 , 4.922597e-07]
-        shell_stress_middle_surface_results = [0.3249757099621 , 2.9160990871098 , 0.2819464444644 , -3.1257443788537 , -1.8055963785359 , 0.0]
-        shell_stress_top_surface_results    = [-4.1554904776369 , -3.4345555473773 , 0.0 , -9.9070455393953 , 0.0 , 0.0]
-        shell_stress_bottom_surface_results = [4.8054418975623 , 9.2667537215962 , 0.0 , 3.6555567816919 , 0.0 , 0.0]
-        shell_von_mises_result = 16.628498883168643
+        shell_stress_middle_surface_results = [0.32465769837 , 2.916044245593 , 0.281946444464 , -3.126126456163 , -1.805596378534 , 0.0]
+        shell_stress_top_surface_results    = [-4.155385244644 , -3.434557725121 , 0.0 , -9.907162942127 , 0.0 , 0.0]
+        shell_stress_bottom_surface_results = [4.804700641385 , 9.266646216307 , 0.0 , 3.6549100298 , 0.0 , 0.0]
+        shell_von_mises_result = 16.628137698179042
 
-        self.execute_shell_test(element_name, 
-                                displacement_results, 
-                                rotation_results, 
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
+                                displacement_results,
+                                rotation_results,
                                 shell_stress_middle_surface_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,
@@ -226,14 +229,16 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         element_name = "ShellThinElementCorotational3D4N"
         displacement_results = [0.0021867287711 , -0.002169253367 , 0.0007176841015]
         rotation_results     = [0.002816872164 , 0.0008161241026 , -0.0069076664086]
-        shell_stress_middle_surface_results = [3.2764384894107 , -11.2157366764521 , 0.0 , 3.3634707516415 , 0.0 , 0.0]
-        shell_stress_top_surface_results    = [20.1969362575659 , 4.5153278381999 , 0.0 , -8.6274148078231 , 0.0 , 0.0]
-        shell_stress_bottom_surface_results = [-13.6440592787273 , -26.946801191103 , 0.0 , 15.3543563111075 , 0.0 , 0.0]
-        shell_von_mises_result = 53.007571556565786
+        shell_stress_middle_surface_results = [3.272955597478 , -11.215566923738 , 0.0 , 3.360152391538 , 0.0 , 0.0]
+        shell_stress_top_surface_results    = [20.197335966016 , 4.515326224888 , 0.0 , -8.626180886984 , 0.0 , 0.0]
+        shell_stress_bottom_surface_results = [-13.651424771092 , -26.94646007236 , 0.0 , 15.346485670044 , 0.0 , 0.0]
+        shell_von_mises_result = 53.00672171174518
 
-        self.execute_shell_test(element_name, 
-                                displacement_results, 
-                                rotation_results, 
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
+                                displacement_results,
+                                rotation_results,
                                 shell_stress_middle_surface_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,
@@ -243,23 +248,25 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
 
     def test_thick_shell_quadrilateral(self):
         element_name = "ShellThickElementCorotational3D4N"
-        displacement_results = [0.0003567530995 , -0.0006345647159 , 0.0012775224387]
-        rotation_results     = [0.001208364263 , -0.0004090878159 , -0.0011667612068]
-        shell_stress_middle_surface_results = [2.6746781989643 , -3.4828482661147 , 0.7508096733731 , 2.7635579906239 , 6.5466218833201 , 0.0]
-        shell_stress_top_surface_results    = [9.0133220797589 , 0.5580446976287 , 0.0 , -50.7214926962072 , 0.0 , 0.0]
-        shell_stress_bottom_surface_results = [-3.6639656818168 , -7.5237412298536 , 0.0 , 56.2486086774573 , 0.0 , 0.0]
-        shell_von_mises_result = 59.60909025300992
+        displacement_results = [0.000356813514 , -0.00063451962 , 0.001277536105]
+        rotation_results     = [0.001208329991 , -0.000409163542 , -0.001166832572]
+        shell_stress_middle_surface_results = [2.673886114206 , -3.482959961533 , 0.751398508523 , 2.763048319957 , 6.546366049819 , 0.0]
+        shell_stress_top_surface_results    = [9.0127433219 , 0.557224675217 , 0.0 , -50.720551115113 , 0.0 , 0.0]
+        shell_stress_bottom_surface_results = [-3.664971093553 , -7.523144598382 , 0.0 , 56.246647754966 , 0.0 , 0.0]
+        shell_von_mises_result = 59.607489872219794
 
-        self.execute_shell_test(element_name, 
-                                displacement_results, 
-                                rotation_results, 
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
+                                displacement_results,
+                                rotation_results,
                                 shell_stress_middle_surface_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,
                                 shell_von_mises_result,
                                 False) # Do PostProcessing for GiD?
 
-        
+
     def __post_process(self, main_model_part):
         from gid_output_process import GiDOutputProcess
         self.gid_output = GiDOutputProcess(main_model_part,
@@ -272,7 +279,7 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
                                                     "WriteDeformedMeshFlag": "WriteUndeformed",
                                                     "WriteConditionsFlag": "WriteConditions",
                                                     "MultiFileFlag": "SingleFile"
-                                                },        
+                                                },
                                                 "nodal_results"       : ["DISPLACEMENT", "ROTATION", "POINT_LOAD"],
                                                 "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR"]
                                             }
@@ -286,6 +293,6 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         self.gid_output.PrintOutput()
         self.gid_output.ExecuteFinalizeSolutionStep()
         self.gid_output.ExecuteFinalize()
-        
+
 if __name__ == '__main__':
     KratosUnittest.main()

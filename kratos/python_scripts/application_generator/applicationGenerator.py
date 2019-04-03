@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division
+
 import os
 import sys
 import shutil
@@ -214,7 +216,7 @@ class ApplicationGenerator(TemplateRule):
 
         # add it to kratos
         self._addApplicationToCMake()
-        self._addApplicationToAppList()
+        # self._addApplicationToAppList()
 
     # Interal goes here
     def _applyTemplateRulesToFile(self, src, dst, rules):
@@ -373,7 +375,6 @@ class ApplicationGenerator(TemplateRule):
             for l in src:
 
                 # Add the applciation to the list message
-                print(l.strip(), "\")", l.strip() == "\")")
                 if l.strip() == "\")" :
                     newLine = self._nameUpper + '_APPLICATION;\\\n'
 

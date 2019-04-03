@@ -21,7 +21,6 @@
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
-#include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
 #include "custom_utilities/turbulence_statistics_container.h"
@@ -35,15 +34,15 @@ namespace Python
 
   void  AddCustomUtilitiesToPython(pybind11::module& m)
   {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     //typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     //typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     //typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    class_<Variable<TurbulenceStatisticsContainer::Pointer>,VariableData>(m, "TurbulenceStatisticsContainerVariable")
-      .def( "__repr__", &Variable<TurbulenceStatisticsContainer::Pointer>::Info )
-      ;
+    py::class_<Variable<TurbulenceStatisticsContainer::Pointer>,VariableData>(m, "TurbulenceStatisticsContainerVariable")
+    .def("__str__", PrintObject<Variable<TurbulenceStatisticsContainer::Pointer>>)
+    ;
   }
 
 }  // namespace Python.

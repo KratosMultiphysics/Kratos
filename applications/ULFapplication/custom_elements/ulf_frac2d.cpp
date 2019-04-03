@@ -148,7 +148,7 @@ void UlfFrac2D::CalculateRightHandSide(VectorType& rRightHandSideVector, Process
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;// = ZeroMatrix(3,2);
+    BoundedMatrix<double,3,2> msDN_DX;// = ZeroMatrix(3,2);
     array_1d<double,3> msN;// = ZeroVector(3);
 
     int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];
@@ -236,10 +236,10 @@ void UlfFrac2D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurre
 void UlfFrac2D::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    boost::numeric::ublas::bounded_matrix<double,3,6> msB;// = ZeroMatrix(3,6);
-    boost::numeric::ublas::bounded_matrix<double,3,3> ms_constitutive_matrix;// = ZeroMatrix(3,3);
-    boost::numeric::ublas::bounded_matrix<double,3,6> ms_temp;// = ZeroMatrix(3,6);
-    boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;// = ZeroMatrix(3,2);
+    BoundedMatrix<double,3,6> msB;// = ZeroMatrix(3,6);
+    BoundedMatrix<double,3,3> ms_constitutive_matrix;// = ZeroMatrix(3,3);
+    BoundedMatrix<double,3,6> ms_temp;// = ZeroMatrix(3,6);
+    BoundedMatrix<double,3,2> msDN_DX;// = ZeroMatrix(3,2);
     array_1d<double,3> msN;// = ZeroVector(3);
     unsigned int NumberOfNodes = GetGeometry().size();
     unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -432,7 +432,7 @@ void UlfFrac2D::VelocityStep(MatrixType& rLeftHandSideMatrix, VectorType& rRight
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;// = ZeroMatrix(3,2);
+    BoundedMatrix<double,3,2> msDN_DX;// = ZeroMatrix(3,2);
     array_1d<double,3> msN;// = ZeroVector(3);
     //KRATOS_WATCH("Velocity step!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     const double& density = 0.333333333333333333333*(GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
@@ -494,8 +494,8 @@ void UlfFrac2D::PressureStep(MatrixType& rLeftHandSideMatrix, VectorType& rRight
 
     array_1d<double,6> ms_temp_vec;// = ZeroVector(6);
 
-    boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix;// = ZeroMatrix(3,3);
-    boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;//= ZeroMatrix(3,2);
+    BoundedMatrix<double,3,3> msWorkMatrix;// = ZeroMatrix(3,3);
+    BoundedMatrix<double,3,2> msDN_DX;//= ZeroMatrix(3,2);
     array_1d<double,3> ms_temp_vec_np;// = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux0;// = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux1;// = ZeroVector(3); //dimension = number of nodes

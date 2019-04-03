@@ -14,7 +14,7 @@ class TestConditionNumber(KratosUnittest.TestCase):
             import KratosMultiphysics.ExternalSolversApplication
         except:
             self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-            
+
         space = KratosMultiphysics.UblasSparseSpace()
 
         # Read the matrices

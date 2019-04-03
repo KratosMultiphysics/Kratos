@@ -16,7 +16,7 @@ set( KRATOS_EMPIRE_APPLICATION_SOURCES
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosEmpireApplication MODULE ${KRATOS_EMPIRE_APPLICATION_SOURCES})
+pybind11_add_module(KratosEmpireApplication MODULE THIN_LTO ${KRATOS_EMPIRE_APPLICATION_SOURCES})
 target_link_libraries(KratosEmpireApplication PRIVATE KratosCore )
 set_target_properties(KratosEmpireApplication PROPERTIES PREFIX "")
 install(TARGETS KratosEmpireApplication DESTINATION libs )
@@ -38,4 +38,4 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/EmpireApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/EmpireApplication.py" DESTINATION "KratosMultiphysics/EmpireApplication" RENAME "__init__.py")

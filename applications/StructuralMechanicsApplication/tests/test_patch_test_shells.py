@@ -1,5 +1,5 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics 
+import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -8,26 +8,26 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestPatchTestShells(KratosUnittest.TestCase):
     def setUp(self):
         pass
-    
+
 
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)  
-        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)      
-        
-    
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
+
+
     def _add_dofs(self,mp):
         # Adding the dofs AND their corresponding reaction!
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,mp)
 
 
     def _create_nodes(self,mp,element_name):
@@ -78,14 +78,14 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.3)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,1.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,1.0)
-        
+
         g = [0,0,0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
-        
+
         cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
 
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl) 
-        
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
+
 
     def _solve(self,mp):
         #define a minimal newton raphson solver
@@ -93,26 +93,26 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
-        
+
         max_iters = 20
         compute_reactions = True
         reform_step_dofs = True
         calculate_norm_dx = False
         move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp, 
-                                                                  scheme, 
-                                                                  linear_solver, 
-                                                                  builder_and_solver, 
-                                                                  compute_reactions, 
-                                                                  reform_step_dofs, 
+        strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp,
+                                                                  scheme,
+                                                                  linear_solver,
+                                                                  builder_and_solver,
+                                                                  compute_reactions,
+                                                                  reform_step_dofs,
                                                                   calculate_norm_dx,
                                                                   move_mesh_flag)
         strategy.SetEchoLevel(0)
-        
+
         strategy.Check()
         strategy.Solve()
-        
-    
+
+
     def _check_results(self,node,displacement_results, rotation_results):
         #check that the results are exact on the node
         disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
@@ -126,8 +126,8 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         self.assertAlmostEqual(rot[2], rotation_results[2], 10)
 
 
-    def execute_shell_test(self, element_name, displacement_results, rotation_results, do_post_processing):
-        mp = KratosMultiphysics.ModelPart("solid_part")
+    def execute_shell_test(self, current_model,element_name, displacement_results, rotation_results, do_post_processing):
+        mp = current_model.CreateModelPart("solid_part")
         mp.SetBufferSize(2)
 
         self._add_variables(mp)
@@ -135,7 +135,7 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         self._create_nodes(mp,element_name)
         self._add_dofs(mp)
         self._create_elements(mp,element_name)
-        
+
         #create a submodelpart for dirichlet boundary conditions
         bcs_dirichlet = mp.CreateSubModelPart("BoundaryCondtionsDirichlet")
         bcs_dirichlet.AddNodes([1,2,4])
@@ -143,13 +143,13 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         #create a submodelpart for neumann boundary conditions
         bcs_neumann = mp.CreateSubModelPart("BoundaryCondtionsNeumann")
         bcs_neumann.AddNodes([3])
-        
+
         self._apply_dirichlet_BCs(bcs_dirichlet)
         self._apply_neumann_BCs(bcs_neumann)
         self._solve(mp)
 
         self._check_results(mp.Nodes[3],displacement_results, rotation_results)
-                    
+
         if do_post_processing:
             self.__post_process(mp)
 
@@ -159,7 +159,9 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         displacement_results = [0.0002324779832 , -0.0002233435997 , 0.0002567143455]
         rotation_results     = [0.0003627433341 , -0.0001926662603 , -0.0004682681704]
 
-        self.execute_shell_test(element_name, 
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
                                 displacement_results, 
                                 rotation_results, 
                                 False) # Do PostProcessing for GiD?
@@ -170,7 +172,9 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         displacement_results = [7.18997182e-05 , -0.0001572802804 , 0.0005263940488]
         rotation_results     = [0.0003316612014 , -0.0002798472414 , 5.141506e-07]
 
-        self.execute_shell_test(element_name, 
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
                                 displacement_results, 
                                 rotation_results, 
                                 False) # Do PostProcessing for GiD?
@@ -181,7 +185,9 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         displacement_results = [0.0021909310921 , -0.0021683746759 , 0.0007191338749]
         rotation_results     = [0.0028191154606 , 0.0008171818407 , -0.0069146010725]
 
-        self.execute_shell_test(element_name, 
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
                                 displacement_results, 
                                 rotation_results, 
                                 False) # Do PostProcessing for GiD?
@@ -192,12 +198,14 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         displacement_results = [0.0003572969872 , -0.0006341259132 , 0.00127807995001]
         rotation_results     = [0.0012082600485 , -0.0004098356773 , -0.0011673798349]
 
-        self.execute_shell_test(element_name, 
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
                                 displacement_results, 
                                 rotation_results, 
                                 False) # Do PostProcessing for GiD?
 
-        
+
     def __post_process(self, main_model_part):
         from gid_output_process import GiDOutputProcess
         self.gid_output = GiDOutputProcess(main_model_part,
@@ -210,7 +218,7 @@ class TestPatchTestShells(KratosUnittest.TestCase):
                                                     "WriteDeformedMeshFlag": "WriteUndeformed",
                                                     "WriteConditionsFlag": "WriteConditions",
                                                     "MultiFileFlag": "SingleFile"
-                                                },        
+                                                },
                                                 "nodal_results"       : ["DISPLACEMENT", "ROTATION", "POINT_LOAD"],
                                                 "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR"]
                                             }
@@ -224,6 +232,6 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         self.gid_output.PrintOutput()
         self.gid_output.ExecuteFinalizeSolutionStep()
         self.gid_output.ExecuteFinalize()
-        
+
 if __name__ == '__main__':
     KratosUnittest.main()

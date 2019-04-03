@@ -1,9 +1,16 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:            January 2016 $
-//   Revision:            $Revision:                 1.0 $
+
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_POROMECHANICS_NEWTON_RAPHSON_STRATEGY)
 #define KRATOS_POROMECHANICS_NEWTON_RAPHSON_STRATEGY
@@ -100,11 +107,11 @@ public:
     //------------------------------------------------------------------------------------
 
     ///Destructor
-    virtual ~PoromechanicsNewtonRaphsonStrategy() {}
+    ~PoromechanicsNewtonRaphsonStrategy() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Initialize()
+    void Initialize() override
     {
         KRATOS_TRY
 
@@ -121,7 +128,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    bool IsConverged()
+    bool IsConverged() override
     {
         KRATOS_TRY
         
@@ -160,16 +167,15 @@ protected:
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    int Check()
+    int Check() override
     {
         KRATOS_TRY
         
         int ierr = MotherType::Check();
         if(ierr != 0) return ierr;
         
-        if(IS_CONVERGED.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument,"IS_CONVERGED Key is 0. Check if all applications were correctly registered.", "" )
-        
+        KRATOS_CHECK_VARIABLE_KEY(IS_CONVERGED);
+
         return ierr;
 
         KRATOS_CATCH( "" )
@@ -234,8 +240,8 @@ protected:
             NormDx = TSparseSpace::TwoNorm(mDx);
             ReferenceDofsNorm = this->CalculateReferenceDofsNorm(rDofSet);
             dofs_ratio = NormDx/ReferenceDofsNorm;
-            std::cout << "TEST ITERATION: " << iteration_number << std::endl;
-            std::cout << "    Dofs Ratio = " << dofs_ratio << std::endl;
+            KRATOS_INFO("Newton Raphson Strategy") << "TEST ITERATION: " << iteration_number << std::endl;
+            KRATOS_INFO("Newton Raphson Strategy") << "    Dofs Ratio = " << dofs_ratio << std::endl;
             
             if(dofs_ratio <= 1.0e-3)
                 is_converged = true;

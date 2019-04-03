@@ -6,8 +6,9 @@
 	"solver_type" : "solid_mechanics_static_solver",
 	"Parameters"  : {
             "time_integration_settings" : {
-                "solution_type"      : "Static",
-                "integration_method" : "Non-Linear"
+                "solution_type"      : "Quasi-static",
+                "analysis_type"      : "Non-linear",
+		"integration_method" : "Static"
             },
             "linear_solver_settings"    : {
 		"solver_type" : "SuperLUSolver",
@@ -22,19 +23,19 @@
     }
     ],
     "loads_process_list"       : [{
-        "variable_name"   : "LINE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : 1.0,
         "direction"       : [1.0,0.0,0.0]
     },{
-        "variable_name"   : "LINE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : 1.0,
         "direction"       : [-1.0,0.0,0.0]
     },{
-        "variable_name"   : "LINE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : 1.0,
         "direction"       : [0.0,1.0,0.0]
     },{
-        "variable_name"   : "LINE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : 1.0,
         "direction"       : [0.0,-1.0,0.0]
     }],

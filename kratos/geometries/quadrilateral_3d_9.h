@@ -29,11 +29,22 @@
 namespace Kratos
 {
 /**
-  * A nine node quadrilateral geometry. While the shape functions are only defined in
-  * 2D it is possible to define an arbitrary orientation in space. Thus it can be used for
-  * defining surfaces on 3D elements.
+ * @class Quadrilateral3D9
+ * @ingroup KratosCore
+ * @brief A nine node 3D quadrilateral geometry with quadratic shape functions
+ * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
+ * The node ordering corresponds with: 
+ *      3-----6-----2 
+ *      |           |  
+ *      |           |          
+ *      7     8     5         
+ *      |           |    
+ *      |           |  
+ *      0-----4-----1 
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Quadrilateral3D9 : public Geometry<TPointType>
 {
 public:
@@ -218,8 +229,7 @@ public:
     Quadrilateral3D9( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
-        if ( this->PointsNumber() != 9 )
-            KRATOS_ERROR << "Invalid points number. Expected 9, given " << this->PointsNumber() << std::endl;
+        KRATOS_ERROR_IF( this->PointsNumber() != 9 ) << "Invalid points number. Expected 9, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -334,24 +344,6 @@ public:
     //     return p_clone;
     // }
 
-
-    /**
-     * lumping factors for the calculation of the lumped mass matrix
-     */
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-	    if(rResult.size() != 9)
-	        rResult.resize( 9, false );
-
-        for ( int i = 0; i < 4; i++ ) rResult[i] = 1.00 / 36.00;
-
-        for ( int i = 4; i < 8; i++ ) rResult[i] = 1.00 / 9.00;
-
-        rResult[8] = 4.00 / 9.00;
-
-        return rResult;
-    }
-
     /**
      * Informations
      */
@@ -375,43 +367,55 @@ public:
     double Length() const override
     {
         Vector d = this->Points()[2] - this->Points()[0];
-        return( sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );
+        return( std::sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );
     }
 
-    /**
-     * :TODO: the charactereistic sizes have to be reviewed
-     * by the one who is willing to use them!
-     */
-    /**
-     * This method calculates and returns area or surface area of
+    /** This method calculates and returns area or surface area of
      * this geometry depending to it's dimension. For one dimensional
      * geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
+     *
      * @return double value contains area or surface
-     * area.
+     * area.N
      * @see Length()
      * @see Volume()
      * @see DomainSize()
+     * @todo could be replaced by something more suitable (comment by janosch)
      */
     double Area() const override
     {
-        Vector d = this->Points()[2] - this->Points()[0];
-        return( sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );
+        Vector temp;
+        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
+        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
+        double Area = 0.0;
+
+        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
+            Area += temp[i] * integration_points[i].Weight();
+        }
+
+        return Area;
     }
 
-
+    /**
+     * This method calculates and returns the volume of this geometry.
+     * This method calculates and returns the volume of this geometry.
+     *
+     * This method uses the V = (A x B) * C / 6 formula.
+     *
+     * @return double value contains length, area or volume.
+     *
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     *
+     * @todo might be necessary to reimplement
+     */
     double Volume() const override
     {
-        Vector d = this->Points()[2] - this->Points()[0];
-        return( sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );
+        return Area();
     }
 
-    /**
-     * :TODO: the charactereistic sizes have to be reviewed
-     * by the one who is willing to use them!
-     */
-    /**
-     * This method calculate and return length, area or volume of
+    /** This method calculates and returns length, area or volume of
      * this geometry depending to it's dimension. For one dimensional
      * geometry it returns its length, for two dimensional it gives area
      * and for three dimensional geometries it gives its volume.
@@ -420,21 +424,22 @@ public:
      * @see Length()
      * @see Area()
      * @see Volume()
+     * @todo could be replaced by something more suitable (comment by janosch)
      */
     double DomainSize() const override
     {
-        return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return Area();
     }
     
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
+    bool IsInside(
         const CoordinatesArrayType& rPoint, 
         CoordinatesArrayType& rResult, 
         const double Tolerance = std::numeric_limits<double>::epsilon() 
@@ -454,15 +459,15 @@ public:
     }
 
     /**
-     * Returns the local coordinates of a given arbitrary point
+     * @brief Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
-    virtual CoordinatesArrayType& PointLocalCoordinates( 
+    CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint 
-        ) override
+        ) const override
     {
         const double tol = 1.0e-8;
         const int maxiter = 1000;
@@ -471,17 +476,17 @@ public:
 
         double dummy = this->GetPoint( 0 ).X();
 
-        if ( fabs( this->GetPoint( 1 ).X() - dummy ) <= tol && fabs( this->GetPoint( 2 ).X() - dummy ) <= tol && fabs( this->GetPoint( 3 ).X() - dummy ) <= tol )
+        if ( std::abs( this->GetPoint( 1 ).X() - dummy ) <= tol && std::abs( this->GetPoint( 2 ).X() - dummy ) <= tol && std::abs( this->GetPoint( 3 ).X() - dummy ) <= tol )
             orientation[0] = 0;
 
         dummy = this->GetPoint( 0 ).Y();
 
-        if ( fabs( this->GetPoint( 1 ).Y() - dummy ) <= tol && fabs( this->GetPoint( 2 ).Y() - dummy ) <= tol && fabs( this->GetPoint( 3 ).Y() - dummy ) <= tol )
+        if ( std::abs( this->GetPoint( 1 ).Y() - dummy ) <= tol && std::abs( this->GetPoint( 2 ).Y() - dummy ) <= tol && std::abs( this->GetPoint( 3 ).Y() - dummy ) <= tol )
             orientation[0] = 1;
 
         dummy = this->GetPoint( 0 ).Z();
 
-        if ( fabs( this->GetPoint( 1 ).Z() - dummy ) <= tol && fabs( this->GetPoint( 2 ).Z() - dummy ) <= tol && fabs( this->GetPoint( 3 ).Z() - dummy ) <= tol )
+        if ( std::abs( this->GetPoint( 1 ).Z() - dummy ) <= tol && std::abs( this->GetPoint( 2 ).Z() - dummy ) <= tol && std::abs( this->GetPoint( 3 ).Z() - dummy ) <= tol )
             orientation[0] = 2;
 
         switch ( orientation[0] )
@@ -572,7 +577,7 @@ public:
 
             if ( MathUtils<double>::Norm3( DeltaXi ) < tol )
             {
-                if ( !( fabs( CurrentGlobalCoords( orientation[2] ) ) <= tol ) )
+                if ( !( std::abs( CurrentGlobalCoords( orientation[2] ) ) <= tol ) )
                     rResult( 0 ) = 2.0;
 
                 break;
@@ -739,7 +744,7 @@ public:
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
         Matrix ShapeFunctionsGradientInIntegrationPoint = shape_functions_gradients( IntegrationPointIndex );
         //values of shape functions in integration points
-        boost::numeric::ublas::vector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 9 );
+        DenseVector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 9 );
         /*vector<double>*/
         ShapeFunctionsValuesInIntegrationPoint = row(
                 CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ), IntegrationPointIndex );
@@ -796,166 +801,6 @@ public:
             rResult( 2, 1 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 1 ) );
         }
 
-        return rResult;
-    }
-
-    /**
-     * :TODO: implemented but not yet tested
-     */
-    /**
-     * Determinant of jacobians for given integration method. This
-     * method calculate determinant of jacobian in all
-     * integrations points of given integration method.
-     *
-     * @return Vector of double which is vector of determinants of
-     * jacobians \f$ |J|_i \f$ where \f$ i=1,2,...,n \f$ is the
-     * integration point index of given integration method.
-     *
-     * @see Jacobian
-     * @see InverseOfJacobian
-     */
-    Vector& DeterminantOfJacobian( Vector& rResult,
-                                           IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Quadrilateral3D9::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
-    /**
-     * :TODO: implemented but not yet tested
-     */
-    /**
-     * Determinant of jacobian in specific integration point of
-     * given integration method. This method calculate determinant
-     * of jacobian in given integration point of given integration
-     * method.
-     *
-     * @param IntegrationPointIndex index of integration point which jacobians has to
-     * be calculated in it.
-     * @param IntegrationPointIndex index of integration point
-     * which determinant of jacobians has to be calculated in it.
-     *
-     * @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$
-     * i \f$ is the given integration point index of given
-     * integration method.
-     *
-     * @see Jacobian
-     * @see InverseOfJacobian
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    double DeterminantOfJacobian( IndexType IntegrationPointIndex,
-                                          IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Quadrilateral3D9::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
-        return 0.0;
-    }
-
-    /**
-     * :TODO: check out, whether the PointType might be replaced
-     * by a general Point. This would be the clean way
-     */
-    /**
-     * Determinant of jacobian in given point.
-     * This method calculate determinant of jacobian
-     * matrix in given point.
-     *
-     * @param rPoint point which determinant of jacobians has to
-     * be calculated in it.
-     *
-     * @return Determinamt of jacobian matrix \f$ |J| \f$ in given
-     * point.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     *
-     * KLUDGE: PointType needed for proper functionality
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
-    {
-        KRATOS_ERROR << "Quadrilateral3D9::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
-        return 0.0;
-    }
-
-    /**
-     * :TODO: implemented but not yet tested
-     */
-    /**
-     * Inverse of jacobians for given integration method.
-     * This method calculates the inverse of jacobians
-     * matrices in all integrations points of
-     * given integration method.
-     *
-     * @param ThisMethod integration method which inverse of jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return Inverse of jacobian
-     * matrices \f$ J^{-1}_i \f$ where \f$ i=1,2,...,n \f$ is the integration
-     * point index of given integration method.
-     *
-     * @see Jacobian
-     * @see DeterminantOfJacobian
-     *
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    JacobiansType& InverseOfJacobian( JacobiansType& rResult,
-            IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Quadrilateral3D9::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
-    /**
-     * :TODO: implemented but not yet tested
-     */
-    /**
-     * Inverse of jacobian in specific integration point of given integration
-     * method. This method calculate Inverse of jacobian matrix in given
-     * integration point of given integration method.
-     *
-     * @param IntegrationPointIndex index of integration point which inverse
-     * of jacobians has to be calculated in it.
-     *
-     * @param ThisMethod integration method which inverse of jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return Inverse of jacobian matrix \f$ J^{-1}_i \f$ where \f$
-     * i \f$ is the given integration point index of given
-     * integration method.
-     *
-     * @see Jacobian
-     * @see DeterminantOfJacobian
-     *
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    Matrix& InverseOfJacobian( Matrix& rResult,
-                                       IndexType IntegrationPointIndex,
-                                       IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Quadrilateral3D9::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
-    /**
-     * :TODO: implemented but not yet tested
-     */
-    /**
-     * Inverse of jacobian in given point.
-     * This method calculate inverse of jacobian
-     * matrix in given point.
-     *
-     * @param rPoint point which inverse of jacobians has to
-     * be calculated in it.
-     * @return Inverse of jacobian matrix \f$ J^{-1} \f$ in given point.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     *
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
-    {
-        KRATOS_ERROR << "Quadrilateral3D9::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
         return rResult;
     }
 
@@ -1126,7 +971,7 @@ public:
         //getting the inverse jacobian matrices
         JacobiansType temp( integration_points_number );
 
-        JacobiansType invJ = InverseOfJacobian( temp, ThisMethod );
+        JacobiansType invJ = this->InverseOfJacobian( temp, ThisMethod );
 
         //loop over all integration points
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
@@ -1479,7 +1324,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            boost::numeric::ublas::vector<Matrix> temp( this->PointsNumber() );
+            DenseVector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 

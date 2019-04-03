@@ -1,76 +1,46 @@
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+import KratosMultiphysics.kratos_utilities as KratosUtilities
+have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
-import os
-
-class WorkFolderScope:
-    def __init__(self, work_folder):
-        self.currentPath = os.getcwd()
-        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
-
+@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class EmbeddedReservoirTest(UnitTest.TestCase):
     def testEmbeddedReservoir2D(self):
         self.distance = 0.5
         self.slip_level_set = False
-        self.work_folder = "EmbeddedReservoirTest"   
+        self.work_folder = "EmbeddedReservoirTest"
         self.reference_file = "reference_reservoir_2D"
         self.settings = "EmbeddedReservoir2DTest_parameters.json"
-
-        with WorkFolderScope(self.work_folder):
-            self.setUp()
-            self.setUpProblem()
-            self.setUpDistanceField()
-            self.runTest()
-            self.tearDown()
-            self.checkResults()
+        self.ExecuteEmbeddedReservoirTest()
 
     def testEmbeddedReservoir3D(self):
         self.distance = 0.5
         self.slip_level_set = False
-        self.work_folder = "EmbeddedReservoirTest"   
+        self.work_folder = "EmbeddedReservoirTest"
         self.reference_file = "reference_reservoir_3D"
         self.settings = "EmbeddedReservoir3DTest_parameters.json"
-
-        with WorkFolderScope(self.work_folder):
-            self.setUp()
-            self.setUpProblem()
-            self.setUpDistanceField()
-            self.runTest()
-            self.tearDown()
-            self.checkResults()
+        self.ExecuteEmbeddedReservoirTest()
 
     def testEmbeddedSlipReservoir2D(self):
         self.distance = 0.5
         self.slip_level_set = True
-        self.work_folder = "EmbeddedReservoirTest"   
+        self.work_folder = "EmbeddedReservoirTest"
         self.reference_file = "reference_slip_reservoir_2D"
         self.settings = "EmbeddedReservoir2DTest_parameters.json"
-
-        with WorkFolderScope(self.work_folder):
-            self.setUp()
-            self.setUpProblem()
-            self.setUpDistanceField()
-            self.runTest()
-            self.tearDown()
-            self.checkResults()
+        self.ExecuteEmbeddedReservoirTest()
 
     def testEmbeddedSlipReservoir3D(self):
         self.distance = 0.5
         self.slip_level_set = True
-        self.work_folder = "EmbeddedReservoirTest"   
+        self.work_folder = "EmbeddedReservoirTest"
         self.reference_file = "reference_slip_reservoir_3D"
         self.settings = "EmbeddedReservoir3DTest_parameters.json"
+        self.ExecuteEmbeddedReservoirTest()
 
-        with WorkFolderScope(self.work_folder):
+    def ExecuteEmbeddedReservoirTest(self):
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
             self.setUp()
             self.setUpProblem()
             self.setUpDistanceField()
@@ -84,30 +54,30 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
         self.print_reference_values = False
 
     def tearDown(self):
-        with WorkFolderScope(self.work_folder):
-            try:
-                os.remove(self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()+'.time')
-            except FileNotFoundError as e:
-                pass
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
+            KratosUtilities.DeleteFileIfExisting(
+                self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()+'.time')
 
     def setUpProblem(self):
-        with WorkFolderScope(self.work_folder):
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
             with open(self.settings, 'r') as parameter_file:
                 self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-            self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
-
-            Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString() : self.main_model_part}
+            self.model = KratosMultiphysics.Model()
 
             ## Solver construction
             import python_solvers_wrapper_fluid
-            self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.ProjectParameters)
+            self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
+
+            ## Set the "is_slip" field in the json settings (to avoid duplication it is set to false in all tests)
+            if self.slip_level_set and self.solver.settings.Has("is_slip"):
+                self.ProjectParameters["solver_settings"]["is_slip"].SetBool(True)
 
             self.solver.AddVariables()
 
             ## Read the model - note that SetBufferSize is done here
             self.solver.ImportModelPart()
+            self.solver.PrepareModelPart()
 
             ## Add AddDofs
             self.solver.AddDofs()
@@ -115,32 +85,24 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
             ## Solver initialization
             self.solver.Initialize()
 
-            ## Get the list of the skin submodel parts in the object Model
-            for i in range(self.ProjectParameters["solver_settings"]["skin_parts"].size()):
-                skin_part_name = self.ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
-                Model.update({skin_part_name: self.main_model_part.GetSubModelPart(skin_part_name)})
-
-            ## Get the gravity submodel part in the object Model
-            for i in range(self.ProjectParameters["gravity"].size()):
-                gravity_part_name = self.ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
-                Model.update({gravity_part_name: self.main_model_part.GetSubModelPart(gravity_part_name)})
-
             ## Processes construction
             import process_factory
-            self.list_of_processes  = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
-            self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
+            self.list_of_processes  = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["processes"]["gravity"] )
+            self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["processes"]["boundary_conditions_process_list"] )
 
             ## Processes initialization
             for process in self.list_of_processes:
                 process.ExecuteInitialize()
 
+            self.main_model_part = self.model.GetModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
+
     def setUpDistanceField(self):
         # Set the distance function
-        if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2): 
+        if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             for node in self.main_model_part.Nodes:
                 distance = node.Y-self.distance
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
-        elif (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3): 
+        elif (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
             for node in self.main_model_part.Nodes:
                 distance = node.Z-self.distance
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
@@ -154,12 +116,8 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
                 elem_dist[i_node] = elem_nodes[i_node].GetSolutionStepValue(KratosMultiphysics.DISTANCE)
             element.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, elem_dist)
 
-        # If proceeds, set the SLIP flag
-        if (self.slip_level_set):
-            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLIP, True, self.main_model_part.Elements)
-
     def runTest(self):
-        with WorkFolderScope(self.work_folder):
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
             if (self.print_output):
                 gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostBinary
                 multifile = KratosMultiphysics.MultiFileFlag.SingleFile
@@ -183,17 +141,15 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
 
             while(time <= end_time):
 
-                Dt = self.solver.ComputeDeltaTime()
-                step += 1
-                time += Dt
-                self.main_model_part.CloneTimeStep(time)
-                self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
+                time = self.solver.AdvanceInTime(time)
 
                 for process in self.list_of_processes:
                     process.ExecuteInitializeSolutionStep()
 
-                if(step >= 3):
-                    self.solver.Solve()
+                self.solver.InitializeSolutionStep()
+                self.solver.Predict()
+                self.solver.SolveSolutionStep()
+                self.solver.FinalizeSolutionStep()
 
                 for process in self.list_of_processes:
                     process.ExecuteFinalizeSolutionStep()
@@ -216,7 +172,7 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
                 gid_io.FinalizeResults()
 
     def checkResults(self):
-        with WorkFolderScope(self.work_folder):
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
             if self.print_reference_values:
                 with open(self.reference_file+'.csv','w') as ref_file:
                     ref_file.write("#ID, PRESSURE\n")
@@ -248,11 +204,10 @@ if __name__ == '__main__':
     test.print_output = False
     test.print_reference_values = False
     test.work_folder = "EmbeddedReservoirTest"
-    test.reference_file = "reference_slip_reservoir_2D"   
+    test.reference_file = "reference_slip_reservoir_2D"
     test.settings = "EmbeddedReservoir2DTest_parameters.json"
     test.setUpProblem()
     test.setUpDistanceField()
     test.runTest()
     test.tearDown()
     test.checkResults()
-    

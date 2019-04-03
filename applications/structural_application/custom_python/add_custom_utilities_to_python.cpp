@@ -56,25 +56,22 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // System includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // External includes
-#include "boost/smart_ptr.hpp"
-
+#include <pybind11/pybind11.h>
 
 // Project includes
-#include "custom_python/add_custom_utilities_to_python.h"
 #include "includes/define.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/deactivation_utility.h"
 #include "custom_utilities/variable_transfer_utility.h"
 
-#ifdef _OPENMP
-#include "custom_utilities/parallel_variable_transfer_utility.h"
-#endif
+// #ifdef _OPENMP
+// #include "custom_utilities/parallel_variable_transfer_utility.h"
+// #endif
 
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
+// #include "spaces/ublas_space.h"
+// #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/contact_utility.h"
 #include "custom_utilities/volume_utility.h"
 #include "custom_utilities/restart_utility.h"
@@ -96,8 +93,6 @@ namespace Kratos
 
 namespace Python
 {
-
-using namespace boost::python;
 
 void AddNewRigidBody3D( ModelPart& structural_model_part,
                         ModelPart& skin_model_part,
@@ -129,7 +124,8 @@ void AddNewRigidBody3D( ModelPart& structural_model_part,
     if ( structural_model_part.Elements().size() != 0 )
         last_id = ( structural_model_part.ElementsEnd() - 1 )->Id() + 1;
 
-    array_1d<double, 3> zero = ZeroVector( 3 );
+    array_1d<double, 3> zero;
+    noalias(zero) = ZeroVector( 3 );
 
     Element::Pointer new_el = RigidBody3D::Pointer( new  RigidBody3D( last_id,
                               center_node_geometry,
@@ -175,8 +171,6 @@ void AddNewRigidBodyAndSpring3D( ModelPart& structural_model_part,
     if ( structural_model_part.Elements().size() != 0 )
         last_id = ( structural_model_part.ElementsEnd() - 1 )->Id() + 1;
 
-    array_1d<double, 3> zero = ZeroVector( 3 );
-
     Element::Pointer new_el = RigidBody3D::Pointer( new  RigidBody3D( last_id,
                               center_node_geometry,
                               pProperties,
@@ -215,11 +209,13 @@ void VectorTransferVariablesToGaussPoints(VariableTransferUtility& dummy,
     dummy.TransferVariablesToGaussPoints(source_model_part, target_model_part, rThisVariable);
 }
 
-void  AddCustomUtilitiesToPython()
+void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    class_<DeactivationUtility, boost::noncopyable >
-    ( "DeactivationUtility", init<>() )
-    .def( init<int>() )
+    namespace py = pybind11;
+
+    py::class_<DeactivationUtility >(m, "DeactivationUtility")
+    .def( py::init<>() )
+    .def( py::init<int>() )
     .def( "Deactivate", &DeactivationUtility::Deactivate )
     .def( "Reactivate", &DeactivationUtility::Reactivate )
     .def( "ReactivateStressFree", &DeactivationUtility::ReactivateStressFree )
@@ -229,9 +225,10 @@ void  AddCustomUtilitiesToPython()
     .def( "GetName", &DeactivationUtility::GetName<Condition> )
     ;
 
-    class_<VariableTransferUtility, boost::noncopyable >
-    ( "VariableTransferUtility", init<>() )
-    .def(init<VariableTransferUtility::LinearSolverType::Pointer>())
+    py::class_<VariableTransferUtility >
+    ( m, "VariableTransferUtility" )
+    .def(py::init<>())
+    .def(py::init<VariableTransferUtility::LinearSolverType::Pointer>())
     .def( "TransferNodalVariables", &VariableTransferUtility::TransferNodalVariables )
     .def( "TransferConstitutiveLawVariables", &VariableTransferUtility::TransferConstitutiveLawVariables )
     .def( "TransferInSituStress", &VariableTransferUtility::TransferInSituStress )
@@ -246,20 +243,20 @@ void  AddCustomUtilitiesToPython()
     ;
 
 
-#ifdef _OPENMP
-    class_<ParallelVariableTransferUtility, boost::noncopyable >
-    ( "ParallelVariableTransferUtility",
-      init<>() )
-    .def( "TransferNodalVariables", &ParallelVariableTransferUtility::TransferNodalVariables )
-    .def( "TransferConstitutiveLawVariables", &ParallelVariableTransferUtility::TransferConstitutiveLawVariables )
-    .def( "TransferInSituStress", &ParallelVariableTransferUtility::TransferInSituStress )
-    .def( "InitializeModelPart", &ParallelVariableTransferUtility::InitializeModelPart )
-    ;
-#endif
+// #ifdef _OPENMP
+//     py::class_<ParallelVariableTransferUtility >
+//     ( m, "ParallelVariableTransferUtility" )
+//     .def( py::init<>() )
+//     .def( "TransferNodalVariables", &ParallelVariableTransferUtility::TransferNodalVariables )
+//     .def( "TransferConstitutiveLawVariables", &ParallelVariableTransferUtility::TransferConstitutiveLawVariables )
+//     .def( "TransferInSituStress", &ParallelVariableTransferUtility::TransferInSituStress )
+//     .def( "InitializeModelPart", &ParallelVariableTransferUtility::InitializeModelPart )
+//     ;
+// #endif
 
-    class_<ContactUtility, boost::noncopyable >
-    ( "ContactUtility",
-      init<int>() )
+    py::class_<ContactUtility >
+    ( m, "ContactUtility" )
+    .def( py::init<int>() )
     .def( "SetUpContactConditions", &ContactUtility::SetUpContactConditions )
     .def( "SetUpContactConditionsLagrangeTying", &ContactUtility::SetUpContactConditionsLagrangeTying )
     .def( "Update", &ContactUtility::Update )
@@ -268,16 +265,16 @@ void  AddCustomUtilitiesToPython()
     .def( "CleanLagrangeTying", &ContactUtility::CleanLagrangeTying )
     ;
 // VM
-    class_<VolumeUtility, boost::noncopyable >
-    ( "VolumeUtility",
-      init<int>() )
+    py::class_<VolumeUtility >
+    ( m, "VolumeUtility" )
+    .def( py::init<int>() )
     .def( "Calculate_this_Volume", &VolumeUtility::CalculateVolume ) // VM
     ;
 //VM
 
-    class_<RestartUtility, boost::noncopyable >
-    ( "RestartUtility",
-      init< std::string const& >() )
+    py::class_<RestartUtility >
+    ( m, "RestartUtility" )
+    .def( py::init< std::string const& >() )
     .def( "ChangeFileName", &RestartUtility::ChangeFileName )
     .def( "StoreNodalVariables", &RestartUtility::StoreNodalVariables )
     .def( "WriteNodalVariables", &RestartUtility::WriteNodalVariables )
@@ -287,9 +284,9 @@ void  AddCustomUtilitiesToPython()
     .def( "WriteInSituStress", &RestartUtility::WriteInSituStress )
     ;
 
-    class_<NodeSnappingUtility, boost::noncopyable >
-    ( "NodeSnappingUtility",
-      init<>() )
+    py::class_<NodeSnappingUtility >
+    ( m, "NodeSnappingUtility" )
+    .def( py::init<>() )
     .def( "MoveNode", &NodeSnappingUtility::MoveNode )
     .def( "AdjustNodes", &NodeSnappingUtility::AdjustNodes )
     .def( "AdjustToCircle", &NodeSnappingUtility::AdjustToCircle )
@@ -297,34 +294,34 @@ void  AddCustomUtilitiesToPython()
     .def( "AdjustToClosedCylinder", &NodeSnappingUtility::AdjustToClosedCylinder )
     .def( "IdentifyInsideElements", &NodeSnappingUtility::IdentifyInsideElements )
     .def( "SetInsituStress", &NodeSnappingUtility::SetInsituStress )
-    .def( "ExtractCapNodes", &NodeSnappingUtility::ExtractCapNodes )
+    // .def( "ExtractCapNodes", &NodeSnappingUtility::ExtractCapNodes )
     .def( "TestElements", &NodeSnappingUtility::TestElements )
     ;
 
-    class_<OutputUtility, boost::noncopyable >
-    ( "OutputUtility",
-      init<>() )
+    py::class_<OutputUtility >
+    ( m, "OutputUtility" )
+    .def( py::init<>() )
     .def( "GetStrain", &OutputUtility::GetStrain )
     .def( "GetStress", &OutputUtility::GetStress )
     .def( "GetInternalVariables", &OutputUtility::GetInternalVariables )
     ;
 
 
-    def( "AddNewRigidBody3D", AddNewRigidBody3D );
-    def( "AddNewRigidBodyAndSpring3D", AddNewRigidBodyAndSpring3D );
-    ;
+    m.def( "AddNewRigidBody3D", AddNewRigidBody3D );
+    m.def( "AddNewRigidBodyAndSpring3D", AddNewRigidBodyAndSpring3D );
 
-    /*
-                class_<Detect_Elements_And_Nodes, boost::noncopyable >
-                        ("DetectElementsAndNodes", init<ModelPart&, int >() )
-          .def("DetectNode",              &Detect_Elements_And_Nodes::Detect_Node_To_Be_Splitted)
-                        .def("DetectElements",          &Detect_Elements_And_Nodes::Detect_Elements_To_Be_Splitted)
-                        .def("CalculateMapFailure",     &Detect_Elements_And_Nodes::Calculate_Map_Failure)
-                        .def("Finalize",                &Detect_Elements_And_Nodes::Finalize)
-                        ;
-    */
-    class_<Smoothing_Utility, boost::noncopyable >
-    ( "SmoothingUtility", init<ModelPart&, int >() )
+//     /*
+//                 py::class_<Detect_Elements_And_Nodes, boost::noncopyable >
+//                         ("DetectElementsAndNodes", py::init<ModelPart&, int >() )
+//           .def("DetectNode",              &Detect_Elements_And_Nodes::Detect_Node_To_Be_Splitted)
+//                         .def("DetectElements",          &Detect_Elements_And_Nodes::Detect_Elements_To_Be_Splitted)
+//                         .def("CalculateMapFailure",     &Detect_Elements_And_Nodes::Calculate_Map_Failure)
+//                         .def("Finalize",                &Detect_Elements_And_Nodes::Finalize)
+//                         ;
+//     */
+    py::class_<Smoothing_Utility >
+    ( m, "SmoothingUtility")
+    .def( py::init<ModelPart&, int >() )
     .def( "WeightedRecoveryGradients", &Smoothing_Utility::WeightedRecoveryGradients<double> )
     .def( "WeightedRecoveryGradients", &Smoothing_Utility::WeightedRecoveryGradients<Matrix> ) // for matrices
     .def( "InterpolatedRecoveryGradients", &Smoothing_Utility::InterpolatedRecoveryGradients<Matrix> )
@@ -337,31 +334,36 @@ void  AddCustomUtilitiesToPython()
 
 
 
-    class_<Disconnect_Triangle_Utilities, boost::noncopyable >
-    ( "DisconnectTriangle", init<ModelPart&>() )
+    py::class_<Disconnect_Triangle_Utilities >
+    ( m, "DisconnectTriangle" )
+    .def( py::init<ModelPart&>() )
     .def( "DisconnectElements", &Disconnect_Triangle_Utilities::Disconnect_Elements )
     ;
 
 
-    class_<Intra_Fracture_Triangle, boost::noncopyable >
-    ( "IntraFractureTriangle", init<ModelPart&, int >() )
+    py::class_<Intra_Fracture_Triangle >
+    ( m, "IntraFractureTriangle" )
+    .def( py::init<ModelPart&, int >() )
     .def( "DetectAndSplitElements",              &Intra_Fracture_Triangle::Detect_And_Split_Elements )
     ;
 
-    class_<Inter_Fracture_Triangle, boost::noncopyable >
-    ( "InterFractureTriangle", init<ModelPart&, int >() )
+    py::class_<Inter_Fracture_Triangle >
+    ( m, "InterFractureTriangle" )
+    .def( py::init<ModelPart&, int >() )
     .def( "DetectAndSplitElementsHeuristicFormula", &Inter_Fracture_Triangle::Detect_And_Split_Elements_Heuristic_Formula )
     .def( "DetectAndSplitElements",              &Inter_Fracture_Triangle::Detect_And_Split_Elements )
     .def( "Finalize",                            &Inter_Fracture_Triangle::Finalize )
     ;
 
-    class_<Inter_Fracture_Tetrahedra, boost::noncopyable >
-    ( "InterFractureTetrahedra", init<ModelPart&, int >() )
+    py::class_<Inter_Fracture_Tetrahedra >
+    ( m, "InterFractureTetrahedra" )
+    .def( py::init<ModelPart&, int >() )
     .def( "DetectAndSplitElements",              &Inter_Fracture_Tetrahedra::Detect_And_Split_Elements )
     ;
 
-    class_<DofUtility, boost::noncopyable >
-    ( "DofUtility", init<>() )
+    py::class_<DofUtility >
+    ( m, "DofUtility" )
+    .def( py::init<>() )
     .def( "ListDofs", &DofUtility::ListDofs )
     ;
 }

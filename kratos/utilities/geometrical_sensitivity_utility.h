@@ -17,11 +17,10 @@
 #include <memory>
 
 // External includes
-#include <boost/numeric/ublas/matrix.hpp>
-
 
 // Project includes
 #include "includes/define.h"
+#include "includes/ublas_interface.h"
 
 // Application includes
 
@@ -29,6 +28,52 @@ namespace Kratos
 {
 ///@name Kratos Classes
 ///@{
+
+struct ShapeParameter
+{
+    std::size_t NodeIndex;
+    std::size_t Direction;
+    class Sequence;
+};
+
+class ShapeParameter::Sequence
+    {
+    public:
+        Sequence(std::size_t NumberOfNodes, std::size_t Dimension)
+            : mNumberOfNodes(NumberOfNodes), mDimension(Dimension)
+        {
+        }
+
+        operator bool() const
+        {
+            return (mShapeParameter.NodeIndex < mNumberOfNodes);
+        }
+
+        ShapeParameter& CurrentValue()
+        {
+            return mShapeParameter;
+        }
+
+        const ShapeParameter& CurrentValue() const
+        {
+            return mShapeParameter;
+        }
+
+        Sequence& operator++()
+        {
+            KRATOS_ERROR_IF_NOT(*this)
+                << "Increment is out of sequence's range.\n";
+            mShapeParameter.Direction = (mShapeParameter.Direction + 1) % mDimension;
+            if (mShapeParameter.Direction == 0)
+                ++mShapeParameter.NodeIndex;
+            return *this;
+        }
+
+    private:
+        const std::size_t mNumberOfNodes = -1;
+        const std::size_t mDimension = -1;
+        ShapeParameter mShapeParameter = {0, 0};
+    };
 
 class KRATOS_API(KRATOS_CORE) GeometricalSensitivityUtility
 {
@@ -38,7 +83,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(GeometricalSensitivityUtility);
 
-    typedef boost::numeric::ublas::matrix<double> MatrixType;
+    typedef DenseMatrix<double> MatrixType;
 
     typedef MatrixType JacobianType;
 
@@ -48,12 +93,20 @@ public:
     
     typedef unsigned IndexType;
 
-    typedef boost::numeric::ublas::indirect_array<boost::numeric::ublas::vector<std::size_t>> IndirectArrayType;
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+
+	typedef DenseVector<std::size_t> IndirectArrayType;
+
+	typedef PermutationMatrix<const MatrixType, IndirectArrayType> SubMatrixType;
+#else
+
+	typedef boost::numeric::ublas::indirect_array<DenseVector<std::size_t>> IndirectArrayType;
 
     typedef boost::numeric::ublas::matrix_indirect<const MatrixType, IndirectArrayType> SubMatrixType;
 
     template <class T>
     using matrix_row = boost::numeric::ublas::matrix_row<T>;
+#endif // ifdef KRATOS_USE_AMATRIX
 
     ///@}
     ///@name Life Cycle
@@ -65,7 +118,7 @@ public:
     ///@name Operations
     ///@{
 
-    void CalculateSensitivity(IndexType iNode, IndexType iCoord, double& rDetJ_Deriv, ShapeFunctionsGradientType& rDN_DX_Deriv) const;
+    void CalculateSensitivity(ShapeParameter Deriv, double& rDetJ_Deriv, ShapeFunctionsGradientType& rDN_DX_Deriv) const;
 
     ///@}
 
@@ -84,9 +137,9 @@ private:
 
     void Initialize();
 
-    double CalculateDeterminantOfJacobianSensitivity(IndexType iNode, IndexType iCoord) const;
+    double CalculateDeterminantOfJacobianSensitivity(ShapeParameter Deriv) const;
 
-    MatrixType CalculateCofactorOfJacobianSensitivity(IndexType iNode, IndexType iCoord) const;
+    MatrixType CalculateCofactorOfJacobianSensitivity(ShapeParameter Deriv) const;
 
     ///@}
 };

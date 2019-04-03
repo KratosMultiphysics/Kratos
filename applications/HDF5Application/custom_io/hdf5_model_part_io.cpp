@@ -8,6 +8,7 @@
 #include "custom_utilities/factor_elements_and_conditions_utility.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/openmp_utils.h"
+#include "input_output/logger.h"
 
 namespace Kratos
 {
@@ -22,7 +23,7 @@ void WriteContainerIds(File& rFile, std::string const& rPath, TContainer const& 
     Vector<int> ids;
     ids.resize(rContainer.size());
     #pragma omp parallel for
-    for (std::size_t i = 0; i < rContainer.size(); ++i)
+    for (int i = 0; i < static_cast<int>(rContainer.size()); ++i)
     {
         const auto it = rContainer.begin() + i;
         ids[i] = it->Id();
@@ -206,8 +207,9 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
     WriteConditions(rModelPart.Conditions());
     WriteSubModelParts(rModelPart);
 
-    if (mpFile->GetEchoLevel() == 1 && mpFile->GetPID() == 0)
-        std::cout << "Time to write model part \"" << rModelPart.Name() << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
+    KRATOS_INFO_IF("HDF5Application", mpFile->GetEchoLevel() == 1)
+        << "Time to write model part \"" << rModelPart.Name()
+        << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -226,8 +228,9 @@ void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
     Internals::ReadAndAssignBufferSize(*mpFile, mPrefix, rModelPart);
     ReadSubModelParts(rModelPart);
 
-    if (mpFile->GetEchoLevel() == 1 && mpFile->GetPID() == 0)
-        std::cout << "Time to read model part \"" << rModelPart.Name() << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
+    KRATOS_INFO_IF("HDF5Application", mpFile->GetEchoLevel() == 1)
+        << "Time to read model part \"" << rModelPart.Name()
+        << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -257,7 +260,7 @@ std::vector<std::size_t> ModelPartIO::ReadContainerIds(std::string const& rPath)
     mpFile->ReadDataSet(rPath, id_buf, start_index, block_size);
     std::vector<std::size_t> ids(id_buf.size());
 #pragma omp parallel for
-    for (std::size_t i = 0; i < ids.size(); ++i)
+    for (int i = 0; i < static_cast<int>(ids.size()); ++i)
         ids[i] = id_buf[i];
     return ids;
 }
@@ -294,13 +297,13 @@ void ModelPartIO::ReadSubModelParts(ModelPart& rModelPart)
     for (const auto& r_name : sub_model_parts)
     {
         const std::string sub_model_part_path = mPrefix + "/SubModelParts/" + r_name;
-        auto p_sub_model_part = rModelPart.CreateSubModelPart(r_name);
+        auto& r_sub_model_part = rModelPart.CreateSubModelPart(r_name);
         if (mpFile->HasPath(sub_model_part_path + "/NodeIds"))
-            p_sub_model_part->AddNodes(ReadContainerIds(sub_model_part_path + "/NodeIds"));
+            r_sub_model_part.AddNodes(ReadContainerIds(sub_model_part_path + "/NodeIds"));
         if (mpFile->HasPath(sub_model_part_path + "/ElementIds"))
-            p_sub_model_part->AddElements(ReadContainerIds(sub_model_part_path + "/ElementIds"));
+            r_sub_model_part.AddElements(ReadContainerIds(sub_model_part_path + "/ElementIds"));
         if (mpFile->HasPath(sub_model_part_path + "/ConditionIds"))
-            p_sub_model_part->AddConditions(ReadContainerIds(sub_model_part_path + "/ConditionIds"));
+            r_sub_model_part.AddConditions(ReadContainerIds(sub_model_part_path + "/ConditionIds"));
     }
 }
 

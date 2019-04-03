@@ -53,7 +53,7 @@ namespace Kratos
 
 	namespace Utilities
 	{
-		
+
 		template<class TVec>
 		inline void ShapeFunc(double xi, double eta, TVec & N)
 		{
@@ -122,7 +122,7 @@ namespace Kratos
 		const NodeType& p2 = geom[1];
 		const NodeType& p3 = geom[2];
 		const NodeType& p4 = geom[3];
-		
+
         mJac(0, 0) = dN(0, 0) * p1.X0() + dN(1, 0) * p2.X0() + dN(2, 0) * p3.X0() + dN(3, 0) * p4.X0();
         mJac(0, 1) = dN(0, 0) * p1.Y0() + dN(1, 0) * p2.Y0() + dN(2, 0) * p3.Y0() + dN(3, 0) * p4.Y0();
         mJac(1, 0) = dN(0, 1) * p1.X0() + dN(1, 1) * p2.X0() + dN(2, 1) * p3.X0() + dN(3, 1) * p4.X0();
@@ -175,15 +175,15 @@ namespace Kratos
 				displ(ii + 1) = initialDispl(1);
 				displ(ii + 2) = initialRot(2);
 				displ_converged(ii    ) = initialDispl(0);
-				displ_converged(ii + 1) = initialDispl(1); 
-				displ_converged(ii + 2) = initialRot(2); 
+				displ_converged(ii + 1) = initialDispl(1);
+				displ_converged(ii + 2) = initialRot(2);
 #else
 				size_t ii = i * 2;
 				const array_1d<double, 3>& initialDispl = geom[i].FastGetSolutionStepValue(DISPLACEMENT);
 				displ(ii    ) = initialDispl(0);
 				displ(ii + 1) = initialDispl(1);
 				displ_converged(ii    ) = initialDispl(0);
-				displ_converged(ii + 1) = initialDispl(1); 
+				displ_converged(ii + 1) = initialDispl(1);
 #endif // EASQ4_DRILLING_DOF
 			}
 
@@ -249,7 +249,7 @@ namespace Kratos
 
 		mJ0 = Jac0(0, 0) * Jac0(1, 1) - Jac0(1, 0) * Jac0(0, 1);
 
-		// compute the transformation matrix used in the implementation of the EAS method 
+		// compute the transformation matrix used in the implementation of the EAS method
 		// which operates in the natural coordinate system
 
 		double j11 = Jac0(0,0);
@@ -297,7 +297,7 @@ namespace Kratos
 		storage.residual.clear();
 	}
 
-	void EASQuadElementV2::EASOperator::GaussPointComputation_Step1(double xi, double eta, const JacobianOperator& jac, 
+	void EASQuadElementV2::EASOperator::GaussPointComputation_Step1(double xi, double eta, const JacobianOperator& jac,
 			                                                             Vector& strainVector,
 			                                                             EASOperatorStorage& storage)
 	{
@@ -317,7 +317,7 @@ namespace Kratos
 		E(2,2) = eta;
 #elif EASQ4_NE == 4
 		// Taylor
-		E(0,0) = xi ; 
+		E(0,0) = xi ;
 		E(1,1) = eta;
 		E(2,2) = xi;
 		E(2,3) = eta;
@@ -367,7 +367,7 @@ namespace Kratos
 
 
 #ifdef SUPPRESS_EAS_ENHANCEMENT
-		return;  
+		return;
 #endif // SUPPRESS_EAS_ENHANCEMENT
 
 
@@ -380,13 +380,13 @@ namespace Kratos
 #endif
 	}
 
-	void EASQuadElementV2::EASOperator::GaussPointComputation_Step2(const Matrix& D, 
+	void EASQuadElementV2::EASOperator::GaussPointComputation_Step2(const Matrix& D,
 			                                                             const Matrix& B,
 			                                                             const Vector& S,
 			                                                             EASOperatorStorage& storage)
 	{
 #ifdef SUPPRESS_EAS_ENHANCEMENT
-		return;  
+		return;
 #endif // SUPPRESS_EAS_ENHANCEMENT
 
 
@@ -405,7 +405,7 @@ namespace Kratos
 			                                                                  EASOperatorStorage& storage)
 	{
 #ifdef SUPPRESS_EAS_ENHANCEMENT
-		return true;  
+		return true;
 #endif // SUPPRESS_EAS_ENHANCEMENT
 
 
@@ -444,15 +444,15 @@ namespace Kratos
     //
     // =====================================================================================
 
-    EASQuadElementV2::EASQuadElementV2(IndexType NewId, 
+    EASQuadElementV2::EASQuadElementV2(IndexType NewId,
                                    GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
     {
 		mThisIntegrationMethod = EASQ4_DEF_INTEGRATION_METHOD;
     }
-    
-    EASQuadElementV2::EASQuadElementV2(IndexType NewId, 
-                                   GeometryType::Pointer pGeometry, 
+
+    EASQuadElementV2::EASQuadElementV2(IndexType NewId,
+                                   GeometryType::Pointer pGeometry,
                                    PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties)
     {
@@ -479,9 +479,9 @@ namespace Kratos
 		// through the method SetValue<CONSTITUTIVE_LAW_POINTER>
 
 		const GeometryType & geom = GetGeometry();
-		
+
 		const GeometryType::IntegrationPointsArrayType& integration_points = geom.IntegrationPoints( mThisIntegrationMethod );
-		
+
 
 		mEASStorage.Initialize(geom);
 
@@ -535,7 +535,7 @@ namespace Kratos
 			KRATOS_THROW_ERROR( std::logic_error, "a constitutive law needs to be specified for the element with ID ", this->Id() )
 		}
 
-		KRATOS_CATCH( "" ) 
+		KRATOS_CATCH( "" )
     }
 
     void EASQuadElementV2::ResetConstitutiveLaw()
@@ -576,7 +576,7 @@ namespace Kratos
 			int index = i * 2;
 			NodeType & iNode = geom[i];
 			rResult[index]     = iNode.GetDof(DISPLACEMENT_X).EquationId();
-			rResult[index + 1] = iNode.GetDof(DISPLACEMENT_Y).EquationId(); 
+			rResult[index + 1] = iNode.GetDof(DISPLACEMENT_Y).EquationId();
 #endif // EASQ4_DRILLING_DOF
         }
     }
@@ -604,7 +604,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        GeometryType& geom = GetGeometry(); 
+        GeometryType& geom = GetGeometry();
 
         // verify that the variables are correctly initialized
         if(DISPLACEMENT.Key() == 0)
@@ -673,26 +673,26 @@ namespace Kratos
         for (int i = 0; i < geom.PointsNumber(); i++)
         {
             const NodeType & iNode = geom[i];
-           
+
 #ifdef EASQ4_DRILLING_DOF
 			int index = i*3;
 			const array_1d<double,3>& disp = iNode.FastGetSolutionStepValue(DISPLACEMENT, Step);
 			const array_1d<double,3>& roto = iNode.FastGetSolutionStepValue(ROTATION, Step);
 			values[index]     = disp[0];
-			values[index + 1] = disp[1]; 
-			values[index + 2] = roto[2]; 
+			values[index + 1] = disp[1];
+			values[index + 2] = roto[2];
 #else
 			int index = i*2;
 			const array_1d<double,3>& disp = iNode.FastGetSolutionStepValue(DISPLACEMENT, Step);
 			values[index]     = disp[0];
-			values[index + 1] = disp[1]; 
+			values[index + 1] = disp[1];
 #endif // EASQ4_DRILLING_DOF
         }
     }
 
     void EASQuadElementV2::GetFirstDerivativesVector(Vector& values, int Step)
     {
-        if(values.size() != EASQ4_NU)   
+        if(values.size() != EASQ4_NU)
             values.resize(EASQ4_NU,false);
 
         const GeometryType & geom = GetGeometry();
@@ -705,7 +705,7 @@ namespace Kratos
 #ifdef EASQ4_DRILLING_DOF
 			int index = i * 3;
 			values[index]        = vel[0];
-			values[index + 1]    = vel[1]; 
+			values[index + 1]    = vel[1];
 			values[index + 2]    = 0.0;
 #else
 			int index = i * 2;
@@ -718,7 +718,7 @@ namespace Kratos
 
     void EASQuadElementV2::GetSecondDerivativesVector(Vector& values, int Step)
     {
-        if(values.size() != EASQ4_NU)   
+        if(values.size() != EASQ4_NU)
             values.resize(EASQ4_NU,false);
 
         const GeometryType & geom = GetGeometry();
@@ -731,8 +731,8 @@ namespace Kratos
 #ifdef EASQ4_DRILLING_DOF
 			int index = i * 3;
 			values[index]        = acc[0];
-			values[index + 1]    = acc[1]; 
-			values[index + 2]    = 0.0; 
+			values[index + 1]    = acc[1];
+			values[index + 2]    = 0.0;
 #else
 			int index = i * 2;
             values[index]        = acc[0];
@@ -800,7 +800,7 @@ namespace Kratos
 #ifdef EASQ4_DRILLING_DOF
 			size_t index = i * 3;
 			rMassMatrix(index, index)            = lumped_mass;
-			rMassMatrix(index + 1, index + 1)    = lumped_mass; 
+			rMassMatrix(index + 1, index + 1)    = lumped_mass;
 			rMassMatrix(index + 2, index + 2)    = 0.0;
 #else
 			size_t index = i * 2;
@@ -823,7 +823,7 @@ namespace Kratos
                                                      VectorType& rRightHandSideVector,
                                                      ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true); 
+        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true);
     }
 
     void EASQuadElementV2::CalculateRightHandSide(VectorType& rRightHandSideVector,
@@ -838,9 +838,9 @@ namespace Kratos
     // Class EASQuadElementV2 - Results on Gauss Points
     //
     // =====================================================================================
-    
-	void EASQuadElementV2::SetValueOnIntegrationPoints(const Variable<double>& rVariable, 
-													   std::vector<double>& rValues, 
+
+	void EASQuadElementV2::SetValueOnIntegrationPoints(const Variable<double>& rVariable,
+													   std::vector<double>& rValues,
 													   const ProcessInfo& rCurrentProcessInfo)
 	{
 #if   EASQ4_NE == 2
@@ -876,8 +876,8 @@ namespace Kratos
 				mConstitutiveLawVector[i]->SetValue(rVariable, rValues[i], rCurrentProcessInfo);
 	}
 
-    void EASQuadElementV2::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, 
-													   std::vector<Vector>& rValues, 
+    void EASQuadElementV2::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+													   std::vector<Vector>& rValues,
 													   const ProcessInfo& rCurrentProcessInfo)
 	{
 		if(rValues.size() == mConstitutiveLawVector.size())
@@ -885,8 +885,8 @@ namespace Kratos
 				mConstitutiveLawVector[i]->SetValue(rVariable, rValues[i], rCurrentProcessInfo);
 	}
 
-    void EASQuadElementV2::SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, 
-													   std::vector<Matrix>& rValues, 
+    void EASQuadElementV2::SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+													   std::vector<Matrix>& rValues,
 													   const ProcessInfo& rCurrentProcessInfo)
 	{
 		if(rValues.size() == mConstitutiveLawVector.size())
@@ -915,7 +915,7 @@ namespace Kratos
 		unsigned int numgp = mConstitutiveLawVector.size();
         if(rValues.size() != numgp)
             rValues.resize(numgp);
-		
+
 		std::fill(rValues.begin(), rValues.end(), 0.0);
 
 		if(rVariable == TEMPERATURE)
@@ -938,7 +938,7 @@ namespace Kratos
 			ConstitutiveLaw::Parameters parameters(geom, props, rCurrentProcessInfo);
 			parameters.SetStrainVector( Eu );
 			parameters.SetStressVector( Su );
-			parameters.SetConstitutiveMatrix( Du ); 
+			parameters.SetConstitutiveMatrix( Du );
 			Flags& options = parameters.GetOptions();
 			options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 			options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
@@ -1057,7 +1057,7 @@ namespace Kratos
 #ifdef EASQ4_DRILLING_DOF
 			parameters.SetStrainVector( Eu );
 			parameters.SetStressVector( Su );
-			parameters.SetConstitutiveMatrix( Du ); 
+			parameters.SetConstitutiveMatrix( Du );
 #else
 			parameters.SetStrainVector( E );
 			parameters.SetStressVector( S );
@@ -1091,7 +1091,7 @@ namespace Kratos
 				// Compute all strain-displacement matrices
 				CalculateBMatrix( ip.X(), ip.Y(), jacOp, iN, B );
 
-				// Calculate strain vector 
+				// Calculate strain vector
 				noalias( E ) = prod( B, U );
 
 				// Apply the EAS method.
@@ -1144,7 +1144,7 @@ namespace Kratos
 		for(unsigned int i=0; i<rValues.size(); i++)
 			rValues[i] = mConstitutiveLawVector[i];
 	}
-    
+
 
     // =====================================================================================
     //
@@ -1162,7 +1162,7 @@ namespace Kratos
 	}
 
 	inline void drutils__calculate_indices(
-		unsigned int i, 
+		unsigned int i,
 		unsigned int &m, unsigned int &l, unsigned int &j, unsigned int &k)
 	{
 		m = i+4;
@@ -1187,7 +1187,7 @@ namespace Kratos
 	void EASQuadElementV2::CalculateBMatrix(double xi, double eta, const JacobianOperator& Jac, const Vector& N, Matrix& B)
 	{
 		const Matrix& dNxy = Jac.XYDerivatives();
-		
+
 #ifdef EASQ4_DRILLING_DOF
 
 		B(0,  0) =  dNxy(0, 0);   B(0, 3) =  dNxy(1, 0);   B(0, 6) =  dNxy(2, 0);   B(0, 9)  =  dNxy(3, 0);
@@ -1387,7 +1387,7 @@ namespace Kratos
 
 		// thickness
 		double th = props[THICKNESS];
-		
+
         // some data
         JacobianOperator jacOp;      // jacobian operator
         Matrix B(EASQ4_NSTRAIN, EASQ4_NU, 0.0);  // strain-displacement matrix.
@@ -1404,7 +1404,7 @@ namespace Kratos
         // Get the current displacements in global coordinate system
         Vector U(EASQ4_NU);
         GetValuesVector(U, 0);
-		
+
         // Instantiate the EAS Operator.
 		EASOperator EASOp(geom, mEASStorage);
 
@@ -1413,7 +1413,7 @@ namespace Kratos
 #ifdef EASQ4_DRILLING_DOF
 		parameters.SetStrainVector( Eu );
 		parameters.SetStressVector( Su );
-		parameters.SetConstitutiveMatrix( Du ); 
+		parameters.SetConstitutiveMatrix( Du );
 #else
 		parameters.SetStrainVector( E );
 		parameters.SetStressVector( S );
@@ -1446,7 +1446,7 @@ namespace Kratos
             // Compute all strain-displacement matrices
 			CalculateBMatrix( ip.X(), ip.Y(), jacOp, iN, B );
 
-            // Calculate strain vector 
+            // Calculate strain vector
             noalias( E ) = prod( B, U );
 
 			// Apply the EAS method.
@@ -1485,10 +1485,10 @@ namespace Kratos
 			// Stiffness Matrix
 			noalias( BTD ) = prod( trans( B ), D );
 			noalias( rLeftHandSideMatrix ) += prod( BTD, B );
-			
+
 			// Residual vector
 			noalias( rRightHandSideVector ) -= prod( trans( B ), S );
-			
+
 			// Continue the calculation of the EAS method now that the contitutive response
 			// has been computed
 			EASOp.GaussPointComputation_Step2(D, B, S, mEASStorage);
@@ -1516,7 +1516,7 @@ namespace Kratos
 
 		double rho = GetProperties()[DENSITY];
 		double th = GetProperties()[THICKNESS];
-		
+
 		// auxiliary
 		array_1d<double, 3> bf;
 

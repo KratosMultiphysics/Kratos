@@ -24,16 +24,9 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
-#include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-#include "includes/kratos_flags.h"
 #include "spatial_containers/spatial_containers.h"
-#include "utilities/timer.h"
-#include "processes/node_erase_process.h"
-#include "utilities/binbased_fast_point_locator.h"
-#include "utilities/normal_calculation_utils.h"
+#include "utilities/builtin_timer.h"
 #include "shape_optimization_application.h"
 #include "damping_function.h"
 
@@ -94,16 +87,17 @@ public:
     ///@{
 
     /// Default constructor.
-    DampingUtilities( ModelPart& modelPartToDamp, pybind11::dict subModelPartsForDamping, Parameters optimizationSettings )
+    DampingUtilities( ModelPart& modelPartToDamp, pybind11::dict subModelPartsForDamping, Parameters DampingSettings )
         : mrModelPartToDamp( modelPartToDamp ),
           mrDampingRegions( subModelPartsForDamping ),
-          mDampingSettings( optimizationSettings["design_variables"]["damping"]["damping_regions"] )
+          mDampingSettings( DampingSettings ),
+          mMaxNeighborNodes( DampingSettings["max_neighbor_nodes"].GetInt() )
     {
-        boost::timer timer;
+        BuiltinTimer timer;
         std::cout << "\n> Creating search tree to perform damping..." << std::endl;
         CreateListOfNodesOfModelPart();
         CreateSearchTreeWithAllNodesOfModelPart();
-        std::cout << "> Search tree created in: " << timer.elapsed() << " s" << std::endl;
+        std::cout << "> Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
 
         InitalizeDampingFactorsToHaveNoInfluence();
         SetDampingFactorsForAllDampingRegions();
@@ -161,14 +155,14 @@ public:
         // Loop over all regions for which damping is to be applied
         for (unsigned int regionNumber = 0; regionNumber < len(mrDampingRegions); regionNumber++)
         {
-            std::string dampingRegionSubModelPartName = mDampingSettings[regionNumber]["sub_model_part_name"].GetString();
+            std::string dampingRegionSubModelPartName = mDampingSettings["damping_regions"][regionNumber]["sub_model_part_name"].GetString();
             ModelPart& dampingRegion = pybind11::cast<ModelPart&>( mrDampingRegions[pybind11::str(dampingRegionSubModelPartName)] );
 
-            bool dampX = mDampingSettings[regionNumber]["damp_X"].GetBool();
-            bool dampY = mDampingSettings[regionNumber]["damp_Y"].GetBool();
-            bool dampZ = mDampingSettings[regionNumber]["damp_Z"].GetBool();
-            std::string dampingFunctionType = mDampingSettings[regionNumber]["damping_function_type"].GetString();
-            double dampingRadius = mDampingSettings[regionNumber]["damping_radius"].GetDouble();
+            bool dampX = mDampingSettings["damping_regions"][regionNumber]["damp_X"].GetBool();
+            bool dampY = mDampingSettings["damping_regions"][regionNumber]["damp_Y"].GetBool();
+            bool dampZ = mDampingSettings["damping_regions"][regionNumber]["damp_Z"].GetBool();
+            std::string dampingFunctionType = mDampingSettings["damping_regions"][regionNumber]["damping_function_type"].GetString();
+            double dampingRadius = mDampingSettings["damping_regions"][regionNumber]["damping_radius"].GetDouble();
 
             DampingFunction::Pointer mpDampingFunction = CreateDampingFunction( dampingFunctionType, dampingRadius );
 

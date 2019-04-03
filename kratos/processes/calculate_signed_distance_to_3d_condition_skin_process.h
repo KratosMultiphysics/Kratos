@@ -76,10 +76,24 @@ class DistanceSpatialContainersConditionConfigure
 
     typedef Point                                               PointType;  /// always the point 3D
     typedef std::vector<double>::iterator                       DistanceIteratorType;
-    typedef PointerVectorSet<GeometricalObject::Pointer, IndexedObject>  ContainerType;
+    typedef PointerVectorSet<
+                GeometricalObject::Pointer, 
+                IndexedObject,
+                std::less<typename IndexedObject::result_type>,
+                std::equal_to<typename IndexedObject::result_type>,
+                Kratos::shared_ptr<typename GeometricalObject::Pointer>,
+                std::vector< Kratos::shared_ptr<typename GeometricalObject::Pointer> >
+                    >  ContainerType;
     typedef ContainerType::value_type                           PointerType;
     typedef ContainerType::iterator                             IteratorType;
-    typedef PointerVectorSet<GeometricalObject::Pointer, IndexedObject>  ResultContainerType;
+    typedef PointerVectorSet<
+                GeometricalObject::Pointer, 
+                IndexedObject,
+                std::less<typename IndexedObject::result_type>,
+                std::equal_to<typename IndexedObject::result_type>,
+                Kratos::shared_ptr<typename GeometricalObject::Pointer>,
+                std::vector< Kratos::shared_ptr<typename GeometricalObject::Pointer> >
+                    >  ResultContainerType;
     typedef ResultContainerType::value_type                     ResultPointerType;
     typedef ResultContainerType::iterator                       ResultIteratorType;
 
@@ -395,7 +409,7 @@ private:
           InitializeDistances();
 
           // Initialize index table to define line Edges of fluid element
-          bounded_matrix<unsigned int,6,2> TetEdgeIndexTable;
+          BoundedMatrix<unsigned int,6,2> TetEdgeIndexTable;
           SetIndexTable(TetEdgeIndexTable);
 
 	for( ModelPart::ElementIterator i_fluidElement = mrFluidModelPart.ElementsBegin();
@@ -447,7 +461,7 @@ private:
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      void SetIndexTable( bounded_matrix<unsigned int,6,2>& TetEdgeIndexTable )
+      void SetIndexTable( BoundedMatrix<unsigned int,6,2>& TetEdgeIndexTable )
       {
           // Initialize index table to define line Edges of fluid element
           TetEdgeIndexTable(0,0) = 0;
@@ -468,7 +482,7 @@ private:
       ///******************************************************************************************************************
 
       void CalcNodalDistancesOfTetNodes( ModelPart::ElementsContainerType::iterator& i_fluidElement,
-                                         bounded_matrix<unsigned int,6,2>            TetEdgeIndexTable)
+                                         BoundedMatrix<unsigned int,6,2>            TetEdgeIndexTable)
       {
           std::vector<OctreeType::cell_type*> leaves;
           std::vector<TetEdgeStruct>          IntersectedTetEdges;
@@ -508,7 +522,7 @@ private:
                                       std::vector<OctreeType::cell_type*>&          leaves,
                                       std::vector<TetEdgeStruct>&                   IntersectedTetEdges,
                                       unsigned int&                                 NumberIntersectionsOnTetCorner,
-                                      bounded_matrix<unsigned int,6,2>              TetEdgeIndexTable,
+                                      BoundedMatrix<unsigned int,6,2>              TetEdgeIndexTable,
 				      int& intersection_counter)
       {
 	    

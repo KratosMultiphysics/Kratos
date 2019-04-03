@@ -31,14 +31,15 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 PYBIND11_MODULE(KratosFSIApplication,m)
 {
 
-    class_<KratosFSIApplication,
+    py::class_<KratosFSIApplication,
            KratosFSIApplication::Pointer,
            KratosApplication>(m,"KratosFSIApplication")
+           .def(py::init<>());
            ;
 
     AddCustomUtilitiesToPython(m);

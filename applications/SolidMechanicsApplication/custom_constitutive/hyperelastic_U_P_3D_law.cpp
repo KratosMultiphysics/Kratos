@@ -8,13 +8,10 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
-#include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/hyperelastic_U_P_3D_law.hpp"
 
 #include "solid_mechanics_application_variables.h"
@@ -44,8 +41,7 @@ HyperElasticUP3DLaw::HyperElasticUP3DLaw(const HyperElasticUP3DLaw& rOther)
 
 ConstitutiveLaw::Pointer HyperElasticUP3DLaw::Clone() const
 {
-    HyperElasticUP3DLaw::Pointer p_clone(new HyperElasticUP3DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<HyperElasticUP3DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -141,7 +137,7 @@ void  HyperElasticUP3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
       {
 	this->CalculateGreenLagrangeStrain(RightCauchyGreen, StrainVector);
       }
-    
+
     //9.-Calculate Total PK2 stress
     SplitStressVector.Isochoric.resize(voigtsize,false);
     noalias(SplitStressVector.Isochoric) = ZeroVector(voigtsize);
@@ -161,7 +157,7 @@ void  HyperElasticUP3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
 	//PK2 Stress:
 	StressVector = SplitStressVector.Isochoric + SplitStressVector.Volumetric;
-	
+
 	if( Options.Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY ) )
 	  {
 	    StressVector = SplitStressVector.Isochoric;
@@ -170,10 +166,10 @@ void  HyperElasticUP3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 	  {
 	    StressVector = SplitStressVector.Volumetric;
 	  }
-	
+
       }
 
-    //10.-Calculate Constitutive Matrix related to Total PK2 stress    
+    //10.-Calculate Constitutive Matrix related to Total PK2 stress
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
       {
 
@@ -181,7 +177,7 @@ void  HyperElasticUP3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 	ConstitutiveMatrix.clear();
 	SplitConstitutiveMatrix.Isochoric  = ConstitutiveMatrix;
 	SplitConstitutiveMatrix.Volumetric = ConstitutiveMatrix;
-	
+
 	Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( IsochoricStressVector );
 
 	this->CalculateIsochoricConstitutiveMatrix ( ElasticVariables, IsoStressMatrix, SplitConstitutiveMatrix.Isochoric );
@@ -198,9 +194,9 @@ void  HyperElasticUP3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 	  {
 	    ConstitutiveMatrix = SplitConstitutiveMatrix.Volumetric;
 	  }
-	
+
       }
-    
+
 
     // std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
     // std::cout<<" Stress "<<StressVector<<std::endl;
@@ -328,7 +324,7 @@ void HyperElasticUP3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValue
 
     }
 
-    //10.-Calculate Constitutive Matrix related to Total kirchhoff stress    
+    //10.-Calculate Constitutive Matrix related to Total kirchhoff stress
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
 
@@ -370,7 +366,7 @@ void HyperElasticUP3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValue
 //************************************************************************************
 
 
-double &  HyperElasticUP3DLaw::CalculateVolumetricPressure (const MaterialResponseVariables & rElasticVariables,						    
+double &  HyperElasticUP3DLaw::CalculateVolumetricPressure (const MaterialResponseVariables & rElasticVariables,
 							    double & rPressure)
 {
 
@@ -394,11 +390,11 @@ double &  HyperElasticUP3DLaw::CalculateVolumetricPressure (const MaterialRespon
 
 Vector&  HyperElasticUP3DLaw::CalculateVolumetricPressureFactors (const MaterialResponseVariables & rElasticVariables,
 							      Vector & rFactors)
-							      
+
 {
     double Pressure = 0;
     Pressure = this->CalculateVolumetricPressure( rElasticVariables, Pressure );
-  
+
     if(rFactors.size()!=3) rFactors.resize(3);
 
     rFactors[0] =  1.0;
@@ -421,7 +417,7 @@ void HyperElasticUP3DLaw::GetLawFeatures(Features& rFeatures)
 
 	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-	
+
 	//Set the strain size
 	rFeatures.mStrainSize = GetStrainSize();
 

@@ -16,6 +16,7 @@ class CheckEigenvaluesProcess(KratosMultiphysics.Process, KratosUnittest.TestCas
         default_settings = KratosMultiphysics.Parameters(
             """
             {
+                "help"            :"This process checks the solution obtained in a eigenvalue problem. Can be used to create tests",
                 "model_part_name" : "Structure",
                 "variable_name"   : "EIGENVALUE_VECTOR",
                 "reference_values": "[1.,2.,3.]"

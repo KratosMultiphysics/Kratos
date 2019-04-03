@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	
+
 RveWeakPeriodicCondition2D2N::RveWeakPeriodicCondition2D2N(IndexType NewId, GeometryType::Pointer pGeometry)
 	: MyBase(NewId, pGeometry)
 {
@@ -78,7 +78,7 @@ RveWeakPeriodicCondition2D2N::RveWeakPeriodicCondition2D2N(IndexType NewId, Geom
 {
 	m_is_skew_symmetric_constraint = false;
 }
-	
+
 RveWeakPeriodicCondition2D2N::RveWeakPeriodicCondition2D2N(const RveWeakPeriodicCondition2D2N& rOther)
 	: MyBase(rOther)
 {
@@ -204,7 +204,7 @@ void RveWeakPeriodicCondition2D2N::CalculateLocalSystem(MatrixType& rLeftHandSid
 
 	Matrix& K = rLeftHandSideMatrix;
 
-	
+
 	if(m_is_skew_symmetric_constraint) {
 		K(4,0) = -0.5*nyL;  K(4,1) = 0.5*nxL;  K(4,2) = -0.5*nyL;  K(4,3) = 0.5*nxL;
 		K(0,4) = -0.5*nyL;  K(1,4) = 0.5*nxL;  K(2,4) = -0.5*nyL;  K(3,4) = 0.5*nxL;
@@ -353,13 +353,13 @@ int RveWeakPeriodicCondition2D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 	KRATOS_TRY
 
 	GeometryType & geom = this->GetGeometry();
-	
+
 	if(geom.size() != 3) {
 		std::stringstream ss;
 		ss << "RveWeakPeriodicCondition2D2N - The Geometry should have 2 nodes + 1 lagrangian node. Condition with ID = " << this->GetId();
 		KRATOS_THROW_ERROR(std::logic_error, ss.str(), "");
 	}
-	
+
 	//verify that the variables are correctly initialized
 	if(DISPLACEMENT.Key() == 0)
 		KRATOS_THROW_ERROR(std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered","");
@@ -368,17 +368,17 @@ int RveWeakPeriodicCondition2D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 	for(unsigned int i = 0; i < 2; i++)
 	{
 		NodeType & iNode = geom[i];
-		
+
 		if(iNode.SolutionStepsDataHas(DISPLACEMENT) == false)
 			KRATOS_THROW_ERROR(std::invalid_argument,"missing variable DISPLACEMENT on node ", iNode.Id());
-			
+
 		if(iNode.HasDofFor(DISPLACEMENT_X) == false || iNode.HasDofFor(DISPLACEMENT_Y) == false)
 			KRATOS_THROW_ERROR(std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ", iNode.Id());
 	}
 	NodeType & lagNode = geom[2];
 	if(lagNode.SolutionStepsDataHas(RVE_WPC_LAGRANGIAN_DOF) == false)
 		KRATOS_THROW_ERROR(std::invalid_argument,"missing variable RVE_WPC_LAGRANGIAN_DOF on node ", lagNode.Id());
-	if( lagNode.HasDofFor(RVE_WPC_LAGRANGIAN_DOF_X) == false || 
+	if( lagNode.HasDofFor(RVE_WPC_LAGRANGIAN_DOF_X) == false ||
 		lagNode.HasDofFor(RVE_WPC_LAGRANGIAN_DOF_Y) == false ||
 		lagNode.HasDofFor(RVE_WPC_LAGRANGIAN_DOF_Z) == false) {
 		KRATOS_THROW_ERROR(std::invalid_argument,"missing one of the dofs for the variable RVE_WPC_LAGRANGIAN_DOF on node ", lagNode.Id());

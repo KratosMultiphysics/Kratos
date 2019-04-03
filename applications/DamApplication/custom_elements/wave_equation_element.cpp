@@ -260,7 +260,7 @@ void WaveEquationElement<TDim,TNumNodes>::CalculateLHS( MatrixType& rLeftHandSid
 		
 		 //Defining the shape functions, the jacobian and the shape functions local gradients Containers
 		array_1d<double,TNumNodes> Np;
-		boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim> GradNpT; 
+		BoundedMatrix<double,TNumNodes,TDim> GradNpT; 
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
 		Vector detJContainer(NumGPoints);
@@ -305,12 +305,12 @@ void WaveEquationElement<TDim,TNumNodes>::CalculateRHS(VectorType& rRightHandSid
 		const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
 		const unsigned int NumGPoints = integration_points.size();
 		
-		boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> MassMatrix;
-		boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> SiffnessMatrix;
+		BoundedMatrix<double,TNumNodes,TNumNodes> MassMatrix;
+		BoundedMatrix<double,TNumNodes,TNumNodes> SiffnessMatrix;
 
 		//Defining the shape functions, the jacobian and the shape functions local gradients Containers
 		array_1d<double,TNumNodes> Np;
-		boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim> GradNpT; 
+		BoundedMatrix<double,TNumNodes,TDim> GradNpT; 
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
 		Vector detJContainer(NumGPoints);

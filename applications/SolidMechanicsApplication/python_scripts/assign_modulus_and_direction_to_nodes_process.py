@@ -15,7 +15,7 @@ def Factory(custom_settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignModulusAndDirectionToNodesProcess(Model, custom_settings["Parameters"])
 
-## All the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class AssignModulusAndDirectionToNodesProcess(BaseProcess.AssignVectorComponentsToNodesProcess):
     def __init__(self, Model, custom_settings ):
         KratosMultiphysics.Process.__init__(self)
@@ -28,6 +28,7 @@ class AssignModulusAndDirectionToNodesProcess(BaseProcess.AssignVectorComponents
              "variable_name": "VARIABLE_NAME",
              "modulus" : 0.0,
              "direction": [0.0, 0.0, 0.0],
+             "compound_assignment": "direct",
              "constrained": false,
              "interval": [0.0, "End"],
              "local_axes" : {}

@@ -100,9 +100,9 @@ public:
     typedef ModelPart::NodesContainerType NodesArrayType;
     typedef ModelPart::ElementsContainerType ElementsArrayType;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-    typedef boost::numeric::ublas::vector<Matrix> Matrix_Order_Tensor;
-    typedef boost::numeric::ublas::vector<Vector> Vector_Order_Tensor;
-    typedef boost::numeric::ublas::vector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
+    typedef DenseVector<Matrix> Matrix_Order_Tensor;
+    typedef DenseVector<Vector> Vector_Order_Tensor;
+    typedef DenseVector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
     typedef Node < 3 > PointType;
     typedef Node < 3 > ::Pointer PointPointerType;
     typedef std::vector<PointType::Pointer> PointVector;
@@ -513,7 +513,7 @@ public:
 
 
 protected:
-    boost::numeric::ublas::vector<bool> m_used_nodes;
+    DenseVector<bool> m_used_nodes;
     ModelPart& mr_model_part;
 
 

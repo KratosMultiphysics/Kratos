@@ -737,14 +737,14 @@ End NodalData
 *# Check if some node has its X value set
 *set var Xset=0
 *loop nodes *OnlyInCond
-*if(cond(POINT_LOAD_X,int)==1)
+*if(cond(FORCE_LOAD_X,int)==1)
 *set var Xset=1
 *endif
 *end nodes
 *if(Xset == 1)
-Begin NodalData POINT_LOAD_X
+Begin NodalData FORCE_LOAD_X
 *loop nodes *OnlyInCond
-*if(cond(POINT_LOAD_X,int)==1)
+*if(cond(FORCE_LOAD_X,int)==1)
 *format "%i%i%10.5e"
 *NodesNum *cond(Fix_X) *cond(X_Value)
 *endif
@@ -756,14 +756,14 @@ End NodalData
 *# Check if some node has its Y value set
 *set var Yset=0
 *loop nodes *OnlyInCond
-*if(cond(POINT_LOAD_Y,int)==1)
+*if(cond(FORCE_LOAD_Y,int)==1)
 *set var Yset=1
 *endif
 *end nodes
 *if(Yset == 1)
-Begin NodalData POINT_LOAD_Y
+Begin NodalData FORCE_LOAD_Y
 *loop nodes *OnlyInCond
-*if(cond(POINT_LOAD_Y,int)==1)
+*if(cond(FORCE_LOAD_Y,int)==1)
 *format "%i%i%10.5e"
 *NodesNum *cond(Fix_Y) *cond(Y_Value)
 *endif
@@ -775,14 +775,14 @@ End NodalData
 *# Check if some node has its Z value set
 *set var Zset=0
 *loop nodes *OnlyInCond
-*if(cond(POINT_LOAD_Z,int)==1)
+*if(cond(FORCE_LOAD_Z,int)==1)
 *set var Zset=1
 *endif
 *end nodes
 *if(Zset == 1)
-Begin NodalData POINT_LOAD_Z
+Begin NodalData FORCE_LOAD_Z
 *loop nodes *OnlyInCond
-*if(cond(POINT_LOAD_Z,int)==1)
+*if(cond(FORCE_LOAD_Z,int)==1)
 *format "%i%i%10.5e"
 *NodesNum *cond(Fix_Z) *cond(Z_Value)
 *endif

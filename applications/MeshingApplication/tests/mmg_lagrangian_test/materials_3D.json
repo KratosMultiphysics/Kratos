@@ -5,12 +5,12 @@
             "Material": {
                     "name": "Material",
                     "constitutive_law": {
-                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw"
+                            "name": "LinearElastic3DLaw"
                     },
                     "Variables": {
-                            "KratosMultiphysics.YOUNG_MODULUS": 2.06900E+11,
-                            "KratosMultiphysics.POISSON_RATIO": 2.90000E-01,
-                            "KratosMultiphysics.DENSITY": 7.85000E+03
+                            "YOUNG_MODULUS": 2.06900E+11,
+                            "POISSON_RATIO": 2.90000E-01,
+                            "DENSITY": 7.85000E+03
                     },
                     "Tables": {}
             }

@@ -18,6 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
 #include "processes/find_nodal_neighbours_process.h"
@@ -37,11 +38,12 @@ namespace Kratos {
 	     */
 		KRATOS_TEST_CASE_IN_SUITE(EmbeddedAusasNavierStokesWallCondition2D3N, FluidDynamicsApplicationFastSuite)
 		{
-
-			ModelPart modelPart("Main");
+			Model model;
+			ModelPart& modelPart = model.CreateModelPart("Main");
 			modelPart.SetBufferSize(3);
 
 			// Variables addition
+			modelPart.AddNodalSolutionStepVariable(DISTANCE);
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
 			modelPart.AddNodalSolutionStepVariable(DENSITY);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
@@ -50,6 +52,7 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
 			modelPart.AddNodalSolutionStepVariable(VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
 
 			// Process info creation
 			double delta_time = 0.1;
@@ -63,7 +66,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
 			// Set the element properties
-			Properties::Pointer pProp = modelPart.pGetProperties(0);
+			Properties::Pointer pProp = modelPart.CreateNewProperties(0);
 			pProp->SetValue(DENSITY, 1000.0);
 			pProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
 			Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
@@ -131,10 +134,10 @@ namespace Kratos {
 			pCondition->CalculateLocalSystem(condLHS, condRHS, modelPart.GetProcessInfo());
 
 			const double tolerance = 1e-10;
-			KRATOS_CHECK_NEAR(condRHS(0), -2.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(condRHS(0), 0.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(1), 0.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(2), 0.0, tolerance);
-			KRATOS_CHECK_NEAR(condRHS(3), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(condRHS(3), 0.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(4), 0.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(5), 2.0/30.0, tolerance);
 	    }
@@ -144,13 +147,13 @@ namespace Kratos {
 	    //  */
 	    KRATOS_TEST_CASE_IN_SUITE(EmbeddedAusasNavierStokesWallCondition3D4N, FluidDynamicsApplicationFastSuite)
 		{
-
-			ModelPart modelPart("Main");
-			modelPart.SetBufferSize(3);
+			Model model;
+			ModelPart& modelPart = model.CreateModelPart("Main", 3);
 
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
 			modelPart.AddNodalSolutionStepVariable(DENSITY);
+			modelPart.AddNodalSolutionStepVariable(REACTION);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
 			modelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
@@ -159,6 +162,7 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(DISTANCE);
 			modelPart.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
 
 			// Process info creation
 			double delta_time = 0.1;
@@ -172,7 +176,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
 			// Set the element properties
-			Properties::Pointer pProp = modelPart.pGetProperties(0);
+			Properties::Pointer pProp = modelPart.CreateNewProperties(0);
 			pProp->SetValue(DENSITY, 1000.0);
 			pProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
 			Newtonian3DLaw::Pointer pConsLaw(new Newtonian3DLaw());

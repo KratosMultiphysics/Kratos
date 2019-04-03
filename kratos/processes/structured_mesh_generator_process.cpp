@@ -60,7 +60,6 @@ namespace Kratos
         mCreateSkinSubModelPart = TheParameters["create_skin_sub_model_part"].GetBool();
 
         Check();
-
     }
 
 	StructuredMeshGeneratorProcess::~StructuredMeshGeneratorProcess() {
@@ -116,7 +115,7 @@ namespace Kratos
 		local_element_size /= mNumberOfDivisions;
 		//const std::size_t local_space_dimension = mrGeometry.LocalSpaceDimension();
 		Point local_coordinates = rMinPoint;
-		Point global_coordinates = ZeroVector(3);
+		auto global_coordinates = Point{ZeroVector(3)};
 		std::size_t node_id = mStartNodeId;
 
 		for (std::size_t j = 0; j <= mNumberOfDivisions; j++) {
@@ -124,10 +123,15 @@ namespace Kratos
 				local_coordinates[0] = rMinPoint[0] + (i * local_element_size[0]);
 				local_coordinates[1] = rMinPoint[1] + (j * local_element_size[1]);
 				mrGeometry.GlobalCoordinates(global_coordinates, local_coordinates);
-				if ((i == 0) || (i == mNumberOfDivisions) || (j == 0) || (j == mNumberOfDivisions))  // Is on skin
-					mrOutputModelPart.GetSubModelPart("Skin").CreateNewNode(node_id++, global_coordinates[0], global_coordinates[1], global_coordinates[2]);
+				if (mCreateSkinSubModelPart && (
+                    (i == 0) || (i == mNumberOfDivisions) || (j == 0) || (j == mNumberOfDivisions)))  // Is on skin
+					mrOutputModelPart.GetSubModelPart("Skin").CreateNewNode(node_id++, global_coordinates[0],
+                                                                                       global_coordinates[1],
+                                                                                       global_coordinates[2]);
 				else
-					mrOutputModelPart.CreateNewNode(node_id++, global_coordinates[0], global_coordinates[1], global_coordinates[2]);
+					mrOutputModelPart.CreateNewNode(node_id++, global_coordinates[0],
+                                                               global_coordinates[1],
+                                                               global_coordinates[2]);
 			}
 		}
 	}
@@ -136,7 +140,7 @@ namespace Kratos
 		GeometryType::CoordinatesArrayType local_element_size = rMaxPoint - rMinPoint;
 		local_element_size /= mNumberOfDivisions;
 		Point local_coordinates = rMinPoint;
-		Point global_coordinates = ZeroVector(3);
+		auto global_coordinates = Point{ZeroVector(3)};
 		std::size_t node_id = mStartNodeId;
 
 		for (std::size_t k = 0; k <= mNumberOfDivisions; k++) {
@@ -146,10 +150,16 @@ namespace Kratos
 					local_coordinates[1] = rMinPoint[1] + (j * local_element_size[1]);
 					local_coordinates[2] = rMinPoint[2] + (k * local_element_size[2]);
 					mrGeometry.GlobalCoordinates(global_coordinates, local_coordinates);
-					if ((i == 0) || (i == mNumberOfDivisions) || (j == 0) || (j == mNumberOfDivisions) || (k == 0) || (k == mNumberOfDivisions))  // Is on skin
-						mrOutputModelPart.GetSubModelPart("Skin").CreateNewNode(node_id++, global_coordinates[0], global_coordinates[1], global_coordinates[2]);
+					if (mCreateSkinSubModelPart && (
+                        (i == 0) || (i == mNumberOfDivisions) || (j == 0) ||
+                        (j == mNumberOfDivisions) || (k == 0) || (k == mNumberOfDivisions)))  // Is on skin
+						mrOutputModelPart.GetSubModelPart("Skin").CreateNewNode(node_id++, global_coordinates[0],
+                                                                                           global_coordinates[1],
+                                                                                           global_coordinates[2]);
 					else
-						mrOutputModelPart.CreateNewNode(node_id++, global_coordinates[0], global_coordinates[1], global_coordinates[2]);
+						mrOutputModelPart.CreateNewNode(node_id++, global_coordinates[0],
+                                                                   global_coordinates[1],
+                                                                   global_coordinates[2]);
 				}
 			}
 		}
@@ -158,7 +168,7 @@ namespace Kratos
 	void StructuredMeshGeneratorProcess::GenerateTriangularElements() {
 		std::size_t element_id = mStartElementId;
 
-		Properties::Pointer p_properties = mrOutputModelPart.pGetProperties(mElementPropertiesId);
+		Properties::Pointer p_properties = mrOutputModelPart.CreateNewProperties(mElementPropertiesId);
 		std::vector<ModelPart::IndexType> element_connectivity(3);
 
 		for (std::size_t j = 0; j < mNumberOfDivisions; j++) {
@@ -173,7 +183,7 @@ namespace Kratos
 	}
 
 	void StructuredMeshGeneratorProcess::GenerateTetrahedraElements() {
-		Properties::Pointer p_properties = mrOutputModelPart.pGetProperties(mElementPropertiesId);
+		Properties::Pointer p_properties = mrOutputModelPart.CreateNewProperties(mElementPropertiesId);
 
 		for (std::size_t k = 0; k < mNumberOfDivisions; k++) {
 			for (std::size_t j = 0; j < mNumberOfDivisions; j++) {
@@ -225,7 +235,7 @@ namespace Kratos
 		}
 	}
 
-    void StructuredMeshGeneratorProcess::Check()
+    int StructuredMeshGeneratorProcess::Check()
     {
         KRATOS_TRY
 
@@ -237,6 +247,8 @@ namespace Kratos
             KRATOS_ERROR << "An unsupported geometry was given. Only Quadrilateral2D4 and Hexahedra3D8 are supported and given geometry is : " << mrGeometry << std::endl;
 
         KRATOS_CHECK_NOT_EQUAL(mNumberOfDivisions, 0);
+
+        return 0;
 
         KRATOS_CATCH("")
     }

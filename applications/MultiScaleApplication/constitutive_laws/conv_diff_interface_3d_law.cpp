@@ -51,7 +51,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-    ConvDiffInterface3DLaw::ConvDiffInterface3DLaw() 
+    ConvDiffInterface3DLaw::ConvDiffInterface3DLaw()
         : ConstitutiveLaw()
 		, mInitialized(false)
 		, m_init_gradT()
@@ -59,7 +59,7 @@ namespace Kratos
 		, m_gap_interface()
 	{
     }
- 
+
     ConstitutiveLaw::Pointer ConvDiffInterface3DLaw::Clone() const
     {
         return ConstitutiveLaw::Pointer( new ConvDiffInterface3DLaw() );
@@ -85,7 +85,7 @@ namespace Kratos
 			return true;
         return false;
     }
-    
+
     bool ConvDiffInterface3DLaw::Has(const Variable<Vector>& rThisVariable)
     {
 		if(rThisVariable == YIELD_SURFACE_DATA_3D_X || rThisVariable == YIELD_SURFACE_DATA_3D_Y || rThisVariable == YIELD_SURFACE_DATA_3D_Z)
@@ -104,7 +104,7 @@ namespace Kratos
     {
         return false;
     }
-    
+
     bool ConvDiffInterface3DLaw::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
     {
         return false;
@@ -216,7 +216,7 @@ namespace Kratos
     {
         return ConstitutiveLaw::StrainMeasure_Infinitesimal;
     }
-    
+
     ConvDiffInterface3DLaw::StressMeasure ConvDiffInterface3DLaw::GetStressMeasure()
     {
         return ConstitutiveLaw::StressMeasure_Cauchy;
@@ -300,7 +300,7 @@ namespace Kratos
 		bool compute_stress = Options.Is(COMPUTE_STRESS) || compute_constitutive_tensor;
 
 		SizeType size = GetStrainSize();
-		if(compute_stress) 
+		if(compute_stress)
 			if(stressVector.size() != size)
 				stressVector.resize(size, false);
 		if(compute_constitutive_tensor)
@@ -308,9 +308,9 @@ namespace Kratos
 				constitutiveMatrix.resize(size, size, false);
 
 		CalculationData data;
-		
+
 		InitializeCalculationData( props, rValues.GetElementGeometry(), strainVector, data );
-		
+
 		if (data.ExpCurveTypeFlag)
 		{
 			CalculateElasticStressVector(data, strainVector);
@@ -327,7 +327,7 @@ namespace Kratos
 		}
 
 		mD1 = data.D1; // Update the mK1 to the current value
-		
+
 		if( compute_stress )
 		{
 			CalculateStress(data, strainVector, stressVector);
@@ -357,7 +357,7 @@ namespace Kratos
 
     void ConvDiffInterface3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
     {
-        
+
     }
 
     void ConvDiffInterface3DLaw::ResetMaterial(const Properties& rMaterialProperties,
@@ -408,8 +408,8 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-	void ConvDiffInterface3DLaw::InitializeCalculationData(const Properties& props, 
-		                                                       const GeometryType& geom, 
+	void ConvDiffInterface3DLaw::InitializeCalculationData(const Properties& props,
+		                                                       const GeometryType& geom,
 															   const Vector& strainVector,
 															   CalculationData& data)
 	{
@@ -454,7 +454,7 @@ namespace Kratos
 
 			data.ElasticStressVector.clear();
 		}
-		else 
+		else
 		{
 			// Leggo le prop meccaniche
 			data.Kn_compression_multiplier = props[NORMAL_STIFFNESS_COMPRESSION_MULTIPLIER];
@@ -481,7 +481,7 @@ namespace Kratos
 
 			CalculateCriticalOpening(data);
 		}
-		
+
 		data.ForceSecant = false;
 		if(props.Has(DAMAGE_SECANT_MATRIX))
 			data.ForceSecant = props[DAMAGE_SECANT_MATRIX] != 0;
@@ -496,7 +496,7 @@ namespace Kratos
 		double gn = std::abs(m_gap_interface(1))*(m_gap_interface(1)); // ? 0 : 1);
 		//std::cout << MathHelpers::VectorToString(m_gap_interface, 4, std::scientific);
 		data.Kc = (aux1 + aux2)*(1 / (ro_1 + ro_2))*data.Kn_compression_multiplier*data.m_exp*pow(gn,data.m_exp - 1);
-		
+
 		//std::stringstream ss;
 		//ss << "--------  ro_1 = " << ro_1 << ", " << std::endl;
 		//ss << "--------  ro_2 = " << ro_2 << ", " << std::endl;
@@ -523,12 +523,12 @@ namespace Kratos
 	void ConvDiffInterface3DLaw::CalculateEffectiveOpening(CalculationData& data)
 	{
 		data.effDispl = std::sqrt(pow(data.beta, 2)*pow(m_gap_interface(0), 2) + pow(m_gap_interface(1), 2));
-		
+
 		//std::stringstream ss;
 		//ss << "--------  effDispl = " << data.effDispl << ", " << std::endl;
 		//std::cout << ss.str();
 	}
-	
+
 	void ConvDiffInterface3DLaw::UpdateDamage(CalculationData& data)
 	{
 		if (data.ExpCurveTypeFlag)
@@ -545,7 +545,7 @@ namespace Kratos
 				data.D1 = std::max(std::min(data.D1, 1.0), 0.0);
 			}
 		}
-		else 
+		else
 		{
 			data.D1 = data.effDispl / data.crticalDispl;
 			if (data.D1 >= 1.0)
@@ -605,7 +605,7 @@ namespace Kratos
 		}
 		else
 		{
-			if (m_gap_interface(1) > 0.0) 
+			if (m_gap_interface(1) > 0.0)
 			{
 				if (data.D1 <= 0.0)
 				{
@@ -633,15 +633,15 @@ namespace Kratos
 		noalias(stressVector) = mStressVector;
 	}
 
-	void ConvDiffInterface3DLaw::CalculateConstitutiveMatrix(CalculationData& data, 
+	void ConvDiffInterface3DLaw::CalculateConstitutiveMatrix(CalculationData& data,
 		                                                         const Vector& strainVector,
-		                                                         const Vector& stressVector, 
+		                                                         const Vector& stressVector,
 																 Matrix& constitutiveMatrix)
 	{
 		//std::stringstream ss;
 
 		size_t n = GetStrainSize();
-		
+
 		double perturbation = 1.0E-6;
 		Vector perturbedStrainVector(n);
 		Vector stressPerturbation(n);

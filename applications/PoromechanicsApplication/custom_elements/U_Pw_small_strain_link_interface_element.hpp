@@ -1,9 +1,15 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_U_PW_SMALL_STRAIN_LINK_INTERFACE_ELEMENT_H_INCLUDED )
 #define  KRATOS_U_PW_SMALL_STRAIN_LINK_INTERFACE_ELEMENT_H_INCLUDED
@@ -14,8 +20,6 @@
 // Application includes
 #include "custom_elements/U_Pw_element.hpp"
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
-#include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/interface_element_utilities.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
@@ -53,17 +57,17 @@ public:
     UPwSmallStrainLinkInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : UPwSmallStrainInterfaceElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
     // Destructor
-    virtual ~UPwSmallStrainLinkInterfaceElement() {}
+    ~UPwSmallStrainLinkInterfaceElement() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
     
-    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -73,9 +77,9 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
+    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
 
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
         
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -89,12 +93,12 @@ private:
     
     friend class Serializer;
     
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }

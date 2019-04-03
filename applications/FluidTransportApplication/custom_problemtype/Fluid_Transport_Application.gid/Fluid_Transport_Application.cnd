@@ -1,0 +1,117 @@
+BOOK: Parts
+
+CONDITION: Body_Part
+CONDTYPE: over groups
+CONDMESHTYPE: over body elements
+GROUPALLOW: surfaces volumes
+QUESTION: Conductivity
+VALUE: 1.0
+QUESTION: Specific_Heat
+VALUE: 1.0
+QUESTION: Fluid_Density
+VALUE: 1.0
+HELP: Units in IS: Kg/m3
+QUESTION: Absorption
+VALUE: 1.0
+END CONDITION
+
+
+BOOK: Dirichlet_Constraints
+
+CONDITION: Velocity
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points lines surfaces volumes
+QUESTION: VELOCITY_X#CB#(true,false)
+VALUE: true
+DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Fix_X,false)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Fix_X,#CURRENT#)
+QUESTION: X_Value
+VALUE: 0.0
+HELP: Units in IS: m/s
+QUESTION: Fix_X#CB#(true,false)
+VALUE: false
+HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
+DEPENDENCIES: (false,HIDE,Imposed_Velocity_X,Constant)(true,RESTORE,Imposed_Velocity_X,#CURRENT#)
+QUESTION: Imposed_Velocity_X#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Velocity_X_Table,#CURRENT#)(Table_Interpolation,RESTORE,Velocity_X_Table,#CURRENT#)
+QUESTION: Velocity_X_Table(Time,Velocity_X)
+VALUE: #N# 2 0.0 0.0
+QUESTION: VELOCITY_Y#CB#(true,false)
+VALUE: true
+DEPENDENCIES: (false,HIDE,Y_Value,0.0,HIDE,Fix_Y,false)(true,RESTORE,Y_Value,#CURRENT#,RESTORE,Fix_Y,#CURRENT#)
+QUESTION: Y_Value
+VALUE: 0.0
+HELP: Units in IS: m/s
+QUESTION: Fix_Y#CB#(true,false)
+VALUE: false
+HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
+DEPENDENCIES: (false,HIDE,Imposed_Velocity_Y,Constant)(true,RESTORE,Imposed_Velocity_Y,#CURRENT#)
+QUESTION: Imposed_Velocity_Y#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Velocity_Y_Table,#CURRENT#)(Table_Interpolation,RESTORE,Velocity_Y_Table,#CURRENT#)
+QUESTION: Velocity_Y_Table(Time,Velocity_Y)
+VALUE: #N# 2 0.0 0.0
+QUESTION: VELOCITY_Z#CB#(true,false)
+VALUE: false
+DEPENDENCIES: (false,HIDE,Z_Value,0.0,HIDE,Fix_Z,false)(true,RESTORE,Z_Value,#CURRENT#,RESTORE,Fix_Z,#CURRENT#)
+QUESTION: Z_Value
+VALUE: 0.0
+HELP: Units in IS: m/s
+QUESTION: Fix_Z#CB#(true,false)
+VALUE: false
+HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
+DEPENDENCIES: (false,HIDE,Imposed_Velocity_Z,Constant)(true,RESTORE,Imposed_Velocity_Z,#CURRENT#)
+QUESTION: Imposed_Velocity_Z#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Velocity_Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Velocity_Z_Table,#CURRENT#)
+QUESTION: Velocity_Z_Table(Time,Velocity_Z)
+VALUE: #N# 2 0.0 0.0
+END CONDITION
+
+CONDITION: Phi_Value
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points lines surfaces volumes
+QUESTION: Phi_Value
+VALUE: 0.0
+HELP: Units in IS:
+QUESTION: Fixed#CB#(true,false)
+VALUE: true
+HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
+DEPENDENCIES: (false,HIDE,Imposed_Phi_Value,Constant)(true,RESTORE,Imposed_Phi_Value,#CURRENT#)
+QUESTION: Imposed_Phi_Value#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Phi_Value_Table,#CURRENT#)(Table_Interpolation,RESTORE,Phi_Value_Table,#CURRENT#)
+QUESTION: Phi_Value_Table(Time,Value)
+VALUE: #N# 2 0.0 0.0
+END CONDITION
+
+
+BOOK: Loads
+
+CONDITION: Face_Heat_Flux
+CONDTYPE: over groups
+CONDMESHTYPE: over face elements
+GROUPALLOW: lines surfaces
+QUESTION: Value
+VALUE: 0.0
+QUESTION: Imposed_Face_Heat_Flux#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Face_Heat_Flux_Table,#CURRENT#)(Table_Interpolation,RESTORE,Face_Heat_Flux_Table,#CURRENT#)
+QUESTION: Face_Heat_Flux_Table(Time,Face_Heat_Flux)
+VALUE: #N# 2 0.0 0.0
+END CONDITION
+
+CONDITION: Q_Source
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: surfaces volumes
+QUESTION: Value
+VALUE: 0.0
+QUESTION: Imposed_Q_Source#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Q_Source_Table,#CURRENT#)(Table_Interpolation,RESTORE,Q_Source_Table,#CURRENT#)
+QUESTION: Q_Source_Table(Time,Q_Source)
+VALUE: #N# 2 0.0 0.0
+END CONDITION

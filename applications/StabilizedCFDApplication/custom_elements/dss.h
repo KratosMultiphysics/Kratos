@@ -150,7 +150,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const;
+                            PropertiesType::Pointer pProperties) const override;
 
 
     /**
@@ -161,9 +161,9 @@ public:
      * @param rRightHandSideVector Local finite element residual vector (output)
      * @param rCurrentProcessInfo Current ProcessInfo values (input)
      */
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                      VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief CalculateLeftHandSide Return an empty matrix of appropriate size.
@@ -172,8 +172,8 @@ public:
      * @param rLeftHandSideMatrix Local finite element system matrix (output)
      * @param rCurrentProcessInfo Current ProcessInfo values (input)
      */
-    virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo);
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                               ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief CalculateRightHandSide Return an empty matrix of appropriate size.
@@ -182,8 +182,8 @@ public:
      * @param rRightHandSideVector Local finite element residual vector (output)
      * @param rCurrentProcessInfo Current ProcessInfo values (input)
      */
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief CalculateLocalVelocityContribution Calculate the local contribution in terms of velocity and pressure.
@@ -191,50 +191,50 @@ public:
      * @param rRightHandSideVector Local finite element residual vector (output)
      * @param rCurrentProcessInfo Current ProcessInfo values (input)
      */
-    virtual void CalculateLocalVelocityContribution(MatrixType &rDampMatrix,
-                                                    VectorType &rRightHandSideVector,
-                                                    ProcessInfo &rCurrentProcessInfo);
+    void CalculateLocalVelocityContribution(MatrixType &rDampMatrix,
+                                            VectorType &rRightHandSideVector,
+                                            ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * @brief MassMatrix Calculate the local mass matrix.
      * @param rMassMatrix Local mass matrix (output)
      * @param rCurrentProcessInfo Current ProcessInfo values (input)
      */
-    virtual void CalculateMassMatrix(MatrixType &rMassMatrix,
-                                     ProcessInfo &rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType &rMassMatrix,
+                             ProcessInfo &rCurrentProcessInfo) override;
 
 
     /**
      * @brief AddExplicitContribution Calculate projection terms for iterative OSS projection scheme.
      * @param rCurrentProcessInfo
      */
-    virtual void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo);
+    void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo) override;
 
 
-    virtual void Calculate(const Variable<double>& rVariable,
-                           double& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo);
+    void Calculate(const Variable<double>& rVariable,
+                   double& rOutput,
+                   const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
-                           array_1d<double, 3 > & rOutput,
-                           const ProcessInfo& rCurrentProcessInfo);
+    void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
+                   array_1d<double, 3 > & rOutput,
+                   const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief EquationIdVector Returns the global system rows corresponding to each local row.
      * @param rResult rResult[i] is the global index of local row i (output)
      * @param rCurrentProcessInfo Current ProcessInfo values (input)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult,
+                          ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief GetDofList Returns a list of the element's Dofs.
      * @param rElementalDofList List of DOFs. (output)
      * @param rCurrentProcessInfo Current ProcessInfo instance. (input)
      */
-    virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& rElementalDofList,
+                    ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -242,7 +242,7 @@ public:
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetFirstDerivativesVector(Vector& Values, int Step = 0);
+    void GetFirstDerivativesVector(Vector& Values, int Step = 0) override;
 
 
 
@@ -251,39 +251,39 @@ public:
      * @param Values Vector of nodal second derivatives
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetSecondDerivativesVector(Vector& Values, int Step = 0);
+    void GetSecondDerivativesVector(Vector& Values, int Step = 0) override;
 
 
     /**
      * @brief GetIntegrationMethod Return the integration order to be used.
      * @return Gauss Order
      */
-    virtual GeometryData::IntegrationMethod GetIntegrationMethod() const;
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
 
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                                             std::vector<array_1d<double, 3 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+                                     std::vector<array_1d<double, 3 > >& rValues,
+                                     const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                             std::vector<double>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                                     std::vector<double>& rValues,
+                                     const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                                             std::vector<array_1d<double, 6 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+                                     std::vector<array_1d<double, 6 > >& rValues,
+                                     const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                             std::vector<Vector>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                     std::vector<Vector>& rValues,
+                                     const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                             std::vector<Matrix>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                     std::vector<Matrix>& rValues,
+                                     const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
@@ -295,18 +295,18 @@ public:
     ///@name Inquiry
     ///@{
 
-    virtual int Check(const ProcessInfo &rCurrentProcessInfo);
+    int Check(const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const override;
 
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override;
 
 
     ///@}
@@ -642,9 +642,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Operators

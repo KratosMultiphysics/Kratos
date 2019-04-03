@@ -151,7 +151,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const;
+                            PropertiesType::Pointer pProperties) const override;
 
 
     void CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo) override;
@@ -179,7 +179,7 @@ protected:
     ///@{
 
 
-    virtual void CalculateStaticTau(double Density,
+    virtual void CalculateStabilizationParameters(double Density,
                                     double KinematicVisc,
                                     const array_1d<double,3> &Velocity,
                                     const ProcessInfo& rProcessInfo,
@@ -211,27 +211,6 @@ protected:
     virtual double AverageElementSize();
 
     virtual double ProjectedElementSize(const array_1d<double,3> &rVelocity);
-
-
-    template<class T>
-    bool InvertMatrix (const boost::numeric::ublas::matrix<T>& input,
-                       boost::numeric::ublas::matrix<T>& inverse)
-    {
-        typedef permutation_matrix<std::size_t> pmatrix;
-        // create a working copy of the input
-        matrix<T> A(input);
-        // create a permutation matrix for the LU-factorization
-        pmatrix pm(A.size1());
-        // perform LU-factorization
-        int res = lu_factorize(A,pm);
-        if( res != 0 )
-            return false;
-        // create identity matrix of "inverse"
-        inverse.assign(boost::numeric::ublas::identity_matrix<T>(A.size1()));
-        // backsubstitute to get the inverse
-        lu_substitute(A, pm, inverse);
-        return true;
-    }
 
 
     double Module(const array_1d<double,3> &rVector);
@@ -273,9 +252,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Operators

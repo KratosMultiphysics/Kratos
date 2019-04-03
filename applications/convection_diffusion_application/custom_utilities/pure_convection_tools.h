@@ -1,52 +1,13 @@
-/*
-==============================================================================
-KratosConvectionDiffusionApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-11-14 15:25:09 $
-//   Revision:            $Revision: 1.3 $
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:  Riccardo Rossi
 //
-
 
 #if !defined(KRATOS_PURE_CONVECTION_UTILITIES_INCLUDED )
 #define  KRATOS_PURE_CONVECTION_UTILITIES_INCLUDED
@@ -217,8 +178,8 @@ public:
         //**********************************
         //BUILD PHASE
         //**********************************
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim+1> lhs_contribution;
+        BoundedMatrix<double,TDim+1,TDim> DN_DX;
+        BoundedMatrix<double,TDim+1,TDim+1> lhs_contribution;
         array_1d<double,TDim+1> N;
         array_1d<unsigned int ,TDim+1> local_indices;
         array_1d<double,TDim+1> rhs_contribution;
@@ -373,7 +334,7 @@ public:
         //**********************************
         //BUILD PHASE
         //**********************************
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+        BoundedMatrix<double,TDim+1,TDim> DN_DX;
         array_1d<double,TDim+1> N;
         array_1d<double,TDim> vel_gauss;
         array_1d<double,TDim+1> temp_vec_np;
@@ -473,7 +434,7 @@ private:
     //**************************************************************************
     void AssembleLHS(
         TSystemMatrixType& A,
-        const boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim+1>& LHS_Contribution,
+        const BoundedMatrix<double,TDim+1,TDim+1>& LHS_Contribution,
         const array_1d<unsigned int,TDim+1>& EquationId
     )
     {

@@ -41,13 +41,13 @@ public:
     LocalDamagePlaneStress2DLaw (const LocalDamagePlaneStress2DLaw& rOther);
 
     /// Destructor
-    virtual ~LocalDamagePlaneStress2DLaw();
+    ~LocalDamagePlaneStress2DLaw() override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    void GetLawFeatures(Features& rFeatures);
+    void GetLawFeatures(Features& rFeatures) override;
     
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
         
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -57,7 +57,7 @@ protected:
         
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
-    void CalculateLinearElasticMatrix( Matrix& rLinearElasticMatrix,const double& YoungModulus,const double& PoissonCoefficient );
+    void CalculateLinearElasticMatrix( Matrix& rLinearElasticMatrix,const double& YoungModulus,const double& PoissonCoefficient ) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -67,12 +67,12 @@ private:
     
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }

@@ -46,8 +46,8 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
- 
-/** 
+
+/**
  * @class PowerIterationEigenvalueSolver
  * @ingroup KratosCore
  * @brief This class uses the inverted power iteration method to obtain the lowest eigenvalue of a system
@@ -59,7 +59,7 @@ namespace Kratos
 template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType,
          class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
          class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-class PowerIterationEigenvalueSolver 
+class PowerIterationEigenvalueSolver
     : public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>
 {
 public:
@@ -95,7 +95,7 @@ public:
      * @details It uses additional variables to be initialized
      * @param MaxTolerance The maximal tolerance used as threshold for convergence
      * @param MaxIterationNumber The maximal number of iterations to be considered
-     * @param RequiredEigenvalueNumber The required eigen value number 
+     * @param RequiredEigenvalueNumber The required eigen value number
      * @param pLinearSolver The linear solver used to solve the system of equations
      */
     PowerIterationEigenvalueSolver(
@@ -103,7 +103,7 @@ public:
         unsigned int MaxIterationNumber,
         unsigned int RequiredEigenvalueNumber,
         typename TLinearSolverType::Pointer pLinearSolver
-    ): BaseType(MaxTolerance, MaxIterationNumber),   
+    ): BaseType(MaxTolerance, MaxIterationNumber),
        mRequiredEigenvalueNumber(RequiredEigenvalueNumber),
        mpLinearSolver(pLinearSolver)
     {
@@ -184,14 +184,12 @@ public:
         ) override
     {
 
-        using boost::numeric::ublas::trans;
-
         const SizeType size = K.size1();
         const SizeType max_iteration = BaseType::GetMaxIterationsNumber();
         const double tolerance = BaseType::GetTolerance();
 
-        VectorType x = ZeroVector(size);
-        VectorType y = ZeroVector(size);
+        VectorType x = boost::numeric::ublas::zero_vector<double>(size);
+        VectorType y = boost::numeric::ublas::zero_vector<double>(size);
 
         RandomInitializeUtility<double>::RandomInitialize(K, y);
 
@@ -202,18 +200,18 @@ public:
         double beta = 0.0;
         double rho = 0.0;
         double old_rho = Eigenvalues[0];
-        VectorType y_old = ZeroVector(size);
+        VectorType y_old = boost::numeric::ublas::zero_vector<double>(size);
 
         for(SizeType i = 0 ; i < max_iteration ; i++) {
             // K*x = y
             mpLinearSolver->Solve(K, x, y);
-            
+
             rho = inner_prod(y, x);
-            
+
             // y = M*x
             TSparseSpaceType::Mult(M, x, y);
             beta = inner_prod(x, y);
-            
+
             KRATOS_ERROR_IF(beta <= 0.0) << "M is not Positive-definite. beta = " << beta << std::endl;
 
             rho /= beta;
@@ -227,7 +225,7 @@ public:
 
             if (mEchoLevel > 1)
                 KRATOS_INFO("Power Iterator Eigenvalue Solver: ") << "Iteration: " << i << " \t beta: " << beta << "\trho: " << rho << " \tConvergence norm: " << convergence_norm << " \tConvergence rho: " << convergence_rho << std::endl;
-            
+
             if(convergence_norm < tolerance || convergence_rho < tolerance)
                 break;
 
@@ -248,26 +246,7 @@ public:
         for(SizeType i = 0 ; i < size ; i++)
             Eigenvectors(0,i) = y[i];
     }
-    
-    /**
-     * @brief This method returns directly the first eigen value obtained
-     * @param K The stiffness matrix
-     * @param M The mass matrix
-     * @return The first eigenvalue
-     */
-    double GetEigenValue(
-        SparseMatrixType& K,
-        SparseMatrixType& M
-        )
-    {
-        DenseVectorType eigen_values;
-        DenseMatrixType eigen_vectors;
-        
-        Solve(K, M, eigen_values, eigen_vectors);
-        
-        return eigen_values[0];
-    }
-    
+
     ///@}
     ///@name Access
     ///@{

@@ -226,10 +226,10 @@ public:
     {
         // resize as needed
         if(rM.size1() != 2 * NumberOfDirections() || rM.size2() != 3)
-            rM.resize(2 * NumberOfDirections(), 3);
+            rM.resize(2 * NumberOfDirections(), 3, false);
 
         if(rB.size() != 2 * NumberOfDirections())
-            rB.resize(2 * NumberOfDirections());
+            rB.resize(2 * NumberOfDirections(), false);
 
         for(std::size_t i = 0; i < NumberOfDirections(); ++i)
         {

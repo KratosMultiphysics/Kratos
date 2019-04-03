@@ -63,7 +63,7 @@ Element::Pointer DSS_GLS<TDim>::Create(IndexType NewId,NodesArrayType const& Thi
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< unsigned int TDim >
-void DSS_GLS<TDim>::CalculateStaticTau(double Density,
+void DSS_GLS<TDim>::CalculateStabilizationParameters(double Density,
                                        double KinematicVisc,
                                        const array_1d<double,3> &Velocity,
                                        const ProcessInfo& rProcessInfo,

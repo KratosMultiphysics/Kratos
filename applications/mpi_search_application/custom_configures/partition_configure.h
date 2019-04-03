@@ -82,11 +82,11 @@ public:
    * @param PointType   Set of integers
    * @param PointerType Pointer to Set of integers
    */
-  typedef typename BaseConfigure::PointType           PointType;
+  typedef typename BaseConfigure::PointType             PointType;
 
-  typedef PartitionObject<std::unordered_set<int>>    ObjectType;
-  typedef boost::shared_ptr<ObjectType>               PointerType;
-  typedef typename BaseConfigure::PointerType         BasePointerType;
+  typedef PartitionObject<std::unordered_set<int>>      ObjectType;
+  typedef Kratos::shared_ptr<ObjectType>                PointerType;
+  typedef typename BaseConfigure::PointerType           BasePointerType;
 
   /** Additional types needed by the bins.
    * @param PointContainerType    Point Container.

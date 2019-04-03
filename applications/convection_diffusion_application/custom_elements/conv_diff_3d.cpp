@@ -1,57 +1,17 @@
-/*
-==============================================================================
-KratosConvectionDiffusionApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
-//   Project Name:        Kratos
-//   Last modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:32 $
-//   Revision:            $Revision: 1.4 $
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:  Riccardo Rossi
 //
-
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -83,7 +43,12 @@ ConvDiff3D::ConvDiff3D(IndexType NewId, GeometryType::Pointer pGeometry, Propert
 
 Element::Pointer ConvDiff3D::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new ConvDiff3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<ConvDiff3D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+Element::Pointer ConvDiff3D::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_shared<ConvDiff3D>(NewId, pGeom, pProperties);
 }
 
 ConvDiff3D::~ConvDiff3D()
@@ -102,17 +67,17 @@ void ConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     unsigned int TDim = 3;
     const int Stationary = rCurrentProcessInfo[STATIONARY];		
     
-    const boost::numeric::ublas::bounded_matrix<double, 4, 4 > msMassFactors = 0.25 * IdentityMatrix(4, 4);
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > msDN_DX;
+    const BoundedMatrix<double, 4, 4 > msMassFactors = 0.25 * IdentityMatrix(4, 4);
+    BoundedMatrix<double, 4, 3 > msDN_DX;
     array_1d<double, 4 > msN;
     array_1d<double, 3 > ms_vel_gauss;
     array_1d<double, 4 > ms_temp_vec_np;
     array_1d<double, 4 > ms_u_DN;
     
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > First = ZeroMatrix(3, 3);
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > Second = ZeroMatrix(3, 3);
-    boost::numeric::ublas::bounded_matrix<double, 3, 4 > Third = ZeroMatrix(3, 4);
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > Identity = 1.0 * IdentityMatrix(3, 3);
+    BoundedMatrix<double, 3, 3 > First = ZeroMatrix(3, 3);
+    BoundedMatrix<double, 3, 3 > Second = ZeroMatrix(3, 3);
+    BoundedMatrix<double, 3, 4 > Third = ZeroMatrix(3, 4);
+    BoundedMatrix<double, 3, 3 > Identity = 1.0 * IdentityMatrix(3, 3);
     
     array_1d<double, 3 > grad_g = ZeroVector(3); //dimesion coincides with space dimension
 
@@ -285,7 +250,7 @@ void ConvDiff3D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
     KRATOS_TRY
     int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
 
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > msDN_DX;
+    BoundedMatrix<double, 4, 3 > msDN_DX;
     array_1d<double, 4 > msN;
     array_1d<double, 3 > ms_vel_gauss;
     array_1d<double, 4 > ms_temp_vec_np;
@@ -378,9 +343,9 @@ void ConvDiff3D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& Curre
 //************************************************************************************
 //************************************************************************************
 
-/*double ConvDiff3D::ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const double& h, const double& C, const double nu )
+/*double ConvDiff3D::ComputeSmagorinskyViscosity(const BoundedMatrix<double, 4, 3 > & DN_DX, const double& h, const double& C, const double nu )
 {
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > dv_dx = ZeroMatrix(3, 3);
+    BoundedMatrix<double, 3, 3 > dv_dx = ZeroMatrix(3, 3);
 
     const unsigned int nnodes = 4;
 

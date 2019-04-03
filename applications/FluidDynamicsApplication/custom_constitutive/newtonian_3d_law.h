@@ -124,9 +124,6 @@ protected:
     double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
     
     ///@}
-
-
-
 private:
 
     ///@name Static Member Variables

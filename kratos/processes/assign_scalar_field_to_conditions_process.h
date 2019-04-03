@@ -8,24 +8,24 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Josep Maria Carbonell
-//                   Riccardo Rossi
+//  Main authors:    Riccardo Rossi
+//                   Josep Maria Carbonell
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_ASSIGN_SCALAR_FIELD_TO_CONDITIONS_PROCESS_H_INCLUDED )
 #define  KRATOS_ASSIGN_SCALAR_FIELD_TO_CONDITIONS_PROCESS_H_INCLUDED
-
-
 
 // System includes
 
 // External includes
 
 // Project includes
+#include "utilities/python_function_callback_utility.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
-#include "utilities/python_function_callback_utility.h"
+
 
 namespace Kratos
 {
@@ -33,59 +33,60 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
-/** This function assigns a value to a variable belonging to all of the nodes in a given mesh
+/**
+ * @class AssignScalarFieldToConditionsProcess
+ * @ingroup KratosCore
+ * @brief This process is used in order to assign a function to a condition
+ * @details This function assigns a value depending on a function to a variable in all of the conditions in a given mesh.
+ * The behaviour is the following:
+ * - Option 1 - Variable<double>: It is evaluated in the center of the condition
+ * - Option 2 - array_1d_component_type: The same as Variable evaluated in the center of the element
+ * - Option 3 - Variable< Vector > : The vector has to have a size equal to the number of nodes, and its values are computed per each entry of the vector using the coordinates of the nodes which occupies the same position in the geometry
+ * @author Riccardo Rossi
+ * @author Josep Maria Carbonell
+ * @author Vicente Mataix Ferrandiz
 */
-class AssignScalarFieldToConditionsProcess : public Process
+class AssignScalarFieldToConditionsProcess
+    : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;   
-    
+    /// The definitionof the node
+    typedef Node<3> NodeType;
+
+    /// The definitionof the geometry
+    typedef Geometry<NodeType> GeometryType;
+
+    /// The IndexType definition
+    typedef std::size_t IndexType;
+
+    /// The sizeType definition
+    typedef std::size_t SizeType;
+
+    /// The defition of a component of an array
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+
     /// Pointer definition of AssignScalarFieldToConditionsProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignScalarFieldToConditionsProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief The default constructor
+     * @param rModelPart The model part where the scalar field will be applied
+     * @param rParameters The configuration parameters
+     */
     AssignScalarFieldToConditionsProcess(
         ModelPart& rModelPart,
         Parameters rParameters
-        ) : Process() , 
-            mrModelPart(rModelPart)
-    {
-        KRATOS_TRY
-
-        Parameters default_parameters( R"(
-            {
-                "model_part_name":"MODEL_PART_NAME",
-                "mesh_id": 0,
-                "variable_name": "VARIABLE_NAME", 
-                "interval"        : [0.0, 1e30],
-                "value"           : "please give an expression in terms of the variable x, y, z, t",
-                "local_axes" : {}
-            }  )" );
-
-
-        // Validate against defaults -- this ensures no type mismatch
-        rParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mMeshId       = rParameters["mesh_id"].GetInt();
-        mVariableName = rParameters["variable_name"].GetString();
-
-        mpFunction = PythonGenericFunctionUtility::Pointer( new PythonGenericFunctionUtility(rParameters["value"].GetString(),  rParameters["local_axes"]));
-
-
-        KRATOS_CATCH("");
-    }
-
-
+        );
 
     /// Destructor.
     ~AssignScalarFieldToConditionsProcess() override {}
-
 
     ///@}
     ///@name Operators
@@ -97,46 +98,22 @@ public:
         Execute();
     }
 
-
     ///@}
     ///@name Operations
     ///@{.
 
+    /**
+     * @brief Execute method is used to execute the AssignScalarFieldToConditionsProcess algorithms.
+     */
+    void Execute() override;
 
-    /// Execute method is used to execute the AssignScalarFieldToConditionsProcess algorithms.
-    void Execute() override
-    {
-
-        KRATOS_TRY;
-
-        ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-
-        const double& rCurrentTime = rCurrentProcessInfo[TIME];
-
-
-        if( KratosComponents< Variable<Vector> >::Has( mVariableName ) ) //case of double variable
-        {
-            InternalAssignValue<>(KratosComponents< Variable<Vector> >::Get(mVariableName), rCurrentTime);
-        }
-        else if( KratosComponents< array_1d_component_type >::Has( mVariableName ) ) //case of component variable
-        {
-            InternalAssignValueComponents<>(KratosComponents< array_1d_component_type >::Get(mVariableName), rCurrentTime);
-        }
-        else
-        {
-            KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mVariableName << std::endl;
-        }
-
-        KRATOS_CATCH("");
-
-    }
-
-    /// this function will be executed at every time step BEFORE performing the solve phase
+    /**
+     * @brief This function will be executed at every time step BEFORE performing the solve phase
+     */
     void ExecuteInitializeSolutionStep() override
     {
         Execute();
     }
-
 
     ///@}
     ///@name Access
@@ -168,7 +145,6 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
     }
-
 
     ///@}
     ///@name Friends
@@ -211,219 +187,166 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
-    PythonGenericFunctionUtility::Pointer mpFunction;
-    std::string mVariableName;
+    ModelPart& mrModelPart;                           /// The modelpart where compute
 
-    std::size_t mMeshId;
+    PythonGenericFunctionUtility::Pointer mpFunction; /// The python function used, depends on X, Y, Z, and t
+
+    std::string mVariableName;                        /// The name of the vaiable to assign
+
+    std::size_t mMeshId = 0;                          /// The id of the mesh (0 by deafault)
 
     ///@}
     ///@name Private Operators
     ///@{
 
     /**
-     * It calls the function 
+     * @brief It calls the function for a vector variable
+     * @param pCondition The pointer to the condition where set the function
+     * @param Time The current time
+     * @param rValue The value to set
      */
     void CallFunction(
-        const Condition::Pointer& pCondition, 
-        const double& time, 
+        const Condition::Pointer& pCondition,
+        const double Time,
         Vector& rValue
-        )
-    {
+        );
 
-        Condition::GeometryType& rConditionGeometry = pCondition->GetGeometry();
-        const unsigned int size = rConditionGeometry.size();
-
-        if(rValue.size() !=  size)
-        {
-            rValue.resize(size,false);
-        }
-
-        for(unsigned int i=0; i<size; i++)
-        {
-            rValue[i] = mpFunction->CallFunction(rConditionGeometry[i].X(),rConditionGeometry[i].Y(),rConditionGeometry[i].Z(),time  );
-        }
-
-    }
-    
     /**
-     * It calls the function for components
+     * @brief It calls the function for components
+     * @param pCondition The pointer to the condition where set the function
+     * @param Time The current time
+     * @param rValue The value to set
      */
     void CallFunctionComponents(
-        const Condition::Pointer& pCondition, 
-        const double& time, 
+        const Condition::Pointer& pCondition,
+        const double Time,
         double& rValue
-        )
-    {
-        Condition::GeometryType& rConditionGeometry = pCondition->GetGeometry();
-        array_1d<double,3> center = rConditionGeometry.Center();
-
-        rValue = mpFunction->CallFunction(center[0],center[1],center[2],time  );
-
-    }
+        );
 
     /**
-     * It calls the function (local system)
+     * @brief It calls the function (local system)
+     * @param pCondition The pointer to the condition where set the function
+     * @param Time The current time
+     * @param rValue The value to set
      */
     void CallFunctionLocalSystem(
         const Condition::Pointer& pCondition,
-        const double& time, 
+        const double Time,
         Vector& rValue
-        )
-    {
-
-        Condition::GeometryType& rConditionGeometry = pCondition->GetGeometry();
-        const unsigned int size = rConditionGeometry.size();
-
-        if(rValue.size() !=  size)
-        {
-            rValue.resize(size,false);
-        }
-
-        for(unsigned int i=0; i<size; i++)
-        {
-            rValue[i] = mpFunction->RotateAndCallFunction(rConditionGeometry[i].X(),rConditionGeometry[i].Y(),rConditionGeometry[i].Z(),time  );
-        }
-    }
+        );
 
     /**
-     * It calls the function (local system) for components
+     * @brief It calls the function (local system) for components
+     * @param pCondition The pointer to the condition where set the function
+     * @param Time The current time
+     * @param rValue The value to set
      */
     void CallFunctionLocalSystemComponents(
-        const Condition::Pointer& pCondition, 
-        const double& time, 
+        const Condition::Pointer& pCondition,
+        const double Time,
         double& rValue
-        )
-    {
-        Condition::GeometryType& rConditionGeometry = pCondition->GetGeometry();
-
-        array_1d<double,3> center = rConditionGeometry.Center();
-
-        rValue = mpFunction->RotateAndCallFunction(center[0],center[1],center[2],time  );
-    }
+        );
 
     /**
-     * It assigns time dependency
+     * @brief It assigns time dependency
+     * @param pCondition The pointer to the condition where set the function
+     * @param Time The current time
+     * @param rValue The value to set
+     * @param Value The dependency value
      */
     void AssignTimeDependentValue(
-        const Condition::Pointer& pCondition, 
-        const double& time, 
-        Vector& rValue, 
-        const double value
-        )
-    {
+        const Condition::Pointer& pCondition,
+        const double Time,
+        Vector& rValue,
+        const double Value
+        );
 
-        Condition::GeometryType& rConditionGeometry = pCondition->GetGeometry();
-        const unsigned int size = rConditionGeometry.size();
-
-        if(rValue.size() !=  size)
-        {
-            rValue.resize(size,false);
-        }
-
-        for(unsigned int i=0; i<size; i++)
-        {
-            rValue[i] = value;
-        }
-    }
-
+    /**
+     * @brief This is the methods that set the values globally (tries all the possible options)
+     * @param rVar The variable to set
+     * @param Time The current time
+     */
     template< class TVarType >
-    void InternalAssignValue(
-        TVarType& rVar, 
-        const double& rTime
+    void InternalAssignValueVector(
+        TVarType& rVar,
+        const double Time
         )
     {
-        const int nconditions = mrModelPart.GetMesh(mMeshId).Conditions().size();
+        const SizeType nconditions = mrModelPart.GetMesh(mMeshId).Conditions().size();
 
         Vector Value;
 
-        if(nconditions != 0)
-        {
-            ModelPart::ConditionsContainerType::iterator itBegin = mrModelPart.GetMesh(mMeshId).ConditionsBegin();
+        if(nconditions != 0) {
+            auto it_begin = mrModelPart.GetMesh(mMeshId).ConditionsBegin();
 
-            if(mpFunction->DependsOnSpace())
-            {
-                if(mpFunction->UseLocalSystem())
-                {
+            if(mpFunction->DependsOnSpace()) {
+                if(mpFunction->UseLocalSystem()) {
                     // WARNING: do not parallelize with openmp. python GIL prevents it
-                    for(int i = 0; i<nconditions; i++)
-                    {
-                        ModelPart::ConditionsContainerType::iterator it = itBegin + i;
-                        this->CallFunctionLocalSystem(*(it.base()), rTime, Value);
-                        it->SetValue(rVar, Value);
+                    for(IndexType i = 0; i<nconditions; ++i) {
+                        auto it_cond = it_begin + i;
+                        this->CallFunctionLocalSystem(*(it_cond.base()), Time, Value);
+                        it_cond->SetValue(rVar, Value);
+                    }
+                } else {
+                    // WARNING: do not parallelize with openmp. python GIL prevents it
+                    for(IndexType i = 0; i<nconditions; ++i) {
+                        auto it_cond = it_begin + i;
+                        this->CallFunction(*(it_cond.base()), Time, Value);
+                        it_cond->SetValue(rVar, Value);
                     }
                 }
-                else
-                {
-                    // WARNING: do not parallelize with openmp. python GIL prevents it
-                    for(int i = 0; i<nconditions; i++)
-                    {
-                        ModelPart::ConditionsContainerType::iterator it = itBegin + i;
-                        this->CallFunction(*(it.base()), rTime, Value);
-                        it->SetValue(rVar, Value);
-                    }
-                }
-            }
-            else                                            // only varies in time
-            {
-                const double TimeValue = mpFunction->CallFunction(0.0, 0.0, 0.0,  rTime);
+            } else { // only varies in time
+                const double TimeValue = mpFunction->CallFunction(0.0, 0.0, 0.0,  Time);
                 // WARNING: do not parallelize with openmp. python GIL prevents it
-                for(int i = 0; i<nconditions; i++)
-                {
-                    ModelPart::ConditionsContainerType::iterator it = itBegin + i;
-                    this->AssignTimeDependentValue(*(it.base()), rTime, Value,  TimeValue);
-                    it->SetValue(rVar, Value);
+                for(IndexType i = 0; i<nconditions; ++i) {
+                    auto it_cond = it_begin + i;
+                    this->AssignTimeDependentValue(*(it_cond.base()), Time, Value,  TimeValue);
+                    it_cond->SetValue(rVar, Value);
                 }
-
             }
         }
     }
 
+    /**
+     * @brief This is the methods that set the values globally (tries all the possible options) for components
+     * @param rVar The variable to set
+     * @param Time The current time
+     */
     template< class TVarType >
-    void InternalAssignValueComponents(
-        TVarType& rVar, 
-        const double& rTime
+    void InternalAssignValueScalar(
+        TVarType& rVar,
+        const double Time
         )
     {
-        const int nconditions = mrModelPart.GetMesh(mMeshId).Conditions().size();
-        
-        if(nconditions != 0)
-        {
-            ModelPart::ConditionsContainerType::iterator itBegin = mrModelPart.GetMesh(mMeshId).ConditionsBegin();
+        const SizeType nconditions = mrModelPart.GetMesh(mMeshId).Conditions().size();
 
-            if(mpFunction->DependsOnSpace())
-            {
+        if(nconditions != 0) {
+            auto it_begin = mrModelPart.GetMesh(mMeshId).ConditionsBegin();
+
+            if(mpFunction->DependsOnSpace()) {
                 double Value;
-                        
-                if(mpFunction->UseLocalSystem())
-                {
+
+                if(mpFunction->UseLocalSystem()) {
                     // WARNING: do not parallelize with openmp. python GIL prevents it
-                    for(int i = 0; i<nconditions; i++)
-                    {
-                        ModelPart::ConditionsContainerType::iterator it = itBegin + i;
-                        this->CallFunctionLocalSystemComponents(*(it.base()), rTime, Value);
-                        it->SetValue(rVar, Value);
+                    for(IndexType i = 0; i<nconditions; ++i) {
+                        auto it_cond = it_begin + i;
+                        this->CallFunctionLocalSystemComponents(*(it_cond.base()), Time, Value);
+                        it_cond->SetValue(rVar, Value);
+                    }
+                } else {
+                    // WARNING: do not parallelize with openmp. python GIL prevents it
+                    for(IndexType i = 0; i<nconditions; ++i) {
+                        auto it_cond = it_begin + i;
+                        this->CallFunctionComponents(*(it_cond.base()), Time, Value);
+                        it_cond->SetValue(rVar, Value);
                     }
                 }
-                else
-                {
-                    // WARNING: do not parallelize with openmp. python GIL prevents it
-                    for(int i = 0; i<nconditions; i++)
-                    {
-                        ModelPart::ConditionsContainerType::iterator it = itBegin + i;
-                        this->CallFunctionComponents(*(it.base()), rTime, Value);
-                        it->SetValue(rVar, Value);
-                    }
-                }
-            }
-            else // only varies in time
-            {
-                const double TimeValue = mpFunction->CallFunction(0.0, 0.0, 0.0,  rTime);
+            } else { // only varies in time
+                const double TimeValue = mpFunction->CallFunction(0.0, 0.0, 0.0,  Time);
                 // WARNING: do not parallelize with openmp. python GIL prevents it
-                for(int i = 0; i<nconditions; i++)
-                {
-                    ModelPart::ConditionsContainerType::iterator it = itBegin + i;
-                    it->SetValue(rVar, TimeValue);
+                for(IndexType i = 0; i<nconditions; ++i) {
+                    auto it_cond = it_begin + i;
+                    it_cond->SetValue(rVar, TimeValue);
                 }
 
             }

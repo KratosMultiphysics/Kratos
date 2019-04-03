@@ -12,13 +12,10 @@ def GetFilePath(fileName):
 
 
 class TestReorder(KratosUnittest.TestCase):
-
-    def setUp(self):
-        if (sys.version_info < (3, 2)):
-            self.assertRaisesRegex = self.assertRaisesRegexp
-
     def test_reorder(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
         model_part.CreateNewNode(1,0,0,0)
         model_part.CreateNewNode(2,1,0,0)
         model_part.CreateNewNode(3,2,0,0)

@@ -6,7 +6,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplySlipProcess(Model, settings["Parameters"])
 
-##all the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class ApplySlipProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
@@ -33,3 +33,7 @@ class ApplySlipProcess(KratosMultiphysics.Process):
             node.SetValue(KratosMultiphysics.IS_STRUCTURE,1.0)
             node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0,1.0)
             node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,0,[0.0, 0.0, 0.0])
+
+    def ExecuteInitializeSolutionStep(self):
+        KratosMultiphysics.VariableUtils().SetVectorVar(KratosMultiphysics.IS_STRUCTURE, 0.0, self.model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVectorVar(KratosMultiphysics.MESH_VELOCITY, [0.0, 0.0, 0.0], self.model_part.Nodes)

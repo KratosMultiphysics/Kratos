@@ -4,12 +4,7 @@ End ModelPartData
 
 Begin Properties 0
 End Properties
-Begin Properties 1
-    TRUSS_PRESTRESS_PK2 1e5
-    CROSS_AREA 0.01
-    DENSITY  7.85000E+003 
-    YOUNG_MODULUS  210000000000
-End Properties
+
 
 Begin Nodes
    1        0.00000        0.00000        0.00000
@@ -18,7 +13,7 @@ End Nodes
 
 
 Begin Elements TrussElement3D2N// GUI group identifier: structure
-         1          1         1 			2
+         1          0         1 			2
 End Elements
 
 Begin Conditions PointLoadCondition3D1N// GUI group identifier: neumann

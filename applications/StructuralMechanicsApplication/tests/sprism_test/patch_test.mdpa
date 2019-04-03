@@ -3,11 +3,6 @@ Begin ModelPartData
 End ModelPartData
 
 Begin Properties  2
-YOUNG_MODULUS          1.00000e+12
-POISSON_RATIO          2.50000e-01
-DENSITY        1.00000e+00
-NINT_TRANS     2
-EAS_IMP        1
 End Properties
 
 Begin Nodes
@@ -29,7 +24,7 @@ Begin Nodes
     18   0.0000   0.1200     0.001
 End Nodes
 
-Begin Elements SprismElement3D6N
+Begin Elements SolidShellElementSprism3D6N
     1   2   5  6  2  15 16 12
     2   2   6  7  3  16 17 13
     3   2   7  8  4  17 18 14

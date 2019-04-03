@@ -1,9 +1,15 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 // Application includes
 #include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
@@ -39,7 +45,7 @@ void UPwNormalFaceLoadCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRigh
     NormalFaceLoadVariables Variables;
     this->InitializeConditionVariables(Variables,Geom);
     array_1d<double,TDim> TractionVector;
-    boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+    BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
     double IntegrationCoefficient;
     array_1d<double,TNumNodes*TDim> UVector;
     
@@ -50,14 +56,14 @@ void UPwNormalFaceLoadCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRigh
         this->CalculateTractionVector(TractionVector,JContainer[GPoint],NContainer,Variables,GPoint);
         
         //Compute Nu Matrix
-        ConditionUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
+        PoroConditionUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
         
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(IntegrationCoefficient, integration_points[GPoint].Weight());
                 
         //Contributions to the right hand side
         noalias(UVector) = prod(trans(Nu),TractionVector) * IntegrationCoefficient;
-        ConditionUtilities::AssembleUBlockVector(rRightHandSideVector,UVector);
+        PoroConditionUtilities::AssembleUBlockVector(rRightHandSideVector,UVector);
     }
 }
 

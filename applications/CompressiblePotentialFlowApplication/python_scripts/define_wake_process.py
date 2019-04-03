@@ -4,7 +4,7 @@ import math
 from math import *
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if( not isinstance(settings,KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
 
     return DefineWakeProcess(Model, settings["Parameters"])
@@ -55,17 +55,18 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         
         self.epsilon = settings["epsilon"].GetDouble()
 
-        self.kutta_model_part =         Model[settings["model_part_name"].GetString()]
-        self.fluid_model_part =         Model[settings["fluid_part_name"].GetString()]
-        self.upper_surface_model_part = Model[settings["upper_surface_model_part_name"].GetString()]
-        self.lower_surface_model_part = Model[settings["lower_surface_model_part_name"].GetString()]
-        
+        self.kutta_model_part = Model[settings["model_part_name"].GetString()]
+        self.fluid_model_part = Model[settings["fluid_part_name"].GetString()]
+
+
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+
         # Neigbour search tool instance
         AvgElemNum = 10
         AvgNodeNum = 10
         nodal_neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.fluid_model_part,AvgElemNum, AvgNodeNum)
         # Find neighbours
-        nodal_neighbour_search.Execute()       
+        nodal_neighbour_search.Execute()
         
         self.stl_filename = settings["stl_filename"].GetString()
         

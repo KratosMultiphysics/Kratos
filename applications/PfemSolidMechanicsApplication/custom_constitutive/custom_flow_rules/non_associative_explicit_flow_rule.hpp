@@ -50,7 +50,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class NonAssociativeExplicitPlasticFlowRule
+  class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) NonAssociativeExplicitPlasticFlowRule
 	  :public FlowRule
   {
   public:
@@ -101,15 +101,15 @@ namespace Kratos
     ///@{
 
     /// CLONE
-    virtual FlowRule::Pointer Clone() const;
+    FlowRule::Pointer Clone() const override;
 
     ///@}
     ///@name Operations
     ///@{
 
-    virtual void InitializeMaterial (YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties);
+    void InitializeMaterial (YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties) override;
 
-    virtual void InitializeMaterial (const Properties& rMaterialProperties);
+    void InitializeMaterial (const Properties& rMaterialProperties) override;
     
     virtual bool CalculateReturnMappingImpl( RadialReturnVariables& rReturnMappingVariables, const Matrix &rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
 
@@ -117,16 +117,16 @@ namespace Kratos
 
     virtual bool CalculateReturnMappingExpl( RadialReturnVariables& rReturnMappingVariables, const Matrix &rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
 
-    virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix &rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
+    bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix &rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen) override;
 
     virtual bool CalculateReturnMappingImplex( RadialReturnVariables& rReturnMappingVariables, const Matrix &rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
 
     virtual bool CalculateReturnMappingImplex2( RadialReturnVariables& rReturnMappingVariables, const Matrix &rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
 
-    virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables );
+    bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables ) override;
 
 
-    virtual void ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rLeftCauchyGreenMatrix, const double& rAlpha, Matrix& rElasticMatrix);
+    void ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rLeftCauchyGreenMatrix, const double& rAlpha, Matrix& rElasticMatrix) override;
 
     virtual void ComputeElasticMatrix(const Vector& rElasticStrainVector, Matrix& rElasticMatrix)
     {
@@ -134,7 +134,7 @@ namespace Kratos
     };
 
 
-    virtual Matrix ComputeKirchhoffStressMatrix( const Matrix & rLeftCauchyGreenMatrix);
+    Matrix ComputeKirchhoffStressMatrix( const Matrix & rLeftCauchyGreenMatrix) override;
 
     ///@}
     ///@name Access
@@ -151,13 +151,13 @@ namespace Kratos
     ///@{
 
     // /// Turn back information as a string.
-    // virtual std::string Info() const;
+    // std::string Info() const override;
 
     // /// Print information about this object.
-    // virtual void PrintInfo(std::ostream& rOStream) const;
+    // void PrintInfo(std::ostream& rOStream) const override;
 
     // /// Print object's data.
-    // virtual void PrintData(std::ostream& rOStream) const;
+    // void PrintData(std::ostream& rOStream) const override;
 
 
     ///@}
@@ -293,9 +293,9 @@ namespace Kratos
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Inquiry

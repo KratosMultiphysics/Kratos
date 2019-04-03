@@ -23,7 +23,7 @@ namespace Kratos
  * Defines a linear isotropic constitutive law in 2D (Plane Strain)
  * This material law is defined by the parameters:
  * 1) YOUNG MODULUS
- * 2) POISSON RATIO 
+ * 2) POISSON RATIO
  * As there are no further parameters the functionality is valid
  * for small and large displacements elasticity.
  */
@@ -56,7 +56,7 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Copy constructor.
@@ -74,7 +74,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~LinearElastic3DLaw();
+    ~LinearElastic3DLaw() override;
 
     /**
      * Operators
@@ -89,7 +89,7 @@ public:
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
      */
-    void GetLawFeatures(Features& rFeatures);
+    void GetLawFeatures(Features& rFeatures) override;
 
 
     /**
@@ -98,7 +98,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK2 (Parameters & rValues);
+    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
 
     /**
      * Computes the material response:
@@ -106,7 +106,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues);
+    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
 
 
     /**
@@ -118,7 +118,7 @@ public:
      * @param rCurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Input and output
@@ -126,15 +126,15 @@ public:
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
+    //String Info() const override;
     /**
      * Print information about this object.
      */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
+    //void PrintInfo(std::ostream& rOStream) const override;
     /**
      * Print object's data.
      */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    //void PrintData(std::ostream& rOStream) const override;
 
 protected:
 
@@ -182,11 +182,11 @@ protected:
       * @param Parameters
       * @return
       */
-    bool CheckParameters(Parameters& rValues);
+    bool CheckParameters(Parameters& rValues) override;
 
-    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue);
-    
-    virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
+
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
 
 
 private:
@@ -218,12 +218,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElastic3DLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElastic3DLaw )
     }
@@ -231,4 +231,4 @@ private:
 
 }; // Class LinearElastic3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_LINEAR_ELASTIC_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_LINEAR_ELASTIC_3D_LAW_H_INCLUDED  defined

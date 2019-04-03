@@ -133,20 +133,20 @@ public:
         return mPointsEnd;
     }
 
-    void SearchNearestPoint(PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance )
+    void SearchNearestPoint(PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance ) override
     {
         if(mPointsBegin == mPointsEnd)
             return;
         SearchNearestInRange()( mPointsBegin, mPointsEnd, ThisPoint, rResult, rResultDistance );
     }
 
-    void SearchNearestPoint(PointType const& ThisPoint, PointerType& Result, CoordinateType& ResultDistance, SearchStructureType& Auxiliar )
+    void SearchNearestPoint(PointType const& ThisPoint, PointerType& Result, CoordinateType& ResultDistance, SearchStructureType& Auxiliar ) override
     {
         SearchNearestPoint(ThisPoint,Result,ResultDistance);
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                        DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults)
+                        DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults) override
     {
         if(mPointsBegin == mPointsEnd)
             return;
@@ -154,14 +154,14 @@ public:
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                        DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliar)
+                        DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliar) override
     {
         SearchInRadius(ThisPoint,Radius,Radius2,Results,ResultsDistances,NumberOfResults,MaxNumberOfResults);
     }
 
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                        SizeType& NumberOfResults, SizeType const& MaxNumberOfResults)
+                        SizeType& NumberOfResults, SizeType const& MaxNumberOfResults) override
     {
         if(mPointsBegin == mPointsEnd)
             return;
@@ -169,13 +169,13 @@ public:
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                        SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliar)
+                        SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliar) override
     {
         SearchInRadius(ThisPoint,Radius,Radius2,Results,NumberOfResults,MaxNumberOfResults);
     }
 
     void SearchInBox(PointType const& SearchMinPoint, PointType const& SearchMaxPoint, IteratorType& Results, SizeType& NumberOfResults,
-                     SizeType const& MaxNumberOfResults )
+                     SizeType const& MaxNumberOfResults ) override
     {
         SearchBoxInRange()(SearchMinPoint,SearchMaxPoint,mPointsBegin,mPointsEnd,Results,NumberOfResults,MaxNumberOfResults);
     }
@@ -208,7 +208,7 @@ public:
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const
+    void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const override
     {
         rOStream << Perfix << "Leaf[" << SearchUtils::PointerDistance(mPointsBegin, mPointsEnd) << "] : ";
         for(IteratorType i = mPointsBegin ; i != mPointsEnd ; i++)
@@ -361,6 +361,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FILENAME_H_INCLUDED  defined 
+#endif // KRATOS_FILENAME_H_INCLUDED  defined
 
 

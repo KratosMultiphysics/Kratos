@@ -26,7 +26,7 @@
 namespace Kratos
 {
 
-template <typename TEigenSparseMatrix = Eigen::SparseMatrix<double, Eigen::RowMajor, int>>
+template <typename scalar_t, typename TEigenSparseMatrix = Eigen::SparseMatrix<scalar_t, Eigen::RowMajor, int>>
 class UblasWrapper
 {
     const std::vector<int> m_index1;

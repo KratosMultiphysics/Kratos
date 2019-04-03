@@ -116,8 +116,13 @@ class DamUpliftConditionLoadProcess : public Process
     virtual ~DamUpliftConditionLoadProcess() {}
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    void Execute() override
+    {
+    }
 
-    void ExecuteInitialize()
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void ExecuteInitialize() override
     {
 
         KRATOS_TRY;
@@ -125,7 +130,7 @@ class DamUpliftConditionLoadProcess : public Process
         //Defining necessary variables
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix;
+        BoundedMatrix<double, 3, 3> RotationMatrix;
 
         // Computing the rotation matrix accoding with the introduced points by the user
         this->CalculateRotationMatrix(RotationMatrix);
@@ -220,7 +225,7 @@ class DamUpliftConditionLoadProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
 
         KRATOS_TRY;
@@ -228,7 +233,7 @@ class DamUpliftConditionLoadProcess : public Process
         //Defining necessary variables
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix;
+        BoundedMatrix<double, 3, 3> RotationMatrix;
 
         // Getting the values of table in case that it exist
         if (mTableId != 0)
@@ -331,7 +336,7 @@ class DamUpliftConditionLoadProcess : public Process
         KRATOS_CATCH("");
     }
 
-    void CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3> &rRotationMatrix)
+    void CalculateRotationMatrix(BoundedMatrix<double, 3, 3> &rRotationMatrix)
     {
         KRATOS_TRY;
 
@@ -373,19 +378,19 @@ class DamUpliftConditionLoadProcess : public Process
     }
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "DamUpliftConditionLoadProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "DamUpliftConditionLoadProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 

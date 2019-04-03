@@ -6,13 +6,14 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignVectorVariableToConditionProcess(Model, settings["Parameters"])
 
-## all the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class AssignVectorVariableToConditionProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
             {
+                "help"                 : "This process assigns a given value (vector) to the conditions belonging a certain submodelpart",
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "variable_name"        : "SPECIFY_VARIABLE_NAME",

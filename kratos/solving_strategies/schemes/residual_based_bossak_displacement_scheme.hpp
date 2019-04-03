@@ -7,6 +7,7 @@
 //  License:          BSD License
 //  Main authors:  Josep Maria Carbonell
 //                 Vicente Mataix Ferrandiz
+//                 Andreas Winterstein (refactoring)
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_SCHEME )
@@ -19,7 +20,7 @@
 /* Project includes */
 #include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
 #include "includes/variables.h"
-#include "includes/checks.h" 
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -38,14 +39,17 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
+/**
  * @class ResidualBasedBossakDisplacementScheme
  * @ingroup KratosCore
- * @brief Bossak integration scheme (for dynamic problems) for displacements
+ * @brief Bossak integration scheme (for linear and nonlinear dynamic problems) for displacements
  * @details This is a dynamic implicit scheme based of the Bossak algorithm for displacements.
- * The parameter Alpha of Bossak introduces damping, the value of Bossak is from 0 to -0.3 (negative)
+ * The parameter Alpha of Bossak introduces damping, the value of Bossak is from 0 to -0.5 (negative)
+ * Implementation according to: "An alpha modification of Newmark's method; W.L. Wood, M. Bossak, O.C. Zienkiewicz;
+ * Numerical Methods in Engineering; 1980"
  * @author Josep Maria Carbonell
  * @author Vicente Mataix Ferrandiz
+ * @author Andreas Winterstein (refactoring)
  */
 template<class TSparseSpace,  class TDenseSpace >
 class ResidualBasedBossakDisplacementScheme
@@ -57,7 +61,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedBossakDisplacementScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace>                                  BaseType;
-    
+
     typedef ResidualBasedImplicitTimeScheme<TSparseSpace,TDenseSpace> ImplicitBaseType;
 
     typedef typename ImplicitBaseType::TDataType                             TDataType;
@@ -87,39 +91,67 @@ public:
     ///@{
 
     /**
+     * @brief Constructor. (with parameters)
+     * @detail The bossak method
+     * @param ThisParameters The parameters containing the configuration
+     */
+    explicit ResidualBasedBossakDisplacementScheme(Parameters ThisParameters)
+        : ResidualBasedBossakDisplacementScheme(ThisParameters.Has("damp_factor_m") ? ThisParameters["damp_factor_m"].GetDouble() : -0.3,
+                                                ThisParameters.Has("newmark_beta") ? ThisParameters["newmark_beta"].GetDouble() : 0.25)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"          : "ResidualBasedBossakDisplacementScheme",
+            "damp_factor_m" : -0.3,
+            "newmark_beta"  : 0.25
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    }
+
+    /**
      * @brief Constructor.
      * @detail The bossak method
-     * @rAlpham The Bossak parameter. Default value is 0, which is the Newmark method
+     * @param Alpha is the Bossak parameter. Default value is 0, which is the Newmark method
+     * @param NewarkBeta the Newmark parameter. Default value is 0.25, for mean constant acceleration.
      */
-    explicit ResidualBasedBossakDisplacementScheme(const double rAlpham = 0.0)
+    explicit ResidualBasedBossakDisplacementScheme(const double Alpha = 0.0)
+    : ResidualBasedBossakDisplacementScheme(Alpha, 0.25)
+    {
+    }
+
+    /**
+     * @brief Constructor.
+     * @detail The bossak method
+     * @param Alpha is the Bossak parameter. Default value is 0, which is the Newmark method
+     * @param NewarkBeta the Newmark parameter. Default value is 0.25, for mean constant acceleration.
+     */
+    explicit ResidualBasedBossakDisplacementScheme(const double Alpha, const double NewmarkBeta)
         :ImplicitBaseType()
     {
         // For pure Newmark Scheme
-        mAlpha.f = 0.0;
-        mAlpha.m = rAlpham;
+        mBossak.alpha = Alpha;
+        mNewmark.beta = NewmarkBeta;
+        mNewmark.gamma = 0.5;
 
-        // Default values of the Newmark coefficients
-        double beta  = 0.25;
-        double gamma = 0.5;
+        CalculateBossakCoefficients();
 
-        CalculateNewmarkCoefficients(beta, gamma);
-        
         // Allocate auxiliary memory
         const std::size_t num_threads = OpenMPUtils::GetNumThreads();
-        
+
         mVector.v.resize(num_threads);
         mVector.a.resize(num_threads);
         mVector.ap.resize(num_threads);
-            
-        KRATOS_DETAIL("MECHANICAL SCHEME: The Bossak Time Integration Scheme ") << "[alpha_m= " << mAlpha.m << " beta= " << mNewmark.beta << " gamma= " << mNewmark.gamma << "]" <<std::endl;
+
+        KRATOS_DETAIL("MECHANICAL SCHEME: The Bossak Time Integration Scheme ") << "[alpha_m= " << mBossak.alpha << " beta= " << mNewmark.beta << " gamma= " << mNewmark.gamma << "]" <<std::endl;
     }
 
-    /** 
+    /**
      * @brief Copy Constructor.
      */
-    ResidualBasedBossakDisplacementScheme(ResidualBasedBossakDisplacementScheme& rOther)
+    explicit ResidualBasedBossakDisplacementScheme(ResidualBasedBossakDisplacementScheme& rOther)
         :ImplicitBaseType(rOther)
-        ,mAlpha(rOther.mAlpha)
+        ,mBossak(rOther.mBossak)
         ,mNewmark(rOther.mNewmark)
         ,mVector(rOther.mVector)
     {
@@ -148,17 +180,13 @@ public:
 
     /**
      * @brief Recalculates the Newmark coefficients, taking into account the alpha parameters
-     * @param beta The Newmark beta coefficient
-     * @param gamma The Newmark gamma coefficient
+     * @param beta The Bossak beta coefficient
+     * @param gamma The Bossak gamma coefficient
      */
-
-    void CalculateNewmarkCoefficients(
-            double beta,
-            double gamma
-            )
+    void CalculateBossakCoefficients()
     {
-        mNewmark.beta  = (1.0 + mAlpha.f - mAlpha.m) * (1.0 + mAlpha.f - mAlpha.m) * beta;
-        mNewmark.gamma = gamma + mAlpha.f - mAlpha.m;
+        mBossak.beta  = (1.0 - mBossak.alpha) * (1.0 - mBossak.alpha) * mNewmark.beta;
+        mBossak.gamma = mNewmark.gamma  - mBossak.alpha;
     }
 
     /**
@@ -170,35 +198,25 @@ public:
      * @param Dx incremental update of primary variables
      * @param b RHS Vector
      */
-
     void Update(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b 
+        TSystemVectorType& b
         ) override
     {
         KRATOS_TRY;
 
-        // Update of displacement (by DOF)
-        const int num_dof = static_cast<int>(rDofSet.size());
+        mpDofUpdater->UpdateDofs(rDofSet,Dx);
 
-        #pragma omp parallel for
-        for(int i = 0;  i < num_dof; ++i) {
-            auto it_dof = rDofSet.begin() + i;
-
-            if (it_dof->IsFree())
-                it_dof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx,it_dof->EquationId());
-        }
-        
         // Updating time derivatives (nodally for efficiency)
         const int num_nodes = static_cast<int>(rModelPart.NumberOfNodes());
 
         #pragma omp parallel for
         for(int i = 0;  i < num_nodes; ++i) {
             auto it_node = rModelPart.Nodes().begin() + i;
-                        
+
             array_1d<double, 3 > delta_displacement;
 
             noalias(delta_displacement) = it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
@@ -208,7 +226,7 @@ public:
 
             array_1d<double, 3>& current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
             const array_1d<double, 3>& previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
-            
+
             UpdateVelocity(current_velocity, delta_displacement, previous_velocity, previous_acceleration);
             UpdateAcceleration(current_acceleration, delta_displacement, previous_velocity, previous_acceleration);
         }
@@ -225,7 +243,6 @@ public:
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
-
     void Predict(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -235,14 +252,14 @@ public:
         ) override
     {
         KRATOS_TRY;
-        
+
         const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
         const int num_nodes = static_cast<int>(rModelPart.NumberOfNodes());
 
         array_1d<double, 3 > delta_displacement;
-        
+
         #pragma omp parallel for private(delta_displacement)
         for(int i = 0;  i < num_nodes; ++i) {
             auto it_node = rModelPart.Nodes().begin() + i;
@@ -258,7 +275,7 @@ public:
             array_1d<double, 3 > & current_displacement        = (it_node)->FastGetSolutionStepValue(DISPLACEMENT);
 
             if (it_node -> IsFixed(ACCELERATION_X)) {
-                current_displacement[0] = previous_displacement[0] + delta_time * previous_velocity[0] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[0] + mNewmark.beta * current_acceleration[0]);
+                current_displacement[0] = previous_displacement[0] + delta_time * previous_velocity[0] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mBossak.beta) * previous_acceleration[0] + mBossak.beta * current_acceleration[0]);
             } else if (it_node -> IsFixed(VELOCITY_X)) {
                 current_displacement[0] = previous_displacement[0] + 0.5 * delta_time * (previous_velocity[0] + current_velocity[0]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[0];
             } else if (it_node -> IsFixed(DISPLACEMENT_X) == false) {
@@ -266,7 +283,7 @@ public:
             }
 
             if (it_node -> IsFixed(ACCELERATION_Y)) {
-                current_displacement[1] = previous_displacement[1] + delta_time * previous_velocity[1] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[1] + mNewmark.beta * current_acceleration[1]);
+                current_displacement[1] = previous_displacement[1] + delta_time * previous_velocity[1] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mBossak.beta) * previous_acceleration[1] + mBossak.beta * current_acceleration[1]);
             } else if (it_node -> IsFixed(VELOCITY_Y)) {
                 current_displacement[1] = previous_displacement[1] + 0.5 * delta_time * (previous_velocity[1] + current_velocity[1]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[1] ;
             } else if (it_node -> IsFixed(DISPLACEMENT_Y) == false) {
@@ -276,7 +293,7 @@ public:
             // For 3D cases
             if (it_node -> HasDofFor(DISPLACEMENT_Z)) {
                 if (it_node -> IsFixed(ACCELERATION_Z)) {
-                    current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[2] + mNewmark.beta * current_acceleration[2]);
+                    current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mBossak.beta) * previous_acceleration[2] + mBossak.beta * current_acceleration[2]);
                 } else if (it_node -> IsFixed(VELOCITY_Z)) {
                     current_displacement[2] = previous_displacement[2] + 0.5 * delta_time * (previous_velocity[2] + current_velocity[2]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[2] ;
                 } else if (it_node -> IsFixed(DISPLACEMENT_Z) == false) {
@@ -292,7 +309,7 @@ public:
 
             UpdateAcceleration (current_acceleration, delta_displacement, previous_velocity, previous_acceleration);
         }
-        
+
         KRATOS_CATCH( "" );
     }
 
@@ -303,7 +320,6 @@ public:
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
-    
     void InitializeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& A,
@@ -319,35 +335,25 @@ public:
 
         const double delta_time = current_process_info[DELTA_TIME];
 
-        double beta = 0.25;
-        if (current_process_info.Has(NEWMARK_BETA))
-            beta = current_process_info[NEWMARK_BETA];
-        double gamma = 0.5;
-        if (current_process_info.Has(NEWMARK_GAMMA))
-            gamma = current_process_info[NEWMARK_GAMMA];
-
-        CalculateNewmarkCoefficients(beta, gamma);
-
-        // Initializing Newmark constants
-        mNewmark.c0 = ( 1.0 / (mNewmark.beta * std::pow(delta_time, 2)) );
-        mNewmark.c1 = ( mNewmark.gamma / (mNewmark.beta * delta_time) );
-        mNewmark.c2 = ( 1.0 / (mNewmark.beta * delta_time) );
-        mNewmark.c3 = ( 0.5 / (mNewmark.beta) - 1.0 );
-        mNewmark.c4 = ( (mNewmark.gamma / mNewmark.beta) - 1.0  );
-        mNewmark.c5 = ( delta_time * 0.5 * ( ( mNewmark.gamma / mNewmark.beta ) - 2.0 ) );
+        // Initializing Bossak constants
+        mBossak.c0 = ( 1.0 / (mBossak.beta * delta_time * delta_time) );
+        mBossak.c1 = ( mBossak.gamma / (mBossak.beta * delta_time) );
+        mBossak.c2 = ( 1.0 / (mBossak.beta * delta_time) );
+        mBossak.c3 = ( 0.5 / (mBossak.beta) - 1.0 );
+        mBossak.c4 = ( (mBossak.gamma / mBossak.beta) - 1.0  );
+        mBossak.c5 = ( delta_time * 0.5 * ( ( mBossak.gamma / mBossak.beta ) - 2.0 ) );
 
         KRATOS_CATCH( "" );
     }
 
     /**
      * @brief This function is designed to be called once to perform all the checks needed
-     * on the input provided. 
+     * on the input provided.
      * @details Checks can be "expensive" as the function is designed
      * to catch user's errors.
      * @param rModelPart The model of the problem to solve
      * @return Zero means  all ok
      */
-
     int Check(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
@@ -357,30 +363,50 @@ public:
 
         // Check for variables keys
         // Verify that the variables are correctly initialized
-        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT) 
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY) 
-        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION) 
+        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
+        KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
+        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
 
         // Check that variables are correctly allocated
-        for(auto& rnode : rModelPart.Nodes()) {
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode) 
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rnode) 
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rnode) 
-    
-            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode) 
-            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode) 
-            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode) 
+        for (const auto& rnode : rModelPart.Nodes()) {
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rnode)
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rnode)
+
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
         }
 
         // Check for minimum value of the buffer index
         // Verify buffer size
-        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2) << "Insufficient buffer size. Buffer size should be greater than 2. Current size is" << rModelPart.GetBufferSize() << std::endl;
+        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2)
+            << "Insufficient buffer size. Buffer size should be greater than 2. Current size is: "
+            << rModelPart.GetBufferSize() << std::endl;
 
         // Check for admissible value of the AlphaBossak
-        KRATOS_ERROR_IF(mAlpha.m > 0.0 || mAlpha.m < -0.3) << "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is " << mAlpha.m << std::endl;
+        KRATOS_ERROR_IF(mBossak.alpha > 0.0 || mBossak.alpha < -0.5) << "Value not admissible for "
+            << "AlphaBossak. Admissible values are between 0.0 and -0.5\nCurrent value is: "
+            << mBossak.alpha << std::endl;
+
+        static const double epsilon = 1e-12;
+        KRATOS_ERROR_IF_NOT(std::abs(mNewmark.beta - 0.0)   < epsilon ||
+                            std::abs(mNewmark.beta - 0.167) < epsilon ||
+                            std::abs(mNewmark.beta - 0.25)  < epsilon)
+            << "Value not admissible for NewmarkBeta. Admissible values are:\n"
+            << "0.0 for central-differencing\n"
+            << "0.25 for mean-constant-acceleration\n"
+            << "0.167 for linear-acceleration\n"
+            << "Current value is: " << mNewmark.beta << std::endl;
 
         return 0;
         KRATOS_CATCH( "" );
+    }
+
+    /// Free memory allocated by this class.
+    void Clear() override
+    {
+        this->mpDofUpdater->Clear();
     }
 
     ///@}
@@ -394,6 +420,24 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedBossakDisplacementScheme";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
@@ -409,14 +453,16 @@ protected:
     ///@{
 
     /**
-     * @brief The Generalized Alpha components
-     * @detail For more about it:
-     * J. Chung, G.M.Hubert. "A Time Integration Algorithm for Structural Dynamics with Improved Numerical Dissipation: The Generalized-α Method" ASME Journal of Applied Mechanics, 60, 371:375, 1993. 
+     * @brief The Bossak Alpha components
      */
-    struct GeneralizedAlphaMethod
+    struct BossakAlphaMethod
     {
-        double f; /// Alpha Hilbert
-        double m; /// Alpha Bosssak 
+        double alpha; /// Alpha Bossak
+        double beta; /// Beta Bossak
+        double gamma; /// Gamma Bossak
+
+        // System constants
+        double c0, c1, c2, c3, c4, c5;
     };
 
     /**
@@ -425,10 +471,8 @@ protected:
     struct NewmarkMethod
     {
         // Newmark constants
-        double beta, gamma;
-
-        // System constants
-        double c0, c1, c2, c3, c4, c5;
+        double beta; ///Beta Newmark
+        double gamma; //Gamma Newmark
     };
 
     /**
@@ -440,8 +484,8 @@ protected:
         std::vector< Vector > a;  /// Acceleration
         std::vector< Vector > ap; /// Previous acceleration
     };
-    
-    GeneralizedAlphaMethod mAlpha; /// The structure containing the Generalized alpha components
+
+    BossakAlphaMethod mBossak;     /// The structure containing the Bossak components
     NewmarkMethod mNewmark;        /// The structure containing the Newmark parameters
     GeneralVectors mVector;        /// The structure containing the velocities and accelerations
 
@@ -452,7 +496,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     /**
      * @brief Updating first time Derivative
      * @param CurrentVelocity The current velocity
@@ -460,7 +504,6 @@ protected:
      * @param PreviousVelocity The previous velocity
      * @param PreviousAcceleration The previous acceleration
      */
-
     inline void UpdateVelocity(
         array_1d<double, 3>& CurrentVelocity,
         const array_1d<double, 3>& DeltaDisplacement,
@@ -468,8 +511,8 @@ protected:
         const array_1d<double, 3>& PreviousAcceleration
         )
     {
-        noalias(CurrentVelocity) = (mNewmark.c1 * DeltaDisplacement - mNewmark.c4 * PreviousVelocity
-                                     - mNewmark.c5 * PreviousAcceleration);
+        noalias(CurrentVelocity) = (mBossak.c1 * DeltaDisplacement - mBossak.c4 * PreviousVelocity
+                                     - mBossak.c5 * PreviousAcceleration);
     }
 
     /**
@@ -479,7 +522,6 @@ protected:
      * @param PreviousVelocity The previous velocity
      * @param PreviousAcceleration The previous acceleration
      */
-
     inline void UpdateAcceleration(
         array_1d<double, 3>& CurrentAcceleration,
         const array_1d<double, 3>& DeltaDisplacement,
@@ -487,8 +529,8 @@ protected:
         const array_1d<double, 3>& PreviousAcceleration
         )
     {
-        noalias(CurrentAcceleration) = (mNewmark.c0 * DeltaDisplacement - mNewmark.c2 * PreviousVelocity
-                                         -  mNewmark.c3 * PreviousAcceleration);
+        noalias(CurrentAcceleration) = (mBossak.c0 * DeltaDisplacement - mBossak.c2 * PreviousVelocity
+                                         -  mBossak.c3 * PreviousAcceleration);
     }
 
     /**
@@ -498,7 +540,6 @@ protected:
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
-
     void AddDynamicsToLHS(
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemMatrixType& D,
@@ -508,22 +549,21 @@ protected:
     {
         // Adding mass contribution to the dynamic stiffness
         if (M.size1() != 0) // if M matrix declared
-            noalias(LHS_Contribution) += M * (1.0 - mAlpha.m) * mNewmark.c0;
-        
+            noalias(LHS_Contribution) += M * (1.0 - mBossak.alpha) * mBossak.c0;
+
         // Adding  damping contribution
         if (D.size1() != 0) // if D matrix declared
-            noalias(LHS_Contribution) += D * (1.0 - mAlpha.f) * mNewmark.c1;
+            noalias(LHS_Contribution) += D * mBossak.c1;
     }
 
     /**
-     * @brief It adds the dynamic RHS contribution of the elements b - M*a - D*v
+     * @brief It adds the dynamic RHS contribution of the elements b - (1-alpha)*M*a_n+1 - alpha*M*a_n - D*v_n
      * @param pElement The element to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
-
     void AddDynamicsToRHS(
         Element::Pointer pElement,
         LocalSystemVectorType& RHS_Contribution,
@@ -533,15 +573,15 @@ protected:
         ) override
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
-        
+
         // Adding inertia contribution
         if (M.size1() != 0) {
             pElement->GetSecondDerivativesVector(mVector.a[this_thread], 0);
-            mVector.a[this_thread] *= (1.00 - mAlpha.m);
+            mVector.a[this_thread] *= (1.00 - mBossak.alpha);
 
             pElement->GetSecondDerivativesVector(mVector.ap[this_thread], 1);
-            noalias(mVector.a[this_thread]) += mAlpha.m * mVector.ap[this_thread];
-            
+            noalias(mVector.a[this_thread]) += mBossak.alpha * mVector.ap[this_thread];
+
             noalias(RHS_Contribution) -= prod(M, mVector.a[this_thread]);
         }
 
@@ -554,14 +594,13 @@ protected:
     }
 
     /**
-     * @brief It adds the dynamic RHS contribution of the condition b - M*a - D*v
+     * @brief It adds the dynamic RHS contribution of the condition b - (1-alpha)*M*a_n+1 - alpha*M*a_n - D*v_n
      * @param pCondition The condition to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
-
     void AddDynamicsToRHS(
         Condition::Pointer pCondition,
         LocalSystemVectorType& RHS_Contribution,
@@ -571,14 +610,14 @@ protected:
         ) override
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
-        
+
         // Adding inertia contribution
         if (M.size1() != 0) {
             pCondition->GetSecondDerivativesVector(mVector.a[this_thread], 0);
-            mVector.a[this_thread] *= (1.00 - mAlpha.m);
+            mVector.a[this_thread] *= (1.00 - mBossak.alpha);
 
             pCondition->GetSecondDerivativesVector(mVector.ap[this_thread], 1);
-            noalias(mVector.a[this_thread]) += mAlpha.m * mVector.ap[this_thread];
+            noalias(mVector.a[this_thread]) += mBossak.alpha * mVector.ap[this_thread];
 
             noalias(RHS_Contribution) -= prod(M, mVector.a[this_thread]);
         }
@@ -612,6 +651,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
     ///@}
     ///@name Private Operators

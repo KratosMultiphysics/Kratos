@@ -1,7 +1,10 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.ConvectionDiffusionApplication import *
+from __future__ import print_function, absolute_import, division
+import KratosMultiphysics
+import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
 import KratosMultiphysics.KratosUnittest as UnitTest
+
+import os
 
 class WorkFolderScope:
     def __init__(self, work_folder):
@@ -41,7 +44,7 @@ class SourceTermTest(UnitTest.TestCase):
         self.theta = 1.0 # Since it is steady state, use backward Euler
         # Note: Crank-Nicolson (theta=0.5) won't converge in a single iteration (or at all, for huge dt)
 
-        self.checked_variable = TEMPERATURE
+        self.checked_variable = KratosMultiphysics.TEMPERATURE
         self.check_tolerance = 1e-6
         self.print_output = False
         self.print_reference_values = False
@@ -113,15 +116,15 @@ class SourceTermTest(UnitTest.TestCase):
         self.config.T_xmax = 0.0
         self.config.source = 1.0
         self.config.ux = 0.0
-        self.checked_variable = REACTION_FLUX
+        self.checked_variable = KratosMultiphysics.REACTION_FLUX
         self.calculate_reactions = True
 
         self.testSourceTerm()
 
     def testSourceTerm(self):
-
+        current_model = KratosMultiphysics.Model()
         with WorkFolderScope("SourceTermTest"):
-            self.setUpModel()
+            self.setUpModel(current_model)
             self.setUpSolvers()
             self.setUpProblem()
 
@@ -131,30 +134,30 @@ class SourceTermTest(UnitTest.TestCase):
             if self.print_output:
                 self.printOutput()
 
-    def setUpModel(self):
+    def setUpModel(self, current_model):
 
-        self.model_part = ModelPart("TestModelPart")
+        self.model_part = current_model.CreateModelPart("TestModelPart")
 
-        thermal_settings = ConvectionDiffusionSettings()
-        thermal_settings.SetUnknownVariable(TEMPERATURE)
-        thermal_settings.SetDensityVariable(DENSITY)
-        thermal_settings.SetSpecificHeatVariable(SPECIFIC_HEAT)
-        thermal_settings.SetDiffusionVariable(CONDUCTIVITY)
-        thermal_settings.SetVolumeSourceVariable(HEAT_FLUX)
-        #thermal_settings.SetSurfaceSourceVariable(FACE_HEAT_FLUX)
-        thermal_settings.SetVelocityVariable(VELOCITY)
-        thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
-        #thermal_settings.SetProjectionVariable(PROJECTED_SCALAR1)
-        thermal_settings.SetReactionVariable(REACTION_FLUX)
+        thermal_settings = KratosMultiphysics.ConvectionDiffusionSettings()
+        thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)
+        thermal_settings.SetDensityVariable(KratosMultiphysics.DENSITY)
+        thermal_settings.SetSpecificHeatVariable(KratosMultiphysics.SPECIFIC_HEAT)
+        thermal_settings.SetDiffusionVariable(KratosMultiphysics.CONDUCTIVITY)
+        thermal_settings.SetVolumeSourceVariable(KratosMultiphysics.HEAT_FLUX)
+        #thermal_settings.SetSurfaceSourceVariable(KratosMultiphysics.FACE_HEAT_FLUX)
+        thermal_settings.SetVelocityVariable(KratosMultiphysics.VELOCITY)
+        thermal_settings.SetMeshVelocityVariable(KratosMultiphysics.MESH_VELOCITY)
+        #thermal_settings.SetProjectionVariable(KratosMultiphysics.PROJECTED_SCALAR1)
+        thermal_settings.SetReactionVariable(KratosMultiphysics.REACTION_FLUX)
 
-        self.model_part.ProcessInfo.SetValue(CONVECTION_DIFFUSION_SETTINGS,thermal_settings)
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS,thermal_settings)
 
     def setUpSolvers(self):
 
         import convection_diffusion_solver as thermal_solver
         thermal_solver.AddVariables(self.model_part)
 
-        model_part_io = ModelPartIO(self.input_file)
+        model_part_io = KratosMultiphysics.ModelPartIO(self.input_file)
         model_part_io.ReadModelPart(self.model_part)
 
         self.model_part.SetBufferSize(2)
@@ -169,25 +172,25 @@ class SourceTermTest(UnitTest.TestCase):
 
     def setUpProblem(self):
 
-        velocity = Array3()
+        velocity = KratosMultiphysics.Array3()
         velocity[0] = self.config.ux
         velocity[1] = 0.0
         velocity[2] = 0.0
 
         ## Set initial and boundary conditions
         for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(DENSITY,self.config.rho)
-            node.SetSolutionStepValue(CONDUCTIVITY,self.config.k)
-            node.SetSolutionStepValue(SPECIFIC_HEAT,self.config.c)
-            node.SetSolutionStepValue(HEAT_FLUX,self.config.source)
-            node.SetSolutionStepValue(VELOCITY,velocity)
+            node.SetSolutionStepValue(KratosMultiphysics.DENSITY,self.config.rho)
+            node.SetSolutionStepValue(KratosMultiphysics.CONDUCTIVITY,self.config.k)
+            node.SetSolutionStepValue(KratosMultiphysics.SPECIFIC_HEAT,self.config.c)
+            node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX,self.config.source)
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,velocity)
 
             if node.X == self.config.xmin:
-                node.Fix(TEMPERATURE)
-                node.SetSolutionStepValue(TEMPERATURE,self.config.T_xmin)
+                node.Fix(KratosMultiphysics.TEMPERATURE)
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,self.config.T_xmin)
             elif node.X == self.config.xmax:
-                node.Fix(TEMPERATURE)
-                node.SetSolutionStepValue(TEMPERATURE,self.config.T_xmax)
+                node.Fix(KratosMultiphysics.TEMPERATURE)
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,self.config.T_xmax)
 
     def runTest(self):
         time = 0.0
@@ -224,11 +227,11 @@ class SourceTermTest(UnitTest.TestCase):
                     self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
 
     def printOutput(self):
-        gid_mode = GiDPostMode.GiD_PostBinary
-        multifile = MultiFileFlag.SingleFile
-        deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
-        write_conditions = WriteConditionsFlag.WriteElementsOnly
-        gid_io = GidIO(self.input_file,gid_mode,multifile,deformed_mesh_flag, write_conditions)
+        gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostBinary
+        multifile = KratosMultiphysics.MultiFileFlag.SingleFile
+        deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteUndeformed
+        write_conditions =KratosMultiphysics. WriteConditionsFlag.WriteElementsOnly
+        gid_io = KratosMultiphysics.GidIO(self.input_file,gid_mode,multifile,deformed_mesh_flag, write_conditions)
 
         mesh_name = 0.0
         gid_io.InitializeMesh( mesh_name)
@@ -236,14 +239,14 @@ class SourceTermTest(UnitTest.TestCase):
         gid_io.FinalizeMesh()
         gid_io.InitializeResults(mesh_name,(self.model_part).GetMesh())
 
-        label = self.model_part.ProcessInfo[TIME]
-        gid_io.WriteNodalResults(VELOCITY,self.model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(TEMPERATURE,self.model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(DENSITY,self.model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(CONDUCTIVITY,self.model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(SPECIFIC_HEAT,self.model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(HEAT_FLUX,self.model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(REACTION_FLUX,self.model_part.Nodes,label,0)
+        label = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        gid_io.WriteNodalResults(KratosMultiphysics.VELOCITY,self.model_part.Nodes,label,0)
+        gid_io.WriteNodalResults(KratosMultiphysics.TEMPERATURE,self.model_part.Nodes,label,0)
+        gid_io.WriteNodalResults(KratosMultiphysics.DENSITY,self.model_part.Nodes,label,0)
+        gid_io.WriteNodalResults(KratosMultiphysics.CONDUCTIVITY,self.model_part.Nodes,label,0)
+        gid_io.WriteNodalResults(KratosMultiphysics.SPECIFIC_HEAT,self.model_part.Nodes,label,0)
+        gid_io.WriteNodalResults(KratosMultiphysics.HEAT_FLUX,self.model_part.Nodes,label,0)
+        gid_io.WriteNodalResults(KratosMultiphysics.REACTION_FLUX,self.model_part.Nodes,label,0)
 
         gid_io.FinalizeResults()
 

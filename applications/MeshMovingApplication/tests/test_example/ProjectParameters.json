@@ -1,0 +1,54 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "01_Mesh_Test_2D3N",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 1
+    },
+    "output_configuration"             : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["MESH_DISPLACEMENT"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"                  : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "solver_settings"                      : {
+            "solver_type"                  : "mesh_solver_structural_similarity",
+            "model_import_settings"        : {
+            "input_type"     : "mdpa",
+            "input_filename" : "01_Mesh_Test_2D3N"
+        },
+        "mesh_motion_linear_solver_settings"        : {
+        "solver_type" : "SuperLUSolver"
+        },
+        "computing_model_part_name"       : "Parts_Fluid",
+        "time_stepping"          : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.1
+        }
+},
+    "initial_conditions_process_list"  : [],
+    "boundary_conditions_process_list" : []
+}

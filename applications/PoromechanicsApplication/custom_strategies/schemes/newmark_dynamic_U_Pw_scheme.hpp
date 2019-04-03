@@ -55,11 +55,11 @@ public:
     //------------------------------------------------------------------------------------
     
     ///Destructor
-    virtual ~NewmarkDynamicUPwScheme() {}
+    ~NewmarkDynamicUPwScheme() override {}
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    int Check(ModelPart& r_model_part)
+    int Check(ModelPart& r_model_part) override
     {
         KRATOS_TRY
         
@@ -82,7 +82,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Initialize(ModelPart& r_model_part)
+    void Initialize(ModelPart& r_model_part) override
     {
         KRATOS_TRY
         
@@ -101,7 +101,7 @@ public:
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         // Predict Displacements on free nodes and update Acceleration, Velocity and DtPressure
         
@@ -189,7 +189,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -218,7 +218,7 @@ public:
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -245,7 +245,7 @@ public:
         Element::Pointer rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 

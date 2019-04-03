@@ -40,7 +40,7 @@ namespace Kratos
    /// This is the element from Chapter 5, Vol 2. of Z
 
 
-   class UpdatedLagrangianUJPElement
+   class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) UpdatedLagrangianUJPElement
       : public UpdatedLagrangianUJElement
    {
 
@@ -60,7 +60,7 @@ namespace Kratos
             Vector StressVector;
             Vector StressVectorEC;
 
-         } UJPElementVariables;
+         } UJPElementData;
 
       public:
 
@@ -119,7 +119,7 @@ namespace Kratos
           * @param pProperties: the properties assigned to the new element
           * @return a Pointer to the new element
           */
-         Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+         Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
          /**
           * clones the selected element variables, creating a new one
@@ -128,7 +128,7 @@ namespace Kratos
           * @param pProperties: the properties assigned to the new element
           * @return a Pointer to the new element
           */
-         Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+         Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
          //************* GETTING METHODS
 
@@ -139,11 +139,11 @@ namespace Kratos
          /**
           * Get on rVariable a double Value from the Element Constitutive Law
           */
-         void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+         void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-         void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+         void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-         void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo);
+         void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo) override;
 
          //************* STARTING - ENDING  METHODS
 
@@ -151,27 +151,27 @@ namespace Kratos
          /**
           * Sets on rElementalDofList the degrees of freedom of the considered element geometry
           */
-         void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
+         void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * Sets on rResult the ID's of the element degrees of freedom
           */
-         void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+         void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * Sets on rValues the nodal displacements
           */
-         void GetValuesVector(Vector& rValues, int Step = 0);
+         void GetValuesVector(Vector& rValues, int Step = 0) override;
 
          /**
           * Sets on rValues the nodal velocities
           */
-         void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
+         void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
 
          /**
           * Sets on rValues the nodal accelerations
           */
-         void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
+         void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
 
          //************************************************************************************
@@ -183,7 +183,7 @@ namespace Kratos
           * or that no common error is found.
           * @param rCurrentProcessInfo
           */
-         int Check(const ProcessInfo& rCurrentProcessInfo);
+         int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 
          ///@}
@@ -236,31 +236,31 @@ namespace Kratos
           * Calculation and addition of the matrices of the LHS
           */
 
-         virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-               ElementVariables& rVariables,
-               double& rIntegrationWeight);
+         void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+               ElementDataType& rVariables,
+               double& rIntegrationWeight) override;
 
          /**
           * Initialize Element General Variables
           */
-         virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+         void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * Calculation and addition of the vectors of the RHS
           */
 
          void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-               ElementVariables& rVariables,
+               ElementDataType& rVariables,
                Vector& rVolumeForce,
-               double& rIntegrationWeight);
+               double& rIntegrationWeight) override;
 
 
          /**
           * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
           */
          void CalculateAndAddKuumElemUJP(MatrixType& rK,
-               ElementVariables & rVariables,
-               UJPElementVariables& rElementVariables,
+               ElementDataType & rVariables,
+               UJPElementData& rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -268,8 +268,8 @@ namespace Kratos
           * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
           */
          void CalculateAndAddKuugElemUJP(MatrixType& rK,
-               ElementVariables & rVariables,
-               UJPElementVariables& rElementVariables,
+               ElementDataType & rVariables,
+               UJPElementData& rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -277,40 +277,40 @@ namespace Kratos
           * Calculation of the KuJ matrix
           */
          void CalculateAndAddKuJElemUJP (MatrixType& rK,
-               ElementVariables & rVariables,
-               UJPElementVariables& rElementVariables,
+               ElementDataType & rVariables,
+               UJPElementData& rElementVariables,
                double& rIntegrationWeight
                );
          /**
           * Calculation of the Kup matrix
           */
          void CalculateAndAddKup (MatrixType& rK,
-               ElementVariables & rVariables,
-               UJPElementVariables& rElementVariables,
+               ElementDataType & rVariables,
+               UJPElementData& rElementVariables,
                double& rIntegrationWeight
                );
          /**
           * Calculation of the KJu matrix
           */
          void CalculateAndAddKJuElemUJP(MatrixType& rK,
-               ElementVariables & rVariables,
-               UJPElementVariables& rElementVariables,
+               ElementDataType & rVariables,
+               UJPElementData& rElementVariables,
                double& rIntegrationWeight
                );
          /**
           * Calculation of the KJJ matrix
           */
          void CalculateAndAddKJJElemUJP(MatrixType& rK,
-               ElementVariables & rVariables,
-               UJPElementVariables& rElementVariables,
+               ElementDataType & rVariables,
+               UJPElementData& rElementVariables,
                double& rIntegrationWeight
                );
          /**
           * Calculation of the KJp matrix
           */
          void CalculateAndAddKJp(MatrixType& rK,
-               ElementVariables & rVariables,
-               UJPElementVariables& rElementVariables,
+               ElementDataType & rVariables,
+               UJPElementData& rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -318,8 +318,8 @@ namespace Kratos
           * Calculation of the Kpu matrix
           */
          void CalculateAndAddKpu(MatrixType& rK,
-               ElementVariables & rVariables,
-               UJPElementVariables& rElementVariables,
+               ElementDataType & rVariables,
+               UJPElementData& rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -327,8 +327,8 @@ namespace Kratos
           * Calculation of the KpJ matrix
           */
          void CalculateAndAddKpJ(MatrixType& rK,
-               ElementVariables & rVariables,
-               UJPElementVariables& rElementVariables,
+               ElementDataType & rVariables,
+               UJPElementData& rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -336,8 +336,8 @@ namespace Kratos
           * Calculation of the Kpp matrix
           */
          void CalculateAndAddKpp(MatrixType& rK,
-               ElementVariables & rVariables,
-               UJPElementVariables& rElementVariables,
+               ElementDataType & rVariables,
+               UJPElementData& rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -346,16 +346,16 @@ namespace Kratos
           * Calculation of the Kpp Stabilization Term matrix
           */
          void CalculateAndAddKppStab(MatrixType& rK,
-               ElementVariables & rVariables,
-               UJPElementVariables& rElementVariables,
+               ElementDataType & rVariables,
+               UJPElementData& rElementVariables,
                double& rIntegrationWeight
                );
          /**
           * Calculation of the KJJ Stabilization Term matrix
           */
          void CalculateAndAddKJJStabElemUJP(MatrixType& rK,
-               ElementVariables & rVariables,
-               UJPElementVariables& rElementVariables,
+               ElementDataType & rVariables,
+               UJPElementData& rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -364,8 +364,8 @@ namespace Kratos
           * Calculation of the Internal Forces due to Jacobian-Balance
           */
          void CalculateAndAddJacobianForcesElemUJP( VectorType& rRightHandSideVector,
-               ElementVariables & rVariables,
-               UJPElementVariables& rElementVariables,
+               ElementDataType & rVariables,
+               UJPElementData& rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -375,8 +375,8 @@ namespace Kratos
           * Calculation of the Internal Forces due to Pressure-Balance
           */
          void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-               ElementVariables & rVariables,
-               UJPElementVariables& rElementVariables,
+               ElementDataType & rVariables,
+               UJPElementData& rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -385,8 +385,8 @@ namespace Kratos
           * Calculation of the Stabilization for the Pressure
           */
          void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-               ElementVariables & rVariables,
-               UJPElementVariables& rElementVariables,
+               ElementDataType & rVariables,
+               UJPElementData& rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -395,8 +395,8 @@ namespace Kratos
           * Calculation of the Stabilization for the Jacobian
           */
          void CalculateAndAddStabilizedJacobianElemUJP( VectorType& rRightHandSideVector,
-               ElementVariables & rVariables,
-               UJPElementVariables& rElementVariables,
+               ElementDataType & rVariables,
+               UJPElementData& rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -404,8 +404,8 @@ namespace Kratos
           * Calculation of the Internal Forces due to sigma. Fi = B * sigma
           */
          void CalculateAndAddInternalForcesElemUJP(VectorType& rRightHandSideVector,
-               ElementVariables & rVariables,
-               UJPElementVariables& rElementVariables,
+               ElementDataType & rVariables,
+               UJPElementData& rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -414,23 +414,23 @@ namespace Kratos
           */
          void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
                VectorType& rRightHandSideVector,
-               Flags& rCalculationFlags);
+               Flags& rCalculationFlags) override;
 
          //on integration points:
          /**
           * Calculate a double Variable on the Element Constitutive Law
           */
-         void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+         void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-         void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+         void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-         void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+         void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 
          /*
           * Compute Some integration point variables only once
           */ 
-         void CalculateThisElementVariables( UJPElementVariables& rElementVariables, const ElementVariables& rVariables);
+         void CalculateThisElementData( UJPElementData& rElementVariables, const ElementDataType& rVariables);
          ///@}
          ///@name Protected  Access
          ///@{
@@ -473,9 +473,9 @@ namespace Kratos
 
          // A private default constructor necessary for serialization
 
-         virtual void save(Serializer& rSerializer) const;
+         void save(Serializer& rSerializer) const override;
 
-         virtual void load(Serializer& rSerializer);
+         void load(Serializer& rSerializer) override;
 
 
          ///@name Private Inquiry

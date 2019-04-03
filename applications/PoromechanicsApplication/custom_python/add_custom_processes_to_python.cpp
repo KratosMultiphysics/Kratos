@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        KratosPoromechanicsApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:           February 2016 $
@@ -22,29 +22,29 @@
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
 
-void  AddCustomProcessesToPython(pybind11::module& m) 
+void  AddCustomProcessesToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
-    class_< ApplyComponentTableProcess, Process >
+    py::class_<ApplyComponentTableProcess, ApplyComponentTableProcess::Pointer, Process>
     (m, "ApplyComponentTableProcess")
-    .def(init < ModelPart&, Parameters>());
-    class_< ApplyDoubleTableProcess, Process >
+    .def( py::init< ModelPart&, Parameters>());
+    py::class_<ApplyDoubleTableProcess, ApplyDoubleTableProcess::Pointer, Process>
     (m, "ApplyDoubleTableProcess")
-    .def(init < ModelPart&, Parameters>());
-    class_< ApplyConstantHydrostaticPressureProcess, Process >
+    .def( py::init< ModelPart&, Parameters>());
+    py::class_<ApplyConstantHydrostaticPressureProcess, ApplyConstantHydrostaticPressureProcess::Pointer, Process>
     (m, "ApplyConstantHydrostaticPressureProcess")
-    .def(init < ModelPart&, Parameters>());
-    class_< ApplyHydrostaticPressureTableProcess, Process >
+    .def( py::init< ModelPart&, Parameters>());
+    py::class_<ApplyHydrostaticPressureTableProcess, ApplyHydrostaticPressureTableProcess::Pointer, Process>
     (m, "ApplyHydrostaticPressureTableProcess")
-    .def(init < ModelPart&, Parameters>());
-    class_< PeriodicInterfaceProcess, Process >
+    .def( py::init< ModelPart&, Parameters>());
+    py::class_<PeriodicInterfaceProcess, PeriodicInterfaceProcess::Pointer, Process>
     (m, "PeriodicInterfaceProcess")
-    .def(init < ModelPart&, Parameters>());
+    .def( py::init< ModelPart&, Parameters>());
 }
 
 }  // namespace Python.

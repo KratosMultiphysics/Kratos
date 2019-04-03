@@ -1,53 +1,13 @@
-/*
-==============================================================================
-KratosTestApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2010
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  sKRATOS_WATCH(disp);hall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
-
-
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:31 $
-//   Revision:            $Revision: 1.2 $
+//  License: BSD License
+//                     Kratos default license: kratos/license.txt
 //
+//  Main authors:  Riccardo Rossi
 //
-
 
 #if !defined(KRATOS_BFECC_LIMITER_CONVECTION_INCLUDED )
 #define  KRATOS_BFECC_LIMITER_CONVECTION_INCLUDED
@@ -111,16 +71,16 @@ public:
         const double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
 
         //do movement
-        array_1d<double, TDim + 1 > N;
+        Vector N(TDim + 1);
         const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
         const int nparticles = rModelPart.Nodes().size();
          
         PointerVector< Element > elem_backward( rModelPart.Nodes().size());
-        std::vector< array_1d<double,TDim+1> > Ns( rModelPart.Nodes().size());
+        std::vector< Vector > Ns( rModelPart.Nodes().size());
         std::vector< bool > found( rModelPart.Nodes().size());
-		std::vector< bool > foundf( rModelPart.Nodes().size());
+        std::vector< bool > foundf( rModelPart.Nodes().size());
         
         //FIRST LOOP: estimate rVar(n+1) 
         #pragma omp parallel for firstprivate(results,N)
@@ -174,18 +134,18 @@ public:
                 }
                 
                 //Computing error 1 and modified solution at time N to be interpolated again
-				iparticle->GetValue(BFECC_ERROR_1) = 0.5*iparticle->FastGetSolutionStepValue(rVar,1) - 0.5*phi_old;//computing error1 as e1 = 0.5*(rVar(n) - phi_old)
+                iparticle->GetValue(BFECC_ERROR_1) = 0.5*iparticle->FastGetSolutionStepValue(rVar,1) - 0.5*phi_old;//computing error1 as e1 = 0.5*(rVar(n) - phi_old)
                 iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1) + iparticle->GetValue(BFECC_ERROR_1);//rVar(n)+e1
-			}
+            }
         }
-		//Backward with modified solution
+        //Backward with modified solution
          #pragma omp parallel for 
         for (int i = 0; i < nparticles; i++)
         {
             ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
             bool is_found = found[i];
             if(is_found) {
-                array_1d<double,TDim+1> N = Ns[i];
+                Vector N = Ns[i];
                 Geometry< Node < 3 > >& geom = elem_backward[i].GetGeometry();
                 double phi1 = N[0] * ( geom[0].GetValue(rVar));
                 for (unsigned int k = 1; k < geom.size(); k++) {
@@ -199,74 +159,74 @@ public:
 
 
 
-		// computing error 2 with forward of phi1
-		int nelements = rModelPart.NumberOfElements();
-		for(int i = 0 ; i < nelements; i++)
-		{
-			typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+        // computing error 2 with forward of phi1
+        int nelements = rModelPart.NumberOfElements();
+        for(int i = 0 ; i < nelements; i++)
+        {
+            typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
-			ModelPart::ElementsContainerType::iterator i_element = rModelPart.ElementsBegin() + i;
-			Element::GeometryType& element_geometry = i_element->GetGeometry();	
+            ModelPart::ElementsContainerType::iterator i_element = rModelPart.ElementsBegin() + i;
+            Element::GeometryType& element_geometry = i_element->GetGeometry();
 
-			Element::Pointer pelement;
+            Element::Pointer pelement;
             array_1d<double,3> fwdPos = i_element->GetGeometry().Center();
             array_1d<double,3> vel = ZeroVector(3);
 
-			for(unsigned int j = 0 ; j < element_geometry.size(); j++){
-				for(int k = 0 ; k < 3; k++){
-					vel[k] += element_geometry[j].GetSolutionStepValue(conv_var)[k] / element_geometry.size();
-				}
-			}
+            for(unsigned int j = 0 ; j < element_geometry.size(); j++){
+                for(int k = 0 ; k < 3; k++){
+                    vel[k] += element_geometry[j].GetSolutionStepValue(conv_var)[k] / element_geometry.size();
+                }
+            }
 
             bool is_found = ConvectBySubstepping(dt,fwdPos,vel, N, pelement, result_begin, max_results, 1.0, substeps);//seeking forwards
-			double e1 = 0.00f;
-			
-			for(unsigned int j = 0 ; j < element_geometry.size(); j++){ 
-				e1 += element_geometry[j].GetValue(BFECC_ERROR_1);
-			}
-			e1 /= element_geometry.size(); 
+            double e1 = 0.00f;
 
-			double e2 = e1;
+            for(unsigned int j = 0 ; j < element_geometry.size(); j++){
+                e1 += element_geometry[j].GetValue(BFECC_ERROR_1);
+            }
+            e1 /= element_geometry.size();
+
+            double e2 = e1;
             if(is_found) {                
-				//Forward with
+                //Forward with
                 Geometry< Node < 3 > >& geom = pelement->GetGeometry();
                 double phi2 = N[0] * ( geom[0].FastGetSolutionStepValue(rVar));
                 for (unsigned int k = 1; k < geom.size(); k++) {
                     phi2 += N[k] * ( geom[k].FastGetSolutionStepValue(rVar) );
                 }
-				double solution_in_center = 0;
-				//Computing error2 as e2 = rVar(n)-(phi2+e1)
-				for(unsigned int j = 0 ; j < element_geometry.size(); j++){
-					solution_in_center += i_element->GetGeometry()[j].FastGetSolutionStepValue(rVar,1);
-				}
-				solution_in_center /= element_geometry.size(); 
+                double solution_in_center = 0;
+                //Computing error2 as e2 = rVar(n)-(phi2+e1)
+                for(unsigned int j = 0 ; j < element_geometry.size(); j++){
+                    solution_in_center += i_element->GetGeometry()[j].FastGetSolutionStepValue(rVar,1);
+                }
+                solution_in_center /= element_geometry.size();
 
-				e2 = solution_in_center - (phi2 + e1);
+                e2 = solution_in_center - (phi2 + e1);
 
-				if(std::abs(e2) > std::abs(e1)){
-					for(unsigned int j = 0 ; j < element_geometry.size(); j++){
-						element_geometry[j].GetValue(BFECC_ERROR) = minmod(e1,element_geometry[j].GetValue(BFECC_ERROR_1));
-					}
-				}
-			}
-			
-		}
+                if(std::abs(e2) > std::abs(e1)){
+                    for(unsigned int j = 0 ; j < element_geometry.size(); j++){
+                        element_geometry[j].GetValue(BFECC_ERROR) = minmod(e1,element_geometry[j].GetValue(BFECC_ERROR_1));
+                    }
+                }
+            }
 
-		#pragma omp parallel for
+        }
+
+        #pragma omp parallel for
         for (int i = 0; i < nparticles; i++){
-			ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
-			bool is_found = foundf[i];
+            ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
+            bool is_found = foundf[i];
             if(is_found) {
-				iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1) + iparticle->GetValue(BFECC_ERROR);
-			}
-		}
-		//Backward with modified solution
-		#pragma omp parallel for 
+                iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1) + iparticle->GetValue(BFECC_ERROR);
+            }
+        }
+        //Backward with modified solution
+        #pragma omp parallel for
         for (int i = 0; i < nparticles; i++){
             ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
             bool is_found = found[i];
             if(is_found) {
-                array_1d<double,TDim+1> N = Ns[i];
+                Vector N = Ns[i];
                 Geometry< Node < 3 > >& geom = elem_backward[i].GetGeometry();
                 double phi1 = N[0] * ( geom[0].GetValue(rVar));
                 for (unsigned int k = 1; k < geom.size(); k++) {
@@ -279,27 +239,27 @@ public:
         KRATOS_CATCH("")
     }
 
-	double minmod(double x, double y) {
-		double f;
-		if(x > 0.0f && y > 0.0f)
-			f = std::min(x,y); 
-		else if(x < 0.0f && y < 0.0f)
-			f = std::max(x,y); 
-		else
-			f = 0;
-		return f;
-	}
-	
+    double minmod(double x, double y) {
+        double f;
+        if(x > 0.0f && y > 0.0f)
+            f = std::min(x,y);
+        else if(x < 0.0f && y < 0.0f)
+            f = std::max(x,y);
+        else
+            f = 0;
+        return f;
+    }
+
     bool ConvectBySubstepping(
-                const double dt,
-                 array_1d<double,3>& position, //IT WILL BE MODIFIED
-                 const array_1d<double,3>& initial_velocity, 
-                 array_1d<double,TDim+1>& N, 
-                 Element::Pointer& pelement, 
-                 typename BinBasedFastPointLocator<TDim>::ResultIteratorType& result_begin,
-                 const unsigned int max_results,
-                 const double velocity_sign,
-                 const double subdivisions)
+        const double dt,
+        array_1d<double,3>& position, //IT WILL BE MODIFIED
+        const array_1d<double,3>& initial_velocity,
+        Vector& N,
+        Element::Pointer& pelement,
+        typename BinBasedFastPointLocator<TDim>::ResultIteratorType& result_begin,
+        const unsigned int max_results,
+        const double velocity_sign,
+        const double subdivisions)
     {
         bool is_found = false;
         array_1d<double,3> veulerian;

@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_FLAGS_H_INCLUDED )
@@ -27,8 +27,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/serializer.h"
-
 
 namespace Kratos
 {
@@ -55,7 +53,8 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class Flags
+class Serializer;
+class KRATOS_API(KRATOS_CORE) Flags
 {
 public:
     ///@name Type Definitions
@@ -242,7 +241,7 @@ public:
         mFlags &= ~(BlockType(1) << Position);
     }
 
- 
+
     void Clear()
     {
         mIsDefined = BlockType();
@@ -347,10 +346,8 @@ public:
 
     friend Flags operator&(const Flags& Left, const Flags& Right )
     {
-        // This looks like copy paste error but the idea is to
-        // define the & operator like the or one.
         Flags results(Left);
-        results |= Right;
+        results &= Right;
         return results;
     }
 
@@ -363,10 +360,8 @@ public:
 
     const Flags& operator&=(const Flags& Other )
     {
-        // This looks like copy paste error but the idea is to
-        // define the & operator like the or one.
-        mIsDefined |= Other.mIsDefined;
-        mFlags |= Other.mFlags;
+        mIsDefined &= Other.mIsDefined;
+        mFlags &= Other.mFlags;
         return *this;
     }
 
@@ -436,17 +431,10 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
-    {
-        rSerializer.save("IsDefined",  mIsDefined);
-        rSerializer.save("Flags",  mFlags);
-    }
+    virtual void save(Serializer& rSerializer) const;
 
-    virtual void load(Serializer& rSerializer)
-    {
-        rSerializer.load("IsDefined",  mIsDefined);
-        rSerializer.load("Flags",  mFlags);
-    }
+    virtual void load(Serializer& rSerializer);
+    
     ///@}
     ///@name Private  Access
     ///@{
@@ -499,6 +487,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FLAGS_H_INCLUDED  defined 
+#endif // KRATOS_FLAGS_H_INCLUDED  defined
 
 

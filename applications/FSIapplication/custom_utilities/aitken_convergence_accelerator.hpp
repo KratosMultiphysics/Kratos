@@ -14,12 +14,9 @@
 /* System includes */
 
 /* External includes */
-#include "utilities/math_utils.h"
 
 /* Project includes */
-#include "includes/define.h"
-#include "includes/variables.h"
-#include "includes/kratos_parameters.h"
+#include "utilities/math_utils.h"
 #include "convergence_accelerator.hpp"
 
 namespace Kratos

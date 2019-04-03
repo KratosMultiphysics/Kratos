@@ -1,9 +1,15 @@
-//   
-//   Project Name:        			KratosDamApplication $
-//   Last Modified by:    $Author:    	  Lorenzo Gracia $
-//   Date:                $Date:           	January 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Lorenzo Gracia
+//
+
 
 // Application includes
 #include "custom_conditions/UP_condition.hpp"
@@ -271,7 +277,7 @@ void UPCondition<TDim,TNumNodes>::CalculateLHS( MatrixType& rLeftHandSideMatrix,
 			noalias(Variables.Np) = row(NContainer,igauss);
 			
 			//Computing Nu Matrix
-			ConditionUtilities::CalculateNuMatrix(Variables.Nu,NContainer,igauss);
+			PoroConditionUtilities::CalculateNuMatrix(Variables.Nu,NContainer,igauss);
 								
 			//Calculating weighting coefficient for integration
 			this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, JContainer[igauss], integration_points[igauss].Weight() );
@@ -317,7 +323,7 @@ void UPCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector
 			noalias(Variables.Np) = row(NContainer,igauss);
 			
 			//Computing Nu Matrix
-			ConditionUtilities::CalculateNuMatrix(Variables.Nu,NContainer,igauss);
+			PoroConditionUtilities::CalculateNuMatrix(Variables.Nu,NContainer,igauss);
 								
 			//Calculating weighting coefficient for integration
 			this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, JContainer[igauss], integration_points[igauss].Weight() );
@@ -504,11 +510,11 @@ void UPCondition<TDim,TNumNodes>::CalculateLHSContribution(MatrixType& rLeftHand
     
     noalias(rVariables.UPMatrix) = -1.0*prod(trans(rVariables.Nu),Matrix(outer_prod(rVariables.NormalVector,rVariables.Np)))*rVariables.IntegrationCoefficient;
     
-    ConditionUtilities::AssembleUPMatrix(rLeftHandSideMatrix,rVariables.UPMatrix);
+    PoroConditionUtilities::AssembleUPMatrix(rLeftHandSideMatrix,rVariables.UPMatrix);
         
     noalias(rVariables.PUMatrix) = -1.0*rVariables.AcelerationCoefficient*rVariables.Density*trans(rVariables.UPMatrix);
     
-    ConditionUtilities::AssemblePUMatrix(rLeftHandSideMatrix,rVariables.PUMatrix);
+    PoroConditionUtilities::AssemblePUMatrix(rLeftHandSideMatrix,rVariables.PUMatrix);
     
     
     KRATOS_CATCH( "" )
@@ -525,13 +531,13 @@ void UPCondition<TDim,TNumNodes>::CalculateRHSContribution(VectorType& rRightHan
     
     noalias(rVariables.UVector) = -1.0*prod(rVariables.UPMatrix,rVariables.PressureVector);
     
-    ConditionUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
+    PoroConditionUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
     
     noalias(rVariables.PUMatrix) = -1.0*rVariables.Density*trans(rVariables.UPMatrix);
     
     noalias(rVariables.PVector) = -1.0*prod(rVariables.PUMatrix,rVariables.AccelerationVector);
         
-    ConditionUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+    PoroConditionUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
     
     KRATOS_CATCH( "" )
 }

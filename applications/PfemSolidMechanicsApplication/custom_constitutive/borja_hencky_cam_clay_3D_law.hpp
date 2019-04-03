@@ -20,20 +20,19 @@
 #include "custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
 
-
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic isotropic constitutive law J2 in plane strain 2D 
+ * Defines a hyperelastic-plastic isotropic constitutive law J2 in plane strain 2D
  * With stress split in an isochoric and volumetric parts
  * This material law is defined by the parameters needed by the yield criterion:
 
- * The functionality is limited to large displacements 
+ * The functionality is limited to large displacements
  */
 
 
 
-class BorjaHenckyCamClayPlastic3DLaw 
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) BorjaHenckyCamClayPlastic3DLaw
   : public NonLinearHenckyElasticPlastic3DLaw
 
 {
@@ -66,7 +65,7 @@ public:
     BorjaHenckyCamClayPlastic3DLaw();
 
 
-    BorjaHenckyCamClayPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    BorjaHenckyCamClayPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -78,7 +77,7 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Destructor.
@@ -89,13 +88,13 @@ public:
      * Operators
      */
 
-   virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+   double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
 
-   virtual void SetValue( const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo );
+   void SetValue( const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo ) override;
 
-   virtual void SetValue( const Variable<Vector>& rThisVarialbe, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo );
+   void SetValue( const Variable<Vector>& rThisVarialbe, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo ) override;
 
-   int Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo); 
+   int Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
     /**
      * Operations needed by the base class:
      */
@@ -120,15 +119,15 @@ public:
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
+    //String Info() const override;
     /**
      * Print information about this object.
      */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
+    //void PrintInfo(std::ostream& rOStream) const override;
     /**
      * Print object's data.
      */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    //void PrintData(std::ostream& rOStream) const override;
 
 protected:
 
@@ -137,7 +136,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -180,12 +179,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NonLinearHenckyElasticPlastic3DLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NonLinearHenckyElasticPlastic3DLaw )
     }
@@ -195,4 +194,3 @@ private:
 }; // Class BorjaHenckyCamClayPlastic3DLaw
 }  // namespace Kratos.
 #endif // KRATOS_BORJA_HENCKY_CAM_CLAY_PLASTIC_3D_LAW_H_INCLUDED
-

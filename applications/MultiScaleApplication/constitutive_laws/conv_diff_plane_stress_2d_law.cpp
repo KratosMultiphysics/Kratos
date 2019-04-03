@@ -50,7 +50,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	ConvDiffPlaneStress2DLaw::ConvDiffPlaneStress2DLaw() 
+	ConvDiffPlaneStress2DLaw::ConvDiffPlaneStress2DLaw()
 		: ConstitutiveLaw()
 		, m_initialized(false)
 		, m_init_gradT()
@@ -120,7 +120,7 @@ namespace Kratos
 			if (rValue.size() != 3)
 				rValue.resize(3, false);
 			rValue(0) = mStressVector(0); // 1.0e6; //  //[W/mm^2]
-			rValue(1) = mStressVector(1); // 1.0e6; // 
+			rValue(1) = mStressVector(1); // 1.0e6; //
 			rValue(2) = 0.0;
 			/*std::stringstream ss;
 			ss << "HEAT_FLUX_RVE = " << rValue << ", " << std::endl;
@@ -284,7 +284,7 @@ namespace Kratos
 		{
 			CalculateStress(props, strainVector, stressVector);
 		}
-		
+
 		if (compute_constitutive_tensor)
 		{
 			CalculateConstitutiveMatrix(props, strainVector, stressVector, constitutiveMatrix);

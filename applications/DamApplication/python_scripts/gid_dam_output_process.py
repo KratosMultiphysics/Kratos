@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 from KratosMultiphysics import *
-CheckForPreviousImport()
 
 class GiDDamOutputProcess(Process):
 
@@ -209,12 +208,15 @@ class GiDDamOutputProcess(Process):
                     MultifileList(self.base_file_name, 1),
                     MultifileList(self.base_file_name, 60),
                     MultifileList(self.base_file_name, 3600),
+                    MultifileList(self.base_file_name, 43200),
+                    MultifileList(self.base_file_name, 86400),
                 )
             elif output_control_type == "time_h":
                 self.multifiles = (
                     MultifileList(self.base_file_name, 1),
                     MultifileList(self.base_file_name, 12),
                     MultifileList(self.base_file_name, 24),
+                    MultifileList(self.base_file_name, 168),
                 )
             elif output_control_type == "time_d":
                 self.multifiles = (
@@ -383,6 +385,7 @@ class GiDDamOutputProcess(Process):
         self.cut_model_part = ModelPart("CutPart")
         self.cut_manager = CuttingUtility()
         self.cut_manager.FindSmallestEdge(self.model_part)
+        self.cut_manager.AddVariablesToCutModelPart(self.model_part,self.cut_model_part)
         if self.skin_output:
             self.cut_manager.AddSkinConditions(self.model_part,self.cut_model_part,self.output_surface_index)
             self.output_surface_index += 1

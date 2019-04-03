@@ -495,16 +495,6 @@ public:
     //     return p_clone;
     // }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-	if(rResult.size() != 8)
-           rResult.resize( 8, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 8.00 );
-        return rResult;
-    }
-
-
     /**
      * Information
      */
@@ -700,7 +690,7 @@ public:
     }
 
     /**
-     * Returns the local coordinates of a given arbitrary point
+     * @brief Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
@@ -708,10 +698,10 @@ public:
     CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint
-        ) override
+        ) const override
     {
-        boost::numeric::ublas::bounded_matrix<double,3,4> X;
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN;
+        BoundedMatrix<double,3,4> X;
+        BoundedMatrix<double,3,2> DN;
         for(unsigned int i=0; i<4;i++)
         {
             X(0,i ) = 0.5*(this->GetPoint( i ).X() + this->GetPoint( i+4 ).X());
@@ -870,7 +860,7 @@ public:
     Matrix& Jacobian( Matrix& rResult,
                       IndexType IntegrationPointIndex,
                       IntegrationMethod ThisMethod,
-                      Matrix& DeltaPosition ) const override
+                      const Matrix& DeltaPosition ) const override
     {
         //setting up size of jacobian matrix
         rResult.resize( 3, 2 ,false);

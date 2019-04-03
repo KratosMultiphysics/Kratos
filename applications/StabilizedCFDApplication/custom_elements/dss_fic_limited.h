@@ -129,7 +129,7 @@ public:
     DSS_FIC_LIMITED(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~DSS_FIC_LIMITED();
+    ~DSS_FIC_LIMITED() override;
 
     ///@}
     ///@name Operators
@@ -151,15 +151,15 @@ public:
      */
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const;
+                            PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId,
                             GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const;
+                            PropertiesType::Pointer pProperties) const override;
 
 
     /// InitializeSolutionStep is used to compute new values for beta coefficients
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
@@ -184,31 +184,31 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual void CalculateAllTaus(double Density,
-                                  double KinematicVisc,
-                                  const array_1d<double,3>& Velocity,
-                                  const ProcessInfo& rProcessInfo,
-                                  double& TauIncompr,
-                                  array_1d<double,3>& TauMomentum,
-                                  array_1d<double,3>& TauGrad);
+    void CalculateAllTaus(double Density,
+                          double KinematicVisc,
+                          const array_1d<double,3>& Velocity,
+                          const ProcessInfo& rProcessInfo,
+                          double& TauIncompr,
+                          array_1d<double,3>& TauMomentum,
+                          array_1d<double,3>& TauGrad);
 
 
-    virtual void AddSystemTerms(unsigned int GaussIndex,
-                                double GaussWeight,
-                                const ShapeFunctionsType& rN,
-                                const ShapeFunctionDerivativesType& rDN_DX,
-                                const ProcessInfo& rProcessInfo,
-                                MatrixType& rLHS,
-                                VectorType& rRHS);
+    void AddSystemTerms(unsigned int GaussIndex,
+                        double GaussWeight,
+                        const ShapeFunctionsType& rN,
+                        const ShapeFunctionDerivativesType& rDN_DX,
+                        const ProcessInfo& rProcessInfo,
+                        MatrixType& rLHS,
+                        VectorType& rRHS) override;
 
 
 
-    virtual void AddMassStabilization(unsigned int GaussIndex,
-                                      double GaussWeight,
-                                      const ShapeFunctionsType& rN,
-                                      const ShapeFunctionDerivativesType& rDN_DX,
-                                      const ProcessInfo& rProcessInfo,
-                                      MatrixType& rMassMatrix);
+    void AddMassStabilization(unsigned int GaussIndex,
+                              double GaussWeight,
+                              const ShapeFunctionsType& rN,
+                              const ShapeFunctionDerivativesType& rDN_DX,
+                              const ProcessInfo& rProcessInfo,
+                              MatrixType& rMassMatrix) override;
 
 
 
@@ -246,9 +246,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Operators

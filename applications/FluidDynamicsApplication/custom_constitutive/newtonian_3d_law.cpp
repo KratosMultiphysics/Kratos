@@ -57,15 +57,13 @@ ConstitutiveLaw::SizeType Newtonian3DLaw::GetStrainSize() {
     return 6;
 }
 
-void  Newtonian3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues) {
+void  Newtonian3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
+{
     const Flags& options = rValues.GetOptions();
-    
-    const Properties& material_properties = rValues.GetMaterialProperties(); 
-
     const Vector& r_strain_rate = rValues.GetStrainVector();
     Vector& r_viscous_stress = rValues.GetStressVector();
 
-    const double mu = material_properties[DYNAMIC_VISCOSITY];
+    const double mu = this->GetEffectiveViscosity(rValues);
 
     const double trace = r_strain_rate[0] + r_strain_rate[1] + r_strain_rate[2];
     const double volumetric_part = trace/3.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
@@ -87,12 +85,14 @@ void  Newtonian3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues) {
 int Newtonian3DLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
-    const ProcessInfo& rCurrentProcessInfo) {
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Check DYNAMIC_VISCOSITY variable
     KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
 
-    if( rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.00 ) {
-        KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for Newtonian3DLaw: " << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
-    }
+    // Check viscosity value
+    KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.0)
+        << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for Newtonian2DLaw: " << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
 
     return 0;
 }
@@ -101,9 +101,11 @@ std::string Newtonian3DLaw::Info() const {
     return "Newtonian3DLaw";
 }
 
-double Newtonian3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
-    // We are abusing the fact that C(5,5) = mu
-    return rParameters.GetConstitutiveMatrix()(5,5);
+double Newtonian3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const
+{
+    const Properties &r_prop = rParameters.GetMaterialProperties();
+    const double effective_viscosity = r_prop[DYNAMIC_VISCOSITY];
+    return effective_viscosity;
 }
 
 void Newtonian3DLaw::save(Serializer& rSerializer) const {

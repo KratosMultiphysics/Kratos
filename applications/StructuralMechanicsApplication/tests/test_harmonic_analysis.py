@@ -29,7 +29,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
@@ -83,12 +83,12 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,mp)
 
-    def _create_2dof_geometry(self, stiffness, mass, damping=0):
-        mp = KratosMultiphysics.ModelPart("mdof")
+    def _create_2dof_geometry(self, current_model, stiffness, mass, damping=0):
+        mp = current_model.CreateModelPart("mdof")
         self._add_variables(mp)
         self._apply_material_properties(mp)
 
@@ -120,6 +120,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         return mp
 
     def test_undamped_mdof_harmonic(self):
+        current_model = KratosMultiphysics.Model()
         #analytic solution taken from Humar - Dynamics of Structures p. 675
 
         #material properties
@@ -127,7 +128,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         mass = 2.0
 
         #create the model
-        mp = self._create_2dof_geometry(stiffness, mass)
+        mp = self._create_2dof_geometry(current_model, stiffness, mass)
 
         #solve the eigenproblem
         self._solve_eigen(mp)
@@ -156,6 +157,8 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
             exfreq = exfreq + df
 
     def test_damped_mdof_harmonic(self):
+        current_model = KratosMultiphysics.Model()
+
         #analytic solution taken from Humar - Dynamics of Structures p. 677
 
         #material properties
@@ -164,7 +167,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         damping = 0.1
 
         #create the model
-        mp = self._create_2dof_geometry(stiffness, mass, damping)
+        mp = self._create_2dof_geometry(current_model,stiffness, mass, damping)
 
         #solve the eigenproblem
         self._solve_eigen(mp)
@@ -210,25 +213,32 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
 
             exfreq = exfreq + df
 
+class HarmonicAnalysisTestsWithHDF5(KratosUnittest.TestCase):
     def test_harmonic_mdpa_input(self):
-        try:
-            import KratosMultiphysics.AdjointFluidApplication as AdjointFluidApplication
-        except ImportError as e:
-            self.skipTest("AdjointFluidApplication not found: Skipping harmonic analysis mdpa test")
+        if not kratos_utils.CheckIfApplicationsAvailable("HDF5Application"):
+            self.skipTest("HDF5Application not found: Skipping harmonic analysis mdpa test")
 
         import structural_mechanics_analysis
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             #run simulation and write to hdf5 file
+            model = KratosMultiphysics.Model()
             project_parameter_file_name = "harmonic_analysis_test/harmonic_analysis_test_eigenproblem_parameters.json"
-            test = structural_mechanics_analysis.StructuralMechanicsAnalysis(project_parameter_file_name)
+            with open(project_parameter_file_name,'r') as parameter_file:
+                project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            test = structural_mechanics_analysis.StructuralMechanicsAnalysis(model,project_parameters)
             test.Run()
+
             #start new simulation and read from hdf5 file
+            model = KratosMultiphysics.Model()
             project_parameter_file_name = "harmonic_analysis_test/harmonic_analysis_test_parameters.json"
-            test = structural_mechanics_analysis.StructuralMechanicsAnalysis(project_parameter_file_name)
+            with open(project_parameter_file_name,'r') as parameter_file:
+                project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            test = structural_mechanics_analysis.StructuralMechanicsAnalysis(model,project_parameters)
             test.Run()
+
             # remove hdf5 file
-            kratos_utils.DeleteFileIfExisting("/harmonic_analysis_test/harmonic_analysis_test_0.h5")
-            kratos_utils.DeleteFileIfExisting("/harmonic_analysis_test/harmonic_analysis_test.time")
+            kratos_utils.DeleteFileIfExisting("harmonic_analysis_test/eigen_results.h5")
+            kratos_utils.DeleteFileIfExisting("harmonic_analysis_test/harmonic_analysis_test.time")
 
 if __name__ == '__main__':
     KratosUnittest.main()

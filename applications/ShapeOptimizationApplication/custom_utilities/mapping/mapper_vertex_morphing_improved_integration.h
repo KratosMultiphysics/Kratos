@@ -19,10 +19,6 @@
 #include <string>
 
 // ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-
-// ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "mapper_vertex_morphing.h"
@@ -71,11 +67,9 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperVertexMorphingImprovedIntegration( ModelPart& designSurface, Parameters MapperSettings )
-        : MapperVertexMorphing(designSurface, MapperSettings)
+    MapperVertexMorphingImprovedIntegration( ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Parameters MapperSettings )
+        : MapperVertexMorphing(rOriginModelPart, rDestinationModelPart, MapperSettings)
     {
-        SetIntegrationMethod(MapperSettings);
-        FindNeighbourConditions();
     }
 
     /// Destructor.
@@ -93,6 +87,19 @@ public:
     ///@name Operations
     ///@{
 
+    // --------------------------------------------------------------------------
+    void Initialize() override
+    {
+        if (mIsMappingInitialized == false)
+        {
+            SetIntegrationMethod();
+            FindNeighbourConditions();
+        }
+
+        MapperVertexMorphing::Initialize();
+    }
+    // --------------------------------------------------------------------------
+
     ///@}
     ///@name Access
     ///@{
@@ -108,19 +115,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "MapperVertexMorphingImprovedIntegration";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MapperVertexMorphingImprovedIntegration";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -178,7 +185,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    // Initialized by class constructor
     Element::IntegrationMethod mIntegrationMethod;
     bool mAreaWeightedNodeSum;
     std::vector<double> nodalAreas;
@@ -193,15 +199,16 @@ private:
     ///@{
 
     // --------------------------------------------------------------------------
-    void SetIntegrationMethod( Parameters MapperSettings )
+    void SetIntegrationMethod()
     {
-        std::string integration_method = MapperSettings["integration"]["integration_method"].GetString();
+        std::string integration_method = mMapperSettings["integration_method"].GetString();
+        int number_of_gauss_points = mMapperSettings["number_of_gauss_points"].GetInt();
+
         if (integration_method.compare("area_weighted_sum") == 0)
             mAreaWeightedNodeSum = true;
         else if (integration_method.compare("gauss_integration") == 0)
         {
             mAreaWeightedNodeSum = false;
-            int number_of_gauss_points = MapperSettings["integration"]["number_of_gauss_points"].GetInt();
             if (number_of_gauss_points == 1)
                 mIntegrationMethod = GeometryData::GI_GAUSS_1;
             else if (number_of_gauss_points == 2)
@@ -227,11 +234,8 @@ private:
     // --------------------------------------------------------------------------
     void FindNeighbourConditions()
     {
-
-            // store neighbouring information
         std::cout << "> Computing neighbour conditions ..." << std::endl;
-        FindConditionsNeighboursProcess find_conditions_neighbours_process(mrDesignSurface,
-                                                        mrDesignSurface.GetProcessInfo()[DOMAIN_SIZE]);
+        FindConditionsNeighboursProcess find_conditions_neighbours_process(mrOriginModelPart, mrOriginModelPart.GetProcessInfo()[DOMAIN_SIZE]);
         find_conditions_neighbours_process.Execute();
     }
 
@@ -240,7 +244,7 @@ private:
                                         NodeVector& neighbor_nodes,
                                         unsigned int number_of_neighbors,
                                         std::vector<double>& list_of_weights,
-                                        double& sum_of_weights )
+                                        double& sum_of_weights ) override
     {
         for(unsigned int j_itr = 0 ; j_itr<number_of_neighbors ; j_itr++)
         {
@@ -318,9 +322,9 @@ private:
             }
         }
     }
-    
+
     // --------------------------------------------------------------------------
-    virtual void InitializeComputationOfMappingMatrix()
+    void InitializeComputationOfMappingMatrix() override
     {
         // from base class
         MapperVertexMorphing::InitializeComputationOfMappingMatrix();
@@ -328,8 +332,8 @@ private:
         // necessary for this class
         if (mAreaWeightedNodeSum)
         {
-            nodalAreas.resize(mrDesignSurface.Nodes().size(),0.0);
-            for(auto& node_i : mrDesignSurface.Nodes())
+            nodalAreas.resize(mrOriginModelPart.Nodes().size(),0.0);
+            for(auto& node_i : mrOriginModelPart.Nodes())
             {
                 const int& i = node_i.GetValue(MAPPING_ID);
 
