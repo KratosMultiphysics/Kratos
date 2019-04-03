@@ -154,9 +154,9 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
         Vector r_stress_vector_pos = r_stress_vector;
         ComputePositiveStressVector(r_stress_vector_pos, r_stress_vector);
 
-        // we add abs() as the product may be a small negative instead of zero
-        // due to machine precision error
-        const double strain_norm = std::sqrt(std::fabs(inner_prod(r_stress_vector_pos, r_strain_vector)));
+        // energy may be a small negative due to machine precision error, forcing zero
+        const double product = inner_prod(r_stress_vector_pos, r_strain_vector);
+        const double strain_norm = (product >=0 ) ? std::sqrt(product) : 0;
         if (strain_norm <= mStrainVariable)
         {
             // ELASTIC
@@ -178,7 +178,8 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
             const double damage_rate = (stress_variable - hardening_modulus * rStrainVariable)
                                        / (rStrainVariable * rStrainVariable * rStrainVariable);
             r_constitutive_matrix *= (1. - damage_variable);
-            r_constitutive_matrix -= damage_rate * outer_prod(r_stress_vector_pos, r_stress_vector);
+            r_constitutive_matrix -= damage_rate * outer_prod(r_stress_vector, r_stress_vector_pos);
+            // real stress = (1-d) * effective stress
             r_stress_vector *= (1. - damage_variable);
         }
     }
