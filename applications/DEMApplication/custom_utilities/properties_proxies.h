@@ -84,17 +84,17 @@ namespace Kratos {
         void    SetParticleKTangentialFromProperties(double* particle_k_tangential);
 
         // Dependent Friction
-        double  GetParticleContactRadius();
-        double* pGetParticleContactRadius();
-        void    SetParticleContactRadiusFromProperties(double* particle_contact_radius);
+        double  GetParticleConicalDamageContactRadius();
+        double* pGetParticleConicalDamageContactRadius();
+        void    SetParticleConicalDamageContactRadiusFromProperties(double* particle_conical_damage_contact_radius);
 
-        double  GetParticleMaxStress();
-        double* pGetParticleMaxStress();
-        void    SetParticleMaxStressFromProperties(double* particle_max_stress);
+        double  GetParticleConicalDamageMaxStress();
+        double* pGetParticleConicalDamageMaxStress();
+        void    SetParticleConicalDamageMaxStressFromProperties(double* particle_conical_damage_max_stress);
 
-        double  GetParticleGamma();
-        double* pGetParticleGamma();
-        void    SetParticleGammaFromProperties(double* particle_gamma);
+        double  GetParticleConicalDamageGamma();
+        double* pGetParticleConicalDamageGamma();
+        void    SetParticleConicalDamageGammaFromProperties(double* particle_conical_damage_gamma);
 
         double  GetLevelOfFouling();
         double* pGetLevelOfFouling();

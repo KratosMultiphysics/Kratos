@@ -75,17 +75,17 @@ namespace Kratos {
     void    PropertiesProxy::SetParticleKTangentialFromProperties(double* particle_k_tangential) { mParticleKTangential = particle_k_tangential;}
 
     // Dependent Friction
-    double  PropertiesProxy::GetParticleContactRadius()                                              { return *mParticleContactRadius;                   }
-    double* PropertiesProxy::pGetParticleContactRadius()                                             { return  mParticleContactRadius;                   }
-    void    PropertiesProxy::SetParticleContactRadiusFromProperties(double* particle_contact_radius) { mParticleContactRadius = particle_contact_radius; }
+    double  PropertiesProxy::GetParticleConicalDamageContactRadius()                                                             { return *mParticleConicalDamageContactRadius;                                  }
+    double* PropertiesProxy::pGetParticleConicalDamageContactRadius()                                                            { return  mParticleConicalDamageContactRadius;                                  }
+    void    PropertiesProxy::SetParticleConicalDamageContactRadiusFromProperties(double* particle_conical_damage_contact_radius) { mParticleConicalDamageContactRadius = particle_conical_damage_contact_radius; }
 
-    double  PropertiesProxy::GetParticleMaxStress()                                           { return *mParticleMaxStress;                  }
-    double* PropertiesProxy::pGetParticleMaxStress()                                          { return  mParticleMaxStress;                  }
-    void    PropertiesProxy::SetParticleMaxStressFromProperties(double* particle_max_stress)  { mParticleMaxStress = particle_max_stress;    }
+    double  PropertiesProxy::GetParticleConicalDamageMaxStress()                                                         { return *mParticleConicalDamageMaxStress;                                 }
+    double* PropertiesProxy::pGetParticleConicalDamageMaxStress()                                                        { return  mParticleConicalDamageMaxStress;                                 }
+    void    PropertiesProxy::SetParticleConicalDamageMaxStressFromProperties(double* particle_conical_damage_max_stress) { mParticleConicalDamageMaxStress = particle_conical_damage_max_stress;    }
 
-    double  PropertiesProxy::GetParticleGamma()                                               { return *mParticleGamma;                      }
-    double* PropertiesProxy::pGetParticleGamma()                                              { return  mParticleGamma;                      }
-    void    PropertiesProxy::SetParticleGammaFromProperties(double* particle_gamma)           { mParticleGamma = particle_gamma;             }
+    double  PropertiesProxy::GetParticleConicalDamageGamma()                                                    { return *mParticleConicalDamageGamma;                                     }
+    double* PropertiesProxy::pGetParticleConicalDamageGamma()                                                   { return  mParticleConicalDamageGamma;                                     }
+    void    PropertiesProxy::SetParticleConicalDamageGammaFromProperties(double* particle_conical_damage_gamma) { mParticleConicalDamageGamma = particle_conical_damage_gamma;             }
 
     double  PropertiesProxy::GetLevelOfFouling()                                              { return *mLevelOfFouling;                     }
     double* PropertiesProxy::pGetLevelOfFouling()                                             { return  mLevelOfFouling;                     }
@@ -206,14 +206,14 @@ namespace Kratos {
             aux_pointer = &(props_it->GetValue(K_TANGENTIAL));
             vector_of_proxies[properties_counter].SetParticleKTangentialFromProperties(aux_pointer);
 
-            aux_pointer = &(props_it->GetValue(CONTACT_RADIUS));
-            vector_of_proxies[properties_counter].SetParticleContactRadiusFromProperties(aux_pointer);
+            aux_pointer = &(props_it->GetValue(CONICAL_DAMAGE_CONTACT_RADIUS));
+            vector_of_proxies[properties_counter].SetParticleConicalDamageContactRadiusFromProperties(aux_pointer);
 
-            aux_pointer = &(props_it->GetValue(MAX_STRESS));
-            vector_of_proxies[properties_counter].SetParticleMaxStressFromProperties(aux_pointer);
+            aux_pointer = &(props_it->GetValue(CONICAL_DAMAGE_MAX_STRESS));
+            vector_of_proxies[properties_counter].SetParticleConicalDamageMaxStressFromProperties(aux_pointer);
 
-            aux_pointer = &(props_it->GetValue(GAMMA));
-            vector_of_proxies[properties_counter].SetParticleGammaFromProperties(aux_pointer);
+            aux_pointer = &(props_it->GetValue(CONICAL_DAMAGE_GAMMA));
+            vector_of_proxies[properties_counter].SetParticleConicalDamageGammaFromProperties(aux_pointer);
 
             aux_pointer = &(props_it->GetValue(LEVEL_OF_FOULING));
             vector_of_proxies[properties_counter].SetLevelOfFoulingFromProperties(aux_pointer);

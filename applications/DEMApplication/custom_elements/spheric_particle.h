@@ -220,12 +220,12 @@ virtual double GetParticleKNormal();
 void   SetParticleKNormalFromProperties(double* particle_k_normal);
 virtual double GetParticleKTangential();
 void   SetParticleKTangentialFromProperties(double* particle_k_tangential);
-virtual double GetParticleContactRadius();
-void   SetParticleContactRadiusFromProperties(double* particle_contact_radius);
-virtual double GetParticleMaxStress();
-void   SetParticleMaxStressFromProperties(double* particle_max_stress);
-virtual double GetParticleGamma();
-void   SetParticleGammaFromProperties(double* particle_gamma);
+virtual double GetParticleConicalDamageContactRadius();
+void   SetParticleConicalDamageContactRadiusFromProperties(double* particle_contact_radius);
+virtual double GetParticleConicalDamageMaxStress();
+void   SetParticleConicalDamageMaxStressFromProperties(double* particle_max_stress);
+virtual double GetParticleConicalDamageGamma();
+void   SetParticleConicalDamageGammaFromProperties(double* particle_gamma);
 virtual double GetLevelOfFouling();
 void   SetLevelOfFoulingFromProperties(double* level_of_fouling);
 

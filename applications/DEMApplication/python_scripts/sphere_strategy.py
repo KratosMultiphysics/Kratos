@@ -590,11 +590,11 @@ class ExplicitStrategy(object):
                 gamma = self.GammaForHertzThornton(coefficient_of_restitution)
                 write_gamma = True
 
-            elif (type_of_law == 'Dependent_friction'):
+            elif (type_of_law == 'Conical_damage'):
                 gamma = self.GammaForHertzThornton(coefficient_of_restitution)
                 write_gamma = True
-                alpha = properties[ALPHA]
-                AlphaFunction = self.SinAlphaConicalDamage(alpha)
+                conical_damage_alpha = properties[CONICAL_DAMAGE_ALPHA]
+                AlphaFunction = self.SinAlphaConicalDamage(conical_damage_alpha)
                 write_AlphaFunction = True
                 if not properties.Has(LEVEL_OF_FOULING):
                     properties[LEVEL_OF_FOULING] = 0.0
@@ -606,7 +606,7 @@ class ExplicitStrategy(object):
                 properties[DAMPING_GAMMA] = gamma
 
             if write_AlphaFunction == True:
-                properties[ALPHA_FUNCTION] = AlphaFunction
+                properties[CONICAL_DAMAGE_ALPHA_FUNCTION] = AlphaFunction
 
             if properties.Has(CLUSTER_FILE_NAME):
                 cluster_file_name = properties[CLUSTER_FILE_NAME]

@@ -1,8 +1,8 @@
 //Authors: J. Irazabal (CIMNE)
 //   Date: November 2016
 
-#if !defined(DEM_D_DEPENDENT_FRICTION_CL_H_INCLUDED)
-#define DEM_D_DEPENDENT_FRICTION_CL_H_INCLUDED
+#if !defined(DEM_D_CONICAL_DAMAGE_CL_H_INCLUDED)
+#define DEM_D_CONICAL_DAMAGE_CL_H_INCLUDED
 
 #include <string>
 #include <iostream>
@@ -12,16 +12,16 @@ namespace Kratos {
 
     class SphericParticle;
 
-    class KRATOS_API(DEM_APPLICATION) DEM_D_Hertz_dependent_friction : public DEMDiscontinuumConstitutiveLaw {
+    class KRATOS_API(DEM_APPLICATION) DEM_D_Conical_damage : public DEMDiscontinuumConstitutiveLaw {
 
     public:
         using DEMDiscontinuumConstitutiveLaw::CalculateNormalForce;
 
-        KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Hertz_dependent_friction);
+        KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Conical_damage);
 
-        DEM_D_Hertz_dependent_friction() {}
+        DEM_D_Conical_damage() {}
 
-        ~DEM_D_Hertz_dependent_friction() {}
+        ~DEM_D_Conical_damage() {}
 
         void Initialize(const ProcessInfo& r_process_info) override;
 
@@ -175,7 +175,7 @@ namespace Kratos {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)
         }
 
-    }; //class DEM_D_Hertz_dependent_friction
+    }; //class DEM_D_Conical_damage
 
 } /* namespace Kratos.*/
-#endif /* DEM_D_DEPENDENT_FRICTION_CL_H_INCLUDED  defined */
+#endif /* DEM_D_CONICAL_DAMAGE_CL_H_INCLUDED  defined */
