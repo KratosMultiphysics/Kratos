@@ -387,7 +387,8 @@ public:
         const double PlasticityIndicator,
         const Vector& rPlasticStrain,
         double& rDamageIncrement,
-        double& rPlasticConsistencyIncrement);
+        double& rPlasticConsistencyIncrement,
+        const int PlasticDamageCase);
 
     ///@}
     ///@name Access
