@@ -1,4 +1,4 @@
-import KratosMultiphysics as KM
+import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector, Parameters
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
@@ -52,8 +52,8 @@ class MarineRainAnalysis(BaseAnalysis):
             rand_y = possible_xs[i_position % N_positions]
             node.X = rand_x
             node.Y = rand_y
-            node.SetSolutionStepValue(KM.DISPLACEMENT_X, rand_x - init_x)
-            node.SetSolutionStepValue(KM.DISPLACEMENT_Y, rand_y - init_y)
+            node.SetSolutionStepValue(Kratos.DISPLACEMENT_X, rand_x - init_x)
+            node.SetSolutionStepValue(Kratos.DISPLACEMENT_Y, rand_y - init_y)
             i_position += 1
 
         for node in self.spheres_model_part.Nodes:
@@ -63,15 +63,15 @@ class MarineRainAnalysis(BaseAnalysis):
             coor[1]=node.Y
             coor[2]=node.Z
             self.flow_field.Evaluate(0.0,coor,vel,0)
-            node.SetSolutionStepValue(KM.VELOCITY_X, vel[0])
-            node.SetSolutionStepValue(KM.VELOCITY_Y, vel[1])
-            node.SetSolutionStepValue(KM.VELOCITY_Z, vel[2])
-            node.SetSolutionStepValue(KM.VELOCITY_OLD_X, vel[0])
-            node.SetSolutionStepValue(KM.VELOCITY_OLD_Y, vel[1])
-            node.SetSolutionStepValue(KM.VELOCITY_OLD_Z, vel[2])
-            node.SetSolutionStepValue(KM.SLIP_VELOCITY_X, vel[0])
-            node.SetSolutionStepValue(KM.SLIP_VELOCITY_Y, vel[1])
-            node.SetSolutionStepValue(KM.SLIP_VELOCITY_Z, vel[2])
+            node.SetSolutionStepValue(Kratos.VELOCITY_X, vel[0])
+            node.SetSolutionStepValue(Kratos.VELOCITY_Y, vel[1])
+            node.SetSolutionStepValue(Kratos.VELOCITY_Z, vel[2])
+            node.SetSolutionStepValue(Kratos.VELOCITY_OLD_X, vel[0])
+            node.SetSolutionStepValue(Kratos.VELOCITY_OLD_Y, vel[1])
+            node.SetSolutionStepValue(Kratos.VELOCITY_OLD_Z, vel[2])
+            node.SetSolutionStepValue(Kratos.SLIP_VELOCITY_X, vel[0])
+            node.SetSolutionStepValue(Kratos.SLIP_VELOCITY_Y, vel[1])
+            node.SetSolutionStepValue(Kratos.SLIP_VELOCITY_Z, vel[2])
 
     def FluidSolve(self, time = 'None', solve_system=True):
         pass

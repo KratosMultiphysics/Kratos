@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 
 import KratosMultiphysics as Kratos
+from KratosMultiphysics import Model, Parameters
 import KratosMultiphysics.PfemFluidDynamicsApplication
 
 from pfem_fluid_dynamics_analysis import PfemFluidDynamicsAnalysis
@@ -58,8 +59,8 @@ if __name__ == '__main__':
         parameter_file_name = "ProjectParameters.json"
 
     with open(parameter_file_name,'r') as parameter_file:
-        parameters = Kratos.Parameters(parameter_file.read())
+        parameters = Parameters(parameter_file.read())
 
-    model = Kratos.Model()
+    model = Model()
     simulation = DEMCoupledFluidDynamicsAnalysis(model,parameters)
     simulation.Run()

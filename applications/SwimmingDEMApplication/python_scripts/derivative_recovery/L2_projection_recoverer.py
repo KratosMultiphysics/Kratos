@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-import KratosMultiphysics as KM
+import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector, ModelPart
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 from . import recoverer
@@ -18,22 +18,22 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
                                                                                'vorticity_induced_lift_parameters'))
 
         if self.use_lumped_mass_matrix:
-            self.model_part.ProcessInfo[KM.COMPUTE_LUMPED_MASS_MATRIX] = 1
+            self.model_part.ProcessInfo[Kratos.COMPUTE_LUMPED_MASS_MATRIX] = 1
         else:
-            self.model_part.ProcessInfo[KM.COMPUTE_LUMPED_MASS_MATRIX] = 0
+            self.model_part.ProcessInfo[Kratos.COMPUTE_LUMPED_MASS_MATRIX] = 0
         self.CreateCPluPlusStrategies()
 
     def FillUpModelPart(self, element_type, condition_type):
-        model_part_cloner = KM.ConnectivityPreserveModeler()
+        model_part_cloner = Kratos.ConnectivityPreserveModeler()
         model_part_cloner.GenerateModelPart(self.model_part, self.recovery_model_part, element_type, condition_type)
 
     def CreateCPluPlusStrategies(self, echo_level = 1):
         from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
         # linear_solver = SuperLUIterativeSolver()
         # from KratosMultiphysics.ExternalSolversApplication import SuperLUSolver
-        scheme = KM.ResidualBasedIncrementalUpdateStaticScheme()
-        amgcl_smoother = KM.AMGCLSmoother.ILU0
-        amgcl_krylov_type = KM.AMGCLIterativeSolverType.BICGSTAB
+        scheme = Kratos.ResidualBasedIncrementalUpdateStaticScheme()
+        amgcl_smoother = Kratos.AMGCLSmoother.ILU0
+        amgcl_krylov_type = Kratos.AMGCLIterativeSolverType.BICGSTAB
         tolerance = 1e-8
         max_iterations = 1000
         verbosity = 0 #0->shows no information, 1->some information, 2->all the information
@@ -42,9 +42,9 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
         if self.use_lumped_mass_matrix:
             linear_solver = SuperLUIterativeSolver()
         else:
-            linear_solver = KM.AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
+            linear_solver = Kratos.AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
 
-        self.recovery_strategy = KM.ResidualBasedDerivativeRecoveryStrategy(self.recovery_model_part, scheme, linear_solver, False, True, False, False)
+        self.recovery_strategy = Kratos.ResidualBasedDerivativeRecoveryStrategy(self.recovery_model_part, scheme, linear_solver, False, True, False, False)
         self.recovery_strategy.SetEchoLevel(echo_level)
 
     def AddDofs(self, DOF_variables):
@@ -68,7 +68,7 @@ class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.
         self.element_type = "ComputeComponentGradientSimplex3D"
         self.condition_type = "ComputeLaplacianSimplexCondition3D"
         self.FillUpModelPart(self.element_type, self.condition_type)
-        self.DOFs = (KM.VELOCITY_COMPONENT_GRADIENT_X, KM.VELOCITY_COMPONENT_GRADIENT_Y, KM.VELOCITY_COMPONENT_GRADIENT_Z)
+        self.DOFs = (Kratos.VELOCITY_COMPONENT_GRADIENT_X, Kratos.VELOCITY_COMPONENT_GRADIENT_Y, Kratos.VELOCITY_COMPONENT_GRADIENT_Z)
         self.AddDofs(self.DOFs)
         self.calculate_vorticity = (project_parameters["vorticity_calculation_type"].GetInt() > 0
                                     or PT.RecursiveFindParametersWithCondition(project_parameters["properties"],
@@ -77,28 +77,28 @@ class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.
     def Solve(self):
         print("\nSolving for the fluid acceleration...")
         sys.stdout.flush()
-        self.SetToZero(KM.VELOCITY_COMPONENT_GRADIENT)
+        self.SetToZero(Kratos.VELOCITY_COMPONENT_GRADIENT)
         self.recovery_strategy.Solve()
 
     def RecoverGradientOfVelocity(self):
-        self.model_part.ProcessInfo[KM.CURRENT_COMPONENT] = 0
+        self.model_part.ProcessInfo[Kratos.CURRENT_COMPONENT] = 0
         self.Solve()
-        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.VELOCITY_X_GRADIENT)
-        self.model_part.ProcessInfo[KM.CURRENT_COMPONENT] = 1
+        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, Kratos.VELOCITY_COMPONENT_GRADIENT, Kratos.VELOCITY_X_GRADIENT)
+        self.model_part.ProcessInfo[Kratos.CURRENT_COMPONENT] = 1
         self.Solve()
-        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.VELOCITY_Y_GRADIENT)
-        self.model_part.ProcessInfo[KM.CURRENT_COMPONENT] = 2
+        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, Kratos.VELOCITY_COMPONENT_GRADIENT, Kratos.VELOCITY_Y_GRADIENT)
+        self.model_part.ProcessInfo[Kratos.CURRENT_COMPONENT] = 2
         self.Solve()
-        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.VELOCITY_Z_GRADIENT)
+        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, Kratos.VELOCITY_COMPONENT_GRADIENT, Kratos.VELOCITY_Z_GRADIENT)
 
         if self.calculate_vorticity:
-            self.cplusplus_recovery_tool.CalculateVorticityFromGradient(self.model_part, KM.VELOCITY_X_GRADIENT, KM.VELOCITY_Y_GRADIENT, KM.VELOCITY_Z_GRADIENT, KM.VORTICITY)
+            self.cplusplus_recovery_tool.CalculateVorticityFromGradient(self.model_part, Kratos.VELOCITY_X_GRADIENT, Kratos.VELOCITY_Y_GRADIENT, Kratos.VELOCITY_Z_GRADIENT, Kratos.VORTICITY)
 
     def RecoverGradientOfVelocityComponent(self, component):
-        self.model_part.ProcessInfo[KM.CURRENT_COMPONENT] = component
+        self.model_part.ProcessInfo[Kratos.CURRENT_COMPONENT] = component
         self.Solve()
         if self.calculate_vorticity:
-            self.cplusplus_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.VORTICITY)
+            self.cplusplus_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.model_part, Kratos.VELOCITY_COMPONENT_GRADIENT, Kratos.VORTICITY)
 
 class L2ProjectionMaterialAccelerationRecoverer(L2ProjectionGradientRecoverer, recoverer.MaterialAccelerationRecoverer):
     def __init__(self, project_parameters, model_part):
@@ -111,11 +111,11 @@ class L2ProjectionMaterialAccelerationRecoverer(L2ProjectionGradientRecoverer, r
             self.RecoverMaterialAccelerationFromGradient()
         else:
             self.RecoverGradientOfVelocityComponent(0)
-            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.ACCELERATION, KM.MATERIAL_ACCELERATION)
+            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, Kratos.VELOCITY_COMPONENT_GRADIENT, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
             self.RecoverGradientOfVelocityComponent(1)
-            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.ACCELERATION, KM.MATERIAL_ACCELERATION)
+            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, Kratos.VELOCITY_COMPONENT_GRADIENT, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
             self.RecoverGradientOfVelocityComponent(2)
-            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.ACCELERATION, KM.MATERIAL_ACCELERATION)
+            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, Kratos.VELOCITY_COMPONENT_GRADIENT, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
 
 class L2ProjectionDirectMaterialAccelerationRecoverer(L2ProjectionMaterialAccelerationRecoverer):
     def __init__(self, project_parameters, model_part):
@@ -123,11 +123,11 @@ class L2ProjectionDirectMaterialAccelerationRecoverer(L2ProjectionMaterialAccele
         self.element_type = "ComputeMaterialDerivativeSimplex3D"
         self.condition_type = "ComputeLaplacianSimplexCondition3D"
         self.FillUpModelPart(self.element_type, self.condition_type)
-        self.DOFs = (KM.MATERIAL_ACCELERATION_X, KM.MATERIAL_ACCELERATION_Y, KM.MATERIAL_ACCELERATION_Z)
+        self.DOFs = (Kratos.MATERIAL_ACCELERATION_X, Kratos.MATERIAL_ACCELERATION_Y, Kratos.MATERIAL_ACCELERATION_Z)
         self.AddDofs(self.DOFs)
 
     def RecoverMaterialAcceleration(self):
-        self.SetToZero(KM.MATERIAL_ACCELERATION)
+        self.SetToZero(Kratos.MATERIAL_ACCELERATION)
         self.recovery_strategy.Solve()
 
 class L2ProjectionLaplacianRecoverer(L2ProjectionMaterialAccelerationRecoverer, recoverer.LaplacianRecoverer):
@@ -136,10 +136,10 @@ class L2ProjectionLaplacianRecoverer(L2ProjectionMaterialAccelerationRecoverer, 
         self.element_type = "ComputeVelocityLaplacianSimplex3D"
         self.condition_type = "ComputeLaplacianSimplexCondition3D"
         self.FillUpModelPart(self.element_type, self.condition_type)
-        self.DOFs = (KM.VELOCITY_LAPLACIAN_X, KM.VELOCITY_LAPLACIAN_Y, KM.VELOCITY_LAPLACIAN_Z)
+        self.DOFs = (Kratos.VELOCITY_LAPLACIAN_X, Kratos.VELOCITY_LAPLACIAN_Y, Kratos.VELOCITY_LAPLACIAN_Z)
         self.AddDofs(self.DOFs)
 
     def RecoverVelocityLaplacian(self):
         print("\nSolving for the laplacian...")
-        self.SetToZero(KM.VELOCITY_LAPLACIAN)
+        self.SetToZero(Kratos.VELOCITY_LAPLACIAN)
         self.recovery_strategy.Solve()

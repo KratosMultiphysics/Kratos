@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import KratosMultiphysics as KM
-from KratosMultiphysics import Vector, Parameters
+import KratosMultiphysics as Kratos
+from KratosMultiphysics import Parameters
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import sys
 
@@ -45,7 +45,7 @@ class ProjectionModule:
 
             else:
                 self.projector = SDEM.BinBasedDEMFluidCoupledMapping3D(self.projector_parameters)
-            self.bin_of_objects_fluid = KM.BinBasedFastPointLocator3D(fluid_model_part)
+            self.bin_of_objects_fluid = Kratos.BinBasedFastPointLocator3D(fluid_model_part)
 
         else:
             if project_parameters["ElementType"].GetString() == "SwimmingNanoParticle":
@@ -53,7 +53,7 @@ class ProjectionModule:
 
             else:
                 self.projector = SDEM.BinBasedDEMFluidCoupledMapping2D(self.projector_parameters)
-            self.bin_of_objects_fluid = KM.BinBasedFastPointLocator2D(fluid_model_part)
+            self.bin_of_objects_fluid = Kratos.BinBasedFastPointLocator2D(fluid_model_part)
 
         # telling the projector which variables we are interested in modifying
 
@@ -64,10 +64,10 @@ class ProjectionModule:
             self.projector.AddFluidCouplingVariable(var)
 
         for var in coupling_dem_vars:
-            if var in {KM.FLUID_VEL_PROJECTED, KM.FLUID_ACCEL_PROJECTED, KM.FLUID_VEL_LAPL_PROJECTED, KM.FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED}:
+            if var in {Kratos.FLUID_VEL_PROJECTED, Kratos.FLUID_ACCEL_PROJECTED, Kratos.FLUID_VEL_LAPL_PROJECTED, Kratos.FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED}:
                 self.projector.AddDEMVariablesToImpose(var)
                 coupling_dem_vars.remove(var)
-            self.projector.AddDEMVariablesToImpose(KM.AUX_VEL)
+            self.projector.AddDEMVariablesToImpose(Kratos.AUX_VEL)
 
         for var in time_filtered_vars:
             self.projector.AddFluidVariableToBeTimeFiltered(var, 0.004)

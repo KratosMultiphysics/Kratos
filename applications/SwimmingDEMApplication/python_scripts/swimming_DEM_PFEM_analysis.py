@@ -1,8 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import sys
-import KratosMultiphysics as KM
-from KratosMultiphysics import Vector, Logger
+import KratosMultiphysics as Kratos
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import swimming_DEM_procedures as SDP
@@ -47,14 +46,14 @@ class SDEMPFEMAnalysis(BaseAnalysis):
         if self.project_parameters["custom_fluid"]["body_force_on_fluid_option"].GetBool():
 
             for node in self.fluid_model_part.Nodes:
-                node.SetSolutionStepValue(KM.VOLUME_ACCELERATION_X, 0, self.project_parameters["GravityX"].GetDouble())
-                node.SetSolutionStepValue(KM.VOLUME_ACCELERATION_Y, 0, self.project_parameters["GravityY"].GetDouble())
-                node.SetSolutionStepValue(KM.VOLUME_ACCELERATION_Z, 0, self.project_parameters["GravityZ"].GetDouble())
+                node.SetSolutionStepValue(Kratos.VOLUME_ACCELERATION_X, 0, self.project_parameters["GravityX"].GetDouble())
+                node.SetSolutionStepValue(Kratos.VOLUME_ACCELERATION_Y, 0, self.project_parameters["GravityY"].GetDouble())
+                node.SetSolutionStepValue(Kratos.VOLUME_ACCELERATION_Z, 0, self.project_parameters["GravityZ"].GetDouble())
 
     def AssignKinematicViscosityFromDynamicViscosity(self):
         for node in self.fluid_model_part.Nodes:
-            kinematic_viscosity = node.GetSolutionStepValue(KM.DYNAMIC_VISCOSITY,0) / node.GetSolutionStepValue(KM.DENSITY,0)
-            node.SetSolutionStepValue(KM.VISCOSITY, 0, kinematic_viscosity)
+            kinematic_viscosity = node.GetSolutionStepValue(Kratos.DYNAMIC_VISCOSITY,0) / node.GetSolutionStepValue(Kratos.DENSITY,0)
+            node.SetSolutionStepValue(Kratos.VISCOSITY, 0, kinematic_viscosity)
 
     def FluidInitialize(self):
         self._GetFluidAnalysis().vars_man=self.vars_man
@@ -105,9 +104,9 @@ class SDEMPFEMAnalysis(BaseAnalysis):
         self.Dt             = self.pp.Dt
         self.out            = self.Dt
         if "REACTION" in self.pp.nodal_results:
-            self.fluid_model_part.AddNodalSolutionStepVariable(KM.REACTION)
+            self.fluid_model_part.AddNodalSolutionStepVariable(Kratos.REACTION)
         if "DISTANCE" in self.pp.nodal_results:
-            self.fluid_model_part.AddNodalSolutionStepVariable(KM.DISTANCE)
+            self.fluid_model_part.AddNodalSolutionStepVariable(Kratos.DISTANCE)
         self.vars_man.AddNodalVariables(self.fluid_model_part, self.vars_man.fluid_vars)
         if self.pp.type_of_inlet == 'ForceImposed':
             self.DEM_inlet = DEM.DEM_Force_Based_Inlet(self.dem_inlet_model_part, self.pp.force)

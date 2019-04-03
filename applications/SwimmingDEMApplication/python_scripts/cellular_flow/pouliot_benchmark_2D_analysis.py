@@ -1,4 +1,4 @@
-import KratosMultiphysics as KM
+import KratosMultiphysics as Kratos
 from KratosMultiphysics import Parameters
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import swimming_DEM_procedures as SDP
@@ -11,7 +11,7 @@ class PouliotBenchmark2DAnalysis(BaseAnalysis):
         BaseAnalysis.__init__(self, varying_parameters)
 
     def ReadFluidModelParts(self):
-        model_part_io_fluid = KM.ModelPartIO('benchmark2D')
+        model_part_io_fluid = Kratos.ModelPartIO('benchmark2D')
         os.chdir(self.main_path)
         model_part_io_fluid.ReadModelPart(self._GetFluidAnalysis().fluid_model_part)
 

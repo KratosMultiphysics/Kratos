@@ -7,7 +7,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Kratos
-import KratosMultiphysics as KM
+import KratosMultiphysics as Kratos
 from KratosMultiphysics import Model, Parameters
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.DEMApplication

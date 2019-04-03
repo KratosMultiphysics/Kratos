@@ -1,5 +1,5 @@
-import KratosMultiphysics as KM
-from KratosMultiphysics import Vector
+import KratosMultiphysics as Kratos
+from KratosMultiphysics import Parameters, Vector
 import swimming_DEM_procedures as SDP
 import math
 import os
@@ -21,7 +21,7 @@ from swimming_DEM_analysis import Say
 import parameters_tools as PT
 
 class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
-    def __init__(self, model, varying_parameters = KM.Parameters("{}")):
+    def __init__(self, model, varying_parameters=Parameters("{}")):
         super(CandelierBenchmarkAnalysis, self).__init__(model, varying_parameters)
         self._GetSolver().is_rotating_frame = self.project_parameters["frame_of_reference"]["frame_type"].GetInt()
         self._GetDEMAnalysis().mdpas_folder_path = os.path.join(self._GetDEMAnalysis().main_path, 'candelier_tests')
@@ -53,21 +53,21 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
         terminal_velocity_z = 2. / 9 * 9.81 * candelier_pp.a ** 2 / (candelier_pp.nu * candelier_pp.rho_f) * (candelier_pp.rho_f - candelier_pp.rho_p)
 
         for node in self.spheres_model_part.Nodes:
-            r = KM.Vector([node.X, node.Y, node.Z])
-            v0 = KM.Vector([candelier_pp.u0, candelier_pp.v0, terminal_velocity_z])
+            r = Kratos.Vector([node.X, node.Y, node.Z])
+            v0 = Kratos.Vector([candelier_pp.u0, candelier_pp.v0, terminal_velocity_z])
 
             if self._GetSolver().is_rotating_frame:
                 v0 = self._GetSolver().GetVelocityRelativeToMovingFrame(r_rel = r, v_glob = v0)
 
-            node.SetSolutionStepValue(KM.VELOCITY, v0)
-            node.Fix(KM.VELOCITY_Z)
-            node.SetSolutionStepValue(KM.VELOCITY_OLD, v0)
-            node.Fix(KM.VELOCITY_OLD_Z)
-            node.SetSolutionStepValue(KM.FLUID_VEL_PROJECTED, v0)
+            node.SetSolutionStepValue(Kratos.VELOCITY, v0)
+            node.Fix(Kratos.VELOCITY_Z)
+            node.SetSolutionStepValue(Kratos.VELOCITY_OLD, v0)
+            node.Fix(Kratos.VELOCITY_OLD_Z)
+            node.SetSolutionStepValue(Kratos.FLUID_VEL_PROJECTED, v0)
 
             if candelier_pp.include_lift:
-                vorticity = KM.Vector([0.0, 0.0, 2.0 * candelier_pp.omega])
-                node.SetSolutionStepValue(KM.FLUID_VORTICITY_PROJECTED, vorticity)
+                vorticity = Kratos.Vector([0.0, 0.0, 2.0 * candelier_pp.omega])
+                node.SetSolutionStepValue(Kratos.FLUID_VORTICITY_PROJECTED, vorticity)
 
     def _CreateSolver(self):
         import candelier_dem_solver as sdem_solver
@@ -88,7 +88,7 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
 
         if self.project_parameters["do_print_results_option"].GetBool():
             for node in self.spheres_model_part.Nodes:
-                r = KM.Vector([node.X, node.Y, node.Z])
+                r = Kratos.Vector([node.X, node.Y, node.Z])
                 self.results_database.MakeReading(self.time, r)
 
                 coor_calculated = [node.X, node.Y, node.Z]

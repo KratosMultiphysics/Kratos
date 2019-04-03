@@ -3,7 +3,7 @@
 
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-import KratosMultiphysics as KM
+import KratosMultiphysics as Kratos
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 
 class DerivativesRecoverer:
@@ -53,11 +53,11 @@ class GradientRecoverer(EmptyGradientRecoverer):
     def __init__(self, project_parameters, model_part):
         DerivativesRecoverer.__init__(self, project_parameters, model_part)
     def RecoverGradientOfVelocity(self):
-        self.RecoverGradientOfVector(KM.VELOCITY, KM.VELOCITY_X_GRADIENT, KM.VELOCITY_Y_GRADIENT, KM.VELOCITY_Z_GRADIENT)
+        self.RecoverGradientOfVector(Kratos.VELOCITY, Kratos.VELOCITY_X_GRADIENT, Kratos.VELOCITY_Y_GRADIENT, Kratos.VELOCITY_Z_GRADIENT)
     def RecoverPressureGradient(self):
-        self.RecoverGradientOfScalar(KM.PRESSURE, KM.PRESSURE_GRADIENT)
+        self.RecoverGradientOfScalar(Kratos.PRESSURE, Kratos.PRESSURE_GRADIENT)
     def RecoverFluidFractionGradient(self):
-        self.RecoverGradientOfScalar(KM.FLUID_FRACTION, KM.FLUID_FRACTION_GRADIENT)
+        self.RecoverGradientOfScalar(Kratos.FLUID_FRACTION, Kratos.FLUID_FRACTION_GRADIENT)
 
 class MaterialAccelerationRecoverer(GradientRecoverer, EmptyMaterialAccelerationRecoverer):
     def __init__(self, project_parameters, model_part):
@@ -66,29 +66,29 @@ class MaterialAccelerationRecoverer(GradientRecoverer, EmptyMaterialAcceleration
         self.RecoverMaterialAccelerationFromGradient()
     def RecoverMaterialAccelerationFromGradient(self):
         self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeFromGradient(self.model_part,
-                                                                                   KM.VELOCITY_X_GRADIENT,
-                                                                                   KM.VELOCITY_Y_GRADIENT,
-                                                                                   KM.VELOCITY_Z_GRADIENT,
-                                                                                   KM.ACCELERATION,
-                                                                                   KM.MATERIAL_ACCELERATION)
+                                                                                   Kratos.VELOCITY_X_GRADIENT,
+                                                                                   Kratos.VELOCITY_Y_GRADIENT,
+                                                                                   Kratos.VELOCITY_Z_GRADIENT,
+                                                                                   Kratos.ACCELERATION,
+                                                                                   Kratos.MATERIAL_ACCELERATION)
 
 class VorticityRecoverer(GradientRecoverer, EmptyVorticityRecoverer):
     def __init__(self, project_parameters, model_part):
         GradientRecoverer.__init__(self, project_parameters, model_part)
     def RecoverVorticityFromGradient(self):
         self.cplusplus_recovery_tool.CalculateVorticityFromGradient(self.model_part,
-                                                                    KM.VELOCITY_X_GRADIENT,
-                                                                    KM.VELOCITY_Y_GRADIENT,
-                                                                    KM.VELOCITY_Z_GRADIENT,
-                                                                    KM.VORTICITY)
+                                                                    Kratos.VELOCITY_X_GRADIENT,
+                                                                    Kratos.VELOCITY_Y_GRADIENT,
+                                                                    Kratos.VELOCITY_Z_GRADIENT,
+                                                                    Kratos.VORTICITY)
 
     def CalculateVorticityContributionOfTheGradientOfAComponent(self):
         self.cplusplus_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.model_part,
-                                                                                             KM.VELOCITY_COMPONENT_GRADIENT,
-                                                                                             KM.VORTICITY)
+                                                                                             Kratos.VELOCITY_COMPONENT_GRADIENT,
+                                                                                             Kratos.VORTICITY)
 
 class LaplacianRecoverer(GradientRecoverer, EmptyLaplacianRecoverer):
     def __init__(self, project_parameters, model_part):
         GradientRecoverer.__init__(self, project_parameters, model_part)
     def RecoverVelocityLaplacian(self):
-        self.RecoverVectorLaplacian(KM.VELOCITY, KM.VELOCITY_LAPLACIAN)
+        self.RecoverVectorLaplacian(Kratos.VELOCITY, Kratos.VELOCITY_LAPLACIAN)

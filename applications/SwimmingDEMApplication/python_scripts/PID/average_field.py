@@ -1,4 +1,4 @@
-import KratosMultiphysics as KM
+import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector
 from swimming_DEM_analysis import Say
 import math
@@ -59,8 +59,8 @@ class Rotator:
 
             node.X, node.Y, node.Z = P[0], P[1], P[2]
 
-            node.SetSolutionStepValue(KM.DISPLACEMENT, Vector(list(Displacement)))
-            node.SetSolutionStepValue(KM.MESH_VELOCITY, Vector(list(Velocity)))
+            node.SetSolutionStepValue(Kratos.DISPLACEMENT, Vector(list(Displacement)))
+            node.SetSolutionStepValue(Kratos.MESH_VELOCITY, Vector(list(Velocity)))
 
         Say('Mesh movement finshed.')
 

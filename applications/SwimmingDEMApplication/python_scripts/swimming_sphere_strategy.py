@@ -1,5 +1,5 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import KratosMultiphysics as KM
+import KratosMultiphysics as Kratos
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 
@@ -146,5 +146,5 @@ class SwimmingStrategy(BaseStrategy):
             SwimmingStrategy.CreateHydrodynamicLaw(properties, hydrodynamic_law_parameters)
 
         if not param:
-            if not properties.Has(KM.PARTICLE_SPHERICITY):
-                properties[KM.PARTICLE_SPHERICITY] = 1.0
+            if not properties.Has(Kratos.PARTICLE_SPHERICITY):
+                properties[Kratos.PARTICLE_SPHERICITY] = 1.0

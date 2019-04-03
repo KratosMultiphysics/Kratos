@@ -2,14 +2,12 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 from KratosMultiphysics import Logger, Parameters
 from python_solver import PythonSolver
-
-# Import applications
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
+import math
 import swimming_DEM_procedures as SDP
 import parameters_tools as PT
 import CFD_DEM_coupling
 import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
-import math
 
 def Say(*args):
     Logger.PrintInfo("SwimmingDEM", *args)

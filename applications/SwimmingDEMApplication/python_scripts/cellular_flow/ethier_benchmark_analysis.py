@@ -1,4 +1,4 @@
-import KratosMultiphysics as KM
+import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector, Parameters, ModelPartIO
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import sys
@@ -88,7 +88,7 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
             vel= Vector(3)
             coor = Vector([node.X, node.Y, node.Z])
             self.flow_field.Evaluate(0.0, coor, vel, 0)
-            node.SetSolutionStepValue(KM.VELOCITY, vel)
+            node.SetSolutionStepValue(Kratos.VELOCITY, vel)
 
     def RecoverDerivatives(self):
         t0 = timer.clock()
@@ -118,14 +118,14 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
         laplacian= Vector(3)
 
         for node in self.fluid_model_part.Nodes:
-            nodal_volume = node.GetSolutionStepValue(KM.NODAL_AREA)
+            nodal_volume = node.GetSolutionStepValue(Kratos.NODAL_AREA)
             total_volume += nodal_volume
             coor = Vector([node.X, node.Y, node.Z])
 
             self.flow_field.CalculateConvectiveDerivative(0., coor, mat_deriv, 0)
             self.flow_field.CalculateLaplacian(0., coor, laplacian, 0)
-            calc_mat_deriv = node.GetSolutionStepValue(KM.MATERIAL_ACCELERATION)
-            calc_laplacian = node.GetSolutionStepValue(KM.VELOCITY_LAPLACIAN)
+            calc_mat_deriv = node.GetSolutionStepValue(Kratos.MATERIAL_ACCELERATION)
+            calc_laplacian = node.GetSolutionStepValue(Kratos.VELOCITY_LAPLACIAN)
 
             module_mat_deriv_squared = sum(x**2 for x in mat_deriv)
             module_laplacian_squared = sum(x**2 for x in laplacian)
@@ -133,8 +133,8 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
             L2_norm_laplacian += module_laplacian_squared * nodal_volume
             diff_mat_deriv = calc_mat_deriv - mat_deriv
             diff_laplacian = calc_laplacian - laplacian
-            node.SetSolutionStepValue(KM.VECTORIAL_ERROR, Vector(list(diff_mat_deriv)))
-            node.SetSolutionStepValue(KM.VECTORIAL_ERROR_1, Vector(list(diff_laplacian)))
+            node.SetSolutionStepValue(Kratos.VECTORIAL_ERROR, Vector(list(diff_mat_deriv)))
+            node.SetSolutionStepValue(Kratos.VECTORIAL_ERROR_1, Vector(list(diff_laplacian)))
             module_mat_deriv_error_squared = sum(x**2 for x in diff_mat_deriv)
             module_laplacian_error_squared = sum(x**2 for x in diff_laplacian)
             L2_norm_mat_deriv_error += module_mat_deriv_error_squared * nodal_volume
@@ -154,8 +154,8 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
         max_laplacian_error **= 0.5
 
         if L2_norm_mat_deriv > 0 and L2_norm_laplacian > 0:
-            SDP.MultiplyNodalVariableByFactor(self.fluid_model_part, KM.VECTORIAL_ERROR, 1.0 / L2_norm_mat_deriv)
-            SDP.MultiplyNodalVariableByFactor(self.fluid_model_part, KM.VECTORIAL_ERROR_1, 1.0 / L2_norm_laplacian)
+            SDP.MultiplyNodalVariableByFactor(self.fluid_model_part, Kratos.VECTORIAL_ERROR, 1.0 / L2_norm_mat_deriv)
+            SDP.MultiplyNodalVariableByFactor(self.fluid_model_part, Kratos.VECTORIAL_ERROR_1, 1.0 / L2_norm_laplacian)
             self.current_mat_deriv_errors[0] = L2_norm_mat_deriv_error / L2_norm_mat_deriv
             self.current_mat_deriv_errors[1] = max_mat_deriv_error / L2_norm_mat_deriv
             self.current_laplacian_errors[0] = L2_norm_laplacian_error / L2_norm_laplacian

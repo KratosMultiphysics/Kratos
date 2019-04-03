@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-import KratosMultiphysics as KM
+import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector, ModelPart
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 from . import recoverer
@@ -9,9 +9,9 @@ import sys
 
 class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
     def GetFieldUtility(self):
-        import math
-        a = math.pi / 4
-        d = math.pi / 2*0
+        from math import pi
+        a = pi / 4
+        d = pi / 2*0
 
         self.flow_field = SDEM.EthierFlowField(a, d)
         space_time_set = SDEM.SpaceTimeSet()
@@ -54,9 +54,9 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         # from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
         # from KratosMultiphysics.ExternalSolversApplication import SuperLUSolver
         # linear_solver = SuperLUIterativeSolver()
-        scheme = KM.ResidualBasedIncrementalUpdateStaticScheme()
-        amgcl_smoother = KM.AMGCLSmoother.SPAI0
-        amgcl_krylov_type = KM.AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK
+        scheme = Kratos.ResidualBasedIncrementalUpdateStaticScheme()
+        amgcl_smoother = Kratos.AMGCLSmoother.SPAI0
+        amgcl_krylov_type = Kratos.AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK
         tolerance = 1e-8
         max_iterations = 400
         verbosity = 2 #0->shows no information, 1->some information, 2->all the information
@@ -65,7 +65,7 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         # if self.use_lumped_mass_matrix:
         #     linear_solver = CGSolver()
         # else:
-        linear_solver = KM.AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
+        linear_solver = Kratos.AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
         # linear_solver = SuperLUIterativeSolver()
         # linear_solver = CGSolver()
         # linear_solver = SkylineLUFactorizationSolver()
@@ -73,7 +73,7 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         # linear_solver = ITSOL_ARMS_Solver()
         # linear_solver = MKLPardisoSolver()
         # linear_solver = AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
-        self.recovery_strategy = KM.ResidualBasedDerivativeRecoveryStrategy(self.recovery_model_part, scheme, linear_solver, False, False, False, False)
+        self.recovery_strategy = Kratos.ResidualBasedDerivativeRecoveryStrategy(self.recovery_model_part, scheme, linear_solver, False, False, False, False)
 
         self.recovery_strategy.SetEchoLevel(echo_level)
 
@@ -108,34 +108,34 @@ class Pouliot2012EdgeGradientRecoverer(Pouliot2012EdgeDerivativesRecoverer, reco
     def Solve(self):
         print("\nSolving for the fluid acceleration...")
         sys.stdout.flush()
-        self.SetToZero(KM.VELOCITY_COMPONENT_GRADIENT)
+        self.SetToZero(Kratos.VELOCITY_COMPONENT_GRADIENT)
         self.recovery_strategy.Solve()
 
     def RecoverGradientOfVelocity(self):
-        self.model_part.ProcessInfo[KM.CURRENT_COMPONENT] = 0
+        self.model_part.ProcessInfo[Kratos.CURRENT_COMPONENT] = 0
         self.Solve()
-        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.VELOCITY_X_GRADIENT)
-        self.model_part.ProcessInfo[KM.CURRENT_COMPONENT] = 1
+        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, Kratos.VELOCITY_COMPONENT_GRADIENT, Kratos.VELOCITY_X_GRADIENT)
+        self.model_part.ProcessInfo[Kratos.CURRENT_COMPONENT] = 1
         self.Solve()
-        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.VELOCITY_Y_GRADIENT)
-        self.model_part.ProcessInfo[KM.CURRENT_COMPONENT] = 2
+        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, Kratos.VELOCITY_COMPONENT_GRADIENT, Kratos.VELOCITY_Y_GRADIENT)
+        self.model_part.ProcessInfo[Kratos.CURRENT_COMPONENT] = 2
         self.Solve() # and there is no need to copy anything
-        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.VELOCITY_Z_GRADIENT)
+        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.model_part, Kratos.VELOCITY_COMPONENT_GRADIENT, Kratos.VELOCITY_Z_GRADIENT)
 
         if self.calculate_vorticity:
             self.cplusplus_recovery_tool.CalculateVorticityFromGradient(self.model_part,
-                                                                        KM.VELOCITY_X_GRADIENT,
-                                                                        KM.VELOCITY_Y_GRADIENT,
-                                                                        KM.VELOCITY_Z_GRADIENT,
-                                                                        KM.VORTICITY)
+                                                                        Kratos.VELOCITY_X_GRADIENT,
+                                                                        Kratos.VELOCITY_Y_GRADIENT,
+                                                                        Kratos.VELOCITY_Z_GRADIENT,
+                                                                        Kratos.VORTICITY)
 
     def RecoverGradientOfVelocityComponent(self, component):
         self.model_part.ProcessInfo[CURRENT_COMPONENT] = component
         self.Solve()
         if self.calculate_vorticity:
             self.cplusplus_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.model_part,
-                                                                                                 KM.VELOCITY_COMPONENT_GRADIENT,
-                                                                                                 KM.VORTICITY)
+                                                                                                 Kratos.VELOCITY_COMPONENT_GRADIENT,
+                                                                                                 Kratos.VORTICITY)
 
     def GetElementType(self, parameters):
         if self.domain_size == 2:
@@ -145,9 +145,9 @@ class Pouliot2012EdgeGradientRecoverer(Pouliot2012EdgeDerivativesRecoverer, reco
 
     def GetDofs(self, parameters):
         if self.domain_size == 2:
-            return (KM.VELOCITY_COMPONENT_GRADIENT_X, KM.VELOCITY_COMPONENT_GRADIENT_Y)
+            return (Kratos.VELOCITY_COMPONENT_GRADIENT_X, Kratos.VELOCITY_COMPONENT_GRADIENT_Y)
         else:
-            return (KM.VELOCITY_COMPONENT_GRADIENT_X, KM.VELOCITY_COMPONENT_GRADIENT_Y, KM.VELOCITY_COMPONENT_GRADIENT_Z)
+            return (Kratos.VELOCITY_COMPONENT_GRADIENT_X, Kratos.VELOCITY_COMPONENT_GRADIENT_Y, Kratos.VELOCITY_COMPONENT_GRADIENT_Z)
 
 class Pouliot2012EdgeMaterialAccelerationRecoverer(Pouliot2012EdgeGradientRecoverer, recoverer.MaterialAccelerationRecoverer):
     def __init__(self, project_parameters, model_part):
@@ -160,11 +160,11 @@ class Pouliot2012EdgeMaterialAccelerationRecoverer(Pouliot2012EdgeGradientRecove
             self.RecoverMaterialAccelerationFromGradient()
         else:
             self.RecoverGradientOfVelocityComponent(0)
-            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.ACCELERATION, KM.MATERIAL_ACCELERATION)
+            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, Kratos.VELOCITY_COMPONENT_GRADIENT, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
             self.RecoverGradientOfVelocityComponent(1)
-            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.ACCELERATION, KM.MATERIAL_ACCELERATION)
+            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, Kratos.VELOCITY_COMPONENT_GRADIENT, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
             self.RecoverGradientOfVelocityComponent(2)
-            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, KM.VELOCITY_COMPONENT_GRADIENT, KM.ACCELERATION, KM.MATERIAL_ACCELERATION)
+            self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, Kratos.VELOCITY_COMPONENT_GRADIENT, Kratos.ACCELERATION, Kratos.MATERIAL_ACCELERATION)
 
 class Pouliot2012EdgeLaplacianRecoverer(Pouliot2012EdgeMaterialAccelerationRecoverer, recoverer.LaplacianRecoverer):
     def __init__(self, project_parameters, model_part):
@@ -178,7 +178,7 @@ class Pouliot2012EdgeLaplacianRecoverer(Pouliot2012EdgeMaterialAccelerationRecov
 
     def RecoverVelocityLaplacian(self):
         print("\nSolving for the laplacian...")
-        self.SetToZero(KM.VELOCITY_LAPLACIAN)
+        self.SetToZero(Kratos.VELOCITY_LAPLACIAN)
         self.recovery_strategy.Solve()
 
     def GetElementType(self, parameters):
@@ -195,6 +195,6 @@ class Pouliot2012EdgeLaplacianRecoverer(Pouliot2012EdgeMaterialAccelerationRecov
 
     def GetDofs(self, parameters):
         if self.domain_size == 2:
-            return (KM.VELOCITY_LAPLACIAN_X, KM.VELOCITY_LAPLACIAN_Y)
+            return (Kratos.VELOCITY_LAPLACIAN_X, Kratos.VELOCITY_LAPLACIAN_Y)
         else:
-            return (KM.VELOCITY_LAPLACIAN_X, KM.VELOCITY_LAPLACIAN_Y, KM.VELOCITY_LAPLACIAN_Z)
+            return (Kratos.VELOCITY_LAPLACIAN_X, Kratos.VELOCITY_LAPLACIAN_Y, Kratos.VELOCITY_LAPLACIAN_Z)

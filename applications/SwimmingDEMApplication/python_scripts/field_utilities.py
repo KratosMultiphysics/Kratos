@@ -1,8 +1,8 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import math
-import KratosMultiphysics as KM
+import KratosMultiphysics as Kratos
 from KratosMultiphysics import Array3
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
+import math
 
 class PorosityField:
 
@@ -31,8 +31,8 @@ class PorosityField:
 
     def ImposePorosityField(self, model_part):
         self.porosity_field_utility.MarkNodesInside(model_part, model_part.ProcessInfo)
-        self.porosity_field_utility.ImposeFieldOnNodes(KM.FLUID_FRACTION, self.porosity_default_value,  self.porosity_formula, model_part, model_part.ProcessInfo, False)
+        self.porosity_field_utility.ImposeFieldOnNodes(Kratos.FLUID_FRACTION, self.porosity_default_value,  self.porosity_formula, model_part, model_part.ProcessInfo, False)
 
     def ImposeForceField(self, model_part):
         self.force_field_utility.MarkNodesInside(model_part, model_part.ProcessInfo)
-        self.force_field_utility.ImposeFieldOnNodes(KM.BODY_FORCE, self.force_default_vector, self.force_formula, model_part, model_part.ProcessInfo, False)
+        self.force_field_utility.ImposeFieldOnNodes(Kratos.BODY_FORCE, self.force_default_vector, self.force_formula, model_part, model_part.ProcessInfo, False)
