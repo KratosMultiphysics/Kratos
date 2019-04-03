@@ -68,6 +68,9 @@ class ResponseFunctionCreator:
         response_type = response_settings["response_type"].GetString()
         if response_type in ["strain_energy", "mass", "eigenfrequency"]:
             self.list_of_response_functions[response_id] = structural_response_function_factory.CreateResponseFunction(response_id, response_settings, self.model)
+        elif response_type in ["potential_lift"]:
+            from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_response import CreateResponseFunction
+            self.list_of_response_functions[response_id] = CreateResponseFunction(response_id, response_settings, self.model)
         else:
             raise NameError("The following response function is not available for optimization: " + response_id)
 
