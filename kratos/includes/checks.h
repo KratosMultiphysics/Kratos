@@ -42,6 +42,9 @@
 #define KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(TheString, SubString) if (TheString.find(SubString) == std::string::npos ) \
 KRATOS_ERROR << "The string \"" << SubString << "\" was not found in the given string"
 
+#define KRATOS_STANDARD_CHECK_NEAR(a,b) if(std::abs(a - b) > 1e4 * std::numeric_limits<double>::epsilon() * (1 + std::abs(a) + std::abs(b))) KRATOS_ERROR << "Check failed because " << #a << " = " << a << \
+" is not near to " << #b << " = " << b << " within the standard Kratos tolerance " << 1e4 * std::numeric_limits<double>::epsilon()
+
 #define KRATOS_CHECK_NEAR(a,b, tolerance) if(std::abs(a - b) > tolerance) KRATOS_ERROR << "Check failed because " << #a << " = " << a << \
 " is not near to " << #b << " = " << b << " within the tolerance " << tolerance
 #define KRATOS_CHECK_DOUBLE_EQUAL(a,b) KRATOS_CHECK_NEAR(a,b,std::numeric_limits<double>::epsilon())

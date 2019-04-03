@@ -35,11 +35,9 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsHeron, KratosCoreFastSuite)
         {
-            constexpr double tolerance = 1e-6;
-
             const double area = MathUtils<double>::Heron<false>(std::sqrt(2.0), 1.0, 1.0);
 
-            KRATOS_CHECK_NEAR(area, 0.5, tolerance);
+            KRATOS_STANDARD_CHECK_NEAR(area, 0.5);
         }
 
         /** Checks if it gives you the absolute value of a given value
@@ -81,14 +79,12 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsDetMat, KratosCoreFastSuite)
         {
-            constexpr double tolerance = 1e-6;
-
             BoundedMatrix<double, 1, 1> mat11 = ZeroMatrix(1, 1);
             mat11(0,0) = 1.0;
 
             double det = MathUtils<double>::DetMat(mat11);
 
-            KRATOS_CHECK_NEAR(det, 1.0, tolerance);
+            KRATOS_STANDARD_CHECK_NEAR(det, 1.0);
 
             BoundedMatrix<double, 2, 2> mat22 = ZeroMatrix(2, 2);
             mat22(0,0) = 1.0;
@@ -96,7 +92,7 @@ namespace Kratos
 
             det = MathUtils<double>::DetMat(mat22);
 
-            KRATOS_CHECK_NEAR(det, 1.0, tolerance);
+            KRATOS_STANDARD_CHECK_NEAR(det, 1.0);
 
             BoundedMatrix<double, 3, 3> mat33 = ZeroMatrix(3, 3);
             mat33(0,0) = 1.0;
@@ -105,7 +101,7 @@ namespace Kratos
 
             det = MathUtils<double>::DetMat(mat33);
 
-            KRATOS_CHECK_NEAR(det, 1.0, tolerance);
+            KRATOS_STANDARD_CHECK_NEAR(det, 1.0);
 
             BoundedMatrix<double, 4, 4> mat44 = ZeroMatrix(4, 4);
             mat44(0,0) = 1.0;
@@ -115,13 +111,11 @@ namespace Kratos
 
             det = MathUtils<double>::DetMat(mat44);
 
-            KRATOS_CHECK_NEAR(det, 1.0, tolerance);
+            KRATOS_STANDARD_CHECK_NEAR(det, 1.0);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsCofactor, KratosCoreFastSuite)
         {
-            constexpr double tolerance = 1e-6;
-
             BoundedMatrix<double, 1, 1> mat11 = ZeroMatrix(1, 1);
             mat11(0,0) = 2.0;
 
@@ -145,13 +139,11 @@ namespace Kratos
             mat33(2,0) = 2.0; mat33(2,1) = 0.0; mat33(2,2) = -1.0;
 
             cofactor = MathUtils<double>::Cofactor(mat33, 2, 1);
-            KRATOS_CHECK_NEAR(cofactor, 9.0, tolerance);
+            KRATOS_STANDARD_CHECK_NEAR(cofactor, 9.0);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsCofactorMatrix, KratosCoreFastSuite)
         {
-            constexpr double tolerance = 1e-6;
-
             BoundedMatrix<double, 3, 3> mat33 = ZeroMatrix(3, 3);
             mat33(0,0) = 2.0; mat33(0,1) = 0.0; mat33(0,2) = 2.0;
             mat33(1,0) = 2.0; mat33(1,1) = 0.0; mat33(1,2) =-2.0;
@@ -165,7 +157,7 @@ namespace Kratos
             MathUtils<double>::MatrixType cof_mat = MathUtils<double>::CofactorMatrix(mat33);
             for (unsigned i = 0; i < ref33.size1(); ++i)
                 for (unsigned j = 0; j < ref33.size2(); ++j)
-                    KRATOS_CHECK_NEAR(cof_mat(i,j), ref33(i,j), tolerance);
+                    KRATOS_STANDARD_CHECK_NEAR(cof_mat(i,j), ref33(i,j));
         }
 
         /** Checks if it calculates the generalized determinant of a non-square matrix
@@ -174,15 +166,13 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsGenDetMat, KratosCoreFastSuite)
         {
-            constexpr double tolerance = 1e-6;
-
             Matrix mat23 = ZeroMatrix(2, 3);
             mat23(0,0) = 1.0;
             mat23(1,1) = 1.0;
 
             double det = MathUtils<double>::GeneralizedDet(mat23);
 
-            KRATOS_CHECK_NEAR(det, 1.0, tolerance);
+            KRATOS_STANDARD_CHECK_NEAR(det, 1.0);
 
             Matrix mat55 = ZeroMatrix(5, 5);
             mat55(0,0) =   1.0;
@@ -195,7 +185,7 @@ namespace Kratos
 
             det = MathUtils<double>::Det(mat55);
 
-            KRATOS_CHECK_NEAR(det, 4.0, tolerance);
+            KRATOS_STANDARD_CHECK_NEAR(det, 4.0);
         }
 
         /** Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 4x4 matrix
@@ -204,8 +194,6 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsInvMat, KratosCoreFastSuite)
         {
-            constexpr double tolerance = 1e-6;
-
             BoundedMatrix<double, 1, 1> mat11;
             mat11(0,0) = 0.896308;
 
@@ -214,7 +202,7 @@ namespace Kratos
             MathUtils<double>::InvertMatrix(mat11, inv11, det);
             const BoundedMatrix<double, 1, 1> I11 = prod(inv11, mat11);
 
-            KRATOS_CHECK_NEAR(I11(0,0), 1.0, tolerance);
+            KRATOS_STANDARD_CHECK_NEAR(I11(0,0), 1.0);
 
             BoundedMatrix<double, 2, 2> mat22;
             mat22(0,0) = 0.670005;
@@ -229,9 +217,9 @@ namespace Kratos
             for (unsigned int i = 0; i < 2; i++) {
                 for (unsigned int j = 0; j < 2; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(I22(i,j), 1.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I22(i,j), 1.0);
                     } else {
-                        KRATOS_CHECK_NEAR(I22(i,j), 0.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I22(i,j), 0.0);
                     }
                 }
             }
@@ -254,9 +242,9 @@ namespace Kratos
             for (unsigned int i = 0; i < 3; i++) {
                 for (unsigned int j = 0; j < 3; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(I33(i,j), 1.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I33(i,j), 1.0);
                     } else {
-                        KRATOS_CHECK_NEAR(I33(i,j), 0.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I33(i,j), 0.0);
                     }
                 }
             }
@@ -286,9 +274,9 @@ namespace Kratos
             for (unsigned int i = 0; i < 4; i++) {
                 for (unsigned int j = 0; j < 4; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(I44(i,j), 1.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I44(i,j), 1.0);
                     } else {
-                        KRATOS_CHECK_NEAR(I44(i,j), 0.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I44(i,j), 0.0);
                     }
                 }
             }
@@ -300,8 +288,6 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsInvertMatrix, KratosCoreFastSuite)
         {
-            constexpr double tolerance = 1e-6;
-
             double det;
             Matrix inv(1,1);
             Matrix I(1,1);
@@ -319,9 +305,9 @@ namespace Kratos
             for (unsigned int i = 0; i < i_dim; i++) {
                 for (unsigned int j = 0; j < i_dim; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I(i,j), 1.0);
                     } else {
-                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I(i,j), 0.0);
                     }
                 }
             }
@@ -343,9 +329,9 @@ namespace Kratos
             for (unsigned int i = 0; i < i_dim; i++) {
                 for (unsigned int j = 0; j < i_dim; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I(i,j), 1.0);
                     } else {
-                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I(i,j), 0.0);
                     }
                 }
             }
@@ -372,9 +358,9 @@ namespace Kratos
             for (unsigned int i = 0; i < i_dim; i++) {
                 for (unsigned int j = 0; j < i_dim; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I(i,j), 1.0);
                     } else {
-                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I(i,j), 0.0);
                     }
                 }
             }
@@ -408,9 +394,9 @@ namespace Kratos
             for (unsigned int i = 0; i < i_dim; i++) {
                 for (unsigned int j = 0; j < i_dim; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I(i,j), 1.0);
                     } else {
-                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I(i,j), 0.0);
                     }
                 }
             }
@@ -431,16 +417,16 @@ namespace Kratos
 
             MathUtils<double>::InvertMatrix(mat,inv, det);
 
-            KRATOS_CHECK_NEAR(det, 4.0, tolerance);
+            KRATOS_STANDARD_CHECK_NEAR(det, 4.0);
 
             I = prod(inv, mat);
 
             for (unsigned int i = 0; i < i_dim; i++) {
                 for (unsigned int j = 0; j < i_dim; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I(i,j), 1.0);
                     } else {
-                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I(i,j), 0.0);
                     }
                 }
             }
@@ -452,8 +438,6 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsSolve, KratosCoreFastSuite)
         {
-            constexpr double tolerance = 1e-6;
-
             const std::size_t i_dim = 4;
             double det;
             Matrix A(i_dim, i_dim);
@@ -490,7 +474,7 @@ namespace Kratos
             MathUtils<double>::Solve(A,x,b);
 
             for (std::size_t i = 0; i < i_dim; i++) {
-                KRATOS_CHECK_NEAR(ref_x[i], x[i], tolerance);
+                KRATOS_STANDARD_CHECK_NEAR(ref_x[i], x[i]);
             }
         }
 
@@ -500,8 +484,6 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsGeneralizedInvertMatrix, KratosCoreFastSuite)
         {
-            constexpr double tolerance = 1e-6;
-
             // We check the Left inverse
 
             const unsigned int i_dim = 2;
@@ -529,11 +511,11 @@ namespace Kratos
                 {
                     if (i == j)
                     {
-                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I(i,j), 1.0);
                     }
                     else
                     {
-                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I(i,j), 0.0);
                     }
                 }
             }
@@ -559,11 +541,11 @@ namespace Kratos
                 {
                     if (i == j)
                     {
-                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I(i,j), 1.0);
                     }
                     else
                     {
-                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                        KRATOS_STANDARD_CHECK_NEAR(I(i,j), 0.0);
                     }
                 }
             }
@@ -590,8 +572,6 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsEigen, KratosCoreFastSuite)
         {
-            constexpr double tolerance = 1e-6;
-
             BoundedMatrix<double, 3, 3> mat33;
             BoundedMatrix<double, 3, 3> eigenmat33;
             BoundedMatrix<double, 3, 3> vectormat33;
@@ -613,7 +593,7 @@ namespace Kratos
 
             for (std::size_t i = 0; i < 3; i++) {
                 for (std::size_t j = i; j < 3; j++) {
-                    KRATOS_CHECK_NEAR(auxmat33(i,j), mat33(i,j), tolerance);
+                    KRATOS_STANDARD_CHECK_NEAR(auxmat33(i,j), mat33(i,j));
                 }
             }
 
