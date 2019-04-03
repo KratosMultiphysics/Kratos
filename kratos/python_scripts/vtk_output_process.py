@@ -21,6 +21,7 @@ class VtkOutputProcess(KratosMultiphysics.Process):
             "output_frequency"                   : 1.0,
             "output_sub_model_parts"             : false,
             "folder_name"                        : "VTK_Output",
+            "custom_name_prefix"                 : "",
             "save_output_files_in_folder"        : true,
             "nodal_solution_step_data_variables" : [],
             "nodal_data_value_variables"         : [],
