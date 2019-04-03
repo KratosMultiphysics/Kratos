@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as KCPFApp
 from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_solver import PotentialFlowSolver
-import KratosMultiphysics.StructuralMechanicsApplication
+from KratosMultiphysics.StructuralMechanicsApplication import ReplaceMultipleElementsAndConditionsProcess
 
 def CreateSolver(model, custom_settings):
     return PotentialFlowAdjointSolver(model, custom_settings)
