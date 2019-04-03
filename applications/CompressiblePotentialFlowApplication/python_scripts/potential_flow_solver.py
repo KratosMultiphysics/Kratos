@@ -25,8 +25,9 @@ class PotentialFlowSolver(FluidSolver):
             "material_import_settings": {
                 "materials_filename": "unknown_materials.json"
             },
-            "formulation": {
-                "element_type": "imcompressible_potential"
+            "element_replace_settings": {
+                    "element_name":"IncompressiblePotentialFlowElement",
+                    "condition_name": "PotentialWallCondition"
             },
             "maximum_iterations": 10,
             "echo_level": 0,
@@ -56,9 +57,10 @@ class PotentialFlowSolver(FluidSolver):
 
         # Set the element and condition names for the replace settings
         # TODO: Create a formulation class helper as soon as there is more than one element is present
-        self.element_name = "IncompressiblePotentialFlowElement"
-        self.condition_name = "PotentialWallCondition"
+        self.element_name = self.settings["element_replace_settings"]["element_name"].GetString()
+        self.condition_name = self.settings["element_replace_settings"]["condition_name"].GetString()
         self.min_buffer_size = 1
+        self.move_mesh_flag = False
 
         # Construct the linear solvers
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
