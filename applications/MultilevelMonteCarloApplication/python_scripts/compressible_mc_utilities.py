@@ -14,10 +14,10 @@ import time
 from simulation_definition import SimulationScenario
 
 # Import the StatisticalVariable class
-from compressible_statistical_variable_utilities import StatisticalVariable
+from KratosMultiphysics.MultilevelMonteCarloApplication.compressible_statistical_variable_utilities import StatisticalVariable
 
 # Import random variable generator
-import compressible_generator_utilities as generator
+import KratosMultiphysics.MultilevelMonteCarloApplication.compressible_generator_utilities as generator
 
 # Import exaqute
 from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
