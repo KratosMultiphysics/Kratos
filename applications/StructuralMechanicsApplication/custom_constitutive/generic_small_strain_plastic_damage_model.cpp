@@ -145,120 +145,32 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 hard_damage, hcapd, undamaged_free_energy);
 
         // Verification threshold for the plastic-damage process
-        if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) && damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
+        if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) || damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
             bool is_converged = false;
             int number_iteration = 0;
             const int max_iter = 100;
 
-            KRATOS_WATCH(plasticity_indicator)
-            KRATOS_WATCH(damage_indicator)
-            KRATOS_WATCH(hard_damage)
-
+ 
             // Integration loop
             while (!is_converged && number_iteration <= max_iter) {
                 number_iteration++;
 
-                // Damage case without plasticity
-                if (plasticity_indicator < 1.0e-4 * threshold_plasticity) { 
-
-                    if (plastic_consistency_increment > tolerance) {
-                        this->CalculateIncrementsPlasticDamageCase(
-                            damage_yield_flux, effective_predictive_stress_vector,
-                            damage, f_flux, g_flux, r_constitutive_matrix,
-                            uniaxial_stress_plasticity, damage_indicator,
-                            plasticity_indicator, hard_damage, plastic_denominator,
-                            hcapd, damage_increment, plastic_consistency_increment);
-                    } else {
-                        plastic_consistency_increment = 0.0;
-                        denominator = hard_damage;
-
-                        denominator += inner_prod(damage_yield_flux, effective_predictive_stress_vector);
-                        damage_increment = damage_indicator / denominator;
-                    }
-
-
-                // Plasticity case without damage
-                } else if (damage_indicator < std::abs(1.0e-4 * threshold_damage)) { 
-                    if (damage_increment > 0.0) {
-                        this->CalculateIncrementsPlasticDamageCase(
-                            damage_yield_flux, effective_predictive_stress_vector,
-                            damage, f_flux, g_flux, r_constitutive_matrix,
-                            uniaxial_stress_plasticity, damage_indicator,
-                            plasticity_indicator, hard_damage, plastic_denominator,
-                            hcapd, damage_increment, plastic_consistency_increment);
-                    } else {
-                        damage_increment = 0.0;
-                        plastic_consistency_increment = plasticity_indicator * plastic_denominator;
-                    }
-
-                // Plastic-Damage case
-                } else {
-                    if (hard_damage == 0.0) {
-                        damage_increment = 0.0;
-                        plastic_consistency_increment = plasticity_indicator * plastic_denominator;
-                    } else {
-                        this->CalculateIncrementsPlasticDamageCase(
-                            damage_yield_flux, effective_predictive_stress_vector,
-                            damage, f_flux, g_flux, r_constitutive_matrix,
-                            uniaxial_stress_plasticity, damage_indicator,
-                            plasticity_indicator, hard_damage, plastic_denominator,
-                            hcapd, damage_increment, plastic_consistency_increment);
-                    }
+            // *****************************************************
+                // Plastic Damage Case
+                if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) && damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
+                    
                 }
-                
-                // Update internal variables damage
-                if (damage_increment > tolerance) damage += damage_increment;
-                this->CheckInternalVariable(damage); // Just check te upper-lower bounds
-
-                KRATOS_WATCH(plastic_consistency_increment)
-
-                // Update internals variables plasticity
-                if (plastic_consistency_increment > tolerance) plastic_strain_increment = plastic_consistency_increment * g_flux;
-                else plastic_consistency_increment = 0.0;
-
-                // OJO
-                // plastic_strain_increment = std::abs(plastic_consistency_increment) * g_flux;
 
 
 
-                noalias(plastic_strain) += plastic_strain_increment;
-                noalias(deepp) += plastic_strain_increment;
-                array_1d<double, VoigtSize> delta_sigma = prod(r_constitutive_matrix, plastic_strain_increment);
 
-                // Return mapping
-                noalias(effective_predictive_stress_vector) -= delta_sigma;
-                noalias(predictive_stress_vector) = (1.0 - damage) * effective_predictive_stress_vector;
-                undamaged_free_energy = 0.5 * inner_prod(r_strain_vector - plastic_strain - deepp, effective_predictive_stress_vector);
-                
-                // Verification to check wether we are inside the yield surfaces
-                plasticity_indicator = TPlasticityIntegratorType::CalculatePlasticParameters(
-                                predictive_stress_vector, r_strain_vector, uniaxial_stress_plasticity,
-                                threshold_plasticity, plastic_denominator, f_flux, g_flux,
-                                plastic_dissipation, plastic_strain_increment,
-                                r_constitutive_matrix, rValues, characteristic_length,
-                                plastic_strain);
-                damage_indicator = this->CalculateDamageParameters(
-                        predictive_stress_vector, r_strain_vector,
-                        uniaxial_stress_damage, threshold_damage, 
-                        damage_dissipation, r_constitutive_matrix,
-                        rValues, characteristic_length, damage_yield_flux,
-                        plastic_strain, damage, damage_increment, 
-                        hard_damage, hcapd, undamaged_free_energy);
 
-                KRATOS_WATCH(plasticity_indicator)
-                KRATOS_WATCH(damage_indicator)
-                KRATOS_WATCH(damage)
-                KRATOS_WATCH(plastic_dissipation)
-                KRATOS_WATCH(plastic_strain)
-                KRATOS_WATCH(damage_dissipation)
 
-                // Final check
-                if (plasticity_indicator < std::abs(1.0e-4 * threshold_plasticity) && damage_indicator < std::abs(1.0e-4 * threshold_damage)) {
-                    is_converged = true; // There is convergence
-                }
+
+
+
+            // *****************************************************
             }
-            KRATOS_WARNING_IF("Backward Euler Plastic-Damage Model", number_iteration > max_iter) << "Maximum iterations in Plastic-Damage return mapping" << std::endl;
-
             // Updated Values
             noalias(r_integrated_stress_vector) = predictive_stress_vector;
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
@@ -391,192 +303,192 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
 template <class TPlasticityIntegratorType, class TDamageIntegratorType>
 void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    // Integrate Stress Damage
-    Vector& r_integrated_stress_vector = rValues.GetStressVector();
-    const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
-    Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
-    const Flags& r_constitutive_law_options = rValues.GetOptions();
+    // // Integrate Stress Damage
+    // Vector& r_integrated_stress_vector = rValues.GetStressVector();
+    // const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+    // Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
+    // const Flags& r_constitutive_law_options = rValues.GetOptions();
 
-    // We get the strain vector
-    Vector& r_strain_vector = rValues.GetStrainVector();
+    // // We get the strain vector
+    // Vector& r_strain_vector = rValues.GetStrainVector();
 
-    //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-        this->CalculateValue(rValues, STRAIN, r_strain_vector);
-    }
+    // //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
+    // if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+    //     this->CalculateValue(rValues, STRAIN, r_strain_vector);
+    // }
 
-    // Elastic Matrix
-    if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
-    }
+    // // Elastic Matrix
+    // if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+    //     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+    //     this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+    // }
 
-    // We compute the stress
-    if(r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-        // Elastic Matrix
-        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+    // // We compute the stress
+    // if(r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+    //     // Elastic Matrix
+    //     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+    //     this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
 
-        if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-            BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
-        }
+    //     if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+    //         BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
+    //     }
 
-        // Converged values
-        double threshold_plasticity = mThresholdPlasticity;
-        double threshold_damage = mThresholdDamage;
-        double damage = mDamage;
-        double plastic_dissipation = mPlasticDissipation;
-        Vector plastic_strain = mPlasticStrain;
-        double damage_dissipation = mDamageDissipation;
-        double damage_increment = 0.0;  // dDamage
-        double plastic_consistency_increment = 0.0; // dlambda
-        double hard_damage = 0.0;
-        double hcapd = 0.0;
-        double denominator;
+    //     // Converged values
+    //     double threshold_plasticity = mThresholdPlasticity;
+    //     double threshold_damage = mThresholdDamage;
+    //     double damage = mDamage;
+    //     double plastic_dissipation = mPlasticDissipation;
+    //     Vector plastic_strain = mPlasticStrain;
+    //     double damage_dissipation = mDamageDissipation;
+    //     double damage_increment = 0.0;  // dDamage
+    //     double plastic_consistency_increment = 0.0; // dlambda
+    //     double hard_damage = 0.0;
+    //     double hcapd = 0.0;
+    //     double denominator;
 
-        // Stress Predictor S = (1-d)C:(E-Ep)
-        array_1d<double, VoigtSize> effective_predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
-		array_1d<double, VoigtSize> predictive_stress_vector = (1.0 - damage) * effective_predictive_stress_vector;
+    //     // Stress Predictor S = (1-d)C:(E-Ep)
+    //     array_1d<double, VoigtSize> effective_predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
+	// 	array_1d<double, VoigtSize> predictive_stress_vector = (1.0 - damage) * effective_predictive_stress_vector;
 
-        // Initialize Plastic Parameters
-        double uniaxial_stress_plasticity = 0.0, plastic_denominator = 0.0, uniaxial_stress_damage = 0.0;
-        BoundedArrayType damage_yield_flux = ZeroVector(VoigtSize); // DF/DS
-        BoundedArrayType f_flux = ZeroVector(VoigtSize); // DF/DS
-        BoundedArrayType g_flux = ZeroVector(VoigtSize); // DG/DS
-        BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
-        BoundedArrayType deepp = ZeroVector(VoigtSize);
+    //     // Initialize Plastic Parameters
+    //     double uniaxial_stress_plasticity = 0.0, plastic_denominator = 0.0, uniaxial_stress_damage = 0.0;
+    //     BoundedArrayType damage_yield_flux = ZeroVector(VoigtSize); // DF/DS
+    //     BoundedArrayType f_flux = ZeroVector(VoigtSize); // DF/DS
+    //     BoundedArrayType g_flux = ZeroVector(VoigtSize); // DG/DS
+    //     BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
+    //     BoundedArrayType deepp = ZeroVector(VoigtSize);
 
-        double undamaged_free_energy = 0.5 * inner_prod(r_strain_vector - plastic_strain, effective_predictive_stress_vector);
+    //     double undamaged_free_energy = 0.5 * inner_prod(r_strain_vector - plastic_strain, effective_predictive_stress_vector);
 
-        // Compute the plastic parameters
-        double plasticity_indicator = TPlasticityIntegratorType::CalculatePlasticParameters(
-                predictive_stress_vector, r_strain_vector, uniaxial_stress_plasticity,
-                threshold_plasticity, plastic_denominator, f_flux, g_flux,
-                plastic_dissipation, plastic_strain_increment,
-                r_constitutive_matrix, rValues, characteristic_length,
-                plastic_strain);
+    //     // Compute the plastic parameters
+    //     double plasticity_indicator = TPlasticityIntegratorType::CalculatePlasticParameters(
+    //             predictive_stress_vector, r_strain_vector, uniaxial_stress_plasticity,
+    //             threshold_plasticity, plastic_denominator, f_flux, g_flux,
+    //             plastic_dissipation, plastic_strain_increment,
+    //             r_constitutive_matrix, rValues, characteristic_length,
+    //             plastic_strain);
 
-        // Compute Damage Parameters
-        double damage_indicator = this->CalculateDamageParameters(
-                predictive_stress_vector, r_strain_vector,
-                uniaxial_stress_damage, threshold_damage, 
-                damage_dissipation, r_constitutive_matrix,
-                rValues, characteristic_length, damage_yield_flux,
-                plastic_strain, damage, damage_increment, 
-                hard_damage, hcapd, undamaged_free_energy);
+    //     // Compute Damage Parameters
+    //     double damage_indicator = this->CalculateDamageParameters(
+    //             predictive_stress_vector, r_strain_vector,
+    //             uniaxial_stress_damage, threshold_damage, 
+    //             damage_dissipation, r_constitutive_matrix,
+    //             rValues, characteristic_length, damage_yield_flux,
+    //             plastic_strain, damage, damage_increment, 
+    //             hard_damage, hcapd, undamaged_free_energy);
 
-        // Verification threshold for the plastic-damage process
-        if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) && damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
-            bool is_converged = false;
-            int number_iteration = 0;
-            const int max_iter = 100;
+    //     // Verification threshold for the plastic-damage process
+    //     if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) && damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
+    //         bool is_converged = false;
+    //         int number_iteration = 0;
+    //         const int max_iter = 100;
 
-            // Integration loop
-            while (!is_converged && number_iteration <= max_iter) {
-                number_iteration++;
+    //         // Integration loop
+    //         while (!is_converged && number_iteration <= max_iter) {
+    //             number_iteration++;
 
-                // Damage case without plasticity
-                if (plasticity_indicator < 1.0e-4 * threshold_plasticity) { 
+    //             // Damage case without plasticity
+    //             if (plasticity_indicator < 1.0e-4 * threshold_plasticity) { 
 
-                    if (plastic_consistency_increment > tolerance) {
-                        this->CalculateIncrementsPlasticDamageCase(
-                            damage_yield_flux, effective_predictive_stress_vector,
-                            damage, f_flux, g_flux, r_constitutive_matrix,
-                            uniaxial_stress_plasticity, damage_indicator,
-                            plasticity_indicator, hard_damage, plastic_denominator,
-                            hcapd, damage_increment, plastic_consistency_increment);
-                    } else {
-                        plastic_consistency_increment = 0.0;
-                        denominator = hard_damage;
+    //                 if (plastic_consistency_increment > tolerance) {
+    //                     this->CalculateIncrementsPlasticDamageCase(
+    //                         damage_yield_flux, effective_predictive_stress_vector,
+    //                         damage, f_flux, g_flux, r_constitutive_matrix,
+    //                         uniaxial_stress_plasticity, damage_indicator,
+    //                         plasticity_indicator, hard_damage, plastic_denominator,
+    //                         hcapd, damage_increment, plastic_consistency_increment);
+    //                 } else {
+    //                     plastic_consistency_increment = 0.0;
+    //                     denominator = hard_damage;
 
-                        denominator += inner_prod(damage_yield_flux, effective_predictive_stress_vector);
-                        damage_increment = damage_indicator / denominator;
-                    }
+    //                     denominator += inner_prod(damage_yield_flux, effective_predictive_stress_vector);
+    //                     damage_increment = damage_indicator / denominator;
+    //                 }
 
 
-                // Plasticity case without damage
-                } else if (damage_indicator < std::abs(1.0e-4 * threshold_damage)) { 
-                    if (damage_increment > 0.0) {
-                        this->CalculateIncrementsPlasticDamageCase(
-                            damage_yield_flux, effective_predictive_stress_vector,
-                            damage, f_flux, g_flux, r_constitutive_matrix,
-                            uniaxial_stress_plasticity, damage_indicator,
-                            plasticity_indicator, hard_damage, plastic_denominator,
-                            hcapd, damage_increment, plastic_consistency_increment);
-                    } else {
-                        damage_increment = 0.0;
-                        plastic_consistency_increment = plasticity_indicator * plastic_denominator;
-                    }
+    //             // Plasticity case without damage
+    //             } else if (damage_indicator < std::abs(1.0e-4 * threshold_damage)) { 
+    //                 if (damage_increment > 0.0) {
+    //                     this->CalculateIncrementsPlasticDamageCase(
+    //                         damage_yield_flux, effective_predictive_stress_vector,
+    //                         damage, f_flux, g_flux, r_constitutive_matrix,
+    //                         uniaxial_stress_plasticity, damage_indicator,
+    //                         plasticity_indicator, hard_damage, plastic_denominator,
+    //                         hcapd, damage_increment, plastic_consistency_increment);
+    //                 } else {
+    //                     damage_increment = 0.0;
+    //                     plastic_consistency_increment = plasticity_indicator * plastic_denominator;
+    //                 }
 
-                // Plastic-Damage case
-                } else {
-                    if (hard_damage == 0.0) {
-                        damage_increment = 0.0;
-                        plastic_consistency_increment = plasticity_indicator * plastic_denominator;
-                    } else {
-                        this->CalculateIncrementsPlasticDamageCase(
-                            damage_yield_flux, effective_predictive_stress_vector,
-                            damage, f_flux, g_flux, r_constitutive_matrix,
-                            uniaxial_stress_plasticity, damage_indicator,
-                            plasticity_indicator, hard_damage, plastic_denominator,
-                            hcapd, damage_increment, plastic_consistency_increment);
-                    }
-                }
+    //             // Plastic-Damage case
+    //             } else {
+    //                 if (hard_damage == 0.0) {
+    //                     damage_increment = 0.0;
+    //                     plastic_consistency_increment = plasticity_indicator * plastic_denominator;
+    //                 } else {
+    //                     this->CalculateIncrementsPlasticDamageCase(
+    //                         damage_yield_flux, effective_predictive_stress_vector,
+    //                         damage, f_flux, g_flux, r_constitutive_matrix,
+    //                         uniaxial_stress_plasticity, damage_indicator,
+    //                         plasticity_indicator, hard_damage, plastic_denominator,
+    //                         hcapd, damage_increment, plastic_consistency_increment);
+    //                 }
+    //             }
                 
-                // Update internal variables damage
-                if (damage_increment > tolerance) damage += damage_increment;
-                this->CheckInternalVariable(damage); // Just check te upper-lower bounds
+    //             // Update internal variables damage
+    //             if (damage_increment > tolerance) damage += damage_increment;
+    //             this->CheckInternalVariable(damage); // Just check te upper-lower bounds
 
-                // Update internals variables plasticity
-                if (plastic_consistency_increment > tolerance) plastic_strain_increment = plastic_consistency_increment * g_flux;
-                else plastic_consistency_increment = 0.0;
+    //             // Update internals variables plasticity
+    //             if (plastic_consistency_increment > tolerance) plastic_strain_increment = plastic_consistency_increment * g_flux;
+    //             else plastic_consistency_increment = 0.0;
 
-                // plastic_strain_increment = std::abs(plastic_consistency_increment) * g_flux;
+    //             // plastic_strain_increment = std::abs(plastic_consistency_increment) * g_flux;
 
-                noalias(plastic_strain) += plastic_strain_increment;
-                noalias(deepp) += plastic_strain_increment;
-                array_1d<double, VoigtSize> delta_sigma = prod(r_constitutive_matrix, plastic_strain_increment);
+    //             noalias(plastic_strain) += plastic_strain_increment;
+    //             noalias(deepp) += plastic_strain_increment;
+    //             array_1d<double, VoigtSize> delta_sigma = prod(r_constitutive_matrix, plastic_strain_increment);
 
-                // Return mapping
-                noalias(effective_predictive_stress_vector) -= delta_sigma;
-                noalias(predictive_stress_vector) = (1.0 - damage) * effective_predictive_stress_vector;
-                undamaged_free_energy = 0.5 * inner_prod(r_strain_vector - plastic_strain - deepp, effective_predictive_stress_vector);
+    //             // Return mapping
+    //             noalias(effective_predictive_stress_vector) -= delta_sigma;
+    //             noalias(predictive_stress_vector) = (1.0 - damage) * effective_predictive_stress_vector;
+    //             undamaged_free_energy = 0.5 * inner_prod(r_strain_vector - plastic_strain - deepp, effective_predictive_stress_vector);
                 
-                // Verification to check wether we are inside the yield surfaces
-                plasticity_indicator = TPlasticityIntegratorType::CalculatePlasticParameters(
-                                predictive_stress_vector, r_strain_vector, uniaxial_stress_plasticity,
-                                threshold_plasticity, plastic_denominator, f_flux, g_flux,
-                                plastic_dissipation, plastic_strain_increment,
-                                r_constitutive_matrix, rValues, characteristic_length,
-                                plastic_strain);
-                damage_indicator = this->CalculateDamageParameters(
-                        predictive_stress_vector, r_strain_vector,
-                        uniaxial_stress_damage, threshold_damage, 
-                        damage_dissipation, r_constitutive_matrix,
-                        rValues, characteristic_length, damage_yield_flux,
-                        plastic_strain, damage, damage_increment, 
-                        hard_damage, hcapd, undamaged_free_energy);
+    //             // Verification to check wether we are inside the yield surfaces
+    //             plasticity_indicator = TPlasticityIntegratorType::CalculatePlasticParameters(
+    //                             predictive_stress_vector, r_strain_vector, uniaxial_stress_plasticity,
+    //                             threshold_plasticity, plastic_denominator, f_flux, g_flux,
+    //                             plastic_dissipation, plastic_strain_increment,
+    //                             r_constitutive_matrix, rValues, characteristic_length,
+    //                             plastic_strain);
+    //             damage_indicator = this->CalculateDamageParameters(
+    //                     predictive_stress_vector, r_strain_vector,
+    //                     uniaxial_stress_damage, threshold_damage, 
+    //                     damage_dissipation, r_constitutive_matrix,
+    //                     rValues, characteristic_length, damage_yield_flux,
+    //                     plastic_strain, damage, damage_increment, 
+    //                     hard_damage, hcapd, undamaged_free_energy);
 
-                // Final check
-                if (plasticity_indicator < std::abs(1.0e-4 * threshold_plasticity) && damage_indicator < std::abs(1.0e-4 * threshold_damage)) {
-                    is_converged = true; // There is convergence
-                }
-            }
-            KRATOS_WARNING_IF("Backward Euler Plastic-Damage Model", number_iteration > max_iter) << "Maximum iterations in Plastic-Damage return mapping" << std::endl;
+    //             // Final check
+    //             if (plasticity_indicator < std::abs(1.0e-4 * threshold_plasticity) && damage_indicator < std::abs(1.0e-4 * threshold_damage)) {
+    //                 is_converged = true; // There is convergence
+    //             }
+    //         }
+    //         KRATOS_WARNING_IF("Backward Euler Plastic-Damage Model", number_iteration > max_iter) << "Maximum iterations in Plastic-Damage return mapping" << std::endl;
 
-            // Updated Values
-            noalias(r_integrated_stress_vector) = predictive_stress_vector;
-        } else {
-			noalias(r_integrated_stress_vector) = predictive_stress_vector;
-        }
-        // Update internal variables
-        mPlasticDissipation = plastic_dissipation;
-        mThresholdPlasticity = threshold_plasticity;
-        mPlasticStrain = plastic_strain;
-        mThresholdDamage = threshold_damage;
-        mDamage = damage;
-        mDamageDissipation = damage_dissipation;
-    }
+    //         // Updated Values
+    //         noalias(r_integrated_stress_vector) = predictive_stress_vector;
+    //     } else {
+	// 		noalias(r_integrated_stress_vector) = predictive_stress_vector;
+    //     }
+    //     // Update internal variables
+    //     mPlasticDissipation = plastic_dissipation;
+    //     mThresholdPlasticity = threshold_plasticity;
+    //     mPlasticStrain = plastic_strain;
+    //     mThresholdDamage = threshold_damage;
+    //     mDamage = damage;
+    //     mDamageDissipation = damage_dissipation;
+    // }
 
 }
 
@@ -908,49 +820,30 @@ template <class TPlasticityIntegratorType, class TDamageIntegratorType>
 void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::
 CalculateIncrementsPlasticDamageCase(
     const Vector& rFluxDamageYield,
-    const Vector& rEffectiveStressVector,
+    const Vector& rStrainVector,
     const double Damage,
     const Vector& rPlasticityFlux,
     const Vector& rPlasticityGFlux,
     const Matrix& rElasticMatrix,
-    const double UniaxialStressPlasticity,
     const double DamageIndicator,
     const double PlasticityIndicator,
-    const double DamageHardParameter,
-    const double PlasticDenominator,
-    const double Hcapd,
+    const Vector& rPlasticStrain,
     double& rDamageIncrement,
     double& rPlasticConsistencyIncrement
 )
 {
-    const double scalar_prod_dam_yield_sigma_eff   = inner_prod(rFluxDamageYield, rEffectiveStressVector);
-    const double scalar_prod_plast_yield_sigma_eff = inner_prod(rPlasticityFlux, rEffectiveStressVector);
+    const Vector dS_ddam = -prod(rElasticMatrix, rStrainVector - rPlasticStrain - rPlasticConsistencyIncrement*rPlasticityGFlux);
+	const Vector dS_dlambda = -(1.0 - Damage - rDamageIncrement)*prod(rElasticMatrix, rPlasticityGFlux);
+    const double dFp_dlambda = inner_prod(rPlasticityFlux, dS_dlambda); // A
+    const double dFp_ddam = inner_prod(rPlasticityFlux, dS_ddam); // B
+    const double dFd_dlamba = inner_prod(rFluxDamageYield, dS_dlambda); // C
+    const double dFd_ddam = inner_prod(rFluxDamageYield, dS_ddam); // D
+    const double jacobian_determinant = dFp_dlambda * dFd_ddam - dFp_ddam * dFd_dlamba;
 
-    double innerprod_dam_yield_elastic_tensor = 0.0, HKG = 0.0, fact1 = 0.0;
-    Vector hcapa = ZeroVector(VoigtSize);
-    for (IndexType i = 0; i < VoigtSize; ++i) {
-        innerprod_dam_yield_elastic_tensor = 0.0;
-        for (IndexType j = 0; j < VoigtSize; ++j) {
-            innerprod_dam_yield_elastic_tensor += rFluxDamageYield[j] * rElasticMatrix(i,j);
-        }
-        hcapa[i] = rEffectiveStressVector[i] * (1.0 - Damage) / UniaxialStressPlasticity;
-        HKG +=  hcapa[i] * rPlasticityGFlux[i];
-        fact1 += innerprod_dam_yield_elastic_tensor * rPlasticityGFlux[i]; 
-    }
-    fact1 *= (1.0 - Damage);
-    const double factorA = scalar_prod_plast_yield_sigma_eff;
-    const double factorB = 1.0 / PlasticDenominator;
-    const double factorC = scalar_prod_dam_yield_sigma_eff + DamageHardParameter;
-    const double factorD = fact1;
-    const double denominator = factorA * factorD - factorB * factorC;
+    // todo try mcaully brackets
 
-    if (std::abs(denominator) > tolerance) {
-		rDamageIncrement = (factorD * PlasticityIndicator - factorB * DamageIndicator) / denominator;
-		rPlasticConsistencyIncrement = (factorA * DamageIndicator - factorC * PlasticityIndicator) / denominator;
-    } else {
-		rDamageIncrement = PlasticityIndicator / (factorA + factorD * Hcapd / HKG);
-		rPlasticConsistencyIncrement = PlasticityIndicator / (factorD + factorA * HKG / Hcapd);
-    }
+    rPlasticConsistencyIncrement -=  (dFd_ddam * PlasticityIndicator - dFp_ddam * DamageIndicator) / jacobian_determinant;
+    rDamageIncrement -= (dFp_dlambda * DamageIndicator - dFd_dlamba * PlasticityIndicator) / jacobian_determinant;
 }
 
 /***********************************************************************************/

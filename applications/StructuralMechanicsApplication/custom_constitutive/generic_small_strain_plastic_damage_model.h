@@ -378,17 +378,14 @@ public:
 
     void CalculateIncrementsPlasticDamageCase(
         const Vector& rFluxDamageYield,
-        const Vector& rStressVector,
+        const Vector& rStrainVector,
         const double Damage,
         const Vector& rPlasticityFlux,
         const Vector& rPlasticityGFlux,
         const Matrix& rElasticMatrix,
-        const double UniaxialStressPlasticity,
         const double DamageIndicator,
         const double PlasticityIndicator,
-        const double DamageHardParameter,
-        const double PlasticDenominator,
-        const double Hcapd,
+        const Vector& rPlasticStrain,
         double& rDamageIncrement,
         double& rPlasticConsistencyIncrement);
 
