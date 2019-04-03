@@ -38,7 +38,7 @@ namespace Kratos {
             KRATOS_WARNING("DEM")<<std::endl;
             KRATOS_WARNING("DEM")<<"WARNING: Variable CONICAL_DAMAGE_ALPHA should be present in the properties when using DEM_D_Conical_damage. 90.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
-            pProp->GetValue(DAMPING_GAMMA) = 90.0;
+            pProp->GetValue(CONICAL_DAMAGE_ALPHA) = 90.0;
         }
         if(!pProp->Has(CONICAL_DAMAGE_GAMMA)) {
             KRATOS_WARNING("DEM")<<std::endl;
