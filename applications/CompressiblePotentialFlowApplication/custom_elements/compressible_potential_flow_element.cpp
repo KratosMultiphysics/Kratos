@@ -449,7 +449,6 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubdiv
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
     const double density_infinity = GetProperties().GetValue(DENSITY);
-    KRATOS_WATCH(density_infinity);
 
     GetWakeDistances(data.distances);
 
