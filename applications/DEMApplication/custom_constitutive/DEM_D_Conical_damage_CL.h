@@ -6,16 +6,15 @@
 
 #include <string>
 #include <iostream>
-#include "DEM_discontinuum_constitutive_law.h"
+#include "DEM_D_Hertz_viscous_Coulomb_CL.h"
 
 namespace Kratos {
 
     class SphericParticle;
 
-    class KRATOS_API(DEM_APPLICATION) DEM_D_Conical_damage : public DEMDiscontinuumConstitutiveLaw {
+    class KRATOS_API(DEM_APPLICATION) DEM_D_Conical_damage : public DEM_D_Hertz_viscous_Coulomb {
 
     public:
-        using DEMDiscontinuumConstitutiveLaw::CalculateNormalForce;
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Conical_damage);
 
@@ -89,16 +88,6 @@ namespace Kratos {
                                     Condition* const wall,
                                     bool& sliding) override;
 
-        double CalculateNormalForce(const double indentation) override;
-
-        double CalculateCohesiveNormalForce(SphericParticle* const element1,
-                                            SphericParticle* const element2,
-                                            const double indentation) override;
-
-        double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element,
-                                                   Condition* const wall,
-                                                   const double indentation) override;
-
         void CalculateTangentialForce(const double normal_contact_force,
                                       const double OldLocalElasticContactForce[3],
                                       double LocalElasticContactForce[3],
@@ -129,39 +118,19 @@ namespace Kratos {
                                              double& AuxElasticShearForce,
                                              double& MaximumAdmisibleShearForce);
 
-        void CalculateViscoDampingForce(double LocalRelVel[3],
-                                        double ViscoDampingLocalContactForce[3],
-                                        SphericParticle* const element1,
-                                        SphericParticle* const element2);
+        using DEM_D_Hertz_viscous_Coulomb::CalculateViscoDampingForce;
+        using DEM_D_Hertz_viscous_Coulomb::CalculateViscoDampingForceWithFEM;
 
-        void CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
-                                        double ViscoDampingLocalContactForce[3],
-                                        SphericParticle* const element,
-                                        Condition* const wall);
+        using DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce;
+        using DEM_D_Hertz_viscous_Coulomb::CalculateCohesiveNormalForce;
+        using DEM_D_Hertz_viscous_Coulomb::CalculateCohesiveNormalForceWithFEM;
 
-        void CalculateElasticEnergyDEM(double& elastic_energy,
-                                       double indentation,
-                                       double LocalElasticContactForce[3]);
-
-        void CalculateInelasticFrictionalEnergyDEM(double& inelastic_frictional_energy,
-                                                   double& AuxElasticShearForce,
-                                                   double LocalElasticContactForce[3]);
-
-        void CalculateInelasticViscodampingEnergyDEM(double& inelastic_viscodamping_energy,
-                                                     double ViscoDampingLocalContactForce[3],
-                                                     double LocalDeltDisp[3]);
-
-        void CalculateElasticEnergyFEM(double& elastic_energy,
-                                       double indentation,
-                                       double LocalElasticContactForce[3]);
-
-        void CalculateInelasticFrictionalEnergyFEM(double& inelastic_frictional_energy,
-                                                   double& AuxElasticShearForce,
-                                                   double LocalElasticContactForce[3]);
-
-        void CalculateInelasticViscodampingEnergyFEM(double& inelastic_viscodamping_energy,
-                                                     double ViscoDampingLocalContactForce[3],
-                                                     double LocalDeltDisp[3]);
+        using DEM_D_Hertz_viscous_Coulomb::CalculateElasticEnergyDEM;
+        using DEM_D_Hertz_viscous_Coulomb::CalculateInelasticFrictionalEnergyDEM;
+        using DEM_D_Hertz_viscous_Coulomb::CalculateInelasticViscodampingEnergyDEM;
+        using DEM_D_Hertz_viscous_Coulomb::CalculateElasticEnergyFEM;
+        using DEM_D_Hertz_viscous_Coulomb::CalculateInelasticFrictionalEnergyFEM;
+        using DEM_D_Hertz_viscous_Coulomb::CalculateInelasticViscodampingEnergyFEM;
 
     private:
 
