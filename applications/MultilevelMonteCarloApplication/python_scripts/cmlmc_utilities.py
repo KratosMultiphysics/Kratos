@@ -13,13 +13,13 @@ import time
 from simulation_definition import SimulationScenario
 
 # Import the StatisticalVariable class
-from statistical_variable_utilities import StatisticalVariable
+from KratosMultiphysics.MultilevelMonteCarloApplication.statistical_variable_utilities import StatisticalVariable
 
 # Import refinement library
-import adaptive_refinement_utilities as hessian_metric_refinement
+import KratosMultiphysics.MultilevelMonteCarloApplication.adaptive_refinement_utilities as hessian_metric_refinement
 
 # Import random variable generator
-import generator_utilities as generator
+import KratosMultiphysics.MultilevelMonteCarloApplication.generator_utilities as generator
 
 # Import PyCOMPSs
 from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
