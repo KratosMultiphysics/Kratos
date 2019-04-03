@@ -109,13 +109,13 @@ public:
 
                 //TODO: pass Unique to the mNonLocalPointers[recv_rank]
 
-                auto recv_global_pointers = GenericSendRecv(gps_to_be_sent, send_rank, color );
+                auto recv_global_pointers = GenericSendRecv(gps_to_be_sent, color, send_rank );
 
                 std::vector< TSendType > locally_gathered_data; //this is local but needs to be sent to the remote node
                 for(auto& gp : recv_global_pointers)
                     locally_gathered_data.push_back( mfunction(gp) );
 
-                auto remote_data = GenericSendRecv(locally_gathered_data, send_rank, color );
+                auto remote_data = GenericSendRecv(locally_gathered_data, color, send_rank );
 
                 for(unsigned int i=0; i<remote_data.size(); ++i)
                     mNonLocalData[gps_to_be_sent[i]] = remote_data[i];
@@ -245,12 +245,11 @@ private:
         recv_serializer.save("data",send_buffer);
         std::string send_buffer = send_serializer.GetStringRepresentation();
 
-        int recv_rank = color;
         std::string recv_buffer = serial_communicator.SendRecv(send_buffer, send_rank, recv_rank);
 
         MpiSerializer recv_serializer;
 
-        TDataType recv_data;
+        TDataType recv_data(recv_buffer);
         recv_serializer.load("data",recv_data);
         return recv_data;
     }
