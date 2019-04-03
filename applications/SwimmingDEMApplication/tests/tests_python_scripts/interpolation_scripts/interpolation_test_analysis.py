@@ -1,4 +1,3 @@
-import KratosMultiphysics as KM
 from KratosMultiphysics import Model, Parameters, Logger
 import swimming_DEM_procedures as SDP
 import os

@@ -1,11 +1,12 @@
 import KratosMultiphysics as KM
-from KratosMultiphysics import Vector
-import KratosMultiphysics.DEMApplication as DEM
+from KratosMultiphysics import Vector, Parameters, ModelPartIO
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
-import swimming_DEM_procedures as SDP
+import sys
+import os
 import math
 import numpy as np
 import time as timer
+import swimming_DEM_procedures as SDP
 import swimming_DEM_analysis
 BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 
@@ -66,9 +67,9 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
         a = math.pi / 4
         d = math.pi / 2
 
-        self.flow_field = EthierFlowField(a, d)
-        space_time_set = SpaceTimeSet()
-        self.field_utility = FluidFieldUtility(space_time_set, self.flow_field, 1000.0, 1e-6)
+        self.flow_field = SDEM.EthierFlowField(a, d)
+        space_time_set = SDEM.SpaceTimeSet()
+        self.field_utility = SDEM.FluidFieldUtility(space_time_set, self.flow_field, 1000.0, 1e-6)
         return self.field_utility
 
     def GetRecoveryCounter(self):

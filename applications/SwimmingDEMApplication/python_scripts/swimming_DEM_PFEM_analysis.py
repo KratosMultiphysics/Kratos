@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import sys
 import KratosMultiphysics as KM
-from KratosMultiphysics import Vector, Logger, Parameters
+from KratosMultiphysics import Vector, Logger
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import swimming_DEM_procedures as SDP
@@ -89,7 +89,7 @@ class SDEMPFEMAnalysis(BaseAnalysis):
 
 
     def GetFirstStepForFluidComputation(self):
-        return 1;
+        return 1
 
     def SetDragOutput(self):
         pass

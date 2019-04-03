@@ -1,10 +1,10 @@
 import KratosMultiphysics as KM
 from KratosMultiphysics import Parameters
-import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import swimming_DEM_procedures as SDP
 import ethier_benchmark_analysis
 BaseAnalysis = ethier_benchmark_analysis.EthierBenchmarkAnalysis
+import os
 
 class PouliotBenchmark2DAnalysis(BaseAnalysis):
     def __init__(self, varying_parameters = Parameters("{}")):

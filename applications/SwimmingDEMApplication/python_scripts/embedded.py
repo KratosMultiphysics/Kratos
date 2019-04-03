@@ -3,7 +3,6 @@ import math
 import os
 import KratosMultiphysics as KM
 from KratosMultiphysics import Vector
-from python_solver import PythonSolver
 
 def VectSum(v, w):
     return [x + y for x, y in zip(v, w)]
@@ -133,7 +132,7 @@ def ApplyEmbeddedBCsToFluid(model_part):
 
                     if (height > maxheight):
                         maxheight = height
-                        highest_node = node
+                        # highest_node = node
 
                 base_pressure = model_part.Properties[mesh_number][KM.PRESSURE]
 

@@ -1,4 +1,5 @@
 import KratosMultiphysics as KM
+from KratosMultiphysics import Vector
 import swimming_DEM_procedures as SDP
 import math
 import os

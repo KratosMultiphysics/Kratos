@@ -62,14 +62,14 @@ class SwimmingStrategy(BaseStrategy):
     def GetTranslationalSchemeInstance(self, class_name):
         try:
             translational_scheme = super(SwimmingStrategy, self).GetTranslationalSchemeInstance(class_name)
-        except:
+        except Exception:
             translational_scheme = SwimmingStrategy.SDEMEvaluateString(class_name)()
         return translational_scheme
 
     def GetRotationalSchemeInstance(self, class_name):
         try:
             rotational_scheme = super(SwimmingStrategy, self).GetRotationalSchemeInstance(class_name)
-        except:
+        except Exception:
             rotational_scheme = SwimmingStrategy.SDEMEvaluateString(class_name)()
         return rotational_scheme
 

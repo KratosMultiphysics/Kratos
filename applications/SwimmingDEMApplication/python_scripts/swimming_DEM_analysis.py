@@ -11,7 +11,6 @@ import weakref
 import KratosMultiphysics as KM
 from KratosMultiphysics import Vector, Logger
 import KratosMultiphysics.DEMApplication as DEM
-import KratosMultiphysics.SwimmingDEMApplication as SDEM
 
 from analysis_stage import AnalysisStage
 
@@ -567,7 +566,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def SetAnalyticParticleWatcher(self):
         from analytic_tools import analytic_data_procedures
-        self.particle_watcher = AnalyticParticleWatcher()
+        self.particle_watcher = DEM.AnalyticParticleWatcher()
         self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(
             analytic_particle_watcher=self.particle_watcher,
             path=self.main_path)

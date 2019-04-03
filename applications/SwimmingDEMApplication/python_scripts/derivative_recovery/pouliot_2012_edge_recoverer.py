@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # importing the Kratos Library
 import KratosMultiphysics as KM
 from KratosMultiphysics import Vector, ModelPart
-import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 from . import recoverer
 import parameters_tools as PT
@@ -41,7 +40,7 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
     def FillSetOfAllEdges(self, set_of_all_edges):
         for elem in self.model_part.Elements:
             for i, first_node in enumerate(elem.GetNodes()[: - 1]):
-                for j, second_node in enumerate(elem.GetNodes()[i + 1 :]):
+                for second_node in elem.GetNodes()[i + 1 :]:
                     edge_ids = tuple(sorted((first_node.Id, second_node.Id)))
                     set_of_all_edges.add(edge_ids)
 
@@ -52,7 +51,7 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
             return SDEM.DerivativeRecoveryMeshingTools3D()
 
     def CreateCPluPlusStrategies(self, echo_level = 1):
-        from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
+        # from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
         # from KratosMultiphysics.ExternalSolversApplication import SuperLUSolver
         # linear_solver = SuperLUIterativeSolver()
         scheme = KM.ResidualBasedIncrementalUpdateStaticScheme()

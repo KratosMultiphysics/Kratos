@@ -2,7 +2,6 @@ import bisect as bi
 import numpy as np
 import h5py
 import KratosMultiphysics as KM
-import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 from DEM_procedures import KratosPrintInfo as Say
 import json

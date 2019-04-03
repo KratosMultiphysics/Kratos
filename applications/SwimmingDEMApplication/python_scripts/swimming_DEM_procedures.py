@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import math
 import os
 import KratosMultiphysics as KM
-from KratosMultiphysics import Vector, Array3, Logger, Parameters
+from KratosMultiphysics import Vector, Array3, Logger
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import DEM_procedures as DP
@@ -108,7 +108,7 @@ def NormOfDifference(v1, v2):
 def FindClosestNode(model_part, coors):
     relative_coors_nodes = [[node.X - coors[0], node.Y - coors[1], node.Z - coors[2]] for node in model_part.Nodes]
     nodes = [node for node in model_part.Nodes]
-    min_dist = Norm(coors_nodes[0])
+    min_dist = Norm(relative_coors_nodes[0])
     min_i = 0
     for i in range(len(nodes)):
         norm_i = Norm(relative_coors_nodes[i])
@@ -270,8 +270,6 @@ class IOTools:
             Say('Real time calculation: ' + str(incremental_time))
             Say('Percentage Completed: ' + str(percentage) + ' %')
             Say("TIME STEP = " + str(step) + '\n')
-
-            prev_time = (incremental_time)
 
 class ProjectionDebugUtils:
 

@@ -44,7 +44,6 @@ class Pouliot2012MaterialAccelerationRecoverer(Pouliot2012GradientRecoverer, L2_
 class Pouliot2012LaplacianRecoverer(L2_projection_recoverer.L2ProjectionDerivativesRecoverer, recoverer.LaplacianRecoverer):
     def __init__(self, project_parameters, model_part):
         recoverer.LaplacianRecoverer.__init__(self, project_parameters, model_part)
-        Pouliot2012DerivativesRecoverer.__init__(self, project_parameters, model_part)
         self.element_type = "ComputeLaplacianSimplex3D"
         self.condition_type = "ComputeLaplacianSimplexCondition3D"
         self.FillUpModelPart(self.element_type, self.condition_type)
@@ -59,5 +58,5 @@ class Pouliot2012LaplacianRecoverer(L2_projection_recoverer.L2ProjectionDerivati
         sys.stdout.flush()
         self.SetToZero(KM.VELOCITY_COMPONENT_GRADIENT)
         if self.do_pre_recovery:
-            self.aux_recovery_strategy.Solve()
+            self.recovery_strategy.Solve()
         self.recovery_strategy.Solve()

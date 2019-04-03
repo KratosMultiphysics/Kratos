@@ -1,6 +1,5 @@
 import KratosMultiphysics as KM
 from KratosMultiphysics import Vector
-import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import swimming_DEM_solver
 BaseSolver = swimming_DEM_solver.SwimmingDEMSolver
 

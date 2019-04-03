@@ -29,8 +29,8 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
 
     def CreateCPluPlusStrategies(self, echo_level = 1):
         from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
-        #linear_solver = SuperLUIterativeSolver()
-        from KratosMultiphysics.ExternalSolversApplication import SuperLUSolver
+        # linear_solver = SuperLUIterativeSolver()
+        # from KratosMultiphysics.ExternalSolversApplication import SuperLUSolver
         scheme = KM.ResidualBasedIncrementalUpdateStaticScheme()
         amgcl_smoother = KM.AMGCLSmoother.ILU0
         amgcl_krylov_type = KM.AMGCLIterativeSolverType.BICGSTAB

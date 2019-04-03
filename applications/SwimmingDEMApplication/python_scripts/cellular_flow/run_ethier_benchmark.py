@@ -2,10 +2,7 @@ import json
 import traceback
 import os
 
-import KratosMultiphysics as KM
 from KratosMultiphysics import Parameters
-import KratosMultiphysics.DEMApplication as DEM
-import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import ProjectParameters as pp
 import DEM_explicit_solver_var as DEM_parameters
 from DEM_procedures import KratosPrintInfo as Say
