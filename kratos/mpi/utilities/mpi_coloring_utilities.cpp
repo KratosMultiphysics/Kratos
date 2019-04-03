@@ -25,7 +25,7 @@ namespace Kratos
 
 std::vector<int> MPIColoringUtilities::ComputeRecvList(
     const std::vector<int>& rLocalDestinationIds,
-    MPIDataCommunicator& rComm
+    DataCommunicator& rComm
 )
 {
     const int global_rank = 0;
@@ -54,7 +54,7 @@ std::vector<int> MPIColoringUtilities::ComputeRecvList(
 
 std::vector<int> MPIColoringUtilities::ComputeCommunicationScheduling(
     const std::vector<int>& rLocalDestinationIds,
-    MPIDataCommunicator& rComm
+    DataCommunicator& rComm
 )
 {
     const int global_rank = 0;
