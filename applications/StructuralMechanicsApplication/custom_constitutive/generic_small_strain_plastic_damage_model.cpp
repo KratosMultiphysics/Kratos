@@ -213,11 +213,11 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 KRATOS_WATCH(plastic_consistency_increment)
 
                 // Update internals variables plasticity
-                // if (plastic_consistency_increment > tolerance) plastic_strain_increment = plastic_consistency_increment * g_flux;
-                // else plastic_consistency_increment = 0.0;
+                if (plastic_consistency_increment > tolerance) plastic_strain_increment = plastic_consistency_increment * g_flux;
+                else plastic_consistency_increment = 0.0;
 
                 // OJO
-                plastic_strain_increment = std::abs(plastic_consistency_increment) * g_flux;
+                // plastic_strain_increment = std::abs(plastic_consistency_increment) * g_flux;
 
 
 
@@ -528,10 +528,10 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 this->CheckInternalVariable(damage); // Just check te upper-lower bounds
 
                 // Update internals variables plasticity
-                // if (plastic_consistency_increment > tolerance) plastic_strain_increment = plastic_consistency_increment * g_flux;
-                // else plastic_consistency_increment = 0.0;
+                if (plastic_consistency_increment > tolerance) plastic_strain_increment = plastic_consistency_increment * g_flux;
+                else plastic_consistency_increment = 0.0;
 
-                plastic_strain_increment = std::abs(plastic_consistency_increment) * g_flux;
+                // plastic_strain_increment = std::abs(plastic_consistency_increment) * g_flux;
 
                 noalias(plastic_strain) += plastic_strain_increment;
                 noalias(deepp) += plastic_strain_increment;
@@ -929,6 +929,7 @@ CalculateIncrementsPlasticDamageCase(
     double innerprod_dam_yield_elastic_tensor = 0.0, HKG = 0.0, fact1 = 0.0;
     Vector hcapa = ZeroVector(VoigtSize);
     for (IndexType i = 0; i < VoigtSize; ++i) {
+        innerprod_dam_yield_elastic_tensor = 0.0;
         for (IndexType j = 0; j < VoigtSize; ++j) {
             innerprod_dam_yield_elastic_tensor += rFluxDamageYield[j] * rElasticMatrix(i,j);
         }
