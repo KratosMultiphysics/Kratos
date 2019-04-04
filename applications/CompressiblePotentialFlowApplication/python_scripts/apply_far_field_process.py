@@ -17,7 +17,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "inlet_phi": 1.0,
                 "velocity_infinity": [1.0,0.0,0],
-                "density_infinity"  : 1.225,
+                "density_infinity"  : 1.0,
                 "mach_infinity": 0.3,
                 "gamma": 1.4
             }  """ );
@@ -36,13 +36,10 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.density_infinity = settings["density_infinity"].GetDouble()
         self.mach_infinity = settings["mach_infinity"].GetDouble()
         self.gamma = settings["gamma"].GetDouble()
-        #self.density_infinity = settings["density_infinity"].GetDouble() #TODO: must read this from the properties
-        self.inlet_phi = settings["inlet_phi"].GetDouble()
+        
+        # For the model part
         self.model_part.ProcessInfo.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY,self.velocity_infinity)
         
-        
-        
-
         # For the conditions
         self.fluid_model_part.GetProperties()[0].SetValue(CompressiblePotentialFlowApplication.DENSITY_INFINITY, self.density_infinity)
 
