@@ -32,9 +32,6 @@ namespace Kratos
     )
     {
         KRATOS_TRY
-
-        KRATOS_WATCH("here: CalculateAll");
-
         // definition of problem size
         const unsigned int number_of_nodes = GetGeometry().size();
         unsigned int mat_size = number_of_nodes * 3;
@@ -86,12 +83,6 @@ namespace Kratos
         CalculateBMembrane(BMembrane, actual_metric);
         CalculateBCurvature(BCurvature, actual_metric);
 
-
-        integration_weight = this->GetValue(INTEGRATION_WEIGHT) * mInitialMetric.dA; // *GetProperties()[THICKNESS];
-
-        // LEFT HAND SIDE MATRIX
-        if (CalculateStiffnessMatrixFlag == true)
-        {
         // Nonlinear Deformation
         SecondVariations second_variations_strain(mat_size);
         SecondVariations second_variations_curvature(mat_size);
@@ -99,8 +90,13 @@ namespace Kratos
             second_variations_strain,
             second_variations_curvature,
             actual_metric);
-            
-        //adding membrane contributions to the stiffness matrix
+
+        integration_weight = this->GetValue(INTEGRATION_WEIGHT) * mInitialMetric.dA; // *GetProperties()[THICKNESS];
+
+        // LEFT HAND SIDE MATRIX
+        if (CalculateStiffnessMatrixFlag == true)
+        {
+            //adding membrane contributions to the stiffness matrix
             CalculateAndAddKm(rLeftHandSideMatrix, BMembrane, constitutive_variables_membrane.D, integration_weight);
             //adding curvature contributions to the stiffness matrix
             CalculateAndAddKm(rLeftHandSideMatrix, BCurvature, constitutive_variables_curvature.D, integration_weight);
@@ -138,9 +134,6 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo
     )
     {
-        
-        KRATOS_WATCH("CalculateOnIntegrationPoints");
-        
         if (rOutput.size() != 1)
             rOutput.resize(1);
 
@@ -227,9 +220,6 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo
     )
     {
-        
-        KRATOS_WATCH("CalculateOnIntegrationPoints_Vector");
-        
         if (rValues.size() != 1)
         {
             rValues.resize(1);
@@ -471,7 +461,7 @@ namespace Kratos
 
         //rValues.CheckAllParameters();
         mConstitutiveLawVector[0]->CalculateMaterialResponse(rValues, ThisStressMeasure);
-        double thickness = GetProperties().GetValue(THICKNESS);
+        double thickness = this->GetProperties().GetValue(THICKNESS);
 
         rThisConstitutiveVariablesMembrane.D *= thickness;
         rThisConstitutiveVariablesCurvature.D = rThisConstitutiveVariablesMembrane.D*(pow(thickness, 2) / 12);
@@ -499,5 +489,4 @@ namespace Kratos
 
 
 } // Namespace Kratos
-
 

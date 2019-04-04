@@ -408,4 +408,3 @@ private:
 
 #endif // KRATOS_BASE_DISCRETE_ELEMENT_H_INCLUDED  defined
 
-
