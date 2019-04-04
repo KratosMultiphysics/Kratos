@@ -234,6 +234,21 @@ protected:
         OrientedBoundingBox<3>& rOrientedBoundingBox
         );
 
+    /**
+     * @brief This converts the interpolation string to an enum
+     * @param Str The string that you want to comvert in the equivalent enum
+     * @return OBBHasIntersectionType: The equivalent enum (this requires less memmory than a std::string)
+     */
+    OBBHasIntersectionType ConvertInter(const std::string& Str)
+    {
+        if(Str == "Direct" || Str == "direct")
+            return OBBHasIntersectionType::Direct;
+        else if(Str == "SeparatingAxisTheorem" || Str == "separating_axis_theorem")
+            return OBBHasIntersectionType::SeparatingAxisTheorem;
+        else
+            return OBBHasIntersectionType::SeparatingAxisTheorem;
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -260,21 +275,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief This converts the interpolation string to an enum
-     * @param Str The string that you want to comvert in the equivalent enum
-     * @return OBBHasIntersectionType: The equivalent enum (this requires less memmory than a std::string)
-     */
-    OBBHasIntersectionType ConvertInter(const std::string& Str)
-    {
-        if(Str == "Direct" || Str == "direct")
-            return OBBHasIntersectionType::Direct;
-        else if(Str == "SeparatingAxisTheorem" || Str == "separating_axis_theorem")
-            return OBBHasIntersectionType::SeparatingAxisTheorem;
-        else
-            return OBBHasIntersectionType::SeparatingAxisTheorem;
-    }
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
