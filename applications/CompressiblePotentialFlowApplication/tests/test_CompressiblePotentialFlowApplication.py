@@ -33,6 +33,7 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTest(PotentialFlowTests('test_Naca0012Small'))
     smallSuite.addTest(PotentialFlowTests('test_Naca0012SmallAdjoint'))
+    smallSuite.addTest(PotentialFlowTests('test_Naca0012SmallCompressible'))
     #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPotentialElement2D]))
 
     # Create a test suite with the selected tests

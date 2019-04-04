@@ -64,6 +64,18 @@ class PotentialFlowTests(UnitTest.TestCase):
                 if file_name.endswith(".h5") or file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
+    def test_Naca0012SmallCompressible(self):
+        file_name = "naca0012_small_compressible"
+        settings_file_name = file_name + "_parameters.json"
+        work_folder = "naca0012_small_compressible_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+
+            for file_name in os.listdir():
+                if file_name.endswith(".time"):
+                    kratos_utilities.DeleteFileIfExisting(file_name)
+
     def _runTest(self,settings_file_name):
         model = KratosMultiphysics.Model()
         with open(settings_file_name,'r') as settings_file:
