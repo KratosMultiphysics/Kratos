@@ -362,8 +362,6 @@ public:
         const Vector& rPlasticStrain,
         const double Damage,
         const double DamageIncrement,
-        double& rHardd,
-        double& rHcapd,
         const double UndamagedFreeEnergy);
 
     void CalculateIndicatorsFactors(

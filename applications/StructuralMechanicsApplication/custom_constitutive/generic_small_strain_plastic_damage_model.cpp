@@ -109,14 +109,10 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         double damage_dissipation = mDamageDissipation;
         double damage_increment = 0.0;  // dDamage
         double plastic_consistency_increment = 0.0; // dlambda
-        double hard_damage = 0.0;
-        double hcapd = 0.0;
-        double denominator;
 
         // Stress Predictor S = (1-d)C:(E-Ep)
         array_1d<double, VoigtSize> effective_predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
 		array_1d<double, VoigtSize> predictive_stress_vector = (1.0 - damage) * effective_predictive_stress_vector;
-
 
         // Initialize Plastic Parameters
         double uniaxial_stress_plasticity = 0.0, plastic_denominator = 0.0, uniaxial_stress_damage = 0.0;
@@ -143,7 +139,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 damage_dissipation, r_constitutive_matrix,
                 rValues, characteristic_length, damage_yield_flux,
                 plastic_strain, damage, damage_increment, 
-                hard_damage, hcapd, undamaged_free_energy);
+                undamaged_free_energy);
 
         // Verification threshold for the plastic-damage process
         if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) || damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
@@ -208,7 +204,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                         damage_dissipation, r_constitutive_matrix,
                         rValues, characteristic_length, damage_yield_flux,
                         plastic_strain, damage, damage_increment, 
-                        hard_damage, hcapd, undamaged_free_energy);
+                        undamaged_free_energy);
 
                 // KRATOS_WATCH(plastic_strain)
                 // KRATOS_WATCH(plastic_consistency_increment)
@@ -434,7 +430,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 damage_dissipation, r_constitutive_matrix,
                 rValues, characteristic_length, damage_yield_flux,
                 plastic_strain, damage, damage_increment, 
-                hard_damage, hcapd, undamaged_free_energy);
+                undamaged_free_energy);
 
         // Verification threshold for the plastic-damage process
         if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) || damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
@@ -496,7 +492,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                         damage_dissipation, r_constitutive_matrix,
                         rValues, characteristic_length, damage_yield_flux,
                         plastic_strain, damage, damage_increment, 
-                        hard_damage, hcapd, undamaged_free_energy);
+                        undamaged_free_energy);
 
                 if (plasticity_indicator < std::abs(1.0e-4 * threshold_plasticity) && damage_indicator < std::abs(1.0e-4 * threshold_damage)) {
                     is_converged = true;
@@ -738,8 +734,6 @@ CalculateDamageParameters(
     const Vector& rPlasticStrain,
     const double Damage,
     const double DamageIncrement,
-    double& rHardd,
-    double& rHcapd,
     const double UndamagedFreeEnergy
 )
 {
@@ -775,7 +769,6 @@ CalculateDamageParameters(
     if (rDamageDissipation > 1.0) rDamageDissipation = 0.99999;
 
     Vector slopes(2), thresholds(2);
-
     // Tension
     thresholds[0] = yield_tension * (1.0 - rDamageDissipation);
     slopes[0] = -yield_tension;
@@ -785,8 +778,8 @@ CalculateDamageParameters(
     slopes[1] = -yield_compression;
 
     rDamageThreshold = (tensile_indicator_factor * thresholds[0]) + (compression_indicator_factor * thresholds[1]);
-    const double hsigr = rDamageThreshold * (tensile_indicator_factor * slopes[0] / thresholds[0] + compression_indicator_factor * slopes[1] / thresholds[1]);  
-    rHardd = rHcapd * hsigr;
+    // const double hsigr = rDamageThreshold * (tensile_indicator_factor * slopes[0] / thresholds[0] + compression_indicator_factor * slopes[1] / thresholds[1]);  
+    // rHardd = rHcapd * hsigr;
 
     return rUniaxialStress - rDamageThreshold;
 }
