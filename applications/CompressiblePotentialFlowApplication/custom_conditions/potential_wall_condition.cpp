@@ -114,8 +114,8 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateLocalSystem(
     const double density_infinity = GetProperties().GetValue(DENSITY_INFINITY);
 
     const PotentialWallCondition& r_this = *this;
+    // For the airfoil v = 0
     const array_1d<double, 3>& v = r_this.GetValue(VELOCITY_INFINITY);
-    //const array_1d<double, 3>& v = GetProperties().GetValue(VELOCITY_INFINITY);
     const double value = density_infinity*inner_prod(v, An) / static_cast<double>(TNumNodes);
 
     for (unsigned int i = 0; i < TNumNodes; ++i)

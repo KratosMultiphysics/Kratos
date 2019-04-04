@@ -37,11 +37,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.mach_infinity = settings["mach_infinity"].GetDouble()
         self.gamma = settings["gamma"].GetDouble()
         
-        #self.model_part.ProcessInfo.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY,self.velocity_infinity)
-        #self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, self.density_infinity)
-        
+
         # For the conditions
-        self.fluid_model_part.GetProperties()[0].SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity)
         self.fluid_model_part.GetProperties()[0].SetValue(CompressiblePotentialFlowApplication.DENSITY_INFINITY, self.density_infinity)
 
         # For the elements
