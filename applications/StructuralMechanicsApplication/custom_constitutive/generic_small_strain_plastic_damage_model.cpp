@@ -142,7 +142,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 undamaged_free_energy);
 
         // Verification threshold for the plastic-damage process
-        if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) || damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
+        if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) && damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
             bool is_converged = false;
             int number_iteration = 0;
             const int max_iter = 100;
@@ -158,7 +158,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                             plastic_strain, damage_increment, 
                             plastic_consistency_increment, 1);
                 // Plastic Case
-                } else if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) && damage_indicator < std::abs(1.0e-4 * threshold_damage)) {
+                } else if (damage_indicator < std::abs(1.0e-4 * threshold_damage)) {
                     this->CalculateIncrementsPlasticDamageCase(
                             damage_yield_flux, r_strain_vector, damage,
                             f_flux, g_flux, r_constitutive_matrix, 
@@ -166,7 +166,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                             plastic_strain, damage_increment, 
                             plastic_consistency_increment, 2);
                 // Damage case
-                } else if (plasticity_indicator < std::abs(1.0e-4 * threshold_plasticity) && damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
+                } else if (plasticity_indicator < std::abs(1.0e-4 * threshold_plasticity)) {
                     this->CalculateIncrementsPlasticDamageCase(
                             damage_yield_flux, r_strain_vector, damage,
                             f_flux, g_flux, r_constitutive_matrix, 
@@ -176,7 +176,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 } // Increments computed
 
 
-				// KRATOS_WATCH(number_iteration)
+				KRATOS_WATCH(number_iteration)
 
                 damage += damage_increment;
                 noalias(plastic_strain_increment) = plastic_consistency_increment * g_flux;
@@ -207,8 +207,8 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 // KRATOS_WATCH(plastic_strain)
                 // KRATOS_WATCH(plastic_consistency_increment)
                 // KRATOS_WATCH(plastic_dissipation)
-                // KRATOS_WATCH(damage_indicator)
-                // KRATOS_WATCH(plasticity_indicator)
+                KRATOS_WATCH(damage_indicator)
+                KRATOS_WATCH(plasticity_indicator)
                 // KRATOS_WATCH(predictive_stress_vector)
                 // KRATOS_WATCH(uniaxial_stress_plasticity)
 				// KRATOS_WATCH(uniaxial_stress_damage)
@@ -395,9 +395,6 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         double damage_dissipation = mDamageDissipation;
         double damage_increment = 0.0;  // dDamage
         double plastic_consistency_increment = 0.0; // dlambda
-        double hard_damage = 0.0;
-        double hcapd = 0.0;
-        double denominator;
 
         // Stress Predictor S = (1-d)C:(E-Ep)
         array_1d<double, VoigtSize> effective_predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
@@ -431,15 +428,13 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 undamaged_free_energy);
 
         // Verification threshold for the plastic-damage process
-        if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) || damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
+        if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) && damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
             bool is_converged = false;
             int number_iteration = 0;
             const int max_iter = 100;
 
- 
             // Integration loop
             while (!is_converged && number_iteration <= max_iter) {
-
                 // Plastic Damage Case
                 if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) && damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
                     this->CalculateIncrementsPlasticDamageCase(
@@ -449,7 +444,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                             plastic_strain, damage_increment, 
                             plastic_consistency_increment, 1);
                 // Plastic Case
-                } else if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) && damage_indicator < std::abs(1.0e-4 * threshold_damage)) {
+                } else if (damage_indicator < std::abs(1.0e-4 * threshold_damage)) {
                     this->CalculateIncrementsPlasticDamageCase(
                             damage_yield_flux, r_strain_vector, damage,
                             f_flux, g_flux, r_constitutive_matrix, 
@@ -457,7 +452,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                             plastic_strain, damage_increment, 
                             plastic_consistency_increment, 2);
                 // Damage case
-                } else if (plasticity_indicator < std::abs(1.0e-4 * threshold_plasticity) && damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
+                } else if (plasticity_indicator < std::abs(1.0e-4 * threshold_plasticity)) {
                     this->CalculateIncrementsPlasticDamageCase(
                             damage_yield_flux, r_strain_vector, damage,
                             f_flux, g_flux, r_constitutive_matrix, 
@@ -491,8 +486,8 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                         rValues, characteristic_length, damage_yield_flux,
                         plastic_strain, damage, damage_increment, 
                         undamaged_free_energy);
-
                 if (plasticity_indicator < std::abs(1.0e-4 * threshold_plasticity) && damage_indicator < std::abs(1.0e-4 * threshold_damage)) {
+                // if (std::abs(plasticity_indicator) < std::abs(1.0e-4 * threshold_plasticity) && std::abs(damage_indicator) < std::abs(1.0e-4 * threshold_damage)) {
                     is_converged = true;
                 } else {
                     number_iteration++;
@@ -501,14 +496,8 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
             KRATOS_WARNING_IF("Backward Euler Plastic Damage", number_iteration >= max_iter) << "Max iterations reached in the return mapping of the Plastic Damage model" << std::endl; 
             // Updated Values
             noalias(r_integrated_stress_vector) = predictive_stress_vector;
-            if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                this->CalculateTangentTensor(rValues);
-            } 
         } else {
 			noalias(r_integrated_stress_vector) = predictive_stress_vector;
-            if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                noalias(r_tangent_tensor) = (1.0 - damage) * r_constitutive_matrix;
-            }
         }
         // Update internal variables
         mPlasticDissipation = plastic_dissipation;
@@ -517,6 +506,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         mThresholdDamage = threshold_damage;
         mDamage = damage;
         mDamageDissipation = damage_dissipation;
+        TPlasticityIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, mUniaxialStress, rValues);
     }
 
 }
@@ -530,6 +520,8 @@ bool GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
     if (rThisVariable == PLASTIC_DISSIPATION) {
         return true;
     } else if (rThisVariable == DAMAGE) {
+        return true;
+    } else if (rThisVariable == UNIAXIAL_STRESS) {
         return true;
     } else {
         return BaseType::Has(rThisVariable);
@@ -575,6 +567,8 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         mPlasticDissipation = rValue;
     } else if (rThisVariable == DAMAGE) {
         mDamage = rValue;
+    } else if (rThisVariable == UNIAXIAL_STRESS) {
+        mUniaxialStress = rValue;
     } else {
         BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
@@ -610,6 +604,8 @@ double& GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageI
         rValue = mPlasticDissipation;
     } else if (rThisVariable == DAMAGE) {
         rValue = mDamage;
+    } else if (rThisVariable == UNIAXIAL_STRESS) {
+        rValue = mUniaxialStress;
     } else {
         BaseType::GetValue(rThisVariable, rValue);
     }
@@ -728,7 +724,7 @@ CalculateDamageParameters(
     const Matrix& rConstitutiveMatrix,
     ConstitutiveLaw::Parameters& rValues,
     const double CharacteristicLength,  
-    array_1d<double, 6>& rFflux,
+    array_1d<double, 6>& rDamageFlux,
     const Vector& rPlasticStrain,
     const double Damage,
     const double DamageIncrement,
@@ -743,7 +739,7 @@ CalculateDamageParameters(
     TDamageIntegratorType::YieldSurfaceType::CalculateEquivalentStress(rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
     const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
     ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
-    TDamageIntegratorType::YieldSurfaceType::CalculateYieldSurfaceDerivative(rPredictiveStressVector, deviator, J2, rFflux, rValues);
+    TDamageIntegratorType::YieldSurfaceType::CalculateYieldSurfaceDerivative(rPredictiveStressVector, deviator, J2, rDamageFlux, rValues);
     this->CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor, suma, principal_stresses);
 
     auto& r_matProps = rValues.GetMaterialProperties();
@@ -883,6 +879,7 @@ CalculateIncrementsPlasticDamageCase(
         rPlasticConsistencyIncrement -=  (dFd_ddam * McaullyBrackets(PlasticityIndicator) - dFp_ddam * McaullyBrackets(DamageIndicator)) / jacobian_determinant;
         rDamageIncrement -= (dFp_dlambda * McaullyBrackets(DamageIndicator) - dFd_dlamba * McaullyBrackets(PlasticityIndicator)) / jacobian_determinant;
     } else { // If the two yield and stresses are the same -> jacobian_determinant = 0.0
+        std::cout << "HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE" << std::endl;
         rPlasticConsistencyIncrement -= McaullyBrackets(PlasticityIndicator) / dFp_dlambda;
         rDamageIncrement -= McaullyBrackets(PlasticityIndicator) / dFp_ddam;
     }
@@ -897,12 +894,14 @@ McaullyBrackets(
     const double Number
 )
 {
-    return 0.5*(Number + std::abs(Number));
+    // return 0.5*(Number + std::abs(Number));
+    return Number;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 template class GenericSmallStrainPlasticDamageModel<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainPlasticDamageModel<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>;
 
 
 } // namespace Kratos

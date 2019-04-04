@@ -462,6 +462,9 @@ protected:
 	double mDamage = 0.0;
 	double mDamageDissipation = 0.0;
 
+    // only for printing
+    double mUniaxialStress = 0.0;
+
     ///@}
     ///@name Private Operators
     ///@{
