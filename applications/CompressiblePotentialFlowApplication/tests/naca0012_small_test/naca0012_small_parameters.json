@@ -48,7 +48,6 @@
             "process_name"  : "ComputeLiftProcess3D",
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.Body2D_Body",
-                "velocity_infinity" : [10.0,0.0,0.0],
                 "create_output_file": true
             }
         }],
