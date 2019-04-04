@@ -60,106 +60,24 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
     def Initialize(self):
         """ Initializing the Analysis """
         super(AdaptativeRemeshingContactStructuralMechanicsAnalysis, self).Initialize()
-        computing_model_part = self._GetSolver().GetComputingModelPart()
-        if not self.process_remesh:
-            convergence_criteria = self._GetSolver().get_convergence_criterion()
-            convergence_criteria.Initialize(computing_model_part)
-
-        # Ensuring to have conditions on the BC before remesh
-        is_surface = False
-        for elem in computing_model_part.Elements:
-            geom = elem.GetGeometry()
-            if geom.WorkingSpaceDimension() != geom.LocalSpaceDimension():
-                is_surface = True
-            break
-
-        if not is_surface:
-            list_model_parts = []
-            # We need to detect the conditions in the boundary conditions
-            if self.project_parameters.Has("constraints_process_list"):
-                constraints_process_list = self.project_parameters["constraints_process_list"]
-                for i in range(0,constraints_process_list.size()):
-                    item = constraints_process_list[i]
-                    list_model_parts.append(item["Parameters"]["model_part_name"].GetString())
-            skin_detection_parameters = KM.Parameters("""
-            {
-                "list_model_parts_to_assign_conditions" : []
-            }
-            """)
-            for name_mp in list_model_parts:
-                skin_detection_parameters["list_model_parts_to_assign_conditions"].Append(name_mp)
-
-            if computing_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
-                detect_skin = KM.SkinDetectionProcess2D(computing_model_part, skin_detection_parameters)
-            else:
-                detect_skin = KM.SkinDetectionProcess3D(computing_model_part, skin_detection_parameters)
-            detect_skin.Execute()
-        self._GetSolver().SetEchoLevel(self.echo_level)
+        auxiliar_methods_adaptative_remeshing.AdaptativeRemeshingDetectBoundary(self)
 
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
         # If we remesh using a process
-        computing_model_part = self._GetSolver().GetComputingModelPart()
         if self.process_remesh:
             auxiliar_methods_adaptative_remeshing.AdaptativeRemeshingRunSolutionLoop(self)
         else: # Remeshing adaptively
-            metric_process = self._GetSolver().get_metric_process()
-            remeshing_process = self._GetSolver().get_remeshing_process()
-            convergence_criteria = self._GetSolver().get_convergence_criterion()
-            builder_and_solver = self._GetSolver().get_builder_and_solver()
-            mechanical_solution_strategy = self._GetSolver().get_mechanical_solution_strategy()
-
-            while self.time < self.end_time:
-                self.time = self._GetSolver().AdvanceInTime(self.time)
-                non_linear_iteration = 1
-                while non_linear_iteration <= self.non_linear_iterations:
-                    if computing_model_part.Is(KM.MODIFIED):
-                        auxiliar_methods_adaptative_remeshing.ReInitializeSolver(self)
-                    if non_linear_iteration == 1 or computing_model_part.Is(KM.MODIFIED):
-                        self.InitializeSolutionStep()
-                        self._GetSolver().Predict()
-                        computing_model_part.Set(KM.MODIFIED, False)
-                        self.is_printing_rank = False
-                    computing_model_part.ProcessInfo.SetValue(KM.NL_ITERATION_NUMBER, non_linear_iteration)
-                    is_converged = convergence_criteria.PreCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
-                    self._GetSolver().SolveSolutionStep()
-                    is_converged = convergence_criteria.PostCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
-                    self._transfer_slave_to_master()
-                    self.FinalizeSolutionStep()
-                    if is_converged:
-                        self.is_printing_rank = True
-                        KM.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
-                        break
-                    elif non_linear_iteration == self.non_linear_iterations:
-                        self.is_printing_rank = True
-                        KM.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy not converged after ", non_linear_iteration, "iterations" )
-                        break
-                    else:
-                        # Before remesh we set the flag INTERFACE to the conditions (we need edges to preserve submodelparts)
-                        KM.VariableUtils().SetFlag(KM.INTERFACE, True, computing_model_part.GetSubModelPart("Contact").Conditions)
-                        # We remove the contact model part to avoid problems (it will  be recomputed later)
-                        contact_model_part = computing_model_part.GetSubModelPart("Contact")
-                        for model_part in contact_model_part.SubModelParts:
-                            contact_model_part.RemoveSubModelPart(model_part.Name)
-                        computing_model_part.RemoveSubModelPart("ComputingContact")
-                        # Now we can remesh
-                        metric_process.Execute()
-                        remeshing_process.Execute()
-                        # We remove the contact model part to avoid problems (it will  be recomputed later)
-                        computing_model_part.RemoveSubModelPart("Contact")
-                        # Now we set as modified
-                        computing_model_part.Set(KM.MODIFIED, True)
-                        non_linear_iteration += 1
-                self.OutputSolutionStep()
+            auxiliar_methods_adaptative_remeshing.SPRAdaptativeRemeshingRunSolutionLoop(self, True)
 
     #### Internal functions ####
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
 
         # To avoid many prints
-        if (self.echo_level == 0):
+        if self.echo_level == 0:
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
         ## Solver construction
