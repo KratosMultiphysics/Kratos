@@ -1,0 +1,115 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "naca0012",
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 1
+    },
+    "restart_options"                  : {
+        "SaveRestart"      : "False",
+        "RestartFrequency" : 0,
+        "LoadRestart"      : "False",
+        "Restart_Step"     : 0
+    },
+    "solver_settings"                  : {
+        "solver_type"            : "potential_flow",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
+        "model_import_settings"  : {
+            "input_type"     : "use_input_model_part"
+        },
+        "maximum_iterations"     : 10,
+        "echo_level"             : 0,
+        "linear_solver_settings"  : {
+            "solver_type"             : "EigenSolversApplication.eigen_pardiso_lu"
+        },
+        "volume_model_part_name" : "Parts_Parts_Auto1",
+        "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_BodySurface"],
+        "no_skin_parts"          : []
+    },
+    "processes" : {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "apply_far_field_process",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "process_name"  : "FarFieldProcess",
+            "Parameters"    : {
+                "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                "inlet_phi"         : 1.0,
+                "velocity_infinity" : [10.0,0.0,0.0]
+            }
+        },{
+            "python_module" : "define_wake_process_2d",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "process_name"  : "DefineWakeProcess",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.Body2D_BodySurface",
+                "wake_direction"       : [1.0,0.0,0.0],
+                "epsilon"         : 1e-9
+            }
+        },{
+            "python_module" : "compute_lift_process",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "process_name"  : "ComputeLiftProcess3D",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.Body2D_BodySurface",
+                "velocity_infinity" : [10.0,0.0,0.0],
+                "create_output_file": true
+            }
+        }],
+        "list_other_processes" :[{
+            "kratos_module" : "KratosMultiphysics.HDF5Application",
+            "python_module" : "single_mesh_primal_output_process",
+            "help"          : "",
+            "process_name"  : "",
+            "Parameters" : {
+                "model_part_name" : "MainModelPart",
+                "file_settings" : {
+                    "file_access_mode" : "truncate"
+                },
+
+                "nodal_solution_step_data_settings" : {
+                    "list_of_variables": ["VELOCITY_POTENTIAL", "AUXILIARY_VELOCITY_POTENTIAL"]
+                },
+                "output_time_settings" :{
+                    "output_step_frequency": 1
+                }
+            }
+        }]
+    },
+    "output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "MainModelPart",
+                "output_name"            : "naca0012",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "step",
+                        "output_control_type" : "step",
+                        "output_frequency"    : 1,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_nonhistorical_results" : ["POTENTIAL_JUMP","TRAILING_EDGE","WAKE"],
+                        "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL", "MESH_CHANGE"],
+                        "gauss_point_results" : ["PRESSURE","VELOCITY","WAKE","KUTTA"],
+                        "elemental_conditional_flags_results": ["STRUCTURE"]
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }]
+    }
+}

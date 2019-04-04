@@ -1,44 +1,45 @@
 {
-    "problem_data"             : {
-        "problem_name"    : "Parts_Parts_Auto1",
-        "start_time"      : 0.0,
-        "end_time"        : 1.0,
+    "problem_data"                     : {
+        "problem_name"    : "naca0012",
         "parallel_type"   : "OpenMP",
-        "echo_level"      : 0
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 1
     },
     "solver_settings"                  : {
-        "solver_type"                  : "adjoint_potential_flow",
-        "model_import_settings"        : {
-            "input_type"     : "mdpa",
-            "input_filename" : "naca0012_small"
-        },
+        "solver_type"            : "adjoint_potential_flow",
         "model_part_name" : "MainModelPart",
-        "volume_model_part_name" : "Parts_Parts_Auto1",
-        "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
         "domain_size"     : 2,
+        "model_import_settings"  : {
+            "input_type"     : "mdpa",
+            "input_filename" : "naca0012_Case_0_DS_100_AOA_5.0_Far_Field_Mesh_Size_2_Airfoil_Mesh_Size_0.001"
+        },
+        "echo_level"             : 0,
         "compute_reactions"			   : false,
+        "linear_solver_settings"  : {
+            "solver_type"             : "EigenSolversApplication.eigen_pardiso_lu"
+        },
+        "volume_model_part_name" : "Parts_Parts_Auto1",
+        "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_BodySurface"],
         "response_function_settings" : {
-                "response_type"     : "adjoint_lift_jump_coordinates",
-                "use_kratos"        : true,
-                "gradient_mode"     : "semi_analytic",
-                "step_size"         : 1e-9
-            },
+            "response_type"     : "adjoint_lift_jump_coordinates",
+            "use_kratos"        : true,
+            "gradient_mode"     : "semi_analytic",
+            "step_size"         : 1e-9
+        },
         "sensitivity_settings" : {
-                "sensitivity_model_part_name" : "Parts_Parts_Auto1",
-                "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
-                "nodal_solution_step_sensitivity_calculation_is_thread_safe" : false,
-                "build_mode": "static"
-            },
-        "echo_level"                   : 0,
-        "linear_solver_settings"       : {
-            "solver_type"         : "ExternalSolversApplication.super_lu"
+            "sensitivity_model_part_name" : "Parts_Parts_Auto1",
+            "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+            "nodal_solution_step_sensitivity_calculation_is_thread_safe" : false,
+            "build_mode": "static"
         }
     },
     "processes" : {
-        "boundary_conditions_process_list" : [
-        {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
             "python_module" : "apply_far_field_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "process_name"  : "FarFieldProcess",
             "Parameters"    : {
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "inlet_phi"         : 1.0,
@@ -49,8 +50,8 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "DefineWakeProcess",
             "Parameters"    : {
-                "model_part_name" : "MainModelPart.Body2D_Body",
-                "wake_direction"  : [1.0,0.0,0.0],
+                "model_part_name" : "MainModelPart.Body2D_BodySurface",
+                "wake_direction"       : [1.0,0.0,0.0],
                 "epsilon"         : 1e-9
             }
         }],
