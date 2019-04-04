@@ -19,7 +19,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "velocity_infinity": [3.4,0.0,0],
                 "density_infinity"  : 1.0,
                 "mach_infinity": 0.01,
-                "gamma": 1.4
+                "gamma": 1.4,
+                "pressure_infinity": 101325
             }  """ );
         
             
@@ -36,6 +37,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.density_infinity = settings["density_infinity"].GetDouble()
         self.mach_infinity = settings["mach_infinity"].GetDouble()
         self.gamma = settings["gamma"].GetDouble()
+        self.pressure_infinity = settings["pressure_infinity"].GetDouble()
 
         self.u_infinity = math.sqrt(
             self.velocity_infinity[0]**2 + self.velocity_infinity[1]**2 + self.velocity_infinity[2]**2)
@@ -53,6 +55,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.fluid_model_part.GetProperties()[1].SetValue(CompressiblePotentialFlowApplication.MACH_INFINITY, self.mach_infinity)
         self.fluid_model_part.GetProperties()[1].SetValue(CompressiblePotentialFlowApplication.GAMMA, self.gamma)
         self.fluid_model_part.GetProperties()[1].SetValue(KratosMultiphysics.SOUND_VELOCITY, self.a_infinity)
+        self.fluid_model_part.GetProperties()[1].SetValue(CompressiblePotentialFlowApplication.PRESSURE_INFINITY, self.pressure_infinity)
 
     def Execute(self):
         #KratosMultiphysics.VariableUtils().SetVectorVar(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity, self.model_part.Conditions)

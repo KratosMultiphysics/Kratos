@@ -285,6 +285,8 @@ private:
 
     double ComputeDensityDerivative(const double density) const;
 
+    double ComputePressure() const;
+
     ///@}
     ///@name Private Operations
     ///@{

@@ -844,27 +844,30 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensity() const
     ComputeVelocityUpper(v);
 
     // Computing squares
-    const double v_inf_2 = inner_prod(vinfinity,vinfinity);
-    const double M_inf_2 = M_inf*M_inf;
-    double v_2 = inner_prod(v,v);
+    const double v_inf_2 = inner_prod(vinfinity, vinfinity);
+    const double M_inf_2 = M_inf * M_inf;
+    double v_2 = inner_prod(v, v);
 
     // Computing local mach number
     const double u = sqrt(v_2);
-    const double M = u/a_inf;
+    const double M = u / a_inf;
 
-    if(M > 0.94){// Clamping the mach number to 0.94
-        KRATOS_WARNING("ComputeDensity")<<"Clamping the mach number to 0.94"<<std::endl;
-        v_2 = 0.94*0.94*a_inf*a_inf;
+    if (M > 0.94)
+    { // Clamping the mach number to 0.94
+        KRATOS_WARNING("ComputeDensity") << "Clamping the mach number to 0.94" << std::endl;
+        v_2 = 0.94 * 0.94 * a_inf * a_inf;
     }
 
-    const double base = 1 + (gamma -1)*M_inf_2*(1-v_2/v_inf_2)/2;
+    const double base = 1 + (gamma - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2;
 
-    if(base > 0.0){
-        return rho_inf*pow(base,1/(gamma -1));
+    if (base > 0.0)
+    {
+        return rho_inf * pow(base, 1 / (gamma - 1));
     }
-    else{
-        KRATOS_WARNING("ComputeDensity")<<"Using density correction"<<std::endl;
-        return rho_inf*0.00001;
+    else
+    {
+        KRATOS_WARNING("ComputeDensity") << "Using density correction" << std::endl;
+        return rho_inf * 0.00001;
     }
 }
 
@@ -876,7 +879,19 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensityDerivative
     const double gamma = GetProperties().GetValue(GAMMA);
     const double a_inf = GetProperties().GetValue(SOUND_VELOCITY);
 
-    return -pow(rho_inf,gamma -1)*pow(rho,2-gamma)/(2*a_inf*a_inf);
+    return -pow(rho_inf, gamma - 1) * pow(rho, 2 - gamma) / (2 * a_inf * a_inf);
+}
+
+template <int Dim, int NumNodes>
+double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressure() const
+{
+    // Reading free stream conditions
+    const double rho_inf = GetProperties().GetValue(DENSITY_INFINITY);
+    const double gamma = GetProperties().GetValue(GAMMA);
+    const double pressure_inf = GetProperties().GetValue(PRESSURE_INFINITY);
+    const double rho = ComputeDensity();
+
+    return pressure_inf * pow(rho / rho_inf, gamma);
 }
 
 // serializer
