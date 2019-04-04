@@ -91,11 +91,12 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # FSI coupling required variables addition
         self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_PROJECTED)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
         self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRUCTURE_VELOCITY)
+        # self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_PROJECTED)
+        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
         self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_INTERFACE_RESIDUAL)
+        # self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_INTERFACE_RESIDUAL)
+        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL)
 
     def ImportModelPart(self):
         # Fluid and structure solvers ImportModelPart() call
@@ -161,19 +162,18 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self._get_convergence_accelerator().InitializeSolutionStep()
 
     def Predict(self):
-        pass
         # Structure solver prediction. It is important to firstly perform the structure
         # prediction to update the current buffer position before the FM-ALE operations.
         # Otherwise position 0 and 1 of the buffer coincide since the advance in time
         # has been already performed but no update has been done yet. Besides, this will
         # give a better approximation of the level-set position at the end of step.
-        # self.structure_solver.Predict()
+        self.structure_solver.Predict()
 
-        # Update the level set position
-        self._update_level_set()
+        # # Update the level set position
+        # self._update_level_set()
 
-        # Fluid solver prediction
-        self.fluid_solver.Predict()
+        # # Fluid solver prediction
+        # self.fluid_solver.Predict()
 
     def GetComputingModelPart(self):
         err_msg =  'Calling GetComputingModelPart() method in a partitioned solver.\n'
@@ -237,11 +237,11 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
             self._get_convergence_accelerator().InitializeNonLinearIteration()
 
-            # Update the PRESSURE load and solve the structure problem
-            self._solve_structure()
-
             # Update the EMBEDDED_VELOCITY and solve the fluid problem
             self._solve_fluid()
+
+            # Update the PRESSURE load and solve the structure problem
+            self._solve_structure()
 
             node = self.fluid_solver.GetComputingModelPart().Nodes[77427]
             self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 0)) + " ")
@@ -257,7 +257,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             self.riccardo.flush()
 
             # Compute the structure interface VELOCITY residual vector
-            pres_residual = self._compute_pressure_residual()
+            vel_residual = self._compute_velocity_residual()
 
             # Check convergence
             nl_res_norm = self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.FSI_INTERFACE_RESIDUAL_NORM]
@@ -270,11 +270,70 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             else:
                 # If convergence is not achieved, perform the correction of the prediction
                 self._PrintInfoOnRankZero("","\tResidual computation finished. |res|/sqrt(nDOFS) = ", nl_res_norm/sqrt(interface_dofs))
-                self._get_convergence_accelerator().UpdateSolution(pres_residual, self.iteration_value)
+                self._get_convergence_accelerator().UpdateSolution(vel_residual, self.iteration_value)
                 self._get_convergence_accelerator().FinalizeNonLinearIteration()
+
+                # Apply the corrected displacements to the structure
+                # TODO: Correct the time derivatives in accordance
+                str_interface_submodelpart = self.model.GetModelPart(self._get_structure_interface_model_part_name())
+                self._get_partitioned_fsi_utilities().UpdateInterfaceValues(
+                    str_interface_submodelpart,
+                    KratosMultiphysics.VELOCITY,
+                    self.iteration_value)
 
                 if (nl_it == self.max_nl_it):
                     self._PrintWarningOnRankZero("","\tFSI NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED")
+
+    # def SolveSolutionStep(self):
+    #     ## Wall non-linear coupling iteration ##
+    #     nl_it = 0
+    #     while (nl_it < self.max_nl_it and self.fluid_solver._TimeBufferIsInitialized()):
+    #         nl_it += 1
+    #         self._PrintInfoOnRankZero("","\tFSI non-linear iteration = ", nl_it)
+
+    #         self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
+    #         self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
+
+    #         self._get_convergence_accelerator().InitializeNonLinearIteration()
+
+    #         # Update the PRESSURE load and solve the structure problem
+    #         self._solve_structure()
+
+    #         # Update the EMBEDDED_VELOCITY and solve the fluid problem
+    #         self._solve_fluid()
+
+    #         node = self.fluid_solver.GetComputingModelPart().Nodes[77427]
+    #         self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 0)) + " ")
+    #         self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 1)) + " ")
+    #         self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 2)) + " ")
+    #         self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 0)) + " ")
+    #         self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)) + " ")
+    #         self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 2)) + " ")
+    #         self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 0)) + " ")
+    #         self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 1)) + " ")
+    #         self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 2)) + " ")
+    #         self.riccardo.write("\n")
+    #         self.riccardo.flush()
+
+    #         # Compute the structure interface VELOCITY residual vector
+    #         pres_residual = self._compute_pressure_residual()
+
+    #         # Check convergence
+    #         nl_res_norm = self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.FSI_INTERFACE_RESIDUAL_NORM]
+    #         interface_dofs = self._get_partitioned_fsi_utilities().GetInterfaceResidualSize(self._GetStructureInterfaceSubmodelPart())
+    #         if nl_res_norm/sqrt(interface_dofs) < self.nl_tol:
+    #             self._get_convergence_accelerator().FinalizeNonLinearIteration()
+    #             self._PrintInfoOnRankZero("","\tNon-linear iteration convergence achieved")
+    #             self._PrintInfoOnRankZero("","\tTotal non-linear iterations: ", nl_it, " |res|/sqrt(nDOFS) = ", nl_res_norm/sqrt(interface_dofs))
+    #             break
+    #         else:
+    #             # If convergence is not achieved, perform the correction of the prediction
+    #             self._PrintInfoOnRankZero("","\tResidual computation finished. |res|/sqrt(nDOFS) = ", nl_res_norm/sqrt(interface_dofs))
+    #             self._get_convergence_accelerator().UpdateSolution(pres_residual, self.iteration_value)
+    #             self._get_convergence_accelerator().FinalizeNonLinearIteration()
+
+    #             if (nl_it == self.max_nl_it):
+    #                 self._PrintWarningOnRankZero("","\tFSI NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED")
 
     def FinalizeSolutionStep(self):
         # Finalize solution step
@@ -440,88 +499,47 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Recompute the new embedded intersections model part
         self._get_embedded_skin_utility().GenerateSkin()
 
-        # # TODO: Improve it to interpolate it from the nodes to the Gauss pts.
-        # # Map the MESH_VELOCITY to the skin (auxiliary operation to interpolate it from the skin)
-        # # Then compute the EMBEDDED_VELOCITY from it. This makes the interface Lagrangian.
-        # self._get_embedded_skin_utility().InterpolateMeshVariableToSkin(
-        #     KratosMultiphysics.MESH_VELOCITY,
-        #     KratosMultiphysics.MESH_VELOCITY)
-
-        # self._get_distance_to_skin_process().CalculateEmbeddedVariableFromSkin(
-        #     # KratosMultiphysics.VELOCITY,
-        #     # KratosMultiphysics.STRUCTURE_VELOCITY,
-        #     KratosMultiphysics.MESH_VELOCITY,
-        #     KratosMultiphysics.EMBEDDED_VELOCITY)
-
     def _solve_fluid(self):
         # Update the current iteration level-set position
         self._update_level_set()
 
-        # Do FM-ALE operations
-        self.fluid_solver._do_fm_ale_operations()
-
-        # TODO: Improve it to interpolate it from the nodes to the Gauss pts.
-        # Map the MESH_VELOCITY to the skin (auxiliary operation to interpolate it from the skin)
-        # Then compute the EMBEDDED_VELOCITY from it. This makes the interface Lagrangian.
-        self._get_embedded_skin_utility().InterpolateMeshVariableToSkin(
-            KratosMultiphysics.MESH_VELOCITY,
-            KratosMultiphysics.MESH_VELOCITY)
-
-        # Maps the PRESSURE value from the generated intersections skins to the structure skin.
-        # Note that the SurfaceLoadCondition in the StructuralMechanicsApplication uses the
-        # variable POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE as nodal surface loads.
-        mapper_project_parameters = KratosMultiphysics.Parameters("""{
-            "mapper_type" : "",
-            "interface_submodel_part_origin" : "",
-            "interface_submodel_part_destination" : ""
-        }""")
-        mapper_project_parameters["mapper_type"].SetString("nearest_element")
-        mapper_project_parameters["interface_submodel_part_origin"].SetString("SkinEmbeddedIntersectionsModelPart")
-        mapper_project_parameters["interface_submodel_part_destination"].SetString(self.GetStructureSkinModelPart().Name)
-
-        KratosMapping.MapperFactory.CreateMapper(
-            self.model.GetModelPart("EmbeddedIntersectionsModelPart"),
-            self.structure_solver.main_model_part,
-            mapper_project_parameters).Map(
-                KratosMultiphysics.MESH_VELOCITY,
-                KratosMultiphysics.MESH_VELOCITY)
-
+        # VELOCITY based EMBEDDED_VELOCITY.
+        # Note that VELOCITY variable already contains the corrected velocity
         self._get_distance_to_skin_process().CalculateEmbeddedVariableFromSkin(
-            # KratosMultiphysics.VELOCITY,
+            KratosMultiphysics.VELOCITY,
             # KratosMultiphysics.STRUCTURE_VELOCITY,
-            KratosMultiphysics.MESH_VELOCITY,
             KratosMultiphysics.EMBEDDED_VELOCITY)
 
         # Solve fluid problem
-        self.fluid_solver.SolveSolutionStep()
+        self.fluid_solver.SolveSolutionStep() # This contains the FM-ALE operations
 
-        # Undo the FM-ALE operations
+        # Undo the FM-ALE virtual mesh movement
         self.fluid_solver._get_mesh_moving_util().UndoMeshMovement()
 
-        # It is important to call this to restore the fixity to its original status
+        # Restore the fluid node fixity to its original status
         self._get_distance_modification_process().ExecuteFinalizeSolutionStep()
 
+    # def _solve_structure(self):
+    #     # Update the POSITIVE_FACE_PRESSURE value with the corrected iteration value
+    #     str_interface_submodelpart = self.model.GetModelPart(self._get_structure_interface_model_part_name())
+    #     self._get_partitioned_fsi_utilities().UpdateInterfaceValues(
+    #         str_interface_submodelpart,
+    #         KratosMultiphysics.POSITIVE_FACE_PRESSURE,
+    #         self.iteration_value)
+
+    #     # Save the current POSITIVE_FACE_PRESSURE in an auxiliary variable for the next residual computation
+    #     for node in self._GetStructureInterfaceSubmodelPart().Nodes:
+    #         pos_face_pres = node.GetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
+    #         node.SetSolutionStepValue(KratosMultiphysics.SCALAR_PROJECTED, pos_face_pres)
+
+    #     # Solve the structure problem
+    #     self.structure_solver.SolveSolutionStep()
+
     def _solve_structure(self):
-        # Update the POSITIVE_FACE_PRESSURE value with the corrected iteration value
-        str_interface_submodelpart = self.model.GetModelPart(self._get_structure_interface_model_part_name())
-        self._get_partitioned_fsi_utilities().UpdateInterfaceValues(
-            str_interface_submodelpart,
-            KratosMultiphysics.POSITIVE_FACE_PRESSURE,
-            self.iteration_value)
-
-        # Save the current POSITIVE_FACE_PRESSURE in an auxiliary variable for the next residual computation
+        # Save the current DISPLACEMENT in an auxiliary variable for the next residual computation
         for node in self._GetStructureInterfaceSubmodelPart().Nodes:
-            pos_face_pres = node.GetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-            node.SetSolutionStepValue(KratosMultiphysics.SCALAR_PROJECTED, pos_face_pres)
-
-        # Solve the structure problem
-        self.structure_solver.SolveSolutionStep()
-
-    def _compute_pressure_residual(self):
-        # # Save the current POSITIVE_FACE_PRESSURE in an auxiliary variable for the residual computation
-        # for node in self._GetStructureInterfaceSubmodelPart().Nodes:
-        #     pos_face_pres = node.GetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-        #     node.SetSolutionStepValue(KratosMultiphysics.SCALAR_PROJECTED, pos_face_pres)
+            vel = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+            node.SetSolutionStepValue(KratosMultiphysics.VECTOR_PROJECTED, vel)
 
         # Interpolate the intersections model part PRESSURE values from the fluid mesh
         self._get_embedded_skin_utility().InterpolateMeshVariableToSkin(
@@ -531,23 +549,54 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Map the intersections model part PRESSURE values to the structure skin
         self._map_pressure_to_positive_face_pressure()
 
-        # Compute the structure interface residual vector. The residual vector is computed
-        # as the difference between the obtained velocity value (PRESSURE) and the velocity
-        # in the beggining of the iteration. This is mapped from the fluid and saved in
-        # SCALAR_PROJECTED. Besides, the residual norm is stored in the ProcessInfo.
-        pres_residual = KratosMultiphysics.Vector(
+        # Solve the structure problem
+        self.structure_solver.SolveSolutionStep()
+
+    # def _compute_pressure_residual(self):
+    #     # Interpolate the intersections model part PRESSURE values from the fluid mesh
+    #     self._get_embedded_skin_utility().InterpolateMeshVariableToSkin(
+    #         KratosMultiphysics.PRESSURE,
+    #         KratosMultiphysics.PRESSURE)
+
+    #     # Map the intersections model part PRESSURE values to the structure skin
+    #     self._map_pressure_to_positive_face_pressure()
+
+    #     # Compute the structure interface residual vector. The residual vector is computed
+    #     # as the difference between the obtained velocity value (PRESSURE) and the velocity
+    #     # in the beggining of the iteration. This is mapped from the fluid and saved in
+    #     # SCALAR_PROJECTED. Besides, the residual norm is stored in the ProcessInfo.
+    #     pres_residual = KratosMultiphysics.Vector(
+    #         self._get_partitioned_fsi_utilities().GetInterfaceResidualSize(self._GetStructureInterfaceSubmodelPart()))
+
+    #     self._get_partitioned_fsi_utilities().ComputeInterfaceResidualVector(
+    #         self._GetStructureInterfaceSubmodelPart(),
+    #         KratosMultiphysics.POSITIVE_FACE_PRESSURE,
+    #         KratosMultiphysics.SCALAR_PROJECTED,
+    #         KratosMultiphysics.SCALAR_INTERFACE_RESIDUAL,
+    #         pres_residual,
+    #         "nodal",
+    #         KratosMultiphysics.FSI_INTERFACE_RESIDUAL_NORM)
+
+    #     return pres_residual
+
+    def _compute_velocity_residual(self):
+        # Compute the structure interface residual vector. The residual vector is computed as the difference
+        # between the obtained velocity value (VELOCITY) and the velocity in the beggining of the
+        # iteration, which has been previously saved in the auxiliary variable VECTOR_PROJECTED. Besides, the
+        # residual norm is stored in the ProcessInfo.
+        vel_residual = KratosMultiphysics.Vector(
             self._get_partitioned_fsi_utilities().GetInterfaceResidualSize(self._GetStructureInterfaceSubmodelPart()))
 
         self._get_partitioned_fsi_utilities().ComputeInterfaceResidualVector(
             self._GetStructureInterfaceSubmodelPart(),
-            KratosMultiphysics.POSITIVE_FACE_PRESSURE,
-            KratosMultiphysics.SCALAR_PROJECTED,
-            KratosMultiphysics.SCALAR_INTERFACE_RESIDUAL,
-            pres_residual,
+            KratosMultiphysics.VECTOR_PROJECTED,
+            KratosMultiphysics.VELOCITY,
+            KratosMultiphysics.FSI_INTERFACE_RESIDUAL,
+            vel_residual,
             "nodal",
             KratosMultiphysics.FSI_INTERFACE_RESIDUAL_NORM)
 
-        return pres_residual
+        return vel_residual
 
     # This method is to be overwritten in the MPI solver
     def _PrintInfoOnRankZero(self, *args):
@@ -621,8 +670,10 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
     def _create_partitioned_fsi_utilities(self):
         if self.domain_size == 2:
-            return KratosFSI.PartitionedFSIUtilitiesDouble2D()
+            return KratosFSI.PartitionedFSIUtilitiesArray2D()
+            # return KratosFSI.PartitionedFSIUtilitiesDouble2D()
         elif self.domain_size == 3:
-            return KratosFSI.PartitionedFSIUtilitiesDouble3D()
+            return KratosFSI.PartitionedFSIUtilitiesArray3D()
+            # return KratosFSI.PartitionedFSIUtilitiesDouble3D()
         else:
             raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
