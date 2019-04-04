@@ -139,7 +139,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(Proce
     if (wake != 0 && active == true)
     {
         CheckWakeCondition();
-        ComputePotentialJump(rCurrentProcessInfo);
+        ComputePotentialJump();
     }
     ComputeElementInternalEnergy();
 }
@@ -183,12 +183,12 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoint
 
     if (rVariable == PRESSURE)
     {
-        double p = ComputePressureUpper(rCurrentProcessInfo);
+        double p = ComputePressureUpper();
         rValues[0] = p;
     }
     else if (rVariable == PRESSURE_LOWER)
     {
-        double p = ComputePressureLower(rCurrentProcessInfo);
+        double p = ComputePressureLower();
         rValues[0] = p;
     }
     else if (rVariable == WAKE)
@@ -565,7 +565,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CheckWakeCondition() const
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(ProcessInfo& rCurrentProcessInfo)
+void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump()
 {
     const array_1d<double, 3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
     const double vinfinity_norm = sqrt(inner_prod(vinfinity, vinfinity));
@@ -744,31 +744,31 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLowerWakeEl
 }
 
 template <int Dim, int NumNodes>
-double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpper(const ProcessInfo& rCurrentProcessInfo) const
+double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpper() const
 {
     const CompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0)
-        return ComputePressureNormalElement(rCurrentProcessInfo);
+        return ComputePressureNormalElement();
     else
-        return ComputePressureUpperWakeElement(rCurrentProcessInfo);
+        return ComputePressureUpperWakeElement();
 }
 
 template <int Dim, int NumNodes>
-double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLower(const ProcessInfo& rCurrentProcessInfo) const
+double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLower() const
 {
     const CompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0)
-        return ComputePressureNormalElement(rCurrentProcessInfo);
+        return ComputePressureNormalElement();
     else
-        return ComputePressureLowerWakeElement(rCurrentProcessInfo);
+        return ComputePressureLowerWakeElement();
 }
 
 template <int Dim, int NumNodes>
-double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo) const
+double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureNormalElement() const
 {
     const array_1d<double, 3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
     const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
@@ -786,8 +786,7 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureNormalEle
 }
 
 template <int Dim, int NumNodes>
-double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpperWakeElement(
-    const ProcessInfo& rCurrentProcessInfo) const
+double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpperWakeElement() const
 {
     const array_1d<double, 3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
     const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
@@ -806,8 +805,7 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpperWake
 }
 
 template <int Dim, int NumNodes>
-double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLowerWakeElement(
-    const ProcessInfo& rCurrentProcessInfo) const
+double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLowerWakeElement() const
 {
     const array_1d<double, 3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
     const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);

@@ -294,7 +294,7 @@ private:
 
     void CheckWakeCondition() const;
 
-    void ComputePotentialJump(ProcessInfo& rCurrentProcessInfo);
+    void ComputePotentialJump();
 
     void ComputeElementInternalEnergy();
 
@@ -319,15 +319,15 @@ private:
 
     void ComputeVelocityLowerWakeElement(array_1d<double, Dim>& velocity) const;
 
-    double ComputePressureUpper(const ProcessInfo& rCurrentProcessInfo) const;
+    double ComputePressureUpper() const;
 
-    double ComputePressureLower(const ProcessInfo& rCurrentProcessInfo) const;
+    double ComputePressureLower() const;
 
-    double ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo) const;
+    double ComputePressureNormalElement() const;
 
-    double ComputePressureUpperWakeElement(const ProcessInfo& rCurrentProcessInfo) const;
+    double ComputePressureUpperWakeElement() const;
 
-    double ComputePressureLowerWakeElement(const ProcessInfo& rCurrentProcessInfo) const;
+    double ComputePressureLowerWakeElement() const;
 
     ///@}
     ///@name Private Operations
