@@ -194,7 +194,6 @@ private:
         Vector Dg1_D1, Dg1_D2, Dg2_D1, Dg2_D2, Dg3_D1, Dg3_D2;
         double dA; //differential area
         Matrix H; //Hessian
-        Matrix Q; //Transformation matrix Q from contravariant to cartesian basis
         Matrix T; //Transformation matrix T from contravariant to local cartesian basis
         
         /**
@@ -225,7 +224,6 @@ private:
             dA = 1.0;
 
             H = ZeroMatrix(Dimension, Dimension);
-            Q = ZeroMatrix(Dimension, Dimension);
             T = ZeroMatrix(Dimension, Dimension);
         }
     };
@@ -319,7 +317,7 @@ private:
      * @param rActualMetric: The actual metric
      */
     void CalculateRotationVector(
-        MetricVariables& rAcutalMetric);
+        const MetricVariables& rAcutalMetric);
 
     /**
         * @brief This functions updates the constitutive variables
@@ -329,7 +327,7 @@ private:
         * @param ThisStressMeasure: The stress measure considered
         */
     void CalculateConstitutiveVariables(
-        MetricVariables& rActualMetric,
+        const MetricVariables& rActualMetric,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         ConstitutiveLaw::Parameters& rValues,

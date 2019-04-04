@@ -32,7 +32,6 @@ namespace Kratos
         // Constitutive Law initialisation
         BaseDiscreteElement::Initialize();
         
-        // KRATOS_WATCH(m_initial_metric.Q);
         // KRATOS_WATCH(m_initial_metric.g3);
 
         CalculateMetric(m_initial_metric);
@@ -72,8 +71,6 @@ namespace Kratos
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-        // this is done for each node again and again even though LHS and RHS are global (ML)
-        // -> could be more effective (ML)
         // 3. resizing of solving matrices LHS and RHS      
         // resizing as needed the LHS
         if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
@@ -90,9 +87,7 @@ namespace Kratos
             rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
         }
 
-        // 4. reading in shape function values and shape function derivatives
-        // needed? (ML)
-        Vector   N     = GetValue(SHAPE_FUNCTION_VALUES);
+        // 4. reading in shape function derivatives
         // rDN_De(i, m): derivative of form function at node i w.r.t. convective coordinate m
         Matrix  DN_De  = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
         Matrix DDN_DDe = GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
@@ -270,7 +265,7 @@ namespace Kratos
         array_1d<double, 3> g_con_1 = rMetric.g1*rMetric.gab_con[0] + rMetric.g2*rMetric.gab_con[2];
         array_1d<double, 3> g_con_2 = rMetric.g1*rMetric.gab_con[2] + rMetric.g2*rMetric.gab_con[1];
 
-        //local cartesian base vectors, with the following choice its guaranteed that e1 is orthogonal to e2
+        // local cartesian base vectors, with the following choice its guaranteed that e1 is orthogonal to e2
         double lg1 = norm_2(rMetric.g1);
         array_1d<double, 3> e1 = rMetric.g1 / lg1;
         double lg_con2 = norm_2(g_con_2);
@@ -278,82 +273,29 @@ namespace Kratos
 
         // KRATOS_WATCH("CalculateMetric3");
 
-        // calculation of Q not checked yet (ML)
-        Matrix mG = ZeroMatrix(2, 2);
-        mG(0, 0) = inner_prod(e1, g_con_1);
-        mG(0, 1) = inner_prod(e1, g_con_2);
-        mG(1, 0) = inner_prod(e2, g_con_1);
-        mG(1, 1) = inner_prod(e2, g_con_2);
-        
-        // KRATOS_WATCH("CalculateMetric3.1");
-        // KRATOS_WATCH(mG(0,0));
-        // KRATOS_WATCH("CalculateMetric3.1.1");
-        rMetric.Q(0, 0) = pow(mG(0, 0),2);
-        rMetric.Q(0, 1) = pow(mG(0, 1), 2);
-        rMetric.Q(0, 2) = 2.00 * mG(0, 0) * mG(0, 1);
-        
-        // KRATOS_WATCH("CalculateMetric3.2");
-
-        rMetric.Q(1, 0) = pow(mG(1, 0), 2);
-        rMetric.Q(1, 1) = pow(mG(1, 1), 2);
-        rMetric.Q(1, 2) = 2.00*mG(1, 0) * mG(1, 1);
-
-        rMetric.Q(2, 0) = 2.00 * mG(0, 0) * mG(1, 0);
-        rMetric.Q(2, 1) = 2.00 * mG(0, 1)*mG(1, 1);
-        rMetric.Q(2, 2) = 2.00 * (mG(0, 0) * mG(1, 1) + mG(0, 1)*mG(1, 0));
-
-        // KRATOS_WATCH("CalculateMetric4");
-
-        //Matrix T_G_E = ZeroMatrix(3, 3);
-        //Transformation matrix T from contravariant to local cartesian basis
-        double eG11 = inner_prod(e1, rMetric.g1);
-        double eG12 = inner_prod(e1, rMetric.g2);
-        double eG21 = inner_prod(e2, rMetric.g1);
-        double eG22 = inner_prod(e2, rMetric.g2);
-
-        // does this commented part mean that the above calculation is not rigth for sure? (ML)
-        //rMetric.Q = ZeroMatrix(3, 3);
-        //rMetric.Q(0, 0) = eG11*eG11;
-        //rMetric.Q(0, 1) = eG12*eG12;
-        //rMetric.Q(0, 2) = 2.0*eG11*eG12;
-        //rMetric.Q(1, 0) = eG21*eG21;
-        //rMetric.Q(1, 1) = eG22*eG22;
-        //rMetric.Q(1, 2) = 2.0*eG21*eG22;
-        //rMetric.Q(2, 0) = 2.0*eG11*eG21;
-        //rMetric.Q(2, 1) = 2.0*eG12*eG22;
-        //rMetric.Q(2, 2) = 2.0*eG11*eG22 + eG12*eG21;
+        // transformation matrix T, from contravariant to local cartesian coordinate system
+        double Ge11 = inner_prod(rMetric.g1,e1);
+        double Ge12 = inner_prod(rMetric.g1,e2);
+        double Ge21 = inner_prod(rMetric.g2,e1);
+        double Ge22 = inner_prod(rMetric.g2,e2);
 
         // calculation of T not checked yet (ML)
-        rMetric.T(0, 0) = eG11 * eG11;
-        rMetric.T(0, 1) = eG12 * eG12;
-        rMetric.T(0, 2) = 2.0*eG11*eG12;
-        rMetric.T(1, 0) = eG21 * eG21;
-        rMetric.T(1, 1) = eG22 * eG22;
-        rMetric.T(1, 2) = 2.0*eG21*eG22;
-        rMetric.T(2, 0) = 2.0*eG11*eG21;
-        rMetric.T(2, 1) = 2.0*eG12*eG22;
-        rMetric.T(2, 2) = 2.0*(eG11*eG22 + eG12 * eG21);
+        rMetric.T(0, 0) = Ge11 * Ge11;
+        rMetric.T(0, 1) = Ge12 * Ge12;
+        rMetric.T(0, 2) = Ge11 * Ge12;
+        rMetric.T(1, 0) = Ge21 * Ge21;
+        rMetric.T(1, 1) = Ge22 * Ge22;
+        rMetric.T(1, 2) = Ge21 * Ge22;
+        rMetric.T(2, 0) = 2.0 * Ge11 * Ge21;
+        rMetric.T(2, 1) = 2.0 * Ge12 * Ge22;
+        rMetric.T(2, 2) = Ge11 * Ge22 + Ge12 * Ge21;
 
-        // does this commented part mean that the above calculation is rigth for sure? (ML)
-        //rMetric.T = ZeroMatrix(3, 3);
-        //rMetric.T(0, 0) = eG11*eG11;
-        //rMetric.T(0, 1) = eG21*eG21;
-        //rMetric.T(0, 2) = 2.0*eG11*eG21;
-        //rMetric.T(1, 0) = eG12*eG12;
-        //rMetric.T(1, 1) = eG22*eG22;
-        //rMetric.T(1, 2) = 2.0*eG12*eG22;
-        //rMetric.T(2, 0) = eG11*eG12;
-        //rMetric.T(2, 1) = eG21*eG22;
-        //rMetric.T(2, 2) = eG11*eG22 + eG12*eG21;
-
-        //KRATOS_WATCH(rMetric.Q)
-        //KRATOS_WATCH(rMetric.T)
         // KRATOS_WATCH("CalculateMetricEnd");
 
     }
  
     void IgaShell3pElement::CalculateRotationVector(
-        MetricVariables& rActualMetric)
+        const MetricVariables& rActualMetric)
     {   
         m_phi1 = MathUtils<double>::Dot3(m_Dv_D2, m_initial_metric.g3)
         / norm_2(MathUtils<double>::CrossProduct(m_initial_metric.g1,m_initial_metric.g2));
@@ -365,7 +307,7 @@ namespace Kratos
     }
     
     void IgaShell3pElement::CalculateConstitutiveVariables(
-        MetricVariables& rActualMetric,
+        const MetricVariables& rActualMetric,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         ConstitutiveLaw::Parameters& rValues,
@@ -472,7 +414,7 @@ namespace Kratos
                rB(2, index + 1) = rDN_De(i, 1) * rMetric.g1[1] + rDN_De(i, 0) * rMetric.g2[1];
                rB(2, index + 2) = rDN_De(i, 1) * rMetric.g1[2] + rDN_De(i, 0) * rMetric.g2[2];
            }
-           rB = prod(m_initial_metric.Q, rB);
+           rB = prod(m_initial_metric.T, rB);
         }
         else
         {
@@ -558,7 +500,7 @@ namespace Kratos
                 rB(2, index + 2) = 0 - (rDDN_DDe(i, 2) * rMetric.g3[2] + rMetric.H(0, 2)*dg3(2, 0) + rMetric.H(1, 2)*dg3(2, 1) + rMetric.H(2, 2)*dg3(2, 2));
             }
 
-            rB = prod(m_initial_metric.Q, rB);
+            rB = prod(m_initial_metric.T, rB);
         }
         else
         {
@@ -647,9 +589,9 @@ namespace Kratos
                         ddE_cu[2] = DN_De(kr, 0)*DN_De(ks, 1) + DN_De(kr, 1)*DN_De(ks, 0);
 
                         // transformation
-                        rSecondVariationsStrain.B11(r, s) = m_initial_metric.Q(0, 0)*ddE_cu[0] + m_initial_metric.Q(0, 1)*ddE_cu[1] + m_initial_metric.Q(0, 2)*ddE_cu[2];
-                        rSecondVariationsStrain.B22(r, s) = m_initial_metric.Q(1, 0)*ddE_cu[0] + m_initial_metric.Q(1, 1)*ddE_cu[1] + m_initial_metric.Q(1, 2)*ddE_cu[2];
-                        rSecondVariationsStrain.B12(r, s) = m_initial_metric.Q(2, 0)*ddE_cu[0] + m_initial_metric.Q(2, 1)*ddE_cu[1] + m_initial_metric.Q(2, 2)*ddE_cu[2];
+                        rSecondVariationsStrain.B11(r, s) = m_initial_metric.T(0, 0)*ddE_cu[0] + m_initial_metric.T(0, 1)*ddE_cu[1] + m_initial_metric.T(0, 2)*ddE_cu[2];
+                        rSecondVariationsStrain.B22(r, s) = m_initial_metric.T(1, 0)*ddE_cu[0] + m_initial_metric.T(1, 1)*ddE_cu[1] + m_initial_metric.T(1, 2)*ddE_cu[2];
+                        rSecondVariationsStrain.B12(r, s) = m_initial_metric.T(2, 0)*ddE_cu[0] + m_initial_metric.T(2, 1)*ddE_cu[1] + m_initial_metric.T(2, 2)*ddE_cu[2];
                     }
 
                     // curvature
@@ -684,11 +626,11 @@ namespace Kratos
                         + rMetric.H(0, 2) * ddn[0] + rMetric.H(1, 2) * ddn[1] + rMetric.H(2, 2) * ddn[2];
 
                     // transformation
-                    rSecondVariationsCurvature.B11(r, s) = m_initial_metric.Q(0, 0) * ddK_cu[0] + m_initial_metric.Q(0, 1) * ddK_cu[1] + m_initial_metric.Q(0, 2) * ddK_cu[2];
+                    rSecondVariationsCurvature.B11(r, s) = m_initial_metric.T(0, 0) * ddK_cu[0] + m_initial_metric.T(0, 1) * ddK_cu[1] + m_initial_metric.T(0, 2) * ddK_cu[2];
                     rSecondVariationsCurvature.B11(s, r) = rSecondVariationsCurvature.B11(r, s);
-                    rSecondVariationsCurvature.B22(r, s) = m_initial_metric.Q(1, 0) * ddK_cu[0] + m_initial_metric.Q(1, 1) * ddK_cu[1] + m_initial_metric.Q(1, 2) * ddK_cu[2];
+                    rSecondVariationsCurvature.B22(r, s) = m_initial_metric.T(1, 0) * ddK_cu[0] + m_initial_metric.T(1, 1) * ddK_cu[1] + m_initial_metric.T(1, 2) * ddK_cu[2];
                     rSecondVariationsCurvature.B22(s, r) = rSecondVariationsCurvature.B22(r, s);
-                    rSecondVariationsCurvature.B12(r, s) = m_initial_metric.Q(2, 0) * ddK_cu[0] + m_initial_metric.Q(2, 1) * ddK_cu[1] + m_initial_metric.Q(2, 2) * ddK_cu[2];
+                    rSecondVariationsCurvature.B12(r, s) = m_initial_metric.T(2, 0) * ddK_cu[0] + m_initial_metric.T(2, 1) * ddK_cu[1] + m_initial_metric.T(2, 2) * ddK_cu[2];
                     rSecondVariationsCurvature.B12(s, r) = rSecondVariationsCurvature.B12(r, s);
                 }
             }
@@ -716,8 +658,8 @@ namespace Kratos
             rResult[index    ] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
-            rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_X).EquationId();
-            rResult[index + 4] = GetGeometry()[i].GetDof(ROTATION_Y).EquationId();
+            // rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_X).EquationId();
+            // rResult[index + 4] = GetGeometry()[i].GetDof(ROTATION_Y).EquationId();
         }
 
         KRATOS_CATCH("")
@@ -744,8 +686,8 @@ namespace Kratos
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
             KRATOS_WATCH("GetDofList1");
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
+            // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
+            // rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
             KRATOS_WATCH("GetDofList2");
         }
 

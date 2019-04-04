@@ -105,6 +105,8 @@ namespace Kratos
     )
     {
         KRATOS_TRY;
+        
+        KRATOS_WATCH("GetDofListStart");
 
         const unsigned int number_of_control_points = GetGeometry().size();
 
@@ -116,6 +118,8 @@ namespace Kratos
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
         }
+
+        KRATOS_WATCH("GetDofListEnd");
 
         KRATOS_CATCH("")
     };
