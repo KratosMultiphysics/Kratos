@@ -144,7 +144,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 rValues, characteristic_length, damage_yield_flux,
                 plastic_strain, damage, damage_increment, 
                 hard_damage, hcapd, undamaged_free_energy);
-                
+
         // Verification threshold for the plastic-damage process
         if (plasticity_indicator >= std::abs(1.0e-4 * threshold_plasticity) || damage_indicator >= std::abs(1.0e-4 * threshold_damage)) {
             bool is_converged = false;
@@ -191,6 +191,8 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 effective_predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
                 predictive_stress_vector = (1.0 - damage) * effective_predictive_stress_vector;
 
+                undamaged_free_energy = 0.5 * inner_prod(r_strain_vector - plastic_strain, effective_predictive_stress_vector);
+
                 // Compute the plastic parameters
                 double plasticity_indicator = TPlasticityIntegratorType::CalculatePlasticParameters(
                         predictive_stress_vector, r_strain_vector, uniaxial_stress_plasticity,
@@ -208,7 +210,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                         plastic_strain, damage, damage_increment, 
                         hard_damage, hcapd, undamaged_free_energy);
 
-                // KRATOS_WATCH(plastic_strain)
+                KRATOS_WATCH(plastic_strain)
                 // KRATOS_WATCH(plastic_consistency_increment)
                 // KRATOS_WATCH(plastic_dissipation)
                 // KRATOS_WATCH(damage_indicator)
@@ -219,6 +221,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 // KRATOS_WATCH(threshold_plasticity)
 				// 	KRATOS_WATCH(threshold_plasticity)
 				// 	KRATOS_WATCH(threshold_damage)
+					KRATOS_WATCH(damage)
                 if (plasticity_indicator < std::abs(1.0e-4 * threshold_plasticity) && damage_indicator < std::abs(1.0e-4 * threshold_damage)) {
                     is_converged = true;
                 } else {
@@ -474,6 +477,8 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
 
                 effective_predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
                 predictive_stress_vector = (1.0 - damage) * effective_predictive_stress_vector;
+
+                undamaged_free_energy = 0.5 * inner_prod(r_strain_vector - plastic_strain, effective_predictive_stress_vector);
 
                 // Compute the plastic parameters
                 double plasticity_indicator = TPlasticityIntegratorType::CalculatePlasticParameters(
@@ -877,15 +882,25 @@ CalculateIncrementsPlasticDamageCase(
     const double dFd_ddam = inner_prod(rFluxDamageYield, dS_ddam); // D
     const double jacobian_determinant = dFp_dlambda * dFd_ddam - dFp_ddam * dFd_dlamba;
 
-    // todo try mcaully brackets
     if (jacobian_determinant > tolerance) {
-        rPlasticConsistencyIncrement -=  (dFd_ddam * PlasticityIndicator - dFp_ddam * DamageIndicator) / jacobian_determinant;
-        rDamageIncrement -= (dFp_dlambda * DamageIndicator - dFd_dlamba * PlasticityIndicator) / jacobian_determinant;
+        rPlasticConsistencyIncrement -=  (dFd_ddam * McaullyBrackets(PlasticityIndicator) - dFp_ddam * McaullyBrackets(DamageIndicator)) / jacobian_determinant;
+        rDamageIncrement -= (dFp_dlambda * McaullyBrackets(DamageIndicator) - dFd_dlamba * McaullyBrackets(PlasticityIndicator)) / jacobian_determinant;
     } else { // If the two yield and stresses are the same
         rPlasticConsistencyIncrement -= PlasticityIndicator / dFp_dlambda;
         rDamageIncrement -= PlasticityIndicator / dFp_ddam;
     }
 
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template <class TPlasticityIntegratorType, class TDamageIntegratorType>
+double GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::
+McaullyBrackets(
+    const double Number
+)
+{
+    return 0.5*(Number + std::abs(Number));
 }
 
 /***********************************************************************************/

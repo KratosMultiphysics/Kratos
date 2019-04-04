@@ -390,6 +390,8 @@ public:
         double& rPlasticConsistencyIncrement,
         const int PlasticDamageCase);
 
+    double McaullyBrackets(const double Number);
+
     ///@}
     ///@name Access
     ///@{
