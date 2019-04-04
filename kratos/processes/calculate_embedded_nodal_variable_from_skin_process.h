@@ -76,10 +76,30 @@ public:
     ///@name Type Definitions
     ///@{
 
+    struct Hash
+    {
+        std::size_t operator()(const std::pair<unsigned int,bool>& k) const
+        {
+            std::size_t h1 = std::hash<unsigned int>()(std::get<0>(k));
+            std::size_t h2 = std::hash<bool>()(std::get<1>(k));
+            return h1 ^ (h2 << 1);
+        }
+    };
+
+    struct KeyEqual
+    {
+        bool operator()(const std::pair<std::size_t, std::size_t>& lhs, const std::pair<std::size_t, std::size_t>& rhs) const
+        {
+            return ((std::get<0>(lhs) == std::get<0>(rhs)) && (std::get<1>(lhs) == std::get<1>(rhs)));
+        }
+    };
+
+    typedef std::unordered_map<std::pair<std::size_t, std::size_t>, std::size_t, Hash, KeyEqual> EdgesMapType;
+
     typedef typename Scheme<TSparseSpace,TDenseSpace>::Pointer SchemePointerType;
     typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverPointerType;
     typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::UniquePointer SolvingStrategyPointerType;
-    // typedef typename FindIntersectedGeometricalObjectsProcess::Pointer FindIntersectedGeometricalObjectsProcessPointerType;
+    typedef typename FindIntersectedGeometricalObjectsProcess::Pointer FindIntersectedGeometricalObjectsProcessPointerType;
 
     ///@}
     ///@name Pointer Definitions
@@ -298,11 +318,13 @@ protected:
     ModelPart& mrSkinModelPart;
 
     SolvingStrategyPointerType mpSolvingStrategy;
-    // FindIntersectedGeometricalObjectsProcessPointerType mpFindIntersectedGeometricalObjectsProcess;
+
+    FindIntersectedGeometricalObjectsProcessPointerType mpFindIntersectedGeometricalObjectsProcess;
 
     ///@}
     ///@name Protected Operators
     ///@{
+
 
     ///@}
     ///@name Protected Operations
@@ -311,6 +333,9 @@ protected:
     virtual void ReGenerateIntersectedElementsModelPart()
     {
         KRATOS_TRY
+
+        // Compute element intersections
+        this->ComputeIntersectedEdgesValues();
 
         Model& current_model = mrBaseModelPart.GetModel();
         if(current_model.HasModelPart(mAuxModelPartName)) {
@@ -379,10 +404,14 @@ protected:
 
     void AddIntersectedElementsModelPartElements(ModelPart &rIntersectedElementsModelPart)
     {
+        // Create element edges map
+        EdgesMapType edges_map;
+
         // Get the base model part intersections
-        auto &r_int_obj_vect = this->ComputeIntersectedEdgesValues();
+        auto &r_int_obj_vect = mpFindIntersectedGeometricalObjectsProcess->GetIntersections();
 
         // Loop the base model part elements
+        std::size_t new_elem_id = 1;
         for (unsigned int i_elem = 0; i_elem < mrBaseModelPart.NumberOfElements(); ++i_elem) {
             auto it_elem = mrBaseModelPart.ElementsBegin() + i_elem;
             auto elem_dist = this->SetDistancesVector(it_elem);
@@ -395,44 +424,60 @@ protected:
 
                     // Loop the edges
                     for (unsigned int i_edge = 0; i_edge < r_geom.EdgesNumber(); ++i_edge) {
-                        // Initialize edge values
-                        double i_edge_d = 0.0; // Average normalized distance from lower id. node
-                        unsigned int n_int_obj = 0; // Number edge of intersecting entities
-                        TVarType i_edge_val = mrEmbeddedNodalVariable.Zero(); // Average edge variable value
-
-                        // Get the lower id. node id
+                        // Check if the current edge is already stored
                         auto &r_edge_geom = edges[i_edge];
-                        const unsigned int i_edge_min_id = (r_edge_geom[0].Id() < r_edge_geom[1].Id()) ? r_edge_geom[0].Id() : r_edge_geom[1].Id();
+                        const std::size_t i_edge_min_id = (r_edge_geom[0].Id() < r_edge_geom[1].Id()) ? r_edge_geom[0].Id() : r_edge_geom[1].Id();
+                        const std::size_t i_edge_max_id = (r_edge_geom[0].Id() > r_edge_geom[1].Id()) ? r_edge_geom[0].Id() : r_edge_geom[1].Id();
+                        std::pair<std::size_t, std::size_t> i_edges_pair(i_edge_min_id, i_edge_max_id);
 
-                        // Check the edge intersection against all the candidates
-                        for (auto &r_int_obj : r_int_obj_vect[i_elem]) {
-                            Point intersection_point;
-                            const int is_intersected = this->ComputeEdgeIntersection(
-                                r_int_obj.GetGeometry(),
-                                r_edge_geom[0],
-                                r_edge_geom[1],
-                                intersection_point);
+                        if (edges_map.find(i_edges_pair) == edges_map.end()) {
+                            // Initialize edge values
+                            double i_edge_d = 0.0; // Average normalized distance from lower id. node
+                            unsigned int n_int_obj = 0; // Number edge of intersecting entities
+                            TVarType i_edge_val = mrEmbeddedNodalVariable.Zero(); // Average edge variable value
 
-                            // Compute the variable value in the intersection point
-                            if (is_intersected == 1) {
-                                n_int_obj++;
-                                Vector int_obj_N;
-                                array_1d<double,3> local_coords;
-                                r_int_obj.GetGeometry().PointLocalCoordinates(local_coords, intersection_point);
-                                r_int_obj.GetGeometry().ShapeFunctionsValues(int_obj_N, local_coords);
-                                for (unsigned int i_node = 0; i_node < r_int_obj.GetGeometry().PointsNumber(); ++i_node) {
-                                    i_edge_val += r_int_obj.GetGeometry()[i_node].FastGetSolutionStepValue(mrSkinVariable) * int_obj_N[i_node];
+                            // Check the edge intersection against all the candidates
+                            for (auto &r_int_obj : r_int_obj_vect[i_elem]) {
+                                Point intersection_point;
+                                const int is_intersected = this->ComputeEdgeIntersection(
+                                    r_int_obj.GetGeometry(),
+                                    r_edge_geom[0],
+                                    r_edge_geom[1],
+                                    intersection_point);
+
+                                // Compute the variable value in the intersection point
+                                if (is_intersected == 1) {
+                                    n_int_obj++;
+                                    Vector int_obj_N;
+                                    array_1d<double,3> local_coords;
+                                    r_int_obj.GetGeometry().PointLocalCoordinates(local_coords, intersection_point);
+                                    r_int_obj.GetGeometry().ShapeFunctionsValues(int_obj_N, local_coords);
+                                    for (unsigned int i_node = 0; i_node < r_int_obj.GetGeometry().PointsNumber(); ++i_node) {
+                                        i_edge_val += r_int_obj.GetGeometry()[i_node].FastGetSolutionStepValue(mrSkinVariable) * int_obj_N[i_node];
+                                    }
+                                    i_edge_d = norm_2(intersection_point - r_edge_geom[0]) / r_edge_geom.Length();
                                 }
-                                i_edge_d = norm_2(intersection_point - r_edge_geom[0]) / r_edge_geom.Length();
                             }
-                        }
 
-                        // Check if the edge is intersected
-                        if (n_int_obj != 0) {
-                            // Add the average edge value (there might exist cases in where
-                            // more than one geometry intersects the edge of interest).
-                            i_edge_d /= n_int_obj;
-                            i_edge_val /= n_int_obj;
+                            // Check if the edge is intersected
+                            if (n_int_obj != 0) {
+                                // Add the average edge value (there might exist cases in where
+                                // more than one geometry intersects the edge of interest).
+                                i_edge_d /= n_int_obj;
+                                i_edge_val /= n_int_obj;
+
+                                // TODO: create the element geometry with a template function
+
+                                // Create a new element with the intersected edge
+                                // auto p_element = Kratos::make_shared<EmbeddedNodalVariableCalculationElementSimplex<TDim>>(
+                                //     new_elem_id,
+
+                                // Add the new edge element to the hash map
+                                edges_map.insert(std::make_pair(i_edges_pair, new_elem_id));
+
+                                // Update the id. counter
+                                new_elem_id++;
+                            }
                         }
                     }
                 }
@@ -452,12 +497,11 @@ protected:
         }
     }
 
-    std::vector<PointerVector<GeometricalObject>>& ComputeIntersectedEdgesValues()
+    void ComputeIntersectedEdgesValues()
     {
-        FindIntersectedGeometricalObjectsProcess find_int_objs_proc(mrBaseModelPart, mrSkinModelPart);
-        find_int_objs_proc.Initialize();
-        find_int_objs_proc.FindIntersections();
-        return find_int_objs_proc.GetIntersections();
+        mpFindIntersectedGeometricalObjectsProcess = Kratos::make_shared<FindIntersectedGeometricalObjectsProcess>(mrBaseModelPart, mrSkinModelPart);
+        mpFindIntersectedGeometricalObjectsProcess->Initialize();
+        mpFindIntersectedGeometricalObjectsProcess->FindIntersections();
     }
 
     ///@}

@@ -40,6 +40,7 @@ namespace Testing {
         // Generate the skin
         const double plane_height = 0.5;
         ModelPart &skin_part = current_model.CreateModelPart("Skin");
+        skin_part.AddNodalSolutionStepVariable(TEMPERATURE);
         skin_part.CreateNewNode(1, -1.0, plane_height, 0.0);
         skin_part.CreateNewNode(2,  1.0, plane_height, 0.0);
         Properties::Pointer p_properties_1(new Properties(1));
@@ -62,7 +63,7 @@ namespace Testing {
         CalculateEmbeddedNodalVariableFromSkinProcess<2, double, SparseSpaceType, LocalSpaceType, LinearSolverType> emb_nod_var_from_skin_proc(
             fluid_part,
             skin_part,
-            DISTANCE,
+            TEMPERATURE,
             DISTANCE,
             "discontinuous");
     }
