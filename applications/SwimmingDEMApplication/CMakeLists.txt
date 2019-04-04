@@ -95,6 +95,9 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/monolithic_dem_coupled_wall_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/calculate_laplacian_simplex_condition.cpp
 
+    ## Processes
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/derivative_recovery_process.cpp
+
     ## Utilities
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/binbased_DEM_fluid_coupled_mapping.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/basset_force_tools.cpp
