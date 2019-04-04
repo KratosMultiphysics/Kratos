@@ -256,7 +256,6 @@
         "problem_name" : "Candelier",
         "GraphExportFreq"                  : 1e-3,
         "VelTrapGraphExportFreq"           : 1e-3,
-        "OutputTimeStep"                   : 0.5,
         "PostDisplacement"                 : true,
         "PostVelocity"                     : true,
         "PostElasticForces"                : false,
