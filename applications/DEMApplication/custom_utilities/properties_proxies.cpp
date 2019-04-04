@@ -62,9 +62,9 @@ namespace Kratos {
     double* PropertiesProxy::pGetParticleCohesion()                                           { return  mParticleCohesion;                  }
     void    PropertiesProxy::SetParticleCohesionFromProperties(double* particle_cohesion)     { mParticleCohesion = particle_cohesion;      }
 
-    double  PropertiesProxy::GetAmountOfCohesion()                                            { return *mAmountOfCohesion;                  }
-    double* PropertiesProxy::pGetAmountOfCohesion()                                           { return  mAmountOfCohesion;                  }
-    void    PropertiesProxy::SetAmountOfCohesionFromProperties(double* amount_of_cohesion)    { mAmountOfCohesion = amount_of_cohesion;     }
+    double  PropertiesProxy::GetAmountOfCohesionFromStress()                                  { return *mAmountOfCohesionFromStress;        }
+    double* PropertiesProxy::pGetAmountOfCohesionFromStress()                                 { return  mAmountOfCohesionFromStress;        }
+    void    PropertiesProxy::SetAmountOfCohesionFromStressFromProperties(double* amount_of_cohesion_from_stress) { mAmountOfCohesionFromStress = amount_of_cohesion_from_stress; }
 
     double  PropertiesProxy::GetParticleKNormal()                                             { return *mParticleKNormal;                   }
     double* PropertiesProxy::pGetParticleKNormal()                                            { return  mParticleKNormal;                   }
@@ -104,20 +104,20 @@ namespace Kratos {
 
     PropertiesProxy PropertiesProxy::operator= (PropertiesProxy props) {
 
-        mId                       = props.GetId();
-        mYoung                    = props.pGetYoung();
-        mPoisson                  = props.pGetPoisson();
-        mRollingFriction          = props.pGetRollingFriction();
-        mRollingFrictionWithWalls = props.pGetRollingFrictionWithWalls();
-        mTgOfFrictionAngle        = props.pGetTgOfFrictionAngle();
-        mCoefficientOfRestitution = props.pGetCoefficientOfRestitution();
-        mLnOfRestitCoeff          = props.pGetLnOfRestitCoeff();
-        mDensity                  = props.pGetDensity();
-        mParticleMaterial         = props.pGetParticleMaterial();
-        mParticleCohesion         = props.pGetParticleCohesion();
-        mAmountOfCohesion         = props.pGetAmountOfCohesion();
-        mParticleKNormal          = props.pGetParticleKNormal();
-        mParticleKTangential      = props.pGetParticleKTangential();
+        mId                         = props.GetId();
+        mYoung                      = props.pGetYoung();
+        mPoisson                    = props.pGetPoisson();
+        mRollingFriction            = props.pGetRollingFriction();
+        mRollingFrictionWithWalls   = props.pGetRollingFrictionWithWalls();
+        mTgOfFrictionAngle          = props.pGetTgOfFrictionAngle();
+        mCoefficientOfRestitution   = props.pGetCoefficientOfRestitution();
+        mLnOfRestitCoeff            = props.pGetLnOfRestitCoeff();
+        mDensity                    = props.pGetDensity();
+        mParticleMaterial           = props.pGetParticleMaterial();
+        mParticleCohesion           = props.pGetParticleCohesion();
+        mAmountOfCohesionFromStress = props.pGetAmountOfCohesionFromStress();
+        mParticleKNormal            = props.pGetParticleKNormal();
+        mParticleKTangential        = props.pGetParticleKTangential();
 
         return *this;
     }
@@ -196,8 +196,8 @@ namespace Kratos {
             aux_pointer = &( props_it->GetValue(PARTICLE_COHESION) );
             vector_of_proxies[properties_counter].SetParticleCohesionFromProperties(aux_pointer);
 
-            aux_pointer = &( props_it->GetValue(AMOUNT_OF_COHESION) );
-            vector_of_proxies[properties_counter].SetAmountOfCohesionFromProperties(aux_pointer);
+            aux_pointer = &( props_it->GetValue(AMOUNT_OF_COHESION_FROM_STRESS) );
+            vector_of_proxies[properties_counter].SetAmountOfCohesionFromStressFromProperties(aux_pointer);
 
             aux_pointer = &(props_it->GetValue(K_NORMAL));
             vector_of_proxies[properties_counter].SetParticleKNormalFromProperties(aux_pointer);

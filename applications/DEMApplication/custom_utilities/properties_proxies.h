@@ -71,9 +71,9 @@ namespace Kratos {
         double* pGetParticleCohesion();
         void    SetParticleCohesionFromProperties(double* particle_cohesion);
 
-        double  GetAmountOfCohesion();
-        double* pGetAmountOfCohesion();
-        void    SetAmountOfCohesionFromProperties(double* amount_of_cohesion);
+        double  GetAmountOfCohesionFromStress();
+        double* pGetAmountOfCohesionFromStress();
+        void    SetAmountOfCohesionFromStressFromProperties(double* amount_of_cohesion_from_stress);
 
         double  GetParticleKNormal();
         double* pGetParticleKNormal();
@@ -126,7 +126,7 @@ namespace Kratos {
         double* mDensity;
         int*    mParticleMaterial;
         double* mParticleCohesion;
-        double* mAmountOfCohesion;
+        double* mAmountOfCohesionFromStress;
         double* mParticleKNormal;
         double* mParticleKTangential;
         double* mParticleConicalDamageContactRadius;
