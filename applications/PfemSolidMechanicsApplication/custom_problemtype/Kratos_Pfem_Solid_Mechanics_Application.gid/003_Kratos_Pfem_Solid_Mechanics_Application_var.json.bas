@@ -952,6 +952,7 @@
 *if(strcmp(GenData(Write_Contact_Forces),"True")==0)
 				      "NORMAL",
 				      "CONTACT_FORCE",
+				      "CONTACT_STRESS",
 *endif
 *if( strcmp(GenData(DOFS),"U-J")==0 )
 						"JACOBIAN",
@@ -984,6 +985,7 @@
                                       "STRESS_INV_J2",
                                       "STRESS_INV_THETA",
                                       "PLASTIC_STRAIN",
+                                      "PRECONSOLIDATION",
                                       "DELTA_PLASTIC_STRAIN",
 				      "PLASTIC_VOL_DEF",
 				      "NONLOCAL_PLASTIC_VOL_DEF",
