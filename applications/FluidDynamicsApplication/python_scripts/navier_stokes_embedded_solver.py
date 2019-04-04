@@ -313,10 +313,6 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             super(NavierStokesEmbeddedMonolithicSolver,self).SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            self._do_fm_ale_operations()
-
-    def FinalizeSolutionStep(self):
         # Call the base solver FinalizeSolutionStep()
         super(NavierStokesEmbeddedMonolithicSolver, self).FinalizeSolutionStep()
 
