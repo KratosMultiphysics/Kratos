@@ -40,9 +40,7 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "DefineWakeProcess",
             "Parameters"    : {
-                "model_part_name" : "MainModelPart.Body2D_Body",
-                "wake_direction"  : [1.0,0.0,0.0],
-                "epsilon"         : 1e-9
+                "model_part_name" : "MainModelPart.Body2D_Body"
             }
         },{
             "python_module" : "compute_lift_process",
@@ -52,20 +50,6 @@
                 "model_part_name" : "MainModelPart.Body2D_Body",
                 "velocity_infinity" : [10.0,0.0,0.0],
                 "create_output_file": true
-            }
-        },{
-            "python_module" : "placeholder_process",
-            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
-            "process_name"  : "PlaceholderProcess",
-            "Parameters"    : {
-                "model_part_name" : "MainModelPart.Body2D_Body"
-            }
-        },{
-            "python_module" : "placeholder_process",
-            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
-            "process_name"  : "PlaceholderProcess",
-            "Parameters"    : {
-                "model_part_name" : "MainModelPart.Body2D_LowerSurface"
             }
         }],
         "auxiliar_process_list" :[{
