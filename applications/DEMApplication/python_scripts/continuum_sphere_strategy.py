@@ -81,14 +81,12 @@ class ExplicitStrategy(BaseExplicitStrategy):
                 self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, 1)
                 break
 
-        solver_settings = self.DEM_parameters["solver_settings"]
-
         if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             self.cplusplus_strategy = ContinuumVelocityVerletSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                                                            self.delta_option, self.creator_destructor, self.dem_fem_search, self.search_strategy, solver_settings)
+                                                                            self.delta_option, self.creator_destructor, self.dem_fem_search, self.search_strategy, self.solver_settings)
         else:
             self.cplusplus_strategy = ContinuumExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                                  self.delta_option, self.creator_destructor, self.dem_fem_search, self.search_strategy, solver_settings)
+                                                  self.delta_option, self.creator_destructor, self.dem_fem_search, self.search_strategy, self.solver_settings)
 
     def Initialize(self):
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before starting the time loop) (C++)
