@@ -43,7 +43,7 @@
 KRATOS_ERROR << "The string \"" << SubString << "\" was not found in the given string"
 
 #define KRATOS_STANDARD_CHECK_NEAR(a,b) if(std::abs(a - b) > Globals::Epsilon * (1 + std::abs(a) + std::abs(b))) KRATOS_ERROR << "Check failed because " << #a << " = " << a << \
-" is not near to " << #b << " = " << b << " within the standard Kratos tolerance " << 1e4 * std::numeric_limits<double>::epsilon()
+" is not near to " << #b << " = " << b << " within the standard Kratos tolerance."
 
 #define KRATOS_CHECK_NEAR(a,b, tolerance) if(std::abs(a - b) > tolerance) KRATOS_ERROR << "Check failed because " << #a << " = " << a << \
 " is not near to " << #b << " = " << b << " within the tolerance " << tolerance
