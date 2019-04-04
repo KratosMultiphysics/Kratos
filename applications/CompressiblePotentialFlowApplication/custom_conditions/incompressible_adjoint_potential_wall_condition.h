@@ -19,7 +19,7 @@ namespace Kratos
 
 
 template <class TPrimalCondition>
-class AdjointIncompressiblePotentialWallCondition : public Condition
+class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) AdjointIncompressiblePotentialWallCondition : public Condition
 {
 public:
     ///@name Type Definitions
