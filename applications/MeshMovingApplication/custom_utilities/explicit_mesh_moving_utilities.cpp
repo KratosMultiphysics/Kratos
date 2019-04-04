@@ -95,15 +95,15 @@ namespace Kratos
         VectorResultNodesContainerType search_results;
         DistanceVectorContainerType search_distance_results;
 
-        KRATOS_WATCH("About to create extra nodes...")
-        KRATOS_WATCH(mrStructureModelPart.NumberOfNodes())
-        CreateExtraStructureNodes();
-        KRATOS_WATCH(mrStructureModelPart.NumberOfNodes())
+        // KRATOS_WATCH("About to create extra nodes...")
+        // KRATOS_WATCH(mrStructureModelPart.NumberOfNodes())
+        // CreateExtraStructureNodes();
+        // KRATOS_WATCH(mrStructureModelPart.NumberOfNodes())
         SearchStructureNodes(search_results, search_distance_results);
         ComputeMeshDisplacement(search_results, search_distance_results);
-        KRATOS_WATCH("ComputeMeshDisplacement done!")
-        RemoveExtraStructureNodes();
-        KRATOS_WATCH("RemoveExtraStructureNodes done!")
+        // KRATOS_WATCH("ComputeMeshDisplacement done!")
+        // RemoveExtraStructureNodes();
+        // KRATOS_WATCH("RemoveExtraStructureNodes done!")
         TimeDiscretization::BDF1 time_disc_BDF1;
         mrVirtualModelPart.GetProcessInfo()[DELTA_TIME] = DeltaTime;
         MeshVelocityCalculation::CalculateMeshVelocities(mrVirtualModelPart, time_disc_BDF1);
@@ -148,22 +148,22 @@ namespace Kratos
                 auto &r_mesh_vel = it_node->GetSolutionStepValue(MESH_VELOCITY);
                 r_mesh_vel = ZeroVector(3);
                 if (!it_node->IsFixed(PRESSURE)) {
-                    for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
+                    for (unsigned int i_step = 1; i_step < BufferSize; ++i_step){
                         it_node->GetSolutionStepValue(PRESSURE, i_step) = 0.0;
                     }
                 }
                 if (!it_node->IsFixed(VELOCITY_X)) {
-                    for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
+                    for (unsigned int i_step = 1; i_step < BufferSize; ++i_step){
                         it_node->GetSolutionStepValue(VELOCITY_X, i_step) = 0.0;
                     }
                 }
                 if (!it_node->IsFixed(VELOCITY_Y)) {
-                    for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
+                    for (unsigned int i_step = 1; i_step < BufferSize; ++i_step){
                         it_node->GetSolutionStepValue(VELOCITY_Y, i_step) = 0.0;
                     }
                 }
                 if (!it_node->IsFixed(VELOCITY_Z)) {
-                    for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
+                    for (unsigned int i_step = 1; i_step < BufferSize; ++i_step){
                         it_node->GetSolutionStepValue(VELOCITY_Z, i_step) = 0.0;
                     }
                 }
@@ -173,22 +173,22 @@ namespace Kratos
                 for (std::size_t i_virt_node = 0; i_virt_node < r_geom.PointsNumber(); ++i_virt_node){
                     r_mesh_vel += aux_N(i_virt_node) * r_geom[i_virt_node].GetSolutionStepValue(MESH_VELOCITY);
                     if (!it_node->IsFixed(PRESSURE)) {
-                        for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
+                        for (unsigned int i_step = 1; i_step < BufferSize; ++i_step){
                             it_node->GetSolutionStepValue(PRESSURE, i_step) += aux_N(i_virt_node) * r_geom[i_virt_node].GetSolutionStepValue(PRESSURE, i_step);
                         }
                     }
                     if (!it_node->IsFixed(VELOCITY_X)) {
-                        for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
+                        for (unsigned int i_step = 1; i_step < BufferSize; ++i_step){
                             it_node->GetSolutionStepValue(VELOCITY_X, i_step) += aux_N(i_virt_node) * r_geom[i_virt_node].GetSolutionStepValue(VELOCITY_X, i_step);
                         }
                     }
                     if (!it_node->IsFixed(VELOCITY_Y)) {
-                        for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
+                        for (unsigned int i_step = 1; i_step < BufferSize; ++i_step){
                             it_node->GetSolutionStepValue(VELOCITY_Y, i_step) += aux_N(i_virt_node) * r_geom[i_virt_node].GetSolutionStepValue(VELOCITY_Y, i_step);
                         }
                     }
                     if (!it_node->IsFixed(VELOCITY_Z)) {
-                        for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
+                        for (unsigned int i_step = 1; i_step < BufferSize; ++i_step){
                             it_node->GetSolutionStepValue(VELOCITY_Z, i_step) += aux_N(i_virt_node) * r_geom[i_virt_node].GetSolutionStepValue(VELOCITY_Z, i_step);
                         }
                     }
