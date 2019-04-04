@@ -64,28 +64,27 @@ namespace Kratos {
 
     double  PropertiesProxy::GetAmountOfCohesion()                                            { return *mAmountOfCohesion;                  }
     double* PropertiesProxy::pGetAmountOfCohesion()                                           { return  mAmountOfCohesion;                  }
-    void    PropertiesProxy::SetAmountOfCohesionFromProperties(double* amount_of_cohesion)     { mAmountOfCohesion = amount_of_cohesion;     }
+    void    PropertiesProxy::SetAmountOfCohesionFromProperties(double* amount_of_cohesion)    { mAmountOfCohesion = amount_of_cohesion;     }
 
     double  PropertiesProxy::GetParticleKNormal()                                             { return *mParticleKNormal;                   }
     double* PropertiesProxy::pGetParticleKNormal()                                            { return  mParticleKNormal;                   }
     void    PropertiesProxy::SetParticleKNormalFromProperties(double* particle_k_normal)      { mParticleKNormal = particle_k_normal;       }
 
-    double  PropertiesProxy::GetParticleKTangential()                                            { return *mParticleKTangential;                }
-    double* PropertiesProxy::pGetParticleKTangential()                                           { return  mParticleKTangential;                }
+    double  PropertiesProxy::GetParticleKTangential()                                         { return *mParticleKTangential;               }
+    double* PropertiesProxy::pGetParticleKTangential()                                        { return  mParticleKTangential;               }
     void    PropertiesProxy::SetParticleKTangentialFromProperties(double* particle_k_tangential) { mParticleKTangential = particle_k_tangential;}
 
-    // Dependent Friction
-    double  PropertiesProxy::GetParticleConicalDamageContactRadius()                                                             { return *mParticleConicalDamageContactRadius;                                  }
-    double* PropertiesProxy::pGetParticleConicalDamageContactRadius()                                                            { return  mParticleConicalDamageContactRadius;                                  }
+    double  PropertiesProxy::GetParticleConicalDamageContactRadius()                          { return *mParticleConicalDamageContactRadius; }
+    double* PropertiesProxy::pGetParticleConicalDamageContactRadius()                         { return  mParticleConicalDamageContactRadius; }
     void    PropertiesProxy::SetParticleConicalDamageContactRadiusFromProperties(double* particle_conical_damage_contact_radius) { mParticleConicalDamageContactRadius = particle_conical_damage_contact_radius; }
 
-    double  PropertiesProxy::GetParticleConicalDamageMaxStress()                                                         { return *mParticleConicalDamageMaxStress;                                 }
-    double* PropertiesProxy::pGetParticleConicalDamageMaxStress()                                                        { return  mParticleConicalDamageMaxStress;                                 }
-    void    PropertiesProxy::SetParticleConicalDamageMaxStressFromProperties(double* particle_conical_damage_max_stress) { mParticleConicalDamageMaxStress = particle_conical_damage_max_stress;    }
+    double  PropertiesProxy::GetParticleConicalDamageMaxStress()                               { return *mParticleConicalDamageMaxStress;    }
+    double* PropertiesProxy::pGetParticleConicalDamageMaxStress()                              { return  mParticleConicalDamageMaxStress;    }
+    void    PropertiesProxy::SetParticleConicalDamageMaxStressFromProperties(double* particle_conical_damage_max_stress) { mParticleConicalDamageMaxStress = particle_conical_damage_max_stress; }
 
-    double  PropertiesProxy::GetParticleConicalDamageGamma()                                                    { return *mParticleConicalDamageGamma;                                     }
-    double* PropertiesProxy::pGetParticleConicalDamageGamma()                                                   { return  mParticleConicalDamageGamma;                                     }
-    void    PropertiesProxy::SetParticleConicalDamageGammaFromProperties(double* particle_conical_damage_gamma) { mParticleConicalDamageGamma = particle_conical_damage_gamma;             }
+    double  PropertiesProxy::GetParticleConicalDamageGamma()                                   { return *mParticleConicalDamageGamma;        }
+    double* PropertiesProxy::pGetParticleConicalDamageGamma()                                  { return  mParticleConicalDamageGamma;        }
+    void    PropertiesProxy::SetParticleConicalDamageGammaFromProperties(double* particle_conical_damage_gamma) { mParticleConicalDamageGamma = particle_conical_damage_gamma; }
 
     double  PropertiesProxy::GetLevelOfFouling()                                              { return *mLevelOfFouling;                     }
     double* PropertiesProxy::pGetLevelOfFouling()                                             { return  mLevelOfFouling;                     }
@@ -99,9 +98,9 @@ namespace Kratos {
     double* PropertiesProxy::pGetContactTauZero()                                             { return  mContactTauZero;                     }
     void    PropertiesProxy::SetContactTauZeroFromProperties(double* contact_tau_zero)        { mContactTauZero = contact_tau_zero;          }
 
-    double  PropertiesProxy::GetContactInternalFricc()                                               { return *mContactInternalFricc;                  }
-    double* PropertiesProxy::pGetContactInternalFricc()                                              { return  mContactInternalFricc;                  }
-    void    PropertiesProxy::SetContactInternalFriccFromProperties(double* contact_internal_fricc)   { mContactInternalFricc = contact_internal_fricc; }
+    double  PropertiesProxy::GetContactInternalFricc()                                        { return *mContactInternalFricc;               }
+    double* PropertiesProxy::pGetContactInternalFricc()                                       { return  mContactInternalFricc;               }
+    void    PropertiesProxy::SetContactInternalFriccFromProperties(double* contact_internal_fricc) { mContactInternalFricc = contact_internal_fricc; }
 
     PropertiesProxy PropertiesProxy::operator= (PropertiesProxy props) {
 

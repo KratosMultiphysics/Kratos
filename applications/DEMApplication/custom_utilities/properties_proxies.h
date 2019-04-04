@@ -83,7 +83,6 @@ namespace Kratos {
         double* pGetParticleKTangential();
         void    SetParticleKTangentialFromProperties(double* particle_k_tangential);
 
-        // Dependent Friction
         double  GetParticleConicalDamageContactRadius();
         double* pGetParticleConicalDamageContactRadius();
         void    SetParticleConicalDamageContactRadiusFromProperties(double* particle_conical_damage_contact_radius);
