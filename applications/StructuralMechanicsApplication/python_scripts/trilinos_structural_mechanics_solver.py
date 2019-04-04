@@ -51,22 +51,16 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         self.trilinos_model_part_importer.CreateCommunicators()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]::", "ModelPart prepared for Solver.")
 
+    def Finalize(self):
+        super(TrilinosMechanicalSolver, self).Finalize()
+        self.get_mechanical_solution_strategy().Clear() # needed for proper finalization of MPI
+
     #### Specific internal functions ####
 
     def get_epetra_communicator(self):
         if not hasattr(self, '_epetra_communicator'):
             self._epetra_communicator = self._create_epetra_communicator()
         return self._epetra_communicator
-
-    def print_on_rank_zero(self, *args):
-        KratosMPI.mpi.world.barrier()
-        if KratosMPI.mpi.rank == 0:
-            KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
-
-    def print_warning_on_rank_zero(self, *args):
-        KratosMPI.mpi.world.barrier()
-        if KratosMPI.mpi.rank == 0:
-            KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
 
     #### Private functions ####
 

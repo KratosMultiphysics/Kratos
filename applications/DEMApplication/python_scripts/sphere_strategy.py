@@ -10,6 +10,15 @@ class ExplicitStrategy(object):
 
     #def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):
+        self.solver_settings = DEM_parameters["solver_settings"]
+
+        default_settings = Parameters("""
+        {
+            "strategy" : "sphere_strategy",
+            "do_search_neighbours" : true,
+            "RemoveBallsInitiallyTouchingWalls": false
+        }""")
+        self.solver_settings.ValidateAndAssignDefaults(default_settings)
 
         # Initialization of member variables
         self.all_model_parts = all_model_parts
@@ -158,7 +167,6 @@ class ExplicitStrategy(object):
 
 
         self.SetContinuumType()
-        self.do_search_neighbours = True # Hard-coded until needed as an option
 
     def SetContinuumType(self):
         self.continuum_type = False
@@ -281,16 +289,14 @@ class ExplicitStrategy(object):
 
         self.SetVariablesAndOptions()
 
-        solver_settings = self.DEM_parameters["solver_settings"]
-
         if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                              self.search_strategy, solver_settings, self.do_search_neighbours)
+                                                              self.search_strategy, self.solver_settings)
         else:
             self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                             self.search_strategy, solver_settings, self.do_search_neighbours)
+                                                             self.search_strategy, self.solver_settings)
 
     def AddVariables(self):
         pass
@@ -454,7 +460,6 @@ class ExplicitStrategy(object):
         return gamma
 
     def GammaForHertzThornton(self, e):
-
         if e < 0.001:
             e = 0.001
 
@@ -511,10 +516,10 @@ class ExplicitStrategy(object):
         return class_name
 
     def GetTranslationalSchemeInstance(self, class_name):
-             return globals().get(class_name)()
+        return eval(class_name)()
 
     def GetRotationalSchemeInstance(self, class_name):
-             return globals().get(class_name)()
+        return eval(class_name)()
 
     def GetTranslationalScheme(self, name):
         class_name = self.TranslationalIntegrationSchemeTranslator(name)
