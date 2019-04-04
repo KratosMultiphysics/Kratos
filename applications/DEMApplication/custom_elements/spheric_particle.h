@@ -214,20 +214,10 @@ virtual int    GetParticleMaterial();
 void   SetParticleMaterialFromProperties(int* particle_material);
 virtual double GetParticleCohesion();
 void   SetParticleCohesionFromProperties(double* particle_cohesion);
-virtual double GetAmountOfCohesion();
-void   SetAmountOfCohesionFromProperties(double* amount_of_cohesion);
 virtual double GetParticleKNormal();
 void   SetParticleKNormalFromProperties(double* particle_k_normal);
 virtual double GetParticleKTangential();
 void   SetParticleKTangentialFromProperties(double* particle_k_tangential);
-virtual double GetParticleConicalDamageContactRadius();
-void   SetParticleConicalDamageContactRadiusFromProperties(double* particle_contact_radius);
-virtual double GetParticleConicalDamageMaxStress();
-void   SetParticleConicalDamageMaxStressFromProperties(double* particle_max_stress);
-virtual double GetParticleConicalDamageGamma();
-void   SetParticleConicalDamageGammaFromProperties(double* particle_gamma);
-virtual double GetLevelOfFouling();
-void   SetLevelOfFoulingFromProperties(double* level_of_fouling);
 
 array_1d<double, 3>& GetForce();
 
