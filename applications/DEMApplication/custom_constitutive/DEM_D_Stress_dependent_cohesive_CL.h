@@ -6,11 +6,13 @@
 
 #include <string>
 #include <iostream>
+
+// Project includes
 #include "DEM_D_Linear_viscous_Coulomb_CL.h"
+#include "custom_elements/spheric_particle.h"
+#include "custom_elements/contact_info_spheric_particle.h"
 
 namespace Kratos {
-
-    class SphericParticle;
 
     class KRATOS_API(DEM_APPLICATION) DEM_D_Stress_Dependent_Cohesive : public DEM_D_Linear_viscous_Coulomb {
 
@@ -32,14 +34,14 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
-        void InitializeContact(SphericParticle* const element1,
-                               SphericParticle* const element2,
-                               const double indentation) override;
+        void InitializeContact(ContactInfoSphericParticle* const element1,
+                               ContactInfoSphericParticle* const element2,
+                               const double indentation);
 
-        void InitializeContactWithFEM(SphericParticle* const element,
+        void InitializeContactWithFEM(ContactInfoSphericParticle* const element,
                                       Condition* const wall,
                                       const double indentation,
-                                      const double ini_delta = 0.0) override;
+                                      const double ini_delta = 0.0);
 
         void CalculateForces(const ProcessInfo& r_process_info,
                              const double OldLocalElasticContactForce[3],
@@ -70,17 +72,25 @@ namespace Kratos {
 
         double CalculateNormalForce(const double indentation) override;
 
-        double CalculateCohesiveNormalForce(SphericParticle* const element1,
-                                            SphericParticle* const element2,
+        double CalculateCohesiveNormalForce(ContactInfoSphericParticle* const element1,
+                                            ContactInfoSphericParticle* const element2,
                                             const double normal_contact_force,
                                             const double indentation);
 
-        double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element,
+        double CalculateCohesiveNormalForceWithFEM(ContactInfoSphericParticle* const element,
                                                    Condition* const wall,
                                                    const double normal_contact_force,
                                                    const double indentation);
 
-        using DEM_D_Linear_viscous_Coulomb::CalculateNormalForce;
+        void CalculateViscoDampingForce(double LocalRelVel[3],
+                                        double ViscoDampingLocalContactForce[3],
+                                        ContactInfoSphericParticle* const element1,
+                                        ContactInfoSphericParticle* const element2);
+
+        void CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
+                                               double ViscoDampingLocalContactForce[3],
+                                               ContactInfoSphericParticle* const element,
+                                               Condition* const wall);
 
         template <class NeighbourClassType>
         void CalculateTangentialForceWithNeighbour(const double normal_contact_force,
@@ -89,7 +99,7 @@ namespace Kratos {
                                                    double ViscoDampingLocalContactForce[3],
                                                    const double LocalDeltDisp[3],
                                                    bool& sliding,
-                                                   SphericParticle* const element,
+                                                   ContactInfoSphericParticle* const element,
                                                    NeighbourClassType* const neighbour,
                                                    double indentation,
                                                    double previous_indentation,

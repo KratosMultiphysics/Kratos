@@ -362,21 +362,9 @@ namespace Kratos {
                 injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
                 injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
                 injector_spheric_particle->mNeighbourElasticExtraContactForces.push_back(zero_vector);
-                injector_spheric_particle->mNeighbourContactRadius.push_back(0.0);
-                injector_spheric_particle->mNeighbourRigidContactRadius.push_back(0.0);
-                injector_spheric_particle->mNeighbourIndentation.push_back(0.0);
-                injector_spheric_particle->mNeighbourRigidIndentation.push_back(0.0);
-                injector_spheric_particle->mNeighbourContactStress.push_back(0.0);
-                injector_spheric_particle->mNeighbourRigidContactStress.push_back(0.0);
                 spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
                 spheric_p_particle->mNeighbourElasticContactForces.push_back(zero_vector);
                 spheric_p_particle->mNeighbourElasticExtraContactForces.push_back(zero_vector);
-                spheric_p_particle->mNeighbourContactRadius.push_back(0.0);
-                spheric_p_particle->mNeighbourRigidContactRadius.push_back(0.0);
-                spheric_p_particle->mNeighbourIndentation.push_back(0.0);
-                spheric_p_particle->mNeighbourRigidIndentation.push_back(0.0);
-                spheric_p_particle->mNeighbourContactStress.push_back(0.0);
-                spheric_p_particle->mNeighbourRigidContactStress.push_back(0.0);
             }
         }
 
@@ -682,21 +670,9 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
                 injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
                 injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
                 injector_spheric_particle->mNeighbourElasticExtraContactForces.push_back(zero_vector);
-                injector_spheric_particle->mNeighbourContactRadius.push_back(0.0);
-                injector_spheric_particle->mNeighbourRigidContactRadius.push_back(0.0);
-                injector_spheric_particle->mNeighbourIndentation.push_back(0.0);
-                injector_spheric_particle->mNeighbourRigidIndentation.push_back(0.0);
-                injector_spheric_particle->mNeighbourContactStress.push_back(0.0);
-                injector_spheric_particle->mNeighbourRigidContactStress.push_back(0.0);
                 spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
                 spheric_p_particle->mNeighbourElasticContactForces.push_back(zero_vector);
                 spheric_p_particle->mNeighbourElasticExtraContactForces.push_back(zero_vector);
-                spheric_p_particle->mNeighbourContactRadius.push_back(0.0);
-                spheric_p_particle->mNeighbourRigidContactRadius.push_back(0.0);
-                spheric_p_particle->mNeighbourIndentation.push_back(0.0);
-                spheric_p_particle->mNeighbourRigidIndentation.push_back(0.0);
-                spheric_p_particle->mNeighbourContactStress.push_back(0.0);
-                spheric_p_particle->mNeighbourRigidContactStress.push_back(0.0);
             }
 
             spheric_p_particle->Set(NEW_ENTITY);

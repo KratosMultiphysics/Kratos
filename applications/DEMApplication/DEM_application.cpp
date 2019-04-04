@@ -442,6 +442,7 @@ KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication
       mRigidEdge3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mRigidBodyElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mShipElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+      mContactInfoSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mSingleSphereCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mMapCon3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))) {}
@@ -824,6 +825,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_ELEMENT("ParticleContactElement", mParticleContactElement)
     KRATOS_REGISTER_ELEMENT("RigidBodyElement3D", mRigidBodyElement3D)
     KRATOS_REGISTER_ELEMENT("ShipElement3D", mShipElement3D)
+    KRATOS_REGISTER_ELEMENT("ContactInfoSphericParticle3D", mContactInfoSphericParticle3D)
     KRATOS_REGISTER_ELEMENT("Cluster3D", mCluster3D)
     KRATOS_REGISTER_ELEMENT("SingleSphereCluster3D", mSingleSphereCluster3D)
 
