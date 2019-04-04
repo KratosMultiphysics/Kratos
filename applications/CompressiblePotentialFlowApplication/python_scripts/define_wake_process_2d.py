@@ -54,7 +54,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
 
         # model part that contains the elements cut by the wake
-        self.wake_model_part = self.fluid_model_part.CreateSubModelPart("wake_model_part") 
+        self.wake_model_part = self.fluid_model_part.CreateSubModelPart("wake_model_part")
 
         # Call the nodal normal calculation util
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
@@ -162,7 +162,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         # This function computes the distance of the element nodes
         # to the wake
         nodal_distances_to_wake = KratosMultiphysics.Vector(3)
-        counter = 0      
+        counter = 0
         for elnode in elem.GetNodes():
             # Compute the distance from the node to the trailing edge
             x_distance_to_te = elnode.X - self.te.X
@@ -244,9 +244,9 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
         show_only_the_first_element = True
         for elem in self.wake_model_part.Elements:
-            print('element: ',elem.Id)
+            KratosMultiphysics.Logger.PrintInfo('DefineWakeProcess2D','element: ',elem.Id)
             for node in elem.GetNodes():
-                
+
                 # Compute the distance from the node to the trailing edge
                 x_distance_to_te = node.X - self.te.X
                 y_distance_to_te = node.Y - self.te.Y
@@ -254,7 +254,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 # Compute the projection of the distance vector in the wake normal direction
                 distance_to_wake = x_distance_to_te*self.wake_normal[0] + \
                     y_distance_to_te*self.wake_normal[1]
-                
+
                 # Nodes laying on the wake have a positive distance
                 if(abs(distance_to_wake) < self.epsilon):
                     KratosMultiphysics.Logger.PrintInfo('DefineWakeProcess2D', 'element: ',elem.Id,' has nodes that are laying on wake! CL may not be correct in all nodes!')
@@ -265,15 +265,15 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                     node_auxiliary_velocity_potential_above = node.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
                     potential_jump_phi_minus_psi_above = node_velocity_potential_above - node_auxiliary_velocity_potential_above
                     Cl_above = 2*potential_jump_phi_minus_psi_above/self.velocity_infinity[0]
-                    print ('potential jump Phi - Psi (above the wake) = ', potential_jump_phi_minus_psi_above, '=> CL = ',Cl_above)
+                    KratosMultiphysics.Logger.PrintInfo('DefineWakeProcess2D','potential jump Phi - Psi (above the wake) = ', potential_jump_phi_minus_psi_above, '=> CL = ',Cl_above)
                 else:
                     node_velocity_potential_below = node.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
                     node_auxiliary_velocity_potential_below = node.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
                     potential_jump_psi_minus_phi_below = -(node_velocity_potential_below - node_auxiliary_velocity_potential_below)
                     Cl_below = 2*potential_jump_psi_minus_phi_below/self.velocity_infinity[0]
-                    print ('potential jump Psi - Phi (below the wake) = ', potential_jump_psi_minus_phi_below, '=> CL = ',Cl_below)
+                    KratosMultiphysics.Logger.PrintInfo('DefineWakeProcess2D','potential jump Psi - Phi (below the wake) = ', potential_jump_psi_minus_phi_below, '=> CL = ',Cl_below)
             if (show_only_the_first_element):
-                print('The rest of wake elements are skipped...')        
+                KratosMultiphysics.Logger.PrintInfo('DefineWakeProcess2D','The rest of wake elements are skipped...')
                 break
 
         if self.create_output_file:
