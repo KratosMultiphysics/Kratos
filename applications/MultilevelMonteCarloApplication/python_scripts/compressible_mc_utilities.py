@@ -53,7 +53,7 @@ input:  simulation_results: an instance of the monte carlo result class
 output: QoI_value: qoi value to be added
 """
 @ExaquteTask(returns=1,priority=True)
-def AddResultsAux_Task(level,old_values,*simulation_results):
+def AddResultsAux_Task(level,*simulation_results):
     """
     if (level == 0):
         # each value is inside the relative level list, and only one value per level is computed
@@ -63,9 +63,8 @@ def AddResultsAux_Task(level,old_values,*simulation_results):
         raise Exception("level not equal to 0, in MC we should have only level zero")
     return QoI_value
     """
-    old_values.extend(
-        list(map(lambda x: x.QoI[level][0], simulation_results)))
-    return old_values
+    values = list(map(lambda x: x.QoI[level][0], simulation_results))
+    return values
 
 
 """
@@ -85,13 +84,6 @@ output: convergence_boolean: boolean setting if convergence is achieved
 @ExaquteTask(returns=1,priority=True)
 def CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_delta,convergence_criteria):
     convergence_boolean = False
-    # TODO: rempve below lines later
-    cphi_confidence = norm.ppf(1.0-current_delta) # confidence + error probability = 1.0
-    statistical_error = cphi_confidence*np.sqrt(current_h2/current_number_samples)
-    bias = 0.0 # hypothesis bias = 0 since we can't compute
-    total_error = bias + statistical_error
-    print("[TOT-ERR] total error = bias (hyp MC == 0) + statistical error =",total_error)
-    # TODO: remove above lines later
     if(convergence_criteria == "MC_sample_variance_sequential_stopping_rule"):
         # define local variables
         current_convergence_coefficient = np.sqrt(current_number_samples) * current_tol / np.sqrt(current_h2)
@@ -240,10 +232,10 @@ class MonteCarlo(object):
         # initialize all the variables of the StatisticalVariable class: MC has only one level, i.e. level 0
         self.QoI.InitializeLists(self.current_number_levels+1,self.settings["initial_number_batches"].GetInt())
 
-        # batches_samples: total number of samples, organized in level and batches
-        # batches_samples = [ [ [level0_batch1] [level1_batch1] .. ] [ [level0_batch2] [level1_batch2] ..] .. ]
-        # for MC: number_samples = [ [ level0_batch1 ] [ level0_batch2 ] [ level0_batch3 ] .. ]
-        self.batches_samples = []
+        # batches_number_samples: total number of samples, organized in level and batches
+        # batches_number_samples = [ [ [level0_batch1] [level1_batch1] .. ] [ [level0_batch2] [level1_batch2] ..] .. ]
+        # for MC: batches_number_samples = [ [ level0_batch1 ] [ level0_batch2 ] [ level0_batch3 ] .. ]
+        self.batches_number_samples = []
         # number_samples: total number of samples
         # number_samples = [total_level0 total_level1 ..]
         self.number_samples = []
@@ -286,10 +278,9 @@ class MonteCarlo(object):
             self.InitializeMCPhase()
             self.ScreeningInfoInitializeMCPhase()
             self.LaunchEpoch()
-            print(self.QoI.values)
             self.FinalizeMCPhase()
-            stop
             self.ScreeningInfoFinalizeMCPhase()
+            stop
             while self.convergence is not True:
                 self.InitializeMCPhase()
                 self.ScreeningInfoInitializeMCPhase()
@@ -305,12 +296,12 @@ class MonteCarlo(object):
     input: self: an instance of the class
     """
     def LaunchEpoch(self):
-        for batch in range (len(self.batches_samples)):
+        for batch in range (len(self.batches_number_samples)):
             if (self.batches_launched[batch] is not True):
                 self.batches_launched[batch] = True
                 batch_results = []
                 for level in range (self.current_number_levels+1):
-                    for instance in range (self.batches_samples[batch][level]):
+                    for instance in range (self.batches_number_samples[batch][level]):
                         self.running_number_samples[level] = self.running_number_samples[level] + 1
                         batch_results.append(self.ExecuteInstance())
                         self.running_number_samples[level] = self.running_number_samples[level] - 1
@@ -422,7 +413,7 @@ class MonteCarlo(object):
             batch_number      : number of working batch
             batch_size        : compute add result for with this size
     """
-    def AddResults(self,simulation_results,batch_number,batch_size=1):
+    def AddResults(self,simulation_results,batch_number,batch_size=2):
         """
         for simulation_result in simulation_results:
             simulation_results_class = simulation_result[0]
@@ -434,14 +425,14 @@ class MonteCarlo(object):
                 # update values of difference QoI and time ML per each level
                 self.QoI.values[lev] = np.append(self.QoI.values[lev],QoI_value)
         """
-        simulation_results_class = simulation_results[0][0]
-        current_level = simulation_results[0][1]  # not compss future object
+        current_level = simulation_results[0][1]  # not compss future object, it is working level
         if (current_level != 0):
             raise Exception("current work level must be = 0 in the Monte Carlo algorithm")
         simulation_results = list(map(lambda x: x[0], simulation_results))
         for i in range(0, len(simulation_results), batch_size):
             current_simulations = simulation_results[i:i+batch_size]
-            self.QoI.values[batch_number][0] = AddResultsAux_Task(0,self.QoI.values[batch_number][0],*current_simulations)
+            self.QoI.values[batch_number][current_level].append(AddResultsAux_Task(current_level,*current_simulations))
+            # self.QoI.values[batch_number][current_level] = AddResultsAux_Task(current_level,self.QoI.values[batch_number][0],*current_simulations)
 
     """
     function initializing the MC phase
@@ -453,9 +444,9 @@ class MonteCarlo(object):
             raise Exception ("current work level must be = 0 in the Monte Carlo algorithm")
         # update iteration counter
         self.iteration_counter = self.iteration_counter + 1
-        # update number of samples (MonteCarlo.batches_samples) and batch size
+        # update number of samples (MonteCarlo.batches_number_samples) and batch size
         if (self.iteration_counter == 1):
-            self.batches_samples = [[self.settings["batch_size"].GetInt() for _ in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
+            self.batches_number_samples = [[self.settings["batch_size"].GetInt() for _ in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
             self.number_samples = [self.settings["batch_size"].GetInt()*self.settings["initial_number_batches"].GetInt() for _ in range (self.current_number_levels+1)]
             self.running_number_samples = [0 for _ in range (self.current_number_levels+1)]
             self.batches_launched = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
@@ -463,9 +454,9 @@ class MonteCarlo(object):
             self.batches_analysis_finished = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
         elif (self.iteration_counter > 1):
             """APPEND NEW LISTS TO QOI.VALUES AND QOI.power_sum_batches_1 IF LAUCHING BATCHES"""
-            self.previous_number_samples[current_level] = self.batches_samples[current_level]
-            self.batches_samples[current_level] = self.batches_samples[current_level] * 2 + self.previous_number_samples[current_level]
-            self.difference_number_samples[current_level] = self.batches_samples[current_level] - self.previous_number_samples[current_level]
+            self.previous_number_samples[current_level] = self.batches_number_samples[current_level]
+            self.batches_number_samples[current_level] = self.batches_number_samples[current_level] * 2 + self.previous_number_samples[current_level]
+            self.difference_number_samples[current_level] = self.batches_number_samples[current_level] - self.previous_number_samples[current_level]
             self.UpdateBatch()
         else:
             pass
@@ -487,39 +478,28 @@ class MonteCarlo(object):
         if (current_level != 0):
             raise Exception ("current work level must be = 0 in the Monte Carlo algorithm")
         # update power sums batches
-        for batch in range (len(self.batches_samples)):
+        for batch in range (len(self.batches_number_samples)):
             if (self.batches_execution_finished[batch] is True and self.batches_analysis_finished[batch] is not True): # consider batches completed and not already analysed
-                print(self.QoI.values[batch])
-                self.QoI.UpdateBatchesPassPowerSum(current_level,batch,batch_size=2)
-                self.batches_analysis_finished[batch]
-
-
-            # here update global power sums from local power sums
-            self.batches_analysis_finished[batch] = True
-
-        stop
-
-        # update statistics of the QoI
-        self.QoI.UpdateOnePassPowerSums(current_level,self.previous_number_samples[current_level],self.batches_samples[current_level])
-        #for i_sample in range(self.previous_number_samples[current_level],self.batches_samples[current_level]):
-
-        # compute the central moments we can't derive from the unbiased h statistics
-        # we compute from scratch the absolute central moment because we can't retrieve it from the h statistics
-        # self.QoI.central_moment_from_scratch_3_absolute_to_compute = True # by default set to true
-        if (self.convergence_criteria == "MC_higher_moments_sequential_stopping_rule"):
-            self.QoI.central_moment_from_scratch_3_absolute_to_compute = True
-            self.QoI.ComputeSampleCentralMomentsFromScratch(current_level,self.batches_samples[current_level]) # not possible to use self.StatisticalVariable.number_samples[current_level]
-                                                                                                               # inside the function because it is a pycompss.runtime.binding.Future object
-        self.QoI.ComputeHStatistics(current_level)
-        self.QoI.ComputeSkewnessKurtosis(current_level)
-        self.CheckConvergence(current_level)
-        # synchronization point needed to launch new tasks if convergence is false
-        # put the synchronization point as in the end as possible
-        self.convergence = get_value_from_remote(self.convergence)
-        # bring to master what is needed to print
-        self.batches_samples = get_value_from_remote(self.batches_samples)
-        self.QoI.h_statistics_1 = get_value_from_remote(self.QoI.h_statistics_1)
-        self.QoI.h_statistics_2 = get_value_from_remote(self.QoI.h_statistics_2)
+                self.QoI.UpdateBatchesPassPowerSum(current_level,batch)
+                self.batches_analysis_finished[batch] = True
+                # update global power sums from batches power sums
+                self.QoI.UpdateGlobalPowerSums(current_level,batch)
+        for batch in range (len(self.batches_number_samples)):
+            # compute the central moments we can't derive from the unbiased h statistics
+            # compute from scratch the absolute central moment because we can't retrieve it from the power sums
+            if (self.convergence_criteria == "MC_higher_moments_sequential_stopping_rule"):
+                self.QoI.central_moment_from_scratch_3_absolute_to_compute = True
+                self.QoI.ComputeSampleCentralMomentsFromScratch(current_level,self.number_samples[current_level]) # not possible to use self.StatisticalVariable.number_samples[current_level]
+                                                                                                                  # inside the function because it is a pycompss.runtime.binding.Future object
+            self.QoI.ComputeHStatistics(current_level)
+            self.QoI.ComputeSkewnessKurtosis(current_level)
+            self.CheckConvergence(current_level)
+            # synchronization point needed to launch new tasks if convergence is false
+            # put the synchronization point as in the end as possible
+            self.convergence = get_value_from_remote(self.convergence)
+            # bring to master what is needed to print
+            self.QoI.h_statistics_1 = get_value_from_remote(self.QoI.h_statistics_1)
+            self.QoI.h_statistics_2 = get_value_from_remote(self.QoI.h_statistics_2)
 
     """
     function printing informations about initializing MLMC phase
@@ -533,10 +513,9 @@ class MonteCarlo(object):
     input:  self: an instance of the class
     """
     def ScreeningInfoFinalizeMCPhase(self):
-        # print("values computed of QoI = ",self.QoI.values)
-        print("samples computed in this iteration",self.difference_number_samples)
-        print("current number of samples = ",self.batches_samples)
-        print("previous number of samples = ",self.previous_number_samples)
+        print("values computed of QoI = ",self.QoI.values)
+        print("current batches",self.batches_number_samples)
+        print("current number of samples = ",self.number_samples)
         print("monte carlo mean and variance QoI estimators = ",self.QoI.h_statistics_1,self.QoI.h_statistics_2)
         print("convergence = ",self.convergence)
 

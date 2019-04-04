@@ -146,6 +146,16 @@ def UpdateOnePassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,nsamples,previous
 
 
 @ExaquteTask(returns=5,priority=True)
+def UpdateGlobalPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,number_samples_level,add_S1,add_S2,add_S3,add_S4,add_number_samples_level):
+    new_S1 = old_S1 + add_S1
+    new_S2 = old_S2 + add_S2
+    new_S3 = old_S3 + add_S3
+    new_S4 = old_S4 + add_S4
+    number_samples_level = number_samples_level + add_number_samples_level
+    return new_S1,new_S2,new_S3,new_S4,number_samples_level
+
+
+@ExaquteTask(returns=5,priority=True)
 def UpdateBatchesPassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,nsamples,samples):
     if nsamples == 0:
         new_S1 = samples[0]
@@ -158,9 +168,6 @@ def UpdateBatchesPassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,nsamples,samp
         old_S4 = new_S4
         nsamples = 1
         samples=samples[1:]
-        stop
-    else:
-        samples = samples[previous_number_samples:current_number_samples]
     for sample in samples:
         nsamples = nsamples + 1
         new_S1 = old_S1 + sample
@@ -217,7 +224,6 @@ def ComputeSkewnessKurtosisAux_Task(h2_level,h3_level,h4_level):
 """
 auxiliary function of ComputeSampleCentralMomentsFromScratch of the StatisticalVariable class
 input:  sample: new value that will update the statistics
-        curr_mean: current mean
         number_samples_level:                              number of samples for defined level
         central_moment_from_scratch_1_to_compute:          boolean setting if computation is needed
         central_moment_from_scratch_2_to_compute:          boolean setting if computation is needed
@@ -236,10 +242,14 @@ output: central_moment_from_scratch_1:          updated first central moment
         central_moment_from_scratch_4:          update fourth central moment
 """
 @ExaquteTask(returns=5,priority=True)
-def ComputeSampleCentralMomentsFromScratchAux_Task(curr_mean,number_samples_level,central_moment_from_scratch_1_to_compute,central_moment_from_scratch_2_to_compute, \
+def ComputeSampleCentralMomentsFromScratchAux_Task(number_samples_level,central_moment_from_scratch_1_to_compute,central_moment_from_scratch_2_to_compute, \
     central_moment_from_scratch_3_to_compute,central_moment_from_scratch_3_absolute_to_compute,central_moment_from_scratch_4_to_compute, \
     central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4, \
     samples):
+    auxiliary_mean = 0
+    for sample in samples:
+        auxiliary_mean = auxiliary_mean + sample
+    curr_mean = auxiliary_mean / number_samples_level
     for sample in samples:
         if (central_moment_from_scratch_1_to_compute):
             central_moment_from_scratch_1 = central_moment_from_scratch_1 + ((sample - curr_mean)**1) / number_samples_level
@@ -337,10 +347,10 @@ class StatisticalVariable(object):
         self.central_moment_3 = [[] for _ in range (number_levels)]
         self.central_moment_4 = [[] for _ in range (number_levels)]
         self.unbiased_central_moment_2 = [[] for _ in range (number_levels)]
-        self.power_sum_1 = [[] for _ in range (number_levels)]
-        self.power_sum_2 = [[] for _ in range (number_levels)]
-        self.power_sum_3 = [[] for _ in range (number_levels)]
-        self.power_sum_4 = [[] for _ in range (number_levels)]
+        self.power_sum_1 = [0 for _ in range (number_levels)]
+        self.power_sum_2 = [0 for _ in range (number_levels)]
+        self.power_sum_3 = [0 for _ in range (number_levels)]
+        self.power_sum_4 = [0 for _ in range (number_levels)]
         self.power_sum_batches_1 = [[[] for _ in range (number_levels)] for _ in range (number_initial_batches)]
         self.power_sum_batches_2 = [[[] for _ in range (number_levels)] for _ in range (number_initial_batches)]
         self.power_sum_batches_3 = [[[] for _ in range (number_levels)] for _ in range (number_initial_batches)]
@@ -410,32 +420,43 @@ class StatisticalVariable(object):
         self.power_sum_4[level] = new_S4
         self.number_samples[level] = number_samples_level
 
+    def UpdateGlobalPowerSums(self,level,batch_counter):
+        old_S1 = self.power_sum_1[level]
+        old_S2 = self.power_sum_2[level]
+        old_S3 = self.power_sum_3[level]
+        old_S4 = self.power_sum_4[level]
+        number_samples_level = self.number_samples[level]
 
-    def UpdateBatchesPassPowerSum(self,level,batch_counter,batch_size=250):
-        samples = self.values[batch_counter][level]
-        print(samples)
-        old_S1 = self.power_sum_batches_1[batch_counter][level]
-        old_S2 = self.power_sum_batches_2[batch_counter][level]
-        old_S3 = self.power_sum_batches_3[batch_counter][level]
-        old_S4 = self.power_sum_batches_4[batch_counter][level]
-        number_samples_batches_level = self.batches_number_samples[batch_counter][level]
+        add_S1 = self.power_sum_batches_1[batch_counter][level]
+        add_S2 = self.power_sum_batches_2[batch_counter][level]
+        add_S3 = self.power_sum_batches_3[batch_counter][level]
+        add_S4 = self.power_sum_batches_4[batch_counter][level]
+        add_number_samples_level = self.batches_number_samples[batch_counter][level]
 
-        counter = 0
-        while (counter < len(samples)):
-            batches_samples = samples[counter:counter+batch_size]
-            counter = counter + batch_size
-            new_S1,new_S2,new_S3,new_S4,number_samples_batches_level = UpdateBatchesPassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,number_samples_batches_level,samples)
-
-
-        stop
-        new_S1,new_S2,new_S3,new_S4,number_samples_batches_level = UpdateBatchesPassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,number_samples_batches_level,samples)
-
+        new_S1,new_S2,new_S3,new_S4,number_samples_level = UpdateGlobalPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,number_samples_level,add_S1,add_S2,add_S3,add_S4,add_number_samples_level)
         self.power_sum_1[level] = new_S1
         self.power_sum_2[level] = new_S2
         self.power_sum_3[level] = new_S3
         self.power_sum_4[level] = new_S4
         self.number_samples[level] = number_samples_level
 
+    def UpdateBatchesPassPowerSum(self,level,batch_counter):
+        samples = self.values[batch_counter][level]
+        for mini_batch in range (0,len(samples)):
+            old_S1 = self.power_sum_batches_1[batch_counter][level]
+            old_S2 = self.power_sum_batches_2[batch_counter][level]
+            old_S3 = self.power_sum_batches_3[batch_counter][level]
+            old_S4 = self.power_sum_batches_4[batch_counter][level]
+            number_samples_batches_level = self.batches_number_samples[batch_counter][level]
+
+            mini_batches_samples = samples[mini_batch]
+            new_S1,new_S2,new_S3,new_S4,number_samples_batches_level = UpdateBatchesPassPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,number_samples_batches_level,mini_batches_samples)
+
+            self.power_sum_batches_1[batch_counter][level] = new_S1
+            self.power_sum_batches_2[batch_counter][level] = new_S2
+            self.power_sum_batches_3[batch_counter][level] = new_S3
+            self.power_sum_batches_4[batch_counter][level] = new_S4
+            self.batches_number_samples[batch_counter][level] = number_samples_batches_level
 
     """
     function computing the h statistics h_p from the power sums
@@ -461,7 +482,6 @@ class StatisticalVariable(object):
             level: defined level
     """
     def ComputeSampleCentralMomentsFromScratch(self,level,number_samples_level):
-        curr_mean = self.raw_moment_1[level]
         # initialize central moements
         central_moment_from_scratch_1 = 0.0
         central_moment_from_scratch_2 = 0.0
@@ -486,9 +506,12 @@ class StatisticalVariable(object):
                 central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4, *samples)
             elements_to_sum.append()
         """
-        samples = self.values[level]
+        samples = []
+        for batch in range (len(self.values)):
+            for value in self.values[batch][level]:
+                samples.append(value)
         central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4 = \
-            ComputeSampleCentralMomentsFromScratchAux_Task(curr_mean,number_samples_level,central_moment_from_scratch_1_to_compute, \
+            ComputeSampleCentralMomentsFromScratchAux_Task(number_samples_level,central_moment_from_scratch_1_to_compute, \
             central_moment_from_scratch_2_to_compute,central_moment_from_scratch_3_to_compute,central_moment_from_scratch_3_absolute_to_compute,central_moment_from_scratch_4_to_compute, \
             central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4, samples)
         self.central_moment_from_scratch_1[level] = central_moment_from_scratch_1
