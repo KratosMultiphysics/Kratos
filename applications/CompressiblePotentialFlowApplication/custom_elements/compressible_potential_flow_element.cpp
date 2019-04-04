@@ -183,13 +183,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoint
 
     if (rVariable == PRESSURE)
     {
-        double p = ComputePressureUpper();
-        rValues[0] = p;
-    }
-    else if (rVariable == PRESSURE_LOWER)
-    {
-        double p = ComputePressureLower();
-        rValues[0] = p;
+        rValues[0] = ComputeCP();
     }
     else if (rVariable == WAKE)
     {
@@ -806,83 +800,29 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLowerWakeEl
 }
 
 template <int Dim, int NumNodes>
-double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpper() const
+double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeCP() const
 {
-    const CompressiblePotentialFlowElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake == 0)
-        return ComputePressureNormalElement();
-    else
-        return ComputePressureUpperWakeElement();
-}
-
-template <int Dim, int NumNodes>
-double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLower() const
-{
-    const CompressiblePotentialFlowElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake == 0)
-        return ComputePressureNormalElement();
-    else
-        return ComputePressureLowerWakeElement();
-}
-
-template <int Dim, int NumNodes>
-double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureNormalElement() const
-{
+    // Reading free stream conditions
     const array_1d<double, 3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
-    const double v_inf_2 = inner_prod(vinfinity, vinfinity);
+    const double M_inf = GetProperties().GetValue(MACH_INFINITY);
+    const double gamma = GetProperties().GetValue(GAMMA);
+
+    // Computing local velocity
+    array_1d<double, Dim> v;
+    ComputeVelocityUpper(v);
+
+    // Computing squares
+    const double v_inf_2 = inner_prod(vinfinity,vinfinity);
+    const double M_inf_2 = M_inf*M_inf;
+    double v_2 = inner_prod(v,v);
 
     KRATOS_ERROR_IF(v_inf_2 < std::numeric_limits<double>::epsilon())
         << "Error on element -> " << this->Id() << "\n"
         << "v_inf_2 must be larger than zero." << std::endl;
 
-    array_1d<double, Dim> v;
-    ComputeVelocityNormalElement(v);
+    const double base = 1 + (gamma - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2;
 
-    double pressure_coefficient = (v_inf_2 - inner_prod(v, v)) /
-               v_inf_2; // 0.5*(norm_2(vinfinity) - norm_2(v));
-    return pressure_coefficient;
-}
-
-template <int Dim, int NumNodes>
-double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpperWakeElement() const
-{
-    const array_1d<double, 3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
-    const double v_inf_2 = inner_prod(vinfinity, vinfinity);
-
-    KRATOS_ERROR_IF(v_inf_2 < std::numeric_limits<double>::epsilon())
-        << "Error on element -> " << this->Id() << "\n"
-        << "v_inf_2 must be larger than zero." << std::endl;
-
-    array_1d<double, Dim> v;
-    ComputeVelocityUpperWakeElement(v);
-
-    double pressure_coefficient = (v_inf_2 - inner_prod(v, v)) /
-               v_inf_2; // 0.5*(norm_2(vinfinity) - norm_2(v));
-
-    return pressure_coefficient;
-}
-
-template <int Dim, int NumNodes>
-double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLowerWakeElement() const
-{
-    const array_1d<double, 3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
-    const double v_inf_2 = inner_prod(vinfinity, vinfinity);
-
-    KRATOS_ERROR_IF(v_inf_2 < std::numeric_limits<double>::epsilon())
-        << "Error on element -> " << this->Id() << "\n"
-        << "v_inf_2 must be larger than zero." << std::endl;
-
-    array_1d<double, Dim> v;
-    ComputeVelocityLowerWakeElement(v);
-
-    double pressure_coefficient = (v_inf_2 - inner_prod(v, v)) /
-               v_inf_2; // 0.5*(norm_2(vinfinity) - norm_2(v));
-
-    return pressure_coefficient;
+    return 2 * (pow(base, gamma / (gamma - 1)) - 1) / (gamma * M_inf_2);
 }
 
 template <int Dim, int NumNodes>
@@ -914,9 +854,6 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensity() const
     }
 
     const double base = 1 + (gamma -1)*M_inf_2*(1-v_2/v_inf_2)/2;
-
-    const CompressiblePotentialFlowElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
 
     if(base > 0.0){
         return rho_inf*pow(base,1/(gamma -1));

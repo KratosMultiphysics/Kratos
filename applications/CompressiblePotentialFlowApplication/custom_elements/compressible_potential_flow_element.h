@@ -279,15 +279,7 @@ private:
 
     void ComputeVelocityLowerWakeElement(array_1d<double, Dim>& velocity) const;
 
-    double ComputePressureUpper() const;
-
-    double ComputePressureLower() const;
-
-    double ComputePressureNormalElement() const;
-
-    double ComputePressureUpperWakeElement() const;
-
-    double ComputePressureLowerWakeElement() const;
+    double ComputeCP() const;
 
     double ComputeDensity() const;
 
