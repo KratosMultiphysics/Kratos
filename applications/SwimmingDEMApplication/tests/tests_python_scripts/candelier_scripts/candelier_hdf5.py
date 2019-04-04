@@ -1,13 +1,12 @@
 import h5py
 import numpy as np
 import math
-from KratosMultiphysics import *
 import candelier
 import candelier_parameters as ch_pp
 import parameters_tools as PT
 
 class ResultsCandelier:
-    def __init__(self, parameters, path):
+    def __init__(self, project_parameters, path):
         self.sim = candelier.AnalyticSimulator(ch_pp)
         self.sim.CalculateNonDimensionalVars()
         self.path = path + '/candelier_results.h5py'
@@ -22,7 +21,7 @@ class ResultsCandelier:
         self.dt = project_parameters["time_stepping"]["time_step"].GetDouble()
 
         if self.do_include_history_force: #TODO: extend to multiple properties
-            for prop in parameters["properties"].values():
+            for prop in project_parameters["properties"].values():
                 self.history_force_parameters =  prop["hydrodynamic_law_parameters"]["history_force_parameters"]
                 break
 

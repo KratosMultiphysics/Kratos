@@ -36,6 +36,11 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.density_infinity = settings["density_infinity"].GetDouble()
         self.mach_infinity = settings["mach_infinity"].GetDouble()
         self.gamma = settings["gamma"].GetDouble()
+        #self.density_infinity = settings["density_infinity"].GetDouble() #TODO: must read this from the properties
+        self.inlet_phi = settings["inlet_phi"].GetDouble()
+        self.model_part.ProcessInfo.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY,self.velocity_infinity)
+        
+        
         
 
         # For the conditions
@@ -83,6 +88,9 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             if(tmp < pos+1e-9):
                 node.Fix(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL)
                 node.SetSolutionStepValue(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL,0,self.inlet_phi)
+                if self.model_part.HasNodalSolutionStepVariable(CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL):
+                    node.Fix(CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL)
+                    node.SetSolutionStepValue(CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL,0,0.0)
         
     def ExecuteInitializeSolutionStep(self):
         self.Execute()

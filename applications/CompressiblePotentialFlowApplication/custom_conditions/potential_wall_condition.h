@@ -67,6 +67,9 @@ public:
     /// Pointer definition of PotentialWallCondition
     KRATOS_CLASS_POINTER_DEFINITION(PotentialWallCondition);
 
+    static constexpr int NumNodes = TNumNodes;
+    static constexpr int Dim = TDim;
+
     typedef Node<3> NodeType;
 
     typedef Properties PropertiesType;

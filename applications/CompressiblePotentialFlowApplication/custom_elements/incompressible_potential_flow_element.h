@@ -62,6 +62,8 @@ public:
     ///@{
 
     typedef Element BaseType;
+    static constexpr int TNumNodes = NumNodes;
+    static constexpr int TDim = Dim;
 
     ///@}
     ///@name Pointer Definitions
@@ -154,6 +156,9 @@ public:
                               ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                 ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override;
