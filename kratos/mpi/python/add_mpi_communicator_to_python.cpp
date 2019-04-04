@@ -28,7 +28,7 @@ void AddMPICommunicatorToPython(pybind11::module& m)
     namespace py = pybind11;
 
     py::class_<MPICommunicator, Communicator>(m,"MPICommunicator")
-    .def("__str__", PrintObject<MPICommunicator>);
+    .def("__str__", PrintObject<MPICommunicator>)
     ;
 }
 
