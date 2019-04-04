@@ -210,19 +210,20 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                         plastic_strain, damage, damage_increment, 
                         hard_damage, hcapd, undamaged_free_energy);
 
-                KRATOS_WATCH(plastic_strain)
+                // KRATOS_WATCH(plastic_strain)
                 // KRATOS_WATCH(plastic_consistency_increment)
                 // KRATOS_WATCH(plastic_dissipation)
-                // KRATOS_WATCH(damage_indicator)
-                // KRATOS_WATCH(plasticity_indicator)
+                KRATOS_WATCH(damage_indicator)
+                KRATOS_WATCH(plasticity_indicator)
                 // KRATOS_WATCH(predictive_stress_vector)
                 // KRATOS_WATCH(uniaxial_stress_plasticity)
 				// KRATOS_WATCH(uniaxial_stress_damage)
                 // KRATOS_WATCH(threshold_plasticity)
 				// 	KRATOS_WATCH(threshold_plasticity)
 				// 	KRATOS_WATCH(threshold_damage)
-					KRATOS_WATCH(damage)
+					// KRATOS_WATCH(damage)
                 if (plasticity_indicator < std::abs(1.0e-4 * threshold_plasticity) && damage_indicator < std::abs(1.0e-4 * threshold_damage)) {
+                // if (std::abs(plasticity_indicator) < std::abs(1.0e-4 * threshold_plasticity) && std::abs(damage_indicator) < std::abs(1.0e-4 * threshold_damage)) {
                     is_converged = true;
                 } else {
                     number_iteration++;
@@ -744,13 +745,14 @@ CalculateDamageParameters(
 {
     array_1d<double, VoigtSize> deviator = ZeroVector(6);
     array_1d<double, VoigtSize> h_capa = ZeroVector(6);
-    double J2, tensile_indicator_factor, compression_indicator_factor, slope, hardening_parameter, suma = 0.0;
+    double J2, tensile_indicator_factor, compression_indicator_factor, suma = 0.0;
+    array_1d<double, 3> principal_stresses;
 
     TDamageIntegratorType::YieldSurfaceType::CalculateEquivalentStress(rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
     const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
     ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
     TDamageIntegratorType::YieldSurfaceType::CalculateYieldSurfaceDerivative(rPredictiveStressVector, deviator, J2, rFflux, rValues);
-    this->CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor, suma);
+    this->CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor, suma, principal_stresses);
 
     auto& r_matProps = rValues.GetMaterialProperties();
     const bool has_symmetric_yield_stress = r_matProps.Has(YIELD_STRESS);
@@ -761,24 +763,27 @@ CalculateDamageParameters(
     const double fracture_energy_tension = r_matProps[FRACTURE_ENERGY_DAMAGE_PROCESS] / CharacteristicLength;
     const double fracture_energy_compression = fracture_energy_tension * std::pow(yield_ratio, 2.0);
 
-    const double constant1 = tensile_indicator_factor * std::abs(rUniaxialStress / yield_ratio) / (fracture_energy_tension * suma);
-    const double constant2 = compression_indicator_factor * std::abs(rUniaxialStress) / (fracture_energy_compression * suma);
-    const double constant = constant1 + constant2;
+    const double sum_principal_stresses = std::abs(principal_stresses[0]) + std::abs(principal_stresses[1]) + std::abs(principal_stresses[2]);
+
+    const double g_t_mod = sum_principal_stresses * yield_ratio / rUniaxialStress * fracture_energy_tension;
+    const double g_c_mod = sum_principal_stresses / rUniaxialStress * fracture_energy_compression;
 
     // Free Energy Undamaged
-    rHcapd = constant * UndamagedFreeEnergy;
-    double damage_dissipation_increment = rHcapd * DamageIncrement;
+    double damage_dissipation_increment = UndamagedFreeEnergy * (tensile_indicator_factor / g_t_mod + compression_indicator_factor / g_c_mod) * DamageIncrement;
     this->CheckInternalVariable(damage_dissipation_increment);
     rDamageDissipation += damage_dissipation_increment;
     if (rDamageDissipation > 1.0) rDamageDissipation = 0.99999;
 
     Vector slopes(2), thresholds(2);
-    for (IndexType i = 0; i < 2; ++i) {
-        double initial_threshold;
-        TDamageIntegratorType::GetInitialUniaxialThreshold(rValues, initial_threshold);
-        thresholds[i] = initial_threshold * (1.0 - rDamageDissipation);
-        slopes[i] = -initial_threshold;
-    }
+
+    // Tension
+    thresholds[0] = yield_tension * (1.0 - rDamageDissipation);
+    slopes[0] = -yield_tension;
+
+    // Compression
+    thresholds[1] = yield_compression * (1.0 - rDamageDissipation);
+    slopes[1] = -yield_compression;
+
     rDamageThreshold = (tensile_indicator_factor * thresholds[0]) + (compression_indicator_factor * thresholds[1]);
     const double hsigr = rDamageThreshold * (tensile_indicator_factor * slopes[0] / thresholds[0] + compression_indicator_factor * slopes[1] / thresholds[1]);  
     rHardd = rHcapd * hsigr;
@@ -795,7 +800,8 @@ CalculateIndicatorsFactors(
     const array_1d<double, 6>& rPredictiveStressVector,
     double& rTensileIndicatorFactor,
     double& rCompressionIndicatorFactor,
-    double& rSumPrincipalStresses
+    double& rSumPrincipalStresses,
+    array_1d<double, 3>& rPrincipalStresses
 )
 {
     // We do an initial check
@@ -806,17 +812,17 @@ CalculateIndicatorsFactors(
     }
 
     // We proceed as usual
-    array_1d<double, Dimension> principal_stresses = ZeroVector(Dimension);
-    ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses, rPredictiveStressVector);
+    rPrincipalStresses = ZeroVector(Dimension);
+    ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(rPrincipalStresses, rPredictiveStressVector);
 
     double suma = 0.0, sumb = 0.0, sumc = 0.0;
     double aux_sa;
 
     for (IndexType i = 0; i < Dimension; ++i) {
-        aux_sa = std::abs(principal_stresses[i]);
+        aux_sa = std::abs(rPrincipalStresses[i]);
         suma += aux_sa;
-        sumb += 0.5 * (principal_stresses[i] + aux_sa);
-        sumc += 0.5 * (-principal_stresses[i] + aux_sa);
+        sumb += 0.5 * (rPrincipalStresses[i] + aux_sa);
+        sumc += 0.5 * (-rPrincipalStresses[i] + aux_sa);
     }
     rSumPrincipalStresses = suma;
 
@@ -885,9 +891,9 @@ CalculateIncrementsPlasticDamageCase(
     if (jacobian_determinant > tolerance) {
         rPlasticConsistencyIncrement -=  (dFd_ddam * McaullyBrackets(PlasticityIndicator) - dFp_ddam * McaullyBrackets(DamageIndicator)) / jacobian_determinant;
         rDamageIncrement -= (dFp_dlambda * McaullyBrackets(DamageIndicator) - dFd_dlamba * McaullyBrackets(PlasticityIndicator)) / jacobian_determinant;
-    } else { // If the two yield and stresses are the same
-        rPlasticConsistencyIncrement -= PlasticityIndicator / dFp_dlambda;
-        rDamageIncrement -= PlasticityIndicator / dFp_ddam;
+    } else { // If the two yield and stresses are the same -> jacobian_determinant = 0.0
+        rPlasticConsistencyIncrement -= McaullyBrackets(PlasticityIndicator) / dFp_dlambda;
+        rDamageIncrement -= McaullyBrackets(PlasticityIndicator) / dFp_ddam;
     }
 
 }

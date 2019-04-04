@@ -370,7 +370,8 @@ public:
         const array_1d<double, 6>& rPredictiveStressVector,
         double& rTensileIndicatorFactor,
         double& rCompressionIndicatorFactor,
-        double& rSumPrincipalStresses);
+        double& rSumPrincipalStresses,
+        array_1d<double, 3>& rPrincipalStresses);
 
     
     void CheckInternalVariable(
