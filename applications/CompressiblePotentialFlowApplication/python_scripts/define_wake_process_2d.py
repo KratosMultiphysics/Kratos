@@ -257,7 +257,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 
                 # Nodes laying on the wake have a positive distance
                 if(abs(distance_to_wake) < self.epsilon):
-                    print('element: ',elem.Id,' has nodes that are laying on wake! CL may not be correct in all nodes!')
+                    KratosMultiphysics.Logger.PrintInfo('DefineWakeProcess2D', 'element: ',elem.Id,' has nodes that are laying on wake! CL may not be correct in all nodes!')
                     distance_to_wake = self.epsilon
 
                 if distance_to_wake>0:
