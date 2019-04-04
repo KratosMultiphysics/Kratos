@@ -1,6 +1,5 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CompressiblePotentialFlowApplication
-#from CompressiblePotentialFlowApplication import*
 
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
@@ -23,7 +22,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             }  """ );
         
             
-        settings.ValidateAndAssignDefaults(default_parameters);
+        settings.ValidateAndAssignDefaults(default_parameters)
         
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.fluid_model_part = self.model_part.GetRootModelPart()
