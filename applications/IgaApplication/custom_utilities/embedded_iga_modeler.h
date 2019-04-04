@@ -3,7 +3,7 @@
 
 
 // System includes
-
+#include <omp.h>
 // External includes
 #include "anurbs.h"
 
