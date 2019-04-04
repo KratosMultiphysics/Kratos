@@ -112,7 +112,6 @@ namespace Kratos {
                                                double indentation,
                                                double previous_indentation,
                                                double ViscoDampingLocalContactForce[3],
-                                               double& cohesive_force,
                                                SphericParticle* element1,
                                                SphericParticle* element2,
                                                bool& sliding,
@@ -157,15 +156,6 @@ namespace Kratos {
             InitializeDependentContact(equiv_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation);
 
             LocalElasticContactForce[2] = DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(elastic_indentation);
-            cohesive_force              = DEM_D_Hertz_viscous_Coulomb::CalculateCohesiveNormalForce(element1, element2, elastic_indentation);
-
-            double contact_stress = (3 * LocalElasticContactForce[2]) / (2 * Globals::Pi * equiv_level_of_fouling * equiv_radius * elastic_indentation);
-
-            if (contact_stress > element1->GetParticleConicalDamageMaxStress()) {
-                DamageContact(element1, element2, equiv_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation, LocalElasticContactForce[2]);
-                LocalElasticContactForce[2] = DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(elastic_indentation);
-                cohesive_force              = DEM_D_Hertz_viscous_Coulomb::CalculateCohesiveNormalForce(element1, element2, elastic_indentation);
-            }
 
             DEM_D_Hertz_viscous_Coulomb::CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, element1, element2);
 
@@ -174,6 +164,13 @@ namespace Kratos {
             if (normal_contact_force < 0.0) {
                 normal_contact_force = 0.0;
                 ViscoDampingLocalContactForce[2] = -1.0 * LocalElasticContactForce[2];
+            }
+
+            double contact_stress = (3 * normal_contact_force) / (2 * Globals::Pi * equiv_level_of_fouling * equiv_radius * elastic_indentation);
+
+            if (contact_stress > element1->GetParticleConicalDamageMaxStress()) {
+                DamageContact(element1, element2, equiv_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation, normal_contact_force);
+                LocalElasticContactForce[2] = DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(elastic_indentation);
             }
 
             double AuxElasticShearForce;
@@ -253,7 +250,6 @@ namespace Kratos {
                                                       double indentation,
                                                       double previous_indentation,
                                                       double ViscoDampingLocalContactForce[3],
-                                                      double& cohesive_force,
                                                       SphericParticle* const element,
                                                       Condition* const wall,
                                                       bool& sliding) {
@@ -294,15 +290,6 @@ namespace Kratos {
             InitializeDependentContactWithFEM(effective_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation);
 
             LocalElasticContactForce[2] = DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(elastic_indentation);
-            cohesive_force              = DEM_D_Hertz_viscous_Coulomb::CalculateCohesiveNormalForceWithFEM(element, wall, elastic_indentation);
-
-            double contact_stress = (3 * LocalElasticContactForce[2]) / (2 * Globals::Pi * equiv_level_of_fouling * effective_radius * elastic_indentation);
-
-            if (contact_stress > element->GetParticleConicalDamageMaxStress()) {
-                DamageContactWithFEM(element, wall, effective_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation, LocalElasticContactForce[2]);
-                LocalElasticContactForce[2] = DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(elastic_indentation);
-                cohesive_force              = DEM_D_Hertz_viscous_Coulomb::CalculateCohesiveNormalForceWithFEM(element, wall, elastic_indentation);
-            }
 
             DEM_D_Hertz_viscous_Coulomb::CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, element, wall);
 
@@ -311,6 +298,13 @@ namespace Kratos {
             if (normal_contact_force < 0.0) {
                 normal_contact_force = 0.0;
                 ViscoDampingLocalContactForce[2] = -1.0 * LocalElasticContactForce[2];
+            }
+
+            double contact_stress = (3 * normal_contact_force) / (2 * Globals::Pi * equiv_level_of_fouling * effective_radius * elastic_indentation);
+
+            if (contact_stress > element->GetParticleConicalDamageMaxStress()) {
+                DamageContactWithFEM(element, wall, effective_radius, equiv_level_of_fouling, equiv_young, equiv_shear, elastic_indentation, normal_contact_force);
+                LocalElasticContactForce[2] = DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(elastic_indentation);
             }
 
             double AuxElasticShearForce;
@@ -363,13 +357,9 @@ namespace Kratos {
         double equiv_tg_of_fri_ang                  = 0.5 * (my_tg_of_friction_angle + neighbour_tg_of_friction_angle);
 
         if (fabs(equiv_tg_of_fri_ang) > 1.0e-12) {
-
-          double critical_force = 0.6666666666666667 * Globals::Pi * equiv_radius * indentation * element1->GetParticleConicalDamageMaxStress();
-
-          if (normal_contact_force > critical_force) {
-                double critical_force_inv = 1.0  / critical_force;
-                equiv_tg_of_fri_ang *= pow((normal_contact_force * critical_force_inv), element1->GetParticleConicalDamageGamma());
-            }
+            double critical_force = 0.6666666666666667 * Globals::Pi * equiv_radius * indentation * element1->GetParticleConicalDamageMaxStress();
+            double critical_force_inv = 1.0  / critical_force;
+            equiv_tg_of_fri_ang *= pow((normal_contact_force * critical_force_inv), element1->GetParticleConicalDamageGamma());
         }
 
         for (unsigned int i = 0; element1->mNeighbourElements.size(); i++) {
@@ -458,6 +448,12 @@ namespace Kratos {
         const double my_tg_of_friction_angle   = element->GetTgOfFrictionAngle();
         const double wall_tg_of_friction_angle = wall->GetProperties()[FRICTION];
         double equiv_tg_of_fri_ang             = 0.5 * (my_tg_of_friction_angle + wall_tg_of_friction_angle);
+
+        if (fabs(equiv_tg_of_fri_ang) > 1.0e-12) {
+            double critical_force = 0.6666666666666667 * Globals::Pi * equiv_radius * indentation * element->GetParticleConicalDamageMaxStress();
+            double critical_force_inv = 1.0  / critical_force;
+            equiv_tg_of_fri_ang *= pow((normal_contact_force * critical_force_inv), element->GetParticleConicalDamageGamma());
+        }
 
         for (unsigned int i = 0; element->mNeighbourRigidFaces.size(); i++) {
             if (element->mNeighbourRigidFaces[i]->Id() == wall->Id()) {

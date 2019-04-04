@@ -69,11 +69,10 @@ namespace Kratos {
                              double indentation,
                              double previous_indentation,
                              double ViscoDampingLocalContactForce[3],
-                             double& cohesive_force,
                              SphericParticle* element1,
                              SphericParticle* element2,
                              bool& sliding,
-                             double LocalCoordSystem[3][3]) override;
+                             double LocalCoordSystem[3][3]);
 
         void CalculateForcesWithFEM(ProcessInfo& r_process_info,
                                     const double OldLocalElasticContactForce[3],
@@ -83,10 +82,9 @@ namespace Kratos {
                                     double indentation,
                                     double previous_indentation,
                                     double ViscoDampingLocalContactForce[3],
-                                    double& cohesive_force,
                                     SphericParticle* const element,
                                     Condition* const wall,
-                                    bool& sliding) override;
+                                    bool& sliding);
 
         void CalculateTangentialForce(const double normal_contact_force,
                                       const double OldLocalElasticContactForce[3],
@@ -122,8 +120,6 @@ namespace Kratos {
         using DEM_D_Hertz_viscous_Coulomb::CalculateViscoDampingForceWithFEM;
 
         using DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce;
-        using DEM_D_Hertz_viscous_Coulomb::CalculateCohesiveNormalForce;
-        using DEM_D_Hertz_viscous_Coulomb::CalculateCohesiveNormalForceWithFEM;
 
         using DEM_D_Hertz_viscous_Coulomb::CalculateElasticEnergyDEM;
         using DEM_D_Hertz_viscous_Coulomb::CalculateInelasticFrictionalEnergyDEM;
