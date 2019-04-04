@@ -185,6 +185,10 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoint
     {
         rValues[0] = ComputeCP();
     }
+    if (rVariable == DENSITY)
+    {
+        rValues[0] = ComputeDensity();
+    }
     else if (rVariable == WAKE)
     {
         const CompressiblePotentialFlowElement& r_this = *this;
