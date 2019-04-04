@@ -20,6 +20,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             "model_part_name": "",
             "wake_direction": [1.0,0.0,0.0],
             "velocity_infinity": [1.0,0.0,0],
+            "create_output_file": true,
             "epsilon": 1e-9
         }''')
         settings.ValidateAndAssignDefaults(default_settings)
@@ -51,6 +52,9 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
         self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
+
+        # model part that contains the elements cut by the wake
+        self.wake_model_part = self.fluid_model_part.CreateSubModelPart("wake_model_part") 
 
         # Call the nodal normal calculation util
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
@@ -112,6 +116,9 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 wake_element = self.SelectWakeElements(distances_to_wake)
 
                 if(wake_element):
+
+                    # Appending the wake elements to wake_model_part
+                    self.wake_model_part.Elements.append(elem)
                     elem.SetValue(CPFApp.WAKE, True)
                     elem.SetValue(
                         KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
@@ -234,7 +241,8 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         node_velocity_potential_above = 0
         node_velocity_potential_below = 0
-        
+
+        show_only_the_first_element = True
         for elem in self.wake_model_part.Elements:
             print('element: ',elem.Id)
             for node in elem.GetNodes():
@@ -249,22 +257,25 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 
                 # Nodes laying on the wake have a positive distance
                 if(abs(distance_to_wake) < self.epsilon):
+                    print('element: ',elem.Id,' has nodes that are laying on wake! CL may not be correct in all nodes!')
                     distance_to_wake = self.epsilon
 
                 if distance_to_wake>0:
                     node_velocity_potential_above = node.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
                     node_auxiliary_velocity_potential_above = node.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
                     potential_jump_phi_minus_psi_above = node_velocity_potential_above - node_auxiliary_velocity_potential_above
-                    Cl = 2*potential_jump_phi_minus_psi_above/self.velocity_infinity[0]
-                    print ('potential jump Phi - Psi (above the wake) = ', potential_jump_phi_minus_psi_above, '=> CL = ',Cl)
+                    Cl_above = 2*potential_jump_phi_minus_psi_above/self.velocity_infinity[0]
+                    print ('potential jump Phi - Psi (above the wake) = ', potential_jump_phi_minus_psi_above, '=> CL = ',Cl_above)
                 else:
                     node_velocity_potential_below = node.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
                     node_auxiliary_velocity_potential_below = node.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
                     potential_jump_psi_minus_phi_below = -(node_velocity_potential_below - node_auxiliary_velocity_potential_below)
-                    Cl = 2*potential_jump_psi_minus_phi_below/self.velocity_infinity[0]
-                    print ('potential jump Psi - Phi (below the wake) = ', potential_jump_psi_minus_phi_below, '=> CL = ',Cl)
-            break
+                    Cl_below = 2*potential_jump_psi_minus_phi_below/self.velocity_infinity[0]
+                    print ('potential jump Psi - Phi (below the wake) = ', potential_jump_psi_minus_phi_below, '=> CL = ',Cl_below)
+            if (show_only_the_first_element):
+                print('The rest of wake elements are skipped...')        
+                break
 
         if self.create_output_file:
              with open("cl_jump.dat", 'w') as cl_file:
-                 cl_file.write('{0:15.12f}'.format(Cl))
+                 cl_file.write('{0:15.12f}'.format(Cl_above))
