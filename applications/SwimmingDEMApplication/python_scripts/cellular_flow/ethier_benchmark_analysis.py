@@ -1,10 +1,12 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.SwimmingDEMApplication import *
-from KratosMultiphysics.DEMApplication import *
-import swimming_DEM_procedures as SDP
+import KratosMultiphysics as Kratos
+from KratosMultiphysics import Vector, Parameters, ModelPartIO
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
+import sys
+import os
 import math
 import numpy as np
 import time as timer
+import swimming_DEM_procedures as SDP
 import swimming_DEM_analysis
 BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 
@@ -65,9 +67,9 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
         a = math.pi / 4
         d = math.pi / 2
 
-        self.flow_field = EthierFlowField(a, d)
-        space_time_set = SpaceTimeSet()
-        self.field_utility = FluidFieldUtility(space_time_set, self.flow_field, 1000.0, 1e-6)
+        self.flow_field = SDEM.EthierFlowField(a, d)
+        space_time_set = SDEM.SpaceTimeSet()
+        self.field_utility = SDEM.FluidFieldUtility(space_time_set, self.flow_field, 1000.0, 1e-6)
         return self.field_utility
 
     def GetRecoveryCounter(self):
@@ -86,7 +88,7 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
             vel= Vector(3)
             coor = Vector([node.X, node.Y, node.Z])
             self.flow_field.Evaluate(0.0, coor, vel, 0)
-            node.SetSolutionStepValue(VELOCITY, vel)
+            node.SetSolutionStepValue(Kratos.VELOCITY, vel)
 
     def RecoverDerivatives(self):
         t0 = timer.clock()
@@ -116,14 +118,14 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
         laplacian= Vector(3)
 
         for node in self.fluid_model_part.Nodes:
-            nodal_volume = node.GetSolutionStepValue(NODAL_AREA)
+            nodal_volume = node.GetSolutionStepValue(Kratos.NODAL_AREA)
             total_volume += nodal_volume
             coor = Vector([node.X, node.Y, node.Z])
 
             self.flow_field.CalculateConvectiveDerivative(0., coor, mat_deriv, 0)
             self.flow_field.CalculateLaplacian(0., coor, laplacian, 0)
-            calc_mat_deriv = node.GetSolutionStepValue(MATERIAL_ACCELERATION)
-            calc_laplacian = node.GetSolutionStepValue(VELOCITY_LAPLACIAN)
+            calc_mat_deriv = node.GetSolutionStepValue(Kratos.MATERIAL_ACCELERATION)
+            calc_laplacian = node.GetSolutionStepValue(Kratos.VELOCITY_LAPLACIAN)
 
             module_mat_deriv_squared = sum(x**2 for x in mat_deriv)
             module_laplacian_squared = sum(x**2 for x in laplacian)
@@ -131,8 +133,8 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
             L2_norm_laplacian += module_laplacian_squared * nodal_volume
             diff_mat_deriv = calc_mat_deriv - mat_deriv
             diff_laplacian = calc_laplacian - laplacian
-            node.SetSolutionStepValue(VECTORIAL_ERROR, Vector(list(diff_mat_deriv)))
-            node.SetSolutionStepValue(VECTORIAL_ERROR_1, Vector(list(diff_laplacian)))
+            node.SetSolutionStepValue(Kratos.VECTORIAL_ERROR, Vector(list(diff_mat_deriv)))
+            node.SetSolutionStepValue(Kratos.VECTORIAL_ERROR_1, Vector(list(diff_laplacian)))
             module_mat_deriv_error_squared = sum(x**2 for x in diff_mat_deriv)
             module_laplacian_error_squared = sum(x**2 for x in diff_laplacian)
             L2_norm_mat_deriv_error += module_mat_deriv_error_squared * nodal_volume
@@ -152,8 +154,8 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
         max_laplacian_error **= 0.5
 
         if L2_norm_mat_deriv > 0 and L2_norm_laplacian > 0:
-            SDP.MultiplyNodalVariableByFactor(self.fluid_model_part, VECTORIAL_ERROR, 1.0 / L2_norm_mat_deriv)
-            SDP.MultiplyNodalVariableByFactor(self.fluid_model_part, VECTORIAL_ERROR_1, 1.0 / L2_norm_laplacian)
+            SDP.MultiplyNodalVariableByFactor(self.fluid_model_part, Kratos.VECTORIAL_ERROR, 1.0 / L2_norm_mat_deriv)
+            SDP.MultiplyNodalVariableByFactor(self.fluid_model_part, Kratos.VECTORIAL_ERROR_1, 1.0 / L2_norm_laplacian)
             self.current_mat_deriv_errors[0] = L2_norm_mat_deriv_error / L2_norm_mat_deriv
             self.current_mat_deriv_errors[1] = max_mat_deriv_error / L2_norm_mat_deriv
             self.current_laplacian_errors[0] = L2_norm_laplacian_error / L2_norm_laplacian

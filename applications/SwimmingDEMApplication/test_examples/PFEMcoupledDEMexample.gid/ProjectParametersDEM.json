@@ -30,7 +30,6 @@
 "VirtualMassCoefficient"           : 1.0,
 "RollingFrictionOption"            : false,
 "ContactMeshOption"                : false,
-"OutputFileType"                   : "Binary",
 "Multifile"                        : "multiple_files",
 "ElementType"                      : "SwimmingDEMElement",
 
