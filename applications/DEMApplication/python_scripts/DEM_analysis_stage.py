@@ -452,6 +452,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.UpdateIsTimeToPrintInOneModelPart(self.dem_inlet_model_part, is_time_to_print)
         self.UpdateIsTimeToPrintInOneModelPart(self.rigid_face_model_part, is_time_to_print)
 
+    @classmethod
     def UpdateIsTimeToPrintInOneModelPart(self, model_part, is_time_to_print):
         model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
