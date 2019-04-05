@@ -1,11 +1,11 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
-//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
-//        | |  | | |___ ___) |  _  || || |\  | |_| |
-//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -47,14 +47,14 @@ namespace Kratos
 
 /**
  * @class IntegrationValuesExtrapolationToNodesProcess
- * @ingroup MeshingApplication
+ * @ingroup KratosCore
  * @brief This process extrapolates vales from the integration points to the nodes
  * @details This process solves local problems in order to extrapolate the values from the gauss point to the nodes. Uses inverse for same number of nodes and GP and generalized inverse for cases where the number of GP in higher than the number of nodes
  * Using as main reference: https://www.colorado.edu/engineering/CAS/courses.d/IFEM.d/IFEM.Ch28.d/IFEM.Ch28.pdf (Felippa Stress Recovery course)
  * @todo Replace generalized inverse for QR decomposition
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(MESHING_APPLICATION) IntegrationValuesExtrapolationToNodesProcess
+class KRATOS_API(KRATOS_CORE) IntegrationValuesExtrapolationToNodesProcess
     : public Process
 {
 public:

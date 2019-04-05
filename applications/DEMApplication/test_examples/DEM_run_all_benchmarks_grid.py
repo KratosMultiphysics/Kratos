@@ -90,7 +90,7 @@ def worker(queue):
         try:
             print(Benchmark_text[benchmark - 1])
             run(benchmark)
-        except Exception as e:# catch exceptions to avoid exiting the thread prematurely
+        except Exception:# catch exceptions to avoid exiting the thread prematurely
             print("A problem was found in DEM Benchmark " + str(benchmark) + "... Resuming...\n")
             g = open("errors.err", "a")
             g.write("DEM Benchmark " + str(benchmark) + ": KO!........ Test " + str(benchmark) + " FAILED\n")
@@ -99,6 +99,7 @@ def worker(queue):
 def main():
     try:
         print("\nAdding processes to DEM parallel Benchmarking..............\n")
+        delete_archives()
         g = open("errors.err", "w")
         g.write("The complete list of benchmarks are included at the end of this message as a quick reference.\n")
         g.close()
@@ -187,7 +188,6 @@ def main():
 
 def delete_archives():
 
-    #.......................Removing extra files
     files_to_delete_list = glob('*.time')
     files_to_delete_list.extend(glob('*.dat'))
     files_to_delete_list.extend(glob('*.gp'))
@@ -198,9 +198,11 @@ def delete_archives():
     files_to_delete_list.extend(glob('*.hdf5'))
 
     for to_erase_file in files_to_delete_list:
-        os.remove(to_erase_file)
+        try:
+            os.remove(to_erase_file)
+        except OSError:
+            pass
 
-    #............Getting rid of unuseful folders
     folders_to_delete_list      = glob('*Data')
     folders_to_delete_list.extend(glob('*ists'))
     folders_to_delete_list.extend(glob('*ults'))
@@ -209,7 +211,10 @@ def delete_archives():
     folders_to_delete_list.extend(glob('*iles'))
 
     for to_erase_folder in folders_to_delete_list:
-        shutil.rmtree(to_erase_folder)
+        try:
+            shutil.rmtree(to_erase_folder)
+        except OSError:
+            pass
 
 
 

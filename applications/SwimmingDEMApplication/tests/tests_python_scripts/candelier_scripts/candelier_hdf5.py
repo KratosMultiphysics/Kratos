@@ -1,29 +1,39 @@
 import h5py
 import numpy as np
 import math
-from KratosMultiphysics import *
 import candelier
 import candelier_parameters as ch_pp
+import parameters_tools as PT
 
 class ResultsCandelier:
-    def __init__(self, parameters, path):
+    def __init__(self, project_parameters, path):
         self.sim = candelier.AnalyticSimulator(ch_pp)
         self.sim.CalculateNonDimensionalVars()
         self.path = path + '/candelier_results.h5py'
-        self.dt = project_parameters["MaxTimeStep"].GetDouble()
-        self.N_q = project_parameters["time_steps_per_quadrature_step"].GetInt()
-        self.quadrature_order = project_parameters["quadrature_order"].GetInt()
         self.reading_index = 0
         self.times = []
         self.errors = []
-        ch_pp.include_history_force = bool(project_parameters["basset_force_type"].GetInt())
+        self.do_include_history_force = (PT.RecursiveFindParametersWithCondition(
+                                         project_parameters["properties"], 'history_force_parameters',
+                                         condition=lambda value: value['name'].GetString() != 'default'))
 
-        if project_parameters["basset_force_type"].GetInt() == 2:
+        ch_pp.include_history_force = self.do_include_history_force
+        self.dt = project_parameters["time_stepping"]["time_step"].GetDouble()
+
+        if self.do_include_history_force: #TODO: extend to multiple properties
+            for prop in project_parameters["properties"].values():
+                self.history_force_parameters =  prop["hydrodynamic_law_parameters"]["history_force_parameters"]
+                break
+
+            self.N_q = self.history_force_parameters["time_steps_per_quadrature_step"].GetInt()
+            self.quadrature_order = self.history_force_parameters["quadrature_order"].GetInt()
+
+        if not self.history_force_parameters["mae_parameters"]['do_use_mae'].GetBool():
             self.method = 'Daitche'
         else:
             self.method = 'Hinsberg'
-            self.m = project_parameters["number_of_exponentials"].GetInt()
-            self.t_w = project_parameters["time_window"].GetDouble()
+            self.m = self.history_force_parameters["mae_parameters"]["m"].GetInt()
+            self.t_w = self.history_force_parameters["mae_parameters"]["window_time_interval"].GetDouble()
 
         self.result_code = self.method + '_dt=' + str(self.dt) + '_Nq=' + str(self.N_q) + '_quadrature_order=' + str(self.quadrature_order)
         if self.method == 'Hinsberg':
