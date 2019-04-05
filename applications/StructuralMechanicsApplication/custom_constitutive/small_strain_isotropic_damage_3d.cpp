@@ -208,7 +208,7 @@ double& SmallStrainIsotropicDamage3D::CalculateValue(
             noalias(r_strain_vector) += rValues.GetProcessInfo()[INITIAL_STRAIN];
         }
         const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-        Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
+        Matrix constitutive_matrix;
         CalculateElasticMatrix(constitutive_matrix, rValues);
         const double stress_like_variable = EvaluateHardeningLaw(mStrainVariable, rMaterialProperties);
         const double damage_variable = 1. - stress_like_variable / mStrainVariable;
