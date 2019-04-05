@@ -27,6 +27,8 @@
 #include "custom_conditions/compressible_potential_wall_condition.h"
 
 
+#include "custom_elements/incompressible_adjoint_potential_flow_element.h"
+#include "custom_conditions/incompressible_adjoint_potential_wall_condition.h"
 namespace Kratos {
 
 ///@name Kratos Classes
@@ -35,7 +37,7 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosCompressiblePotentialFlowApplication : public KratosApplication {
+class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) KratosCompressiblePotentialFlowApplication : public KratosApplication {
 public:
 	///@name Type Definitions
 	///@{
@@ -99,11 +101,13 @@ private:
     ///@{
 
     const IncompressiblePotentialFlowElement<2,3> mIncompressiblePotentialFlowElement2D3N;
+    const CompressiblePotentialFlowElement<2,3> mCompressiblePotentialFlowElement2D3N;	
+    const AdjointIncompressiblePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>> mAdjointIncompressiblePotentialFlowElement2D3N;
 
     const PotentialWallCondition<2,2> mPotentialWallCondition2D2N;
     const PotentialWallCondition<3,3> mPotentialWallCondition3D3N;
     const CompressiblePotentialWallCondition<2,2> mCompressiblePotentialWallCondition2D2N;
-
+    const AdjointIncompressiblePotentialWallCondition<PotentialWallCondition<2,2>> mAdjointIncompressiblePotentialWallCondition2D2N;
 
     ///@}
     ///@name Un accessible methods

@@ -27,19 +27,18 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.create_output_file = settings["create_output_file"].GetBool()
 
     def ExecuteFinalizeSolutionStep(self):
-        print('COMPUTE LIFT')
-        # self.process.Execute()
+
         rx = 0.0
         ry = 0.0
         rz = 0.0
 
-         for cond in self.body_model_part.Conditions:
-           n = cond.GetValue(KratosMultiphysics.NORMAL)
-           cp = cond.GetValue(KratosMultiphysics.PRESSURE)
+        for cond in self.body_model_part.Conditions:
+            n = cond.GetValue(KratosMultiphysics.NORMAL)
+            cp = cond.GetValue(KratosMultiphysics.PRESSURE)
 
-           rx += n[0]*cp
-           ry += n[1]*cp
-           rz += n[2]*cp
+            rx += n[0]*cp
+            ry += n[1]*cp
+            rz += n[2]*cp
 
         RZ = rz/self.reference_area
         RX = rx/self.reference_area
@@ -47,15 +46,12 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         Cl = RY
         Cd = RX
-        self.fluid_model_part.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT,Cl)
 
         print('Cl = ', Cl)
         print('Cd = ', Cd)
         print('RZ = ', RZ)
         print('Mach = ', self.velocity_infinity[0]/340)
 
-
-    def Output(self,filepath):
-            with open(filepath, 'w') as cp_file:
-                for i in range(len(x_list)):
-                    cp_file.write('%f %f\n' % (x_list[i], cp_list[i]))
+        if self.create_output_file:
+            with open("cl.dat", 'w') as cl_file:
+                cl_file.write('{0:15.12f}'.format(Cl))

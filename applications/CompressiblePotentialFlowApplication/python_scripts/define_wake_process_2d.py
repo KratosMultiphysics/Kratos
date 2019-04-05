@@ -61,7 +61,15 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         KratosMultiphysics.FindNodalNeighboursProcess(
             self.fluid_model_part, avg_elem_num, avg_node_num).Execute()
 
+<<<<<<< HEAD
     def ExecuteInitializeSolutionStep(self):
+=======
+        for cond in self.body_model_part.Conditions:
+            for node in cond.GetNodes():
+                node.Set(KratosMultiphysics.SOLID)
+
+    def ExecuteInitialize(self):
+>>>>>>> origin/master
         # Save the trailing edge for further computations
         self.SaveTrailingEdgeNode()
         # Check which elements are cut and mark them as wake

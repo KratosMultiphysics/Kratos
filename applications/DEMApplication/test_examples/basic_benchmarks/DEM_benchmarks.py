@@ -11,6 +11,9 @@ import main_script
 import plot_variables                # Related to benchmarks in Chung, Ooi
 import DEM_benchmarks_class as DBC   # Related to benchmarks in Chung, Ooi
 
+Logger.PrintInfo("DEM", "WARNING: DEM_benchmarks.py is is deprecated since 20/03/2019")
+Logger.PrintInfo("DEM", "WARNING: Please use DEM_benchmarks_analysis.py")
+
 sys.path.insert(0,'')
 start = timer.time()
 benchmark_number = int(sys.argv[1])
@@ -184,8 +187,4 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         del slt
     end = timer.time()
     benchmark.print_results(number_of_points_in_the_graphic, dt, elapsed_time = end - start)
-#DBC.delete_archives() #.......Removing some unuseful files when running single benchmarks
-
-
-
 
