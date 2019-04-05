@@ -28,7 +28,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.create_output_file = settings["create_output_file"].GetBool()
 
     def ExecuteFinalizeSolutionStep(self):
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess3D','COMPUTE LIFT')
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','COMPUTE LIFT')
 
         rx = 0.0
         ry = 0.0
@@ -49,10 +49,10 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         Cl = RY
         Cd = RX
 
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess3D','Cl = ', Cl)
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess3D','Cd = ', Cd)
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess3D','RZ = ', RZ)
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess3D','Mach = ', self.velocity_infinity[0]/340)
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Cl = ', Cl)
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Cd = ', Cd)
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','RZ = ', RZ)
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Mach = ', self.velocity_infinity[0]/340)
 
         if self.create_output_file:
             with open("cl.dat", 'w') as cl_file:
