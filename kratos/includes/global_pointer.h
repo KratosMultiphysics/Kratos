@@ -32,11 +32,14 @@ private:
 
 public:
 
- /** Default constructor
+   /** Default constructor
 	* Default constructor
 	* This should never be called as we need a local pointer to exists
 	*/
-	GlobalPointer() = delete;
+	GlobalPointer() {
+    mDataPointer = nullptr;
+    this->mRank = 0;  
+  };
 
   /** Constructor by Data
    * Constructor by Data
@@ -163,6 +166,8 @@ public:
   private: 
 
   friend class Serializer;
+
+
 
   void save(Serializer& rSerializer) const
   {
