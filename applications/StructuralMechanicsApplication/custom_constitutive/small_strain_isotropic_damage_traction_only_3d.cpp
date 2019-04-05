@@ -51,7 +51,7 @@ void SmallStrainIsotropicDamageTractionOnly3D::ComputePositiveStressVector(
         Vector& rStressVectorPos, Vector& rStressVector)
 {
     BoundedMatrix<double, 3, 3> stress_matrix;
-    BoundedMatrix<double, 3, 3> eigen_values(3, 3), eigen_vectors(3, 3);
+    BoundedMatrix<double, 3, 3> eigen_values, eigen_vectors;
     stress_matrix = MathUtils<double>::StressVectorToTensor(rStressVector);
     MathUtils<double>::GaussSeidelEigenSystem(stress_matrix, eigen_vectors, eigen_values);
     for (unsigned int i = 0; i < 3; i++)
