@@ -230,6 +230,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, AIR_SOUND_VELOCITY )
     KRATOS_DEFINE_VARIABLE( double, WATER_SOUND_VELOCITY )
     KRATOS_DEFINE_VARIABLE( double, NODAL_MASS )
+    KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS( NODAL_INERTIA_TENSOR )
     KRATOS_DEFINE_VARIABLE( double, AUX_INDEX )
     KRATOS_DEFINE_VARIABLE( double, VELOCITY_PERIOD )
     KRATOS_DEFINE_VARIABLE( double, ANGULAR_VELOCITY_PERIOD )
@@ -423,7 +424,7 @@ namespace Kratos
 
     //for Structural application:
     KRATOS_DEFINE_VARIABLE( Matrix, INERTIA )
-    
+
     //for General kratos application:
 
     //for Structural application:

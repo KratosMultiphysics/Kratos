@@ -383,6 +383,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
                     raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
                 kin_viscosity = dyn_viscosity / rho
                 break
+            else:
+                raise Exception("No fluid elements found in the main model part.")
 
             KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
             KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
