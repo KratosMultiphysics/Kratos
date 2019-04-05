@@ -19,7 +19,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "",
             "wake_direction": [1.0,0.0,0.0],
-            "velocity_infinity": [1.0,0.0,0],
             "create_output_file": false,
             "epsilon": 1e-9
         }''')
@@ -53,18 +52,9 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
         self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
 
-        # model part that contains the elements cut by the wake
-        self.wake_model_part = self.fluid_model_part.CreateSubModelPart("wake_model_part")
-
         # Call the nodal normal calculation util
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
             self.fluid_model_part, self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-
-        self.velocity_infinity = [0,0,0]
-        self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
-        self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
-        self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
-        self.create_output_file = settings["create_output_file"].GetBool()
 
         # Find nodal neigbours util call
         avg_elem_num = 10
@@ -116,9 +106,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 wake_element = self.SelectWakeElements(distances_to_wake)
 
                 if(wake_element):
-
-                    # Appending the wake elements to wake_model_part
-                    self.wake_model_part.Elements.append(elem)
                     elem.SetValue(CPFApp.WAKE, True)
                     elem.SetValue(
                         KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
