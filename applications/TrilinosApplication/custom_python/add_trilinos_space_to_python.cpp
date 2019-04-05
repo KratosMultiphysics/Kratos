@@ -164,7 +164,7 @@ AuxiliaryMatrixWrapper ReadMatrixMarketMatrix(TrilinosSparseSpaceType& dummy, co
     return AuxiliaryMatrixWrapper(dummy.ReadMatrixMarket(FileName, Comm));
 }
 
-AuxiliaryVectorWrapper ReadMatrixMarketVector(TrilinosSparseSpaceType& dummy, const std::string FileName,Epetra_MpiComm& Comm, int n)
+AuxiliaryVectorWrapper ReadMatrixMarketVector(TrilinosSparseSpaceType& dummy, const std::string& FileName,Epetra_MpiComm& Comm, const int n)
 {
     return AuxiliaryVectorWrapper(dummy.ReadMatrixMarketVector(FileName, Comm, n));
 }
