@@ -51,6 +51,71 @@ OrientedBoundingBox<TDim>::OrientedBoundingBox(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<>
+OrientedBoundingBox<2>::OrientedBoundingBox(
+    const GeometryType& rGeometry,
+    const double BoundingBoxFactor
+    )
+{
+    // Check the intersection of each edge of the object bounding box against the intersecting object bounding box
+    NodeType geometry_low_node, geometry_high_node;
+    rGeometry.BoundingBox(geometry_low_node, geometry_high_node);
+
+    // Creating OBB
+    noalias(mOrientationVectors[0]) = geometry_high_node - geometry_low_node;
+    const double norm_orientation_vectors = norm_2(mOrientationVectors[0]);
+    if (norm_orientation_vectors > std::numeric_limits<double>::epsilon())
+        mOrientationVectors[0] /= norm_orientation_vectors;
+    else
+        KRATOS_ERROR << "Zero norm on OrientedBoundingBox direction" << std::endl;
+    mOrientationVectors[1][0] = mOrientationVectors[0][1];
+    mOrientationVectors[1][1] = - mOrientationVectors[0][0];
+    mOrientationVectors[1][2] = 0.0;
+    mPointCenter = 0.5 * (geometry_low_node.Coordinates() + geometry_high_node.Coordinates());
+    mHalfLength[0] = 0.5 * norm_orientation_vectors + BoundingBoxFactor;
+    mHalfLength[1] = BoundingBoxFactor;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+OrientedBoundingBox<3>::OrientedBoundingBox(
+    const GeometryType& rGeometry,
+    const double BoundingBoxFactor
+    )
+{
+    // Check the intersection of each face of the object bounding box against the intersecting object bounding box
+    NodeType geometry_low_node, geometry_high_node;
+    rGeometry.BoundingBox(geometry_low_node, geometry_high_node);
+
+    // Creating OBB
+    noalias(mOrientationVectors[0]) = geometry_high_node - geometry_low_node;
+    const double norm_mOrientationVectors = norm_2(mOrientationVectors[0]);
+    if (norm_mOrientationVectors > std::numeric_limits<double>::epsilon())
+        mOrientationVectors[0] /= norm_mOrientationVectors;
+    else
+        KRATOS_ERROR << "Zero norm on OrientedBoundingBox direction" << std::endl;
+    MathUtils<double>::OrthonormalBasis(mOrientationVectors[0], mOrientationVectors[1], mOrientationVectors[2]);
+    mPointCenter = rGeometry.Center().Coordinates();// 0.5 * (geometry_low_node.Coordinates() + geometry_high_node.Coordinates());
+    double distance_0 = 0.0;
+    double distance_1 = 0.0;
+    double distance_2 = 0.0;
+    for (auto& r_node : rGeometry) {
+        const array_1d<double, 3> vector_points = r_node.Coordinates() - mPointCenter;
+        distance_0 = std::max(distance_0, std::abs(inner_prod(vector_points, mOrientationVectors[0])));
+        distance_1 = std::max(distance_1, std::abs(inner_prod(vector_points, mOrientationVectors[1])));
+        distance_2 = std::max(distance_2, std::abs(inner_prod(vector_points, mOrientationVectors[2])));
+    }
+    mHalfLength[0] = distance_0 + BoundingBoxFactor;
+    mHalfLength[1] = distance_1 + BoundingBoxFactor;
+    mHalfLength[2] = distance_2 + BoundingBoxFactor;
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<std::size_t TDim>
 const array_1d<double, 3>& OrientedBoundingBox<TDim>::GetCenter() const
 {
