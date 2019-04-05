@@ -131,6 +131,7 @@ void ComputeSandProduction(ModelPart& dem_model_part, ModelPart& skin_model_part
 
     static std::ofstream sand_prod_file("sand_production_graph.txt", std::ios_base::out | std::ios_base::app);
     sand_prod_file << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
+    sand_prod_file.flush();
 }
 
 //***************************************************************************************************************
