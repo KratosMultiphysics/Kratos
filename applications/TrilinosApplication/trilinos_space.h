@@ -493,28 +493,27 @@ public:
 
     //***********************************************************************
 
-    static void GatherValues(const VectorType& x, const std::vector<int>& IndexArray, double* pValues)
+    static void GatherValues(const VectorType& rX, const std::vector<int>& IndexArray, double* pValues)
     {
         KRATOS_TRY
         double tot_size = IndexArray.size();
 
         //defining a map as needed
-        Epetra_Map dof_update_map(-1, tot_size, &(*(IndexArray.begin())), 0, x.Comm());
+        Epetra_Map dof_update_map(-1, tot_size, &(*(IndexArray.begin())), 0, rX.Comm());
 
         //defining the importer class
-        Epetra_Import importer(dof_update_map, x.Map());
+        Epetra_Import importer(dof_update_map, rX.Map());
 
         //defining a temporary vector to gather all of the values needed
         Epetra_Vector temp(importer.TargetMap());
 
         //importing in the new temp vector the values
-        int ierr = temp.Import(x, importer, Insert);
+        int ierr = temp.Import(rX, importer, Insert);
         if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
-
 
         temp.ExtractCopy(&pValues);
 
-        x.Comm().Barrier();
+        rX.Comm().Barrier();
         KRATOS_CATCH("")
 
     }
@@ -575,28 +574,28 @@ public:
         KRATOS_CATCH("");
     }
 
-    VectorPointerType ReadMatrixMarketVector(const std::string& FileName,Epetra_MpiComm& Comm, int n)
+    VectorPointerType ReadMatrixMarketVector(const std::string& FileName,Epetra_MpiComm& Comm, int N)
     {
         KRATOS_TRY
 
-        Epetra_Map MyMap(n, 0, Comm);
+        Epetra_Map my_map(N, 0, Comm);
         Epetra_Vector* pv = nullptr;
 
-        int error_code = EpetraExt::MatrixMarketFileToVector(FileName.c_str(), MyMap, pv);
+        int error_code = EpetraExt::MatrixMarketFileToVector(FileName.c_str(), my_map, pv);
 
         KRATOS_ERROR_IF(error_code != 0) << "error thrown while reading Matrix Market Vector file "<<FileName
                          << " error code is : " << error_code;
 
         Comm.Barrier();
 
-        IndexType NumMyRows = MyMap.NumMyElements();
-        std::vector<int> gids(NumMyRows);
-        MyMap.MyGlobalElements(gids.data());
+        IndexType num_my_rows = my_map.NumMyElements();
+        std::vector<int> gids(num_my_rows);
+        my_map.MyGlobalElements(gids.data());
 
-        std::vector<double> values(NumMyRows);
+        std::vector<double> values(num_my_rows);
         pv->ExtractCopy(values.data());
 
-        VectorPointerType final_vector = Kratos::make_shared<VectorType>(MyMap);
+        VectorPointerType final_vector = Kratos::make_shared<VectorType>(my_map);
         int ierr = final_vector->ReplaceGlobalValues(gids.size(),gids.data(), values.data());
         KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found with code ierr = " << ierr << std::endl;
 
