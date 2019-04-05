@@ -64,6 +64,18 @@ class PotentialFlowTests(UnitTest.TestCase):
                 if file_name.endswith(".h5") or file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
+    def test_SmallLiftJumpTest(self): # the new function proposed from marcnunez
+        file_name = "small_lift_jump"
+        settings_file_name = file_name + "_parameters.json"
+        work_folder = "naca0012_small_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+
+            for file_name in os.listdir():
+                if file_name.endswith(".time"):
+                    kratos_utilities.DeleteFileIfExisting(file_name)
+
     def _runTest(self,settings_file_name):
         model = KratosMultiphysics.Model()
         with open(settings_file_name,'r') as settings_file:
@@ -107,14 +119,6 @@ class PotentialFlowTests(UnitTest.TestCase):
 
         potential_flow_analysis = PotentialFlowAnalysis(model, settings)
         potential_flow_analysis.Run()
-
-class Naca0012SmallTest(PotentialFlowTestFactory):
-    file_name = "naca0012_small"
-    work_folder = "naca0012_small_test"
-
-class SmallLiftJumpTest(PotentialFlowTestFactory):
-    file_name = "small_lift_jump"
-    work_folder = "naca0012_small_test"
 
 if __name__ == '__main__':
     UnitTest.main()

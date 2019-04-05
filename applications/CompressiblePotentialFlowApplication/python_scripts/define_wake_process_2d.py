@@ -20,7 +20,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             "model_part_name": "",
             "wake_direction": [1.0,0.0,0.0],
             "velocity_infinity": [1.0,0.0,0],
-            "create_output_file": true,
+            "create_output_file": false,
             "epsilon": 1e-9
         }''')
         settings.ValidateAndAssignDefaults(default_settings)
