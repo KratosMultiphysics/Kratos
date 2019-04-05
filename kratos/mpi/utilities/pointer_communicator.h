@@ -59,22 +59,22 @@ namespace Kratos
 template< class TPointerDataType, class TSendType >
 class ResultsProxy
 {
-    public:
+public:
 
     ResultsProxy(
         int current_rank,
         GlobalPointersUnorderedMap< TPointerDataType, TSendType > NonLocalData,
         std::function< TSendType(GlobalPointer<TPointerDataType>&) > user_function
-        ):
+    ):
         mcurrent_rank(current_rank), mNonLocalData(NonLocalData), muser_function(user_function)
     {}
 
     /// Destructor.
-    virtual ~ResultsProxy(){}
+    virtual ~ResultsProxy() {}
 
-    /**this function returns the effect of "user_function(gp)" both if the gp is locally owned 
+    /**this function returns the effect of "user_function(gp)" both if the gp is locally owned
      * and if it is remotely owned
-     */    
+     */
     TSendType Get(GlobalPointer<TPointerDataType>& gp)
     {
         if(gp.GetRank() == mcurrent_rank)
@@ -83,10 +83,10 @@ class ResultsProxy
             return mNonLocalData[gp];
     }
 
-    private:
-        const int mcurrent_rank;
-        GlobalPointersUnorderedMap< TPointerDataType, TSendType > mNonLocalData;
-        std::function< TSendType(GlobalPointer<TPointerDataType>&) > muser_function;
+private:
+    const int mcurrent_rank;
+    GlobalPointersUnorderedMap< TPointerDataType, TSendType > mNonLocalData;
+    std::function< TSendType(GlobalPointer<TPointerDataType>&) > muser_function;
 
 };
 
@@ -109,27 +109,21 @@ public:
     ///@{
 
     /// Default constructor.
-    GlobalPointerCommunicator(DataCommunicator& rComm):
+    GlobalPointerCommunicator(DataCommunicator& rComm, GlobalPointersVector< TPointerDataType >& gp_list ):
         mrDataCommunicator(rComm)
-    {}
-
-    /// Destructor.
-    virtual ~GlobalPointerCommunicator(){}
-
-    void AddPointer( GlobalPointer<TPointerDataType>& pGlobalPointer)
     {
-        if(pGlobalPointer.GetRank() != mrDataCommunicator.Rank())
-            mNonLocalPointers[pGlobalPointer->GetRank()].push_back(pGlobalPointer);
+        AddPointers(gp_list.begin(),gp_list.end());
     }
 
     template< class TIteratorType >
-    void AddPointers( TIteratorType begin, TIteratorType end)
+    GlobalPointerCommunicator(DataCommunicator& rComm, TIteratorType begin, TIteratorType end):
+        mrDataCommunicator(rComm)
     {
-        const int current_rank = mrDataCommunicator.Rank();
-        for(auto it = begin; it != end; ++it)
-            if(it->GetRank() != current_rank)
-                mNonLocalPointers[it->GetRank()].push_back(*it);
-    }    
+        AddPointers(begin,end);
+    }
+
+    /// Destructor.
+    virtual ~GlobalPointerCommunicator() {}
 
     /**this function applies the input function onto the remote data
      * and retrieves the result to the caller rank
@@ -137,43 +131,51 @@ public:
     template< class TSendType >
     ResultsProxy<TPointerDataType, TSendType> Apply(std::function< TSendType(GlobalPointer<TPointerDataType>&) > user_function)
     {
-        //TODO: avoid doing anything if not distributed
-        const int current_rank = mrDataCommunicator.Rank();
-        
-        GlobalPointersUnorderedMap< TPointerDataType, TSendType > non_local_data;
-
-        //compute communication plan
-        std::vector<int> send_list;
-        send_list.reserve( mNonLocalPointers.size() );
-        for(auto& it : mNonLocalPointers)
-            send_list.push_back( it.first );
-
-        std::sort(send_list.begin(), send_list.end());
-        auto colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, mrDataCommunicator);
-
-        //sendrecv data
-        for(auto color : colors)
+        if(mrDataCommunicator.IsDistributed())
         {
-            if(color >= 0) //-1 would imply no communication
+            const int current_rank = mrDataCommunicator.Rank();
+
+            GlobalPointersUnorderedMap< TPointerDataType, TSendType > non_local_data;
+
+            //compute communication plan
+            std::vector<int> send_list;
+            send_list.reserve( mNonLocalPointers.size() );
+            for(auto& it : mNonLocalPointers)
+                send_list.push_back( it.first );
+
+            std::sort(send_list.begin(), send_list.end());
+            auto colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, mrDataCommunicator);
+
+            //sendrecv data
+            for(auto color : colors)
             {
-                auto& gps_to_be_sent = mNonLocalPointers[color];
+                if(color >= 0) //-1 would imply no communication
+                {
+                    auto& gps_to_be_sent = mNonLocalPointers[color];
 
-                //TODO: pass Unique to the mNonLocalPointers[recv_rank]
+                    //TODO: pass Unique to the mNonLocalPointers[recv_rank]
 
-                auto recv_global_pointers = SendRecv(gps_to_be_sent, color, color );
+                    auto recv_global_pointers = SendRecv(gps_to_be_sent, color, color );
 
-                std::vector< TSendType > locally_gathered_data; //this is local but needs to be sent to the remote node
-                for(auto& gp : recv_global_pointers)
-                    locally_gathered_data.push_back( user_function(gp) );
+                    std::vector< TSendType > locally_gathered_data; //this is local but needs to be sent to the remote node
+                    for(auto& gp : recv_global_pointers)
+                        locally_gathered_data.push_back( user_function(gp) );
 
-                auto remote_data = SendRecv(locally_gathered_data, color, color );
+                    auto remote_data = SendRecv(locally_gathered_data, color, color );
 
-                for(unsigned int i=0; i<remote_data.size(); ++i)
-                    non_local_data[gps_to_be_sent[i]] = remote_data[i];
+                    for(unsigned int i=0; i<remote_data.size(); ++i)
+                        non_local_data[gps_to_be_sent[i]] = remote_data[i];
+                }
             }
+
+            return ResultsProxy<TPointerDataType, TSendType>(current_rank,non_local_data,user_function );
+        }
+        else
+        {
+            GlobalPointersUnorderedMap< TPointerDataType, TSendType > non_local_data;
+            return ResultsProxy<TPointerDataType, TSendType>(0,non_local_data,user_function );
         }
 
-        return ResultsProxy<TPointerDataType, TSendType>(current_rank,non_local_data,user_function );
     }
     ///@}
     ///@name Operators
@@ -202,13 +204,16 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-    std::stringstream buffer;
-    buffer << "GlobalPointerCommunicator" ;
-    return buffer.str();
+        std::stringstream buffer;
+        buffer << "GlobalPointerCommunicator" ;
+        return buffer.str();
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "GlobalPointerCommunicator";}
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "GlobalPointerCommunicator";
+    }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
@@ -235,7 +240,14 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-
+    template< class TIteratorType >
+    void AddPointers( TIteratorType begin, TIteratorType end)
+    {
+        const int current_rank = mrDataCommunicator.Rank();
+        for(auto it = begin; it != end; ++it)
+            if(it->GetRank() != current_rank)
+                mNonLocalPointers[it->GetRank()].push_back(*it);
+    }
 
     ///@}
     ///@name Protected Operations
@@ -311,10 +323,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    GlobalPointerCommunicator& operator=(GlobalPointerCommunicator const& rOther){}
+    GlobalPointerCommunicator& operator=(GlobalPointerCommunicator const& rOther) {}
 
     /// Copy constructor.
-    GlobalPointerCommunicator(GlobalPointerCommunicator const& rOther){}
+    GlobalPointerCommunicator(GlobalPointerCommunicator const& rOther) {}
 
     ///@}
 
@@ -334,15 +346,15 @@ private:
 /// input stream function
 template< class TPointerDataType, class TSendType >
 inline std::istream& operator >> (std::istream& rIStream,
-                GlobalPointerCommunicator<TPointerDataType>& rThis)
-                {
-                    return rIStream;
-                }
+                                  GlobalPointerCommunicator<TPointerDataType>& rThis)
+{
+    return rIStream;
+}
 
 /// output stream function
 template< class TPointerDataType, class TSendType >
 inline std::ostream& operator << (std::ostream& rOStream,
-                const GlobalPointerCommunicator<TPointerDataType>& rThis)
+                                  const GlobalPointerCommunicator<TPointerDataType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

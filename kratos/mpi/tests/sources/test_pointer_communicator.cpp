@@ -18,9 +18,11 @@
 
 #include "testing/testing.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
-namespace Testing {
+namespace Testing
+{
 
 KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicator, KratosMPICoreFastSuite)
 {
@@ -39,20 +41,21 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicator, KratosMPICoreFastSuite)
     //GlobalPointer< Node<3> > gp(pnode, pnode->FastGetSolutionStepValue(PARTITION_INDEX));
 
     GlobalPointerUtilities<ModelPart::NodesContainerType, Node<3> > gp_utility(r_default_comm);
-    
+
     //we will gather on every node the global pointers of the nodes with index from
     //current_rank(+1) to world_size
     std::vector<int> indices;
-    for(int i=current_rank+1; i<=world_size; ++i) 
+    for(int i=current_rank+1; i<=world_size; ++i)
         indices.push_back(i);
 
     auto gp_list = gp_utility.RetrieveGlobalIndexedPointers(mp.Nodes(), indices );
 
-    GlobalPointerCommunicator< Node<3>> pointer_comm(r_default_comm);
-    pointer_comm.AddPointers(gp_list.begin(), gp_list.end());
-    
-    auto double_proxy = pointer_comm.Apply<double>( [](GlobalPointer< Node<3> >& gp)->double 
-            {return gp->GetValue(TEMPERATURE);} );
+    GlobalPointerCommunicator< Node<3>> pointer_comm(r_default_comm, gp_list.begin(), gp_list.end());
+
+    auto double_proxy = pointer_comm.Apply<double>( 
+        [](GlobalPointer< Node<3> >& gp)->double
+            {return gp->GetValue(TEMPERATURE);} 
+        );
 
     for(unsigned int i=0; i<indices.size(); ++i)
     {
@@ -65,9 +68,11 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicator, KratosMPICoreFastSuite)
     //now let's try to retrieve at once TEMPERATURE, and Coordinates of the node
     typedef std::pair<double, array_1d<double,3>> return_type;
 
-    auto pair_proxy = pointer_comm.Apply<return_type>( [](GlobalPointer< Node<3> >& gp)-> return_type
-            {return std::make_pair(gp->GetValue(TEMPERATURE), gp->Coordinates() );} );
-    
+    auto pair_proxy = pointer_comm.Apply<return_type>( 
+        [](GlobalPointer< Node<3> >& gp)-> return_type
+            {return std::make_pair(gp->GetValue(TEMPERATURE), gp->Coordinates() );} 
+        );
+
     for(unsigned int i=0; i<indices.size(); ++i)
     {
         auto& gp = gp_list[i];
