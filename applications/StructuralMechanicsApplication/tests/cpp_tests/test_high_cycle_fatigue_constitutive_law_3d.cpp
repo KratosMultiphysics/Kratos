@@ -88,15 +88,15 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHighCycleFatigueExponential, KratosStru
     material_properties.SetValue(FRACTURE_ENERGY, 20e5);
     material_properties.SetValue(YIELD_STRESS, 838.9e6);
     material_properties.SetValue(SOFTENING_TYPE, 1);
-    Vector high_cycle_fatigue_parameters(7);
-    high_cycle_fatigue_parameters[0]=0.5;
-    high_cycle_fatigue_parameters[1]=0.7;
-    high_cycle_fatigue_parameters[2]=0.5;
-    high_cycle_fatigue_parameters[3]=0.0068;
-    high_cycle_fatigue_parameters[4]=3.35;
-    high_cycle_fatigue_parameters[5]=0.0133;
-    high_cycle_fatigue_parameters[6]=0.0068;
-    material_properties.SetValue(HIGH_CYCLE_FATIGUE_PARAMETERS, high_cycle_fatigue_parameters);
+    Vector high_cycle_fatigue_coefficients(7);
+    high_cycle_fatigue_coefficients[0]=0.5;
+    high_cycle_fatigue_coefficients[1]=0.7;
+    high_cycle_fatigue_coefficients[2]=0.5;
+    high_cycle_fatigue_coefficients[3]=0.0068;
+    high_cycle_fatigue_coefficients[4]=3.35;
+    high_cycle_fatigue_coefficients[5]=0.0133;
+    high_cycle_fatigue_coefficients[6]=0.0068;
+    material_properties.SetValue(HIGH_CYCLE_FATIGUE_COEFFICIENTS, high_cycle_fatigue_coefficients);
 
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions = cl_parameters.GetOptions();

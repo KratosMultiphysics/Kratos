@@ -396,6 +396,45 @@ private:
     ///@name Private Operations
     ///@{
 
+    ///@}
+
+    ///@{
+
+    // Serialization
+
+    friend class Serializer;
+
+    void save(Serializer &rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        rSerializer.save("FatigueReductionFactor", mFatigueReductionFactor);
+        rSerializer.save("PreviousStresses", mPreviousStresses);
+        rSerializer.save("MaxStress", mMaxStress);
+        rSerializer.save("MinStress", mMinStress);
+        rSerializer.save("PreviousMaxStress", mPreviousMaxStress);
+        rSerializer.save("PreviousMinStress", mPreviousMinStress);
+        rSerializer.save("NumberOfCycles", mNumberOfCycles);
+        rSerializer.save("ReversionFactor", mReversionFactor);
+        rSerializer.save("FatigueReductionParameter", mFatigueReductionParameter);
+        rSerializer.save("StressVector", mStressVector);
+        rSerializer.save("HasCountedCycle", mHasCountedCycle);
+    }
+
+    void load(Serializer &rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        rSerializer.save("FatigueReductionFactor", mFatigueReductionFactor);
+        rSerializer.save("PreviousStresses", mPreviousStresses);
+        rSerializer.save("MaxStress", mMaxStress);
+        rSerializer.save("MinStress", mMinStress);
+        rSerializer.save("PreviousMaxStress", mPreviousMaxStress);
+        rSerializer.save("PreviousMinStress", mPreviousMinStress);
+        rSerializer.save("NumberOfCycles", mNumberOfCycles);
+        rSerializer.save("ReversionFactor", mReversionFactor);
+        rSerializer.save("FatigueReductionParameter", mFatigueReductionParameter);
+        rSerializer.save("StressVector", mStressVector);
+        rSerializer.save("HasCountedCycle", mHasCountedCycle);
+    }
 
     ///@}
 

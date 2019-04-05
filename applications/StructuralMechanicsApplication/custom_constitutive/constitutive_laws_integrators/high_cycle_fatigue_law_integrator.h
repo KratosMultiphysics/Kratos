@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Sergio Jiménez/Alejandro Cornejo/Lucia Barbu
+//  Main authors:    Sergio Jimenez/Alejandro Cornejo/Lucia Barbu
 //
 
 #if !defined(KRATOS_HIGH_CYCLE_FATIGUE_LAW_INTEGRATOR_H_INCLUDED)
@@ -195,7 +195,7 @@ public:
                                                 )
 	{
         CalculateReversionFactor(MaxStress, MinStress, rReversionFactor);
-        const Vector& r_fatigue_parameters = rMaterialParameters[HIGH_CYCLE_FATIGUE_PARAMETERS];
+        const Vector& r_fatigue_parameters = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
         const double yield_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
 
         //These variables have been defined following the model described by S. Oller et al. in A continuum mechanics model for mechanical fatigue analysis (2005), equation 13 on page 184.
