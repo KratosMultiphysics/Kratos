@@ -239,43 +239,15 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                     elem.SetValue(CPFApp.WAKE, False)
 
     def ExecuteFinalizeSolutionStep(self):
-        node_velocity_potential_above = 0
-        node_velocity_potential_below = 0
-
-        show_only_the_first_element = True
-        for elem in self.wake_model_part.Elements:
-            KratosMultiphysics.Logger.PrintInfo('DefineWakeProcess2D','element: ',elem.Id)
-            for node in elem.GetNodes():
-
-                # Compute the distance from the node to the trailing edge
-                x_distance_to_te = node.X - self.te.X
-                y_distance_to_te = node.Y - self.te.Y
-
-                # Compute the projection of the distance vector in the wake normal direction
-                distance_to_wake = x_distance_to_te*self.wake_normal[0] + \
-                    y_distance_to_te*self.wake_normal[1]
-
-                # Nodes laying on the wake have a positive distance
-                if(abs(distance_to_wake) < self.epsilon):
-                    KratosMultiphysics.Logger.PrintInfo('DefineWakeProcess2D', 'element: ',elem.Id,' has nodes that are laying on wake! CL may not be correct in all nodes!')
-                    distance_to_wake = self.epsilon
-
-                if distance_to_wake>0:
-                    node_velocity_potential_above = node.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
-                    node_auxiliary_velocity_potential_above = node.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
-                    potential_jump_phi_minus_psi_above = node_velocity_potential_above - node_auxiliary_velocity_potential_above
-                    Cl_above = 2*potential_jump_phi_minus_psi_above/self.velocity_infinity[0]
-                    KratosMultiphysics.Logger.PrintInfo('DefineWakeProcess2D','potential jump Phi - Psi (above the wake) = ', potential_jump_phi_minus_psi_above, '=> CL = ',Cl_above)
-                else:
-                    node_velocity_potential_below = node.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
-                    node_auxiliary_velocity_potential_below = node.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
-                    potential_jump_psi_minus_phi_below = -(node_velocity_potential_below - node_auxiliary_velocity_potential_below)
-                    Cl_below = 2*potential_jump_psi_minus_phi_below/self.velocity_infinity[0]
-                    KratosMultiphysics.Logger.PrintInfo('DefineWakeProcess2D','potential jump Psi - Phi (below the wake) = ', potential_jump_psi_minus_phi_below, '=> CL = ',Cl_below)
-            if (show_only_the_first_element):
-                KratosMultiphysics.Logger.PrintInfo('DefineWakeProcess2D','The rest of wake elements are skipped...')
-                break
+        node_velocity_potential_te = self.te.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
+        node_auxiliary_velocity_potential_te = self.te.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
+        if(self.te.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0):
+            potential_jump_phi_minus_psi_te = node_velocity_potential_te - node_auxiliary_velocity_potential_te
+        else:
+            potential_jump_phi_minus_psi_te = node_auxiliary_velocity_potential_te - node_velocity_potential_te
+        Cl_te = 2*potential_jump_phi_minus_psi_te/self.velocity_infinity[0]
+        KratosMultiphysics.Logger.PrintInfo('DefineWakeProcess2D','potential jump Phi - Psi (trailing edge node) = ', potential_jump_phi_minus_psi_te, '=> CL = ',Cl_te)
 
         if self.create_output_file:
              with open("cl_jump.dat", 'w') as cl_file:
-                 cl_file.write('{0:15.12f}'.format(Cl_above))
+                 cl_file.write('{0:15.12f}'.format(Cl_te))
