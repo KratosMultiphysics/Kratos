@@ -646,12 +646,6 @@ public:
 
     }
 
-    bool AssembleCurrentData(Variable<bool> const& ThisVariable) override
-    {
-        AssembleThisVariable<bool,bool>(ThisVariable);
-        return true;
-    }
-
     bool AssembleCurrentData(Variable<int> const& ThisVariable) override
     {
         AssembleThisVariable<int,int>(ThisVariable);
@@ -679,12 +673,6 @@ public:
     bool AssembleCurrentData(Variable<Matrix> const& ThisVariable) override
     {
         AssembleThisVariable<Matrix,double>(ThisVariable);
-        return true;
-    }
-
-    bool AssembleNonHistoricalData(Variable<bool> const& ThisVariable) override
-    {
-        AssembleThisNonHistoricalVariable<bool,bool>(ThisVariable);
         return true;
     }
 
