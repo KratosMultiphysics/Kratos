@@ -381,6 +381,9 @@ protected:
         }
     }
 
+    template <class TVariableType>
+    inline void AddSpecializedVariable(ModelPart &rIntersectedElementsModelPart, const TVariableType&);
+
     //TODO: NOW ONLY THE INTERSECTED EDGES NODES ARE REQUIRED. WE ARE ADDING UNUSED EXTRA NODES
     void AddIntersectedElementsModelPartNodes(ModelPart &rIntersectedElementsModelPart)
     {
@@ -649,6 +652,13 @@ private:
 
     ///@}
 }; // Class CalculateEmbeddedNodalVariableFromSkinProcess
+
+template <>
+inline void CalculateEmbeddedNodalVariableFromSkinProcess::AddSpecializedVariable(
+    ModelPart &rIntersectedElementsModelPart, const Variable<double>&)
+    {
+
+    }
 
 ///@}
 
