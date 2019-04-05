@@ -70,21 +70,18 @@ namespace Kratos
 	template<std::size_t TDim>
 	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::FindIntersections()
 	{
-		std::cout << "\tCalculateDiscontinuousDistanceToSkinProcess::FindIntersections" << std::endl;
 		mFindIntersectedObjectsProcess.FindIntersections();
 	}
 
 	template<std::size_t TDim>
 	std::vector<PointerVector<GeometricalObject>>& CalculateDiscontinuousDistanceToSkinProcess<TDim>::GetIntersections()
 	{
-		std::cout << "\tGetIntersections" << std::endl;
 		return mFindIntersectedObjectsProcess.GetIntersections();
 	}
 
 	template<std::size_t TDim>
 	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
 	{
-		std::cout << "\t\tCalculateDiscontinuousDistanceToSkinProcess::CalculateDistances" << std::endl;
 		const int number_of_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).NumberOfElements();
 		auto& r_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).ElementsArray();
 
@@ -132,7 +129,6 @@ namespace Kratos
 		Element& rElement1,
 		PointerVector<GeometricalObject>& rIntersectedObjects)
 	{
-		//std::cout << "\t\t\tCalculateDiscontinuousDistanceToSkinProcess::CalculateElementalDistances" << std::endl;
 		if (rIntersectedObjects.empty()) {
 			rElement1.Set(TO_SPLIT, false);
 			return;

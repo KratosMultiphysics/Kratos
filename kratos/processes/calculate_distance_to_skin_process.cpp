@@ -586,12 +586,8 @@ namespace Kratos
 	template<std::size_t TDim>
 	void CalculateDistanceToSkinProcess<TDim>::Execute()
 	{
-		std::cout << "Entering CalculateDistanceToSkinProcess 2" << std::endl;
-		std::cout << "\tInitialize:" << std::endl;
 		this->Initialize();
-		std::cout << "\n\tFindIntersections:" << std::endl;
 		this->FindIntersections();
-		std::cout << "\n\tCalculateDistances:" << std::endl;
 		this->CalculateDistances(this->GetIntersections());
 	}
 

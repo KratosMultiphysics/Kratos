@@ -297,10 +297,6 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, LATENT_HEAT )
     KRATOS_DEFINE_VARIABLE( double, AMBIENT_TEMPERATURE )
 
-    //for Compressible Potential Application
-    KRATOS_DEFINE_VARIABLE( double, GAMMA )
-
-
     //vectors
 
     //for General kratos application:

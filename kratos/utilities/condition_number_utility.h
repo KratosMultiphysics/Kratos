@@ -31,9 +31,6 @@
 #include "linear_solvers/power_iteration_eigenvalue_solver.h"
 #include "linear_solvers/power_iteration_highest_eigenvalue_solver.h"
 
-#include "linear_solvers/skyline_lu_factorization_solver.h"
-#include "linear_solvers/power_iteration_highest_eigenvalue_solver.h"
-
 namespace Kratos
 {
 
@@ -190,8 +187,6 @@ public:
 
         pEigenSolverMax->Solve(InputMatrix, identity_matrix, eigen_values, eigen_vectors);
         const double max_lambda = eigen_values[0];
-
-        std::cout << "\n" << "max_lambda = " << std::scientific << max_lambda  << std::endl;
 
         pEigenSolverMin->Solve(InputMatrix, identity_matrix, eigen_values, eigen_vectors);
         const double min_lambda = eigen_values[0];

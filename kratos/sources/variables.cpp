@@ -354,8 +354,6 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TANGENT_XI)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TANGENT_ETA)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(BODY_FORCE)
 
-  //for Compressible Potential application
-  KRATOS_CREATE_VARIABLE( double, GAMMA )
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(FORCE_RESIDUAL)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(MOMENT_RESIDUAL)
 
@@ -1133,7 +1131,6 @@ void KratosApplication::RegisterVariables() {
     //Tetrahedra:
     Tetrahedra3D4<NodeType > Tetrahedra3D4Prototype( GeometryType::PointsArrayType(4));
     Serializer::Register("Tetrahedra3D4", Tetrahedra3D4Prototype);
-      KRATOS_REGISTER_VARIABLE( GAMMA )
 
     Tetrahedra3D10<NodeType > Tetrahedra3D10Prototype( GeometryType::PointsArrayType(10));
     Serializer::Register("Tetrahedra3D10", Tetrahedra3D10Prototype);

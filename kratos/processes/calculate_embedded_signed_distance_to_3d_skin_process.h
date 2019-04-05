@@ -97,7 +97,6 @@ public:
 
     void Execute() override
     {
-        std::cout << "Entering CalculateDistanceToSkinProcess" << std::endl;
         // Create a pointer to the discontinuous or continuos distance calculation process
         CalculateDiscontinuousDistanceToSkinProcess<3>::Pointer pdistance_calculator;
         if(mDiscontinuousDistance)

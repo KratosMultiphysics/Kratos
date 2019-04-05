@@ -32,10 +32,6 @@
 #include "utilities/sparse_matrix_multiplication_utility.h"
 
 
-#include "utilities/condition_number_utility.h"
-#include "linear_solvers/power_iteration_highest_eigenvalue_solver.h"
-
-
 namespace Kratos
 {
 
