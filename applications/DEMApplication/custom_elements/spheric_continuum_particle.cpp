@@ -679,7 +679,7 @@ namespace Kratos {
     void SphericContinuumParticle::RemoveSpheresInsideInnerHole() {
 
         const double X_coord = this->GetGeometry()[0].Coordinates()[0];
-        const double Z_coord = this->GetGeometry()[0].Coordinates()[2];
+        const double Y_coord = this->GetGeometry()[0].Coordinates()[1];
         double inner_radius = 0.00366; //0.0036847 is the exact value; SMALLER HOLE
         const bool bigger_hole = false;
 		const bool sand_production_simulation = true;
@@ -687,7 +687,7 @@ namespace Kratos {
 
         if (bigger_hole) inner_radius = 0.012;
 
-        if (sqrt(X_coord * X_coord + Z_coord * Z_coord) < inner_radius) this->Set(TO_ERASE, true);
+        if (sqrt(X_coord * X_coord + Y_coord * Y_coord) < inner_radius) this->Set(TO_ERASE, true);
     }
 
     double SphericContinuumParticle::CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) {
