@@ -443,6 +443,18 @@ class DEMAnalysisStage(AnalysisStage):
         if self.post_normal_impact_velocity_option:
             if self.IsCountStep():
                 self.FillAnalyticSubModelPartsWithNewParticles()
+        if self.DEM_parameters["ContactMeshOption"].GetBool():
+            self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
+
+    def UpdateIsTimeToPrintInModelParts(self, is_time_to_print):
+        self.UpdateIsTimeToPrintInOneModelPart(self.spheres_model_part, is_time_to_print)
+        self.UpdateIsTimeToPrintInOneModelPart(self.cluster_model_part, is_time_to_print)
+        self.UpdateIsTimeToPrintInOneModelPart(self.dem_inlet_model_part, is_time_to_print)
+        self.UpdateIsTimeToPrintInOneModelPart(self.rigid_face_model_part, is_time_to_print)
+
+    @classmethod
+    def UpdateIsTimeToPrintInOneModelPart(self, model_part, is_time_to_print):
+        model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
     def BeforePrintingOperations(self, time):
         pass

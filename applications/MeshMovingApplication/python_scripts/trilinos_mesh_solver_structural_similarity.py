@@ -10,13 +10,13 @@ import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 from KratosMultiphysics.MeshMovingApplication.trilinos_mesh_solver_base import TrilinosMeshSolverBase
 
 
-def CreateSolver(mesh_model_part, custom_settings):
-    return TrilinosMeshSolverStructuralSimilarity(mesh_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return TrilinosMeshSolverStructuralSimilarity(model, custom_settings)
 
 
 class TrilinosMeshSolverStructuralSimilarity(TrilinosMeshSolverBase):
-    def __init__(self, mesh_model_part, custom_settings):
-        super(TrilinosMeshSolverStructuralSimilarity, self).__init__(mesh_model_part, custom_settings)
+    def __init__(self, model, custom_settings):
+        super(TrilinosMeshSolverStructuralSimilarity, self).__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverStructuralSimilarity]:: Construction finished")
 
     #### Private functions ####

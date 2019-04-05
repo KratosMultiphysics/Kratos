@@ -21,6 +21,7 @@
 
 // Project includes
 #include "containers/array_1d.h"
+#include "containers/flags.h"
 #include "includes/define.h"
 
 // Using a macro instead of a function to get the correct line in the error message.
@@ -336,6 +337,22 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         rGlobalValues = Max(rLocalValues, Root);
     }
 
+    virtual Kratos::Flags AndReduce(
+        const Kratos::Flags Values,
+        const Kratos::Flags Mask,
+        const int Root) const
+    {
+        return Values;
+    }
+
+    virtual Kratos::Flags OrReduce(
+        const Kratos::Flags Values,
+        const Kratos::Flags Mask,
+        const int Root) const
+    {
+        return Values;
+    }
+
     // Allreduce operations
 
     /// Sum rLocalValue across all ranks in the Communicator (int version).
@@ -564,6 +581,16 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     {
         KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MaxAll");
         rGlobalValues = MaxAll(rLocalValues);
+    }
+
+    virtual Kratos::Flags AndReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
+    {
+        return Values;
+    }
+
+    virtual Kratos::Flags OrReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
+    {
+        return Values;
     }
 
     // Scan operations
