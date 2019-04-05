@@ -72,7 +72,6 @@ class TestCommunicator(KratosUnittest.TestCase):
 
     def testCommunicatorAssembleCurrentData(self):
         model_part = self.model.CreateModelPart("Test_model_part",1)
-        self.assertEqual(model_part.GetCommunicator().AssembleCurrentData(KratosMultiphysics.IS_RESTARTED), True)
         self.assertEqual(model_part.GetCommunicator().AssembleCurrentData(KratosMultiphysics.DOMAIN_SIZE), True)
         self.assertEqual(model_part.GetCommunicator().AssembleCurrentData(KratosMultiphysics.TIME), True)
         self.assertEqual(model_part.GetCommunicator().AssembleCurrentData(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER), True)
@@ -81,7 +80,6 @@ class TestCommunicator(KratosUnittest.TestCase):
 
     def testCommunicatorAssembleNonHistoricalData(self):
         model_part = self.model.CreateModelPart("Test_model_part",1)
-        self.assertEqual(model_part.GetCommunicator().AssembleNonHistoricalData(KratosMultiphysics.IS_RESTARTED), True)
         self.assertEqual(model_part.GetCommunicator().AssembleNonHistoricalData(KratosMultiphysics.DOMAIN_SIZE), True)
         self.assertEqual(model_part.GetCommunicator().AssembleNonHistoricalData(KratosMultiphysics.TIME), True)
         self.assertEqual(model_part.GetCommunicator().AssembleNonHistoricalData(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER), True)
