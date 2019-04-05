@@ -109,7 +109,7 @@ public:
     ///@name  Enum's
     ///@{
 
-    enum class SearchTreeType {KdtreeInRadius = 0, KdtreeInBox = 1, OtreeWithOBB = 2, Kdop = 3};
+    enum class SearchTreeType {KdtreeInRadius = 0, KdtreeInBox = 1, KdtreeInRadiusWithOBB = 2, KdtreeInBoxWithOBB = 3, OctreeWithOBB = 4, Kdop = 5};
 
     enum class CheckResult {Fail = 0, AlreadyInTheMap = 1, OK = 2};
 

@@ -46,7 +46,7 @@ BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearchPro
 
     // The search tree considered
     const SearchTreeType type_search = ConvertSearchTree(mThisParameters["type_search"].GetString());
-    if (!mPredefinedMasterSlave && type_search == SearchTreeType::OtreeWithOBB)
+    if (!mPredefinedMasterSlave && type_search == SearchTreeType::OctreeWithOBB)
         mThisParameters["type_search"].SetString("KdtreeInRadius");
 
     // If we are going to consider multple searchs
@@ -355,7 +355,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreatePointList
     const SearchTreeType type_search = ConvertSearchTree(mThisParameters["type_search"].GetString());
 
     // Using KDTree
-    if (type_search != SearchTreeType::OtreeWithOBB) {
+    if (type_search != SearchTreeType::OctreeWithOBB) {
         // Clearing the vector
         mPointListDestination.clear();
 
@@ -390,7 +390,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdatePointList
     const SearchTreeType type_search = ConvertSearchTree(mThisParameters["type_search"].GetString());
 
     // Using KDTree
-    if (type_search != SearchTreeType::OtreeWithOBB) {
+    if (type_search != SearchTreeType::OctreeWithOBB) {
         // We check if we are in a dynamic or static case
         const bool dynamic = mThisParameters["dynamic_search"].GetBool() ? mrMainModelPart.HasNodalSolutionStepVariable(VELOCITY) : false;
         const double delta_time = (dynamic) ? mrMainModelPart.GetProcessInfo()[DELTA_TIME] : 0.0;
@@ -461,7 +461,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarCon
     const SearchTreeType type_search = ConvertSearchTree(mThisParameters["type_search"].GetString());
 
     // Using KDTree
-    if (type_search != SearchTreeType::OtreeWithOBB) {
+    if (type_search != SearchTreeType::OctreeWithOBB) {
         SearchUsingKDTree(r_sub_contact_model_part, r_sub_computing_contact_model_part);
     } else { // Using octree
         // We create the submodelparts for master and slave
@@ -476,7 +476,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarCon
         NotPredefinedMasterSlave(r_sub_contact_model_part);
 
     // We create the submodelparts for master and slave
-    if (type_search != SearchTreeType::OtreeWithOBB) {
+    if (type_search != SearchTreeType::OctreeWithOBB) {
         SetOriginDestinationModelParts(r_sub_contact_model_part);
     }
 
@@ -1449,16 +1449,21 @@ typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchTreeT
 {
     KRATOS_ERROR_IF(str == "KDOP") << "KDOP contact search: Not yet implemented" << std::endl;
 
-    if(str == "InRadius" || str == "in_radius")
+    if (str == "InRadius" || str == "in_radius") {
         return SearchTreeType::KdtreeInRadius;
-    else if(str == "InBox" || str == "in_box")
+    } else if(str == "InBox" || str == "in_box") {
         return SearchTreeType::KdtreeInBox;
-    else if (str == "OtreeWithOBB" || str == "octree_with_obb")
-        return SearchTreeType::OtreeWithOBB;
-    else if (str == "KDOP" || str == "kdop")
+    } else if(str == "InRadiusWithOBB" || str == "in_radius_with_obb") {
+        return SearchTreeType::KdtreeInRadiusWithOBB;
+    } else if(str == "InBoxWithOBB" || str == "in_box_with_obb") {
+        return SearchTreeType::KdtreeInBoxWithOBB;
+    } else if (str == "OctreeWithOBB" || str == "octree_with_obb") {
+        return SearchTreeType::OctreeWithOBB;
+    } else if (str == "KDOP" || str == "kdop") {
         return SearchTreeType::Kdop;
-    else
+    } else {
         return SearchTreeType::KdtreeInRadius;
+    }
 }
 
 /***********************************************************************************/
