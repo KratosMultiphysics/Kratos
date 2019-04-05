@@ -282,13 +282,13 @@ class MonteCarlo(object):
             self.LaunchEpoch()
             self.FinalizeMCPhase()
             self.ScreeningInfoFinalizeMCPhase()
-            while self.convergence is not True:
+            while (self.convergence is not True):
                 self.InitializeMCPhase()
                 self.ScreeningInfoInitializeMCPhase()
                 self.LaunchEpoch()
                 self.FinalizeMCPhase()
                 self.ScreeningInfoFinalizeMCPhase()
-                if (self.iteration_counter > 2):
+                if (self.iteration_counter > 3):
                     stop
         else:
             print("\n","#"*50,"Not running Monte Carlo algorithm","#"*50)
@@ -457,6 +457,9 @@ class MonteCarlo(object):
             self.batches_analysis_finished = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
             self.batches_convergence_finished = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
         elif (self.iteration_counter > 1):
+            # add new batches in case convergence = False
+            if (self.convergence is not True):
+                self.batches_launched.append(False)
             for batch in range (len(self.batches_launched)):
                 if (self.batches_launched[batch] is not True):
                     self.UpdateBatchSize()
@@ -497,16 +500,16 @@ class MonteCarlo(object):
             if (self.batches_execution_finished[batch] is True and self.batches_analysis_finished[batch] is not True): # consider batches completed and not already analysed
                 self.QoI.UpdateBatchesPassPowerSum(current_level,batch)
                 self.batches_analysis_finished[batch] = True
-                # update global power sums from batches power sums
-                self.QoI.UpdateGlobalPowerSums(current_level,batch)
         for batch in range (len(self.batches_number_samples)):
             if (self.batches_execution_finished[batch] is True and self.batches_analysis_finished[batch] is True and self.batches_convergence_finished[batch] is not True):
+                # update global power sums from batches power sums
+                self.QoI.UpdateGlobalPowerSums(current_level,batch)
                 # compute the central moments we can't derive from the unbiased h statistics
                 # compute from scratch the absolute central moment because we can't retrieve it from the power sums
                 if (self.convergence_criteria == "MC_higher_moments_sequential_stopping_rule"):
                     self.QoI.central_moment_from_scratch_3_absolute_to_compute = True
-                    self.QoI.ComputeSampleCentralMomentsFromScratch(current_level,self.number_samples[current_level]) # not possible to use self.StatisticalVariable.number_samples[current_level]
-                                                                                                                      # inside the function because it is a pycompss.runtime.binding.Future object
+                    self.QoI.ComputeSampleCentralMomentsFromScratch(current_level,self.number_samples[current_level])   # not possible to use self.StatisticalVariable.number_samples[current_level]
+                                                                                                                        # inside the function because it is a pycompss.runtime.binding.Future object
                 self.QoI.ComputeHStatistics(current_level)
                 self.QoI.ComputeSkewnessKurtosis(current_level)
                 self.CheckConvergence(current_level)
@@ -517,11 +520,7 @@ class MonteCarlo(object):
                 # bring to master what is needed to print
                 self.QoI.h_statistics_1 = get_value_from_remote(self.QoI.h_statistics_1)
                 self.QoI.h_statistics_2 = get_value_from_remote(self.QoI.h_statistics_2)
-                # add new batches in case convergence = False
-                if (self.convergence == False):
-                    self.batches_launched.append(False)
-                else:
-                    break # exit the for loop
+                break
 
     """
     function printing informations about initializing MLMC phase
