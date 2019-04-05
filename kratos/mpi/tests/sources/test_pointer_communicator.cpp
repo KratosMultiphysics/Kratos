@@ -48,32 +48,30 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicator, KratosMPICoreFastSuite)
 
     auto gp_list = gp_utility.RetrieveGlobalIndexedPointers(mp.Nodes(), indices );
 
-    GlobalPointerCommunicator< Node<3>, double> pointer_comm(r_default_comm);
+    GlobalPointerCommunicator< Node<3>> pointer_comm(r_default_comm);
     pointer_comm.AddPointers(gp_list.begin(), gp_list.end());
-    pointer_comm.Apply( [](GlobalPointer< Node<3> >& gp)->double 
+    
+    auto double_proxy = pointer_comm.Apply<double>( [](GlobalPointer< Node<3> >& gp)->double 
             {return gp->GetValue(TEMPERATURE);} );
 
     for(unsigned int i=0; i<indices.size(); ++i)
     {
         int expected_id = indices[i];
         auto& gp = gp_list[i];
-        KRATOS_CHECK_EQUAL(pointer_comm.Get(gp), gp.GetRank());
-        KRATOS_CHECK_EQUAL(pointer_comm.Get(gp), expected_id-1);
+        KRATOS_CHECK_EQUAL(double_proxy.Get(gp), gp.GetRank());
+        KRATOS_CHECK_EQUAL(double_proxy.Get(gp), expected_id-1);
     }
 
     //now let's try to retrieve at once TEMPERATURE, and Coordinates of the node
     typedef std::pair<double, array_1d<double,3>> return_type;
-    GlobalPointerCommunicator< Node<3>, return_type> pointer_comm2(r_default_comm);
-    pointer_comm2.AddPointers(gp_list.begin(), gp_list.end());
 
-
-    pointer_comm2.Apply( [](GlobalPointer< Node<3> >& gp)-> return_type
+    auto pair_proxy = pointer_comm.Apply<return_type>( [](GlobalPointer< Node<3> >& gp)-> return_type
             {return std::make_pair(gp->GetValue(TEMPERATURE), gp->Coordinates() );} );
     
     for(unsigned int i=0; i<indices.size(); ++i)
     {
         auto& gp = gp_list[i];
-        return_type result = pointer_comm2.Get(gp); //this is now a pair
+        return_type result = pair_proxy.Get(gp); //this is now a pair
 
         KRATOS_CHECK_EQUAL(result.first, gp.GetRank());
 

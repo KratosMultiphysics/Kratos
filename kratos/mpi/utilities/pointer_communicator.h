@@ -56,11 +56,45 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+template< class TPointerDataType, class TSendType >
+class ResultsProxy
+{
+    public:
+
+    ResultsProxy(
+        int current_rank,
+        GlobalPointersUnorderedMap< TPointerDataType, TSendType > NonLocalData,
+        std::function< TSendType(GlobalPointer<TPointerDataType>&) > user_function
+        ):
+        mcurrent_rank(current_rank), mNonLocalData(NonLocalData), muser_function(user_function)
+    {}
+
+    /// Destructor.
+    virtual ~ResultsProxy(){}
+
+    /**this function returns the effect of "user_function(gp)" both if the gp is locally owned 
+     * and if it is remotely owned
+     */    
+    TSendType Get(GlobalPointer<TPointerDataType>& gp)
+    {
+        if(gp.GetRank() == mcurrent_rank)
+            return muser_function(gp);
+        else
+            return mNonLocalData[gp];
+    }
+
+    private:
+        const int mcurrent_rank;
+        GlobalPointersUnorderedMap< TPointerDataType, TSendType > mNonLocalData;
+        std::function< TSendType(GlobalPointer<TPointerDataType>&) > muser_function;
+
+};
+
 
 /// Short class definition.
 /** Detail class definition.
 */
-template< class TPointerDataType, class TSendType >
+template< class TPointerDataType >
 class GlobalPointerCommunicator
 {
 public:
@@ -100,13 +134,13 @@ public:
     /**this function applies the input function onto the remote data
      * and retrieves the result to the caller rank
      */
-    void Apply(std::function< TSendType(GlobalPointer<TPointerDataType>&) > function)
+    template< class TSendType >
+    ResultsProxy<TPointerDataType, TSendType> Apply(std::function< TSendType(GlobalPointer<TPointerDataType>&) > user_function)
     {
         //TODO: avoid doing anything if not distributed
         const int current_rank = mrDataCommunicator.Rank();
         
-        mfunction = function; //storing the function for later use
-        mNonLocalData.clear();
+        GlobalPointersUnorderedMap< TPointerDataType, TSendType > non_local_data;
 
         //compute communication plan
         std::vector<int> send_list;
@@ -130,33 +164,17 @@ public:
 
                 std::vector< TSendType > locally_gathered_data; //this is local but needs to be sent to the remote node
                 for(auto& gp : recv_global_pointers)
-                    locally_gathered_data.push_back( mfunction(gp) );
+                    locally_gathered_data.push_back( user_function(gp) );
 
                 auto remote_data = SendRecv(locally_gathered_data, color, color );
 
                 for(unsigned int i=0; i<remote_data.size(); ++i)
-                    mNonLocalData[gps_to_be_sent[i]] = remote_data[i];
+                    non_local_data[gps_to_be_sent[i]] = remote_data[i];
             }
         }
+
+        return ResultsProxy<TPointerDataType, TSendType>(current_rank,non_local_data,user_function );
     }
-
-
-    /**this function returns the effect of "function(gp)" both if the gp is locally owned 
-     * and if it is remotely owned
-     */    
-    TSendType Get(GlobalPointer<TPointerDataType>& gp)
-    {
-        if(gp.GetRank() == mrDataCommunicator.Rank())
-        {
-            return mfunction(gp);
-        }
-        else
-        {
-            return mNonLocalData[gp];
-        } 
-    }
-
-
     ///@}
     ///@name Operators
     ///@{
@@ -206,9 +224,8 @@ protected:
     ///@name Protected static Member Variables
     ///@{
     std::unordered_map<int, GlobalPointersVector< TPointerDataType > > mNonLocalPointers;
-    GlobalPointersUnorderedMap< TPointerDataType, TSendType > mNonLocalData;
     DataCommunicator& mrDataCommunicator;
-    std::function< TSendType(GlobalPointer<TPointerDataType>&) > mfunction;
+
 
     ///@}
     ///@name Protected member Variables
@@ -317,7 +334,7 @@ private:
 /// input stream function
 template< class TPointerDataType, class TSendType >
 inline std::istream& operator >> (std::istream& rIStream,
-                GlobalPointerCommunicator<TPointerDataType, TSendType>& rThis)
+                GlobalPointerCommunicator<TPointerDataType>& rThis)
                 {
                     return rIStream;
                 }
@@ -325,7 +342,7 @@ inline std::istream& operator >> (std::istream& rIStream,
 /// output stream function
 template< class TPointerDataType, class TSendType >
 inline std::ostream& operator << (std::ostream& rOStream,
-                const GlobalPointerCommunicator<TPointerDataType, TSendType>& rThis)
+                const GlobalPointerCommunicator<TPointerDataType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
