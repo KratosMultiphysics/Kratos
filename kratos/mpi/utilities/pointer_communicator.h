@@ -25,7 +25,13 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/data_communicator.h"
+#include "includes/global_pointer.h"
+#include "includes/mpi_serializer.h"
+#include "containers/global_pointers_vector.h"
+#include "containers/global_pointers_unordered_map.h"
 
+#include "mpi/utilities/mpi_coloring_utilities.h"
 
 namespace Kratos
 {
@@ -69,36 +75,47 @@ public:
     ///@{
 
     /// Default constructor.
-    GlobalPointerCommunicator(DataCommunicator& rComm)
-    mrDataCommunicator(rComm)
+    GlobalPointerCommunicator(DataCommunicator& rComm):
+        mrDataCommunicator(rComm)
     {}
 
     /// Destructor.
     virtual ~GlobalPointerCommunicator(){}
 
-    void AddPointer( GlobalPointer<TPointerDataType>& gp)
+    void AddPointer( GlobalPointer<TPointerDataType>& pGlobalPointer)
     {
-        if(gp.GetRank() != mrDataCommunicator.Rank())
-            mNonLocalPointers[p->GetRank()].push_back(gp);
+        if(pGlobalPointer.GetRank() != mrDataCommunicator.Rank())
+            mNonLocalPointers[pGlobalPointer->GetRank()].push_back(pGlobalPointer);
     }
+
+    template< class TIteratorType >
+    void AddPointers( TIteratorType begin, TIteratorType end)
+    {
+        const int current_rank = mrDataCommunicator.Rank();
+        for(auto it = begin; it != end; ++it)
+            if(it->GetRank() != current_rank)
+                mNonLocalPointers[it->GetRank()].push_back(*it);
+    }    
 
     /**this function applies the input function onto the remote data
      * and retrieves the result to the caller rank
      */
-    void Apply(std::function< TSendType(GlobalPointer<TPointerDataType>&) >& function)
+    void Apply(std::function< TSendType(GlobalPointer<TPointerDataType>&) > function)
     {
         //TODO: avoid doing anything if not distributed
+        const int current_rank = mrDataCommunicator.Rank();
         
         mfunction = function; //storing the function for later use
         mNonLocalData.clear();
 
         //compute communication plan
-        std::vector<int> send_list.reserve( mNonLocalPointers.size() );
-        for(auto& it : NonLocalPointers)
-            send_list.push_back( it->first );
-        std::sort(send_list.begin(), send_list.end())
-        auto colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list[current_rank], mrDataCommunicator);
-        int send_rank = mrDataCommunicator.Rank();
+        std::vector<int> send_list;
+        send_list.reserve( mNonLocalPointers.size() );
+        for(auto& it : mNonLocalPointers)
+            send_list.push_back( it.first );
+
+        std::sort(send_list.begin(), send_list.end());
+        auto colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, mrDataCommunicator);
 
         //sendrecv data
         for(auto color : colors)
@@ -109,13 +126,13 @@ public:
 
                 //TODO: pass Unique to the mNonLocalPointers[recv_rank]
 
-                auto recv_global_pointers = GenericSendRecv(gps_to_be_sent, color, send_rank );
+                auto recv_global_pointers = SendRecv(gps_to_be_sent, color, color );
 
                 std::vector< TSendType > locally_gathered_data; //this is local but needs to be sent to the remote node
                 for(auto& gp : recv_global_pointers)
                     locally_gathered_data.push_back( mfunction(gp) );
 
-                auto remote_data = GenericSendRecv(locally_gathered_data, color, send_rank );
+                auto remote_data = SendRecv(locally_gathered_data, color, color );
 
                 for(unsigned int i=0; i<remote_data.size(); ++i)
                     mNonLocalData[gps_to_be_sent[i]] = remote_data[i];
@@ -127,7 +144,7 @@ public:
     /**this function returns the effect of "function(gp)" both if the gp is locally owned 
      * and if it is remotely owned
      */    
-    TSendType Get(GlobalPointer<TPointerDataType>& gp);
+    TSendType Get(GlobalPointer<TPointerDataType>& gp)
     {
         if(gp.GetRank() == mrDataCommunicator.Rank())
         {
@@ -135,7 +152,7 @@ public:
         }
         else
         {
-            return mNonLocalData(gp);
+            return mNonLocalData[gp];
         } 
     }
 
@@ -189,8 +206,8 @@ protected:
     ///@name Protected static Member Variables
     ///@{
     std::unordered_map<int, GlobalPointersVector< TPointerDataType > > mNonLocalPointers;
-    GlobalPointersMap< TPointerDataType, TSendType > mNonLocalData;
-    DataCommunicator mrDataCommunicator;
+    GlobalPointersUnorderedMap< TPointerDataType, TSendType > mNonLocalData;
+    DataCommunicator& mrDataCommunicator;
     std::function< TSendType(GlobalPointer<TPointerDataType>&) > mfunction;
 
     ///@}
@@ -238,18 +255,18 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    template< TDataType>
-    TDataType GenericSendRecv(TDataType& send_buffer, int send_rank, int recv_rank)
+    template< class TDataType>
+    TDataType SendRecv(TDataType& send_buffer, int send_rank, int recv_rank)
     {
         MpiSerializer send_serializer;
-        recv_serializer.save("data",send_buffer);
-        std::string send_buffer = send_serializer.GetStringRepresentation();
+        send_serializer.save("data",send_buffer);
+        std::string send_string = send_serializer.GetStringRepresentation();
 
-        std::string recv_buffer = serial_communicator.SendRecv(send_buffer, send_rank, recv_rank);
+        std::string recv_string = mrDataCommunicator.SendRecv(send_string, send_rank, send_rank);
 
-        MpiSerializer recv_serializer;
+        MpiSerializer recv_serializer(recv_string);
 
-        TDataType recv_data(recv_buffer);
+        TDataType recv_data;
         recv_serializer.load("data",recv_data);
         return recv_data;
     }
@@ -298,12 +315,17 @@ private:
 
 
 /// input stream function
+template< class TPointerDataType, class TSendType >
 inline std::istream& operator >> (std::istream& rIStream,
-                GlobalPointerCommunicator& rThis){}
+                GlobalPointerCommunicator<TPointerDataType, TSendType>& rThis)
+                {
+                    return rIStream;
+                }
 
 /// output stream function
+template< class TPointerDataType, class TSendType >
 inline std::ostream& operator << (std::ostream& rOStream,
-                const GlobalPointerCommunicator& rThis)
+                const GlobalPointerCommunicator<TPointerDataType, TSendType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
