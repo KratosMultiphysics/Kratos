@@ -55,7 +55,6 @@ void EmbeddedIgaTessellation::CreateTessellation1D(
 
     rPolygon.resize(tessellation->NbPoints()); 
 
-    int trim_index = rCurveGeometry.GetBrepEdgeTopologyVector()[0].trim_index; 
     for (unsigned int i = 0; i < tessellation->NbPoints(); ++i)
     { 
         rPolygon[i][0] = tessellation->Point(i).X(); 
