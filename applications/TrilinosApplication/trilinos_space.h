@@ -574,19 +574,18 @@ public:
         KRATOS_CATCH("");
     }
 
-    VectorPointerType ReadMatrixMarketVector(const std::string& FileName,Epetra_MpiComm& Comm, int N)
+    VectorPointerType ReadMatrixMarketVector(const std::string& rFileName, Epetra_MpiComm& rComm, int N)
     {
         KRATOS_TRY
 
-        Epetra_Map my_map(N, 0, Comm);
+        Epetra_Map my_map(N, 0, rComm);
         Epetra_Vector* pv = nullptr;
 
-        int error_code = EpetraExt::MatrixMarketFileToVector(FileName.c_str(), my_map, pv);
+        int error_code = EpetraExt::MatrixMarketFileToVector(rFileName.c_str(), my_map, pv);
 
-        KRATOS_ERROR_IF(error_code != 0) << "error thrown while reading Matrix Market Vector file "<<FileName
-                         << " error code is : " << error_code;
+        KRATOS_ERROR_IF(error_code != 0) << "error thrown while reading Matrix Market Vector file " << rFileName << " error code is: " << error_code;
 
-        Comm.Barrier();
+        rComm.Barrier();
 
         IndexType num_my_rows = my_map.NumMyElements();
         std::vector<int> gids(num_my_rows);
