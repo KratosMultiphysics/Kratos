@@ -34,7 +34,7 @@
                 "inlet_phi"         : 1.0,
                 "velocity_infinity" : [10.0,0.0,0.0]
             }
-        },{
+         },{
             "python_module" : "define_wake_process_2d",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "DefineWakeProcess",
@@ -46,29 +46,13 @@
                 "epsilon"         : 1e-9
             }
         },{
-            "python_module" : "compute_lift_process",
+            "python_module" : "compute_lift_jump_process_2d",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
-            "process_name"  : "ComputeLiftProcess3D",
+            "process_name"  : "ComputeLiftJumpProcess2D",
             "Parameters"    : {
-                "model_part_name" : "MainModelPart.Body2D_Body",
+            "model_part_name" : "MainModelPart.Body2D_Body",
                 "velocity_infinity" : [10.0,0.0,0.0],
-                "create_output_file": true
-            }
-        },{
-            "python_module" : "placeholder_process",
-            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
-            "process_name"  : "PlaceholderProcess",
-            "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "MainModelPart.Body2D_UpperSurface"
-            }
-        },{
-            "python_module" : "placeholder_process",
-            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
-            "process_name"  : "PlaceholderProcess",
-            "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "MainModelPart.Body2D_LowerSurface"
+		"create_output_file": true
             }
         }],
         "auxiliar_process_list" :[{
