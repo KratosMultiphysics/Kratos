@@ -333,6 +333,7 @@ protected:
             {
                 std::cout << "LINE SEARCH it " << it << " coeff = " << x <<  " r1 = " << r1 << " r2 = " << r2 << std::endl;
                 converged = true;
+                TSparseSpace::Assign(aux,x, Dx);
                 break;
             }
 
