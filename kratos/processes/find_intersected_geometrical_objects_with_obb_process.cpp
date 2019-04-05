@@ -200,26 +200,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection2D
     for (std::size_t i_1 = 0; i_1 < number_of_edges_1; ++i_1) {
         auto& r_edge_1 = *(r_edges_1.begin() + i_1);
 
-        // Check the intersection of each edge of the object bounding box against the intersecting object bounding box
-        NodeType first_geometry_low_node, first_geometry_high_node;
-        r_edge_1.BoundingBox(first_geometry_low_node, first_geometry_high_node);
-
-        // Creating OBB
-        array_1d<array_1d<double, 3>, 2> first_direction_vector;
-        noalias(first_direction_vector[0]) = first_geometry_high_node - first_geometry_low_node;
-        const double norm_first_direction_vector = norm_2(first_direction_vector[0]);
-        if (norm_first_direction_vector > std::numeric_limits<double>::epsilon())
-            first_direction_vector[0] /= norm_first_direction_vector;
-        else
-            KRATOS_ERROR << "Zero norm on OrientedBoundingBox direction" << std::endl;
-        first_direction_vector[1][0] = first_direction_vector[0][1];
-        first_direction_vector[1][1] = - first_direction_vector[0][0];
-        first_direction_vector[1][2] = 0.0;
-        const array_1d<double, 3> first_center_point = 0.5 * (first_geometry_low_node.Coordinates() + first_geometry_high_node.Coordinates());
-        array_1d<double, 2> first_half_distances;
-        first_half_distances[0] = 0.5 * norm_first_direction_vector + mBoundingBoxFactor;
-        first_half_distances[1] = mBoundingBoxFactor;
-        OrientedBoundingBox<2> first_obb(first_center_point, first_direction_vector, first_half_distances);
+        OrientedBoundingBox<2> first_obb(r_edge_1, mBoundingBoxFactor);
 
         // We create new elements for debugging
         if (mDebugOBB) {
@@ -231,23 +212,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection2D
         for (std::size_t i_2 = 0; i_2 < number_of_edges_2; ++i_2) {
             auto& r_edge_2 = *(r_edges_2.begin() + i_2);
 
-            // Check the intersection of each edge of the object bounding box against the intersecting object bounding box
-            NodeType second_geometry_low_node, second_geometry_high_node;
-            r_edge_2.BoundingBox(second_geometry_low_node, second_geometry_high_node);
-
-            // Creating OBB
-            array_1d<array_1d<double, 3>, 2> second_direction_vector;
-            noalias(second_direction_vector[0]) = second_geometry_high_node - second_geometry_low_node;
-            const double norm_second_direction_vector = norm_2(second_direction_vector[0]);
-            second_direction_vector[0] /= norm_second_direction_vector;
-            second_direction_vector[1][0] = second_direction_vector[0][1];
-            second_direction_vector[1][1] = - second_direction_vector[0][0];
-            second_direction_vector[1][2] = 0.0;
-            const array_1d<double, 3> second_center_point = 0.5 * (second_geometry_low_node.Coordinates() + second_geometry_high_node.Coordinates());
-            array_1d<double, 2> second_half_distances;
-            second_half_distances[0] = 0.5 * norm_second_direction_vector + mBoundingBoxFactor;
-            second_half_distances[1] = mBoundingBoxFactor;
-            OrientedBoundingBox<2> second_obb(second_center_point, second_direction_vector, second_half_distances);
+            OrientedBoundingBox<2> second_obb(r_edge_2, mBoundingBoxFactor);
 
             // We create new elements for debugging
             if (mDebugOBB) {
@@ -289,34 +254,8 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection3D
     for (std::size_t i_1 = 0; i_1 < number_of_faces_1; ++i_1) {
         auto& r_face_1 = *(r_faces_1.begin() + i_1);
 
-        // Check the intersection of each face of the object bounding box against the intersecting object bounding box
-        NodeType first_geometry_low_node, first_geometry_high_node;
-        r_face_1.BoundingBox(first_geometry_low_node, first_geometry_high_node);
-
         // Creating OBB
-        array_1d<array_1d<double, 3>, 3> first_direction_vector;
-        noalias(first_direction_vector[0]) = first_geometry_high_node - first_geometry_low_node;
-        const double norm_first_direction_vector = norm_2(first_direction_vector[0]);
-        if (norm_first_direction_vector > std::numeric_limits<double>::epsilon())
-            first_direction_vector[0] /= norm_first_direction_vector;
-        else
-            KRATOS_ERROR << "Zero norm on OrientedBoundingBox direction" << std::endl;
-        MathUtils<double>::OrthonormalBasis(first_direction_vector[0], first_direction_vector[1], first_direction_vector[2]);
-        const array_1d<double, 3> first_center_point = r_face_1.Center().Coordinates();// 0.5 * (first_geometry_low_node.Coordinates() + first_geometry_high_node.Coordinates());
-        array_1d<double, 3> first_half_distances;
-        double distance_0 = 0.0;
-        double distance_1 = 0.0;
-        double distance_2 = 0.0;
-        for (auto& r_node : r_face_1) {
-            const array_1d<double, 3> vector_points = r_node.Coordinates() - first_center_point;
-            distance_0 = std::max(distance_0, std::abs(inner_prod(vector_points, first_direction_vector[0])));
-            distance_1 = std::max(distance_1, std::abs(inner_prod(vector_points, first_direction_vector[1])));
-            distance_2 = std::max(distance_2, std::abs(inner_prod(vector_points, first_direction_vector[2])));
-        }
-        first_half_distances[0] = distance_0 + mBoundingBoxFactor;
-        first_half_distances[1] = distance_1 + mBoundingBoxFactor;
-        first_half_distances[2] = distance_2 + mBoundingBoxFactor;
-        OrientedBoundingBox<3> first_obb(first_center_point, first_direction_vector, first_half_distances);
+        OrientedBoundingBox<3> first_obb(r_face_1, mBoundingBoxFactor);
 
         // We create new elements for debugging
         if (mDebugOBB) {
@@ -328,31 +267,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::HasIntersection3D
         for (std::size_t i_2 = 0; i_2 < number_of_faces_2; ++i_2) {
             auto& r_face_2 = *(r_faces_2.begin() + i_2);
 
-            // Check the intersection of each face of the object bounding box against the intersecting object bounding box
-            NodeType second_geometry_low_node, second_geometry_high_node;
-            r_face_2.BoundingBox(second_geometry_low_node, second_geometry_high_node);
-
-            // Creating OBB
-            array_1d<array_1d<double, 3>, 3> second_direction_vector;
-            noalias(second_direction_vector[0]) = second_geometry_high_node - second_geometry_low_node;
-            const double norm_second_direction_vector = norm_2(second_direction_vector[0]);
-            second_direction_vector[0] /= norm_second_direction_vector;
-            MathUtils<double>::OrthonormalBasis(second_direction_vector[0], second_direction_vector[1], second_direction_vector[2]);
-            const array_1d<double, 3> second_center_point = r_face_2.Center().Coordinates();// 0.5 * (second_geometry_low_node.Coordinates() + second_geometry_high_node.Coordinates());
-            array_1d<double, 3> second_half_distances;
-            distance_0 = 0.0;
-            distance_1 = 0.0;
-            distance_2 = 0.0;
-            for (auto& r_node : r_face_2) {
-                const array_1d<double, 3> vector_points = r_node.Coordinates() - second_center_point;
-                distance_0 = std::max(distance_0, std::abs(inner_prod(vector_points, second_direction_vector[0])));
-                distance_1 = std::max(distance_1, std::abs(inner_prod(vector_points, second_direction_vector[1])));
-                distance_2 = std::max(distance_2, std::abs(inner_prod(vector_points, second_direction_vector[2])));
-            }
-            second_half_distances[0] = distance_0 + mBoundingBoxFactor;
-            second_half_distances[1] = distance_1 + mBoundingBoxFactor;
-            second_half_distances[2] = distance_2 + mBoundingBoxFactor;
-            OrientedBoundingBox<3> second_obb(second_center_point, second_direction_vector, second_half_distances);
+            OrientedBoundingBox<3> second_obb(r_face_2, mBoundingBoxFactor);
 
             // We create new elements for debugging
             if (mDebugOBB) {
