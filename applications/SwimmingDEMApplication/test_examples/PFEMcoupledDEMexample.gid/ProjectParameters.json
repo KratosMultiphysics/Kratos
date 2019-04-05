@@ -20,7 +20,6 @@
         "maximum_pressure_iterations"        : 7,
         "velocity_tolerance"                 : 1e-5,
         "pressure_tolerance"                 : 1e-5,
-        "echo_level"                         : 1,
         "bodies_list"                        : [{
             "body_type"  : "Fluid",
             "body_name"  : "Body1",

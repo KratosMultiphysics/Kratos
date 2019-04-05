@@ -378,7 +378,7 @@ public:
         }
     }
 
-    void CalculateTemporalVariables()
+    virtual void CalculateTemporalVariables()
     {
       ModelPart& rModelPart = BaseType::GetModelPart();
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -434,8 +434,6 @@ public:
 
 	    CurrentPressureAcceleration += -CurrentPressureVelocity/timeInterval;
 
-	    double& previousFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION_OLD);
-	    previousFluidFraction=(i)->FastGetSolutionStepValue(FLUID_FRACTION);
 	  }
 
 
@@ -496,7 +494,7 @@ public:
       // std::cout<<"rBDFCoeffs[2] is "<<rBDFCoeffs[2]<<std::endl;//1/(2*delta_t)
     }
 
-    void CalculateDisplacementsAndPorosity()
+  virtual void CalculateDisplacementsAndPorosity()
     {
       ModelPart& rModelPart = BaseType::GetModelPart();
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -511,10 +509,6 @@ public:
 
 	  array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
 	  array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-
-	  // const double& currentFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION);
-	  // const double& previousFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION_OLD);
-	  // double& currentFluidFractionRate = (i)->FastGetSolutionStepValue(FLUID_FRACTION_RATE);
 
 	  /* if( i->IsFixed(DISPLACEMENT_X) == false ) */
 	  CurrentDisplacement[0] = 0.5* TimeStep *(CurrentVelocity[0]+PreviousVelocity[0]) + PreviousDisplacement[0];
@@ -990,7 +984,6 @@ protected:
 
     ///@}
 
-private:
     ///@name Static Member Variables
     ///@{
 
@@ -1036,7 +1029,7 @@ private:
     ///@{
 
 
-    void InitializeStrategy(SolverSettingsType& rSolverConfig)
+    virtual void InitializeStrategy(SolverSettingsType& rSolverConfig)
     {
         KRATOS_TRY;
 
