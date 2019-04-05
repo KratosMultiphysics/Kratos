@@ -24,7 +24,7 @@
             "mortar_type"                    : "ALMContactFrictionless"
         },
         "time_stepping"                      : {
-            "time_step" : 0.15
+            "time_step" : 0.005
         },
         "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
@@ -146,10 +146,7 @@
                 "model_part_name"             : "Structure",
                 "assume_master_slave"         : { "0" : ["Parts_Parts_Auto2"]},
                 "contact_model_part"          : { "0" : ["CONTACT_Contact_Auto1"]},
-                "contact_type"                : "Frictionless",
-                "search_parameters" : {
-                    "type_search"             : "in_radius"
-                }
+                "contact_type"                : "Frictionless"
             }
         }],
         "json_check_process" : [

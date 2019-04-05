@@ -307,7 +307,7 @@ def AssembleTestSuites():
             TALMThreeDSimplestPatchTestQuadTriContact,
             TALMThreeDSimplestPatchMatchingAdaptativeTestContact,
             TALMThreeDSimplestPatchMatchingSlopeTestContact,
-            TALMThreeDPatchComplexGeomTestContact, # NOTE: Using radius search
+            TALMThreeDPatchComplexGeomTestContact,
             TALMTThreeDPatchMatchingTestContact,
             TALMThreeDPatchNotMatchingTestContact,
             TPenaltyThreeDSimplestPatchMatchingTestContact,
@@ -326,7 +326,7 @@ def AssembleTestSuites():
             TComponentsALMThreeDSimplestPatchMatchingTestContact,
             TComponentsALMThreeDSimplestPatchMatchingAdaptativeTestContact,
             TComponentsALMThreeDSimplestPatchMatchingSlopeTestContact,
-            TComponentsALMThreeDPatchComplexGeomTestContact, # NOTE: Using radius search
+            TComponentsALMThreeDPatchComplexGeomTestContact,
             TComponentsALMTThreeDPatchMatchingTestContact,
             TComponentsALMThreeDPatchNotMatchingTestContact,
             TALMHyperSimplePatchFrictionalTestContact,
@@ -342,11 +342,11 @@ def AssembleTestSuites():
             #####TComponentsALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
             TComponentsALMHertzCompleteTestContact,
             TALMTaylorPatchFrictionalTestContact,
-            TALMPureFrictionalTestContact, # NOTE: Using radius search
+            TALMPureFrictionalTestContact,
             #### VALIDATION
             TALMTaylorPatchDynamicTestContact,
-            TALMMeshMovingMatchingTestContact, # NOTE: Using radius search
-            TALMMeshMovingNotMatchingTestContact, # NOTE: Using radius search
+            TALMMeshMovingMatchingTestContact,
+            TALMMeshMovingNotMatchingTestContact,
             ##TALMIroningTestContact,
             ##TALMIroningDieTestContact,
             TLargeDisplacementPatchTestHexa,
