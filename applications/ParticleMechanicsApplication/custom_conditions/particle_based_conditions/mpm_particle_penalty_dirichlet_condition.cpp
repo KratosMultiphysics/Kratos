@@ -214,6 +214,12 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
             rRightHandSideVector *= penalty_factor * this->GetIntegrationWeight();
         }
     }
+    else{
+        if ( CalculateStiffnessMatrixFlag == true )
+        {
+            noalias(rLeftHandSideMatrix) = IdentityMatrix(matrix_size);
+        }
+    }
 
     KRATOS_CATCH( "" )
 }
