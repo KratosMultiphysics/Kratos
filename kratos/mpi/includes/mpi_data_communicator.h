@@ -131,6 +131,16 @@ class MPIDataCommunicator: public DataCommunicator
         std::vector<double>& rGlobalValues,
         const int Root) const override;
 
+    Kratos::Flags AndReduce(
+        const Kratos::Flags Values,
+        const Kratos::Flags Mask,
+        const int Root) const override;
+
+    Kratos::Flags OrReduce(
+        const Kratos::Flags Values,
+        const Kratos::Flags Mask,
+        const int Root) const override;
+
     // Allreduce operations
 
     int SumAll(const int rLocalValue) const override;
@@ -186,6 +196,10 @@ class MPIDataCommunicator: public DataCommunicator
     void MaxAll(
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues) const override;
+
+    Kratos::Flags AndReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const override;
+
+    Kratos::Flags OrReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const override;
 
     // Scan operations
 
@@ -409,7 +423,7 @@ class MPIDataCommunicator: public DataCommunicator
     ///@name Operations
     ///@{
 
-    void CheckMPIErrorCode(const int ierr, const std::string MPICallName) const;
+    void CheckMPIErrorCode(const int ierr, const std::string& MPICallName) const;
 
     template<class TDataType> void ReduceDetail(
         const TDataType& rLocalValues,
