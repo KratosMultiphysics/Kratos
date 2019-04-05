@@ -246,6 +246,8 @@ def ComputeSampleCentralMomentsFromScratchAux_Task(number_samples_level,central_
     central_moment_from_scratch_3_to_compute,central_moment_from_scratch_3_absolute_to_compute,central_moment_from_scratch_4_to_compute, \
     central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4, \
     samples):
+    # generate a single list from a list of lists
+    samples = [item for sublist in samples for item in sublist]
     auxiliary_mean = 0
     for sample in samples:
         auxiliary_mean = auxiliary_mean + sample
@@ -508,8 +510,11 @@ class StatisticalVariable(object):
         """
         samples = []
         for batch in range (len(self.values)):
-            for value in self.values[batch][level]:
-                samples.append(value)
+            for mini_batch_samples in self.values[batch][level]:
+                samples.append(mini_batch_samples)
+        # samples = [<pycompss.runtime.binding.Future>, <pycompss.runtime.binding.Future>]
+        # samples = [[1.53, 1.51], [1.48]]
+        # problems: compss does not support list of lists, but the number of mini batches can change, no fix number
         central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4 = \
             ComputeSampleCentralMomentsFromScratchAux_Task(number_samples_level,central_moment_from_scratch_1_to_compute, \
             central_moment_from_scratch_2_to_compute,central_moment_from_scratch_3_to_compute,central_moment_from_scratch_3_absolute_to_compute,central_moment_from_scratch_4_to_compute, \
