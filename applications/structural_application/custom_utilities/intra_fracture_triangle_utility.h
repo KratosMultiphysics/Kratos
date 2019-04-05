@@ -146,7 +146,7 @@ public:
 
 
         ModelPart& this_model_part =  mr_model_part;
-        compressed_matrix<int> Coord;
+        boost::numeric::ublas::compressed_matrix<int> Coord;
         array_1d<int, 3>  List_New_Nodes;                                          ///* the news nodes
         array_1d<array_1d<int, 2 >, 2 > Position_Node;                             ///* edges where are the news nodes
         array_1d< array_1d<double, 3>, 3 > Coordinate_New_Node;                    ///* the coordinate of the new nodes
@@ -229,8 +229,8 @@ public:
         int number_of_threads = 1;
 #endif
 
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, rElements.size(), element_partition);
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, rElements.size(), element_partition);
         #pragma omp parallel for
         for(int k=0; k<number_of_threads; k++)
         {
@@ -462,7 +462,7 @@ public:
         array_1d<int, 3>&  List_New_Nodes,
         array_1d<array_1d<int, 2 >, 2 >& Position_Node,
         array_1d< array_1d<double, 3>, 3 >& Coordinate_New_Node,
-        compressed_matrix<int>& Coord
+        boost::numeric::ublas::compressed_matrix<int>& Coord
     )
 
     {
@@ -661,7 +661,7 @@ public:
 ///************************************************************************************************
 ///************************************************************************************************
 
-    void CSR_Row_Matrix(ModelPart& this_model_part, compressed_matrix<int>& Coord )
+    void CSR_Row_Matrix(ModelPart& this_model_part, boost::numeric::ublas::compressed_matrix<int>& Coord )
     {
         NodesArrayType& pNodes =  this_model_part.Nodes();
         Coord.resize(pNodes.size(),pNodes.size());
@@ -899,7 +899,7 @@ public:
 
     void Erase_Old_Element_And_Create_New_Triangle_Element(
         ModelPart& this_model_part,
-        const compressed_matrix<int>& Coord,
+        const boost::numeric::ublas::compressed_matrix<int>& Coord,
         const array_1d<double,3>&  Failure_Maps,
         Vec_Node_It& pNode, // Node<3>::Pointer& pNode,
         Node<3>::Pointer& pduplicated_node,
@@ -1042,7 +1042,7 @@ public:
 
 
     void  Calculate_Edges(Element::GeometryType& geom,
-                          const compressed_matrix<int>& Coord,
+                          const boost::numeric::ublas::compressed_matrix<int>& Coord,
                           int*  edge_ids,
                           array_1d<int,6>& aux
                          )
@@ -1288,20 +1288,6 @@ private:
     bool mInitialize;
     ModelPart& mr_model_part;
     unsigned int mdomain_size;
-
-///************************************************************************************************
-///************************************************************************************************
-
-
-    inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
-    {
-        partitions.resize(number_of_threads+1);
-        int partition_size = number_of_rows / number_of_threads;
-        partitions[0] = 0;
-        partitions[number_of_threads] = number_of_rows;
-        for(unsigned int i = 1; i<number_of_threads; i++)
-            partitions[i] = partitions[i-1] + partition_size ;
-    }
 
 };
 }

@@ -3938,12 +3938,12 @@ void SolidShellElementSprism3D6N::CbartoFbar(
     const Matrix C_bar = MathUtils<double>::VectorToSymmetricTensor(rVariables.C);
 
     // Decompose matrix C_bar
-    MathUtils<double>::EigenSystem<3>(C_bar, eigen_vector_matrix, eigen_values_matrix, 1e-24, 100);
+    MathUtils<double>::GaussSeidelEigenSystem(C_bar, eigen_vector_matrix, eigen_values_matrix, 1e-24, 100);
 
     for (IndexType i = 0; i < 3; ++i)
         eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
 
-    const Matrix U_bar = prod( eigen_values_matrix, eigen_vector_matrix );
+    const Matrix U_bar = prod( eigen_values_matrix, trans(eigen_vector_matrix));
 
     /* Decompose F */
     Matrix F = ZeroMatrix(3, 3);

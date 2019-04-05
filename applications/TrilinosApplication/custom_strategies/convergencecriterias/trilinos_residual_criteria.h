@@ -82,12 +82,14 @@ protected:
     /**
      * @brief This method computes the norm of the residual
      * @details It checks if the dof is fixed
+     * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rResidualSolutionNorm The norm of the residual
      * @param rDofNum The number of DoFs
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param b RHS vector (residual + reactions)
      */
     void CalculateResidualNorm(
+        ModelPart& rModelPart,
         TDataType& rResidualSolutionNorm,
         typename BaseType::SizeType& rDofNum,
         typename BaseType::DofsArrayType& rDofSet,

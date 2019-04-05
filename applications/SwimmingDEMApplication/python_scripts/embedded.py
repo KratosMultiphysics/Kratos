@@ -1,8 +1,8 @@
 from __future__ import print_function, absolute_import, division
+import KratosMultiphysics as Kratos
+from KratosMultiphysics import Vector
 import math
 import os
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
 
 def VectSum(v, w):
     return [x + y for x, y in zip(v, w)]
@@ -70,25 +70,25 @@ def RotateRightHandedBasisAroundAxis(e1, e2, axis, ang):
 def ApplyEmbeddedBCsToFluid(model_part):
 
     for node in model_part.Nodes:
-        old_dist = node.GetSolutionStepValue(DISTANCE, 1)
-        dist     = node.GetSolutionStepValue(DISTANCE)
+        old_dist = node.GetSolutionStepValue(Kratos.DISTANCE, 1)
+        dist     = node.GetSolutionStepValue(Kratos.DISTANCE)
 
         if (dist < 0.0):
-            node.Fix(PRESSURE)
-            node.Fix(VELOCITY_X)
-            node.Fix(VELOCITY_Y)
-            node.Fix(VELOCITY_Z)
-            node.SetSolutionStepValue(PRESSURE, 0.0)
-            node.SetSolutionStepValue(VELOCITY_X, 0.0)
-            node.SetSolutionStepValue(VELOCITY_Y, 0.0)
-            node.SetSolutionStepValue(VELOCITY_Z, 0.0)
+            node.Fix(Kratos.PRESSURE)
+            node.Fix(Kratos.VELOCITY_X)
+            node.Fix(Kratos.VELOCITY_Y)
+            node.Fix(Kratos.VELOCITY_Z)
+            node.SetSolutionStepValue(Kratos.PRESSURE, 0.0)
+            node.SetSolutionStepValue(Kratos.VELOCITY_X, 0.0)
+            node.SetSolutionStepValue(Kratos.VELOCITY_Y, 0.0)
+            node.SetSolutionStepValue(Kratos.VELOCITY_Z, 0.0)
 
         elif (old_dist < 0.0):
-            node.Free(PRESSURE)
-            node.Free(VELOCITY_X)
-            node.Free(VELOCITY_Y)
-            node.Free(VELOCITY_Z)
-            
+            node.Free(Kratos.PRESSURE)
+            node.Free(Kratos.VELOCITY_X)
+            node.Free(Kratos.VELOCITY_Y)
+            node.Free(Kratos.VELOCITY_Z)
+
     if model_part.NumberOfMeshes() > 1:
 
         for mesh_number in range(2, model_part.NumberOfMeshes()):
@@ -96,98 +96,99 @@ def ApplyEmbeddedBCsToFluid(model_part):
             # print model_part.Properties[mesh_number]
 
             # INLETS
-            if (model_part.Properties[mesh_number][IMPOSED_VELOCITY_X] == 1 or model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y] == 1 or model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z] == 1):
+            if (model_part.Properties[mesh_number][Kratos.IMPOSED_VELOCITY_X] == 1
+                or model_part.Properties[mesh_number][Kratos.IMPOSED_VELOCITY_Y] == 1
+                or model_part.Properties[mesh_number][Kratos.IMPOSED_VELOCITY_Z] == 1):
 
                 for node in mesh_nodes:
-                    dist = node.GetSolutionStepValue(DISTANCE)
+                    dist = node.GetSolutionStepValue(Kratos.DISTANCE)
 
                     if (dist > 0.0):
-                        node.Free(PRESSURE)
-                        if (model_part.Properties[mesh_number][IMPOSED_VELOCITY_X]):
-                            node.Fix(VELOCITY_X)
-                            node.SetSolutionStepValue(VELOCITY_X, model_part.Properties[mesh_number][IMPOSED_VELOCITY_X_VALUE])
-                        if (model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y]):
-                            node.Fix(VELOCITY_Y)
-                            node.SetSolutionStepValue(VELOCITY_Y, model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y_VALUE])
-                        if (model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z]):
-                            node.Fix(VELOCITY_Z)
-                            node.SetSolutionStepValue(VELOCITY_Z, model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z_VALUE])
+                        node.Free(Kratos.PRESSURE)
+                        if (model_part.Properties[mesh_number][Kratos.IMPOSED_VELOCITY_X]):
+                            node.Fix(Kratos.VELOCITY_X)
+                            node.SetSolutionStepValue(Kratos.VELOCITY_X, model_part.Properties[mesh_number][Kratos.IMPOSED_VELOCITY_X_VALUE])
+                        if (model_part.Properties[mesh_number][Kratos.IMPOSED_VELOCITY_Y]):
+                            node.Fix(Kratos.VELOCITY_Y)
+                            node.SetSolutionStepValue(Kratos.VELOCITY_Y, model_part.Properties[mesh_number][Kratos.IMPOSED_VELOCITY_Y_VALUE])
+                        if (model_part.Properties[mesh_number][Kratos.IMPOSED_VELOCITY_Z]):
+                            node.Fix(Kratos.VELOCITY_Z)
+                            node.SetSolutionStepValue(Kratos.VELOCITY_Z, model_part.Properties[mesh_number][Kratos.IMPOSED_VELOCITY_Z_VALUE])
 
             # OUTLETS
-            if (model_part.Properties[mesh_number][IMPOSED_PRESSURE] == 1):
+            if (model_part.Properties[mesh_number][Kratos.IMPOSED_PRESSURE] == 1):
                 # here I assume all nodes of this outlet have the same body force and density!!
 
                 for node in mesh_nodes:
-                    bf = node.GetSolutionStepValue(BODY_FORCE)
+                    bf = node.GetSolutionStepValue(Kratos.BODY_FORCE)
                     mod_bf = Norm(bf)
                     normalized_bf = Normalize(bf)
-                    outlet_density = node.GetSolutionStepValue(DENSITY)
+                    outlet_density = node.GetSolutionStepValue(Kratos.DENSITY)
                     break
 
                 for node in mesh_nodes:
-                    #coord = Vector(node)
                     height = - InnerProd([node.X, node.Y, node.Z], normalized_bf)
                     maxheight = -1.0e90
 
                     if (height > maxheight):
                         maxheight = height
-                        highest_node = node
+                        # highest_node = node
 
-                base_pressure = model_part.Properties[mesh_number][PRESSURE]
+                base_pressure = model_part.Properties[mesh_number][Kratos.PRESSURE]
 
                 for node in mesh_nodes:
-                    dist = node.GetSolutionStepValue(DISTANCE)
+                    dist = node.GetSolutionStepValue(Kratos.DISTANCE)
                     distance_to_highest = maxheight - InnerProd(VectTimes([node.X, node.Y, node.Z], -1), normalized_bf)
 
                     if (dist > 0.0):
-                        node.Fix(PRESSURE)
+                        node.Fix(Kratos.PRESSURE)
                         actual_pressure = base_pressure + outlet_density * mod_bf * distance_to_highest
-                        node.SetSolutionStepValue(PRESSURE, actual_pressure)
-                        node.Free(VELOCITY_X)
-                        node.Free(VELOCITY_Y)
-                        node.Free(VELOCITY_Z)
+                        node.SetSolutionStepValue(Kratos.PRESSURE, actual_pressure)
+                        node.Free(Kratos.VELOCITY_X)
+                        node.Free(Kratos.VELOCITY_Y)
+                        node.Free(Kratos.VELOCITY_Z)
 
 def ApplyEmbeddedBCsToBalls(model_part, DEMParameters):
 
     for node in model_part.Nodes:
-        dist = node.GetSolutionStepValue(DISTANCE)
+        dist = node.GetSolutionStepValue(Kratos.DISTANCE)
 
         if (dist < 0.0):
 
-            if node.Is(BLOCKED):
-                node.Set(ACTIVE, True)
+            if node.Is(Kratos.BLOCKED):
+                node.Set(Kratos.ACTIVE, True)
 
             elif (DEMParameters.RemoveBallsInEmbeddedOption):
                 #print("--------------- One particle was erased because it entered an embedded structure -------------------")
-                node.Set(TO_ERASE,True)
+                node.Set(Kratos.TO_ERASE,True)
 
 
 class SearchEmbeddedDEMTools:
 
     def __init__(self):
-        self.search_tools = DemSearchUtilities(OMP_DEMSearch())
+        self.search_tools = Kratos.DemSearchUtilities(Kratos.OMP_DEMSearch())
 
     def SearchNodeNeighboursDistances(self, model_part, dem_model_part, search_radius):
-        self.search_tools.SearchNodeNeighboursDistances(model_part, dem_model_part, search_radius, DISTANCE)
+        self.search_tools.SearchNodeNeighboursDistances(model_part, dem_model_part, search_radius, Kratos.DISTANCE)
 
     def CalculateElementNeighbourDistances(self, model_part, intersecting_surface_semi_thickness):
 
         for node in model_part.Nodes:
-            distance = node.GetSolutionStepValue(DISTANCE) - intersecting_surface_semi_thickness
-            node.SetSolutionStepValue(DISTANCE, 0, distance)
+            distance = node.GetSolutionStepValue(Kratos.DISTANCE) - intersecting_surface_semi_thickness
+            node.SetSolutionStepValue(Kratos.DISTANCE, 0, distance)
 
             if (distance < 0):
-                node.Fix(PRESSURE)
-                node.Fix(VELOCITY_X)
-                node.Fix(VELOCITY_Y)
-                node.Fix(VELOCITY_Z)
+                node.Fix(Kratos.PRESSURE)
+                node.Fix(Kratos.VELOCITY_X)
+                node.Fix(Kratos.VELOCITY_Y)
+                node.Fix(Kratos.VELOCITY_Z)
 
         for element in model_part.Elements:
             negative = 0
             positive = 0
 
             for node in element.GetNodes():
-                d = node.GetSolutionStepValue(DISTANCE)
+                d = node.GetSolutionStepValue(Kratos.DISTANCE)
 
                 if (d >= 0.0):
                     positive = positive + 1
@@ -198,11 +199,11 @@ class SearchEmbeddedDEMTools:
             if ((negative > 0) and (positive > 0)):
                 tmp = Vector(4)
                 i = 0
-                element.SetValue(SPLIT_ELEMENT, True)
+                element.SetValue(Kratos.SPLIT_ELEMENT, True)
 
                 for node in element.GetNodes():
-                    d = node.GetSolutionStepValue(DISTANCE)
+                    d = node.GetSolutionStepValue(Kratos.DISTANCE)
                     tmp[i] = d
                     i = i + 1
 
-                element.SetValue(ELEMENTAL_DISTANCES, tmp)
+                element.SetValue(Kratos.ELEMENTAL_DISTANCES, tmp)

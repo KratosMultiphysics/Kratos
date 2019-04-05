@@ -23,16 +23,15 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rayleigh_damping_coefficients_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/explicit_integration_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rve_periodicity_utility.cpp
 
   ## RESPONSE UTILITIES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/adjoint_structural_response_function.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/adjoint_local_stress_response_function.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/adjoint_nodal_reaction_response_function.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/stress_response_definitions.cpp
-
-  ## RESPONSE UTILITIES
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/adjoint_postprocess.cpp
 
   ## DIFFERENTIATION UTILITIES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/element_finite_difference_utility.cpp
@@ -47,9 +46,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/solid_shell_thickness_compute_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/spr_error_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/impose_rigid_movement_process.cpp
-
-  ## RESPONSE FUNCTIONS
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_processes/replace_elements_and_conditions_for_adjoint_problem_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_processes/replace_multiple_elements_and_conditions_process.cpp
 
   ##CONSTITUTIVE LAW
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/truss_constitutive_law.cpp
@@ -68,8 +65,8 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_orthotropic_2D_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_j2_plasticity_plane_strain_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_j2_plasticity_3d.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_isotropic_damage_plane_strain_2d.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_isotropic_damage_3D_law.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_isotropic_damage_plane_strain_2d.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_isotropic_damage_3d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_isotropic_damage_factory.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_isotropic_plasticity_factory.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/finite_strain_isotropic_plasticity_factory.cpp
@@ -83,6 +80,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_kinematic_plasticity.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/plasticity_isotropic_kinematic_j2.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/d_plus_d_minus_damage_masonry_3d.cpp
 
   ## ELEMENTS
   #Adding truss element

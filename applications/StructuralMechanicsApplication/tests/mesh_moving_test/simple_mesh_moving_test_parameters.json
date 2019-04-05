@@ -73,7 +73,7 @@
                     "model_part_name" : "DISPLACEMENT_movement",
                     "variable_name"   : "DISPLACEMENT_X",
                     "interval"        : [0.0, "End"],
-                    "value"           : "0.01*(t+0.005)",
+                    "value"           : "0.01*t",
                     "tolerance_rank"  : 16
             }
         }
