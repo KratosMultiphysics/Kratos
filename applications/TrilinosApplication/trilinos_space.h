@@ -575,7 +575,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    VectorPointerType ReadMatrixMarketVector(const std::string FileName,Epetra_MpiComm& Comm, int n)
+    VectorPointerType ReadMatrixMarketVector(const std::string& FileName,Epetra_MpiComm& Comm, int n)
     {
         KRATOS_TRY
 
@@ -584,8 +584,7 @@ public:
 
         int error_code = EpetraExt::MatrixMarketFileToVector(FileName.c_str(), MyMap, pv);
 
-        if(error_code != 0)
-            KRATOS_ERROR << "error thrown while reading Matrix Market Vector file "<<FileName
+        KRATOS_ERROR_IF(error_code != 0) << "error thrown while reading Matrix Market Vector file "<<FileName
                          << " error code is : " << error_code;
 
         Comm.Barrier();
@@ -599,16 +598,9 @@ public:
 
         VectorPointerType final_vector = Kratos::make_shared<VectorType>(MyMap);
         int ierr = final_vector->ReplaceGlobalValues(gids.size(),gids.data(), values.data());
-        if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found with code ierr = " << ierr << std::endl;
 
         final_vector->GlobalAssemble();
-
-        //defining the importer class
-        //Epetra_Import importer(MyMap, MyMap);
-
-        //importing in the new temp vector the values
-        //int ierr = aaa->Import(pv, importer, Insert);
-        //if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
 
         delete pv;
         return final_vector;
