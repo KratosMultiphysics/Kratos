@@ -275,55 +275,101 @@ protected:
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = this->GetBuilderAndSolver();
 
         TSystemVectorType aux(b.size()); //TODO: do it by using the space
-        TSparseSpace::Assign(aux,0.5, Dx);
+        
+        double x1 = 0.5;
+        double x2 = 1.0;
+        double xmin = 0.1;
+        double xmax = 2.0;
+        double line_search_tolerance = 0.5;
+        int max_iterations = 5;
 
-        //compute residual without update
+        bool converged = false;
+        int it = 0;
+        double xprevious = 0.0;
+
+        //compute residual with 1 coefficient update (x1)
+        //since no update was performed yet, this includes an increment wrt the previous
+        //solution of x1*Dx
+        TSparseSpace::Assign(aux,x1-xprevious, Dx);
+        xprevious = x1;
+        BaseType::UpdateDatabase(A,aux,b,MoveMesh); 
         TSparseSpace::SetToZero(b);
         pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
-        double ro = TSparseSpace::TwoNorm(b);
-
-        //compute half step residual
-        BaseType::UpdateDatabase(A,aux,b,MoveMesh);
-        TSparseSpace::SetToZero(b);
-        pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
-        double rh = TSparseSpace::TwoNorm(b);
-
-        //compute full step residual (add another half Dx to the previous half)
-        BaseType::UpdateDatabase(A,aux,b,MoveMesh);
-        TSparseSpace::SetToZero(b);
-        pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
-        double rf = TSparseSpace::TwoNorm(b);
-
-        //compute optimal (limited to the range 0-1)
-        //parabola is y = a*x^2 + b*x + c -> min/max for
-        //x=0   --> r=ro
-        //x=1/2 --> r=rh
-        //x=1   --> r =
-        //c= ro,     b= 4*rh -rf -3*ro,  a= 2*rf - 4*rh + 2*ro
-        //max found if a>0 at the position  xmax = (rf/4 - rh)/(rf - 2*rh);
-        double parabola_a = 2*rf + 2*ro - 4*rh;
-        double parabola_b = 4*rh - rf - 3*ro;
-        double xmin = 1e-3;
-        double xmax = 1.0;
-        if( parabola_a > 0) //if parabola has a local minima
+        double r1 = TSparseSpace::Dot(aux,b);
+        
+        double rmax;
+        while(converged == false && it < max_iterations)
         {
-            xmax = -0.5 * parabola_b/parabola_a; // -b / 2a
-            if( xmax > 1.0)
-                xmax = 1.0;
-            else if(xmax < -1.0)
-                xmax = -1.0;
-        }
-        else //parabola degenerates to either a line or to have a local max. best solution on either extreme
-        {
-            if(rf < ro)
-                xmax = 1.0;
+
+            //compute residual with 2 coefficient update (x2)
+            //since the database was initialized with x1*Dx
+            //we need to apply ONLY THE INCREMENT, that is (x2-xprevious)*Dx
+            TSparseSpace::Assign(aux,x2-xprevious, Dx);
+            xprevious = x2;
+            BaseType::UpdateDatabase(A,aux,b,MoveMesh);
+            TSparseSpace::SetToZero(b);
+            pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
+            double r2 = TSparseSpace::Dot(aux,b);
+
+            if(it == 0)
+                rmax = std::max(std::abs(r1),std::abs(r2));
+            double rmin = std::min(std::abs(r1),std::abs(r2));
+
+            //find optimum
+            double x = 1.0;
+            if(std::abs(r1 - r2) > 1e-10)
+                x =  (r1*x2 - r2*x1)/(r1 - r2);
+            
+            if(x < xmin)
+                x = xmin;
+            else if(x > xmax)
+                x = xmax;
+
+            //perform final update
+            TSparseSpace::Assign(aux,x-xprevious, Dx);
+            xprevious = x;
+            BaseType::UpdateDatabase(A,aux,b,MoveMesh);
+            if(rmin < line_search_tolerance*rmax)
+            {
+                std::cout << "LINE SEARCH it " << it << " coeff = " << x <<  " r1 = " << r1 << " r2 = " << r2 << std::endl;
+                converged = true;
+                break;
+            }
+
+            //note that we compute the next residual only if it is strictly needed (we break on the line before if it is not needed)
+            TSparseSpace::SetToZero(b);
+            pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
+            double rf = TSparseSpace::Dot(aux,b);
+
+            std::cout << "LINE SEARCH it " << it << " coeff = " << x << " rf = " << rf << " r1 = " << r1 << " r2 = " << r2 << std::endl;
+
+
+            if(std::abs(rf) < rmax*line_search_tolerance)
+            {
+                converged = true;
+                TSparseSpace::Assign(aux,x, Dx);
+            }
             else
-                xmax = xmin; //should be zero, but otherwise it will stagnate
-        }
+            {
+                if(std::abs(r1)>std::abs(r2))
+                {
+                    r1 = rf;
+                    x1 = x;
+                }
+                else
+                {
+                    r2 = r1;
+                    x2 = x1;
+                    r1 = rf;
+                    x1 = x;
+                }
+                converged = false;
+            }
 
-        //perform final update
-        TSparseSpace::Assign(aux,-(1.0-xmax), Dx);
-        BaseType::UpdateDatabase(A,aux,b,MoveMesh);
+
+            it++;
+        }
+        TSparseSpace::SetToZero(b);
     }
 
 
