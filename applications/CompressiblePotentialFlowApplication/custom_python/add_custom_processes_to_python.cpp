@@ -23,17 +23,14 @@
 namespace Kratos {
 namespace Python {
 
-typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
-
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
 	namespace py = pybind11;
 
-        py::class_<KuttaConditionProcess, KuttaConditionProcess::Pointer, Process >
+    py::class_<KuttaConditionProcess, KuttaConditionProcess::Pointer, Process >
         (m, "KuttaConditionProcess")
         .def(py::init<ModelPart&>())
         ;
-
 }
 
 }  // namespace Python.

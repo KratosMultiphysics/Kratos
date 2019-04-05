@@ -1,4 +1,5 @@
 import KratosMultiphysics
+
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -27,6 +28,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.create_output_file = settings["create_output_file"].GetBool()
 
     def ExecuteFinalizeSolutionStep(self):
+        print('COMPUTE LIFT')
 
         rx = 0.0
         ry = 0.0
