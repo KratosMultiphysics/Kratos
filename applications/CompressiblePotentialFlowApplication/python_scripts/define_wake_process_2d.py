@@ -237,17 +237,3 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                     elem.SetValue(CPFApp.KUTTA, False)
                 else: #Rest of elements touching the trailing edge but not part of the wake
                     elem.SetValue(CPFApp.WAKE, False)
-
-    def ExecuteFinalizeSolutionStep(self):
-        node_velocity_potential_te = self.te.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
-        node_auxiliary_velocity_potential_te = self.te.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
-        if(self.te.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0):
-            potential_jump_phi_minus_psi_te = node_velocity_potential_te - node_auxiliary_velocity_potential_te
-        else:
-            potential_jump_phi_minus_psi_te = node_auxiliary_velocity_potential_te - node_velocity_potential_te
-        Cl_te = 2*potential_jump_phi_minus_psi_te/self.velocity_infinity[0]
-        KratosMultiphysics.Logger.PrintInfo('DefineWakeProcess2D','potential jump Phi - Psi (trailing edge node) = ', potential_jump_phi_minus_psi_te, '=> CL = ',Cl_te)
-
-        if self.create_output_file:
-             with open("cl_jump.dat", 'w') as cl_file:
-                 cl_file.write('{0:15.12f}'.format(Cl_te))
