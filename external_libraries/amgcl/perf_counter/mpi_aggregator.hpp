@@ -46,7 +46,7 @@ class mpi_aggregator {
         typedef typename Counter::value_type value_type;
 
         mpi_aggregator(MPI_Comm comm = MPI_COMM_WORLD)
-            : world(comm), dtype(amgcl::mpi::datatype<value_type>::get())
+            : world(comm), dtype(amgcl::mpi::datatype<value_type>())
         {
             if (SingleReaderPerNode) {
                 typedef std::integral_constant<bool, sizeof(size_t) == sizeof(int)>::type _32bit;
@@ -109,11 +109,11 @@ class mpi_aggregator {
                 size_t full;
                 struct {
                     int lo, hi;
-                };
+                } part;
             } h;
 
             h.full = std::hash<std::string>()(name);
-            return std::abs(h.lo ^ h.hi);
+            return std::abs(h.part.lo ^ h.part.hi);
         }
 };
 

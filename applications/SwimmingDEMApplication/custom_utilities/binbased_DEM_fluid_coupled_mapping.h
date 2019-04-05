@@ -94,7 +94,7 @@ typedef ModelPart::ElementsContainerType                      ElementsArrayType;
 typedef ElementsArrayType::ContainerType                      ResultElementsContainerType;
 typedef std::vector<ResultElementsContainerType>              VectorResultElementsContainerType;
 typedef ModelPart::ElementsContainerType::iterator            ElementIteratorType;
-typedef SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>  ParticleType;
+typedef SwimmingParticle<TBaseTypeOfSwimmingParticle>  ParticleType;
 
 typedef ModelPart::NodesContainerType                         NodesArrayType;
 typedef NodesArrayType::ContainerType                         ResultNodesContainerType;
@@ -137,7 +137,7 @@ BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
 {
     Parameters default_parameters( R"(
         {
-            "min_fluid_fraction": 0.2,
+            "backward_coupling": {},
             "coupling_type": 1,
             "time_averaging_type": 0,
             "viscosity_modification_type" : 0,
@@ -146,8 +146,7 @@ BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
         }  )" );
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
-
-    mMinFluidFraction = rParameters["min_fluid_fraction"].GetDouble();
+    mMinFluidFraction = rParameters["backward_coupling"]["min_fluid_fraction"].GetDouble();
     mCouplingType = rParameters["coupling_type"].GetInt();
     mTimeAveragingType = rParameters["time_averaging_type"].GetInt();
     mViscosityModificationType = rParameters["viscosity_modification_type"].GetInt();
@@ -192,11 +191,10 @@ void AddFluidVariableToBeTimeFiltered(const VariableData& r_variable, const doub
 
 void InterpolateFromFluidMesh(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, Parameters& parameters, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid, const double alpha);
 void ImposeFlowOnDEMFromField(FluidFieldUtility& r_flow, ModelPart& r_dem_model_part);
-void ImposeVelocityOnDEMFromFieldToSlipVelocity(FluidFieldUtility& r_flow, ModelPart& r_dem_model_part);
-void InterpolateVelocityOnSlipVelocity(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid);
+void ImposeVelocityOnDEMFromFieldToAuxVelocity(FluidFieldUtility& r_flow, ModelPart& r_dem_model_part);
+void InterpolateVelocityOnAuxVelocity(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid, const double alpha);
 void UpdateOldVelocity(ModelPart& r_dem_model_part);
 void UpdateOldAdditionalForce(ModelPart& r_dem_model_part);
-void InterpolateFromNewestFluidMesh(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid);
 void InterpolateFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid); // this is a bin of objects which contains the FLUID model part
 void VariingRadiusHomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, const double& search_radius, const double& shape_factor, bool must_search = true);
 void HomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, const double& search_radius, const double& shape_factor, bool must_search = true);
@@ -297,7 +295,7 @@ const Variable<array_1d<double,3>>* mpBodyForcePerUnitMassVariable;
 
 // neighbour lists (for mCouplingType = 3)
 std::vector<double>  mSearchRadii; // list of nodal search radii (filter radii). It is a vector since spatial search is designed for varying radius
-std::vector<SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* > mSwimmingSphereElementPointers;
+std::vector<SwimmingParticle<TBaseTypeOfSwimmingParticle>* > mSwimmingSphereElementPointers;
 VectorResultNodesContainerType mVectorsOfNeighNodes; // list of arrays of pointers to the particle's nodal neighbours
 VectorDistanceType mVectorsOfDistances; // list of arrays of distances to the particle's neighbours
 VectorDistanceType mVectorsOfRadii;
@@ -322,16 +320,13 @@ bool IsFluidVariableToBeTimeFiltered(const VariableData& var);
 array_1d<double, 3> CalculateAcceleration(const Geometry<Node<3> >& geom, const Vector& N);
 double CalculateNormOfSymmetricGradient(const Geometry<Node<3> >& geom, const int index);
 array_1d<double, 3> CalculateVorticity(const Geometry<Node<3> >& geom, const int index);
-void Project(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const VariableData *r_destination_variable);
 void Project(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const VariableData *r_destination_variable, double alpha);
 void DistributeDimensionalContributionToFluidFraction(Element::Pointer p_elem, const Vector& N, ParticleType& particle);
 void Distribute(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node,const VariableData *r_destination_variable);
 void ComputeHomogenizedNodalVariable(const ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights, const VariableData *r_destination_variable);
 void CalculateFluidFraction(ModelPart& r_fluid_model_part);
 void CalculateFluidMassFraction(ModelPart& r_fluid_model_part);
-void Interpolate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_origin_variable, const Variable<array_1d<double, 3> >& r_destination_variable);
 void Interpolate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_origin_variable, const Variable<array_1d<double, 3> >& r_destination_variable, double alpha);
-void Interpolate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<double>& r_origin_variable, const Variable<double>& r_destination_variable);
 void Interpolate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<double>& r_origin_variable, const Variable<double>& r_destination_variable, double alpha);
 void CalculateVelocityProjectedRate(Node<3>::Pointer p_node);
 void InterpolateAcceleration(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_destination_variable);
@@ -360,7 +355,7 @@ void CalculateFluidNodesMaxNodalArea(ModelPart& r_fluid_model_part);
 inline void ClearVariable(const NodeIteratorType& node_it, const VariableData& var);
 inline unsigned int GetNearestNode(const Vector& N);
 void FillVectorOfSwimmingSpheres(ModelPart& r_dem_model_part);
-double inline CalculateDistance(Node<3>::Pointer a, SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* b);
+double inline CalculateDistance(Node<3>::Pointer a, SwimmingParticle<TBaseTypeOfSwimmingParticle>* b);
 double inline GetAlpha(const VariableData& r_variable);
 const Variable<array_1d<double,3>>& GetBodyForcePerUnitMassVariable() const;
 //***************************************************************************************************************

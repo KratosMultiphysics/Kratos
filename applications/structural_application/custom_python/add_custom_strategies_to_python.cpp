@@ -55,9 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp>
+#include <pybind11/pybind11.h>
 
 
 // Project includes
@@ -121,16 +119,16 @@ namespace Kratos
 
 namespace Python
 {
-using namespace boost::python;
 
-void  AddCustomStrategiesToPython()
+void  AddCustomStrategiesToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
+
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >
-    BaseSolvingStrategyType;
+    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 
     //typedef ResidualBasedUzawaNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType,
     //LinearSolverType > ResidualBasedUzawaNewtonRaphsonStrategyType;
@@ -152,7 +150,7 @@ void  AddCustomStrategiesToPython()
 
     typedef MultiPhaseFlowCriteria< SparseSpaceType,  LocalSpaceType >
     MultiPhaseFlowCriteriaType;
-    
+
 //     typedef ResidualBasedMultiPhaseCriteria< SparseSpaceType, LocalSpaceType > ResidualBasedMultiPhaseCriteriaType;
 
     typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>
@@ -184,23 +182,20 @@ void  AddCustomStrategiesToPython()
 // 					;
     //********************************************************************
     //********************************************************************
-    class_< ResidualBasedPredictorCorrectorBossakSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "ResidualBasedPredictorCorrectorBossakScheme", init< double >()
-            );
+    py::class_< ResidualBasedPredictorCorrectorBossakSchemeType, BaseSchemeType >
+    (m, "ResidualBasedPredictorCorrectorBossakScheme")
+    .def(py::init< double >());
 
 
 
-
-    enum_<Constraint_Enforcement>("Constraint_Enforcement")
+    py::enum_<Constraint_Enforcement>(m, "Constraint_Enforcement")
     .value("Penalty_Methods", Penalty_Methods)
     .value("Lagrange_Multiplier_Methods", Lagrange_Multiplier_Methods)
     ;
 
-    class_< ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
-    (
-        "ResidualBasedCentralDiferencesStrategy", init< ModelPart&, Constraint_Enforcement, int, double, double, double, double,  bool, bool, bool, LinearSolverType::Pointer, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer>())
+    py::class_< ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >, BaseSolvingStrategyType >
+    (m, "ResidualBasedCentralDiferencesStrategy")
+    .def(py::init< ModelPart&, Constraint_Enforcement, int, double, double, double, double,  bool, bool, bool, LinearSolverType::Pointer, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer>())
     .def("Initialize", &ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Initialize)
     .def("ComputeCriticalTime",  &ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >::ComputeCriticalTime)
     .def("SetFractionDeltaTime", &ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >::ChangeFractionDeltaTime)
@@ -209,120 +204,99 @@ void  AddCustomStrategiesToPython()
     ;
 
 
-    class_< ResidualBasedPredictorCorrectorBossakRotationSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "ResidualBasedPredictorCorrectorBossakRotationScheme", init< double >()
-            );
+    py::class_< ResidualBasedPredictorCorrectorBossakRotationSchemeType, BaseSchemeType >
+    (m, "ResidualBasedPredictorCorrectorBossakRotationScheme")
+    .def(py::init< double >());
 
     typedef ResidualBasedPredictorCorrectorRelaxationScheme< SparseSpaceType,
             LocalSpaceType > ResidualBasedPredictorCorrectorRelaxationSchemeType;
 
-    class_< ResidualBasedPredictorCorrectorRelaxationSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "ResidualBasedPredictorCorrectorRelaxationScheme", init< double, double >()
-            );
+    py::class_< ResidualBasedPredictorCorrectorRelaxationSchemeType, BaseSchemeType >
+    (m, "ResidualBasedPredictorCorrectorRelaxationScheme")
+    .def(py::init< double, double >());
 
-    class_< ResidualBasedNewmarkSchemeType,
-            bases< BaseSchemeType >, boost::noncopyable >
-            (
-                "ResidualBasedNewmarkScheme", init< double >()
-            );
+    py::class_< ResidualBasedNewmarkSchemeType, BaseSchemeType >
+    (m, "ResidualBasedNewmarkScheme")
+    .def(py::init< double >());
 
-// 			class_< TestingSchemeType,
+// 			py::class_< TestingSchemeType,
 // 			bases< BaseSchemeType >,  boost::noncopyable >
 // 					(
-// 					"TestingScheme", init< >()
+// 					"TestingScheme", py::init< >()
 // 					);
 
-    class_< MultiPhaseFlowCriteriaType,
-            bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
-            ("MultiPhaseFlowCriteria", init<double, double >() )
-            ;
-            
-//             class_< ResidualBasedMultiPhaseCriteriaType,
+    py::class_< MultiPhaseFlowCriteriaType, ConvergenceCriteriaBaseType >
+    (m, "MultiPhaseFlowCriteria")
+    .def(py::init<double, double >() );
+
+//             py::class_< ResidualBasedMultiPhaseCriteriaType,
 //             bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
-//             ("ResidualBasedMultiPhaseCriteria", init<double, double >() )
+//             ("ResidualBasedMultiPhaseCriteria", py::init<double, double >() )
 //             ;
 
-            //class_ < MultiPhaseBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
-            //( "MultiPhaseBuilderAndSolver", init<LinearSolverType::Pointer>() )
+            //py::class_ < MultiPhaseBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
+            //( "MultiPhaseBuilderAndSolver", py::init<LinearSolverType::Pointer>() )
             //;
 
 
 
-//            class_< ModalAnalysisBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
+//            py::class_< ModalAnalysisBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
 //                    (
-//                     "ModalAnalysisBuilderAndSolver", init<LinearSolverType::Pointer>()
+//                     "ModalAnalysisBuilderAndSolver", py::init<LinearSolverType::Pointer>()
 //                    );
 
 
 
-//	class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeType,
+//	py::class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeType,
 //			bases< BaseSchemeType >,  boost::noncopyable >
 //					(
-//					"ResidualBasedPredictorCorrectorVelocityBossakScheme", init< double >()
+//					"ResidualBasedPredictorCorrectorVelocityBossakScheme", py::init< double >()
 //					);
 
-    class_< VolumetricSchemeType2D,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "VolumetricScheme2D"
-            )
-            .def("CalculateCauchyStress",&VolumetricSchemeType2D::CalculateCauchyStress)
-            ;
+    py::class_< VolumetricSchemeType2D, BaseSchemeType >
+    (m, "VolumetricScheme2D")
+    .def("CalculateCauchyStress",&VolumetricSchemeType2D::CalculateCauchyStress)
+    ;
 
-    class_< InnerVolumetricSchemeType2D,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "InnerVolumetricScheme2D"
-            );
+    py::class_< InnerVolumetricSchemeType2D, BaseSchemeType >
+    (m, "InnerVolumetricScheme2D");
 
-    class_< InnerVolumetricDynamicSchemeType2D,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "InnerVolumetricDynamicScheme2D"
-            );
+    py::class_< InnerVolumetricDynamicSchemeType2D, BaseSchemeType >
+    (m, "InnerVolumetricDynamicScheme2D");
 
-    class_< CompositSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "CompositScheme", init< BaseSchemeType&, BaseSchemeType& >()
-            );
+    py::class_< CompositSchemeType, BaseSchemeType >
+    (m, "CompositScheme")
+    .def(py::init< BaseSchemeType&, BaseSchemeType& >());
 
-    class_< ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
-    ("ResidualBasedArcLenghtStrategy",
-     init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer,
-     unsigned int, unsigned int,double,bool, bool, bool,bool
-     >() )
+    py::class_< ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, BaseSolvingStrategyType >
+    (m, "ResidualBasedArcLenghtStrategy")
+    .def(py::init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, unsigned int, unsigned int,double,bool, bool, bool,bool>())
     ;
 
 
 
-    class_< ResidualBasedNewtonRaphsonLineSearchesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
-    ("ResidualBasedNewtonRaphsonLineSearchesStrategy",
-     init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, unsigned int, unsigned int, double, double, double, double, bool, bool, bool, bool
-     >() )
+    py::class_< ResidualBasedNewtonRaphsonLineSearchesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, BaseSolvingStrategyType >
+    (m, "ResidualBasedNewtonRaphsonLineSearchesStrategy")
+    .def(py::init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, unsigned int, unsigned int, double, double, double, double, bool, bool, bool, bool>() )
     ;
 
 
 
 
-// 			class_<Residual_Displacement_Criteria<SparseSpaceType, LocalSpaceType >,
+// 			py::class_<Residual_Displacement_Criteria<SparseSpaceType, LocalSpaceType >,
 // 			         bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
 // 			         boost::noncopyable >
-// 			        ("ResidualDisplacementCriteria", init< double, double>() );
+// 			        ("ResidualDisplacementCriteria", py::init< double, double>() );
 //
-// 			class_<ResDisCriteria<SparseSpaceType, LocalSpaceType >,
+// 			py::class_<ResDisCriteria<SparseSpaceType, LocalSpaceType >,
 // 			         bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
 // 			         boost::noncopyable >
-// 			        ("ResDisCriteria", init< TResidual,TDisplacement >());
+// 			        ("ResDisCriteria", py::init< TResidual,TDisplacement >());
 
     /*
-    class_< ModalAnalysisBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
+    py::class_< ModalAnalysisBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
             (
-             "ModalAnalysisBuilderAndSolver", init<LinearSolverType::Pointer>()
+             "ModalAnalysisBuilderAndSolver", py::init<LinearSolverType::Pointer>()
             );
     */
 }

@@ -214,6 +214,7 @@ KRATOS_CREATE_VARIABLE(double, SOUND_VELOCITY)
 KRATOS_CREATE_VARIABLE(double, AIR_SOUND_VELOCITY)
 KRATOS_CREATE_VARIABLE(double, WATER_SOUND_VELOCITY)
 KRATOS_CREATE_VARIABLE(double, NODAL_MASS)
+KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(NODAL_INERTIA_TENSOR)
 KRATOS_CREATE_VARIABLE(double, AUX_INDEX)
 KRATOS_CREATE_VARIABLE(double, EXTERNAL_PRESSURE)
 KRATOS_CREATE_VARIABLE(double, VELOCITY_PERIOD)
@@ -442,7 +443,7 @@ KRATOS_CREATE_VARIABLE(TableStreamUtility::Pointer, TABLE_UTILITY )
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
-
+  
 void KratosApplication::RegisterVariables() {
     KratosApplication::RegisterDeprecatedVariables();
     KratosApplication::RegisterC2CVariables();      //TODO: move to application
@@ -769,6 +770,7 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_VARIABLE(WATER_SOUND_VELOCITY)
 
     KRATOS_REGISTER_VARIABLE(NODAL_MASS)
+    KRATOS_REGISTER_VARIABLE(NODAL_INERTIA_TENSOR)
     KRATOS_REGISTER_VARIABLE(AUX_INDEX)
     KRATOS_REGISTER_VARIABLE(EXTERNAL_PRESSURE)
     KRATOS_REGISTER_VARIABLE(BDF_COEFFICIENTS)
