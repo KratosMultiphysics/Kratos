@@ -7,7 +7,9 @@
 //  License:         BSD License
 //                     Kratos default license: kratos/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Pooyan Davand
+//  Collaborators:   Ruben Zorrilla Martinez
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_FIND_INTERSECTED_GEOMETRICAL_OBJECTS_PROCESS_H_INCLUDED )
