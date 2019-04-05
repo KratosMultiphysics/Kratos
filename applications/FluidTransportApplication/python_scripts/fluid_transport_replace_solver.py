@@ -19,7 +19,7 @@ class FluidTransportReplaceSolver(FluidTransportSolver):
     def __init__(self, model, custom_settings):
 
         # TODO check that we can derive from FluidTransportSolver instead of ConvectionDiffusionBaseSolver
-        super(FluidTransportReplaceSolver,self).__init__(model, settings)
+        super(FluidTransportReplaceSolver,self).__init__(model, custom_settings)
 
     def PrepareModelPart(self):
 
@@ -63,6 +63,9 @@ class FluidTransportReplaceSolver(FluidTransportSolver):
             materials_imported = False
         return materials_imported
 
+    def GetComputingModelPart(self):
+        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
+
     #### Specific internal functions ####
 
     def _ValidateSettings(self, settings):
@@ -80,6 +83,7 @@ class FluidTransportReplaceSolver(FluidTransportSolver):
                 "input_filename": "unknown_name",
                 "input_file_label": 0
             },
+            "computing_model_part_name" : "fluid_transport_computing_domain",
             "buffer_size":                        3,
             "echo_level":                         0,
             "clear_storage":                      false,
@@ -113,8 +117,8 @@ class FluidTransportReplaceSolver(FluidTransportSolver):
                 "condition_name" : "FluxCondition"
             },
             "material_import_settings": {
-                "materials_filename": "ThermalMaterials.json"
-            }
+                "materials_filename": "BuoyancyMaterials.json"
+            },
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""]
         }
@@ -125,6 +129,8 @@ class FluidTransportReplaceSolver(FluidTransportSolver):
 
     def _execute_after_reading(self):
         """Prepare computing model part and import constitutive laws. """
+        self.computing_model_part_name = "fluid_transport_computing_domain"
+
         # Auxiliary parameters object for the CheckAndPepareModelProcess
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])

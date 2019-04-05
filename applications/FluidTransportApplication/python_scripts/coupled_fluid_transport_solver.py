@@ -10,7 +10,7 @@ import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
 import KratosMultiphysics.FluidTransportApplication as KratosFluidTransport
 
 # Importing the base class
-from coupled_fluid_transport_solver import CoupledFluidThermalSolver
+from coupled_fluid_thermal_solver import CoupledFluidThermalSolver
 from python_solver import PythonSolver
 
 def CreateSolver(main_model_part, custom_settings):
@@ -25,7 +25,7 @@ class CoupledFluidTransportSolver(CoupledFluidThermalSolver):
         # TODO adapt thermal solver settings to FluidTransportReplaceSolver settings
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type" : "ThermallyCoupled",
+            "solver_type" : "coupled_fluid_transport_solver",
             "domain_size" : -1,
             "echo_level": 0,
             "fluid_solver_settings": {

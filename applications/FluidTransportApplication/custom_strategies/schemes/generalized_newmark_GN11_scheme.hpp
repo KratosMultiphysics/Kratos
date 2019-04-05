@@ -207,7 +207,7 @@ public:
         const double& Time = r_model_part.GetProcessInfo()[TIME];
 
         const double M = 1000.0;
-        const double D = 0.01;
+        const double D = 0.1;
         const double L = 1.0;
 
         #pragma omp parallel for

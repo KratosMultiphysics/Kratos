@@ -16,6 +16,7 @@ import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.FluidTransportApplication as KratosFluidTransport
 
 from fluid_transport_analysis import FluidTransportAnalysis
+from analysis_stage import AnalysisStage
 
 class FluidTransportCouplingAnalysis(FluidTransportAnalysis):
     '''Main script for poromechanics simulations.'''
@@ -26,6 +27,9 @@ class FluidTransportCouplingAnalysis(FluidTransportAnalysis):
         super(FluidTransportCouplingAnalysis,self).__init__(model,parameters)
 
 #TODO if we update processes input in fluid transport interface, this file will not be necessary
+
+    def _CreateProcesses(self, parameter_name, initialization_order):
+        return AnalysisStage._CreateProcesses(self,parameter_name,initialization_order)
 
 if __name__ == '__main__':
     from sys import argv
