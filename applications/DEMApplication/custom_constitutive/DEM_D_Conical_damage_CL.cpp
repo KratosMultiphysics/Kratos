@@ -112,6 +112,7 @@ namespace Kratos {
                                                double indentation,
                                                double previous_indentation,
                                                double ViscoDampingLocalContactForce[3],
+                                               double& cohesive_force,
                                                SphericParticle* element1,
                                                SphericParticle* element2,
                                                bool& sliding,
@@ -253,6 +254,7 @@ namespace Kratos {
                                                       double indentation,
                                                       double previous_indentation,
                                                       double ViscoDampingLocalContactForce[3],
+                                                      double& cohesive_force,
                                                       SphericParticle* const element,
                                                       Condition* const wall,
                                                       bool& sliding) {
