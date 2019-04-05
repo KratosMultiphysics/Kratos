@@ -288,8 +288,6 @@ class MonteCarlo(object):
                 self.LaunchEpoch()
                 self.FinalizeMCPhase()
                 self.ScreeningInfoFinalizeMCPhase()
-                if (self.iteration_counter > 3):
-                    stop
         else:
             print("\n","#"*50,"Not running Monte Carlo algorithm","#"*50)
             pass
@@ -416,7 +414,7 @@ class MonteCarlo(object):
             batch_number      : number of working batch
             batch_size        : compute add result for with this size
     """
-    def AddResults(self,simulation_results,batch_number,batch_size=2):
+    def AddResults(self,simulation_results,batch_number,mini_batch_size=4):
         """
         for simulation_result in simulation_results:
             simulation_results_class = simulation_result[0]
@@ -432,10 +430,11 @@ class MonteCarlo(object):
         if (current_level != 0):
             raise Exception("current work level must be = 0 in the Monte Carlo algorithm")
         simulation_results = list(map(lambda x: x[0], simulation_results))
-        for i in range(0, len(simulation_results), batch_size):
-            current_simulations = simulation_results[i:i+batch_size]
+        while (len(simulation_results) >= 1):
+            new_simulations = simulation_results[mini_batch_size:]
+            current_simulations = simulation_results[:mini_batch_size]
             self.QoI.values[batch_number][current_level].append(AddResultsAux_Task(current_level,*current_simulations))
-            # self.QoI.values[batch_number][current_level] = AddResultsAux_Task(current_level,self.QoI.values[batch_number][0],*current_simulations)
+            simulation_results = new_simulations
 
     """
     function initializing the MC phase
@@ -534,7 +533,7 @@ class MonteCarlo(object):
     input:  self: an instance of the class
     """
     def ScreeningInfoFinalizeMCPhase(self):
-        # print("values computed of QoI = ",self.QoI.values)
+        print("values computed of QoI = ",self.QoI.values)
         print("current batches",self.batches_number_samples)
         print("current number of samples = ",self.number_samples)
         print("monte carlo mean and variance QoI estimators = ",self.QoI.h_statistics_1,self.QoI.h_statistics_2)
