@@ -392,8 +392,8 @@ void Orthotropic3D::CalculateCauchyStresses(
     const Vector& rGreenLagrangeStrainVector)
 {
     Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
-    boost::numeric::ublas::bounded_matrix<double,3,3> mstemp;
-    boost::numeric::ublas::bounded_matrix<double,3,3> msaux;
+    BoundedMatrix<double,3,3> mstemp;
+    BoundedMatrix<double,3,3> msaux;
     double J = MathUtils<double>::Det3( rF );
 
     noalias(mstemp) = prod(rF,S);

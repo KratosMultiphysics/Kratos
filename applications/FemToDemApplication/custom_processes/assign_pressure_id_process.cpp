@@ -47,13 +47,14 @@ void AssignPressureIdProcess::Execute()
     }
 }
 
-void AssignPressureIdProcess::AssignPressureIdToNodes(std::string rSubModelPartName, const int PressureId)
+void AssignPressureIdProcess::AssignPressureIdToNodes(
+    std::string rSubModelPartName, 
+    const int PressureId
+    )
 {
     // Loop over nodes of that submodel to assign prressure id
-    for (ModelPart::NodeIterator it = mr_model_part.GetSubModelPart(rSubModelPartName).NodesBegin();
-         it != mr_model_part.GetSubModelPart(rSubModelPartName).NodesEnd();
-         ++it) {
-
+    for (auto it = mr_model_part.GetSubModelPart(rSubModelPartName).NodesBegin(); 
+      it != mr_model_part.GetSubModelPart(rSubModelPartName).NodesEnd(); ++it) {
 		(*it).SetValue(PRESSURE_ID, PressureId);
     }
 }
