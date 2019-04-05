@@ -1,24 +1,29 @@
 ﻿from __future__ import print_function, absolute_import, division
 
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.MetisApplication as KratosMetis
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
+
+# Importing unittest
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+# Importing kratos_utilities
 import kratos_utilities
 
+# Importing os
+import os
 
 def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
-
 
 class TestMPICommunicator(KratosUnittest.TestCase):
 
     def tearDown(self):
         if KratosMPI.mpi.rank == 0:
             kratos_utilities.DeleteFileIfExisting("test_mpi_communicator.time")
-        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(KratosMPI.mpi.rank)+".mdpa")
-        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(KratosMPI.mpi.rank)+".time")
+        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_" + str(KratosMPI.mpi.rank) + ".mdpa")
+        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_" + str(KratosMPI.mpi.rank) + ".time")
         KratosMPI.mpi.world.barrier()
 
     def _read_model_part_mpi(self,main_model_part):
@@ -48,7 +53,7 @@ class TestMPICommunicator(KratosUnittest.TestCase):
             partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
             partitioner.Execute()
 
-            print("Metis divide finished.")
+            KratosMultiphysics.Logger.PrintInfo("TestMPICommunicator", "Metis divide finished.")
 
         KratosMPI.mpi.world.barrier()
 
@@ -68,10 +73,9 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         self.assertTrue(main_model_part.HasSubModelPart("Skin"))
         skin_sub_model_part = main_model_part.GetSubModelPart("Skin")
 
-
     def test_assemble_variable_in_model_part(self):
-        current_model = KratosMultiphysics.Model()
-        main_model_part = current_model.CreateModelPart("MainModelPart")
+        model = KratosMultiphysics.Model()
+        main_model_part = model.CreateModelPart("MainModelPart")
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
 
         self._read_model_part_mpi(main_model_part)
@@ -115,10 +119,9 @@ class TestMPICommunicator(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), expected_values[node.Id])
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), expected_values[node.Id])
 
-
     def test_assemble_variable_in_sub_model_part(self):
-        current_model = KratosMultiphysics.Model()
-        main_model_part = current_model.CreateModelPart("MainModelPart")
+        model = KratosMultiphysics.Model()
+        main_model_part = model.CreateModelPart("MainModelPart")
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
 
         self._read_model_part_mpi(main_model_part)
@@ -173,12 +176,104 @@ class TestMPICommunicator(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 2.0)
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 2.0)
 
-
-
     #def test_model_part_io_properties_block(self):
     #    model_part = ModelPart("Main")
     #    model_part_io = ModelPartIO("test_model_part_io")
     #    model_part_io.ReadProperties(model_part.Properties)
+
+    def test_mpi_CommunicatorMyPID(self):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Test_model_part",1)
+        KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(model_part)
+        #self.assertEqual(model_part.GetCommunicator().MyPID(), 0)
+
+    def test_mpi_CommunicatorTotalProcesses(self):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Test_model_part",1)
+        KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(model_part)
+        #self.assertEqual(model_part.GetCommunicator().TotalProcesses(), 1)
+
+    def test_mpi_CommunicatorGetNumberOfColors(self):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Test_model_part",1)
+        KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(model_part)
+        #self.assertEqual(model_part.GetCommunicator().GetNumberOfColors(), 1)
+
+    def test_mpi_CommunicatorSumAll(self):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Test_model_part",1)
+        KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(model_part)
+        a = 0
+        self.assertEqual(model_part.GetCommunicator().SumAll(a), a)
+        b = 0.0
+        self.assertEqual(model_part.GetCommunicator().SumAll(b), b)
+        c = KratosMultiphysics.Array3()
+        c[0] = 0.0
+        c[1] = 0.0
+        c[2] = 0.0
+        d = model_part.GetCommunicator().SumAll(c)
+        for i in range(3):
+            self.assertEqual(d[i], 0.0)
+
+    def test_mpi_CommunicatorMinAll(self):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Test_model_part",1)
+        KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(model_part)
+        a = 0
+        self.assertEqual(model_part.GetCommunicator().MinAll(a), a)
+        b = 0.0
+        self.assertEqual(model_part.GetCommunicator().MinAll(b), b)
+
+    def test_mpi_CommunicatorMaxAll(self):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Test_model_part",1)
+        KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(model_part)
+        a = 0
+        self.assertEqual(model_part.GetCommunicator().MaxAll(a), a)
+        b = 0.0
+        self.assertEqual(model_part.GetCommunicator().MaxAll(b), b)
+
+    def test_mpi_CommunicatorSynchronizeVariable(self):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Test_model_part",1)
+        KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(model_part)
+        self.assertEqual(model_part.GetCommunicator().SynchronizeVariable(KratosMultiphysics.IS_RESTARTED), True)
+        self.assertEqual(model_part.GetCommunicator().SynchronizeVariable(KratosMultiphysics.DOMAIN_SIZE), True)
+        self.assertEqual(model_part.GetCommunicator().SynchronizeVariable(KratosMultiphysics.TIME), True)
+        self.assertEqual(model_part.GetCommunicator().SynchronizeVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER), True)
+        self.assertEqual(model_part.GetCommunicator().SynchronizeVariable(KratosMultiphysics.RECOVERED_STRESS), True)
+        self.assertEqual(model_part.GetCommunicator().SynchronizeVariable(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR), True)
+
+    def test_mpi_CommunicatorSynchronizeNonHistoricalVariable(self):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Test_model_part",1)
+        KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(model_part)
+        self.assertEqual(model_part.GetCommunicator().SynchronizeNonHistoricalVariable(KratosMultiphysics.IS_RESTARTED), True)
+        self.assertEqual(model_part.GetCommunicator().SynchronizeNonHistoricalVariable(KratosMultiphysics.DOMAIN_SIZE), True)
+        self.assertEqual(model_part.GetCommunicator().SynchronizeNonHistoricalVariable(KratosMultiphysics.TIME), True)
+        self.assertEqual(model_part.GetCommunicator().SynchronizeNonHistoricalVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER), True)
+        self.assertEqual(model_part.GetCommunicator().SynchronizeNonHistoricalVariable(KratosMultiphysics.RECOVERED_STRESS), True)
+        self.assertEqual(model_part.GetCommunicator().SynchronizeNonHistoricalVariable(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR), True)
+
+    def test_mpi_CommunicatorAssembleCurrentData(self):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Test_model_part",1)
+        KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(model_part)
+        self.assertEqual(model_part.GetCommunicator().AssembleCurrentData(KratosMultiphysics.DOMAIN_SIZE), True)
+        self.assertEqual(model_part.GetCommunicator().AssembleCurrentData(KratosMultiphysics.TIME), True)
+        self.assertEqual(model_part.GetCommunicator().AssembleCurrentData(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER), True)
+        self.assertEqual(model_part.GetCommunicator().AssembleCurrentData(KratosMultiphysics.RECOVERED_STRESS), True)
+        self.assertEqual(model_part.GetCommunicator().AssembleCurrentData(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR), True)
+
+    def test_mpi_CommunicatorAssembleNonHistoricalData(self):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Test_model_part",1)
+        KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(model_part)
+        self.assertEqual(model_part.GetCommunicator().AssembleNonHistoricalData(KratosMultiphysics.DOMAIN_SIZE), True)
+        self.assertEqual(model_part.GetCommunicator().AssembleNonHistoricalData(KratosMultiphysics.TIME), True)
+        self.assertEqual(model_part.GetCommunicator().AssembleNonHistoricalData(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER), True)
+        self.assertEqual(model_part.GetCommunicator().AssembleNonHistoricalData(KratosMultiphysics.RECOVERED_STRESS), True)
+        self.assertEqual(model_part.GetCommunicator().AssembleNonHistoricalData(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR), True)
 
 if __name__ == '__main__':
     KratosUnittest.main()
