@@ -24,14 +24,15 @@
 // Project includes
 #include "containers/model.h"
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "includes/kratos_flags.h"
 #include "elements/embedded_nodal_variable_calculation_element_simplex.h"
 #include "linear_solvers/cg_solver.h"
+#include "processes/process.h"
+#include "processes/find_intersected_geometrical_objects_process.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-#include "processes/process.h"
-#include "processes/find_intersected_geometrical_objects_process.h"
 #include "utilities/intersection_utilities.h"
 #include "utilities/variable_utils.h"
 
@@ -64,7 +65,7 @@ mantaining as much as possible the position of the zero of the function prior to
 This is achieved by minimizing the function  ( 1 - norm( gradient( distance ) )**2
 with the restriction that "distance" is a finite elment function
 */
-template< unsigned int TDim, class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver >
+template< std::size_t TDim, class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver >
 class CalculateEmbeddedNodalVariableFromSkinProcess : public Process
 {
 public:
@@ -75,6 +76,12 @@ public:
 
     ///@name Type Definitions
     ///@{
+
+    typedef typename Element::NodeType::Pointer NodePointerType;
+    typedef typename Scheme<TSparseSpace,TDenseSpace>::Pointer SchemePointerType;
+    typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverPointerType;
+    typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::UniquePointer SolvingStrategyPointerType;
+    typedef typename FindIntersectedGeometricalObjectsProcess::Pointer FindIntersectedGeometricalObjectsProcessPointerType;
 
     struct Hash
     {
@@ -95,11 +102,6 @@ public:
     };
 
     typedef std::unordered_map<std::pair<std::size_t, std::size_t>, std::size_t, Hash, KeyEqual> EdgesMapType;
-
-    typedef typename Scheme<TSparseSpace,TDenseSpace>::Pointer SchemePointerType;
-    typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverPointerType;
-    typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::UniquePointer SolvingStrategyPointerType;
-    typedef typename FindIntersectedGeometricalObjectsProcess::Pointer FindIntersectedGeometricalObjectsProcessPointerType;
 
     ///@}
     ///@name Pointer Definitions
@@ -335,7 +337,7 @@ protected:
         KRATOS_TRY
 
         // Compute element intersections
-        this->ComputeIntersectedEdgesValues();
+        this->CalculateIntersections();
 
         Model& current_model = mrBaseModelPart.GetModel();
         if(current_model.HasModelPart(mAuxModelPartName)) {
@@ -350,7 +352,7 @@ protected:
         r_int_elems_model_part.Conditions().clear();
 
         r_int_elems_model_part.SetBufferSize(1);
-        r_int_elems_model_part.SetProperties(mrBaseModelPart.pProperties());
+        r_int_elems_model_part.CreateNewProperties(0, 0);
         r_int_elems_model_part.SetProcessInfo(mrBaseModelPart.pGetProcessInfo());
 
         // Add intersected element nodes
@@ -425,12 +427,12 @@ protected:
                     // Loop the edges
                     for (unsigned int i_edge = 0; i_edge < r_geom.EdgesNumber(); ++i_edge) {
                         // Check if the current edge is already stored
-                        auto &r_edge_geom = edges[i_edge];
-                        const std::size_t i_edge_min_id = (r_edge_geom[0].Id() < r_edge_geom[1].Id()) ? r_edge_geom[0].Id() : r_edge_geom[1].Id();
-                        const std::size_t i_edge_max_id = (r_edge_geom[0].Id() > r_edge_geom[1].Id()) ? r_edge_geom[0].Id() : r_edge_geom[1].Id();
-                        std::pair<std::size_t, std::size_t> i_edges_pair(i_edge_min_id, i_edge_max_id);
+                        auto &r_i_edge_geom = edges[i_edge];
+                        std::pair<std::size_t, std::size_t> i_edge_pair(
+                            (r_i_edge_geom[0].Id() < r_i_edge_geom[1].Id()) ? r_i_edge_geom[0].Id() : r_i_edge_geom[1].Id(),
+                            (r_i_edge_geom[0].Id() > r_i_edge_geom[1].Id()) ? r_i_edge_geom[0].Id() : r_i_edge_geom[1].Id());
 
-                        if (edges_map.find(i_edges_pair) == edges_map.end()) {
+                        if (edges_map.find(i_edge_pair) == edges_map.end()) {
                             // Initialize edge values
                             double i_edge_d = 0.0; // Average normalized distance from lower id. node
                             unsigned int n_int_obj = 0; // Number edge of intersecting entities
@@ -441,8 +443,8 @@ protected:
                                 Point intersection_point;
                                 const int is_intersected = this->ComputeEdgeIntersection(
                                     r_int_obj.GetGeometry(),
-                                    r_edge_geom[0],
-                                    r_edge_geom[1],
+                                    r_i_edge_geom[0],
+                                    r_i_edge_geom[1],
                                     intersection_point);
 
                                 // Compute the variable value in the intersection point
@@ -455,7 +457,7 @@ protected:
                                     for (unsigned int i_node = 0; i_node < r_int_obj.GetGeometry().PointsNumber(); ++i_node) {
                                         i_edge_val += r_int_obj.GetGeometry()[i_node].FastGetSolutionStepValue(mrSkinVariable) * int_obj_N[i_node];
                                     }
-                                    i_edge_d = norm_2(intersection_point - r_edge_geom[0]) / r_edge_geom.Length();
+                                    i_edge_d = norm_2(intersection_point - r_i_edge_geom[0]) / r_i_edge_geom.Length();
                                 }
                             }
 
@@ -466,42 +468,30 @@ protected:
                                 i_edge_d /= n_int_obj;
                                 i_edge_val /= n_int_obj;
 
-                                // TODO: create the element geometry with a template function
+                                // Create a new element with the intersected edge geometry and fake properties
+                                auto p_element = Kratos::make_shared<EmbeddedNodalVariableCalculationElementSimplex<TDim>>(
+                                    new_elem_id,
+                                    this->pSetEdgeElementGeometry(rIntersectedElementsModelPart, r_i_edge_geom, i_edge_pair),
+                                    rIntersectedElementsModelPart.pGetProperties(0));
 
-                                // Create a new element with the intersected edge
-                                // auto p_element = Kratos::make_shared<EmbeddedNodalVariableCalculationElementSimplex<TDim>>(
-                                //     new_elem_id,
-
-                                // Add the new edge element to the hash map
-                                edges_map.insert(std::make_pair(i_edges_pair, new_elem_id));
+                                // Save the edge values in the new element
+                                p_element->SetValue(DISTANCE, i_edge_d);
+                                p_element->SetValue(mrSkinVariable, i_edge_d);
 
                                 // Update the id. counter
                                 new_elem_id++;
+
+                                // Add the new edge element to the hash map
+                                edges_map.insert(std::make_pair(i_edge_pair, new_elem_id));
+
+                                // Add the new edge element to the intersected elements model part
+                                rIntersectedElementsModelPart.Elements().push_back(p_element);
                             }
                         }
                     }
                 }
-
-                // // Add elements
-                // auto p_element = Kratos::make_shared<EmbeddedNodalVariableCalculationElementSimplex<TDim>>(
-                //     it_elem->Id(),
-                //     it_elem->pGetGeometry(),
-                //     it_elem->pGetProperties());
-
-                // // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
-                // p_element->pGetGeometry() = it_elem->pGetGeometry();
-
-                // // Add the new element to the intersected elements model part
-                // rIntersectedElementsModelPart.Elements().push_back(p_element);
             }
         }
-    }
-
-    void ComputeIntersectedEdgesValues()
-    {
-        mpFindIntersectedGeometricalObjectsProcess = Kratos::make_shared<FindIntersectedGeometricalObjectsProcess>(mrBaseModelPart, mrSkinModelPart);
-        mpFindIntersectedGeometricalObjectsProcess->Initialize();
-        mpFindIntersectedGeometricalObjectsProcess->FindIntersections();
     }
 
     ///@}
@@ -538,6 +528,18 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void CalculateIntersections()
+    {
+        mpFindIntersectedGeometricalObjectsProcess = Kratos::make_shared<FindIntersectedGeometricalObjectsProcess>(mrBaseModelPart, mrSkinModelPart);
+        mpFindIntersectedGeometricalObjectsProcess->Initialize();
+        mpFindIntersectedGeometricalObjectsProcess->FindIntersections();
+    }
+
+    void ClearIntersections()
+    {
+        mpFindIntersectedGeometricalObjectsProcess->Clear();
+    }
 
     const Vector SetDistancesVector(ModelPart::ElementIterator ItElem)
     {
@@ -596,8 +598,31 @@ private:
 			KRATOS_ERROR << "Working space dimension value equal to " << work_dim << ". Check your skin geometry implementation." << std::endl;
 		}
 
-		return intersection_flag;
-	}
+        return intersection_flag;
+    }
+
+    Element::GeometryType::Pointer pSetEdgeElementGeometry(
+        ModelPart &rIntersectedElementsModelPart,
+        const Element::GeometryType &rCurrentEdgeGeometry,
+        const std::pair<std::size_t, std::size_t> NewEdgeIds)
+    {
+        Element::GeometryType::PointsArrayType points_array;
+        points_array.push_back(rIntersectedElementsModelPart.pGetNode(std::get<0>(NewEdgeIds)));
+        points_array.push_back(rIntersectedElementsModelPart.pGetNode(std::get<1>(NewEdgeIds)));
+        return rCurrentEdgeGeometry.Create(points_array);
+    }
+
+    // template <>
+    // Element::GeometryType::Pointer CalculateEmbeddedNodalVariableFromSkinProcess<TDim, TVarType, TSparseSpace, TDenseSpace, TLinearSolver>::pSetEdgeElementGeometry<2>()
+    // {
+    //     KRATOS_WATCH("2")
+    // }
+
+    // template<>
+    // Element::GeometryType::Pointer pSetEdgeElementGeometry<3>()
+    // {
+    //     KRATOS_WATCH("3")
+    // }
 
     ///@}
     ///@name Private  Access
@@ -633,13 +658,13 @@ private:
 ///@{
 
 /// input stream function
-template< unsigned int TDim, class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+template< std::size_t TDim, class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
 inline std::istream& operator >> (
     std::istream& rIStream,
     CalculateEmbeddedNodalVariableFromSkinProcess<TDim, TVarType, TSparseSpace, TDenseSpace, TLinearSolver>& rThis);
 
 /// output stream function
-template< unsigned int TDim, class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+template< std::size_t TDim, class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
 inline std::ostream& operator << (
     std::ostream& rOStream,
     const CalculateEmbeddedNodalVariableFromSkinProcess<TDim, TVarType, TSparseSpace, TDenseSpace, TLinearSolver>& rThis)

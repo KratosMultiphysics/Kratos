@@ -15,11 +15,13 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/checks.h"
+#include "linear_solvers/linear_solver.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "processes/calculate_embedded_nodal_variable_from_skin_process.h"
+#include "spaces/ublas_space.h"
 
 namespace Kratos {
 namespace Testing {
@@ -60,7 +62,8 @@ namespace Testing {
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
         typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
         typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-        CalculateEmbeddedNodalVariableFromSkinProcess<2, double, SparseSpaceType, LocalSpaceType, LinearSolverType> emb_nod_var_from_skin_proc(
+        typedef CalculateEmbeddedNodalVariableFromSkinProcess<2, double, SparseSpaceType, LocalSpaceType, LinearSolverType> EmbeddedNodalVariableProcess;
+        EmbeddedNodalVariableProcess emb_nod_var_from_skin_proc(
             fluid_part,
             skin_part,
             TEMPERATURE,
