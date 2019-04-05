@@ -60,6 +60,8 @@ namespace Kratos
     /// Print object's data.
     void NodalData::PrintData(std::ostream& rOStream) const 
     {
+        rOStream << "Id                  : " << mId << std::endl;
+        rOStream << "Solution Steps Data : " << mSolutionStepsNodalData << std::endl;
     }
 
 
