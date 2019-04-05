@@ -70,9 +70,11 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
                 "predict_correct_lagrange_multiplier" : false,
                 "check_gap"                           : "check_mapping",
                 "octree_search_parameters" : {
-                    "bounding_box_factor"    : 0.1,
-                    "debug_obb"              : false,
-                    "OBB_intersection_type"  : "SeparatingAxisTheorem"
+                    "bounding_box_factor"             : 0.1,
+                    "debug_obb"                       : false,
+                    "OBB_intersection_type"           : "SeparatingAxisTheorem",
+                    "lower_bounding_box_coefficient"  : 0.0,
+                    "higher_bounding_box_coefficient" : 1.0
                 }
             },
             "advance_ALM_parameters" : {

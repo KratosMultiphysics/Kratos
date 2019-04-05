@@ -67,6 +67,9 @@ public:
     typedef Point PointType;
 
     /// Definition of the base type
+    typedef FindIntersectedGeometricalObjectsProcess<Condition> BaseProcessType;
+
+    /// Definition of the base type
     typedef FindIntersectedGeometricalObjectsWithOBBProcess<Condition> BaseType;
 
     /// Octree type definition
@@ -165,6 +168,11 @@ protected:
     ///@{
 
     /**
+     * @brief This method sets the Octree bounding box
+     */
+    void SetOctreeBoundingBox() override;
+
+    /**
      * @brief This method marks if intersected
      * @param rCondition1 The entity of interest
      * @param rLeaves The Octree cells vectors
@@ -192,10 +200,12 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
+
+    double mLowerBBCoefficient  = 0.0;
+    double mHigherBBCoefficient = 1.0;
 
     ///@}
     ///@name Private Operations
