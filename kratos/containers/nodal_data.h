@@ -77,17 +77,19 @@ public:
     ///@name Access
     ///@{
 
-
+    /// Returns the Id of the Node. Same as GetId to ensure backward compatibility
     IndexType Id() const
     {
         return mId;
     }
 
+    /// Returns the Id of the Node. 
     IndexType GetId() const
     {
         return mId;
     }
 
+    /// Sets the Id of the Node.
     void SetId(IndexType NewId)
     {
         mId = NewId;
