@@ -63,7 +63,7 @@ namespace Kratos
 /// An element to compute the a nodal variable from an embedded skin
 /**
  */
-template< unsigned int TDim >
+template< class TVarType >
 class EmbeddedNodalVariableCalculationElementSimplex : public Element
 {
 public:
@@ -97,9 +97,6 @@ public:
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    /// Type for shape function values container
-    typedef Kratos::Vector ShapeFunctionsType;
 
     ///@}
     ///@name Life Cycle
@@ -176,7 +173,7 @@ public:
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<EmbeddedNodalVariableCalculationElementSimplex>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_shared<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     void Initialize() override
@@ -187,38 +184,15 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override
-    {
-    }
+        ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(
-        MatrixType &rLeftHandSideVector,
-        ProcessInfo &rCurrentProcessInfo) override
-    {
-        const auto &r_geom = this->GetGeometry();
-
-        // Get the edge intersection points
-
-        // Compute the Gramm matrix
-        // for (unsigned int i = 0; i < TDim + 1; ++i) {
-        //     for (unsigned int j = 0; j < TDim + 1; ++j) {
-        //         for (unsigned int p = 0; p < n_samples; ++p) {
-        //             // Compute shape function values in the intersection points
-        //         }
-        //     }
-        // }
-    }
+        MatrixType &rLeftHandSideMatrix,
+        ProcessInfo &rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(
         VectorType &rRightHandSideVector,
-        ProcessInfo &rCurrentProcessInfo) override
-    {
-        const auto &r_geom = this->GetGeometry();
-
-        // Get the edge intersection points
-
-        // Compute the samples RHS
-    }
+        ProcessInfo &rCurrentProcessInfo) override;
 
     /// Checks the input and that all required Kratos variables have been registered.
     /**
@@ -260,22 +234,13 @@ public:
 
     /// Provides the global indices for each one of this element's local rows
     /**
-     * this determines the elemental equation ID vector for all elemental
-     * DOFs
+     * This determines the elemental equation ID vector for all elemental DOFs
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo) override
-    {
-        // unsigned int number_of_nodes = TDim+1;
-        // if (rResult.size() != number_of_nodes)
-        //     rResult.resize(number_of_nodes, false);
-
-        // for (unsigned int i = 0; i < number_of_nodes; i++)
-        //     rResult[i] = GetGeometry()[i].GetDof(DISTANCE).EquationId();
-    }
+        ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns a list of the element's Dofs
     /**
@@ -284,17 +249,7 @@ public:
      */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo) override
-    {
-        // unsigned int number_of_nodes = TDim+1;
-
-        // if (rElementalDofList.size() != number_of_nodes)
-        //     rElementalDofList.resize(number_of_nodes);
-
-        // for (unsigned int i = 0; i < number_of_nodes; i++)
-        //     rElementalDofList[i] = GetGeometry()[i].pGetDof(DISTANCE);
-    }
-
+        ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -325,11 +280,11 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "EmbeddedNodalVariableCalculationElementSimplex" << TDim << "D";
+        rOStream << "EmbeddedNodalVariableCalculationElementSimplex";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {}
 
     ///@}
@@ -409,6 +364,9 @@ private:
     ///@name Private Operations
     ///@{
 
+    const array_1d<double, 2> GetDistanceBasedShapeFunctionValues();
+
+    Variable<TVarType> GetUnknownVariable();
 
     ///@}
     ///@name Private  Access
@@ -445,19 +403,19 @@ private:
 ///@{
 
 /// input stream function
-template< unsigned int TDim >
-inline std::istream& operator >>(
-    std::istream& rIStream,
-    EmbeddedNodalVariableCalculationElementSimplex<TDim>& rThis)
+template <class TVarType>
+inline std::istream &operator>>(
+    std::istream &rIStream,
+    EmbeddedNodalVariableCalculationElementSimplex<TVarType> &rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template< unsigned int TDim >
-inline std::ostream& operator <<(
-    std::ostream& rOStream,
-    const EmbeddedNodalVariableCalculationElementSimplex<TDim>& rThis)
+template <class TVarType>
+inline std::ostream &operator<<(
+    std::ostream &rOStream,
+    const EmbeddedNodalVariableCalculationElementSimplex<TVarType> &rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

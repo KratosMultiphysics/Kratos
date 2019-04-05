@@ -173,10 +173,6 @@ public:
                 "In 3D the element type is expected to be a tetrahedron" << std::endl;
         }
 
-        // Check if nodes have DISTANCE variable
-        // VariableUtils().CheckVariableExists<Variable<double > >(DISTANCE, base_model_part.Nodes());
-        // VariableUtils().CheckVariableExists<Variable<double > >(FLAG_VARIABLE, base_model_part.Nodes());
-
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         this->ReGenerateIntersectedElementsModelPart();
 
@@ -193,6 +189,8 @@ public:
 
         Model& current_model = mrBaseModelPart.GetModel();
         ModelPart& r_aux_model_part = current_model.GetModelPart(mAuxModelPartName);
+
+        KRATOS_WATCH(r_aux_model_part)
 
         mpSolvingStrategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>(
             r_aux_model_part,
@@ -355,7 +353,12 @@ protected:
         r_int_elems_model_part.CreateNewProperties(0, 0);
         r_int_elems_model_part.SetProcessInfo(mrBaseModelPart.pGetProcessInfo());
 
-        // Add intersected element nodes
+        // Add the minimization problem auxiliary variables
+        this->AddIntersectedElementsVariables(r_int_elems_model_part);
+
+        // Add intersected elements nodes
+        // TODO: CHECK THIS!
+        // TODO: ONLY THE INTERSECTED EDGES NODES ARE REQUIRED
         this->AddIntersectedElementsModelPartNodes(r_int_elems_model_part);
 
         // Add DOFs to intersected elements model part
@@ -364,13 +367,21 @@ protected:
         // Add intersected elements
         this->AddIntersectedElementsModelPartElements(r_int_elems_model_part);
 
-        KRATOS_WATCH(r_int_elems_model_part)
-
         mIntersectedElementsPartIsInitialized = true;
 
         KRATOS_CATCH("")
     }
 
+    inline void AddIntersectedElementsVariables(ModelPart &rIntersectedElementsModelPart)
+    {
+        if (typeid(TVarType) == typeid(double)) {
+            rIntersectedElementsModelPart.AddNodalSolutionStepVariable(NODAL_MAUX);
+        } else {
+            rIntersectedElementsModelPart.AddNodalSolutionStepVariable(NODAL_VAUX);
+        }
+    }
+
+    //TODO: NOW ONLY THE INTERSECTED EDGES NODES ARE REQUIRED. WE ARE ADDING UNUSED EXTRA NODES
     void AddIntersectedElementsModelPartNodes(ModelPart &rIntersectedElementsModelPart)
     {
         // Initialize the VISITED flag in the origin model part
@@ -399,9 +410,13 @@ protected:
 
     void AddIntersectedElementsModelPartDOFs(ModelPart &rIntersectedElementsModelPart)
     {
-        KRATOS_WATCH("DOFs addition is not implemented yet!!!")
-        // TODO: ADD DOFs ACCORDING TO NEW ELEMENT CALCULATION
-        // VariableUtils().AddDof<Variable<double>>(DISTANCE, r_int_elems_model_part);
+        if (typeid(TVarType) == typeid(double)) {
+            VariableUtils().AddDof(NODAL_MAUX, rIntersectedElementsModelPart);
+        } else {
+            VariableUtils().AddDof(NODAL_VAUX_X, rIntersectedElementsModelPart);
+            VariableUtils().AddDof(NODAL_VAUX_Y, rIntersectedElementsModelPart);
+            VariableUtils().AddDof(NODAL_VAUX_Z, rIntersectedElementsModelPart);
+        }
     }
 
     void AddIntersectedElementsModelPartElements(ModelPart &rIntersectedElementsModelPart)
@@ -469,7 +484,7 @@ protected:
                                 i_edge_val /= n_int_obj;
 
                                 // Create a new element with the intersected edge geometry and fake properties
-                                auto p_element = Kratos::make_shared<EmbeddedNodalVariableCalculationElementSimplex<TDim>>(
+                                auto p_element = Kratos::make_shared<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(
                                     new_elem_id,
                                     this->pSetEdgeElementGeometry(rIntersectedElementsModelPart, r_i_edge_geom, i_edge_pair),
                                     rIntersectedElementsModelPart.pGetProperties(0));
@@ -611,18 +626,6 @@ private:
         points_array.push_back(rIntersectedElementsModelPart.pGetNode(std::get<1>(NewEdgeIds)));
         return rCurrentEdgeGeometry.Create(points_array);
     }
-
-    // template <>
-    // Element::GeometryType::Pointer CalculateEmbeddedNodalVariableFromSkinProcess<TDim, TVarType, TSparseSpace, TDenseSpace, TLinearSolver>::pSetEdgeElementGeometry<2>()
-    // {
-    //     KRATOS_WATCH("2")
-    // }
-
-    // template<>
-    // Element::GeometryType::Pointer pSetEdgeElementGeometry<3>()
-    // {
-    //     KRATOS_WATCH("3")
-    // }
 
     ///@}
     ///@name Private  Access
