@@ -20,6 +20,7 @@
 
 // Project includes
 #include "geometries/point.h"
+#include "includes/node.h"
 #include "geometries/geometry.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -79,6 +80,18 @@ public:
     ///@name Type Definitions
     ///@{
 
+    // Node definition
+    typedef Node<3>                NodeType;
+
+    /// Definition of geometries
+    typedef Geometry<NodeType> GeometryType;
+
+    /// Index type definition
+    typedef std::size_t           IndexType;
+
+    /// Size type definition
+    typedef std::size_t            SizeType;
+
     /// Zero tolerance
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
@@ -112,6 +125,16 @@ public:
     OrientedBoundingBox(
         const array_1d<double, 3>& rCenterCoords,
         const array_1d<array_1d<double, 3>, TDim>& rAxisCoordinates
+        );
+
+    /**
+     * @brief Default constructors (with geometry)
+     * @param rGeometry The geometry to be considered to build a OBB
+     * @param BoundingBoxFactor The bounding box factor
+     */
+    OrientedBoundingBox(
+        const GeometryType& rGeometry,
+        const double BoundingBoxFactor
         );
 
     ///Copy constructor  (not really required)
