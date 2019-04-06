@@ -17,8 +17,8 @@ class PotentialFlowFormulation(object):
             element_type = formulation_settings["element_type"].GetString()
             if element_type == "incompressible":
                 self._SetUpIncompressibleElement(formulation_settings)
-            elif element_type == "compressible":
-                self._SetUpCompressibleElement(formulation_settings)
+            elif element_type == "compressible_full":
+                self._SetUpCompressibleFullElement(formulation_settings)
         else:
             raise RuntimeError("Argument \'element_type\' not found in stabilization settings.")
 
@@ -32,13 +32,13 @@ class PotentialFlowFormulation(object):
         self.element_name = "IncompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
 
-    def _SetUpCompressibleElement(self, formulation_settings):
+    def _SetUpCompressibleFullElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "compressible"
+            "element_type": "compressible_full"
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
-        self.element_name = "CompressiblePotentialFlowElement"
+        self.element_name = "CompressibleFullPotentialFlowElement"
         self.condition_name = "CompressiblePotentialWallCondition"
 
 def CreateSolver(model, custom_settings):
@@ -131,7 +131,7 @@ class PotentialFlowSolver(FluidSolver):
                 self.settings["reform_dofs_at_each_step"].GetBool(),
                 self.settings["calculate_solution_norm"].GetBool(),
                 self.settings["move_mesh_flag"].GetBool())
-        elif self.settings["formulation"]["element_type"].GetString()=="compressible":
+        elif self.settings["formulation"]["element_type"].GetString()=="compressible" or self.settings["formulation"]["element_type"].GetString()=="compressible_full":
             time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
             conv_criteria = KratosMultiphysics.DisplacementCriteria(
