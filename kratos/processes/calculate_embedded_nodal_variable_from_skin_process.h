@@ -58,6 +58,73 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+template< class TVarType >
+class EmbeddedNodalVariableFromSkinTypeHelperClass
+{
+public:
+
+    ///@name Type Definitions
+    ///@{
+
+
+    ///@}
+    ///@name Pointer Definitions
+
+    /// Pointer definition of EmbeddedNodalVariableFromSkinTypeHelperClass
+    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedNodalVariableFromSkinTypeHelperClass);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor
+    EmbeddedNodalVariableFromSkinTypeHelperClass() {};
+
+    /// Destructor.
+    ~EmbeddedNodalVariableFromSkinTypeHelperClass() {};
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    static inline const Variable<TVarType> GetUnknownVariable();
+
+    static inline void AddUnknownVariableDofs(ModelPart &rModelPart);
+
+    ///@}
+};
+
+template <>
+inline const Variable<double> EmbeddedNodalVariableFromSkinTypeHelperClass<double>::GetUnknownVariable()
+{
+    return NODAL_MAUX;
+}
+
+template <>
+inline const Variable<array_1d<double,3>> EmbeddedNodalVariableFromSkinTypeHelperClass<array_1d<double,3>>::GetUnknownVariable()
+{
+    return NODAL_VAUX;
+}
+
+template <>
+inline void EmbeddedNodalVariableFromSkinTypeHelperClass<double>::AddUnknownVariableDofs(ModelPart &rModelPart)
+{
+    VariableUtils().AddDof(NODAL_MAUX, rModelPart);
+}
+
+template <>
+inline void EmbeddedNodalVariableFromSkinTypeHelperClass<array_1d<double, 3>>::AddUnknownVariableDofs(ModelPart &rModelPart)
+{
+    VariableUtils().AddDof(NODAL_VAUX_X, rModelPart);
+    VariableUtils().AddDof(NODAL_VAUX_Y, rModelPart);
+    VariableUtils().AddDof(NODAL_VAUX_Z, rModelPart);
+}
+
 /// Short class definition.
 /**takes a model part full of SIMPLICIAL ELEMENTS (triangles and tetras) and recomputes a signed distance function
 mantaining as much as possible the position of the zero of the function prior to the call.
@@ -150,10 +217,10 @@ public:
         const std::string AuxPartName = "IntersectedElementsModelPart")
         : mLevelSetType(LevelSetType),
           mAuxModelPartName(AuxPartName),
-          mrSkinVariable(rSkinVariable),
-          mrEmbeddedNodalVariable(rEmbeddedNodalVariable),
           mrBaseModelPart(rBaseModelPart),
-          mrSkinModelPart(rSkinModelPart)
+          mrSkinModelPart(rSkinModelPart),
+          mrSkinVariable(rSkinVariable),
+          mrEmbeddedNodalVariable(rEmbeddedNodalVariable)
     {
         KRATOS_TRY
 
@@ -309,13 +376,13 @@ protected:
     const std::string mLevelSetType;
     const std::string mAuxModelPartName;
 
+    ModelPart& mrBaseModelPart;
+    ModelPart& mrSkinModelPart;
+
     const Variable<TVarType> mrSkinVariable;
     const Variable<TVarType> mrEmbeddedNodalVariable;
 
     bool mIntersectedElementsPartIsInitialized;
-
-    ModelPart& mrBaseModelPart;
-    ModelPart& mrSkinModelPart;
 
     SolvingStrategyPointerType mpSolvingStrategy;
 
@@ -374,15 +441,8 @@ protected:
 
     inline void AddIntersectedElementsVariables(ModelPart &rIntersectedElementsModelPart)
     {
-        if (typeid(TVarType) == typeid(double)) {
-            rIntersectedElementsModelPart.AddNodalSolutionStepVariable(NODAL_MAUX);
-        } else {
-            rIntersectedElementsModelPart.AddNodalSolutionStepVariable(NODAL_VAUX);
-        }
+        rIntersectedElementsModelPart.AddNodalSolutionStepVariable(EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable());
     }
-
-    template <class TVariableType>
-    inline void AddSpecializedVariable(ModelPart &rIntersectedElementsModelPart, const TVariableType&);
 
     //TODO: NOW ONLY THE INTERSECTED EDGES NODES ARE REQUIRED. WE ARE ADDING UNUSED EXTRA NODES
     void AddIntersectedElementsModelPartNodes(ModelPart &rIntersectedElementsModelPart)
@@ -413,13 +473,7 @@ protected:
 
     void AddIntersectedElementsModelPartDOFs(ModelPart &rIntersectedElementsModelPart)
     {
-        if (typeid(TVarType) == typeid(double)) {
-            VariableUtils().AddDof(NODAL_MAUX, rIntersectedElementsModelPart);
-        } else {
-            VariableUtils().AddDof(NODAL_VAUX_X, rIntersectedElementsModelPart);
-            VariableUtils().AddDof(NODAL_VAUX_Y, rIntersectedElementsModelPart);
-            VariableUtils().AddDof(NODAL_VAUX_Z, rIntersectedElementsModelPart);
-        }
+        EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::AddUnknownVariableDofs(rIntersectedElementsModelPart);
     }
 
     void AddIntersectedElementsModelPartElements(ModelPart &rIntersectedElementsModelPart)
@@ -652,13 +706,6 @@ private:
 
     ///@}
 }; // Class CalculateEmbeddedNodalVariableFromSkinProcess
-
-template <>
-inline void CalculateEmbeddedNodalVariableFromSkinProcess::AddSpecializedVariable(
-    ModelPart &rIntersectedElementsModelPart, const Variable<double>&)
-    {
-
-    }
 
 ///@}
 
