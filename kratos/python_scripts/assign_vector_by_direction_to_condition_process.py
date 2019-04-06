@@ -60,9 +60,10 @@ class AssignVectorByDirectionToConditionProcess(KratosMultiphysics.Process):
                 if settings["interval"][1].GetString() == "End":
                     settings["interval"][1].SetDouble(1e30) # = default_settings["interval"][1]
                 else:
-                    raise Exception("The second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
+                    raise Exception("The second value of interval can be \"End\" or a number, interval currently:" + settings["interval"].PrettyPrintJsonString())
 
         settings.ValidateAndAssignDefaults(default_settings)
+
         self.model_part = Model[settings["model_part_name"].GetString()]
 
         # Construct the component by component parameter objects
