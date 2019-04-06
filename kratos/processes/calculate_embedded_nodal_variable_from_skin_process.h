@@ -702,7 +702,7 @@ private:
     CalculateEmbeddedNodalVariableFromSkinProcess& operator=(CalculateEmbeddedNodalVariableFromSkinProcess const& rOther);
 
     /// Copy constructor.
-    //CalculateEmbeddedNodalVariableFromSkinProcess(CalculateEmbeddedNodalVariableFromSkinProcess const& rOther);
+    CalculateEmbeddedNodalVariableFromSkinProcess(CalculateEmbeddedNodalVariableFromSkinProcess const& rOther) = delete;
 
     ///@}
 }; // Class CalculateEmbeddedNodalVariableFromSkinProcess
