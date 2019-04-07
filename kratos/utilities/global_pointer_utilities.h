@@ -343,7 +343,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    DataCommunicator& mrDataCommunicator;
+    const DataCommunicator& mrDataCommunicator;
 
     template< class TIteratorType >
     bool IteratorIsLocal(TIteratorType& it, const int CurrentRank)

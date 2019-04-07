@@ -81,7 +81,7 @@ public:
      */
     static std::vector<int> ComputeRecvList(
         const std::vector<int>& rLocalDestinationIds,
-        DataCommunicator& rComm
+        const DataCommunicator& rComm
     );
 
     /** This function colors communications so to allow syncronous mpi communications
@@ -101,7 +101,7 @@ public:
      */
     static std::vector<int> ComputeCommunicationScheduling(
         const std::vector<int>& rLocalDestinationIds,
-        DataCommunicator& rComm
+        const DataCommunicator& rComm
     );
 
 
