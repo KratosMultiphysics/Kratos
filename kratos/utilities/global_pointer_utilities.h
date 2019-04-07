@@ -98,7 +98,8 @@ public:
             const auto it = container.find(id);
             if( it != container.end()) //found locally
             {
-                if(container[id].FastGetSolutionStepValue(PARTITION_INDEX) == current_rank)
+                //if(container[id].FastGetSolutionStepValue(PARTITION_INDEX) == current_rank)
+                if(IteratorIsLocal(it, current_rank))
                     global_pointers_list.emplace(id,GlobalPointer< TDataType >(&*it, current_rank));
                 else //remote, but this is a lucky case since for those we know to which rank they  they belong
                     remote_ids.push_back(id); //TODO: optimize according to the comment just above
@@ -344,6 +345,20 @@ private:
     ///@{
     DataCommunicator& mrDataCommunicator;
 
+    template< class TIteratorType >
+    bool IteratorIsLocal(TIteratorType& it, const int CurrentRank)
+    {
+        return true; //if the iterator was found, then it is local!
+    }
+
+    //particularizing to the case of nodes
+    bool IteratorIsLocal(ModelPart::NodesContainerType::iterator& it, const int CurrentRank)
+    {
+        if(it->FastGetSolutionStepValue(PARTITION_INDEX) == CurrentRank)
+            return true;
+        else
+            return false;        
+    }
 
     ///@}
     ///@name Private Operators
@@ -388,7 +403,8 @@ private:
             const auto it = container.find(id);
             if( it != container.end()) //found locally
             {
-                if(it->FastGetSolutionStepValue(PARTITION_INDEX) == current_rank)
+                //if(it->FastGetSolutionStepValue(PARTITION_INDEX) == current_rank)
+                if(IteratorIsLocal(it, current_rank))
                     extracted_list.emplace(id, GlobalPointer< TDataType >(&*it, current_rank));
             }
         }
