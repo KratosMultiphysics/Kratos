@@ -242,7 +242,6 @@ void LineLoadCondition2D::CalculateAndSubKp(
     KRATOS_TRY
 
     Matrix Kij( 2, 2 );
-
     const auto& r_properties = GetProperties();
     const double h0 = r_properties.Has(THICKNESS) ? r_properties.GetValue(THICKNESS): 1.0;
     BoundedMatrix<double, 2, 2> Cross_gn;
