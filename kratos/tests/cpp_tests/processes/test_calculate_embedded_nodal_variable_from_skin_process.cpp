@@ -36,15 +36,17 @@ namespace Testing {
         fluid_part.CreateNewNode(1, 0.0, 0.0, 0.0);
         fluid_part.CreateNewNode(2, 1.0, 0.0, 0.0);
         fluid_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+        fluid_part.CreateNewNode(4, 1.0, 1.0, 0.0);
         Properties::Pointer p_properties_0(new Properties(0));
         fluid_part.CreateNewElement("Element2D3N", 1, {1, 2, 3}, p_properties_0);
+        fluid_part.CreateNewElement("Element2D3N", 2, {2, 4, 3}, p_properties_0);
 
         // Generate the skin
         const double plane_height = 0.5;
         ModelPart &skin_part = current_model.CreateModelPart("Skin");
         skin_part.AddNodalSolutionStepVariable(TEMPERATURE);
         skin_part.CreateNewNode(1, -1.0, plane_height, 0.0);
-        skin_part.CreateNewNode(2,  1.0, plane_height, 0.0);
+        skin_part.CreateNewNode(2,  0.6, plane_height, 0.0);
         Properties::Pointer p_properties_1(new Properties(1));
         skin_part.CreateNewElement("Element2D2N", 1, {{1, 2}}, p_properties_1);
 

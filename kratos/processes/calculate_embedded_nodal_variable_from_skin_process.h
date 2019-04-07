@@ -94,6 +94,8 @@ public:
 
     static inline const Variable<TVarType> GetUnknownVariable();
 
+    static inline void AddUnknownVariable(ModelPart &rModelPart);
+
     static inline void AddUnknownVariableDofs(ModelPart &rModelPart);
 
     ///@}
@@ -109,6 +111,18 @@ template <>
 inline const Variable<array_1d<double,3>> EmbeddedNodalVariableFromSkinTypeHelperClass<array_1d<double,3>>::GetUnknownVariable()
 {
     return NODAL_VAUX;
+}
+
+template <>
+inline void EmbeddedNodalVariableFromSkinTypeHelperClass<double>::AddUnknownVariable(ModelPart &rModelPart)
+{
+    rModelPart.AddNodalSolutionStepVariable(NODAL_MAUX);
+}
+
+template <>
+inline void EmbeddedNodalVariableFromSkinTypeHelperClass<array_1d<double,3>>::AddUnknownVariable(ModelPart &rModelPart)
+{
+    rModelPart.AddNodalSolutionStepVariable(NODAL_VAUX);
 }
 
 template <>
@@ -257,8 +271,6 @@ public:
         Model& current_model = mrBaseModelPart.GetModel();
         ModelPart& r_aux_model_part = current_model.GetModelPart(mAuxModelPartName);
 
-        KRATOS_WATCH(r_aux_model_part)
-
         mpSolvingStrategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>(
             r_aux_model_part,
             p_scheme,
@@ -269,6 +281,8 @@ public:
             calculate_norm_dx);
 
         mpSolvingStrategy->Check();
+
+        KRATOS_WATCH(r_aux_model_part)
 
         KRATOS_CATCH("")
     }
@@ -426,58 +440,62 @@ protected:
         // Add intersected elements nodes
         // TODO: CHECK THIS!
         // TODO: ONLY THE INTERSECTED EDGES NODES ARE REQUIRED
-        this->AddIntersectedElementsModelPartNodes(r_int_elems_model_part);
-
-        // Add DOFs to intersected elements model part
-        this->AddIntersectedElementsModelPartDOFs(r_int_elems_model_part);
+        // this->AddIntersectedElementsModelPartNodes(r_int_elems_model_part);
 
         // Add intersected elements
         this->AddIntersectedElementsModelPartElements(r_int_elems_model_part);
+
+        // Add DOFs to intersected elements model part
+        this->AddIntersectedElementsModelPartDOFs(r_int_elems_model_part);
 
         mIntersectedElementsPartIsInitialized = true;
 
         KRATOS_CATCH("")
     }
 
-    inline void AddIntersectedElementsVariables(ModelPart &rIntersectedElementsModelPart)
+    inline void AddIntersectedElementsVariables(ModelPart &rModelPart)
     {
-        rIntersectedElementsModelPart.AddNodalSolutionStepVariable(EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable());
+        EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::AddUnknownVariable(rModelPart);
     }
 
-    //TODO: NOW ONLY THE INTERSECTED EDGES NODES ARE REQUIRED. WE ARE ADDING UNUSED EXTRA NODES
-    void AddIntersectedElementsModelPartNodes(ModelPart &rIntersectedElementsModelPart)
+    // //TODO: NOW ONLY THE INTERSECTED EDGES NODES ARE REQUIRED. WE ARE ADDING UNUSED EXTRA NODES
+    // void AddIntersectedElementsModelPartNodes(ModelPart &rModelPart)
+    // {
+    //     // Initialize the VISITED flag in the origin model part
+    //     VariableUtils().SetFlag(VISITED, false, mrBaseModelPart.Nodes());
+
+    //     // Add the nodes belonging to intersected elements
+    //     for (unsigned int i_elem = 0; i_elem < mrBaseModelPart.NumberOfElements(); ++i_elem) {
+    //         auto it_elem = mrBaseModelPart.ElementsBegin() + i_elem;
+    //         auto elem_dist = this->SetDistancesVector(it_elem);
+    //         // Check if the current element is split
+    //         if (IsSplit(elem_dist)) {
+    //             auto &r_geom = it_elem->GetGeometry();
+    //             for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+    //                 r_geom[i_node].Set(VISITED, true);
+    //             }
+    //         }
+    //     }
+
+    //     for (unsigned int i_node = 0; i_node < mrBaseModelPart.NumberOfNodes(); ++i_node) {
+    //         auto it_node = mrBaseModelPart.NodesBegin() + i_node;
+    //         if (it_node->Is(VISITED)) {
+    //             rModelPart.AddNode(mrBaseModelPart.pGetNode(it_node->Id()));
+    //         }
+    //     }
+    // }
+
+    void AddIntersectedElementsModelPartDOFs(ModelPart &rModelPart)
+    {
+        EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::AddUnknownVariableDofs(rModelPart);
+    }
+
+    void AddIntersectedElementsModelPartElements(ModelPart &rModelPart)
     {
         // Initialize the VISITED flag in the origin model part
+        // It will be used to mark the nodes already added to the intersected elements model part
         VariableUtils().SetFlag(VISITED, false, mrBaseModelPart.Nodes());
 
-        // Add the nodes belonging to intersected elements
-        for (unsigned int i_elem = 0; i_elem < mrBaseModelPart.NumberOfElements(); ++i_elem) {
-            auto it_elem = mrBaseModelPart.ElementsBegin() + i_elem;
-            auto elem_dist = this->SetDistancesVector(it_elem);
-            // Check if the current element is split
-            if (IsSplit(elem_dist)) {
-                auto &r_geom = it_elem->GetGeometry();
-                for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-                    r_geom[i_node].Set(VISITED, true);
-                }
-            }
-        }
-
-        for (unsigned int i_node = 0; i_node < mrBaseModelPart.NumberOfNodes(); ++i_node) {
-            auto it_node = mrBaseModelPart.NodesBegin() + i_node;
-            if (it_node->Is(VISITED)) {
-                rIntersectedElementsModelPart.AddNode(mrBaseModelPart.pGetNode(it_node->Id()));
-            }
-        }
-    }
-
-    void AddIntersectedElementsModelPartDOFs(ModelPart &rIntersectedElementsModelPart)
-    {
-        EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::AddUnknownVariableDofs(rIntersectedElementsModelPart);
-    }
-
-    void AddIntersectedElementsModelPartElements(ModelPart &rIntersectedElementsModelPart)
-    {
         // Create element edges map
         EdgesMapType edges_map;
 
@@ -500,9 +518,7 @@ protected:
                     for (unsigned int i_edge = 0; i_edge < r_geom.EdgesNumber(); ++i_edge) {
                         // Check if the current edge is already stored
                         auto &r_i_edge_geom = edges[i_edge];
-                        std::pair<std::size_t, std::size_t> i_edge_pair(
-                            (r_i_edge_geom[0].Id() < r_i_edge_geom[1].Id()) ? r_i_edge_geom[0].Id() : r_i_edge_geom[1].Id(),
-                            (r_i_edge_geom[0].Id() > r_i_edge_geom[1].Id()) ? r_i_edge_geom[0].Id() : r_i_edge_geom[1].Id());
+                        auto i_edge_pair = this->SetEdgePair(r_i_edge_geom);
 
                         if (edges_map.find(i_edge_pair) == edges_map.end()) {
                             // Initialize edge values
@@ -540,11 +556,14 @@ protected:
                                 i_edge_d /= n_int_obj;
                                 i_edge_val /= n_int_obj;
 
+                                // If not added yet, add the edge nodes
+                                this->AddEdgeNodes(r_i_edge_geom, rModelPart);
+
                                 // Create a new element with the intersected edge geometry and fake properties
                                 auto p_element = Kratos::make_shared<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(
                                     new_elem_id,
-                                    this->pSetEdgeElementGeometry(rIntersectedElementsModelPart, r_i_edge_geom, i_edge_pair),
-                                    rIntersectedElementsModelPart.pGetProperties(0));
+                                    this->pSetEdgeElementGeometry(rModelPart, r_i_edge_geom, i_edge_pair),
+                                    rModelPart.pGetProperties(0));
 
                                 // Save the edge values in the new element
                                 p_element->SetValue(DISTANCE, i_edge_d);
@@ -557,7 +576,7 @@ protected:
                                 edges_map.insert(std::make_pair(i_edge_pair, new_elem_id));
 
                                 // Add the new edge element to the intersected elements model part
-                                rIntersectedElementsModelPart.Elements().push_back(p_element);
+                                rModelPart.Elements().push_back(p_element);
                             }
                         }
                     }
@@ -673,16 +692,41 @@ private:
         return intersection_flag;
     }
 
+    void AddEdgeNodes(
+        const Geometry<Node<3>> &rEdgeGeometry,
+        ModelPart &rModelPart)
+    {
+        // Loop the edge nodes
+        for (std::size_t i = 0; i < 2; ++i) {
+            auto p_i_node = rEdgeGeometry(i);
+            // Check if the node has been already added
+            if (!p_i_node->Is(VISITED)) {
+                p_i_node->Set(VISITED, true);
+                const auto new_id = p_i_node->Id();
+                Node<3>::Pointer p_new_node = rModelPart.CreateNewNode(new_id, *p_i_node);
+            }
+        }
+    }
+
     Element::GeometryType::Pointer pSetEdgeElementGeometry(
-        ModelPart &rIntersectedElementsModelPart,
+        ModelPart &rModelPart,
         const Element::GeometryType &rCurrentEdgeGeometry,
         const std::pair<std::size_t, std::size_t> NewEdgeIds)
     {
         Element::GeometryType::PointsArrayType points_array;
-        points_array.push_back(rIntersectedElementsModelPart.pGetNode(std::get<0>(NewEdgeIds)));
-        points_array.push_back(rIntersectedElementsModelPart.pGetNode(std::get<1>(NewEdgeIds)));
+        points_array.push_back(rModelPart.pGetNode(std::get<0>(NewEdgeIds)));
+        points_array.push_back(rModelPart.pGetNode(std::get<1>(NewEdgeIds)));
         return rCurrentEdgeGeometry.Create(points_array);
     }
+
+    inline std::pair<std::size_t, std::size_t> SetEdgePair(const Geometry<Node<3>> &rEdgeGeom)
+    {
+        std::pair<std::size_t, std::size_t> edge_pair(
+            (rEdgeGeom[0].Id() < rEdgeGeom[1].Id()) ? rEdgeGeom[0].Id() : rEdgeGeom[1].Id(),
+            (rEdgeGeom[0].Id() > rEdgeGeom[1].Id()) ? rEdgeGeom[0].Id() : rEdgeGeom[1].Id());
+        return edge_pair;
+    }
+
 
     ///@}
     ///@name Private  Access
