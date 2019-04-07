@@ -111,7 +111,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
     double det;
     Vector vector_J;
 
-    #pragma omp parallel for firstprivate(det, vector_J)
+    #pragma omp parallel for private(det, vector_J)
     for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
         auto it_elem = it_elem_begin + i;
 
