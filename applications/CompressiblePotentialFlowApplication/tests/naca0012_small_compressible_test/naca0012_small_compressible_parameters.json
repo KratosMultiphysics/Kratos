@@ -14,9 +14,8 @@
             "input_type"     : "mdpa",
             "input_filename" : "naca0012_small"
         },
-        "element_replace_settings": {
-                    "element_name":"CompressiblePotentialFlowElement",
-                    "condition_name": "PotentialWallCondition"
+        "formulation": {
+                    "element_type":"compressible"
         },
         "maximum_iterations"     : 10,
         "echo_level"             : 0,
