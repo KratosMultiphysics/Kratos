@@ -213,6 +213,8 @@ void LineLoadCondition2D::CalculateAll(
         for (IndexType ii = 0; ii < number_of_nodes; ++ii) {
             if( r_geometry[ii].SolutionStepsDataHas( LINE_LOAD ) ) {
                 noalias(gauss_load) += ( rNcontainer( point_number, ii )) * r_geometry[ii].FastGetSolutionStepValue( LINE_LOAD );
+            } else if( r_geometry[ii].Has( LINE_LOAD ) ) {
+                noalias(gauss_load) += ( rNcontainer( point_number, ii )) * r_geometry[ii].GetValue( LINE_LOAD );
             }
         }
 
