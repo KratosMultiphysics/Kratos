@@ -188,7 +188,7 @@ void LineLoadCondition2D::CalculateAll(
             noalias(tangent_eta) = this->GetValue(LOCAL_AXIS_2);
         }
 
-        MathUtils<double>::UnitCrossProduct(normal, tangent_eta, tangent_xi);
+        MathUtils<double>::UnitCrossProduct(normal, tangent_xi, tangent_eta);
 
         // Calculating the pressure on the gauss point
         double gauss_pressure = 0.0;
