@@ -35,7 +35,7 @@
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup Kratos MPI Core
 ///@{
 
 ///@name Kratos Globals
@@ -229,7 +229,7 @@ protected:
     ///@name Protected static Member Variables
     ///@{
     std::unordered_map<int, GlobalPointersVector< TPointerDataType > > mNonLocalPointers;
-    DataCommunicator& mrDataCommunicator;
+    const DataCommunicator& mrDataCommunicator;
 
 
     ///@}
