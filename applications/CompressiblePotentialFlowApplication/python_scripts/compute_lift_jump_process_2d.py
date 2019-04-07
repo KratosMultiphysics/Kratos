@@ -1,7 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 from KratosMultiphysics.CompressiblePotentialFlowApplication.define_wake_process_2d import DefineWakeProcess2D as DefineWakeProcess2D
-import math
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
@@ -49,7 +48,7 @@ class ComputeLiftJumpProcess2D(DefineWakeProcess2D):
         else:
             potential_jump_phi_minus_psi_te = node_auxiliary_velocity_potential_te - node_velocity_potential_te
         Cl_te = 2*potential_jump_phi_minus_psi_te/self.velocity_infinity[0]
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftJumpProcess2D','potential jump Phi - Psi (trailing edge node) = ', potential_jump_phi_minus_psi_te, '=> CL = ',Cl_te)
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftJumpProcess2D','Potential Jump: Phi - Psi (at trailing edge node) = ', potential_jump_phi_minus_psi_te, '=> CL = ',Cl_te)
 
         if self.create_output_file:
              with open("cl_jump.dat", 'w') as cl_file:
