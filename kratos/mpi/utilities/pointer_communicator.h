@@ -66,7 +66,7 @@ public:
         GlobalPointersUnorderedMap< TPointerDataType, TSendType > NonLocalData,
         std::function< TSendType(GlobalPointer<TPointerDataType>&) > user_function
     ):
-        mcurrent_rank(current_rank), mNonLocalData(NonLocalData), muser_function(user_function)
+        mCurrentRank(current_rank), mNonLocalData(NonLocalData), mUserFunction(user_function)
     {}
 
     /// Destructor.
@@ -77,16 +77,16 @@ public:
      */
     TSendType Get(GlobalPointer<TPointerDataType>& gp)
     {
-        if(gp.GetRank() == mcurrent_rank)
-            return muser_function(gp);
+        if(gp.GetRank() == mCurrentRank)
+            return mUserFunction(gp);
         else
             return mNonLocalData[gp];
     }
 
 private:
-    const int mcurrent_rank;
+    const int mCurrentRank;
     GlobalPointersUnorderedMap< TPointerDataType, TSendType > mNonLocalData;
-    std::function< TSendType(GlobalPointer<TPointerDataType>&) > muser_function;
+    std::function< TSendType(GlobalPointer<TPointerDataType>&) > mUserFunction;
 
 };
 
@@ -243,10 +243,13 @@ protected:
     template< class TIteratorType >
     void AddPointers( TIteratorType begin, TIteratorType end)
     {
-        const int current_rank = mrDataCommunicator.Rank();
-        for(auto it = begin; it != end; ++it)
-            if(it->GetRank() != current_rank)
-                mNonLocalPointers[it->GetRank()].push_back(*it);
+        if(mrDataCommunicator.IsDistributed())
+        {
+            const int current_rank = mrDataCommunicator.Rank();
+            for(auto it = begin; it != end; ++it)
+                if(it->GetRank() != current_rank)
+                    mNonLocalPointers[it->GetRank()].push_back(*it);
+        }
     }
 
     ///@}
