@@ -39,6 +39,11 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateLeftHandSi
     MatrixType &rLeftHandSideMatrix,
     ProcessInfo &rCurrentProcessInfo)
 {
+    // Check size
+    if (rLeftHandSideMatrix.size1() != 2 || rLeftHandSideMatrix.size2() != 2) {
+        rLeftHandSideMatrix.resize(2, 2, false);
+    }
+
     // Initialize Left Hand Side matrix
     noalias(rLeftHandSideMatrix) = ZeroMatrix(2,2);
 
@@ -58,6 +63,11 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double,3>>::Calcula
     MatrixType &rLeftHandSideMatrix,
     ProcessInfo &rCurrentProcessInfo)
 {
+        // Check size
+    if (rLeftHandSideMatrix.size1() != 6 || rLeftHandSideMatrix.size2() != 6) {
+        rLeftHandSideMatrix.resize(6, 6, false);
+    }
+
     // Initialize Left Hand Side matrix
     noalias(rLeftHandSideMatrix) = ZeroMatrix(6,6);
 
@@ -78,15 +88,21 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateRightHandS
     VectorType &rRigthHandSideVector,
     ProcessInfo &rCurrentProcessInfo)
 {
+    // Check size
+    if (rRigthHandSideVector.size() != 2) {
+        rRigthHandSideVector.resize(2, false);
+    }
+
     // Initialize Left Hand Side matrix
     noalias(rRigthHandSideVector) = ZeroVector(2);
 
     // Get the element shape function values from the normalized distance to node 0
+    const auto data = this->GetValue(NODAL_MAUX);
     const auto N = this->GetDistanceBasedShapeFunctionValues();
 
     // Compute the Gramm matrix
     for (unsigned int i = 0; i < 2; ++i) {
-        rRigthHandSideVector(i) = N[i];
+        rRigthHandSideVector(i) = N[i] * data;
     }
 }
 
@@ -95,16 +111,22 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::Calcul
     VectorType &rRigthHandSideVector,
     ProcessInfo &rCurrentProcessInfo)
 {
+    // Check size
+    if (rRigthHandSideVector.size() != 6) {
+        rRigthHandSideVector.resize(6, false);
+    }
+
     // Initialize Left Hand Side matrix
     noalias(rRigthHandSideVector) = ZeroVector(6);
 
     // Get the element shape function values from the normalized distance to node 0
+    const auto data = this->GetValue(NODAL_VAUX);
     const auto N = this->GetDistanceBasedShapeFunctionValues();
 
     // Compute the Gramm matrix
     for (unsigned int i = 0; i < 2; ++i) {
         for (unsigned int k = 0; k < 3; ++k) {
-            rRigthHandSideVector(i * 3 + k) = N[i];
+            rRigthHandSideVector(i * 3 + k) = N[i] * data[k];
         }
     }
 }
@@ -115,11 +137,12 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::EquationIdVector(
     ProcessInfo &rCurrentProcessInfo)
 {
     if (rResult.size() != 2) {
-        rResult.resize(2);
+        rResult.resize(2, false);
     }
 
+    const auto pos = (this->GetGeometry())[0].GetDofPosition(NODAL_MAUX);
     for (unsigned int i = 0; i < 2; i++) {
-        rResult[i] = GetGeometry()[i].GetDof(NODAL_MAUX).EquationId();
+        rResult[i] = (this->GetGeometry())[i].GetDof(NODAL_MAUX, pos).EquationId();
     }
 }
 
@@ -129,13 +152,15 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::Equati
     ProcessInfo &rCurrentProcessInfo)
 {
     if (rResult.size() != 6) {
-        rResult.resize(6);
+        rResult.resize(6, false);
     }
 
+
+    const auto x_pos = (this->GetGeometry())[0].GetDofPosition(NODAL_VAUX_X);
     for (unsigned int i = 0; i < 2; i++) {
-        rResult[i * 3] = GetGeometry()[i].GetDof(NODAL_VAUX_X).EquationId();
-        rResult[i * 3 + 1] = GetGeometry()[i].GetDof(NODAL_VAUX_Y).EquationId();
-        rResult[i * 3 + 2] = GetGeometry()[i].GetDof(NODAL_VAUX_Z).EquationId();
+        rResult[i * 3] = GetGeometry()[i].GetDof(NODAL_VAUX_X, x_pos).EquationId();
+        rResult[i * 3 + 1] = GetGeometry()[i].GetDof(NODAL_VAUX_Y, x_pos + 1).EquationId();
+        rResult[i * 3 + 2] = GetGeometry()[i].GetDof(NODAL_VAUX_Z, x_pos + 2).EquationId();
     }
 }
 
@@ -149,7 +174,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::GetDofList(
     }
 
     for (unsigned int i = 0; i < 2; i++) {
-        rElementalDofList[i] = GetGeometry()[i].pGetDof(NODAL_MAUX);
+        rElementalDofList[i] = (this->GetGeometry())[i].pGetDof(NODAL_MAUX);
     }
 }
 
@@ -163,9 +188,9 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::GetDof
     }
 
     for (unsigned int i = 0; i < 2; i++) {
-        rElementalDofList[i * 3] = GetGeometry()[i].pGetDof(NODAL_VAUX_X);
-        rElementalDofList[i * 3 + 1] = GetGeometry()[i].pGetDof(NODAL_VAUX_Y);
-        rElementalDofList[i * 3 + 2] = GetGeometry()[i].pGetDof(NODAL_VAUX_Z);
+        rElementalDofList[i * 3] = (this->GetGeometry())[i].pGetDof(NODAL_VAUX_X);
+        rElementalDofList[i * 3 + 1] = (this->GetGeometry())[i].pGetDof(NODAL_VAUX_Y);
+        rElementalDofList[i * 3 + 2] = (this->GetGeometry())[i].pGetDof(NODAL_VAUX_Z);
     }
 }
 

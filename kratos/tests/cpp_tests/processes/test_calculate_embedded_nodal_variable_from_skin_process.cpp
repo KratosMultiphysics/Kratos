@@ -33,6 +33,7 @@ namespace Testing {
         // Generate the element
         ModelPart &fluid_part = current_model.CreateModelPart("Surface");
         fluid_part.AddNodalSolutionStepVariable(DISTANCE);
+        fluid_part.AddNodalSolutionStepVariable(TEMPERATURE);
         fluid_part.CreateNewNode(1, 0.0, 0.0, 0.0);
         fluid_part.CreateNewNode(2, 1.0, 0.0, 0.0);
         fluid_part.CreateNewNode(3, 0.0, 1.0, 0.0);
@@ -49,6 +50,8 @@ namespace Testing {
         skin_part.CreateNewNode(2,  0.6, plane_height, 0.0);
         Properties::Pointer p_properties_1(new Properties(1));
         skin_part.CreateNewElement("Element2D2N", 1, {{1, 2}}, p_properties_1);
+        skin_part.GetNode(1).FastGetSolutionStepValue(TEMPERATURE) = 1.0;
+        skin_part.GetNode(1).FastGetSolutionStepValue(TEMPERATURE) = 2.0;
 
         // Compute the discontinuous distance function
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part);
@@ -69,8 +72,19 @@ namespace Testing {
             fluid_part,
             skin_part,
             TEMPERATURE,
-            DISTANCE,
+            TEMPERATURE,
             "discontinuous");
+
+        emb_nod_var_from_skin_proc.Execute();
+
+        KRATOS_WATCH(fluid_part.GetNode(1).FastGetSolutionStepValue(DISTANCE))
+        KRATOS_WATCH(fluid_part.GetNode(2).FastGetSolutionStepValue(DISTANCE))
+        KRATOS_WATCH(fluid_part.GetNode(3).FastGetSolutionStepValue(DISTANCE))
+        KRATOS_WATCH(fluid_part.GetNode(4).FastGetSolutionStepValue(DISTANCE))
+        KRATOS_WATCH(fluid_part.GetNode(1).FastGetSolutionStepValue(TEMPERATURE))
+        KRATOS_WATCH(fluid_part.GetNode(2).FastGetSolutionStepValue(TEMPERATURE))
+        KRATOS_WATCH(fluid_part.GetNode(3).FastGetSolutionStepValue(TEMPERATURE))
+        KRATOS_WATCH(fluid_part.GetNode(4).FastGetSolutionStepValue(TEMPERATURE))
     }
 
 }  // namespace Testing.

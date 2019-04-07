@@ -104,13 +104,13 @@ public:
 template <>
 inline const Variable<double> EmbeddedNodalVariableFromSkinTypeHelperClass<double>::GetUnknownVariable()
 {
-    return NODAL_MAUX;
+    return KratosComponents<Variable<double>>::Get("NODAL_MAUX");
 }
 
 template <>
 inline const Variable<array_1d<double,3>> EmbeddedNodalVariableFromSkinTypeHelperClass<array_1d<double,3>>::GetUnknownVariable()
 {
-    return NODAL_VAUX;
+    return KratosComponents<Variable<array_1d<double, 3>>>::Get("NODAL_VAUX");
 }
 
 template <>
@@ -313,9 +313,20 @@ public:
     {
         KRATOS_TRY;
 
+        // Generate the intersected edges model part
         if(mIntersectedElementsPartIsInitialized == false) {
             this->ReGenerateIntersectedElementsModelPart();
         }
+        KRATOS_WATCH("BEFORE SOLVE!")
+        Model &current_model = mrBaseModelPart.GetModel();
+        ModelPart &r_aux_model_part = current_model.GetModelPart(mAuxModelPartName);
+        KRATOS_WATCH(r_aux_model_part)
+        // Solver the regression problem
+        mpSolvingStrategy->SetEchoLevel(3);
+        mpSolvingStrategy->Solve();
+
+        // Move the obtained values to the user-defined variable
+        this->SetObtainedEmbeddedNodalValues();
 
         KRATOS_CATCH("")
     }
@@ -327,7 +338,6 @@ public:
         r_distance_model_part.Nodes().clear();
         r_distance_model_part.Elements().clear();
         r_distance_model_part.Conditions().clear();
-        // r_distance_model_part.GetProcessInfo().clear();
         mIntersectedElementsPartIsInitialized = false;
 
         mpSolvingStrategy->Clear();
@@ -453,6 +463,15 @@ protected:
         KRATOS_CATCH("")
     }
 
+    void SetObtainedEmbeddedNodalValues()
+    {
+        const auto &r_int_elems_model_part = (mrBaseModelPart.GetModel()).GetModelPart(mAuxModelPartName);
+        for (auto &r_node : r_int_elems_model_part.Nodes()) {
+            auto &r_emb_nod_val = (mrBaseModelPart.GetNode(r_node.Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable);
+            r_emb_nod_val = r_node.FastGetSolutionStepValue(EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable());
+        }
+    }
+
     inline void AddIntersectedElementsVariables(ModelPart &rModelPart)
     {
         EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::AddUnknownVariable(rModelPart);
@@ -566,8 +585,10 @@ protected:
                                     rModelPart.pGetProperties(0));
 
                                 // Save the edge values in the new element
+                                KRATOS_WATCH(i_edge_d)
+                                KRATOS_WATCH(i_edge_val)
                                 p_element->SetValue(DISTANCE, i_edge_d);
-                                p_element->SetValue(mrSkinVariable, i_edge_d);
+                                p_element->SetValue(EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable(), i_edge_val);
 
                                 // Update the id. counter
                                 new_elem_id++;
