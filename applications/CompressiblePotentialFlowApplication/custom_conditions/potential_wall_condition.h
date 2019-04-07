@@ -58,7 +58,7 @@ namespace Kratos
 
 /// Implements a wall condition for the potential flow formulation
 template <unsigned int TDim, unsigned int TNumNodes = TDim>
-class PotentialWallCondition : public Condition
+class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) PotentialWallCondition : public Condition
 {
 public:
     ///@name Type Definitions
