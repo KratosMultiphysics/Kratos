@@ -113,6 +113,18 @@ public:
         mrDataCommunicator(rComm)
     {
         AddPointers(gp_list.begin(),gp_list.end());
+
+        if(mrDataCommunicator.IsDistributed())
+        {
+            //compute communication plan
+            std::vector<int> send_list;
+            send_list.reserve( mNonLocalPointers.size() );
+            for(auto& it : mNonLocalPointers)
+                send_list.push_back( it.first );
+
+            std::sort(send_list.begin(), send_list.end());
+            mColors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, mrDataCommunicator);
+        }
     }
 
     template< class TIteratorType >
@@ -120,6 +132,18 @@ public:
         mrDataCommunicator(rComm)
     {
         AddPointers(begin,end);
+
+        if(mrDataCommunicator.IsDistributed())
+        {
+            //compute communication plan
+            std::vector<int> send_list;
+            send_list.reserve( mNonLocalPointers.size() );
+            for(auto& it : mNonLocalPointers)
+                send_list.push_back( it.first );
+
+            std::sort(send_list.begin(), send_list.end());
+            mColors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, mrDataCommunicator);
+        }
     }
 
     /// Destructor.
@@ -137,17 +161,9 @@ public:
 
             GlobalPointersUnorderedMap< TPointerDataType, TSendType > non_local_data;
 
-            //compute communication plan
-            std::vector<int> send_list;
-            send_list.reserve( mNonLocalPointers.size() );
-            for(auto& it : mNonLocalPointers)
-                send_list.push_back( it.first );
-
-            std::sort(send_list.begin(), send_list.end());
-            auto colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, mrDataCommunicator);
 
             //sendrecv data
-            for(auto color : colors)
+            for(auto color : mColors)
             {
                 if(color >= 0) //-1 would imply no communication
                 {
@@ -282,6 +298,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    std::vector<int> mColors;
 
 
     ///@}
