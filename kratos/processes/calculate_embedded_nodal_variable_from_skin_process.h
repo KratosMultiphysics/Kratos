@@ -139,13 +139,6 @@ inline void EmbeddedNodalVariableFromSkinTypeHelperClass<array_1d<double, 3>>::A
     VariableUtils().AddDof(NODAL_VAUX_Z, rModelPart);
 }
 
-/// Short class definition.
-/**takes a model part full of SIMPLICIAL ELEMENTS (triangles and tetras) and recomputes a signed distance function
-mantaining as much as possible the position of the zero of the function prior to the call.
-
-This is achieved by minimizing the function  ( 1 - norm( gradient( distance ) )**2
-with the restriction that "distance" is a finite elment function
-*/
 template< class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver >
 class CalculateEmbeddedNodalVariableFromSkinProcess : public Process
 {
@@ -190,34 +183,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /**This process recomputed the distance function mantaining the zero of the existing distance distribution
-     * for this reason the DISTANCE should be initialized to values distinct from zero in at least some portions of the domain
-     * alternatively, the DISTANCE shall be fixed to zero at least on some nodes, and the process will compute a positive distance
-     * respecting that zero
-     * @param base_model_parr - is the model part on the top of which the calculation will be performed
-     * @param plinear_solver  - linear solver to be used internally
-     * @max_iterations        - maximum number of iteration to be employed in the nonlinear optimization process.
-     *                        - can also be set to 0 if a (very) rough approximation is enough
-     *
-     * EXAMPLE OF USAGE FROM PYTHON:
-     *
-     class distance_linear_solver_settings:
-         solver_type = "AMGCL"
-         tolerance = 1E-3
-         max_iteration = 200
-         scaling = False
-         krylov_type = "CG"
-         smoother_type = "SPAI0"
-         verbosity = 0
-
-     import linear_solver_factory
-     distance_linear_solver = linear_solver_factory.ConstructSolver(distance_linear_solver_settings)
-
-     max_iterations=1
-     distance_calculator = CalculateEmbeddedNodalVariableFromSkinProcess2D(fluid_model_part, distance_linear_solver, max_iterations)
-     distance_calculator.Execute()
-     */
-
     CalculateEmbeddedNodalVariableFromSkinProcess(
         ModelPart &rBaseModelPart,
         ModelPart &rSkinModelPart,
@@ -234,56 +199,22 @@ public:
     {
         KRATOS_TRY
 
-        // This will be set to true upon completing ReGenerateIntersectedElementsModelPart
-        mIntersectedElementsPartIsInitialized = false;
-
         // Check that there is at least one element and node in the model
         KRATOS_ERROR_IF(mrBaseModelPart.NumberOfNodes() == 0) << "The model part has no nodes." << std::endl;
         KRATOS_ERROR_IF(mrBaseModelPart.NumberOfElements() == 0) << "The model Part has no elements." << std::endl;
 
         // Check that the base model part is conformed by simplex elements
-        // if(TDim == 2){
-        //     KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) <<
-        //         "In 2D the element type is expected to be a triangle." << std::endl;
-        // } else if(TDim == 3) {
-        //     KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) <<
-        //         "In 3D the element type is expected to be a tetrahedron" << std::endl;
-        // }
-
-        // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
-        this->ReGenerateIntersectedElementsModelPart();
-
-        // Create a linear solver
-        Parameters linear_solver_parameters(R"({
-            "solver_type": "cg_solver",
-            "tolerance": 1.0e-8,
-            "max_iteration": 200,
-            "preconditioner_type": "none",
-            "scaling": false
-        })");
-        auto p_linear_solver = Kratos::make_shared<CGSolver<TSparseSpace, TDenseSpace>>(linear_solver_parameters);
-
-        // Create the linear strategy
-        SchemePointerType p_scheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>>();
-
-        bool calculate_norm_dx = false;
-        bool calculate_reactions = false;
-        bool reform_dof_at_each_iteration = false;
-        BuilderSolverPointerType p_builder_and_solver= Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(p_linear_solver);
-
-        Model& current_model = mrBaseModelPart.GetModel();
-        ModelPart& r_aux_model_part = current_model.GetModelPart(mAuxModelPartName);
-
-        mpSolvingStrategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>(
-            r_aux_model_part,
-            p_scheme,
-            p_linear_solver,
-            p_builder_and_solver,
-            calculate_reactions,
-            reform_dof_at_each_iteration,
-            calculate_norm_dx);
-
-        mpSolvingStrategy->Check();
+        const auto &r_aux_geom = (mrBaseModelPart.ElementsBegin())->GetGeometry();
+        const auto dim = r_aux_geom.Dimension();
+        if(dim == 2){
+            KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::Kratos_Triangle) <<
+                "In 2D the element type is expected to be a triangle." << std::endl;
+        } else if(dim == 3) {
+            KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) <<
+                "In 3D the element type is expected to be a tetrahedron" << std::endl;
+        } else {
+            KRATOS_ERROR << "Wrong geometry Dimension(). Expected 2 or 3 and obtained: " << dim;
+        }
 
         KRATOS_CATCH("")
     }
@@ -314,16 +245,20 @@ public:
     {
         KRATOS_TRY;
 
-        // Generate the intersected edges model part
-        if(mIntersectedElementsPartIsInitialized == false) {
-            this->ReGenerateIntersectedElementsModelPart();
-        }
+        // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
+        this->GenerateIntersectedEdgesElementsModelPart();
+
+        // Set the linear strategy to solve the regression problem
+        this->SetLinearStrategy();
 
         // Solve the regression problem
         mpSolvingStrategy->Solve();
 
         // Move the obtained values to the user-defined variable
         this->SetObtainedEmbeddedNodalValues();
+
+        // Free the memory
+        this->Clear();
 
         KRATOS_CATCH("")
     }
@@ -335,7 +270,6 @@ public:
         r_distance_model_part.Nodes().clear();
         r_distance_model_part.Elements().clear();
         r_distance_model_part.Conditions().clear();
-        mIntersectedElementsPartIsInitialized = false;
 
         mpSolvingStrategy->Clear();
     }
@@ -378,17 +312,6 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-    // /// Minimal constructor for derived classes
-    // CalculateEmbeddedNodalVariableFromSkinProcess(
-    //     ModelPart &base_model_part,
-    //     unsigned int max_iterations,
-    //     Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
-    //     std::string AuxPartName = "RedistanceCalculationPart")
-    //     : mrBaseModelPart(base_model_part), mOptions(Options), mAuxModelPartName(AuxPartName)
-    // {
-    //     mIntersectedElementsPartIsInitialized = false;
-    //     mmax_iterations = max_iterations;
-    // }
 
     ///@}
     ///@name Protected member Variables
@@ -403,8 +326,6 @@ protected:
     const Variable<TVarType> mrSkinVariable;
     const Variable<TVarType> mrEmbeddedNodalVariable;
 
-    bool mIntersectedElementsPartIsInitialized;
-
     SolvingStrategyPointerType mpSolvingStrategy;
 
     FindIntersectedGeometricalObjectsProcessPointerType mpFindIntersectedGeometricalObjectsProcess;
@@ -418,7 +339,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual void ReGenerateIntersectedElementsModelPart()
+    virtual void GenerateIntersectedEdgesElementsModelPart()
     {
         KRATOS_TRY
 
@@ -450,8 +371,6 @@ protected:
         // Add DOFs to intersected elements model part
         this->AddIntersectedElementsModelPartDOFs(r_int_elems_model_part);
 
-        mIntersectedElementsPartIsInitialized = true;
-
         KRATOS_CATCH("")
     }
 
@@ -459,6 +378,7 @@ protected:
     {
         const auto &rUnknownVariable = EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable();
         const auto &r_int_elems_model_part = (mrBaseModelPart.GetModel()).GetModelPart(mAuxModelPartName);
+        #pragma omp parallel for
         for (auto &r_node : r_int_elems_model_part.Nodes()) {
             auto &r_emb_nod_val = (mrBaseModelPart.GetNode(r_node.Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable);
             r_emb_nod_val = r_node.FastGetSolutionStepValue(rUnknownVariable);
@@ -571,6 +491,41 @@ protected:
                 }
             }
         }
+    }
+
+    void SetLinearStrategy()
+    {
+        // Create the CG linear solver (take advantage of the symmetry of the problem)
+        Parameters linear_solver_parameters(R"({
+            "solver_type": "cg_solver",
+            "tolerance": 1.0e-8,
+            "max_iteration": 200,
+            "preconditioner_type": "none",
+            "scaling": false
+        })");
+        auto p_linear_solver = Kratos::make_shared<CGSolver<TSparseSpace, TDenseSpace>>(linear_solver_parameters);
+
+        // Create the linear strategy
+        SchemePointerType p_scheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>>();
+
+        bool calculate_norm_dx = false;
+        bool calculate_reactions = false;
+        bool reform_dof_at_each_iteration = false;
+        BuilderSolverPointerType p_builder_and_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>>(p_linear_solver);
+
+        Model &current_model = mrBaseModelPart.GetModel();
+        ModelPart &r_aux_model_part = current_model.GetModelPart(mAuxModelPartName);
+
+        mpSolvingStrategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>(
+            r_aux_model_part,
+            p_scheme,
+            p_linear_solver,
+            p_builder_and_solver,
+            calculate_reactions,
+            reform_dof_at_each_iteration,
+            calculate_norm_dx);
+
+        mpSolvingStrategy->Check();
     }
 
     ///@}
@@ -714,7 +669,6 @@ private:
             (rEdgeGeom[0].Id() > rEdgeGeom[1].Id()) ? rEdgeGeom[0].Id() : rEdgeGeom[1].Id());
         return edge_pair;
     }
-
 
     ///@}
     ///@name Private  Access
