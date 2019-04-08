@@ -6,7 +6,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 def Factory(settings, Model):
-    if(type(settings) != KM.Parameters):
+    if not isinstance(settings, KM.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return SearchBaseProcess(Model, settings["Parameters"])
 
@@ -51,7 +51,7 @@ class SearchBaseProcess(KM.Process):
             "interval"                    : [0.0,"End"],
             "integration_order"           : 2,
             "search_parameters" : {
-                "type_search"                         : "octree_with_obb",
+                "type_search"                         : "in_radius_with_obb",
                 "simple_search"                       : false,
                 "adapt_search"                        : false,
                 "search_factor"                       : 3.5,

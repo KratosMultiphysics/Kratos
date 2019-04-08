@@ -55,7 +55,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
             "integration_order"           : 2,
             "clear_inactive_for_post"     : true,
             "search_parameters" : {
-                "type_search"                         : "octree_with_obb",
+                "type_search"                         : "in_radius_with_obb",
                 "simple_search"                       : false,
                 "adapt_search"                        : false,
                 "search_factor"                       : 3.5,

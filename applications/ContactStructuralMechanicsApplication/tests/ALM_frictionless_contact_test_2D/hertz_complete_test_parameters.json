@@ -67,7 +67,15 @@
                 "model_part_name" : "LinePressure2D_bc_pressure",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,true],
-                "value"           : [0.0,0.0,0.0]
+                "value"           : [0.0,null,0.0]
+            }
+        },{
+            "python_module" : "impose_rigid_movement_process",
+            "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+            "Parameters"    : {
+                "model_part_name"   : "LinePressure2D_bc_pressure",
+                "master_node_id"    : 3342,
+                "interval"          : [0.0,"End"]
             }
         }],
         "loads_process_list"       : [{
@@ -79,7 +87,7 @@
                 "mesh_id"           : 0,
                 "model_part_name"   : "LinePressure2D_bc_pressure",
                 "variable_name"     : "LINE_LOAD",
-                "direction"			: [0.0, -1.0, 0.0],
+                "direction"         : [0.0, -1.0, 0.0],
                 "modulus"           : "5.0e-1*t/1.1"
             }
         }],
@@ -107,7 +115,7 @@
                 "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
                 "input_file_name"      : "ALM_frictionless_contact_test_2D/hertz_complete_test_results.json",
                 "model_part_name"      : "Contact_Part",
-                "time_frequency"       : 1.00
+                "time_frequency"       : 0.5
             }
         }
         ]
@@ -152,7 +160,7 @@
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/hertz_complete_test_results.json",
             "model_part_name"      : "Contact_Part",
-            "time_frequency"       : 1.00
+            "time_frequency"       : 0.5
         }
     }
     ]
