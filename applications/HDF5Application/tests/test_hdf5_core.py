@@ -1,7 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
 from KratosMultiphysics.HDF5Application import core
-from core import processes, controllers, operations, file_io
+from core import controllers, operations, file_io
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 from unittest.mock import patch, MagicMock
@@ -560,7 +560,7 @@ class TestControllers(KratosUnittest.TestCase):
             io = file_io.Create(KratosMultiphysics.Parameters())
             controller = controllers.Create(
                 model_part, io, controller_settings)
-            for i in range(10):
+            for _ in range(10):
                 controller()
             io.Get.assert_called_with(model_part)
             self.assertEqual(io.Get.call_count, 5)
