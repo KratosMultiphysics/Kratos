@@ -17,7 +17,6 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "inlet_phi": 1.0,
-                "velocity_infinity": [3.4,0.0,0],
                 "mach_infinity": 0.01,
                 "angle_of_attack": 0.0,
                 "density_infinity"  : 1.0,

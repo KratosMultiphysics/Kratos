@@ -37,7 +37,6 @@
             "process_name"  : "FarFieldProcess",
             "Parameters"    : {
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
-                "velocity_infinity" : [102,0.0,0.0],
                 "density_infinity"  : 1.225,
                 "mach_infinity": 0.3,
                 "gamma": 1.4
