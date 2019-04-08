@@ -33,7 +33,8 @@
             "Parameters"    : {
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "inlet_phi"         : 1.0,
-                "mach_infinity": 0.02941176471
+                "mach_infinity": 0.02941176471,
+                "initialize_flow_field": false
             }
         },{
             "python_module" : "define_wake_process_2d",
