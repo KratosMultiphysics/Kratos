@@ -357,12 +357,14 @@ public:
         double& rDamageDissipation,
         const Matrix& rConstitutiveMatrix,
         ConstitutiveLaw::Parameters& rValues,
-        const double CharacteristicLength,  
-        array_1d<double, 6>& rFflux,
+        const double CharacteristicLength,
+        array_1d<double, 6>& rDamageFlux,
         const Vector& rPlasticStrain,
         const double Damage,
         const double DamageIncrement,
-        const double UndamagedFreeEnergy);
+        const double UndamagedFreeEnergy,
+        double& rHardd,
+        double& rDamageDissipationIncrement);
 
     void CalculateIndicatorsFactors(
         const array_1d<double, 6>& rPredictiveStressVector,
@@ -387,6 +389,10 @@ public:
         const Vector& rPlasticStrain,
         double& rDamageIncrement,
         double& rPlasticConsistencyIncrement,
+        const double PlasticDenominator,
+        const double UniaxialStressPlast,
+        const double Hardd,
+        const double& rDamageDissipationIncrement,
         const int PlasticDamageCase);
 
     double McaullyBrackets(const double Number);
