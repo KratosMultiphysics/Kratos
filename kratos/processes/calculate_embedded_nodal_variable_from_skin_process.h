@@ -379,7 +379,7 @@ protected:
         const auto &rUnknownVariable = EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable();
         const auto &r_int_elems_model_part = (mrBaseModelPart.GetModel()).GetModelPart(mAuxModelPartName);
         #pragma omp parallel for
-        for (int i_node = 0; i_node < r_int_elems_model_part.NumberOfNodes(); ++i_node) {
+        for (int i_node = 0; i_node < static_cast<int>(r_int_elems_model_part.NumberOfNodes()); ++i_node) {
             const auto it_node = r_int_elems_model_part.NodesBegin() + i_node;
             auto &r_emb_nod_val = (mrBaseModelPart.GetNode(it_node->Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable);
             r_emb_nod_val = it_node->FastGetSolutionStepValue(rUnknownVariable);
