@@ -37,7 +37,6 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::Calculate(const 
         BoundedMatrix<double, element_size, element_size> transformation_matrix = ZeroMatrix(element_size, element_size);
         this->GetPrimalElement().CreateTransformationMatrix(transformation_matrix);
 
-        KRATOS_WATCH(transformation_matrix)
         rOutput = prod(transformation_matrix, rOutput);
     }
 
@@ -54,7 +53,7 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateOnInteg
     if (rVariable == ADJOINT_STRAIN)
     {
         std::vector<Vector> strain_vector;
-        this->CalculateAdjointFieldOnIntegrationPoints(STRAIN, strain_vector, rCurrentProcessInfo);
+        AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateAdjointFieldOnIntegrationPoints(STRAIN, strain_vector, rCurrentProcessInfo);
         if (rOutput.size() != strain_vector.size())
             rOutput.resize(strain_vector.size());
 
@@ -69,7 +68,7 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateOnInteg
         if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS))
         {
             GeneralizedInfluenceFunctionsExtension my_extension = *(this->GetValue(INFLUENCE_FUNCTIONS_EXTENSIONS));
-            my_extension.CalculatePseudoQuantityOnIntegrationPoints(this->GetPrimalElement(), rVariable, rOutput, rCurrentProcessInfo);
+            my_extension.CalculatePseudoQuantityOnIntegrationPoints(*this->mpPrimalElement, rVariable, rOutput, rCurrentProcessInfo);
         }
         else
             KRATOS_ERROR << "'GeneralizedInfluenceFunctionsExtension' is necessary to compute "<< rVariable.Name() << "!" << std::endl;

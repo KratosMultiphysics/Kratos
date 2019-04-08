@@ -59,7 +59,7 @@ namespace Kratos
         Parameters test_parameters = Parameters(R"(
         {
             "variable_type"               : "element_property",
-            "design_variable_name"        : "I22",
+            "design_variable_name"        : "YOUNG_MODULUS",
             "delta"                       : 1.0e-6
         })" );
 
@@ -126,9 +126,16 @@ namespace Kratos
 
         if(rAdjointElement.Id() == mpTracedElement->Id())
         {
-            ProcessInfo process_info = rProcessInfo;
-            this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
+            if( rAdjointElement.GetProperties().Has(rVariable) )
+            {
+                ProcessInfo process_info = rProcessInfo;
+                this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
                                                                     rSensitivityGradient, process_info);
+            }
+            else
+            {
+                rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
+            }
         }
         else
         {
@@ -284,7 +291,8 @@ namespace Kratos
         }
 
         KRATOS_ERROR_IF(rSensitivityGradient.size() != rSensitivityMatrix.size1())
-             << "Size of partial stress design variable derivative does not fit!" << std::endl;
+             << "Size of partial stress design variable derivative does not fit!" << rVariableName <<
+                rSensitivityGradient.size() << " vs " <<rSensitivityMatrix.size1() << std::endl;
 
         rAdjointElement.SetValue(DESIGN_VARIABLE_NAME, "");
 

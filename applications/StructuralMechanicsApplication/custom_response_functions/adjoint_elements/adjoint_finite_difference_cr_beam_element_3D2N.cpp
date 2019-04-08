@@ -37,7 +37,6 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::Calculate(const Varia
 
         //CrBeamElement3D2N::Pointer p_primal_beam_element = dynamic_pointer_cast<CrBeamElement3D2N>(this->pGetPrimalElement());
         BoundedMatrix<double, element_size, element_size> transformation_matrix = this->GetPrimalElement().CalculateInitialLocalCS();
-        KRATOS_WATCH(transformation_matrix)
         rOutput = prod(transformation_matrix, rOutput);
     }
 
@@ -63,7 +62,7 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegratio
 
         if (rVariable == ADJOINT_CURVATURE)
         {
-            this->CalculateAdjointFieldOnIntegrationPoints(MOMENT, rOutput, rCurrentProcessInfo);
+            AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateAdjointFieldOnIntegrationPoints(MOMENT, rOutput, rCurrentProcessInfo);
 
             for (IndexType i = 0; i < rOutput.size(); ++i)
             {
@@ -74,7 +73,7 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegratio
         }
         else if (rVariable == ADJOINT_STRAIN)
         {
-            this->CalculateAdjointFieldOnIntegrationPoints(FORCE, rOutput, rCurrentProcessInfo);
+            AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateAdjointFieldOnIntegrationPoints(FORCE, rOutput, rCurrentProcessInfo);
 
             KRATOS_WARNING_IF("ADJOINT_STRAIN", (this->GetProperties().Has(AREA_EFFECTIVE_Y) || this->GetProperties().Has(AREA_EFFECTIVE_Z)))
                         << "Not available for Timoschenko beam!" << std::endl;
@@ -92,7 +91,7 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegratio
         if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS))
         {
             GeneralizedInfluenceFunctionsExtension my_extension = *(this->GetValue(INFLUENCE_FUNCTIONS_EXTENSIONS));
-            my_extension.CalculatePseudoQuantityOnIntegrationPoints(this->GetPrimalElement(), rVariable, rOutput, rCurrentProcessInfo);
+            my_extension.CalculatePseudoQuantityOnIntegrationPoints(*this->mpPrimalElement, rVariable, rOutput, rCurrentProcessInfo);
         }
         else
             KRATOS_ERROR << "'GeneralizedInfluenceFunctionsExtension' is necessary to compute "<< rVariable.Name() << "!" << std::endl;

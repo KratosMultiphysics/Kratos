@@ -77,17 +77,22 @@ namespace Kratos
         if(primal_element_name == "CrLinearBeamElement3D2N")
         {
             std::vector< array_1d<double, 3> > pseudo_moment;
+            pseudo_moment.resize(write_points_number);
             std::vector< array_1d<double, 3> > pseudo_force;
+            pseudo_force.resize(write_points_number);
             std::vector< array_1d<double, 3> > adjoint_curvature;
+            adjoint_curvature.resize(write_points_number);
             std::vector< array_1d<double, 3> > adjoint_strain;
+            adjoint_strain.resize(write_points_number);
             this->CalculatePseudoQuantityOnIntegrationPoints(rPrimalElement, PSEUDO_MOMENT, pseudo_moment, rCurrentProcessInfo);
             this->CalculatePseudoQuantityOnIntegrationPoints(rPrimalElement, PSEUDO_FORCE, pseudo_force, rCurrentProcessInfo);
             rAdjointElement.CalculateOnIntegrationPoints(ADJOINT_CURVATURE, adjoint_curvature, rCurrentProcessInfo);
             rAdjointElement.CalculateOnIntegrationPoints(ADJOINT_STRAIN, adjoint_strain, rCurrentProcessInfo);
 
+            // MFusseder TODO investigate signs!!
             for(IndexType i = 0; i < write_points_number; ++i)
             {
-                rOutput[i] = pseudo_moment[i][0] * adjoint_curvature[i][0] + pseudo_force[i][0] * adjoint_strain[i][0] +
+                rOutput[i] = pseudo_moment[i][0] * adjoint_curvature[i][0] - pseudo_force[i][0] * adjoint_strain[i][0] +
                              pseudo_moment[i][1] * adjoint_curvature[i][1] + pseudo_force[i][1] * adjoint_strain[i][1] +
                              pseudo_moment[i][2] * adjoint_curvature[i][2] + pseudo_force[i][2] * adjoint_strain[i][2];
             }
@@ -95,7 +100,9 @@ namespace Kratos
         else if(primal_element_name == "TrussLinearElement3D2N")
         {
             std::vector< array_1d<double, 3> > pseudo_force;
+            pseudo_force.resize(write_points_number);
             std::vector< array_1d<double, 3> > adjoint_strain;
+            adjoint_strain.resize(write_points_number);
             this->CalculatePseudoQuantityOnIntegrationPoints(rPrimalElement, PSEUDO_FORCE, pseudo_force, rCurrentProcessInfo);
             rAdjointElement.CalculateOnIntegrationPoints(ADJOINT_STRAIN, adjoint_strain, rCurrentProcessInfo);
 
