@@ -141,9 +141,6 @@
             "process_name"  : "",
             "Parameters" : {
                 "model_part_name" : "MainModelPart",
-                "file_settings" : {
-                    "file_access_mode" : "read_only"
-                },
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "PRESSURE"]
                 }
