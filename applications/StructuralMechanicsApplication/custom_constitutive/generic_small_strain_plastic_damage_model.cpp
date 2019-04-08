@@ -80,12 +80,12 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
     Vector& r_strain_vector = rValues.GetStrainVector();
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+    if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         this->CalculateValue(rValues, STRAIN, r_strain_vector);
     }
 
     // Elastic Matrix
-    if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+    if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
     }
@@ -149,7 +149,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
 
 			// KRATOS_WATCH(plasticity_indicator)
 			// KRATOS_WATCH(damage_indicator)
-            std::cout << "**********************************" << std::endl;
+            // std::cout << "**********************************" << std::endl;
 			
             // Integration loop
             while (!is_converged && number_iteration <= max_iter) {
@@ -163,7 +163,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                             plastic_strain, damage_increment, 
                             plastic_consistency_increment, 1);
                 // Plastic Case
-                } else if (damage_indicator < std::abs(1.0e-4 * threshold_damage) && plasticity_indicator > std::abs(1.0e-4 * threshold_plasticity)) {
+                } else if (damage_indicator <= std::abs(1.0e-4 * threshold_damage) && plasticity_indicator > std::abs(1.0e-4 * threshold_plasticity)) {
                     this->CalculateIncrementsPlasticDamageCase(
                             damage_yield_flux, r_strain_vector, damage,
                             f_flux, g_flux, r_constitutive_matrix, 
@@ -171,7 +171,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                             plastic_strain, damage_increment, 
                             plastic_consistency_increment, 2);
                 // Damage case
-                } else if (plasticity_indicator < std::abs(1.0e-4 * threshold_plasticity) && damage_indicator > std::abs(1.0e-4 * threshold_damage)) {
+                } else if (plasticity_indicator <= std::abs(1.0e-4 * threshold_plasticity) && damage_indicator > std::abs(1.0e-4 * threshold_damage)) {
                     this->CalculateIncrementsPlasticDamageCase(
                             damage_yield_flux, r_strain_vector, damage,
                             f_flux, g_flux, r_constitutive_matrix, 
@@ -449,7 +449,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                             plastic_strain, damage_increment, 
                             plastic_consistency_increment, 1);
                 // Plastic Case
-                } else if (damage_indicator < std::abs(1.0e-4 * threshold_damage) && plasticity_indicator > std::abs(1.0e-4 * threshold_plasticity)) {
+                } else if (damage_indicator <= std::abs(1.0e-4 * threshold_damage) && plasticity_indicator > std::abs(1.0e-4 * threshold_plasticity)) {
                     this->CalculateIncrementsPlasticDamageCase(
                             damage_yield_flux, r_strain_vector, damage,
                             f_flux, g_flux, r_constitutive_matrix, 
@@ -457,7 +457,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                             plastic_strain, damage_increment, 
                             plastic_consistency_increment, 2);
                 // Damage case
-                } else if (plasticity_indicator < std::abs(1.0e-4 * threshold_plasticity) && damage_indicator > std::abs(1.0e-4 * threshold_damage)) {
+                } else if (plasticity_indicator <= std::abs(1.0e-4 * threshold_plasticity) && damage_indicator > std::abs(1.0e-4 * threshold_damage)) {
                     this->CalculateIncrementsPlasticDamageCase(
                             damage_yield_flux, r_strain_vector, damage,
                             f_flux, g_flux, r_constitutive_matrix, 
@@ -761,8 +761,8 @@ CalculateDamageParameters(
 
     // KRATOS_WATCH(sum_principal_stresses)
     // KRATOS_WATCH(sum_principal_stresses_neg)
-    const double g_t_mod = sum_principal_stresses / yield_tension * fracture_energy_tension;
-    const double g_c_mod = sum_principal_stresses_neg / yield_compression * fracture_energy_compression;
+    const double g_t_mod = sum_principal_stresses / rUniaxialStress * fracture_energy_tension;
+    const double g_c_mod = sum_principal_stresses_neg / rUniaxialStress * fracture_energy_compression;
 
     // Free Energy Undamaged
     double damage_dissipation_increment;
@@ -774,7 +774,7 @@ CalculateDamageParameters(
         damage_dissipation_increment = UndamagedFreeEnergy * (tensile_indicator_factor / g_t_mod + compression_indicator_factor / g_c_mod) * DamageIncrement;
     }
 
-    KRATOS_WATCH(damage_dissipation_increment)
+    // KRATOS_WATCH(damage_dissipation_increment)
     this->CheckInternalVariable(damage_dissipation_increment);
     rDamageDissipation += damage_dissipation_increment;
     if (rDamageDissipation > 1.0) rDamageDissipation = 0.99999;
@@ -896,11 +896,13 @@ CalculateIncrementsPlasticDamageCase(
     // KRATOS_WATCH(dFd_dlamba)
     // KRATOS_WATCH(dFp_dlambda)
     // KRATOS_WATCH(dFd_ddam)
-    KRATOS_WATCH(jacobian_determinant)
+    // KRATOS_WATCH(jacobian_determinant)
 
     if (std::abs(jacobian_determinant) > tolerance) {
         rPlasticConsistencyIncrement -=  (dFd_ddam * McaullyBrackets(PlasticityIndicator) - dFp_ddam * McaullyBrackets(DamageIndicator)) / jacobian_determinant;
         rDamageIncrement -= (dFp_dlambda * McaullyBrackets(DamageIndicator) - dFd_dlamba * McaullyBrackets(PlasticityIndicator)) / jacobian_determinant;
+        
+
         //KRATOS_WATCH(rDamageIncrement)
         //KRATOS_WATCH(rPlasticConsistencyIncrement)
     } else { // If the yield derivatives are equal -> jacobian_determinant = 0.0
@@ -909,8 +911,9 @@ CalculateIncrementsPlasticDamageCase(
         rDamageIncrement -= McaullyBrackets(PlasticityIndicator) / dFp_ddam;
     }
 
-    //KRATOS_WATCH(rDamageIncrement)
-    ///KRATOS_WATCH(PlasticDamageCase)
+    // KRATOS_WATCH(rDamageIncrement)
+    // KRATOS_WATCH(rPlasticConsistencyIncrement)
+    // KRATOS_WATCH(PlasticDamageCase)
     //KRATOS_WATCH(rDamageIncrement)
 
 }
@@ -924,7 +927,6 @@ McaullyBrackets(
 )
 {
     return 0.5*(Number + std::abs(Number));
-    // return Number;
 }
 
 /***********************************************************************************/
