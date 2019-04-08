@@ -141,8 +141,6 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHighCycleFatigueExponential, KratosStru
     HCF_CL.InitializeMaterial(material_properties, Geom, dummy);
     HCF_CL.CalculateMaterialResponseCauchy(cl_parameters);
     HCF_CL.FinalizeMaterialResponseCauchy(cl_parameters);
-    HCF_CL.GetValue(DAMAGE, TestDamage);
-    KRATOS_WARNING_IF("TestHCF", TestDamage < 1.0e-12) << "VonMises:: This test is not in damage range" << std::endl;
     TestStress = cl_parameters.GetStressVector();
 
     //Check the results
