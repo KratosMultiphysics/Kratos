@@ -104,17 +104,7 @@ class PotentialFlowSolver(FluidSolver):
         self.element_name = self.potential_formulation.element_name
         self.condition_name = self.potential_formulation.condition_name
         self.min_buffer_size = 1
-        self.move_mesh_flag = False
         self.domain_size = custom_settings["domain_size"].GetInt()
-
-        ####NEEDED FOR MARC ELEMENT#######
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, 1.225)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.MIU,5)#geometry angle
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.LAMBDA, 1.4)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY, 340.0)
-        ##################################
-
 
         #construct the linear solvers
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory

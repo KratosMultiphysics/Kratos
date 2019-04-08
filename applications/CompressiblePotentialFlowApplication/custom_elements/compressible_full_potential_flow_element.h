@@ -324,8 +324,7 @@ public:
         //calculate shape functions
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
         array_1d<double,Dim> velocity;
-        double density = rCurrentProcessInfo[DENSITY];
-        // double density = GetProperties().GetValue(DENSITY);
+        double density = GetProperties().GetValue(DENSITY_INFINITY);
         double derivative = 0;
         Vector DNV = ZeroVector(NumNodes);
 
@@ -702,9 +701,9 @@ public:
 
             if(active && wake == 0)//normal element
             {
-                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
-                const double gamma = rCurrentProcessInfo[LAMBDA];
-                const double a = rCurrentProcessInfo[SOUND_VELOCITY];
+                const array_1d<double,3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
+                const double gamma = GetProperties().GetValue(GAMMA);
+                const double a = GetProperties().GetValue(SOUND_VELOCITY);
 
                 const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
 
@@ -737,9 +736,9 @@ public:
             }
             else if(wake == 1 && active==true)//wake element
             {
-                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
-                const double gamma = rCurrentProcessInfo[LAMBDA];
-                const double a = rCurrentProcessInfo[SOUND_VELOCITY];
+                const array_1d<double,3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
+                const double gamma = GetProperties().GetValue(GAMMA);
+                const double a = GetProperties().GetValue(SOUND_VELOCITY);
 
                 const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
 
@@ -774,11 +773,10 @@ public:
                 active = (this)->Is(ACTIVE);
             if(active && wake == 0)//normal element
             {
-                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
-                const double densityinfinity = rCurrentProcessInfo[DENSITY];
-                // const double densityinfinity = GetProperties().GetValue(DENSITY);
-                const double gamma = rCurrentProcessInfo[LAMBDA];
-                const double a = rCurrentProcessInfo[SOUND_VELOCITY];
+                const array_1d<double,3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
+                const double densityinfinity = GetProperties().GetValue(DENSITY_INFINITY);
+                const double gamma = GetProperties().GetValue(GAMMA);
+                const double a = GetProperties().GetValue(SOUND_VELOCITY);
 
                 const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
 
@@ -811,11 +809,10 @@ public:
             }
             else if(wake == 1 && active==true)//wake element
             {
-                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
-                const double densityinfinity = rCurrentProcessInfo[DENSITY];
-                // const double densityinfinity = GetProperties().GetValue(DENSITY);
-                const double gamma = rCurrentProcessInfo[LAMBDA];
-                const double a = rCurrentProcessInfo[SOUND_VELOCITY];
+                const array_1d<double,3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
+                const double densityinfinity = GetProperties().GetValue(DENSITY_INFINITY);
+                const double gamma = GetProperties().GetValue(GAMMA);
+                const double a = GetProperties().GetValue(SOUND_VELOCITY);
 
                 const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
 
@@ -1107,11 +1104,10 @@ protected:
         //This function computes density, velocity and the derivative of the density w.r.t. the square of the local velocity
         //for a split element
 
-        const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
-        const double densityinfinity = rCurrentProcessInfo[DENSITY];
-        // const double densityinfinity = GetProperties().GetValue(DENSITY);
-        const double gamma = rCurrentProcessInfo[LAMBDA];
-        const double a = rCurrentProcessInfo[SOUND_VELOCITY];
+        const array_1d<double,3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
+        const double densityinfinity = GetProperties().GetValue(DENSITY_INFINITY);
+        const double gamma = GetProperties().GetValue(GAMMA);
+        const double a = GetProperties().GetValue(SOUND_VELOCITY);
 
         const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
 
@@ -1164,11 +1160,10 @@ protected:
         const CompressibleFullPotentialFlowElement& r_this = *this;
         const int kutta = r_this.GetValue(KUTTA);
 
-        const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
-        const double densityinfinity = rCurrentProcessInfo[DENSITY];
-        // const double densityinfinity = GetProperties().GetValue(DENSITY);
-        const double gamma = rCurrentProcessInfo[LAMBDA];
-        const double a = rCurrentProcessInfo[SOUND_VELOCITY];
+        const array_1d<double,3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
+        const double densityinfinity = GetProperties().GetValue(DENSITY_INFINITY);
+        const double gamma = GetProperties().GetValue(GAMMA);
+        const double a = GetProperties().GetValue(SOUND_VELOCITY);
 
         const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
 
@@ -1341,7 +1336,7 @@ protected:
     double ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo)
     {
         double pressure = 0.0;
-        const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
+        const array_1d<double,3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
         const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
 
         KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
@@ -1359,7 +1354,7 @@ protected:
     double ComputePressureWakeElement(const ProcessInfo& rCurrentProcessInfo)
     {
         double pressure = 0.0;
-        const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
+        const array_1d<double,3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
         const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
 
         KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
