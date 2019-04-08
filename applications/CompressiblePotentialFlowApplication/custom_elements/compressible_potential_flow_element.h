@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Inigo Lopez and Riccardo Rossi
+//  Main authors:    Inigo Lopez, Marc Nuñez and Riccardo Rossi
 //
 
 #if !defined(KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H)
