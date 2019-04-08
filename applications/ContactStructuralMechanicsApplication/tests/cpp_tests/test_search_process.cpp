@@ -326,7 +326,7 @@ namespace Kratos
             {
                 "simple_search"                        : true,
                 "search_factor"                        : 3.5,
-                "type_search"                          : "OtreeWithOBB",
+                "type_search"                          : "OctreeWithOBB",
                 "check_gap"                            : "MappingCheck",
                 "octree_search_parameters" : {
                     "bounding_box_factor"    : 0.1,
