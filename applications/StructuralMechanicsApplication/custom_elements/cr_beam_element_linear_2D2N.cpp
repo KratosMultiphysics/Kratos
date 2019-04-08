@@ -37,7 +37,7 @@ CrBeamElementLinear2D2N::Create(IndexType NewId,
                                 NodesArrayType const& rThisNodes,
                                 PropertiesType::Pointer pProperties) const
 {
-    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     return Kratos::make_shared<CrBeamElementLinear2D2N>(
                NewId, rGeom.Create(rThisNodes), pProperties);
 }
@@ -59,14 +59,14 @@ void CrBeamElementLinear2D2N::CalculateLocalSystem(
 {
     KRATOS_TRY;
     // Kt
-    this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+    CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
 
     Vector nodal_deformation = ZeroVector(msElementSize);
-    this->GetValuesVector(nodal_deformation);
+    GetValuesVector(nodal_deformation);
     rRightHandSideVector = ZeroVector(msElementSize);
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, nodal_deformation);
 
-    noalias(rRightHandSideVector) += this->CalculateBodyForces();
+    noalias(rRightHandSideVector) += CalculateBodyForces();
 
     KRATOS_CATCH("")
 }
@@ -76,10 +76,10 @@ void CrBeamElementLinear2D2N::CalculateRightHandSide(
 {
     KRATOS_TRY;
     Vector nodal_deformation = ZeroVector(msElementSize);
-    this->GetValuesVector(nodal_deformation);
+    GetValuesVector(nodal_deformation);
     rRightHandSideVector = ZeroVector(msElementSize);
-    noalias(rRightHandSideVector) -= prod(this->mK_Master, nodal_deformation);
-    noalias(rRightHandSideVector) += this->CalculateBodyForces();
+    noalias(rRightHandSideVector) -= prod(mK_Master, nodal_deformation);
+    noalias(rRightHandSideVector) += CalculateBodyForces();
     KRATOS_CATCH("")
 }
 
@@ -87,11 +87,11 @@ void CrBeamElementLinear2D2N::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    rLeftHandSideMatrix = this->CreateElementStiffnessMatrix_Total();
+    rLeftHandSideMatrix = CreateElementStiffnessMatrix_Total();
 
     //// start static condensation
-    if (this->Has(CONDENSED_DOF_LIST)) {
-        Vector dof_list_input = this->GetValue(CONDENSED_DOF_LIST);
+    if (Has(CONDENSED_DOF_LIST)) {
+        Vector dof_list_input = GetValue(CONDENSED_DOF_LIST);
         std::vector<int> dofList(dof_list_input.size());
         for (SizeType i = 0; i < dof_list_input.size(); ++i) {
             dofList[i] = dof_list_input[i];
@@ -101,8 +101,8 @@ void CrBeamElementLinear2D2N::CalculateLeftHandSide(
     }
     //// end static condensation
 
-    this->GlobalizeMatrix(rLeftHandSideMatrix);
-    this->mK_Master = rLeftHandSideMatrix;
+    GlobalizeMatrix(rLeftHandSideMatrix);
+    mK_Master = rLeftHandSideMatrix;
     KRATOS_CATCH("")
 }
 
@@ -115,7 +115,7 @@ CrBeamElement2D2N::msElementSize>
 CrBeamElementLinear2D2N::CreateRotationMatrix()
 {
     KRATOS_TRY;
-    const double current_element_angle = this->CalculateInitialElementAngle();
+    const double current_element_angle = CalculateInitialElementAngle();
     const double c = std::cos(current_element_angle);
     const double s = std::sin(current_element_angle);
 
@@ -152,19 +152,19 @@ void CrBeamElementLinear2D2N::CalculateOnIntegrationPoints(
         rOutput.resize(write_points_number);
     }
 
-    Matrix left_hand_side_matrix = this->CreateElementStiffnessMatrix_Total();
+    Matrix left_hand_side_matrix = CreateElementStiffnessMatrix_Total();
 
     Vector nodal_deformation = ZeroVector(msElementSize);
-    this->GetValuesVector(nodal_deformation);
+    GetValuesVector(nodal_deformation);
 
     BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix =
-        this->CreateRotationMatrix();
+        CreateRotationMatrix();
     // calculate local displacements
     nodal_deformation = prod((trans(transformation_matrix)), nodal_deformation);
 
     //// start static back condensation
-    if (this->Has(CONDENSED_DOF_LIST)) {
-        Vector dof_list_input = this->GetValue(CONDENSED_DOF_LIST);
+    if (Has(CONDENSED_DOF_LIST)) {
+        Vector dof_list_input = GetValue(CONDENSED_DOF_LIST);
         std::vector<int> dofList(dof_list_input.size());
         for (SizeType i = 0; i < dof_list_input.size(); ++i) {
             dofList[i] = dof_list_input[i];
@@ -216,7 +216,7 @@ void CrBeamElementLinear2D2N::GetValueOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    this->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     KRATOS_CATCH("")
 }
 
@@ -230,13 +230,13 @@ double CrBeamElementLinear2D2N::CalculateLength() const
 void CrBeamElementLinear2D2N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElement2D2N);
-    rSerializer.save("MasterStiffnessMatrix", this->mK_Master);
+    rSerializer.save("MasterStiffnessMatrix", mK_Master);
 }
 
 void CrBeamElementLinear2D2N::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElement2D2N);
-    rSerializer.load("MasterStiffnessMatrix", this->mK_Master);
+    rSerializer.load("MasterStiffnessMatrix", mK_Master);
 }
 
 } // namespace Kratos.

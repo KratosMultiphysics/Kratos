@@ -35,7 +35,7 @@ Element::Pointer
 CableElement3D2N::Create(IndexType NewId, NodesArrayType const& rThisNodes,
                          PropertiesType::Pointer pProperties) const
 {
-    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     return Kratos::make_shared<CableElement3D2N>(NewId, rGeom.Create(rThisNodes),
             pProperties);
 }
@@ -60,16 +60,16 @@ CableElement3D2N::CreateElementStiffnessMatrix(
     BoundedMatrix<double, msLocalSize, msLocalSize> local_stiffness_matrix =
         ZeroMatrix(msLocalSize, msLocalSize);
 
-    if (this->mIsCompressed) {
+    if (mIsCompressed) {
         local_stiffness_matrix = ZeroMatrix(msLocalSize, msLocalSize);
     }
 
     else {
-        this->CalculateElasticStiffnessMatrix(local_stiffness_matrix,
+        CalculateElasticStiffnessMatrix(local_stiffness_matrix,
                                               rCurrentProcessInfo);
         BoundedMatrix<double, msLocalSize, msLocalSize> K_geo =
             ZeroMatrix(msLocalSize, msLocalSize);
-        this->CalculateGeometricStiffnessMatrix(K_geo, rCurrentProcessInfo);
+        CalculateGeometricStiffnessMatrix(K_geo, rCurrentProcessInfo);
 
         local_stiffness_matrix += K_geo;
     }
@@ -86,14 +86,14 @@ void CableElement3D2N::CalculateRightHandSide(
     rRightHandSideVector = ZeroVector(msLocalSize);
 
     BoundedVector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
-    this->UpdateInternalForces(internal_forces);
+    UpdateInternalForces(internal_forces);
 
-    if (!this->mIsCompressed) {
+    if (!mIsCompressed) {
         noalias(rRightHandSideVector) -= internal_forces;
     }
     // add bodyforces
-    if (this->HasSelfWeight()) {
-        noalias(rRightHandSideVector) += this->CalculateBodyForces();
+    if (HasSelfWeight()) {
+        noalias(rRightHandSideVector) += CalculateBodyForces();
     }
     KRATOS_CATCH("")
 }
@@ -107,33 +107,33 @@ void CableElement3D2N::UpdateInternalForces(
     BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix =
         ZeroMatrix(msLocalSize, msLocalSize);
 
-    this->CreateTransformationMatrix(transformation_matrix);
+    CreateTransformationMatrix(transformation_matrix);
 
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
     const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-    const double A = this->GetProperties()[CROSS_AREA];
+    const double A = GetProperties()[CROSS_AREA];
 
     double prestress = 0.00;
-    if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
-        prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
+    if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+        prestress = GetProperties()[TRUSS_PRESTRESS_PK2];
     }
 
     Vector temp_internal_stresses = ZeroVector(msLocalSize);
     ProcessInfo temp_process_information;
-    ConstitutiveLaw::Parameters Values(this->GetGeometry(), this->GetProperties(), temp_process_information);
+    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), temp_process_information);
     Vector temp_strain = ZeroVector(1);
-    temp_strain[0] = this->CalculateGreenLagrangeStrain();
+    temp_strain[0] = CalculateGreenLagrangeStrain();
     Values.SetStrainVector(temp_strain);
-    this->mpConstitutiveLaw->CalculateValue(Values, NORMAL_STRESS, temp_internal_stresses);
+    mpConstitutiveLaw->CalculateValue(Values, NORMAL_STRESS, temp_internal_stresses);
 
 
     const double normal_force =
         ((temp_internal_stresses[3] + prestress) * l * A) / L0;
 
 
-    this->mIsCompressed = false;
+    mIsCompressed = false;
     if ((normal_force < 0.00) && (std::abs(l - L0) > numerical_limit)) {
-        this->mIsCompressed = true;
+        mIsCompressed = true;
     }
 
     // internal force vectors
@@ -148,11 +148,11 @@ void CableElement3D2N::UpdateInternalForces(
 void CableElement3D2N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, TrussElement3D2N);
-    rSerializer.save("mIscompressed", this->mIsCompressed);
+    rSerializer.save("mIscompressed", mIsCompressed);
 }
 void CableElement3D2N::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, TrussElement3D2N);
-    rSerializer.load("mIscompressed", this->mIsCompressed);
+    rSerializer.load("mIscompressed", mIsCompressed);
 }
 } // namespace Kratos.
