@@ -9,10 +9,10 @@ from KratosMultiphysics.restart_utility import RestartUtility
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return SaveRestartFilesProcess(Model, settings["Parameters"])
+    return SaveAndLoadRestartFilesProcess(Model, settings["Parameters"])
 
 
-class SaveRestartFilesProcess(KratosMultiphysics.Process):
+class SaveAndLoadRestartFilesProcess(KratosMultiphysics.Process):
     """This process compares saves restart files
     It works both in OpenMP and MPI
     see the "default_settings" for available options
@@ -35,7 +35,7 @@ class SaveRestartFilesProcess(KratosMultiphysics.Process):
             "restart_load_file_label"        : ""
         }""")
 
-        ## Overwrite the default settings with user-provided parameters
+        ## Overwrites the default settings with user-provided parameters
         params.ValidateAndAssignDefaults(default_settings)
         params.RemoveValue("help")
 
@@ -44,17 +44,12 @@ class SaveRestartFilesProcess(KratosMultiphysics.Process):
         self.load_model_part = params["load_restart_files"].GetBool()
         self.model_part_name = params["model_part_name"].GetString()
 
-        #params.AddValue("input_filename", params["model_part_name"])
         params.RemoveValue("model_part_name")
         params.RemoveValue("save_restart_files")
         params.RemoveValue("load_restart_files")
 
         self.parameters = params
 
-        # self.restart_utility = RestartUtility(model_part, params)
-        # self.restart_utility.SaveRestart()
-
-## TODO Mahmoud : check the reason for not reading the serialized model
     def ExecuteInitializeSolutionStep(self):
         if self.load_model_part == True:
             loaded_model = KratosMultiphysics.Model()
@@ -66,6 +61,5 @@ class SaveRestartFilesProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
         if self.save_model_part == True:
-            #print("save loop")
             self.restart_utility = RestartUtility(self.model_part, self.parameters)
             self.restart_utility.SaveRestart()
