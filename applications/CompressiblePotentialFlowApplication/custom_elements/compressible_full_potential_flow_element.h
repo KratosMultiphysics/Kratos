@@ -448,14 +448,15 @@ public:
             lhs_total = lhs_negative + lhs_positive;
             laplacian_total = laplacian_negative + laplacian_positive;
 
+            
+
             if(this->Is(STRUCTURE))
             {
-
                 for(unsigned int i=0; i<NumNodes; ++i)
                 {
-                    if (GetGeometry()[i].Is(STRUCTURE)){
-                        for(unsigned int i=0; i<NumNodes; ++i)
-                        {
+                    if (GetGeometry()[i].GetValue(TRAILING_EDGE)){
+                        // for(unsigned int i=0; i<NumNodes; ++i)
+                        // {
                             for(unsigned int j=0; j<NumNodes; ++j)
                             {
                                 rLeftHandSideMatrix(i,j)            =  lhs_positive(i,j);
@@ -470,36 +471,39 @@ public:
                                 rLaplacianMatrix(i+NumNodes,j+NumNodes) =  laplacian_negative(i,j);
                                 rLaplacianMatrix(i+NumNodes,j) = 0.0;
                             }
-                        }
-                        for(unsigned int i=0; i<NumNodes; ++i)
-                        {
-                            if(data.distances[i]<0)
-                            {
-                                for(unsigned int j=0; j<NumNodes; ++j)
-                                {
-                                    rLeftHandSideMatrix(i,j+NumNodes) = -lhs_positive(i,j);
+                        //}
+                        // KRATOS_WATCH(rLeftHandSideMatrix)
+                        // for(unsigned int i=0; i<NumNodes; ++i)
+                        // {
+                        //     if(data.distances[i]<0)
+                        //     {
+                        //         for(unsigned int j=0; j<NumNodes; ++j)
+                        //         {
+                        //             rLeftHandSideMatrix(i,j+NumNodes) = -lhs_positive(i,j);
 
-                                    rLaplacianMatrix(i,j+NumNodes) = -laplacian_positive(i,j);
-                                }
-                            }
-                        }
+                        //             rLaplacianMatrix(i,j+NumNodes) = -laplacian_positive(i,j);
+                        //         }
+                        //     }
+                        // }
+                        // KRATOS_WATCH(rLeftHandSideMatrix)
 
-                        //side2 -assign constraint only on the AUXILIARY_VELOCITY_POTENTIAL dofs
-                        for(unsigned int i=0; i<NumNodes; ++i)
-                        {
-                            if(data.distances[i]>0)
-                            {
-                                for(unsigned int j=0; j<NumNodes; ++j)
-                                {
-                                    rLeftHandSideMatrix(i+NumNodes,j) = -lhs_negative(i,j);
+                        // //side2 -assign constraint only on the AUXILIARY_VELOCITY_POTENTIAL dofs
+                        // for(unsigned int i=0; i<NumNodes; ++i)
+                        // {
+                        //     if(data.distances[i]>0)
+                        //     {
+                        //         for(unsigned int j=0; j<NumNodes; ++j)
+                        //         {
+                        //             rLeftHandSideMatrix(i+NumNodes,j) = -lhs_negative(i,j);
 
-                                    rLaplacianMatrix(i+NumNodes,j) = -laplacian_negative(i,j);
-                                }
-                            }
-                        }
+                        //             rLaplacianMatrix(i+NumNodes,j) = -laplacian_negative(i,j);
+                        //         }
+                        //     }
+                        // }
+                        // KRATOS_WATCH(rLeftHandSideMatrix)
                     }else{
-                        for(unsigned int i=0; i<NumNodes; ++i)
-                        {
+                        // for(unsigned int i=0; i<NumNodes; ++i)
+                        // {
                             for(unsigned int j=0; j<NumNodes; ++j)
                             {
                                 rLeftHandSideMatrix(i,j)                   =  lhs_total(i,j);
@@ -514,12 +518,12 @@ public:
                                 rLaplacianMatrix(i+NumNodes,j+NumNodes) =  laplacian_total(i,j);
                                 rLaplacianMatrix(i+NumNodes,j)          =  0.0;
                             }
-                        }
+                        //}
 
 
                         //side1  -assign constraint only on the AUXILIARY_VELOCITY_POTENTIAL dofs
-                        for(unsigned int i=0; i<NumNodes; ++i)
-                        {
+                        // for(unsigned int i=0; i<NumNodes; ++i)
+                        // {
                             if(data.distances[i]<0)
                             {
                                 for(unsigned int j=0; j<NumNodes; ++j)
@@ -529,11 +533,11 @@ public:
                                     rLaplacianMatrix(i,j+NumNodes) = -laplacian_total(i,j);
                                 }
                             }
-                        }
+                        //}
 
                         //side2 -assign constraint only on the AUXILIARY_VELOCITY_POTENTIAL dofs
-                        for(unsigned int i=0; i<NumNodes; ++i)
-                        {
+                        // for(unsigned int i=0; i<NumNodes; ++i)
+                        // {
                             if(data.distances[i]>0)
                             {
                                 for(unsigned int j=0; j<NumNodes; ++j)
@@ -543,7 +547,7 @@ public:
                                     rLaplacianMatrix(i+NumNodes,j) = -laplacian_total(i,j);
                                 }
                             }
-                        }
+                        //}
 
                     }
                 }
@@ -602,6 +606,9 @@ public:
             GetValuesOnSplitElement(split_element_values, data.distances);
             noalias(rRightHandSideVector) = -prod(rLaplacianMatrix,split_element_values);
         }
+
+        
+        
 
     }
 
