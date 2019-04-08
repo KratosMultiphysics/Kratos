@@ -83,6 +83,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double,3>>::Calcula
         }
     }
 }
+
 template <>
 void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateRightHandSide(
     VectorType &rRigthHandSideVector,

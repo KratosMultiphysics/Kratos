@@ -28,6 +28,7 @@
 #include "includes/kratos_flags.h"
 #include "elements/embedded_nodal_variable_calculation_element_simplex.h"
 #include "linear_solvers/cg_solver.h"
+#include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "processes/process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -92,7 +93,7 @@ public:
     ///@name Operations
     ///@{
 
-    static inline const Variable<TVarType> GetUnknownVariable();
+    static inline const Variable<TVarType> &GetUnknownVariable();
 
     static inline void AddUnknownVariable(ModelPart &rModelPart);
 
@@ -102,13 +103,13 @@ public:
 };
 
 template <>
-inline const Variable<double> EmbeddedNodalVariableFromSkinTypeHelperClass<double>::GetUnknownVariable()
+inline const Variable<double> &EmbeddedNodalVariableFromSkinTypeHelperClass<double>::GetUnknownVariable()
 {
     return KratosComponents<Variable<double>>::Get("NODAL_MAUX");
 }
 
 template <>
-inline const Variable<array_1d<double,3>> EmbeddedNodalVariableFromSkinTypeHelperClass<array_1d<double,3>>::GetUnknownVariable()
+inline const Variable<array_1d<double,3>> &EmbeddedNodalVariableFromSkinTypeHelperClass<array_1d<double,3>>::GetUnknownVariable()
 {
     return KratosComponents<Variable<array_1d<double, 3>>>::Get("NODAL_VAUX");
 }
@@ -258,7 +259,8 @@ public:
         this->ReGenerateIntersectedElementsModelPart();
 
         // Create a linear solver
-        auto p_linear_solver = Kratos::make_shared<CGSolver<TSparseSpace, TDenseSpace>>();
+        auto p_linear_solver = Kratos::make_shared<SkylineLUFactorizationSolver<TSparseSpace, TDenseSpace>>();
+        // auto p_linear_solver = Kratos::make_shared<CGSolver<TSparseSpace, TDenseSpace>>();
 
         // Create the linear strategy
         SchemePointerType p_scheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>>();
@@ -447,11 +449,6 @@ protected:
         // Add the minimization problem auxiliary variables
         this->AddIntersectedElementsVariables(r_int_elems_model_part);
 
-        // Add intersected elements nodes
-        // TODO: CHECK THIS!
-        // TODO: ONLY THE INTERSECTED EDGES NODES ARE REQUIRED
-        // this->AddIntersectedElementsModelPartNodes(r_int_elems_model_part);
-
         // Add intersected elements
         this->AddIntersectedElementsModelPartElements(r_int_elems_model_part);
 
@@ -465,10 +462,11 @@ protected:
 
     void SetObtainedEmbeddedNodalValues()
     {
+        const auto &rUnknownVariable = EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable();
         const auto &r_int_elems_model_part = (mrBaseModelPart.GetModel()).GetModelPart(mAuxModelPartName);
         for (auto &r_node : r_int_elems_model_part.Nodes()) {
             auto &r_emb_nod_val = (mrBaseModelPart.GetNode(r_node.Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable);
-            r_emb_nod_val = r_node.FastGetSolutionStepValue(EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable());
+            r_emb_nod_val = r_node.FastGetSolutionStepValue(rUnknownVariable);
         }
     }
 
@@ -520,6 +518,9 @@ protected:
 
         // Get the base model part intersections
         auto &r_int_obj_vect = mpFindIntersectedGeometricalObjectsProcess->GetIntersections();
+
+        // Get the unknown variable from Kratos components
+        const auto &rUnknownVariable = EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable();
 
         // Loop the base model part elements
         std::size_t new_elem_id = 1;
@@ -588,7 +589,7 @@ protected:
                                 KRATOS_WATCH(i_edge_d)
                                 KRATOS_WATCH(i_edge_val)
                                 p_element->SetValue(DISTANCE, i_edge_d);
-                                p_element->SetValue(EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable(), i_edge_val);
+                                p_element->SetValue(rUnknownVariable, i_edge_val);
 
                                 // Update the id. counter
                                 new_elem_id++;
