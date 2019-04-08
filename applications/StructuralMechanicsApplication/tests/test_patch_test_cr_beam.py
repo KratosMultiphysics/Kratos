@@ -190,8 +190,8 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         #check displacement as soon as a total circle is formed
         #M = EI * 2 * pi / L ---> 13200000.0 reached at t_step = 527
         if (timestep == 5):
-            self.assertAlmostEqual(displacement_x, -0.0008214481371826507,5)
-            self.assertAlmostEqual(displacement_y, 0.03560205297258129,5)
+            self.assertAlmostEqual(displacement_x, -0.0008495924536316574)
+            self.assertAlmostEqual(displacement_y, 0.03569912736309147)
 
 
     def _check_results_dynamic(self,mp,time_i,nr_nodes,time_step):
@@ -794,8 +794,8 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         #check displacement as soon as a total circle is formed
         #M = EI * 2 * pi / L ---> 13200000.0 reached at t_step = 527
         if (timestep == 5):
-            self.assertAlmostEqual(displacement_x, -0.0008258150820168632)
-            self.assertAlmostEqual(displacement_y, 0.03569588131158605)
+            self.assertAlmostEqual(displacement_x, -0.000849592227925813)
+            self.assertAlmostEqual(displacement_y, 0.03569912262393553)
 
     def _check_results_dynamic(self,mp,time_i,nr_nodes,time_step):
         #check free vibration of cantilever tip
