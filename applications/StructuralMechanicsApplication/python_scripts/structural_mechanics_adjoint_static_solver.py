@@ -89,8 +89,8 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         else:
             raise Exception("invalid response_type: " + self.response_function_settings["response_type"].GetString())
 
-        self.adjoint_postprocess = StructuralMechanicsApplication.AdjointPostprocess(self.main_model_part, self.response_function, self.sensitivity_settings)
-        self.adjoint_postprocess.Initialize()
+        self.sensitivity_builder = KratosMultiphysics.SensitivityBuilder(self.sensitivity_settings, self.main_model_part, self.response_function)
+        self.sensitivity_builder.Initialize()
 
         super(StructuralMechanicsAdjointStaticSolver, self).Initialize()
         self.response_function.Initialize()
@@ -104,7 +104,7 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
     def FinalizeSolutionStep(self):
         super(StructuralMechanicsAdjointStaticSolver, self).FinalizeSolutionStep()
         self.response_function.FinalizeSolutionStep()
-        self.adjoint_postprocess.UpdateSensitivities()
+        self.sensitivity_builder.UpdateSensitivities()
 
     def SolveSolutionStep(self):
         if self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":

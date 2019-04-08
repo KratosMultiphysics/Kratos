@@ -12,11 +12,8 @@
 //                    
 //
 
-
 #if !defined(KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED )
 #define KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -24,11 +21,7 @@
 #include <cstddef>
 #include <cstring>
 
-
-
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -59,9 +52,15 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-/// Short class definition.
-/** Detail class definition.
+    
+/** 
+* @class VariablesListDataValueContainer
+* @ingroup KratosCore 
+* @brief A  shared  variable  list gives the position of each variable in the containers sharing it. 
+* @details The mechanism is very simple. There is an array which stores the local offset for each variable in the container and assigns  the  value−1  for  the  rest  of  the variables
+* For more details see P. Dadvand, R. Rossi, E. Oñate: An Object-oriented Environment for Developing Finite Element Codes for Multi-disciplinary Applications. Computational Methods in Engineering. 2010
+* @author Pooyan Dadvand
+* @author Riccardo Rossi
 */
 class KRATOS_API(KRATOS_CORE) VariablesListDataValueContainer
 {
