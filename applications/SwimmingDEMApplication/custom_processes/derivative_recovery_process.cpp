@@ -22,6 +22,7 @@
 #include "processes/find_nodal_h_process.h"
 
 // Application includes
+#include "../swimming_DEM_application.h"
 #include "derivative_recovery_process.h"
 
 namespace Kratos
@@ -29,23 +30,25 @@ namespace Kratos
 
 DerivativeRecoveryProcess::DerivativeRecoveryProcess(
     ModelPart& rModelPart,
-    Parameters Parameters)
-    : Process(), mrModelPart(rModelPart)
+    Parameters Param)
+    : Process(), mrModelPart(rModelPart), mMaterialDerivativeContainer(MATERIAL_ACCELERATION)
 {
-    this->CheckDefaultsAndProcessSettings(Parameters);
+    this->CheckDefaultsAndProcessSettings(Param);
+    mStoreFullGradient = Param['store_full_gradient_option'].GetBool();
 }
 
 DerivativeRecoveryProcess::DerivativeRecoveryProcess(
     Model &rModel,
-    Parameters Parameters)
-    : Process(), mrModelPart(rModel.GetModelPart(Parameters["model_part_name"].GetString()))
+    Parameters Param)
+    : Process(), mrModelPart(rModel.GetModelPart(Param["model_part_name"].GetString())), mMaterialDerivativeContainer(MATERIAL_ACCELERATION)
 {
-    this->CheckDefaultsAndProcessSettings(Parameters);
+    this->CheckDefaultsAndProcessSettings(Param);
+    mStoreFullGradient = Param['store_full_gradient_option'].GetBool();
 }
 
-void DerivativeRecoveryProcess::CheckDefaultsAndProcessSettings(Parameters Parameters)
+void DerivativeRecoveryProcess::CheckDefaultsAndProcessSettings(Parameters Param)
 {
-    typedef Parameters default_parameters( R"(
+    Parameters default_parameters( R"(
     {
         "model_part_name"                        : "",
         "distance_factor"                        : 2.0,
@@ -57,7 +60,7 @@ void DerivativeRecoveryProcess::CheckDefaultsAndProcessSettings(Parameters Param
         "recover_original_distance_at_each_step" : false
     }  )" );
 
-    Parameters.ValidateAndAssignDefaults(default_parameters);
+    Param.ValidateAndAssignDefaults(default_parameters);
 }
 
 void DerivativeRecoveryProcess::Execute()
@@ -84,13 +87,10 @@ void DerivativeRecoveryProcess::ExecuteInitializeSolutionStep() {
 }
 
 void DerivativeRecoveryProcess::ExecuteFinalizeSolutionStep() {
-
+    this->CalculateVectorMaterialDerivative();
 }
 
 /* Protected functions ****************************************************/
-
-void DerivativeRecoveryProcess::CalculateScalarGradients() {
-}
 
 /* Private functions ****************************************************/
 

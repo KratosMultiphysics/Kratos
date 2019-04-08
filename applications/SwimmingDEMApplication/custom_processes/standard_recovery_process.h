@@ -11,8 +11,8 @@
 //
 //
 
-#ifndef KRATOS_DERIVATIVE_RECOVERY_PROCESS_H
-#define KRATOS_DERIVATIVE_RECOVERY_PROCESS_H
+#ifndef KRATOS_STANDARD_RECOVERY_PROCESS_H
+#define KRATOS_STANDARD_RECOVERY_PROCESS_H
 
 // System includes
 #include <string>
@@ -22,7 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "processes/process.h"
+#include "derivative_recovery_process.h"
 #include "includes/kratos_parameters.h"
 
 // Application includes
@@ -52,31 +52,30 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecoveryProcess : public Process
+class KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryProcess : public DerivativeRecoveryProcess
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of DerivativeRecoveryProcess
-    KRATOS_CLASS_POINTER_DEFINITION(DerivativeRecoveryProcess);
+    /// Pointer definition of StandardRecoveryProcess
+    KRATOS_CLASS_POINTER_DEFINITION(StandardRecoveryProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
-
     /// Constructor with Kratos parameters.
-    DerivativeRecoveryProcess(
+    StandardRecoveryProcess(
         ModelPart& rModelPart,
         Parameters Param);
 
     /// Constructor with Kratos model
-    DerivativeRecoveryProcess(
+    StandardRecoveryProcess(
         Model& rModel,
         Parameters Param);
 
     /// Destructor.
-    ~DerivativeRecoveryProcess() override {}
+    ~StandardRecoveryProcess() override {}
 
     ///@}
     ///@name Operators
@@ -112,15 +111,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "DerivativeRecoveryProcess" ;
+        buffer << "StandardRecoveryProcess" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "DerivativeRecoveryProcess";}
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override {}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "StandardRecoveryProcess";}
 
 
     ///@}
@@ -131,13 +127,9 @@ public:
 
 protected:
 
-bool mStoreFullGradient;
-ModelPart& mrModelPart;
-Variable<array_1d<double, 3> > mMaterialDerivativeContainer;
+void AddTimeDerivative() override;
 
-virtual void AddTimeDerivative(){}
-
-virtual void CalculateVectorMaterialDerivative(){}
+void CalculateVectorMaterialDerivative() override;
 
 private:
     ///@name Static Member Variables
@@ -146,7 +138,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected Operators
@@ -175,17 +166,17 @@ private:
     ///@{
 
     /// Default constructor.
-    DerivativeRecoveryProcess() = delete;
+    StandardRecoveryProcess() = delete;
 
     /// Assignment operator.
-    DerivativeRecoveryProcess& operator=(DerivativeRecoveryProcess const& rOther) = delete;
+    StandardRecoveryProcess& operator=(StandardRecoveryProcess const& rOther) = delete;
 
     /// Copy constructor.
-    DerivativeRecoveryProcess(DerivativeRecoveryProcess const& rOther) = delete;
+    StandardRecoveryProcess(StandardRecoveryProcess const& rOther) = delete;
 
     ///@}
 
-}; // Class DerivativeRecoveryProcess
+}; // Class StandardRecoveryProcess
 
 ///@}
 ///@name Type Definitions
@@ -201,4 +192,4 @@ private:
 
 };  // namespace Kratos.
 
-#endif // KRATOS_DERIVATIVE_RECOVERY_PROCESS_H
+#endif // KRATOS_STANDARD_RECOVERY_PROCESS_H
