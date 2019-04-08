@@ -262,7 +262,7 @@ public:
             CalculateNormal3D(An);
 
         const CompressiblePotentialWallCondition &r_this = *this;
-        double density = rCurrentProcessInfo[DENSITY];
+        double density = GetProperties().GetValue(DENSITY_INFINITY);
         const array_1d<double, 3> &v = r_this.GetValue(VELOCITY_INFINITY);
         const double value = density*inner_prod(v, An) / static_cast<double>(TNumNodes);
         for (unsigned int i = 0; i < TNumNodes; ++i)
