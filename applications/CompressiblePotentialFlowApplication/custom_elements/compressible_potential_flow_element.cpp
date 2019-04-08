@@ -437,17 +437,17 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWakeEl
 
     const double density = ComputeDensity();
     const double DrhoDu2 = ComputeDensityDerivative(density);
-
+    
     // Computing local velocity
     array_1d<double, Dim> v;
     ComputeVelocityUpperWakeElement(v);
 
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, v);
 
-    const BoundedMatrix<double, NumNodes, NumNodes> lhs_total =
+    const BoundedMatrix<double, NumNodes, NumNodes> laplacian_total =
         data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
 
-    const BoundedMatrix<double, NumNodes, NumNodes> laplacian_total =
+    const BoundedMatrix<double, NumNodes, NumNodes> lhs_total =
         data.vol * density * prod(data.DN_DX, trans(data.DN_DX))+
         data.vol * DrhoDu2 * outer_prod(DNV, trans(DNV));
 
