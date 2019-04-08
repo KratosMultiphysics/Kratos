@@ -17,8 +17,10 @@
         "formulation": {
                     "element_type":"compressible"
         },
-        "maximum_iterations"     : 10,
+        "maximum_iterations"     : 30,
         "echo_level"             : 0,
+        "relative_tolerance": 1e-12,
+        "absolute_tolerance": 1e-12,
         "linear_solver_settings"  : {
                 "solver_type"             : "ExternalSolversApplication.super_lu",
                 "verbosity"               : 0
