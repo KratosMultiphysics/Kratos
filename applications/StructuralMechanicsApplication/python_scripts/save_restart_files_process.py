@@ -55,30 +55,14 @@ class SaveRestartFilesProcess(KratosMultiphysics.Process):
         # self.restart_utility.SaveRestart()
 
 ## TODO Mahmoud : check the reason for not reading the serialized model
-    # def ExecuteInitializeSolutionStep(self):
-    #     # loaded_model = KratosMultiphysics.Model()
-    #     # model_part_name = self.settings["model_part_name"].GetString()
-    #     # self.loaded_model_part = loaded_model.CreateModelPart(model_part_name)
-    #     # restart_parameters_load = KratosMultiphysics.Parameters("""
-    #     # {
-    #     #     "input_filename"                 : "test_restart_file",
-    #     #     "restart_load_file_label"        : "",
-    #     #     "serializer_trace"               : "no_trace",
-    #     #     "load_restart_files_from_folder" : false
-    #     # }
-    #     # """)
-    #     # restart_parameters_load["restart_load_file_label"].SetString( str(round(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME], 3) ))
-    #     # rest_utility_load = restart_utility.RestartUtility(self.loaded_model_part, restart_parameters_load)
-    #     # rest_utility_load.LoadRestart()
-    #     if self.load_model_part == True:
-    #         print("load loop")
-    #         loaded_model = KratosMultiphysics.Model()
-    #         self.loaded_model_part = loaded_model.CreateModelPart(self.model_part_name)
-    #         self.parameters["restart_load_file_label"].SetString( str(round(self.model_part.ProcessInfo[KratosMultiphysics.TIME], 3) ))
-    #         rest_utility_load = RestartUtility(self.loaded_model_part, self.parameters)
-    #         rest_utility_load.LoadRestart()
-    #         StructuralMechanicsApplication.ReplaceElementsWithSerializedElementsProcess(self.model_part, self.loaded_model_part).Execute()
-    #         #self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "replace primal elements with serialized elements")
+    def ExecuteInitializeSolutionStep(self):
+        if self.load_model_part == True:
+            loaded_model = KratosMultiphysics.Model()
+            self.loaded_model_part = loaded_model.CreateModelPart(self.model_part_name)
+            self.parameters["restart_load_file_label"].SetString( str(round(self.model_part.ProcessInfo[KratosMultiphysics.TIME], 3) ))
+            rest_utility_load = RestartUtility(self.loaded_model_part, self.parameters)
+            rest_utility_load.LoadRestart()
+            StructuralMechanicsApplication.ReplaceElementsWithSerializedElementsProcess(self.model_part, self.loaded_model_part).Execute()
 
     def ExecuteFinalizeSolutionStep(self):
         if self.save_model_part == True:

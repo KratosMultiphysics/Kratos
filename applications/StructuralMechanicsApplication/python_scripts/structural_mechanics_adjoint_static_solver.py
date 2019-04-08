@@ -116,12 +116,6 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
             node.Y = node.Y0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)[1]
             node.Z = node.Z0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)[2]
 
-        ## Replacing pointers to primal elements with pointers to the serialized elements
-        if self.sensitivity_settings["serialization"].GetBool() == True:
-            self._load_serialized_model()
-            StructuralMechanicsApplication.ReplaceElementsWithSerializedElementsProcess(self.main_model_part, self.loaded_model_part).Execute()
-            self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "replace primal elements with serialized elements")
-
         self.response_function.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
@@ -161,20 +155,3 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
 
     def _create_solution_scheme(self):
         return KratosMultiphysics.ResidualBasedAdjointStaticScheme(self.response_function)
-
-    #TODO Mahmoud: Move this to the restart process
-    def _load_serialized_model(self):
-        loaded_model = KratosMultiphysics.Model()
-        model_part_name = self.settings["model_part_name"].GetString()
-        self.loaded_model_part = loaded_model.CreateModelPart(model_part_name)
-        restart_parameters_load = KratosMultiphysics.Parameters("""
-        {
-            "input_filename"                 : "test_restart_file",
-            "restart_load_file_label"        : "",
-            "serializer_trace"               : "no_trace",
-            "load_restart_files_from_folder" : false
-        }
-        """)
-        restart_parameters_load["restart_load_file_label"].SetString( str(round(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME], 3) ))
-        rest_utility_load = restart_utility.RestartUtility(self.loaded_model_part, restart_parameters_load)
-        rest_utility_load.LoadRestart()
