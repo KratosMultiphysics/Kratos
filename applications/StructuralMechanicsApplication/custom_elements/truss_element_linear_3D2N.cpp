@@ -62,7 +62,7 @@ TrussElementLinear3D2N::CreateElementStiffnessMatrix(
     BoundedMatrix<double, msLocalSize, msLocalSize> LocalStiffnessMatrix =
         ZeroMatrix(msLocalSize, msLocalSize);
     CalculateElasticStiffnessMatrix(LocalStiffnessMatrix,
-                                          rCurrentProcessInfo);
+                                    rCurrentProcessInfo);
 
     return LocalStiffnessMatrix;
     KRATOS_CATCH("")

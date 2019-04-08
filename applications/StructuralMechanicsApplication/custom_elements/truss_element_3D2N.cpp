@@ -108,7 +108,7 @@ TrussElement3D2N::CreateElementStiffnessMatrix(
         ZeroMatrix(msLocalSize, msLocalSize);
 
     CalculateElasticStiffnessMatrix(local_stiffness_matrix,
-                                          rCurrentProcessInfo);
+                                    rCurrentProcessInfo);
     BoundedMatrix<double, msLocalSize, msLocalSize> K_geo =
         ZeroMatrix(msLocalSize, msLocalSize);
     CalculateGeometricStiffnessMatrix(K_geo, rCurrentProcessInfo);
@@ -938,7 +938,7 @@ void TrussElement3D2N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
     KRATOS_TRY;
     Vector temp_shape_function = ZeroVector(3);
     mpConstitutiveLaw->FinalizeSolutionStep(GetProperties(),
-            GetGeometry(),temp_shape_function,rCurrentProcessInfo);
+                                            GetGeometry(),temp_shape_function,rCurrentProcessInfo);
     KRATOS_CATCH("");
 }
 

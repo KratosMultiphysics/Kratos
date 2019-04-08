@@ -66,7 +66,7 @@ CableElement3D2N::CreateElementStiffnessMatrix(
 
     else {
         CalculateElasticStiffnessMatrix(local_stiffness_matrix,
-                                              rCurrentProcessInfo);
+                                        rCurrentProcessInfo);
         BoundedMatrix<double, msLocalSize, msLocalSize> K_geo =
             ZeroMatrix(msLocalSize, msLocalSize);
         CalculateGeometricStiffnessMatrix(K_geo, rCurrentProcessInfo);

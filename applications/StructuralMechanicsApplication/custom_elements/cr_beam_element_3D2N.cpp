@@ -995,7 +995,7 @@ void CrBeamElement3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
             rotation_matrix = CalculateInitialLocalCS();
         } else
             AssembleSmallInBigMatrix(mLocalRotationMatrix,
-                                           rotation_matrix);
+                                     rotation_matrix);
 
         BoundedMatrix<double, msElementSize, msElementSize> aux_matrix =
             prod(rotation_matrix, rMassMatrix);
@@ -1028,7 +1028,7 @@ void CrBeamElement3D2N::CalculateRightHandSide(
         transformation_matrix = CalculateInitialLocalCS();
     } else
         AssembleSmallInBigMatrix(mLocalRotationMatrix,
-                                       transformation_matrix);
+                                 transformation_matrix);
 
     // Nodal element forces global
     BoundedVector<double, msElementSize> nodal_forces_global_q =
@@ -1062,7 +1062,7 @@ void CrBeamElement3D2N::CalculateLeftHandSide(
         transformation_matrix = CalculateInitialLocalCS();
     } else
         CalculateTransformationMatrix(transformation_matrix, bisectrix,
-                                            vector_differences);
+                                      vector_differences);
 
     // calculate local nodal forces
     CalculateLocalNodalForces(bisectrix, vector_differences);
@@ -1193,7 +1193,7 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
         transformation_matrix = CalculateInitialLocalCS();
     } else
         AssembleSmallInBigMatrix(mLocalRotationMatrix,
-                                       transformation_matrix);
+                                 transformation_matrix);
 
     // rOutput[GP 1,2,3][x,y,z]
 
