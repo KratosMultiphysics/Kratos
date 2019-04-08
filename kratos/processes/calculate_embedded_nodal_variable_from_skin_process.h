@@ -28,7 +28,6 @@
 #include "includes/kratos_flags.h"
 #include "elements/embedded_nodal_variable_calculation_element_simplex.h"
 #include "linear_solvers/cg_solver.h"
-#include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "processes/process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -147,14 +146,10 @@ mantaining as much as possible the position of the zero of the function prior to
 This is achieved by minimizing the function  ( 1 - norm( gradient( distance ) )**2
 with the restriction that "distance" is a finite elment function
 */
-template< std::size_t TDim, class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver >
+template< class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver >
 class CalculateEmbeddedNodalVariableFromSkinProcess : public Process
 {
 public:
-
-    // KRATOS_DEFINE_LOCAL_FLAG(PERFORM_STEP1);
-    // KRATOS_DEFINE_LOCAL_FLAG(DO_EXPENSIVE_CHECKS);
-    // KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_EXACT_DISTANCES_TO_PLANE);
 
     ///@name Type Definitions
     ///@{
@@ -247,20 +242,26 @@ public:
         KRATOS_ERROR_IF(mrBaseModelPart.NumberOfElements() == 0) << "The model Part has no elements." << std::endl;
 
         // Check that the base model part is conformed by simplex elements
-        if(TDim == 2){
-            KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) <<
-                "In 2D the element type is expected to be a triangle." << std::endl;
-        } else if(TDim == 3) {
-            KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) <<
-                "In 3D the element type is expected to be a tetrahedron" << std::endl;
-        }
+        // if(TDim == 2){
+        //     KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) <<
+        //         "In 2D the element type is expected to be a triangle." << std::endl;
+        // } else if(TDim == 3) {
+        //     KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) <<
+        //         "In 3D the element type is expected to be a tetrahedron" << std::endl;
+        // }
 
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         this->ReGenerateIntersectedElementsModelPart();
 
         // Create a linear solver
-        auto p_linear_solver = Kratos::make_shared<SkylineLUFactorizationSolver<TSparseSpace, TDenseSpace>>();
-        // auto p_linear_solver = Kratos::make_shared<CGSolver<TSparseSpace, TDenseSpace>>();
+        Parameters linear_solver_parameters(R"({
+            "solver_type": "cg_solver",
+            "tolerance": 1.0e-8,
+            "max_iteration": 200,
+            "preconditioner_type": "none",
+            "scaling": false
+        })");
+        auto p_linear_solver = Kratos::make_shared<CGSolver<TSparseSpace, TDenseSpace>>(linear_solver_parameters);
 
         // Create the linear strategy
         SchemePointerType p_scheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>>();
@@ -283,8 +284,6 @@ public:
             calculate_norm_dx);
 
         mpSolvingStrategy->Check();
-
-        KRATOS_WATCH(r_aux_model_part)
 
         KRATOS_CATCH("")
     }
@@ -319,12 +318,8 @@ public:
         if(mIntersectedElementsPartIsInitialized == false) {
             this->ReGenerateIntersectedElementsModelPart();
         }
-        KRATOS_WATCH("BEFORE SOLVE!")
-        Model &current_model = mrBaseModelPart.GetModel();
-        ModelPart &r_aux_model_part = current_model.GetModelPart(mAuxModelPartName);
-        KRATOS_WATCH(r_aux_model_part)
-        // Solver the regression problem
-        mpSolvingStrategy->SetEchoLevel(3);
+
+        // Solve the regression problem
         mpSolvingStrategy->Solve();
 
         // Move the obtained values to the user-defined variable
@@ -475,33 +470,6 @@ protected:
         EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::AddUnknownVariable(rModelPart);
     }
 
-    // //TODO: NOW ONLY THE INTERSECTED EDGES NODES ARE REQUIRED. WE ARE ADDING UNUSED EXTRA NODES
-    // void AddIntersectedElementsModelPartNodes(ModelPart &rModelPart)
-    // {
-    //     // Initialize the VISITED flag in the origin model part
-    //     VariableUtils().SetFlag(VISITED, false, mrBaseModelPart.Nodes());
-
-    //     // Add the nodes belonging to intersected elements
-    //     for (unsigned int i_elem = 0; i_elem < mrBaseModelPart.NumberOfElements(); ++i_elem) {
-    //         auto it_elem = mrBaseModelPart.ElementsBegin() + i_elem;
-    //         auto elem_dist = this->SetDistancesVector(it_elem);
-    //         // Check if the current element is split
-    //         if (IsSplit(elem_dist)) {
-    //             auto &r_geom = it_elem->GetGeometry();
-    //             for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-    //                 r_geom[i_node].Set(VISITED, true);
-    //             }
-    //         }
-    //     }
-
-    //     for (unsigned int i_node = 0; i_node < mrBaseModelPart.NumberOfNodes(); ++i_node) {
-    //         auto it_node = mrBaseModelPart.NodesBegin() + i_node;
-    //         if (it_node->Is(VISITED)) {
-    //             rModelPart.AddNode(mrBaseModelPart.pGetNode(it_node->Id()));
-    //         }
-    //     }
-    // }
-
     void AddIntersectedElementsModelPartDOFs(ModelPart &rModelPart)
     {
         EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::AddUnknownVariableDofs(rModelPart);
@@ -586,8 +554,6 @@ protected:
                                     rModelPart.pGetProperties(0));
 
                                 // Save the edge values in the new element
-                                KRATOS_WATCH(i_edge_d)
-                                KRATOS_WATCH(i_edge_val)
                                 p_element->SetValue(DISTANCE, i_edge_d);
                                 p_element->SetValue(rUnknownVariable, i_edge_val);
 
@@ -674,7 +640,7 @@ private:
         return nodal_distances;
     }
 
-    inline bool IsSplit(const array_1d<double, TDim + 1> &rDistances)
+    inline bool IsSplit(const Vector &rDistances)
     {
         unsigned int n_pos = 0, n_neg = 0;
 
@@ -784,16 +750,16 @@ private:
 ///@{
 
 /// input stream function
-template< std::size_t TDim, class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+template< class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    CalculateEmbeddedNodalVariableFromSkinProcess<TDim, TVarType, TSparseSpace, TDenseSpace, TLinearSolver>& rThis);
+    CalculateEmbeddedNodalVariableFromSkinProcess<TVarType, TSparseSpace, TDenseSpace, TLinearSolver>& rThis);
 
 /// output stream function
-template< std::size_t TDim, class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+template< class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const CalculateEmbeddedNodalVariableFromSkinProcess<TDim, TVarType, TSparseSpace, TDenseSpace, TLinearSolver>& rThis)
+    const CalculateEmbeddedNodalVariableFromSkinProcess<TVarType, TSparseSpace, TDenseSpace, TLinearSolver>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
