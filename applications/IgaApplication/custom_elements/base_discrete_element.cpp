@@ -105,8 +105,6 @@ namespace Kratos
     )
     {
         KRATOS_TRY;
-        
-        KRATOS_WATCH("GetDofListStart");
 
         const unsigned int number_of_control_points = GetGeometry().size();
 
@@ -118,8 +116,6 @@ namespace Kratos
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
         }
-
-        KRATOS_WATCH("GetDofListEnd");
 
         KRATOS_CATCH("")
     };
@@ -256,12 +252,11 @@ namespace Kratos
             for (int i = 0; i < N.size(); i++)
             {
                 const NodeType & iNode = GetGeometry()[i];
-                const double cp_weight = iNode.GetValue(NURBS_CONTROL_POINT_WEIGHT);
                 const array_1d<double, 3>& coords = iNode.Coordinates();
 
-                condition_coords[0] += N[i] * coords[0] * cp_weight;
-                condition_coords[1] += N[i] * coords[1] * cp_weight;
-                condition_coords[2] += N[i] * coords[2] * cp_weight;
+                condition_coords[0] += N[i] * coords[0];
+                condition_coords[1] += N[i] * coords[1];
+                condition_coords[2] += N[i] * coords[2];
             }
             rOutput = condition_coords;
         }
@@ -498,4 +493,5 @@ namespace Kratos
 /***********************************************************************************/
 /***********************************************************************************/
 } // Namespace Kratos
+
 

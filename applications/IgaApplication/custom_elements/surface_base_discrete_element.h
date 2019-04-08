@@ -60,9 +60,9 @@ protected:
 
             dA = 1.0;
 
-            H = ZeroMatrix(Dimension, Dimension);
-            Q = ZeroMatrix(Dimension, Dimension);
-            T = ZeroMatrix(Dimension, Dimension);
+            H = ZeroMatrix(3, 3);
+            Q = ZeroMatrix(3, 3);
+            T = ZeroMatrix(3, 3);
         }
     };
 
@@ -172,6 +172,9 @@ public:
 protected:
 
     MetricVariables mInitialMetric = MetricVariables(3);
+
+    // debug variable
+    double m_phi1;
 
     ///@name Operations
     ///@{

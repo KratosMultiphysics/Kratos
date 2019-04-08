@@ -32,6 +32,13 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        static unsigned int counter = 0;
+    	++counter;
+        if (counter==3)
+            m_phi1 = 1;
+        else
+            m_phi1 = 0;
+
         //Constitutive Law initialisation
         BaseDiscreteElement::Initialize();
 
@@ -68,31 +75,6 @@ namespace Kratos
     {
         KRATOS_TRY
         noalias(rLeftHandSideMatrix) += IntegrationWeight * prod(trans(B), Matrix(prod(D, B)));
-        //const int number_of_control_points = GetGeometry().size();
-        //const int mat_size = number_of_control_points * 3;
-
-        //for (int r = 0; r < mat_size; r++)
-        //{
-        //    Vector zu = ZeroVector(3);
-
-        //        // dN_ca = Dm*S_dE_ca(:,r);
-        //    zu[0] = D(0, 0)*B(0, r) + D(0, 1)*B(1, r) + D(0, 2)*B(2, r);
-        //    zu[1] = D(1, 0)*B(0, r) + D(1, 1)*B(1, r) + D(1, 2)*B(2, r);
-        //    zu[2] = D(2, 0)*B(0, r) + D(2, 1)*B(1, r) + D(2, 2)*B(2, r);
-
-
-        //    for (int s = 0; s <= r; s++)
-        //    {
-        //        // membrane stiffness
-        //        double x = (zu[0] * B(0, s) + zu[1] * B(1, s) + zu[2] * B(2, s))*IntegrationWeight;
-        //        rLeftHandSideMatrix(r, s) += x;
-        //        rLeftHandSideMatrix(s, r) += x;
-        //        //// bending stiffness
-        //        //S_keb(r, s) = dM_ca[0] * S_dK_ca(0, s) + dM_ca[1] * S_dK_ca(1, s) + dM_ca[2] * S_dK_ca(2, s)
-        //        //    + M_ca[0] * S_ddK_ca_1(r, s) + M_ca[1] * S_ddK_ca_2(r, s) + M_ca[2] * S_ddK_ca_3(r, s);
-        //        //S_keb(s, r) = S_keb(r, s);
-        //    }
-        //}
         KRATOS_CATCH("")
     }
 
@@ -116,9 +98,10 @@ namespace Kratos
                 double nm = (SD[0] * SecondVariationsStrain.B11(n, m)
                     + SD[1] * SecondVariationsStrain.B22(n, m)
                     + SD[2] * SecondVariationsStrain.B12(n, m))*rIntegrationWeight;
-                //KRATOS_ERROR_IF(nm > 1e-5) << "Problem" << std::endl;
+
                 rLeftHandSideMatrix(n, m) += nm;
-                rLeftHandSideMatrix(m, n) += nm;
+                if(n!=m)
+                    rLeftHandSideMatrix(m, n) += nm;
             }
         }
         KRATOS_CATCH("")
@@ -194,8 +177,12 @@ namespace Kratos
             rB(0, r) = mInitialMetric.Q(0, 0)*dE_curvilinear[0] + mInitialMetric.Q(0, 1)*dE_curvilinear[1] + mInitialMetric.Q(0, 2)*dE_curvilinear[2];
             rB(1, r) = mInitialMetric.Q(1, 0)*dE_curvilinear[0] + mInitialMetric.Q(1, 1)*dE_curvilinear[1] + mInitialMetric.Q(1, 2)*dE_curvilinear[2];
             rB(2, r) = mInitialMetric.Q(2, 0)*dE_curvilinear[0] + mInitialMetric.Q(2, 1)*dE_curvilinear[1] + mInitialMetric.Q(2, 2)*dE_curvilinear[2];
-        }
 
+            KRATOS_WATCH(dE_curvilinear)
+            
+        }
+        
+        KRATOS_WATCH(rB)
 
         //if (this->Has(SHAPE_FUNCTION_LOCAL_DERIVATIVES))
         //{
@@ -682,6 +669,8 @@ namespace Kratos
         ProcessInfo& rCurrentProcessInfo
     )
     {
+        KRATOS_WATCH("CalculateMassMatrix")
+        
         KRATOS_TRY;
         double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
         Vector ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
@@ -756,4 +745,5 @@ namespace Kratos
         //}
     }
 } // Namespace Kratos
+
 

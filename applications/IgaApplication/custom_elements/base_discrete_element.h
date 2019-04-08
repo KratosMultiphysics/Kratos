@@ -18,7 +18,6 @@
 // System includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/variables.h"
 
 // External includes
 
@@ -407,4 +406,5 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_BASE_DISCRETE_ELEMENT_H_INCLUDED  defined
+
 
