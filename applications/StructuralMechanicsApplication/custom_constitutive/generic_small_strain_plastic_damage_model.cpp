@@ -163,32 +163,17 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                             damage_indicator, plasticity_indicator, 
                             plastic_strain, damage_increment, 
                             plastic_consistency_increment, plastic_denominator, uniaxial_stress_plasticity, hardd, damage_dissipation_increment, 1);
-                    // std::cout << "estoy en el 1" << std::endl;
                 // Plastic Case
-                } else if (damage_indicator <= std::abs(1.0e-4 * threshold_damage) && plasticity_indicator > std::abs(1.0e-4 * threshold_plasticity)) {
-                    // this->CalculateIncrementsPlasticDamageCase(
-                    //         damage_yield_flux, r_strain_vector, damage,
-                    //         f_flux, g_flux, r_constitutive_matrix, 
-                    //         damage_indicator, plasticity_indicator, 
-                    //         plastic_strain, damage_increment, 
-                    //         plastic_consistency_increment, plastic_denominator, uniaxial_stress_plasticity, hardd, damage_dissipation_increment, 2);
+                } else if (damage_indicator <= std::abs(1.0e-4 * threshold_damage) && plasticity_indicator > std::abs(1.0e-4 * threshold_plasticity)) {;
                     damage_increment = 0.0;
                     plastic_consistency_increment = plasticity_indicator * plastic_denominator;
-                    // std::cout << "estoy en el 2" << std::endl;
                 // Damage case
                 } else if (plasticity_indicator <= std::abs(1.0e-4 * threshold_plasticity) && damage_indicator > std::abs(1.0e-4 * threshold_damage)) {
-                    // this->CalculateIncrementsPlasticDamageCase(
-                    //         damage_yield_flux, r_strain_vector, damage,
-                    //         f_flux, g_flux, r_constitutive_matrix, 
-                    //         damage_indicator, plasticity_indicator, 
-                    //         plastic_strain, damage_increment, 
-                    //         plastic_consistency_increment, plastic_denominator, uniaxial_stress_plasticity, hardd, damage_dissipation_increment, 3);
-                    damage_increment = inner_prod(damage_yield_flux, prod(r_constitutive_matrix, r_strain_vector - plastic_strain)); // aprox todo
+					const double denom = hardd + inner_prod(damage_yield_flux, effective_predictive_stress_vector);
+                    damage_increment = damage_indicator / denom;
                     plastic_consistency_increment = 0.0;
-                    // std::cout << "estoy en el 3" << std::endl;
                 } // Increments computed
 
-				// std::cout << "estoy en el jejejej" << std::endl;
                 damage += damage_increment;
                 noalias(plastic_strain_increment) = plastic_consistency_increment * g_flux;
 				plastic_strain += plastic_strain_increment;
@@ -461,26 +446,13 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                     // std::cout << "estoy en el 1" << std::endl;
                 // Plastic Case
                 } else if (damage_indicator <= std::abs(1.0e-4 * threshold_damage) && plasticity_indicator > std::abs(1.0e-4 * threshold_plasticity)) {
-                    // this->CalculateIncrementsPlasticDamageCase(
-                    //         damage_yield_flux, r_strain_vector, damage,
-                    //         f_flux, g_flux, r_constitutive_matrix, 
-                    //         damage_indicator, plasticity_indicator, 
-                    //         plastic_strain, damage_increment, 
-                    //         plastic_consistency_increment, plastic_denominator, uniaxial_stress_plasticity, hardd, damage_dissipation_increment, 2);
                     damage_increment = 0.0;
                     plastic_consistency_increment = plasticity_indicator * plastic_denominator;
-                    // std::cout << "estoy en el 2" << std::endl;
                 // Damage case
                 } else if (plasticity_indicator <= std::abs(1.0e-4 * threshold_plasticity) && damage_indicator > std::abs(1.0e-4 * threshold_damage)) {
-                    // this->CalculateIncrementsPlasticDamageCase(
-                    //         damage_yield_flux, r_strain_vector, damage,
-                    //         f_flux, g_flux, r_constitutive_matrix, 
-                    //         damage_indicator, plasticity_indicator, 
-                    //         plastic_strain, damage_increment, 
-                    //         plastic_consistency_increment, plastic_denominator, uniaxial_stress_plasticity, hardd, damage_dissipation_increment, 3);
-                    damage_increment = inner_prod(damage_yield_flux, prod(r_constitutive_matrix, r_strain_vector - plastic_strain)); // aprox todo
+					const double denom = hardd + inner_prod(damage_yield_flux, effective_predictive_stress_vector);
+                    damage_increment = damage_indicator / denom;
                     plastic_consistency_increment = 0.0;
-                    // std::cout << "estoy en el 3" << std::endl;
                 } // Increments computed
 
                 damage += damage_increment;
@@ -788,8 +760,16 @@ CalculateDamageParameters(
     // } else if (std::abs(g_c_mod) < tolerance) {
     //     rDamageDissipationIncrement = UndamagedFreeEnergy * (tensile_indicator_factor*rUniaxialStress /yield_ratio / (fracture_energy_tension*suma)) * DamageIncrement;
     // } else {
-	rDamageDissipationIncrement = UndamagedFreeEnergy * (tensile_indicator_factor*rUniaxialStress / yield_ratio / (fracture_energy_tension/suma) + compression_indicator_factor*rUniaxialStress / (fracture_energy_compression/suma)) * DamageIncrement;
+	// rDamageDissipationIncrement = UndamagedFreeEnergy * (tensile_indicator_factor*rUniaxialStress / yield_ratio / (fracture_energy_tension/suma) + compression_indicator_factor*rUniaxialStress / (fracture_energy_compression/suma)) * DamageIncrement;
     // }
+
+    double const0 = 0.0, const1 = 0.0;
+    if (std::abs(suma) > tolerance) {
+        const0 = tensile_indicator_factor*(rUniaxialStress / yield_ratio) / (fracture_energy_tension * suma);
+        const1 = compression_indicator_factor*rUniaxialStress / (fracture_energy_compression*suma);
+    }
+    double constant = const0 + const1;
+    rDamageDissipationIncrement = constant*UndamagedFreeEnergy;
 
     this->CheckInternalVariable(rDamageDissipationIncrement);
     rDamageDissipation += rDamageDissipationIncrement;
