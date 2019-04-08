@@ -127,15 +127,18 @@ public:
             rPreviousMaximumStress = rMaximumStress;
             rCycleCounter = true;
         } else if (stress_increment_1 <= -0.001 && stress_increment_2 >= 0.0 && !rCycleCounter) {
+			std::cout << "min" << std::endl;
             rMinimumStress = stress_1;
             rPreviousMinimumStress = rMinimumStress;
             rCycleCounter = true;
-        }
 
-        if (rPreviousMaximumStress != rMaximumStress && rPreviousMinimumStress != rMinimumStress && rCycleCounter) {
+        }
+        
+        if (rPreviousMaximumStress != rMaximumStress && rPreviousMinimumStress != rMinimumStress && !rCycleCounter) {
+			std::cout << "cycle" << std::endl;
             rNumberOfCycles++;
-            rPreviousMaximumStress = 0;
-            rPreviousMinimumStress = 0;
+            rPreviousMaximumStress = 0.0;
+            rPreviousMinimumStress = 0.0;
         }
     }
 
@@ -189,23 +192,23 @@ public:
                                                 const double MinStress,
                                                 double& rReversionFactor,
                                                 const Properties& rMaterialParameters,
-                                                const double NumbreOfCycles,
+                                                const int NumberOfCycles,
                                                 double& rFatigueReductionFactor,
                                                 double& rB0
                                                 )
 	{
         CalculateReversionFactor(MaxStress, MinStress, rReversionFactor);
-        const Vector& r_fatigue_parameters = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
+        const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
         const double yield_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
 
         //These variables have been defined following the model described by S. Oller et al. in A continuum mechanics model for mechanical fatigue analysis (2005), equation 13 on page 184.
-        const double Se = r_fatigue_parameters[0] * yield_stress;
-        const double STHR1 = r_fatigue_parameters[1];  
-        const double STHR2 = r_fatigue_parameters[2];
-        const double ALFAF = r_fatigue_parameters[3];
-        const double BETAF = r_fatigue_parameters[4];
-        const double AUXR1 = r_fatigue_parameters[5];
-        const double AUXR2 = r_fatigue_parameters[6];
+        const double Se = r_fatigue_coefficients[0] * yield_stress;
+        const double STHR1 = r_fatigue_coefficients[1];  
+        const double STHR2 = r_fatigue_coefficients[2];
+        const double ALFAF = r_fatigue_coefficients[3];
+        const double BETAF = r_fatigue_coefficients[4];
+        const double AUXR1 = r_fatigue_coefficients[5];
+        const double AUXR2 = r_fatigue_coefficients[6];
 
         double Sth, alphat;
         if (std::abs(rReversionFactor) < 1.0) {
@@ -218,14 +221,17 @@ public:
 
         const double square_betaf = std::pow(BETAF, 2.0);
         if (MaxStress > yield_stress) {
-            rFatigueReductionFactor = std::exp(-rB0 * std::pow(std::log10(NumbreOfCycles), square_betaf));
+            rFatigueReductionFactor = std::exp(-rB0 * std::pow(std::log10(static_cast<double>(NumberOfCycles)), square_betaf));
         } else if (MaxStress > Sth) {
             const double N_F = std::pow(10.0,std::pow(-std::log((MaxStress - Sth) / (yield_stress - Sth))/alphat,(1.0/BETAF)));
             rB0 = -(std::log(MaxStress / yield_stress) / std::pow((std::log10(N_F)), square_betaf));
-            rFatigueReductionFactor = std::exp(-rB0 * std::pow(std::log10(NumbreOfCycles), square_betaf));
+            rFatigueReductionFactor = std::exp(-rB0 * std::pow(std::log10(static_cast<double>(NumberOfCycles)), square_betaf));
         }
+        KRATOS_WATCH(NumberOfCycles);
+        //KRATOS_WATCH(-rB0 * std::pow(std::log10(NumberOfCycles), square_betaf));
+        //KRATOS_WATCH(-rB0 * std::pow(std::log10(static_cast<double>(NumberOfCycles)), square_betaf));
+        //KRATOS_WATCH(-rB0 * std::pow(std::log10(3.0), square_betaf));
     }
-
 
     ///@}
     ///@name Access

@@ -103,6 +103,10 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         // Initialize Plastic Parameters
         double uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
+        
+        KRATOS_WATCH(uniaxial_stress);
+        KRATOS_WATCH(predictive_stress_vector);
+
 
         double min_stress = 0.0, max_stress = 0.0, sign_factor;
         double previous_maximum_stress = this->GetPreviousMaxStress();
@@ -232,7 +236,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         // Initialize Plastic Parameters
         double uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
-
+        this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
+        
         double fatigue_reduction_factor = this->GetFatigueReductionFactor();
 
         uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution
@@ -297,6 +302,18 @@ bool GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Has(const V
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
+bool GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Has(const Variable<int>& rThisVariable)
+{
+    if (rThisVariable == NUMBER_OF_CYCLES) {
+        return true;
+    }
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
 void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::SetValue(
     const Variable<double>& rThisVariable,
     const double& rValue,
@@ -318,6 +335,20 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::SetValue(
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
+void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::SetValue(
+    const Variable<int>& rThisVariable,
+    const int& rValue
+    )
+{
+    if (rThisVariable == NUMBER_OF_CYCLES) {
+        mNumberOfCycles = rValue; 
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
 double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
@@ -332,6 +363,21 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue
     } else {
         return GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(rThisVariable, rValue);
     }
+    return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
+int& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue(
+    const Variable<int>& rThisVariable,
+    int& rValue
+    )
+{
+    if (rThisVariable == NUMBER_OF_CYCLES) {
+        rValue = mNumberOfCycles;
+    } 
     return rValue;
 }
 
@@ -375,6 +421,19 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Calculat
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
     double& rValue
+    )
+{
+    return this->GetValue(rThisVariable, rValue);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorType>
+int& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<int>& rThisVariable,
+    int& rValue
     )
 {
     return this->GetValue(rThisVariable, rValue);
