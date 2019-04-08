@@ -323,7 +323,7 @@ namespace Kratos
 
 
     public:
-        void IncrementIterationCounter() {this->mIterationCount += 1;};
+        void IncrementIterationCounter() {mIterationCount += 1;};
     };
 
 

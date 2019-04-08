@@ -37,7 +37,7 @@ CrBeamElementLinear3D2N::Create(IndexType NewId,
                                 NodesArrayType const& rThisNodes,
                                 PropertiesType::Pointer pProperties) const
 {
-    const GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     return Kratos::make_shared<CrBeamElementLinear3D2N>(
                NewId, rGeom.Create(rThisNodes), pProperties);
 }
@@ -59,16 +59,16 @@ void CrBeamElementLinear3D2N::CalculateLocalSystem(
 {
 
     KRATOS_TRY
-    this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+    CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
 
     Vector nodal_deformation = ZeroVector(msElementSize);
-    this->GetValuesVector(nodal_deformation);
+    GetValuesVector(nodal_deformation);
     rRightHandSideVector = ZeroVector(msElementSize);
     rRightHandSideVector -= prod(rLeftHandSideMatrix, nodal_deformation);
 
     // add bodyforces
-    rRightHandSideVector += this->CalculateBodyForces();
-    this->IncrementIterationCounter();
+    rRightHandSideVector += CalculateBodyForces();
+    IncrementIterationCounter();
     KRATOS_CATCH("")
 }
 
@@ -79,15 +79,15 @@ void CrBeamElementLinear3D2N::CalculateRightHandSide(
     rRightHandSideVector = ZeroVector(msElementSize);
 
     Matrix left_hand_side_matrix = ZeroMatrix(msElementSize, msElementSize);
-    this->CalculateLeftHandSide(left_hand_side_matrix, rCurrentProcessInfo);
+    CalculateLeftHandSide(left_hand_side_matrix, rCurrentProcessInfo);
     Vector nodal_deformation = ZeroVector(msElementSize);
-    this->GetValuesVector(nodal_deformation);
+    GetValuesVector(nodal_deformation);
     rRightHandSideVector = ZeroVector(msElementSize);
     noalias(rRightHandSideVector) -=
         prod(left_hand_side_matrix, nodal_deformation);
 
     // add bodyforces
-    noalias(rRightHandSideVector) += this->CalculateBodyForces();
+    noalias(rRightHandSideVector) += CalculateBodyForces();
     KRATOS_CATCH("")
 }
 
@@ -97,13 +97,13 @@ void CrBeamElementLinear3D2N::CalculateLeftHandSide(
 
     KRATOS_TRY;
     BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix =
-        this->CalculateInitialLocalCS();
+        CalculateInitialLocalCS();
     rLeftHandSideMatrix = ZeroMatrix(msElementSize, msElementSize);
-    noalias(rLeftHandSideMatrix) += this->CreateElementStiffnessMatrix_Material();
+    noalias(rLeftHandSideMatrix) += CreateElementStiffnessMatrix_Material();
 
     //// start static condensation
-    if (this->Has(CONDENSED_DOF_LIST)) {
-        Vector dof_list_input = this->GetValue(CONDENSED_DOF_LIST);
+    if (Has(CONDENSED_DOF_LIST)) {
+        Vector dof_list_input = GetValue(CONDENSED_DOF_LIST);
         std::vector<int> dofList(dof_list_input.size());
         for (SizeType i = 0; i < dof_list_input.size(); ++i) {
             dofList[i] = dof_list_input[i];
@@ -133,16 +133,16 @@ void CrBeamElementLinear3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
 
     bool use_consistent_mass_matrix = false;
 
-    if (this->GetProperties().Has(USE_CONSISTENT_MASS_MATRIX)) {
+    if (GetProperties().Has(USE_CONSISTENT_MASS_MATRIX)) {
         use_consistent_mass_matrix = GetProperties()[USE_CONSISTENT_MASS_MATRIX];
     }
 
     if (!use_consistent_mass_matrix) {
-        this->CalculateLumpedMassMatrix(rMassMatrix, rCurrentProcessInfo);
+        CalculateLumpedMassMatrix(rMassMatrix, rCurrentProcessInfo);
     } else {
-        this->CalculateConsistentMassMatrix(rMassMatrix, rCurrentProcessInfo);
+        CalculateConsistentMassMatrix(rMassMatrix, rCurrentProcessInfo);
         BoundedMatrix<double, msElementSize, msElementSize> rotation_matrix =
-            this->CalculateInitialLocalCS();
+            CalculateInitialLocalCS();
 
         BoundedMatrix<double, msElementSize, msElementSize> aux_matrix =
             prod(rotation_matrix, rMassMatrix);
@@ -161,26 +161,26 @@ CrBeamElementLinear3D2N::CalculateDeformationStiffness() const
     KRATOS_TRY
     BoundedMatrix<double, msLocalSize, msLocalSize> Kd =
         ZeroMatrix(msLocalSize, msLocalSize);
-    const double E = this->GetProperties()[YOUNG_MODULUS];
-    const double G = this->CalculateShearModulus();
-    const double A = this->GetProperties()[CROSS_AREA];
+    const double E = GetProperties()[YOUNG_MODULUS];
+    const double G = CalculateShearModulus();
+    const double A = GetProperties()[CROSS_AREA];
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
 
-    const double J = this->GetProperties()[TORSIONAL_INERTIA];
-    const double Iy = this->GetProperties()[I22];
-    const double Iz = this->GetProperties()[I33];
+    const double J = GetProperties()[TORSIONAL_INERTIA];
+    const double Iy = GetProperties()[I22];
+    const double Iz = GetProperties()[I33];
 
     double Ay = 0.00;
-    if (this->GetProperties().Has(AREA_EFFECTIVE_Y)) {
+    if (GetProperties().Has(AREA_EFFECTIVE_Y)) {
         Ay = GetProperties()[AREA_EFFECTIVE_Y];
     }
 
     double Az = 0.00;
-    if (this->GetProperties().Has(AREA_EFFECTIVE_Z)) {
+    if (GetProperties().Has(AREA_EFFECTIVE_Z)) {
         Az = GetProperties()[AREA_EFFECTIVE_Z];
     }
-    const double Psi_y = this->CalculatePsi(Iy, Az);
-    const double Psi_z = this->CalculatePsi(Iz, Ay);
+    const double Psi_y = CalculatePsi(Iy, Az);
+    const double Psi_z = CalculatePsi(Iz, Ay);
 
     Kd(0, 0) = G * J / L;
     Kd(1, 1) = E * Iy / L;
@@ -210,16 +210,16 @@ void CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
     Matrix left_hand_side_matrix = CreateElementStiffnessMatrix_Material();
 
     Vector nodal_deformation = ZeroVector(msElementSize);
-    this->GetValuesVector(nodal_deformation);
+    GetValuesVector(nodal_deformation);
 
     BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix =
-        this->CalculateInitialLocalCS();
+        CalculateInitialLocalCS();
     nodal_deformation =
         prod(Matrix(trans(transformation_matrix)), nodal_deformation);
 
     //// start static back condensation
-    if (this->Has(CONDENSED_DOF_LIST)) {
-        Vector dof_list_input = this->GetValue(CONDENSED_DOF_LIST);
+    if (Has(CONDENSED_DOF_LIST)) {
+        Vector dof_list_input = GetValue(CONDENSED_DOF_LIST);
         std::vector<int> dofList(dof_list_input.size());
         for (SizeType i = 0; i < dof_list_input.size(); ++i) {
             dofList[i] = dof_list_input[i];
@@ -273,7 +273,7 @@ void CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
 
     if (rVariable == LOCAL_AXES_VECTOR) {
         BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix;
-        transformation_matrix = this->CalculateInitialLocalCS();
+        transformation_matrix = CalculateInitialLocalCS();
 
         rOutput.resize(3);
         for (int i = 0; i < 3; ++i) {
