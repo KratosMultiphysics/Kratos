@@ -40,7 +40,8 @@
 
 //#define OPT_AVARAGE_RESULTS
 
-namespace Kratos {
+namespace Kratos
+{
 // =====================================================================================
 //
 // CalculationData

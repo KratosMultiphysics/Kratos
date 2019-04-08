@@ -12,7 +12,8 @@
 #if !defined(EICR_H_INCLUDED )
 #define  EICR_H_INCLUDED
 
-namespace Kratos {
+namespace Kratos
+{
 /** \brief EICR Element Independent CoRotational formulation
 *
 * E.I.C.R. is a utility class containing static methods related to

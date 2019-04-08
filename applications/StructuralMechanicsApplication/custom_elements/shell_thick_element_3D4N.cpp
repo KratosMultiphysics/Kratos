@@ -16,7 +16,8 @@
 #include <string>
 #include <iomanip>
 
-namespace Kratos {
+namespace Kratos
+{
 // =====================================================================================
 //
 // Class JacobianOperator

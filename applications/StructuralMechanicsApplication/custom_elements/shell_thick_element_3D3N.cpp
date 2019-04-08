@@ -38,7 +38,8 @@ Shell formulation references:---------------------------------------------------
     Volume 9, Issue 2, Pages 420-431.
 */
 
-namespace Kratos {
+namespace Kratos
+{
 // =========================================================================
 //
 // Definitions

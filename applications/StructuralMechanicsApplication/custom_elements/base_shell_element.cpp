@@ -21,7 +21,8 @@
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "includes/checks.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
 using SizeType = std::size_t;
 using IndexType = std::size_t;

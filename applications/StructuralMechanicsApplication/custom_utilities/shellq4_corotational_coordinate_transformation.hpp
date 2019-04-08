@@ -12,8 +12,8 @@
 #include "EICR.hpp"
 #include "shellq4_coordinate_transformation.hpp"
 
-namespace Kratos {
-
+namespace Kratos
+{
 /** \brief EICR ShellQ4_CorotationalCoordinateTransformation
 *
 * This class represents a corotational (nonlinear) coordinate transformation

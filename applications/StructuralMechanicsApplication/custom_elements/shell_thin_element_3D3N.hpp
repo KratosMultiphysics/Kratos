@@ -21,9 +21,8 @@
 #include "custom_elements/base_shell_element.h"
 #include "custom_utilities/shellt3_local_coordinate_system.hpp"
 
-namespace Kratos {
-
-
+namespace Kratos
+{
 ///@name Kratos Globals
 ///@{
 ///@}

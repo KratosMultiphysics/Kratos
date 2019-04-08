@@ -13,8 +13,8 @@
 
 #include "utilities/quaternion.h"
 
-namespace Kratos {
-
+namespace Kratos
+{
 /** \brief ShellT3_LocalCoordinateSystem
 *
 * This class represent the local coordinate system of any element whose geometry

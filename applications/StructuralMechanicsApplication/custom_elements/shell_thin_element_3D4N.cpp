@@ -52,7 +52,8 @@ concrete walls". Dissertation. Los Angeles, California: University of
 Southern California, 2012.
 */
 
-namespace Kratos {
+namespace Kratos
+{
 // =========================================================================
 //
 // Class JacobianOperator

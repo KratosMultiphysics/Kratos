@@ -14,8 +14,8 @@
 #define  KRATOS_SHELLQ4_LOCAL_COORDINATE_SYSTEM_H_INCLUDED
 
 
-namespace Kratos {
-
+namespace Kratos
+{
 /** \brief ShellQ4_LocalCoordinateSystem
 *
 * This class represent the local coordinate system of any element whose geometry

@@ -17,8 +17,8 @@
 
 #define COROT_POLAR_DECOMPOSITION
 
-namespace Kratos {
-
+namespace Kratos
+{
 /** \brief EICR ShellT3_CorotationalCoordinateTransformation
 *
 * This class represents a corotational (nonlinear) coordinate transformation

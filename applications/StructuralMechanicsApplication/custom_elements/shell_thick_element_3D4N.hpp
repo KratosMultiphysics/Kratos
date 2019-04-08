@@ -21,9 +21,8 @@
 // Project includes
 #include "custom_elements/base_shell_element.h"
 
-namespace Kratos {
-
-
+namespace Kratos
+{
 ///@name Kratos Globals
 ///@{
 ///@}

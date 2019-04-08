@@ -14,8 +14,8 @@
 
 #include "shellt3_local_coordinate_system.hpp"
 
-namespace Kratos {
-
+namespace Kratos
+{
 /** \brief ShellT3_CoordinateTransformation
 *
 * This class represents a basic (linear) coordinate transformation that can be used
