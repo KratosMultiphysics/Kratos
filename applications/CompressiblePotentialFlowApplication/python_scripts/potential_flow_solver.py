@@ -75,8 +75,8 @@ class PotentialFlowSolver(FluidSolver):
             },
             "maximum_iterations": 10,
             "echo_level": 0,
-            "relative_tolerance": 1e-5,
-            "absolute_tolerance": 1e-9,
+            "relative_tolerance": 1e-12,
+            "absolute_tolerance": 1e-12,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
             "calculate_solution_norm": false,
@@ -147,21 +147,6 @@ class PotentialFlowSolver(FluidSolver):
                 self.settings["move_mesh_flag"].GetBool())
         elif self.settings["formulation"]["element_type"].GetString()=="compressible":
             conv_criteria = KratosMultiphysics.ResidualCriteria(
-                self.settings["relative_tolerance"].GetDouble(),
-                self.settings["absolute_tolerance"].GetDouble())
-            max_iterations = self.settings["maximum_iterations"].GetInt()
-
-            self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
-                self.GetComputingModelPart(),
-                time_scheme,
-                self.linear_solver,
-                conv_criteria,
-                max_iterations,
-                self.settings["compute_reactions"].GetBool(),
-                self.settings["reform_dofs_at_each_step"].GetBool(),
-                self.settings["move_mesh_flag"].GetBool())
-        elif self.settings["formulation"]["element_type"].GetString()=="compressible_full":
-            conv_criteria = KratosMultiphysics.DisplacementCriteria(
                 self.settings["relative_tolerance"].GetDouble(),
                 self.settings["absolute_tolerance"].GetDouble())
             max_iterations = self.settings["maximum_iterations"].GetInt()
