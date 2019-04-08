@@ -275,8 +275,6 @@ class MonteCarlo(object):
                 self.LaunchEpoch()
                 self.FinalizeMCPhase()
                 self.ScreeningInfoFinalizeMCPhase()
-                if (self.iteration_counter > 3):
-                    stop
         else:
             print("\n","#"*50,"Not running Monte Carlo algorithm","#"*50)
             pass
