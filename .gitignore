@@ -69,6 +69,3 @@ kratos/includes/kratos_version.h
 *.bak
 
 applications/python_scripts/beam_profiles\.csv
-
-# Visual Studio Code files
-.vscode/*
