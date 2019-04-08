@@ -139,8 +139,8 @@ inline void EmbeddedNodalVariableFromSkinTypeHelperClass<array_1d<double, 3>>::A
     VariableUtils().AddDof(NODAL_VAUX_Z, rModelPart);
 }
 
-template< class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver >
-class CalculateEmbeddedNodalVariableFromSkinProcess : public Process
+template <class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+class KRATOS_API(KRATOS_CORE) CalculateEmbeddedNodalVariableFromSkinProcess : public Process
 {
 public:
 
@@ -379,9 +379,10 @@ protected:
         const auto &rUnknownVariable = EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable();
         const auto &r_int_elems_model_part = (mrBaseModelPart.GetModel()).GetModelPart(mAuxModelPartName);
         #pragma omp parallel for
-        for (auto &r_node : r_int_elems_model_part.Nodes()) {
-            auto &r_emb_nod_val = (mrBaseModelPart.GetNode(r_node.Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable);
-            r_emb_nod_val = r_node.FastGetSolutionStepValue(rUnknownVariable);
+        for (int i_node = 0; i_node < r_int_elems_model_part.NumberOfNodes(); ++i_node) {
+            const auto it_node = r_int_elems_model_part.NodesBegin() + i_node;
+            auto &r_emb_nod_val = (mrBaseModelPart.GetNode(it_node->Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable);
+            r_emb_nod_val = it_node->FastGetSolutionStepValue(rUnknownVariable);
         }
     }
 
