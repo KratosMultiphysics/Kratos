@@ -73,6 +73,153 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+namespace MPIInternals
+{
+
+template<class TValueType> MPI_Datatype DataType(const TValueType&);
+
+template<> inline MPI_Datatype DataType(const int&)
+{
+    return MPI_INT;
+}
+
+template<> inline MPI_Datatype DataType(const double&)
+{
+    return MPI_DOUBLE;
+}
+
+template<class TValue> struct SendTraits;
+
+template<> struct SendTraits<double>
+{
+    typedef double SendType;
+    constexpr static std::size_t SendSize = 1;
+    constexpr static MPI_Datatype DataType = MPI_DOUBLE;
+};
+
+template<std::size_t TDim> struct SendTraits< array_1d<double,TDim> >
+{
+    typedef double SendType;
+    constexpr static std::size_t SendSize = TDim;
+    constexpr static MPI_Datatype DataType = MPI_DOUBLE;
+};
+
+template<class TValue> struct DataSize
+{
+    constexpr static std::size_t Value = sizeof(TValue) / sizeof(SendTraits<TValue>::SendType);
+};
+
+template<class TValue> class NodalSolutionStepValueAccess
+{
+
+Communicator::MeshType& mrMesh;
+const Variable<TValue>& mrVariable;
+
+public:
+
+typedef Communicator::MeshType::NodesContainerType ContainerType;
+typedef Communicator::MeshType::NodesContainerType::iterator IteratorType;
+
+NodalSolutionStepValueAccess(Communicator::MeshType& rMesh, const Variable<TValue>& mrVariable):
+    mrMesh(rMesh), mrVariable(mrVariable)
+{}
+
+ContainerType& GetContainer()
+{
+    return mrMesh.Nodes();
+}
+
+TValue& GetValue(IteratorType& iter)
+{
+    return iter->FastGetSolutionStepValue(mrVariable);
+}
+
+};
+
+template<class TValue> class NodalDataAccess
+{
+
+Communicator::MeshType& mrMesh;
+const Variable<TValue>& mrVariable;
+
+public:
+
+typedef Communicator::MeshType::NodesContainerType ContainerType;
+typedef Communicator::MeshType::NodesContainerType::iterator IteratorType;
+
+NodalSolutionStepValueAccess(Communicator::MeshType& rMesh, const Variable<TValue>& rVariable):
+    mrMesh(rMesh), mrVariable(rVariable)
+{}
+
+ContainerType& GetContainer()
+{
+    return mrMesh.Nodes();
+}
+
+TValue& GetValue(IteratorType& iter)
+{
+    return iter->GetValue(mrVariable);
+}
+
+};
+
+template<class TValue, class TDatabaseAccess, class TReductionOperation>
+struct BufferManager: public TDatabaseAccess<TValue>, TReductionOperation
+{
+
+BufferManager(Communicator::MeshType& rMesh, const Variable<TValue>& rVariable):
+    TDatabaseAccess(rMesh, rVariable)
+{}
+
+void AllocateBuffer(std::vector<TValue>& rBuffer)
+{
+    auto& r_container = GetContainer();
+    std::size_t num_objects = r_container.size();
+    std::size_t buffer_size = num_objects * DataSize<TValue>::Value;
+
+    if (rBuffer.size() != buffer_size)
+    {
+        rBuffer.resize(buffer_size);
+    }
+}
+
+void FillBuffer(std::vector<TValue>& rBuffer)
+{
+    auto& r_container = TDatabaseAccess.GetContainer();
+    TValue* p_buffer = rBuffer.data();
+    std::size_t position = 0;
+    for (auto it_node = r_nodes.begin(); it_node != r_nodes.end(); ++it_node)
+    {
+        *(TValue*)(p_buffer + position) = GetValue(it_node);
+        position += DataSize<TValue>::Value;
+    }
+}
+
+void UpdateValues()
+{
+
+}
+
+};
+
+}
+
+/*template<ContainerType TContainerType, class TValueType> void FillBufferFromLocalMesh
+
+template<ContainerType TContainerType, class TValueType> struct LocalMeshAccess
+{
+void FillBuffer(std::vector<TValueType>& rBuffer, unsigned int i_color);
+
+void UpdateValues(const std::vector<TValueType>& rBuffer, unsigned int i_color);
+};
+
+template<class TValueType> void LocalMeshAccess<NodalSolutionStepValue, TValueType>::FillBuffer(std::vector<TValueType>& rBuffer, unsigned int i_color)
+{
+
+}
+
+}*/
+
 /// Short class definition.
 
 /** Detail class definition.
@@ -950,6 +1097,23 @@ protected:
     ///@}
 
 private:
+
+    struct LocalMeshAccess
+    {
+        MeshType& Get(unsigned int Color)
+        {
+            return LocalMesh(Color);
+        }
+    };
+
+    struct GhostMeshAccess
+    {
+        MeshType& Get(unsigned int Color)
+        {
+            return GhostMesh(Color);
+        }
+    };
+
     ///@name Static Member Variables
     ///@{
 
@@ -1051,7 +1215,7 @@ private:
         std::vector<int> receive_buffer_size(neighbours_indices.size());
 
         TSendType Value = TSendType();
-        MPI_Datatype ThisMPI_Datatype = GetMPIDatatype(Value);
+        MPI_Datatype ThisMPI_Datatype = MPIInternals::DataType(Value);
 
         //first of all gather everything to the owner node
         for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
@@ -1256,7 +1420,7 @@ private:
         std::vector<int> receive_buffer_size(neighbours_indices.size());
 
         TSendType Value = TSendType();
-        MPI_Datatype ThisMPI_Datatype = GetMPIDatatype(Value);
+        MPI_Datatype ThisMPI_Datatype = MPIInternals::DataType(Value);
 
         //first of all gather everything to the owner node
         for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
@@ -1344,7 +1508,7 @@ private:
         std::vector<int> receive_buffer_size(neighbours_indices.size());
 
         TSendType Value = TSendType();
-        MPI_Datatype ThisMPI_Datatype = GetMPIDatatype(Value);
+        MPI_Datatype ThisMPI_Datatype = MPIInternals::DataType(Value);
 
         //first of all gather everything to the owner node
         for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
@@ -1434,7 +1598,7 @@ private:
         NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
 
         TSendType Value = TSendType();
-        MPI_Datatype ThisMPI_Datatype = GetMPIDatatype(Value);
+        MPI_Datatype ThisMPI_Datatype = MPIInternals::DataType(Value);
 
         for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
             if ((destination = neighbours_indices[i_color]) >= 0)
@@ -1555,7 +1719,7 @@ private:
         std::vector<int> receive_buffer_size(neighbours_indices.size());
 
         TSendType Value = TSendType();
-        MPI_Datatype ThisMPI_Datatype = GetMPIDatatype(Value);
+        MPI_Datatype ThisMPI_Datatype = MPIInternals::DataType(Value);
 
         //first of all gather everything to the owner node
         for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
@@ -1640,7 +1804,7 @@ private:
         NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
 
         TSendType Value = TSendType();
-        MPI_Datatype ThisMPI_Datatype = GetMPIDatatype(Value);
+        MPI_Datatype ThisMPI_Datatype = MPIInternals::DataType(Value);
 
         for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
             if ((destination = neighbours_indices[i_color]) >= 0)
@@ -1704,7 +1868,7 @@ private:
         NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
 
         TSendType Value = TSendType();
-        MPI_Datatype ThisMPI_Datatype = GetMPIDatatype(Value);
+        MPI_Datatype ThisMPI_Datatype = MPIInternals::DataType(Value);
 
         for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
             if ((destination = neighbours_indices[i_color]) >= 0)
@@ -1790,7 +1954,7 @@ private:
                 int* receive_buffer_1 = new int[receive_buffer_size];
 
                 int dummy_int_variable = 0;
-                MPI_Datatype ThisMPI_Datatype = GetMPIDatatype(dummy_int_variable);
+                MPI_Datatype ThisMPI_Datatype = MPIInternals::DataType(dummy_int_variable);
 
                 unsigned int size_of_variable = 0;
 
@@ -1864,7 +2028,7 @@ private:
                 }
 
                 TSendType Value = TSendType();
-                ThisMPI_Datatype = GetMPIDatatype(Value);
+                ThisMPI_Datatype = MPIInternals::DataType(Value);
 
                 MPI_Status status2;
                 send_tag = i_color;
@@ -1930,7 +2094,7 @@ private:
                 }
 
                 double dummy_double_value = 0.0;
-                MPI_Datatype ThisMPI_Datatype = GetMPIDatatype(dummy_double_value);
+                MPI_Datatype ThisMPI_Datatype = MPIInternals::DataType(dummy_double_value);
 
                 MPI_Status status1;
 
@@ -2083,17 +2247,45 @@ private:
         return true;
     }
 
-    inline MPI_Datatype GetMPIDatatype(const int& Value)
+    MeshType& GetLocalMesh(unsigned int Color)
     {
-        return MPI_INT;
+        return LocalMesh(Color);
     }
 
-
-    inline MPI_Datatype GetMPIDatatype(const double& Value)
+    MeshType& GetGhostMesh(unsigned int Color)
     {
-        return MPI_DOUBLE;
+        return GhostMesh(Color);
     }
 
+    template<class TDataType, void MPICommunicator::*(unsigned int) SourceContainer, class DestinationValues, class ReductionOperation>
+    bool TransferDistributedValues(Variable<TDataType> const& rVariable)
+    {
+        int rank = mrDataCommunicator.Rank();
+        int destination = 0;
+
+        NeighbourIndicesContainerType& neighbour_indices = NeighbourIndices();
+
+        std::vector<TDataType> send_values;
+        std::vector<TDataType> recv_values;
+
+        for (unsigned int i_color = 0; i_color < neighbour_indices.size(); i_color++)
+        {
+            if ( (destination = neighbour_indices[i_color]) >= 0)
+            {
+                SourceValues.FillBuffer(send_values, i_color);
+                DestinationValues.FillBuffer(recv_values, i_color);
+
+                if ( (send_values.size() == 0) && (recv_values.size() == 0) )
+                {
+                    continue; // nothing to transfer, skip communication step
+                }
+
+                mrDataCommunicator.SendRecv(send_values, destination, i_color, recv_values, destination, i_color);
+
+                ReductionOperation.Apply(recv_values, i_color);
+            }
+        }
+    }
 
     //       friend class boost::serialization::access;
 
