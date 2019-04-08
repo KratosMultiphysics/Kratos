@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.CompressiblePotentialFlowApplication as CompressiblePotentialFlowApplication
+import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import math
 
 def Factory(settings, Model):
@@ -17,8 +17,10 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "inlet_phi": 1.0,
                 "velocity_infinity": [3.4,0.0,0],
-                "density_infinity"  : 1.0,
                 "mach_infinity": 0.01,
+                "angle_of_attack": 0.0,
+                "density_infinity"  : 1.0,
+                "speed_of_sound": 340,
                 "gamma": 1.4,
                 "pressure_infinity": 101325
             }  """)
@@ -29,48 +31,39 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.fluid_model_part = self.model_part.GetRootModelPart()
 
         self.inlet_phi = settings["inlet_phi"].GetDouble()
-        self.velocity_infinity = KratosMultiphysics.Vector(3)
-        self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble(
-        )
-        self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble(
-        )
-        self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble(
-        )
-        self.density_infinity = settings["density_infinity"].GetDouble()
-        self.mach_infinity = settings["mach_infinity"].GetDouble()
+        self.density_inf = settings["density_infinity"].GetDouble()
+        self.mach_inf = settings["mach_infinity"].GetDouble()
         self.gamma = settings["gamma"].GetDouble()
-        self.pressure_infinity = settings["pressure_infinity"].GetDouble()
+        self.aoa = settings["angle_of_attack"].GetDouble()
+        self.pressure_inf = settings["pressure_infinity"].GetDouble()
+        self.a_inf = settings["speed_of_sound"].GetDouble()
 
-        self.u_infinity = math.sqrt(
-            self.velocity_infinity[0]**2 + self.velocity_infinity[1]**2 + self.velocity_infinity[2]**2)
-        self.a_infinity = self.u_infinity / self.mach_infinity
+        # Computing free stream velocity
+        self.u_inf = self.mach_inf * self.a_inf
+        self.velocity_inf = KratosMultiphysics.Vector(3)
+        self.velocity_inf[0] = self.u_inf*math.cos(self.aoa)
+        self.velocity_inf[1] = self.u_inf*math.sin(self.aoa)
+        self.velocity_inf[2] = 0.0
 
         # For the model part
-        self.model_part.ProcessInfo.SetValue(
-            CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity)
+        self.model_part.ProcessInfo.SetValue(CPFApp.VELOCITY_INFINITY, self.velocity_inf)
 
         # For the conditions
-        self.fluid_model_part.GetProperties()[0].SetValue(
-            CompressiblePotentialFlowApplication.DENSITY_INFINITY, self.density_infinity)
+        self.fluid_model_part.GetProperties()[0].SetValue(CPFApp.DENSITY_INFINITY, self.density_inf)
 
         # For the elements
-        self.fluid_model_part.GetProperties()[1].SetValue(
-            CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity)
-        self.fluid_model_part.GetProperties()[1].SetValue(
-            CompressiblePotentialFlowApplication.DENSITY_INFINITY, self.density_infinity)
-        self.fluid_model_part.GetProperties()[1].SetValue(
-            CompressiblePotentialFlowApplication.MACH_INFINITY, self.mach_infinity)
-        self.fluid_model_part.GetProperties()[1].SetValue(
-            CompressiblePotentialFlowApplication.GAMMA, self.gamma)
-        self.fluid_model_part.GetProperties()[1].SetValue(
-            KratosMultiphysics.SOUND_VELOCITY, self.a_infinity)
-        self.fluid_model_part.GetProperties()[1].SetValue(
-            CompressiblePotentialFlowApplication.PRESSURE_INFINITY, self.pressure_infinity)
+        self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.VELOCITY_INFINITY, self.velocity_inf)
+        self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.DENSITY_INFINITY, self.density_inf)
+        self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.MACH_INFINITY, self.mach_inf)
+        self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.GAMMA, self.gamma)
+        self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.AOA, self.aoa)
+        self.fluid_model_part.GetProperties()[1].SetValue(KratosMultiphysics.SOUND_VELOCITY, self.a_inf)
+        self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.PRESSURE_INFINITY, self.pressure_inf)
 
     def Execute(self):
-        #KratosMultiphysics.VariableUtils().SetVectorVar(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity, self.model_part.Conditions)
+        #KratosMultiphysics.VariableUtils().SetVectorVar(CPFApp.VELOCITY_INFINITY, self.velocity_inf, self.model_part.Conditions)
         for cond in self.model_part.Conditions:
-            cond.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity)
+            cond.SetValue(CPFApp.VELOCITY_INFINITY, self.velocity_inf)
 
         #select the first node
         for node in self.model_part.Nodes:
@@ -88,7 +81,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             dy = node.Y - y0
             dz = node.Z - z0
             
-            tmp = dx*self.velocity_infinity[0] + dy*self.velocity_infinity[1] + dz*self.velocity_infinity[2]
+            tmp = dx*self.velocity_inf[0] + dy*self.velocity_inf[1] + dz*self.velocity_inf[2]
             
             if(tmp < pos):
                 pos = tmp
@@ -98,14 +91,14 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             dy = node.Y - y0
             dz = node.Z - z0
             
-            tmp = dx*self.velocity_infinity[0] + dy*self.velocity_infinity[1] + dz*self.velocity_infinity[2]
+            tmp = dx*self.velocity_inf[0] + dy*self.velocity_inf[1] + dz*self.velocity_inf[2]
             
             if(tmp < pos+1e-9):
-                node.Fix(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL)
-                node.SetSolutionStepValue(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL,0,self.inlet_phi)
-                if self.model_part.HasNodalSolutionStepVariable(CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL):
-                    node.Fix(CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL)
-                    node.SetSolutionStepValue(CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL,0,0.0)
+                node.Fix(CPFApp.VELOCITY_POTENTIAL)
+                node.SetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL,0,self.inlet_phi)
+                if self.model_part.HasNodalSolutionStepVariable(CPFApp.ADJOINT_VELOCITY_POTENTIAL):
+                    node.Fix(CPFApp.ADJOINT_VELOCITY_POTENTIAL)
+                    node.SetSolutionStepValue(CPFApp.ADJOINT_VELOCITY_POTENTIAL,0,0.0)
         
     def ExecuteInitializeSolutionStep(self):
         self.Execute()
