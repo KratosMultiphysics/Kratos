@@ -268,7 +268,7 @@ void LineLoadCondition2D::CalculateAndSubKp(
     //const double h0 = GetProperties()[THICKNESS];
     const double h0 = 1.00;
     Cross_gn( 0, 0 ) = 0.0;
-    Cross_gn( 0, 1 ) = -h0;
+    Cross_gn( 0, 1 ) =  h0;
     Cross_gn( 1, 0 ) = -h0;
     Cross_gn( 1, 1 ) = 0.0;
 
