@@ -24,7 +24,8 @@
 #include "includes/variables.h"
 #include "includes/serializer.h"
 
-namespace Kratos {
+namespace Kratos
+{
 /**
  * @class CrBeamElement3D2N
  *

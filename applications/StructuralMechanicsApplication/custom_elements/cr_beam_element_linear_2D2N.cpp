@@ -21,8 +21,8 @@
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 
-namespace Kratos {
-
+namespace Kratos
+{
 CrBeamElementLinear2D2N::CrBeamElementLinear2D2N(
     IndexType NewId, GeometryType::Pointer pGeometry)
     : CrBeamElement2D2N(NewId, pGeometry) {}

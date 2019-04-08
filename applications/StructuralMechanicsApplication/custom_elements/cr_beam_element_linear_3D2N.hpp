@@ -22,9 +22,9 @@
 #include "custom_elements/cr_beam_element_3D2N.hpp"
 #include "includes/define.h"
 #include "includes/variables.h"
-#include "includes/serializer.h"
 
-namespace Kratos {
+namespace Kratos
+{
 /**
  * @class CrBeamElementLinear3D2N
  *

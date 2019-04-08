@@ -17,12 +17,11 @@
 // Project includes
 #include "custom_elements/cr_beam_element_linear_3D2N.hpp"
 #include "custom_utilities/static_condensation_utility.h"
-#include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 
-namespace Kratos {
-
+namespace Kratos
+{
 CrBeamElementLinear3D2N::CrBeamElementLinear3D2N(
     IndexType NewId, GeometryType::Pointer pGeometry)
     : CrBeamElement3D2N(NewId, pGeometry) {}

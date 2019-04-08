@@ -21,7 +21,8 @@
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 
-namespace Kratos {
+namespace Kratos
+{
 CableElement3D2N::CableElement3D2N(IndexType NewId,
                                    GeometryType::Pointer pGeometry)
     : TrussElement3D2N(NewId, pGeometry) {}

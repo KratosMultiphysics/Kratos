@@ -23,7 +23,8 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 
-namespace Kratos {
+namespace Kratos
+{
 /**
  * @class CableElement3D2N
  *
@@ -97,8 +98,6 @@ private:
     void load(Serializer& rSerializer) override;
 };
 
-
 }
-
 
 #endif
