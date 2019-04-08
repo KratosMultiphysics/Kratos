@@ -333,7 +333,7 @@
             "restart_file_name"   : "PFEMcoupledDEMexample",
             "restart_file_label"  : "step",
             "output_control_type" : "step",
-            "output_frequency"    : 1,
+            "output_interval"    : 1,
             "json_output"         : false
         }
     }],
@@ -347,7 +347,7 @@
             },
             "file_label"          : "step",
             "output_control_type" : "step",
-            "output_frequency"    : 1,
+            "output_interval"    : 1,
             "body_output"         : true,
             "node_output"         : true,
             "skin_output"         : false,
