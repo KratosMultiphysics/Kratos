@@ -19,8 +19,6 @@ class PotentialFlowFormulation(object):
                 self._SetUpIncompressibleElement(formulation_settings)
             elif element_type == "compressible":
                 self._SetUpCompressibleElement(formulation_settings)
-            elif element_type == "compressible_full":
-                self._SetUpCompressibleFullElement(formulation_settings)
         else:
             raise RuntimeError("Argument \'element_type\' not found in stabilization settings.")
 
@@ -42,15 +40,6 @@ class PotentialFlowFormulation(object):
 
         self.element_name = "CompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
-
-    def _SetUpCompressibleFullElement(self, formulation_settings):
-        default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "compressible_full"
-        }""")
-        formulation_settings.ValidateAndAssignDefaults(default_settings)
-
-        self.element_name = "CompressibleFullPotentialFlowElement"
-        self.condition_name = "CompressiblePotentialWallCondition"
 
 def CreateSolver(model, custom_settings):
     return PotentialFlowSolver(model, custom_settings)
@@ -153,11 +142,8 @@ class PotentialFlowSolver(FluidSolver):
         else:
             raise Exception("Element not implemented")
 
-
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         self.solver.Initialize()
-
-
 
     def AdvanceInTime(self, current_time):
         raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
