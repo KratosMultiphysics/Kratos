@@ -192,11 +192,7 @@ namespace Kratos
                 "simple_search"                        : true,
                 "search_factor"                        : 3.5,
                 "type_search"                          : "InRadius",
-                "check_gap"                            : "MappingCheck",
-                "octree_search_parameters" : {
-                    "bounding_box_factor"    : 0.1,
-                    "debug_obb"              : false
-                    }
+                "check_gap"                            : "MappingCheck"
             })" );
 
             auto search_process = ContactSearchWrapperProcess(r_model_part, this_parameters);
@@ -270,6 +266,134 @@ namespace Kratos
             it_pair_check = p_indexes_pairs_6->begin();
             it_pair_check++;
             KRATOS_CHECK_EQUAL(p_indexes_pairs_6->GetId(it_pair_check), 15);
+
+            auto& r_cond_7 = r_model_part.GetCondition(7);
+            auto p_indexes_pairs_7 = r_cond_7.GetValue(INDEX_MAP);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_7->size(), 0);
+
+            auto& r_cond_8 = r_model_part.GetCondition(8);
+            auto p_indexes_pairs_8 = r_cond_8.GetValue(INDEX_MAP);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_8->size(), 0);
+        }
+
+        /**
+         * Checks the correct work of the search process
+         * Test KDTree
+         */
+        KRATOS_TEST_CASE_IN_SUITE(SearchProcessKDTreeWithOBB, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.CreateSubModelPart("ComputingContact");
+
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
+            r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
+            r_model_part.AddNodalSolutionStepVariable(WEIGHTED_VECTOR_RESIDUAL);
+            r_model_part.AddNodalSolutionStepVariable(NODAL_H);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            auto& process_info = r_model_part.GetProcessInfo();
+            process_info[STEP] = 1;
+            process_info[NL_ITERATION_NUMBER] = 1;
+            process_info[DELTA_TIME] = 1.0;
+            process_info[DISTANCE_THRESHOLD] = 1.0;
+
+            // First we create the nodes
+            const std::size_t number_of_divisions = 8;
+            const double lenght = 4.0;
+            const double radius = 6.0;
+            const double angle = Globals::Pi/6;
+            const double slope = 0.0;
+
+            // We create our problem
+            CreatePlaneCilynderProblemForSearch(r_model_part, number_of_divisions, lenght, radius, angle, slope);
+
+            // Assign NodalH
+            for (auto& r_node : r_model_part.Nodes()) {
+                r_node.FastGetSolutionStepValue(NODAL_H) = 1.0;
+            }
+
+//             // DEBUG
+//             GiDIOSearchDebug(r_model_part);
+
+            // We compute the search
+            Parameters this_parameters = Parameters(R"(
+            {
+                "simple_search"                        : true,
+                "search_factor"                        : 3.5,
+                "type_search"                          : "InRadiusWithOBB",
+                "check_gap"                            : "MappingCheck",
+                "octree_search_parameters" : {
+                    "bounding_box_factor"    : 0.1,
+                    "debug_obb"              : false
+                    }
+            })" );
+
+            auto search_process = ContactSearchWrapperProcess(r_model_part, this_parameters);
+
+            search_process.ExecuteInitialize();
+            search_process.ExecuteInitializeSolutionStep();
+
+//             // DEBUG
+//             GiDIOSearchDebug(r_model_part);
+
+//             // DEBUG
+//             for (auto& r_cond : r_model_part.Conditions()) {
+//                 if (r_cond.Is(SLAVE)) {
+//                     auto p_indexes_pairs = r_cond.GetValue(INDEX_MAP);
+//                     KRATOS_WATCH(r_cond.Id())
+//                     KRATOS_WATCH(p_indexes_pairs->size())
+//                     for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
+//                         const IndexType master_id = p_indexes_pairs->GetId(it_pair);
+//                         KRATOS_WATCH(master_id)
+//                     }
+//                 }
+//             }
+
+            // Check results
+            auto& r_cond_1 = r_model_part.GetCondition(1);
+            auto p_indexes_pairs_1 = r_cond_1.GetValue(INDEX_MAP);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_1->size(), 2);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_1->GetId(p_indexes_pairs_1->begin()), 9);
+            auto it_pair_check = p_indexes_pairs_1->begin();
+            it_pair_check++;
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_1->GetId(it_pair_check), 10);
+
+            auto& r_cond_2 = r_model_part.GetCondition(2);
+            auto p_indexes_pairs_2 = r_cond_2.GetValue(INDEX_MAP);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_2->size(), 2);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_2->GetId(p_indexes_pairs_2->begin()), 11);
+            it_pair_check = p_indexes_pairs_2->begin();
+            it_pair_check++;
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_2->GetId(it_pair_check), 10);
+
+            auto& r_cond_3 = r_model_part.GetCondition(3);
+            auto p_indexes_pairs_3 = r_cond_3.GetValue(INDEX_MAP);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_3->size(), 2);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_3->GetId(p_indexes_pairs_3->begin()), 11);
+            it_pair_check = p_indexes_pairs_3->begin();
+            it_pair_check++;
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_3->GetId(it_pair_check), 12);
+
+            auto& r_cond_4 = r_model_part.GetCondition(4);
+            auto p_indexes_pairs_4 = r_cond_4.GetValue(INDEX_MAP);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_4->size(), 3);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_4->GetId(p_indexes_pairs_4->begin()), 14);
+            it_pair_check = p_indexes_pairs_4->begin();
+            it_pair_check++;
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_4->GetId(it_pair_check), 12);
+            it_pair_check++;
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_4->GetId(it_pair_check), 13);
+
+            auto& r_cond_5 = r_model_part.GetCondition(5);
+            auto p_indexes_pairs_5 = r_cond_5.GetValue(INDEX_MAP);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_5->size(), 1);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_5->GetId(p_indexes_pairs_5->begin()), 14);
+
+            auto& r_cond_6 = r_model_part.GetCondition(6);
+            auto p_indexes_pairs_6 = r_cond_6.GetValue(INDEX_MAP);
+            KRATOS_CHECK_EQUAL(p_indexes_pairs_6->size(), 0);
 
             auto& r_cond_7 = r_model_part.GetCondition(7);
             auto p_indexes_pairs_7 = r_cond_7.GetValue(INDEX_MAP);
