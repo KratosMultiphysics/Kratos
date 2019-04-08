@@ -44,6 +44,7 @@ class AdjointFluidTest(UnitTest.TestCase):
             "Parameters" : {
                 "model_part_name" : "MainModelPart",
                 "file_settings" : {
+                    "file_name" : "primal_output-<time>",
                     "file_access_mode" : "truncate"
                 },
                 "model_part_output_settings" : {
@@ -53,8 +54,7 @@ class AdjointFluidTest(UnitTest.TestCase):
                     "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
                 },
                 "output_time_settings" : {
-                    "output_step_frequency": 1,
-                    "file_name" : "primal_output"
+                    "step_frequency": 1
                 }
             }
         }'''))
