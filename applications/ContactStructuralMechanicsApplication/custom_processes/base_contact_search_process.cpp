@@ -531,6 +531,13 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
     const auto it_cond_begin = r_conditions_array.begin();
     IndexType condition_id = GetMaximumConditionsIds();
 
+    // If considering OBB
+    const bool with_obb = (type_search == SearchTreeType::KdtreeInRadiusWithOBB || type_search == SearchTreeType::KdtreeInBoxWithOBB) ? true : false;
+    Parameters octree_parameters = mThisParameters["octree_search_parameters"];
+    double h_mean = ContactUtilities::CalculateMaxNodalH(rSubContactModelPart);
+    h_mean = h_mean < std::numeric_limits<double>::epsilon() ? 1.0 : h_mean;
+    const double bounding_box_factor = octree_parameters["bounding_box_factor"].GetDouble() * h_mean;
+
     // Now we iterate over the conditions
 //     #pragma omp parallel for firstprivate(tree_points) // TODO: Make me parallel!!!
     for(int i = 0; i < num_conditions; ++i) {
@@ -542,31 +549,34 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
 
             IndexType number_points_found = 0;
 
-            if (type_search == SearchTreeType::KdtreeInRadius) {
-                GeometryType& r_geometry = it_cond->GetGeometry();
+            // Getting geometry
+            GeometryType& r_geometry = it_cond->GetGeometry();
+            OrientedBoundingBox<TDim> slave_obb(r_geometry, bounding_box_factor);
+
+            if (type_search == SearchTreeType::KdtreeInRadius || type_search == SearchTreeType::KdtreeInRadiusWithOBB) {
                 const Point& r_center = dynamic ? Point(ContactUtilities::GetHalfJumpCenter(r_geometry)) : r_geometry.Center(); // NOTE: Center in half delta time or real center
 
                 const double search_radius = search_factor * Radius(it_cond->GetGeometry());
 
                 number_points_found = tree_points.SearchInRadius(r_center, search_radius, points_found.begin(), allocation_size);
-            } else if (type_search == SearchTreeType::KdtreeInBox) {
+            } else if (type_search == SearchTreeType::KdtreeInBox || type_search == SearchTreeType::KdtreeInBoxWithOBB) {
                 // Auxiliar values
-                const double length_search = search_factor * it_cond->GetGeometry().Length();
+                const double length_search = search_factor * r_geometry.Length();
 
                 // Compute max/min points
                 NodeType min_point, max_point;
-                it_cond->GetGeometry().BoundingBox(min_point, max_point);
+                r_geometry.BoundingBox(min_point, max_point);
 
                 // Get the normal in the extrema points
                 Vector N_min, N_max;
                 GeometryType::CoordinatesArrayType local_point_min, local_point_max;
-                it_cond->GetGeometry().PointLocalCoordinates( local_point_min, min_point.Coordinates( ) ) ;
-                it_cond->GetGeometry().PointLocalCoordinates( local_point_max, max_point.Coordinates( ) ) ;
-                it_cond->GetGeometry().ShapeFunctionsValues( N_min, local_point_min );
-                it_cond->GetGeometry().ShapeFunctionsValues( N_max, local_point_max );
+                r_geometry.PointLocalCoordinates( local_point_min, min_point.Coordinates( ) ) ;
+                r_geometry.PointLocalCoordinates( local_point_max, max_point.Coordinates( ) ) ;
+                r_geometry.ShapeFunctionsValues( N_min, local_point_min );
+                r_geometry.ShapeFunctionsValues( N_max, local_point_max );
 
-                const array_1d<double,3> normal_min = MortarUtilities::GaussPointUnitNormal(N_min, it_cond->GetGeometry());
-                const array_1d<double,3> normal_max = MortarUtilities::GaussPointUnitNormal(N_max, it_cond->GetGeometry());
+                const array_1d<double,3> normal_min = MortarUtilities::GaussPointUnitNormal(N_min, r_geometry);
+                const array_1d<double,3> normal_max = MortarUtilities::GaussPointUnitNormal(N_max, r_geometry);
 
                 ContactUtilities::ScaleNode<NodeType>(min_point, normal_min, length_search);
                 ContactUtilities::ScaleNode<NodeType>(max_point, normal_max, length_search);
@@ -591,7 +601,17 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
                 // If not active we check if can be potentially in contact
                 if (mCheckGap == CheckGap::MappingCheck) {
                     for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
+                        // Master condition
                         Condition::Pointer p_cond_master = points_found[i_point]->GetCondition();
+
+                        // Checking with OBB
+                        if (with_obb) {
+                            OrientedBoundingBox<TDim> master_obb(p_cond_master->GetGeometry(), bounding_box_factor);
+                            if (!slave_obb.HasIntersection(master_obb)) {
+                                continue;
+                            }
+                        }
+
                         const CheckResult condition_checked_right = CheckCondition(p_indexes_pairs, (*it_cond.base()), p_cond_master, mInvertedSearch);
 
                         if (condition_checked_right == CheckResult::OK)
@@ -608,6 +628,14 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
                     for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
                         // Master condition
                         Condition::Pointer p_cond_master = points_found[i_point]->GetCondition();
+
+                        // Checking with OBB
+                        if (with_obb) {
+                            OrientedBoundingBox<TDim> master_obb(p_cond_master->GetGeometry(), bounding_box_factor);
+                            if (!slave_obb.HasIntersection(master_obb)) {
+                                continue;
+                            }
+                        }
 
                         AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), r_normal_slave, p_cond_master, p_indexes_pairs, active_check_factor, frictional_problem);
                     }
