@@ -239,6 +239,14 @@ public:
         this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
     }
 
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                               ProcessInfo &rCurrentProcessInfo) override
+    {
+        // TODO: improve speed
+        Matrix tmp;
+        CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
+    }
+
     /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
     /**
       @param rDampingMatrix Left-hand side matrix
