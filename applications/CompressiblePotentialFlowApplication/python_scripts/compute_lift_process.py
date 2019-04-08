@@ -61,5 +61,5 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
          print('Mach = ', self.velocity_infinity[0]/340)
 
          if self.create_output_file:
-             with open("results.dat", 'w') as cl_file:
-                 cl_file.write('coefficient of lift: '+'{0:15.12f}'.format(Cl)+'\n')
+             with open("cl.dat", 'w') as cl_file:
+                 cl_file.write('{0:15.12f}'.format(Cl))

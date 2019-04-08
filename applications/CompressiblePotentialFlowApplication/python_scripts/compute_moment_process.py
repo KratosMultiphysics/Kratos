@@ -59,5 +59,5 @@ class ComputeMomentProcess(KratosMultiphysics.Process):
          print('Mach = ', self.velocity_infinity[0]/340)
 
          if self.create_output_file:
-             with open("results.dat", 'a') as mom_file:
-                mom_file.write('coefficient of moment: '+'{0:15.12f}'.format(Cm)+'\n')
+             with open("moment.dat", 'w') as mom_file:
+                mom_file.write('{0:15.12f}'.format(Cm))
