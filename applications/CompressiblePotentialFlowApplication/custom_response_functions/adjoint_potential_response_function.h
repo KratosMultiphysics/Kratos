@@ -32,7 +32,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class  AdjointPotentialResponseFunction : public AdjointResponseFunction
+class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) AdjointPotentialResponseFunction : public AdjointResponseFunction
 {
 public:
     ///@name Type Definitions
