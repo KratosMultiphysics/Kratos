@@ -193,7 +193,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 undamaged_free_energy = 0.5 * inner_prod(r_strain_vector - plastic_strain, effective_predictive_stress_vector);
 
                 // Compute the plastic parameters
-                double plasticity_indicator = TPlasticityIntegratorType::CalculatePlasticParameters(
+                plasticity_indicator = TPlasticityIntegratorType::CalculatePlasticParameters(
                         predictive_stress_vector, r_strain_vector, uniaxial_stress_plasticity,
                         threshold_plasticity, plastic_denominator, f_flux, g_flux,
                         plastic_dissipation, plastic_strain_increment,
@@ -201,7 +201,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                         plastic_strain);
 
                 // Compute Damage Parameters
-                double damage_indicator = this->CalculateDamageParameters(
+                damage_indicator = this->CalculateDamageParameters(
                         predictive_stress_vector, r_strain_vector,
                         uniaxial_stress_damage, threshold_damage, 
                         damage_dissipation, r_constitutive_matrix,
@@ -476,7 +476,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 undamaged_free_energy = 0.5 * inner_prod(r_strain_vector - plastic_strain, effective_predictive_stress_vector);
 
                 // Compute the plastic parameters
-                double plasticity_indicator = TPlasticityIntegratorType::CalculatePlasticParameters(
+                plasticity_indicator = TPlasticityIntegratorType::CalculatePlasticParameters(
                         predictive_stress_vector, r_strain_vector, uniaxial_stress_plasticity,
                         threshold_plasticity, plastic_denominator, f_flux, g_flux,
                         plastic_dissipation, plastic_strain_increment,
@@ -484,7 +484,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                         plastic_strain);
 
                 // Compute Damage Parameters
-                double damage_indicator = this->CalculateDamageParameters(
+                damage_indicator = this->CalculateDamageParameters(
                         predictive_stress_vector, r_strain_vector,
                         uniaxial_stress_damage, threshold_damage, 
                         damage_dissipation, r_constitutive_matrix,
