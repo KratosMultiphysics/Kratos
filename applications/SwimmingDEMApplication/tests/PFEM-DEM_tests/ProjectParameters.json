@@ -1,8 +1,4 @@
 {
-"GravityX"                         : 0.0,
-"GravityY"                         : 0.0,
-"GravityZ"                         : -9.81,
-
 "time_stepping"               : {
     "automatic_time_step" : false,
     "time_step"           : 2.5e-6
@@ -16,12 +12,6 @@
     "end_time"      : 0.007
 },
 
-"OutputFileType"                   : "Binary",
-"Multifile"                        : "multiple_files",
-
-"ControlTime"                      : 5.0,
-"NeighbourSearchFrequency"         : 50,
-"TestType" : "None",
 "sdem_output_processes"         : {
     "gid_output"                : [{
         "Parameters"               : {
@@ -53,15 +43,12 @@
 "print_particles_results_cycle_comment"  : " number of 'ticks' per printing cycle",
 "debug_tool_cycle"                       : 10,
 "debug_tool_cycle_comment"                       : " number of 'ticks' per debug computations cycle",
-"dem_inlet_element_type"                 : "SphericSwimmingParticle3D",
-"dem_inlet_element_type_comment"         : " SphericParticle3D, SwimmingParticle3D",
 "drag_modifier_type"                     : 2,
 "drag_modifier_type_comment"             : " Hayder (2), Chien (3) # problemtype option",
 
 
 "output_interval"                             : 1.0,
 
-"problem_name" : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test",
 "properties": [{
     "model_part_name": "settling_particles",
     "properties_id": 3,
@@ -390,8 +377,7 @@
     "DeltaTimeSafetyFactor"            : 1.0,
     "MaxTimeStep"                      : 2.5e-6,
     "FinalTime"                        : 1.0,
-    "ControlTime"                      : 4.0,
-    "NeighbourSearchFrequency"         : 1,
+        "NeighbourSearchFrequency"         : 1,
     "TestType"                         : "None",
     "ElementType"                      : "SwimmingDEMElement",
     "problem_name"                     : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test",

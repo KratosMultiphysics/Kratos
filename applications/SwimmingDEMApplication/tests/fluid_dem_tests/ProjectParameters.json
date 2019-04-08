@@ -1,14 +1,4 @@
 {
-    "GravityX"         : 0.0,
-    "GravityY"         : 0.0,
-    "GravityZ"         : -9.81,
-
-"OutputFileType"                   : "Binary",
-"Multifile"                        : "multiple_files",
-"ControlTime"                      : 4.0,
-"NeighbourSearchFrequency"         : 25,
-"TestType" : "None",
-
 "ElementType"                      : "SwimmingDEMElement",
 
 "time_stepping"               : {
@@ -219,6 +209,8 @@
                     "direction"       : [0.0,0.0,-1.0]
                 }
             }],
+
+
             "auxiliar_process_list"            : []
         }
     },
@@ -238,9 +230,6 @@
         "BoundingBoxMinY"                : -10,
         "BoundingBoxMinZ"                : -10,
         "dem_inlet_option"               : false,
-        "GravityX"                       : 0.0,
-        "GravityY"                       : 0.0,
-        "GravityZ"                       : -9.81,
         "RotationOption"                 : true,
         "CleanIndentationsOption"        : false,
         "solver_settings"                : {
@@ -251,7 +240,6 @@
         "RollingFrictionOption"          : false,
         "GlobalDamping"                  : 0.0,
         "ContactMeshOption"              : false,
-        "OutputFileType"                 : "Binary",
         "Multifile"                      : "multiple_files",
         "ElementType"                    : "SwimmingDEMElement",
         "TranslationalIntegrationScheme" : "Hybrid_Bashforth",

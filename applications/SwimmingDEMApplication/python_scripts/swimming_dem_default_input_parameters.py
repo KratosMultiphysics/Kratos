@@ -5,15 +5,12 @@ def GetDefaultInputParameters():
 
     default_settings = KratosMultiphysics.Parameters(
         """{
-            "problem_name" : "",
-            "echo_level" : 1,
+            "echo_level"    : 1,
 
-            "GravityX" : 0.0,
-            "GravityY" : 0.0,
-            "GravityZ" : -9.81,
-
-            "OutputFileType" : "Binary",
-            "Multifile" : "multiple_files",
+            "gravity_parameters" : {
+                "modulus" : 9.81,
+                "direction" : [0.0, 0.0, -1.0]
+            },
 
             "time_stepping"               : {
                 "automatic_time_step" : true,
@@ -22,7 +19,6 @@ def GetDefaultInputParameters():
 
             "problem_data"     : {
                 "problem_name"  : "",
-                "parallel_type" : "OpenMP",
                 "echo_level"    : 1,
                 "start_time"    : 0.0,
                 "end_time"      : 1,
@@ -30,17 +26,11 @@ def GetDefaultInputParameters():
                 "number_of_threads": 1
             },
 
-            "ControlTime" : 4.0,
-            "NeighbourSearchFrequency" : 1,
-            "TestType" : "None",
-
             "ElementType" : "SwimmingDEMElement",
-            "dem_inlet_element_type" : "SphericSwimmingParticle3D",
-            "dem_inlet_element_type_comment" : " SphericParticle3D, SphericSwimmingParticle3D",
 
             "do_print_results_option" : true,
+
             "processes" : {
-                "auxiliar_process_list": []
             },
 
             "coupling" : {
@@ -113,10 +103,10 @@ def GetDefaultInputParameters():
             "print_debug_info_option" : false,
             "print_debug_info_option_comment" : " print a summary of global physical measures",
             "do_process_analytic_data" : true,
-            "full_particle_history_watcher" : "Empty",
             "fluid_domain_volume" : 1.0,
             "fluid_domain_volume_comment" : "write down the volume you know it has, if available",
 
+            "full_particle_history_watcher" : "Empty",
 
             "gradient_calculation_type" : 1,
             "gradient_calculation_type_comment" : "(Not calculated (0), volume-weighed average(1), Superconvergent recovery(2))",
@@ -131,8 +121,8 @@ def GetDefaultInputParameters():
             "recovery_echo_level" : 1,
             "store_fluid_pressure_option" : false,
 
-
             "output_interval" : 0.5,
+
             "print_distance_option" : false,
             "print_steps_per_plot_step" : 1,
             "print_particles_results_option" : false,
@@ -140,7 +130,6 @@ def GetDefaultInputParameters():
             "make_results_directories_option_comment": "results are written into a folder (../results) inside the problem folder",
             "print_particles_results_cycle" : 1,
             "print_particles_results_cycle_comment" : " number of 'ticks' per printing cycle",
-
 
             "drag_modifier_type" : 2,
             "drag_modifier_type_comment" : " Hayder (2), Chien (3)",
@@ -150,6 +139,7 @@ def GetDefaultInputParameters():
             "properties": [{}],
 
             "fluid_parameters" : {},
+
             "custom_fluid" : {
                 "fluid_already_calculated" : false,
                 "embedded_option" : false,

@@ -1,13 +1,4 @@
 {
-"GravityX"                         : 0.0,
-"GravityY"                         : 0.0,
-"GravityZ"                         : -9.81,
-
-"OutputFileType"                   : "Binary",
-"Multifile"                        : "multiple_files",
-"ControlTime"                      : 4.0,
-"NeighbourSearchFrequency"         : 1,
-"TestType" : "None",
 
 "ElementType"                      : "SwimmingDEMElement",
 
@@ -37,8 +28,6 @@
 "print_particles_results_cycle_comment"  : " number of 'ticks' per printing cycle",
 "debug_tool_cycle"                       : 10,
 "debug_tool_cycle_comment"                       : " number of 'ticks' per debug computations cycle",
-"dem_inlet_element_type"                 : "SphericSwimmingParticle3D",
-"dem_inlet_element_type_comment"         : " SphericParticle3D, SphericSwimmingParticle3D",
 "drag_modifier_type"                     : 2,
 "drag_modifier_type_comment"             : " Hayder (2), Chien (3) # problemtype option",
 
@@ -74,8 +63,6 @@
         }
     }
 }],
-
-"problem_name" : "Candelier",
 
 "processes" : {
     "auxiliar_process_list" : [{
@@ -242,16 +229,14 @@
         "RollingFrictionOption"            : false,
         "DontSearchUntilFailure"           : false,
         "ContactMeshOption"                : false,
-        "OutputFileType"                   : "Binary",
-        "Multifile"                        : "multiple_files",
+                "Multifile"                        : "multiple_files",
 
         "TranslationalIntegrationScheme"   : "Hybrid_Bashforth",
         "RotationalIntegrationScheme"      : "Direct_Integration",
         "DeltaTimeSafetyFactor"            : 1.0,
         "MaxTimeStep"                      : 0.005,
         "FinalTime"                        : 1.0,
-        "ControlTime"                      : 4.0,
-        "NeighbourSearchFrequency"         : 1,
+                "NeighbourSearchFrequency"         : 1,
         "TestType" : "None",
         "ElementType"                      : "SwimmingDEMElement",
         "problem_name" : "Candelier",

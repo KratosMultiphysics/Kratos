@@ -1,13 +1,4 @@
 {
-"GravityX"                         : 0.0,
-"GravityY"                         : 0.0,
-"GravityZ"                         : -9.81,
-
-"OutputFileType"                   : "Binary",
-"Multifile"                        : "multiple_files",
-"ControlTime"                      : 4.0,
-"NeighbourSearchFrequency"         : 10,
-
 "ElementType"                      : "SphericSwimmingParticle3D",
 
 "time_stepping"               : {
@@ -38,8 +29,6 @@
 "print_particles_results_cycle_comment"  : " number of 'ticks' per printing cycle",
 "debug_tool_cycle"                       : 10,
 "debug_tool_cycle_comment"               : " number of 'ticks' per debug computations cycle",
-"dem_inlet_element_type"                 : "SphericSwimmingParticle3D",
-"dem_inlet_element_type_comment"         : " SphericParticle3D, SphericSwimmingParticle3D",
 "drag_modifier_type"                     : 2,
 
 "output_interval"                             : 0.1,
@@ -71,8 +60,6 @@
         }
     }
 }],
-
-"problem_name" : "cube",
 
 "processes" : {
     "check_interpolated_fluid_velocity": [        {
@@ -112,7 +99,7 @@
                     },
                     "file_label"          : "time",
                     "output_control_type" : "step",
-                    "output_frequency"    : 1,
+                    "output_interval"    : 1,
                     "body_output"         : true,
                     "node_output"         : true,
                     "skin_output"         : false,
@@ -253,16 +240,14 @@
         "RollingFrictionOption"            : false,
         "DontSearchUntilFailure"           : false,
         "ContactMeshOption"                : false,
-        "OutputFileType"                   : "Binary",
-        "Multifile"                        : "multiple_files",
+                "Multifile"                        : "multiple_files",
 
         "TranslationalIntegrationScheme"   : "Hybrid_Bashforth",
         "RotationalIntegrationScheme"      : "Direct_Integration",
         "DeltaTimeSafetyFactor"            : 1.0,
         "MaxTimeStep"                      : 5e-5,
         "FinalTime"                        : 1.0,
-        "ControlTime"                      : 4.0,
-        "NeighbourSearchFrequency"         : 1,
+                "NeighbourSearchFrequency"         : 1,
         "TestType" : "None",
         "ElementType"                      : "SwimmingDEMElement",
         "problem_name" : "cube",
