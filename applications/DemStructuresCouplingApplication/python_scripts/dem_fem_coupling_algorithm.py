@@ -65,6 +65,10 @@ class Algorithm(object):
         self._TransferStructuresSkinToDem()
         self.dem_solution.solver.Initialize()
 
+        import control_module_fem_dem_utility
+        self.control_module_fem_dem_utility = control_module_fem_dem_utility.ControlModuleFemDemUtility(self.model,self.dem_solution.spheres_model_part)
+        self.control_module_fem_dem_utility.ExecuteInitialize()
+
         mixed_mp = self.model.CreateModelPart('MixedPart')
         filename = os.path.join(self.dem_solution.post_path, self.dem_solution.DEM_parameters["problem_name"].GetString())
         self.gid_output = dem_structures_coupling_gid_output.DemStructuresCouplingGiDOutput(
@@ -150,6 +154,7 @@ class Algorithm(object):
 
             self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
             self.structural_solution.InitializeSolutionStep()
+            self.control_module_fem_dem_utility.ExecuteInitializeSolutionStep()
             self.structural_solution._GetSolver().Predict()
             self.structural_solution._GetSolver().SolveSolutionStep()
             self.structural_solution.FinalizeSolutionStep()
@@ -217,6 +222,8 @@ class Algorithm(object):
                 self.dem_solution.FinalizeTimeStep(self.dem_solution.time)
 
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
+            # TODO: Should control_module_fem_dem_utility.ExecuteFinalizeSolutionStep be done before or after RestoreStructuralSolution ?
+            self.control_module_fem_dem_utility.ExecuteFinalizeSolutionStep()
 
     def ReadDemModelParts(self,
                                     starting_node_Id=0,
