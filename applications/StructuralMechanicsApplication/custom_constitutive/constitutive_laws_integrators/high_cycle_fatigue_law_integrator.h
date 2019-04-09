@@ -127,7 +127,6 @@ public:
             rPreviousMaximumStress = rMaximumStress;
             rCycleCounter = true;
         } else if (stress_increment_1 <= -0.001 && stress_increment_2 >= 0.0 && !rCycleCounter) {
-			std::cout << "min" << std::endl;
             rMinimumStress = stress_1;
             rPreviousMinimumStress = rMinimumStress;
             rCycleCounter = true;
@@ -135,7 +134,6 @@ public:
         }
         
         if (rPreviousMaximumStress != rMaximumStress && rPreviousMinimumStress != rMinimumStress && !rCycleCounter) {
-			std::cout << "cycle" << std::endl;
             rNumberOfCycles++;
             rPreviousMaximumStress = 0.0;
             rPreviousMinimumStress = 0.0;
@@ -227,10 +225,6 @@ public:
             rB0 = -(std::log(MaxStress / yield_stress) / std::pow((std::log10(N_F)), square_betaf));
             rFatigueReductionFactor = std::exp(-rB0 * std::pow(std::log10(static_cast<double>(NumberOfCycles)), square_betaf));
         }
-        KRATOS_WATCH(NumberOfCycles);
-        //KRATOS_WATCH(-rB0 * std::pow(std::log10(NumberOfCycles), square_betaf));
-        //KRATOS_WATCH(-rB0 * std::pow(std::log10(static_cast<double>(NumberOfCycles)), square_betaf));
-        //KRATOS_WATCH(-rB0 * std::pow(std::log10(3.0), square_betaf));
     }
 
     ///@}
