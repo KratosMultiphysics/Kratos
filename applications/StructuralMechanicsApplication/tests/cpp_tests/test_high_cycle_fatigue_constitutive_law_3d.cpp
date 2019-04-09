@@ -135,7 +135,6 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHighCycleFatigueExponential, KratosStru
     std::vector<double> expected_value;
     expected_value = {1.07636e+09,4.61299e+08,4.61299e+08,0,0,0};
 
-    double TestDamage;
     Vector TestStress;
     Vector dummy;
     HCF_CL.InitializeMaterial(material_properties, Geom, dummy);
