@@ -67,7 +67,7 @@
 "print_particles_results_cycle"          : 1,
 "print_particles_results_cycle_comment"  : " number of 'ticks' per printing cycle",
 "debug_tool_cycle"                       : 10,
-"debug_tool_cycle_comment"                       : " number of 'ticks' per debug computations cycle",
+"debug_tool_cycle_comment"               : " number of 'ticks' per debug computations cycle",
 "model_over_real_diameter_factor"        : 1.0,
 "model_over_real_diameter_factor_comment": " not active if similarity_transformation_type = 0",
 
