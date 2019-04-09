@@ -45,7 +45,7 @@
 "print_particles_results_cycle"          : 1,
 "print_particles_results_cycle_comment"  : " number of 'ticks' per printing cycle",
 "debug_tool_cycle"                       : 10,
-"debug_tool_cycle_comment"                       : " number of 'ticks' per debug computations cycle",
+"debug_tool_cycle_comment"               : " number of 'ticks' per debug computations cycle",
 "drag_modifier_type_comment"             : " Hayder (2), Chien (3) # problemtype option",
 
 "output_interval"                   : 0.5,
@@ -188,9 +188,9 @@
     "custom_dem" : {
         "do_solve_dem" : true,
         "do_search_neighbours" : false,
-         "type_of_dem_inlet" : "VelocityImposed",
-         "type_of_dem_inlet_comment" : "VelocityImposed or ForceImposed",
-         "translational_integration_scheme" : "Hybrid_Bashforth"
+        "type_of_dem_inlet" : "VelocityImposed",
+        "type_of_dem_inlet_comment" : "VelocityImposed or ForceImposed",
+        "translational_integration_scheme" : "Hybrid_Bashforth"
     },
 
     "dem_parameters" : {
@@ -223,8 +223,8 @@
         "CleanIndentationsOption"          : false,
         "RemoveBallsInEmbeddedOption"      : true,
         "solver_settings" : {
-                "strategy"                 : "swimming_sphere_strategy",
-                "RemoveBallsInitiallyTouchingWalls"          : false
+            "strategy"                 : "swimming_sphere_strategy",
+            "RemoveBallsInitiallyTouchingWalls"          : false
         },
 
         "DeltaOption"                      : "Absolute",
@@ -236,7 +236,7 @@
         "RollingFrictionOption"            : false,
         "DontSearchUntilFailure"           : false,
         "ContactMeshOption"                : false,
-                "Multifile"                        : "multiple_files",
+        "Multifile"                        : "multiple_files",
 
         "TranslationalIntegrationScheme"   : "Hybrid_Bashforth",
         "RotationalIntegrationScheme"      : "Direct_Integration",

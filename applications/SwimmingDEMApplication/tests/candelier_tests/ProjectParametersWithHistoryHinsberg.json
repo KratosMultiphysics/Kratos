@@ -27,7 +27,7 @@
 "print_particles_results_cycle"          : 1,
 "print_particles_results_cycle_comment"  : " number of 'ticks' per printing cycle",
 "debug_tool_cycle"                       : 10,
-"debug_tool_cycle_comment"                       : " number of 'ticks' per debug computations cycle",
+"debug_tool_cycle_comment"               : " number of 'ticks' per debug computations cycle",
 "drag_modifier_type"                     : 2,
 "drag_modifier_type_comment"             : " Hayder (2), Chien (3) # problemtype option",
 
@@ -215,8 +215,8 @@
         "RemoveBallsInEmbeddedOption"      : true,
 
         "solver_settings" : {
-                "strategy"                 : "swimming_sphere_strategy",
-                "RemoveBallsInitiallyTouchingWalls"          : false
+            "strategy"                 : "swimming_sphere_strategy",
+            "RemoveBallsInitiallyTouchingWalls"          : false
         },
 
 
@@ -229,14 +229,14 @@
         "RollingFrictionOption"            : false,
         "DontSearchUntilFailure"           : false,
         "ContactMeshOption"                : false,
-                "Multifile"                        : "multiple_files",
+        "Multifile"                        : "multiple_files",
 
         "TranslationalIntegrationScheme"   : "Hybrid_Bashforth",
         "RotationalIntegrationScheme"      : "Direct_Integration",
         "DeltaTimeSafetyFactor"            : 1.0,
         "MaxTimeStep"                      : 0.005,
         "FinalTime"                        : 1.0,
-                "NeighbourSearchFrequency"         : 1,
+"NeighbourSearchFrequency"         : 1,
         "TestType" : "None",
         "ElementType"                      : "SwimmingDEMElement",
         "problem_name" : "Candelier",
