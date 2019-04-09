@@ -53,6 +53,7 @@ public:
                 "reaction_stress_variable_name": "REACTION_STRESS_VARIABLE_NAME",
                 "target_stress_table_id" : 1,
                 "initial_velocity" : 0.0,
+                "limit_velocity" : 0.0,
                 "velocity_factor" : 1.0,
                 "compression_length" : 0.0,
                 "young_modulus" : 1.0e7,
@@ -68,6 +69,7 @@ public:
         mReactionStressVariableName = rParameters["reaction_stress_variable_name"].GetString();
         mpTargetStressTableId = rParameters["target_stress_table_id"].GetInt();
         mVelocity = rParameters["initial_velocity"].GetDouble();
+        mLimitVelocity = rParameters["limit_velocity"].GetDouble();
         mVelocityFactor = rParameters["velocity_factor"].GetDouble();
         mCompressionLength = rParameters["compression_length"].GetDouble();
         mYoungModulus = rParameters["young_modulus"].GetDouble();
@@ -176,6 +178,9 @@ public:
             const double DeltaVelocity = (NextTargetStress - ReactionStress)*mCompressionLength/(mYoungModulus*DeltaTime) - mVelocity;
             mVelocity += mVelocityFactor * DeltaVelocity;
 
+            if(std::abs(mVelocity) > std::abs(mLimitVelocity))
+                mVelocity = mLimitVelocity;
+
             ComponentType TargetStressVarComponent = KratosComponents< ComponentType >::Get(mTargetStressVariableName);
             ComponentType ReactionStressVarComponent = KratosComponents< ComponentType >::Get(mReactionStressVariableName);
             #pragma omp parallel for
@@ -222,6 +227,7 @@ protected:
     std::string mReactionStressVariableName;
     unsigned int mpTargetStressTableId;
     double mVelocity;
+    double mLimitVelocity;
     double mVelocityFactor;
     double mCompressionLength;
     double mYoungModulus;
