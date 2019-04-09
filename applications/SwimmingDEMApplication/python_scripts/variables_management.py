@@ -81,7 +81,7 @@ class VariablesManager:
         fluid_model_part.ProcessInfo.SetValue(Kratos.FRACTIONAL_STEP, 1)
 
         if parameters["custom_fluid"]["body_force_on_fluid_option"].GetBool():
-            gravity = Vector([self.project_parameters["gravity_parameters"]["direction"][i].GetDouble() for i in range(3)])
+            gravity = self.project_parameters["gravity_parameters"]["direction"].GetVector()
             gravity *= self.project_parameters["gravity_parameters"]["modulus"].GetDouble()
             fluid_model_part.ProcessInfo.SetValue(Kratos.GRAVITY, gravity)
         else:

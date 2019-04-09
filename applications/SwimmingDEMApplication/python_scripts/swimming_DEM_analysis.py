@@ -185,14 +185,13 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def TransferBodyForceFromDisperseToFluid(self):
         # setting fluid's body force to the same as DEM's
         if self.project_parameters["custom_fluid"]["body_force_on_fluid_option"].GetBool():
-            gravity = Vector([self.project_parameters["gravity_parameters"]["direction"][i].GetDouble() for i in range(3)])
+            gravity = self.project_parameters["gravity_parameters"]["direction"].GetVector()
             gravity *= self.project_parameters["gravity_parameters"]["modulus"].GetDouble()
             modulus_of_body_force = math.sqrt(sum(b**2 for b in gravity))
 
             gravity_parameters = self.fluid_parameters['processes']['gravity'][0]['Parameters']
             gravity_parameters['modulus'].SetDouble(modulus_of_body_force)
-            for i, b in enumerate(gravity):
-                gravity_parameters['direction'][i].SetDouble(b)
+            gravity_parameters['direction'].SetVector(gravity)
 
     def SetDoSolveDEMVariable(self):
         self.do_solve_dem = self.project_parameters["custom_dem"]["do_solve_dem"].GetBool()
