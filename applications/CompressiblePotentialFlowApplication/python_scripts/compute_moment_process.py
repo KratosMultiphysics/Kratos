@@ -1,4 +1,5 @@
 import KratosMultiphysics
+from KratosMultiphysics import Logger
 
 def crossProduct(A, B): #Todo: replace with "official" Kratos method
     C = KratosMultiphysics.Vector(3)
@@ -36,7 +37,7 @@ class ComputeMomentProcess(KratosMultiphysics.Process):
         self.reference_point = settings["reference_point"].GetVector()
 
     def ExecuteFinalizeSolutionStep(self):
-        print('COMPUTE MOMENT')
+        Logger.PrintInfo('COMPUTE MOMENT')
 
         m = KratosMultiphysics.Vector(3)
 
@@ -49,9 +50,9 @@ class ComputeMomentProcess(KratosMultiphysics.Process):
 
         Cm = m[2]/self.reference_area
 
-        print('moment = ', m[2])
-        print('Cm = ', Cm)
-        print('Mach = ', self.velocity_infinity[0]/340)
+        Logger.PrintInfo('moment', m[2])
+        Logger.PrintInfo('Cm', Cm)
+        Logger.PrintInfo('Mach', self.velocity_infinity[0]/340)
 
         if self.create_output_file:
             with open("moment.dat", 'w') as mom_file:
