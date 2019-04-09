@@ -2,21 +2,17 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.mpi as KratosMPI
 
 # Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
 # Import base class file
-import structural_mechanics_solver
-
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return TrilinosMechanicalSolver(model, custom_settings)
 
-
-class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
+class TrilinosMechanicalSolver(MechanicalSolver):
     """The base class for trilinos structural mechanics solver.
 
     See structural_mechanics_solver.py for more information.
