@@ -41,33 +41,6 @@ namespace Kratos
 {
 
 template <class TConstLawIntegratorType>
-void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
-{
-    this->CalculateMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
-void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
-{
-    this->CalculateMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
-void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
-{
-    this->CalculateMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
 void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     // Integrate Stress Damage
@@ -80,7 +53,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        this->CalculateValue(rValues, STRAIN, r_strain_vector);
+        GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateValue(rValues, STRAIN, r_strain_vector);
     }
 
     // Elastic Matrix
@@ -208,7 +181,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        this->CalculateValue(rValues, STRAIN, r_strain_vector);
+        GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateValue(rValues, STRAIN, r_strain_vector);
     }
 
     // Elastic Matrix
@@ -260,18 +233,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
     previous_stresses[0] = r_aux_stresses[1];
     this->SetPreviousStresses(previous_stresses);
     this->ResetCycleCounter();
-}
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
-void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeSolutionStep(
-    const Properties& rMaterialProperties,
-    const GeometryType &rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
 }
 
 /***********************************************************************************/
@@ -393,70 +354,6 @@ Matrix& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Calculat
     return rValue;
 }
 
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
-Vector& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<Vector>& rThisVariable,
-    Vector& rValue
-    )
-{
-    return GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateValue(rParameterValues, rThisVariable, rValue);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
-double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<double>& rThisVariable,
-    double& rValue
-    )
-{
-    return this->GetValue(rThisVariable, rValue);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
-int& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<int>& rThisVariable,
-    int& rValue
-    )
-{
-    return this->GetValue(rThisVariable, rValue);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
-Vector& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue(
-    const Variable<Vector>& rThisVariable,
-    Vector& rValue
-    )
-{
-    return GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(rThisVariable, rValue);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
-Matrix& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue(
-    const Variable<Matrix>& rThisVariable,
-    Matrix& rValue
-    )
-{
-    return GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(rThisVariable, rValue);
-}
-
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -485,18 +382,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
 {
     // Small deformation so we can call the Cauchy method
     FinalizeMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-template <class TConstLawIntegratorType>
-void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeMaterial(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues
-    )
-{
-    GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 }
 
 /***********************************************************************************/
