@@ -271,7 +271,6 @@ void SurfaceLoadCondition3D::CalculateAll(
             if (CalculateStiffnessMatrixFlag) {
                 CalculateAndSubKp(rLeftHandSideMatrix, tangent_xi, tangent_eta, DN_DeContainer[point_number], rN, pressure, integration_weight);
             }
-        }
 
             // RIGHT HAND SIDE VECTOR
             if (CalculateResidualVectorFlag) { //calculation of the matrix is required
