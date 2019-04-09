@@ -179,7 +179,9 @@ public:
             mVelocity += mVelocityFactor * DeltaVelocity;
 
             if(std::abs(mVelocity) > std::abs(mLimitVelocity))
+            {
                 mVelocity = mLimitVelocity;
+            }
 
             ComponentType TargetStressVarComponent = KratosComponents< ComponentType >::Get(mTargetStressVariableName);
             ComponentType ReactionStressVarComponent = KratosComponents< ComponentType >::Get(mReactionStressVariableName);
