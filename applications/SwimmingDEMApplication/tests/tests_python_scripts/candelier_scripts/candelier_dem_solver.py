@@ -1,4 +1,5 @@
-from KratosMultiphysics import *
+import KratosMultiphysics as Kratos
+from KratosMultiphysics import Vector
 import swimming_DEM_solver
 import candelier_parameters as candelier_pp
 
@@ -36,11 +37,11 @@ class CandelierDEMSolver(BaseSolver):
                 v = self.GetVelocityRelativeToMovingFrame(r_rel = r, v_glob = v)
                 a = self.GetAccelerationRelativeToMovingFrame(r_rel = r, v_rel = v, a_glob = a)
 
-            node.SetSolutionStepValue(FLUID_VEL_PROJECTED, v)
-            node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED, a)
+            node.SetSolutionStepValue(Kratos.FLUID_VEL_PROJECTED, v)
+            node.SetSolutionStepValue(Kratos.FLUID_ACCEL_PROJECTED, a)
             if candelier_pp.include_lift:
                 vort = Vector([0.0, 0.0, 2.0 * omega])
-                node.SetSolutionStepValue(FLUID_VORTICITY_PROJECTED, vort)
+                node.SetSolutionStepValue(Kratos.FLUID_VORTICITY_PROJECTED, vort)
 
     def ApplyForwardCouplingOfVelocityToAuxVelocityOnly(self, alpha=None):
         for node in self.dem_solver.spheres_model_part.Nodes:
@@ -54,7 +55,7 @@ class CandelierDEMSolver(BaseSolver):
 
             # the current FLUID_VEL_PROJECTED is still needed and so we use
             # AUX_VEL to store it instead.
-            node.SetSolutionStepValue(AUX_VEL, new_v)
+            node.SetSolutionStepValue(Kratos.AUX_VEL, new_v)
 
     def GetVelocityRelativeToMovingFrame(self, r_rel, v_glob):
         cross_omega_r = Cross(self.frame_angular_vel, r_rel)

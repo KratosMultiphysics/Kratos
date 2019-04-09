@@ -99,6 +99,7 @@
 #include "custom_constitutive/small_strain_j2_plasticity_3d.h"
 #include "custom_constitutive/small_strain_isotropic_damage_3d.h"
 #include "custom_constitutive/small_strain_isotropic_damage_plane_strain_2d.h"
+#include "custom_constitutive/small_strain_isotropic_damage_traction_only_3d.h"
 #include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 #include "custom_constitutive/d_plus_d_minus_damage_masonry_3d.h"
 
@@ -409,6 +410,10 @@ private:
     const AdjointFiniteDifferenceTrussElement<TrussElement3D2N> mAdjointFiniteDifferenceTrussElement3D2N;
     const AdjointFiniteDifferenceTrussElementLinear<TrussElementLinear3D2N> mAdjointFiniteDifferenceTrussLinearElement3D2N;
     const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint2D3N;
+    const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint2D4N;
+    const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint2D6N;
+    const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint3D4N;
+    const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint3D8N;
 
     /* CONDITIONS*/
     // Point load
@@ -461,6 +466,7 @@ private:
     const SmallStrainJ2PlasticityPlaneStrain2D mSmallStrainJ2PlasticityPlaneStrain2D;
     const SmallStrainIsotropicDamage3D mSmallStrainIsotropicDamage3D;
     const SmallStrainIsotropicDamagePlaneStrain2D mSmallStrainIsotropicDamagePlaneStrain2D;
+    const SmallStrainIsotropicDamageTractionOnly3D mSmallStrainIsotropicDamageTractionOnly3D;
 
     // Damage and plasticity laws
     const SmallStrainIsotropicPlasticityFactory mSmallStrainIsotropicPlasticityFactory;
