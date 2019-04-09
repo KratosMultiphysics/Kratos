@@ -39,7 +39,7 @@ class ImplicitMechanicalSolver(MechanicalSolver):
 
         # Construct the base solver.
         super(ImplicitMechanicalSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[ImplicitMechanicalSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[ImplicitMechanicalSolver]:: ", "Construction finished")
 
         # Setting minimum buffer
         scheme_type = self.dynamic_settings["scheme_type"].GetString()
@@ -50,12 +50,12 @@ class ImplicitMechanicalSolver(MechanicalSolver):
     def AddVariables(self):
         super(ImplicitMechanicalSolver, self).AddVariables()
         self._add_dynamic_variables()
-        self.print_on_rank_zero("::[ImplicitMechanicalSolver]:: ", "Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[ImplicitMechanicalSolver]:: ", "Variables ADDED")
 
     def AddDofs(self):
         super(ImplicitMechanicalSolver, self).AddDofs()
         self._add_dynamic_dofs()
-        self.print_on_rank_zero("::[ImplicitMechanicalSolver]:: ", "DOF's ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[ImplicitMechanicalSolver]:: ", "DOF's ADDED")
 
     def InitializeSolutionStep(self):
         # Using the base InitializeSolutionStep

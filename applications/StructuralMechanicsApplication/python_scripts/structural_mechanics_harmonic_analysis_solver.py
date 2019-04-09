@@ -38,7 +38,7 @@ class HarmonicAnalysisSolver(MechanicalSolver):
 
         # Construct the base solver.
         super(HarmonicAnalysisSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[HarmonicAnalysisSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[HarmonicAnalysisSolver]:: ", "Construction finished")
 
     #### Private functions ####
 

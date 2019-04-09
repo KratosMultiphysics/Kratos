@@ -42,12 +42,12 @@ class TrilinosImplicitMechanicalSolver(TrilinosMechanicalSolver):
     def AddVariables(self):
         super(TrilinosImplicitMechanicalSolver, self).AddVariables()
         self._add_dynamic_variables()
-        self.print_on_rank_zero("::[TrilinosImplicitMechanicalSolver]:: Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosImplicitMechanicalSolver]:: Variables ADDED")
 
     def AddDofs(self):
         super(TrilinosImplicitMechanicalSolver, self).AddDofs()
         self._add_dynamic_dofs()
-        self.print_on_rank_zero("::[TrilinosImplicitMechanicalSolver]:: DOF's ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosImplicitMechanicalSolver]:: DOF's ADDED")
 
     #### Private functions ####
 

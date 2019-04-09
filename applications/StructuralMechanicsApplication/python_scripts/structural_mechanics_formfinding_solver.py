@@ -33,7 +33,7 @@ class FormfindingMechanicalSolver(MechanicalSolver):
 
         # Construct the base solver.
         super(FormfindingMechanicalSolver, self).__init__(main_model_part, custom_settings)
-        self.print_on_rank_zero("::[FormfindingMechanicalSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[FormfindingMechanicalSolver]:: ", "Construction finished")
 
     def _create_solution_scheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()

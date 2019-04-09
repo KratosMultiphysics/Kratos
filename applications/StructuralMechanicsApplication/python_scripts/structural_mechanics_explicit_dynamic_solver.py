@@ -47,7 +47,7 @@ class ExplicitMechanicalSolver(MechanicalSolver):
         # Lumped mass-matrix is necessary for explicit analysis
         self.main_model_part.ProcessInfo[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = True
         # Print finished work
-        self.print_on_rank_zero("::[ExplicitMechanicalSolver]:: Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[ExplicitMechanicalSolver]:: Construction finished")
 
     def AddVariables(self):
         super(ExplicitMechanicalSolver, self).AddVariables()
@@ -62,12 +62,12 @@ class ExplicitMechanicalSolver(MechanicalSolver):
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_INERTIA)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT_RESIDUAL)
 
-        self.print_on_rank_zero("::[ExplicitMechanicalSolver]:: Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[ExplicitMechanicalSolver]:: Variables ADDED")
 
     def AddDofs(self):
         super(ExplicitMechanicalSolver, self).AddDofs()
         self._add_dynamic_dofs()
-        self.print_on_rank_zero("::[ExplicitMechanicalSolver]:: DOF's ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[ExplicitMechanicalSolver]:: DOF's ADDED")
 
     def ComputeDeltaTime(self):
         if self.dynamic_settings["time_step_prediction_level"].GetInt() > 1:

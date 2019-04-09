@@ -27,19 +27,19 @@ class TrilinosMechanicalSolver(MechanicalSolver):
 
         # Construct the base solver.
         super(TrilinosMechanicalSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Construction finished")
 
     def AddVariables(self):
         super(TrilinosMechanicalSolver, self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Variables ADDED")
 
     def ImportModelPart(self):
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Importing model part.")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Importing model part.")
         from trilinos_import_model_part_utility import TrilinosImportModelPartUtility
         self.trilinos_model_part_importer = TrilinosImportModelPartUtility(self.main_model_part, self.settings)
         self.trilinos_model_part_importer.ImportModelPart()
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Finished importing model part.")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Finished importing model part.")
 
     def PrepareModelPart(self):
         super(TrilinosMechanicalSolver, self).PrepareModelPart()
@@ -78,7 +78,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
             raise Exception("MPCs not yet implemented in MPI")
 
         if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
-            self.print_warning_on_rank_zero("Constraints are not yet implemented in MPI and will therefore not be considered!")
+            KratosMultiphysics.Logger.PrintWarning("Constraints are not yet implemented in MPI and will therefore not be considered!")
 
         linear_solver = self.get_linear_solver()
         epetra_communicator = self.get_epetra_communicator()
