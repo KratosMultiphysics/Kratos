@@ -101,7 +101,6 @@ aux_current_number_levels,aux_current_iteration,aux_number_samples,*args):
     aux_project_parameters_path = "auxiliary_project_parameters_path"
     aux_parameters_refinement_path = "auxiliary_parameters_refinement_path"
     auxiliary_MLMC_object = ConstructorCallback(aux_settings,aux_project_parameters_path,aux_parameters_refinement_path,aux_analysis)
-    print(auxiliary_MLMC_object.settings)
     auxiliary_MLMC_object.difference_QoI.raw_moment_1 = difference_QoI_mean
     auxiliary_MLMC_object.difference_QoI.unbiased_central_moment_2 = difference_QoI_sample_variance
     auxiliary_MLMC_object.time_ML.raw_moment_1 = time_ML_mean
