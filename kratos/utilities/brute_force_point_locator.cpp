@@ -70,16 +70,6 @@ void BruteForcePointLocator::FindObject(const TObjectType& rObjects,
                                         int& rObjectId,
                                         Vector& rShapeFunctionValues) const
 {
-
-    const int domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
-    const auto& r_geom = rObjects.begin()->GetGeometry();
-
-    KRATOS_ERROR_IF_NOT(static_cast<std::size_t>(domain_size) == r_geom.WorkingSpaceDimension())
-        << "Domain size (" << domain_size << ") and WorkingSpaceDimension ("
-        << r_geom.WorkingSpaceDimension() << ") of the " << rObjectName
-        << " are not equal!" << std::endl;
-
     int local_object_found = 0;
     array_1d<double, 3> local_coordinates;
 
