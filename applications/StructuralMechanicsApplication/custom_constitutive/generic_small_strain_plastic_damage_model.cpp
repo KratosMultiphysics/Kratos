@@ -794,7 +794,7 @@ CalculateDamageParameters(
 
     this->CheckInternalVariable(rDamageDissipationIncrement);
     rDamageDissipation += rDamageDissipationIncrement;
-    if (rDamageDissipation > 1.0) rDamageDissipation = 0.99999;
+    this->CheckInternalVariable(rDamageDissipation);
 
     Vector slopes(2), thresholds(2);
     // Tension
