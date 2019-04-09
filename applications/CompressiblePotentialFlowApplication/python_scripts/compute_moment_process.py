@@ -27,7 +27,7 @@ class ComputeMomentProcess(KratosMultiphysics.Process):
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
         self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         self.reference_area = settings["reference_area"].GetDouble()
-        self.reference_point = np.array([0.0,0.0,0.0])
+        self.reference_point = KratosMultiphysics.Vector(3)
         self.create_output_file = settings["create_output_file"].GetBool()
         self.reference_point[0] = settings["reference_point"][0].GetDouble()
         self.reference_point[1] = settings["reference_point"][1].GetDouble()
