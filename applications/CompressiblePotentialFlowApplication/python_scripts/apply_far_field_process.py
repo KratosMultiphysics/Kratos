@@ -114,7 +114,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 dz = node.Z - self.reference_inlet_node.Z
 
                 initial_phi = dx*self.velocity_inf[0] + dy*self.velocity_inf[1] + dz*self.velocity_inf[2]
-                node.SetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL,0,initial_phi)
+                node.SetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL,0,initial_phi + self.inlet_phi_0)
                 node.SetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL,0,initial_phi + self.inlet_phi_0)
                 #TODO: How to initialize the adjoint potential field?
                 '''
