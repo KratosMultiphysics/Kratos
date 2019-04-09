@@ -245,7 +245,8 @@ void LineLoadCondition2D::CalculateAndSubKp(
 
     Matrix Kij( 2, 2 );
     const auto& r_properties = GetProperties();
-    const double h0 = r_properties.Has(THICKNESS) ? r_properties.GetValue(THICKNESS): 1.0;
+    const auto& r_geometry = GetGeometry();
+    const double h0 = (r_properties.Has(THICKNESS) && r_geometry.WorkingSpaceDimension() == 2) ? r_properties.GetValue(THICKNESS): 1.0;
     BoundedMatrix<double, 2, 2> Cross_gn;
     Cross_gn( 0, 0 ) =  0.0;
     Cross_gn( 0, 1 ) =  h0;
@@ -253,7 +254,6 @@ void LineLoadCondition2D::CalculateAndSubKp(
     Cross_gn( 1, 1 ) =  0.0;
 
     // Getting geometry
-    const auto& r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
 
     for ( IndexType i = 0; i < number_of_nodes; i++ ) {
