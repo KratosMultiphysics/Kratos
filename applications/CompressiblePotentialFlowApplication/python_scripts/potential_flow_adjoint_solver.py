@@ -64,8 +64,9 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
 
     def PrepareModelPart(self):
         super(PotentialFlowAdjointSolver, self).PrepareModelPart()
-       # defines how the primal elements should be replaced with their adjoint counterparts
-        replacement_settings = KratosMultiphysics.Parameters("""
+        # defines how the primal elements should be replaced with their adjoint counterparts
+        if self.settings["formulation"]["element_type"].GetString()=="incompressible":
+            replacement_settings = KratosMultiphysics.Parameters("""
             {
                 "element_name_table" :
                 {
@@ -76,7 +77,23 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
                     "PotentialWallCondition2D2N"             : "AdjointIncompressiblePotentialWallCondition2D2N"
                 }
             }
-        """)
+            """)
+        elif self.settings["formulation"]["element_type"].GetString()=="compressible":
+            replacement_settings = KratosMultiphysics.Parameters("""
+            {
+                "element_name_table" :
+                {
+                    "CompressiblePotentialFlowElement2D3N" : "AdjointCompressiblePotentialFlowElement2D3N"
+                },
+                "condition_name_table" :
+                {
+                    "PotentialWallCondition2D2N"             : "AdjointIncompressiblePotentialWallCondition2D2N"
+                }
+            }
+            """)
+        else:
+            raise Exception("Formulation not implemented")
+
 
         ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
 

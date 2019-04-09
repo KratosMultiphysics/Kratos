@@ -71,6 +71,15 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateRightHandSide(
 }
 
 template <int Dim, int NumNodes>
+void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    // TODO: improve speed
+    VectorType tmp;
+    CalculateLocalSystem(rLeftHandSideMatrix, tmp, rCurrentProcessInfo);
+}
+
+template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::EquationIdVector(
     EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {

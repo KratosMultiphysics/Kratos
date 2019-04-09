@@ -158,6 +158,9 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                 ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                ProcessInfo& rCurrentProcessInfo) override;
+
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override;
 
     void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
