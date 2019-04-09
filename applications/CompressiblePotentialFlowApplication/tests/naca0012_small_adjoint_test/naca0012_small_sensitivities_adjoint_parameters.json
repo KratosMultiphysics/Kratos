@@ -21,7 +21,7 @@
                 "response_type"     : "adjoint_lift_jump_coordinates",
                 "use_kratos"        : true,
                 "gradient_mode"     : "semi_analytic",
-                "step_size"         : 1e-9
+                "step_size"         : 1e-6
             },
         "sensitivity_settings" : {
                 "sensitivity_model_part_name" : "Parts_Parts_Auto1",
@@ -43,7 +43,7 @@
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "inlet_phi"         : 1.0,
                 "mach_infinity": 0.02941176471,
-                "initialize_flow_field": false
+                "initialize_flow_field": true
             }
         },{
             "python_module" : "define_wake_process_2d",
