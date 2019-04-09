@@ -52,9 +52,6 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
     def __init__(self, model, custom_settings):
         super(AdjointVMSMonolithicSolver,self).__init__(model,custom_settings)
 
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
         self.element_name = "VMSAdjointElement"
         if self.settings["domain_size"].GetInt() == 2:
             self.condition_name = "LineCondition"
