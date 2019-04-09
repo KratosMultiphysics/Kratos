@@ -159,12 +159,15 @@ TrussElement3D2N::CalculateBodyForces()
 {
 
     KRATOS_TRY
+
+    const auto& r_properties = GetProperties();
+    const auto& r_geometry = this->GetGeometry();
+
     // getting shapefunctionvalues
-    const Matrix& Ncontainer =
-        GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+    const Matrix& Ncontainer = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
 
     // creating necessary values
-    const double A = GetProperties()[CROSS_AREA];
+    const double A = r_properties[CROSS_AREA];
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double rho = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
@@ -176,10 +179,16 @@ TrussElement3D2N::CalculateBodyForces()
 
     // assemble global Vector
     for (int i = 0; i < msNumberOfNodes; ++i) {
-        body_forces_node =
-            total_mass *
-            GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
-            Ncontainer(0, i);
+        if (r_properties.Has( VOLUME_ACCELERATION )) {
+            noalias(body_forces_node) = total_mass * r_properties[VOLUME_ACCELERATION];
+        } else if( r_geometry[i].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
+            noalias(body_forces_node) =
+                total_mass *
+                r_geometry[i].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
+                Ncontainer(0, i);
+        } else if (this->Has( VOLUME_ACCELERATION )) {
+            noalias(body_forces_node) = total_mass * this->GetValue(VOLUME_ACCELERATION);
+        }
 
         for (unsigned int j = 0; j < msDimension; ++j) {
             body_forces_global[(i * msDimension) + j] = body_forces_node[j];

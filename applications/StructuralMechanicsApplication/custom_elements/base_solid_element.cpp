@@ -1664,24 +1664,23 @@ array_1d<double, 3> BaseSolidElement::GetBodyForce(
     const IndexType PointNumber
     ) const
 {
-    array_1d<double, 3> body_force;
-    for (IndexType i = 0; i < 3; ++i)
-        body_force[i] = 0.0;
+    array_1d<double, 3> body_force = ZeroVector(3);
 
     const auto& r_properties = GetProperties();
     double density = 0.0;
     if (r_properties.Has( DENSITY ))
         density = r_properties[DENSITY];
 
-    if (r_properties.Has( VOLUME_ACCELERATION ))
-        noalias(body_force) += density * r_properties[VOLUME_ACCELERATION];
-
     const auto& r_geometry = this->GetGeometry();
-    if( r_geometry[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
+    if (r_properties.Has( VOLUME_ACCELERATION )) {
+        noalias(body_force) += density * r_properties[VOLUME_ACCELERATION];
+    } else if( r_geometry[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
         Vector N;
         N = r_geometry.ShapeFunctionsValues(N, IntegrationPoints[PointNumber].Coordinates());
         for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node)
             noalias(body_force) += N[i_node] * density * r_geometry[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    } else if (this->Has( VOLUME_ACCELERATION )) {
+        noalias(body_force) += density * this->GetValue(VOLUME_ACCELERATION);
     }
 
     return body_force;

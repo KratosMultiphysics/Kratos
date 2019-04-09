@@ -876,16 +876,15 @@ Vector& IsotropicShellElement::CalculateVolumeForce( Vector& rVolumeForce )
     const double one_nodes = 1.00 / (double)number_of_nodes;
 
     rVolumeForce = ZeroVector(dimension);
-    if (GetProperties().Has( VOLUME_ACCELERATION ))
-        noalias(rVolumeForce) =  GetProperties()[VOLUME_ACCELERATION];
-    else if (this->Has( VOLUME_ACCELERATION ))
-        noalias(rVolumeForce) = this->GetValue(VOLUME_ACCELERATION);
-    else {
-        for ( unsigned int j = 0; j < number_of_nodes; j++ )
-        {
-            if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ) //temporary, will be checked once at the beginning only
-                noalias(rVolumeForce) += one_nodes * GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    const auto& r_geometry = this->GetGeometry();
+    if (GetProperties().Has( VOLUME_ACCELERATION )) {
+        noalias(rVolumeForce) += GetProperties()[VOLUME_ACCELERATION];
+    } else if( r_geometry[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
+        for ( unsigned int j = 0; j < number_of_nodes; j++ ) {
+            noalias(rVolumeForce) += one_nodes * r_geometry[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
         }
+    } else if (this->Has( VOLUME_ACCELERATION )) {
+        noalias(rVolumeForce) += this->GetValue(VOLUME_ACCELERATION);
     }
 
     rVolumeForce *= GetProperties()[DENSITY];

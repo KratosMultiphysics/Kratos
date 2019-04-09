@@ -185,20 +185,25 @@ CrBeamElement3D2N::CalculateBodyForces() const
     const Matrix& Ncontainer =
         GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
 
-    BoundedVector<double, msDimension> equivalent_line_load =
-        ZeroVector(msDimension);
-    BoundedVector<double, msElementSize> body_forces_global =
-        ZeroVector(msElementSize);
+    BoundedVector<double, msDimension> equivalent_line_load = ZeroVector(msDimension);
+    BoundedVector<double, msElementSize> body_forces_global = ZeroVector(msElementSize);
 
     const double A = GetProperties()[CROSS_AREA];
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
     const double rho = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
-    // calculating equivalent line load
-    for (int i = 0; i < msNumberOfNodes; ++i) {
-        noalias(equivalent_line_load) +=
-            (A * rho * Ncontainer(0, i)) *
-            GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    // Calculating equivalent line load
+    if (GetProperties().Has( VOLUME_ACCELERATION )) {
+        noalias(equivalent_line_load) += A * rho * GetProperties()[VOLUME_ACCELERATION];
+    } else if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
+        for (int i = 0; i < msNumberOfNodes; ++i) {
+            noalias(equivalent_line_load) +=
+                A * rho *
+                this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
+                Ncontainer(0, i);
+        }
+    } else if (this->Has( VOLUME_ACCELERATION )) {
+        noalias(equivalent_line_load) += A * rho * this->GetValue(VOLUME_ACCELERATION);
     }
 
     // adding the nodal forces

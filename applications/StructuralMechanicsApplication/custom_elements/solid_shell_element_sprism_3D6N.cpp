@@ -4144,14 +4144,16 @@ void SolidShellElementSprism3D6N::CalculateVolumeForce(
 {
     KRATOS_TRY;
 
+    const auto& r_properties = GetProperties();
+    const auto& r_geometry = this->GetGeometry();
     array_1d<double,3> volume_acceleration = ZeroVector(3);
-    if (GetProperties().Has( VOLUME_ACCELERATION ))
-        noalias(volume_acceleration) = GetProperties()[VOLUME_ACCELERATION];
-    else if (this->Has( VOLUME_ACCELERATION ))
-        noalias(volume_acceleration) = this->GetValue(VOLUME_ACCELERATION);
-    else if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
-        for (unsigned int i_node = 0; i_node < this->GetGeometry().size(); ++i_node)
-            noalias(volume_acceleration) += rVariables.N[i_node] * GetGeometry()[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    if (r_properties.Has( VOLUME_ACCELERATION )) {
+        noalias(volume_acceleration) += r_properties[VOLUME_ACCELERATION];
+    } else if( r_geometry[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
+        for (unsigned int i_node = 0; i_node < r_geometry.size(); ++i_node)
+            noalias(volume_acceleration) += rVariables.N[i_node] * r_geometry[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    } else if (this->Has( VOLUME_ACCELERATION )) {
+        noalias(volume_acceleration) += this->GetValue(VOLUME_ACCELERATION);
     }
 
     // Compute volume change

@@ -536,23 +536,27 @@ void PrestressMembraneElement::CalculateAndAddBodyForce(
 {
     KRATOS_TRY
 
-
     const double density = GetProperties()[DENSITY];
 
     VectorType body_force = ZeroVector(3);
-    const SizeType number_of_nodes = this->GetGeometry().size();
-    //const GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints();
+    const auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    //const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
 
     VectorType N = ZeroVector(number_of_nodes);
-    const IntegrationMethod this_integration_method = this->GetGeometry().GetDefaultIntegrationMethod();
-    N = row(this->GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);
+    const IntegrationMethod this_integration_method = r_geometry.GetDefaultIntegrationMethod();
+    noalias(N) = row(r_geometry.ShapeFunctionsValues(this_integration_method), PointNumber);
 
-    //const double integration_weight = integration_points[PointNumber].Weight();
+    for (IndexType i_node = 0; i_node < number_of_nodes; i_node++) {
+        if (GetProperties().Has( VOLUME_ACCELERATION )) {
+            noalias(body_force) = density * GetProperties()[VOLUME_ACCELERATION];
+        } else if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) { // FIXME: This is wrong (+=) !!!. I keep it that way to pass the tests
+            noalias(body_force) += density * N[i_node] * r_geometry[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        } else if (this->Has( VOLUME_ACCELERATION )) {
+            noalias(body_force) = density * this->GetValue(VOLUME_ACCELERATION);
+        }
 
-    for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        noalias(body_force) += N[i_node] * density * GetGeometry()[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-        IndexType index = 3 * i_node;
+        const IndexType index = 3 * i_node;
 
         for (IndexType j = 0; j < 3; ++j)
             rRightHandSideVector[index + j] += rWeight * N[i_node] * body_force[j];

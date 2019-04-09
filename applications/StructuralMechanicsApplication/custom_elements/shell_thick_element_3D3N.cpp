@@ -1601,10 +1601,14 @@ void ShellThickElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRi
         // interpolate nodal volume accelerations to this gauss point
         // and obtain the body force vector
         bf.clear();
-        for (unsigned int inode = 0; inode < 3; inode++) {
-            if (geom[inode].SolutionStepsDataHas(VOLUME_ACCELERATION)) {
-                bf += N(igauss, inode) * geom[inode].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        if (GetProperties().Has( VOLUME_ACCELERATION )) {
+            noalias(bf) += GetProperties()[VOLUME_ACCELERATION];
+        } else if (geom[0].SolutionStepsDataHas(VOLUME_ACCELERATION)) {
+            for (unsigned int inode = 0; inode < 3; inode++) {
+                noalias(bf) += N(igauss, inode) * geom[inode].FastGetSolutionStepValue(VOLUME_ACCELERATION);
             }
+        } else if (this->Has( VOLUME_ACCELERATION )) {
+            noalias(bf) += this->GetValue(VOLUME_ACCELERATION);
         }
         bf *= (mass_per_unit_area * data.dA);
 

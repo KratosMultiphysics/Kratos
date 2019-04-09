@@ -314,12 +314,18 @@ CrBeamElement2D2N::CalculateBodyForces() const
     const double l = CalculateLength();
     const double rho = GetProperties()[DENSITY];
 
-    // calculating equivalent line load
-    for (int i = 0; i < msNumberOfNodes; ++i) {
-        equivalent_line_load +=
-            A * rho *
-            GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
-            Ncontainer(0, i);
+    // Calculating equivalent line load
+    if (GetProperties().Has( VOLUME_ACCELERATION )) {
+        noalias(equivalent_line_load) += A * rho * GetProperties()[VOLUME_ACCELERATION];
+    } else if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
+        for (int i = 0; i < msNumberOfNodes; ++i) {
+            noalias(equivalent_line_load) +=
+                A * rho *
+                this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
+                Ncontainer(0, i);
+        }
+    } else if (this->Has( VOLUME_ACCELERATION )) {
+        noalias(equivalent_line_load) += A * rho * this->GetValue(VOLUME_ACCELERATION);
     }
 
     // adding the nodal forces

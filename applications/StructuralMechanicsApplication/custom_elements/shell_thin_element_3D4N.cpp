@@ -326,11 +326,14 @@ void ShellThinElement3D4N::AddBodyForces(CalculationData& data,
         // interpolate nodal volume accelerations to this gauss point
         // and obtain the body force vector
         bf.clear();
-        for (unsigned int inode = 0; inode < 4; inode++) {
-            if (geom[inode].SolutionStepsDataHas(VOLUME_ACCELERATION))
-                //temporary, will be checked once at the beginning only
-                bf += N(igauss, inode) *
-                      geom[inode].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        if (GetProperties().Has( VOLUME_ACCELERATION )) {
+            noalias(bf) += GetProperties()[VOLUME_ACCELERATION];
+        } else if (geom[0].SolutionStepsDataHas(VOLUME_ACCELERATION)) {
+            for (unsigned int inode = 0; inode < 4; inode++) {
+                noalias(bf) += N(igauss, inode) * geom[inode].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+            }
+        } else if (this->Has( VOLUME_ACCELERATION )) {
+            noalias(bf) += this->GetValue(VOLUME_ACCELERATION);
         }
         bf *= (mass_per_unit_area * data.dA[igauss]);
 
