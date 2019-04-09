@@ -1,7 +1,7 @@
 import KratosMultiphysics
 from KratosMultiphysics import Logger
 
-def crossProduct(A, B): #Todo: replace with "official" Kratos method
+def crossProduct(A, B):
     C = KratosMultiphysics.Vector(3)
     C[0] = A[1]*B[2]-A[2]*B[1]
     C[1] = A[2]*B[0]-A[0]*B[2]
