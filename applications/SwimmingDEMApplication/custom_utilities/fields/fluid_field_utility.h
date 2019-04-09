@@ -17,10 +17,8 @@ KRATOS_CLASS_POINTER_DEFINITION(FluidFieldUtility);
 
 /// Default constructor.
 
-FluidFieldUtility(): FieldUtility(){}
-
-FluidFieldUtility(SpaceTimeSet::Pointer p_sts, VelocityField::Pointer p_vector_field, const double fluid_density = 1000.0, const double fluid_kinematic_viscosity = 1e-6):
-    FieldUtility(p_sts, p_vector_field), mFluidDensity(fluid_density), mFluidViscosity(fluid_kinematic_viscosity){}
+FluidFieldUtility(SpaceTimeSet& rDomain, VelocityField& rField, const double fluid_density = 1000.0, const double fluid_kinematic_viscosity = 1e-6):
+    FieldUtility(rDomain, rField), mFluidDensity(fluid_density), mFluidViscosity(fluid_kinematic_viscosity){}
 
 /// Destructor.
 
@@ -32,10 +30,9 @@ void ImposeFieldOnNodes(ModelPart& r_model_part, const Variable<array_1d<double,
 
 virtual void ImposeVelocityOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& container_variable)
 {
-    Kratos::shared_ptr<VelocityField> p_vel_field = Kratos::static_pointer_cast<VelocityField>(mpVectorField);
-    p_vel_field->ImposeVelocityOnNodes(r_model_part, container_variable);
+    auto r_velocity_field = dynamic_cast<VelocityField&> (mrVectorField);
+    r_velocity_field.ImposeVelocityOnNodes(r_model_part, container_variable);
 }
-
 
 virtual std::string Info() const override
 {

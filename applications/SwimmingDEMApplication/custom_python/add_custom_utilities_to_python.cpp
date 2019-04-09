@@ -174,8 +174,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     py::class_<VectorField<3>, VectorField<3>::Pointer> (m, "VectorField3D").def(py::init<>())
         ;
 
-    //typedef void (VelocityField::*Evaluate)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
-    //Evaluate EvaluateVector = &VelocityField::Evaluate;
+    typedef void (VelocityField::*Evaluate)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
+    Evaluate EvaluateVector = &VelocityField::Evaluate;
 
     typedef void (VelocityField::*CalculateTimeDerivative)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
     CalculateTimeDerivative CalculateTimeDerivativeVector = &VelocityField::CalculateTimeDerivative;
@@ -200,9 +200,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     typedef void (VelocityField::*CalculateMaterialAcceleration)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
     CalculateMaterialAcceleration CalculateMaterialAccelerationVector = &VelocityField::CalculateMaterialAcceleration;
 
-
     py::class_<VelocityField, VelocityField::Pointer, VectorField<3>> (m, "VelocityField")
         .def(py::init<>())
+        .def("Evaluate", EvaluateVector)
         .def("CalculateTimeDerivative", CalculateTimeDerivativeVector)
         .def("CalculateGradient", CalculateGradientVector)
         .def("CalculateDivergence", CalculateDivergenceVector)
@@ -313,8 +313,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     ImposeVelocityFieldOnNodes ImposeVelocityField = &FieldUtility::ImposeFieldOnNodes;
     ImposeFieldOnNodes ImposeField = &FieldUtility::ImposeFieldOnNodes;
 
-    py::class_<FieldUtility> (m, "FieldUtility")
-        .def(py::init<SpaceTimeSet::Pointer, VectorField<3>::Pointer >())
+    py::class_<FieldUtility, FieldUtility::Pointer> (m, "FieldUtility")
+        .def(py::init<SpaceTimeSet&, VectorField<3>& >())
         .def("EvaluateFieldAtPoint", EvaluateDoubleField)
         .def("EvaluateFieldAtPoint", EvaluateVectorField)
         .def("ImposeFieldOnNodes", ImposeDoubleField)
@@ -324,8 +324,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         ;
 
     // and the same for 'FluidFieldUtility' ...
-    py::class_<FluidFieldUtility> (m, "FluidFieldUtility")
-        .def(py::init<SpaceTimeSet::Pointer, VelocityField::Pointer, const double, const double >())
+    py::class_<FluidFieldUtility, FluidFieldUtility::Pointer, FieldUtility> (m, "FluidFieldUtility")
+        .def(py::init<SpaceTimeSet&, VelocityField&, const double, const double >())
         ;
 
     typedef void (CustomFunctionsCalculator<3>::*CopyValuesScalar)(ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&);

@@ -289,8 +289,6 @@ std::map<VariableData, double> mAlphas;
 std::map<VariableData, bool> mIsFirstTimeFiltering;
 PointPointSearch::Pointer mpPointPointSearch;
 
-FluidFieldUtility mFlowField;
-
 const Variable<array_1d<double,3>>* mpBodyForcePerUnitMassVariable;
 
 // neighbour lists (for mCouplingType = 3)

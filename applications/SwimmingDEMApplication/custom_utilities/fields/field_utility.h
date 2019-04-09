@@ -34,10 +34,8 @@ KRATOS_CLASS_POINTER_DEFINITION(FieldUtility);
 
 /// Default constructor.
 
-FieldUtility(): mDomain(), mpVectorField(){}
-
-FieldUtility(SpaceTimeSet::Pointer p_sts, VectorField<3>::Pointer p_vector_field):
-    mDomain(p_sts), mpVectorField(p_vector_field){}
+FieldUtility(SpaceTimeSet& rDomain, VectorField<3>& rField):
+    mrDomain(rDomain), mrVectorField(rField){}
 
 /// Destructor.
 
@@ -58,7 +56,7 @@ void MarkNodesInside(ModelPart& r_model_part, const ProcessInfo& r_current_proce
         double coor_x = node_it->X();
         double coor_y = node_it->Y();
         double coor_z = node_it->Z();
-        bool is_in = mDomain->IsIn(time, coor_x, coor_y, coor_z);
+        bool is_in = mrDomain.IsIn(time, coor_x, coor_y, coor_z);
         node_it->Set(INSIDE, is_in);
         mIsInArray[i] = is_in;
     }
@@ -71,7 +69,7 @@ double EvaluateFieldAtPoint(const double& time,
                          const array_1d<double, 3>& coor,
                          RealField::Pointer formula)
 {
-    if (mDomain->IsIn(time, coor[0], coor[1], coor[2])){
+    if (mrDomain.IsIn(time, coor[0], coor[1], coor[2])){
         return(formula->Evaluate(time, coor));
     }
 
@@ -85,7 +83,7 @@ array_1d<double, 3> EvaluateFieldAtPoint(const double& time,
                                       const array_1d<double, 3>& coor,
                                       VectorField<3>::Pointer formula)
 {
-    if (mDomain->IsIn(time, coor[0], coor[1], coor[2])){
+    if (mrDomain.IsIn(time, coor[0], coor[1], coor[2])){
         array_1d<double, 3> value;
         formula->Evaluate(time, coor, value);
         return(value);
@@ -218,9 +216,8 @@ protected:
 ///@name Protected member r_variables
 ///@{ template<class T, std::size_t dim>
 
-RealField::Pointer mFormula;
-SpaceTimeSet::Pointer mDomain;
-VectorField<3>::Pointer mpVectorField;
+SpaceTimeSet& mrDomain;
+VectorField<3>& mrVectorField;
 std::vector<bool> mIsInArray;
 ///@}
 ///@name Protected Operators
