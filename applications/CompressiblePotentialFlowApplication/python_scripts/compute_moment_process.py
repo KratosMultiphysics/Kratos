@@ -1,8 +1,14 @@
 import KratosMultiphysics
-import numpy as np
+
+def crossProduct(A, B): #Todo: replace with "official" Kratos method
+    C = KratosMultiphysics.Vector(3)
+    C[0] = A[1]*B[2]-A[2]*B[1]
+    C[1] = A[2]*B[0]-A[0]*B[2]
+    C[2] = A[0]*B[1]-A[1]*B[0]
+    return C
 
 def Factory(settings, Model):
-    if( not isinstance(settings,KratosMultiphysics.Parameters) ):
+    if not isinstance(settings,KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ComputeMomentProcess(Model, settings["Parameters"])
 
@@ -22,29 +28,24 @@ class ComputeMomentProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_parameters)
 
         self.body_model_part = Model[settings["model_part_name"].GetString()]
-        self.velocity_infinity = [0,0,0]
-        self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
-        self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
+        self.velocity_infinity = KratosMultiphysics.Vector(3)
         self.velocity_infinity = settings["velocity_infinity"].GetVector()
         self.reference_area = settings["reference_area"].GetDouble()
-        self.reference_point = KratosMultiphysics.Vector(3)
         self.create_output_file = settings["create_output_file"].GetBool()
-        self.reference_point[0] = settings["reference_point"][0].GetDouble()
-        self.reference_point[1] = settings["reference_point"][1].GetDouble()
-        self.reference_point[2] = settings["reference_point"][2].GetDouble()
+        self.reference_point = KratosMultiphysics.Vector(3)
+        self.reference_point = settings["reference_point"].GetVector()
 
-    def ExecuteFinalizeSolutionStep(self, refPoint = [0,0,0]):
+    def ExecuteFinalizeSolutionStep(self):
         print('COMPUTE MOMENT')
 
-        m = [0.0,0.0,0.0]
+        m = KratosMultiphysics.Vector(3)
 
         for cond in self.body_model_part.Conditions:
-            n =  np.array(cond.GetValue(KratosMultiphysics.NORMAL)) #Inigo: normal direction? (ass. outward of domain)
+            n =  KratosMultiphysics.Vector(cond.GetValue(KratosMultiphysics.NORMAL)) #normal direction assumed outward of domain
             cp = cond.GetValue(KratosMultiphysics.PRESSURE)
             mid_point = cond.GetGeometry().Center()
-            mid_point =  np.array([mid_point.X, mid_point.Y, mid_point.Z])
             lever = mid_point-self.reference_point
-            m += np.cross(lever, (-n*cp))
+            m += crossProduct(lever, n*(-cp))
 
         Cm = m[2]/self.reference_area
 
