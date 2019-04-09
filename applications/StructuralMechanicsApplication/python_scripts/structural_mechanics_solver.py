@@ -7,12 +7,7 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Importing the base class
-from python_solver import PythonSolver
-
-
-def CreateSolver(model, custom_settings):
-    return MechanicalSolver(model, custom_settings)
-
+from KratosMultiphysics.python_solver import PythonSolver
 
 class MechanicalSolver(PythonSolver):
     """The base class for structural mechanics solvers.

@@ -7,13 +7,12 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import base class file
-import structural_mechanics_solver
-
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return ExplicitMechanicalSolver(model, custom_settings)
 
-class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
+class ExplicitMechanicalSolver(MechanicalSolver):
     """The structural mechanics explicit dynamic solver.
 
     This class creates the mechanical solvers for explicit dynamic analysis.
@@ -69,7 +68,7 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         super(ExplicitMechanicalSolver, self).AddDofs()
         self._add_dynamic_dofs()
         self.print_on_rank_zero("::[ExplicitMechanicalSolver]:: DOF's ADDED")
-            
+
     def ComputeDeltaTime(self):
         if self.dynamic_settings["time_step_prediction_level"].GetInt() > 1:
             if self.delta_time_refresh_counter >= self.dynamic_settings["delta_time_refresh"].GetInt():

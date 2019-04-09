@@ -6,12 +6,12 @@ import KratosMultiphysics
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
-import structural_mechanics_solver
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return StructuralMechanicsAdjointStaticSolver(model, custom_settings)
 
-class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.MechanicalSolver):
+class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
 
     def __init__(self, model, custom_settings):
 

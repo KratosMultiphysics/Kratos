@@ -7,14 +7,12 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import base class file
-import structural_mechanics_solver
-
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return ImplicitMechanicalSolver(model, custom_settings)
 
-
-class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
+class ImplicitMechanicalSolver(MechanicalSolver):
     """The structural mechanics implicit dynamic solver.
 
     This class creates the mechanical solvers for implicit dynamic analysis.
