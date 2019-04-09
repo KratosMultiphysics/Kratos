@@ -196,7 +196,7 @@ TrussElement3D2N::CalculateBodyForces()
         body_forces_global[(i * msDimension) + j] = body_forces_node[j];
       }
     }
-
+  }
     return body_forces_global;
     KRATOS_CATCH("")
 }
