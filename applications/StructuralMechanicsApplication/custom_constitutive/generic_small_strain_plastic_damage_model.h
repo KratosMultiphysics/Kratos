@@ -397,6 +397,30 @@ public:
 
     double McaullyBrackets(const double Number);
 
+    double CalculatePlasticParameters(
+        array_1d<double, VoigtSize>& rPredictiveStressVector,
+        Vector& rStrainVector,
+        double& rUniaxialStress,
+        double& rThreshold,
+        double& rPlasticDenominator,
+        array_1d<double, VoigtSize>& rFflux,
+        array_1d<double, VoigtSize>& rGflux,
+        double& rPlasticDissipation,
+        array_1d<double, VoigtSize>& rPlasticStrainIncrement,
+        const Matrix& rConstitutiveMatrix,
+        ConstitutiveLaw::Parameters& rValues,
+        const double CharacteristicLength,
+        const Vector& rPlasticStrain,
+        const double Damage);
+
+    void CalculatePlasticDenominator(
+        const array_1d<double, VoigtSize>& rFFlux,
+        const array_1d<double, VoigtSize>& rGFlux,
+        const Matrix& rConstitutiveMatrix,
+        double& rHardeningParameter,
+        const double Damage,
+        double& rPlasticDenominator);
+
     ///@}
     ///@name Access
     ///@{
