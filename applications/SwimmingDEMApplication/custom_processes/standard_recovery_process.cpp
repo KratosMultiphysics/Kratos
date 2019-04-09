@@ -34,6 +34,7 @@ StandardRecoveryProcess::StandardRecoveryProcess(
     : DerivativeRecoveryProcess(rModelPart, Param)
 {
     this->CheckDefaultsAndProcessSettings(Param);
+    mStoreFullGradient = Param["store_full_gradient_option"].GetBool();
 }
 
 StandardRecoveryProcess::StandardRecoveryProcess(
@@ -42,20 +43,16 @@ StandardRecoveryProcess::StandardRecoveryProcess(
     : DerivativeRecoveryProcess(rModel, Param)
 {
     this->CheckDefaultsAndProcessSettings(Param);
+    mStoreFullGradient = Param["store_full_gradient_option"].GetBool();
 }
 
 void StandardRecoveryProcess::CheckDefaultsAndProcessSettings(Parameters Param)
 {
     Parameters default_parameters( R"(
     {
-        "model_part_name"                        : "",
-        "distance_factor"                        : 2.0,
-        "distance_threshold"                     : 0.001,
-        "continuous_distance"                    : true,
-        "check_at_each_time_step"                : true,
-        "avoid_almost_empty_elements"            : true,
-        "deactivate_full_negative_elements"      : true,
-        "recover_original_distance_at_each_step" : false
+        "model_part_name" : "FluidModelPart",
+        "recoverer_name" : "StandardRecoveryProcess",
+        "store_full_gradient_option" : true
     }  )" );
 
     Param.ValidateAndAssignDefaults(default_parameters);
@@ -156,7 +153,7 @@ void StandardRecoveryProcess::CalculateVectorMaterialDerivative()
             }
         }
 
-        // normalizing the constributions to the gradient and getting the j-component of the material derivative
+        // normalizing the contributions to the gradient and getting the j-component of the material derivative
 
         for (auto inode = mrModelPart.NodesBegin(); inode != mrModelPart.NodesEnd(); ++inode){
             array_1d <double, 3>& stored_gradient_of_component_j = inode->FastGetSolutionStepValue(mMaterialDerivativeContainer);

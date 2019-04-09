@@ -14,33 +14,31 @@ class DerivativeRecoveryProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters( """
         {
-            "model_part_name"                        : "FluidModelPart",
-            "distance_factor"                        : 2.0,
-            "distance_threshold"                     : 0.01,
-            "continuous_distance"                    : true,
-            "check_at_each_time_step"                : false,
-            "avoid_almost_empty_elements"            : true,
-            "deactivate_full_negative_elements"      : true,
-            "recover_original_distance_at_each_step" : false
+            "model_part_name" : "FluidModelPart",
+            "recoverers" : [{}]
         }  """ )
 
         settings.ValidateAndAssignDefaults(default_parameters);
 
         self.fluid_model_part = Model[settings["model_part_name"].GetString()]
-        self.DerivativeRecoveryProcess = SDEM.DerivativeRecoveryProcess(self.fluid_model_part, settings)
+        self.list_of_recoverers = []
 
+        for recoverer in settings["recoverers"].values():
+            recoverer_instance = eval('SDEM.' + recoverer["recoverer_name"].GetString() + '(self.fluid_model_part, recoverer)')
+            self.list_of_recoverers.append(recoverer_instance)
 
     def ExecuteInitialize(self):
-        self.DerivativeRecoveryProcess.ExecuteInitialize()
-
+        for recoverer in self.list_of_recoverers:
+            recoverer.ExecuteInitialize()
 
     def ExecuteBeforeSolutionLoop(self):
-        self.DerivativeRecoveryProcess.ExecuteBeforeSolutionLoop()
-
+        for recoverer in self.list_of_recoverers:
+            recoverer.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
-        self.DerivativeRecoveryProcess.ExecuteInitializeSolutionStep()
-
+        for recoverer in self.list_of_recoverers:
+            recoverer.ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
-        self.DerivativeRecoveryProcess.ExecuteFinalizeSolutionStep()
+        for recoverer in self.list_of_recoverers:
+            recoverer.ExecuteFinalizeSolutionStep()

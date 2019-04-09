@@ -31,37 +31,20 @@ namespace Kratos
 DerivativeRecoveryProcess::DerivativeRecoveryProcess(
     ModelPart& rModelPart,
     Parameters Param)
-    : Process(), mrModelPart(rModelPart), mMaterialDerivativeContainer(MATERIAL_ACCELERATION)
+    : Process(), mStoreFullGradient(false), mrModelPart(rModelPart), mMaterialDerivativeContainer(MATERIAL_ACCELERATION)
 {
     this->CheckDefaultsAndProcessSettings(Param);
-    mStoreFullGradient = Param['store_full_gradient_option'].GetBool();
 }
 
 DerivativeRecoveryProcess::DerivativeRecoveryProcess(
     Model &rModel,
     Parameters Param)
-    : Process(), mrModelPart(rModel.GetModelPart(Param["model_part_name"].GetString())), mMaterialDerivativeContainer(MATERIAL_ACCELERATION)
+    : Process(), mStoreFullGradient(false), mrModelPart(rModel.GetModelPart(Param["model_part_name"].GetString())), mMaterialDerivativeContainer(MATERIAL_ACCELERATION)
 {
     this->CheckDefaultsAndProcessSettings(Param);
-    mStoreFullGradient = Param['store_full_gradient_option'].GetBool();
 }
 
-void DerivativeRecoveryProcess::CheckDefaultsAndProcessSettings(Parameters Param)
-{
-    Parameters default_parameters( R"(
-    {
-        "model_part_name"                        : "",
-        "distance_factor"                        : 2.0,
-        "distance_threshold"                     : 0.001,
-        "continuous_distance"                    : true,
-        "check_at_each_time_step"                : true,
-        "avoid_almost_empty_elements"            : true,
-        "deactivate_full_negative_elements"      : true,
-        "recover_original_distance_at_each_step" : false
-    }  )" );
-
-    Param.ValidateAndAssignDefaults(default_parameters);
-}
+void DerivativeRecoveryProcess::CheckDefaultsAndProcessSettings(Parameters Param){}
 
 void DerivativeRecoveryProcess::Execute()
 {
