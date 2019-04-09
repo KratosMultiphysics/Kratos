@@ -16,8 +16,8 @@
 
 
 // Project includes
-#include "includes/checks.h"
 #include "custom_conditions/point_moment_condition_3d.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -52,6 +52,24 @@ Condition::Pointer PointMomentCondition3D::Create(IndexType NewId,GeometryType::
 Condition::Pointer PointMomentCondition3D::Create( IndexType NewId, NodesArrayType const& rThisNodes,  PropertiesType::Pointer pProperties ) const
 {
     return Kratos::make_shared<PointMomentCondition3D>( NewId, GetGeometry().Create( rThisNodes ), pProperties );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Condition::Pointer PointMomentCondition3D::Clone (
+    IndexType NewId,
+    NodesArrayType const& ThisNodes
+    ) const
+{
+    KRATOS_TRY
+
+    Condition::Pointer p_new_cond = Kratos::make_shared<PointMomentCondition3D>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    p_new_cond->SetData(this->GetData());
+    p_new_cond->Set(Flags(*this));
+    return p_new_cond;
+
+    KRATOS_CATCH("");
 }
 
 //******************************* DESTRUCTOR *****************************************
@@ -152,9 +170,9 @@ void PointMomentCondition3D::GetSecondDerivativesVector(
 void PointMomentCondition3D::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
-    bool CalculateStiffnessMatrixFlag,
-    bool CalculateResidualVectorFlag
+    const ProcessInfo& rCurrentProcessInfo,
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag
     )
 {
     KRATOS_TRY
@@ -208,7 +226,7 @@ void PointMomentCondition3D::CalculateAll(
 //************************************************************************************
 //************************************************************************************
 
-double PointMomentCondition3D::GetPointMomentIntegrationWeight()
+double PointMomentCondition3D::GetPointMomentIntegrationWeight() const
 {
     return 1.0;
 }
@@ -218,12 +236,9 @@ double PointMomentCondition3D::GetPointMomentIntegrationWeight()
 
 int PointMomentCondition3D::Check( const ProcessInfo& rCurrentProcessInfo )
 {
-    // First we check for the base class
-    BaseType::Check(rCurrentProcessInfo);
-
     KRATOS_CHECK_VARIABLE_KEY(ROTATION);
 
-    const auto& r_node =this->GetGeometry()[0];
+    const auto& r_node = this->GetGeometry()[0];
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
 
     KRATOS_CHECK_DOF_IN_NODE(ROTATION_X, r_node);

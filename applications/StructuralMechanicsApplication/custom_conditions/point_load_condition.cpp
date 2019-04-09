@@ -16,7 +16,6 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/point_load_condition.h"
 #include "utilities/math_utils.h"
 #include "utilities/integration_utilities.h"
@@ -56,6 +55,24 @@ Condition::Pointer PointLoadCondition::Create( IndexType NewId, NodesArrayType c
     return Kratos::make_shared<PointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+Condition::Pointer PointLoadCondition::Clone (
+    IndexType NewId,
+    NodesArrayType const& ThisNodes
+    ) const
+{
+    KRATOS_TRY
+
+    Condition::Pointer p_new_cond = Kratos::make_shared<PointLoadCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    p_new_cond->SetData(this->GetData());
+    p_new_cond->Set(Flags(*this));
+    return p_new_cond;
+
+    KRATOS_CATCH("");
+}
+
 //******************************* DESTRUCTOR *****************************************
 //************************************************************************************
 
@@ -68,9 +85,9 @@ PointLoadCondition::~PointLoadCondition()
 
 void PointLoadCondition::CalculateAll(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
-    bool CalculateStiffnessMatrixFlag,
-    bool CalculateResidualVectorFlag
+    const ProcessInfo& rCurrentProcessInfo,
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag
     )
 {
     KRATOS_TRY
@@ -103,10 +120,10 @@ void PointLoadCondition::CalculateAll(
     }
 
     // Vector with a loading applied to the condition
-    array_1d<double, 3 > point_load = ZeroVector(3);
+    array_1d<double, 3 > PointLoad = ZeroVector(3);
     if( this->Has( POINT_LOAD ) )
     {
-        noalias(point_load) = this->GetValue( POINT_LOAD );
+        noalias(PointLoad) = this->GetValue( POINT_LOAD );
     }
 
     for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
@@ -115,12 +132,12 @@ void PointLoadCondition::CalculateAll(
 
         if( GetGeometry()[ii].SolutionStepsDataHas( POINT_LOAD ) )
         {
-            noalias(point_load) += GetGeometry()[ii].FastGetSolutionStepValue( POINT_LOAD );
+            noalias(PointLoad) += GetGeometry()[ii].FastGetSolutionStepValue( POINT_LOAD );
         }
 
         for(unsigned int k = 0; k < Dimension; ++k)
         {
-            rRightHandSideVector[base + k] += GetPointLoadIntegrationWeight() * point_load[k];
+            rRightHandSideVector[base + k] += GetPointLoadIntegrationWeight() * PointLoad[k];
         }
     }
 
@@ -130,7 +147,7 @@ void PointLoadCondition::CalculateAll(
 //************************************************************************************
 //************************************************************************************
 
-double PointLoadCondition::GetPointLoadIntegrationWeight()
+double PointLoadCondition::GetPointLoadIntegrationWeight() const
 {
     return 1.0;
 }

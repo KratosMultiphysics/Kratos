@@ -32,6 +32,7 @@
 #include "fluid_dynamics_application_variables.h"
 #include "includes/deprecated_variables.h"
 #include "includes/cfd_variables.h"
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -93,8 +94,6 @@ public:
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsConditionalDataContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -212,6 +211,11 @@ public:
 
         noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+        if( this->Is(OUTLET) )
+        {
+            ApplyNeumannCondition(rLeftHandSideMatrix,rRightHandSideVector);
+        }
     }
 
     /// Return a matrix of the correct size, filled with zeros (for compatibility with time schemes).
@@ -244,6 +248,12 @@ public:
             rRightHandSideVector.resize(LocalSize);
 
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+        if( this->Is(OUTLET) )
+        {
+            Matrix tmp;
+            ApplyNeumannCondition(tmp,rRightHandSideVector);
+        }
     }
 
 

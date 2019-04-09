@@ -49,7 +49,8 @@ namespace Kratos
  * sensitivity analysis
  */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  AdjointSemiAnalyticBaseCondition
+template <typename TPrimalCondition>
+class AdjointSemiAnalyticBaseCondition
     : public Condition
 {
 public:
@@ -62,20 +63,23 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    AdjointSemiAnalyticBaseCondition(): Condition()
+    AdjointSemiAnalyticBaseCondition(IndexType NewId = 0)
+    : Condition(NewId),
+      mpPrimalCondition(std::make_shared<TPrimalCondition>(NewId, pGetGeometry()))
     {
     }
 
-    AdjointSemiAnalyticBaseCondition(
-        Condition::Pointer pPrimalCondition
-        ): Condition( pPrimalCondition->Id(), pPrimalCondition->pGetGeometry(), pPrimalCondition->pGetProperties() ),
-           mpPrimalCondition(pPrimalCondition)
-        {
-        }
+    AdjointSemiAnalyticBaseCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : Condition(NewId, pGeometry),
+      mpPrimalCondition(std::make_shared<TPrimalCondition>(NewId, pGeometry))
+    {
+    }
 
-    /// Destructor.
-    ~AdjointSemiAnalyticBaseCondition() override
+    AdjointSemiAnalyticBaseCondition(IndexType NewId,
+                        GeometryType::Pointer pGeometry,
+                        PropertiesType::Pointer pProperties)
+    : Condition(NewId, pGeometry, pProperties),
+      mpPrimalCondition(std::make_shared<TPrimalCondition>(NewId, pGeometry, pProperties))
     {
     }
 
@@ -90,6 +94,22 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    Condition::Pointer Create(IndexType NewId,
+                              NodesArrayType const& ThisNodes,
+                              PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_shared<AdjointSemiAnalyticBaseCondition<TPrimalCondition>>(
+            NewId, GetGeometry().Create(ThisNodes), pProperties);
+    }
+
+    Condition::Pointer Create(IndexType NewId,
+                              GeometryType::Pointer pGeometry,
+                              PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_shared<AdjointSemiAnalyticBaseCondition<TPrimalCondition>>(
+            NewId, pGeometry, pProperties);
+    }
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo ) override
     {
@@ -153,19 +173,6 @@ public:
         mpPrimalCondition->CalculateLocalSystem(rLeftHandSideMatrix,
 				    rRightHandSideVector,
 				    rCurrentProcessInfo);
-    }
-
-    void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
-                                      const std::vector< Variable< MatrixType > >& rLHSVariables,
-                                      std::vector< VectorType >& rRightHandSideVectors,
-                                      const std::vector< Variable< VectorType > >& rRHSVariables,
-                                      ProcessInfo& rCurrentProcessInfo) override
-    {
-        mpPrimalCondition->CalculateLocalSystem(rLeftHandSideMatrices,
-                                      rLHSVariables,
-                                      rRightHandSideVectors,
-                                      rRHSVariables,
-                                      rCurrentProcessInfo);
     }
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
@@ -374,9 +381,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    /**
-     * pointer to the primal condition
-     */
     Condition::Pointer mpPrimalCondition;
 
     ///@}

@@ -17,7 +17,6 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/line_load_condition_2d.h"
 #include "utilities/math_utils.h"
 #include "utilities/integration_utilities.h"
@@ -65,6 +64,25 @@ Condition::Pointer LineLoadCondition2D::Create(
     return Kratos::make_shared<LineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+Condition::Pointer LineLoadCondition2D::Clone (
+    IndexType NewId,
+    NodesArrayType const& ThisNodes
+    ) const
+{
+    KRATOS_TRY
+
+    Condition::Pointer p_new_cond = Kratos::make_shared<LineLoadCondition2D>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    p_new_cond->SetData(this->GetData());
+    p_new_cond->Set(Flags(*this));
+    return p_new_cond;
+
+    KRATOS_CATCH("");
+}
+
+
 //******************************* DESTRUCTOR *****************************************
 //************************************************************************************
 
@@ -78,9 +96,9 @@ LineLoadCondition2D::~LineLoadCondition2D()
 void LineLoadCondition2D::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
-    bool CalculateStiffnessMatrixFlag,
-    bool CalculateResidualVectorFlag
+    const ProcessInfo& rCurrentProcessInfo,
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag
     )
 {
     KRATOS_TRY;
@@ -172,7 +190,8 @@ void LineLoadCondition2D::CalculateAll(
             noalias(normal) = GetGeometry().UnitNormal( integration_points[point_number] );
         }
         else{
-            KRATOS_ERROR_IF(!Has(LOCAL_AXIS_2)) << "The variable LOCAL_AXES_2 is needed to compute the normal" << std::endl;
+            if(!Has(LOCAL_AXIS_2))
+                KRATOS_ERROR << "the variable LOCAL_AXES_2 is needed to compute the normal";
             const auto& v2 = GetValue(LOCAL_AXIS_2);
 
             array_1d<double,3> v1 = GetGeometry()[1].Coordinates() - GetGeometry()[0].Coordinates();
@@ -238,7 +257,7 @@ void LineLoadCondition2D::CalculateAndSubKp(
     const Vector& N,
     const double Pressure,
     const double IntegrationWeight
-    )
+    ) const
 {
     KRATOS_TRY
 
@@ -249,7 +268,7 @@ void LineLoadCondition2D::CalculateAndSubKp(
     //const double h0 = GetProperties()[THICKNESS];
     const double h0 = 1.00;
     Cross_gn( 0, 0 ) = 0.0;
-    Cross_gn( 0, 1 ) = -h0;
+    Cross_gn( 0, 1 ) =  h0;
     Cross_gn( 1, 0 ) = -h0;
     Cross_gn( 1, 1 ) = 0.0;
 
@@ -281,7 +300,7 @@ void LineLoadCondition2D::CalculateAndAddPressureForce(
     const array_1d<double, 3>& Normal,
     double Pressure,
     double IntegrationWeight
-    )
+    ) const
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int block_size = this->GetBlockSize();
@@ -289,6 +308,7 @@ void LineLoadCondition2D::CalculateAndAddPressureForce(
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = block_size * i;
+
 
         const double coeff = Pressure * N[i] * IntegrationWeight;
 

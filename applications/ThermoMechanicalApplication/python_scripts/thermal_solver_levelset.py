@@ -7,11 +7,6 @@ from KratosMultiphysics.ExternalSolversApplication import *
 
 from KratosMultiphysics.StructuralApplication import *
 
-
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
-
 def AddVariables(model_part, settings):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);

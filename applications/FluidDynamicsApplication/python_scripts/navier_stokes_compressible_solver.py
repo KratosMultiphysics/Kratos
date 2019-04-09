@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 ## Import base class file
 from fluid_solver import FluidSolver
 
@@ -34,7 +31,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
             "relative_tolerance" : 1e-3,
             "absolute_tolerance" : 1e-5,
             "linear_solver_settings"       : {
-                "solver_type"         : "AMGCL",
+                "solver_type"         : "amgcl",
                 "max_iteration"       : 200,
                 "tolerance"           : 1e-7,
                 "provide_coordinates" : false,
@@ -72,7 +69,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
         self._is_printing_rank = True
 
         ## Construct the linear solver
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         ## Set the element replace settings

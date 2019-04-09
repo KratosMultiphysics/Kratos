@@ -27,7 +27,7 @@ void KratosFSIApplication::Register()
 {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    std::cout << "Initializing KratosFSIApplication... " << std::endl;
+    KRATOS_INFO("") << "Initializing KratosFSIApplication..." << std::endl;
 
 }
 

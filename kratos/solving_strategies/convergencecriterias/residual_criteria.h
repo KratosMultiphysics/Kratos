@@ -90,26 +90,50 @@ public:
     ///@{
 
     //* Constructor.
+    explicit ResidualCriteria(Kratos::Parameters Settings)
+        : BaseType()
+    {
+        if (Settings.Has("residual_absolute_tolerance")) {
+            mAlwaysConvergedNorm = Settings["residual_absolute_tolerance"].GetDouble();
+        } else if (Settings.Has("absolute_tolerance")) {
+            mAlwaysConvergedNorm = Settings["absolute_tolerance"].GetDouble();
+        } else {
+            KRATOS_WARNING("ResidualCriteria") << "residual_absolute_tolerance or absolute_tolerance nor defined on settings. Using default 1.0e-9" << std::endl;
+            mAlwaysConvergedNorm = 1.0e-9;
+        }
+        if (Settings.Has("residual_relative_tolerance")) {
+            mRatioTolerance = Settings["residual_relative_tolerance"].GetDouble();
+        } else if (Settings.Has("relative_tolerance")) {
+            mRatioTolerance = Settings["relative_tolerance"].GetDouble();
+        } else {
+            KRATOS_WARNING("ResidualCriteria") << "residual_relative_tolerance or relative_tolerance nor defined on settings. Using default 1.0e-4" << std::endl;
+            mRatioTolerance = 1.0e-4;
+        }
+
+        this->mActualizeRHSIsNeeded = true;
+    }
+
+    //* Constructor.
     explicit ResidualCriteria(
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm)
-        : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
+        : BaseType(),
+          mRatioTolerance(NewRatioTolerance),
+          mAlwaysConvergedNorm(AlwaysConvergedNorm)
     {
-        mRatioTolerance       = NewRatioTolerance;
-        mAlwaysConvergedNorm  = AlwaysConvergedNorm;
-        mInitialResidualIsSet = false;
+        this->mActualizeRHSIsNeeded = true;
     }
 
     //* Copy constructor.
     explicit ResidualCriteria( ResidualCriteria const& rOther )
       :BaseType(rOther)
-      ,mInitialResidualIsSet(rOther.mInitialResidualIsSet)
       ,mRatioTolerance(rOther.mRatioTolerance)
       ,mInitialResidualNorm(rOther.mInitialResidualNorm)
       ,mCurrentResidualNorm(rOther.mCurrentResidualNorm)
       ,mAlwaysConvergedNorm(rOther.mAlwaysConvergedNorm)
       ,mReferenceDispNorm(rOther.mReferenceDispNorm)
     {
+        this->mActualizeRHSIsNeeded = true;
     }
 
     //* Destructor.
@@ -141,14 +165,9 @@ public:
         if (size_b != 0) { //if we are solving for something
 
             SizeType size_residual;
-            if (mInitialResidualIsSet == false) {
-                CalculateResidualNorm(mInitialResidualNorm, size_residual, rDofSet, b);
-                mInitialResidualIsSet = true;
-            }
+            CalculateResidualNorm(rModelPart, mCurrentResidualNorm, size_residual, rDofSet, b);
 
             TDataType ratio = 0.0;
-            CalculateResidualNorm(mCurrentResidualNorm, size_residual, rDofSet, b);
-
             if(mInitialResidualNorm < std::numeric_limits<TDataType>::epsilon()) {
                 ratio = 0.0;
             } else {
@@ -187,19 +206,49 @@ public:
      * @brief This function initializes the solution step
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual + reactions)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
      */
     void InitializeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
     {
-        mInitialResidualIsSet = false;
+        BaseType::InitializeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
+
+        // Filling mActiveDofs when MPC exist
+        if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
+            mActiveDofs.resize(rDofSet.size());
+
+            #pragma omp parallel for
+            for(int i=0; i<static_cast<int>(mActiveDofs.size()); ++i) {
+                mActiveDofs[i] = true;
+            }
+
+            #pragma omp parallel for
+            for (int i=0; i<static_cast<int>(rDofSet.size()); ++i) {
+                const auto it_dof = rDofSet.begin() + i;
+                if (it_dof->IsFixed()) {
+                    mActiveDofs[it_dof->EquationId()] = false;
+                }
+            }
+
+            for (const auto& r_mpc : rModelPart.MasterSlaveConstraints()) {
+                for (const auto& r_dof : r_mpc.GetMasterDofsVector()) {
+                    mActiveDofs[r_dof->EquationId()] = false;
+                }
+                for (const auto& r_dof : r_mpc.GetSlaveDofsVector()) {
+                    mActiveDofs[r_dof->EquationId()] = false;
+                }
+            }
+        }
+
+        SizeType size_residual;
+        CalculateResidualNorm(rModelPart, mInitialResidualNorm, size_residual, rDofSet, rb);
     }
 
     /**
@@ -286,12 +335,14 @@ protected:
     /**
      * @brief This method computes the norm of the residual
      * @details It checks if the dof is fixed
+     * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rResidualSolutionNorm The norm of the residual
      * @param rDofNum The number of DoFs
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param b RHS vector (residual + reactions)
      */
     virtual void CalculateResidualNorm(
+        ModelPart& rModelPart,
         TDataType& rResidualSolutionNorm,
         SizeType& rDofNum,
         DofsArrayType& rDofSet,
@@ -302,19 +353,36 @@ protected:
         TDataType residual_solution_norm = TDataType();
         SizeType dof_num = 0;
 
+        // Auxiliar values
+        TDataType residual_dof_value = 0.0;
+        const auto it_dof_begin = rDofSet.begin();
+        const int number_of_dof = static_cast<int>(rDofSet.size());
+
         // Loop over Dofs
-        #pragma omp parallel for reduction(+:residual_solution_norm,dof_num)
-        for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-            auto it_dof = rDofSet.begin() + i;
+        if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
+            #pragma omp parallel for firstprivate(residual_dof_value) reduction(+:residual_solution_norm, dof_num)
+            for (int i = 0; i < number_of_dof; i++) {
+                auto it_dof = it_dof_begin + i;
 
-            IndexType dof_id;
-            TDataType residual_dof_value;
+                const IndexType dof_id = it_dof->EquationId();
 
-            if (it_dof->IsFree()) {
-                dof_id = it_dof->EquationId();
-                residual_dof_value = TSparseSpace::GetValue(b,dof_id);
-                residual_solution_norm += residual_dof_value * residual_dof_value;
-                dof_num++;
+                if (mActiveDofs[dof_id]) {
+                    residual_dof_value = TSparseSpace::GetValue(b,dof_id);
+                    residual_solution_norm += std::pow(residual_dof_value, 2);
+                    dof_num++;
+                }
+            }
+        } else {
+            #pragma omp parallel for firstprivate(residual_dof_value) reduction(+:residual_solution_norm, dof_num)
+            for (int i = 0; i < number_of_dof; i++) {
+                auto it_dof = it_dof_begin + i;
+
+                if (!it_dof->IsFixed()) {
+                    const IndexType dof_id = it_dof->EquationId();
+                    residual_dof_value = TSparseSpace::GetValue(b,dof_id);
+                    residual_solution_norm += std::pow(residual_dof_value, 2);
+                    dof_num++;
+                }
             }
         }
 
@@ -349,9 +417,6 @@ private:
     ///@name Member Variables
     ///@{
 
-
-    bool mInitialResidualIsSet;     /// This "flag" is set in order to set that the initial residual is already computed
-
     TDataType mRatioTolerance;      /// The ratio threshold for the norm of the residual
 
     TDataType mInitialResidualNorm; /// The reference norm of the residual
@@ -362,6 +427,7 @@ private:
 
     TDataType mReferenceDispNorm;   /// The norm at the beginning of the iterations
 
+    std::vector<bool> mActiveDofs;  /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators
@@ -401,4 +467,3 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_NEW_DISPLACEMENT_CRITERIA  defined
-

@@ -231,7 +231,7 @@ void UpdatedLagrangianVElement::InitializeElementData (ElementDataType& rVariabl
     LargeDisplacementVElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
     //Calculate Delta Position
-    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+    ElementUtilities::CalculateDeltaPosition(rVariables.DeltaPosition,this->GetGeometry());
 
     //set variables including all integration points values
 

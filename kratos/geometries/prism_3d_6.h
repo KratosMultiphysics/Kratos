@@ -32,25 +32,25 @@ namespace Kratos
  * @class Prism3D6
  * @ingroup KratosCore
  * @brief A six node prism geometry with linear shape functions
- * @details The node ordering corresponds with: 
+ * @details The node ordering corresponds with:
  *                 w
  *                 ^
  *                 |
- *                 3                                      
- *               ,/|`\                              
- *             ,/  |  `\                          
- *           ,/    |    `\                   
- *          4------+------5             
- *          |      |      |            
- *          |    ,/|`\    |           
- *          |  ,/  |  `\  |       
- *          |,/    |    `\|           
- *         ,|      |      |\           
- *       ,/ |      0      | `\         
- *      u   |    ,/ `\    |    v          
- *          |  ,/     `\  |               
- *          |,/         `\|                
- *          1-------------2         
+ *                 3
+ *               ,/|`\
+ *             ,/  |  `\
+ *           ,/    |    `\
+ *          4------+------5
+ *          |      |      |
+ *          |    ,/|`\    |
+ *          |  ,/  |  `\  |
+ *          |,/    |    `\|
+ *         ,|      |      |\
+ *       ,/ |      0      | `\
+ *      u   |    ,/ `\    |    v
+ *          |  ,/     `\  |
+ *          |,/         `\|
+ *          1-------------2
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -217,11 +217,10 @@ public:
         this->Points().push_back( pPoint6 );
     }
 
-    Prism3D6( const PointsArrayType& ThisPoints )
+    explicit Prism3D6( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
-        if ( this->PointsNumber() != 6 )
-            KRATOS_ERROR << "Invalid points number. Expected 6, given " << this->PointsNumber() << std::endl;
+        KRATOS_ERROR_IF( this->PointsNumber() != 6 ) << "Invalid points number. Expected 6, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -250,7 +249,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Prism3D6( Prism3D6<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Prism3D6( Prism3D6<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -335,17 +334,6 @@ public:
     //     return p_clone;
     // }
 
-
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-	if(rResult.size() != 6)
-           rResult.resize( 6, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 6.00 );
-        return rResult;
-    }
-
-
     /**
      * Informations
      */
@@ -367,17 +355,9 @@ public:
      */
     double Length() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Volume = 0.0;
+        const double volume = Volume();
 
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
-            Volume += temp[i] * integration_points[i].Weight();
-        }
-
-        return std::pow(Volume, 1.0/3.0)/3.0;
+        return std::pow(volume, 1.0/3.0)/3.0;
 //        return std::sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
     }
 
@@ -420,13 +400,13 @@ public:
         Vector temp;
         this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
         const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Volume = 0.0;
+        double volume = 0.0;
 
         for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
-            Volume += temp[i] * integration_points[i].Weight();
+            volume += temp[i] * integration_points[i].Weight();
         }
 
-        return Volume;
+        return volume;
     }
 
     /**
@@ -444,7 +424,7 @@ public:
      */
     double DomainSize() const override
     {
-        return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return Volume();
     }
 
     /**
@@ -485,7 +465,7 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
@@ -493,9 +473,9 @@ public:
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
@@ -1046,4 +1026,4 @@ GeometryData Prism3D6<TPointType>::msGeometryData(
 
 }// namespace Kratos.
 
-#endif // KRATOS_PRISM_3D_6_H_INCLUDED  defined 
+#endif // KRATOS_PRISM_3D_6_H_INCLUDED  defined

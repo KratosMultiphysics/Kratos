@@ -27,8 +27,8 @@
 
 //Database includes
 #include "includes/define.h"
-#include "../../../DEM_application/custom_elements/discrete_element.h"
-#include "custom_elements/spheric_swimming_particle.h"
+#include "../../../DEMApplication/custom_elements/discrete_element.h"
+#include "custom_elements/swimming_particle.h"
 
 namespace Kratos
 {

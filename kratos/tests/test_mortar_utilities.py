@@ -1,9 +1,10 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics
 
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 import math
+
+import KratosMultiphysics
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -22,8 +23,7 @@ class TestMortarUtilities(KratosUnittest.TestCase):
         detect_skin = KratosMultiphysics.SkinDetectionProcess3D(model_part)
         detect_skin.Execute()
 
-        normal_compute = KratosMultiphysics.MortarUtilities
-        normal_compute.ComputeNodesMeanNormalModelPart(model_part)
+        KratosMultiphysics.ComputeNodesMeanNormalModelPart(model_part)
 
         ## DEBUG
         #self._post_process(model_part)
@@ -51,9 +51,8 @@ class TestMortarUtilities(KratosUnittest.TestCase):
         detect_skin = KratosMultiphysics.SkinDetectionProcess3D(model_part)
         detect_skin.Execute()
 
-        normal_compute = KratosMultiphysics.MortarUtilities
-        normal_compute.InvertNormal(model_part.Conditions)
-        normal_compute.ComputeNodesMeanNormalModelPart(model_part)
+        KratosMultiphysics.InvertNormal(model_part.Conditions)
+        KratosMultiphysics.ComputeNodesMeanNormalModelPart(model_part)
 
         ## DEBUG
         #self._post_process(model_part)

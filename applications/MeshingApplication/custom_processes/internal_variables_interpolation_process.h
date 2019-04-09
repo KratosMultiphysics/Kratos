@@ -237,19 +237,16 @@ private:
     const unsigned int mDimension;                       /// Dimension size of the space
 
     // The allocation parameters
-    unsigned int mAllocationSize;                        /// Allocation size for the vectors and max number of potential results
-    unsigned int mBucketSize;                            /// Bucket size for kd-tree
+    unsigned int mAllocationSize;                   /// Allocation size for the vectors and max number of potential results
+    unsigned int mBucketSize;                       /// Bucket size for kd-tree
 
     // The seatch variables
-    double mSearchFactor;                                /// The search factor to be considered
-    PointVector mPointListOrigin;                        /// A list that contents the all the gauss points from the origin modelpart
+    double mSearchFactor;                           /// The search factor to be considered
+    PointVector mPointListOrigin;                   /// A list that contents the all the gauss points from the origin modelpart
 
-    // Variables to interpolate (TODO: Add more if necessary, like the matrix)
-    std::vector<DoubleVarType> mInternalDoubleVariableList; /// The list of double variables to interpolate
-    std::vector<ArrayVarType> mInternalArrayVariableList;   /// The list of array variables to interpolate
-    std::vector<VectorVarType> mInternalVectorVariableList; /// The list of vector variables to interpolate
-    std::vector<MatrixVarType> mInternalMatrixVariableList; /// The list of matrix variables to interpolate
-    InterpolationTypes mThisInterpolationType;              /// The interpolation type considered
+    // Variables to interpolate
+    std::vector<std::string> mInternalVariableList; /// The list of internal variables to interpolate
+    InterpolationTypes mThisInterpolationType;      /// The interpolation type considered
 
     ///@}
     ///@name Private Operators

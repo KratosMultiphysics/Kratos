@@ -91,8 +91,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
     const unsigned int number_of_positive_gauss_points = data.PositiveSideWeights.size();
     for (unsigned int g = 0; g < number_of_positive_gauss_points; ++g){
         const size_t gauss_pt_index = g;
-        data.UpdateGeometryValues(gauss_pt_index, data.PositiveSideWeights[g], row(data.PositiveSideN, g), data.PositiveSideDNDX[g]);
-        this->CalculateMaterialResponse(data);
+        this->UpdateIntegrationPointData(data, gauss_pt_index, data.PositiveSideWeights[g], row(data.PositiveSideN, g), data.PositiveSideDNDX[g]);
         this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
     }
 
@@ -100,43 +99,28 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
     const unsigned int number_of_negative_gauss_points = data.NegativeSideWeights.size();
     for (unsigned int g = 0; g < number_of_negative_gauss_points; ++g){
         const size_t gauss_pt_index = g + number_of_negative_gauss_points;
-        data.UpdateGeometryValues(gauss_pt_index, data.NegativeSideWeights[g], row(data.NegativeSideN, g), data.NegativeSideDNDX[g]);
-        this->CalculateMaterialResponse(data);
+        this->UpdateIntegrationPointData(data, gauss_pt_index, data.NegativeSideWeights[g], row(data.NegativeSideN, g), data.NegativeSideDNDX[g]);
         this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
     }
 
     // If the element is cut, add the interface contributions
     if ( data.IsCut() ) {
-
-        // Add the boundary term together with the interface equilibrium imposition. Note that the interface 
-        // equilibrium imposition and boundary term addition yields minus the base element boundary term. 
-        // Therefore, two auxiliar arrays are used (aux_LHS and aux_RHS) to store the base element boundary 
-        // term contribution. Finally, the opposite of these arrays is added to the local system.
-        const size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
-        VectorType aux_RHS = ZeroVector(LocalSize); 
-        MatrixType aux_LHS = ZeroMatrix(LocalSize, LocalSize);
-
         // Add the base element boundary contribution on the positive interface
+        const size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
         const unsigned int number_of_positive_interface_gauss_points = data.PositiveInterfaceWeights.size();
         for (unsigned int g = 0; g < number_of_positive_interface_gauss_points; ++g){
             const size_t gauss_pt_index = g + volume_gauss_points;
-            data.UpdateGeometryValues(gauss_pt_index, data.PositiveInterfaceWeights[g], row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
-            this->CalculateMaterialResponse(data);
-            this-> AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g], aux_LHS, aux_RHS);
+            this->UpdateIntegrationPointData(data, gauss_pt_index, data.PositiveInterfaceWeights[g], row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
+            this->AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
         }
 
         // Add the base element boundary contribution on the negative interface
         const unsigned int number_of_negative_interface_gauss_points = data.NegativeInterfaceWeights.size();
         for (unsigned int g = 0; g < number_of_negative_interface_gauss_points; ++g){
             const size_t gauss_pt_index = g + volume_gauss_points + number_of_positive_interface_gauss_points;
-            data.UpdateGeometryValues(gauss_pt_index, data.NegativeInterfaceWeights[g], row(data.NegativeInterfaceN, g), data.NegativeInterfaceDNDX[g]);
-            this->CalculateMaterialResponse(data);
-            this-> AddBoundaryTraction(data, data.NegativeInterfaceUnitNormals[g], aux_LHS, aux_RHS);
+            this->UpdateIntegrationPointData(data, gauss_pt_index, data.NegativeInterfaceWeights[g], row(data.NegativeInterfaceN, g), data.NegativeInterfaceDNDX[g]);
+            this->AddBoundaryTraction(data, data.NegativeInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
         }
-
-        // Recall to swap the boundary term signs because of the interface equilibrium (Neumann) imposition
-        rLeftHandSideMatrix -= aux_LHS;
-        rRightHandSideVector -= aux_RHS;
 
         // Add the Nitsche Navier boundary condition implementation (Winter, 2018)
         data.InitializeBoundaryConditionData(rCurrentProcessInfo);
@@ -179,17 +163,14 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::Calculate(
             const unsigned int n_int_pos_gauss = data.PositiveInterfaceWeights.size();
             for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
 
-                // Update the Gauss pt. data
-                data.UpdateGeometryValues(g + number_of_positive_gauss_points,data.PositiveInterfaceWeights[g],row(data.PositiveInterfaceN, g),data.PositiveInterfaceDNDX[g]);
+                // Update the Gauss pt. data and the constitutive law
+                this->UpdateIntegrationPointData(data, g + number_of_positive_gauss_points,data.PositiveInterfaceWeights[g],row(data.PositiveInterfaceN, g),data.PositiveInterfaceDNDX[g]);
 
                 // Get the interface Gauss pt. unit noromal
                 const auto &aux_unit_normal = data.PositiveInterfaceUnitNormals[g];
 
                 // Compute Gauss pt. pressure
                 const double p_gauss = inner_prod(data.N, data.Pressure);
-
-                // Call the constitutive law to compute the shear contribution
-                this->CalculateMaterialResponse(data);
 
                 // Get the normal projection matrix in Voigt notation
                 BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
@@ -207,17 +188,14 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::Calculate(
             const unsigned int n_int_neg_gauss = data.NegativeInterfaceWeights.size();
             for (unsigned int g = 0; g < n_int_neg_gauss; ++g) {
 
-                // Update the Gauss pt. data
-                data.UpdateGeometryValues(g + number_of_positive_gauss_points,data.NegativeInterfaceWeights[g],row(data.NegativeInterfaceN, g),data.NegativeInterfaceDNDX[g]);
+                // Update the Gauss pt. data and the constitutive law
+                this->UpdateIntegrationPointData(data, g + number_of_positive_gauss_points,data.NegativeInterfaceWeights[g],row(data.NegativeInterfaceN, g),data.NegativeInterfaceDNDX[g]);
 
                 // Get the interface Gauss pt. unit noromal
                 const auto &aux_unit_normal = data.NegativeInterfaceUnitNormals[g];
 
                 // Compute Gauss pt. pressure
                 const double p_gauss = inner_prod(data.N, data.Pressure);
-
-                // Call the constitutive law to compute the shear contribution
-                this->CalculateMaterialResponse(data);
 
                 // Get the normal projection matrix in Voigt notation
                 BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
@@ -336,20 +314,20 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineCutGeometryData(Embe
 
     ModifiedShapeFunctions::Pointer p_calculator =
         EmbeddedDiscontinuousInternals::GetShapeFunctionCalculator<EmbeddedDiscontinuousElementData::Dim, EmbeddedDiscontinuousElementData::NumNodes>(
-            *this, 
+            *this,
             elemental_distances);
 
     // Positive side volume
     p_calculator->ComputePositiveSideShapeFunctionsAndGradientsValues(
-        rData.PositiveSideN, 
-        rData.PositiveSideDNDX, 
+        rData.PositiveSideN,
+        rData.PositiveSideDNDX,
         rData.PositiveSideWeights,
         GeometryData::GI_GAUSS_2);
 
     // Negative side volume
     p_calculator->ComputeNegativeSideShapeFunctionsAndGradientsValues(
-        rData.NegativeSideN, 
-        rData.NegativeSideDNDX, 
+        rData.NegativeSideN,
+        rData.NegativeSideDNDX,
         rData.NegativeSideWeights,
         GeometryData::GI_GAUSS_2);
 
@@ -439,7 +417,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddNormalPenaltyContributi
                     const unsigned int row = i * BlockSize + m;
                     for (unsigned int n = 0; n < Dim; ++n){
                         const unsigned int col = j * BlockSize + n;
-                        const double aux = pen_coef*weight*aux_N(i)*aux_unit_normal(m)*aux_unit_normal(n)*aux_N(j); 
+                        const double aux = pen_coef*weight*aux_N(i)*aux_unit_normal(m)*aux_unit_normal(n)*aux_N(j);
                         rLHS(row, col) += aux;
                         rRHS(row) -= aux*values(col);
                     }
@@ -628,7 +606,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialPenaltyContri
     BoundedMatrix<double, LocalSize, LocalSize> aux_LHS_1 = ZeroMatrix(LocalSize, LocalSize); // Adds the contribution coming from the tangential component of the Cauchy stress vector
     BoundedMatrix<double, LocalSize, LocalSize> aux_LHS_2 = ZeroMatrix(LocalSize, LocalSize); // Adds the contribution generated by the viscous shear force generated by the velocity
 
-    // Compute positive side LHS contribution 
+    // Compute positive side LHS contribution
     const unsigned int number_of_positive_interface_integration_points = rData.PositiveInterfaceWeights.size();
     for (unsigned int g = 0; g < number_of_positive_interface_integration_points; ++g){
         // Get the Gauss pt. data
@@ -671,7 +649,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialPenaltyContri
         noalias(aux_LHS_2) += pen_coefs.second*weight*prod(aux_matrix_N_trans_tang, N_mat);
     }
 
-    // Compute negative side LHS contribution 
+    // Compute negative side LHS contribution
     const unsigned int number_of_negative_interface_integration_points = rData.NegativeInterfaceWeights.size();
     for (unsigned int g = 0; g < number_of_negative_interface_integration_points; ++g){
         // Get the Gauss pt. data

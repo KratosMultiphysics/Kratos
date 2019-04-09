@@ -32,7 +32,7 @@
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
-#include "../DEM_application/custom_strategies/strategies/explicit_solver_strategy.h"
+#include "../DEMApplication/custom_strategies/strategies/explicit_solver_strategy.h"
 
 #ifdef USING_CGAL
 #include <CGAL/spatial_sort.h>
@@ -84,8 +84,7 @@ namespace Kratos {
                 ParticleCreatorDestructor::Pointer p_creator_destructor,
                 DEM_FEM_Search::Pointer p_dem_fem_search,
                 SpatialSearch::Pointer pSpSearch,
-                Parameters strategy_parameters,
-                const bool do_search_balls = true):
+                Parameters strategy_parameters):
                 ExplicitSolverStrategy(settings,
                                        max_delta_time,
                                        n_step_search,
@@ -94,17 +93,13 @@ namespace Kratos {
                                        p_creator_destructor,
                                        p_dem_fem_search,
                                        pSpSearch,
-                                       strategy_parameters,
-                                       do_search_balls)
+                                       strategy_parameters)
         {
             mFirstStep = true;
             ExplicitSolverStrategy::GetParticleCreatorDestructor() = p_creator_destructor;
         }
         /// Destructor.
-        virtual ~AdamsBashforthStrategy() {
-            Timer::SetOuputFile("TimesPartialRelease");
-            Timer::PrintTimingInformation();
-        }
+        virtual ~AdamsBashforthStrategy() {}
 
         double Solve() override;
 

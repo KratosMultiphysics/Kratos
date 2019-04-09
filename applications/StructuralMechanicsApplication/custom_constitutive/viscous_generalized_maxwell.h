@@ -284,12 +284,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell
     ///@{
 
     // Converged values
-    Vector mPrevStressVector = ZeroVector(6);
-    Vector mPrevStrainVector = ZeroVector(6);
-
-    // Non Converged values
-    Vector mNonConvPrevStressVector = ZeroVector(6);
-    Vector mNonConvPrevStrainVector = ZeroVector(6);
+    Vector mPrevStressVector = ZeroVector(VoigtSize);
+    Vector mPrevStrainVector = ZeroVector(VoigtSize);
 
     ///@}
     ///@name Private Operators
@@ -301,13 +297,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell
 
     Vector& GetPreviousStressVector() { return mPrevStressVector; }
     void SetPreviousStressVector(const Vector& PrevStressVector) { mPrevStressVector = PrevStressVector; }
-    Vector& GetNonConvPreviousStressVector() { return mNonConvPrevStressVector; }
-    void SetNonConvPreviousStressVector(const Vector& NonConvPrevStressVector) { mNonConvPrevStressVector = NonConvPrevStressVector; }
 
     Vector& GetPreviousStrainVector() { return mPrevStrainVector; }
     void SetPreviousStrainVector(const Vector& PrevStrainVector) { mPrevStrainVector = PrevStrainVector; }
-    Vector& GetNonConvPreviousStrainVector() { return mNonConvPrevStrainVector; }
-    void SetNonConvPreviousStrainVector(const Vector& NonConvPrevStrainVector) { mNonConvPrevStrainVector = NonConvPrevStrainVector; }
 
     /**
      * @brief Compute visco-elasticity
@@ -335,8 +327,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.save("PrevStressVector", mPrevStressVector);
         rSerializer.save("PrevStrainVector", mPrevStrainVector);
-        rSerializer.save("NonConvPrevStressVector", mNonConvPrevStressVector);
-        rSerializer.save("NonConvPrevStrainVector", mNonConvPrevStrainVector);
     }
 
     void load(Serializer &rSerializer) override
@@ -344,8 +334,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.load("PrevStressVector", mPrevStressVector);
         rSerializer.load("PrevStrainVector", mPrevStrainVector);
-        rSerializer.load("NonConvPrevStressVector", mNonConvPrevStressVector);
-        rSerializer.load("NonConvPrevStrainVector", mNonConvPrevStrainVector);
     }
 
     ///@}

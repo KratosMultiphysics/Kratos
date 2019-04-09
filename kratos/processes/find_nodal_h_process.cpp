@@ -57,7 +57,9 @@ void FindNodalHProcess<THistorical>::Execute()
         }
     }
     
-    mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(NODAL_H);
+    if (THistorical) {
+        mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(NODAL_H);
+    }
 
     KRATOS_CATCH("")
 }
