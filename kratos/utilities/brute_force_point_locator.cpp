@@ -24,19 +24,19 @@ int BruteForcePointLocator::FindNode(const Point& rThePoint,
                                      const double DistanceThreshold) const
 {
     int found_node_id = -1; // if no node is found this will be returned
-    int local_nodes_found = 0;
+    int local_node_found = 0;
 
     // note that this cannot be omp bcs breaking is not allowed in omp
     for (auto& r_node : mrModelPart.GetCommunicator().LocalMesh().Nodes()) {
         const bool is_close_enough = NodeIsCloseEnough(r_node, rThePoint, DistanceThreshold);
         if (is_close_enough) {
-            local_nodes_found = 1;
+            local_node_found = 1;
             found_node_id = r_node.Id();
             break;
         }
     }
 
-    CheckResults("Node", rThePoint, local_nodes_found);
+    CheckResults("Node", rThePoint, local_node_found);
 
     return found_node_id;
 }
@@ -80,14 +80,14 @@ void BruteForcePointLocator::FindObject(const TObjectType& rObjects,
         << r_geom.WorkingSpaceDimension() << ") of the " << rObjectName
         << " are not equal!" << std::endl;
 
-    int local_objects_found = 0;
+    int local_object_found = 0;
     array_1d<double, 3> local_coordinates;
 
     // note that this cannot be omp bcs breaking is not allowed in omp
     for (auto& r_object : rObjects) {
         const bool is_inside = r_object.GetGeometry().IsInside(rThePoint, local_coordinates);
         if (is_inside) {
-            local_objects_found = 1;
+            local_object_found = 1;
             rObjectId = r_object.Id();
             // resizing of rShapeFunctionValues happens inside the function if required
             r_object.GetGeometry().ShapeFunctionsValues(rShapeFunctionValues, local_coordinates);
@@ -95,25 +95,20 @@ void BruteForcePointLocator::FindObject(const TObjectType& rObjects,
         }
     }
 
-    CheckResults(rObjectName, rThePoint, local_objects_found);
+    CheckResults(rObjectName, rThePoint, local_object_found);
 }
 
 void BruteForcePointLocator::CheckResults(const std::string& rObjectName,
                                           const Point& rThePoint,
-                                          int LocalObjectsFound) const
+                                          const int LocalObjectFound) const
 {
-    mrModelPart.GetCommunicator().SumAll(LocalObjectsFound);
+    int global_objects_found = LocalObjectFound;
+    mrModelPart.GetCommunicator().SumAll(global_objects_found);
 
-    if (LocalObjectsFound > 1) {
-        KRATOS_WARNING_IF("Point Locator", mrModelPart.GetCommunicator().MyPID() == 0)
-            << "More than one " << rObjectName << " found for Point: " << rThePoint << std::endl;
-        mrModelPart.GetCommunicator().Barrier();
-        KRATOS_WARNING("Point Locator")
-            << "    In Rank: " << mrModelPart.GetCommunicator().MyPID() << std::endl;
-        mrModelPart.GetCommunicator().Barrier();
-    } else if (LocalObjectsFound == 0) {
-        KRATOS_WARNING_IF("Point Locator", mrModelPart.GetCommunicator().MyPID() == 0)
-            << "No " << rObjectName << " found for Point: " << rThePoint << std::endl;
+    if (global_objects_found > 1) {
+        KRATOS_WARNING_IF_ALL_RANKS("BruteForcePointLocator", LocalObjectFound == 1) << "More than one " << rObjectName << " found for Point:" << rThePoint << std::endl;
+    } else if (global_objects_found == 0) {
+        KRATOS_WARNING("BruteForcePointLocator") << "No " << rObjectName << " found for Point: " << rThePoint << std::endl;
     }
 }
 

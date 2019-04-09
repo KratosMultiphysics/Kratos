@@ -134,7 +134,7 @@ private:
      */
     void CheckResults(const std::string& rObjectType,
                       const Point& rThePoint,
-                      int LocalObjectsFound) const;
+                      const int LocalObjectFound) const;
 
     /**
      * @brief This function checks whether a node is close to a point based on a threshold
