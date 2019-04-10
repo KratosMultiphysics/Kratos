@@ -109,28 +109,30 @@ namespace Kratos
             // KRATOS_WATCH(rLeftHandSideMatrix)
 
             //adding curvature contributions to the stiffness matrix
-            // CalculateAndAddKm(rLeftHandSideMatrix, BCurvature, constitutive_variables_curvature.D, integration_weight);
+            CalculateAndAddKm(rLeftHandSideMatrix, BCurvature, constitutive_variables_curvature.D, integration_weight);
 
             // adding  non-linear-contribution to Stiffness-Matrix
-            // CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
-            //     second_variations_strain,
-            //     constitutive_variables_membrane.S,
-            //     integration_weight);
+            CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
+                second_variations_strain,
+                constitutive_variables_membrane.S,
+                integration_weight);
 
-            // CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
-            //     second_variations_curvature,
-            //     constitutive_variables_curvature.S,
-            //     integration_weight);
+            CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
+                second_variations_curvature,
+                constitutive_variables_curvature.S,
+                integration_weight);
         }
 
         // RIGHT HAND SIDE VECTOR
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
+            // KRATOS_WATCH(BCurvature)
+            // KRATOS_WATCH(constitutive_variables_curvature.S)
             // operation performed: rRightHandSideVector -= Weight*IntForce
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.S);
-            // noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.S);
+            noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.S);
         
-            KRATOS_WATCH(rRightHandSideVector)
+            // KRATOS_WATCH(rRightHandSideVector)
         }
 
         //KRATOS_WATCH(rLeftHandSideMatrix)
@@ -356,7 +358,6 @@ namespace Kratos
         metric.dA = norm_2(metric.g3);
         //normal vector _n
         Vector n = metric.g3 / metric.dA;
-        metric.g3 = n;
 
         //GetCovariantMetric
         metric.gab[0] = pow(metric.g1[0], 2) + pow(metric.g1[1], 2) + pow(metric.g1[2], 2);

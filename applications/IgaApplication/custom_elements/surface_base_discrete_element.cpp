@@ -178,11 +178,11 @@ namespace Kratos
             rB(1, r) = mInitialMetric.Q(1, 0)*dE_curvilinear[0] + mInitialMetric.Q(1, 1)*dE_curvilinear[1] + mInitialMetric.Q(1, 2)*dE_curvilinear[2];
             rB(2, r) = mInitialMetric.Q(2, 0)*dE_curvilinear[0] + mInitialMetric.Q(2, 1)*dE_curvilinear[1] + mInitialMetric.Q(2, 2)*dE_curvilinear[2];
 
-            KRATOS_WATCH(dE_curvilinear)
+            // KRATOS_WATCH(dE_curvilinear)
             
         }
         
-        KRATOS_WATCH(rB)
+        // KRATOS_WATCH(rB)
 
         //if (this->Has(SHAPE_FUNCTION_LOCAL_DERIVATIVES))
         //{
