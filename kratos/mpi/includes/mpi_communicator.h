@@ -109,10 +109,26 @@ template<class TValue> struct DataSize
     constexpr static std::size_t Value = sizeof(TValue) / sizeof(SendTraits<TValue>::SendType);
 };
 
+enum MeshAccessType {
+    Local,
+    Ghost
+}
+
+template< MeshAccessType TMesh > Communicator::MeshType& GetMesh(Communicator& rComm, unsigned int Color);
+
+template<> Communicator::MeshType& GetMesh<Local>(Communicator& rComm, unsigned int Color)
+{
+    return rComm.LocalMesh(Color);
+}
+
+template<> Communicator::MeshType& GetMesh<Ghost>(Communicator)
+{
+    return rComm.LocalMesh(Color);
+}
+
 template<class TValue> class NodalSolutionStepValueAccess
 {
 
-Communicator::MeshType& mrMesh;
 const Variable<TValue>& mrVariable;
 
 public:
@@ -120,13 +136,13 @@ public:
 typedef Communicator::MeshType::NodesContainerType ContainerType;
 typedef Communicator::MeshType::NodesContainerType::iterator IteratorType;
 
-NodalSolutionStepValueAccess(Communicator::MeshType& rMesh, const Variable<TValue>& mrVariable):
-    mrMesh(rMesh), mrVariable(mrVariable)
+NodalSolutionStepValueAccess(const Variable<TValue>& mrVariable):
+    mrVariable(mrVariable)
 {}
 
-ContainerType& GetContainer()
+ContainerType& GetContainer(Communicator::MeshType& rMesh)
 {
-    return mrMesh.Nodes();
+    return rMesh.Nodes();
 }
 
 TValue& GetValue(IteratorType& iter)
@@ -136,24 +152,13 @@ TValue& GetValue(IteratorType& iter)
 
 };
 
-template<class TValue> class NodalDataAccess
-{
-
-Communicator::MeshType& mrMesh;
-const Variable<TValue>& mrVariable;
-
-public:
-
-typedef Communicator::MeshType::NodesContainerType ContainerType;
-typedef Communicator::MeshType::NodesContainerType::iterator IteratorType;
-
-NodalSolutionStepValueAccess(Communicator::MeshType& rMesh, const Variable<TValue>& rVariable):
-    mrMesh(rMesh), mrVariable(rVariable)
+NodalDataAccess(const Variable<TValue>& mrVariable):
+    mrVariable(mrVariable)
 {}
 
-ContainerType& GetContainer()
+ContainerType& GetContainer(Communicator::MeshType& rMesh)
 {
-    return mrMesh.Nodes();
+    return rMesh.Nodes();
 }
 
 TValue& GetValue(IteratorType& iter)
@@ -163,17 +168,20 @@ TValue& GetValue(IteratorType& iter)
 
 };
 
-template<class TValue, class TDatabaseAccess, class TReductionOperation>
+template<typename TValue, typename TSourceMesh, class TDatabaseAccess, class TReductionOperation>
 struct BufferManager: public TDatabaseAccess<TValue>, TReductionOperation
 {
 
-BufferManager(Communicator::MeshType& rMesh, const Variable<TValue>& rVariable):
-    TDatabaseAccess(rMesh, rVariable)
+typedef Communicator::MeshType MeshType;
+
+BufferManager(Communicator& rCommunicator, const Variable<TValue>& rVariable):
+    TDatabaseAccess(rVariable)
 {}
 
-void AllocateBuffer(std::vector<TValue>& rBuffer)
+void AllocateBuffer(std::vector<TValue>& rBuffer, unsigned int Color)
 {
-    auto& r_container = GetContainer();
+    MeshType& r_mesh = GetMesh<TSourceMesh>(mrCommunicator);
+    auto& r_container = GetContainer(r_mesh, Color);
     std::size_t num_objects = r_container.size();
     std::size_t buffer_size = num_objects * DataSize<TValue>::Value;
 
@@ -185,7 +193,8 @@ void AllocateBuffer(std::vector<TValue>& rBuffer)
 
 void FillBuffer(std::vector<TValue>& rBuffer)
 {
-    auto& r_container = TDatabaseAccess.GetContainer();
+    MeshType& r_mesh = GetMesh<TSourceMesh>(mrCommunicator);
+    auto& r_container = GetContainer(r_mesh, Color);
     TValue* p_buffer = rBuffer.data();
     std::size_t position = 0;
     for (auto it_node = r_nodes.begin(); it_node != r_nodes.end(); ++it_node)
@@ -2245,16 +2254,6 @@ private:
         delete [] msgRecvSize;
 
         return true;
-    }
-
-    MeshType& GetLocalMesh(unsigned int Color)
-    {
-        return LocalMesh(Color);
-    }
-
-    MeshType& GetGhostMesh(unsigned int Color)
-    {
-        return GhostMesh(Color);
     }
 
     template<class TDataType, void MPICommunicator::*(unsigned int) SourceContainer, class DestinationValues, class ReductionOperation>
