@@ -4,10 +4,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 # Import applications
-import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
+import KratosMultiphysics.ConvectionDiffusionApplication as KratosMultiphysics.ConvectionDiffusionApplication
 
 # Import base class file
-import convection_diffusion_base_solver
+from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_base_solver
 
 def CreateSolver(main_model_part, custom_settings):
     return ConvectionDiffusionStationarySolver(main_model_part, custom_settings)
@@ -35,7 +35,7 @@ class ConvectionDiffusionStationarySolver(convection_diffusion_base_solver.Conve
         else:
             self.min_buffer_size = 1
 
-        self.print_on_rank_zero("::[ConvectionDiffusionStationarySolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionStationarySolver]:: ", "Construction finished")
 
     #### Private functions ####
     def _create_solution_scheme(self):
