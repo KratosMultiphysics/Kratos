@@ -8,7 +8,6 @@ def Factory(settings, Model):
 
     return ComputeLiftJumpProcess2D(Model, settings["Parameters"])
 
-# TODO Implement this process in C++ and make it open mp parallel to save time selecting the wake elements
 class ComputeLiftJumpProcess2D(KratosMultiphysics.Process):
     def __init__(self, Model, settings):
         # Call the base Kratos process constructor
@@ -24,7 +23,7 @@ class ComputeLiftJumpProcess2D(KratosMultiphysics.Process):
 
         body_model_part_name = settings["model_part_name"].GetString()
         if body_model_part_name == "":
-            err_msg = "Empty model_part_name in DefineWakeProcess2D\n"
+            err_msg = "Empty model_part_name in ComputeLiftJumpProcess2D\n"
             err_msg += "Please specify the model part that contains the body surface nodes"
             raise Exception(err_msg)
         self.body_model_part = Model[body_model_part_name]
