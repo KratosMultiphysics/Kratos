@@ -41,9 +41,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
 
-            for file_name in os.listdir(os.getcwd()):
-                if file_name.endswith(".time"):
-                    kratos_utilities.DeleteFileIfExisting(file_name)
+            kratos_utilities.DeleteTimeFiles(".")
 
 
     def test_Naca0012SmallAdjoint(self):
@@ -72,9 +70,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
 
-            for file_name in os.listdir(os.getcwd()):
-                if file_name.endswith(".time"):
-                    kratos_utilities.DeleteFileIfExisting(file_name)
+            kratos_utilities.DeleteTimeFiles(".")
 
     def _runTest(self,settings_file_name):
         model = KratosMultiphysics.Model()
