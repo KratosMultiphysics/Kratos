@@ -15,22 +15,15 @@
 #define  KRATOS_EMBEDDED_NODAL_VARIABLE_CALCULATION_ELEMENT_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 
 // External includes
 
 
 // Project includes
-#include "containers/array_1d.h"
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/serializer.h"
-#include "includes/variables.h"
 #include "geometries/geometry.h"
-#include "utilities/math_utils.h"
-#include "utilities/geometry_utilities.h"
 
 // Application includes
 
@@ -88,15 +81,11 @@ public:
     /// Matrix type for local contributions to the linear system
     typedef Matrix MatrixType;
 
-    typedef std::size_t IndexType;
-
-    typedef std::size_t SizeType;
-
-    typedef std::vector<std::size_t> EquationIdVectorType;
-
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
-
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+    /// Element types definition
+    typedef Element::IndexType IndexType;
+    typedef Element::DofsArrayType DofsArrayType;
+    typedef Element::DofsVectorType DofsVectorType;
+    typedef Element::EquationIdVectorType EquationIdVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -148,8 +137,7 @@ public:
     {}
 
     /// Destructor.
-    ~EmbeddedNodalVariableCalculationElementSimplex() override
-    {}
+    ~EmbeddedNodalVariableCalculationElementSimplex() override = default;
 
     ///@}
     ///@name Operators
@@ -176,64 +164,51 @@ public:
         return Kratos::make_shared<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
-    void Initialize() override
-    {
-    }
-
-    /// Calculate the element's local contribution to the system for the current step.
+    /**
+     * @brief Calculate the element's local contributions to the system for the current step.
+     *
+     * @param rLeftHandSideMatrix Reference to the local Left Hand Side (LHS) matrix
+     * @param rRightHandSideVector Reference to the local Right Hand Side (RHS) vector
+     * @param rCurrentProcessInfo Reference to the model part of interest ProcessInfo container
+     */
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * @brief Calculate the element's local Left Hand Side (LHS) contribution to the system for the current step.
+     *
+     * @param rLeftHandSideMatrix Reference to the local Left Hand Side (LHS) matrix
+     * @param rCurrentProcessInfo Reference to the model part of interest ProcessInfo container
+     */
     void CalculateLeftHandSide(
         MatrixType &rLeftHandSideMatrix,
         ProcessInfo &rCurrentProcessInfo) override;
 
+    /**
+     * @brief Calculate the element's local Reft Hand Side (RHS) contribution to the system for the current step.
+     *
+     * @param rRightHandSideVector Reference to the local Right Hand Side (RHS) vector
+     * @param rCurrentProcessInfo Reference to the model part of interest ProcessInfo container
+     */
     void CalculateRightHandSide(
         VectorType &rRightHandSideVector,
         ProcessInfo &rCurrentProcessInfo) override;
 
-    /// Checks the input and that all required Kratos variables have been registered.
     /**
+     * @brief Checks the input and that all required Kratos variables have been registered.
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
      * or that no common error is found.
-     * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
+     * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      */
-    int Check(const ProcessInfo &rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
+    int Check(const ProcessInfo &rCurrentProcessInfo) override;
 
-        // // Perform basic element checks
-        // int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
-        // if(ErrorCode != 0) return ErrorCode;
-
-        // if(this->GetGeometry().size() != TDim+1)
-        //     KRATOS_THROW_ERROR(std::invalid_argument,"wrong number of nodes for element",this->Id());
-
-        // // Check that all required variables have been registered
-        // if(DISTANCE.Key() == 0)
-        //     KRATOS_THROW_ERROR(std::invalid_argument,"DISTANCE Key is 0. Check if the application was correctly registered.","");
-
-        // // Checks on nodes
-
-        // // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-        // for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
-        // {
-        //     if(this->GetGeometry()[i].SolutionStepsDataHas(DISTANCE) == false)
-        //         KRATOS_THROW_ERROR(std::invalid_argument,"missing DISTANCE variable on solution step data for node ",this->GetGeometry()[i].Id());
-        // }
-
-        return 0;
-
-        KRATOS_CATCH("");
-    }
-
-    /// Provides the global indices for each one of this element's local rows
     /**
+     * @brief Provides the global indices for each one of this element's local rows
      * This determines the elemental equation ID vector for all elemental DOFs
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
@@ -242,8 +217,9 @@ public:
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo) override;
 
-    /// Returns a list of the element's Dofs
     /**
+     * @brief Get the Dof List object
+     * Returns a list of the element's Dofs
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
