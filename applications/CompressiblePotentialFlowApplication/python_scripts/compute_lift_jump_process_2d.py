@@ -1,6 +1,5 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
-from KratosMultiphysics.CompressiblePotentialFlowApplication.define_wake_process_2d import DefineWakeProcess2D as DefineWakeProcess2D
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
@@ -10,7 +9,7 @@ def Factory(settings, Model):
     return ComputeLiftJumpProcess2D(Model, settings["Parameters"])
 
 # TODO Implement this process in C++ and make it open mp parallel to save time selecting the wake elements
-class ComputeLiftJumpProcess2D(DefineWakeProcess2D):
+class ComputeLiftJumpProcess2D(KratosMultiphysics.Process):
     def __init__(self, Model, settings):
         # Call the base Kratos process constructor
         KratosMultiphysics.Process.__init__(self)
@@ -36,11 +35,14 @@ class ComputeLiftJumpProcess2D(DefineWakeProcess2D):
         self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         self.create_output_file = settings["create_output_file"].GetBool()
 
-    def ExecuteInitialize(self):
-        # Save the trailing edge for further computations
-        self.SaveTrailingEdgeNode()
-
     def ExecuteFinalizeSolutionStep(self):
+        # Find the Trailing Edge node
+        max_x_coordinate = -1e30
+        for node in self.body_model_part.Nodes:
+            if(node.X > max_x_coordinate):
+                max_x_coordinate = node.X
+                self.te = node
+
         node_velocity_potential_te = self.te.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
         node_auxiliary_velocity_potential_te = self.te.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
         if(self.te.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0):
