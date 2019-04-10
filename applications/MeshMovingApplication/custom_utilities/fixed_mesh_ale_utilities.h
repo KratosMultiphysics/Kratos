@@ -16,7 +16,9 @@
 
 // System includes
 
+
 // External includes
+
 
 // Project includes
 #include "includes/define.h"
@@ -29,44 +31,50 @@
 // Application includes
 #include "custom_strategies/strategies/laplacian_meshmoving_strategy.h"
 
+
 namespace Kratos
 {
-  ///@addtogroup MeshMovingApplication
-  ///@{
+///@addtogroup MeshMovingApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  /// Utility to initialize the historical data in moving boundary problems
-  /** This utility is based on the Fixed Mesh - Arbitrary Lagrangian Eulerian
-   * (FM-ALE) method but solving the mesh problem in an explicit manner. Thus,
-   * a virtual mesh is set. This virtual mesh is moved according to the embedded
-   * object movement. The virtual mesh movement, is computed in an explicit
-   * manner as a weighted average. Such weights are computed by means of a
-   * kernel function. Once the mesh movement (and velocity) have been computed,
-   * the origin mesh historical values (velocity and pressure) are computed as
-   * an interpolation in the virtualmodel part.
-   */
-  class FixedMeshALEUtilities
-  {
-  public:
 
+///@}
+///@name  Functions
+///@{
+
+
+///@}
+///@name Kratos Classes
+///@{
+
+/**
+ * @brief Utility to perform the FM-ALE algorithm operations
+ * This utility implements the Fixed Mesh - Arbitrary Lagrangian Eulerian (FM-ALE)
+ * algorithm operations. After setting a virtual mesh, which is a copy of the
+ * problem background element mesh, it is moved in accordante to the immersed
+ * object movement. The virtual mesh movement is solved using a common ALE mesh
+ * solver (in this case the Laplacian mesh solver is used). Once the mesh movement,
+ * including the mesh velocity, have been computed, the origin mesh historical
+ * values (velocity and pressure), as well as the mesh velocity, are computed
+ * as a projection from the virtual mesh. This is required to consistently
+ * initialize the historical values when nodes change its topological status.
+ */
+class FixedMeshALEUtilities
+{
+public:
     ///@name Type Definitions
     ///@{
 
@@ -102,29 +110,40 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    // /**
-    // * This method performs the explicit mesh movement (computes the MESH_DISPLACEMENT value and moves
-    // * the mesh accordingly) and computes the MESH_VELOCITY values.
-    // * @param DeltaTime time step value (used in the computation of the MESH_VELOCITY values)
-    // */
+    /**
+     * @brief Compute the virtual mesh movement
+     * This method computes the virtual mesh movement in accordance to the immersed structure
+     * DISPLACEMENT values. To that purpose it sets the fixity and creates & solves the
+     * mesh moving strategy.
+     * @param DeltaTime time step value (required for the computation of the MESH_VELOCITY)
+     */
     void ComputeMeshMovement(const double DeltaTime);
 
     /**
     * This method fills the mrVirtualModelPart with the nodes and elmens of a given model part
-    * It is supposed to be performed once.
+    * It has to be performed once since after each values projection the virtual mesh configuration
+    * is reverted to its original status.
     * @param rOriginModelPart model part from where the nodes and elements are copied
     */
     void FillVirtualModelPart(ModelPart& rOriginModelPart);
 
     /**
-    * This method undoes the performed mesh movement to recover the original mesh in
-    */
+     * @brief Revert the virtual mesh movement
+     * This method reverts the virtual mesh movement to recover its original configuration,
+     * which coincides with the background mesh one. It has to be called once the values
+     * projection from the virtual mesh to the origin has been performed.
+     */
     void UndoMeshMovement();
 
     /**
-    * This method projects the virtual model part mesh values to the origin mesh
-    * @param rOriginModelPart model part to where the values are projected
-    */
+     * @brief This method projects the virtual model part mesh values to the origin mesh
+     * Once the FM-ALE operations have been performed, this method projects the nodal values
+     * from the virtual mesh to the origin mesh. The projected variables are PRESSURE,
+     * VELOCITY and MESH_VELOCITY.
+     * @tparam TDim Template parameter containing the problem domain size
+     * @param rOriginModelPart Reference to the model part to which the values are projected
+     * @param BufferSize Buffer values that are projected
+     */
     template <unsigned int TDim>
     void ProjectVirtualValues(
         ModelPart &rOriginModelPart,
@@ -159,7 +178,6 @@ namespace Kratos
 
 
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -184,14 +202,48 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Set the Distances Vector object
+     * For an element, this method sets its nodal distances vector.
+     * This is done in accordance to mLevelSetType, which contains
+     * the level set type (continuous or discontinuous)
+     * @param ItElem Iterator to the element to get the distances of
+     * @return const Vector Vector containing the elemental nodal distances
+     */
     const Vector SetDistancesVector(ModelPart::ElementIterator ItElem);
 
-    inline bool IsSplit(const Vector &rDistances);
+    /**
+     * @brief Check if an element is split
+     * From the provided nodal distances vector, this method
+     * checks if such element is intersected by the level set
+     * @param rDistances Refence to the nodal distances vector
+     * @return true If the element is intersected
+     * @return false If the element is not intersected
+     */
+    bool IsSplit(const Vector &rDistances);
 
-    void GetOriginModelPartMeshDisplacementFixity();
+    /**
+     * @brief Set the virtual mesh origin model part based fixity
+     * This method checks the mesh displacement fixity in the origin
+     * model part and applies it to the virtual mesh before solving.
+     */
+    void SetMeshDisplacementFixityFromOriginModelPart();
 
-    void SetEmbeddedMeshDisplacement();
+    /**
+     * @brief Set the embedded nodal mesh displacement
+     * This method calls the utility that computes the nodal mesh
+     * displacement from the immersed structure displacement. Then
+     * it fixes such values before the ALE strategy solve call.
+     */
+    void SetEmbeddedNodalMeshDisplacement();
 
+    /**
+     * @brief Set the and solve the mesh movement strategy
+     * After all the mesh BCs have been set, this method is called to
+     * set and solve the ALE mesh movement strategy. The mesh velocity
+     * calculation and virtual mesh update are performe din here.
+     * @param DeltaTime time step value (required for the computation of the MESH_VELOCITY)
+     */
     void SetAndSolveMeshMovementStrategy(const double DeltaTime);
 
     ///@}
@@ -209,25 +261,17 @@ private:
     ///@{
 
     /// Assignment operator.
-    FixedMeshALEUtilities& operator=(FixedMeshALEUtilities const& rOther);
+    FixedMeshALEUtilities& operator=(FixedMeshALEUtilities const& rOther) = delete;
 
     /// Copy constructor.
-    FixedMeshALEUtilities(FixedMeshALEUtilities const& rOther);
+    FixedMeshALEUtilities(FixedMeshALEUtilities const& rOther) = delete;
 
     ///@}
-
 }; // Class FixedMeshALEUtilities
-
-///@}
-
-///@name Type Definitions
-///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// output stream function
 inline std::ostream& operator << (
@@ -235,9 +279,7 @@ inline std::ostream& operator << (
     const FixedMeshALEUtilities& rThis);
 
 ///@}
-
 ///@} addtogroup block
-
 }  // namespace Kratos.
 
 #endif // KRATOS_FIXED_MESH_ALE_UTILITIES_H_INCLUDED  defined

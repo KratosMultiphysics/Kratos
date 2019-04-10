@@ -101,10 +101,10 @@ namespace Kratos
     void FixedMeshALEUtilities::ComputeMeshMovement(const double DeltaTime)
     {
         // Get the MESH_DISPLACEMENT fixity from the origin model part
-        this->GetOriginModelPartMeshDisplacementFixity();
+        this->SetMeshDisplacementFixityFromOriginModelPart();
 
         // Set embedded MESH_DISPLACEMENT from the immersed structure
-        this->SetEmbeddedMeshDisplacement();
+        this->SetEmbeddedNodalMeshDisplacement();
 
         // Set the mesh moving strategy
         this->SetAndSolveMeshMovementStrategy(DeltaTime);
@@ -233,7 +233,7 @@ namespace Kratos
         return false;
     }
 
-    void FixedMeshALEUtilities::GetOriginModelPartMeshDisplacementFixity()
+    void FixedMeshALEUtilities::SetMeshDisplacementFixityFromOriginModelPart()
     {
         #pragma omp parallel for
         for(int i_fl = 0; i_fl < static_cast<int>(mrVirtualModelPart.NumberOfNodes()); ++i_fl) {
@@ -252,7 +252,7 @@ namespace Kratos
         }
     }
 
-    void FixedMeshALEUtilities::SetEmbeddedMeshDisplacement()
+    void FixedMeshALEUtilities::SetEmbeddedNodalMeshDisplacement()
     {
         // Compute the DISPLACEMENT from the structure model part and save it in the origin mesh MESH_DISPLACEMENT
         FixedMeshALEUtilities::EmbeddedNodalVariableProcessArrayType emb_nod_var_from_skin_proc_array(
