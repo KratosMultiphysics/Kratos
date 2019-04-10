@@ -19,8 +19,8 @@ from KratosMultiphysics.MultilevelMonteCarloApplication.compressible_statistical
 # Import random variable generator
 import KratosMultiphysics.MultilevelMonteCarloApplication.compressible_generator_utilities as generator
 
-# Import exaqute
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
+# Import PyCOMPSs
+from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
 # from exaqute.ExaquteTaskLocal import *      # to execute with python3
 """
@@ -43,7 +43,11 @@ C. Bayer, H. Hoel, E. von Schwerin, R. Tempone; On NonAsymptotyc optimal stoppin
 """
 
 
-# TODO: check in CheckConvergence if I can use only sample variance-h2 and not two of them
+# TODO: in CheckConvergence convert formulas from unbiased to biased
+# TODO: in [3] formula 4.1 I use unbiased formula, not biased, as sample moments. Check it's fine
+# TODO: now batch_size = difference_number_samples, in future it may have flags for different behaviours
+# TODO: now we are using scipy so we can avoid _ComputeCDFStandardNormalDistribution
+# TODO: update input and output after new task formulations
 
 
 """
@@ -64,7 +68,6 @@ def AddResultsAux_Task(level,*simulation_results):
 auxiliary function of CheckConvergence of the MonteCarlo class
 input:  current_number_samples:                   current number of samples computed
         current_mean:                             current mean
-        current_sample_variance:                  current sample variance
         current_h2:                               current h2 statistics
         current_h3:                               current h3 statistics
         current_sample_central_moment_3_absolute: current third absolute central moment
@@ -104,7 +107,7 @@ def CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,curr
     elif(convergence_criteria == "total_error_stopping_rule"):
         cphi_confidence = norm.ppf(1.0 - current_delta) # this stopping criteria checks total error like MLMC, thus need to use confidence and not error probability
         statistical_error = cphi_confidence*sqrt(current_h2/current_number_samples)
-        bias = 0.0 # hypothesis bias = 0 since we can't compute
+        bias = 0.0 # hypothesis bias = 0 since we can't compute it
         total_error = bias + statistical_error
         if (total_error<current_tol):
             convergence_boolean = True
@@ -125,12 +128,12 @@ output: QoI: Quantity of Interest
 def ExecuteInstanceAux_Task(pickled_model,pickled_project_parameters,current_analysis_stage,current_level):
 # def ExecuteInstanceAux_Task(serialized_model,serialized_project_parameters,current_analysis_stage,current_level):
     time_0 = time.time()
-    # # overwrite the old model serializer with the unpickled one
+    # overwrite the old model serializer with the unpickled one
     serialized_model = pickle.loads(pickled_model)
     current_model = KratosMultiphysics.Model()
     serialized_model.Load("ModelSerialization",current_model)
     del(serialized_model)
-    # # overwrite the old parameters serializer with the unpickled one
+    # overwrite the old parameters serializer with the unpickled one
     serialized_project_parameters = pickle.loads(pickled_project_parameters)
     current_project_parameters = KratosMultiphysics.Parameters()
     serialized_project_parameters.Load("ParametersSerialization",current_project_parameters)
@@ -145,7 +148,7 @@ def ExecuteInstanceAux_Task(pickled_model,pickled_project_parameters,current_ana
     time_2 = time.time()
     mc_results_class.QoI[current_level].append(QoI) # saving results in the corresponding list, for MC only list of level 0
     # post process execution times
-    print("\n","#"*50," TASK TIMES EXECUTION ","#"*50,"\n")
+    print("\n","#"*50," EXECUTE INSTANCE TASK TIMES ","#"*50,"\n")
     deserialization_time = time_1 - time_0
     Kratos_run_time = time_2 - time_1
     total_task_time = time_2 - time_0
@@ -156,7 +159,7 @@ def ExecuteInstanceAux_Task(pickled_model,pickled_project_parameters,current_ana
     print("RATIOs: time of interest / total task time")
     print("[RATIO] Relative serializer time:",deserialization_time/total_task_time)
     print("[RATIO] Relative Kratos run time:",Kratos_run_time/total_task_time)
-    print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
+    print("\n","#"*50," END EXECUTE INSTANCE TASK TIMES ","#"*50,"\n")
     # end post process execution times
     return mc_results_class
 
@@ -167,7 +170,7 @@ class MonteCarlo(object):
         """constructor of the MonteCarlo-Object
         Keyword arguments:
         self:                    an instance of the class
-        custom_parameters_path:  settings of the Monte Carlo simulation
+        custom_parameters_path:  path of the Monte Carlo simulation
         project_parameters_path: path of the project parameters file
         custom_analysis:         analysis stage of the problem
         """
@@ -186,7 +189,7 @@ class MonteCarlo(object):
         # tolerance:            tolerance
         # confidence:           confidence on tolerance
         # batch_size:           number of samples per batch size
-        # convergence_criteria: convergence criteria to get if convergence is achieved
+        # convergence_criteria: convergence criteria to compute convergence
         default_settings = KratosMultiphysics.Parameters("""
         {
             "run_monte_carlo" : "True",
@@ -197,6 +200,8 @@ class MonteCarlo(object):
             "convergence_criteria" : "MC_higher_moments_sequential_stopping_rule"
         }
         """)
+
+        # set XMC parameters
         self.custom_parameters_path = custom_parameters_path
         self.SetXMCParameters()
         # validate and assign default parameters
@@ -205,10 +210,10 @@ class MonteCarlo(object):
         self.convergence = False
         # handle confidence = 1.0
         if (self.settings["confidence"].GetDouble()==1.0):
-                self.settings["confidence"].SetDouble(0.999) # reduce confidence to not get +inf for cphi_confidence
+                self.settings["confidence"].SetDouble(0.999) # reduce confidence to not get +inf for cphi_confidence (coefficient used in convergence criterias)
         # set error probability = 1.0 - confidence on given tolerance
         self.settings.AddEmptyValue("error_probability")
-        self.settings["error_probability"].SetDouble(1-self.settings["confidence"].GetDouble())
+        self.settings["error_probability"].SetDouble(1.0-self.settings["confidence"].GetDouble())
         # current_number_levels: number of levels of MC by default = 0 (we only have level 0)
         self.current_number_levels = 0
         # current_level: current level of work, current_level = 0 for MC
@@ -492,7 +497,7 @@ class MonteCarlo(object):
     """
     def CheckConvergence(self,level):
         current_number_samples = self.QoI.number_samples[level]
-        current_mean = self.QoI.raw_moment_1[level]
+        current_mean = self.QoI.h_statistics_1[level]
         current_h2 = self.QoI.h_statistics_2[level]
         current_h3 = self.QoI.h_statistics_3[level]
         current_sample_central_moment_3_absolute = self.QoI.central_moment_from_scratch_3_absolute[level]
@@ -517,7 +522,7 @@ class MonteCarlo(object):
     """
     def ScreeningInfoFinalizeMCPhase(self):
         print("current convergence batch =",self.current_convergence_batch)
-        print("values computed of QoI = ",self.QoI.values)
+        # print("values computed of QoI = ",self.QoI.values)
         print("current batches",self.batches_number_samples)
         print("current number of samples = ",self.number_samples)
         print("monte carlo mean and variance QoI estimators = ",self.QoI.h_statistics_1,self.QoI.h_statistics_2)
