@@ -41,7 +41,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
 
-            for file_name in os.listdir():
+            for file_name in os.listdir(os.getcwd()):
                 if file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
@@ -60,7 +60,7 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._runTest(settings_file_name_primal)
             self._runTest(settings_file_name_adjoint)
 
-            for file_name in os.listdir():
+            for file_name in os.listdir(os.getcwd()):
                 if file_name.endswith(".h5") or file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
@@ -72,7 +72,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
 
-            for file_name in os.listdir():
+            for file_name in os.listdir(os.getcwd()):
                 if file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
