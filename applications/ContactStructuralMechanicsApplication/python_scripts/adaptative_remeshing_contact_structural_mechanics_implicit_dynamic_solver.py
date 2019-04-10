@@ -44,7 +44,7 @@ class AdaptativeRemeshingContactImplicitMechanicalSolver(contact_structural_mech
 
         # Construct the base solver.
         super(AdaptativeRemeshingContactImplicitMechanicalSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[AdaptativeRemeshingContactImplicitMechanicalSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[AdaptativeRemeshingContactImplicitMechanicalSolver]:: ", "Construction finished")
 
     #### Private functions ####
 
@@ -52,7 +52,7 @@ class AdaptativeRemeshingContactImplicitMechanicalSolver(contact_structural_mech
         super(AdaptativeRemeshingContactImplicitMechanicalSolver, self).AddVariables()
         if (missing_meshing_dependencies is False):
             self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H)
-        self.print_on_rank_zero("::[AdaptativeRemeshingContactImplicitMechanicalSolver]:: ", "Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[AdaptativeRemeshingContactImplicitMechanicalSolver]:: ", "Variables ADDED")
 
     def get_remeshing_process(self):
         if not hasattr(self, '_remeshing_process'):
