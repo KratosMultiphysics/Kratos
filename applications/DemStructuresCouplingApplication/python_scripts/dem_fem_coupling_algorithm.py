@@ -78,6 +78,7 @@ class Algorithm(object):
                             self.dem_solution.spheres_model_part,
                             self.dem_solution.cluster_model_part,
                             self.dem_solution.rigid_face_model_part,
+                            self.dem_solution.contact_model_part,
                             mixed_mp
                             )
 
@@ -85,12 +86,14 @@ class Algorithm(object):
         dem_nodal_results = ["IS_STICKY", "DEM_STRESS_TENSOR"]
         clusters_nodal_results = []
         rigid_faces_nodal_results = []
+        contact_model_part_results = ["CONTACT_FAILURE"]
         mixed_nodal_results = ["DISPLACEMENT", "VELOCITY"]
         gauss_points_results = ["CAUCHY_STRESS_TENSOR"]
         self.gid_output.initialize_dem_fem_results(structures_nodal_results,
                                                    dem_nodal_results,
                                                    clusters_nodal_results,
                                                    rigid_faces_nodal_results,
+                                                   contact_model_part_results,
                                                    mixed_nodal_results,
                                                    gauss_points_results)
 
