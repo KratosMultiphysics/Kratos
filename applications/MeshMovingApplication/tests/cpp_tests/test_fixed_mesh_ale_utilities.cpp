@@ -14,7 +14,7 @@
 // Project includes
 #include "containers/model.h"
 #include "includes/checks.h"
-#include "includes/gid_io.h"
+// #include "includes/gid_io.h"
 #include "includes/mesh_moving_variables.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/calculate_distance_to_skin_process.h"
@@ -42,7 +42,7 @@ namespace Testing {
 
         Parameters mesher_parameters(R"(
         {
-            "number_of_divisions": 6,
+            "number_of_divisions": 7,
             "element_name": "Element2D3N"
         })");
 
@@ -99,21 +99,21 @@ namespace Testing {
         str_model_part.SetBufferSize(3);
         str_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         Properties::Pointer p_prop = Kratos::make_shared<Properties>(0);
-        str_model_part.CreateNewNode(100, 0.6, 0.2, 0.0);
-        str_model_part.CreateNewNode(200, 0.6, 0.4, 0.0);
-        str_model_part.CreateNewNode(300, 0.8, 0.4, 0.0);
-        str_model_part.CreateNewNode(400, 0.8, 0.2, 0.0);
-        str_model_part.CreateNewElement("Element2D2N", 1, {{100,200}}, p_prop);
-        str_model_part.CreateNewElement("Element2D2N", 2, {{200,300}}, p_prop);
-        str_model_part.CreateNewElement("Element2D2N", 3, {{300,400}}, p_prop);
-        str_model_part.CreateNewElement("Element2D2N", 4, {{400,100}}, p_prop);
+        str_model_part.CreateNewNode(1000, 0.6, 0.2, 0.0);
+        str_model_part.CreateNewNode(2000, 0.6, 0.4, 0.0);
+        str_model_part.CreateNewNode(3000, 0.8, 0.4, 0.0);
+        str_model_part.CreateNewNode(4000, 0.8, 0.2, 0.0);
+        str_model_part.CreateNewElement("Element2D2N", 1, {{1000,2000}}, p_prop);
+        str_model_part.CreateNewElement("Element2D2N", 2, {{2000,3000}}, p_prop);
+        str_model_part.CreateNewElement("Element2D2N", 3, {{3000,4000}}, p_prop);
+        str_model_part.CreateNewElement("Element2D2N", 4, {{4000,1000}}, p_prop);
 
         // Set the structure mesh movement
         array_1d<double,3> str_mov = ZeroVector(3);
         for (unsigned int i_buffer = 0; i_buffer < 3; ++i_buffer) {
             for (auto it_str_node : str_model_part.NodesArray()){
-                str_mov(0) = -(it_str_node->X()) * 0.1 * (3 - i_buffer);
-                str_mov(1) = (it_str_node->Y()) * 0.2 * (3 - i_buffer);
+                str_mov(0) = -(it_str_node->X()) * 0.025 * (3 - i_buffer);
+                str_mov(1) = (it_str_node->Y()) * 0.05 * (3 - i_buffer);
                 it_str_node->FastGetSolutionStepValue(DISPLACEMENT, i_buffer) = str_mov;
             }
         }
@@ -141,49 +141,65 @@ namespace Testing {
         p_mesh_moving->ProjectVirtualValues<2>(origin_model_part, buffer_size);
         p_mesh_moving->UndoMeshMovement();
 
-        GidIO<> gid_io_structure("/home/rzorrilla/Desktop/structure_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-        gid_io_structure.InitializeMesh(0.00);
-        gid_io_structure.WriteMesh(str_model_part.GetMesh());
-        gid_io_structure.FinalizeMesh();
-        gid_io_structure.InitializeResults(0, str_model_part.GetMesh());
-        gid_io_structure.WriteNodalResults(DISPLACEMENT, str_model_part.Nodes(), 0, 0);
-        gid_io_structure.FinalizeResults();
+        // GidIO<> gid_io_structure("/home/rzorrilla/Desktop/structure_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        // gid_io_structure.InitializeMesh(0.00);
+        // gid_io_structure.WriteMesh(str_model_part.GetMesh());
+        // gid_io_structure.FinalizeMesh();
+        // gid_io_structure.InitializeResults(0, str_model_part.GetMesh());
+        // gid_io_structure.WriteNodalResults(DISPLACEMENT, str_model_part.Nodes(), 0, 0);
+        // gid_io_structure.FinalizeResults();
 
-        GidIO<> gid_io_origin("/home/rzorrilla/Desktop/origin_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-        gid_io_origin.InitializeMesh(0.00);
-        gid_io_origin.WriteMesh(origin_model_part.GetMesh());
-        gid_io_origin.FinalizeMesh();
-        gid_io_origin.InitializeResults(0, origin_model_part.GetMesh());
-        gid_io_origin.WriteNodalResults(DISTANCE, origin_model_part.Nodes(), 0, 0);
-        gid_io_origin.WriteNodalResults(VELOCITY, origin_model_part.Nodes(), 0, 0);
-        gid_io_origin.WriteNodalResults(PRESSURE, origin_model_part.Nodes(), 0, 0);
-        gid_io_origin.WriteNodalResults(MESH_VELOCITY, origin_model_part.Nodes(), 0, 0);
-        gid_io_origin.WriteNodalResults(MESH_DISPLACEMENT, origin_model_part.Nodes(), 0, 0);
-        gid_io_origin.FinalizeResults();
+        // GidIO<> gid_io_origin("/home/rzorrilla/Desktop/origin_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        // gid_io_origin.InitializeMesh(0.00);
+        // gid_io_origin.WriteMesh(origin_model_part.GetMesh());
+        // gid_io_origin.FinalizeMesh();
+        // gid_io_origin.InitializeResults(0, origin_model_part.GetMesh());
+        // gid_io_origin.WriteNodalResults(DISTANCE, origin_model_part.Nodes(), 0, 0);
+        // gid_io_origin.WriteNodalResults(VELOCITY, origin_model_part.Nodes(), 0, 0);
+        // gid_io_origin.WriteNodalResults(PRESSURE, origin_model_part.Nodes(), 0, 0);
+        // gid_io_origin.WriteNodalResults(MESH_VELOCITY, origin_model_part.Nodes(), 0, 0);
+        // gid_io_origin.WriteNodalResults(MESH_DISPLACEMENT, origin_model_part.Nodes(), 0, 0);
+        // gid_io_origin.FinalizeResults();
 
-        GidIO<> gid_io_virtual("/home/rzorrilla/Desktop/virtual_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-        gid_io_virtual.InitializeMesh(0.00);
-        gid_io_virtual.WriteMesh(virtual_model_part.GetMesh());
-        gid_io_virtual.FinalizeMesh();
-        gid_io_virtual.InitializeResults(0, virtual_model_part.GetMesh());
-        gid_io_virtual.WriteNodalResults(VELOCITY, virtual_model_part.Nodes(), 0, 0);
-        gid_io_virtual.WriteNodalResults(PRESSURE, virtual_model_part.Nodes(), 0, 0);
-        gid_io_virtual.WriteNodalResults(DISPLACEMENT, virtual_model_part.Nodes(), 0, 0);
-        gid_io_virtual.WriteNodalResults(MESH_VELOCITY, virtual_model_part.Nodes(), 0, 0);
-        gid_io_virtual.WriteNodalResults(MESH_DISPLACEMENT, virtual_model_part.Nodes(), 0, 0);
-        gid_io_virtual.FinalizeResults();
+        // GidIO<> gid_io_virtual("/home/rzorrilla/Desktop/virtual_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        // gid_io_virtual.InitializeMesh(0.00);
+        // gid_io_virtual.WriteMesh(virtual_model_part.GetMesh());
+        // gid_io_virtual.FinalizeMesh();
+        // gid_io_virtual.InitializeResults(0, virtual_model_part.GetMesh());
+        // gid_io_virtual.WriteNodalResults(VELOCITY, virtual_model_part.Nodes(), 0, 0);
+        // gid_io_virtual.WriteNodalResults(PRESSURE, virtual_model_part.Nodes(), 0, 0);
+        // gid_io_virtual.WriteNodalResults(DISPLACEMENT, virtual_model_part.Nodes(), 0, 0);
+        // gid_io_virtual.WriteNodalResults(MESH_VELOCITY, virtual_model_part.Nodes(), 0, 0);
+        // gid_io_virtual.WriteNodalResults(MESH_DISPLACEMENT, virtual_model_part.Nodes(), 0, 0);
+        // gid_io_virtual.FinalizeResults();
 
-        // // Check the obtained results
-        // auto p_node_10 = origin_model_part.pGetNode(10);
-        // const auto &r_vel_n1 = p_node_10->GetSolutionStepValue(VELOCITY,1);
-        // const auto &r_mesh_vel = p_node_10->FastGetSolutionStepValue(MESH_VELOCITY);
+        // Check the obtained results
+        const double tol = 1e-6;
 
-        // const double tol = 1e-6;
-        // std::vector<double> expected_values = {0.0702503, 0.0286924, -0.358364, 0.464094}; // Triangular kernel function
-        // std::vector<double> obtained_values = {r_vel_n1(0), r_vel_n1(1), r_mesh_vel(0), r_mesh_vel(1)};
-        // for (unsigned int i = 0; i < expected_values.size(); ++i) {
-        //     KRATOS_CHECK_NEAR(obtained_values[i], expected_values[i], tol);
-        // }
+        // Check that the intersected elements nodes respect the fixity
+        const auto node_orig_51_u_mesh = origin_model_part.pGetNode(51)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+        const auto node_virt_51_u_mesh = virtual_model_part.pGetNode(51)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+        for (std::size_t i = 0; i < 3; ++i) {
+            KRATOS_CHECK_NEAR(node_orig_51_u_mesh[i], node_virt_51_u_mesh[i], tol);
+        }
+
+        // Check the obtained displacement values in the virtual mesh
+        const auto u_mesh_29 = virtual_model_part.pGetNode(29)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+        const auto u_mesh_53 = virtual_model_part.pGetNode(54)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+        const std::vector<double> expected_values_u_mesh({-0.0221126, 0.0238099, 0, -0.0150279, 0.0283522, 0});
+        const std::vector<double> obtained_values_u_mesh({u_mesh_29[0], u_mesh_29[1], u_mesh_29[2], u_mesh_53[0], u_mesh_53[1], u_mesh_53[2]});
+        for (std::size_t i = 0; i < 6; ++i) {
+            KRATOS_CHECK_NEAR(obtained_values_u_mesh[i], expected_values_u_mesh[i], tol);
+        }
+
+        // Check the projected mesh velocity in the origin mesh
+        const auto v_mesh_29 = origin_model_part.pGetNode(29)->FastGetSolutionStepValue(MESH_VELOCITY);
+        const auto v_mesh_53 = origin_model_part.pGetNode(54)->FastGetSolutionStepValue(MESH_VELOCITY);
+        const std::vector<double> expected_values_v_mesh({-0.241942, 0.261365, 0, -0.165121, 0.321068, 0});
+        const std::vector<double> obtained_values_v_mesh({v_mesh_29[0], v_mesh_29[1], v_mesh_29[2], v_mesh_53[0], v_mesh_53[1], v_mesh_53[2]});
+        for (std::size_t i = 0; i < 6; ++i) {
+            KRATOS_CHECK_NEAR(obtained_values_v_mesh[i], expected_values_v_mesh[i], tol);
+        }
     }
 }
 }  // namespace Kratos.
