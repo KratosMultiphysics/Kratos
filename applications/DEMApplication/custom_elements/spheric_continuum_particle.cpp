@@ -678,14 +678,18 @@ namespace Kratos {
 
     void SphericContinuumParticle::RemoveSpheresInsideInnerHole() {
 
+        const bool sand_production_simulation = true;
+
+        if (!sand_production_simulation) return;
+
         const double X_coord = this->GetGeometry()[0].Coordinates()[0];
         const double Y_coord = this->GetGeometry()[0].Coordinates()[1];
-        double inner_radius = 0.0036195; //95% of the real hole
-        const bool bigger_hole = true;
-	    const bool sand_production_simulation = true;
-	    if (!sand_production_simulation) return;
 
-        if (bigger_hole) inner_radius = 0.012065; //95% of the real hole
+        double inner_radius = 0.0036195; //95% of the real hole. This is for the CTW16 specimen (smaller inner radius)
+
+        const bool bigger_hole = true;
+
+        if (bigger_hole) inner_radius = 0.012065; //95% of the real hole. This is for the CTW10 specimen (larger inner radius)
 
         if (sqrt(X_coord * X_coord + Y_coord * Y_coord) < inner_radius) this->Set(TO_ERASE, true);
     }

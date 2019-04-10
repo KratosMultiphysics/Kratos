@@ -241,7 +241,10 @@ namespace Kratos {
             }
 
             //if (r_process_info[BOUNDING_BOX_OPTION] == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
-            if (is_time_to_print_results && r_process_info[CONTACT_MESH_OPTION] == 1) {
+
+            const bool print_results = true;
+
+            if (print_results && r_process_info[CONTACT_MESH_OPTION]) { //is_time_to_print_results && r_process_info[CONTACT_MESH_OPTION] == 1) {
                 CreateContactElements();
                 InitializeContactElements();
             }
