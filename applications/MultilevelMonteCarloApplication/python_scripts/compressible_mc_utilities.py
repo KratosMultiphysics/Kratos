@@ -197,10 +197,9 @@ class MonteCarlo(object):
             "confidence" : 9e-1,
             "batch_size" : 50,
             "initial_number_batches" : 1,
-            "convergence_criteria" : "MC_higher_moments_sequential_stopping_rule"
+            "convergence_criteria" : "MC_sample_variance_sequential_stopping_rule"
         }
         """)
-
         # set XMC parameters
         self.custom_parameters_path = custom_parameters_path
         self.SetXMCParameters()
