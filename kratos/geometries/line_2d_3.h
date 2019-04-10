@@ -425,14 +425,14 @@ public:
         rResult = ZeroVector( 3 );
         double delta_xi = 0.0;
         const array_1d<double, 3> zero_array = ZeroVector(3);
-        array_1d<double, 3> CurrentGlobalCoords;
+        array_1d<double, 3> current_global_coords;
 
         //Newton iteration:
         for ( IndexType k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++ ) {
-            noalias(CurrentGlobalCoords) = zero_array;
-            this->GlobalCoordinates( CurrentGlobalCoords, rResult );
+            noalias(current_global_coords) = zero_array;
+            this->GlobalCoordinates( current_global_coords, rResult );
 
-            noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
+            noalias( current_global_coords ) = rPoint - current_global_coords;
 
             // Derivatives of shape functions
             Matrix shape_functions_gradients;
@@ -440,7 +440,7 @@ public:
             noalias(DN) = prod(X, shape_functions_gradients);
 
             noalias(J) = prod(trans(DN), DN);
-            const array_1d<double, 1> res = prod(trans(DN), CurrentGlobalCoords);
+            const array_1d<double, 1> res = prod(trans(DN), current_global_coords);
 
             // The inverted jacobian matrix
             invJ(0, 0) = 1.0/J( 0, 0 );
