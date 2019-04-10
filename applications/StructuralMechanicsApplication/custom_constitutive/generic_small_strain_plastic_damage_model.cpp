@@ -122,7 +122,6 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         BoundedArrayType f_flux = ZeroVector(VoigtSize); // DF/DS
         BoundedArrayType g_flux = ZeroVector(VoigtSize); // DG/DS
         BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
-        BoundedArrayType deepp = ZeroVector(VoigtSize);
 
         double undamaged_free_energy = 0.5 * inner_prod(r_strain_vector - plastic_strain, effective_predictive_stress_vector);
 
@@ -195,8 +194,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 if (damage_increment > tolerance) damage += damage_increment;
                 this->CheckInternalVariable(damage);
                 if (plastic_consistency_increment > tolerance) noalias(plastic_strain_increment) = plastic_consistency_increment * g_flux;
-                noalias(deepp) += plastic_strain_increment;
-                noalias(plastic_strain) += deepp;
+                noalias(plastic_strain) += plastic_strain_increment;
 
                 effective_predictive_stress_vector -= prod(r_constitutive_matrix, plastic_strain_increment);
                 predictive_stress_vector = (1.0 - damage) * effective_predictive_stress_vector;
@@ -411,7 +409,6 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         BoundedArrayType f_flux = ZeroVector(VoigtSize); // DF/DS
         BoundedArrayType g_flux = ZeroVector(VoigtSize); // DG/DS
         BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
-        BoundedArrayType deepp = ZeroVector(VoigtSize);
 
         double undamaged_free_energy = 0.5 * inner_prod(r_strain_vector - plastic_strain, effective_predictive_stress_vector);
 
@@ -484,8 +481,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 if (damage_increment > tolerance) damage += damage_increment;
                 this->CheckInternalVariable(damage);
                 if (plastic_consistency_increment > tolerance) noalias(plastic_strain_increment) = plastic_consistency_increment * g_flux;
-                noalias(deepp) += plastic_strain_increment;
-                noalias(plastic_strain) += deepp;
+                noalias(plastic_strain) += plastic_strain_increment;
 
                 effective_predictive_stress_vector -= prod(r_constitutive_matrix, plastic_strain_increment);
                 predictive_stress_vector = (1.0 - damage) * effective_predictive_stress_vector;
