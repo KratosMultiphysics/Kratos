@@ -233,8 +233,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 this->CalculateTangentTensor(rValues);
             }
         } else {
-			// noalias(r_integrated_stress_vector) = predictive_stress_vector;
-			noalias(r_integrated_stress_vector) = (1.0 - damage) * effective_predictive_stress_vector;
+			noalias(r_integrated_stress_vector) = predictive_stress_vector;
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 noalias(r_tangent_tensor) = (1.0 - damage) * r_constitutive_matrix;
             }
@@ -519,15 +518,8 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
             KRATOS_WARNING_IF("Backward Euler Plastic Damage", number_iteration >= max_iter) << "Max iterations reached in the return mapping of the Plastic Damage model" << std::endl; 
             // Updated Values
             noalias(r_integrated_stress_vector) = predictive_stress_vector;
-            if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                this->CalculateTangentTensor(rValues);
-            } 
         } else {
-			// noalias(r_integrated_stress_vector) = predictive_stress_vector;
-			noalias(r_integrated_stress_vector) = (1.0 - damage) * effective_predictive_stress_vector;
-            if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                noalias(r_tangent_tensor) = (1.0 - damage) * r_constitutive_matrix;
-            }
+			noalias(r_integrated_stress_vector) = predictive_stress_vector;
         }
         // Update internal variables
         mPlasticDissipation = plastic_dissipation;
@@ -871,7 +863,7 @@ CheckInternalVariable(
     double& rInternalVariable
 )
 {
-    if (rInternalVariable > 1.0) rInternalVariable = 0.99999;
+    if (rInternalVariable >= 1.0) rInternalVariable = 0.99999;
     else if (rInternalVariable < tolerance) rInternalVariable = 0.0;
 }
 
