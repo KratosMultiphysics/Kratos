@@ -54,10 +54,11 @@
                 "create_output_file": true
             }
         },{
-            "python_module" : "forces_elements_to_nodes_process",
+            "python_module" : "compute_moment_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
-            "process_name"  : "ComputeLiftProcess3D",
+            "process_name"  : "ComputeMomentProcess3D",
             "Parameters"    : {
+                "reference_point" : [0.0,0.0,0.0],
                 "model_part_name" : "MainModelPart.Body2D_Body",
                 "velocity_infinity" : [10.0,0.0,0.0],
                 "create_output_file": true
@@ -122,8 +123,8 @@
             "help"            : "",
             "process_name"    : "CompareTwoFilesCheckProcess",
             "Parameters" :{
-                "output_file_name"    : "cl_points_with_lift.dat",
-                "reference_file_name" : "cl_ref.dat",
+                "output_file_name"    : "moment.dat",
+                "reference_file_name" : "moment_ref.dat",
                 "comparison_type"     : "dat_file",
                 "remove_output_file"    : true,
                 "tolerance"             : 1e-9,
