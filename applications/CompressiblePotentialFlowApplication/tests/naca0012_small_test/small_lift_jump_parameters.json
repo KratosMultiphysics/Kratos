@@ -41,7 +41,6 @@
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.Body2D_Body",
                 "wake_direction"       : [1.0,0.0,0.0],
-				"create_output_file": true,
                 "epsilon"         : 1e-9
             }
         },{
