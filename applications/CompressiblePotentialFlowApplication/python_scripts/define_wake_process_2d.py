@@ -19,7 +19,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "",
             "wake_direction": [1.0,0.0,0.0],
-            "create_output_file": false,
             "epsilon": 1e-9
         }''')
         settings.ValidateAndAssignDefaults(default_settings)
