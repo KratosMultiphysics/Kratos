@@ -86,10 +86,6 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
 
         KratosMultiphysics.Logger.PrintInfo("MPIUPwSolver: ", "Solver initialization finished.")
 
-    def print_on_rank_zero(self, *args):
-        KratosMPI.mpi.world.barrier()
-        if KratosMPI.mpi.rank == 0:
-            KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
 
     #### Specific internal functions ####
 
