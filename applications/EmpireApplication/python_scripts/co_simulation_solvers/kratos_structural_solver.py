@@ -19,7 +19,8 @@ class KratosStructuralSolver(KratosBaseFieldSolver):
 
     def SolveSolutionStep(self):
         super(KratosStructuralSolver, self).SolveSolutionStep()
-        smp_normal_calculator = self.model["Structure.LineLoad2D_NormalCalculator"]
+        ##FIXME: Need to move this somewhere, should not be called here.
+        smp_normal_calculator = self.model["Structure.SurfaceLoad3D_NormalCalculator"]
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(smp_normal_calculator, smp_normal_calculator.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
     def _GetParallelType(self):
