@@ -7,16 +7,12 @@
         "end_time"        : 1
     },
     "solver_settings"                  : {
-        "solver_type"            : "Potential_flow",
+        "solver_type"            : "potential_flow",
         "domain_size"     : 2,
         "model_part_name" : "MainModelPart",
         "model_import_settings"  : {
             "input_type"     : "mdpa",
             "input_filename" : "naca0012_small"
-        },
-        "element_replace_settings": {
-                    "element_name":"IncompressiblePotentialFlowElement2D3N",
-                    "condition_name": "PotentialWallCondition2D2N"
         },
         "maximum_iterations"     : 10,
         "echo_level"             : 0,
@@ -25,7 +21,7 @@
                 "verbosity"               : 0
         },
         "volume_model_part_name" : "Parts_Parts_Auto1",
-        "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_UpperSurface","Body2D_LowerSurface"],
+        "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
         "no_skin_parts"          : []
     },
     "processes" : {
@@ -35,7 +31,6 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "FarFieldProcess",
             "Parameters"    : {
-                "mesh_id"           : 0,
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "inlet_phi"         : 1.0,
                 "velocity_infinity" : [10.0,0.0,0.0]
@@ -45,11 +40,8 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "DefineWakeProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Wake2D_Wake_Auto1",
-                "upper_surface_model_part_name" : "MainModelPart.Body2D_UpperSurface",
-                "lower_surface_model_part_name" : "MainModelPart.Body2D_LowerSurface",
-                "wake_direction"       : [1.0,0.0,0.0],
+                "model_part_name" : "MainModelPart.Body2D_Body",
+                "wake_direction"  : [1.0,0.0,0.0],
                 "epsilon"         : 1e-9
             }
         },{
@@ -57,10 +49,17 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "ComputeLiftProcess3D",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "MainModelPart",
-                "upper_surface_model_part_name" : "MainModelPart.Body2D_UpperSurface",
-                "lower_surface_model_part_name" : "MainModelPart.Body2D_LowerSurface",
+                "model_part_name" : "MainModelPart.Body2D_Body",
+                "velocity_infinity" : [10.0,0.0,0.0],
+                "create_output_file": true
+            }
+        },{
+            "python_module" : "compute_moment_process",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "process_name"  : "ComputeMomentProcess3D",
+            "Parameters"    : {
+                "reference_point" : [0.0,0.0,0.0],
+                "model_part_name" : "MainModelPart.Body2D_Body",
                 "velocity_infinity" : [10.0,0.0,0.0],
                 "create_output_file": true
             }
@@ -69,15 +68,13 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "PlaceholderProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "MainModelPart.Body2D_UpperSurface"
+                "model_part_name" : "MainModelPart.Body2D_Body"
             }
         },{
             "python_module" : "placeholder_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "PlaceholderProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "MainModelPart.Body2D_LowerSurface"
             }
         }],
@@ -115,6 +112,19 @@
             "Parameters" :{
                 "output_file_name"    : "cl.dat",
                 "reference_file_name" : "cl_ref.dat",
+                "comparison_type"     : "dat_file",
+                "remove_output_file"    : true,
+                "tolerance"             : 1e-9,
+                "relative_tolerance"    : 1e-9
+            }
+        },{
+            "python_module"   : "compare_two_files_check_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "help"            : "",
+            "process_name"    : "CompareTwoFilesCheckProcess",
+            "Parameters" :{
+                "output_file_name"    : "moment.dat",
+                "reference_file_name" : "moment_ref.dat",
                 "comparison_type"     : "dat_file",
                 "remove_output_file"    : true,
                 "tolerance"             : 1e-9,
