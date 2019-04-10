@@ -34,6 +34,7 @@ def AssembleTestSuites():
     smallSuite.addTest(PotentialFlowTests('test_Naca0012Small'))
     smallSuite.addTest(PotentialFlowTests('test_SmallLiftJumpTest'))
     smallSuite.addTest(PotentialFlowTests('test_Naca0012Small'))
+    smallSuite.addTest(PotentialFlowTests('test_LiftAndMoment'))
     smallSuite.addTest(PotentialFlowTests('test_Naca0012SmallAdjoint'))
     #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPotentialElement2D]))
 
