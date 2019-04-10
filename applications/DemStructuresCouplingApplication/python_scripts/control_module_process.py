@@ -17,6 +17,7 @@ class ControlModuleProcess(KratosMultiphysics.Process):
         reaction_variable_name = settings["reaction_variable_name"].GetString()
         target_stress_variable_name = settings["target_stress_variable_name"].GetString()
         reaction_stress_variable_name = settings["reaction_stress_variable_name"].GetString()
+        loading_velocity_variable_name = settings["loading_velocity_variable_name"].GetString()
 
         self.components_process_list = []
 
@@ -27,6 +28,7 @@ class ControlModuleProcess(KratosMultiphysics.Process):
             x_params.AddEmptyValue("reaction_variable_name").SetString(reaction_variable_name+"_X")
             x_params.AddEmptyValue("target_stress_variable_name").SetString(target_stress_variable_name+"_X")
             x_params.AddEmptyValue("reaction_stress_variable_name").SetString(reaction_stress_variable_name+"_X")
+            x_params.AddEmptyValue("loading_velocity_variable_name").SetString(loading_velocity_variable_name+"_X")
             x_params.AddValue("target_stress_table_id",settings["target_stress_table_id"][0])
             x_params.AddValue("initial_velocity",settings["initial_velocity"][0])
             x_params.AddValue("limit_velocity",settings["limit_velocity"][0])
@@ -43,6 +45,7 @@ class ControlModuleProcess(KratosMultiphysics.Process):
             y_params.AddEmptyValue("reaction_variable_name").SetString(reaction_variable_name+"_Y")
             y_params.AddEmptyValue("target_stress_variable_name").SetString(target_stress_variable_name+"_Y")
             y_params.AddEmptyValue("reaction_stress_variable_name").SetString(reaction_stress_variable_name+"_Y")
+            y_params.AddEmptyValue("loading_velocity_variable_name").SetString(loading_velocity_variable_name+"_Y")
             y_params.AddValue("target_stress_table_id",settings["target_stress_table_id"][1])
             y_params.AddValue("initial_velocity",settings["initial_velocity"][1])
             y_params.AddValue("limit_velocity",settings["limit_velocity"][1])
@@ -59,6 +62,7 @@ class ControlModuleProcess(KratosMultiphysics.Process):
             z_params.AddEmptyValue("reaction_variable_name").SetString(reaction_variable_name+"_Z")
             z_params.AddEmptyValue("target_stress_variable_name").SetString(target_stress_variable_name+"_Z")
             z_params.AddEmptyValue("reaction_stress_variable_name").SetString(reaction_stress_variable_name+"_Z")
+            z_params.AddEmptyValue("loading_velocity_variable_name").SetString(loading_velocity_variable_name+"_Z")
             z_params.AddValue("target_stress_table_id",settings["target_stress_table_id"][2])
             z_params.AddValue("initial_velocity",settings["initial_velocity"][2])
             z_params.AddValue("limit_velocity",settings["limit_velocity"][2])

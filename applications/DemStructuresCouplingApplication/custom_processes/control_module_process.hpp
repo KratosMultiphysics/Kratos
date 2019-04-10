@@ -51,6 +51,7 @@ public:
                 "reaction_variable_name": "REACTION_VARIABLE_NAME",
                 "target_stress_variable_name": "TARGET_STRESS_VARIABLE_NAME",
                 "reaction_stress_variable_name": "REACTION_STRESS_VARIABLE_NAME",
+                "loading_velocity_variable_name": "LOADING_VELOCITY_VARIABLE_NAME",
                 "target_stress_table_id" : 1,
                 "initial_velocity" : 0.0,
                 "limit_velocity" : 1.0e3,
@@ -67,7 +68,8 @@ public:
         mReactionVariableName = rParameters["reaction_variable_name"].GetString();
         mTargetStressVariableName = rParameters["target_stress_variable_name"].GetString();
         mReactionStressVariableName = rParameters["reaction_stress_variable_name"].GetString();
-        mpTargetStressTableId = rParameters["target_stress_table_id"].GetInt();
+        mLoadingVelocityVariableName = rParameters["loading_velocity_variable_name"].GetString();
+        mTargetStressTableId = rParameters["target_stress_table_id"].GetInt();
         mVelocity = rParameters["initial_velocity"].GetDouble();
         mLimitVelocity = rParameters["limit_velocity"].GetDouble();
         mVelocityFactor = rParameters["velocity_factor"].GetDouble();
@@ -179,10 +181,20 @@ public:
             mVelocity += mVelocityFactor * DeltaVelocity;
 
             if(std::abs(mVelocity) > std::abs(mLimitVelocity))
-                mVelocity = mLimitVelocity;
+            {
+                if(mVelocity >= 0.0)
+                {
+                    mVelocity = std::abs(mLimitVelocity);
+                }
+                else
+                {
+                    mVelocity = -1.0*std::abs(mLimitVelocity);
+                }
+            }
 
             ComponentType TargetStressVarComponent = KratosComponents< ComponentType >::Get(mTargetStressVariableName);
             ComponentType ReactionStressVarComponent = KratosComponents< ComponentType >::Get(mReactionStressVariableName);
+            ComponentType LoadingVelocityVarComponent = KratosComponents< ComponentType >::Get(mLoadingVelocityVariableName);
             #pragma omp parallel for
             for(int i = 0; i<NNodes; i++)
             {
@@ -190,6 +202,7 @@ public:
 
                 it->FastGetSolutionStepValue(TargetStressVarComponent) = pTargetStressTable->GetValue(CurrentTime);
                 it->FastGetSolutionStepValue(ReactionStressVarComponent) = ReactionStress;
+                it->FastGetSolutionStepValue(LoadingVelocityVarComponent) = mVelocity;
             }
         }
 
@@ -225,7 +238,8 @@ protected:
     std::string mReactionVariableName;
     std::string mTargetStressVariableName;
     std::string mReactionStressVariableName;
-    unsigned int mpTargetStressTableId;
+    std::string mLoadingVelocityVariableName;
+    unsigned int mTargetStressTableId;
     double mVelocity;
     double mLimitVelocity;
     double mVelocityFactor;
