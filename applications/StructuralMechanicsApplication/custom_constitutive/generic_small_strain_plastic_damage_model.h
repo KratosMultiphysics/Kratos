@@ -392,10 +392,7 @@ public:
         const double PlasticDenominator,
         const double UniaxialStressPlast,
         const double Hardd,
-        const double& rDamageDissipationIncrement,
-        const int PlasticDamageCase);
-
-    double McaullyBrackets(const double Number);
+        const double& rDamageDissipationIncrement);
 
     double CalculatePlasticParameters(
         array_1d<double, VoigtSize>& rPredictiveStressVector,

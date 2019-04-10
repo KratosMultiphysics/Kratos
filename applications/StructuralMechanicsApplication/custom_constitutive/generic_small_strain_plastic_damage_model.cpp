@@ -72,8 +72,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
 {
     // Integrate Stress Damage
     Vector& r_integrated_stress_vector = rValues.GetStressVector();
-    // const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
-    const double characteristic_length = 0.01; // todo
+    const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
     Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
@@ -158,7 +157,8 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                                 f_flux, g_flux, r_constitutive_matrix, 
                                 damage_indicator, plasticity_indicator, 
                                 plastic_strain, damage_increment, 
-                                plastic_consistency_increment, plastic_denominator, uniaxial_stress_plasticity, hardd, damage_dissipation_increment, 1);  
+                                plastic_consistency_increment, plastic_denominator, 
+                                uniaxial_stress_plasticity, hardd, damage_dissipation_increment);  
                     } else {
                         damage_increment = 0.0;
                         plastic_consistency_increment = plasticity_indicator * plastic_denominator;
@@ -171,7 +171,8 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                                 f_flux, g_flux, r_constitutive_matrix, 
                                 damage_indicator, plasticity_indicator, 
                                 plastic_strain, damage_increment, 
-                                plastic_consistency_increment, plastic_denominator, uniaxial_stress_plasticity, hardd, damage_dissipation_increment, 1);  
+                                plastic_consistency_increment, plastic_denominator, 
+                                uniaxial_stress_plasticity, hardd, damage_dissipation_increment);  
                     } else {
                         const double denom = hardd + inner_prod(damage_yield_flux, effective_predictive_stress_vector);
                         damage_increment = damage_indicator / denom;
@@ -187,7 +188,8 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                                 f_flux, g_flux, r_constitutive_matrix, 
                                 damage_indicator, plasticity_indicator, 
                                 plastic_strain, damage_increment, 
-                                plastic_consistency_increment, plastic_denominator, uniaxial_stress_plasticity, hardd, damage_dissipation_increment, 1);
+                                plastic_consistency_increment, plastic_denominator, 
+                                uniaxial_stress_plasticity, hardd, damage_dissipation_increment); 
                     }
 				} // Increments computed
 
@@ -359,8 +361,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
 {
     // Integrate Stress Damage
     Vector& r_integrated_stress_vector = rValues.GetStressVector();
-    // const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
-    const double characteristic_length = 0.01; // todo
+    const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
     Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
@@ -378,7 +379,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
     }
     // We compute the stress
-    if(r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+    if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         // Elastic Matrix
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
@@ -445,7 +446,8 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                                 f_flux, g_flux, r_constitutive_matrix, 
                                 damage_indicator, plasticity_indicator, 
                                 plastic_strain, damage_increment, 
-                                plastic_consistency_increment, plastic_denominator, uniaxial_stress_plasticity, hardd, damage_dissipation_increment, 1);  
+                                plastic_consistency_increment, plastic_denominator, 
+                                uniaxial_stress_plasticity, hardd, damage_dissipation_increment);    
                     } else {
                         damage_increment = 0.0;
                         plastic_consistency_increment = plasticity_indicator * plastic_denominator;
@@ -458,7 +460,8 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                                 f_flux, g_flux, r_constitutive_matrix, 
                                 damage_indicator, plasticity_indicator, 
                                 plastic_strain, damage_increment, 
-                                plastic_consistency_increment, plastic_denominator, uniaxial_stress_plasticity, hardd, damage_dissipation_increment, 1);  
+                                plastic_consistency_increment, plastic_denominator, 
+                                uniaxial_stress_plasticity, hardd, damage_dissipation_increment);   
                     } else {
                         const double denom = hardd + inner_prod(damage_yield_flux, effective_predictive_stress_vector);
                         damage_increment = damage_indicator / denom;
@@ -474,7 +477,8 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                                 f_flux, g_flux, r_constitutive_matrix, 
                                 damage_indicator, plasticity_indicator, 
                                 plastic_strain, damage_increment, 
-                                plastic_consistency_increment, plastic_denominator, uniaxial_stress_plasticity, hardd, damage_dissipation_increment, 1);
+                                plastic_consistency_increment, plastic_denominator, 
+                                uniaxial_stress_plasticity, hardd, damage_dissipation_increment);  
                     }
 				} // Increments computed
 
@@ -777,7 +781,7 @@ CalculateDamageParameters(
         const1 = compression_indicator_factor*rUniaxialStress / (fracture_energy_compression*suma);
     }
     double constant = const0 + const1;
-    const double normalized_free_energy = constant*UndamagedFreeEnergy;
+    const double normalized_free_energy = constant * UndamagedFreeEnergy;
     rDamageDissipationIncrement = DamageIncrement * normalized_free_energy;
 
     this->CheckInternalVariable(rDamageDissipationIncrement);
@@ -882,52 +886,40 @@ CalculateIncrementsPlasticDamageCase(
 	const double PlasticDenominator,
     const double UniaxialStressPlast,
     const double Hardd,
-    const double& rDamageDissipationIncrement,
-	const int PlasticDamageCase
+    const double& rDamageDissipationIncrement
 )
 {
-    const Vector S0 = prod(rElasticMatrix, rStrainVector - rPlasticStrain);
-    const Vector S = (1.0 - Damage) * S0;
-    const double vs = inner_prod(rFluxDamageYield, S0);
-	const double as = inner_prod(rPlasticityFlux, S0);
-    double fact1 = 0.0, hkg = 0.0;
+    const Vector effective_stress_vector = prod(rElasticMatrix, rStrainVector - rPlasticStrain);
+    const Vector stress_vector = (1.0 - Damage) * effective_stress_vector;
+    const double inner_fluxdamage_eff_stress = inner_prod(rFluxDamageYield, effective_stress_vector);
+	const double inner_fluxplast_eff_stress = inner_prod(rPlasticityFlux, effective_stress_vector);
+    double fact1 = 0.0, inner_normstress_gflux = 0.0;
 
-    const Vector HCAPA = S / UniaxialStressPlast;
+    const Vector normalized_stress = stress_vector / UniaxialStressPlast;
 
     for (IndexType i = 0; i < 6; ++i) {
         double c = 0.0;
         for (IndexType j = 0; j < 6; ++j) {
             c += rFluxDamageYield[j] * rElasticMatrix(i, j);
         }
-        hkg += HCAPA[i] * rPlasticityGFlux[i];
+        inner_normstress_gflux += normalized_stress[i] * rPlasticityGFlux[i];
         fact1 += c * rPlasticityGFlux[i];
     }
     fact1 *= (1.0 - Damage);
 
-    const double facta = vs;
+    const double facta = inner_fluxdamage_eff_stress;
     const double factb = 1.0 / PlasticDenominator;
-    const double factc = as + Hardd;
+    const double factc = inner_fluxplast_eff_stress + Hardd;
     const double factd = fact1;
-    const double denom = facta*factd - factb*factc;
+    const double denominator = facta*factd - factb*factc;
 
-    if (std::abs(denom) > tolerance) {
-        rDamageIncrement = (factd*PlasticityIndicator - factb*DamageIndicator) / denom;
-        rPlasticConsistencyIncrement = (facta*DamageIndicator - factc*PlasticityIndicator) / denom;
+    if (std::abs(denominator) > tolerance) {
+        rDamageIncrement = (factd * PlasticityIndicator - factb * DamageIndicator) / denominator;
+        rPlasticConsistencyIncrement = (facta * DamageIndicator - factc * PlasticityIndicator) / denominator;
     } else {
-        rDamageIncrement = PlasticityIndicator / (facta + factd*rDamageDissipationIncrement/hkg);
-        rPlasticConsistencyIncrement = PlasticityIndicator / (factd + facta*hkg/rDamageDissipationIncrement);
+        rDamageIncrement = PlasticityIndicator / (facta + factd * rDamageDissipationIncrement / inner_normstress_gflux);
+        rPlasticConsistencyIncrement = PlasticityIndicator / (factd + facta * inner_normstress_gflux / rDamageDissipationIncrement);
     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-template <class TPlasticityIntegratorType, class TDamageIntegratorType>
-double GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::
-McaullyBrackets(
-    const double Number
-)
-{
-    return 0.5*(Number + std::abs(Number));
 }
 
 /***********************************************************************************/
