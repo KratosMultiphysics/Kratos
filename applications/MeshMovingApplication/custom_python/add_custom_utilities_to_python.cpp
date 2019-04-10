@@ -17,15 +17,17 @@
 #include "boost/numeric/ublas/vector.hpp"
 
 // Project includes
-#include "custom_python/add_custom_utilities_to_python.h"
+#include "linear_solvers/linear_solver.h"
+#include "spaces/ublas_space.h"
 
+// Application includes
+#include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/ball_vertex_meshmoving.h"
 #include "custom_utilities/ball_vertex_meshmoving3D.h"
 #include "custom_utilities/explicit_mesh_moving_utilities.h"
+#include "custom_utilities/fixed_mesh_ale_utilities.h"
 #include "custom_utilities/mesh_velocity_calculation.h"
 #include "custom_utilities/move_mesh_utilities.h"
-#include "linear_solvers/linear_solver.h"
-#include "spaces/ublas_space.h"
 
 namespace Kratos {
 namespace Python {
@@ -56,6 +58,14 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ProjectVirtualValues2D",&ExplicitMeshMovingUtilities::ProjectVirtualValues<2>)
         .def("ProjectVirtualValues3D",&ExplicitMeshMovingUtilities::ProjectVirtualValues<3>)
         .def("UndoMeshMovement",&ExplicitMeshMovingUtilities::UndoMeshMovement);
+
+    py::class_<FixedMeshALEUtilities>(m, "FixedMeshALEUtilities")
+        .def(py::init<ModelPart &, ModelPart &, const std::string>())
+        .def("ComputeMeshMovement", &FixedMeshALEUtilities::ComputeMeshMovement)
+        .def("FillVirtualModelPart", &FixedMeshALEUtilities::FillVirtualModelPart)
+        .def("ProjectVirtualValues2D", &FixedMeshALEUtilities::ProjectVirtualValues<2>)
+        .def("ProjectVirtualValues3D", &FixedMeshALEUtilities::ProjectVirtualValues<3>)
+        .def("UndoMeshMovement", &FixedMeshALEUtilities::UndoMeshMovement);
 
     void (*CalculateMeshVelocitiesBDF1)(ModelPart&, const TimeDiscretization::BDF1&) = &MeshVelocityCalculation::CalculateMeshVelocities;
     void (*CalculateMeshVelocitiesBDF2)(ModelPart&, const TimeDiscretization::BDF2&) = &MeshVelocityCalculation::CalculateMeshVelocities;
