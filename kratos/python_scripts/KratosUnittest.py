@@ -162,20 +162,13 @@ def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
 
 class WorkFolderScope:
     """Helper-class to execute test in a specific path"""
-    def __init__(self, rel_path_work_folder, file_path, add_to_path=False):
+    def __init__(self, rel_path_work_folder, file_path):
         """file_path is the __file__ argument"""
         self.currentPath = os.getcwd()
-        self.add_to_path = add_to_path
-        if self.add_to_path:
-            self.currentPythonpath = sys.path
         self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(file_path)), rel_path_work_folder))
 
     def __enter__(self):
         os.chdir(self.scope)
-        if self.add_to_path:
-            sys.path.append(self.scope)
 
     def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.currentPath)
-        if self.add_to_path:
-            sys.path = self.currentPythonpath
