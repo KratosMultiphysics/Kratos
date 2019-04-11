@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 # Importing the Kratos Library
 import KratosMultiphysics
-from python_solver import PythonSolver
+from KratosMultiphysics.python_solver import PythonSolver
 
 # Import applications
 import KratosMultiphysics.ShallowWaterApplication as Shallow
@@ -153,7 +153,7 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         (self.solver).Initialize()
 
-        self.print_on_rank_zero("::[ShallowWaterBaseSolver]::", "Mesh stage solver initialization finished")
+        KratosMultiphysics.Logger.PrintInfo("::[ShallowWaterBaseSolver]::", "Mesh stage solver initialization finished")
 
     def AdvanceInTime(self, current_time):
         dt = self._ComputeDeltaTime()

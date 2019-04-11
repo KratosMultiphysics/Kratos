@@ -73,17 +73,17 @@ public:
 
     /**
      * @brief It computes the intersection between two metrics
-     * @param Metric1 The first metric
-     * @param Metric2 The second metric
+     * @param rMetric1 The first metric
+     * @param rMetric2 The second metric
      * @return The intersected metric
      */
     static inline TensorArrayType IntersectMetrics(
-        const TensorArrayType& Metric1,
-        const TensorArrayType& Metric2
+        const TensorArrayType& rMetric1,
+        const TensorArrayType& rMetric2
         )
     {
-        const MatrixType& metric1_matrix = MathUtils<double>::VectorToSymmetricTensor<TensorArrayType, MatrixType>(Metric1);
-        const MatrixType& metric2_matrix = MathUtils<double>::VectorToSymmetricTensor<TensorArrayType, MatrixType>(Metric2);
+        const MatrixType metric1_matrix = MathUtils<double>::VectorToSymmetricTensor<TensorArrayType, MatrixType>(rMetric1);
+        const MatrixType metric2_matrix = MathUtils<double>::VectorToSymmetricTensor<TensorArrayType, MatrixType>(rMetric2);
 
         MatrixType auxmat, emat;
 
@@ -99,8 +99,9 @@ public:
         MatrixType mumat;
         MathUtils<double>::BDBtProductOperation(mumat, metric2_matrix, emat);
 
-        for (std::size_t i = 0; i < TDim; ++i)
+        for (std::size_t i = 0; i < TDim; ++i) {
             auxmat(i, i) = MathUtils<double>::Max(lambdamat(i, i), mumat(i, i));
+        }
 
         MatrixType invemat;
         MathUtils<double>::InvertMatrix(emat, invemat, auxdet);
@@ -108,9 +109,9 @@ public:
         MatrixType intersection_matrix;
         MathUtils<double>::BDBtProductOperation(intersection_matrix, auxmat, invemat);
 
-        const TensorArrayType& Intersection = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(intersection_matrix);
+        const TensorArrayType intersection = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(intersection_matrix);
 
-        return Intersection;
+        return intersection;
     }
 
     ///@}

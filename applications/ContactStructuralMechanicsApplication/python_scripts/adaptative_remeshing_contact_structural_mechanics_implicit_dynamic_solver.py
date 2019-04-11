@@ -4,7 +4,14 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics as KM
 
 # Import applications
-import KratosMultiphysics.MeshingApplication as MA
+import KratosMultiphysics.StructuralMechanicsApplication as SMA
+import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
+
+import KratosMultiphysics.kratos_utilities as kratos_utilities
+if kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication"):
+    has_meshing_application = True
+else:
+    has_meshing_application = False
 
 # Import base class file
 from KratosMultiphysics.ContactStructuralMechanicsApplication import contact_structural_mechanics_implicit_dynamic_solver
@@ -33,14 +40,15 @@ class AdaptativeRemeshingContactImplicitMechanicalSolver(contact_structural_mech
 
         # Construct the base solver.
         super(AdaptativeRemeshingContactImplicitMechanicalSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[AdaptativeRemeshingContactImplicitMechanicalSolver]:: ", "Construction finished")
+        KM.Logger.PrintInfo("::[AdaptativeRemeshingContactImplicitMechanicalSolver]:: ", "Construction finished")
 
     #### Private functions ####
 
     def AddVariables(self):
         super(AdaptativeRemeshingContactImplicitMechanicalSolver, self).AddVariables()
-        self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H)
-        self.print_on_rank_zero("::[AdaptativeRemeshingContactImplicitMechanicalSolver]:: ", "Variables ADDED")
+        if has_meshing_application:
+            self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H)
+        KM.Logger.PrintInfo("::[AdaptativeRemeshingContactImplicitMechanicalSolver]:: ", "Variables ADDED")
 
     def get_remeshing_process(self):
         if not hasattr(self, '_remeshing_process'):
@@ -48,7 +56,7 @@ class AdaptativeRemeshingContactImplicitMechanicalSolver(contact_structural_mech
         return self._remeshing_process
 
     def _create_remeshing_process(self):
-        if (self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2):
+        if self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
             remeshing_process = MA.MmgProcess2D(self.main_model_part, self.adaptative_remesh_parameters["remeshing_parameters"])
         else:
             remeshing_process = MA.MmgProcess3D(self.main_model_part, self.adaptative_remesh_parameters["remeshing_parameters"])
@@ -61,7 +69,7 @@ class AdaptativeRemeshingContactImplicitMechanicalSolver(contact_structural_mech
         return self._metric_process
 
     def _create_metric_process(self):
-        if (self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2):
+        if self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
             metric_process = MA.MetricErrorProcess2D(self.main_model_part, self.adaptative_remesh_parameters["metric_error_parameters"])
         else:
             metric_process = MA.MetricErrorProcess3D(self.main_model_part, self.adaptative_remesh_parameters["metric_error_parameters"])
