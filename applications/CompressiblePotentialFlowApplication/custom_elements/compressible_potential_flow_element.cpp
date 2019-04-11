@@ -412,15 +412,6 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNormal
 
     GetPotentialOnNormalElement(data.phis);
     noalias(rRightHandSideVector) = -prod(rLaplacianMatrix, data.phis);
-
-    // const double aux = data.vol * density;
-    // for (unsigned int i = 0; i < NumNodes; ++i) {
-    //     for (unsigned int j = 0; j < NumNodes; ++j) {
-    //         for (unsigned int k = 0; k < Dim; ++k) {
-    //             rRightHandSideVector[i] -= aux * data.DN_DX(i,k) * data.DN_DX(j,k) * data.phis(j);
-    //         }
-    //     }
-    // }
 }
 
 template <int Dim, int NumNodes>
