@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -35,6 +35,64 @@ void EmbeddedNodalVariableCalculationElementSimplex<TVarType>::CalculateLocalSys
 }
 
 template <>
+int EmbeddedNodalVariableCalculationElementSimplex<double>::Check(const ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    // Perform basic element checks
+    int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
+    if(ErrorCode != 0) {
+        return ErrorCode;
+    }
+
+    // Check that all required variables have been registered
+    if(DISTANCE.Key() == 0) {
+        KRATOS_ERROR << "DISTANCE Key is 0. Check if the application was correctly registered.";
+    }
+    if(NODAL_MAUX.Key() == 0) {
+        KRATOS_ERROR << "NODAL_MAUX Key is 0. Check if the application was correctly registered.";
+    }
+
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+    for(auto &r_node : this->GetGeometry()) {
+        KRATOS_ERROR_IF(!r_node.SolutionStepsDataHas(NODAL_MAUX)) << "Missing NODAL_MAUX variable on solution step data for node " << r_node.Id() << std::endl;;
+    }
+
+    return 0;
+
+    KRATOS_CATCH("");
+}
+
+template <>
+int EmbeddedNodalVariableCalculationElementSimplex<array_1d<double,3>>::Check(const ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    // Perform basic element checks
+    int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
+    if(ErrorCode != 0) {
+        return ErrorCode;
+    }
+
+    // Check that all required variables have been registered
+    if(DISTANCE.Key() == 0) {
+        KRATOS_ERROR << "DISTANCE Key is 0. Check if the application was correctly registered.";
+    }
+    if(NODAL_VAUX.Key() == 0) {
+        KRATOS_ERROR << "NODAL_VAUX Key is 0. Check if the application was correctly registered.";
+    }
+
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+    for(auto &r_node : this->GetGeometry()) {
+        KRATOS_ERROR_IF(!r_node.SolutionStepsDataHas(NODAL_VAUX)) << "Missing NODAL_VAUX variable on solution step data for node " << r_node.Id() << std::endl;;
+    }
+
+    return 0;
+
+    KRATOS_CATCH("");
+}
+
+template <>
 void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateLeftHandSide(
     MatrixType &rLeftHandSideMatrix,
     ProcessInfo &rCurrentProcessInfo)
@@ -44,16 +102,13 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateLeftHandSi
         rLeftHandSideMatrix.resize(2, 2, false);
     }
 
-    // Initialize Left Hand Side matrix
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(2,2);
-
     // Get the element shape function values from the normalized distance to node 0
-    const auto N = this->GetDistanceBasedShapeFunctionValues();
+    const auto &rN = this->GetDistanceBasedShapeFunctionValues();
 
     // Compute the Gramm matrix
     for (unsigned int i = 0; i < 2; ++i) {
         for (unsigned int j = 0; j < 2; ++j) {
-            rLeftHandSideMatrix(i, j) = N[i] * N[j];
+            rLeftHandSideMatrix(i, j) = rN[i] * rN[j];
         }
     }
 }
@@ -68,17 +123,14 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double,3>>::Calcula
         rLeftHandSideMatrix.resize(6, 6, false);
     }
 
-    // Initialize Left Hand Side matrix
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(6,6);
-
     // Get the element shape function values from the normalized distance to node 0
-    const auto N = this->GetDistanceBasedShapeFunctionValues();
+    const auto &rN = this->GetDistanceBasedShapeFunctionValues();
 
     // Compute the Gramm matrix
     for (unsigned int i = 0; i < 2; ++i) {
         for (unsigned int j = 0; j < 2; ++j) {
             for (unsigned int k = 0; k < 3; ++k) {
-                rLeftHandSideMatrix(i * 3 + k, j * 3 + k) = N[i] * N[j];
+                rLeftHandSideMatrix(i * 3 + k, j * 3 + k) = rN[i] * rN[j];
             }
         }
     }
@@ -94,16 +146,13 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateRightHandS
         rRigthHandSideVector.resize(2, false);
     }
 
-    // Initialize Left Hand Side matrix
-    noalias(rRigthHandSideVector) = ZeroVector(2);
-
     // Get the element shape function values from the normalized distance to node 0
-    const auto data = this->GetValue(NODAL_MAUX);
-    const auto N = this->GetDistanceBasedShapeFunctionValues();
+    const auto &rData = this->GetValue(NODAL_MAUX);
+    const auto &rN = this->GetDistanceBasedShapeFunctionValues();
 
     // Compute the Gramm matrix
     for (unsigned int i = 0; i < 2; ++i) {
-        rRigthHandSideVector(i) = N[i] * data;
+        rRigthHandSideVector(i) = rN[i] * rData;
     }
 }
 
@@ -117,17 +166,14 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::Calcul
         rRigthHandSideVector.resize(6, false);
     }
 
-    // Initialize Left Hand Side matrix
-    noalias(rRigthHandSideVector) = ZeroVector(6);
-
     // Get the element shape function values from the normalized distance to node 0
-    const auto data = this->GetValue(NODAL_VAUX);
-    const auto N = this->GetDistanceBasedShapeFunctionValues();
+    const auto &rData = this->GetValue(NODAL_VAUX);
+    const auto &rN = this->GetDistanceBasedShapeFunctionValues();
 
     // Compute the Gramm matrix
     for (unsigned int i = 0; i < 2; ++i) {
         for (unsigned int k = 0; k < 3; ++k) {
-            rRigthHandSideVector(i * 3 + k) = N[i] * data[k];
+            rRigthHandSideVector(i * 3 + k) = rN[i] * rData(k);
         }
     }
 }
@@ -155,7 +201,6 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::Equati
     if (rResult.size() != 6) {
         rResult.resize(6, false);
     }
-
 
     const auto x_pos = (this->GetGeometry())[0].GetDofPosition(NODAL_VAUX_X);
     for (unsigned int i = 0; i < 2; i++) {

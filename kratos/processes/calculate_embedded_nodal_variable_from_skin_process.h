@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -15,16 +15,14 @@
 #define  KRATOS_CALCULATE_EMBEDDED_VARIABLE_FROM_SKIN_PROCESS_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
+
 
 // External includes
+
 
 // Project includes
 #include "containers/model.h"
 #include "includes/define.h"
-#include "includes/model_part.h"
 #include "includes/kratos_flags.h"
 #include "elements/embedded_nodal_variable_calculation_element_simplex.h"
 #include "linear_solvers/cg_solver.h"
@@ -42,17 +40,21 @@ namespace Kratos
 ///@name Kratos Globals
 ///@{
 
+
 ///@}
 ///@name Type Definitions
 ///@{
+
 
 ///@}
 ///@name  Enum's
 ///@{
 
+
 ///@}
 ///@name  Functions
 ///@{
+
 
 ///@}
 ///@name Kratos Classes
@@ -77,11 +79,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor
-    EmbeddedNodalVariableFromSkinTypeHelperClass() {};
-
-    /// Destructor.
-    ~EmbeddedNodalVariableFromSkinTypeHelperClass() {};
 
     ///@}
     ///@name Operators
@@ -92,10 +89,28 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Get the Unknown Variable object
+     * This method returns a reference to the unknown variable. For double embedded nodal
+     * variables this is a reference to NODAL_MAUX. In case of array type embedded nodal
+     * variables, it returns a reference to NODAL_VAUX. These are the variables used when
+     * solving the embedded nodal values least squares minimization problem.
+     * @return const Variable<TVarType>& Reference to the unknown variable
+     */
     static inline const Variable<TVarType> &GetUnknownVariable();
 
+    /**
+     * @brief Add the unknown variable to a model part
+     * This method adds the unknown variable to the model part of interest.
+     * @param rModelPart Reference to the model part to which the variable is added
+     */
     static inline void AddUnknownVariable(ModelPart &rModelPart);
 
+    /**
+     * @brief Add the unknown variable DOFs to a model part
+     * This method adds the unknown variable DOFs to the model part of interest
+     * @param rModelPart Reference to the model part to which the variable DOFs are added
+     */
     static inline void AddUnknownVariableDofs(ModelPart &rModelPart);
 
     ///@}
@@ -200,8 +215,10 @@ public:
         KRATOS_TRY
 
         // Check that there is at least one element and node in the model
-        KRATOS_ERROR_IF(mrBaseModelPart.NumberOfNodes() == 0) << "The model part has no nodes." << std::endl;
-        KRATOS_ERROR_IF(mrBaseModelPart.NumberOfElements() == 0) << "The model Part has no elements." << std::endl;
+        int n_loc_mesh_nodes = mrBaseModelPart.GetCommunicator().pLocalMesh()->NumberOfNodes();
+        int n_loc_mesh_elements = mrBaseModelPart.GetCommunicator().pLocalMesh()->NumberOfElements();
+        KRATOS_ERROR_IF(mrBaseModelPart.GetCommunicator().SumAll(n_loc_mesh_nodes) == 0) << "The base model part has no nodes." << std::endl;
+        KRATOS_ERROR_IF(mrBaseModelPart.GetCommunicator().SumAll(n_loc_mesh_elements) == 0) << "The base model Part has no elements." << std::endl;
 
         // Check that the base model part is conformed by simplex elements
         const auto &r_aux_geom = (mrBaseModelPart.ElementsBegin())->GetGeometry();
@@ -686,7 +703,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    CalculateEmbeddedNodalVariableFromSkinProcess& operator=(CalculateEmbeddedNodalVariableFromSkinProcess const& rOther);
+    CalculateEmbeddedNodalVariableFromSkinProcess& operator=(CalculateEmbeddedNodalVariableFromSkinProcess const& rOther) = delete;
 
     /// Copy constructor.
     CalculateEmbeddedNodalVariableFromSkinProcess(CalculateEmbeddedNodalVariableFromSkinProcess const& rOther) = delete;
