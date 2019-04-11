@@ -18,8 +18,8 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "includes/define.h"
-#include "includes/model_part.h"
 #include "spatial_containers/spatial_search.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "spatial_containers/configures/node_configure.h"
@@ -87,6 +87,11 @@ namespace Kratos
         ModelPart &rVirtualModelPart,
         ModelPart &rStructureModelPart,
         const double SearchRadius);
+
+    /// Constructor with model and parameters
+    ExplicitFixedMeshALEUtilities(
+        Model &rModel,
+        Parameters &rParameters);
 
     /// Destructor.
     ~ExplicitFixedMeshALEUtilities() = default;

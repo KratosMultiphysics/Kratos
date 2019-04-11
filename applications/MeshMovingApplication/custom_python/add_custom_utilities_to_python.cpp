@@ -52,6 +52,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ClearSystem", &BallVertexMeshMoving3D<3, SparseSpaceType, LinearSolverType>::ClearSystem);
 
     py::class_<FixedMeshALEUtilities, FixedMeshALEUtilities::Pointer>(m, "FixedMeshALEUtilities")
+        .def(py::init<Model &, Parameters &>())
         .def(py::init<ModelPart &, ModelPart &, const std::string>())
         .def("ComputeMeshMovement", &FixedMeshALEUtilities::ComputeMeshMovement)
         .def("FillVirtualModelPart", &FixedMeshALEUtilities::FillVirtualModelPart)
@@ -60,6 +61,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("UndoMeshMovement", &FixedMeshALEUtilities::UndoMeshMovement);
 
     py::class_<ExplicitFixedMeshALEUtilities, ExplicitFixedMeshALEUtilities::Pointer, FixedMeshALEUtilities>(m, "ExplicitFixedMeshALEUtilities")
+        .def(py::init<Model &, Parameters &>())
         .def(py::init<ModelPart &, ModelPart &, const double>())
         .def("ComputeMeshMovement", &ExplicitFixedMeshALEUtilities::ComputeMeshMovement)
         .def("FillVirtualModelPart", &ExplicitFixedMeshALEUtilities::FillVirtualModelPart)

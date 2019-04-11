@@ -36,12 +36,44 @@ ExplicitFixedMeshALEUtilities::ExplicitFixedMeshALEUtilities(
     ModelPart &rVirtualModelPart,
     ModelPart &rStructureModelPart,
     const double SearchRadius) :
-    FixedMeshALEUtilities(rVirtualModelPart, rStructureModelPart),
+    FixedMeshALEUtilities(
+        rVirtualModelPart,
+        rStructureModelPart),
     mSearchRadius(SearchRadius)
 {
+    // Check the structure model part
     if (mrStructureModelPart.GetBufferSize() < 2) {
         (mrStructureModelPart.GetRootModelPart()).SetBufferSize(2);
         KRATOS_WARNING("ExplicitFixedMeshALEUtilities") << "Structure model part buffer size is 1. Setting buffer size to 2." << std::endl;
+    }
+}
+
+ExplicitFixedMeshALEUtilities::ExplicitFixedMeshALEUtilities(
+    Model &rModel,
+    Parameters &rParameters) :
+    FixedMeshALEUtilities(
+        rModel.GetModelPart(rParameters["virtual_model_part_name"].GetString()),
+        rModel.GetModelPart(rParameters["structure_model_part_name"].GetString())),
+    mSearchRadius(rParameters["search_radius"].GetDouble())
+{
+    // Validate with default parameters
+    Parameters default_parameters(R"(
+    {
+        "virtual_model_part_name": "",
+        "structure_model_part_name": "",
+        "search_radius": 0.0
+    }  )");
+    rParameters.ValidateAndAssignDefaults(default_parameters);
+
+    // Check the input level set type
+    if (mSearchRadius <= 0.0) {
+        KRATOS_ERROR << "Search radius  is: " << mSearchRadius << ". A value larger than 0 is expected.";
+    }
+
+    // Check the structure model part
+    if (mrStructureModelPart.GetBufferSize() < 2) {
+        (mrStructureModelPart.GetRootModelPart()).SetBufferSize(2);
+        KRATOS_WARNING("FixedMeshALEUtilities") << "Structure model part buffer size is 1. Setting buffer size to 2." << std::endl;
     }
 }
 
