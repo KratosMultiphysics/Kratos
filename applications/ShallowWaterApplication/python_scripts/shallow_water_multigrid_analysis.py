@@ -2,11 +2,9 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.MeshingApplication as Meshing
-import KratosMultiphysics.ShallowWaterApplication as Shallow
 
-from shallow_water_analysis import ShallowWaterAnalysis
+from KratosMultiphysics.ShallowWaterApplication.shallow_water_analysis import ShallowWaterAnalysis
 # from multiscale_refining_process import MultiscaleRefiningProcess
 
 class ShallowWaterMultigridAnalysis(ShallowWaterAnalysis):
