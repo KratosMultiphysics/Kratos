@@ -2,13 +2,12 @@
 #define DEM_D_JKR_COHESIVE_LAW_H
 
 /* Project includes */
-//#include "../custom_elements/spheric_continuum_particle.h"
 #include "DEM_discontinuum_constitutive_law.h"
 
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_D_JKR_Cohesive_Law : public DEMDiscontinuumConstitutiveLaw {
-        
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_D_JKR_Cohesive_Law);
@@ -20,7 +19,7 @@ namespace Kratos {
         void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
         virtual ~DEM_D_JKR_Cohesive_Law();
-        
+
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
@@ -28,7 +27,7 @@ namespace Kratos {
         double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation) override;
 
     private:
-        
+
         friend class Serializer;
 
         virtual void save(Serializer& rSerializer) const override{
