@@ -15,17 +15,16 @@
 
 // External includes
 
-// Project includes
-#include "includes/mesh_moving_variables.h"
-#include "linear_solvers/amgcl_solver.h"
-#include "utilities/binbased_fast_point_locator.h"
-#include "utilities/variable_utils.h"
-
 // Application includes
 #include "custom_elements/laplacian_meshmoving_element.h"
 #include "custom_utilities/fixed_mesh_ale_utilities.h"
 #include "custom_utilities/mesh_velocity_calculation.h"
 #include "custom_utilities/move_mesh_utilities.h"
+
+// Project includes
+#include "includes/mesh_moving_variables.h"
+#include "utilities/binbased_fast_point_locator.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -35,11 +34,55 @@ namespace Kratos
         ModelPart &rVirtualModelPart,
         ModelPart &rStructureModelPart,
         const std::string LevelSetType) :
-        mLevelSetType(LevelSetType),
         mrVirtualModelPart(rVirtualModelPart),
         mrStructureModelPart(rStructureModelPart),
-        mpOriginModelPart(nullptr)
+        mLevelSetType(LevelSetType)
     {
+        // Set the linear solver pointer
+        Parameters linear_solver_settings(R"({
+            "solver_type": "cg",
+            "tolerance": 1.0e-8,
+            "max_iteration": 200
+        })");
+        this->SetLinearSolverPointer(linear_solver_settings);
+
+        // Check the structure model part
+        if (mrStructureModelPart.GetBufferSize() < 2) {
+            (mrStructureModelPart.GetRootModelPart()).SetBufferSize(2);
+            KRATOS_WARNING("FixedMeshALEUtilities") << "Structure model part buffer size is 1. Setting buffer size to 2." << std::endl;
+        }
+    }
+
+    FixedMeshALEUtilities::FixedMeshALEUtilities(
+        Model &rModel,
+        Parameters &rParameters) :
+        mrVirtualModelPart(rModel.GetModelPart(rParameters["virtual_model_part_name"].GetString())),
+        mrStructureModelPart(rModel.GetModelPart(rParameters["structure_model_part_name"].GetString())),
+        mLevelSetType(rParameters["level_set_type"].GetString())
+    {
+        // Validate with default parameters
+        Parameters default_parameters(R"(
+        {
+            "virtual_model_part_name": "",
+            "structure_model_part_name": "",
+            "level_set_type": "",
+            "linear_solver_settings": {
+                "solver_type": "cg",
+                "tolerance": 1.0e-8,
+                "max_iteration": 200
+            }
+        }  )");
+        rParameters.ValidateAndAssignDefaults(default_parameters);
+
+        // Check the input level set type
+        if (mLevelSetType != "continuous" || mLevelSetType != "discontinuous") {
+            KRATOS_ERROR << "Provided level set type is: " << mLevelSetType << ". Only \"continuous\" and \"discontinuous\" types are supported.";
+        }
+
+        // Set the linear solver pointer
+        this->SetLinearSolverPointer(rParameters["linear_solver_settings"]);
+
+        // Check the structure model part
         if (mrStructureModelPart.GetBufferSize() < 2) {
             (mrStructureModelPart.GetRootModelPart()).SetBufferSize(2);
             KRATOS_WARNING("FixedMeshALEUtilities") << "Structure model part buffer size is 1. Setting buffer size to 2." << std::endl;
@@ -76,20 +119,7 @@ namespace Kratos
         }
 
         // Copy the origin model part elements
-        auto &r_elems = rOriginModelPart.Elements();
-        for(auto &elem : r_elems){
-            // Set the array of virtual nodes to create the element from the original ids.
-            NodesArrayType new_nodes_array;
-            auto &r_orig_geom = elem.GetGeometry();
-            for (unsigned int i = 0; i < r_orig_geom.PointsNumber(); ++i){
-                new_nodes_array.push_back(mrVirtualModelPart.pGetNode(r_orig_geom[i].Id()));
-            }
-            auto p_new_geom = r_orig_geom.Create(new_nodes_array);
-
-            // Create a Laplacian mesh moving element with the same Id() but the virtual mesh nodes
-            auto p_elem = Kratos::make_shared<LaplacianMeshMovingElement>(elem.Id(), p_new_geom, elem.pGetProperties());
-            mrVirtualModelPart.AddElement(p_elem);
-        }
+        this->CreateVirtualModelPartElements(rOriginModelPart);
 
         // Check that the nodes and elements have been correctly copied
         KRATOS_ERROR_IF(rOriginModelPart.NumberOfNodes() != mrVirtualModelPart.NumberOfNodes())
@@ -195,7 +225,46 @@ namespace Kratos
         }
     }
 
+    /* Protected functions *******************************************************/
+
+    FixedMeshALEUtilities::FixedMeshALEUtilities(
+        ModelPart &rVirtualModelPart,
+        ModelPart &rStructureModelPart) :
+        mrVirtualModelPart(rVirtualModelPart),
+        mrStructureModelPart(rStructureModelPart)
+    {
+        if (mrStructureModelPart.GetBufferSize() < 2)
+        {
+            (mrStructureModelPart.GetRootModelPart()).SetBufferSize(2);
+            KRATOS_WARNING("FixedMeshALEUtilities") << "Structure model part buffer size is 1. Setting buffer size to 2." << std::endl;
+        }
+    }
+
+    void FixedMeshALEUtilities::CreateVirtualModelPartElements(const ModelPart &rOriginModelPart)
+    {
+        auto &r_elems = rOriginModelPart.Elements();
+        for(auto &elem : r_elems) {
+            // Set the array of virtual nodes to create the element from the original ids.
+            NodesArrayType new_nodes_array;
+            auto &r_orig_geom = elem.GetGeometry();
+            for (unsigned int i = 0; i < r_orig_geom.PointsNumber(); ++i){
+                new_nodes_array.push_back(mrVirtualModelPart.pGetNode(r_orig_geom[i].Id()));
+            }
+            auto p_new_geom = r_orig_geom.Create(new_nodes_array);
+
+            // Create a Laplacian mesh moving element with the same Id() but the virtual mesh nodes
+            auto p_elem = Kratos::make_shared<LaplacianMeshMovingElement>(elem.Id(), p_new_geom, elem.pGetProperties());
+            mrVirtualModelPart.AddElement(p_elem);
+        }
+    }
+
     /* Private functions *******************************************************/
+
+    void FixedMeshALEUtilities::SetLinearSolverPointer(const Parameters &rLinearSolverSettings)
+    {
+        FixedMeshALEUtilities::LinearSolverFactoryType linear_solver_factory;
+        mpLinearSolver = linear_solver_factory.Create(rLinearSolverSettings);
+    }
 
     const Vector FixedMeshALEUtilities::SetDistancesVector(ModelPart::ElementIterator ItElem)
     {
@@ -287,16 +356,8 @@ namespace Kratos
 
     void FixedMeshALEUtilities::SetAndSolveMeshMovementStrategy(const double DeltaTime)
     {
-        // Set the mesh moving linear solver
-        Parameters linear_solver_parameters(R"({
-            "solver_type": "amgcl",
-            "tolerance": 1.0e-8,
-            "max_iteration": 200
-        })");
-        auto p_linear_solver = Kratos::make_shared<AMGCLSolver<SparseSpaceType, LocalSpaceType>>(linear_solver_parameters);
-
         // Set the Laplacian mesh moving strategy
-        auto p_mesh_moving_strategy = Kratos::make_shared<LaplacianMeshMovingStrategyType>(mrVirtualModelPart, p_linear_solver);
+        auto p_mesh_moving_strategy = Kratos::make_shared<LaplacianMeshMovingStrategyType>(mrVirtualModelPart, mpLinearSolver);
         p_mesh_moving_strategy->Check();
         p_mesh_moving_strategy->Initialize();
 

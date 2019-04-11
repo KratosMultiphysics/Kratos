@@ -24,6 +24,9 @@
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "spatial_containers/configures/node_configure.h"
 
+// Application includes
+#include "custom_utilities/fixed_mesh_ale_utilities.h"
+
 namespace Kratos
 {
   ///@addtogroup FluidDynamicsApplication
@@ -56,9 +59,9 @@ namespace Kratos
    * manner as a weighted average. Such weights are computed by means of a
    * kernel function. Once the mesh movement (and velocity) have been computed,
    * the origin mesh historical values (velocity and pressure) are computed as
-   * an interpolation in the virtualmodel part.
+   * an interpolation in the virtual model part.
    */
-  class ExplicitMeshMovingUtilities
+  class ExplicitMeshMovingUtilities : public FixedMeshALEUtilities
   {
   public:
 
@@ -86,7 +89,7 @@ namespace Kratos
         const double SearchRadius);
 
     /// Destructor.
-    ~ExplicitMeshMovingUtilities() {};
+    ~ExplicitMeshMovingUtilities() = default;
 
     ///@}
     ///@name Operators
@@ -102,26 +105,7 @@ namespace Kratos
     * the mesh accordingly) and computes the MESH_VELOCITY values.
     * @param DeltaTime time step value (used in the computation of the MESH_VELOCITY values)
     */
-    void ComputeExplicitMeshMovement(const double DeltaTime);
-
-    /**
-    * This method fills the mrVirtualModelPart with the nodes and elmens of a given model part
-    * It is supposed to be performed once.
-    * @param rOriginModelPart model part from where the nodes and elements are copied
-    */
-    void FillVirtualModelPart(ModelPart& rOriginModelPart);
-
-    /**
-    * This method undoes the performed mesh movement to recover the original mesh in
-    */
-    void UndoMeshMovement();
-
-    /**
-    * This method projects the virtual model part mesh values to the origin mesh
-    * @param rOriginModelPart model part to where the values are projected
-    */
-    template <unsigned int TDim>
-    void ProjectVirtualValues(ModelPart &rOriginModelPart, unsigned int BufferSize = 3);
+    void ComputeMeshMovement(const double DeltaTime) override;
 
     ///@}
     ///@name Access
@@ -152,7 +136,48 @@ namespace Kratos
 
 
     ///@}
+protected:
+    ///@name Static Member Variables
+    ///@{
 
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    /**
+     * @brief Create the virtual model part elements
+     * This method creates the elements in the virtual model part
+     * @param rOriginModelPart Origin model part to mimic the elements from
+     */
+    void CreateVirtualModelPartElements(const ModelPart &rOriginModelPart) override;
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+
+    ///@}
 private:
     ///@name Static Member Variables
     ///@{
@@ -163,10 +188,6 @@ private:
     ///@{
 
     const double mSearchRadius;
-
-    ModelPart &mrVirtualModelPart;
-    ModelPart &mrStructureModelPart;
-    ModelPart *mpOriginModelPart = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -195,7 +216,7 @@ private:
     * @param rSearchDistanceResults vector containing the the rStructureModelPart nodes
     * inside SearchRadius distance values for each rModelPart nodes
     */
-    void ComputeMeshDisplacement(
+    void ComputeExplicitMeshDisplacement(
         const VectorResultNodesContainerType &rSearchResults,
         const DistanceVectorContainerType &rSearchDistanceResults);
 
@@ -220,13 +241,12 @@ private:
     ///@{
 
     /// Assignment operator.
-    ExplicitMeshMovingUtilities& operator=(ExplicitMeshMovingUtilities const& rOther);
+    ExplicitMeshMovingUtilities& operator=(ExplicitMeshMovingUtilities const& rOther) = delete;
 
     /// Copy constructor.
-    ExplicitMeshMovingUtilities(ExplicitMeshMovingUtilities const& rOther);
+    ExplicitMeshMovingUtilities(ExplicitMeshMovingUtilities const& rOther) = delete;
 
     ///@}
-
 }; // Class ExplicitMeshMovingUtilities
 
 ///@}

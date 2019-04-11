@@ -21,8 +21,9 @@
 
 
 // Project includes
+#include "containers/model.h"
 #include "includes/define.h"
-#include "includes/model_part.h"
+#include "includes/linear_solver_factory.h"
 #include "linear_solvers/linear_solver.h"
 #include "processes/calculate_embedded_nodal_variable_from_skin_process.h"
 #include "spaces/ublas_space.h"
@@ -82,6 +83,7 @@ public:
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+    typedef LinearSolverFactory<SparseSpaceType, LocalSpaceType> LinearSolverFactoryType;
     typedef LaplacianMeshMovingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> LaplacianMeshMovingStrategyType;
     typedef CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType> EmbeddedNodalVariableProcessArrayType;
 
@@ -98,8 +100,13 @@ public:
         ModelPart &rStructureModelPart,
         const std::string LevelSetType);
 
+    /// Constructor with model and parameters
+    FixedMeshALEUtilities(
+        Model &rModel,
+        Parameters &rParameters);
+
     /// Destructor.
-    ~FixedMeshALEUtilities() {};
+    ~FixedMeshALEUtilities() = default;
 
     ///@}
     ///@name Operators
@@ -117,7 +124,7 @@ public:
      * mesh moving strategy.
      * @param DeltaTime time step value (required for the computation of the MESH_VELOCITY)
      */
-    void ComputeMeshMovement(const double DeltaTime);
+    virtual void ComputeMeshMovement(const double DeltaTime);
 
     /**
     * This method fills the mrVirtualModelPart with the nodes and elmens of a given model part
@@ -125,7 +132,7 @@ public:
     * is reverted to its original status.
     * @param rOriginModelPart model part from where the nodes and elements are copied
     */
-    void FillVirtualModelPart(ModelPart& rOriginModelPart);
+    virtual void FillVirtualModelPart(ModelPart& rOriginModelPart);
 
     /**
      * @brief Revert the virtual mesh movement
@@ -133,7 +140,7 @@ public:
      * which coincides with the background mesh one. It has to be called once the values
      * projection from the virtual mesh to the origin has been performed.
      */
-    void UndoMeshMovement();
+    virtual void UndoMeshMovement();
 
     /**
      * @brief This method projects the virtual model part mesh values to the origin mesh
@@ -178,6 +185,61 @@ public:
 
 
     ///@}
+protected:
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor for derived classes
+    FixedMeshALEUtilities(
+        ModelPart &rVirtualModelPart,
+        ModelPart &rStructureModelPart);
+
+    ///@}
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ModelPart &mrVirtualModelPart;
+    ModelPart &mrStructureModelPart;
+    ModelPart *mpOriginModelPart = nullptr;
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    /**
+     * @brief Create the virtual model part elements
+     * This method creates the elements in the virtual model part
+     * @param rOriginModelPart Origin model part to mimic the elements from
+     */
+    virtual void CreateVirtualModelPartElements(const ModelPart &rOriginModelPart);
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+
+    ///@}
 private:
     ///@name Static Member Variables
     ///@{
@@ -188,10 +250,7 @@ private:
     ///@{
 
     const std::string mLevelSetType;
-
-    ModelPart &mrVirtualModelPart;
-    ModelPart &mrStructureModelPart;
-    ModelPart *mpOriginModelPart = nullptr;
+    LinearSolverType::Pointer mpLinearSolver = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -201,6 +260,8 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void SetLinearSolverPointer(const Parameters &rLinearSolverSettings);
 
     /**
      * @brief Set the Distances Vector object

@@ -442,7 +442,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         if (self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt() != 0):
             # Solve the mesh problem
             delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-            self._get_mesh_moving_util().ComputeExplicitMeshMovement(delta_time)
+            self._get_mesh_moving_util().ComputeMeshMovement(delta_time)
 
             # Project the obtained MESH_VELOCITY and historical VELOCITY and PRESSURE values to the origin mesh
             buffer_size = self.main_model_part.GetBufferSize()

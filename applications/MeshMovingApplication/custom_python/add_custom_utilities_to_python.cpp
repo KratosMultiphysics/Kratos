@@ -51,21 +51,21 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("BuildAndSolveSystem", &BallVertexMeshMoving3D<3, SparseSpaceType, LinearSolverType>::BuildAndSolveSystem)
         .def("ClearSystem", &BallVertexMeshMoving3D<3, SparseSpaceType, LinearSolverType>::ClearSystem);
 
-    py::class_<ExplicitMeshMovingUtilities>(m,"ExplicitMeshMovingUtilities")
-        .def(py::init<ModelPart&, ModelPart&, const double>())
-        .def("ComputeExplicitMeshMovement",&ExplicitMeshMovingUtilities::ComputeExplicitMeshMovement)
-        .def("FillVirtualModelPart",&ExplicitMeshMovingUtilities::FillVirtualModelPart)
-        .def("ProjectVirtualValues2D",&ExplicitMeshMovingUtilities::ProjectVirtualValues<2>)
-        .def("ProjectVirtualValues3D",&ExplicitMeshMovingUtilities::ProjectVirtualValues<3>)
-        .def("UndoMeshMovement",&ExplicitMeshMovingUtilities::UndoMeshMovement);
-
-    py::class_<FixedMeshALEUtilities>(m, "FixedMeshALEUtilities")
+    py::class_<FixedMeshALEUtilities, FixedMeshALEUtilities::Pointer>(m, "FixedMeshALEUtilities")
         .def(py::init<ModelPart &, ModelPart &, const std::string>())
         .def("ComputeMeshMovement", &FixedMeshALEUtilities::ComputeMeshMovement)
         .def("FillVirtualModelPart", &FixedMeshALEUtilities::FillVirtualModelPart)
         .def("ProjectVirtualValues2D", &FixedMeshALEUtilities::ProjectVirtualValues<2>)
         .def("ProjectVirtualValues3D", &FixedMeshALEUtilities::ProjectVirtualValues<3>)
         .def("UndoMeshMovement", &FixedMeshALEUtilities::UndoMeshMovement);
+
+    py::class_<ExplicitMeshMovingUtilities, ExplicitMeshMovingUtilities::Pointer, FixedMeshALEUtilities>(m, "ExplicitMeshMovingUtilities")
+        .def(py::init<ModelPart &, ModelPart &, const double>())
+        .def("ComputeMeshMovement", &ExplicitMeshMovingUtilities::ComputeMeshMovement)
+        .def("FillVirtualModelPart", &ExplicitMeshMovingUtilities::FillVirtualModelPart)
+        .def("ProjectVirtualValues2D", &ExplicitMeshMovingUtilities::ProjectVirtualValues<2>)
+        .def("ProjectVirtualValues3D", &ExplicitMeshMovingUtilities::ProjectVirtualValues<3>)
+        .def("UndoMeshMovement", &ExplicitMeshMovingUtilities::UndoMeshMovement);
 
     void (*CalculateMeshVelocitiesBDF1)(ModelPart&, const TimeDiscretization::BDF1&) = &MeshVelocityCalculation::CalculateMeshVelocities;
     void (*CalculateMeshVelocitiesBDF2)(ModelPart&, const TimeDiscretization::BDF2&) = &MeshVelocityCalculation::CalculateMeshVelocities;

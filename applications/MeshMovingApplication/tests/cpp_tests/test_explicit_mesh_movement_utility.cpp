@@ -124,7 +124,7 @@ namespace Testing {
 
         // Execute the explicit mesh movement operations
         const unsigned int buffer_size = 3;
-        p_mesh_moving->ComputeExplicitMeshMovement(delta_time);
+        p_mesh_moving->ComputeMeshMovement(delta_time);
         p_mesh_moving->ProjectVirtualValues<2>(origin_model_part, buffer_size);
         p_mesh_moving->UndoMeshMovement();
 
