@@ -39,9 +39,8 @@ namespace Kratos
                              ParticleCreatorDestructor::Pointer p_creator_destructor,
                              DEM_FEM_Search::Pointer p_dem_fem_search,
                              SpatialSearch::Pointer pSpSearch,
-                             Parameters strategy_parameters,
-                             const bool do_search_balls = true)
-      :ExplicitSolverStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pSpSearch, strategy_parameters, do_search_balls)
+                             Parameters strategy_parameters)
+      :ExplicitSolverStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pSpSearch, strategy_parameters)
       {
           BaseType::GetParticleCreatorDestructor()   = p_creator_destructor;
       }
