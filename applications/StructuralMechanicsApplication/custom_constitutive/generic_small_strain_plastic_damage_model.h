@@ -89,25 +89,29 @@ public:
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     struct PlasticDamageParameters {
-        Vector PlasticityFFLux = ZeroVector(VoigtSize);
-        Vector PlasticityGFLux = ZeroVector(VoigtSize);
+        array_1d<double, VoigtSize> PlasticityFFLux;
+        array_1d<double, VoigtSize> PlasticityGFLux;
+        array_1d<double, VoigtSize> DamageYieldFLux;
         double DamageIndicator = 0.0;
         double PlasticityIndicator = 0.0;
-        Vector PlasticStrain = ZeroVector(VoigtSize);
-        Vector StrainVector = ZeroVector(VoigtSize);
-        Vector StressVector = ZeroVector(VoigtSize);
+        array_1d<double, VoigtSize> PlasticStrain;
+        array_1d<double, VoigtSize> StrainVector;
+        array_1d<double, VoigtSize> StressVector;
         double DamageIncrement = 0.0;
         double PlasticConsistencyIncrement = 0.0;
         double UniaxialStressPlasticity = 0.0;
         double UniaxialStressDamage = 0.0;
         double HardeningParameterDamage = 0.0;
         double DamageDissipationIncrement = 0.0;
-        Vector PlasticStrainIncrement = ZeroVector(VoigtSize);
+        array_1d<double, VoigtSize> PlasticStrainIncrement;
         double CharacteristicLength = 0.0;
         double Damage = 0.0;
+        double PlasticDissipation = 0.0;
+        double DamageDissipation = 0.0;
         double DamageThreshold = 0.0;
         double PlasticityThreshold = 0.0;
-
+        double PlasticDenominator = 0.0;
+        double UndamagedFreeEnergy = 0.0;
     };
     ///@}
     ///@name Life Cycle
@@ -390,21 +394,9 @@ public:
      * @param rDamageDissipationIncrement Increment of the internal variable of energy dissipation due to damage
      */
     double CalculateDamageParameters(
-        array_1d<double, 6>& rPredictiveStressVector,
-        Vector& rStrainVector,
-        double& rUniaxialStress,
-        double& rDamageThreshold,
-        double& rDamageDissipation,
-        const Matrix& rConstitutiveMatrix,
-        ConstitutiveLaw::Parameters& rValues,
-        const double CharacteristicLength,
-        array_1d<double, 6>& rDamageFlux,
-        const Vector& rPlasticStrain,
-        const double Damage,
-        const double DamageIncrement,
-        const double UndamagedFreeEnergy,
-        double& rHardd,
-        double& rDamageDissipationIncrement);
+        PlasticDamageParameters& rParameters,
+        const Matrix& rElasticMatrix,
+        ConstitutiveLaw::Parameters& rValues);
 
     /**
      * @brief This method computes the tensile/compressive indicators
@@ -447,21 +439,8 @@ public:
      * @param rDamageDissipationIncrement Increment of the internal variable of energy dissipation due to damage
      */
     void CalculateIncrementsPlasticDamageCase(
-        const Vector& rFluxDamageYield,
-        const Vector& rStrainVector,
-        const double Damage,
-        const Vector& rPlasticityFlux,
-        const Vector& rPlasticityGFlux,
-        const Matrix& rElasticMatrix,
-        const double DamageIndicator,
-        const double PlasticityIndicator,
-        const Vector& rPlasticStrain,
-        double& rDamageIncrement,
-        double& rPlasticConsistencyIncrement,
-        const double PlasticDenominator,
-        const double UniaxialStressPlast,
-        const double Hardd,
-        const double& rDamageDissipationIncrement);
+        PlasticDamageParameters& rParameters,
+        const Matrix& rElasticMatrix);
 
     /**
      * @brief This method works as the damage integrator im the isotropic damage CL and computes the associated parameters.
@@ -481,20 +460,9 @@ public:
      * @param Damage The internal variable of the damage model
      */
     double CalculatePlasticParameters(
-        array_1d<double, VoigtSize>& rPredictiveStressVector,
-        Vector& rStrainVector,
-        double& rUniaxialStress,
-        double& rThreshold,
-        double& rPlasticDenominator,
-        array_1d<double, VoigtSize>& rFflux,
-        array_1d<double, VoigtSize>& rGflux,
-        double& rPlasticDissipation,
-        array_1d<double, VoigtSize>& rPlasticStrainIncrement,
+        PlasticDamageParameters& rParameters, 
         const Matrix& rConstitutiveMatrix,
-        ConstitutiveLaw::Parameters& rValues,
-        const double CharacteristicLength,
-        const Vector& rPlasticStrain,
-        const double Damage);
+        ConstitutiveLaw::Parameters& rValues);
 
     /**
      * @brief This method computes the plastic denominator needed to obtain the plastic consistency factor
