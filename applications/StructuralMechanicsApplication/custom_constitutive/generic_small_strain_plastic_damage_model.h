@@ -87,6 +87,28 @@ public:
 
     /// The machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+
+    struct PlasticDamageParameters {
+        Vector PlasticityFFLux = ZeroVector(VoigtSize);
+        Vector PlasticityGFLux = ZeroVector(VoigtSize);
+        double DamageIndicator = 0.0;
+        double PlasticityIndicator = 0.0;
+        Vector PlasticStrain = ZeroVector(VoigtSize);
+        Vector StrainVector = ZeroVector(VoigtSize);
+        Vector StressVector = ZeroVector(VoigtSize);
+        double DamageIncrement = 0.0;
+        double PlasticConsistencyIncrement = 0.0;
+        double UniaxialStressPlasticity = 0.0;
+        double UniaxialStressDamage = 0.0;
+        double HardeningParameterDamage = 0.0;
+        double DamageDissipationIncrement = 0.0;
+        Vector PlasticStrainIncrement = ZeroVector(VoigtSize);
+        double CharacteristicLength = 0.0;
+        double Damage = 0.0;
+        double DamageThreshold = 0.0;
+        double PlasticityThreshold = 0.0;
+
+    };
     ///@}
     ///@name Life Cycle
     ///@{

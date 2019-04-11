@@ -930,7 +930,7 @@ CalculatePlasticParameters(
     array_1d<double, VoigtSize>& rPredictiveStressVector,
     Vector& rStrainVector,
     double& rUniaxialStress,
-    double& rThreshold,
+    double& rThresholdPlasticity,
     double& rPlasticDenominator,
     array_1d<double, VoigtSize>& rFflux,
     array_1d<double, VoigtSize>& rGflux,
@@ -955,13 +955,13 @@ CalculatePlasticParameters(
         TPlasticityIntegratorType::CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor,compression_indicator_factor);
         TPlasticityIntegratorType::CalculatePlasticDissipation(rPredictiveStressVector, tensile_indicator_factor,compression_indicator_factor, rPlasticStrainIncrement,rPlasticDissipation, h_capa, rValues, CharacteristicLength);
         TPlasticityIntegratorType::CalculateEquivalentPlasticStrain(rPredictiveStressVector, rUniaxialStress, rPlasticStrain, tensile_indicator_factor, rValues, equivalent_plastic_strain);
-        TPlasticityIntegratorType::CalculateEquivalentStressThreshold( rPlasticDissipation, tensile_indicator_factor,compression_indicator_factor, rThreshold, slope, rValues, equivalent_plastic_strain);
+        TPlasticityIntegratorType::CalculateEquivalentStressThreshold( rPlasticDissipation, tensile_indicator_factor,compression_indicator_factor, rThresholdPlasticity, slope, rValues, equivalent_plastic_strain);
         TPlasticityIntegratorType::CalculateHardeningParameter(rFflux, slope, h_capa, hardening_parameter);
 
         // Has to be slightly modified
         this->CalculatePlasticDenominator(rFflux, rGflux, rConstitutiveMatrix, hardening_parameter, Damage, rPlasticDenominator);
 
-        return rUniaxialStress - rThreshold;
+        return rUniaxialStress - rThresholdPlasticity;
 }
 /***********************************************************************************/
 /***********************************************************************************/
