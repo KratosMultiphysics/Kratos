@@ -35,6 +35,7 @@
 #include "includes/variables.h"
 
 // Constitutive models
+#include "custom_models/sanisand_small_strain_model.hpp"
 #include "custom_models/von_mises_umat_small_strain_model.hpp"
 #include "custom_models/fabric_umat_small_strain_model.hpp"
 #include "custom_models/hypoplastic_umat_small_strain_model.hpp"
@@ -185,6 +186,7 @@ private:
 
    const FabricSmallStrainUmatModel      mFabricSmallStrainUmatModel;
    const VonMisesSmallStrainUmatModel    mVonMisesSmallStrainUmatModel;
+   const SanisandSmallStrainUmatModel        mSanisandSmallStrainUmatModel;
    const HypoplasticSmallStrainUmatModel mHypoplasticSmallStrainUmatModel;
    const VonMisesLargeStrainUmatModel    mVonMisesLargeStrainUmatModel;
 	

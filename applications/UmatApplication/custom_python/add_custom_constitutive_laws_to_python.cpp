@@ -18,6 +18,7 @@
 //models
 #include "custom_models/hypoplastic_umat_small_strain_model.hpp"
 #include "custom_models/fabric_umat_small_strain_model.hpp"
+#include "custom_models/sanisand_small_strain_model.hpp"
 #include "custom_models/von_mises_umat_small_strain_model.hpp"
 #include "custom_models/von_mises_umat_large_strain_model.hpp"
 
@@ -36,6 +37,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
   // models
   py::class_<VonMisesSmallStrainUmatModel, typename VonMisesSmallStrainUmatModel::Pointer, ConstitutiveModel>
       (m, "VonMisesSmallStrainUmatModel")
+      .def( py::init<>() )
+      ;
+  py::class_<SanisandSmallStrainUmatModel, typename SanisandSmallStrainUmatModel::Pointer, ConstitutiveModel>
+      (m, "SanisandSmallStrainUmatModel")
       .def( py::init<>() )
       ;
   py::class_<VonMisesLargeStrainUmatModel, typename VonMisesLargeStrainUmatModel::Pointer, ConstitutiveModel>
