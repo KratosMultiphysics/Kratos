@@ -118,7 +118,6 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
         elif settings["direction"].IsArray():
             unit_direction = [0.0,0.0,0.0]
             direction_norm = 0.0
-    
             for i in range(0,3):
                 if settings["direction"][i].IsNumber():
                     unit_direction[i] = settings["direction"][i].GetDouble()
