@@ -5,6 +5,7 @@ import KratosMultiphysics
 
 # Import packages
 import numpy as np
+from scipy.stats import norm
 from math import *
 import copy
 
@@ -12,13 +13,13 @@ import copy
 from simulation_definition import SimulationScenario
 
 # Import the StatisticalVariable class
-from statistical_variable_utilities import StatisticalVariable
+from KratosMultiphysics.MultilevelMonteCarloApplication.statistical_variable_utilities import StatisticalVariable
 
 # Import random variable generator
-import generator_utilities as generator
+import KratosMultiphysics.MultilevelMonteCarloApplication.generator_utilities as generator
 
-# Import exaqute
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
+# Import PyCOMPSs
+from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
 # from exaqute.ExaquteTaskLocal import *      # to execute with python3
 """
@@ -41,9 +42,10 @@ C. Bayer, H. Hoel, E. von Schwerin, R. Tempone; On NonAsymptotyc optimal stoppin
 """
 
 
-# TODO: check in CheckConvergence if I can use only sample variance-h2 and not two of them
+# TODO: in CheckConvergence convert formulas from unbiased to biased
 # TODO: in [3] formula 4.1 I use unbiased formula, not biased, as sample moments. Check it's fine
 # TODO: now batch_size = difference_number_samples, in future it may have flags for different behaviours
+# TODO: now we are using scipy so we can avoid _ComputeCDFStandardNormalDistribution
 
 
 """
@@ -72,7 +74,7 @@ input:  current_number_samples:                   current number of samples comp
         current_sample_central_moment_3_absolute: current third absolute central moment
         current_h4:                               current h4 statistics
         current_tol:                              current tolerance
-        current_delta:                            current convergence probability
+        current_delta:                            current error probability (1 - confidence)
         convergence_criteria:                     convergence criteria exploited to check convergence
 output: convergence_boolean: boolean setting if convergence is achieved
 """
@@ -102,6 +104,14 @@ def CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,curr
             np.exp(- current_number_samples * (current_tol**2) / (current_moment_2_coefficient**2)) * np.abs(current_moment_3_coefficient) / \
             (3 * np.sqrt(2 * np.pi * current_number_samples))
         if (main_contribute + penalty_contribute < current_delta):
+            convergence_boolean = True
+    # TODO: check if this convergence criteria coincides with the first
+    elif(convergence_criteria == "total_error_stopping_rule"):
+        cphi_confidence = norm.ppf(1.0 - current_delta) # this stopping criteria checks total error like MLMC, thus need to use confidence and not error probability
+        statistical_error = cphi_confidence*sqrt(current_h2/current_number_samples)
+        bias = 0.0 # hypothesis bias = 0 since we can't compute
+        total_error = bias + statistical_error
+        if (total_error<current_tol):
             convergence_boolean = True
     else:
         convergence_boolean = False
@@ -139,11 +149,11 @@ def ExecuteInstanceAux_Task(pickled_model,pickled_project_parameters,current_ana
 
 class MonteCarlo(object):
     """The base class for the MonteCarlo-classes"""
-    def __init__(self,custom_settings,project_parameters_path,custom_analysis):
+    def __init__(self,custom_parameters_path,project_parameters_path,custom_analysis):
         """constructor of the MonteCarlo-Object
         Keyword arguments:
         self:                    an instance of the class
-        custom_settings:         settings of the Monte Carlo simulation
+        custom_parameters_path:  path of the Monte Carlo simulation
         project_parameters_path: path of the project parameters file
         custom_analysis:         analysis stage of the problem
         """
@@ -160,22 +170,31 @@ class MonteCarlo(object):
             raise Exception ("Please provide the path of the project parameters json file")
         # default settings of the Monte Carlo algorithm
         # tolerance:            tolerance
-        # cphi:                 confidence on tolerance
+        # confidence:           confidence on tolerance
         # batch_size:           number of samples per batch size
-        # convergence_criteria: convergence criteria to get if convergence is achieved
+        # convergence_criteria: convergence criteria to compute convergence
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "tolerance" : 1e-1,
-            "cphi" : 1e-1,
+            "run_monte_carlo" : "True",
+            "tolerance"  : 1e-1,
+            "confidence" : 9e-1,
             "batch_size" : 50,
-            "convergence_criteria" : "MC_higher_moments_sequential_stopping_rule"
+            "convergence_criteria" : "MC_sample_variance_sequential_stopping_rule"
         }
         """)
-        self.settings = custom_settings
+        # set XMC parameters
+        self.custom_parameters_path = custom_parameters_path
+        self.SetXMCParameters()
         # validate and assign default parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
         # convergence: boolean variable defining if MC algorithm has converged
         self.convergence = False
+        # handle confidence = 1.0
+        if (self.settings["confidence"].GetDouble()==1.0):
+            self.settings["confidence"].SetDouble(0.999) # reduce confidence to not get +inf for cphi_confidence (coefficient used in convergence criterias)
+        # set error probability = 1.0 - confidence on given tolerance
+        self.settings.AddEmptyValue("error_probability")
+        self.settings["error_probability"].SetDouble(1.0-self.settings["confidence"].GetDouble())
         # current_number_levels: number of levels of MC by default = 0 (we only have level 0)
         self.current_number_levels = 0
         # current_level: current level of work, current_level = 0 for MC
@@ -216,12 +235,16 @@ class MonteCarlo(object):
     input: self: an instance of the class
     """
     def Run(self):
-        while self.convergence is not True:
-            self.InitializeMCPhase()
-            self.ScreeningInfoInitializeMCPhase()
-            self.LaunchEpoch()
-            self.FinalizeMCPhase()
-            self.ScreeningInfoFinalizeMCPhase()
+        if (self.settings["run_monte_carlo"].GetString() == "True"):
+            while self.convergence is not True:
+                self.InitializeMCPhase()
+                self.ScreeningInfoInitializeMCPhase()
+                self.LaunchEpoch()
+                self.FinalizeMCPhase()
+                self.ScreeningInfoFinalizeMCPhase()
+        else:
+            print("\n","#"*50,"Not running Monte Carlo algorithm","#"*50)
+            pass
 
     """
     function running one Monte Carlo epoch
@@ -280,6 +303,15 @@ class MonteCarlo(object):
         print("\n","#"*50," SERIALIZATION COMPLETED ","#"*50,"\n")
 
     """
+    function reading the XMC parameters passed from json file
+    input:  self: an instance of the class
+    """
+    def SetXMCParameters(self):
+        with open(self.custom_parameters_path,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        self.settings = parameters["monte_carlo"]
+
+    """
     function defining the Kratos specific application analysis stage of the problem
     input:  self: an instance of the class
             application_analysis_stage: working analysis stage Kratos class
@@ -305,16 +337,16 @@ class MonteCarlo(object):
     """
     def CheckConvergence(self,level):
         current_number_samples = self.QoI.number_samples[level]
-        current_mean = self.QoI.mean[level]
+        current_mean = self.QoI.h_statistics_1[level]
         current_h2 = self.QoI.h_statistics_2[level]
         current_h3 = self.QoI.h_statistics_3[level]
         current_sample_central_moment_3_absolute = self.QoI.central_moment_from_scratch_3_absolute[level]
         current_h4 = self.QoI.h_statistics_4[level]
         current_tol = self.settings["tolerance"].GetDouble()
-        current_delta = self.settings["cphi"].GetDouble()
+        current_error_probability = self.settings["error_probability"].GetDouble() # the "delta" in [3] in the convergence criteria is the error probability
         convergence_criteria = self.convergence_criteria
         convergence_boolean = CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,\
-            current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_delta,convergence_criteria)
+            current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_error_probability,convergence_criteria)
         self.convergence = convergence_boolean
 
     """
@@ -368,13 +400,13 @@ class MonteCarlo(object):
             raise Exception ("current work level must be = 0 in the Monte Carlo algorithm")
         # update statistics of the QoI
         for i_sample in range(self.previous_number_samples[current_level],self.number_samples[current_level]):
-            self.QoI.UpdateOnePassMomentsVariance(current_level,i_sample)
             self.QoI.UpdateOnePassPowerSums(current_level,i_sample)
         # compute the central moments we can't derive from the unbiased h statistics
         # we compute from scratch the absolute central moment because we can't retrieve it from the h statistics
-        self.QoI.central_moment_from_scratch_3_absolute_to_compute = True
-        self.QoI.ComputeSampleCentralMomentsFromScratch(current_level,self.number_samples[current_level]) # not possible to use self.StatisticalVariable.number_samples[current_level]
-                                                                                                  # inside the function because it is a pycompss.runtime.binding.Future object
+        if (self.convergence_criteria == "MC_higher_moments_sequential_stopping_rule"):
+            self.QoI.central_moment_from_scratch_3_absolute_to_compute = True
+            self.QoI.ComputeSampleCentralMomentsFromScratch(current_level,self.number_samples[current_level]) # not possible to use self.StatisticalVariable.number_samples[current_level]
+                                                                                                              # inside the function because it is a pycompss.runtime.binding.Future object
         self.QoI.ComputeHStatistics(current_level)
         self.QoI.ComputeSkewnessKurtosis(current_level)
         self.CheckConvergence(current_level)
@@ -398,7 +430,7 @@ class MonteCarlo(object):
         print("samples computed in this iteration",self.difference_number_samples)
         print("current number of samples = ",self.number_samples)
         print("previous number of samples = ",self.previous_number_samples)
-        print("monte carlo mean and variance QoI estimators = ",self.QoI.mean,self.QoI.sample_variance)
+        print("monte carlo mean and variance QoI estimators = ",self.QoI.h_statistics_1,self.QoI.h_statistics_2)
         print("convergence = ",self.convergence)
 
     """
@@ -407,7 +439,7 @@ class MonteCarlo(object):
     """
     def SetConvergenceCriteria(self):
         convergence_criteria = self.settings["convergence_criteria"].GetString()
-        if (convergence_criteria != "MC_sample_variance_sequential_stopping_rule" and convergence_criteria != "MC_higher_moments_sequential_stopping_rule"):
+        if (convergence_criteria != "MC_sample_variance_sequential_stopping_rule" and convergence_criteria != "MC_higher_moments_sequential_stopping_rule" and convergence_criteria != "total_error_stopping_rule"):
             raise Exception ("The selected convergence criteria is not yet implemented, plese select one of the following: \n i)  MC_sample_variance_sequential_stopping_rule \n ii) MC_higher_moments_sequential_stopping_rule")
         self.convergence_criteria = convergence_criteria
 

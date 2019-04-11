@@ -6,12 +6,12 @@ import KratosMultiphysics
 # Import applications
 import KratosMultiphysics.MeshingApplication as KratosMeshing
 
-
 """
 References:
 F. Alauzet, Metric-based anisotropic mesh adaptation, CEA-EDF-INRIA schools: Numerical Analysis Summer School. CEA, Cadarache, France
 Kratos wiki: https://github.com/KratosMultiphysics/Kratos/wiki/MMG-Process
 """
+
 
 """
 function computing the refinement of the model based on the solution on the coarse mesh,
