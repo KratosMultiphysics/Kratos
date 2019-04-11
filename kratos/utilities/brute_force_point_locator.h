@@ -66,7 +66,7 @@ public:
      * @param DistanceThreshold threshold for the distance
      * @return Id of the found node. -1 if no node was found
      */
-    int FindNode(const Point& rThePoint, const double DistanceThreshold=1e-12) const;
+    int FindNode(const Point& rThePoint, const double DistanceThreshold=1e-6) const;
 
     /**
      * @brief This function finds an element based on a location
