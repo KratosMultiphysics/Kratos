@@ -122,6 +122,8 @@ class DamConstructionUtility:
                     print("New phase has been activated...")
                     self.name_sub_thermal_part = "sub_Thermal_" + file_3[1]
                     self.name_sub_mechanical_part = "sub_Parts_" + file_3[1]
+                    self.name_sub_heat_flux = "sub_TAmbientFlux3D_T_Ambient_Heat_Flux_" + file_3[1]
+                    self.name_sub_hydro_press = "sub_HydroSurfacePressure3D_Hydrostatic_Pressure_" + file_3[1]
 
                     thermal_conditions = True
                     mechanical_conditions = True
