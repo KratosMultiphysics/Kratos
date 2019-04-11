@@ -348,7 +348,25 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
-
+    /**
+     * @brief This method works as the damage integrator im the isotropic damage CL and computes the associated parameters.
+     * @details It is used to call the damage integrator and apply the particularities of this CL.
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rStrainVector The strain vector
+     * @param rUniaxialStress The uniaxial stress of the damage model
+     * @param rDamageThreshold The maximum uniaxial stress achieved previously
+     * @param rDamageDissipation The internal variable of energy dissipation due to damage
+     * @param rConstitutiveMatrix The elastic constitutive matrix
+     * @param rValues Parameters of the constitutive law
+     * @param CharacteristicLength The equivalent length of the FE
+     * @param rDamageFlux The derivative of the yield surface used for damage
+     * @param rPlasticStrain The plastic component of the strain
+     * @param Damage The internal variable of the damage model
+     * @param DamageIncrement The increment of the internal variable of the damage model at this time step
+     * @param UndamagedFreeEnergy The undamaged free energy
+     * @param rHardd Hardening parameter for the damage model
+     * @param rDamageDissipationIncrement Increment of the internal variable of energy dissipation due to damage
+     */
     double CalculateDamageParameters(
         array_1d<double, 6>& rPredictiveStressVector,
         Vector& rStrainVector,
@@ -366,6 +384,14 @@ public:
         double& rHardd,
         double& rDamageDissipationIncrement);
 
+    /**
+     * @brief This method computes the tensile/compressive indicators
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rTensileIndicatorFactor The tensile indicator
+     * @param rCompressionIndicatorFactor The compressive indicator
+     * @param rSumPrincipalStresses The sum of the principal stresses
+     * @param rPrincipalStresses The principal stresses
+     */
     void CalculateIndicatorsFactors(
         const array_1d<double, 6>& rPredictiveStressVector,
         double& rTensileIndicatorFactor,
@@ -373,10 +399,31 @@ public:
         double& rSumPrincipalStresses,
         array_1d<double, 3>& rPrincipalStresses);
 
-    
+    /**
+     * @brief This method checks the value of some of the variables used in the CL and guarantees that their value is between 0 and 1.
+     * @param rInternalVariable Internal variable of the CL (damage, rDamageDissipationIncrement and rDamageDissipation)
+     */
     void CheckInternalVariable(
         double& rInternalVariable);
 
+    /**
+     * @brief This method computes the increments for the damage internal variable and for the plastic consistency parameter.
+     * @param rFluxDamageYield The derivative of the yield surface used for damage
+     * @param rStrainVector The strain vector
+     * @param Damage The internal variable of the damage model
+     * @param rPlasticityFlux The derivative of the yield surface used for plasticity
+     * @param rPlasticityGFlux The derivative of the potential used for plasticity
+     * @param rElasticMatrix The elastic constitutive matrix
+     * @param DamageIndicator The difference between the uniaxial stress and the damage threshold
+     * @param PlasticityIndicator The difference between the uniaxial stress and the plasticity threshold
+     * @param rPlasticStrain The plastic component of the strain
+     * @param rDamageIncrement The increment of the internal variable of the damage model at this time step
+     * @param rPlasticConsistencyIncrement The increment of the internal plastic consistency variable of the plasticity model at this time step
+     * @param PlasticDenominator The plasticity numerical value to obtain the pastic consistency factor
+     * @param UniaxialStressPlast The uniaxial stress of the plasticity model
+     * @param Hardd Hardening parameter for the damage model
+     * @param rDamageDissipationIncrement Increment of the internal variable of energy dissipation due to damage
+     */
     void CalculateIncrementsPlasticDamageCase(
         const Vector& rFluxDamageYield,
         const Vector& rStrainVector,
@@ -394,6 +441,23 @@ public:
         const double Hardd,
         const double& rDamageDissipationIncrement);
 
+    /**
+     * @brief This method works as the damage integrator im the isotropic damage CL and computes the associated parameters.
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rStrainVector The strain vector
+     * @param rUniaxialStress The uniaxial stress of the plasticity model
+     * @param rThreshold The maximum uniaxial stress achieved previously
+     * @param rPlasticDenominator The plasticity numerical value to obtain the plastic consistency factor
+     * @param rFflux The derivative of the yield surface used for plasticity
+     * @param rGflux The derivative of the potential used for plasticity
+     * @param rPlasticDissipation The internal variable of energy dissipation due to plasticity
+     * @param rPlasticStrainIncrement The increment of the plastic strain
+     * @param rConstitutiveMatrix The elastic constitutive matrix
+     * @param rValues Parameters of the constitutive law
+     * @param CharacteristicLength The equivalent length of the FE
+     * @param rPlasticStrain The plastic component of the strain
+     * @param Damage The internal variable of the damage model
+     */
     double CalculatePlasticParameters(
         array_1d<double, VoigtSize>& rPredictiveStressVector,
         Vector& rStrainVector,
@@ -410,6 +474,15 @@ public:
         const Vector& rPlasticStrain,
         const double Damage);
 
+    /**
+     * @brief This method computes the plastic denominator needed to obtain the plastic consistency factor
+     * to compute the plastic consistency factor
+     * @param rFflux The derivative of the yield surface
+     * @param rGflux The derivative of the plastic potential
+     * @param rConstitutiveMatrix The elastic constitutive matrix
+     * @param rHardeningParameter The hardening parameter needed for the plasticity algorithm
+     * @param rPlasticDenominator The plasticity numerical value to obtain the plastic consistency factor
+     */
     void CalculatePlasticDenominator(
         const array_1d<double, VoigtSize>& rFFlux,
         const array_1d<double, VoigtSize>& rGFlux,
