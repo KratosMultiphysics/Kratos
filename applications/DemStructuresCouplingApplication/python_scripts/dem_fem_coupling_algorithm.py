@@ -222,7 +222,7 @@ class Algorithm(object):
                 #### GiD IO ##########################################
                 if self.dem_solution.IsTimeToPrintPostProcess():
                     self.dem_solution.solver.PrepareElementsForPrinting()
-                    if False: #self.dem_solution.DEM_parameters["ContactMeshOption"].GetBool():
+                    if self.dem_solution.DEM_parameters["ContactMeshOption"].GetBool():
                         self.dem_solution.solver.PrepareContactElementsForPrinting()
                     self.dem_solution.PrintResultsForGid(self.dem_solution.time)
                     self.dem_solution.demio.PrintMultifileLists(self.dem_solution.time, self.dem_solution.post_path)
