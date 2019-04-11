@@ -46,9 +46,13 @@ void InitializeSolutionStep(
         ConstructionUtility& rThisUtil,
         std::string ThermalSubModelPartName,
         std::string MechanicalSubModelPartName,
+        std::string HeatFluxSubModelPartName,
+        std::string HydraulicPressureSubModelPartName,
+        bool thermal_conditions,
+        bool mechanical_conditions,
         int phase)
 {
-    rThisUtil.InitializeSolutionStep(ThermalSubModelPartName, MechanicalSubModelPartName, phase);
+    rThisUtil.InitializeSolutionStep(ThermalSubModelPartName, MechanicalSubModelPartName, HeatFluxSubModelPartName, HydraulicPressureSubModelPartName, thermal_conditions, mechanical_conditions, phase);
 }
 
 
