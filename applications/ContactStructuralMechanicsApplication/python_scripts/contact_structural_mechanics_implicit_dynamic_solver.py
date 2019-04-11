@@ -56,7 +56,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         # Initialize the post process
         self.post_process = None
 
-        KratosMultiphysics.Logger.PrintInfo("::[Contact Mechanical Implicit Dynamic Solver]:: ", "Construction of ContactMechanicalSolver finished")
+        KM.Logger.PrintInfo("::[Contact Mechanical Implicit Dynamic Solver]:: ", "Construction of ContactMechanicalSolver finished")
 
     def AddVariables(self):
 
@@ -65,7 +65,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         mortar_type = self.contact_settings["mortar_type"].GetString()
         auxiliar_methods_solvers.AuxiliarAddVariables(self.main_model_part, mortar_type)
 
-        KratosMultiphysics.Logger.PrintInfo("::[Contact Mechanical Implicit Dynamic Solver]:: ", "Variables ADDED")
+        KM.Logger.PrintInfo("::[Contact Mechanical Implicit Dynamic Solver]:: ", "Variables ADDED")
 
     def AddDofs(self):
 
@@ -74,7 +74,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         mortar_type = self.contact_settings["mortar_type"].GetString()
         auxiliar_methods_solvers.AuxiliarAddDofs(self.main_model_part, mortar_type)
 
-        KratosMultiphysics.Logger.PrintInfo("::[Contact Mechanical Implicit Dynamic Solver]:: ", "DOF's ADDED")
+        KM.Logger.PrintInfo("::[Contact Mechanical Implicit Dynamic Solver]:: ", "DOF's ADDED")
 
     def Initialize(self):
         super(ContactImplicitMechanicalSolver, self).Initialize() # The mechanical solver is created here.
@@ -116,7 +116,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                 inner_iterations = process_info[CSMA.INNER_LOOP_ITERATION]
                 if inner_iterations > 1:
                     delta_time = delta_time/float(inner_iterations)
-                    KratosMultiphysics.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Advancing with a reduced delta time of ", delta_time)
+                    KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Advancing with a reduced delta time of ", delta_time)
         return delta_time
 
     def AddProcessesList(self, processes_list):

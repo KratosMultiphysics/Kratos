@@ -57,7 +57,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         # Initialize the post process
         self.post_process = None
 
-        KratosMultiphysics.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Construction of ContactMechanicalSolver finished")
+        KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Construction of ContactMechanicalSolver finished")
 
     def AddVariables(self):
 
@@ -66,7 +66,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         mortar_type = self.contact_settings["mortar_type"].GetString()
         auxiliar_methods_solvers.AuxiliarAddVariables(self.main_model_part, mortar_type)
 
-        KratosMultiphysics.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Variables ADDED")
+        KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Variables ADDED")
 
     def AddDofs(self):
 
@@ -75,7 +75,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         mortar_type = self.contact_settings["mortar_type"].GetString()
         auxiliar_methods_solvers.AuxiliarAddDofs(self.main_model_part, mortar_type)
 
-        KratosMultiphysics.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "DOF's ADDED")
+        KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "DOF's ADDED")
 
     def Initialize(self):
         super(ContactStaticMechanicalSolver, self).Initialize() # The mechanical solver is created here.

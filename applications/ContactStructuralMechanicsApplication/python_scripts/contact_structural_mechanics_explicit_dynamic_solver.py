@@ -47,7 +47,7 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
         # Setting echo level
         self.echo_level =  self.settings["echo_level"].GetInt()
 
-        KratosMultiphysics.Logger.PrintInfo("::[Contact Mechanical Explicit Dynamic Solver]:: ", "Construction of ContactMechanicalSolver finished")
+        KM.Logger.PrintInfo("::[Contact Mechanical Explicit Dynamic Solver]:: ", "Construction of ContactMechanicalSolver finished")
 
     def AddVariables(self):
 
@@ -56,7 +56,7 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
         mortar_type = self.contact_settings["mortar_type"].GetString()
         auxiliar_methods_solvers.AuxiliarAddVariables(self.main_model_part, mortar_type)
 
-        KratosMultiphysics.Logger.PrintInfo("::[Contact Mechanical Explicit Dynamic Solver]:: ", "Variables ADDED")
+        KM.Logger.PrintInfo("::[Contact Mechanical Explicit Dynamic Solver]:: ", "Variables ADDED")
 
     def AddDofs(self):
 
@@ -65,7 +65,7 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
         mortar_type = self.contact_settings["mortar_type"].GetString()
         auxiliar_methods_solvers.AuxiliarAddDofs(self.main_model_part, mortar_type)
 
-        KratosMultiphysics.Logger.PrintInfo("::[Contact Mechanical Explicit Dynamic Solver]:: ", "DOF's ADDED")
+        KM.Logger.PrintInfo("::[Contact Mechanical Explicit Dynamic Solver]:: ", "DOF's ADDED")
 
     def Initialize(self):
         super(ContactExplicitMechanicalSolver, self).Initialize() # The mechanical solver is created here.
