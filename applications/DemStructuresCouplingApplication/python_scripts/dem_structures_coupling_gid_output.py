@@ -136,6 +136,7 @@ class DemStructuresCouplingGiDOutput(gid_output.GiDOutput):
             # here order is important!
             PostUtilities().AddModelPartToModelPart(self.mixed_model_part, self.balls_model_part)
             PostUtilities().AddModelPartToModelPart(self.mixed_model_part, self.rigid_faces_model_part)
+            PostUtilities().AddModelPartToModelPart(self.mixed_model_part, self.contact_model_part)
             PostUtilities().AddModelPartToModelPart(self.mixed_model_part, self.structures_model_part)
 
         self.write_dem_fem_results(time)
