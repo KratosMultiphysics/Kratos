@@ -55,7 +55,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def(py::init<Model &, Parameters &>())
         .def(py::init<ModelPart &, ModelPart &, const std::string>())
         .def("ComputeMeshMovement", &FixedMeshALEUtilities::ComputeMeshMovement)
-        .def("FillVirtualModelPart", &FixedMeshALEUtilities::FillVirtualModelPart)
+        .def("Initialize", &FixedMeshALEUtilities::Initialize)
         .def("ProjectVirtualValues2D", &FixedMeshALEUtilities::ProjectVirtualValues<2>)
         .def("ProjectVirtualValues3D", &FixedMeshALEUtilities::ProjectVirtualValues<3>)
         .def("UndoMeshMovement", &FixedMeshALEUtilities::UndoMeshMovement);
@@ -64,7 +64,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def(py::init<Model &, Parameters &>())
         .def(py::init<ModelPart &, ModelPart &, const double>())
         .def("ComputeMeshMovement", &ExplicitFixedMeshALEUtilities::ComputeMeshMovement)
-        .def("FillVirtualModelPart", &ExplicitFixedMeshALEUtilities::FillVirtualModelPart)
+        .def("Initialize", &ExplicitFixedMeshALEUtilities::Initialize)
         .def("ProjectVirtualValues2D", &ExplicitFixedMeshALEUtilities::ProjectVirtualValues<2>)
         .def("ProjectVirtualValues3D", &ExplicitFixedMeshALEUtilities::ProjectVirtualValues<3>)
         .def("UndoMeshMovement", &ExplicitFixedMeshALEUtilities::UndoMeshMovement);

@@ -89,7 +89,16 @@ namespace Kratos
         }
     }
 
-    void FixedMeshALEUtilities::FillVirtualModelPart(ModelPart& rOriginModelPart)
+    void FixedMeshALEUtilities::Initialize(ModelPart &rOriginModelPart)
+    {
+        // Fill the virtual model part as a copy of the origin mesh
+        this->FillVirtualModelPart(rOriginModelPart);
+
+        // Create and initialize the mesh moving strategy
+        this->SetMeshMovingStrategy();
+    }
+
+    void FixedMeshALEUtilities::FillVirtualModelPart(ModelPart &rOriginModelPart)
     {
         // Check that the origin model part has nodes and elements to be copied
         KRATOS_ERROR_IF(rOriginModelPart.NumberOfNodes() == 0) << "Origin model part has no nodes.";
@@ -126,9 +135,6 @@ namespace Kratos
             << "Origin and virtual model part have different number of nodes.";
         KRATOS_ERROR_IF(rOriginModelPart.NumberOfElements() != mrVirtualModelPart.NumberOfElements())
             << "Origin and virtual model part have different number of elements.";
-
-        // Set the mesh moving strategy with created virtual mesh
-        this->SetMeshMovingStrategy();
     }
 
     void FixedMeshALEUtilities::ComputeMeshMovement(const double DeltaTime)

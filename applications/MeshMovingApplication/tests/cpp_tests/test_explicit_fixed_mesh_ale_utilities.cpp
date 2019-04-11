@@ -113,7 +113,7 @@ namespace Testing {
             Kratos::make_shared<ExplicitFixedMeshALEUtilities>(virtual_model_part, str_model_part, search_radius);
 
         // Fill the virtual model part geometry
-        p_mesh_moving->FillVirtualModelPart(origin_model_part);
+        p_mesh_moving->Initialize(origin_model_part);
 
         // Copy the origin model part data to the virtual one
         VariableUtils::Pointer p_var_utils = Kratos::make_shared<VariableUtils>();

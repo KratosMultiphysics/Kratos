@@ -77,7 +77,14 @@ ExplicitFixedMeshALEUtilities::ExplicitFixedMeshALEUtilities(
     }
 }
 
-void ExplicitFixedMeshALEUtilities::ComputeMeshMovement(const double DeltaTime)
+void ExplicitFixedMeshALEUtilities::Initialize(ModelPart &rOriginModelPart)
+{
+    // Fill the virtual model part as a copy of the origin mesh
+    this->FillVirtualModelPart(rOriginModelPart);
+}
+
+void
+ExplicitFixedMeshALEUtilities::ComputeMeshMovement(const double DeltaTime)
 {
     VectorResultNodesContainerType search_results;
     DistanceVectorContainerType search_distance_results;

@@ -281,7 +281,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         if (self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt() != 0):
             self.fm_ale_step = 1
             # Fill the virtual model part geometry. Note that the mesh moving util is created in this first call
-            self._get_mesh_moving_util().FillVirtualModelPart(self.main_model_part)
+            self._get_mesh_moving_util().Initialize(self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Solver initialization finished.")
 

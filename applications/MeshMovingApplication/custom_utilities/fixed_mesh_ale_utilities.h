@@ -118,6 +118,14 @@ public:
     ///@{
 
     /**
+     * @brief Initializes the FM-ALE utility
+     * This method fills the virtual model part as a copy of the origin model part.
+     * In case it is used, it also creates and initializes the mesh moving strategy
+     * @param rOriginModelPart model part from where the nodes and elements are copied
+     */
+    virtual void Initialize(ModelPart &rOriginModelPart);
+
+    /**
      * @brief Compute the virtual mesh movement
      * This method computes the virtual mesh movement in accordance to the immersed structure
      * DISPLACEMENT values. To that purpose it sets the fixity and creates & solves the
@@ -125,14 +133,6 @@ public:
      * @param DeltaTime time step value (required for the computation of the MESH_VELOCITY)
      */
     virtual void ComputeMeshMovement(const double DeltaTime);
-
-    /**
-    * This method fills the mrVirtualModelPart with the nodes and elmens of a given model part
-    * It has to be performed once since after each values projection the virtual mesh configuration
-    * is reverted to its original status.
-    * @param rOriginModelPart model part from where the nodes and elements are copied
-    */
-    virtual void FillVirtualModelPart(ModelPart& rOriginModelPart);
 
     /**
      * @brief Revert the virtual mesh movement
@@ -218,6 +218,14 @@ protected:
     ///@{
 
     /**
+    * This method fills the mrVirtualModelPart with the nodes and elmens of a given model part
+    * It has to be performed once since after each values projection the virtual mesh configuration
+    * is reverted to its original status.
+    * @param rOriginModelPart model part from where the nodes and elements are copied
+    */
+    virtual void FillVirtualModelPart(ModelPart &rOriginModelPart);
+
+    /**
      * @brief Create the virtual model part elements
      * This method creates the elements in the virtual model part
      * @param rOriginModelPart Origin model part to mimic the elements from
@@ -262,8 +270,17 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Set the Linear Solver Pointer object
+     * This methods sets a pointer to the mesh moving strategy linear solver
+     * @param rLinearSolverSettings Settings of the linear solver
+     */
     void SetLinearSolverPointer(const Parameters &rLinearSolverSettings);
 
+    /**
+     * @brief Set the Mesh Moving Strategy object
+     * This methods sets the mesh moving linear solver strategy
+     */
     void SetMeshMovingStrategy();
 
     /**
