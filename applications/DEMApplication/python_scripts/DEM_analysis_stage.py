@@ -437,6 +437,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.InitializeSolutionStep()
 
     def InitializeSolutionStep(self):
+        self.step += 1
         self._BeforeSolveOperations(self.time)
 
     def _BeforeSolveOperations(self, time):
