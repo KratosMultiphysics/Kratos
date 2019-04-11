@@ -83,6 +83,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "custom_utilities/mesh_rotation_utility.h"
 #include "custom_utilities/renumbering_nodes_utility.h"
+#include "custom_utilities/derivative_recovery/derivative_recovery_utility.h"
+#include "custom_utilities/derivative_recovery/standard_recovery_utility.h"
 
 namespace Kratos{
 
@@ -327,6 +329,17 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     py::class_<FluidFieldUtility, FluidFieldUtility::Pointer, FieldUtility> (m, "FluidFieldUtility")
         .def(py::init<SpaceTimeSet&, VelocityField&, const double, const double >())
         ;
+
+
+    py::class_<DerivativeRecoveryUtility, DerivativeRecoveryUtility::Pointer>
+    (m, "DerivativeRecoveryUtility")
+    .def(py::init<ModelPart&, Parameters>())
+    ;
+
+    py::class_<StandardRecoveryUtility, StandardRecoveryUtility::Pointer, DerivativeRecoveryUtility>
+    (m, "StandardRecoveryUtility")
+    .def(py::init<ModelPart&, Parameters>())
+    ;
 
     typedef void (CustomFunctionsCalculator<3>::*CopyValuesScalar)(ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&);
     typedef void (CustomFunctionsCalculator<3>::*CopyValuesVector)(ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&);

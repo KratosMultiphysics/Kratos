@@ -23,9 +23,6 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 
-#include "custom_processes/derivative_recovery_process.h"
-#include "custom_processes/standard_recovery_process.h"
-
 namespace Kratos
 {
 
@@ -36,15 +33,6 @@ void AddCustomProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<DerivativeRecoveryProcess, DerivativeRecoveryProcess::Pointer, Process>
-    (m, "DerivativeRecoveryProcess")
-    .def(py::init<ModelPart&, Parameters>())
-    ;
-
-    py::class_<StandardRecoveryProcess, StandardRecoveryProcess::Pointer, DerivativeRecoveryProcess>
-    (m, "StandardRecoveryProcess")
-    .def(py::init<ModelPart&, Parameters>())
-    ;
 }
 
 } // namespace Python.

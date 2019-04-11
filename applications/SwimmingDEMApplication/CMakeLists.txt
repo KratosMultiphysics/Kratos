@@ -96,8 +96,6 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/calculate_laplacian_simplex_condition.cpp
 
     ## Processes
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/derivative_recovery_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/standard_recovery_process.cpp
 
     ## Utilities
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/binbased_DEM_fluid_coupled_mapping.cpp
@@ -117,6 +115,8 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/inlets/bentonite_force_based_inlet.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/fluid_field_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/shear_flow_1D_with_exponential_viscosity_field.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/derivative_recovery/derivative_recovery_utility.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/derivative_recovery/standard_recovery_utility.cpp
 )
 
 ## Define python interface sources
