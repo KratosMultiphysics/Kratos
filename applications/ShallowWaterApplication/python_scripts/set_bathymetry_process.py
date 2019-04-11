@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.ShallowWaterApplication as KratosShallow
+import KratosMultiphysics.ShallowWaterApplication as Shallow
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -18,7 +18,7 @@ class SetBathymetryProcess(KratosMultiphysics.Process):
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "interval"             : [0.0, 1e30],
-                "variable_name"        : "BATYMETRY",
+                "variable_name"        : "BATHYMETRY",
                 "constrained"          : false,
                 "value"                : "z"
             }
@@ -26,8 +26,10 @@ class SetBathymetryProcess(KratosMultiphysics.Process):
             )
         settings.ValidateAndAssignDefaults(default_settings)
 
-        import assign_scalar_variable_process
-        self.process = assign_scalar_variable_process.AssignScalarVariableProcess(Model, settings)
+        self.model_part = Model[settings["model_part_name"].GetString()]
+
+        from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
+        self.process = AssignScalarVariableProcess(Model, settings)
 
     def ExecuteInitialize(self):
         self.process.ExecuteInitializeSolutionStep()
