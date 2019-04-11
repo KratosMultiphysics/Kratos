@@ -33,7 +33,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         # Set to true to get post-process files for the test
         self.print_output = False
 
-    def test_Naca0012Small(self):
+    def test_LiftAndMoment(self):
         file_name = "naca0012_small"
         settings_file_name = file_name + "_parameters.json"
         work_folder = "naca0012_small_test"
