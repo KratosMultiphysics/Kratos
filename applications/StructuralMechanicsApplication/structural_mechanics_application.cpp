@@ -670,10 +670,6 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainPlasticDamageModel3DVonMisesVonMisesDruckerPrager", mSmallStrainPlasticDamageModel3DVonMisesVonMisesDruckerPrager);
 
 
-
-
-
-
     /* Finite strain */
 
     // Kirchhoff

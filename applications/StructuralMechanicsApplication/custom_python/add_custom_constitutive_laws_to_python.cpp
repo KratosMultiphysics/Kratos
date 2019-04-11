@@ -308,17 +308,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     ConstitutiveLaw >
     (m,"SmallStrainPlasticDamageModel3DVonMisesVonMisesVonMises").def(py::init<>()); 
 
-    // py::class_< GenericSmallStrainPlasticDamageModel <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>,
-    // typename GenericSmallStrainPlasticDamageModel <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
-    // ConstitutiveLaw >
-    // (m,"SmallStrainPlasticDamageModel3DVonMisesVonMisesTresca").def(py::init<>()); 
-
     py::class_< GenericSmallStrainPlasticDamageModel <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>,
     typename GenericSmallStrainPlasticDamageModel <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
     ConstitutiveLaw >
     (m,"SmallStrainPlasticDamageModel3DVonMisesVonMisesDruckerPrager").def(py::init<>());
-
-
 
 
     // Kinematic Plasticity
