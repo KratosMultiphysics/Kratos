@@ -418,6 +418,8 @@ class VariablesManager:
 
 
     def ChangeListOfFluidNodalResultsToPrint(self, parameters):
+        fluid_list = self.project_parameters["fluid_nodal_results"]
+        self.nodal_results.extend(key for key in fluid_list.keys() if fluid_list[key].GetBool())
 
         if parameters["store_full_gradient_option"].GetBool() and 'VELOCITY_GRADIENT' in self.nodal_results:
             self.nodal_results += ["VELOCITY_X_GRADIENT"]

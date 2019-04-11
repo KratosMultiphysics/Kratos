@@ -14,7 +14,7 @@ import parameters_tools as PT
 class EthierBenchmarkAnalysis(SwimmingDEMAnalysis):
     def __init__(self, model, varying_parameters=Parameters("{}")):
         super(EthierBenchmarkAnalysis, self).__init__(model, varying_parameters)
-        self._GetDEMAnalysis().mdpas_folder_path = os.path.join(self._GetDEMAnalysis().main_path, 'candelier_tests')
+        self._GetDEMAnalysis().mdpas_folder_path = os.path.join(self._GetDEMAnalysis().main_path, 'recovery_tests')
         self.project_parameters["custom_fluid"]["fluid_already_calculated"].SetBool(True)
         self.project_parameters.AddEmptyValue("load_derivatives").SetBool(False)
 
