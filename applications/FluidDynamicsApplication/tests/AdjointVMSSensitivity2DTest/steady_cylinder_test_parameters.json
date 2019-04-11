@@ -149,14 +149,8 @@
                 "file_settings" : {
                     "file_access_mode" : "truncate"
                 },
-                "model_part_output_settings" : {
-                    "prefix" : "/ModelData"
-                },
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "PRESSURE"]
-                },
-                "output_time_settings" : {
-                    "output_step_frequency": 1
                 }
             }
         },{

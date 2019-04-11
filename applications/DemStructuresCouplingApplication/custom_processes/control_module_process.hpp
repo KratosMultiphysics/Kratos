@@ -144,7 +144,7 @@ public:
 
         const double CurrentTime = mrModelPart.GetProcessInfo()[TIME];
 
-        if(CurrentTime >= mStartTime && mpTargetStressTableId > 0)
+        if(CurrentTime >= mStartTime && mTargetStressTableId > 0)
         {
             const int NCons = static_cast<int>(mrModelPart.Conditions().size());
             ModelPart::ConditionsContainerType::iterator con_begin = mrModelPart.ConditionsBegin();
@@ -173,7 +173,7 @@ public:
             }
 
             const double ReactionStress = FaceReaction/FaceArea;
-            TableType::Pointer pTargetStressTable = mrModelPart.pGetTable(mpTargetStressTableId);
+            TableType::Pointer pTargetStressTable = mrModelPart.pGetTable(mTargetStressTableId);
             const double DeltaTime = mrModelPart.GetProcessInfo()[DELTA_TIME];
             const double NextTargetStress = pTargetStressTable->GetValue(CurrentTime+DeltaTime);
 

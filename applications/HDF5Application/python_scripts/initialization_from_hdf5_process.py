@@ -1,37 +1,56 @@
+'''Read model part data in the initialization step.
+
+This process provides the front end to the HDF5Application.core.
+
+license: HDF5Application/license.txt
+'''
 import KratosMultiphysics
-import KratosMultiphysics.HDF5Application as KratosHDF5
-import hdf5_io
+import KratosMultiphysics.HDF5Application.core as _core
+import KratosMultiphysics.HDF5Application.utils as _utils
 
-def Factory(settings, Model):
-    """Return a process for initializing a model part from an existing HDF5 ouput file."""
-    if not isinstance(settings, KratosMultiphysics.Parameters):
-        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    default_settings = KratosMultiphysics.Parameters(r'''{
-        "model_part_name" : "MainModelPart",
-        "file_settings" : {
-            "file_access_mode" : "read_only"
-        },
-        "nodal_solution_step_data_settings" : {},
-        "element_data_value_settings" : {},
-        "nodal_data_value_settings" : {},
-        "file_name": ""
-    }''')
 
-    settings = settings["Parameters"].Clone()
+def Factory(process_settings, Model):
+    """Return a process for initializing a model part from an existing HDF5 output file."""
+    default_settings = KratosMultiphysics.Parameters("""
+            {
+                "model_part_name" : "MainModelPart",
+                "file_settings" : {},
+                "nodal_solution_step_data_settings" : {},
+                "nodal_data_value_settings": {},
+                "element_data_value_settings" : {}
+            }
+            """)
+    settings = process_settings["Parameters"]
     settings.ValidateAndAssignDefaults(default_settings)
-    model_part = Model[settings["model_part_name"].GetString()]
-    hdf5_file_factory = hdf5_io.HDF5SerialFileFactory(settings["file_settings"])
-    nodal_history_results_input = hdf5_io.NodalSolutionStepDataInput(settings["nodal_solution_step_data_settings"])
-    element_data_results_input = hdf5_io.ElementDataValueInput(settings["element_data_value_settings"])
-    nodal_data_results_input = hdf5_io.NodalDataValueInput(settings["nodal_data_value_settings"])
-
-    initialization_settings = KratosMultiphysics.Parameters()
-    initialization_settings.AddEmptyValue("file_name")
-    initialization_settings["file_name"].SetString(settings["file_name"].GetString())
-
-    initialization_process = hdf5_io.InitialInputProcess(model_part,hdf5_file_factory,initialization_settings)
-    initialization_process.AddInput(nodal_history_results_input)
-    initialization_process.AddInput(element_data_results_input)
-    initialization_process.AddInput(nodal_data_results_input)
-    return initialization_process
-
+    new_settings = KratosMultiphysics.Parameters('''
+            {
+               "list_of_controllers": [{
+                    "model_part_name" : "",
+                    "process_step": "initialize",
+                    "io_settings": {
+                        "io_type": "serial_hdf5_file_io",
+                        "file_name": "<identifier>.h5",
+                        "file_access_mode": "read_only"
+                    },
+                    "list_of_operations": [{
+                        "operation_type": "nodal_solution_step_data_input"
+                    },{
+                        "operation_type": "nodal_data_value_input"
+                    },{
+                        "operation_type": "element_data_value_input"
+                    }]
+                }]
+            }
+            ''')
+    model_part_name = settings["model_part_name"].GetString()
+    new_settings["list_of_controllers"][0]["model_part_name"].SetString(
+        model_part_name)
+    results_settings = new_settings["list_of_controllers"][0]
+    _utils.InsertSettings(
+        settings["file_settings"], results_settings["io_settings"])
+    if _utils.IsDistributed():
+        results_settings["io_settings"]["io_type"].SetString(
+            "parallel_hdf5_file_io")
+    _utils.InsertArrayOfSettings([settings["nodal_solution_step_data_settings"], settings["nodal_data_value_settings"],
+                                  settings["element_data_value_settings"]], results_settings["list_of_operations"])
+    return _core.Factory(new_settings["list_of_controllers"], Model)
