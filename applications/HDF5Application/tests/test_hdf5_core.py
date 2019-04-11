@@ -148,11 +148,11 @@ class TestFileIO(KratosUnittest.TestCase):
         with patch('os.makedirs', autospec=True) as p:
             obj = file_io._FilenameGetterWithDirectoryInitialization(settings)
             obj.Get(_SurrogateModelPart())
-            p.assert_not_called()
+            self.assertEqual(p.call_count, 0)
     
     def test_FilenameGetterWithDirectoryInitialization_DirectoryExists(self):
         settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
-        patcher1 = patch('os.path.exists', autospec = True)
+        patcher1 = patch('os.path.exists', autospec=True)
         patcher2 = patch('os.makedirs', autospec=True)
         pathexists = patcher1.start()
         makedirs = patcher2.start()
@@ -160,13 +160,13 @@ class TestFileIO(KratosUnittest.TestCase):
         obj = file_io._FilenameGetterWithDirectoryInitialization(settings)
         obj.Get(_SurrogateModelPart())
         pathexists.assert_called_once_with('/foo')
-        makedirs.assert_not_called()
+        self.assertEqual(makedirs.call_count, 0)
         patcher1.stop()
         patcher2.stop()
     
     def test_FilenameGetterWithDirectoryInitialization_DirectoryDoesNotExist(self):
         settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
-        patcher1 = patch('os.path.exists', autospec = True)
+        patcher1 = patch('os.path.exists', autospec=True)
         patcher2 = patch('os.makedirs', autospec=True)
         pathexists = patcher1.start()
         makedirs = patcher2.start()
@@ -339,8 +339,8 @@ class TestOperations(KratosUnittest.TestCase):
             model_part = _SurrogateModelPart()
             hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
             nodal_solution_step_data_output(model_part, hdf5_file)
-            p.assert_called_once()
-            nodal_solution_step_data_io.WriteNodalResults.assert_called_once()
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(nodal_solution_step_data_io.WriteNodalResults.call_count, 1)
 
     def test_NodalSolutionStepDataInput(self):
         settings = KratosMultiphysics.Parameters()
@@ -357,8 +357,8 @@ class TestOperations(KratosUnittest.TestCase):
             model_part = _SurrogateModelPart()
             hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
             nodal_solution_step_data_input(model_part, hdf5_file)
-            p.assert_called_once()
-            nodal_solution_step_data_io.ReadNodalResults.assert_called_once()
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(nodal_solution_step_data_io.ReadNodalResults.call_count, 1)
 
     def test_NodalDataValueOutput(self):
         settings = KratosMultiphysics.Parameters()
@@ -374,8 +374,8 @@ class TestOperations(KratosUnittest.TestCase):
             model_part = _SurrogateModelPart()
             hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
             nodal_data_value_output(model_part, hdf5_file)
-            p.assert_called_once()
-            nodal_data_value_io.WriteNodalResults.assert_called_once()
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(nodal_data_value_io.WriteNodalResults.call_count, 1)
 
     def test_NodalDataValueInput(self):
         settings = KratosMultiphysics.Parameters()
@@ -391,8 +391,8 @@ class TestOperations(KratosUnittest.TestCase):
             model_part = _SurrogateModelPart()
             hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
             nodal_data_value_input(model_part, hdf5_file)
-            p.assert_called_once()
-            nodal_data_value_io.ReadNodalResults.assert_called_once()
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(nodal_data_value_io.ReadNodalResults.call_count, 1)
 
     def test_ElementDataValueOutput(self):
         settings = KratosMultiphysics.Parameters()
@@ -408,8 +408,8 @@ class TestOperations(KratosUnittest.TestCase):
             model_part = _SurrogateModelPart()
             hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
             element_data_value_output(model_part, hdf5_file)
-            p.assert_called_once()
-            element_data_value_io.WriteElementResults.assert_called_once()
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(element_data_value_io.WriteElementResults.call_count, 1)
 
     def test_ElementDataValueInput(self):
         settings = KratosMultiphysics.Parameters()
@@ -425,8 +425,8 @@ class TestOperations(KratosUnittest.TestCase):
             model_part = _SurrogateModelPart()
             hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
             element_data_value_input(model_part, hdf5_file)
-            p.assert_called_once()
-            element_data_value_io.ReadElementResults.assert_called_once()
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(element_data_value_io.ReadElementResults.call_count, 1)
 
     def test_PrimalBossakOutput(self):
         settings = KratosMultiphysics.Parameters()
@@ -442,8 +442,8 @@ class TestOperations(KratosUnittest.TestCase):
             model_part = _SurrogateModelPart()
             hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
             primal_bossak_output(model_part, hdf5_file)
-            p.assert_called_once()
-            nodal_solution_step_bossak_io.WriteNodalResults.assert_called_once()
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(nodal_solution_step_bossak_io.WriteNodalResults.call_count, 1)
 
     def test_PrimalBossakInput(self):
         settings = KratosMultiphysics.Parameters()
@@ -459,8 +459,8 @@ class TestOperations(KratosUnittest.TestCase):
             model_part = _SurrogateModelPart()
             hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
             primal_bossak_input(model_part, hdf5_file)
-            p.assert_called_once()
-            nodal_solution_step_bossak_io.ReadNodalResults.assert_called_once()
+            self.assertEqual(p.call_count, 1)
+            self.assertEqual(nodal_solution_step_bossak_io.ReadNodalResults.call_count, 1)
 
 
 class TestControllers(KratosUnittest.TestCase):
