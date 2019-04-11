@@ -21,12 +21,12 @@
 #include "includes/mesh_moving_variables.h"
 
 // Application includes
-#include "custom_utilities/explicit_mesh_moving_utilities.h"
+#include "custom_utilities/explicit_fixed_mesh_ale_utilities.h"
 
 namespace Kratos {
 namespace Testing {
 
-    KRATOS_TEST_CASE_IN_SUITE(ExplicitMeshMovingUtilities2D, MeshMovingApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(ExplicitFixedMeshALEUtilities2D, MeshMovingApplicationFastSuite)
     {
         Model current_model;
 
@@ -109,8 +109,8 @@ namespace Testing {
 
         // Set the explicit mesh moving utility
         const double search_radius = 1.0;
-        ExplicitMeshMovingUtilities::Pointer p_mesh_moving =
-            Kratos::make_shared<ExplicitMeshMovingUtilities>(virtual_model_part, str_model_part, search_radius);
+        ExplicitFixedMeshALEUtilities::Pointer p_mesh_moving =
+            Kratos::make_shared<ExplicitFixedMeshALEUtilities>(virtual_model_part, str_model_part, search_radius);
 
         // Fill the virtual model part geometry
         p_mesh_moving->FillVirtualModelPart(origin_model_part);
@@ -124,7 +124,7 @@ namespace Testing {
 
         // Execute the explicit mesh movement operations
         const unsigned int buffer_size = 3;
-        p_mesh_moving->ComputeExplicitMeshMovement(delta_time);
+        p_mesh_moving->ComputeMeshMovement(delta_time);
         p_mesh_moving->ProjectVirtualValues<2>(origin_model_part, buffer_size);
         p_mesh_moving->UndoMeshMovement();
 
