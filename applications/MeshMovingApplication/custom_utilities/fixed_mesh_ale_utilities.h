@@ -251,6 +251,7 @@ private:
 
     const std::string mLevelSetType;
     LinearSolverType::Pointer mpLinearSolver = nullptr;
+    LaplacianMeshMovingStrategyType::Pointer mpMeshMovingStrategy = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -262,6 +263,8 @@ private:
     ///@{
 
     void SetLinearSolverPointer(const Parameters &rLinearSolverSettings);
+
+    void SetMeshMovingStrategy();
 
     /**
      * @brief Set the Distances Vector object
@@ -305,7 +308,16 @@ private:
      * calculation and virtual mesh update are performe din here.
      * @param DeltaTime time step value (required for the computation of the MESH_VELOCITY)
      */
-    void SetAndSolveMeshMovementStrategy(const double DeltaTime);
+    void SolveMeshMovementStrategy(const double DeltaTime);
+
+    /**
+     * @brief Revert the MESH_DISPLACEMENT fixity
+     * Once the mesh moving strategy has been solved, this method
+     * has to be called to free the MESH_DISPLACEMENT DOFs. It will
+     * be set again in accordance to the immersed body displacement
+     * before the next mesh movement computation
+     */
+    void RevertMeshDisplacementFixity();
 
     ///@}
     ///@name Private  Access

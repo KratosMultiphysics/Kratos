@@ -126,6 +126,9 @@ namespace Kratos
             << "Origin and virtual model part have different number of nodes.";
         KRATOS_ERROR_IF(rOriginModelPart.NumberOfElements() != mrVirtualModelPart.NumberOfElements())
             << "Origin and virtual model part have different number of elements.";
+
+        // Set the mesh moving strategy with created virtual mesh
+        this->SetMeshMovingStrategy();
     }
 
     void FixedMeshALEUtilities::ComputeMeshMovement(const double DeltaTime)
@@ -137,11 +140,16 @@ namespace Kratos
         this->SetEmbeddedNodalMeshDisplacement();
 
         // Set the mesh moving strategy
-        this->SetAndSolveMeshMovementStrategy(DeltaTime);
+        KRATOS_WATCH(mrVirtualModelPart)
+        this->SolveMeshMovementStrategy(DeltaTime);
     }
 
     void FixedMeshALEUtilities::UndoMeshMovement()
     {
+        // Revert the MESH_DISPLACEMENT fixity
+        this->RevertMeshDisplacementFixity();
+
+        // Revert the virtual mesh movement to its original configuration
         auto &r_nodes = mrVirtualModelPart.Nodes();
         VariableUtils().UpdateCurrentToInitialConfiguration(r_nodes);
     }
@@ -266,6 +274,14 @@ namespace Kratos
         mpLinearSolver = linear_solver_factory.Create(rLinearSolverSettings);
     }
 
+    void FixedMeshALEUtilities::SetMeshMovingStrategy()
+    {
+        // Set the Laplacian mesh moving strategy
+        mpMeshMovingStrategy = Kratos::make_shared<LaplacianMeshMovingStrategyType>(mrVirtualModelPart, mpLinearSolver);
+        mpMeshMovingStrategy->Check();
+        mpMeshMovingStrategy->Initialize();
+    }
+
     const Vector FixedMeshALEUtilities::SetDistancesVector(ModelPart::ElementIterator ItElem)
     {
         auto &r_geom = ItElem->GetGeometry();
@@ -354,19 +370,31 @@ namespace Kratos
         }
     }
 
-    void FixedMeshALEUtilities::SetAndSolveMeshMovementStrategy(const double DeltaTime)
+    void FixedMeshALEUtilities::SolveMeshMovementStrategy(const double DeltaTime)
     {
-        // Set the Laplacian mesh moving strategy
-        auto p_mesh_moving_strategy = Kratos::make_shared<LaplacianMeshMovingStrategyType>(mrVirtualModelPart, mpLinearSolver);
-        p_mesh_moving_strategy->Check();
-        p_mesh_moving_strategy->Initialize();
-
         // Set the time increment in the virtual model part so the MESH_VELOCITY can be computed
         mrVirtualModelPart.GetProcessInfo()[DELTA_TIME] = DeltaTime;
 
         // Solve the mesh problem
-        p_mesh_moving_strategy->Solve();
-        p_mesh_moving_strategy->UpdateReferenceMesh();
+        mpMeshMovingStrategy->Solve();
+        mpMeshMovingStrategy->UpdateReferenceMesh();
+    }
+
+    void FixedMeshALEUtilities::RevertMeshDisplacementFixity()
+    {
+        #pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(mrVirtualModelPart.NumberOfNodes()); ++i_node) {
+            auto it_node = mrVirtualModelPart.NodesBegin() + i_node;
+            if (it_node->IsFixed(MESH_DISPLACEMENT_X)) {
+                it_node->Free(MESH_DISPLACEMENT_X);
+            }
+            if (it_node->IsFixed(MESH_DISPLACEMENT_Y)) {
+                it_node->Free(MESH_DISPLACEMENT_Y);
+            }
+            if (it_node->IsFixed(MESH_DISPLACEMENT_Z)) {
+                it_node->Free(MESH_DISPLACEMENT_Z);
+            }
+        }
     }
 
     /* External functions *****************************************************/
