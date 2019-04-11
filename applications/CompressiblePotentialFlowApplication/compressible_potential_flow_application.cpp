@@ -39,8 +39,8 @@ KratosCompressiblePotentialFlowApplication::KratosCompressiblePotentialFlowAppli
 void KratosCompressiblePotentialFlowApplication::Register()
 {
  	// calling base class register to register Kratos components
- 	KratosApplication::Register();
- 	KRATOS_INFO("") << "Initializing KratosCompressiblePotentialFlowApplication..." << std::endl;
+  KratosApplication::Register();
+  KRATOS_INFO("") << "Initializing KratosCompressiblePotentialFlowApplication..." << std::endl;
 
   //Degrees of Freedom
   KRATOS_REGISTER_VARIABLE(VELOCITY_POTENTIAL);
