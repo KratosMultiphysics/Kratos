@@ -96,8 +96,9 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
 
         # "Automatic" direction: get the inwards direction
         all_numeric = True
-        if settings["direction"].IsString() :
+        if settings["direction"].IsString():
             if settings["direction"].GetString() == "automatic_inwards_normal" or settings["direction"].GetString() == "automatic_outwards_normal":
+
                 # Compute the condition normals
                 KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
@@ -117,6 +118,7 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
         elif settings["direction"].IsArray():
             unit_direction = [0.0,0.0,0.0]
             direction_norm = 0.0
+    
             for i in range(0,3):
                 if settings["direction"][i].IsNumber():
                     unit_direction[i] = settings["direction"][i].GetDouble()
@@ -148,6 +150,7 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
                 x_params.AddEmptyValue("value").SetString("("+str(unit_direction[0])+")*("+str(modulus)+")")
                 y_params.AddEmptyValue("value").SetString("("+str(unit_direction[1])+")*("+str(modulus)+")")
                 z_params.AddEmptyValue("value").SetString("("+str(unit_direction[2])+")*("+str(modulus)+")")
+
         elif settings["modulus"].IsString():
             # The concatenated string is: "direction[i])*(f(x,y,z,t)"
             modulus = settings["modulus"].GetString()
@@ -156,7 +159,7 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
             z_params.AddEmptyValue("value").SetString("("+str(unit_direction[2])+")*("+modulus+")")
 
         # Construct a AssignScalarToNodesProcess for each component
-        import assign_scalar_variable_process
+        from KratosMultiphysics import assign_scalar_variable_process
 
         self.aux_processes = []
         self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(Model, x_params) )
