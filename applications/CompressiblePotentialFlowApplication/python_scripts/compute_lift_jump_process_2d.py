@@ -36,15 +36,10 @@ class ComputeLiftJumpProcess2D(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
         # Find the Trailing Edge node
-        max_x_coordinate = -1e30
         for node in self.body_model_part.Nodes:
-            if(node.X > max_x_coordinate):
-                max_x_coordinate = node.X
-                self.te = node
-        # for node in self.body_model_part.Nodes:
-        #     if node.GetValue(CPFApp.TRAILING_EDGE):
-        #          self.te=node
-        #          break
+            if node.GetValue(CPFApp.TRAILING_EDGE):
+                 self.te=node
+                 break
 
         node_velocity_potential_te = self.te.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
         node_auxiliary_velocity_potential_te = self.te.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
