@@ -397,13 +397,13 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
 
     def _create_mesh_moving_util(self):
         if have_mesh_moving:
-            mesh_moving_util = KratosMeshMoving.ExplicitMeshMovingUtilities(
+            mesh_moving_util = KratosMeshMoving.ExplicitFixedMeshALEUtilities(
                 self._get_fm_ale_virtual_model_part(),
                 self._get_fm_ale_structure_model_part(),
                 self.settings["fm_ale_settings"]["search_radius"].GetDouble())
             return mesh_moving_util
         else:
-            raise Exception("MeshMovingApplication is required to construct the FM-ALE utility (ExplicitMeshMovingUtilities)")
+            raise Exception("MeshMovingApplication is required to construct the FM-ALE utility (ExplicitFixedMeshALEUtilities)")
 
     def _is_fm_ale_step(self):
         if (self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt() != 0):

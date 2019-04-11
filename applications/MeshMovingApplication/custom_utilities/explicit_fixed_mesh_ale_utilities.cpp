@@ -16,7 +16,7 @@
 // External includes
 
 // Application includes
-#include "custom_utilities/explicit_mesh_moving_utilities.h"
+#include "custom_utilities/explicit_fixed_mesh_ale_utilities.h"
 #include "custom_utilities/mesh_velocity_calculation.h"
 #include "custom_utilities/move_mesh_utilities.h"
 
@@ -32,7 +32,7 @@ namespace Kratos
 {
 /* Public functions *******************************************************/
 
-ExplicitMeshMovingUtilities::ExplicitMeshMovingUtilities(
+ExplicitFixedMeshALEUtilities::ExplicitFixedMeshALEUtilities(
     ModelPart &rVirtualModelPart,
     ModelPart &rStructureModelPart,
     const double SearchRadius) :
@@ -41,11 +41,11 @@ ExplicitMeshMovingUtilities::ExplicitMeshMovingUtilities(
 {
     if (mrStructureModelPart.GetBufferSize() < 2) {
         (mrStructureModelPart.GetRootModelPart()).SetBufferSize(2);
-        KRATOS_WARNING("ExplicitMeshMovingUtilities") << "Structure model part buffer size is 1. Setting buffer size to 2." << std::endl;
+        KRATOS_WARNING("ExplicitFixedMeshALEUtilities") << "Structure model part buffer size is 1. Setting buffer size to 2." << std::endl;
     }
 }
 
-void ExplicitMeshMovingUtilities::ComputeMeshMovement(const double DeltaTime)
+void ExplicitFixedMeshALEUtilities::ComputeMeshMovement(const double DeltaTime)
 {
     VectorResultNodesContainerType search_results;
     DistanceVectorContainerType search_distance_results;
@@ -64,7 +64,7 @@ void ExplicitMeshMovingUtilities::ComputeMeshMovement(const double DeltaTime)
 
 /* Private functions *******************************************************/
 
-void ExplicitMeshMovingUtilities::SearchStructureNodes(
+void ExplicitFixedMeshALEUtilities::SearchStructureNodes(
     VectorResultNodesContainerType &rSearchResults,
     DistanceVectorContainerType &rSearchDistanceResults) {
 
@@ -100,7 +100,7 @@ void ExplicitMeshMovingUtilities::SearchStructureNodes(
     }
 }
 
-void ExplicitMeshMovingUtilities::ComputeExplicitMeshDisplacement(
+void ExplicitFixedMeshALEUtilities::ComputeExplicitMeshDisplacement(
     const VectorResultNodesContainerType &rSearchResults,
     const DistanceVectorContainerType &rSearchDistanceResults)
 {
@@ -164,14 +164,14 @@ void ExplicitMeshMovingUtilities::ComputeExplicitMeshDisplacement(
     }
 }
 
-inline double ExplicitMeshMovingUtilities::ComputeKernelValue(const double NormalisedDistance){
+inline double ExplicitFixedMeshALEUtilities::ComputeKernelValue(const double NormalisedDistance){
     // Epanechnikov (parabolic) kernel function
     // return (std::abs(NormalisedDistance) < 1.0) ? std::abs((3.0/4.0)*(1.0-std::pow(NormalisedDistance,2))) : 0.0;
     // Triangle kernel function
     return (std::abs(NormalisedDistance) < 1.0) ? 1.0 - std::abs(NormalisedDistance) : 0.0;
 }
 
-void ExplicitMeshMovingUtilities::CreateVirtualModelPartElements(const ModelPart &rOriginModelPart)
+void ExplicitFixedMeshALEUtilities::CreateVirtualModelPartElements(const ModelPart &rOriginModelPart)
 {
     // Copy the origin model part elements
     auto &r_elems = rOriginModelPart.Elements();
@@ -194,7 +194,7 @@ void ExplicitMeshMovingUtilities::CreateVirtualModelPartElements(const ModelPart
 /// output stream function
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const ExplicitMeshMovingUtilities& rThis) {
+    const ExplicitFixedMeshALEUtilities& rThis) {
 
     rThis.PrintData(rOStream);
     return rOStream;

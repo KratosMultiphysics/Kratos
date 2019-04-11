@@ -10,8 +10,8 @@
 //  Main author:     Ruben Zorrilla
 //
 
-#if !defined(KRATOS_EXPLICIT_MESH_MOVING_UTILITIES_H_INCLUDED )
-#define  KRATOS_EXPLICIT_MESH_MOVING_UTILITIES_H_INCLUDED
+#if !defined(KRATOS_EXPLICIT_FIXED_MESH_ALE_UTILITIES_H_INCLUDED )
+#define  KRATOS_EXPLICIT_FIXED_MESH_ALE_UTILITIES_H_INCLUDED
 
 // System includes
 
@@ -61,7 +61,7 @@ namespace Kratos
    * the origin mesh historical values (velocity and pressure) are computed as
    * an interpolation in the virtual model part.
    */
-  class ExplicitMeshMovingUtilities : public FixedMeshALEUtilities
+  class ExplicitFixedMeshALEUtilities : public FixedMeshALEUtilities
   {
   public:
 
@@ -75,21 +75,21 @@ namespace Kratos
     typedef std::vector<std::vector<double>>                       DistanceVectorContainerType;
     typedef SpatialSearch::VectorResultNodesContainerType       VectorResultNodesContainerType;
 
-    /// Pointer definition of ExplicitMeshMovingUtilities
-    KRATOS_CLASS_POINTER_DEFINITION(ExplicitMeshMovingUtilities);
+    /// Pointer definition of ExplicitFixedMeshALEUtilities
+    KRATOS_CLASS_POINTER_DEFINITION(ExplicitFixedMeshALEUtilities);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor
-    ExplicitMeshMovingUtilities(
+    ExplicitFixedMeshALEUtilities(
         ModelPart &rVirtualModelPart,
         ModelPart &rStructureModelPart,
         const double SearchRadius);
 
     /// Destructor.
-    ~ExplicitMeshMovingUtilities() = default;
+    ~ExplicitFixedMeshALEUtilities() = default;
 
     ///@}
     ///@name Operators
@@ -241,13 +241,13 @@ private:
     ///@{
 
     /// Assignment operator.
-    ExplicitMeshMovingUtilities& operator=(ExplicitMeshMovingUtilities const& rOther) = delete;
+    ExplicitFixedMeshALEUtilities& operator=(ExplicitFixedMeshALEUtilities const& rOther) = delete;
 
     /// Copy constructor.
-    ExplicitMeshMovingUtilities(ExplicitMeshMovingUtilities const& rOther) = delete;
+    ExplicitFixedMeshALEUtilities(ExplicitFixedMeshALEUtilities const& rOther) = delete;
 
     ///@}
-}; // Class ExplicitMeshMovingUtilities
+}; // Class ExplicitFixedMeshALEUtilities
 
 ///@}
 
@@ -263,7 +263,7 @@ private:
 /// output stream function
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const ExplicitMeshMovingUtilities& rThis);
+    const ExplicitFixedMeshALEUtilities& rThis);
 
 ///@}
 
@@ -271,4 +271,4 @@ inline std::ostream& operator << (
 
 }  // namespace Kratos.
 
-#endif // KRATOS_EXPLICIT_MESH_MOVING_UTILITIES_H_INCLUDED  defined
+#endif // KRATOS_EXPLICIT_FIXED_MESH_ALE_UTILITIES_H_INCLUDED  defined

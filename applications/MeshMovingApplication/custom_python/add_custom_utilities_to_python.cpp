@@ -24,7 +24,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/ball_vertex_meshmoving.h"
 #include "custom_utilities/ball_vertex_meshmoving3D.h"
-#include "custom_utilities/explicit_mesh_moving_utilities.h"
+#include "custom_utilities/explicit_fixed_mesh_ale_utilities.h"
 #include "custom_utilities/fixed_mesh_ale_utilities.h"
 #include "custom_utilities/mesh_velocity_calculation.h"
 #include "custom_utilities/move_mesh_utilities.h"
@@ -59,13 +59,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ProjectVirtualValues3D", &FixedMeshALEUtilities::ProjectVirtualValues<3>)
         .def("UndoMeshMovement", &FixedMeshALEUtilities::UndoMeshMovement);
 
-    py::class_<ExplicitMeshMovingUtilities, ExplicitMeshMovingUtilities::Pointer, FixedMeshALEUtilities>(m, "ExplicitMeshMovingUtilities")
+    py::class_<ExplicitFixedMeshALEUtilities, ExplicitFixedMeshALEUtilities::Pointer, FixedMeshALEUtilities>(m, "ExplicitFixedMeshALEUtilities")
         .def(py::init<ModelPart &, ModelPart &, const double>())
-        .def("ComputeMeshMovement", &ExplicitMeshMovingUtilities::ComputeMeshMovement)
-        .def("FillVirtualModelPart", &ExplicitMeshMovingUtilities::FillVirtualModelPart)
-        .def("ProjectVirtualValues2D", &ExplicitMeshMovingUtilities::ProjectVirtualValues<2>)
-        .def("ProjectVirtualValues3D", &ExplicitMeshMovingUtilities::ProjectVirtualValues<3>)
-        .def("UndoMeshMovement", &ExplicitMeshMovingUtilities::UndoMeshMovement);
+        .def("ComputeMeshMovement", &ExplicitFixedMeshALEUtilities::ComputeMeshMovement)
+        .def("FillVirtualModelPart", &ExplicitFixedMeshALEUtilities::FillVirtualModelPart)
+        .def("ProjectVirtualValues2D", &ExplicitFixedMeshALEUtilities::ProjectVirtualValues<2>)
+        .def("ProjectVirtualValues3D", &ExplicitFixedMeshALEUtilities::ProjectVirtualValues<3>)
+        .def("UndoMeshMovement", &ExplicitFixedMeshALEUtilities::UndoMeshMovement);
 
     void (*CalculateMeshVelocitiesBDF1)(ModelPart&, const TimeDiscretization::BDF1&) = &MeshVelocityCalculation::CalculateMeshVelocities;
     void (*CalculateMeshVelocitiesBDF2)(ModelPart&, const TimeDiscretization::BDF2&) = &MeshVelocityCalculation::CalculateMeshVelocities;
