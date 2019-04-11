@@ -1333,7 +1333,7 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
 		puts $fileid "    \"RemoveBallsInitiallyTouchingWalls\"          : false"
     }
 
-	set SearchNeighboursOption [::xmlutils::setXml "$rootid//c.DEM-Options//c.DEM-Physical-opts//i.SearchNeighboursOption" dv]
+	set SearchNeighboursOption [::xmlutils::setXml "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-SearchNeighboursOption" dv]
     if {$SearchNeighboursOption == "Yes"} {
 	puts $fileid "\"do_search_neighbours\"                   : true,"
     } else {
