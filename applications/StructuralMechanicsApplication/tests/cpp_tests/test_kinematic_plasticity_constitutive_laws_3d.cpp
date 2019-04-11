@@ -113,7 +113,6 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrainKin
     VonMisesCL.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "VonMises:: This test is not in plastic range" << std::endl;
 	
-	KRATOS_WATCH(TestVM)
 
     // Check the results
     const double tolerance = 1.0e-4;
