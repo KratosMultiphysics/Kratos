@@ -132,8 +132,6 @@ class AssignVectorByDirectionToConditionProcess(KratosMultiphysics.Process):
 
                 for i in range(0,3):
                     unit_direction[i] = unit_direction[i]/direction_norm
-            else:
-                KratosMultiphysics.Logger.PrintWarning("AssignVectorByDirectionToConditionProcess", "You are defining a direction as string. Unitary definition will be assumed")
 
         # Set the remainding parameters
         if settings["modulus"].IsNumber():
