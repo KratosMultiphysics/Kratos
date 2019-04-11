@@ -32,6 +32,7 @@
 #include "custom_elements/cable_element_3D2N.hpp"
 #include "custom_elements/sliding_cable_element_3D.hpp"
 #include "custom_elements/ring_element_3D.hpp"
+#include "custom_elements/weak_coupling_slide.hpp"
 
 /* Adding beam element */
 #include "custom_elements/cr_beam_element_3D2N.hpp"
@@ -308,6 +309,7 @@ private:
     /* ELEMENTS */
 
     const RoccoRingElement mRoccoRingElement3D4N;
+    const WeakSlidingElement3D3N mWeakSlidingElement3D3N;
 
     // Adding the truss element
     const TrussElement3D2N mTrussElement3D2N;

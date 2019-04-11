@@ -85,6 +85,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
 
   ## ELEMENTS
 
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/weak_coupling_slide.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rocco_ring_element.cpp
 
   #Adding truss element
