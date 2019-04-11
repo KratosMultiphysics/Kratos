@@ -1,6 +1,12 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
-import numpy as np
+import math
+
+def DotProduct(A,B):
+    result = 0
+    for i in range(len(A)):
+        result += A[i]*B[i]
+    return result
 
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
@@ -42,8 +48,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         # Computing free stream velocity
         self.u_inf = self.mach_inf * self.a_inf
         self.velocity_inf = KratosMultiphysics.Vector(3)
-        self.velocity_inf[0] = round(self.u_inf*np.cos(self.aoa),8)
-        self.velocity_inf[1] = round(self.u_inf*np.sin(self.aoa),8)
+        self.velocity_inf[0] = round(self.u_inf*math.cos(self.aoa),8)
+        self.velocity_inf[1] = round(self.u_inf*math.sin(self.aoa),8)
         self.velocity_inf[2] = 0.0
 
         # For the model part
@@ -90,7 +96,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         # Fix nodes in the inlet
         for cond in self.far_field_model_part.Conditions:
             normal = cond.GetValue(KratosMultiphysics.NORMAL)
-            projection = np.dot(normal,self.velocity_inf)
+            projection = DotProduct(normal,self.velocity_inf)
 
             if( projection < 0):
                 for node in cond.GetNodes():
