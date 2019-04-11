@@ -1324,6 +1324,16 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
 	}
 	puts $fileid "\"strategy\"                   : \"$dem_strategy\","
 
+
+
+	set SearchNeighboursOption [::xmlutils::setXml "$rootid//c.DEM-Options//c.DEM-Physical-opts//i.SearchNeighboursOption" dv]
+    if {$SearchNeighboursOption == "Yes"} {
+	puts $fileid "\"do_search_neighbours\"                   : true,"
+    } else {
+	puts $fileid "\"do_search_neighbours\"                   : false,"
+    }
+
+
 	# Remove initially indented balls with walls
 	set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-RemoveBallsInitiallyTouchingWalls"
     set RemoveBallsInitiallyTouchingWallsOption [::xmlutils::setXml $cxpath $cproperty]
@@ -1333,12 +1343,6 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
 		puts $fileid "    \"RemoveBallsInitiallyTouchingWalls\"          : false"
     }
 
-	set SearchNeighboursOption [::xmlutils::setXml "$rootid//c.DEM-Options//c.DEM-Physical-opts//i.SearchNeighboursOption" dv]
-    if {$SearchNeighboursOption == "Yes"} {
-	puts $fileid "\"do_search_neighbours\"                   : true,"
-    } else {
-	puts $fileid "\"do_search_neighbours\"                   : false,"
-    }
 
 	puts $fileid "},"
 
