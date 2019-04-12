@@ -438,44 +438,44 @@ class TestProcesses(KratosUnittest.TestCase):
             process.ExecuteInitializeSolutionStep()
 
         for cond in model_part.Conditions:
-            self.assertEqual(cond.GetValue(PRESSURE), 15.0)
-            self.assertEqual(cond.GetValue(VISCOSITY), 2)
+            self.assertEqual(cond.GetValue(KratosMultiphysics.PRESSURE), 15.0)
+            self.assertEqual(cond.GetValue(KratosMultiphysics.VISCOSITY), 2)
 
     def test_assign_scalar_value_to_elements(self):
-        current_model = Model()
+        current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
-        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
 
-        settings = Parameters(
-            """
-            {
-                "process_list" : [
-                    {
-                        "python_module"   : "assign_scalar_variable_to_elements_process",
-                        "kratos_module" : "KratosMultiphysics",
-                        "process_name"          : "AssignScalarVariableToElementsProcess",
-                        "Parameters"            : {
-                            "model_part_name":"Main",
-                            "variable_name": "PRESSURE",
-                            "value" : 15.0
-                        }
-                    },
-                    {
-                        "python_module"   : "assign_scalar_variable_to_elements_process",
-                        "kratos_module" : "KratosMultiphysics",
-                        "process_name"          : "AssignScalarVariableToElementsProcess",
-                        "Parameters"            : {
-                            "model_part_name":"Main",
-                            "variable_name": "VISCOSITY",
-                            "value" : 2
-                        }
+        settings = KratosMultiphysics.Parameters(
+        """
+        {
+            "process_list" : [
+                {
+                    "python_module"   : "assign_scalar_variable_to_elements_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"          : "AssignScalarVariableToElementsProcess",
+                    "Parameters"            : {
+                        "model_part_name":"Main",
+                        "variable_name": "PRESSURE",
+                        "value" : 15.0
                     }
-                    ]
+                },
+                {
+                    "python_module"   : "assign_scalar_variable_to_elements_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"          : "AssignScalarVariableToElementsProcess",
+                    "Parameters"            : {
+                        "model_part_name":"Main",
+                        "variable_name": "VISCOSITY",
+                        "value" : 2
+                    }
                 }
-            """
-            )
+                ]
+            }
+        """
+        )
 
         import process_factory
         list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
@@ -484,15 +484,15 @@ class TestProcesses(KratosUnittest.TestCase):
             process.ExecuteInitializeSolutionStep()
 
         for elem in model_part.Elements:
-            self.assertEqual(cond.GetValue(KratosMultiphysics.PRESSURE), 15.0)
-            self.assertEqual(cond.GetValue(KratosMultiphysics.VISCOSITY), 2)
+            self.assertEqual(elem.GetValue(KratosMultiphysics.PRESSURE), 15.0)
+            self.assertEqual(elem.GetValue(KratosMultiphysics.VISCOSITY), 2)
 
     def test_assign_scalar_value_to_constraints(self):
         current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
 
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, model_part)
@@ -502,7 +502,7 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3, model_part.Nodes[1], KratosMultiphysics.DISPLACEMENT_X, model_part.Nodes[4], KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
         model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 4, model_part.Nodes[1], KratosMultiphysics.DISPLACEMENT_X, model_part.Nodes[5], KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
 
-        settings = Parameters(
+        settings = KratosMultiphysics.Parameters(
         """
         {
             "process_list" : [
@@ -848,19 +848,19 @@ class TestProcesses(KratosUnittest.TestCase):
 
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
-            
+
     def test_assign_vector_variable_to_elements(self):
         current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        
+
         model_part.CreateNewNode(1,0.5,0.5,0.5)
         model_part.CreateNewNode(2,1.0,1.0,1.0)
-        
+
         model_part.CreateNewElement("Element2D2N",1,[1,2], model_part.GetProperties()[1])
 
-        settings = Parameters(
+        settings = KratosMultiphysics.Parameters(
         """
         {
             "process_list" : [
@@ -878,8 +878,8 @@ class TestProcesses(KratosUnittest.TestCase):
                 }
             ]
         }
-        """)   
-        
+        """)
+
         import process_factory
         list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
@@ -888,13 +888,13 @@ class TestProcesses(KratosUnittest.TestCase):
 
         for process in list_of_processes:
             process.ExecuteInitializeSolutionStep()
-        
+
         for elem in model_part.Elements:
-            tmp = elem.GetValue(DISPLACEMENT)
+            tmp = elem.GetValue(KratosMultiphysics.DISPLACEMENT)
             self.assertEqual(tmp[0], 2.0*3.0-0.75)
             self.assertEqual(tmp[1], 0.0)
             self.assertEqual(tmp[2], 0.0)
-            
+
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
 
@@ -903,9 +903,9 @@ class TestProcesses(KratosUnittest.TestCase):
 
         for process in list_of_processes:
             process.ExecuteInitializeSolutionStep()
-            
+
         for elem in model_part.Elements:
-            tmp = elem.GetValue(DISPLACEMENT)
+            tmp = elem.GetValue(KratosMultiphysics.DISPLACEMENT)
             self.assertEqual(tmp[0], 2.0*8.0-0.75)
             self.assertEqual(tmp[1], 0.0)
             self.assertEqual(tmp[2], 0.0)
@@ -921,7 +921,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         model_part.CreateNewNode(1,0.5,0.5,0.5)
         model_part.CreateNewNode(2,1.0,1.0,1.0)
-        
+
         model_part.CreateNewCondition("LineCondition2D2N",1,[1,2], model_part.GetProperties()[1])
 
         settings = KratosMultiphysics.Parameters(
@@ -952,7 +952,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         for process in list_of_processes:
             process.ExecuteInitializeSolutionStep()
-            
+
         for cond in model_part.Conditions:
             tmp = cond.GetValue(KratosMultiphysics.DISPLACEMENT)
             geometry = cond.GetGeometry()
@@ -971,7 +971,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         for process in list_of_processes:
             process.ExecuteInitializeSolutionStep()
-            
+
         for cond in model_part.Conditions:
             tmp = cond.GetValue(KratosMultiphysics.DISPLACEMENT)
             geometry = cond.GetGeometry()
