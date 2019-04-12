@@ -95,44 +95,59 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
         z_params.AddValue("local_axes",settings["local_axes"])
 
         # "Automatic" direction: get the inwards direction
+        all_numeric = True
         if settings["direction"].IsString():
-            if (settings["direction"].GetString() == "automatic_inwards_normal") or (settings["direction"].GetString() == "automatic_outwards_normal"):
+            if settings["direction"].GetString() == "automatic_inwards_normal" or settings["direction"].GetString() == "automatic_outwards_normal":
+
                 # Compute the condition normals
                 KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
                 # Compute the average conditions normal in the submodelpart of interest
                 avg_normal = KratosMultiphysics.VariableUtils().SumConditionVectorVariable(KratosMultiphysics.NORMAL, self.model_part)
                 avg_normal_norm = math.sqrt(pow(avg_normal[0],2) + pow(avg_normal[1],2) + pow(avg_normal[2],2))
-                if(avg_normal_norm < 1e-6):
+                if avg_normal_norm < 1.0e-6:
                     raise Exception("Direction norm is close to 0 in AssignVectorByDirectionProcess.")
 
                 unit_direction = KratosMultiphysics.Vector(3)
-                unit_direction = (1/avg_normal_norm)*avg_normal
+                unit_direction = (1.0/avg_normal_norm) * avg_normal
 
                 # Note that the NormalCalculationUtils().CalculateOnSimplex gives the outwards normal vector
                 if settings["direction"].GetString() == "automatic_inwards_normal":
                     unit_direction = (-1)*unit_direction
-
         # Direction is given as a vector
         elif settings["direction"].IsArray():
-            # Normalize direction
-            direction_norm = math.sqrt(pow(settings["direction"][0].GetDouble(),2) +
-                                       pow(settings["direction"][1].GetDouble(),2) +
-                                       pow(settings["direction"][2].GetDouble(),2))
-            if direction_norm < 1.0e-6:
-                raise Exception("Direction norm is close to 0 in AssignVectorByDirectionProcess.")
-
-            unit_direction = []
+            unit_direction = [0.0,0.0,0.0]
+            direction_norm = 0.0
             for i in range(0,3):
-                unit_direction.append(settings["direction"][i].GetDouble()/direction_norm)
+                if settings["direction"][i].IsNumber():
+                    unit_direction[i] = settings["direction"][i].GetDouble()
+                    direction_norm += pow(unit_direction[i],2)
+                else:
+                    function_string = settings["direction"][i].GetString()
+                    unit_direction[i] = function_string
+                    all_numeric = False
 
+            # Normalize direction
+            if all_numeric:
+                direction_norm = math.sqrt(direction_norm)
+                if direction_norm < 1.0e-6:
+                    raise Exception("Direction norm is close to 0 in AssignVectorByDirectionProcess.")
+
+                for i in range(0,3):
+                    unit_direction[i] = unit_direction[i]/direction_norm
 
         # Set the remainding parameters
         if settings["modulus"].IsNumber():
             modulus = settings["modulus"].GetDouble()
-            x_params.AddEmptyValue("value").SetDouble(modulus*unit_direction[0])
-            y_params.AddEmptyValue("value").SetDouble(modulus*unit_direction[1])
-            z_params.AddEmptyValue("value").SetDouble(modulus*unit_direction[2])
+            if all_numeric:
+                x_params.AddEmptyValue("value").SetDouble(modulus * unit_direction[0])
+                y_params.AddEmptyValue("value").SetDouble(modulus * unit_direction[1])
+                z_params.AddEmptyValue("value").SetDouble(modulus * unit_direction[2])
+            else:
+                x_params.AddEmptyValue("value").SetString("("+str(unit_direction[0])+")*("+str(modulus)+")")
+                y_params.AddEmptyValue("value").SetString("("+str(unit_direction[1])+")*("+str(modulus)+")")
+                z_params.AddEmptyValue("value").SetString("("+str(unit_direction[2])+")*("+str(modulus)+")")
+
         elif settings["modulus"].IsString():
             # The concatenated string is: "direction[i])*(f(x,y,z,t)"
             modulus = settings["modulus"].GetString()
