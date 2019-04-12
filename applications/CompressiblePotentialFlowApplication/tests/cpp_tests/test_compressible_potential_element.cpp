@@ -11,9 +11,6 @@
 //
 //
 
-// System includes
-#include <set>
-
 // External includes
 #include "containers/model.h"
 
