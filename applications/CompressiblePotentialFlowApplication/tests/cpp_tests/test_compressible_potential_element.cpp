@@ -11,12 +11,9 @@
 //
 //
 
-// External includes
-#include "containers/model.h"
-
 // Project includes
+#include "containers/model.h"
 #include "testing/testing.h"
-#include "includes/model_part.h"
 #include "custom_elements/compressible_potential_flow_element.h"
 
 namespace Kratos {
