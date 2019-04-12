@@ -16,7 +16,7 @@ from simulation_definition import SimulationScenario
 from KratosMultiphysics.MultilevelMonteCarloApplication.statistical_variable_utilities import StatisticalVariable
 
 # Import refinement library
-import KratosMultiphysics.MultilevelMonteCarloApplication.adaptive_refinement_utilities as hessian_metric_refinement
+from KratosMultiphysics.MultilevelMonteCarloApplication.adaptive_refinement_utilities import AdaptiveRefinement
 
 # Import random variable generator
 import KratosMultiphysics.MultilevelMonteCarloApplication.generator_utilities as generator
@@ -174,8 +174,8 @@ def ExecuteInstanceAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coar
         else:
             maximal_mesh_size_level = 10.0
         # refine the model Kratos object
-        refined_model,refined_project_parameters = \
-            hessian_metric_refinement.ComputeRefinementHessianMetric(current_model,current_project_parameters,minimal_mesh_size_level,maximal_mesh_size_level,current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters)
+        adaptive_refinement_manager = AdaptiveRefinement(current_model,current_project_parameters,current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters,minimal_mesh_size_level,maximal_mesh_size_level)
+        refined_model,refined_project_parameters = adaptive_refinement_manager.ComputeAdaptiveRefinement()
         # initialize the model Kratos object
         simulation = current_analysis_stage(refined_model,refined_project_parameters,sample)
         simulation.Initialize()
