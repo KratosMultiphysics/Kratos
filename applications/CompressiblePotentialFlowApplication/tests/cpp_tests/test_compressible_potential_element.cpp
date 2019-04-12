@@ -41,7 +41,7 @@ namespace Kratos {
       pElemProp->SetValue(VELOCITY_INFINITY,v_inf);
       pElemProp->SetValue(DENSITY_INFINITY,1.225);
       pElemProp->SetValue(MACH_INFINITY,0.1);
-      pElemProp->SetValue(GAMMA,1.4);
+      pElemProp->SetValue(HEAT_CAPACITY_RATIO,1.4);
       pElemProp->SetValue(SOUND_VELOCITY,340.0);
 
       // Geometry creation

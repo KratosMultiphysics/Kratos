@@ -809,7 +809,7 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeCP() const
     // Reading free stream conditions
     const array_1d<double, 3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
     const double M_inf = GetProperties().GetValue(MACH_INFINITY);
-    const double gamma = GetProperties().GetValue(GAMMA);
+    const double heat_capacity_ratio = GetProperties().GetValue(HEAT_CAPACITY_RATIO);
 
     // Computing local velocity
     array_1d<double, Dim> v;
@@ -824,9 +824,9 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeCP() const
         << "Error on element -> " << this->Id() << "\n"
         << "v_inf_2 must be larger than zero." << std::endl;
 
-    const double base = 1 + (gamma - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2;
+    const double base = 1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2;
 
-    return 2 * (pow(base, gamma / (gamma - 1)) - 1) / (gamma * M_inf_2);
+    return 2 * (pow(base, heat_capacity_ratio / (heat_capacity_ratio - 1)) - 1) / (heat_capacity_ratio * M_inf_2);
 }
 
 template <int Dim, int NumNodes>
@@ -836,7 +836,7 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensity() const
     const array_1d<double, 3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
     const double rho_inf = GetProperties().GetValue(DENSITY_INFINITY);
     const double M_inf = GetProperties().GetValue(MACH_INFINITY);
-    const double gamma = GetProperties().GetValue(GAMMA);
+    const double heat_capacity_ratio = GetProperties().GetValue(HEAT_CAPACITY_RATIO);
     const double a_inf = GetProperties().GetValue(SOUND_VELOCITY);
 
     // Computing local velocity
@@ -858,11 +858,11 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensity() const
         v_2 = 0.94 * 0.94 * a_inf * a_inf;
     }
 
-    const double base = 1 + (gamma - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2;
+    const double base = 1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2;
 
     if (base > 0.0)
     {
-        return rho_inf * pow(base, 1 / (gamma - 1));
+        return rho_inf * pow(base, 1 / (heat_capacity_ratio - 1));
     }
     else
     {
@@ -876,10 +876,10 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensityDerivative
 {
     // Reading free stream conditions
     const double rho_inf = GetProperties().GetValue(DENSITY_INFINITY);
-    const double gamma = GetProperties().GetValue(GAMMA);
+    const double heat_capacity_ratio = GetProperties().GetValue(HEAT_CAPACITY_RATIO);
     const double a_inf = GetProperties().GetValue(SOUND_VELOCITY);
 
-    return -pow(rho_inf, gamma - 1) * pow(rho, 2 - gamma) / (2 * a_inf * a_inf);
+    return -pow(rho_inf, heat_capacity_ratio - 1) * pow(rho, 2 - heat_capacity_ratio) / (2 * a_inf * a_inf);
 }
 
 template <int Dim, int NumNodes>
@@ -887,11 +887,11 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressure() const
 {
     // Reading free stream conditions
     const double rho_inf = GetProperties().GetValue(DENSITY_INFINITY);
-    const double gamma = GetProperties().GetValue(GAMMA);
+    const double heat_capacity_ratio = GetProperties().GetValue(HEAT_CAPACITY_RATIO);
     const double pressure_inf = GetProperties().GetValue(PRESSURE_INFINITY);
     const double rho = ComputeDensity();
 
-    return pressure_inf * pow(rho / rho_inf, gamma);
+    return pressure_inf * pow(rho / rho_inf, heat_capacity_ratio);
 }
 
 // serializer

@@ -26,7 +26,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "angle_of_attack": 0.0,
                 "density_infinity"  : 1.0,
                 "speed_of_sound": 340,
-                "gamma": 1.4,
+                "heat_capacity_ratio": 1.4,
                 "pressure_infinity": 101325,
                 "initialize_flow_field": true
             }  """)
@@ -39,8 +39,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.inlet_phi_0 = settings["inlet_phi"].GetDouble()
         self.density_inf = settings["density_infinity"].GetDouble()
         self.mach_inf = settings["mach_infinity"].GetDouble()
-        self.gamma = settings["gamma"].GetDouble()
-        self.aoa = settings["angle_of_attack"].GetDouble()
+        self.heat_capacity_ratio = settings["heat_capacity_ratio"].GetDouble()
+        self.angle_of_attack = settings["angle_of_attack"].GetDouble()
         self.pressure_inf = settings["pressure_infinity"].GetDouble()
         self.a_inf = settings["speed_of_sound"].GetDouble()
         self.initialize = settings["initialize_flow_field"].GetBool()
@@ -48,8 +48,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         # Computing free stream velocity
         self.u_inf = self.mach_inf * self.a_inf
         self.velocity_inf = KratosMultiphysics.Vector(3)
-        self.velocity_inf[0] = round(self.u_inf*math.cos(self.aoa),8)
-        self.velocity_inf[1] = round(self.u_inf*math.sin(self.aoa),8)
+        self.velocity_inf[0] = round(self.u_inf*math.cos(self.angle_of_attack),8)
+        self.velocity_inf[1] = round(self.u_inf*math.sin(self.angle_of_attack),8)
         self.velocity_inf[2] = 0.0
 
         # For the model part
@@ -62,8 +62,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.VELOCITY_INFINITY, self.velocity_inf)
         self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.DENSITY_INFINITY, self.density_inf)
         self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.MACH_INFINITY, self.mach_inf)
-        self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.GAMMA, self.gamma)
-        self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.AOA, self.aoa)
+        self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.HEAT_CAPACITY_RATIO, self.heat_capacity_ratio)
+        self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.ANGLE_OF_ATTACK, self.angle_of_attack)
         self.fluid_model_part.GetProperties()[1].SetValue(KratosMultiphysics.SOUND_VELOCITY, self.a_inf)
         self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.PRESSURE_INFINITY, self.pressure_inf)
 

@@ -39,7 +39,7 @@
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "density_infinity"  : 1.225,
                 "mach_infinity": 0.3,
-                "gamma": 1.4
+                "heat_capacity_ratio": 1.4
             }
         },{
             "python_module" : "define_wake_process_2d",
