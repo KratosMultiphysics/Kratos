@@ -47,9 +47,12 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Node type definition
+    typedef Node<3> NodeType;
+
     /// Definition of array component
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
-    
+
     /// The container of the entities
     typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;
 
@@ -205,7 +208,7 @@ private:
             }
         }
     }
-    
+
     /**
      * @brief This method assigns the value (without OMP)
      * @param rVar The variable to be assigned

@@ -33,10 +33,10 @@ AssignScalarVariableToEntitiesProcess<TEntity>::AssignScalarVariableToEntitiesPr
 
     Parameters default_parameters( R"(
     {
-        "model_part_name":"MODEL_PART_NAME",
-        "mesh_id": 0,
-        "variable_name": "VARIABLE_NAME",
-        "value" : 1.0
+        "model_part_name" : "MODEL_PART_NAME",
+        "mesh_id"         : 0,
+        "variable_name"   : "VARIABLE_NAME",
+        "value"           : 1.0
     }  )" );
 
     // Validate against defaults -- this ensures no type mismatch
@@ -47,14 +47,11 @@ AssignScalarVariableToEntitiesProcess<TEntity>::AssignScalarVariableToEntitiesPr
 
     if( KratosComponents< Variable<double> >::Has( mVariableName )) { //case of double variable
         mDoubleValue = rParameters["value"].GetDouble();
-    }
-    else if( KratosComponents<array_1d_component_type>::Has( mVariableName ) ) { //case of component variable
+    } else if( KratosComponents<array_1d_component_type>::Has( mVariableName ) ) { //case of component variable
         mDoubleValue = rParameters["value"].GetDouble();
-    }
-    else if( KratosComponents< Variable<int> >::Has( mVariableName ) ) { //case of int variable
+    } else if( KratosComponents< Variable<int> >::Has( mVariableName ) ) { //case of int variable
         mIntValue = rParameters["value"].GetInt();
-    }
-    else if( KratosComponents< Variable<bool> >::Has( mVariableName ) ) { //case of bool variable
+    } else if( KratosComponents< Variable<bool> >::Has( mVariableName ) ) { //case of bool variable
         mBoolValue = rParameters["value"].GetBool();
     } else {
         KRATOS_ERROR <<"Trying to set a variable that is not in the model_part - variable name is " << mVariableName << std::endl;
@@ -90,6 +87,15 @@ void AssignScalarVariableToEntitiesProcess<TEntity>::Execute()
 /***********************************************************************************/
 
 template<>
+PointerVectorSet<Node<3>, IndexedObject>& AssignScalarVariableToEntitiesProcess<Node<3>>::GetEntitiesContainer()
+{
+    return mrModelPart.GetMesh(mMeshId).Nodes();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
 PointerVectorSet<Condition, IndexedObject>& AssignScalarVariableToEntitiesProcess<Condition>::GetEntitiesContainer()
 {
     return mrModelPart.GetMesh(mMeshId).Conditions();
@@ -116,6 +122,7 @@ PointerVectorSet<MasterSlaveConstraint, IndexedObject>& AssignScalarVariableToEn
 /***********************************************************************************/
 /***********************************************************************************/
 
+template class AssignScalarVariableToEntitiesProcess<Node<3>>;
 template class AssignScalarVariableToEntitiesProcess<Condition>;
 template class AssignScalarVariableToEntitiesProcess<Element>;
 template class AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>;

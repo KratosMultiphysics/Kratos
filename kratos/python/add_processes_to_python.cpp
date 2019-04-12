@@ -69,6 +69,7 @@ namespace Kratos
 
 namespace Python
 {
+typedef Node<3> NodeType;
 typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
 
 // Discontinuous distance computation auxiliar functions
@@ -337,6 +338,10 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<ReorderAndOptimizeModelPartProcess, ReorderAndOptimizeModelPartProcess::Pointer, Process>(m,"ReorderAndOptimizeModelPartProcess")
             .def(py::init<ModelPart&, Parameters>())
             ;
+
+    py::class_<AssignScalarVariableToEntitiesProcess<NodeType>, AssignScalarVariableToEntitiesProcess<NodeType>::Pointer, Process>(m,"AssignScalarVariableToNodesProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
 
     py::class_<AssignScalarVariableToEntitiesProcess<Condition>, AssignScalarVariableToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarVariableToConditionsProcess")
     .def(py::init<ModelPart&, Parameters >())

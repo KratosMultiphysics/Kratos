@@ -60,7 +60,7 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
 
         # Define entities
         if settings["entities"].size() == 0:
-           raise Exception("This process requires a list of entities. The options are: conditions, elements and constraints")
+           raise Exception("This process requires a list of entities. The options are: nodes, conditions, elements and constraints")
         self.entities = []
         for i in range(settings["entities"].size()):
             self.entities.append(settings["entities"][i].GetString())
@@ -77,7 +77,9 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
         if settings["value"].IsNumber():
             self.value_is_numeric = True
             for i in range(len(self.entities)):
-                if self.entities[i] == "conditions":
+                if self.entities[i] == "nodes":
+                    self.aux_processes.append( KratosMultiphysics.AssignScalarVariableToNodesProcess(self.model_part, params))
+                elif self.entities[i] == "conditions":
                     self.aux_processes.append( KratosMultiphysics.AssignScalarVariableToConditionsProcess(self.model_part, params))
                 elif self.entities[i] == "elements":
                     self.aux_processes.append( KratosMultiphysics.AssignScalarVariableToElementsProcess(self.model_part, params))
