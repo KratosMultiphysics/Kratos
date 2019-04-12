@@ -63,7 +63,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.__MarkWakeTEElement()
 
     def __ReadWakeDirection(self):
-        self.wake_direction = self.fluid_model_part.GetProperties()[1].GetValue(CPFApp.VELOCITY_INFINITY)
+        self.wake_direction = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.VELOCITY_INFINITY)
         if(self.wake_direction.Size() != 3):
             raise Exception('The wake direction should be a vector with 3 components!')
 

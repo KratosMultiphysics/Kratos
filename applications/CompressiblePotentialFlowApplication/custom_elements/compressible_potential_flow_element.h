@@ -224,15 +224,18 @@ private:
     void GetDofListWakeElement(DofsVectorType& rElementalDofList) const;
 
     void CalculateLocalSystemNormalElement(MatrixType& rLeftHandSideMatrix,
-                                           VectorType& rRightHandSideVector);
+                                           VectorType& rRightHandSideVector,
+                                           const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateLocalSystemWakeElement(MatrixType& rLeftHandSideMatrix,
-                                         VectorType& rRightHandSideVector);
+                                         VectorType& rRightHandSideVector,
+                                         const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateLocalSystemSubdividedElement(Matrix& lhs_positive,
                                                Matrix& lhs_negative,
                                                Matrix& laplacian_positive,
-                                               Matrix& laplacian_negative);
+                                               Matrix& laplacian_negative,
+                                               const ProcessInfo& rCurrentProcessInfo);
 
     void ComputeLHSGaussPointContribution(const double weight,
                                           Matrix& lhs,
@@ -260,7 +263,7 @@ private:
 
     void CheckWakeCondition() const;
 
-    void ComputePotentialJump();
+    void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
     void ComputeElementInternalEnergy();
 
@@ -285,13 +288,11 @@ private:
 
     void ComputeVelocityLowerWakeElement(array_1d<double, Dim>& velocity) const;
 
-    double ComputeCP() const;
+    double ComputePressureCoefficient(const ProcessInfo& rCurrentProcessInfo) const;
 
-    double ComputeDensity() const;
+    double ComputeDensity(const ProcessInfo& rCurrentProcessInfo) const;
 
-    double ComputeDensityDerivative(const double density) const;
-
-    double ComputePressure() const;
+    double ComputeDensityDerivative(const double density, const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}
     ///@name Private Operations

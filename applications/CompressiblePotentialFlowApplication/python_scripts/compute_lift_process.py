@@ -96,8 +96,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
                  te=node
                  break
 
-        mach_inf = self.fluid_model_part.GetProperties()[1].GetValue(CPFApp.MACH_INFINITY)
-        a_inf = self.fluid_model_part.GetProperties()[1].GetValue(KratosMultiphysics.SOUND_VELOCITY)
+        mach_inf = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.MACH_INFINITY)
+        a_inf = self.fluid_model_part.ProcessInfo.GetValue(KratosMultiphysics.SOUND_VELOCITY)
         u_inf = mach_inf * a_inf
         
         node_velocity_potential_te = te.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
@@ -109,7 +109,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.Cl_te = 2*potential_jump_phi_minus_psi_te/u_inf
 
     def __ReadWakeDirection(self):
-        self.wake_direction = self.fluid_model_part.GetProperties()[1].GetValue(CPFApp.VELOCITY_INFINITY)
+        self.wake_direction = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.VELOCITY_INFINITY)
         if(self.wake_direction.Size() != 3):
             raise Exception('The wake direction should be a vector with 3 components!')
 

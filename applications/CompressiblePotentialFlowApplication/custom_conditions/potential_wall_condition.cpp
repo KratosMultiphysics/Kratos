@@ -111,7 +111,7 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateLocalSystem(
     else
         CalculateNormal3D(An);
 
-    const double density_infinity = GetProperties().GetValue(DENSITY_INFINITY);
+    const double density_infinity = rCurrentProcessInfo[DENSITY_INFINITY];
 
     const PotentialWallCondition& r_this = *this;
     // For the airfoil v = 0

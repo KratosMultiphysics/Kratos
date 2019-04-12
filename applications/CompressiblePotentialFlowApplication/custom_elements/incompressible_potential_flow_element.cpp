@@ -147,7 +147,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(Pro
     if (wake != 0 && active == true)
     {
         CheckWakeCondition();
-        ComputePotentialJump();
+        ComputePotentialJump(rCurrentProcessInfo);
     }
     ComputeElementInternalEnergy();
 }
@@ -191,12 +191,12 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
 
     if (rVariable == PRESSURE_COEFFICIENT)
     {
-        double p = ComputePressureUpper();
+        double p = ComputePressureUpper(rCurrentProcessInfo);
         rValues[0] = p;
     }
     else if (rVariable == PRESSURE_LOWER)
     {
-        double p = ComputePressureLower();
+        double p = ComputePressureLower(rCurrentProcessInfo);
         rValues[0] = p;
     }
     else if (rVariable == WAKE)
@@ -573,9 +573,9 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CheckWakeCondition() con
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump()
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo)
 {
-    const array_1d<double, 3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
+    const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
     const double vinfinity_norm = sqrt(inner_prod(vinfinity, vinfinity));
 
     array_1d<double, NumNodes> distances;
@@ -750,33 +750,33 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLowerWake
 }
 
 template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpper() const
+double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpper(const ProcessInfo& rCurrentProcessInfo) const
 {
     const IncompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0)
-        return ComputePressureNormalElement();
+        return ComputePressureNormalElement(rCurrentProcessInfo);
     else
-        return ComputePressureUpperWakeElement();
+        return ComputePressureUpperWakeElement(rCurrentProcessInfo);
 }
 
 template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLower() const
+double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLower(const ProcessInfo& rCurrentProcessInfo) const
 {
     const IncompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0)
-        return ComputePressureNormalElement();
+        return ComputePressureNormalElement(rCurrentProcessInfo);
     else
-        return ComputePressureLowerWakeElement();
+        return ComputePressureLowerWakeElement(rCurrentProcessInfo);
 }
 
 template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureNormalElement() const
+double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo) const
 {
-    const array_1d<double, 3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
+    const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
     const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
 
     KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
@@ -792,9 +792,9 @@ double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureNormalE
 }
 
 template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpperWakeElement() const
+double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpperWakeElement(const ProcessInfo& rCurrentProcessInfo) const
 {
-    const array_1d<double, 3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
+    const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
     const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
 
     KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
@@ -811,9 +811,9 @@ double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpperWa
 }
 
 template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLowerWakeElement() const
+double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLowerWakeElement(const ProcessInfo& rCurrentProcessInfo) const
 {
-    const array_1d<double, 3> vinfinity = GetProperties().GetValue(VELOCITY_INFINITY);
+    const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
     const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
 
     KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())

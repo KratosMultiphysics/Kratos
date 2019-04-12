@@ -52,20 +52,11 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.velocity_inf[1] = round(self.u_inf*math.sin(self.angle_of_attack),8)
         self.velocity_inf[2] = 0.0
 
-        # For the model part
-        self.far_field_model_part.ProcessInfo.SetValue(CPFApp.VELOCITY_INFINITY, self.velocity_inf)
-
-        # For the conditions
-        self.fluid_model_part.GetProperties()[0].SetValue(CPFApp.DENSITY_INFINITY, self.density_inf)
-
-        # For the elements
-        self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.VELOCITY_INFINITY, self.velocity_inf)
-        self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.DENSITY_INFINITY, self.density_inf)
-        self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.MACH_INFINITY, self.mach_inf)
-        self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.HEAT_CAPACITY_RATIO, self.heat_capacity_ratio)
-        self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.ANGLE_OF_ATTACK, self.angle_of_attack)
-        self.fluid_model_part.GetProperties()[1].SetValue(KratosMultiphysics.SOUND_VELOCITY, self.a_inf)
-        self.fluid_model_part.GetProperties()[1].SetValue(CPFApp.PRESSURE_INFINITY, self.pressure_inf)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.VELOCITY_INFINITY,self.velocity_inf)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DENSITY_INFINITY,self.density_inf)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_INFINITY,self.mach_inf)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.HEAT_CAPACITY_RATIO,self.heat_capacity_ratio)
+        self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY,self.a_inf)
 
     def Execute(self):
         #KratosMultiphysics.VariableUtils().SetVectorVar(CPFApp.VELOCITY_INFINITY, self.velocity_inf, self.far_field_model_part.Conditions)
