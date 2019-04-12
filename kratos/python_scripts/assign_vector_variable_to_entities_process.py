@@ -53,7 +53,7 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
                     raise Exception("the second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
 
         settings.ValidateAndAssignDefaults(default_settings)
-        
+
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
         if type(self.variable) != KratosMultiphysics.Array1DVariable3 and type(self.variable) != KratosMultiphysics.VectorVariable:
             msg = "Error in AssignVectorToConditionProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a vector or array3"
@@ -74,6 +74,7 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
             x_params.AddValue("value",settings["value"][0])
             x_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_X")
             x_params.AddValue("local_axes",settings["local_axes"])
+            x_params.AddValue("entities",settings["entities"])
             self.aux_processes.append( assign_scalar_variable_to_entities_process.AssignScalarVariableToEntitiesProcess(Model, x_params) )
 
         # Component Y
@@ -85,6 +86,7 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
             y_params.AddValue("value",settings["value"][1])
             y_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Y")
             y_params.AddValue("local_axes",settings["local_axes"])
+            y_params.AddValue("entities",settings["entities"])
             self.aux_processes.append( assign_scalar_variable_to_entities_process.AssignScalarVariableToEntitiesProcess(Model, y_params) )
 
         # Component Z
@@ -96,6 +98,7 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
             z_params.AddValue("value",settings["value"][2])
             z_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Z")
             z_params.AddValue("local_axes",settings["local_axes"])
+            z_params.AddValue("entities",settings["entities"])
             self.aux_processes.append( assign_scalar_variable_to_entities_process.AssignScalarVariableToEntitiesProcess(Model, z_params) )
 
     def ExecuteInitializeSolutionStep(self):

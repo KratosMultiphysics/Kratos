@@ -88,7 +88,9 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
         else:
             params.AddValue("local_axes", settings["local_axes"])
             for i in range(len(self.entities)):
-                if self.entities[i] == "conditions":
+                if self.entities[i] == "nodes":
+                    self.aux_processes.append( KratosMultiphysics.AssignScalarFieldToNodesProcess(self.model_part, params))
+                elif self.entities[i] == "conditions":
                     self.aux_processes.append( KratosMultiphysics.AssignScalarFieldToConditionsProcess(self.model_part, params))
                 elif self.entities[i] == "elements":
                     self.aux_processes.append( KratosMultiphysics.AssignScalarFieldToElementsProcess(self.model_part, params))
