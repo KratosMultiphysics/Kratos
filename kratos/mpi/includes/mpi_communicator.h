@@ -106,31 +106,26 @@ template<std::size_t TDim> struct SendTraits< array_1d<double,TDim> >
 
 template<class TValue> struct DataSize
 {
-    constexpr static std::size_t Value = sizeof(TValue) / sizeof(SendTraits<TValue>::SendType);
+    constexpr static std::size_t Value = sizeof(TValue) / sizeof(typename SendTraits<TValue>::SendType);
 };
 
-enum class MeshAccess {
+enum MeshAccess {
     Local,
     Ghost
 };
 
-// class used to select between GetMesh overloads at compile time.
-template<MeshAccess MeshType> struct MeshAccessType
+// Auxiliary templated type for compile-time dispatch of overloaded methods
+template<unsigned int TValue> struct Int2Type
 {
-    constexpr static MeshAccess Value = MeshType;
+    constexpr static unsigned int Value = TValue;
 };
 
-enum class Operation {
+enum Operation {
     Replace,
     SumValues,
     OrFlags,
     AndFlags
-}
-
-template<Operation TOperation> struct OperationType
-{
-    constexpr static Operation Value = TOperation;
-}
+};
 
 template<class TValue> class NodalSolutionStepValueAccess
 {
@@ -151,7 +146,17 @@ ContainerType& GetContainer(Communicator::MeshType& rMesh)
     return rMesh.Nodes();
 }
 
+const ContainerType& GetContainer(const Communicator::MeshType& rMesh)
+{
+    return rMesh.Nodes();
+}
+
 TValue& GetValue(IteratorType& iter)
+{
+    return iter->FastGetSolutionStepValue(mrVariable);
+}
+
+const TValue& GetValue(const IteratorType& iter)
 {
     return iter->FastGetSolutionStepValue(mrVariable);
 }
@@ -182,7 +187,17 @@ ContainerType& GetContainer(Communicator::MeshType& rMesh)
     return rMesh.Nodes();
 }
 
+const ContainerType& GetContainer(const Communicator::MeshType& rMesh)
+{
+    return rMesh.Nodes();
+}
+
 TValue& GetValue(IteratorType& iter)
+{
+    return iter->GetValue(mrVariable);
+}
+
+const TValue& GetValue(const IteratorType& iter)
 {
     return iter->GetValue(mrVariable);
 }
@@ -193,24 +208,6 @@ void SetValue(IteratorType& iter, const TValue& rValue)
 }
 
 };
-
-template<typename TValue, class TDatabaseAccess>
-void Replace(
-    const TValue& rRecvValue,
-    TDatabaseAccess Access,
-    typename TDatabaseAccess::IteratorType ContainerIterator)
-{
-    Access.SetValue(ContainerIterator, rRecvValue);
-}
-
-template<typename TValue, class TDatabaseAccess>
-void SumValues();
-
-template<typename TValue, class TDatabaseAccess>
-void OrFlags();
-
-template<typename TValue, class TDatabaseAccess>
-void AndFlags();
 
 /*
 template<typename TValue, class TDatabaseAccess, class TReductionOperation>
@@ -2267,9 +2264,24 @@ private:
         return true;
     }
 
-    using MeshAccess = MPIInternals::MeshAccess;
-    using LocalAccess = MPIInternals::MeshAccessType<MeshAccess::Local>;
-    using GhostAccess = MPIInternals::MeshAccessType<MeshAccess::Ghost>;
+    template<MPIInternals::MeshAccess TAccess>
+    using MeshAccess = MPIInternals::Int2Type<TAccess>;
+
+    template<MPIInternals::Operation TOperation>
+    using OperationType = MPIInternals::Int2Type<TOperation>;
+
+    void TestSynchronize(const Variable<double>& rVariable)
+    {
+        MeshAccess<MPIInternals::Local> local_meshes;
+        MeshAccess<MPIInternals::Ghost> ghost_meshes;
+        MPIInternals::NodalSolutionStepValueAccess<double> solution_step_variable(rVariable);
+        OperationType<MPIInternals::Replace> replace;
+
+        TransferDistributedValues(local_meshes, ghost_meshes, solution_step_variable, replace);
+    }
+
+    using LocalAccess = MeshAccess<MPIInternals::Local>;
+    using GhostAccess = MeshAccess<MPIInternals::Ghost>;
 
     MeshType& GetMesh(IndexType Color, LocalAccess)
     {
@@ -2281,13 +2293,39 @@ private:
         return GhostMesh(Color);
     }
 
-    template<typename TDataType, typename TSourceAccess, typename TDestinationAccess, class DatabaseAccess>
-    bool TransferDistributedValues(
-        TSourceAccess Source,
-        TDestinationAccess Destination,
-        DatabaseAccess DataBase)
+    template<typename TValue, class TDatabaseAccess>
+    void ReduceValues(
+        const TValue& rRecvValue,
+        TDatabaseAccess Access,
+        typename TDatabaseAccess::IteratorType ContainerIterator,
+        OperationType<MPIInternals::Replace>)
     {
-        int rank = mrDataCommunicator.Rank();
+        Access.SetValue(ContainerIterator, rRecvValue);
+    }
+
+    template<typename TValue, class TDatabaseAccess>
+    void ReduceValues(
+        const TValue& rRecvValue,
+        TDatabaseAccess Access,
+        typename TDatabaseAccess::IteratorType ContainerIterator,
+        OperationType<MPIInternals::SumValues>)
+    {
+        Access.GetValue(ContainerIterator) += rRecvValue;
+    }
+
+    template<
+        typename TDataType,
+        typename TSourceAccess,
+        typename TDestinationAccess,
+        template<class> class TDatabaseAccess,
+        typename TReductionOperation>
+    void TransferDistributedValues(
+        TSourceAccess SourceType,
+        TDestinationAccess DestinationType,
+        TDatabaseAccess<TDataType> DataBase,
+        TReductionOperation Reduction)
+    {
+        //int rank = mrDataCommunicator.Rank();
         int destination = 0;
 
         NeighbourIndicesContainerType& neighbour_indices = NeighbourIndices();
@@ -2299,20 +2337,21 @@ private:
         {
             if ( (destination = neighbour_indices[i_color]) >= 0)
             {
-                FillBuffer(send_values, GetMesh(i_color, Source), DataBase);
-                AllocateBuffer(recv_values, GetMesh(i_color, Destination), DataBase);
-                //SourceValues.FillBuffer(send_values, i_color);
-                //DestinationValues.FillBuffer(recv_values, i_color);
+                MeshType& r_source_mesh = GetMesh(i_color, SourceType);
+                MeshType& r_destination_mesh = GetMesh(i_color, DestinationType);
+                FillBuffer(send_values, r_source_mesh, DataBase);
+                AllocateBuffer(recv_values, r_destination_mesh, DataBase);
 
                 if ( (send_values.size() == 0) && (recv_values.size() == 0) )
                 {
                     continue; // nothing to transfer, skip communication step
                 }
 
-                mrDataCommunicator.SendRecv(send_values, destination, i_color, recv_values, destination, i_color);
+                mrDataCommunicator.SendRecv(
+                    send_values, destination, i_color,
+                    recv_values, destination, i_color);
 
-                UpdateValues(recv_values, GetMesh(i_color, Destination), DataBase);
-                //ReductionOperation.Apply(recv_values, i_color);
+                UpdateValues(recv_values, r_destination_mesh, DataBase, Reduction);
             }
         }
     }
@@ -2320,7 +2359,7 @@ private:
     template< typename TValue, class TAccess >
     void AllocateBuffer(std::vector<TValue>& rBuffer, const MeshType& rSourceMesh, TAccess Access)
     {
-        auto& r_container = Access.GetContainer(rSourceMesh);
+        const auto& r_container = Access.GetContainer(rSourceMesh);
         std::size_t num_objects = r_container.size();
         std::size_t buffer_size = num_objects * MPIInternals::DataSize<TValue>::Value;
 
@@ -2333,26 +2372,32 @@ private:
     template< typename TValue, class TAccess >
     void FillBuffer(std::vector<TValue>& rBuffer, const MeshType& rSourceMesh, TAccess Access)
     {
-        auto& r_container = Access.GetContainer(rSourceMesh);
+        const auto& r_container = Access.GetContainer(rSourceMesh);
         TValue* p_buffer = rBuffer.data();
         std::size_t position = 0;
         for (auto iter = r_container.begin(); iter != r_container.end(); ++iter)
         {
-            *(TValue*)(p_buffer + position) = Access.GetValue(iter);
+            p_buffer + position = *(TValue*)Access.GetValue(iter);
             position += MPIInternals::DataSize<TValue>::Value;
         }
     }
 
-    template<typename TValue, class TDatabaseAccess>
-    void UpdateValues(const std::vector<typename MPIInternals::SendTraits<TValue>::SendType>& rBuffer, const MeshType& rSourceMesh, TDatabaseAccess Access)
+    template<typename TValue, class TDatabaseAccess, typename TReductionOperation>
+    void UpdateValues(
+        //const std::vector<typename MPIInternals::SendTraits<TValue>::SendType>& rBuffer,
+        const std::vector<TValue>& rBuffer,
+        const MeshType& rSourceMesh,
+        TDatabaseAccess Access,
+        TReductionOperation Operation)
     {
         auto& r_container = Access.GetContainer(rSourceMesh);
-        TValue* p_buffer = rBuffer.data();
+        const TValue* p_buffer = rBuffer.data();
         std::size_t position = 0;
                 
         for (auto iter = r_container.begin(); iter != r_container.end(); ++iter)
         {
-            Replace(*reinterpret_cast<TValue*>(p_buffer + position), Access, iter);
+            TValue* recv_data = reinterpret_cast<TValue*>(p_buffer + position);
+            ReduceValues(*recv_data, Access, iter, Operation);
             position += MPIInternals::DataSize<TValue>::Value;
         }
 
