@@ -12,7 +12,7 @@ import assign_scalar_variable_to_entities_process
 ## All the processes python should be derived from "Process"
 class AssignScalarVariableToConstraintsProcess(assign_scalar_variable_to_entities_process.AssignScalarVariableToEntitiesProcess):
     def __init__(self, Model, settings ):
-        """This process sets a variable a certain scalar value in a given direction, for all the entities belonging to a submodelpart. Uses assign_scalar_variable_to_constraints_process for each component
+        """This process sets a variable a certain scalar value in a given direction, for all the constraints belonging to a submodelpart. Uses assign_scalar_variable_to_constraints_process for each component
 
         Only the member variables listed below should be accessed directly.
 
@@ -24,7 +24,7 @@ class AssignScalarVariableToConstraintsProcess(assign_scalar_variable_to_entitie
         # The value can be a double or a string (function)
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "help"            : "This process assigns a given value (scalar) to the constraints belonging a certain submodelpart",
+            "help"            : "This process assigns a given value (scalar) to all the constraints belonging a certain submodelpart",
             "mesh_id"         : 0,
             "model_part_name" : "please_specify_model_part_name",
             "variable_name"   : "SPECIFY_VARIABLE_NAME",
