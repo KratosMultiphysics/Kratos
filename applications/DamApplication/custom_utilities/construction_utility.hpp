@@ -391,12 +391,12 @@ class ConstructionUtility
             #pragma omp parallel for
             for (int k = 0; k < nconditions_thermal; ++k)
             {
-                ModelPart::ConditionsContainerType::iterator it_thermal = cond_begin_thermal + k;
-                array_1d<double, 3> central_position = it_thermal->GetGeometry().Center();
+                ModelPart::ConditionsContainerType::iterator it_cond_thermal = cond_begin_thermal + k;
+                array_1d<double, 3> central_position = it_cond_thermal->GetGeometry().Center();
 
                 if ((central_position(direction) >= (mReferenceCoordinate - mLiftHeight)) && (central_position(direction) <= current_height))
                 {
-                    it_thermal->Set(ACTIVE, true);
+                    if ((it_cond_thermal)->IsNot(ACTIVE)) it_cond_thermal->Set(ACTIVE, true);
                 }
             }
         }
@@ -409,12 +409,12 @@ class ConstructionUtility
             #pragma omp parallel for
             for (int k = 0; k < nconditions_mech; ++k)
             {
-                ModelPart::ConditionsContainerType::iterator it_mech = cond_begin_mech + k;
-                array_1d<double, 3> central_position = it_mech->GetGeometry().Center();
+                ModelPart::ConditionsContainerType::iterator it_cond_mech = cond_begin_mech + k;
+                array_1d<double, 3> central_position = it_cond_mech->GetGeometry().Center();
 
                 if ((central_position(direction) >= (mReferenceCoordinate - mLiftHeight)) && (central_position(direction) <= current_height))
                 {
-                    it_mech->Set(ACTIVE, true);
+                    if ((it_cond_mech)->IsNot(ACTIVE)) it_cond_mech->Set(ACTIVE, true);
                 }
             }
         }
