@@ -3,14 +3,13 @@ from __future__ import print_function, absolute_import, division  # makes KM bac
 import KratosMultiphysics as KM
 
 # Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 # Import the implicit solver (the explicit one is derived from it)
-import structural_mechanics_static_solver
+from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_static_solver
 
 # Import auxiliar methods
-import auxiliar_methods_solvers
+from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliar_methods_solvers
 
 def CreateSolver(model, custom_settings):
     return ContactStaticMechanicalSolver(model, custom_settings)
@@ -58,7 +57,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         # Initialize the post process
         self.post_process = None
 
-        self.print_on_rank_zero("::[Contact Mechanical Static Solver]:: ", "Construction of ContactMechanicalSolver finished")
+        KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Construction of ContactMechanicalSolver finished")
 
     def AddVariables(self):
 
@@ -67,7 +66,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         mortar_type = self.contact_settings["mortar_type"].GetString()
         auxiliar_methods_solvers.AuxiliarAddVariables(self.main_model_part, mortar_type)
 
-        self.print_on_rank_zero("::[Contact Mechanical Static Solver]:: ", "Variables ADDED")
+        KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Variables ADDED")
 
     def AddDofs(self):
 
@@ -76,7 +75,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         mortar_type = self.contact_settings["mortar_type"].GetString()
         auxiliar_methods_solvers.AuxiliarAddDofs(self.main_model_part, mortar_type)
 
-        self.print_on_rank_zero("::[Contact Mechanical Static Solver]:: ", "DOF's ADDED")
+        KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "DOF's ADDED")
 
     def Initialize(self):
         super(ContactStaticMechanicalSolver, self).Initialize() # The mechanical solver is created here.
@@ -118,7 +117,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
                 inner_iterations = process_info[CSMA.INNER_LOOP_ITERATION]
                 if inner_iterations > 1:
                     delta_time = delta_time/float(inner_iterations)
-                    self.print_on_rank_zero("::[Contact Mechanical Static Solver]:: ", "Advancing with a reduced delta time of ", delta_time)
+                    KratosMultiphysics.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Advancing with a reduced delta time of ", delta_time)
         return delta_time
 
     def AddProcessesList(self, processes_list):
@@ -127,14 +126,6 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
     def AddPostProcess(self, post_process):
         self.post_process = CSMA.ProcessFactoryUtility(post_process)
 
-    def print_on_rank_zero(self, *args):
-        # This function will be overridden in the trilinos-solvers
-        KM.Logger.PrintInfo(" ".join(map(str,args)))
-
-    def print_warning_on_rank_zero(self, *args):
-        # This function will be overridden in the trilinos-solvers
-        KM.Logger.PrintWarning(" ".join(map(str,args)))
-
     #### Private functions ####
 
     def _get_convergence_criterion_settings(self):
@@ -142,7 +133,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         return auxiliar_methods_solvers.AuxiliarCreateConvergenceParameters(self.main_model_part, self.settings, self.contact_settings)
 
     def _create_convergence_criterion(self):
-        import contact_convergence_criteria_factory
+        from KratosMultiphysics.ContactStructuralMechanicsApplication import contact_convergence_criteria_factory
         convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 

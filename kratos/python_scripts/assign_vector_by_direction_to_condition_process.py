@@ -2,6 +2,8 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics
 
+import math
+
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -19,8 +21,19 @@ class AssignVectorByDirectionToConditionProcess(assign_vector_by_direction_to_en
     Model -- the container of the different model parts.
     settings -- Kratos parameters containing solver settings.
     """
+
     def __init__(self, Model, settings ):
-        # The value can be a double or a string (function)
+        """ The default constructor of the class
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        Model -- the container of the different model parts.
+        settings -- Kratos parameters containing solver settings.
+        """
+
+        KratosMultiphysics.Process.__init__(self)
+
+        #The value can be a double or a string (function)
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                 : "This process sets a variable a certain scalar value in a given direction, for all the conditions belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component",
@@ -50,7 +63,7 @@ class AssignVectorByDirectionToConditionProcess(assign_vector_by_direction_to_en
                 if settings["interval"][1].GetString() == "End":
                     settings["interval"][1].SetDouble(1e30) # = default_settings["interval"][1]
                 else:
-                    raise Exception("The second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
+                    raise Exception("The second value of interval can be \"End\" or a number, interval currently:" + settings["interval"].PrettyPrintJsonString())
 
         settings.ValidateAndAssignDefaults(default_settings)
 

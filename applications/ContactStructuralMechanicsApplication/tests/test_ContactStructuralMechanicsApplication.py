@@ -7,16 +7,11 @@ import run_cpp_unit_tests
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-try:
-    import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-    missing_external_dependencies = False
-    missing_application = ''
-except ImportError as e:
-    missing_external_dependencies = True
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
-                                    '{0}'.format(e)).group(1)
+import KratosMultiphysics.kratos_utilities as kratos_utilities
+if kratos_utilities.CheckIfApplicationsAvailable("ExternalSolversApplication"):
+    has_external_solvers_application = True
+else:
+    has_external_solvers_application = False
 
 import os
 import sys
