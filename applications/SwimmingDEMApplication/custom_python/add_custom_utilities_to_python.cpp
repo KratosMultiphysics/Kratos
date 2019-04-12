@@ -330,16 +330,25 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def(py::init<SpaceTimeSet&, VelocityField&, const double, const double >())
         ;
 
+    py::class_<RecoveryVariablesContainer, RecoveryVariablesContainer::Pointer>
+    (m, "RecoveryVariablesContainer")
+        .def(py::init<>())
+        .def("AddGradientRecoveryPair", &RecoveryVariablesContainer::AddGradientRecoveryPair)
+        .def("AddDivergenceRecoveryPair", &RecoveryVariablesContainer::AddDivergenceRecoveryPair)
+        .def("AddLaplacianRecoveryPair", &RecoveryVariablesContainer::AddLaplacianRecoveryPair)
+        .def("AddRotationalRecoveryPair", &RecoveryVariablesContainer::AddRotationalRecoveryPair)
+        .def("AddMaterialDerivativeRecoveryPair", &RecoveryVariablesContainer::AddMaterialDerivativeRecoveryPair)
+        ;
 
     py::class_<DerivativeRecoveryUtility, DerivativeRecoveryUtility::Pointer>
-    (m, "DerivativeRecoveryUtility")
-    .def(py::init<ModelPart&, Parameters>())
-    ;
+        (m, "DerivativeRecoveryUtility")
+        .def(py::init<ModelPart&, Parameters, RecoveryVariablesContainer&>())
+        ;
 
     py::class_<StandardRecoveryUtility, StandardRecoveryUtility::Pointer, DerivativeRecoveryUtility>
-    (m, "StandardRecoveryUtility")
-    .def(py::init<ModelPart&, Parameters>())
-    ;
+        (m, "StandardRecoveryUtility")
+        .def(py::init<ModelPart&, Parameters, RecoveryVariablesContainer&>())
+        ;
 
     typedef void (CustomFunctionsCalculator<3>::*CopyValuesScalar)(ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&);
     typedef void (CustomFunctionsCalculator<3>::*CopyValuesVector)(ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&);

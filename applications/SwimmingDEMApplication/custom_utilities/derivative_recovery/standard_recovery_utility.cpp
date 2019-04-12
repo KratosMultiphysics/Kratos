@@ -34,8 +34,9 @@ using VectorVariableType = StandardRecoveryUtility::VectorVariableType;
 
 StandardRecoveryUtility::StandardRecoveryUtility(
     ModelPart& rModelPart,
-    Parameters rParameters)
-    : DerivativeRecoveryUtility(rModelPart, rParameters)
+    Parameters rParameters,
+    RecoveryVariablesContainer& rVariablesContainer)
+    : DerivativeRecoveryUtility(rModelPart, rParameters, rVariablesContainer)
 {
     this->CheckDefaultsAndSettings(rParameters);
     mStoreFullGradient = rParameters["store_full_gradient_option"].GetBool();
@@ -43,8 +44,9 @@ StandardRecoveryUtility::StandardRecoveryUtility(
 
 StandardRecoveryUtility::StandardRecoveryUtility(
     Model& rModel,
-    Parameters rParameters)
-    : DerivativeRecoveryUtility(rModel, rParameters)
+    Parameters rParameters,
+    RecoveryVariablesContainer& rVariablesContainer)
+    : DerivativeRecoveryUtility(rModel, rParameters, rVariablesContainer)
 {
     this->CheckDefaultsAndSettings(rParameters);
     mStoreFullGradient = rParameters["store_full_gradient_option"].GetBool();
@@ -67,36 +69,12 @@ void StandardRecoveryUtility::Initialize()
 
 }
 
-void StandardRecoveryUtility::Recover()
+void StandardRecoveryUtility::AddPartialTimeDerivative(const VariableData& rVariable, const VariableData& rTimeDerivativeVariable)
 {
-    KRATOS_TRY;
-
-    KRATOS_CATCH("");
+    this->AddPartialTimeDerivative<VariableData, VariableData>(rVariable, rTimeDerivativeVariable);
 }
 
-void StandardRecoveryUtility::AddTimeDerivative(const ScalarVariableType& rScalarVariable, const ScalarVariableType& rTimeDerivativeVariable)
-{
-    this->AddScalarTimeDerivative<ScalarVariableType>(rScalarVariable, rTimeDerivativeVariable);
-}
-
-void StandardRecoveryUtility::AddTimeDerivative(const ComponentVariableType& rScalarComponent, const ScalarVariableType& rTimeDerivativeVariable)
-{
-    this->AddScalarTimeDerivative<ComponentVariableType>(rScalarComponent, rTimeDerivativeVariable);
-}
-
-void StandardRecoveryUtility::AddTimeDerivative(const VectorVariableType& rVectorVariable, const VectorVariableType& rTimeDerivativeVariable)
-{
-    const double delta_time_inv = 1.0 / mrModelPart.GetProcessInfo()[DELTA_TIME];
-
-    for (auto inode = mrModelPart.NodesBegin(); inode != mrModelPart.NodesEnd(); ++inode){
-        array_1d <double, 3>& material_derivative = inode->FastGetSolutionStepValue(rTimeDerivativeVariable);
-        const array_1d <double, 3> eulerian_rate_of_change = delta_time_inv * (inode->FastGetSolutionStepValue(rVectorVariable)
-                                                                               - inode->FastGetSolutionStepValue(rVectorVariable, 1));
-        noalias(material_derivative) += eulerian_rate_of_change;
-    }
-}
-
-void StandardRecoveryUtility::CalculateGradient(const ScalarVariableType& rScalarVariable, const VectorVariableType& rGradientVariable)
+void StandardRecoveryUtility::CalculateGradient(const VariableData& rVariable, const VariableData& rGradientVariable)
 {
     this->CalculateScalarGradient<ScalarVariableType>(rScalarVariable, rGradientVariable);
 }
@@ -105,15 +83,15 @@ void StandardRecoveryUtility::CalculateGradient(const ComponentVariableType& rSc
 {
     this->CalculateScalarGradient<ComponentVariableType>(rScalarComponent, rGradientVariable);
 }
-void StandardRecoveryUtility::CalculateGradient(const VectorVariableType& rVectorVariable,
-                                                const VectorVariableType& rComponent0GradientVariable,
-                                                const VectorVariableType& rComponent1GradientVariable,
-                                                const VectorVariableType& rComponent2GradientVariable)
-{
+// void StandardRecoveryUtility::CalculateGradient(const VectorVariableType& rVectorVariable,
+//                                                 const VectorVariableType& rComponent0GradientVariable,
+//                                                 const VectorVariableType& rComponent1GradientVariable,
+//                                                 const VectorVariableType& rComponent2GradientVariable)
+// {
 
-}
+// }
 
-void StandardRecoveryUtility::CalculateDivergence(const VectorVariableType rVectorVariable, const ScalarVariableType& rDivergenceVariable)
+void StandardRecoveryUtility::CalculateDivergence(const VectorVariableType& rVectorVariable, const ScalarVariableType& rDivergenceVariable)
 {
 
 }
@@ -228,7 +206,7 @@ void StandardRecoveryUtility::CalculateMaterialDerivative(const VectorVariableTy
 
     // Adding Eulerian time derivative contribution
 
-    AddTimeDerivative(VELOCITY, MATERIAL_ACCELERATION);
+    AddPartialTimeDerivative(VELOCITY, MATERIAL_ACCELERATION);
 
     KRATOS_INFO("SwimmingDEM") << "Finished constructing the material derivative by derivating nodal averages..." << std::endl;
 }
@@ -239,17 +217,54 @@ void StandardRecoveryUtility::CalculateRotational(const VectorVariableType rVect
 }
 
 /* Private functions ****************************************************/
+
+template<class TVariable, class TDerivedVariable>
+void StandardRecoveryUtility::AddPartialTimeDerivative(const TVariable& rVariable, const TDerivedVariable& rTimeDerivativeVariable)
+{
+    KRATOS_THROW_ERROR(std::invalid_argument, "Wrong combination.", "");
+}
+
+template<class ScalarVariableType, class ScalarVariableType>
+void StandardRecoveryUtility::AddPartialTimeDerivative(const ScalarVariableType& rVariable, const ScalarVariableType& rTimeDerivativeVariable)
+{
+    this->AddScalarPartialTimeDerivative<ScalarVariableType>(rVariable, rTimeDerivativeVariable);
+}
+
+template<class ComponentVariableType, class ScalarVariableType>
+void StandardRecoveryUtility::AddPartialTimeDerivative(const ComponentVariableType& rVariable, const ScalarVariableType& rTimeDerivativeVariable)
+{
+    this->AddScalarPartialTimeDerivative<ComponentVariableType>(rVariable, rTimeDerivativeVariable);
+}
+
+template<class VectorVariableType, class VectorVariableType>
+void StandardRecoveryUtility::AddPartialTimeDerivative(const VectorVariableType& rVariable, const VectorVariableType& rTimeDerivativeVariable)
+{
+    const double delta_time_inv = 1.0 / mrModelPart.GetProcessInfo()[DELTA_TIME];
+
+    for (auto inode = mrModelPart.NodesBegin(); inode != mrModelPart.NodesEnd(); ++inode){
+        array_1d <double, 3>& material_derivative = inode->FastGetSolutionStepValue(rTimeDerivativeVariable);
+        const array_1d <double, 3> eulerian_rate_of_change = delta_time_inv * (inode->FastGetSolutionStepValue(rVariable)
+                                                                               - inode->FastGetSolutionStepValue(rVariable, 1));
+        noalias(material_derivative) += eulerian_rate_of_change;
+    }
+}
+
 template<class TScalarVariable>
-void StandardRecoveryUtility::AddScalarTimeDerivative(const TScalarVariable& rScalarVariable, const ScalarVariableType& rTimeDerivativeVariable)
+void StandardRecoveryUtility::AddScalarPartialTimeDerivative(const TScalarVariable& rVariable, const ScalarVariableType& rTimeDerivativeVariable)
 {
     const double delta_time_inv = 1.0 / mrModelPart.GetProcessInfo()[DELTA_TIME];
 
     for (auto inode = mrModelPart.NodesBegin(); inode != mrModelPart.NodesEnd(); ++inode){
         double& material_derivative = inode->FastGetSolutionStepValue(rTimeDerivativeVariable);
-        const double eulerian_rate_of_change = delta_time_inv * (inode->FastGetSolutionStepValue(rScalarVariable)
-                                                                 - inode->FastGetSolutionStepValue(rScalarVariable, 1));
+        const double eulerian_rate_of_change = delta_time_inv * (inode->FastGetSolutionStepValue(rVariable)
+                                                                 - inode->FastGetSolutionStepValue(rVariable, 1));
         material_derivative += eulerian_rate_of_change;
     }
+}
+
+template<class TVariable>
+void StandardRecoveryUtility::CalculateScalarGradient(const TVariable& rScalarVariable, const TVariable& rGradientVariable)
+{
 }
 
 template<class TScalarVariable>
@@ -267,8 +282,8 @@ void StandardRecoveryUtility::CalculateScalarMaterialDerivative(const TScalarVar
 {
 }
 
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::AddScalarTimeDerivative<ScalarVariableType>(const ScalarVariableType&, const ScalarVariableType&);
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::AddScalarTimeDerivative<ComponentVariableType>(const ComponentVariableType&, const ScalarVariableType&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::AddScalarPartialTimeDerivative<ScalarVariableType>(const ScalarVariableType&, const ScalarVariableType&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::AddScalarPartialTimeDerivative<ComponentVariableType>(const ComponentVariableType&, const ScalarVariableType&);
 
 template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarGradient<ScalarVariableType>(const ScalarVariableType&, const VectorVariableType&);
 template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarGradient<ComponentVariableType>(const ComponentVariableType&, const VectorVariableType&);

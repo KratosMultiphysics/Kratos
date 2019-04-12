@@ -70,12 +70,14 @@ public:
     /// Constructor with Kratos parameters.
     StandardRecoveryUtility(
         ModelPart& rModelPart,
-        Parameters rParameters);
+        Parameters rParameters,
+        RecoveryVariablesContainer& rVariablesContainer);
 
     /// Constructor with Kratos model
     StandardRecoveryUtility(
         Model& rModel,
-        Parameters rParameters);
+        Parameters rParameters,
+        RecoveryVariablesContainer& rVariablesContainer);
 
     /// Destructor.
     ~StandardRecoveryUtility() override {}
@@ -85,8 +87,6 @@ public:
     ///@{
 
     void Initialize() override;
-
-    void Recover() override;
 
     ///@}
     ///@name Operations
@@ -124,22 +124,22 @@ public:
 
 protected:
 
-void AddTimeDerivative(const ScalarVariableType& rScalarVariable, const ScalarVariableType& rTimeDerivativeVariable) override;
+void AddPartialTimeDerivative(const ScalarVariableType& rScalarVariable, const ScalarVariableType& rTimeDerivativeVariable) override;
 
-void AddTimeDerivative(const ComponentVariableType& rScalarComponent, const ScalarVariableType& rTimeDerivativeVariable) override;
+void AddPartialTimeDerivative(const ComponentVariableType& rScalarComponent, const ScalarVariableType& rTimeDerivativeVariable) override;
 
-void AddTimeDerivative(const VectorVariableType& rVectorVariable, const VectorVariableType& rTimeDerivativeVariable) override;
+void AddPartialTimeDerivative(const VectorVariableType& rVectorVariable, const VectorVariableType& rTimeDerivativeVariable) override;
 
 void CalculateGradient(const ScalarVariableType& rScalarVariable, const VectorVariableType& rGradientVariable) override;
 
 void CalculateGradient(const ComponentVariableType& rScalarComponent, const VectorVariableType& rGradientVariable) override;
 
-void CalculateGradient(const VectorVariableType& rVectorVariable,
-                       const VectorVariableType& rComponent0GradientVariable,
-                       const VectorVariableType& rComponent1GradientVariable,
-                       const VectorVariableType& rComponent2GradientVariable) override;
+// void CalculateGradient(const VectorVariableType& rVectorVariable,
+//                        const VectorVariableType& rComponent0GradientVariable,
+//                        const VectorVariableType& rComponent1GradientVariable,
+//                        const VectorVariableType& rComponent2GradientVariable) override;
 
-void CalculateDivergence(const VectorVariableType rVectorVariable, const ScalarVariableType& rDivergenceVariable) override;
+void CalculateDivergence(const VectorVariableType& rVectorVariable, const ScalarVariableType& rDivergenceVariable) override;
 
 void CalculateLaplacian(const ScalarVariableType& rScalarVariable, const ScalarVariableType& rLaplacianVariable) override;
 
@@ -173,7 +173,7 @@ private:
     ///@name Private Operations
     ///@{
     template<class TScalarVariable>
-    void AddScalarTimeDerivative(const TScalarVariable& rScalarVariable, const ScalarVariableType& rGradientVariable);
+    void AddScalarPartialTimeDerivative(const TScalarVariable& rScalarVariable, const ScalarVariableType& rGradientVariable);
 
     template<class TScalarVariable>
     void CalculateScalarGradient(const TScalarVariable& rScalarVariable, const VectorVariableType& rGradientVariable);

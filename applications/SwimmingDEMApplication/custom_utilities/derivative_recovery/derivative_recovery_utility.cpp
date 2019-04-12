@@ -30,16 +30,18 @@ namespace Kratos
 
 DerivativeRecoveryUtility::DerivativeRecoveryUtility(
     ModelPart& rModelPart,
-    Parameters rParameters)
-    : mStoreFullGradient(false), mrModelPart(rModelPart)
+    Parameters rParameters,
+    RecoveryVariablesContainer& rVariablesContainer)
+    : mStoreFullGradient(false), mrModelPart(rModelPart), mrVariablesContainer(rVariablesContainer)
 {
     this->CheckDefaultsAndSettings(rParameters);
 }
 
 DerivativeRecoveryUtility::DerivativeRecoveryUtility(
     Model &rModel,
-    Parameters rParameters)
-    : mStoreFullGradient(false), mrModelPart(rModel.GetModelPart(rParameters["model_part_name"].GetString()))
+    Parameters rParameters,
+    RecoveryVariablesContainer& rVariablesContainer)
+    : mStoreFullGradient(false), mrModelPart(rModel.GetModelPart(rParameters["model_part_name"].GetString())), mrVariablesContainer(rVariablesContainer)
 {
     this->CheckDefaultsAndSettings(rParameters);
 }
@@ -48,6 +50,26 @@ void DerivativeRecoveryUtility::Recover()
 {
 
     KRATOS_TRY;
+
+    for (auto pair : mrVariablesContainer.GetVariables("gradient")){
+        this->CalculateGradient(pair.first, pair.second);
+    }
+
+    for (auto pair : mrVariablesContainer.GetVariables("divergence")){
+        this->CalculateDivergence(pair.first, pair.second);
+    }
+
+    for (auto pair : mrVariablesContainer.GetVariables("rotational")){
+        this->CalculateRotational(pair.first, pair.second);
+    }
+
+    for (auto pair : mrVariablesContainer.GetVariables("material derivative")){
+        this->CalculateMaterialDerivative(pair.first, pair.second);
+    }
+
+    for (auto pair : mrVariablesContainer.GetVariables("Laplacian")){
+        this->CalculateLaplacian(pair.first, pair.second);
+    }
 
     KRATOS_CATCH("");
 }
