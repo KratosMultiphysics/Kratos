@@ -57,7 +57,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     ///@name Type Definitions
     ///@{
 
-
     /// The node definition
     typedef Node<3> NodeType;
 
@@ -66,11 +65,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
 
     /// Definition of the machine precision tolerance
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
+
     /// Counted pointer of SerialParallelRuleOfMixturesLaw
     KRATOS_CLASS_POINTER_DEFINITION(SerialParallelRuleOfMixturesLaw);
-
-    /// Definition of the base class
-    typedef typename ConstitutiveLaw BaseType;
 
     ///@}
     ///@name Life Cycle
