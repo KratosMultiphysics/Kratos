@@ -358,7 +358,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    EmbeddedNodalVariableCalculationElementSimplex & operator=(EmbeddedNodalVariableCalculationElementSimplex const& rOther);
+    EmbeddedNodalVariableCalculationElementSimplex & operator=(EmbeddedNodalVariableCalculationElementSimplex const& rOther) = delete;
 
     /// Copy constructor.
     EmbeddedNodalVariableCalculationElementSimplex(EmbeddedNodalVariableCalculationElementSimplex const& rOther) = delete;
