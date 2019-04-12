@@ -30,6 +30,7 @@
 #include "custom_processes/impose_rigid_movement_process.h"
 #include "custom_processes/sliding_edge_process.h"
 #include "custom_processes/edge_cable_element_process.h"
+#include "custom_processes/apply_weak_sliding_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -52,6 +53,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         ;
 
     py::class_<SlidingEdgeProcess, SlidingEdgeProcess::Pointer, Process>(m,"SlidingEdgeProcess")
+        .def(py::init<ModelPart&,Parameters>())
+        ;
+
+    py::class_<ApplyWeakSlidingProcess, ApplyWeakSlidingProcess::Pointer, Process>(m,"ApplyWeakSlidingProcess")
         .def(py::init<ModelPart&,Parameters>())
         ;
 

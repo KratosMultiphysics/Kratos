@@ -7,8 +7,8 @@
 //           license: structural_mechanics_application/license.txt
 //
 //  Main authors: Klaus B. Sautter
-//
-//
+//  node 1,2 connect line to run on
+//  node 3 is slave node
 //
 
 // System includes
