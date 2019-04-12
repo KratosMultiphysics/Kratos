@@ -27,6 +27,7 @@
 #include "includes/serializer.h"
 #include "includes/condition.h"
 #include "includes/process_info.h"
+#include "includes/cfd_variables.h"
 
 // Application includes
 #include "compressible_potential_flow_application_variables.h"

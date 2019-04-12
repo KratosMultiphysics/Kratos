@@ -190,7 +190,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoint
     if (rValues.size() != 1)
         rValues.resize(1);
 
-    if (rVariable == PRESSURE)
+    if (rVariable == PRESSURE_COEFFICIENT)
     {
         rValues[0] = ComputeCP();
     }
