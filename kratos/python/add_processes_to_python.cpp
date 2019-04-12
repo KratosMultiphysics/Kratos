@@ -355,6 +355,10 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Parameters >())
     ;
 
+    py::class_<AssignScalarFieldToEntitiesProcess<NodeType>, AssignScalarFieldToEntitiesProcess<NodeType>::Pointer, Process>(m,"AssignScalarFieldToNodesProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
+
     py::class_<AssignScalarFieldToEntitiesProcess<Condition>, AssignScalarFieldToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarFieldToConditionsProcess")
     .def(py::init<ModelPart&, Parameters >())
     ;
