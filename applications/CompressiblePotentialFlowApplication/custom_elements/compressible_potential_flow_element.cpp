@@ -875,9 +875,9 @@ template <int Dim, int NumNodes>
 double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensityDerivative(const double rho, const ProcessInfo& rCurrentProcessInfo) const
 {
     // Reading free stream conditions
-    const double rho_inf = GetProperties().GetValue(DENSITY_INFINITY);
-    const double heat_capacity_ratio = GetProperties().GetValue(HEAT_CAPACITY_RATIO);
-    const double a_inf = GetProperties().GetValue(SOUND_VELOCITY);
+    const double rho_inf = rCurrentProcessInfo[DENSITY_INFINITY];
+    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
+    const double a_inf = rCurrentProcessInfo[SOUND_VELOCITY];
 
     return -pow(rho_inf, heat_capacity_ratio - 1) * pow(rho, 2 - heat_capacity_ratio) / (2 * a_inf * a_inf);
 }
