@@ -17,7 +17,7 @@ def Factory(settings, Model):
 class ApplyFarFieldProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
-        
+
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",

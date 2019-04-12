@@ -23,7 +23,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.create_output_file = settings["create_output_file"].GetBool()
 
     def ExecuteFinalizeSolutionStep(self):
-        print('COMPUTE LIFT')
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','COMPUTE LIFT')
 
         rx = 0.0
         ry = 0.0
