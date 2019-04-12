@@ -25,7 +25,7 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.ADJOINT_VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
- 
+
         KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Variables ADDED")
 
     def AddDofs(self):
@@ -90,4 +90,4 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         super(PotentialFlowAdjointSolver, self).FinalizeSolutionStep()
         self.response_function.FinalizeSolutionStep()
         self.sensitivity_builder.UpdateSensitivities()
-        
+
