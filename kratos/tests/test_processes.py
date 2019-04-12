@@ -750,6 +750,77 @@ class TestProcesses(KratosUnittest.TestCase):
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
 
+    def test_assign_vector_variable_to_conditions_analytic_direction(self):
+        current_model = KratosMultiphysics.Model()
+
+        model_part= current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+
+        model_part.CreateNewNode(1,0.5,0.5,0.5)
+        model_part.CreateNewNode(2,1.0,1.0,1.0)
+
+        model_part.CreateNewCondition("LineCondition2D2N",1,[1,2], model_part.GetProperties()[1])
+
+        settings = KratosMultiphysics.Parameters(
+        """
+        {
+            "process_list" : [
+                {
+                    "python_module" : "assign_vector_by_direction_to_condition_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"  : "AssignVectorByDirectionToConditionProcess",
+                    "Parameters"            : {
+                        "model_part_name" : "Main",
+                        "variable_name"   : "DISPLACEMENT",
+                        "modulus"         : "2.0*t-y",
+                        "direction"       : ["cos(atan(y/x))","sin(atan(y/x))","0"],
+                        "interval"        : [0.0,"End"]
+                        }
+                }
+            ]
+        }
+        """)
+
+        import process_factory
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
+
+        ################### here we are within the interval
+        model_part.CloneTimeStep(3.0)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        for cond in model_part.Conditions:
+            tmp = cond.GetValue(KratosMultiphysics.DISPLACEMENT)
+            geometry = cond.GetGeometry()
+            center = geometry.Center()
+            ang = math.atan(center[1]/center[0])
+            self.assertEqual(tmp[0], (2.0*3.0-0.75) * math.cos(ang))
+            self.assertEqual(tmp[1], (2.0*3.0-0.75) * math.sin(ang))
+            self.assertEqual(tmp[2], 0.0)
+
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+
+
+        ################### here we are outside of the interval - values do not change but everything is free
+        model_part.CloneTimeStep(8.0)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        for cond in model_part.Conditions:
+            tmp = cond.GetValue(KratosMultiphysics.DISPLACEMENT)
+            geometry = cond.GetGeometry()
+            center = geometry.Center()
+            ang = math.atan(center[1]/center[0])
+            self.assertEqual(tmp[0], (2.0*8.0-0.75) * math.cos(ang))
+            self.assertEqual(tmp[1], (2.0*8.0-0.75) * math.sin(ang))
+            self.assertEqual(tmp[2], 0.0)
+
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+
     def test_point_output_process_node(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
