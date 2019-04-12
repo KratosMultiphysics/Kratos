@@ -3,7 +3,7 @@
         "problem_name"    : "serial_parallel_test",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
-        "end_time"        : 1.0,
+        "end_time"        : 30.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
@@ -30,7 +30,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2"],
+        "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto3","DISPLACEMENT_Displacement_Auto2"],
         "rotation_dofs"                      : false,
         "linear_solver_settings":{
                 "solver_type": "amgcl"
@@ -41,7 +41,7 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto3",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0],
@@ -70,7 +70,7 @@
                 "gauss_points_check_variables" : ["DAMAGE"],
                 "input_file_name"              : "cl_test/SerialParallelRuleOfMixturesCube/serial_parallel_damage_test_results.json",
                 "model_part_name"              : "Parts_Parts_Auto1",
-                "time_frequency"               : 1.0
+                "time_frequency"               : 0.2
             }
         }
         ]
@@ -85,7 +85,7 @@
             "gauss_points_output_variables" : ["DAMAGE"],
             "output_file_name"              : "cl_test/SerialParallelRuleOfMixturesCube/serial_parallel_damage_test_results.json",
             "model_part_name"               : "Parts_Parts_Auto1",
-            "time_frequency"                : 1.0
+            "time_frequency"                : 0.2
         }
     }
     ],
