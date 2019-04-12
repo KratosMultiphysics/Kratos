@@ -193,7 +193,7 @@ namespace Kratos
         const Matrix& DDN_DDe = GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
 
         IgaGeometryUtilities::CalculateJacobian(
-            GetGeometry(), DN_De, 3, 3, rMetric.J);
+            GetGeometry(), DN_De, 3, 2, rMetric.J);
 
         rMetric.g1[0] = rMetric.J(0, 0);
         rMetric.g2[0] = rMetric.J(0, 1);
@@ -289,7 +289,7 @@ namespace Kratos
         double thickness = GetProperties().GetValue(THICKNESS);
 
         rThisConstitutiveVariablesMembrane.D *= thickness;
-        rThisConstitutiveVariablesCurvature.D = rThisConstitutiveVariablesMembrane.D*(pow(thickness, 2) / 12);
+        rThisConstitutiveVariablesCurvature.D = rThisConstitutiveVariablesMembrane.D * (pow(thickness, 2) / 12);
 
         //Local Cartesian Forces and Moments
         rThisConstitutiveVariablesMembrane.S = prod(
@@ -299,27 +299,27 @@ namespace Kratos
     }
 
     void IgaShell3pElement::CalculateStrain(
-        Vector& StrainVector,
+        Vector& rStrainVector,
         const Vector& rgab)
     {
         KRATOS_TRY
 
-        StrainVector[0] = 0.5 * (rgab[0] - mInitialMetric.gab[0]);
-        StrainVector[1] = 0.5 * (rgab[1] - mInitialMetric.gab[1]);
-        StrainVector[2] = 0.5 * (rgab[2] - mInitialMetric.gab[2]);
+        rStrainVector[0] = 0.5 * (rgab[0] - mInitialMetric.gab[0]);
+        rStrainVector[1] = 0.5 * (rgab[1] - mInitialMetric.gab[1]);
+        rStrainVector[2] = 0.5 * (rgab[2] - mInitialMetric.gab[2]);
 
         KRATOS_CATCH("")
     }
 
     void IgaShell3pElement::CalculateCurvature(
-        Vector& CurvatureVector,
+        Vector& rCurvatureVector,
         const Vector& rCurvature)
     {
         KRATOS_TRY
 
-        CurvatureVector[0] = (rCurvature[0] - mInitialMetric.curvature[0]);
-        CurvatureVector[1] = (rCurvature[1] - mInitialMetric.curvature[1]);
-        CurvatureVector[2] = (rCurvature[2] - mInitialMetric.curvature[2]);
+        rCurvatureVector[0] = (rCurvature[0] - mInitialMetric.curvature[0]);
+        rCurvatureVector[1] = (rCurvature[1] - mInitialMetric.curvature[1]);
+        rCurvatureVector[2] = (rCurvature[2] - mInitialMetric.curvature[2]);
 
         KRATOS_CATCH("")
     }

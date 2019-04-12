@@ -177,8 +177,8 @@ private:
 
             dA = 1.0;
 
-            H = ZeroMatrix(Dimension, Dimension);
-            Q = ZeroMatrix(Dimension, Dimension);
+            H = ZeroMatrix(3, 3);
+            Q = ZeroMatrix(3, 3);
         }
     };
 
@@ -224,7 +224,7 @@ private:
         }
     };
 
-    MetricVariables m_initial_metric = MetricVariables(3);
+    MetricVariables mInitialMetric = MetricVariables(3);
     ///@}
     ///@name Operations
     ///@{
@@ -261,11 +261,11 @@ private:
     );
 
     void CalculateStrain(
-        Vector& StrainVector,
+        Vector& rStrainVector,
         const Vector& rgab);
 
     void CalculateCurvature(
-        Vector& CurvatureVector,
+        Vector& rCurvatureVector,
         const Vector& rCurvature);
 
 	void CalculateBMembrane(

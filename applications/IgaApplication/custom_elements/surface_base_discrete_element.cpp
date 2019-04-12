@@ -32,13 +32,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        static unsigned int counter = 0;
-    	++counter;
-        if (counter==3)
-            m_phi1 = 1;
-        else
-            m_phi1 = 0;
-
         //Constitutive Law initialisation
         BaseDiscreteElement::Initialize();
 
