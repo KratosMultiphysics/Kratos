@@ -41,7 +41,7 @@ def CreateMapper(model_part_origin, model_part_destination, mapper_settings):
     mapper_type = mapper_settings["mapper_type"].GetString()
 
     if MapperFactory.HasMapper(mapper_type): # use the MappingApp if it has the requested mapper
-        return MapperFactoryCreateMapper(model_part_origin, model_part_destination, mapper_settings)
+        return MapperFactory.CreateMapper(model_part_origin, model_part_destination, mapper_settings)
     elif mapper_type in available_mappers:
         return available_mappers[mapper_type](model_part_origin, model_part_destination, mapper_settings)
     else:
