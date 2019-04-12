@@ -27,7 +27,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
         self.Execute()
     
     def Execute(self):
-        print('COMPUTE LIFT AT NODES')
+        KratosMultiphysics.Logger.PrintInfo('COMPUTE FORCES AT NODES')
 
         KratosMultiphysics.VariableUtils().SetToZero_VectorVar(KratosMultiphysics.FORCE, self.body_model_part.Nodes)
 
@@ -45,9 +45,9 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
 
         total_force = KratosMultiphysics.VariableUtils().SumNonHistoricalNodeVectorVariable(KratosMultiphysics.FORCE, self.body_model_part)
         
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Cl = ', total_force[1])
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Cd = ', total_force[0])
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','RZ = ', total_force[2])
+        KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Cl = ', total_force[1])
+        KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Cd = ', total_force[0])
+        KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','RZ = ', total_force[2])
 
         if self.create_output_file:
             with open("cl_points_with_lift.dat", 'w') as cl_file:
