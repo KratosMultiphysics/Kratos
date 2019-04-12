@@ -20,10 +20,10 @@ set( KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/compressible_potential_flow_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/compressible_potential_flow_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/incompressible_potential_flow_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_potential_flow_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/incompressible_adjoint_potential_flow_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/potential_wall_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_potential_flow_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/incompressible_adjoint_potential_wall_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/incompressible_adjoint_potential_flow_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_potential_response_function.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_lift_response_function_coordinates_jump.cpp
 )
