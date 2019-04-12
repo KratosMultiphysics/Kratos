@@ -512,7 +512,6 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
     mPreviousStrainVector = r_strain_vector;
 
     // Recalculation to obtain the serial_strain_matrix and store the value
-    const SizeType dimension = WorkingSpaceDimension();
     const SizeType voigt_size = GetStrainSize();
 
     // Get Values to compute the constitutive law:
@@ -836,7 +835,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
             r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
             r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
             rValue = MathUtils<double>::StressVectorToTensor(fiber_stress_vector);
-            return MathUtils<double>::StressVectorToTensor(fiber_stress_vector);
+            return rValue;
         }
     } else if (rThisVariable == CAUCHY_STRESS_TENSOR_MATRIX) { // TODO: Make in the future modifications for take into account different layers combinations
         // Some auxiliar values
@@ -910,7 +909,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
             r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
             r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
             rValue = MathUtils<double>::StressVectorToTensor(matrix_stress_vector);
-            return MathUtils<double>::StressVectorToTensor(matrix_stress_vector);
+            return rValue;
         }
     } else if (rThisVariable == CAUCHY_STRESS_TENSOR) {
         // Get Values to compute the constitutive law:

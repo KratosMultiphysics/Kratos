@@ -301,7 +301,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
     void InitializeMaterial(
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues);
+        const Vector& rShapeFunctionsValues) override;
 
 
     /**
@@ -334,7 +334,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SerialParallelRuleOfMixturesL
      * Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponsePK2(Parameters& rValues);  
+    void InitializeMaterialResponsePK2(Parameters& rValues) override;  
 
     /**
      * This method computes the strain vector in the fiber and matrix according to the total 
