@@ -29,14 +29,14 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
 
         # Construct the base solver.
         super(AdaptativeRemeshingStaticMechanicalSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[AdaptativeRemeshingStaticMechanicalSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[AdaptativeRemeshingStaticMechanicalSolver]:: ", "Construction finished")
 
     #### Private functions ####
 
     def AddVariables(self):
         super(AdaptativeRemeshingStaticMechanicalSolver, self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
-        self.print_on_rank_zero("::[AdaptativeRemeshingStaticMechanicalSolver]:: ", "Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[AdaptativeRemeshingStaticMechanicalSolver]:: ", "Variables ADDED")
 
     def get_remeshing_process(self):
         if not hasattr(self, '_remeshing_process'):
