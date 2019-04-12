@@ -49,6 +49,9 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 node.Set(KratosMultiphysics.SOLID)
     
     def ExecuteInitialize(self):
+        self.FindWakeElements()
+
+    def FindWakeElements(self):
         self.ReadWakeDirection()
         # Save the trailing edge for further computations
         self.SaveTrailingEdgeNode()
