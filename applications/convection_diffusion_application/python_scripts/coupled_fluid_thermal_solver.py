@@ -9,7 +9,7 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
 
 # Importing the base class
-from python_solver import PythonSolver
+from KratosMultiphysics.python_solver import PythonSolver
 
 def CreateSolver(main_model_part, custom_settings):
     return CoupledFluidThermalSolver(main_model_part, custom_settings)
@@ -51,10 +51,10 @@ class CoupledFluidThermalSolver(PythonSolver):
         ## Get domain size
         self.domain_size = self.settings["domain_size"].GetInt()
 
-        import python_solvers_wrapper_fluid
+        from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
         self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"],"OpenMP")
 
-        import python_solvers_wrapper_convection_diffusion
+        from KratosMultiphysics.ConvectionDiffusionApplication import python_solvers_wrapper_convection_diffusion
         self.thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model,self.settings["thermal_solver_settings"],"OpenMP")
 
     def AddVariables(self):
@@ -114,9 +114,6 @@ class CoupledFluidThermalSolver(PythonSolver):
     def Initialize(self):
         self.fluid_solver.Initialize()
         self.thermal_solver.Initialize()
-
-    def SaveRestart(self):
-        pass #one should write the restart file here
 
     def Clear(self):
         (self.fluid_solver).Clear()
