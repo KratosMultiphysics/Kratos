@@ -151,6 +151,14 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
     // in_data.holelist[1] = 2.5;
     // in_data.holelist[2] = 6; 
     // in_data.holelist[3] = 3; 
+
+
+    mapbox::geometry::point<double> p = mapbox::polylabel(mapbox::geometry::polygon<double>({{{0, 0}, {5, 0}, {5, 1}, {1, 1},{1,2},{5,2},{5,5},{0,5}}}), 0.00001); 
+
+    
+    std::cout << "x: " << p.x <<  "- y: " << p.y << std::endl;     
+
+
     
     double max_area = mInitialTriangleArea;
     
