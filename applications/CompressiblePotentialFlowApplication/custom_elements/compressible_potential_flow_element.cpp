@@ -405,7 +405,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNormal
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, v);
 
     noalias(rLeftHandSideMatrix) += data.vol*density*prod(data.DN_DX, trans(data.DN_DX));
-    noalias(rLeftHandSideMatrix) += data.vol*DrhoDu2*outer_prod(DNV, trans(DNV));
+    noalias(rLeftHandSideMatrix) += data.vol*2*DrhoDu2*outer_prod(DNV, trans(DNV));
 
     const BoundedMatrix<double, NumNodes, NumNodes> rLaplacianMatrix =
         data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
@@ -449,7 +449,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWakeEl
 
     const BoundedMatrix<double, NumNodes, NumNodes> lhs_total =
         data.vol * density * prod(data.DN_DX, trans(data.DN_DX))+
-        data.vol * DrhoDu2 * outer_prod(DNV, trans(DNV));
+        data.vol * 2*DrhoDu2 * outer_prod(DNV, trans(DNV));
 
     if (this->Is(STRUCTURE))
     {
@@ -523,13 +523,13 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubdiv
     {
         if (PartitionsSign[i] > 0){
             noalias(lhs_positive) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
-            noalias(lhs_positive) += Volumes[i]*DrhoDu2*outer_prod(DNV, trans(DNV));
+            noalias(lhs_positive) += Volumes[i]*2*DrhoDu2*outer_prod(DNV, trans(DNV));
 
             noalias(laplacian_positive) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
         }
         else{
             noalias(lhs_negative) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
-            noalias(lhs_negative) += Volumes[i]*DrhoDu2*outer_prod(DNV, trans(DNV));
+            noalias(lhs_negative) += Volumes[i]*2*DrhoDu2*outer_prod(DNV, trans(DNV));
 
             noalias(laplacian_negative) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
         }
