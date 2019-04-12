@@ -5,11 +5,11 @@ def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
         raise Exception(
             "expected input shall be a Parameters object, encapsulating a json string")
-    return ForcesElementsToNodesProcess(Model, settings["Parameters"])
+    return ComputeForcesOnNodesProcess(Model, settings["Parameters"])
 
 # all the processes python processes should be derived from "python_process"
 
-class ForcesElementsToNodesProcess(KratosMultiphysics.Process):
+class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings):
         KratosMultiphysics.Process.__init__(self)
 
@@ -22,11 +22,11 @@ class ForcesElementsToNodesProcess(KratosMultiphysics.Process):
 
         self.body_model_part = Model[settings["model_part_name"].GetString()]
         self.create_output_file = settings["create_output_file"].GetBool()
-        
+
     def ExecuteFinalizeSolutionStep(self):
-        self.ComputeForcesOnNodes()
+        self.Execute()
     
-    def ComputeForcesOnNodes(self):
+    def Execute(self):
         print('COMPUTE LIFT AT NODES')
 
         KratosMultiphysics.VariableUtils().SetToZero_VectorVar(KratosMultiphysics.FORCE, self.body_model_part.Nodes)
@@ -45,12 +45,11 @@ class ForcesElementsToNodesProcess(KratosMultiphysics.Process):
 
         total_force = KratosMultiphysics.VariableUtils().SumNonHistoricalNodeVectorVariable(KratosMultiphysics.FORCE, self.body_model_part)
         
-        print("Cl = ", total_force[1])
-        print("Cd = ", total_force[0])
-        print("RZ = ", total_force[2])
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Cl = ', total_force[1])
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Cd = ', total_force[0])
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','RZ = ', total_force[2])
 
         if self.create_output_file:
             with open("cl_points_with_lift.dat", 'w') as cl_file:
                 cl_file.write('{0:15.12f}'.format(total_force[1]))
-
 
