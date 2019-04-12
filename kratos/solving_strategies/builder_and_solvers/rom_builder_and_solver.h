@@ -23,6 +23,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 
+
 //default linear solver
 //#include "linear_solvers/linear_solver.h"
 
@@ -142,7 +143,7 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "nodal_unknowns" : []
+            "nodal_unknowns" : [],
             "number_of_rom_dofs" : 10
         })" );
 
@@ -151,7 +152,7 @@ public:
         // We set the other member variables
         mpLinearSystemSolver = pNewLinearSystemSolver;
 
-        for(auto it=ThisParameters["nodal_dofs"].begin(); it!=ThisParameters["nodal_dofs"].end(); it++)
+        for(auto it=ThisParameters["nodal_unknowns"].begin(); it!=ThisParameters["nodal_unknowns"].end(); it++)
         {
             mNodalVariablesNames.push_back(it->GetString());
         }
@@ -172,6 +173,7 @@ public:
     /*@} */
     /**@name Operators
      */
+	/*
     virtual void SetUpDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part
@@ -197,6 +199,152 @@ public:
             }
         }
     }
+	*/
+
+	void SetUpDofSet(
+		typename TSchemeType::Pointer pScheme,
+		ModelPart& rModelPart
+	) override
+	{
+		KRATOS_TRY;
+
+
+		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Setting up the dofs" << std::endl;
+
+		//Gets the array of elements from the modeler
+		ElementsArrayType& r_elements_array = rModelPart.Elements();
+		const int number_of_elements = static_cast<int>(r_elements_array.size());
+
+		DofsVectorType dof_list, second_dof_list; // NOTE: The second dof list is only used on constraints to include master/slave relations
+
+		unsigned int nthreads = OpenMPUtils::GetNumThreads();
+
+		typedef std::unordered_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
+
+		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n" << std::endl;
+
+		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
+
+		/**
+		 * Here we declare three sets.
+		 * - The global set: Contains all the DoF of the system
+		 * - The slave set: The DoF that are not going to be solved, due to MPC formulation
+		 */
+		set_type dof_global_set;
+		dof_global_set.reserve(number_of_elements * 20);
+
+#pragma omp parallel firstprivate(dof_list, second_dof_list)
+		{
+			ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+			// We cleate the temporal set and we reserve some space on them
+			set_type dofs_tmp_set;
+			dofs_tmp_set.reserve(20000);
+
+			// Gets the array of elements from the modeler
+#pragma omp for schedule(guided, 512) nowait
+			for (int i = 0; i < number_of_elements; ++i) {
+				auto it_elem = r_elements_array.begin() + i;
+
+				// Gets list of Dof involved on every element
+				pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
+				dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+			}
+
+			// Gets the array of conditions from the modeler
+			ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
+			const int number_of_conditions = static_cast<int>(r_conditions_array.size());
+#pragma omp for  schedule(guided, 512) nowait
+			for (int i = 0; i < number_of_conditions; ++i) {
+				auto it_cond = r_conditions_array.begin() + i;
+
+				// Gets list of Dof involved on every element
+				pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
+				dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+			}
+
+			// Gets the array of constraints from the modeler
+			auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+			const int number_of_constraints = static_cast<int>(r_constraints_array.size());
+#pragma omp for  schedule(guided, 512) nowait
+			for (int i = 0; i < number_of_constraints; ++i) {
+				auto it_const = r_constraints_array.begin() + i;
+
+				// Gets list of Dof involved on every element
+				it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
+				dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+				dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
+			}
+
+			// We merge all the sets in one thread
+#pragma omp critical
+			{
+				dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
+			}
+		}
+
+		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
+
+		DofsArrayType Doftemp;
+		BaseType::mDofSet = DofsArrayType();
+
+		Doftemp.reserve(dof_global_set.size());
+		for (auto it = dof_global_set.begin(); it != dof_global_set.end(); it++)
+		{
+			Doftemp.push_back(it->get());
+		}
+		Doftemp.Sort();
+
+		BaseType::mDofSet = Doftemp;
+
+		//Throws an exception if there are no Degrees Of Freedom involved in the analysis
+		KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
+
+		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::mDofSet.size() << std::endl;
+
+		BaseType::mDofSetIsInitialized = true;
+
+		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished setting up the dofs" << std::endl;
+
+		KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2)) << "End of setup dof set\n" << std::endl;
+
+
+#ifdef KRATOS_DEBUG
+		// If reactions are to be calculated, we check if all the dofs have reactions defined
+		// This is tobe done only in debug mode
+		if (BaseType::GetCalculateReactionsFlag()) {
+			for (auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator) {
+				KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " << std::endl
+					<< "Node : " << dof_iterator->Id() << std::endl
+					<< "Dof : " << (*dof_iterator) << std::endl << "Not possible to calculate reactions." << std::endl;
+			}
+		}
+#endif
+		{
+			mDofList.clear();
+			for (auto& node : rModelPart.Nodes())
+			{
+				for (const std::string& var_name : mNodalVariablesNames)
+				{
+					if (KratosComponents< Variable<double> >::Has(var_name)) //case of double variable
+					{
+						auto pdof = node.pGetDof(KratosComponents< Variable<double> >::Get(var_name));
+						mDofList.push_back(pdof);
+					}
+					else if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(var_name)) //case of component variable
+					{
+						typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+						component_type var_component = KratosComponents< component_type >::Get(var_name);
+						auto pdof = node.pGetDof(var_component.GetSourceVariable());
+						mDofList.push_back(pdof);
+					}
+				}
+			}
+		}
+
+
+		KRATOS_CATCH("");
+	}
 
     /**
             organises the dofset in order to speed up the building phase
@@ -205,7 +353,16 @@ public:
         ModelPart& r_model_part
     ) override
     {
-        //deliberately not setting the equation id
+		//int free_id = 0;
+		BaseType::mEquationSystemSize = BaseType::mDofSet.size();
+		int ndofs = static_cast<int>(BaseType::mDofSet.size());
+
+#pragma omp parallel for firstprivate(ndofs)
+		for (int i = 0; i < static_cast<int>(ndofs); i++) {
+			typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + i;
+			dof_iterator->SetEquationId(i);
+
+		}
     }
 
     Vector ProjectToReducedBasis(const TSystemVectorType& rX, ModelPart::NodesContainerType& rNodes)
@@ -215,12 +372,21 @@ public:
         {
             unsigned int node_aux_id = node.GetValue(AUX_ID);
             const Matrix& nodal_rom_basis = node.GetValue(ROM_BASIS);
-            for(int i=0; i<mrom_dofs; ++i)
-                for(int j=0; j<mnodal_dofs; ++j)
-                    rom_unknowns[i] += nodal_rom_basis(i,j)*rX(node_aux_id*mnodal_dofs+j);
+			//KRATOS_WATCH(nodal_rom_basis)
+				for (int i = 0; i < mrom_dofs; ++i) {
+					for (int j = 0; j < mnodal_dofs; ++j) {
+						rom_unknowns[i] += nodal_rom_basis(j, i)*rX(node_aux_id*mnodal_dofs + j);
+						//KRATOS_WATCH(i)
+						//KRATOS_WATCH(j)
+						//KRATOS_WATCH(nodal_rom_basis(j, i))
+						//KRATOS_WATCH(rX(node_aux_id*mnodal_dofs + j))
+					}
+				}
+			//KRATOS_WATCH(rom_unknowns)
         }
+		//KRATOS_WATCH(rom_unknowns)
         return rom_unknowns;
-    }
+	}
 
     void ProjectToFineBasis(const TSystemVectorType& rRomUnkowns, ModelPart::NodesContainerType& rNodes,  TSystemVectorType& rX)
     {
@@ -230,9 +396,15 @@ public:
             unsigned int node_aux_id = node.GetValue(AUX_ID);
             const Matrix& nodal_rom_basis = node.GetValue(ROM_BASIS);
             Vector tmp = prod(nodal_rom_basis, rRomUnkowns );
-
-            for(unsigned int i=0; i<tmp.size(); ++i)
-                rX[node_aux_id*mnodal_dofs+i] = tmp[i];
+			//KRATOS_WATCH(tmp)
+			//KRATOS_WATCH(nodal_rom_basis)
+			//KRATOS_WATCH(rRomUnkowns)
+			//KRATOS_WATCH(tmp)
+			for (unsigned int i = 0; i < tmp.size(); ++i) 
+			{
+			rX[node_aux_id*mnodal_dofs + i] = tmp[i];
+			//KRATOS_WATCH(rX)
+			}
         }
     }
 
@@ -256,17 +428,24 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b) override
-    {
+	{
+		//KRATOS_WATCH(A)
+		//KRATOS_WATCH(Dx)
+		//KRATOS_WATCH(b)
         //define a dense matrix to hold the reduced problem
         Matrix Arom = ZeroMatrix(mrom_dofs,mrom_dofs);
         Vector brom = ZeroVector(mrom_dofs);
         TSystemVectorType x(Dx.size());
+		//KRATOS_WATCH(x)
+
 
         //find the rom basis
         this->GetDofValues(mDofList,x);
+		//KRATOS_WATCH(x)
+		//KRATOS_WATCH(mDofList)
         Vector xrom = this->ProjectToReducedBasis(x, rModelPart.Nodes());
         
-        //build the system matrix by looping over elements and conditions and ensembling to A
+        //build the system matrix by looping over elements and conditions and assembling to A
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
         // Getting the elements from the model
@@ -312,22 +491,28 @@ public:
                     //compute the elemental reduction matrix T
                     const auto& geom = it->GetGeometry();
                     Matrix Telemental(geom.size()*mnodal_dofs, mrom_dofs);
+					//KRATOS_WATCH(Telemental)
                     for(unsigned int i=0; i<geom.size(); ++i)
                     {
                         const Matrix& rom_nodal_basis = geom[i].GetValue(ROM_BASIS);
+						//KRATOS_WATCH(rom_nodal_basis)
                         for(unsigned int k=0; k<rom_nodal_basis.size1(); ++k)
                         {
                             row(Telemental, i*mnodal_dofs+k) = row(rom_nodal_basis,k);
-                        }
+							//KRATOS_WATCH(row(rom_nodal_basis, k))
+						}
+						//KRATOS_WATCH(Telemental)
                     }
                     
                     //compute LHS_ROM = Ttrans*LHS_Contribution*T
                     //and     RHS_ROM = Ttrans*b
                     //and sum such contributions to Arom and brom
+
                     Matrix aux = prod(LHS_Contribution, Telemental);
+
                     noalias(Arom) += prod(trans(Telemental), aux);
                     noalias(brom) += prod(trans(Telemental), RHS_Contribution);
- 
+
                     // clean local elemental me overridemory
                     pScheme->CleanMemory(*(it.base()));
                 } 
@@ -382,7 +567,9 @@ public:
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
         //solve for the rom unkowns dunk = Arom^-1 * brom
+
         Vector dxrom(xrom.size());
+		//KRATOS_WATCH(dxrom)
         MathUtils<double>::Solve(Arom,dxrom,brom);
 
         //update database
@@ -393,14 +580,41 @@ public:
         ProjectToFineBasis(dxrom, rModelPart.Nodes(),  Dx);
     }
 
-    void ResizeAndInitializeVectors(
-        typename TSchemeType::Pointer pScheme,
-        TSystemMatrixPointerType& pA,
-        TSystemVectorPointerType& pDx,
-        TSystemVectorPointerType& pb,
-        ModelPart& rModelPart
-    ) override
-    {
+	void ResizeAndInitializeVectors(
+		typename TSchemeType::Pointer pScheme,
+		TSystemMatrixPointerType& pA,
+		TSystemVectorPointerType& pDx,
+		TSystemVectorPointerType& pb,
+		ModelPart& rModelPart
+	) override
+	{
+			KRATOS_TRY
+			if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
+			{
+				TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
+				pA.swap(pNewA);
+			}
+		if (pDx == NULL) //if the pointer is not initialized initialize it to an empty matrix
+		{
+			TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(0));
+			pDx.swap(pNewDx);
+		}
+		if (pb == NULL) //if the pointer is not initialized initialize it to an empty matrix
+		{
+			TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(0));
+			pb.swap(pNewb);
+		}
+
+		TSystemMatrixType& A = *pA;
+		TSystemVectorType& Dx = *pDx;
+		TSystemVectorType& b = *pb;
+
+		if (Dx.size() != BaseType::mEquationSystemSize)
+			Dx.resize(BaseType::mEquationSystemSize, false);
+		if (b.size() != BaseType::mEquationSystemSize)
+			b.resize(BaseType::mEquationSystemSize, false);
+
+		KRATOS_CATCH("")
     }
 
     void InitializeSolutionStep(
@@ -418,6 +632,8 @@ public:
         TSystemVectorType& b) override
     {
     }
+
+
 
     virtual void CalculateReactions(
         typename TSchemeType::Pointer pScheme,
