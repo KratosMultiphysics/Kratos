@@ -131,7 +131,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateRightHandS
     }
 
     // Get the element shape function values from the normalized distance to node 0
-    const auto &rData = this->GetValue(NODAL_MAUX);
+    const double &rData = this->GetValue(NODAL_MAUX);
     const auto &rN = this->GetDistanceBasedShapeFunctionValues();
 
     // Compute the Gramm matrix
@@ -151,7 +151,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::Calcul
     }
 
     // Get the element shape function values from the normalized distance to node 0
-    const auto &rData = this->GetValue(NODAL_VAUX);
+    const array_1d<double,3> &rData = this->GetValue(NODAL_VAUX);
     const auto &rN = this->GetDistanceBasedShapeFunctionValues();
 
     // Compute the Gramm matrix
@@ -171,7 +171,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::EquationIdVector(
         rResult.resize(2, false);
     }
 
-    const auto pos = (this->GetGeometry())[0].GetDofPosition(NODAL_MAUX);
+    const unsigned int pos = (this->GetGeometry())[0].GetDofPosition(NODAL_MAUX);
     for (unsigned int i = 0; i < 2; i++) {
         rResult[i] = (this->GetGeometry())[i].GetDof(NODAL_MAUX, pos).EquationId();
     }
@@ -186,7 +186,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::Equati
         rResult.resize(6, false);
     }
 
-    const auto x_pos = (this->GetGeometry())[0].GetDofPosition(NODAL_VAUX_X);
+    const unsigned int x_pos = (this->GetGeometry())[0].GetDofPosition(NODAL_VAUX_X);
     for (unsigned int i = 0; i < 2; i++) {
         rResult[i * 3] = GetGeometry()[i].GetDof(NODAL_VAUX_X, x_pos).EquationId();
         rResult[i * 3 + 1] = GetGeometry()[i].GetDof(NODAL_VAUX_Y, x_pos + 1).EquationId();
@@ -227,7 +227,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::GetDof
 template <class TVarType>
 const array_1d<double, 2> EmbeddedNodalVariableCalculationElementSimplex<TVarType>::GetDistanceBasedShapeFunctionValues()
 {
-    const auto d = this->GetValue(DISTANCE);
+    const double d = this->GetValue(DISTANCE);
     array_1d<double, 2> N;
     N[0] = 1.0 - d;
     N[1] = d;

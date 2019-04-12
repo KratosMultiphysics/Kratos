@@ -222,7 +222,7 @@ public:
 
         // Check that the base model part is conformed by simplex elements
         const auto &r_aux_geom = (mrBaseModelPart.ElementsBegin())->GetGeometry();
-        const auto dim = r_aux_geom.Dimension();
+        const unsigned int dim = r_aux_geom.Dimension();
         if(dim == 2){
             KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::Kratos_Triangle) <<
                 "In 2D the element type is expected to be a triangle." << std::endl;
@@ -432,7 +432,7 @@ protected:
         std::size_t new_elem_id = 1;
         for (unsigned int i_elem = 0; i_elem < mrBaseModelPart.NumberOfElements(); ++i_elem) {
             auto it_elem = mrBaseModelPart.ElementsBegin() + i_elem;
-            auto elem_dist = this->SetDistancesVector(it_elem);
+            const auto elem_dist = this->SetDistancesVector(it_elem);
             // Check if the current element is split
             if (IsSplit(elem_dist)) {
                 if (r_int_obj_vect[i_elem].size() != 0) {
@@ -595,7 +595,7 @@ private:
 
     const Vector SetDistancesVector(ModelPart::ElementIterator ItElem) const
     {
-        auto &r_geom = ItElem->GetGeometry();
+        const auto &r_geom = ItElem->GetGeometry();
         Vector nodal_distances(r_geom.PointsNumber());
 
         if (mLevelSetType == "continuous"){
@@ -639,7 +639,7 @@ private:
 		Point& rIntersectionPoint) const
 	{
 		int intersection_flag = 0;
-		const auto work_dim = rIntObjGeometry.WorkingSpaceDimension();
+		const unsigned int work_dim = rIntObjGeometry.WorkingSpaceDimension();
 		if (work_dim == 2){
 			intersection_flag = IntersectionUtilities::ComputeLineLineIntersection<Element::GeometryType>(
 				rIntObjGeometry, rEdgePoint1.Coordinates(), rEdgePoint2.Coordinates(), rIntersectionPoint.Coordinates());
