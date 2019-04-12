@@ -120,6 +120,18 @@ template<MeshAccess MeshType> struct MeshAccessType
     constexpr static MeshAccess Value = MeshType;
 };
 
+enum class Operation {
+    Replace,
+    SumValues,
+    OrFlags,
+    AndFlags
+}
+
+template<Operation TOperation> struct OperationType
+{
+    constexpr static Operation Value = TOperation;
+}
+
 template<class TValue> class NodalSolutionStepValueAccess
 {
 
@@ -142,6 +154,11 @@ ContainerType& GetContainer(Communicator::MeshType& rMesh)
 TValue& GetValue(IteratorType& iter)
 {
     return iter->FastGetSolutionStepValue(mrVariable);
+}
+
+void SetValue(IteratorType& iter, const TValue& rValue)
+{
+    iter->FastGetSolutionStepValue(mrVariable) = rValue;
 }
 
 };
@@ -170,7 +187,31 @@ TValue& GetValue(IteratorType& iter)
     return iter->GetValue(mrVariable);
 }
 
+void SetValue(IteratorType& iter, const TValue& rValue)
+{
+    iter->SetValue(mrVariable, rValue);
+}
+
 };
+
+template<typename TValue, class TDatabaseAccess>
+void Replace(
+    const TValue& rRecvValue,
+    TDatabaseAccess Access,
+    typename TDatabaseAccess::IteratorType ContainerIterator)
+{
+    Access.SetValue(ContainerIterator, rRecvValue);
+}
+
+template<typename TValue, class TDatabaseAccess>
+void SumValues();
+
+template<typename TValue, class TDatabaseAccess>
+void OrFlags();
+
+template<typename TValue, class TDatabaseAccess>
+void AndFlags();
+
 /*
 template<typename TValue, class TDatabaseAccess, class TReductionOperation>
 struct BufferManager: public TDatabaseAccess<TValue>, TReductionOperation
@@ -2242,9 +2283,9 @@ private:
 
     template<typename TDataType, typename TSourceAccess, typename TDestinationAccess, class DatabaseAccess>
     bool TransferDistributedValues(
-        TSourceAccess SourceAccess,
-        TDestinationAccess DestinationAccess,
-        DatabaseAccess Access)
+        TSourceAccess Source,
+        TDestinationAccess Destination,
+        DatabaseAccess DataBase)
     {
         int rank = mrDataCommunicator.Rank();
         int destination = 0;
@@ -2258,8 +2299,8 @@ private:
         {
             if ( (destination = neighbour_indices[i_color]) >= 0)
             {
-                FillBuffer(send_values, GetMesh(i_color, SourceAccess), Access);
-                AllocateBuffer(recv_values, GetMesh(i_color, DestinationAccess), Access);
+                FillBuffer(send_values, GetMesh(i_color, Source), DataBase);
+                AllocateBuffer(recv_values, GetMesh(i_color, Destination), DataBase);
                 //SourceValues.FillBuffer(send_values, i_color);
                 //DestinationValues.FillBuffer(recv_values, i_color);
 
@@ -2270,6 +2311,7 @@ private:
 
                 mrDataCommunicator.SendRecv(send_values, destination, i_color, recv_values, destination, i_color);
 
+                UpdateValues(recv_values, GetMesh(i_color, Destination), DataBase);
                 //ReductionOperation.Apply(recv_values, i_color);
             }
         }
@@ -2299,6 +2341,23 @@ private:
             *(TValue*)(p_buffer + position) = Access.GetValue(iter);
             position += MPIInternals::DataSize<TValue>::Value;
         }
+    }
+
+    template<typename TValue, class TDatabaseAccess>
+    void UpdateValues(const std::vector<typename MPIInternals::SendTraits<TValue>::SendType>& rBuffer, const MeshType& rSourceMesh, TDatabaseAccess Access)
+    {
+        auto& r_container = Access.GetContainer(rSourceMesh);
+        TValue* p_buffer = rBuffer.data();
+        std::size_t position = 0;
+                
+        for (auto iter = r_container.begin(); iter != r_container.end(); ++iter)
+        {
+            Replace(*reinterpret_cast<TValue*>(p_buffer + position), Access, iter);
+            position += MPIInternals::DataSize<TValue>::Value;
+        }
+
+        KRATOS_WARNING_IF_ALL_RANKS("MPICommunicator", position > rBuffer.size())
+        << "Error in estimating receive buffer size." << std::endl;
     }
 
     //       friend class boost::serialization::access;
