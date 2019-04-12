@@ -15,7 +15,9 @@ class ForcesElementsToNodesProcess(ComputeLiftProcess):
 
     def ExecuteFinalizeSolutionStep(self):
         super(ForcesElementsToNodesProcess, self).ExecuteFinalizeSolutionStep()
-
+        self.ComputeForcesOnNodes()
+    
+    def ComputeForcesOnNodes(self):
         initialize_force = KratosMultiphysics.Vector(3)
         for node in self.body_model_part.Nodes:
             node.SetValue(KratosMultiphysics.FORCE, initialize_force)
@@ -43,5 +45,5 @@ class ForcesElementsToNodesProcess(ComputeLiftProcess):
             with open("cl_points_with_lift.dat", 'w') as cl_file:
                 cl_file.write('{0:15.12f}'.format(total_force[1]))
 
-
+        print("Forces Transfered To Nodes")
 
