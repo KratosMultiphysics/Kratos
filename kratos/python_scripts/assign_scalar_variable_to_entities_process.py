@@ -77,18 +77,18 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
         if settings["value"].IsNumber():
             self.value_is_numeric = True
             for i in range(len(self.entities)):
-                if (self.entities[i] == "conditions"):
+                if self.entities[i] == "conditions":
                     self.aux_processes.append( KratosMultiphysics.AssignScalarVariableToConditionsProcess(self.model_part, params))
-                elif (self.entities[i] == "elements"):
+                elif self.entities[i] == "elements":
                     self.aux_processes.append( KratosMultiphysics.AssignScalarVariableToElementsProcess(self.model_part, params))
-                elif (self.entities[i] == "constraints"):
+                elif self.entities[i] == "constraints":
                     self.aux_processes.append( KratosMultiphysics.AssignScalarVariableToMasterSlaveConstraintsProcess(self.model_part, params))
         else:
             params.AddValue("local_axes", settings["local_axes"])
             for i in range(len(self.entities)):
-                if (self.entities[i] == "conditions"):
+                if self.entities[i] == "conditions":
                     self.aux_processes.append( KratosMultiphysics.AssignScalarFieldToConditionsProcess(self.model_part, params))
-                elif (self.entities[i] == "elements"):
+                elif self.entities[i] == "elements":
                     self.aux_processes.append( KratosMultiphysics.AssignScalarFieldToElementsProcess(self.model_part, params))
 
         # construct a variable_utils object to speedup fixing
