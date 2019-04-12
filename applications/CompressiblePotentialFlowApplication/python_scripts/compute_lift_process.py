@@ -68,12 +68,12 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         self.Cm = m[2]/self.reference_area
 
-        self.ReadWakeDirection()
+        self.__ReadWakeDirection()
 
         self.Cl = DotProduct(Cf,self.wake_normal)
         self.Cd = DotProduct(Cf,self.wake_direction)
 
-        self.ComputeLiftJump()
+        self.__ComputeLiftJump()
 
         KratosMultiphysics.Logger.PrintInfo(' Cl = ', self.Cl)
         KratosMultiphysics.Logger.PrintInfo(' Cd = ', self.Cd)
@@ -89,7 +89,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
                 with open("cl_jump.dat", 'w') as cl_file:
                  cl_file.write('{0:15.12f}'.format(self.Cl_te))
 
-    def ComputeLiftJump(self):
+    def __ComputeLiftJump(self):
         # Find the Trailing Edge node
         for node in self.body_model_part.Nodes:
             if node.GetValue(CPFApp.TRAILING_EDGE):
@@ -108,7 +108,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             potential_jump_phi_minus_psi_te = node_auxiliary_velocity_potential_te - node_velocity_potential_te
         self.Cl_te = 2*potential_jump_phi_minus_psi_te/u_inf
 
-    def ReadWakeDirection(self):
+    def __ReadWakeDirection(self):
         self.wake_direction = self.fluid_model_part.GetProperties()[1].GetValue(CPFApp.VELOCITY_INFINITY)
         if(self.wake_direction.Size() != 3):
             raise Exception('The wake direction should be a vector with 3 components!')

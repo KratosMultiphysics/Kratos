@@ -49,20 +49,20 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 node.Set(KratosMultiphysics.SOLID)
     
     def ExecuteInitialize(self):
-        self.FindWakeElements()
+        self.__FindWakeElements()
 
-    def FindWakeElements(self):
-        self.ReadWakeDirection()
+    def __FindWakeElements(self):
+        self.__ReadWakeDirection()
         # Save the trailing edge for further computations
-        self.SaveTrailingEdgeNode()
+        self.__SaveTrailingEdgeNode()
         # Check which elements are cut and mark them as wake
-        self.MarkWakeElements()
+        self.__MarkWakeElements()
         # Mark the elements touching the trailing edge from below as kutta
-        self.MarkKuttaElements()
+        self.__MarkKuttaElements()
         # Mark the trailing edge element that is further downstream as wake
-        self.MarkWakeTEElement()
+        self.__MarkWakeTEElement()
 
-    def ReadWakeDirection(self):
+    def __ReadWakeDirection(self):
         self.wake_direction = self.fluid_model_part.GetProperties()[1].GetValue(CPFApp.VELOCITY_INFINITY)
         if(self.wake_direction.Size() != 3):
             raise Exception('The wake direction should be a vector with 3 components!')
@@ -78,7 +78,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.wake_normal[1] = self.wake_direction[0]
         self.wake_normal[2] = 0.0
 
-    def SaveTrailingEdgeNode(self):
+    def __SaveTrailingEdgeNode(self):
         # This function finds and saves the trailing edge for further computations
         max_x_coordinate = -1e30
         for node in self.body_model_part.Nodes:
@@ -88,7 +88,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
         self.te.SetValue(CPFApp.TRAILING_EDGE, True)
 
-    def MarkWakeElements(self):
+    def __MarkWakeElements(self):
         # This function checks which elements are cut by the wake
         # and marks them as wake elements
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements...')
@@ -188,7 +188,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         # Elements with nodes above and below the wake are wake elements
         return(number_of_nodes_with_negative_distance > 0 and number_of_nodes_with_positive_distance > 0)
 
-    def MarkKuttaElements(self):
+    def __MarkKuttaElements(self):
         # This function selects the kutta elements. Kutta elements
         # are touching the trailing edge from below.
         for elem in self.trailing_edge_model_part.Elements:
@@ -214,7 +214,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
         return nneg==1
 
-    def MarkWakeTEElement(self):
+    def __MarkWakeTEElement(self):
         # This function finds the trailing edge element that is further downstream
         # and marks it as wake trailing edge element. The rest of trailing edge elements are
         # unassigned from the wake.
