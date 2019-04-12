@@ -6,12 +6,12 @@ import KratosMultiphysics
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
-import structural_mechanics_solver
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return StructuralMechanicsAdjointStaticSolver(model, custom_settings)
 
-class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.MechanicalSolver):
+class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
 
     def __init__(self, model, custom_settings):
 
@@ -21,7 +21,7 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         custom_settings.RemoveValue("sensitivity_settings")
         # Construct the base solver.
         super(StructuralMechanicsAdjointStaticSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "Construction finished")
 
     def AddVariables(self):
         super(StructuralMechanicsAdjointStaticSolver, self).AddVariables()
@@ -30,7 +30,7 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_ROTATION)
         # TODO evaluate if these variables should be historical
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
-        self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "Variables ADDED")
 
     def PrepareModelPart(self):
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]!= 3):
@@ -64,7 +64,7 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         StructuralMechanicsApplication.ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
         process_info.SetValue(StructuralMechanicsApplication.IS_ADJOINT, True)
 
-        self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "ModelPart prepared for Solver.")
+        KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "ModelPart prepared for Solver.")
 
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X, self.main_model_part)
@@ -74,7 +74,7 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
             KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_X, self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Y, self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Z, self.main_model_part)
-        self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "DOF's ADDED.")
+        KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "DOF's ADDED.")
 
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
@@ -95,7 +95,7 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         super(StructuralMechanicsAdjointStaticSolver, self).Initialize()
         self.response_function.Initialize()
 
-        self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Finished initialization.")
+        KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "Finished initialization.")
 
     def InitializeSolutionStep(self):
         super(StructuralMechanicsAdjointStaticSolver, self).InitializeSolutionStep()
