@@ -340,8 +340,8 @@ protected:
     ModelPart& mrBaseModelPart;
     ModelPart& mrSkinModelPart;
 
-    const Variable<TVarType> mrSkinVariable;
-    const Variable<TVarType> mrEmbeddedNodalVariable;
+    const Variable<TVarType> &mrSkinVariable;
+    const Variable<TVarType> &mrEmbeddedNodalVariable;
 
     SolvingStrategyPointerType mpSolvingStrategy;
 
@@ -391,7 +391,7 @@ protected:
         KRATOS_CATCH("")
     }
 
-    void SetObtainedEmbeddedNodalValues()
+    void SetObtainedEmbeddedNodalValues() const
     {
         const auto &rUnknownVariable = EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable();
         const auto &r_int_elems_model_part = (mrBaseModelPart.GetModel()).GetModelPart(mAuxModelPartName);
@@ -403,17 +403,17 @@ protected:
         }
     }
 
-    inline void AddIntersectedElementsVariables(ModelPart &rModelPart)
+    inline void AddIntersectedElementsVariables(ModelPart &rModelPart) const
     {
         EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::AddUnknownVariable(rModelPart);
     }
 
-    void AddIntersectedElementsModelPartDOFs(ModelPart &rModelPart)
+    void AddIntersectedElementsModelPartDOFs(ModelPart &rModelPart) const
     {
         EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::AddUnknownVariableDofs(rModelPart);
     }
 
-    void AddIntersectedElementsModelPartElements(ModelPart &rModelPart)
+    void AddIntersectedElementsModelPartElements(ModelPart &rModelPart) const
     {
         // Initialize the VISITED flag in the origin model part
         // It will be used to mark the nodes already added to the intersected elements model part
@@ -593,7 +593,7 @@ private:
         mpFindIntersectedGeometricalObjectsProcess->Clear();
     }
 
-    const Vector SetDistancesVector(ModelPart::ElementIterator ItElem)
+    const Vector SetDistancesVector(ModelPart::ElementIterator ItElem) const
     {
         auto &r_geom = ItElem->GetGeometry();
         Vector nodal_distances(r_geom.PointsNumber());
@@ -613,7 +613,7 @@ private:
         return nodal_distances;
     }
 
-    inline bool IsSplit(const Vector &rDistances)
+    inline bool IsSplit(const Vector &rDistances) const
     {
         unsigned int n_pos = 0, n_neg = 0;
 
@@ -636,7 +636,7 @@ private:
 		const Element::GeometryType& rIntObjGeometry,
 		const Element::NodeType& rEdgePoint1,
 		const Element::NodeType& rEdgePoint2,
-		Point& rIntersectionPoint)
+		Point& rIntersectionPoint) const
 	{
 		int intersection_flag = 0;
 		const auto work_dim = rIntObjGeometry.WorkingSpaceDimension();
@@ -655,7 +655,7 @@ private:
 
     void AddEdgeNodes(
         const Geometry<Node<3>> &rEdgeGeometry,
-        ModelPart &rModelPart)
+        ModelPart &rModelPart) const
     {
         // Loop the edge nodes
         for (std::size_t i = 0; i < 2; ++i) {
@@ -663,8 +663,7 @@ private:
             // Check if the node has been already added
             if (!p_i_node->Is(VISITED)) {
                 p_i_node->Set(VISITED, true);
-                const auto new_id = p_i_node->Id();
-                Node<3>::Pointer p_new_node = rModelPart.CreateNewNode(new_id, *p_i_node);
+                rModelPart.CreateNewNode(p_i_node->Id(), *p_i_node);
             }
         }
     }
@@ -672,7 +671,7 @@ private:
     Element::GeometryType::Pointer pSetEdgeElementGeometry(
         ModelPart &rModelPart,
         const Element::GeometryType &rCurrentEdgeGeometry,
-        const std::pair<std::size_t, std::size_t> NewEdgeIds)
+        const std::pair<std::size_t, std::size_t> NewEdgeIds) const
     {
         Element::GeometryType::PointsArrayType points_array;
         points_array.push_back(rModelPart.pGetNode(std::get<0>(NewEdgeIds)));
@@ -680,7 +679,7 @@ private:
         return rCurrentEdgeGeometry.Create(points_array);
     }
 
-    inline std::pair<std::size_t, std::size_t> SetEdgePair(const Geometry<Node<3>> &rEdgeGeom)
+    inline std::pair<std::size_t, std::size_t> SetEdgePair(const Geometry<Node<3>> &rEdgeGeom) const
     {
         std::pair<std::size_t, std::size_t> edge_pair(
             (rEdgeGeom[0].Id() < rEdgeGeom[1].Id()) ? rEdgeGeom[0].Id() : rEdgeGeom[1].Id(),

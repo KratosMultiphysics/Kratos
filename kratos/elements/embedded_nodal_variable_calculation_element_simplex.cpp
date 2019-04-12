@@ -45,14 +45,6 @@ int EmbeddedNodalVariableCalculationElementSimplex<double>::Check(const ProcessI
         return ErrorCode;
     }
 
-    // Check that all required variables have been registered
-    if(DISTANCE.Key() == 0) {
-        KRATOS_ERROR << "DISTANCE Key is 0. Check if the application was correctly registered.";
-    }
-    if(NODAL_MAUX.Key() == 0) {
-        KRATOS_ERROR << "NODAL_MAUX Key is 0. Check if the application was correctly registered.";
-    }
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(auto &r_node : this->GetGeometry()) {
         KRATOS_ERROR_IF(!r_node.SolutionStepsDataHas(NODAL_MAUX)) << "Missing NODAL_MAUX variable on solution step data for node " << r_node.Id() << std::endl;;
@@ -72,14 +64,6 @@ int EmbeddedNodalVariableCalculationElementSimplex<array_1d<double,3>>::Check(co
     int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
     if(ErrorCode != 0) {
         return ErrorCode;
-    }
-
-    // Check that all required variables have been registered
-    if(DISTANCE.Key() == 0) {
-        KRATOS_ERROR << "DISTANCE Key is 0. Check if the application was correctly registered.";
-    }
-    if(NODAL_VAUX.Key() == 0) {
-        KRATOS_ERROR << "NODAL_VAUX Key is 0. Check if the application was correctly registered.";
     }
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
