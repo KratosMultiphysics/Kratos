@@ -56,7 +56,7 @@
         },{
             "python_module" : "forces_elements_to_nodes_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
-            "process_name"  : "ComputeMomentProcess3D",
+            "process_name"  : "ForcesElementsToNodesProcess",
             "Parameters"    : {
                 "reference_area" : 1.0,
                 "model_part_name" : "MainModelPart.Body2D_Body",

@@ -28,10 +28,6 @@ class PotentialFlowSolver(FluidSolver):
             "formulation": {
                 "element_type": "imcompressible_potential"
             },
-            "element_replace_settings": {
-                "element_name":[""],
-                "condition_name":[""]
-            },
             "maximum_iterations": 10,
             "echo_level": 0,
             "relative_tolerance": 1e-5,

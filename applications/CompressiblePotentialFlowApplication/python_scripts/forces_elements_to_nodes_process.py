@@ -14,36 +14,33 @@ class ForcesElementsToNodesProcess(ComputeLiftProcess):
         super(ForcesElementsToNodesProcess, self).__init__(Model, settings)
 
     def ExecuteFinalizeSolutionStep(self):
-        super(ForcesElementsToNodesProcess, self).ExecuteFinalizeSolutionStep()
         self.ComputeForcesOnNodes()
     
     def ComputeForcesOnNodes(self):
-        initialize_force = KratosMultiphysics.Vector(3)
-        for node in self.body_model_part.Nodes:
-            node.SetValue(KratosMultiphysics.FORCE, initialize_force)
+        print('COMPUTE LIFT AT NODES')
+
+        KratosMultiphysics.VariableUtils().SetToZero_VectorVar(KratosMultiphysics.FORCE, self.body_model_part.Nodes)
 
         for cond in self.body_model_part.Conditions:
             n = cond.GetValue(KratosMultiphysics.NORMAL)
             cp = cond.GetValue(KratosMultiphysics.PRESSURE)
 
             for node in cond.GetNodes():
-                tmp = node.GetValue(KratosMultiphysics.FORCE)
                 added_force = KratosMultiphysics.Vector(3)
-                added_force[0] = n[0]*cp/2.0
-                added_force[1] = n[1]*cp/2.0
-                added_force[2] = n[2]*cp/2.0
                 force = KratosMultiphysics.Vector(3)
-                force = tmp + added_force
+
+                added_force = n*(cp/2.0)
+                force = node.GetValue(KratosMultiphysics.FORCE) + added_force
                 node.SetValue(KratosMultiphysics.FORCE, force)
 
-        total_force = KratosMultiphysics.Vector(3)
-        for node in self.body_model_part.Nodes:
-            force = node.GetValue(KratosMultiphysics.FORCE)
-            total_force += force
+        total_force = KratosMultiphysics.VariableUtils().SumNonHistoricalNodeVectorVariable(KratosMultiphysics.FORCE, self.body_model_part)
+        
+        print("Cl = ", total_force[1])
+        print("Cd = ", total_force[0])
+        print("RZ = ", total_force[2])
 
         if self.create_output_file:
             with open("cl_points_with_lift.dat", 'w') as cl_file:
                 cl_file.write('{0:15.12f}'.format(total_force[1]))
 
-        print("Forces Transfered To Nodes")
 
