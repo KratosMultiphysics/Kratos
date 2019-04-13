@@ -79,6 +79,8 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         self.frequency = self.params["time_frequency"].GetDouble()
         self.historical_value = self.params["historical_value"].GetBool()
         self.data = read_external_json(self.params["input_file_name"].GetString())
+        self.abs_tol = self.params["tolerance"].GetDouble()
+        self.rel_tol = self.params["relative_tolerance"].GetDouble()
 
         # Initialize counter
         self.step_counter = 0
@@ -92,8 +94,6 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        tol = self.params["tolerance"].GetDouble()
-        reltol = self.params["relative_tolerance"].GetDouble()
         time = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
         dt = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
         step = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.STEP)
@@ -262,3 +262,9 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                 return False
 
         return True
+
+    def __check_values(self, entity_id, entity_type, value_entity, value_json, variable_name):
+        isclosethis = t_isclose(value_entity, value_json, rel_tol=rel_tol, abs_tol=abs_tol)
+        msg  = 'Error checking {} #{} for variable {} results: '.format(entity_type, entity_id, variable_name)
+        msg += '{} != {}; rel_tol={}, abs_tol={}'.format(value_entity, value_json, self.rel_tol, self.abs_tol)
+        self.assertTrue(isclosethis, msg=msg)
