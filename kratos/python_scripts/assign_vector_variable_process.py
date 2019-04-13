@@ -11,12 +11,29 @@ def Factory(settings, Model):
 
 ## All the processes python should be derived from "Process"
 class AssignVectorVariableProcess(KratosMultiphysics.Process):
+    """This process assigns a given value (vector) to the nodes belonging a certain submodelpart
+
+    Only the member variables listed below should be accessed directly.
+
+    Public member variables:
+    Model -- the container of the different model parts.
+    settings -- Kratos parameters containing solver settings.
+    """
+
     def __init__(self, Model, settings ):
+        """ The default constructor of the class
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        Model -- the container of the different model parts.
+        settings -- Kratos parameters containing solver settings.
+        """
+
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "help"            : "This process assigns a given value (vector) to the nodes belonging a certain submodelpart",
+                "help"                 : "This process assigns a given value (vector) to the nodes belonging a certain submodelpart",
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "variable_name"        : "SPECIFY_VARIABLE_NAME",
@@ -41,7 +58,7 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
-        if type(self.variable) != KratosMultiphysics.Array1DVariable3 and type(self.variable) != KratosMultiphysics.VectorVariable:
+        if not isinstance(self.variable, KratosMultiphysics.Array1DVariable3) and not isinstance(self.variable, KratosMultiphysics.VectorVariable):
             msg = "Error in AssignVectorVariableProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a vector or array3"
             raise Exception(msg)
 
@@ -65,12 +82,27 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
                 self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(Model, i_params) )
 
     def ExecuteBeforeSolutionLoop(self):
+        """ This method is executed in before initialize the solution step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
         self.ExecuteInitializeSolutionStep()
 
     def ExecuteInitializeSolutionStep(self):
+        """ This method is executed in order to initialize the current step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
         for process in self.aux_processes:
             process.ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
+        """ This method is executed in order to finalize the current step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
         for process in self.aux_processes:
             process.ExecuteFinalizeSolutionStep()

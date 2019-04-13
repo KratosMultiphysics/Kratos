@@ -119,5 +119,4 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         self.step_is_active = False

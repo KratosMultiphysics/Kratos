@@ -11,7 +11,24 @@ def Factory(settings, Model):
     return AssignScalarVariableProcess(Model, settings["Parameters"])
 
 class AssignScalarVariableProcess(KratosMultiphysics.Process):
+    """This process sets a given scalar value for a certain variable in all the nodes of a submodelpart
+
+    Only the member variables listed below should be accessed directly.
+
+    Public member variables:
+    Model -- the container of the different model parts.
+    settings -- Kratos parameters containing solver settings.
+    """
+
     def __init__(self, Model, settings ):
+        """ The default constructor of the class
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        Model -- the container of the different model parts.
+        settings -- Kratos parameters containing solver settings.
+        """
+
         KratosMultiphysics.Process.__init__(self)
 
         #The value can be a double or a string (function)
@@ -40,7 +57,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
-        if type(self.variable) != KratosMultiphysics.Array1DComponentVariable and type(self.variable) != KratosMultiphysics.DoubleVariable and type(self.variable) != KratosMultiphysics.VectorVariable:
+        if not isinstance(self.variable, KratosMultiphysics.Array1DComponentVariable) and not isinstance(self.variable, KratosMultiphysics.DoubleVariable) and not isinstance(self.variable, KratosMultiphysics.VectorVariable):
             msg = "Error in AssignScalarToNodesProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a scalar or a component"
             raise Exception(msg)
 
@@ -64,9 +81,19 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         self.step_is_active = False
 
     def ExecuteBeforeSolutionLoop(self):
+        """ This method is executed in before initialize the solution step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
         self.ExecuteInitializeSolutionStep()
 
     def ExecuteInitializeSolutionStep(self):
+        """ This method is executed in order to initialize the current step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         if self.interval.IsInInterval(current_time):
@@ -86,8 +113,11 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
                     self.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
 
     def ExecuteFinalizeSolutionStep(self):
-        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        """ This method is executed in order to finalize the current step
 
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
         if self.step_is_active:
             # Here we free all of the nodes in the mesh
             if self.is_fixed:
