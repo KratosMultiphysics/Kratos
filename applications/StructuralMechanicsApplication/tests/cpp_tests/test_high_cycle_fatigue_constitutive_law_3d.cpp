@@ -126,7 +126,6 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHighCycleFatigueExponential, KratosStru
     HCF_CL.SetPreviousMaxStress(7.6380e+08);
     HCF_CL.SetPreviousMinStress(-2.2914e+08);
     HCF_CL.SetNumberOfCycles(984);
-    HCF_CL.SetReversionFactor(-0.3);
     HCF_CL.SetCycleCounter(false);
     HCF_CL.SetFatigueReductionParameter(5.3239E-07);
 

@@ -244,9 +244,6 @@ public:
     void AddCycle() {mNumberOfCycles++;}
     void SetNumberOfCycles(const unsigned int toCycles) {mNumberOfCycles = toCycles;}
 
-    double GetReversionFactor() {return mReversionFactor;}
-    void SetReversionFactor(const double toReversionFactor) {mReversionFactor = toReversionFactor;}
-
     double GetFatigueReductionParameter() {return mFatigueReductionParameter;}
     void SetFatigueReductionParameter(const double toFatigueReductionParameter) {mFatigueReductionParameter = toFatigueReductionParameter;}
 
@@ -315,7 +312,6 @@ private:
     double mPreviousMaxStress = 0.0;
     double mPreviousMinStress = 0.0;
     unsigned int mNumberOfCycles = 1;
-    double mReversionFactor = 0.0;  // = mMinStress/mMaxStress
     double mFatigueReductionParameter = 0.0; // B0
     Vector mStressVector = ZeroVector(VoigtSize);
     bool mHasCountedCycle = false;
@@ -346,7 +342,6 @@ private:
         rSerializer.save("PreviousMaxStress", mPreviousMaxStress);
         rSerializer.save("PreviousMinStress", mPreviousMinStress);
         rSerializer.save("NumberOfCycles", mNumberOfCycles);
-        rSerializer.save("ReversionFactor", mReversionFactor);
         rSerializer.save("FatigueReductionParameter", mFatigueReductionParameter);
         rSerializer.save("StressVector", mStressVector);
         rSerializer.save("HasCountedCycle", mHasCountedCycle);
@@ -362,7 +357,6 @@ private:
         rSerializer.save("PreviousMaxStress", mPreviousMaxStress);
         rSerializer.save("PreviousMinStress", mPreviousMinStress);
         rSerializer.save("NumberOfCycles", mNumberOfCycles);
-        rSerializer.save("ReversionFactor", mReversionFactor);
         rSerializer.save("FatigueReductionParameter", mFatigueReductionParameter);
         rSerializer.save("StressVector", mStressVector);
         rSerializer.save("HasCountedCycle", mHasCountedCycle);

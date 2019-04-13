@@ -111,7 +111,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         }
         
         if (std::abs(this->GetMinStress()) > tolerance && std::abs(this->GetMaxStress()) > tolerance) { // todo modify with N
-            double reversion_factor = this->GetReversionFactor();
+            double reversion_factor;
             double B0 = this->GetFatigueReductionParameter();
             HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactor(this->GetMaxStress(),
                                                                                 this->GetMinStress(),
@@ -121,7 +121,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
                                                                                 fatigue_reduction_factor,
                                                                                 B0);
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                this->SetReversionFactor(reversion_factor);
                 this->SetFatigueReductionParameter(B0);
                 this->SetFatigueReductionFactor(fatigue_reduction_factor);
             }

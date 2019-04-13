@@ -245,7 +245,7 @@ public:
 
     ///@}
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -275,7 +275,7 @@ public:
 
     ///@}
 
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 
