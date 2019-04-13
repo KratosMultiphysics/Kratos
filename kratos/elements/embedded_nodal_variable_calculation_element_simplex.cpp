@@ -81,10 +81,12 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateLeftHandSi
     MatrixType &rLeftHandSideMatrix,
     ProcessInfo &rCurrentProcessInfo)
 {
-    // Check size
+    // Check size and initialize
     if (rLeftHandSideMatrix.size1() != 2 || rLeftHandSideMatrix.size2() != 2) {
         rLeftHandSideMatrix.resize(2, 2, false);
     }
+    rLeftHandSideMatrix = ZeroMatrix(2,2);
+
 
     // Get the element shape function values from the normalized distance to node 0
     const auto &rN = this->GetDistanceBasedShapeFunctionValues();
@@ -102,10 +104,11 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double,3>>::Calcula
     MatrixType &rLeftHandSideMatrix,
     ProcessInfo &rCurrentProcessInfo)
 {
-        // Check size
+    // Check size and initialize
     if (rLeftHandSideMatrix.size1() != 6 || rLeftHandSideMatrix.size2() != 6) {
         rLeftHandSideMatrix.resize(6, 6, false);
     }
+    rLeftHandSideMatrix = ZeroMatrix(6,6);
 
     // Get the element shape function values from the normalized distance to node 0
     const auto &rN = this->GetDistanceBasedShapeFunctionValues();
@@ -125,10 +128,11 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateRightHandS
     VectorType &rRigthHandSideVector,
     ProcessInfo &rCurrentProcessInfo)
 {
-    // Check size
+    // Check size and initialize
     if (rRigthHandSideVector.size() != 2) {
         rRigthHandSideVector.resize(2, false);
     }
+    rRigthHandSideVector = ZeroVector(2);
 
     // Get the element shape function values from the normalized distance to node 0
     const double &rData = this->GetValue(NODAL_MAUX);
@@ -145,10 +149,11 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::Calcul
     VectorType &rRigthHandSideVector,
     ProcessInfo &rCurrentProcessInfo)
 {
-    // Check size
+    // Check size and initialize
     if (rRigthHandSideVector.size() != 6) {
         rRigthHandSideVector.resize(6, false);
     }
+    rRigthHandSideVector = ZeroVector(6);
 
     // Get the element shape function values from the normalized distance to node 0
     const array_1d<double,3> &rData = this->GetValue(NODAL_VAUX);
