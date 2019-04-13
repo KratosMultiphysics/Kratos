@@ -6,6 +6,7 @@ from KratosMultiphysics.json_utilities import read_external_json
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.KratosUnittest import isclose as t_isclose
+from math import log10, ceil
 
 def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -81,6 +82,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         self.data = read_external_json(self.params["input_file_name"].GetString())
         self.abs_tol = self.params["tolerance"].GetDouble()
         self.rel_tol = self.params["relative_tolerance"].GetDouble()
+        self.__compute_relevant_digits()
 
         # Initialize counter
         self.step_counter = 0
@@ -137,7 +139,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                                 # Z-component
                                 values_json = self.data["NODE_" + str(node.Id)][variable_name + "_Z"]
                                 value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                self.__check_values(node.Id, "Node", value[1], value_json, variable_name)
+                                self.__check_values(node.Id, "Node", value[2], value_json, variable_name)
 
                             else:
                                 values_json = self.data["NODE_"+str(node.Id)][variable_name][self.step_counter]
@@ -178,15 +180,15 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                                     # X-component
                                     values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name + "_X"][str(gp)]
                                     value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                self.__check_values(elem.Id, "Element", value[gp][0], value_json, variable_name)
+                                    self.__check_values(elem.Id, "Element", value[gp][0], value_json, variable_name)
                                     # Y-component
                                     values_json = self.data["ELEMENT_"+str(elem.Id)][variable_name + "_Y"][str(gp)]
                                     value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                self.__check_values(elem.Id, "Element", value[gp][1], value_json, variable_name)
+                                    self.__check_values(elem.Id, "Element", value[gp][1], value_json, variable_name)
                                     # Z-component
                                     values_json = self.data["ELEMENT_"+str(elem.Id)][variable_name + "_Z"][str(gp)]
                                     value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                self.__check_values(elem.Id, "Element", value[gp][2], value_json, variable_name)
+                                    self.__check_values(elem.Id, "Element", value[gp][2], value_json, variable_name)
                             else:
                                 for gp in range(gauss_point_number):
                                     values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)][self.step_counter]
@@ -252,7 +254,29 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         return True
 
     def __check_values(self, entity_id, entity_type, value_entity, value_json, variable_name):
-        isclosethis = t_isclose(value_entity, value_json, rel_tol=rel_tol, abs_tol=abs_tol)
-        msg  = 'Error checking {} #{} for variable {} results: '.format(entity_type, entity_id, variable_name)
-        msg += '{} != {}; rel_tol={}, abs_tol={}'.format(value_entity, value_json, self.rel_tol, self.abs_tol)
+        """ Checks if two values are the same and issues a detailed error message
+        in case they do not match up to the specified tolerance
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        entity_id -- The Kratos node or element to check
+        entity_type -- The type of the entity
+        value_entity -- The value on the entity
+        value_json -- The reference value from the json
+        variable_name -- The name of the variable
+        """
+        isclosethis = t_isclose(value_entity, value_json, rel_tol=self.rel_tol, abs_tol=self.abs_tol)
+        msg  = 'Error checking {} #{} for variable {} results:\n'.format(entity_type, entity_id, variable_name)
+        msg += '{0:.{digits}f} != {1:.{digits}f}; rel_tol={2}, abs_tol={3}'.format(value_entity, value_json, self.rel_tol, self.abs_tol, digits=self.digits)
         self.assertTrue(isclosethis, msg=msg)
+
+    def __compute_relevant_digits(self):
+        """ Computes the relevant digits for formatting the output,
+        depending on the specified tolerances
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        relevant_tol = min(self.rel_tol, self.abs_tol)
+        self.digits = ceil(abs(log10(relevant_tol))) + 2
+
