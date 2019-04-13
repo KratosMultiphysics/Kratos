@@ -128,19 +128,10 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                         # Array variable
                         elif variable_type == "Array":
                             if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
-                                # X-component
-                                values_json = self.data["NODE_" + str(node.Id)][variable_name + "_X"]
-                                value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                self.__check_values(node.Id, "Node", value[0], value_json, variable_name)
-                                # Y-component
-                                values_json = self.data["NODE_" + str(node.Id)][variable_name + "_Y"]
-                                value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                self.__check_values(node.Id, "Node", value[1], value_json, variable_name)
-                                # Z-component
-                                values_json = self.data["NODE_" + str(node.Id)][variable_name + "_Z"]
-                                value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                self.__check_values(node.Id, "Node", value[2], value_json, variable_name)
-
+                                for component_index, component in enumerate(["_X", "_Y", "_Z"]):
+                                    values_json = self.data["NODE_" + str(node.Id)][variable_name+component]
+                                    value_json = self.__linear_interpolation(time, input_time_list, values_json)
+                                    self.__check_values(node.Id, "Node", value[component_index], value_json, variable_name+component)
                             else:
                                 values_json = self.data["NODE_"+str(node.Id)][variable_name][self.step_counter]
                                 for index in range(len(value)):
@@ -177,18 +168,10 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                         elif variable_type == "Array":
                             if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
                                 for gp in range(gauss_point_number):
-                                    # X-component
-                                    values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name + "_X"][str(gp)]
-                                    value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                    self.__check_values(elem.Id, "Element", value[gp][0], value_json, variable_name)
-                                    # Y-component
-                                    values_json = self.data["ELEMENT_"+str(elem.Id)][variable_name + "_Y"][str(gp)]
-                                    value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                    self.__check_values(elem.Id, "Element", value[gp][1], value_json, variable_name)
-                                    # Z-component
-                                    values_json = self.data["ELEMENT_"+str(elem.Id)][variable_name + "_Z"][str(gp)]
-                                    value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                    self.__check_values(elem.Id, "Element", value[gp][2], value_json, variable_name)
+                                    for component_index, component in enumerate(["_X", "_Y", "_Z"]):
+                                        values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name+component][str(gp)]
+                                        value_json = self.__linear_interpolation(time, input_time_list, values_json)
+                                        self.__check_values(elem.Id, "Element", value[gp][component_index], value_json, variable_name+component)
                             else:
                                 for gp in range(gauss_point_number):
                                     values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)][self.step_counter]
@@ -279,4 +262,3 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         """
         relevant_tol = min(self.rel_tol, self.abs_tol)
         self.digits = ceil(abs(log10(relevant_tol))) + 2
-
