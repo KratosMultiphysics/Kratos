@@ -1,15 +1,13 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-'''
-Python factory for all the currently available Mappers in Kratos
-The intention is to give the users a unique place to create Mappers
-The goal is to implement the Mappers from the other Apps also in the
-MappingApp (which inherently also work in MPI) and replace them in
-the long run.
-This way users won't notice / won't have to change their code
-'''
 
-import KratosMultiphysics as KM
+# Python factory for all the currently available Mappers in Kratos
+# The intention is to give the users a unique place to create Mappers
+# The goal is to implement the Mappers from the other Apps also in the
+# MappingApp (which inherently also work in MPI) and replace them in
+# the long run.
+# This way users won't notice / won't have to change their code
+
 from KratosMultiphysics.MappingApplication import MapperFactory
 
 def _CreateCoreMortarMapper(model_part_origin, model_part_destination, mapper_settings):
@@ -17,12 +15,10 @@ def _CreateCoreMortarMapper(model_part_origin, model_part_destination, mapper_se
     raise NotImplementedError
 
 def _CreateApproximateMortarMapper(model_part_origin, model_part_destination, mapper_settings):
-    import KratosMultiphysics.FSIApplication as KratosFSI
     # return mapper from FSIApp
     raise NotImplementedError
 
 def _CreateVertexMorphingMapper(model_part_origin, model_part_destination, mapper_settings):
-    import KratosMultiphysics.ShapeOptimizationApplication as KratosShapeOpt
     # return mapper from ShapeOptApp
     raise NotImplementedError
 
