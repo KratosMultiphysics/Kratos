@@ -935,8 +935,10 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
     }
 
     // We set to zero the variables contained on the elements and conditions
-    SetToZeroEntityData(mrThisModelPart.Conditions(), r_old_model_part.Conditions());
-    SetToZeroEntityData(mrThisModelPart.Elements(), r_old_model_part.Elements());
+    if (r_old_model_part.Conditions().size() > 0)
+        SetToZeroEntityData(mrThisModelPart.Conditions(), r_old_model_part.Conditions());
+    if (r_old_model_part.Elements().size() > 0)
+        SetToZeroEntityData(mrThisModelPart.Elements(), r_old_model_part.Elements());
 
     // Finally remove old model part
     owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old");

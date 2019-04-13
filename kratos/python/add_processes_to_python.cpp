@@ -21,6 +21,7 @@
 
 #include "processes/process.h"
 #include "python/add_processes_to_python.h"
+#include "processes/calculate_embedded_nodal_variable_from_skin_process.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 #include "processes/find_nodal_h_process.h"
 #include "processes/find_nodal_neighbours_process.h"
@@ -55,6 +56,7 @@
 #include "processes/simple_mortar_mapper_wrapper_process.h"
 #include "processes/skin_detection_process.h"
 #include "processes/apply_periodic_boundary_condition_process.h"
+#include "processes/integration_values_extrapolation_to_nodes_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -333,6 +335,15 @@ void  AddProcessesToPython(pybind11::module& m)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
 
+    // Calculate embedded variable from skin processes
+    py::class_<CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>, CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(
+        m, "CalculateEmbeddedNodalVariableFromSkinProcessDouble")
+        .def(py::init<ModelPart&, ModelPart&, const Variable<double>&, const Variable<double>&, const std::string, const std::string>());
+
+    py::class_<CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>, CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double,3>, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(
+        m, "CalculateEmbeddedNodalVariableFromSkinProcessArray")
+        .def(py::init<ModelPart&, ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const std::string, const std::string>());
+
     py::class_<ReorderAndOptimizeModelPartProcess, ReorderAndOptimizeModelPartProcess::Pointer, Process>(m,"ReorderAndOptimizeModelPartProcess")
             .def(py::init<ModelPart&, Parameters>())
             ;
@@ -510,6 +521,12 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyPeriodicConditionProcess, ApplyPeriodicConditionProcess::Pointer, Process>(m,"ApplyPeriodicConditionProcess")
             .def(py::init<ModelPart&,ModelPart&, Parameters>())
+    ;
+
+    // The process to recover internal variables
+    py::class_<IntegrationValuesExtrapolationToNodesProcess, IntegrationValuesExtrapolationToNodesProcess::Pointer, Process>(m, "IntegrationValuesExtrapolationToNodesProcess")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
     ;
 }
 

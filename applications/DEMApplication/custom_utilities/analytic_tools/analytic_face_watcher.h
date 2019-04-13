@@ -197,8 +197,6 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
         std::vector<int> mId2;
         std::vector<double> mRelVelNormal;
         std::vector<double> mRelVelTangential;
-        double mRelVelNormalxMass;
-        double mRelVelTangentialxMass;
 };
 
 void ClearData();

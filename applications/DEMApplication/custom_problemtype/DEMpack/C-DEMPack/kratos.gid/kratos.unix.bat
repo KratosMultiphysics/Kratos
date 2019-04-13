@@ -1,10 +1,10 @@
 #!/bin/bash
 # OutputFile: "$2/$1.info"
 # ErrorFile: "$2/$1.err"
-#delete previous result file 
-rm -f "$2/$1*.post.bin" 
-rm -f "$2/$1*.post.res" 
-rm -f "$2/$1*.post.msh" 
+#delete previous result file
+rm -f "$2/$1*.post.bin"
+rm -f "$2/$1*.post.res"
+rm -f "$2/$1*.post.msh"
 rm -f "$2/$1.info"
 rm -f "$2/$1.err"
 rm -f "$2/$1.flavia.dat"
@@ -31,4 +31,5 @@ export PYTHONPATH="$3/kratos/Lib/python27":"$3/kratos"
 export OMP_NUM_THREADS=$5
 
 # Run Python using the script KratosDEM.py
-"$3/kratos/runkratos" KratosDEM.py > "$2/$1.info" 2> "$2/$1.err"
+"$3/kratos/runkratos" KratosDEMAnalysis.py > "$2/$1.info" 2> "$2/$1.err"
+# python3 KratosDEMAnalysis.py  > "$2/$1.info" 2> "$2/$1.err"

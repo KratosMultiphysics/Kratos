@@ -1,23 +1,42 @@
-import os
-import KratosMultiphysics
-import KratosMultiphysics.MeshMovingApplication
-import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.kratos_utilities as kratos_utils
-import mesh_moving_test_case
+import KratosMultiphysics as KM
+from  mesh_moving_test_case import MeshMovingTestCase
 
-class TestCase(mesh_moving_test_case.MeshMovingTestCase):
-    def test_Rectangle_2D3N(self):
-        with mesh_moving_test_case.ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            self.createTest('test_structural_mesh_motion_2d/rectangle_2D3N_test')
-            self.runTest()
-            kratos_utils.DeleteFileIfExisting("./test_mdpa_files/rectangle_2D3N_test.time")
+class TestCase(MeshMovingTestCase):
 
-    def test_Rectangle_2D4N(self):
-        with mesh_moving_test_case.ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            self.createTest('test_structural_mesh_motion_2d/rectangle_2D4N_test')
-            self.runTest()
-            kratos_utils.DeleteFileIfExisting("./test_mdpa_files/rectangle_2D4N_test.time")
+    def test_structural_similarity_2D3N(self):
+        # General Settings for the test
+        self.domain_size = 2
+        self.number_of_nodes_per_elements = 3
+        self.solver_type = "structural_similarity"
+        self.mesh_vel_calc_helper = KM.BDF1()
+        self.print_reference_results = False
 
+        # to suppress many prints
+        self.print_logger_info = False
+
+        # Set to true to get post-process files for the test
+        self.print_vtk_output = False
+        self.print_gid_output = False
+
+        self.executeTest()
+
+    def test_structural_similarity_2D4N(self):
+        # General Settings for the test
+        self.domain_size = 2
+        self.number_of_nodes_per_elements = 4
+        self.solver_type = "structural_similarity"
+        self.mesh_vel_calc_helper = KM.GeneralizedAlpha(-0.1, -0.05)
+        self.print_reference_results = False
+
+        # to suppress many prints
+        self.print_logger_info = False
+
+        # Set to true to get post-process files for the test
+        self.print_vtk_output = False
+        self.print_gid_output = False
+
+        self.executeTest()
 
 if __name__ == '__main__':
+    import KratosMultiphysics.KratosUnittest as KratosUnittest
     KratosUnittest.main()

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.38">
+<Kratos_Data version="1.4.37">
     <Groups modeltype="GiD"/>
     <!-- Kratos general application data -->
     <!-- id= Internal identifier -->
@@ -109,7 +109,7 @@
                 <Item id="StopTime" pid="Stop Time" DEM-BBox="Yes" dv="1000.0" help="Time at which the bounding box stops acting."/>
                 <Item id="PrintBoundingBox" pid="Print Bounding Box" DEM-BBox="Yes" dv="Yes" ivalues="Yes,No" values="Active,Not Active" help="If activated, the bounding box will be printed in the postprocess."/>
             </Container>
-            <Container id="DEM-Physical-opts" pid="Physical options" class="Tab" help="DEM general physical options" open="0">
+            <Container id="DEM-Physical-opts" pid="Physical options" class="Tab" icon="advanced_options2.gif" help="DEM general physical options" open="0">
                 <Item id="GravityValue" pid="Gravity value" dv="9.81" help="Gravity value"/>
                 <Item id="Cx" pid="Gx" dv="0.0" help="X Vector"/>
                 <Item id="Cy" pid="Gy" dv="0.0" help="Y Vector"/>
@@ -117,6 +117,7 @@
                 <Item id="PeriodicDomainOption" pid="Periodic Domain" dv="No" class="PeriodicDomain" ivalues="Yes,No" values="Yes,No" help="Consider a parallepipedic periodic domain defined by the bounding box for the DEM problem"/>
             </Container>
             <Container id="DEM-AdvancedOptions" pid="Advanced options" class="Tab" help="Advanced Options" open='0'>
+                <Item id="DEM-SearchNeighboursOption" pid="Do search neigbour particles" dv="Yes" ivalues="Yes,No" values="Yes,No" help="If deactivated, particles will not find other particles, and no contact force will be computed with other particles. They will still find walls, though."/>
                 <Item id="DEM-CleanInitialIndentations" pid="Clean initial indentations" state="normal" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, initial indentations between spheres and between spheres and walls are eliminated to avoid explosions (reducing the radius of the spheres accordigly)"/>
                 <Item id="DEM-RemoveBallsInitiallyTouchingWalls" pid="Remove spheres initially touching walls" dv="No" ivalues="Yes,No" values="Yes,No" help="If activated, all spheres touching any wall at the beginning of the computations will be eliminated"/>
                 <Item id="DEM-TangencyTolerance" pid="Tangency tolerance" dv="Absolute" class="DEM-TangTolerance" ivalues="Absolute,Coordination_Number,None" values="Absolute,Coordination Number,None" help="Choose if you want to set manually the maximum gap between particles at the beginning of the computation (Absolute) or if you prefer an automatic gap that tries to match a certain average Coordination Number"/>
@@ -144,10 +145,10 @@
                 <Item id="NumberOfThreads" pid="Number of threads"  dv="1" help="Set the number of threads you want to use for this computation. Do not choose more than the available threads on your computer or the computation will be slower"/>
             </Container>
             <Container id="DEM-TimeParameters" pid="Time parameters" icon="hourglass.gif" help="Define the timestep and simulation time" class="Tab">
-                <Item id="UseAutomaticDeltaTime" pid="Delta time selection" state="normal" class="DEM-deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Automatic option will compute a suitable timestep for the current problem."/>
+                <Item id="UseAutomaticDeltaTime" pid="Delta time selection" state="hidden" class="DEM-deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Automatic option will compute a suitable timestep for the current problem."/>
                 <Item id="DeltaTime" DEM-deltatimetype="Fixed" pid="Delta time (s)" dv="5.0e-5"  help="Delta time used by DEM"/>
                 <Item id="DeltaTimeSafetyFactor" DEM-deltatimetype="Automatic" pid="Delta time safety factor" dv="1.0" help="Delta time safety factor"/>
-                <Item id="DEM-TotalTime" pid="Total time (s)" dv="2.0"  help="Total Time"/>
+                <Item id="DEM-TotalTime" pid="Total time (s)" dv="1.0"  help="Total Time"/>
                 <Item id="DEM-ScreenInfoOutput" pid="Info screen output" dv="4.0" unit="s" help="How often the user gets information on the running process (in seconds)"/>
                 <Item id="DEM-NeighbourSearchFrequency" pid="Neighbour search frequency" dv="10" unit="Hz" help="Neighbour search frequency can be modified to speed up the simulation. Set to 1 to search every timestep with increased accuracy and increased computational cost."/>
             </Container>
@@ -237,8 +238,8 @@
             <Item id="DEM-Failureid" pid="Failure id" dv="No" ivalues="Yes,No" values="Yes,No" help="Labels the contacts with the corresponding failure type (Shear = 2, Tensile = 4)"/>
             <Item id="DEM-MeanContactArea" pid="Mean contact area" dv="No" state="normal" ivalues="Yes,No" values="Yes,No" help="Displays calculation area for each contact"/>
         </Container>
-        <Container id="DEM-VelocityTrap" pid="Velocity trap" state="hidden" class="Tab">
-            <Item id="UseVelocityTrap" pid="Activate velocity trap" dv="No" state="hidden" class="DEM-VTrap" ivalues="No,Yes" values="No,Yes" help="Active Velocity Trap"/>
+        <Container id="DEM-VelocityTrap" pid="Velocity trap" icon="cube.gif" help="If activated, this option creates a Box in which some measurements are done: average velocity of the particles, entering flux of particles, entering flux of mass,..." class="Tab">
+            <Item id="UseVelocityTrap" pid="Activate velocity trap" dv="No" state="normal" class="DEM-VTrap" ivalues="No,Yes" icon="active.gif" values="Not active,Active" help="If activated, this option creates a Box in which some measurements are done: average velocity of the particles, entering flux of particles, entering flux of mass,..."/>
             <Item id="MaxX" pid="Max X" DEM-VTrap="Yes" dv="100.0" help="Max X"/>
             <Item id="MaxY" pid="Max Y" DEM-VTrap="Yes" dv="100.0" help="Max Y" sbi="PickCoordinates" sbp="Pick" sbxp="MaxX,MaxY,MaxZ"/>
             <Item id="MaxZ" pid="Max Z" DEM-VTrap="Yes" dv="100.0" help="Max Z"/>
