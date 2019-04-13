@@ -257,7 +257,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         component -- The Kratos node or element to check
         """
 
-        if self.flag != None:
+        if self.flag is not None:
             if component.Is(self.flag) == False:
                 return False
 
