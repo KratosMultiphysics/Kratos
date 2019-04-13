@@ -261,4 +261,4 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         self -- It signifies an instance of a class.
         """
         relevant_tol = min(self.rel_tol, self.abs_tol)
-        self.digits = ceil(abs(log10(relevant_tol))) + 2
+        self.digits = ceil(abs(log10(relevant_tol))) + 1 # +1 for one more digit of output
