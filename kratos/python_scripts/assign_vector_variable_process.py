@@ -2,6 +2,8 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics
 
+from math import *
+
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -27,7 +29,8 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
         settings -- Kratos parameters containing solver settings.
         """
 
-        # Settings string in json format
+        KratosMultiphysics.Process.__init__(self)
+
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                 : "This process assigns a given value (vector) to the nodes belonging a certain submodelpart",

@@ -27,6 +27,8 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
         settings -- Kratos parameters containing solver settings.
         """
 
+        KratosMultiphysics.Process.__init__(self)
+
         # The value can be a double or a string (function)
         default_settings = KratosMultiphysics.Parameters("""
         {

@@ -28,7 +28,8 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
         Model -- the container of the different model parts.
         settings -- Kratos parameters containing solver settings.
         """
-        # Settings string in json format
+        KratosMultiphysics.Process.__init__(self)
+
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                 : "This process sets a variable a certain scalar value in a given direction, for all the nodes belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component",
