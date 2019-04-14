@@ -5,14 +5,14 @@ import KratosMultiphysics
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return AssignVectorVariableToConditionProcess(Model, settings["Parameters"])
+    return AssignVectorVariableToNodeProcess(Model, settings["Parameters"])
 
 import assign_vector_variable_to_entities_process
 
 ## All the processes python should be derived from "Process"
-class AssignVectorVariableToConditionProcess(assign_vector_variable_to_entities_process.AssignVectorVariableToEntitiesProcess):
+class AssignVectorVariableToNodeProcess(assign_vector_variable_to_entities_process.AssignVectorVariableToEntitiesProcess):
     def __init__(self, Model, settings ):
-        """This process assigns a given value (vector) to the conditions belonging a certain submodelpart
+        """This process assigns a given value (vector) to the nodes belonging a certain submodelpart
 
         Only the member variables listed below should be accessed directly.
 
@@ -24,14 +24,14 @@ class AssignVectorVariableToConditionProcess(assign_vector_variable_to_entities_
         # The value can be a double or a string (function)
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "help"                 : "This process assigns a given value (vector) to the conditions belonging a certain submodelpart",
+            "help"                 : "This process assigns a given value (vector) to the nodes belonging a certain submodelpart",
             "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
             "value"                : [10.0, "3*t", "x+y"],
             "local_axes"           : {},
-            "entities"             : ["conditions"]
+            "entities"             : ["nodes"]
         }
         """
         )
@@ -42,8 +42,8 @@ class AssignVectorVariableToConditionProcess(assign_vector_variable_to_entities_
         if settings["entities"].size() != 1:
             settings["entities"] = default_settings["entities"]
         else:
-            if settings["entities"][0].GetString() != "conditions":
+            if settings["entities"][0].GetString() != "nodes":
                 settings["entities"] = default_settings["entities"]
 
         # Construct the base process.
-        super(AssignVectorVariableToConditionProcess, self).__init__(Model, settings)
+        super(AssignVectorVariableToNodeProcess, self).__init__(Model, settings)

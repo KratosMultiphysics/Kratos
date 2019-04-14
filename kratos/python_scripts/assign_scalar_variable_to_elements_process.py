@@ -5,14 +5,14 @@ import KratosMultiphysics
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return AssignScalarVariableToConditionsProcess(Model, settings["Parameters"])
+    return AssignScalarVariableToElementsProcess(Model, settings["Parameters"])
 
 import assign_scalar_variable_to_entities_process
 
 ## All the processes python should be derived from "Process"
-class AssignScalarVariableToConditionsProcess(assign_scalar_variable_to_entities_process.AssignScalarVariableToEntitiesProcess):
+class AssignScalarVariableToElementsProcess(assign_scalar_variable_to_entities_process.AssignScalarVariableToEntitiesProcess):
     def __init__(self, Model, settings ):
-        """This process sets a variable a certain scalar value in a given direction, for all the conditions belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component
+        """This process sets a variable a certain scalar value in a given direction, for all the entities belonging to a submodelpart. Uses assign_scalar_variable_to_elements_process for each component
 
         Only the member variables listed below should be accessed directly.
 
@@ -24,14 +24,14 @@ class AssignScalarVariableToConditionsProcess(assign_scalar_variable_to_entities
         # The value can be a double or a string (function)
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "help"            : "This process assigns a given value (scalar) to all the conditions belonging a certain submodelpart",
+            "help"            : "This process assigns a given value (scalar) to the elements belonging a certain submodelpart",
             "mesh_id"         : 0,
             "model_part_name" : "please_specify_model_part_name",
             "variable_name"   : "SPECIFY_VARIABLE_NAME",
             "interval"        : [0.0, 1e30],
             "value"           : 0.0,
             "local_axes"      : {},
-            "entities"        : ["conditions"]
+            "entities"        : ["elements"]
         }
         """
         )
@@ -47,8 +47,8 @@ class AssignScalarVariableToConditionsProcess(assign_scalar_variable_to_entities
         if settings["entities"].size() != 1:
             settings["entities"] = default_settings["entities"]
         else:
-            if settings["entities"][0].GetString() != "conditions":
+            if settings["entities"][0].GetString() != "elements":
                 settings["entities"] = default_settings["entities"]
 
         # Construct the base process.
-        super(AssignScalarVariableToConditionsProcess, self).__init__(Model, settings)
+        super(AssignScalarVariableToElementsProcess, self).__init__(Model, settings)
