@@ -3,9 +3,8 @@ from __future__ import print_function, absolute_import, division
 import os
 import KratosMultiphysics
 
-import KratosMultiphysics.EigenSolversApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import eigen_solver_factory
+from KratosMultiphysics import eigen_solver_factory
 
 class TestEigensystemSolver(KratosUnittest.TestCase):
     def test_mass_normalization(self):
