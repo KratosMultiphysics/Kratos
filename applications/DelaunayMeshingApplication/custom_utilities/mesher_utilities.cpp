@@ -1541,7 +1541,8 @@ namespace Kratos
       //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
       Matrix InvJ;
       double detJ;
-      MathUtils<double>::InvertMatrix( J[0], InvJ, detJ);
+
+      MathUtils<double>::InvertMatrix2( J[0], InvJ, detJ);
 
       const Matrix& DN_De = Triangle.ShapeFunctionLocalGradient(0,GeometryData::GI_GAUSS_1);
       DN_DX = prod( DN_De, InvJ );
@@ -1557,7 +1558,7 @@ namespace Kratos
       //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
       Matrix InvJ;
       double detJ;
-      MathUtils<double>::InvertMatrix( J[0], InvJ, detJ);
+      MathUtils<double>::InvertMatrix3( J[0], InvJ, detJ);
 
       const Matrix& DN_De = Tetrahedron.ShapeFunctionLocalGradient(0,GeometryData::GI_GAUSS_1);
       DN_DX = prod( DN_De, InvJ );
