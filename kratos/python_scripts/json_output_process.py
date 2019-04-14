@@ -75,7 +75,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         # If we consider any flag
         flag_name = self.params["check_for_flag"].GetString()
         if flag_name != "":
-            self.flag = globals().get(flag_name)
+            self.flag = KratosMultiphysics.KratosGlobals.GetFlag(flag_name)
         else:
             self.flag = None
 
