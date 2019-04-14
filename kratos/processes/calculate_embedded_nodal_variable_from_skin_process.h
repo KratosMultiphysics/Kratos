@@ -166,7 +166,7 @@ public:
     typedef typename Scheme<TSparseSpace,TDenseSpace>::Pointer SchemePointerType;
     typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverPointerType;
     typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::UniquePointer SolvingStrategyPointerType;
-    typedef typename FindIntersectedGeometricalObjectsProcess::Pointer FindIntersectedGeometricalObjectsProcessPointerType;
+    typedef typename FindIntersectedGeometricalObjectsProcess<Element>::Pointer FindIntersectedGeometricalObjectsProcessPointerType;
 
     struct Hash
     {
