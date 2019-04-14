@@ -54,15 +54,9 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         self.params.ValidateAndAssignDefaults(default_parameters)
 
         self.model = model
-
         self.params = params
 
-        self.output_file_name = ""
-        self.output_variables = []
-        self.gauss_points_output_variables = []
-        self.frequency = 0.0
         self.time_counter = 0.0
-        self.resultant_solution = False
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
