@@ -263,7 +263,6 @@ private:
 	if( i_node->IsNot(TO_ERASE) ){
 
 			/////////////////////////////////////////// here for BOUNDING BOX ///////////////////////////////////////////
-	   // TODO data for bounding box will come from the interface
 		 bool boundingBox=mrRemesh.UseBoundingBox;
 		 if(boundingBox==true && i_node->IsNot(RIGID)){
 			 const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();

@@ -249,6 +249,10 @@ public:
       bool momentumConverged = true;
       bool continuityConverged = false;
       bool fixedTimeStep=false;
+
+
+	bool momentumAlreadyConverged=false;
+	bool continuityAlreadyConverged=false;
       /* boost::timer solve_step_time; */
 
       // Iterative solution for pressure
@@ -272,6 +276,20 @@ public:
 
 	  this->UpdateTopology(rModelPart, BaseType::GetEchoLevel());
 
+    			if((momentumConverged==true || it==maxNonLinearIterations-1) && momentumAlreadyConverged==false){
+				std::ofstream myfile;
+  	    myfile.open ("momentumConvergedIteration.txt",std::ios::app);
+				myfile << currentTime << "\t" << it << "\n";
+        myfile.close();
+				momentumAlreadyConverged=true;
+			}
+			if((continuityConverged==true || it==maxNonLinearIterations-1) && continuityAlreadyConverged==false){
+				std::ofstream myfile;
+  	    myfile.open ("continuityConvergedIteration.txt",std::ios::app);
+				myfile << currentTime << "\t" << it << "\n";
+        myfile.close();
+				continuityAlreadyConverged=true;
+			}
 
 
 	  if( fixedTimeStep==false){
@@ -279,7 +297,14 @@ public:
 	  }
 	  if(it==maxNonLinearIterations-1 || ((continuityConverged && momentumConverged) && it>2)){
 	    this->UpdateStressStrain();
+      				std::ofstream myfile;
+  	    myfile.open ("maxConvergedIteration.txt",std::ios::app);
+				myfile << currentTime << "\t" << it << "\n";
+        myfile.close();
 	  }
+
+
+
 	  if ( (continuityConverged && momentumConverged) && it>2)
 	    {
 	      rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,false);
@@ -700,6 +725,7 @@ protected:
       ConvergedMomentum = this->CheckVelocityConvergence(NormDv,DvErrorNorm);
 
       unsigned int iterationForCheck=3;
+        KRATOS_INFO("TwoStepVPStrategy") << "iteration("<<it<<") Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
 
       // Check convergence
       if(it==maxIt-1){
@@ -710,6 +736,34 @@ protected:
       }else if(it>iterationForCheck){
 	      fixedTimeStep=this->CheckMomentumConvergence(DvErrorNorm);
       }
+
+      				    ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+	    double currentTime = rCurrentProcessInfo[TIME];
+      double tolerance=0.0000000001;
+      if(currentTime>(0.25-tolerance) && currentTime<(0.25+tolerance)){
+				std::ofstream myfile;
+  	    myfile.open ("velocityConvergenceAt025s.txt",std::ios::app);
+				myfile << it << "\t" << DvErrorNorm << "\n";
+        myfile.close();
+			}
+			else if(currentTime>(0.5-tolerance) && currentTime<(0.5+tolerance)){
+				std::ofstream myfile;
+  	    myfile.open ("velocityConvergenceAt05s.txt",std::ios::app);
+				myfile << it << "\t" << DvErrorNorm << "\n";
+        myfile.close();
+			}
+      else if(currentTime>(0.75-tolerance) && currentTime<(0.75+tolerance)){
+				std::ofstream myfile;
+  	    myfile.open ("velocityConvergenceAt075s.txt",std::ios::app);
+				myfile << it << "\t" << DvErrorNorm << "\n";
+        myfile.close();
+			}
+			else if(currentTime>(1.0-tolerance) && currentTime<(1.0+tolerance)){
+				std::ofstream myfile;
+  	    myfile.open ("velocityConvergenceAt100s.txt",std::ios::app);
+				myfile << it << "\t" << DvErrorNorm << "\n";
+        myfile.close();
+			}
 
       if (!ConvergedMomentum && BaseType::GetEchoLevel() > 0 && Rank == 0)
 	std::cout << "Momentum equations did not reach the convergence tolerance." << std::endl;
@@ -743,6 +797,7 @@ protected:
 
       double DpErrorNorm = 0;
       ConvergedContinuity = this->CheckPressureConvergence(NormDp,DpErrorNorm);
+          KRATOS_INFO("TwoStepVPStrategy") <<"                    iteration("<<it<<") Pressure error: "<<DpErrorNorm <<" presTol: "<<mPressureTolerance << std::endl;
 
       // Check convergence
       if(it==maxIt-1){
@@ -752,6 +807,35 @@ protected:
       	ConvergedContinuity=this->FixTimeStepContinuity(DpErrorNorm);
       }
 
+
+	    ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+	    double currentTime = rCurrentProcessInfo[TIME];
+      double tolerance=0.0000000001;
+      if(currentTime>(0.25-tolerance) && currentTime<(0.25+tolerance)){
+				std::ofstream myfile;
+  	    myfile.open ("pressureConvergenceAt025s.txt",std::ios::app);
+				myfile << it << "\t" << DpErrorNorm << "\n";
+        myfile.close();
+			}
+			else if(currentTime>(0.5-tolerance) && currentTime<(0.5+tolerance)){
+				std::ofstream myfile;
+  	    myfile.open ("pressureConvergenceAt05s.txt",std::ios::app);
+				myfile << it << "\t" << DpErrorNorm << "\n";
+        myfile.close();
+			}
+      else if(currentTime>(0.75-tolerance) && currentTime<(0.75+tolerance)){
+				std::ofstream myfile;
+  	    myfile.open ("pressureConvergenceAt075s.txt",std::ios::app);
+				myfile << it << "\t" << DpErrorNorm << "\n";
+        myfile.close();
+			}
+			else if(currentTime>(1.0-tolerance) && currentTime<(1.0+tolerance)){
+				std::ofstream myfile;
+  	    myfile.open ("pressureConvergenceAt100s.txt",std::ios::app);
+				myfile << it << "\t" << DpErrorNorm << "\n";
+        myfile.close();
+			}
+      
       if (!ConvergedContinuity && BaseType::GetEchoLevel() > 0 && Rank == 0)
 	std::cout << "Continuity equation did not reach the convergence tolerance." << std::endl;
 

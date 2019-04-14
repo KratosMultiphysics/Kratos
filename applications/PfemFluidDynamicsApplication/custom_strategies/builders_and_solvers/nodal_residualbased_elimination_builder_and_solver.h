@@ -212,8 +212,25 @@ void BuildNodally(
 
 				  double density=itNode->FastGetSolutionStepValue(DENSITY);
 				  double secondLame=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
-	        double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*secondLame/3.0;
-         
+
+          secondLame= timeInterval*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/(1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*0.5;	
+
+          double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+          if(yieldShear>0){
+              double adaptiveExponent=itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+              double equivalentStrainRate=itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+              double exponent=-adaptiveExponent*equivalentStrainRate;
+              if(equivalentStrainRate!=0){
+                secondLame+=(yieldShear/equivalentStrainRate)*(1-exp(exponent));
+              }
+              if(equivalentStrainRate<0.00001 && yieldShear!=0 && adaptiveExponent!=0){
+                // for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
+                secondLame=adaptiveExponent*yieldShear;
+              }
+          }
+ 	        double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*secondLame/3.0;
+		  volumetricCoeff= timeInterval*itNode->FastGetSolutionStepValue(POISSON_RATIO)*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/((1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*(1.0-2.0*itNode->FastGetSolutionStepValue(POISSON_RATIO))) + 2.0*secondLame/3.0;
+
 				  if(itNode->Is(FLUID) && volumetricCoeff>0)
 					{
             double bulkReduction=density*nodalVolume/(timeInterval*volumetricCoeff);
@@ -223,7 +240,7 @@ void BuildNodally(
           firstRow=0;
           firstCol=0;
 
-          if(itNode->Is(FREE_SURFACE)){
+          if(itNode->Is(FREE_SURFACE) || itNode->Is(RIGID)){
             itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS)=1;
           }else{
             itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS)=0;
@@ -298,7 +315,7 @@ void BuildNodally(
               {
                 EquationId[firstCol]=neighb_nodes[i].GetDof(VELOCITY_X,xDofPos).EquationId();
                 EquationId[firstCol+1]=neighb_nodes[i].GetDof(VELOCITY_Y,xDofPos+1).EquationId();
-                if(neighb_nodes[i].Is(FREE_SURFACE) && itNode->Is(FREE_SURFACE)){
+                if((neighb_nodes[i].Is(FREE_SURFACE) || neighb_nodes[i].Is(RIGID)) && (itNode->Is(FREE_SURFACE)|| itNode->Is(RIGID))){
                   itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS)+=1;
                 }
               }
@@ -398,7 +415,7 @@ void BuildNodally(
                   EquationId[firstCol]  =neighb_nodes[i].GetDof(VELOCITY_X,xDofPos).EquationId();
                   EquationId[firstCol+1]=neighb_nodes[i].GetDof(VELOCITY_Y,xDofPos+1).EquationId();
                   EquationId[firstCol+2]=neighb_nodes[i].GetDof(VELOCITY_Z,xDofPos+2).EquationId();
-                  if(neighb_nodes[i].Is(FREE_SURFACE) && itNode->Is(FREE_SURFACE)){
+                  if((neighb_nodes[i].Is(FREE_SURFACE) || neighb_nodes[i].Is(RIGID)) && (itNode->Is(FREE_SURFACE)|| itNode->Is(RIGID))){
                     itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS)+=1;
                   }
                 }

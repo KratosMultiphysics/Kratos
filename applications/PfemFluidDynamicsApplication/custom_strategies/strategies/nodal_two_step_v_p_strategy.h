@@ -35,6 +35,8 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <iostream>
+#include <fstream>
 
 
 namespace Kratos {
@@ -245,22 +247,25 @@ double Solve() override
 	double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 	bool timeIntervalChanged=  rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
 
+	bool momentumAlreadyConverged=false;
+	bool continuityAlreadyConverged=false;
+
 	unsigned int maxNonLinearIterations=mMaxPressureIter;
 	std::cout << "\n                   Solve with nodally_integrated_two_step_vp strategy at t="<< currentTime<<"s"<<std::endl;
 
-	if(timeIntervalChanged==true && currentTime>10*timeInterval ){
-		maxNonLinearIterations*=2;
-	}
-	if(currentTime<10*timeInterval){
-		if ( BaseType::GetEchoLevel() > 1)
-		  std::cout << "within the first 10 time steps, I consider the given iteration number x3"<< std::endl;
-		maxNonLinearIterations*=3;
-	}
-	if(currentTime<20*timeInterval && currentTime>=10*timeInterval){
-		if ( BaseType::GetEchoLevel() > 1)
-		  std::cout << "within the second 10 time steps, I consider the given iteration number x2"<< std::endl;
-		maxNonLinearIterations*=2;
-	}
+	// if(timeIntervalChanged==true && currentTime>10*timeInterval ){
+	// 	maxNonLinearIterations*=2;
+	// }
+	// if(currentTime<10*timeInterval){
+	// 	if ( BaseType::GetEchoLevel() > 1)
+	// 	  std::cout << "within the first 10 time steps, I consider the given iteration number x3"<< std::endl;
+	// 	maxNonLinearIterations*=3;
+	// }
+	// if(currentTime<20*timeInterval && currentTime>=10*timeInterval){
+	// 	if ( BaseType::GetEchoLevel() > 1)
+	// 	  std::cout << "within the second 10 time steps, I consider the given iteration number x2"<< std::endl;
+	// 	maxNonLinearIterations*=2;
+	// }
 
 	bool momentumConverged = true;
 	bool continuityConverged = false;
@@ -292,8 +297,28 @@ double Solve() override
 	      continuityConverged = this->SolveContinuityIteration(it,maxNonLinearIterations);
 	    }
 
+
+			if((momentumConverged==true || it==maxNonLinearIterations-1) && momentumAlreadyConverged==false){
+				std::ofstream myfile;
+  	    myfile.open ("momentumConvergedIteration.txt",std::ios::app);
+				myfile << currentTime << "\t" << it << "\n";
+        myfile.close();
+				momentumAlreadyConverged=true;
+			}
+			if((continuityConverged==true || it==maxNonLinearIterations-1) && continuityAlreadyConverged==false){
+				std::ofstream myfile;
+  	    myfile.open ("continuityConvergedIteration.txt",std::ios::app);
+				myfile << currentTime << "\t" << it << "\n";
+        myfile.close();
+				continuityAlreadyConverged=true;
+			}
+
 	    if(it==maxNonLinearIterations-1 || ((continuityConverged && momentumConverged) && it>2)){
 	      this->CalculateAccelerations();
+				std::ofstream myfile;
+  	    myfile.open ("maxConvergedIteration.txt",std::ios::app);
+				myfile << currentTime << "\t" << it << "\n";
+        myfile.close();
 	    }
 	    if ( (continuityConverged && momentumConverged) && it>2)
 	    {
@@ -512,6 +537,15 @@ void FillNodalSFDVector()
 	      NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	      unsigned int neighbourNodes=neighb_nodes.size()+1;
 	      Vector& rNodeOrderedNeighbours=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
+
+				const unsigned int neighSize = neighb_nodes.size() +1 ;
+				unsigned int freesurfaceNeighbours=itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS);
+				if(neighSize ==freesurfaceNeighbours && itNode->Is(FREE_SURFACE) && itNode->IsNot(SOLID) )
+				{
+      	  itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)=currFirstLame*0.00001;
+				}
+
+
 	      
 				if(rNodeOrderedNeighbours.size() != neighbourNodes)
 		       rNodeOrderedNeighbours.resize(neighbourNodes,false);
@@ -668,6 +702,12 @@ void PrintVectors()
 		std::cout<<"THIS node does not have NODAL_VOLUMETRIC_DEF_RATE... "<<itNode->X()<<" "<<itNode->Y()<<std::endl;
 	      }
 
+	      if(itNode->SolutionStepsDataHas(NODAL_EQUIVALENT_STRAIN_RATE)){
+		itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE)=0;
+	      }else{
+		std::cout<<"THIS node does not have NODAL_EQUIVALENT_STRAIN_RATE... "<<itNode->X()<<" "<<itNode->Y()<<std::endl;
+	      }
+
 	      if(itNode->SolutionStepsDataHas(NODAL_DEFORMATION_GRAD)){
 		Matrix& rFgrad=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
 		if(rFgrad.size1() != dimension)
@@ -727,6 +767,8 @@ void PrintVectors()
 
 	      itNode->FastGetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=0;
 
+				itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE)=0;
+
 	    }
 	}
       }
@@ -780,6 +822,8 @@ void PrintVectors()
 
 	itNode->FastGetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=0;
 
+	itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE)=0;
+
 
       }
 
@@ -832,8 +876,8 @@ void CalcNodalStrainsAndStresses()
   for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
   {
 
-	  if(itNode->Is(SOLID) || itNode->Is(FLUID))
-    {
+	 // if(itNode->Is(SOLID) || itNode->Is(FLUID))
+   // {
 	    double nodalVolume=itNode->FastGetSolutionStepValue(NODAL_VOLUME);
 	    if(nodalVolume>0)
        {
@@ -843,7 +887,7 @@ void CalcNodalStrainsAndStresses()
 
 	      double currFirstLame=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT);
 	      double deviatoricCoeff=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
-	      
+
         this->ComputeAndStoreNodalDeformationGradient(itNode, nodalSFDneighboursId, rNodalSFDneigh, theta);
 	      Matrix Fgrad=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
 	      Matrix FgradVel=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL);
@@ -862,9 +906,44 @@ void CalcNodalStrainsAndStresses()
 
 	      if(dimension==2)
         {
+					NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
+					const unsigned int neighSize = neighb_nodes.size() +1 ;
+					unsigned int freesurfaceNeighbours=itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS);
+					if(neighSize ==freesurfaceNeighbours  && itNode->Is(FREE_SURFACE) && true==false)
+					{
+            itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=0;
+						itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=0;
+						itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=0;
+						itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=0;
+						itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[0]=0;
+						itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[1]=0;
+						itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[2]=0;
+						itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[0]=0;
+						itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[1]=0;
+						itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[2]=0;
+					}
+					else{
+
 	      	itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
 	      	itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
 		      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
+
+					double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+					if(yieldShear>0){
+							itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE)=sqrt((2.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
+						  2.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] +
+						  4.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]));
+							double adaptiveExponent=itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+							double equivalentStrainRate=itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+							double exponent=-adaptiveExponent*equivalentStrainRate;
+							if(equivalentStrainRate!=0){
+								deviatoricCoeff+=(yieldShear/equivalentStrainRate)*(1-exp(exponent));
+							}
+							if(equivalentStrainRate<0.00001 && yieldShear!=0 && adaptiveExponent!=0){
+								// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
+								deviatoricCoeff=adaptiveExponent*yieldShear;
+							}
+					}
 
 		      double DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
 	      	double DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
@@ -900,6 +979,7 @@ void CalcNodalStrainsAndStresses()
 	      	itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[0]=nodalSigmaDev_xx;
 		      itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[1]=nodalSigmaDev_yy;
 		      itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[2]=nodalSigmaDev_xy;
+				}
 
 	      }else if (dimension==3)
         {
@@ -909,6 +989,26 @@ void CalcNodalStrainsAndStresses()
 		      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
 		      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4]=0.5*(SpatialVelocityGrad(2,0)+SpatialVelocityGrad(0,2));
 		      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5]=0.5*(SpatialVelocityGrad(2,1)+SpatialVelocityGrad(1,2));
+
+					double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+					if(yieldShear>0){
+							itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE)=sqrt(2.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
+						   2.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] +
+						   2.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] +
+						   4.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3] +
+						   4.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4] +
+						   4.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5] );
+							double adaptiveExponent=itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+							double equivalentStrainRate=itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+							double exponent=-adaptiveExponent*equivalentStrainRate;
+							if(equivalentStrainRate!=0){
+								deviatoricCoeff+=(yieldShear/equivalentStrainRate)*(1-exp(exponent));
+							}
+							if(equivalentStrainRate<0.00001 && yieldShear!=0 && adaptiveExponent!=0){
+								// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
+								deviatoricCoeff=adaptiveExponent*yieldShear;
+							}
+					}
 
 		      double DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
 		      double DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
@@ -971,7 +1071,7 @@ void CalcNodalStrainsAndStresses()
 	    else{ // if nodalVolume==0
 	      InitializeNodalVariablesForRemeshedDomain(itNode);
 	    }
-	  }
+	 // }
 
 	}  
   }
@@ -1005,7 +1105,22 @@ void CalcNodalStrainsAndStresses()
 	    if(nodalVolume>0){
 
 	      double currFirstLame=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT);
-	      double deviatoricCoeff=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
+	      double deviatoricCoeff=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);     
+				
+				double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+				if(yieldShear>0){
+						double adaptiveExponent=itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+						double equivalentStrainRate=itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+						double exponent=-adaptiveExponent*equivalentStrainRate;
+						if(equivalentStrainRate!=0){
+							deviatoricCoeff+=(yieldShear/equivalentStrainRate)*(1-exp(exponent));
+						}
+						if(equivalentStrainRate<0.00001 && yieldShear!=0 && adaptiveExponent!=0){
+							// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
+							deviatoricCoeff=adaptiveExponent*yieldShear;
+						}
+				}
+
 
 	      if(dimension==2){
 
@@ -1131,7 +1246,7 @@ void CalcNodalStrainsAndStresses()
       for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
       {
 
-        if(itNode->Is(SOLID) || itNode->Is(FLUID)){
+       // if(itNode->Is(SOLID) || itNode->Is(FLUID)){
 
           Vector nodalSFDneighboursId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
 
@@ -1158,9 +1273,33 @@ void CalcNodalStrainsAndStresses()
           SpatialVelocityGrad=prod(FgradVel,InvFgrad);
 
           if(dimension==2){
+
+
+											NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
+					const unsigned int neighSize = neighb_nodes.size() +1 ;
+					unsigned int freesurfaceNeighbours=itNode->FastGetSolutionStepValue(FREESURFACE_NEIGHBOURS);
+					if(neighSize ==freesurfaceNeighbours && itNode->Is(FREE_SURFACE) && true==false)
+					{
+            itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=0;
+						itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=0;
+						itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=0;
+						itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=0;
+						itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[0]=0;
+						itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[1]=0;
+						itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[2]=0;
+						itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[0]=0;
+						itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[1]=0;
+						itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[2]=0;
+					}
+					else{
+
             itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
             itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
             itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
+
+						itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE)=sqrt((2.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
+						   2.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] +
+						   4.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]));
 
             double DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
             double DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
@@ -1169,7 +1308,7 @@ void CalcNodalStrainsAndStresses()
 
             itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=DefVol;
 
-
+					}
           }else if (dimension==3){
 
 
@@ -1179,6 +1318,14 @@ void CalcNodalStrainsAndStresses()
             itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
             itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4]=0.5*(SpatialVelocityGrad(2,0)+SpatialVelocityGrad(0,2));
             itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5]=0.5*(SpatialVelocityGrad(2,1)+SpatialVelocityGrad(1,2));
+
+
+						itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE)=sqrt(2.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
+						   2.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] +
+						   2.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] +
+						   4.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3] +
+						   4.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4] +
+						   4.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5] );
 
             double DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
             double DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
@@ -1190,7 +1337,7 @@ void CalcNodalStrainsAndStresses()
 
           }
 
-        }
+        //}
 
       }
     }
@@ -1429,6 +1576,7 @@ void ComputeAndStoreNodalDeformationGradient(ModelPart::NodeIterator itNode, Vec
 	  }else {
 	    (i)->FastGetSolutionStepValue(NODAL_VOLUME) = 0.0;
 	    (i)->FastGetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE) = 0.0;
+			(i)->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE)=0;
 	    (i)->FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE) = 0.0;
 	    (i)->FastGetSolutionStepValue(NODAL_FREESURFACE_AREA) = 0.0;
 	    (i)->FastGetSolutionStepValue(PRESSURE,0) = 0.0;
@@ -1524,6 +1672,7 @@ void CalculateDisplacementsAndResetNodalVariables()
             i->FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE)=0;
             i->FastGetSolutionStepValue(NODAL_FREESURFACE_AREA)=0;
             i->FastGetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=0;
+            i->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE)=0;
 
             Vector& rNodalSFDneighbours=i->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
             noalias(rNodalSFDneighbours)=ZeroVector(sizeSDFNeigh);
@@ -1703,6 +1852,33 @@ protected:
       }else{
       	std::cout<<"iteration("<<it<<")  Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
       }
+				    ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+	    double currentTime = rCurrentProcessInfo[TIME];
+      double tolerance=0.0000000001;
+      if(currentTime>(0.25-tolerance) && currentTime<(0.25+tolerance)){
+				std::ofstream myfile;
+  	    myfile.open ("velocityConvergenceAt025s.txt",std::ios::app);
+				myfile << it << "\t" << DvErrorNorm << "\n";
+        myfile.close();
+			}
+			else if(currentTime>(0.5-tolerance) && currentTime<(0.5+tolerance)){
+				std::ofstream myfile;
+  	    myfile.open ("velocityConvergenceAt05s.txt",std::ios::app);
+				myfile << it << "\t" << DvErrorNorm << "\n";
+        myfile.close();
+			}
+      else if(currentTime>(0.75-tolerance) && currentTime<(0.75+tolerance)){
+				std::ofstream myfile;
+  	    myfile.open ("velocityConvergenceAt075s.txt",std::ios::app);
+				myfile << it << "\t" << DvErrorNorm << "\n";
+        myfile.close();
+			}
+			else if(currentTime>(1.0-tolerance) && currentTime<(1.0+tolerance)){
+				std::ofstream myfile;
+  	    myfile.open ("velocityConvergenceAt100s.txt",std::ios::app);
+				myfile << it << "\t" << DvErrorNorm << "\n";
+        myfile.close();
+			}
 
       if (!ConvergedMomentum && BaseType::GetEchoLevel() > 0 && Rank == 0)
 	std::cout << "Momentum equations did not reach the convergence tolerance." << std::endl;
@@ -1737,8 +1913,36 @@ bool SolveContinuityIteration(unsigned int it,unsigned int maxIt)
 	      std::cout<<"                  iteration("<<it<<") Final Pressure error: "<<DpErrorNorm <<" presTol: "<<mPressureTolerance << std::endl;
       	ConvergedContinuity=this->FixTimeStepContinuity(DpErrorNorm);
       }else{
-      	std::cout<<"iteration("<<it<<") Pressure error: "<<DpErrorNorm <<" presTol: "<<mPressureTolerance << std::endl;
+      	std::cout<<"                             iteration("<<it<<") Pressure error: "<<DpErrorNorm <<" presTol: "<<mPressureTolerance << std::endl;
       }
+
+	    ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+	    double currentTime = rCurrentProcessInfo[TIME];
+      double tolerance=0.0000000001;
+      if(currentTime>(0.25-tolerance) && currentTime<(0.25+tolerance)){
+				std::ofstream myfile;
+  	    myfile.open ("pressureConvergenceAt025s.txt",std::ios::app);
+				myfile << it << "\t" << DpErrorNorm << "\n";
+        myfile.close();
+			}
+			else if(currentTime>(0.5-tolerance) && currentTime<(0.5+tolerance)){
+				std::ofstream myfile;
+  	    myfile.open ("pressureConvergenceAt05s.txt",std::ios::app);
+				myfile << it << "\t" << DpErrorNorm << "\n";
+        myfile.close();
+			}
+      else if(currentTime>(0.75-tolerance) && currentTime<(0.75+tolerance)){
+				std::ofstream myfile;
+  	    myfile.open ("pressureConvergenceAt075s.txt",std::ios::app);
+				myfile << it << "\t" << DpErrorNorm << "\n";
+        myfile.close();
+			}
+			else if(currentTime>(1.0-tolerance) && currentTime<(1.0+tolerance)){
+				std::ofstream myfile;
+  	    myfile.open ("pressureConvergenceAt100s.txt",std::ios::app);
+				myfile << it << "\t" << DpErrorNorm << "\n";
+        myfile.close();
+			}
 
       if (!ConvergedContinuity && BaseType::GetEchoLevel() > 0 && Rank == 0)
       	std::cout << "Continuity equation did not reach the convergence tolerance." << std::endl;
@@ -1788,7 +1992,7 @@ bool SolveContinuityIteration(unsigned int it,unsigned int maxIt)
 	}
 	/* else{ */
 	/*   std::cout<<"Velocity error: "<< errorNormDv <<" velTol: " << mVelocityTolerance<< std::endl; */
-	/* } */
+	/* } */			
 
         if (errorNormDv < mVelocityTolerance)
         {
