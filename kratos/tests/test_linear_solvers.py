@@ -21,7 +21,8 @@ class TestLinearSolvers(KratosUnittest.TestCase):
 
         #read the matrices
         A = KratosMultiphysics.CompressedMatrix()
-        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(matrix_name),A)
+        file_read = KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(matrix_name),A)
+        self.assertTrue(file_read, msg="The MatrixFile could not be read")
 
         Aoriginal = KratosMultiphysics.CompressedMatrix(A) #create a copy of A
 
