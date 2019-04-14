@@ -61,6 +61,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    // The index type definition
+    typedef std::size_t IndexType;
+
     /// The define the working dimension size, already defined in the integrator
     static constexpr SizeType Dimension = TPlasticityIntegratorType::Dimension;
 
