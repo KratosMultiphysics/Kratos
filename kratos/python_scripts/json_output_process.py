@@ -222,15 +222,6 @@ class JsonOutputProcess(KratosMultiphysics.Process):
 
         write_external_json(self.output_file_name, data)
 
-    def ExecuteInitializeSolutionStep(self):
-        """ This method is executed in order to initialize the current step
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-
-        pass
-
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
 
@@ -389,33 +380,6 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                 count += 1
 
         write_external_json(self.output_file_name, data)
-
-    def ExecuteBeforeOutputStep(self):
-        """ This method is executed right before the ouput process computation
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        """ This method is executed right after the ouput process computation
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-
-        pass
-
-    def ExecuteFinalize(self):
-        """ This method is executed in order to finalize the current computation
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-
-        pass
 
     def __kratos_vector_to__python_list(self, value):
         """ This method is executed in order to finalize the current computation
