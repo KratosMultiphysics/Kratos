@@ -583,7 +583,7 @@ private:
 
     void CalculateIntersections()
     {
-        mpFindIntersectedGeometricalObjectsProcess = Kratos::make_shared<FindIntersectedGeometricalObjectsProcess>(mrBaseModelPart, mrSkinModelPart);
+        mpFindIntersectedGeometricalObjectsProcess = Kratos::make_shared<FindIntersectedGeometricalObjectsProcess<Element>>(mrBaseModelPart, mrSkinModelPart);
         mpFindIntersectedGeometricalObjectsProcess->Initialize();
         mpFindIntersectedGeometricalObjectsProcess->FindIntersections();
     }
