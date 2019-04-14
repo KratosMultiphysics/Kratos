@@ -34,15 +34,19 @@ EstimateDtShallow::EstimateDtShallow(
 {
 
     Parameters default_parameters(R"({
+        "automatic_time_step"   : true,
+        "time_step"             : 1.0,
         "courant_number"        : 1.0,
-        "consider_froude"       : True,
-        "compute_nodal_h"       : False,
+        "consider_froude"       : true,
+        "compute_nodal_h"       : false,
         "minimum_delta_time"    : 1e-4,
-        "maximum_delta_time"    : 1e+6,
+        "maximum_delta_time"    : 1e+6
     })");
 
     rThisParameters.ValidateAndAssignDefaults(default_parameters);
 
+    mEstimateDt = rThisParameters["automatic_time_step"].GetBool();
+    mConstantDt = rThisParameters["time_step"].GetDouble();
     mCourant = rThisParameters["courant_number"].GetDouble();
     mConsiderFroude = rThisParameters["consider_froude"].GetBool();
     mComputeNodalH = rThisParameters["compute_nodal_h"].GetBool();
@@ -52,12 +56,23 @@ EstimateDtShallow::EstimateDtShallow(
 
     if (mComputeNodalH)
     {
-        FindNodalHProcess<false>(mrModelPart)();
+        FindNodalHProcess<true>(mrModelPart)();
     }
 }
 
 
 double EstimateDtShallow::EstimateDt()
+{
+    double time_step = mConstantDt;
+    if (mEstimateDt)
+    {
+        time_step = EstimateTimeStep();
+    }
+    return time_step;
+}
+
+
+double EstimateDtShallow::EstimateTimeStep()
 {
     mGravity = mrModelPart.GetProcessInfo().GetValue(GRAVITY_Z);
 
@@ -73,7 +88,7 @@ double EstimateDtShallow::EstimateDt()
         ModelPart::NodeIterator NodeBegin = mrModelPart.NodesBegin() + NodesPartition[k];
         ModelPart::NodeIterator NodeEnd = mrModelPart.NodesBegin() + NodesPartition[k+1];
 
-        double min_thread_time = 0.0;
+        double min_thread_time = std::numeric_limits<double>::infinity();
 
         for(ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
         {
@@ -92,11 +107,12 @@ double EstimateDtShallow::EstimateDt()
     double current_time = min_characteristic_time[0];
     for (unsigned int k = 1; k < num_threads; k++)
     {
-        if (current_time < min_characteristic_time[k])
+        if (min_characteristic_time[k] < current_time)
         {
             current_time = min_characteristic_time[k];
         }
     }
+    current_time *= mCourant;
 
     if (current_time < mMinDt) {current_time = mMinDt;}
     else if (current_time > mMaxDt) {current_time = mMaxDt;}
@@ -113,7 +129,7 @@ double EstimateDtShallow::NodalCharacteristicTime(Node<3>& rNode)
     {
         wave_vel = std::sqrt(mGravity * rNode.FastGetSolutionStepValue(HEIGHT));
     }
-    return rNode.GetValue(NODAL_H) / (velocity + wave_vel + mEpsilon);
+    return rNode.FastGetSolutionStepValue(NODAL_H) / (velocity + wave_vel + mEpsilon);
 }
 
 }  // namespace Kratos.

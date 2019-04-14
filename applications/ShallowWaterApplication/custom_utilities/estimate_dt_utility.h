@@ -50,8 +50,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Utility to estimate the time step in terms of the courant number.
+/** The velocity can be the sum of the convective velocity and the wave speed
 */
 class EstimateDtShallow
 {
@@ -161,6 +161,8 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
+    bool mEstimateDt;
+    double mConstantDt;
     double mCourant;
     bool mConsiderFroude;
     bool mComputeNodalH;
@@ -177,6 +179,8 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    double EstimateTimeStep();
 
     double NodalCharacteristicTime(Node<3>& rNode);
 
