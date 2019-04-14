@@ -331,11 +331,12 @@ void InterfacePreprocessCondition::PrintNodesAndConditions(
 IndexType InterfacePreprocessCondition::ReorderConditions()
 {
     // We reorder the conditions
-    ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
-    const IndexType num_conditions = static_cast<int>(conditions_array.size());
+    ConditionsArrayType& r_conditions_array = mrMainModelPart.GetRootModelPart().Conditions();
+    const IndexType num_conditions = static_cast<int>(r_conditions_array.size());
+    const auto it_cond_begin = r_conditions_array.begin();
 
     for(IndexType i = 0; i < num_conditions; ++i) {
-        auto it_condition = conditions_array.begin() + i;
+        auto it_condition = it_cond_begin + i;
         it_condition->SetId(i + 1);
     }
 

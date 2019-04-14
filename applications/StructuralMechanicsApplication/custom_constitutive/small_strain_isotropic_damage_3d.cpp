@@ -21,7 +21,7 @@ namespace Kratos
 //************************************************************************************
 
 SmallStrainIsotropicDamage3D::SmallStrainIsotropicDamage3D()
-    : ConstitutiveLaw()
+    : ElasticIsotropic3D()
 {
 }
 
@@ -29,7 +29,7 @@ SmallStrainIsotropicDamage3D::SmallStrainIsotropicDamage3D()
 //************************************************************************************
 
 SmallStrainIsotropicDamage3D::SmallStrainIsotropicDamage3D(const SmallStrainIsotropicDamage3D &rOther)
-    : ConstitutiveLaw(rOther)
+    : ElasticIsotropic3D(rOther)
 {
 }
 
@@ -106,33 +106,6 @@ void SmallStrainIsotropicDamage3D::InitializeMaterialResponseCauchy(Constitutive
 //************************************************************************************
 //************************************************************************************
 
-void SmallStrainIsotropicDamage3D::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
-{
-    // In small deformation is the same as compute Cauchy
-    InitializeMaterialResponseCauchy(rValues);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void SmallStrainIsotropicDamage3D::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
-{
-    // In small deformation is the same as compute Cauchy
-    InitializeMaterialResponseCauchy(rValues);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void SmallStrainIsotropicDamage3D::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
-{
-    // In small deformation is the same as compute Cauchy
-    InitializeMaterialResponseCauchy(rValues);
-}
-
-//************************************************************************************
-//************************************************************************************
-
 void SmallStrainIsotropicDamage3D::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
     double strain_variable;
@@ -143,58 +116,7 @@ void SmallStrainIsotropicDamage3D::FinalizeMaterialResponseCauchy(Parameters& rV
 //************************************************************************************
 //************************************************************************************
 
-void SmallStrainIsotropicDamage3D::FinalizeMaterialResponsePK1(Parameters& rValues)
-{
-    // In small deformation is the same as compute Cauchy
-    FinalizeMaterialResponseCauchy(rValues);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void SmallStrainIsotropicDamage3D::FinalizeMaterialResponsePK2(Parameters& rValues)
-{
-    // In small deformation is the same as compute Cauchy
-    FinalizeMaterialResponseCauchy(rValues);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void SmallStrainIsotropicDamage3D::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
-{
-    // In small deformation is the same as compute Cauchy
-    FinalizeMaterialResponseCauchy(rValues);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void SmallStrainIsotropicDamage3D::CalculateMaterialResponsePK1(Parameters& rValues)
-{
-    CalculateMaterialResponseCauchy(rValues);
-}
-
-//************************************************************************************
-//************************************************************************************
-
 void SmallStrainIsotropicDamage3D::CalculateMaterialResponsePK2(Parameters& rValues)
-{
-    CalculateMaterialResponseCauchy(rValues);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void SmallStrainIsotropicDamage3D::CalculateMaterialResponseKirchhoff(Parameters& rValues)
-{
-    CalculateMaterialResponseCauchy(rValues);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void SmallStrainIsotropicDamage3D::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
     double strain_variable;
     this->CalculateStressResponse(rValues, strain_variable);
@@ -204,8 +126,8 @@ void SmallStrainIsotropicDamage3D::CalculateMaterialResponseCauchy(Parameters& r
 //************************************************************************************
 
 void SmallStrainIsotropicDamage3D::CalculateStressResponse(
-    Parameters& rValues,
-    double& rStrainVariable)
+        Parameters &rValues,
+        double &rStrainVariable)
 {
     const Properties& rMaterialProperties = rValues.GetMaterialProperties();
     Flags & r_constitutive_law_options = rValues.GetOptions();
@@ -223,10 +145,18 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
         r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
         Vector& r_stress_vector = rValues.GetStressVector();
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        CalculateElasticMatrix(rMaterialProperties, r_constitutive_matrix);
+        CalculateElasticMatrix(r_constitutive_matrix, rValues);
         noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
-        const double strain_norm = std::sqrt(inner_prod(r_stress_vector, r_strain_vector));
 
+        // Auxiliary stress vector to allow derived models (e.g. traction-only damage) to set
+        // a different value of r_stress_vector_pos with ComputePositiveStressVector function
+        // In the symmetric model, ComputePositiveStressVector does not do anything.
+        Vector r_stress_vector_pos = r_stress_vector;
+        ComputePositiveStressVector(r_stress_vector_pos, r_stress_vector);
+
+        // energy may be a small negative due to machine precision error, forcing zero
+        const double product = inner_prod(r_stress_vector_pos, r_strain_vector);
+        const double strain_norm = (product >=0 ) ? std::sqrt(product) : 0;
         if (strain_norm <= mStrainVariable)
         {
             // ELASTIC
@@ -248,10 +178,19 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
             const double damage_rate = (stress_variable - hardening_modulus * rStrainVariable)
                                        / (rStrainVariable * rStrainVariable * rStrainVariable);
             r_constitutive_matrix *= (1. - damage_variable);
-            r_constitutive_matrix -= damage_rate * outer_prod(r_stress_vector, r_stress_vector);
+            r_constitutive_matrix -= damage_rate * outer_prod(r_stress_vector, r_stress_vector_pos);
+            // real stress = (1-d) * effective stress
             r_stress_vector *= (1. - damage_variable);
         }
     }
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void SmallStrainIsotropicDamage3D::ComputePositiveStressVector(
+            Vector& rStressVectorPos, Vector& rStressVector)
+{
 }
 
 //************************************************************************************
@@ -269,8 +208,8 @@ double& SmallStrainIsotropicDamage3D::CalculateValue(
             noalias(r_strain_vector) += rValues.GetProcessInfo()[INITIAL_STRAIN];
         }
         const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-        Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
-        CalculateElasticMatrix(rMaterialProperties, constitutive_matrix);
+        Matrix constitutive_matrix;
+        CalculateElasticMatrix(constitutive_matrix, rValues);
         const double stress_like_variable = EvaluateHardeningLaw(mStrainVariable, rMaterialProperties);
         const double damage_variable = 1. - stress_like_variable / mStrainVariable;
 
@@ -311,33 +250,6 @@ double SmallStrainIsotropicDamage3D::EvaluateHardeningLaw(
         (hardening_modulus < tolerance && stress_variable < stress_variable_inf))
         stress_variable = stress_variable_inf;
     return stress_variable;
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void SmallStrainIsotropicDamage3D::CalculateElasticMatrix(
-    const Properties &rMaterialProperties, Matrix &rElasticMatrix)
-{
-    const double E = rMaterialProperties[YOUNG_MODULUS];
-    const double nu = rMaterialProperties[POISSON_RATIO];
-
-    if (rElasticMatrix.size1() != 6 || rElasticMatrix.size2() != 6)
-        rElasticMatrix.resize(6, 6, false);
-    rElasticMatrix.clear();
-
-    rElasticMatrix(0, 0) = (E * (1. - nu) / ((1. + nu) * (1. - 2. * nu)));
-    rElasticMatrix(1, 1) = rElasticMatrix(0, 0);
-    rElasticMatrix(2, 2) = rElasticMatrix(0, 0);
-    rElasticMatrix(3, 3) = rElasticMatrix(0, 0) * (1. - 2. * nu) / (2. * (1. - nu));
-    rElasticMatrix(4, 4) = rElasticMatrix(3, 3);
-    rElasticMatrix(5, 5) = rElasticMatrix(3, 3);
-    rElasticMatrix(0, 1) = rElasticMatrix(0, 0) * nu / (1. - nu);
-    rElasticMatrix(1, 0) = rElasticMatrix(0, 1);
-    rElasticMatrix(0, 2) = rElasticMatrix(0, 1);
-    rElasticMatrix(2, 0) = rElasticMatrix(0, 1);
-    rElasticMatrix(1, 2) = rElasticMatrix(0, 1);
-    rElasticMatrix(2, 1) = rElasticMatrix(0, 1);
 }
 
 //************************************************************************************
