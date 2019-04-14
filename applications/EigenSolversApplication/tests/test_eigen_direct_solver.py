@@ -25,7 +25,8 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(this_file_dir)))
         matrix_file_path = os.path.join(base_dir, "kratos", "tests", "auxiliar_files_for_python_unnitest", "sparse_matrix_files", "A.mm")
 
-        KratosMultiphysics.ReadMatrixMarketMatrix(matrix_file_path, a) # symmetric test matrix
+        file_read = KratosMultiphysics.ReadMatrixMarketMatrix(matrix_file_path, a) # symmetric test matrix
+        self.assertTrue(file_read, msg="The MatrixFile could not be read")
 
         dimension = a.Size1()
 
