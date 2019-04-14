@@ -53,7 +53,7 @@ namespace Kratos
 /// Utility to estimate the time step in terms of the courant number.
 /** The velocity can be the sum of the convective velocity and the wave speed
 */
-class EstimateDtShallow
+class KRATOS_API(SHALLOW_WATER_APPLICATION) EstimateDtShallow
 {
 public:
     ///@name Type Definitions
