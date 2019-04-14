@@ -20,7 +20,6 @@
 #include "processes/calculate_distance_to_skin_process.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "testing/testing.h"
-#include "utilities/variable_utils.h"
 
 // Application includes
 #include "custom_utilities/fixed_mesh_ale_utilities.h"
@@ -51,6 +50,7 @@ namespace Testing {
         origin_model_part.AddNodalSolutionStepVariable(DISTANCE);
         origin_model_part.AddNodalSolutionStepVariable(VELOCITY);
         origin_model_part.AddNodalSolutionStepVariable(PRESSURE);
+        origin_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         origin_model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
         origin_model_part.AddNodalSolutionStepVariable(MESH_DISPLACEMENT);
         StructuredMeshGeneratorProcess(geometry, origin_model_part, mesher_parameters).Execute();
@@ -79,20 +79,14 @@ namespace Testing {
             array_1d<double,3> v_val = ZeroVector(3);
             for (auto it_node : origin_model_part.NodesArray()){
                 it_node->GetSolutionStepValue(PRESSURE) = p_val;
-                v_val(0) = i_step * delta_time * it_node->X();
-                v_val(1) = i_step * delta_time * it_node->Y();
+                v_val(0) = i_step * it_node->X();
                 it_node->GetSolutionStepValue(VELOCITY) = v_val;
+                it_node->GetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
             }
         }
 
         // Set the virtual model part
         ModelPart& virtual_model_part = current_model.CreateModelPart("VirtualModelPart");
-        virtual_model_part.SetBufferSize(3);
-        virtual_model_part.AddNodalSolutionStepVariable(VELOCITY);
-        virtual_model_part.AddNodalSolutionStepVariable(PRESSURE);
-        virtual_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-        virtual_model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
-        virtual_model_part.AddNodalSolutionStepVariable(MESH_DISPLACEMENT);
 
         // Set the structure model part
         ModelPart& str_model_part =current_model.CreateModelPart("StructureModelPart");
@@ -112,8 +106,8 @@ namespace Testing {
         array_1d<double,3> str_mov = ZeroVector(3);
         for (unsigned int i_buffer = 0; i_buffer < 3; ++i_buffer) {
             for (auto it_str_node : str_model_part.NodesArray()){
-                str_mov(0) = -(it_str_node->X()) * 0.025 * (3 - i_buffer);
-                str_mov(1) = (it_str_node->Y()) * 0.05 * (3 - i_buffer);
+                str_mov(0) = -(it_str_node->X()) * 0.05 * (3 - i_buffer);
+                str_mov(1) = (it_str_node->Y()) * 0.1 * (3 - i_buffer);
                 it_str_node->FastGetSolutionStepValue(DISPLACEMENT, i_buffer) = str_mov;
             }
         }
@@ -127,13 +121,6 @@ namespace Testing {
 
         // Fill the virtual model part geometry
         p_mesh_moving->Initialize(origin_model_part);
-
-        // Copy the origin model part data to the virtual one
-        VariableUtils::Pointer p_var_utils = Kratos::make_shared<VariableUtils>();
-        for (unsigned int i_step = 0; i_step < n_steps; ++i_step){
-            p_var_utils->CopyModelPartNodalVar<Variable<double>>(PRESSURE, origin_model_part, virtual_model_part, i_step);
-            p_var_utils->CopyModelPartNodalVar<Variable<array_1d<double,3>>>(VELOCITY, origin_model_part, virtual_model_part, i_step);
-        }
 
         // Execute the FM-ALE operations
         const unsigned int buffer_size = 3;
@@ -157,6 +144,7 @@ namespace Testing {
         // gid_io_origin.WriteNodalResults(DISTANCE, origin_model_part.Nodes(), 0, 0);
         // gid_io_origin.WriteNodalResults(VELOCITY, origin_model_part.Nodes(), 0, 0);
         // gid_io_origin.WriteNodalResults(PRESSURE, origin_model_part.Nodes(), 0, 0);
+        // gid_io_origin.WriteNodalResults(DISPLACEMENT, origin_model_part.Nodes(), 0, 0);
         // gid_io_origin.WriteNodalResults(MESH_VELOCITY, origin_model_part.Nodes(), 0, 0);
         // gid_io_origin.WriteNodalResults(MESH_DISPLACEMENT, origin_model_part.Nodes(), 0, 0);
         // gid_io_origin.FinalizeResults();
@@ -174,11 +162,11 @@ namespace Testing {
         // gid_io_virtual.FinalizeResults();
 
         // Check the obtained results
-        const double tol = 1e-6;
+        const double tol = 1e-5;
 
         // Check that the intersected elements nodes respect the fixity
-        const auto node_orig_51_u_mesh = origin_model_part.pGetNode(51)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
-        const auto node_virt_51_u_mesh = virtual_model_part.pGetNode(51)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+        const auto node_orig_51_u_mesh = origin_model_part.pGetNode(64)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+        const auto node_virt_51_u_mesh = virtual_model_part.pGetNode(64)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
         for (std::size_t i = 0; i < 3; ++i) {
             KRATOS_CHECK_NEAR(node_orig_51_u_mesh[i], node_virt_51_u_mesh[i], tol);
         }
@@ -186,7 +174,7 @@ namespace Testing {
         // Check the obtained displacement values in the virtual mesh
         const auto u_mesh_29 = virtual_model_part.pGetNode(29)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
         const auto u_mesh_53 = virtual_model_part.pGetNode(54)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
-        const std::vector<double> expected_values_u_mesh({-0.0221126, 0.0238099, 0, -0.0150279, 0.0283522, 0});
+        const std::vector<double> expected_values_u_mesh({-0.0442253, 0.0476199, 0, -0.0300558, 0.0567045, 0});
         const std::vector<double> obtained_values_u_mesh({u_mesh_29[0], u_mesh_29[1], u_mesh_29[2], u_mesh_53[0], u_mesh_53[1], u_mesh_53[2]});
         for (std::size_t i = 0; i < 6; ++i) {
             KRATOS_CHECK_NEAR(obtained_values_u_mesh[i], expected_values_u_mesh[i], tol);
@@ -195,10 +183,21 @@ namespace Testing {
         // Check the projected mesh velocity in the origin mesh
         const auto v_mesh_29 = origin_model_part.pGetNode(29)->FastGetSolutionStepValue(MESH_VELOCITY);
         const auto v_mesh_53 = origin_model_part.pGetNode(54)->FastGetSolutionStepValue(MESH_VELOCITY);
-        const std::vector<double> expected_values_v_mesh({-0.241942, 0.261365, 0, -0.165121, 0.321068, 0});
+        const std::vector<double> expected_values_v_mesh({-0.534329, 0.579078, 0, -0.37101, 0.740126, 0});
         const std::vector<double> obtained_values_v_mesh({v_mesh_29[0], v_mesh_29[1], v_mesh_29[2], v_mesh_53[0], v_mesh_53[1], v_mesh_53[2]});
         for (std::size_t i = 0; i < 6; ++i) {
             KRATOS_CHECK_NEAR(obtained_values_v_mesh[i], expected_values_v_mesh[i], tol);
+        }
+
+        // Check the projected values in the origin mesh
+        const auto v_29 = origin_model_part.pGetNode(29)->FastGetSolutionStepValue(VELOCITY);
+        const auto v_53 = origin_model_part.pGetNode(54)->FastGetSolutionStepValue(VELOCITY);
+        const auto p_29 = origin_model_part.pGetNode(29)->FastGetSolutionStepValue(PRESSURE);
+        const auto p_53 = origin_model_part.pGetNode(54)->FastGetSolutionStepValue(PRESSURE);
+        const std::vector<double> expected_projected_values({0.964009, 0, 0, 0.2, 1.78849, 0, 0, 0.2});
+        const std::vector<double> obtained_projected_values({v_29[0], v_29[1], v_29[2], p_29, v_53[0], v_53[1], v_53[2], p_53});
+        for (std::size_t i = 0; i < 8; ++i) {
+            KRATOS_CHECK_NEAR(obtained_projected_values[i], expected_projected_values[i], tol);
         }
     }
 }

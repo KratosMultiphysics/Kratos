@@ -106,7 +106,7 @@ public:
         Parameters &rParameters);
 
     /// Destructor.
-    ~FixedMeshALEUtilities() = default;
+    virtual ~FixedMeshALEUtilities() = default;
 
     ///@}
     ///@name Operators
