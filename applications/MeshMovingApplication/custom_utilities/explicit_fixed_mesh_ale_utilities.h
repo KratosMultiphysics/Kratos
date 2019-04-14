@@ -106,6 +106,14 @@ namespace Kratos
     ///@{
 
     /**
+     * @brief Initializes the FM-ALE utility
+     * This method fills the virtual model part as a copy of the origin model part.
+     * In case it is used, it also creates and initializes the mesh moving strategy
+     * @param rOriginModelPart model part from where the nodes and elements are copied
+     */
+    void Initialize(ModelPart &rOriginModelPart) override;
+
+    /**
     * This method performs the explicit mesh movement (computes the MESH_DISPLACEMENT value and moves
     * the mesh accordingly) and computes the MESH_VELOCITY values.
     * @param DeltaTime time step value (used in the computation of the MESH_VELOCITY values)

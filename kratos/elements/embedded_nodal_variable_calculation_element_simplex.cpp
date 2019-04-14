@@ -45,14 +45,6 @@ int EmbeddedNodalVariableCalculationElementSimplex<double>::Check(const ProcessI
         return ErrorCode;
     }
 
-    // Check that all required variables have been registered
-    if(DISTANCE.Key() == 0) {
-        KRATOS_ERROR << "DISTANCE Key is 0. Check if the application was correctly registered.";
-    }
-    if(NODAL_MAUX.Key() == 0) {
-        KRATOS_ERROR << "NODAL_MAUX Key is 0. Check if the application was correctly registered.";
-    }
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(auto &r_node : this->GetGeometry()) {
         KRATOS_ERROR_IF(!r_node.SolutionStepsDataHas(NODAL_MAUX)) << "Missing NODAL_MAUX variable on solution step data for node " << r_node.Id() << std::endl;;
@@ -74,14 +66,6 @@ int EmbeddedNodalVariableCalculationElementSimplex<array_1d<double,3>>::Check(co
         return ErrorCode;
     }
 
-    // Check that all required variables have been registered
-    if(DISTANCE.Key() == 0) {
-        KRATOS_ERROR << "DISTANCE Key is 0. Check if the application was correctly registered.";
-    }
-    if(NODAL_VAUX.Key() == 0) {
-        KRATOS_ERROR << "NODAL_VAUX Key is 0. Check if the application was correctly registered.";
-    }
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(auto &r_node : this->GetGeometry()) {
         KRATOS_ERROR_IF(!r_node.SolutionStepsDataHas(NODAL_VAUX)) << "Missing NODAL_VAUX variable on solution step data for node " << r_node.Id() << std::endl;;
@@ -97,10 +81,12 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateLeftHandSi
     MatrixType &rLeftHandSideMatrix,
     ProcessInfo &rCurrentProcessInfo)
 {
-    // Check size
+    // Check size and initialize
     if (rLeftHandSideMatrix.size1() != 2 || rLeftHandSideMatrix.size2() != 2) {
         rLeftHandSideMatrix.resize(2, 2, false);
     }
+    rLeftHandSideMatrix = ZeroMatrix(2,2);
+
 
     // Get the element shape function values from the normalized distance to node 0
     const auto &rN = this->GetDistanceBasedShapeFunctionValues();
@@ -118,10 +104,11 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double,3>>::Calcula
     MatrixType &rLeftHandSideMatrix,
     ProcessInfo &rCurrentProcessInfo)
 {
-        // Check size
+    // Check size and initialize
     if (rLeftHandSideMatrix.size1() != 6 || rLeftHandSideMatrix.size2() != 6) {
         rLeftHandSideMatrix.resize(6, 6, false);
     }
+    rLeftHandSideMatrix = ZeroMatrix(6,6);
 
     // Get the element shape function values from the normalized distance to node 0
     const auto &rN = this->GetDistanceBasedShapeFunctionValues();
@@ -141,13 +128,14 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateRightHandS
     VectorType &rRigthHandSideVector,
     ProcessInfo &rCurrentProcessInfo)
 {
-    // Check size
+    // Check size and initialize
     if (rRigthHandSideVector.size() != 2) {
         rRigthHandSideVector.resize(2, false);
     }
+    rRigthHandSideVector = ZeroVector(2);
 
     // Get the element shape function values from the normalized distance to node 0
-    const auto &rData = this->GetValue(NODAL_MAUX);
+    const double &rData = this->GetValue(NODAL_MAUX);
     const auto &rN = this->GetDistanceBasedShapeFunctionValues();
 
     // Compute the Gramm matrix
@@ -161,13 +149,14 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::Calcul
     VectorType &rRigthHandSideVector,
     ProcessInfo &rCurrentProcessInfo)
 {
-    // Check size
+    // Check size and initialize
     if (rRigthHandSideVector.size() != 6) {
         rRigthHandSideVector.resize(6, false);
     }
+    rRigthHandSideVector = ZeroVector(6);
 
     // Get the element shape function values from the normalized distance to node 0
-    const auto &rData = this->GetValue(NODAL_VAUX);
+    const array_1d<double,3> &rData = this->GetValue(NODAL_VAUX);
     const auto &rN = this->GetDistanceBasedShapeFunctionValues();
 
     // Compute the Gramm matrix
@@ -187,7 +176,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::EquationIdVector(
         rResult.resize(2, false);
     }
 
-    const auto pos = (this->GetGeometry())[0].GetDofPosition(NODAL_MAUX);
+    const unsigned int pos = (this->GetGeometry())[0].GetDofPosition(NODAL_MAUX);
     for (unsigned int i = 0; i < 2; i++) {
         rResult[i] = (this->GetGeometry())[i].GetDof(NODAL_MAUX, pos).EquationId();
     }
@@ -202,7 +191,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::Equati
         rResult.resize(6, false);
     }
 
-    const auto x_pos = (this->GetGeometry())[0].GetDofPosition(NODAL_VAUX_X);
+    const unsigned int x_pos = (this->GetGeometry())[0].GetDofPosition(NODAL_VAUX_X);
     for (unsigned int i = 0; i < 2; i++) {
         rResult[i * 3] = GetGeometry()[i].GetDof(NODAL_VAUX_X, x_pos).EquationId();
         rResult[i * 3 + 1] = GetGeometry()[i].GetDof(NODAL_VAUX_Y, x_pos + 1).EquationId();
@@ -243,7 +232,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::GetDof
 template <class TVarType>
 const array_1d<double, 2> EmbeddedNodalVariableCalculationElementSimplex<TVarType>::GetDistanceBasedShapeFunctionValues()
 {
-    const auto d = this->GetValue(DISTANCE);
+    const double d = this->GetValue(DISTANCE);
     array_1d<double, 2> N;
     N[0] = 1.0 - d;
     N[1] = d;

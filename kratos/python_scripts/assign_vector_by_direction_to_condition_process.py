@@ -1,47 +1,69 @@
-import math
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+# Importing the Kratos Library
 import KratosMultiphysics
 
+import math
+
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignVectorByDirectionToConditionProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
 class AssignVectorByDirectionToConditionProcess(KratosMultiphysics.Process):
+    """This process sets a variable a certain scalar value in a given direction, for all the conditions belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component
+
+    Only the member variables listed below should be accessed directly.
+
+    Public member variables:
+    Model -- the container of the different model parts.
+    settings -- Kratos parameters containing solver settings.
+    """
+
     def __init__(self, Model, settings ):
+        """ The default constructor of the class
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        Model -- the container of the different model parts.
+        settings -- Kratos parameters containing solver settings.
+        """
+
         KratosMultiphysics.Process.__init__(self)
 
+        #The value can be a double or a string (function)
         default_settings = KratosMultiphysics.Parameters("""
-            {
-                "help"                 : "This process sets a variable a certain scalar value in a given direction, for all the conditions belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component",
-                "mesh_id"              : 0,
-                "model_part_name"      : "please_specify_model_part_name",
-                "variable_name"        : "SPECIFY_VARIABLE_NAME",
-                "interval"             : [0.0, 1e30],
-                "modulus"              : 1.0,
-                "direction"            : [1.0, 0.0, 0.0],
-                "local_axes"           : {}
-            }
-            """)
+        {
+            "help"                 : "This process sets a variable a certain scalar value in a given direction, for all the conditions belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component",
+            "mesh_id"              : 0,
+            "model_part_name"      : "please_specify_model_part_name",
+            "variable_name"        : "SPECIFY_VARIABLE_NAME",
+            "interval"             : [0.0, 1e30],
+            "modulus"              : 1.0,
+            "direction"            : [1.0, 0.0, 0.0],
+            "local_axes"           : {}
+        }
+        """)
 
         # Trick: allow "modulus" and "direction" to be a double or a string value (otherwise the ValidateAndAssignDefaults might fail)
-        if(settings.Has("modulus")):
-            if(settings["modulus"].IsString()):
+        if settings.Has("modulus"):
+            if settings["modulus"].IsString():
                 default_settings["modulus"].SetString("0.0")
 
-        if(settings.Has("direction")):
-            if(settings["direction"].IsString()):
+        if settings.Has("direction"):
+            if settings["direction"].IsString():
                 default_settings["direction"].SetString("Automatic")
 
         # Detect "End" as a tag and replace it by a large number
-        if(settings.Has("interval")):
-            if(settings["interval"][1].IsString()):
-                if(settings["interval"][1].GetString() == "End"):
+        if settings.Has("interval"):
+            if settings["interval"][1].IsString():
+                if settings["interval"][1].GetString() == "End":
                     settings["interval"][1].SetDouble(1e30) # = default_settings["interval"][1]
                 else:
-                    raise Exception("The second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
+                    raise Exception("The second value of interval can be \"End\" or a number, interval currently:" + settings["interval"].PrettyPrintJsonString())
 
         settings.ValidateAndAssignDefaults(default_settings)
+
         self.model_part = Model[settings["model_part_name"].GetString()]
 
         # Construct the component by component parameter objects
@@ -71,45 +93,58 @@ class AssignVectorByDirectionToConditionProcess(KratosMultiphysics.Process):
         z_params.AddValue("local_axes",settings["local_axes"])
 
         # "Automatic" direction: get the inwards direction
-        if(settings["direction"].IsString()):
-            if ((settings["direction"].GetString() == "automatic_inwards_normal") or (settings["direction"].GetString() == "automatic_outwards_normal")):
+        all_numeric = True
+        if settings["direction"].IsString() :
+            if settings["direction"].GetString() == "automatic_inwards_normal" or settings["direction"].GetString() == "automatic_outwards_normal":
                 # Compute the condition normals
                 KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
                 # Compute the average conditions normal in the submodelpart of interest
                 avg_normal = KratosMultiphysics.VariableUtils().SumConditionVectorVariable(KratosMultiphysics.NORMAL, self.model_part)
                 avg_normal_norm = math.sqrt(pow(avg_normal[0],2) + pow(avg_normal[1],2) + pow(avg_normal[2],2))
-                if(avg_normal_norm < 1e-6):
+                if avg_normal_norm < 1.0e-6:
                     raise Exception("Direction norm is close to 0 in AssignVectorByDirectionToConditionProcess.")
 
                 unit_direction = KratosMultiphysics.Vector(3)
-                unit_direction = (1/avg_normal_norm)*avg_normal
+                unit_direction = (1.0/avg_normal_norm) * avg_normal
 
                 # Note that the NormalCalculationUtils().CalculateOnSimplex gives the outwards normal vector
-                if (settings["direction"].GetString() == "automatic_inwards_normal"):
+                if settings["direction"].GetString() == "automatic_inwards_normal":
                     unit_direction = (-1)*unit_direction
-
         # Direction is given as a vector
-        elif(settings["direction"].IsArray()):
-            # Normalize direction
-            direction_norm = math.sqrt(pow(settings["direction"][0].GetDouble(),2) +
-                                       pow(settings["direction"][1].GetDouble(),2) +
-                                       pow(settings["direction"][2].GetDouble(),2))
-            if(direction_norm < 1e-6):
-                raise Exception("Direction norm is close to 0 in AssignVectorByDirectionToConditionProcess.")
-
-            unit_direction = []
+        elif settings["direction"].IsArray():
+            unit_direction = [0.0,0.0,0.0]
+            direction_norm = 0.0
             for i in range(0,3):
-                unit_direction.append(settings["direction"][i].GetDouble()/direction_norm)
+                if settings["direction"][i].IsNumber():
+                    unit_direction[i] = settings["direction"][i].GetDouble()
+                    direction_norm += pow(unit_direction[i],2)
+                else:
+                    function_string = settings["direction"][i].GetString()
+                    unit_direction[i] = function_string
+                    all_numeric = False
 
+            # Normalize direction
+            if all_numeric:
+                direction_norm = math.sqrt(direction_norm)
+                if direction_norm < 1.0e-6:
+                    raise Exception("Direction norm is close to 0 in AssignVectorByDirectionToConditionProcess.")
+
+                for i in range(0,3):
+                    unit_direction[i] = unit_direction[i]/direction_norm
 
         # Set the remainding parameters
-        if(settings["modulus"].IsNumber()):
+        if settings["modulus"].IsNumber():
             modulus = settings["modulus"].GetDouble()
-            x_params.AddEmptyValue("value").SetDouble(modulus*unit_direction[0])
-            y_params.AddEmptyValue("value").SetDouble(modulus*unit_direction[1])
-            z_params.AddEmptyValue("value").SetDouble(modulus*unit_direction[2])
-        elif(settings["modulus"].IsString()):
+            if all_numeric:
+                x_params.AddEmptyValue("value").SetDouble(modulus * unit_direction[0])
+                y_params.AddEmptyValue("value").SetDouble(modulus * unit_direction[1])
+                z_params.AddEmptyValue("value").SetDouble(modulus * unit_direction[2])
+            else:
+                x_params.AddEmptyValue("value").SetString("("+str(unit_direction[0])+")*("+str(modulus)+")")
+                y_params.AddEmptyValue("value").SetString("("+str(unit_direction[1])+")*("+str(modulus)+")")
+                z_params.AddEmptyValue("value").SetString("("+str(unit_direction[2])+")*("+str(modulus)+")")
+        elif settings["modulus"].IsString():
             # The concatenated string is: "direction[i])*(f(x,y,z,t)"
             modulus = settings["modulus"].GetString()
             x_params.AddEmptyValue("value").SetString("("+str(unit_direction[0])+")*("+modulus+")")
@@ -117,7 +152,7 @@ class AssignVectorByDirectionToConditionProcess(KratosMultiphysics.Process):
             z_params.AddEmptyValue("value").SetString("("+str(unit_direction[2])+")*("+modulus+")")
 
         # Construct a AssignScalarToNodesProcess for each component
-        import assign_scalar_variable_to_conditions_process
+        from KratosMultiphysics import assign_scalar_variable_to_conditions_process
 
         self.aux_processes = []
         self.aux_processes.append( assign_scalar_variable_to_conditions_process.AssignScalarVariableToConditionsProcess(Model, x_params) )
@@ -125,9 +160,21 @@ class AssignVectorByDirectionToConditionProcess(KratosMultiphysics.Process):
         self.aux_processes.append( assign_scalar_variable_to_conditions_process.AssignScalarVariableToConditionsProcess(Model, z_params) )
 
     def ExecuteInitializeSolutionStep(self):
+        """ This method is executed in order to initialize the current step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
         for process in self.aux_processes:
             process.ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
+        """ This method is executed in order to finalize the current step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
         for process in self.aux_processes:
             process.ExecuteFinalizeSolutionStep()
