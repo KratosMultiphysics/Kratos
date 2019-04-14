@@ -26,7 +26,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        self.model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_read")) #reusing the file that is already in the directory
+        self.model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_read")) #reusing the file that is already in the directory
         self.model_part_io.ReadModelPart(self.model_part)
 
         self.test_settings = KratosMultiphysics.Parameters("""
@@ -37,8 +37,8 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         }
         """)
 
-        #assign the real path
-        self.test_settings["Parameters"]["materials_filename"].SetString(GetFilePath(input_file))
+        # Assign the real path
+        self.test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("auxiliar_files_for_python_unnitest/materials_files/" + input_file))
 
     def _check_results(self):
         #test if the element properties are assigned correctly to the elements and conditions
@@ -137,7 +137,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
 
         test_settings["Parameters"]["materials_filename"].SetString(
-            GetFilePath(os.path.join("wrong_materials_input","wrong_materials_1.json")))
+            GetFilePath(os.path.join("auxiliar_files_for_python_unnitest","materials_files","wrong_materials_input","wrong_materials_1.json")))
         expected_error_msg = "Error: Materials for ModelPart \"Main\" are specified multiple times!"
 
         with self.assertRaisesRegex(RuntimeError, expected_error_msg):
@@ -147,7 +147,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
 
         test_settings["Parameters"]["materials_filename"].SetString(
-            GetFilePath(os.path.join("wrong_materials_input","wrong_materials_2.json")))
+            GetFilePath(os.path.join("auxiliar_files_for_python_unnitest","materials_files","wrong_materials_input","wrong_materials_2.json")))
         expected_error_msg = "Error: Materials for ModelPart \"Main.sub\" are specified multiple times!"
 
         with self.assertRaisesRegex(RuntimeError, expected_error_msg):
@@ -157,7 +157,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
 
         test_settings["Parameters"]["materials_filename"].SetString(
-            GetFilePath(os.path.join("wrong_materials_input","wrong_materials_3.json")))
+            GetFilePath(os.path.join("auxiliar_files_for_python_unnitest","materials_files","wrong_materials_input","wrong_materials_3.json")))
         expected_error_msg =  "Error: Materials for ModelPart \"Main.sub\" are specified multiple times!\n"
         expected_error_msg += "Overdefined due to also specifying the materials for Parent-ModelPart \"Main\"!"
 
@@ -168,7 +168,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
 
         test_settings["Parameters"]["materials_filename"].SetString(
-            GetFilePath(os.path.join("wrong_materials_input","wrong_materials_4.json")))
+            GetFilePath(os.path.join("auxiliar_files_for_python_unnitest","materials_files","wrong_materials_input","wrong_materials_4.json")))
         expected_error_msg =  "Error: Materials for ModelPart \"Main.sub1.subsub\" are specified multiple times!\n"
         expected_error_msg += "Overdefined due to also specifying the materials for Parent-ModelPart \"Main.sub1\"!"
 

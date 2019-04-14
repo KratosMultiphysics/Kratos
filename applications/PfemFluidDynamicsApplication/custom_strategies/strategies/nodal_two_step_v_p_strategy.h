@@ -859,7 +859,11 @@ namespace Kratos {
 	      Matrix SpatialVelocityGrad=ZeroMatrix(dimension,dimension);
 	      //Inverse
 
-	      MathUtils<double>::InvertMatrix(Fgrad,InvFgrad,detFgrad,-1.0);
+        if(dimension==2){
+          MathUtils< double>::InvertMatrix2(Fgrad,InvFgrad,detFgrad);
+        }else if(dimension==3){
+         MathUtils< double>::InvertMatrix3(Fgrad,InvFgrad,detFgrad);
+        }
 
 	      //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
 	      SpatialVelocityGrad=prod(FgradVel,InvFgrad);
@@ -1161,8 +1165,11 @@ namespace Kratos {
 	    Matrix SpatialVelocityGrad=ZeroMatrix(dimension,dimension);
 	    //Inverse
 
-
-	    MathUtils<double>::InvertMatrix(Fgrad,InvFgrad,detFgrad,-1.0);
+      if(dimension==2){
+         MathUtils< double>::InvertMatrix2(Fgrad,InvFgrad,detFgrad);
+      }else if(dimension==3){
+         MathUtils< double>::InvertMatrix3(Fgrad,InvFgrad,detFgrad);
+      }
 
 	    //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
 	    SpatialVelocityGrad=prod(FgradVel,InvFgrad);
