@@ -59,6 +59,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_nodal_area_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/skin_detection_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/replace_elements_and_condition_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_variable_to_entities_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedral_mesh_orientation_check.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/integration_values_extrapolation_to_nodes_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
@@ -100,7 +101,7 @@ set( KRATOS_CORE_SOURCES
 
 ## Kratos python interface code
 set( KRATOS_PYTHON_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_field_to_conditions_process.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_field_to_entities_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_part_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_points_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_deprecated_variables_to_python.cpp

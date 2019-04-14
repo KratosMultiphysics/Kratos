@@ -2,18 +2,16 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics
 
-import math
-
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return AssignVectorByDirectionToConditionProcess(Model, settings["Parameters"])
+    return AssignVectorByDirectionToElementProcess(Model, settings["Parameters"])
 
 import assign_vector_by_direction_to_entity_process
 
 ## All the processes python should be derived from "Process"
-class AssignVectorByDirectionToConditionProcess(assign_vector_by_direction_to_entity_process.AssignVectorByDirectionToEntityProcess):
-    """This process sets a variable a certain scalar value in a given direction, for all the conditions belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component
+class AssignVectorByDirectionToElementProcess(assign_vector_by_direction_to_entity_process.AssignVectorByDirectionToEntityProcess):
+    """This process sets a variable a certain scalar value in a given direction, for all the elements belonging to a submodelpart. Uses assign_scalar_variable_to_elements_process for each component
 
     Only the member variables listed below should be accessed directly.
 
@@ -21,22 +19,11 @@ class AssignVectorByDirectionToConditionProcess(assign_vector_by_direction_to_en
     Model -- the container of the different model parts.
     settings -- Kratos parameters containing solver settings.
     """
-
     def __init__(self, Model, settings ):
-        """ The default constructor of the class
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        Model -- the container of the different model parts.
-        settings -- Kratos parameters containing solver settings.
-        """
-
-        KratosMultiphysics.Process.__init__(self)
-
-        #The value can be a double or a string (function)
+        # The value can be a double or a string (function)
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "help"                 : "This process sets a variable a certain scalar value in a given direction, for all the conditions belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component",
+            "help"                 : "This process sets a variable a certain scalar value in a given direction, for all the elements belonging to a submodelpart. Uses assign_scalar_variable_to_elements_process for each component",
             "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
@@ -44,7 +31,7 @@ class AssignVectorByDirectionToConditionProcess(assign_vector_by_direction_to_en
             "modulus"              : 1.0,
             "direction"            : [1.0, 0.0, 0.0],
             "local_axes"           : {},
-            "entities"             : ["conditions"]
+            "entities"             : ["elements"]
         }
         """)
 
@@ -63,7 +50,7 @@ class AssignVectorByDirectionToConditionProcess(assign_vector_by_direction_to_en
                 if settings["interval"][1].GetString() == "End":
                     settings["interval"][1].SetDouble(1e30) # = default_settings["interval"][1]
                 else:
-                    raise Exception("The second value of interval can be \"End\" or a number, interval currently:" + settings["interval"].PrettyPrintJsonString())
+                    raise Exception("The second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
 
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -71,8 +58,8 @@ class AssignVectorByDirectionToConditionProcess(assign_vector_by_direction_to_en
         if settings["entities"].size() != 1:
             settings["entities"] = default_settings["entities"]
         else:
-            if settings["entities"][0].GetString() != "conditions":
+            if settings["entities"][0].GetString() != "elements":
                 settings["entities"] = default_settings["entities"]
 
         # Construct the base process.
-        super(AssignVectorByDirectionToConditionProcess, self).__init__(Model, settings)
+        super(AssignVectorByDirectionToElementProcess, self).__init__(Model, settings)
