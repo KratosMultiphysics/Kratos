@@ -46,7 +46,8 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
             "historical_value"     : true,
             "tolerance"            : 1e-3,
             "relative_tolerance"   : 1e-6,
-            "time_frequency"       : 1.00
+            "time_frequency"       : 1.00,
+            "use_node_coordinates" : false
         }""")
 
         ## Overwrite the default settings with user-provided parameters

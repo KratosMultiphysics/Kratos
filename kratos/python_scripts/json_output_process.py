@@ -44,7 +44,8 @@ class JsonOutputProcess(KratosMultiphysics.Process):
             "check_for_flag"                : "",
             "time_frequency"                : 1.00,
             "historical_value"              : true,
-            "resultant_solution"            : false
+            "resultant_solution"            : false,
+            "use_node_coordinates"          : false
         }
         """)
 
