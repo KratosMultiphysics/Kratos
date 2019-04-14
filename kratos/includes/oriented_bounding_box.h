@@ -73,7 +73,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 template<std::size_t TDim>
-class OrientedBoundingBox
+class KRATOS_API(KRATOS_CORE) OrientedBoundingBox
 {
 public:
 
