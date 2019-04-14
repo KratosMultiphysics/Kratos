@@ -65,9 +65,6 @@ class NavierStokesCompressibleSolver(FluidSolver):
         self.condition_name = "Condition"
         self.min_buffer_size = 3
 
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
         ## Construct the linear solver
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])

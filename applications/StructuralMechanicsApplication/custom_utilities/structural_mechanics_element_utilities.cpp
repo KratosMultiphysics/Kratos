@@ -123,7 +123,7 @@ void CalculateRayleighDampingMatrix(
 
     // 1.-Resizing if needed
     if (rDampingMatrix.size1() != MatrixSize || rDampingMatrix.size2() != MatrixSize) {
-        rDampingMatrix.resize( MatrixSize, MatrixSize, false );
+        rDampingMatrix.resize(MatrixSize, MatrixSize, false);
     }
     noalias(rDampingMatrix) = ZeroMatrix(MatrixSize, MatrixSize);
 
@@ -143,7 +143,7 @@ void CalculateRayleighDampingMatrix(
         noalias(rDampingMatrix) += alpha * mass_matrix;
     }
 
-    KRATOS_CATCH( "CalculateRayleighDampingMatrix" )
+    KRATOS_CATCH("CalculateRayleighDampingMatrix")
 }
 
 /***********************************************************************************/
@@ -180,7 +180,7 @@ double CalculateCurrentLength2D2N(const Element& rElement)
                                (delta_pos[1] * delta_pos[1]));
 
     KRATOS_ERROR_IF(l <= std::numeric_limits<double>::epsilon())
-        << "Element #" << rElement.Id() << " has a current length of zero!" << std::endl;
+            << "Element #" << rElement.Id() << " has a current length of zero!" << std::endl;
 
     return l;
 
@@ -219,7 +219,7 @@ double CalculateCurrentLength3D2N(const Element& rElement)
     const double l = MathUtils<double>::Norm3(delta_pos);
 
     KRATOS_ERROR_IF(l <= std::numeric_limits<double>::epsilon())
-        << "Element #" << rElement.Id() << " has a current length of zero!" << std::endl;
+            << "Element #" << rElement.Id() << " has a current length of zero!" << std::endl;
 
     return l;
 

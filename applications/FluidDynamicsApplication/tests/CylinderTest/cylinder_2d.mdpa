@@ -3197,37 +3197,6 @@ Begin Elements Element2D3N// GUI group identifier: fluid
 End Elements
 
 Begin Conditions WallCondition2D2N// GUI group identifier: cylinder
-    1 0 761 770
-    2 0 770 785
-    3 0 785 797
-    4 0 797 810
-    5 0 810 818
-    6 0 818 830
-    7 0 830 840
-    8 0 840 847
-    9 0 847 851
-    10 0 851 849
-    11 0 849 845
-    12 0 845 836
-    13 0 836 828
-    14 0 828 815
-    15 0 815 807
-    16 0 807 793
-    17 0 793 780
-    18 0 780 766
-    19 0 766 757
-    20 0 757 741
-    21 0 741 730
-    22 0 730 722
-    23 0 722 714
-    24 0 714 709
-    25 0 709 707
-    26 0 707 710
-    27 0 710 719
-    28 0 719 723
-    29 0 723 735
-    30 0 735 748
-    31 0 748 761
 End Conditions
 
 Begin SubModelPart Parts_fluid // Group fluid // Subtree Parts
@@ -6454,37 +6423,6 @@ Begin SubModelPart NoSlip2D_cylinder // Group cylinder // Subtree NoSlip2D
     Begin SubModelPartElements
     End SubModelPartElements
     Begin SubModelPartConditions
-            1
-            2
-            3
-            4
-            5
-            6
-            7
-            8
-            9
-           10
-           11
-           12
-           13
-           14
-           15
-           16
-           17
-           18
-           19
-           20
-           21
-           22
-           23
-           24
-           25
-           26
-           27
-           28
-           29
-           30
-           31
     End SubModelPartConditions
 End SubModelPart
 Begin SubModelPart VelocityConstraints2D_inlet // Group inlet // Subtree VelocityConstraints2D
