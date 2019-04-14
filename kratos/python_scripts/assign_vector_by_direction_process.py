@@ -69,14 +69,13 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
         y_params = KratosMultiphysics.Parameters("{}")
         z_params = KratosMultiphysics.Parameters("{}")
 
-        list_directions = ["_X", "_Y", "_Z"]
         list_params = [x_params, y_params, z_params]
-        for i_dir in range(3):
+        for i_dir, dir in enumerate(["_X", "_Y", "_Z"]):
             list_params[i_dir].AddValue("model_part_name",settings["model_part_name"])
             list_params[i_dir].AddValue("mesh_id",settings["mesh_id"])
             list_params[i_dir].AddValue("constrained",settings["constrained"])
             list_params[i_dir].AddValue("interval",settings["interval"])
-            list_params[i_dir].AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + list_directions[i_dir])
+            list_params[i_dir].AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + dir)
             list_params[i_dir].AddValue("local_axes",settings["local_axes"])
 
         # "Automatic" direction: get the inwards direction

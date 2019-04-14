@@ -63,15 +63,14 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
 
         import assign_scalar_variable_to_entities_process
 
-        list_directions = ["_X", "_Y", "_Z"]
-        for i_dir in range(3):
+        for i_dir, dir in enumerate(["_X", "_Y", "_Z"]):
             if not settings["value"][i_dir].IsNull():
                 direction_params = KratosMultiphysics.Parameters("{}")
                 direction_params.AddValue("model_part_name",settings["model_part_name"])
                 direction_params.AddValue("mesh_id",settings["mesh_id"])
                 direction_params.AddValue("interval",settings["interval"])
                 direction_params.AddValue("value",settings["value"][i_dir])
-                direction_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + list_directions[i_dir])
+                direction_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + dir)
                 direction_params.AddValue("local_axes",settings["local_axes"])
                 direction_params.AddValue("entities",settings["entities"])
                 self.aux_processes.append( assign_scalar_variable_to_entities_process.AssignScalarVariableToEntitiesProcess(Model, direction_params) )
