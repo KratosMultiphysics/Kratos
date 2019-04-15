@@ -9,7 +9,7 @@ from KratosMultiphysics.DEMApplication import *
 
 from DEM_analysis_stage import DEMAnalysisStage
 import plot_variables                # Related to benchmarks in Chung, Ooi
-import DEM_benchmarks_class as DBC   # Related to benchmarks in Chung, Ooi
+import DEM_benchmarks_class as DBC
 
 sys.path.insert(0,'')
 start = timer.time()
@@ -22,6 +22,7 @@ listDEMFEM    = list(range(13,18))
 listCONT      = list(range(20,27))
 listDISclZHAO = [30,32]
 listDISclRK   = [31,33]
+listGeneric   = [40]
 
 def GetInputParameters():
     file_name = None
@@ -35,13 +36,12 @@ def GetInputParameters():
         file_name = "ProjectParametersDEMCONT.json"
     elif benchmark_number == 27:
         file_name = "ProjectParametersUCS.json"
-    #elif benchmark_number == 28:
-    #    import DEM_explicit_solver_var_PENDULO3D as DEM_parameters  #disappeared?
-    #    parameters_file = open("ProjectParametersDEM.json",'r')
     elif benchmark_number in listDISclZHAO:
         file_name = "ProjectParametersDISclZHAO.json"
     elif benchmark_number in listDISclRK:
         file_name = "ProjectParametersDISclRK.json"
+    elif benchmark_number in listGeneric:
+            file_name = "ProjectParametersDEMGeneric.json"
     else:
         Logger.PrintInfo("DEM",'Benchmark number does not exist')
         sys.exit()
@@ -51,76 +51,57 @@ def GetInputParameters():
 
     return parameters
 
+
+def partial_delete_archives():
+    from glob import glob
+
+    files_to_delete_list = glob('*.time')
+    files_to_delete_list.extend(glob('*.gp'))
+    files_to_delete_list.extend(glob('*.txt'))
+    files_to_delete_list.extend(glob('*.lst'))
+    files_to_delete_list.extend(glob('*.info'))
+    files_to_delete_list.extend(glob('*.hdf5'))
+
+    for to_erase_file in files_to_delete_list:
+        try:
+            os.remove(to_erase_file)
+        except OSError:
+            pass
+
+    # folders_to_delete_list      = glob('*Data')
+    # folders_to_delete_list.extend(glob('*ists'))
+    # folders_to_delete_list.extend(glob('*ults'))
+    # folders_to_delete_list.extend(glob('*he__'))
+    # folders_to_delete_list.extend(glob('*aphs'))
+    # folders_to_delete_list.extend(glob('*iles'))
+
+    # for to_erase_folder in folders_to_delete_list:
+    #     try:
+    #         shutil.rmtree(to_erase_folder)
+    #     except OSError:
+    #         pass
+
+
 class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
 
-    def GetInputParameters(self):
-        file_name = None
-        if benchmark_number in listDISCONT:
-            self.nodeplotter = True
-            file_name = "ProjectParametersDISCONT.json"
-        elif benchmark_number in listROLLFR:
-            file_name = "ProjectParametersROLLFR.json"
-        elif benchmark_number in listDEMFEM:
-            file_name = "ProjectParametersDEMFEM.json"
-        elif benchmark_number in listCONT:
-            file_name = "ProjectParametersDEMCONT.json"
-        elif benchmark_number == 27:
-            file_name = "ProjectParametersUCS.json"
-        #elif benchmark_number == 28:
-        #    import DEM_explicit_solver_var_PENDULO3D as DEM_parameters  #disappeared?
-        #    parameters_file = open("ProjectParametersDEM.json",'r')
-        elif benchmark_number in listDISclZHAO:
-            file_name = "ProjectParametersDISclZHAO.json"
-        elif benchmark_number in listDISclRK:
-            file_name = "ProjectParametersDISclRK.json"
-        else:
-            Logger.PrintInfo("DEM",'Benchmark number does not exist')
-            sys.exit()
-
-        with open(file_name, 'r') as parameters_file:
-            parameters = Parameters(parameters_file.read())
-
-        return parameters
-
-
-    def __init__(self, model, parameters):
-        self.LoadParametersFile()
-        super(DEMBenchamarksAnalysisStage, self).__init__(model, parameters)
+    def __init__(self, model, DEM_parameters):
+        self.DEM_parameters = DEM_parameters
+        self.project_parameters = DEM_parameters
+        default_input_parameters = self.GetDefaultInputParameters()
+        self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters)
+        self.FixParametersInconsistencies()
         self.main_path = os.getcwd()
         self.nodeplotter = False
+        if benchmark_number in listDISCONT:
+            self.nodeplotter = True
+
+        super(DEMBenchamarksAnalysisStage, self).__init__(model, DEM_parameters)
 
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ModelPartIO(modelpart)
 
-    def SetSolverStrategy(self):
-        # Strategy object
-        element_type = self.DEM_parameters["ElementType"].GetString()
-        if (element_type == "SphericPartDEMElement3D" or element_type == "CylinderPartDEMElement2D"):
-            import sphere_strategy as SolverStrategy
-        elif (element_type == "SphericContPartDEMElement3D" or element_type == "CylinderContPartDEMElement2D"):
-            import continuum_sphere_strategy as SolverStrategy
-        elif (element_type == "ThermalSphericContPartDEMElement3D"):
-            import thermal_continuum_sphere_strategy as SolverStrategy
-        elif (element_type == "ThermalSphericPartDEMElement3D"):
-            import thermal_sphere_strategy as SolverStrategy
-        elif (element_type == "SinteringSphericConPartDEMElement3D"):
-            import thermal_continuum_sphere_strategy as SolverStrategy
-        elif (element_type == "IceContPartDEMElement3D"):
-            import ice_continuum_sphere_strategy as SolverStrategy
-        else:
-            self.KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
-
-        return SolverStrategy
-
-    def SetSolver(self):
-        return self.solver_strategy.ExplicitStrategy(self.all_model_parts,
-                                                     self.creator_destructor,
-                                                     self.dem_fem_search,
-                                                     self.DEM_parameters,
-                                                     self.procedures)
-
     def SetDt(self):
-        self.solver.dt = dt
+        self._GetSolver().dt = dt
 
     def Initialize(self):
         self.DEM_parameters["problem_name"].SetString('benchmark' + str(benchmark_number))
@@ -144,8 +125,10 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
         return 'benchmark' + str(benchmark_number) + "DEM"
 
     def GetInletFilename(self):
-        return 'benchmarkDEM_Inlet'
-        #return 'benchmark' + str(benchmark_number) + "DEM_Inlet"
+        if benchmark_number == 40:
+            return 'benchmark' + str(benchmark_number) + "DEM_Inlet"
+        else:
+            return 'benchmarkDEM_Inlet'
 
     def GetFemFilename(self):
         return 'benchmark' + str(benchmark_number) + "DEM_FEM_boundary"
@@ -158,12 +141,12 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
 
     def _BeforeSolveOperations(self, time):
         super(DEMBenchamarksAnalysisStage, self)._BeforeSolveOperations(time)
-        benchmark.ApplyNodalRotation(time, self.solver.dt, self.spheres_model_part)
+        benchmark.ApplyNodalRotation(time, self._GetSolver().dt, self.spheres_model_part)
 
     def BeforePrintingOperations(self, time):
         super(DEMBenchamarksAnalysisStage, self).BeforePrintingOperations(time)
         self.SetDt()
-        benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.graph_print_interval, self.solver.dt)
+        benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.graph_print_interval, self._GetSolver().dt)
 
     def Finalize(self):
         benchmark.get_final_data(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part)
@@ -184,9 +167,7 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
 
     def CleanUpOperations(self):
         Logger.PrintInfo("DEM","running CleanUpOperations")
-        #DBC.delete_archives() #.......Removing some unuseful files
         super(DEMBenchamarksAnalysisStage, self).CleanUpOperations()
-
 
 end_time, dt, graph_print_interval, number_of_points_in_the_graphic, number_of_coeffs_of_restitution = DBC.initialize_time_parameters(benchmark_number)
 for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution + 1):
@@ -196,7 +177,6 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         slt = DEMBenchamarksAnalysisStage(model, parameters)
         slt.iteration = iteration
         slt.dt = dt
-
         slt.graph_print_interval = graph_print_interval
         slt.number_of_points_in_the_graphic = number_of_points_in_the_graphic
         slt.number_of_coeffs_of_restitution = number_of_coeffs_of_restitution
@@ -207,4 +187,6 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         del slt
     end = timer.time()
     benchmark.print_results(number_of_points_in_the_graphic, dt, elapsed_time = end - start)
-#DBC.delete_archives() #.......Removing some unuseful files
+    partial_delete_archives()
+
+

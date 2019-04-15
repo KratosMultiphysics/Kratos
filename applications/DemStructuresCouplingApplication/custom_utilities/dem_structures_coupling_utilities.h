@@ -28,6 +28,7 @@
 #include "includes/model_part.h"
 #include "../../DEMApplication/custom_conditions/RigidFace.h"
 #include "../../DEMApplication/DEM_application_variables.h"
+#include "dem_structures_coupling_application_variables.h"
 
 
 namespace Kratos
@@ -69,7 +70,7 @@ void TransferStructuresSkinToDem(ModelPart& r_source_model_part, ModelPart& r_de
         Geometry< Node<3> >::Pointer p_geometry =  it->pGetGeometry();
         Condition::Pointer cond = Condition::Pointer(new RigidFace3D(id, p_geometry, props));
         cond->Set(DEMFlags::STICKY, true);
-        r_destination_model_part.AddCondition(cond);
+        r_destination_model_part.AddCondition(cond); //TODO: add all of them in a single sentence! AddConditions. Use a temporary PointerVector as a list (not std::vector!).
         id++;
     }
 
@@ -78,7 +79,7 @@ void TransferStructuresSkinToDem(ModelPart& r_source_model_part, ModelPart& r_de
 }
 
 std::string CheckProvidedProperties(Properties::Pointer props) {
-    std::vector<Variable<double> > list_of_variables_double_to_check = {WALL_FRICTION, WALL_COHESION, SEVERITY_OF_WEAR, IMPACT_WEAR_SEVERITY, BRINELL_HARDNESS, YOUNG_MODULUS, POISSON_RATIO};
+    std::vector<Variable<double> > list_of_variables_double_to_check = {FRICTION, WALL_COHESION, SEVERITY_OF_WEAR, IMPACT_WEAR_SEVERITY, BRINELL_HARDNESS, YOUNG_MODULUS, POISSON_RATIO};
     std::vector<Variable<bool> > list_of_variables_bool_to_check = {COMPUTE_WEAR};
     for (int i=0; i<(int)list_of_variables_double_to_check.size(); i++) {
         if(!props->Has(list_of_variables_double_to_check[i])) return list_of_variables_double_to_check[i].Name();
@@ -87,7 +88,18 @@ std::string CheckProvidedProperties(Properties::Pointer props) {
         if(!props->Has(list_of_variables_bool_to_check[i])) return list_of_variables_bool_to_check[i].Name();
     }
     return "all_ok";
-  }
+}
+
+void SmoothLoadTrasferredToFem(ModelPart& r_model_part, const double portion_of_the_force_which_is_new) {
+    #pragma omp parallel for
+    for (int i=0; i<(int)r_model_part.Nodes().size(); i++) {
+        auto node_it = r_model_part.NodesBegin() + i;
+        array_1d<double, 3> averaged_force;
+        array_1d<double, 3>& node_dem_load = node_it->FastGetSolutionStepValue(DEM_SURFACE_LOAD);
+        noalias(averaged_force) = portion_of_the_force_which_is_new * node_dem_load + (1.0 - portion_of_the_force_which_is_new) * node_it->FastGetSolutionStepValue(DEM_SURFACE_LOAD, 1);
+        noalias(node_dem_load) = averaged_force;
+    }
+}
 
 //***************************************************************************************************************
 //***************************************************************************************************************

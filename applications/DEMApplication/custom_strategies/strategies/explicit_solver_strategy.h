@@ -114,15 +114,15 @@ namespace Kratos {
                                 ParticleCreatorDestructor::Pointer p_creator_destructor,
                                 DEM_FEM_Search::Pointer p_dem_fem_search,
                                 SpatialSearch::Pointer pSpSearch,
-                                Parameters strategy_parameters,
-                                const bool do_search_balls = true) {
+                                Parameters strategy_parameters) {
 
             mParameters = strategy_parameters;
             mDeltaOption = delta_option;
             mpParticleCreatorDestructor = p_creator_destructor;
             mpDemFemSearch = p_dem_fem_search;
             mpSpSearch = pSpSearch;
-            mDoSearchNeighbourElements = do_search_balls;
+            if(mParameters["do_search_neighbours"].GetBool()) mDoSearchNeighbourElements = true;
+            else mDoSearchNeighbourElements = false;
             p_creator_destructor->SetDoSearchNeighbourElements(mDoSearchNeighbourElements);
             mMaxTimeStep = max_delta_time;
             mNStepSearch = n_step_search;
@@ -277,12 +277,12 @@ namespace Kratos {
         double& GetMaxTimeStep() { return (mMaxTimeStep);}
         double& GetSafetyFactor() { return (mSafetyFactor);}
         int& GetDeltaOption() { return (mDeltaOption);}
-        DenseVector<unsigned int>& GetElementPartition() { return (mElementPartition);}
+        std::vector<unsigned int>& GetElementPartition() { return (mElementPartition);}
         ParticleCreatorDestructor::Pointer& GetParticleCreatorDestructor() { return (mpParticleCreatorDestructor);}
         SpatialSearch::Pointer& GetSpSearch() { return (mpSpSearch);}
         VectorResultConditionsContainerType& GetRigidFaceResults() { return (mRigidFaceResults);}
         VectorDistanceType& GetRigidFaceResultsDistances() { return (mRigidFaceResultsDistances);}
-        DenseVector<unsigned int>& GetConditionPartition() { return (mConditionPartition);}
+        std::vector<unsigned int>& GetConditionPartition() { return (mConditionPartition);}
         DEM_FEM_Search::Pointer& GetDemFemSearch() { return (mpDemFemSearch);}
         virtual ElementsArrayType& GetElements(ModelPart& r_model_part) { return r_model_part.GetCommunicator().LocalMesh().Elements();}
         virtual ElementsArrayType& GetAllElements(ModelPart& r_model_part) {
@@ -302,14 +302,14 @@ namespace Kratos {
         double mMaxTimeStep;
         double mSafetyFactor;
         int mDeltaOption;
-        DenseVector<unsigned int> mElementPartition;
+        std::vector<unsigned int> mElementPartition;
         ParticleCreatorDestructor::Pointer mpParticleCreatorDestructor;
         DEM_FEM_Search::Pointer mpDemFemSearch;
         SpatialSearch::Pointer mpSpSearch;
         bool mDoSearchNeighbourElements;
         VectorResultConditionsContainerType mRigidFaceResults;
         VectorDistanceType mRigidFaceResultsDistances;
-        DenseVector<unsigned int> mConditionPartition;
+        std::vector<unsigned int> mConditionPartition;
         ModelPart *mpFem_model_part;
         ModelPart *mpDem_model_part;
         ModelPart *mpInlet_model_part;

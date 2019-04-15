@@ -57,8 +57,7 @@
                         "verbosity"           : 1
                     },
                     "compute_reactions"     : false
-                },
-                "boundary_conditions_process_list" : []
+                }
             }
         },
         "objectives" : [{

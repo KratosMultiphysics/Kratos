@@ -22,7 +22,7 @@ except ImportError as e:
 ##### SELF-CONTAINED TESTS #####
 from source_term_test import SourceTermTest
 from thermal_coupling_test import ThermalCouplingTest
-from test_apply_thermal_interface_process import ApplyThermalInterfaceProcessTest
+from test_apply_thermal_face_process import ApplyThermalFaceProcessTest
 
 ##### SMALL TESTS #####
 from convection_diffusion_test_factory import BasicConvectionDiffusionStationaryTest as TBasicConvectionDiffusionStationaryTest
@@ -55,7 +55,7 @@ def AssembleTestSuites():
     smallSuite.addTest(SourceTermTest('testConvectionDominated'))
     smallSuite.addTest(SourceTermTest('testReaction'))
     smallSuite.addTest(ThermalCouplingTest('testDirichletNeumann'))
-    smallSuite.addTest(ApplyThermalInterfaceProcessTest('testThermalInterfaceProcess'))
+    smallSuite.addTest(ApplyThermalFaceProcessTest('testThermalFaceProcess'))
 
     ### Adding Small Tests
     smallSuite.addTest(TBasicConvectionDiffusionStationaryTest('test_execution'))

@@ -1985,7 +1985,7 @@ Begin Elements SmallDisplacementElement3D8N
        750          0       1201       1177       1178       1202       1203       1179       1180       1204
 End Elements
 
-Begin Conditions ShapeOptimizationCondition3D4N
+Begin Conditions SurfaceCondition3D4N
     1 0 1203 1201 1177 1179
     2 0 1200 1196 1220 1224
     3 0 1176 1172 1196 1200
