@@ -90,6 +90,13 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
                     "higher_bounding_box_coefficient" : 1.0
                 }
             },
+            "advance_explicit_parameters"  : {
+                "manual_max_gap_theshold"  : false,
+                "automatic_gap_factor"     : 1.0e-1,
+                "max_gap_threshold"        : 5.0e-2,
+                "max_gap_factor"           : 1.0e2,
+                "logistic_exponent_factor" : 6.0
+            },
             "advance_ALM_parameters" : {
                 "manual_ALM"                  : false,
                 "stiffness_factor"            : 1.0,
@@ -171,11 +178,6 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
 
         # We call to the base process
         super(ALMContactProcess, self).ExecuteInitializeSolutionStep()
-
-        # Before computing we reset the flags of slip
-        if self._get_if_is_interval():
-            if self.is_frictional:
-                KM.VariableUtils().SetFlag(KM.SLIP, False, self._get_process_model_part().Nodes)
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
