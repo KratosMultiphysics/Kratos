@@ -1,0 +1,13 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 1.0,
+        "print_colors" : true
+    },
+    "solver_settings" :
+    {
+        "solver_type" : "kratos_potential_flow",
+        "input_file"  : "ProjectParametersPotentialFlow"
+    }
+}
