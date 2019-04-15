@@ -33,10 +33,6 @@ namespace Python
   {
     namespace py = pybind11;
 
-    //~ typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    //~ typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    //~ typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
     py::class_< MoveShallowWaterParticleUtility<2> > (m, "MoveShallowWaterParticleUtility")
         .def(py::init<ModelPart& , Parameters >())
         .def("MountBin", &MoveShallowWaterParticleUtility<2>::MountBin)
