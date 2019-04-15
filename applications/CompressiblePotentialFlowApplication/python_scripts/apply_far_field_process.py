@@ -1,6 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.CompressiblePotentialFlowApplication as CompressiblePotentialFlowApplication
-#from CompressiblePotentialFlowApplication import*
+import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
@@ -17,27 +16,30 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
                 "inlet_phi": 1.0,
-                "velocity_infinity": [1.0,0.0,0]
+                "velocity_infinity": [1.0,0.0,0],
+                "initialize_flow_field": true
             }  """ );
 
 
         settings.ValidateAndAssignDefaults(default_parameters);
 
         self.model_part = Model[settings["model_part_name"].GetString()]
+        self.fluid_model_part = self.model_part.GetRootModelPart()
         self.velocity_infinity = KratosMultiphysics.Vector(3)#array('d', [1.0, 2.0, 3.14])#np.array([0,0,0])#np.zeros(3)#vector(3)
         self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
         self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         #self.density_infinity = settings["density_infinity"].GetDouble() #TODO: must read this from the properties
-        self.inlet_phi = settings["inlet_phi"].GetDouble()
-        self.model_part.ProcessInfo.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY,self.velocity_infinity)
+        self.inlet_potential = settings["inlet_phi"].GetDouble()
+        self.model_part.ProcessInfo.SetValue(CPFApp.VELOCITY_INFINITY,self.velocity_infinity)
+        self.initialize_flow_field = settings["initialize_flow_field"].GetBool()
 
 
 
     def Execute(self):
-        #KratosMultiphysics.VariableUtils().SetVectorVar(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity, self.model_part.Conditions)
+        #KratosMultiphysics.VariableUtils().SetVectorVar(CPFApp.VELOCITY_INFINITY, self.velocity_infinity, self.model_part.Conditions)
         for cond in self.model_part.Conditions:
-            cond.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity)
+            cond.SetValue(CPFApp.VELOCITY_INFINITY, self.velocity_infinity)
 
         #select the first node
         for node in self.model_part.Nodes:
@@ -59,6 +61,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
 
             if(tmp < pos):
                 pos = tmp
+                self.reference_inlet_node = node
 
         for node in self.model_part.Nodes:
             dx = node.X - x0
@@ -68,11 +71,22 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             tmp = dx*self.velocity_infinity[0] + dy*self.velocity_infinity[1] + dz*self.velocity_infinity[2]
 
             if(tmp < pos+1e-9):
-                node.Fix(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL)
-                node.SetSolutionStepValue(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL,0,self.inlet_phi)
-                if self.model_part.HasNodalSolutionStepVariable(CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL):
-                    node.Fix(CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL)
-                    node.SetSolutionStepValue(CompressiblePotentialFlowApplication.ADJOINT_VELOCITY_POTENTIAL,0,0.0)
+                node.Fix(CPFApp.VELOCITY_POTENTIAL)
+                node.SetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL,0,self.inlet_potential)
+                if self.model_part.HasNodalSolutionStepVariable(CPFApp.ADJOINT_VELOCITY_POTENTIAL):
+                    node.Fix(CPFApp.ADJOINT_VELOCITY_POTENTIAL)
+                    node.SetSolutionStepValue(CPFApp.ADJOINT_VELOCITY_POTENTIAL,0,0.0)
+
+        if(self.initialize_flow_field):
+            for node in self.fluid_model_part.Nodes:
+                # Computing distance to reference
+                dx = node.X - self.reference_inlet_node.X
+                dy = node.Y - self.reference_inlet_node.Y
+                dz = node.Z - self.reference_inlet_node.Z
+
+                initial_potential = dx*self.velocity_infinity[0] + dy*self.velocity_infinity[1] + dz*self.velocity_infinity[2]
+                node.SetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL,0,initial_potential + self.inlet_potential)
+                node.SetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL,0,initial_potential + self.inlet_potential)
 
     def ExecuteInitializeSolutionStep(self):
         self.Execute()
