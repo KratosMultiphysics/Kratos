@@ -10,27 +10,20 @@
 //
 
 // System includes
-#include <iostream>
+
 // External includes
 
 // Project includes
 //#include "includes/gid_io.h"
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 #include "includes/linear_master_slave_constraint.h"
 #include "custom_conditions/line_load_condition_2d.h"
 #include "utilities/variable_utils.h"
-// Linear solvers
 #include "linear_solvers/skyline_lu_factorization_solver.h"
-// The scheme
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-// The criteria (residual criteria)
-#include "solving_strategies/convergencecriterias/residual_criteria.h"
-// The builder and solvers
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-// The Solving Strategy
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 
 namespace Kratos {
@@ -114,7 +107,6 @@ KRATOS_TEST_CASE_IN_SUITE(PatchTestMPCPlateTension, KratosStructuralMechanicsFas
     p_strategy->Solve();
     //Output to GID
     // GidIO<> gid_io("TEST_MPC_Plate_Tension", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
-    // const int nl_iter = model_part.GetProcessInfo()[NL_ITERATION_NUMBER];
     // const double label = static_cast<double>(nl_iter);
     // gid_io.InitializeMesh(label);
     // gid_io.WriteMesh(model_part.GetMesh());
