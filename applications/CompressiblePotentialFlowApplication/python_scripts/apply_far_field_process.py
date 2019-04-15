@@ -3,8 +3,8 @@ import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 
 def DotProduct(A,B):
     result = 0
-    for i in range(len(A)):
-        result += A[i]*B[i]
+    for i,j in zip(A,B):
+        result += i*j
     return result
 
 def Factory(settings, Model):
