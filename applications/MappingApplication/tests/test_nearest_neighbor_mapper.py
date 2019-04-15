@@ -2,9 +2,9 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
-import basic_mapper_tests_new
+import basic_mapper_tests
 
-class NearestNeighborBasicTestsLine(basic_mapper_tests_new.BasicMapperTests):
+class NearestNeighborBasicTestsLine(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
@@ -15,7 +15,7 @@ class NearestNeighborBasicTestsLine(basic_mapper_tests_new.BasicMapperTests):
         }""")
         super(NearestNeighborBasicTestsLine, cls).setUpClass(mapper_params)
 
-class NearestNeighborBasicTestsLineSwitchedSides(basic_mapper_tests_new.BasicMapperTests):
+class NearestNeighborBasicTestsLineSwitchedSides(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
@@ -26,7 +26,7 @@ class NearestNeighborBasicTestsLineSwitchedSides(basic_mapper_tests_new.BasicMap
         }""")
         super(NearestNeighborBasicTestsLineSwitchedSides, cls).setUpClass(mapper_params, switch_sides=True)
 
-class NearestNeighborBasicTestsSurface(basic_mapper_tests_new.BasicMapperTests):
+class NearestNeighborBasicTestsSurface(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
@@ -37,7 +37,7 @@ class NearestNeighborBasicTestsSurface(basic_mapper_tests_new.BasicMapperTests):
         }""")
         super(NearestNeighborBasicTestsSurface, cls).setUpClass(mapper_params)
 
-class NearestNeighborBasicTestsSurfaceSwitchedSides(basic_mapper_tests_new.BasicMapperTests):
+class NearestNeighborBasicTestsSurfaceSwitchedSides(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
@@ -48,7 +48,7 @@ class NearestNeighborBasicTestsSurfaceSwitchedSides(basic_mapper_tests_new.Basic
         }""")
         super(NearestNeighborBasicTestsSurfaceSwitchedSides, cls).setUpClass(mapper_params, switch_sides=True)
 
-class NearestNeighborBasicTestsVolume(basic_mapper_tests_new.BasicMapperTests):
+class NearestNeighborBasicTestsVolume(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
@@ -57,7 +57,7 @@ class NearestNeighborBasicTestsVolume(basic_mapper_tests_new.BasicMapperTests):
         }""")
         super(NearestNeighborBasicTestsVolume, cls).setUpClass(mapper_params)
 
-class NearestNeighborBasicTestsVolumeSwitchedSides(basic_mapper_tests_new.BasicMapperTests):
+class NearestNeighborBasicTestsVolumeSwitchedSides(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
