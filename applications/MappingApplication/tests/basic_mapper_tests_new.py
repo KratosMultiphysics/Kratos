@@ -6,7 +6,7 @@ data_comm = KM.DataCommunicator.GetDefault()
 import mapper_test_case
 from KratosMultiphysics import from_json_check_result_process
 from KratosMultiphysics import json_output_process
-from math import sin
+from math import sin, cos
 import os
 
 class BasicMapperTests(mapper_test_case.MapperTestCase):
@@ -71,19 +71,24 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self._CheckHistoricalUniformValuesVector(GetNodes(self.interface_model_part_origin), KM.FORCE, val)
 
     def test_Map_non_constant_scalar(self):
-        file_name = os.path.join("result_files", self.mapper_type, self.__class__.__name__ + "_map_scalar")
         SetHistoricalNonUniformSolutionScalar(self.interface_model_part_origin.Nodes, KM.PRESSURE)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE)
-        CheckHistoricalNonUniformValuesScalar(self.interface_model_part_destination, KM.TEMPERATURE, file_name)
+        CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.TEMPERATURE, self.__GetFileName("map_scalar"))
 
     def test_InverseMap_non_constant_scalar(self):
-        pass
+        SetHistoricalNonUniformSolutionScalar(self.interface_model_part_destination.Nodes, KM.TEMPERATURE)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE)
+        CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.PRESSURE, self.__GetFileName("inverse_map_scalar"))
 
     def test_Map_non_constant_vector(self):
-        pass
+        SetHistoricalNonUniformSolutionVector(self.interface_model_part_origin.Nodes, KM.FORCE)
+        self.mapper.Map(KM.FORCE, KM.VELOCITY)
+        CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.VELOCITY, self.__GetFileName("map_vector"))
 
     def test_InverseMap_non_constant_vector(self):
-        pass
+        SetHistoricalNonUniformSolutionVector(self.interface_model_part_destination.Nodes, KM.VELOCITY)
+        self.mapper.InverseMap(KM.FORCE, KM.VELOCITY)
+        CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.FORCE, self.__GetFileName("inverse_map_vector"))
 
     def test_SWAP_SIGN_Map_scalar(self):
         val = 1.234
@@ -235,10 +240,20 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
             self.assertAlmostEqual(val[1], exp_value[1])
             self.assertAlmostEqual(val[2], exp_value[2])
 
+    def __GetFileName(self, file_appendix):
+        return os.path.join("result_files", self.mapper_type, self.__class__.__name__ + "_" + file_appendix)
+
 def SetHistoricalNonUniformSolutionScalar(nodes, variable):
     for node in nodes:
-        val = 12*sin(node.X0) + node.Y0*15 + 22*node.Z0**1.1
+        val = 12*sin(node.X0) + node.Y0*15 + 22*node.Z0
         node.SetSolutionStepValue(variable, val)
+
+def SetHistoricalNonUniformSolutionVector(nodes, variable):
+    for node in nodes:
+        val_1 = 12*sin(node.X0) + node.Y0*15 + 22*node.Z0
+        val_2 = 33*cos(node.X0) + node.Y0*5 + 22*node.Z0
+        val_3 = 12*sin(node.Y0) + node.Z0*15 + 22*node.X0
+        node.SetSolutionStepValue(variable, KM.Vector([val_1, val_2, val_3]))
 
 def OutputReferenceSolution(model_part, variable, file_name):
     output_parameters = KM.Parameters("""{
@@ -254,8 +269,10 @@ def OutputReferenceSolution(model_part, variable, file_name):
     output_proc.ExecuteBeforeSolutionLoop()
     output_proc.ExecuteFinalizeSolutionStep()
 
-def CheckHistoricalNonUniformValuesScalar(model_part, variable, file_name, output_reference_solution=False):
+def CheckHistoricalNonUniformValues(model_part, variable, file_name, output_reference_solution=False):
     if output_reference_solution:
+        if data_comm.IsDistributed():
+            raise Exception("Writing of reference results in not possible in MPI!")
         KM.Logger.PrintWarning('MapperTest', 'Writing reference solution for ModelPart "{}"; Variable "{}"; FileName "{}"'.format(model_part.Name, variable.Name(), file_name))
         OutputReferenceSolution(model_part, variable, file_name)
     else:
