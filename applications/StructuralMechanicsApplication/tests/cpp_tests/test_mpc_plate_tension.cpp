@@ -20,13 +20,9 @@
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 #include "includes/linear_master_slave_constraint.h"
-#include "structural_mechanics_application.h"
-#include "custom_constitutive/linear_plane_strain.h"
+#include "custom_conditions/line_load_condition_2d.h"
 #include "utilities/variable_utils.h"
 // Linear solvers
-#include "linear_solvers/reorderer.h"
-#include "linear_solvers/direct_solver.h"
-#include "linear_solvers/linear_solver.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
 // The scheme
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
@@ -40,8 +36,6 @@
 namespace Kratos {
 namespace Testing {
 
-typedef Node<3> NodeType;
-typedef Geometry<NodeType> GeometryType;
 typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 typedef LinearSolver<SparseSpaceType,LocalSpaceType> LinearSolverType;
@@ -51,7 +45,6 @@ typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, Lin
 typedef Scheme< SparseSpaceType, LocalSpaceType >  SchemeType;
 typedef ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType> ResidualBasedIncrementalUpdateStaticSchemeType;
 typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
-typedef ResidualCriteria< SparseSpaceType, LocalSpaceType > ResidualCriteriaType;
 typedef ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedLinearStrategyType;
 
 KRATOS_TEST_CASE_IN_SUITE(PatchTestMPCPlateTension, KratosStructuralMechanicsFastSuite)
@@ -66,7 +59,6 @@ KRATOS_TEST_CASE_IN_SUITE(PatchTestMPCPlateTension, KratosStructuralMechanicsFas
     p_Properties->SetValue(YOUNG_MODULUS, 210e3);
     p_Properties->SetValue(POISSON_RATIO, 0.3);
     p_Properties->SetValue(DENSITY, 1.0);
-    p_Properties->SetValue(THICKNESS, 1.0);
     auto p_constitutive_law = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw").Clone();
     p_Properties->SetValue(CONSTITUTIVE_LAW,p_constitutive_law);
     //Create Nodes
@@ -85,18 +77,6 @@ KRATOS_TEST_CASE_IN_SUITE(PatchTestMPCPlateTension, KratosStructuralMechanicsFas
     //Add DOF
     VariableUtils().AddDofWithReaction(DISPLACEMENT_X, REACTION_X, model_part);
     VariableUtils().AddDofWithReaction(DISPLACEMENT_Y, REACTION_Y, model_part);
-    // Initialize elements
-    auto& r_process_info = model_part.GetProcessInfo();
-    for (auto& elem : model_part.Elements())
-    {
-        elem.Initialize();
-        elem.InitializeSolutionStep(r_process_info);
-    }
-    // Set initial solution
-    for (auto& node : model_part.Nodes())
-    {
-        (node.FastGetSolutionStepValue(DISPLACEMENT)).clear();
-    }
     //Apply BC
     pnode1->Fix(DISPLACEMENT_X);
     pnode1->Fix(DISPLACEMENT_Y);
@@ -123,13 +103,13 @@ KRATOS_TEST_CASE_IN_SUITE(PatchTestMPCPlateTension, KratosStructuralMechanicsFas
     relation_matrix(0,1) = 0.5;
     relation_matrix(1,2) = 0.5;
     relation_matrix(1,3) = 0.5;
-    Vector constant_vector = ZeroVector(1);
+    Vector constant_vector = ZeroVector(2);
     model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, master_dofs, slave_dofs, relation_matrix, constant_vector);
     //Setting up System
-    SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
-    LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
-    BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver) );
-    SolvingStrategyType::Pointer p_strategy = SolvingStrategyType::Pointer( new ResidualBasedLinearStrategyType(model_part, p_scheme, p_solver, p_builder_and_solver, true));
+    SchemeType::Pointer p_scheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticSchemeType>();
+    LinearSolverType::Pointer p_solver = Kratos::make_shared<SkylineLUFactorizationSolverType>();
+    BuilderAndSolverType::Pointer p_builder_and_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolverType>(p_solver);
+    SolvingStrategyType::Pointer p_strategy = Kratos::make_shared<ResidualBasedLinearStrategyType>(model_part, p_scheme, p_solver, p_builder_and_solver, true);
     p_strategy->SetEchoLevel(0);
     p_strategy->Solve();
     //Output to GID
