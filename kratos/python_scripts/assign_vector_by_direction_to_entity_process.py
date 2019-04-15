@@ -20,6 +20,13 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
     settings -- Kratos parameters containing solver settings.
     """
     def __init__(self, Model, settings ):
+        """ The default constructor of the class
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        Model -- the container of the different model parts.
+        settings -- Kratos parameters containing solver settings.
+        """
         KratosMultiphysics.Process.__init__(self)
 
         # The value can be a double or a string (function)
