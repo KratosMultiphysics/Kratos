@@ -1221,7 +1221,7 @@ namespace Kratos {
         }
     }
 
-  //////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
 
     inline bool  IsIntersected(typename cell_type::pointer_type rObject, double Tolerance, const double* rLowPoint, const double* rHighPoint)
     {
@@ -1340,10 +1340,12 @@ namespace Kratos {
         return int_id;
     }
 
-    inline bool TriBoxOverlap( Point& boxcenter, Point& boxhalfsize, std::vector< Point >& triverts )
+    inline bool TriBoxOverlap(
+        Point& rBoxCenter,
+        Point& rBoxHalfSize,
+        std::vector< Point >& rTriangleVertex
+        )
     {
-        // NOTE: This may be possible to replace with HasIntersection from triangle_3d_3.h
-
         /*    use separating axis theorem to test overlap between triangle and box */
         /*    need to test for overlap in these directions: */
         /*    1) the {x,y,z}-directions (actually, since we use the AABB of the triangle */
