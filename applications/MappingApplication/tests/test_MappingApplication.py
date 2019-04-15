@@ -11,10 +11,6 @@ import run_cpp_unit_tests
 import test_nearest_neighbor_mapper
 import test_nearest_element_mapper
 
-from SmallTests import NearestNeighborTest_1 as TNearestNeighborTest_1
-from SmallTests import NearestElementTest2D_1 as TNearestElementTest2D_1
-from SmallTests import MapperTests as TMapperTests
-from test_mapper_tests import MapperTests
 from test_patch_test_mappers import TestPatchTestMappers
 
 def AssembleTestSuites():
@@ -35,10 +31,6 @@ def AssembleTestSuites():
     # Create a test suit with the selected tests (Small tests):
     # smallSuite will contain the following tests:
     smallSuite = suites['small']
-    smallSuite.addTest(TNearestNeighborTest_1('test_execution'))
-    smallSuite.addTest(TNearestElementTest2D_1('test_execution'))
-    smallSuite.addTest(TMapperTests('test_execution'))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MapperTests]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPatchTestMappers]))
 
     # Create a test suit with the selected tests
