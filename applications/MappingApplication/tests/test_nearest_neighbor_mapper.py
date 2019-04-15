@@ -9,8 +9,8 @@ class NearestNeighborBasicTestsLine(basic_mapper_tests.BasicMapperTests):
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_neighbor",
-            "interface_submodel_part_origin": "LineLoad3D_mapping_line_tri",
-            "interface_submodel_part_destination": "LineLoad3D_mapping_line_quad",
+            "interface_submodel_part_origin": "line_tri",
+            "interface_submodel_part_destination": "line_quad",
             "echo_level" : 0
         }""")
         super(NearestNeighborBasicTestsLine, cls).setUpClass(mapper_params)
@@ -20,8 +20,8 @@ class NearestNeighborBasicTestsLineSwitchedSides(basic_mapper_tests.BasicMapperT
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_neighbor",
-            "interface_submodel_part_origin": "LineLoad3D_mapping_line_quad",
-            "interface_submodel_part_destination": "LineLoad3D_mapping_line_tri",
+            "interface_submodel_part_origin": "line_quad",
+            "interface_submodel_part_destination": "line_tri",
             "echo_level" : 0
         }""")
         super(NearestNeighborBasicTestsLineSwitchedSides, cls).setUpClass(mapper_params, switch_sides=True)
@@ -31,8 +31,8 @@ class NearestNeighborBasicTestsSurface(basic_mapper_tests.BasicMapperTests):
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_neighbor",
-            "interface_submodel_part_origin": "SurfaceLoad3D_mapping_surface_tri",
-            "interface_submodel_part_destination": "SurfaceLoad3D_mapping_surface_quad",
+            "interface_submodel_part_origin": "surface_tri",
+            "interface_submodel_part_destination": "surface_quad",
             "echo_level" : 0
         }""")
         super(NearestNeighborBasicTestsSurface, cls).setUpClass(mapper_params)
@@ -42,8 +42,8 @@ class NearestNeighborBasicTestsSurfaceSwitchedSides(basic_mapper_tests.BasicMapp
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_neighbor",
-            "interface_submodel_part_origin": "SurfaceLoad3D_mapping_surface_quad",
-            "interface_submodel_part_destination": "SurfaceLoad3D_mapping_surface_tri",
+            "interface_submodel_part_origin": "surface_quad",
+            "interface_submodel_part_destination": "surface_tri",
             "echo_level" : 0
         }""")
         super(NearestNeighborBasicTestsSurfaceSwitchedSides, cls).setUpClass(mapper_params, switch_sides=True)

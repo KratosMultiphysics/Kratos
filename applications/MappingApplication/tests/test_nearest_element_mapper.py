@@ -9,8 +9,8 @@ class NearestElementBasicTestsLine(basic_mapper_tests.BasicMapperTests):
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_element",
-            "interface_submodel_part_origin": "LineLoad3D_mapping_line_tri",
-            "interface_submodel_part_destination": "LineLoad3D_mapping_line_quad",
+            "interface_submodel_part_origin": "line_tri",
+            "interface_submodel_part_destination": "line_quad",
             "echo_level" : 0
         }""")
         super(NearestElementBasicTestsLine, cls).setUpClass(mapper_params)
@@ -20,8 +20,8 @@ class NearestElementBasicTestsLineSwitchedSides(basic_mapper_tests.BasicMapperTe
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_element",
-            "interface_submodel_part_origin": "LineLoad3D_mapping_line_quad",
-            "interface_submodel_part_destination": "LineLoad3D_mapping_line_tri",
+            "interface_submodel_part_origin": "line_quad",
+            "interface_submodel_part_destination": "line_tri",
             "echo_level" : 0
         }""")
         super(NearestElementBasicTestsLineSwitchedSides, cls).setUpClass(mapper_params, switch_sides=True)
@@ -31,8 +31,8 @@ class NearestElementBasicTestsSurface(basic_mapper_tests.BasicMapperTests):
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_element",
-            "interface_submodel_part_origin": "SurfaceLoad3D_mapping_surface_tri",
-            "interface_submodel_part_destination": "SurfaceLoad3D_mapping_surface_quad",
+            "interface_submodel_part_origin": "surface_tri",
+            "interface_submodel_part_destination": "surface_quad",
             "echo_level" : 0
         }""")
         super(NearestElementBasicTestsSurface, cls).setUpClass(mapper_params)
@@ -42,8 +42,8 @@ class NearestElementBasicTestsSurfaceSwitchedSides(basic_mapper_tests.BasicMappe
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_element",
-            "interface_submodel_part_origin": "SurfaceLoad3D_mapping_surface_quad",
-            "interface_submodel_part_destination": "SurfaceLoad3D_mapping_surface_tri",
+            "interface_submodel_part_origin": "surface_quad",
+            "interface_submodel_part_destination": "surface_tri",
             "echo_level" : 0
         }""")
         super(NearestElementBasicTestsSurfaceSwitchedSides, cls).setUpClass(mapper_params, switch_sides=True)
@@ -53,8 +53,8 @@ class NearestElementBasicTestsVolume(basic_mapper_tests.BasicMapperTests):
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_element",
-            "interface_submodel_part_origin": "Parts_domain_tri",
-            "interface_submodel_part_destination": "Parts_domain_quad",
+            "interface_submodel_part_origin": "volume_tri",
+            "interface_submodel_part_destination": "volume_quad",
             "echo_level" : 0
         }""")
         super(NearestElementBasicTestsVolume, cls).setUpClass(mapper_params)
@@ -64,8 +64,8 @@ class NearestElementBasicTestsVolumeSwitchedSides(basic_mapper_tests.BasicMapper
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_element",
-            "interface_submodel_part_origin": "Parts_domain_quad",
-            "interface_submodel_part_destination": "Parts_domain_tri",
+            "interface_submodel_part_origin": "volume_quad",
+            "interface_submodel_part_destination": "volume_tri",
             "echo_level" : 0
         }""")
         super(NearestElementBasicTestsVolumeSwitchedSides, cls).setUpClass(mapper_params, switch_sides=True)

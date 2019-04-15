@@ -249,7 +249,7 @@ Begin Conditions SurfaceCondition3D3N// GUI group identifier: mapping_surface
 35 0 7 16 15
 End Conditions
 
-Begin SubModelPart Parts_domain_tri // Group domain // Subtree Parts
+Begin SubModelPart volume_tri // Group domain // Subtree Parts
     Begin SubModelPartNodes
          1
          2
@@ -477,7 +477,7 @@ Begin SubModelPart DISPLACEMENT_dirichlet_surface // Group dirichlet_surface // 
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart LineLoad3D_mapping_line_tri // Group mapping_line // Subtree LineLoad3D
+Begin SubModelPart line_tri // Group mapping_line // Subtree LineLoad3D
     Begin SubModelPartNodes
         36
         39
@@ -496,7 +496,7 @@ Begin SubModelPart LineLoad3D_mapping_line_tri // Group mapping_line // Subtree 
          5
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart SurfaceLoad3D_mapping_surface_tri // Group mapping_surface // Subtree SurfaceLoad3D
+Begin SubModelPart surface_tri // Group mapping_surface // Subtree SurfaceLoad3D
     Begin SubModelPartNodes
          3
          6
