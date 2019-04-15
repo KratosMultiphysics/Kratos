@@ -1,5 +1,4 @@
 import KratosMultiphysics
-from KratosMultiphysics.CompressiblePotentialFlowApplication.compute_lift_process import ComputeLiftProcess
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
@@ -44,7 +43,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
                 node.SetValue(KratosMultiphysics.FORCE, force)
 
         total_force = KratosMultiphysics.VariableUtils().SumNonHistoricalNodeVectorVariable(KratosMultiphysics.FORCE, self.body_model_part)
-        
+
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Cl = ', total_force[1])
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Cd = ', total_force[0])
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','RZ = ', total_force[2])
