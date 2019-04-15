@@ -12,12 +12,8 @@
 //                   Pooyan Dadvand
 //
 
-
-
 #if !defined(KRATOS_OCTREE_H_INCLUDED )
 #define  KRATOS_OCTREE_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -1029,13 +1025,6 @@ namespace Kratos {
 
               }
             }
-
-
-//            std::cout << "min_coord : [" << min_coord[0] << "," << min_coord[1] << "," << min_coord[2] << std::endl;
-//            std::cout << "max_coord : [" << max_coord[0] << "," << max_coord[1] << "," << max_coord[2] << std::endl;
-
-
-
         }
 
         void Insert(typename cell_type::pointer_type object){
@@ -1182,7 +1171,7 @@ namespace Kratos {
         while (!(delta_y & (one << min_level_2)) && (min_level_2 > min_level_1)) min_level_2--;
         while (!(delta_z & (one << min_level)) && (min_level > min_level_2)) min_level--;
         min_level++;
-
+        
         cell_type* range_cell = root_;
 
         for (std::size_t i = ROOT_LEVEL; i > min_level ; i--) {
