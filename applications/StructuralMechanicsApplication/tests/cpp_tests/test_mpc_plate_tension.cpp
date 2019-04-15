@@ -9,13 +9,16 @@
 //  Main authors:    Yaman Zendaki , Hoang-Giang Bui
 //
 
+// System includes
 #include <iostream>
-#include "includes/gid_io.h"
+// External includes
+
+// Project includes
+//#include "includes/gid_io.h"
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
-//Project Includes
 #include "includes/linear_master_slave_constraint.h"
 #include "structural_mechanics_application.h"
 #include "custom_constitutive/linear_plane_strain.h"
