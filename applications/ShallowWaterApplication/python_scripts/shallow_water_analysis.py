@@ -1,8 +1,8 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing Kratos
-import KratosMultiphysics as Kratos
-import KratosMultiphysics.ShallowWaterApplication as Shallow
+import KratosMultiphysics as KM
+import KratosMultiphysics.ShallowWaterApplication as SW
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
@@ -22,6 +22,16 @@ class ShallowWaterAnalysis(AnalysisStage):
     def _GetSimulationName(self):
         return "Shallow Water Analysis"
 
+    def Initialize(self):
+        if self.project_parameters["problem_data"].Has("model_import_settings"):
+            from model_import_utilities import ModelImportUtilities
+            import_utility = ModelImportUtilities(
+                self.model,
+                self.project_parameters["problem_data"]["model_import_settings"]
+            )
+            import_utility.ImportModelPart()
+        super(ShallowWaterAnalysis, self).Initialize()
+
 if __name__ == "__main__":
     from sys import argv
 
@@ -40,7 +50,7 @@ if __name__ == "__main__":
         project_parameters_file_name = "ProjectParameters.json"
 
     with open(project_parameter_file_name,'r') as parameter_file:
-        parameters = Kratos.Parameters(parameter_file.read())
+        parameters = KM.Parameters(parameter_file.read())
 
-    model = Kratos.Model()
+    model = KM.Model()
     ShallowWaterAnalysis(model, parameters).Run()

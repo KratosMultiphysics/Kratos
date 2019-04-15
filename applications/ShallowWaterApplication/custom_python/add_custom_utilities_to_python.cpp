@@ -21,6 +21,7 @@
 #include "custom_utilities/move_shallow_water_particle_utility.h"
 #include "custom_utilities/shallow_water_variables_utility.h"
 #include "custom_utilities/estimate_dt_utility.h"
+#include "custom_utilities/replicate_model_part_utility.h"
 
 
 namespace Kratos
@@ -69,6 +70,11 @@ namespace Python
     py::class_< EstimateDtShallow > (m, "EstimateDtShallow")
         .def(py::init<ModelPart&, Parameters&>())
         .def("EstimateDt", &EstimateDtShallow::EstimateDt)
+        ;
+
+    py::class_< ReplicateModelPartUtility > (m, "ReplicateModelPartUtility")
+        .def(py::init<ModelPart&, ModelPart&>())
+        .def("Replicate", &ReplicateModelPartUtility::Replicate)
         ;
 
   }
