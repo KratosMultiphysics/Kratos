@@ -199,6 +199,7 @@ private:
     ///@name Private Operations
     ///@{
 
+    StringVectorType GetRootModelPartNames();
 
     ///@}
     ///@name Private  Access

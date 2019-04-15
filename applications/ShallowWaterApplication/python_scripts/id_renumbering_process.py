@@ -2,18 +2,18 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
 
 def Factory(settings, model):
-    if not isinstance(settings, KratosMultiphysics.Parameters):
+    if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return InitialPerturbationProcess(model, settings["Parameters"])
+    return IdRenumberingProcess(model, settings["Parameters"])
 
 ## This process sets the value of a scalar variable using the AssignScalarVariableProcess.
-class InitialPerturbationProcess(KratosMultiphysics.Process):
+class IdRenumberingProcess(KM.Process):
 
     def __init__(self, model, settings):
 
-        KratosMultiphysics.Process.__init__(self)
+        KM.Process.__init__(self)
 
-        default_settings = KratosMultiphysics.Parameters("""
+        default_settings = KM.Parameters("""
             {
                 "renumber_all_model_parts" : true,
                 "model_part_list"          : [],
@@ -36,7 +36,7 @@ class InitialPerturbationProcess(KratosMultiphysics.Process):
 
     def ExecuteBeforeOutputStep(self):
         if self.renumber_nodes:
-            self.process.RenumberNodes():
+            self.process.RenumberNodes()
         if self.renumber_elements:
             self.process.RenumberElements()
         if self.renumber_conditions:
@@ -47,5 +47,5 @@ class InitialPerturbationProcess(KratosMultiphysics.Process):
             self.process.RestoreNodes()
         if self.renumber_elements:
             self.process.RestoreElements()
-        if self.renumber_conditions():
+        if self.renumber_conditions:
             self.process.RestoreConditions()
