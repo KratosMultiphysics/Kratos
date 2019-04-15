@@ -26,9 +26,8 @@ def Usage():
         '\t -c, --command: Use the provided command to launch test cases. If not provided, the default \'runkratos\' executable is used',
         '\t --using-mpi: If running in MPI and executing the MPI-tests'
     ]
-    from KratosMultiphysics import Logger
     for l in lines:
-        Logger.PrintInfo(l) # using the logger to only print once in MPI
+        KtsMp.Logger.PrintInfo(l) # using the logger to only print once in MPI
 
 
 def handler(signum, frame):

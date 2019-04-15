@@ -1,4 +1,6 @@
 from __future__ import print_function, absolute_import, division
+from KratosMultiphysics import Logger
+
 from unittest import *
 from contextlib import contextmanager
 
@@ -85,7 +87,6 @@ def Usage():
         '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
         '\t --using-mpi: If running in MPI and executing the MPI-tests'
     ]
-    from KratosMultiphysics import Logger
     for l in lines:
         Logger.PrintInfo(l) # using the logger to only print once in MPI
 
