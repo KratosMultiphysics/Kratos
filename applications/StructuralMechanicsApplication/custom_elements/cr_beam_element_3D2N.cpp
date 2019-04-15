@@ -788,6 +788,7 @@ CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
     for (unsigned int i = 0; i < msDimension; ++i) {
         mQuaternionSCA_A -= drA_vec[i] * temp_vector[i];
     }
+
     mQuaternionVEC_A = drA_sca * temp_vector;
     mQuaternionVEC_A += temp_scalar * drA_vec;
     mQuaternionVEC_A +=
