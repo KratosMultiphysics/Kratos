@@ -176,6 +176,10 @@ public:
 
                     const double augmented_normal_pressure = epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
 
+//                     // BEGIN Adding debugging value of NORMAL_GAP
+//                     it_node->SetValue(NORMAL_GAP, it_node->FastGetSolutionStepValue(WEIGHTED_GAP)/it_node->GetValue(NODAL_AREA));
+//                     // END Adding debugging value of NORMAL_GAP
+
                     it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure);
 
                     if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
@@ -184,6 +188,10 @@ public:
 
                         // The weighted slip
                         const array_1d<double, 3>& r_gt = it_node->FastGetSolutionStepValue(WEIGHTED_SLIP);
+
+//                         // BEGIN Adding debugging value of TANGENT_SLIP
+//                         it_node->SetValue(TANGENT_SLIP, r_gt/it_node->GetValue(NODAL_AREA));
+//                         // END Adding debugging value of TANGENT_SLIP
 
                         // Computing the augmented tangent pressure
                         const array_1d<double,3> augmented_tangent_pressure_components = tangent_factor * epsilon * r_gt;
@@ -200,7 +208,7 @@ public:
                         }
 
                         // Check for the slip/stick state
-                        if (augmented_tangent_pressure <= - mu * augmented_normal_pressure) { // STICK CASE
+                        if (augmented_tangent_pressure < mu * std::abs(augmented_normal_pressure)) { // STICK CASE
 //                             KRATOS_WARNING_IF("PenaltyFrictionalMortarConvergenceCriteria", norm_2(r_gt) > Tolerance) << "In case of stick should be zero, if not this means that is not properly working. Node ID: " << it_node->Id() << std::endl;
 //                             noalias(it_node->FastGetSolutionStepValue(WEIGHTED_SLIP)) = zero_array; // NOTE: In case of stick should be zero, if not this means that is not properly working
                             if (it_node->Is(SLIP)) {
@@ -209,6 +217,9 @@ public:
                                 is_converged_1 += 1;
                             }
                         } else { // SLIP CASE
+                            const double norm_slip = norm_2(r_gt);
+                            const array_1d<double,3> tangent_direction = r_gt/norm_slip;
+                            it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, mu * augmented_normal_pressure * tangent_direction);
                             if (it_node->IsNot(SLIP)) {
                                 it_node->Set(SLIP, true);
                                 #pragma omp atomic
@@ -398,7 +409,7 @@ public:
                         }
 
                         // Check for the slip/stick state
-                        if (augmented_tangent_pressure <= - mu * augmented_normal_pressure) { // STICK CASE
+                        if (augmented_tangent_pressure <= - mu * augmented_normal_pressure) { // STICK CASE // FIXME: Check the <=
 //                             KRATOS_WARNING_IF("PenaltyFrictionalMortarConvergenceCriteria", norm_2(r_gt) > Tolerance) << "In case of stick should be zero, if not this means that is not properly working. Node ID: " << it_node->Id() << std::endl;
 //                             noalias(it_node->FastGetSolutionStepValue(WEIGHTED_SLIP)) = zero_array; // NOTE: In case of stick should be zero, if not this means that is not properly working
                             if (it_node->Is(SLIP)) {
