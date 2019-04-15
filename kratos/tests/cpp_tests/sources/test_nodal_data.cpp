@@ -16,6 +16,8 @@
 #include "containers/model.h"
 #include "includes/prime_numbers.h"
 #include "includes/model_part.h"
+#include "includes/stream_serializer.h"
+
 
 namespace Kratos {
 	namespace Testing {
@@ -88,6 +90,33 @@ namespace Kratos {
 				KRATOS_CHECK_DOUBLE_EQUAL(velocity_x_sum, 2*i * size);
 				KRATOS_CHECK_DOUBLE_EQUAL(velocity_y_sum, 0.00);
 			}
+		}
+
+		KRATOS_TEST_CASE_IN_SUITE(NodalSolutionStepDataSerialization, KratosCoreFastSuite)
+		{
+			Model current_model;
+
+			ModelPart& model_part = current_model.CreateModelPart("test");
+			model_part.AddNodalSolutionStepVariable(DISTANCE);
+			model_part.AddNodalSolutionStepVariable(VELOCITY);
+
+            StreamSerializer serializer;
+
+            const std::string tag_string("Node");
+
+
+			Node<3>::Pointer p_node_to_be_saved = model_part.CreateNewNode(1, 1, 0, 0);
+			p_node_to_be_saved->FastGetSolutionStepValue(DISTANCE) = 1.12;
+			p_node_to_be_saved->FastGetSolutionStepValue(VELOCITY_X) = 2.32;
+
+			Node<3>::Pointer p_node_to_be_loaded(nullptr);
+ 
+            serializer.save(tag_string, p_node_to_be_saved);
+            serializer.load(tag_string, p_node_to_be_loaded);
+
+			KRATOS_CHECK_EQUAL(p_node_to_be_loaded->Id() , 1);
+			KRATOS_CHECK_DOUBLE_EQUAL(p_node_to_be_loaded->FastGetSolutionStepValue(DISTANCE), 1.12);
+			KRATOS_CHECK_DOUBLE_EQUAL(p_node_to_be_loaded->FastGetSolutionStepValue(VELOCITY_X), 2.32);
 		}
 
 	}
