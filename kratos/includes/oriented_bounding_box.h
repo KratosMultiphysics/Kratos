@@ -386,24 +386,6 @@ private:
         ) const;
 
     /**
-     * @brief Fast compute of cross product without considering checks. Performs the cross product of the two input vectors a,b
-     * @details a,b are assumed to be of size 3
-     * @param a First input vector
-     * @param b Second input vector
-     * @return c The resulting vector
-     */
-    static array_1d<double, 3> FastCrossProduct(const array_1d<double, 3>& a, const array_1d<double, 3>& b)
-    {
-        array_1d<double, 3> c;
-
-        c[0] = a[1]*b[2] - a[2]*b[1];
-        c[1] = a[2]*b[0] - a[0]*b[2];
-        c[2] = a[0]*b[1] - a[1]*b[0];
-
-        return c;
-    }
-
-    /**
      * @brief This method does a 2D rotation of a point
      * @param rCoords The coordinates of the point of interest
      */
