@@ -64,7 +64,7 @@
                 "create_output_file": true
             }
         },{
-            "python_module" : "forces_elements_to_nodes_process",
+            "python_module" : "compute_forces_on_nodes_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "ComputeForcesOnNodesProcess",
             "Parameters"    : {
