@@ -24,8 +24,27 @@
 namespace Kratos
 {
 
-IdRenumberingProcess::IdRenumberingProcess(Model& rThisModel) : mrModel(rThisModel){}
+IdRenumberingProcess::IdRenumberingProcess(Model& rThisModel) : mrModel(rThisModel)
+{
+    mRenumberAllModelParts = true;
+}
 
+IdRenumberingProcess::IdRenumberingProcess(Model& rThisModel, Parameters& rThisParameters)
+ : mrModel(rThisModel)
+{
+    Parameters default_parameters(R"({
+        "renumber_all_model_parts" : true,
+        "model_part_list"          : [],
+        "renumber_nodes"           : true,
+        "renumber_elements"        : true,
+        "renumber_conditions"      : true
+    })");
+    rThisParameters.ValidateDefaults(default_parameters);
+    mRenumberAllModelParts = rThisParameters.GetBool();
+    mModelPartNames = rThisParameters.GetStringArray();
+    // We don't store the renumber nodes, elements and/or conditions flags.
+    // The user shall call the corresponding methods.
+}
 
 void IdRenumberingProcess::RenumberNodes()
 {
@@ -33,9 +52,11 @@ void IdRenumberingProcess::RenumberNodes()
     IndexType id = 0;
     mOriginNodesIds.clear();
 
-    // Loop all the model parts
-    StringVectorType model_part_names = mrModel.GetModelPartNames();
-    for (auto& name : model_part_names)
+    // The model parts of interest
+    if (mRenumberAllModelParts) {mModelPartNames = mrModel.GetModelPartNames();}
+
+    // Loop the model parts
+    for (auto& name : mModelPartNames)
     {
         ModelPart& model_part = mrModel.GetModelPart(name);
         for (int i = 0; i < static_cast<int>(model_part.NumberOfNodes()); ++i)
@@ -53,9 +74,11 @@ void IdRenumberingProcess::RenumberElements()
     IndexType id = 0;
     mOriginElementsIds.clear();
 
-    // Loop all the model parts
-    StringVectorType model_part_names = mrModel.GetModelPartNames();
-    for (auto& name : model_part_names)
+    // The model parts of interest
+    if (mRenumberAllModelParts) {mModelPartNames = mrModel.GetModelPartNames();}
+
+    // Loop the model parts
+    for (auto& name : mModelPartNames)
     {
         ModelPart& model_part = mrModel.GetModelPart(name);
         for (int i = 0; i < static_cast<int>(model_part.NumberOfElements()); ++i)
@@ -73,9 +96,11 @@ void IdRenumberingProcess::RenumberConditions()
     IndexType id = 0;
     mOriginConditionsIds.clear();
 
-    // Loop all the model parts
-    StringVectorType model_part_names = mrModel.GetModelPartNames();
-    for (auto& name : model_part_names)
+    // The model parts of interest
+    if (mRenumberAllModelParts) {mModelPartNames = mrModel.GetModelPartNames();}
+
+    // Loop the model parts
+    for (auto& name : mModelPartNames)
     {
         ModelPart& model_part = mrModel.GetModelPart(name);
         for (int i = 0; i < static_cast<int>(model_part.NumberOfConditions()); ++i)
@@ -89,9 +114,12 @@ void IdRenumberingProcess::RenumberConditions()
 
 void IdRenumberingProcess::RestoreNodes()
 {
-    // Loop all the model parts
+    // The model parts of interest
+    if (mRenumberAllModelParts) {mModelPartNames = mrModel.GetModelPartNames();}
+
+    // Loop the model parts
     StringVectorType model_part_names = mrModel.GetModelPartNames();
-    for (auto& name : model_part_names)
+    for (auto& name : mModelPartNames)
     {
         ModelPart& model_part = mrModel.GetModelPart(name);
         for (int i = 0; i < static_cast<int>(model_part.NumberOfNodes()); ++i)
@@ -104,9 +132,12 @@ void IdRenumberingProcess::RestoreNodes()
 
 void IdRenumberingProcess::RestoreElements()
 {
-    // Loop all the model parts
+    // The model parts of interest
+    if (mRenumberAllModelParts) {mModelPartNames = mrModel.GetModelPartNames();}
+
+    // Loop the model parts
     StringVectorType model_part_names = mrModel.GetModelPartNames();
-    for (auto& name : model_part_names)
+    for (auto& name : mModelPartNames)
     {
         ModelPart& model_part = mrModel.GetModelPart(name);
         for (int i = 0; i < static_cast<int>(model_part.NumberOfElements()); ++i)
@@ -119,9 +150,12 @@ void IdRenumberingProcess::RestoreElements()
 
 void IdRenumberingProcess::RestoreConditions()
 {
-    // Loop all the model parts
+    // The model parts of interest
+    if (mRenumberAllModelParts) {mModelPartNames = mrModel.GetModelPartNames();}
+
+    // Loop the model parts
     StringVectorType model_part_names = mrModel.GetModelPartNames();
-    for (auto& name : model_part_names)
+    for (auto& name : mModelPartNames)
     {
         ModelPart& model_part = mrModel.GetModelPart(name);
         for (int i = 0; i < static_cast<int>(model_part.NumberOfConditions()); ++i)

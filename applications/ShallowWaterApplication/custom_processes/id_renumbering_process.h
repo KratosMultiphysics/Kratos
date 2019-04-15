@@ -73,7 +73,9 @@ public:
     ///@{
 
     /// Default constructor.
-    IdRenumberingProcess(Model& rModel);
+    IdRenumberingProcess(Model& rThisModel);
+
+    IdRenumberingProcess(Model& rThisModel, Parameters& rThisParameters);
 
     /// Destructor.
     virtual ~IdRenumberingProcess() = default;
@@ -182,6 +184,8 @@ private:
     ///@{
 
     Model& mrModel;
+    bool mRenumberAllModelParts;
+    StringVectorType mModelPartNames;
     std::unordered_map<IndexType, IndexType> mOriginNodesIds;
     std::unordered_map<IndexType, IndexType> mOriginElementsIds;
     std::unordered_map<IndexType, IndexType> mOriginConditionsIds;
