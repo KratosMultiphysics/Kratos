@@ -4,7 +4,10 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
 data_comm = KM.DataCommunicator.GetDefault()
 import mapper_test_case
+from KratosMultiphysics import from_json_check_result_process
 from KratosMultiphysics import json_output_process
+from math import sin
+import os
 
 class BasicMapperTests(mapper_test_case.MapperTestCase):
     '''This class contains basic tests that every mapper should pass
@@ -19,6 +22,9 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         else:
             super(BasicMapperTests, cls).setUpClass("cube_tri", "cube_quad")
         # TODO ATTENTION: currently the MapperFactory removes some keys, hence those checks have to be done beforehand => improve this!
+
+        cls.mapper_type = mapper_parameters["mapper_type"].GetString()
+
         if mapper_parameters.Has("interface_submodel_part_origin"):
             cls.interface_model_part_origin = cls.model_part_origin.GetSubModelPart(
                 mapper_parameters["interface_submodel_part_origin"].GetString())
@@ -44,7 +50,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         val = 1.234
         KM.VariableUtils().SetScalarVar(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE)
-        self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val) # TODO loop all nodes, requires some synchronization though!
+        self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val)
 
     def test_InverseMap_constant_scalar(self):
         val = -571.147
@@ -65,7 +71,10 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self._CheckHistoricalUniformValuesVector(GetNodes(self.interface_model_part_origin), KM.FORCE, val)
 
     def test_Map_non_constant_scalar(self):
-        pass
+        file_name = os.path.join("result_files", self.mapper_type, self.__class__.__name__ + "_map_scalar")
+        SetHistoricalNonUniformSolutionScalar(self.interface_model_part_origin.Nodes, KM.PRESSURE)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE)
+        CheckHistoricalNonUniformValuesScalar(self.interface_model_part_destination, KM.TEMPERATURE, file_name)
 
     def test_InverseMap_non_constant_scalar(self):
         pass
@@ -203,6 +212,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         pass
 
 
+
     def _CheckHistoricalUniformValuesScalar(self, nodes, variable, exp_value):
         for node in nodes:
             self.assertAlmostEqual(node.GetSolutionStepValue(variable), exp_value)
@@ -225,6 +235,42 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
             self.assertAlmostEqual(val[1], exp_value[1])
             self.assertAlmostEqual(val[2], exp_value[2])
 
+def SetHistoricalNonUniformSolutionScalar(nodes, variable):
+    for node in nodes:
+        val = 12*sin(node.X0) + node.Y0*15 + 22*node.Z0**1.1
+        node.SetSolutionStepValue(variable, val)
+
+def OutputReferenceSolution(model_part, variable, file_name):
+    output_parameters = KM.Parameters("""{
+        "output_variables"     : [\"""" + variable.Name() + """\"],
+        "output_file_name"     : \"""" + file_name + """\",
+        "model_part_name"      : \"""" + model_part.Name + """\",
+        "time_frequency"       : 0.00,
+        "use_node_coordinates" : true
+    }""")
+
+    output_proc = json_output_process.JsonOutputProcess(model_part.GetModel(), output_parameters)
+    output_proc.ExecuteInitialize()
+    output_proc.ExecuteBeforeSolutionLoop()
+    output_proc.ExecuteFinalizeSolutionStep()
+
+def CheckHistoricalNonUniformValuesScalar(model_part, variable, file_name, output_reference_solution=False):
+    if output_reference_solution:
+        KM.Logger.PrintWarning('MapperTest', 'Writing reference solution for ModelPart "{}"; Variable "{}"; FileName "{}"'.format(model_part.Name, variable.Name(), file_name))
+        OutputReferenceSolution(model_part, variable, file_name)
+    else:
+        check_parameters = KM.Parameters("""{
+            "check_variables"      : [\"""" + variable.Name() + """\"],
+            "input_file_name"      : \"""" + file_name + """\",
+            "model_part_name"      : \"""" + model_part.Name + """\",
+            "tolerance"            : 1e-6,
+            "relative_tolerance"   : 1e-9,
+            "time_frequency"       : 0.00,
+            "use_node_coordinates" : true
+        }""")
+        check_proc = from_json_check_result_process.FromJsonCheckResultProcess(model_part.GetModel(), check_parameters)
+        check_proc.ExecuteInitialize()
+        check_proc.ExecuteFinalizeSolutionStep()
 
 def GetNodes(model_part):
     return model_part.GetCommunicator().LocalMesh().Nodes

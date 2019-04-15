@@ -35,6 +35,10 @@ class MapperTestCase(KratosUnittest.TestCase):
 
         cls.model_part_origin.ProcessInfo[KM.DOMAIN_SIZE] = 3 # needed for the partitioner!
         cls.model_part_destination.ProcessInfo[KM.DOMAIN_SIZE] = 3 # needed for the partitioner!
+        cls.model_part_origin.ProcessInfo[KM.TIME] = 0.0 # needed for the check-processes
+        cls.model_part_destination.ProcessInfo[KM.TIME] = 0.0 # needed for the check-processes
+        cls.model_part_origin.ProcessInfo[KM.DELTA_TIME] = 1.0 # needed for the check-processes
+        cls.model_part_destination.ProcessInfo[KM.DELTA_TIME] = 1.0 # needed for the check-processes
 
         if data_comm.IsDistributed():
             ReadDistributedModelPart(cls.model_part_origin, cls.input_file_origin)
