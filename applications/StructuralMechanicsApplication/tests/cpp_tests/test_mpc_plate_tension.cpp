@@ -118,7 +118,7 @@ KRATOS_TEST_CASE_IN_SUITE(PatchTestMPCPlateTension, KratosStructuralMechanicsFas
     SolvingStrategyType::Pointer p_strategy = SolvingStrategyType::Pointer( new ResidualBasedLinearStrategyType(model_part, p_scheme, p_solver, p_builder_and_solver, true));
     p_strategy->SetEchoLevel(0);
     p_strategy->Solve();
-    //DEBUGGING
+    //Output to GID
     GidIO<> gid_io("TEST_MPC_Plate_Tension", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
     const int nl_iter = model_part.GetProcessInfo()[NL_ITERATION_NUMBER];
     const double label = static_cast<double>(nl_iter);
@@ -151,6 +151,12 @@ KRATOS_TEST_CASE_IN_SUITE(PatchTestMPCPlateTension, KratosStructuralMechanicsFas
     KRATOS_CHECK_GREATER(std::abs(pnode8->GetSolutionStepValue(DISPLACEMENT_X)),0);
     KRATOS_CHECK_DOUBLE_EQUAL(pnode8->GetSolutionStepValue(DISPLACEMENT_X),pnode5->GetSolutionStepValue(DISPLACEMENT_X));
     KRATOS_CHECK_DOUBLE_EQUAL(pnode8->GetSolutionStepValue(DISPLACEMENT_X),pnode7->GetSolutionStepValue(DISPLACEMENT_X));
+    KRATOS_CHECK_DOUBLE_EQUAL(pnode3->GetSolutionStepValue(DISPLACEMENT_X),pnode6->GetSolutionStepValue(DISPLACEMENT_X));
+    KRATOS_CHECK_DOUBLE_EQUAL(pnode6->GetSolutionStepValue(DISPLACEMENT_X),pnode2->GetSolutionStepValue(DISPLACEMENT_X));
+
+    KRATOS_CHECK_DOUBLE_EQUAL(pnode4->GetSolutionStepValue(DISPLACEMENT_Y),pnode7->GetSolutionStepValue(DISPLACEMENT_Y));
+    KRATOS_CHECK_DOUBLE_EQUAL(pnode7->GetSolutionStepValue(DISPLACEMENT_Y),pnode3->GetSolutionStepValue(DISPLACEMENT_Y));
+    KRATOS_CHECK_DOUBLE_EQUAL(pnode8->GetSolutionStepValue(DISPLACEMENT_Y),pnode6->GetSolutionStepValue(DISPLACEMENT_Y));
 }
 
 } // namespace Testing
