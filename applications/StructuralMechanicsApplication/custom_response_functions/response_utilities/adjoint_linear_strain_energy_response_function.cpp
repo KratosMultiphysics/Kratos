@@ -163,7 +163,6 @@ namespace Kratos
              << "Calculate value for strain energy response is only available when using primal elements" << std::endl;
 
         // Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
-        Matrix LHS;
         Vector RHS;
         Vector disp;
 
@@ -171,11 +170,12 @@ namespace Kratos
         {
             elem_i.GetValuesVector(disp,0);
 
-            elem_i.CalculateLocalSystem(LHS, RHS, r_current_process_info);
+            elem_i.CalculateRightHandSide(RHS, r_current_process_info);
 
-            // Compute linear strain energy 0.5*u*K*u
-            response_value += 0.5 * inner_prod(disp, prod(LHS,disp));
-         }
+            // Compute linear strain energy 0.5*u*K_init*u = 0.5*u*(-RHS)
+            //TODO make sure that the mesh is not moved!!
+            response_value -= 0.5 * inner_prod(disp, RHS);
+        }
 
         return response_value;
 

@@ -182,14 +182,15 @@ private:
     ModelPart* mpModelPart = nullptr;
     double m_response_value = 0.0;
 
-    Matrix mExternalForceDisplacementDerivative;
-    Matrix mExternalForceDesignVariableDerivative;
+    //Matrix mExternalForceDisplacementDerivative;
 
 
     std::map<int, Vector> mConditionsRHS;
     std::map<int,  ModelPart::ConditionsContainerType::iterator> mConditions;
     std::map<int, Vector> mResponseGradient_1;
     std::map<int, Vector> mResponseGradient_0;
+    std::map<int, Matrix> mExternalForceDesignVariableDerivative;
+    std::map<int, Matrix> mExternalForceDisplacementDerivative;
 
     ///@}
     ///@name Private Operators

@@ -88,21 +88,6 @@ namespace Kratos
         }
     }
 
-    // template <class TPrimalCondition>
-    // void AdjointSemiAnalyticSurfaceLoadCondition<TPrimalCondition>::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
-    //                                         Matrix& rOutput,
-    //                                         const ProcessInfo& rCurrentProcessInfo)
-    // {
-    //     KRATOS_TRY
-
-    //     const SizeType number_of_nodes = this->GetGeometry().size();
-    //     const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();
-    //     const SizeType num_dofs = number_of_nodes * dimension;
-    //     rOutput = ZeroMatrix(number_of_nodes, num_dofs);
-
-    //     KRATOS_CATCH( "" )
-    // }
-
     template <class TPrimalCondition>
     void AdjointSemiAnalyticSurfaceLoadCondition<TPrimalCondition>::CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
                                             Matrix& rOutput,
@@ -119,7 +104,6 @@ namespace Kratos
         Vector RHS;
 
         this->CalculateRightHandSide(RHS, process_info);
-        KRATOS_WATCH(RHS)
 
         int i_2 = 0;
         for (auto& node_i : this->GetGeometry())
@@ -127,38 +111,42 @@ namespace Kratos
             Vector perturbed_RHS = Vector(0);
 
             // Pertubation, gradient analysis and recovery of x
-            node_i.X() += delta;
-            node_i.FastGetSolutionStepValue(DISPLACEMENT_X) += delta;
+            node_i.X0() += delta;
+            node_i.X()  += delta;
             this->CalculateRightHandSide(perturbed_RHS, process_info);
             row(rOutput, i_2) = (perturbed_RHS - RHS) / delta;
-            node_i.X() -= delta;
-            node_i.FastGetSolutionStepValue(DISPLACEMENT_X) -= delta;
+            node_i.X0() -= delta;
+            node_i.X()  -= delta;
 
             // Reset the pertubed vector
             perturbed_RHS = Vector(0);
 
             // Pertubation, gradient analysis and recovery of y
-            node_i.Y() += delta;
-            node_i.FastGetSolutionStepValue(DISPLACEMENT_Y) += delta;
+            node_i.Y0() += delta;
+            node_i.Y()  += delta;
             this->CalculateRightHandSide(perturbed_RHS, process_info);
             row(rOutput, i_2 + 1) = (perturbed_RHS - RHS) / delta;
+            node_i.Y0()-= delta;
             node_i.Y() -= delta;
-            node_i.FastGetSolutionStepValue(DISPLACEMENT_Y) -= delta;
 
             // Reset the pertubed vector
             perturbed_RHS = Vector(0);
 
             // Pertubation, gradient analysis and recovery of z
-            node_i.Z() += delta;
-            node_i.FastGetSolutionStepValue(DISPLACEMENT_Z) += delta;
+            node_i.Z0() += delta;
+            node_i.Z()  += delta;
             this->CalculateRightHandSide(perturbed_RHS, process_info);
             row(rOutput, i_2 + 2) = (perturbed_RHS - RHS) / delta;
-            node_i.Z() -= delta;
-            node_i.FastGetSolutionStepValue(DISPLACEMENT_Z) -= delta;
+            node_i.Z0() -= delta;
+            node_i.Z()  -= delta;
 
             i_2 += 3;
         }
-        KRATOS_WATCH(rOutput)
+        // -ve not needed, because it is (df_ext/ds) - (df_int/ds), and df_int RHS is already negative
+        //rOutput = -rOutput;
+
+
+        //KRATOS_WATCH(rOutput)
 
         KRATOS_CATCH( "" )
     }

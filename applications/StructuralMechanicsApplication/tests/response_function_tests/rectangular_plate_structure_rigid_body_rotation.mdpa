@@ -73,7 +73,7 @@ Begin SubModelPart DISPLACEMENT_DIR_BC // Group DIR_BC // Subtree DISPLACEMENT
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart PointLoad3D_BC_NEUMANN // Group AREAS // Subtree SurfaceLoad3D
+Begin SubModelPart PointLoad3D_BC_NEUMANN
     Begin SubModelPartNodes
          8
     End SubModelPartNodes
@@ -84,7 +84,7 @@ Begin SubModelPart PointLoad3D_BC_NEUMANN // Group AREAS // Subtree SurfaceLoad3
     End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart PointLoad3D_BC_NEUMANN_1 // Group AREAS // Subtree SurfaceLoad3D
+Begin SubModelPart PointLoad3D_BC_NEUMANN_1
     Begin SubModelPartNodes
          7
     End SubModelPartNodes
@@ -95,7 +95,7 @@ Begin SubModelPart PointLoad3D_BC_NEUMANN_1 // Group AREAS // Subtree SurfaceLoa
     End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart PointLoad3D_BC_NEUMANN_2 // Group AREAS // Subtree SurfaceLoad3D
+Begin SubModelPart PointLoad3D_BC_NEUMANN_2
     Begin SubModelPartNodes
          9
     End SubModelPartNodes

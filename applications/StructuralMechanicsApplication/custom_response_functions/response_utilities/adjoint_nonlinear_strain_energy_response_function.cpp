@@ -70,29 +70,25 @@ namespace Kratos
         Matrix LHS;
         Vector RHS;
         Vector disp;
-        Vector external_force;
-        Vector external_force_previous_step;
-
-        Vector disp_previous_step;
+        Vector disp_0;
         Vector disp_increment;
         Vector average_load;
 
         #pragma omp for reduction(+:response_increment_value)
-        for (int i = 0; i< static_cast<int> (rModelPart.NumberOfElements()); i++)
+        for (int i = 0; i< static_cast<int> (rModelPart.NumberOfConditions()); i++)
         {
-            auto elem_it = rModelPart.ElementsBegin() + i;
-            elem_it->GetValuesVector(disp,0);
-            elem_it->GetValuesVector(disp_previous_step, 1);
-            elem_it->CalculateLocalSystem(LHS, RHS, r_current_process_info);
+            auto cond_it = rModelPart.ConditionsBegin() + i;
+            cond_it->GetValuesVector(disp,0);
+            cond_it->GetValuesVector(disp_0,1);
+            disp_increment = disp - disp_0;
 
-            disp_increment = disp - disp_previous_step;
-            external_force = -1.0 * RHS;
-            external_force_previous_step = external_force - prod(LHS , disp_increment);
-            average_load = 0.5 * (external_force + external_force_previous_step);
-
+            cond_it->CalculateRightHandSide(RHS, r_current_process_info);
+            average_load = 0.5 * (RHS + mConditionsRHS[cond_it->Id()]);
             response_increment_value += inner_prod(average_load , disp_increment);
+            mConditionsRHS[cond_it->Id()] = RHS;
         }
         }
+
         return response_increment_value;
         KRATOS_CATCH("");
     }
@@ -134,72 +130,83 @@ namespace Kratos
         double delta = rAdjointCondition.GetValue(PERTURBATION_SIZE);
         Vector RHS;
 
+        // This ensures that stored RHS equals zero at the initial time step
+        if(rProcessInfo(STEP) == 1)
+            mConditionsRHS[rAdjointCondition.Id()] = ZeroVector(vec_size);
+
         // getting the displacements for the current and the previous time steps
         int i = 0;
         for (auto& node_i : rAdjointCondition.GetGeometry())
         {
             for(IndexType j = 0; j < dimension; j++)
             {
-                displacement[i+j] = rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT)[j];
-                displacement_previous_step[i+j] = rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT,1)[j];
+                // TODO Mahmoud: This way returns zero displacement in case of surface loads, while for point loads it gives a value
+                //displacement[i+j] = rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT)[j];
+                //displacement_previous_step[i+j] = rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT,1)[j];
+                displacement[i+j] = node_i.FastGetSolutionStepValue(DISPLACEMENT)[j];
+                displacement_previous_step[i+j] = node_i.FastGetSolutionStepValue(DISPLACEMENT,1)[j];
             }
             i += 3;
         }
 
         mConditions[rAdjointCondition.Id()]->CalculateRightHandSide(RHS, process_info);
 
-        //calculation of partial f_{ext}_i}{\partial u}
-        Matrix partial_derivative_matrix = ZeroMatrix(vec_size, vec_size);
-        int i_2 = 0;
-        for (auto& node_i : rAdjointCondition.GetGeometry())
-        {
-            Vector perturbed_RHS = Vector(0);
+        // //calculation of partial f_{ext}_i}{\partial u}
+        // //TODO Mahmoud: pertubing the displacement has no effect on the RHS
+        // Matrix partial_derivative_matrix = ZeroMatrix(vec_size, vec_size);
+        // int i_2 = 0;
+        // for (auto& node_i : rAdjointCondition.GetGeometry())
+        // {
+        //     Vector perturbed_RHS = Vector(0);
 
-            // Pertubation, gradient analysis and recovery of x
-            node_i.X() += delta;
-            node_i.FastGetSolutionStepValue(DISPLACEMENT_X) += delta;
-            mConditions[rAdjointCondition.Id()]->CalculateRightHandSide(perturbed_RHS, process_info);
-            row(partial_derivative_matrix, i_2) = (perturbed_RHS - RHS) / delta;
-            node_i.X() -= delta;
-            node_i.FastGetSolutionStepValue(DISPLACEMENT_X) -= delta;
+        //     // Pertubation, gradient analysis and recovery of x
+        //     node_i.X() += delta;
+        //     node_i.FastGetSolutionStepValue(DISPLACEMENT_X) += delta;
+        //     mConditions[rAdjointCondition.Id()]->CalculateRightHandSide(perturbed_RHS, process_info);
+        //     row(partial_derivative_matrix, i_2) = (perturbed_RHS - RHS) / delta;
+        //     node_i.X() -= delta;
+        //     node_i.FastGetSolutionStepValue(DISPLACEMENT_X) -= delta;
 
-            // Reset the pertubed vector
-            perturbed_RHS = Vector(0);
+        //     // Reset the pertubed vector
+        //     perturbed_RHS = Vector(0);
 
-            // Pertubation, gradient analysis and recovery of y
-            node_i.Y() += delta;
-            node_i.FastGetSolutionStepValue(DISPLACEMENT_Y) += delta;
-            mConditions[rAdjointCondition.Id()]->CalculateRightHandSide(perturbed_RHS, process_info);
-            row(partial_derivative_matrix, i_2 + 1) = (perturbed_RHS - RHS) / delta;
-            node_i.Y() -= delta;
-            node_i.FastGetSolutionStepValue(DISPLACEMENT_Y) -= delta;
+        //     // Pertubation, gradient analysis and recovery of y
+        //     node_i.Y() += delta;
+        //     node_i.FastGetSolutionStepValue(DISPLACEMENT_Y) += delta;
+        //     mConditions[rAdjointCondition.Id()]->CalculateRightHandSide(perturbed_RHS, process_info);
+        //     row(partial_derivative_matrix, i_2 + 1) = (perturbed_RHS - RHS) / delta;
+        //     node_i.Y() -= delta;
+        //     node_i.FastGetSolutionStepValue(DISPLACEMENT_Y) -= delta;
 
-            // Reset the pertubed vector
-            perturbed_RHS = Vector(0);
+        //     // Reset the pertubed vector
+        //     perturbed_RHS = Vector(0);
 
-            // Pertubation, gradient analysis and recovery of z
-            node_i.Z() += delta;
-            node_i.FastGetSolutionStepValue(DISPLACEMENT_Z) += delta;
-            mConditions[rAdjointCondition.Id()]->CalculateRightHandSide(perturbed_RHS, process_info);
-            row(partial_derivative_matrix, i_2 + 2) = (perturbed_RHS - RHS) / delta;
-            node_i.Z() -= delta;
-            node_i.FastGetSolutionStepValue(DISPLACEMENT_Z) -= delta;
+        //     // Pertubation, gradient analysis and recovery of z
+        //     node_i.Z() += delta;
+        //     node_i.FastGetSolutionStepValue(DISPLACEMENT_Z) += delta;
+        //     mConditions[rAdjointCondition.Id()]->CalculateRightHandSide(perturbed_RHS, process_info);
+        //     row(partial_derivative_matrix, i_2 + 2) = (perturbed_RHS - RHS) / delta;
+        //     node_i.Z() -= delta;
+        //     node_i.FastGetSolutionStepValue(DISPLACEMENT_Z) -= delta;
 
-            i_2 += 3;
-        }
+        //     i_2 += 3;
+        // }
 
-        if(mExternalForceDisplacementDerivative.size1() == 0)
-            mExternalForceDisplacementDerivative = ZeroMatrix(vec_size, vec_size);
+        // if(mExternalForceDisplacementDerivative[rAdjointCondition.Id()].size1() == 0)
+        //     mExternalForceDisplacementDerivative[rAdjointCondition.Id()] = ZeroMatrix(vec_size, vec_size);
 
-        // Summing up the partial derivative terms
-        rResponseGradient = 0.50 * (RHS + mConditionsRHS[rAdjointCondition.Id()] +
-                            prod(displacement - displacement_previous_step, mExternalForceDisplacementDerivative + partial_derivative_matrix));
+        // // Summing up the partial derivative terms
+        // rResponseGradient = 0.50 * (RHS + mConditionsRHS[rAdjointCondition.Id()]
+        //                   + prod(displacement - displacement_previous_step,  mExternalForceDisplacementDerivative[rAdjointCondition.Id()] + partial_derivative_matrix ) );
+
+        rResponseGradient = 0.50 * (RHS + mConditionsRHS[rAdjointCondition.Id()]);
+
 
         // storing the RHS for each condition
         mConditionsRHS[rAdjointCondition.Id()] = RHS;
 
         // storing the partial derivative partial f_{ext}_i}{\partial u}
-        mExternalForceDisplacementDerivative = partial_derivative_matrix;
+       // mExternalForceDisplacementDerivative[rAdjointCondition.Id()] = partial_derivative_matrix;
 
         // This stores rResponseGradient values for each condition
         mResponseGradient_1[rAdjointCondition.Id()] = rResponseGradient;
@@ -283,7 +290,7 @@ namespace Kratos
     // ToDo Mahmoud: this function only work for shape sensitivities, it should modified to work in general for
     // other types of sensitivity
     // Calculates the derivate of the response function with respect to the design parameters
-    // Computation of \frac{1}{2} (u^T_i - u^T_i-1)  \cdot ( \frac{\partial f_{ext}_i}{\partial x} + frac{\partial f_{ext}_i-1}{\partial x})
+    // Computation of  ( \frac{\partial f_{ext}_i}{\partial x} + frac{\partial f_{ext}_i-1}{\partial x})  \cdot \frac{1}{2} (u^T_i - u^T_i-1)
     void AdjointNonlinearStrainEnergyResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
                                                 const Variable<array_1d<double, 3>>& rVariable,
                                                 const Matrix& rSensitivityMatrix,
@@ -305,8 +312,8 @@ namespace Kratos
         // Matrix for partial f_{ext}_i}{\partial x}
         Matrix partial_derivative_matrix = ZeroMatrix(mat_size, mat_size);
 
-        if(mExternalForceDesignVariableDerivative.size1() == 0)
-            mExternalForceDesignVariableDerivative = ZeroMatrix(mat_size, mat_size);
+        if(mExternalForceDesignVariableDerivative[rAdjointCondition.Id()].size1() == 0)
+            mExternalForceDesignVariableDerivative[rAdjointCondition.Id()] = ZeroMatrix(mat_size, mat_size);
 
         if (rSensitivityGradient.size() != mat_size)
             rSensitivityGradient.resize(mat_size, false);
@@ -324,8 +331,9 @@ namespace Kratos
         {
             for(IndexType j = 0; j < dimension; j++)
             {
-                displacement[i_1+j] = rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT)[j];
-                displacement_previous_step[i_1+j] = rAdjointCondition.GetGeometry()[node_i].FastGetSolutionStepValue(DISPLACEMENT,1)[j];
+                // TODO Mahmoud: check why accessing nodal displacements by this way does not work for surface loads
+                displacement[i_1+j] = node_i.FastGetSolutionStepValue(DISPLACEMENT)[j];
+                displacement_previous_step[i_1+j] = node_i.FastGetSolutionStepValue(DISPLACEMENT,1)[j];
             }
             i_1 += 3;
         }
@@ -372,10 +380,9 @@ namespace Kratos
         }
 
         // Summing up the terms for the sensitivity calculation
-        rSensitivityGradient = 0.50 * prod(displacement - displacement_previous_step , mExternalForceDesignVariableDerivative + partial_derivative_matrix);
-
+        rSensitivityGradient = 0.50 * prod(mExternalForceDesignVariableDerivative[rAdjointCondition.Id()] + partial_derivative_matrix, displacement - displacement_previous_step );
         // passing the value of the partial derivative matrix to a member variable
-        mExternalForceDesignVariableDerivative = partial_derivative_matrix;
+        mExternalForceDesignVariableDerivative[rAdjointCondition.Id()] = partial_derivative_matrix;
 
         KRATOS_CATCH("");
     }
