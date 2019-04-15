@@ -65,41 +65,17 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
 
         import assign_scalar_variable_to_entities_process
 
-        # Component X
-        if not settings["value"][0].IsNull():
-            x_params = KratosMultiphysics.Parameters("{}")
-            x_params.AddValue("model_part_name",settings["model_part_name"])
-            x_params.AddValue("mesh_id",settings["mesh_id"])
-            x_params.AddValue("interval",settings["interval"])
-            x_params.AddValue("value",settings["value"][0])
-            x_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_X")
-            x_params.AddValue("local_axes",settings["local_axes"])
-            x_params.AddValue("entities",settings["entities"])
-            self.aux_processes.append( assign_scalar_variable_to_entities_process.AssignScalarVariableToEntitiesProcess(Model, x_params) )
-
-        # Component Y
-        if not settings["value"][1].IsNull():
-            y_params = KratosMultiphysics.Parameters("{}")
-            y_params.AddValue("model_part_name",settings["model_part_name"])
-            y_params.AddValue("mesh_id",settings["mesh_id"])
-            y_params.AddValue("interval",settings["interval"])
-            y_params.AddValue("value",settings["value"][1])
-            y_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Y")
-            y_params.AddValue("local_axes",settings["local_axes"])
-            y_params.AddValue("entities",settings["entities"])
-            self.aux_processes.append( assign_scalar_variable_to_entities_process.AssignScalarVariableToEntitiesProcess(Model, y_params) )
-
-        # Component Z
-        if not settings["value"][2].IsNull():
-            z_params = KratosMultiphysics.Parameters("{}")
-            z_params.AddValue("model_part_name",settings["model_part_name"])
-            z_params.AddValue("mesh_id",settings["mesh_id"])
-            z_params.AddValue("interval",settings["interval"])
-            z_params.AddValue("value",settings["value"][2])
-            z_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Z")
-            z_params.AddValue("local_axes",settings["local_axes"])
-            z_params.AddValue("entities",settings["entities"])
-            self.aux_processes.append( assign_scalar_variable_to_entities_process.AssignScalarVariableToEntitiesProcess(Model, z_params) )
+        for i_dir, var_string in enumerate(["_X", "_Y", "_Z"]):
+            if not settings["value"][i_dir].IsNull():
+                direction_params = KratosMultiphysics.Parameters("{}")
+                direction_params.AddValue("model_part_name",settings["model_part_name"])
+                direction_params.AddValue("mesh_id",settings["mesh_id"])
+                direction_params.AddValue("interval",settings["interval"])
+                direction_params.AddValue("value",settings["value"][i_dir])
+                direction_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + var_string)
+                direction_params.AddValue("local_axes",settings["local_axes"])
+                direction_params.AddValue("entities",settings["entities"])
+                self.aux_processes.append( assign_scalar_variable_to_entities_process.AssignScalarVariableToEntitiesProcess(Model, direction_params) )
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step

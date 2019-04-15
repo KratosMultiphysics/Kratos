@@ -7,16 +7,24 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignVectorVariableToConstraintProcess(Model, settings["Parameters"])
 
-import assign_vector_variable_to_entities_process
+from KratosMultiphysics import assign_vector_variable_to_entities_process
 
 ## All the processes python should be derived from "Process"
 class AssignVectorVariableToConstraintProcess(assign_vector_variable_to_entities_process.AssignVectorVariableToEntitiesProcess):
+    """This process assigns a given value (vector) to the constraints belonging a certain submodelpart
+
+    Only the member variables listed below should be accessed directly.
+
+    Public member variables:
+    Model -- the container of the different model parts.
+    settings -- Kratos parameters containing solver settings.
+    """
+
     def __init__(self, Model, settings ):
-        """This process assigns a given value (vector) to the constraints belonging a certain submodelpart
+        """ The default constructor of the class
 
-        Only the member variables listed below should be accessed directly.
-
-        Public member variables:
+        Keyword arguments:
+        self -- It signifies an instance of a class.
         Model -- the container of the different model parts.
         settings -- Kratos parameters containing solver settings.
         """
