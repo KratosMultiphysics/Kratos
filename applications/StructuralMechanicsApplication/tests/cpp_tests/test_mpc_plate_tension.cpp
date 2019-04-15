@@ -125,9 +125,9 @@ KRATOS_TEST_CASE_IN_SUITE(PatchTestMPCPlateTension, KratosStructuralMechanicsFas
     gid_io.InitializeMesh(label);
     gid_io.WriteMesh(model_part.GetMesh());
     gid_io.FinalizeMesh();
+    gid_io.InitializeResults(label, model_part.GetMesh());
     gid_io.WriteNodalResults(DISPLACEMENT, model_part.Nodes(), label, 0);
     gid_io.WriteNodalResults(REACTION, model_part.Nodes(), label, 0);
-    gid_io.InitializeResults(label, model_part.GetMesh());
     gid_io.PrintOnGaussPoints(STRESSES, model_part , label ,0);
     //Check Resault
     std::cout << "DISPLACEMENTS" << std::endl;
