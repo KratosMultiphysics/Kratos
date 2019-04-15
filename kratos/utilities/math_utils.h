@@ -910,6 +910,25 @@ public:
     }
 
     /**
+     * @brief Fast compute of cross product without considering checks. Performs the cross product of the two input vectors a,b
+     * @details a,b are assumed to be of size 3
+     * @param a First input vector
+     * @param b Second input vector
+     * @return c The resulting vector
+     */
+    template< class T1 = array_1d<double, 3>, class T2 = T1, class T3 = T1>
+    static T1 FastCrossProduct(const T2& a, T3& b)
+    {
+        T1 c;
+
+        c[0] = a[1]*b[2] - a[2]*b[1];
+        c[1] = a[2]*b[0] - a[0]*b[2];
+        c[2] = a[0]*b[1] - a[1]*b[0];
+
+        return c;
+    }
+
+    /**
      * @brief Performs the unitary cross product of the two input vectors a,b
      * @details a,b are assumed to be of size 3 (no check is performed on vector sizes)
      * @param a First input vector

@@ -326,10 +326,10 @@ bool OrientedBoundingBox<2>::SeparatingAxisTheoremHasIntersection(const Oriented
         GetSeparatingPlane2D(relative_position, mOrientationVectors[1], rOtherOrientedBoundingBox) ||
         GetSeparatingPlane2D(relative_position, r_orientation_vectors_2[0], rOtherOrientedBoundingBox) ||
         GetSeparatingPlane2D(relative_position, r_orientation_vectors_2[1], rOtherOrientedBoundingBox) ||
-        GetSeparatingPlane2D(relative_position, FastCrossProduct(mOrientationVectors[0], r_orientation_vectors_2[0]), rOtherOrientedBoundingBox) ||
-        GetSeparatingPlane2D(relative_position, FastCrossProduct(mOrientationVectors[0], r_orientation_vectors_2[1]), rOtherOrientedBoundingBox) ||
-        GetSeparatingPlane2D(relative_position, FastCrossProduct(mOrientationVectors[1], r_orientation_vectors_2[0]), rOtherOrientedBoundingBox) ||
-        GetSeparatingPlane2D(relative_position, FastCrossProduct(mOrientationVectors[1], r_orientation_vectors_2[1]), rOtherOrientedBoundingBox)
+        GetSeparatingPlane2D(relative_position, MathUtils<double>::FastCrossProduct(mOrientationVectors[0], r_orientation_vectors_2[0]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane2D(relative_position, MathUtils<double>::FastCrossProduct(mOrientationVectors[0], r_orientation_vectors_2[1]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane2D(relative_position, MathUtils<double>::FastCrossProduct(mOrientationVectors[1], r_orientation_vectors_2[0]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane2D(relative_position, MathUtils<double>::FastCrossProduct(mOrientationVectors[1], r_orientation_vectors_2[1]), rOtherOrientedBoundingBox)
         );
 }
 
@@ -349,15 +349,15 @@ bool OrientedBoundingBox<3>::SeparatingAxisTheoremHasIntersection(const Oriented
         GetSeparatingPlane3D(relative_position, r_orientation_vectors_2[0], rOtherOrientedBoundingBox) ||
         GetSeparatingPlane3D(relative_position, r_orientation_vectors_2[1], rOtherOrientedBoundingBox) ||
         GetSeparatingPlane3D(relative_position, r_orientation_vectors_2[2], rOtherOrientedBoundingBox) ||
-        GetSeparatingPlane3D(relative_position, FastCrossProduct(mOrientationVectors[0], r_orientation_vectors_2[0]), rOtherOrientedBoundingBox) ||
-        GetSeparatingPlane3D(relative_position, FastCrossProduct(mOrientationVectors[0], r_orientation_vectors_2[1]), rOtherOrientedBoundingBox) ||
-        GetSeparatingPlane3D(relative_position, FastCrossProduct(mOrientationVectors[0], r_orientation_vectors_2[2]), rOtherOrientedBoundingBox) ||
-        GetSeparatingPlane3D(relative_position, FastCrossProduct(mOrientationVectors[1], r_orientation_vectors_2[0]), rOtherOrientedBoundingBox) ||
-        GetSeparatingPlane3D(relative_position, FastCrossProduct(mOrientationVectors[1], r_orientation_vectors_2[1]), rOtherOrientedBoundingBox) ||
-        GetSeparatingPlane3D(relative_position, FastCrossProduct(mOrientationVectors[1], r_orientation_vectors_2[2]), rOtherOrientedBoundingBox) ||
-        GetSeparatingPlane3D(relative_position, FastCrossProduct(mOrientationVectors[2], r_orientation_vectors_2[0]), rOtherOrientedBoundingBox) ||
-        GetSeparatingPlane3D(relative_position, FastCrossProduct(mOrientationVectors[2], r_orientation_vectors_2[1]), rOtherOrientedBoundingBox) ||
-        GetSeparatingPlane3D(relative_position, FastCrossProduct(mOrientationVectors[2], r_orientation_vectors_2[2]), rOtherOrientedBoundingBox)
+        GetSeparatingPlane3D(relative_position, MathUtils<double>::FastCrossProduct(mOrientationVectors[0], r_orientation_vectors_2[0]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, MathUtils<double>::FastCrossProduct(mOrientationVectors[0], r_orientation_vectors_2[1]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, MathUtils<double>::FastCrossProduct(mOrientationVectors[0], r_orientation_vectors_2[2]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, MathUtils<double>::FastCrossProduct(mOrientationVectors[1], r_orientation_vectors_2[0]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, MathUtils<double>::FastCrossProduct(mOrientationVectors[1], r_orientation_vectors_2[1]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, MathUtils<double>::FastCrossProduct(mOrientationVectors[1], r_orientation_vectors_2[2]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, MathUtils<double>::FastCrossProduct(mOrientationVectors[2], r_orientation_vectors_2[0]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, MathUtils<double>::FastCrossProduct(mOrientationVectors[2], r_orientation_vectors_2[1]), rOtherOrientedBoundingBox) ||
+        GetSeparatingPlane3D(relative_position, MathUtils<double>::FastCrossProduct(mOrientationVectors[2], r_orientation_vectors_2[2]), rOtherOrientedBoundingBox)
         );
 }
 
