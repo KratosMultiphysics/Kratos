@@ -92,7 +92,7 @@
                 "reference_file_name" : "naca0012_test_adjoint_probe1_ref.dat",
                 "comparison_type"     : "dat_file",
                 "remove_output_file"    : true,
-                "tolerance"             : 1e-9,
+                "tolerance"             : 1e-6,
                 "relative_tolerance"    : 1e-12
             }
         }]
