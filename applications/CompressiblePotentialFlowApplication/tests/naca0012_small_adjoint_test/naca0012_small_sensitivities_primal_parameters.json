@@ -52,7 +52,7 @@
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.Body2D_Body",
                 "velocity_infinity" : [10.0,0.0,0.0],
-                "create_output_file": false
+                "create_output_file": true
             }
         }],
         "list_other_processes" :[{
@@ -73,6 +73,19 @@
                     "output_step_frequency": 1
                 }
             }
-        }]    
+        },{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["VELOCITY_POTENTIAL"],
+                "input_file_name"  : "incompressible_velocity_potential_flow_field_test_results.json",
+                "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
+                "tolerance"            : 1e-9,
+                "relative_tolerance"   : 1e-12,
+                "time_frequency"   : -2
+            }
+        }]
     }
 }
