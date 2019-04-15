@@ -1171,6 +1171,7 @@ namespace Kratos {
         while (!(delta_y & (one << min_level_2)) && (min_level_2 > min_level_1)) min_level_2--;
         while (!(delta_z & (one << min_level)) && (min_level > min_level_2)) min_level--;
         min_level++;
+
         cell_type* range_cell = root_;
 
         for (std::size_t i = ROOT_LEVEL; i > min_level ; i--) {
