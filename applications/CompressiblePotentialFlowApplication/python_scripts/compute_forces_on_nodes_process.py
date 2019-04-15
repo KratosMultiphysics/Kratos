@@ -24,7 +24,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
         self.Execute()
-    
+
     def Execute(self):
         KratosMultiphysics.Logger.PrintInfo('COMPUTE FORCES AT NODES')
 
