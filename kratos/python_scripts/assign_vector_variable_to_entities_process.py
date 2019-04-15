@@ -2,16 +2,14 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics
 
-from math import *
-
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return AssignVectorVariableProcess(Model, settings["Parameters"])
+    return AssignVectorVariableToEntitiesProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-class AssignVectorVariableProcess(KratosMultiphysics.Process):
-    """This process assigns a given value (vector) to the nodes belonging a certain submodelpart
+class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
+    """This process assigns a given value (vector) to the entities belonging a certain submodelpart
 
     Only the member variables listed below should be accessed directly.
 
@@ -31,63 +29,53 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
 
         KratosMultiphysics.Process.__init__(self)
 
+        # The value can be a double or a string (function)
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "help"                 : "This process assigns a given value (vector) to the nodes belonging a certain submodelpart",
+            "help"                 : "This process assigns a given value (vector) to the entities belonging a certain submodelpart",
             "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
             "value"                : [10.0, "3*t", "x+y"],
-            "constrained"          : [true,true,true],
-            "local_axes"           : {}
+            "local_axes"           : {},
+            "entities"             : []
         }
         """
         )
-        #example of admissible values for "value" : [10.0, "3*t", "x+y"]
 
-        ## Trick to ensure that if someone sets constrained as a single bool, it is transformed to a vector
-        if settings.Has("constrained"):
-            if settings["constrained"].IsBool():
-                is_fixed = settings["constrained"].GetBool()
-                #print("is_fixed = ",is_fixed)
-                settings["constrained"] = default_settings["constrained"]
-                for i in range(3):
-                    settings["constrained"][i].SetBool(is_fixed)
+        # Detect "End" as a tag and replace it by a large number
+        if settings.Has("interval"):
+            if settings["interval"][1].IsString():
+                if settings["interval"][1].GetString() == "End":
+                    settings["interval"][1].SetDouble(1e30) # = default_settings["interval"][1]
+                else:
+                    raise Exception("the second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
 
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
         if not isinstance(self.variable, KratosMultiphysics.Array1DVariable3) and not isinstance(self.variable, KratosMultiphysics.VectorVariable):
-            msg = "Error in AssignVectorVariableProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a vector or array3"
+            msg = "Error in AssignVectorToConditionProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a vector or array3"
             raise Exception(msg)
 
         self.model_part = Model[settings["model_part_name"].GetString()]
 
         self.aux_processes = []
 
-        import assign_scalar_variable_process
+        import assign_scalar_variable_to_entities_process
 
-        # Loop over components X, Y and Z
-        for indice,variable in enumerate(["_X", "_Y", "_Z"]):
-            if not settings["value"][indice].IsNull():
-                i_params = KratosMultiphysics.Parameters("{}")
-                i_params.AddValue("model_part_name",settings["model_part_name"])
-                i_params.AddValue("mesh_id",settings["mesh_id"])
-                i_params.AddEmptyValue("constrained").SetBool(settings["constrained"][indice].GetBool())
-                i_params.AddValue("interval",settings["interval"])
-                i_params.AddValue("value",settings["value"][indice])
-                i_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + variable)
-                i_params.AddValue("local_axes",settings["local_axes"])
-                self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(Model, i_params) )
-
-    def ExecuteBeforeSolutionLoop(self):
-        """ This method is executed in before initialize the solution step
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        self.ExecuteInitializeSolutionStep()
+        for i_dir, var_string in enumerate(["_X", "_Y", "_Z"]):
+            if not settings["value"][i_dir].IsNull():
+                direction_params = KratosMultiphysics.Parameters("{}")
+                direction_params.AddValue("model_part_name",settings["model_part_name"])
+                direction_params.AddValue("mesh_id",settings["mesh_id"])
+                direction_params.AddValue("interval",settings["interval"])
+                direction_params.AddValue("value",settings["value"][i_dir])
+                direction_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + var_string)
+                direction_params.AddValue("local_axes",settings["local_axes"])
+                direction_params.AddValue("entities",settings["entities"])
+                self.aux_processes.append( assign_scalar_variable_to_entities_process.AssignScalarVariableToEntitiesProcess(Model, direction_params) )
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
