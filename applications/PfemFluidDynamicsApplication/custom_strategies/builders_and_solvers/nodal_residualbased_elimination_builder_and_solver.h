@@ -213,8 +213,6 @@ void BuildNodally(
 				  double density=itNode->FastGetSolutionStepValue(DENSITY);
 				  double secondLame=itNode->FastGetSolutionStepValue(SECOND_LAME_TYPE_COEFFICIENT);
 
-          secondLame= timeInterval*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/(1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*0.5;	
-
           double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
           if(yieldShear>0){
               double adaptiveExponent=itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
@@ -229,7 +227,6 @@ void BuildNodally(
               }
           }
  	        double volumetricCoeff=itNode->FastGetSolutionStepValue(FIRST_LAME_TYPE_COEFFICIENT)+2.0*secondLame/3.0;
-		  volumetricCoeff= timeInterval*itNode->FastGetSolutionStepValue(POISSON_RATIO)*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/((1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*(1.0-2.0*itNode->FastGetSolutionStepValue(POISSON_RATIO))) + 2.0*secondLame/3.0;
 
 				  if(itNode->Is(FLUID) && volumetricCoeff>0)
 					{
