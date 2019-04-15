@@ -349,7 +349,7 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
         time = self.sensitivity_model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
         #dt = self.sensitivity_model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
         #self.time_counter += dt
-        if time in self.traced_time_steps:
+        if round(time,1) in self.traced_time_steps:
             #self.time_counter = 0.0
             data["TIME"].append(time)
             count = 0
@@ -503,7 +503,7 @@ class NonlinearSensitivityQuantificationProcess(KratosMultiphysics.Process):
         self.data =  read_external_json(self.file_name)
         input_time_list = self.data["TIME"]
         time = self.sensitivity_model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
-        if len(input_time_list) is 3 and self.sensitivities_computed is False and time == self.traced_time_steps[2]:
+        if len(input_time_list) is 3 and self.sensitivities_computed is False and round(time,1) == self.traced_time_steps[2]:
             self.sensitivities_computed = True
             # Nodal values
             for node in self.sensitivity_model_part.Nodes:
