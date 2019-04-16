@@ -26,29 +26,6 @@
 
             ]
         },
-        "convergence_accelerator_settings" :
-        {
-            "type"          : "mvqn",
-            "data_list" :
-            [
-                {
-                    "solver"   : "fluid",
-                    "data_name"     : "disp_y"
-                }
-            ]
-        },
-        "convergence_criteria_settings" :
-        {
-            "data_list" :
-            [
-                {
-                    "solver"   : "fluid",
-                    "data_name"     : "disp_y",
-                    "abs_tolerance" : 1e-5,
-                    "rel_tolerance" : 1e-5
-                }
-            ]
-        },
         "coupling_loop":
         [
             {
