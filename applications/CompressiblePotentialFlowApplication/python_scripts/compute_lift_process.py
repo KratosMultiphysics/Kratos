@@ -43,16 +43,16 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.moment_coefficient = KratosMultiphysics.Vector(3)
 
         for cond in self.body_model_part.Conditions:
-            n = cond.GetValue(KratosMultiphysics.NORMAL)
-            cp = cond.GetValue(KratosMultiphysics.PRESSURE)
+            surface_normal = cond.GetValue(KratosMultiphysics.NORMAL)
+            pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE)
 
             # Computing forces
-            force_coefficient += n*cp
+            force_coefficient += surface_normal*pressure_coefficient
 
             # Computing moment
             mid_point = cond.GetGeometry().Center()
             lever = mid_point-self.moment_reference_point
-            self.moment_coefficient += _CrossProduct(lever, n*(-cp))
+            self.moment_coefficient += _CrossProduct(lever, surface_normal*(-pressure_coefficient))
 
         force_coefficient /= self.reference_area
         self.moment_coefficient /= self.reference_area
