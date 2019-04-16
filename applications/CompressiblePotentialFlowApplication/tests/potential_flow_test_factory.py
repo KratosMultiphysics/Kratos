@@ -79,7 +79,6 @@ class PotentialFlowTests(UnitTest.TestCase):
         with open(settings_file_name,'r') as settings_file:
             settings = KratosMultiphysics.Parameters(settings_file.read())
 
-        print(settings_file_name)
         if self.print_output:
             if settings_file_name == "naca0012_small_sensitivities_adjoint_parameters.json":
                 settings.AddValue("output_processes", KratosMultiphysics.Parameters(r'''{
