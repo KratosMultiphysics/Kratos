@@ -86,12 +86,13 @@
                     "linear_solver_settings": {
                         "solver_type"         : "amgcl",
                         "max_iteration"       : 200,
-                        "tolerance"           : 1e-7,
+                        "tolerance"           : 1e-6,
                         "provide_coordinates" : false,
                         "smoother_type"       : "ilu0",
                         "krylov_type"         : "gmres",
                         "coarsening_type"     : "aggregation",
-                        "scaling"             : false
+                        "scaling"             : false,
+                        "verbosity"           : 1
                     }
                 },
                 "turbulent_energy_dissipation_rate_settings": {
@@ -102,7 +103,7 @@
                     "linear_solver_settings": {
                         "solver_type"         : "amgcl",
                         "max_iteration"       : 200,
-                        "tolerance"           : 1e-7,
+                        "tolerance"           : 1e-6,
                         "provide_coordinates" : false,
                         "smoother_type"       : "ilu0",
                         "krylov_type"         : "gmres",

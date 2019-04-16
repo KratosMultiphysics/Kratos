@@ -39,7 +39,8 @@ def AssembleTestSuites():
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(nightSuite)
+    # allSuite.addTests(nightSuite) #TODO: Has a convergence problem, therefore gives a race condition
+    allSuite.addTests(validationSuite)
 
     return suites
 
