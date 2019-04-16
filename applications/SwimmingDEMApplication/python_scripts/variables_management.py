@@ -350,7 +350,7 @@ class VariablesManager:
         if parameters["coupling"]["coupling_level_type"].GetInt() >= 1:
             self.coupling_fluid_vars += [Kratos.HYDRODYNAMIC_REACTION]
 
-        if parameters["coupling"]["coupling_level_type"].GetInt() >= 1 and parameters["coupling"]["time_averaging_type"].GetInt() > 0:
+        if parameters["coupling"]["coupling_level_type"].GetInt() >= 1 and parameters["coupling"]["forward_coupling"]["time_averaging_type"].GetInt() > 0:
             self.coupling_fluid_vars += [Kratos.MEAN_HYDRODYNAMIC_REACTION]
 
         if parameters["non_newtonian_fluid"]["non_newtonian_option"].GetBool():
