@@ -36,7 +36,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.far_field_model_part = Model[settings["model_part_name"].GetString()]
         self.fluid_model_part = self.far_field_model_part.GetRootModelPart()
 
-        self.inlet_phi_0 = settings["inlet_phi"].GetDouble()
+        self.inlet_potential_0 = settings["inlet_phi"].GetDouble()
         self.density_inf = settings["density_infinity"].GetDouble()
         self.mach_inf = settings["mach_infinity"].GetDouble()
         self.heat_capacity_ratio = settings["heat_capacity_ratio"].GetDouble()
@@ -96,12 +96,12 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                     dy = node.Y - self.reference_inlet_node.Y
                     dz = node.Z - self.reference_inlet_node.Z
 
-                    inlet_phi = dx*self.velocity_inf[0] + dy*self.velocity_inf[1] + dz*self.velocity_inf[2]
+                    inlet_potential = dx*self.velocity_inf[0] + dy*self.velocity_inf[1] + dz*self.velocity_inf[2]
                     node.Fix(CPFApp.VELOCITY_POTENTIAL)
-                    node.SetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL,0,inlet_phi + self.inlet_phi_0)
+                    node.SetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL,0,inlet_potential + self.inlet_potential_0)
                     if self.far_field_model_part.HasNodalSolutionStepVariable(CPFApp.ADJOINT_VELOCITY_POTENTIAL):
                         node.Fix(CPFApp.ADJOINT_VELOCITY_POTENTIAL)
-                        node.SetSolutionStepValue(CPFApp.ADJOINT_VELOCITY_POTENTIAL,0,inlet_phi)
+                        node.SetSolutionStepValue(CPFApp.ADJOINT_VELOCITY_POTENTIAL,0,inlet_potential)
 
         if(self.initialize):
             for node in self.fluid_model_part.Nodes:
@@ -110,14 +110,14 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 dy = node.Y - self.reference_inlet_node.Y
                 dz = node.Z - self.reference_inlet_node.Z
 
-                initial_phi = dx*self.velocity_inf[0] + dy*self.velocity_inf[1] + dz*self.velocity_inf[2]
-                node.SetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL,0,initial_phi + self.inlet_phi_0)
-                node.SetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL,0,initial_phi + self.inlet_phi_0)
+                initial_potential = dx*self.velocity_inf[0] + dy*self.velocity_inf[1] + dz*self.velocity_inf[2]
+                node.SetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL,0,initial_potential + self.inlet_potential_0)
+                node.SetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL,0,initial_potential + self.inlet_potential_0)
                 #TODO: How to initialize the adjoint potential field?
                 '''
                 if self.far_field_model_part.HasNodalSolutionStepVariable(CPFApp.ADJOINT_VELOCITY_POTENTIAL):
-                        node.SetSolutionStepValue(CPFApp.ADJOINT_VELOCITY_POTENTIAL,0,initial_phi)
-                        node.SetSolutionStepValue(CPFApp.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL,0,initial_phi)
+                        node.SetSolutionStepValue(CPFApp.ADJOINT_VELOCITY_POTENTIAL,0,initial_potential)
+                        node.SetSolutionStepValue(CPFApp.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL,0,initial_potential)
                 '''
 
     def ExecuteInitializeSolutionStep(self):
