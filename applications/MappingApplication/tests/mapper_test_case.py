@@ -86,9 +86,7 @@ class MapperTestCase(KratosUnittest.TestCase):
 def ReadModelPart(model_part, mdpa_file_name):
     import_flags = KM.ModelPartIO.READ | KM.ModelPartIO.SKIP_TIMER
 
-    model_part_io = KM.ModelPartIO(
-        mdpa_file_name, import_flags).ReadModelPart(
-        model_part)
+    KM.ModelPartIO(mdpa_file_name, import_flags).ReadModelPart(model_part)
 
 def ReadDistributedModelPart(model_part, mdpa_file_name):
     from KratosMultiphysics.TrilinosApplication import trilinos_import_model_part_utility
