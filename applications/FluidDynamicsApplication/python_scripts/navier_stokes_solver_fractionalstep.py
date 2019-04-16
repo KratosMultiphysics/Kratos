@@ -175,6 +175,9 @@ class NavierStokesSolverFractionalStep(FluidSolver):
                                                self.settings["predictor_corrector"].GetBool(),
                                                KratosCFD.PATCH_INDEX)
         else:
+            print("Computing Self Model Part: ", self.computing_model_part)
+            print("Solver Settings: ", self.solver_settings)
+            print("Predictor Corrector: ", self.settings["predictor_corrector"].GetBool())
             self.solver = KratosCFD.FSStrategy(self.computing_model_part,
                                                self.solver_settings,
                                                self.settings["predictor_corrector"].GetBool())

@@ -4,7 +4,7 @@
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,
         "start_time"      : 0.0,
-        "end_time"        : 100
+        "end_time"        : 1
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -38,7 +38,7 @@
 		"mesh_motion_solver_settings"                     :{
             "solver_type" : "mesh_solver_structural_similarity",
             "mesh_motion_linear_solver_settings" : {
-                "solver_type" : "AMGCL",
+                "solver_type" : "amgcl",
                 "smoother_type":"ilu0",
                 "krylov_type": "gmres",
                 "coarsening_type": "aggregation",
@@ -56,7 +56,7 @@
             "reform_dofs_each_step" : false
         },
         "fluid_solver_settings"                             :{
-            "solver_type"                  :"NavierStokesSolverFractionalStep",
+            "solver_type"                  :"FractionalStep",
             "domain_size"                  : 2,
             "model_part_name"              : "FluidModelPart",
             "model_import_settings"        : {
@@ -73,7 +73,7 @@
             "echo_level"                      : 0,
             "compute_reactions"               : true,
             "pressure_linear_solver_settings" : {
-                "solver_type"         : "AMGCL",
+                "solver_type"         : "amgcl",
                 "max_iteration"       : 200,
                 "tolerance"           : 1e-7,
                 "provide_coordinates" : false,
@@ -83,7 +83,7 @@
                 "scaling"             : false
             },
             "velocity_linear_solver_settings" : {
-                "solver_type"         : "AMGCL",
+                "solver_type"         : "amgcl",
                 "max_iteration"       : 200,
                 "tolerance"           : 1e-7,
                 "provide_coordinates" : false,
