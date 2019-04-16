@@ -26,7 +26,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             "model_part_name": "please specify the model part that contains the surface nodes",
             "velocity_infinity": [1.0,0.0,0.0],
             "reference_area": 1.0,
-            "moment_reference_point" : [0.0,0.0,0.0],
+            "moment_reference_point" : [],
             "create_output_file": false
         }''')
 
