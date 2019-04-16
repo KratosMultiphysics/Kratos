@@ -179,7 +179,6 @@
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.VelocityConstraints2D_walls",
                 "variable_name": "TURBULENT_KINETIC_ENERGY",
-                "is_fixed": true,
                 "value" : 1e-10
             }
         },{
@@ -190,7 +189,6 @@
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.VelocityConstraints2D_walls",
                 "variable_name": "TURBULENT_ENERGY_DISSIPATION_RATE",
-                "is_fixed": true,
                 "value" : 1e-10
             }
         },{
@@ -201,7 +199,6 @@
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.NoSlip2D_cylinder",
                 "variable_name": "TURBULENT_KINETIC_ENERGY",
-                "is_fixed": true,
                 "value" : 1e-10
             }
         },{
@@ -212,7 +209,6 @@
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.NoSlip2D_cylinder",
                 "variable_name": "TURBULENT_ENERGY_DISSIPATION_RATE",
-                "is_fixed": true,
                 "value" : 1e-10
             }
         }],
