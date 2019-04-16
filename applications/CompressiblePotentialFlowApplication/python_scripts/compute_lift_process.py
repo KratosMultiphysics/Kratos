@@ -26,7 +26,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             "model_part_name": "please specify the model part that contains the surface nodes",
             "velocity_infinity": [1.0,0.0,0.0],
             "reference_area": 1.0,
-            "moment_reference_point" : []
+            "moment_reference_point" : [0.0,0.0,0.0]
         }''')
 
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -47,7 +47,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             cp = cond.GetValue(KratosMultiphysics.PRESSURE)
 
             # Computing forces
-            total_force += n.__mul__(cp)
+            total_force += n*cp
 
             # Computing moment
             mid_point = cond.GetGeometry().Center()
@@ -64,11 +64,11 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         self.__ComputeLiftJump()
 
-        KratosMultiphysics.Logger.PrintInfo(' Cl = ', self.lift_coefficient)
-        KratosMultiphysics.Logger.PrintInfo(' Cd = ', self.drag_coefficient)
-        KratosMultiphysics.Logger.PrintInfo(' RZ = ', force_coefficient[2])
-        KratosMultiphysics.Logger.PrintInfo(' Cm = ', self.moment_coefficient)
-        KratosMultiphysics.Logger.PrintInfo(' Cl = ' , self.lift_coefficient_jump, ' = 2 * DPhi / U_inf ')
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ', self.lift_coefficient)
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cd = ', self.drag_coefficient)
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' RZ = ', force_coefficient[2])
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cm = ', self.moment_coefficient)
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ' , self.lift_coefficient_jump, ' = 2 * DPhi / U_inf ')
 
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT, self.lift_coefficient)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DRAG_COEFFICIENT, self.drag_coefficient)
