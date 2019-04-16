@@ -75,7 +75,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
     ElementalData<NumNodes,Dim> data;
     array_1d<double,NumNodes> elemental_distance;
     for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-        elemental_distance[i_node] = this->GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE);
+        elemental_distance[i_node] = this->GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET);
 
     BaseType::GetPotentialOnNormalElement(data.phis);
 
@@ -94,13 +94,13 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
             MatrixType aux_matrix;
             bounded_matrix<double,NumNodes,Dim> DN_DX;
             DN_DX=positive_side_sh_func_gradients(i_gauss);
-            
+
             //reading properties and conditions
             aux_matrix=prod(DN_DX,trans(DN_DX))*positive_side_weights(i_gauss);  // Bt D B
 
-            noalias(rLeftHandSideMatrix) += aux_matrix;                       
+            noalias(rLeftHandSideMatrix) += aux_matrix;
         }
-     
+
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
 }
 
