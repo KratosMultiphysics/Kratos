@@ -895,6 +895,16 @@ public:
         return true;
     }
 
+    virtual bool SynchronizeOrNodalFlags(const Flags& TheFlags)
+    {
+        return true;
+    }
+
+    virtual bool SynchronizeAndNodalFlags(const Flags& TheFlags)
+    {
+        return true;
+    }
+
     void Clear()
     {
         mNumberOfColors = 0;

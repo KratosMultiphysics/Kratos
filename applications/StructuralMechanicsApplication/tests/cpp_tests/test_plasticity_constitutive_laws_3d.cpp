@@ -121,10 +121,10 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, K
     T TrescaCL = T();
 
     std::vector<double> MCres, VMres, DPres, Tres;
-    MCres = {9.96862e+06,9.96862e+06,1.00628e+07,0,0,9.96661e-13};
-    VMres = {9.96935e+06,9.96935e+06,1.00613e+07,0,0,9.73593e-13};
-    DPres = {110685,110685,110681,0,0,-4.17314e-17};
-    Tres = {9.96935e+06,9.96935e+06,1.00613e+07,0,0,9.73593e-13};
+    MCres = {9.96711e+06,9.96711e+06,1.00658e+07,0,0,1.04486e-12};
+    VMres = {9.96669e+06,9.96669e+06,1.00666e+07,0,0,1.05792e-12};
+    DPres = {-4.24126e+08,-4.24126e+08,-4.24845e+08,0,0,-7.61457e-12};
+    Tres = {9.96669e+06,9.96669e+06,1.00666e+07,0,0,1.05792e-12};
 
     double plastic_dissipation;
     Vector TestMC, TestVM, TestDP, TestT;
