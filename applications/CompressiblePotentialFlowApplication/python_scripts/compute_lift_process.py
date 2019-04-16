@@ -39,23 +39,23 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','COMPUTE LIFT')
 
-        total_force = KratosMultiphysics.Vector(3)
-        total_moment = KratosMultiphysics.Vector(3)
+        force_coefficient = KratosMultiphysics.Vector(3)
+        self.moment_coefficient = KratosMultiphysics.Vector(3)
 
         for cond in self.body_model_part.Conditions:
             n = cond.GetValue(KratosMultiphysics.NORMAL)
             cp = cond.GetValue(KratosMultiphysics.PRESSURE)
 
             # Computing forces
-            total_force += n*cp
+            force_coefficient += n*cp
 
             # Computing moment
             mid_point = cond.GetGeometry().Center()
             lever = mid_point-self.moment_reference_point
-            total_moment += CrossProduct(lever, n*(-cp))
+            self.moment_coefficient += CrossProduct(lever, n*(-cp))
 
-        force_coefficient = total_force.__div__(self.reference_area)
-        self.moment_coefficient = total_moment[2]/self.reference_area
+        force_coefficient /= self.reference_area
+        self.moment_coefficient /= self.reference_area
 
         self.__ReadWakeDirection()
 
@@ -67,12 +67,12 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ', self.lift_coefficient)
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cd = ', self.drag_coefficient)
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' RZ = ', force_coefficient[2])
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cm = ', self.moment_coefficient)
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cm = ', self.moment_coefficient[2])
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ' , self.lift_coefficient_jump, ' = 2 * DPhi / U_inf ')
 
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT, self.lift_coefficient)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DRAG_COEFFICIENT, self.drag_coefficient)
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MOMENT_COEFFICIENT, self.moment_coefficient)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MOMENT_COEFFICIENT, self.moment_coefficient[2])
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT_JUMP, self.lift_coefficient_jump)
 
     def __ComputeLiftJump(self):
