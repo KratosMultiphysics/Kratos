@@ -99,9 +99,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             raise Exception('The wake direction should be a vector with 3 components!')
 
         dnorm = self.wake_direction.norm_2()
-        self.wake_direction[0] /= dnorm
-        self.wake_direction[1] /= dnorm
-        self.wake_direction[2] /= dnorm
+        self.wake_direction /= dnorm
 
         self.wake_normal = KratosMultiphysics.Vector(3)
         self.wake_normal[0] = -self.wake_direction[1]
