@@ -92,11 +92,6 @@ public:
     ///@name Operations
     ///@{
 
-    void ExecuteFinalizeSolutionStep() override
-    {
-        UpdateEffectiveViscosity();
-    }
-
     int Check() override
     {
         int value = BaseType::Check();
@@ -181,6 +176,7 @@ private:
 
     void UpdateAfterSolveSolutionStep() override
     {
+        UpdateEffectiveViscosity();
     }
 
     void UpdateConvergenceVariable() override
