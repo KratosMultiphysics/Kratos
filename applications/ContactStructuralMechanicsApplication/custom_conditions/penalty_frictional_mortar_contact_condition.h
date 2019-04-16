@@ -520,14 +520,14 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
         rSerializer.save("PreviousMortarOperatorsInitialized", mPreviousMortarOperatorsInitialized);
-        rSerializer.save("PreviousMortarOperators", mPreviousMortarOperators);
+//         rSerializer.save("PreviousMortarOperators", mPreviousMortarOperators); // FIXME: Must be added to serializer
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
         rSerializer.load("PreviousMortarOperatorsInitialized", mPreviousMortarOperatorsInitialized);
-        rSerializer.load("PreviousMortarOperators", mPreviousMortarOperators);
+//         rSerializer.load("PreviousMortarOperators", mPreviousMortarOperators); // FIXME: Must be added to serializer
     }
 
     ///@}

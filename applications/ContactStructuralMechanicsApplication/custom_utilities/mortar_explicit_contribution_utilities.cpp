@@ -419,7 +419,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
                     r_slave_geometry.PointLocalCoordinates(local_point_parent, gp_global);
 
                     // Calculate the kinematic variables
-                    MortarExplicitContributionUtilities<TDim, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, TNormalVariation, TNumNodesMaster>::CalculateKinematics(pCondition, rVariables, derivative_data, r_normal_master, local_point_decomp, local_point_parent, decomp_geom, dual_LM);
+                    CalculateKinematics(pCondition, rVariables, derivative_data, r_normal_master, local_point_decomp, local_point_parent, decomp_geom, dual_LM);
 
                     const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, rVariables.NSlave) : 1.0;
                     const double integration_weight = integration_points_slave[point_number].Weight() * axisymmetric_coefficient;
