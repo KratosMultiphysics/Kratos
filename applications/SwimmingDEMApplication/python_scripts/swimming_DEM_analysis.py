@@ -249,7 +249,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
             self.swimming_DEM_gid_io = \
             swimming_DEM_gid_output.SwimmingDEMGiDOutput(
-                file_name = self.project_parametersþ["problem_data"]["problem_name"].GetString(),
+                file_name = self.project_parameters["problem_data"]["problem_name"].GetString(),
                 vol_output = result_file_configuration["body_output"].GetBool(),
                 post_mode = old_gid_output_post_options_dict[post_mode_key],
                 multifile = old_gid_output_multiple_file_option_dict[multiple_files_option_key],
