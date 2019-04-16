@@ -14,7 +14,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters( """
             {
-                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
+                "model_part_name":"",
                 "angle_of_attack": 0.0,
                 "mach_infinity": 0.02941176471,
                 "density_infinity"  : 1.0,
