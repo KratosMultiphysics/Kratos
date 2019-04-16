@@ -189,7 +189,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
     if (rValues.size() != 1)
         rValues.resize(1);
 
-    if (rVariable == PRESSURE)
+    if (rVariable == PRESSURE_COEFFICIENT)
     {
         double p = ComputePressureUpper(rCurrentProcessInfo);
         rValues[0] = p;
