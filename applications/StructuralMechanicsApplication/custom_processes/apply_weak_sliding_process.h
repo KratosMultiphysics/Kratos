@@ -32,6 +32,7 @@
 #include "utilities/math_utils.h"
 #include "includes/kratos_parameters.h"
 #include "geometries/triangle_3d_3.h"
+#include "spatial_containers/spatial_containers.h"
 
 namespace Kratos
 {
@@ -51,6 +52,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyWeakSlidingProcess
     typedef DoubleVector::iterator DoubleVectorIterator;
     typedef std::size_t SizeType;
 
+    // Type definitions for tree-search
+    typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
+    typedef Tree< KDTreePartition<BucketType> > KDTree;
+
 
     /// Pointer definition of ApplyMultipointConstraintsProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyWeakSlidingProcess);
@@ -66,7 +71,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyWeakSlidingProcess
             "model_part_name_master"          : "example_part_master",
             "computing_model_part_name"       : "computing_domain",
             "element_id"                      : 1,
-            "property_id"                     : 1
+            "property_id"                     : 1,
+            "debug_info"                      : false
         })" );
         default_parameters.ValidateAndAssignDefaults(InputParameters);
 
@@ -97,11 +103,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyWeakSlidingProcess
         KRATOS_TRY;
         // delete elements and decrease mCurrentElementId
         ModelPart &computing_model_part = mrModelPart.GetSubModelPart(mParameters["computing_model_part_name"].GetString());
-        std::cout << "ExecuteFinalizeSolutionStep" << std::endl;
         // < because mCurrentElementId is incremented after last element is created
         for (IndexType element_id=mParameters["element_id"].GetInt();element_id<mCurrentElementId;element_id++)
         {
-            KRATOS_WATCH(element_id);
             computing_model_part.RemoveElementFromAllLevels(element_id);
         }
         KRATOS_CATCH("");
@@ -120,19 +124,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyWeakSlidingProcess
 
         for(NodeType& node_i : r_nodes_slave)
         {
-            //add nearest neighbour search here
+            std::vector<int> neighbour_nodes = FindNearestNeighbours(node_i);
 
             const SizeType number_nodes     = 3;
             std::vector<NodeType::Pointer> element_nodes (number_nodes);
 
-            //access found neighbours here
-            SizeType node_count = 0;
-            for(NodeType& node_j : r_nodes_master)
-            {
-                element_nodes[node_count++] = master_model_part.pGetNode(node_j.Id());
-            }
-
+            element_nodes[0] = master_model_part.pGetNode(neighbour_nodes[0]);
+            element_nodes[1] = master_model_part.pGetNode(neighbour_nodes[1]);
             element_nodes[2] = slave_model_part.pGetNode(node_i.Id());
+
             Triangle3D3 <NodeType> triangle_t ( PointerVector<NodeType>{element_nodes} );
 
             const Element& rElem = KratosComponents<Element>::Get("WeakSlidingElement3D3N");
@@ -142,6 +142,63 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyWeakSlidingProcess
         }
 
         KRATOS_CATCH("");
+    }
+
+    std::vector<int> FindNearestNeighbours(const NodeType& node_i)
+    {
+        KRATOS_TRY;
+        ModelPart &master_model_part    = mrModelPart.GetSubModelPart(mParameters["model_part_name_master"].GetString());
+        NodesArrayType &r_nodes_master  = master_model_part.Nodes();
+
+        double distance = 1e12;
+        double distance_i = 0.0;
+        std::vector<int> neighbour_ids = {0,0};
+
+
+        for(NodeType& node_j : r_nodes_master)
+        {
+            distance_i = GetNodalDistance(node_i,node_j);
+            if (distance_i<distance)
+            {
+                distance=distance_i;
+                neighbour_ids[0] = node_j.Id();
+            }
+        }
+
+        distance = 1e12;
+
+        for(NodeType& node_j : r_nodes_master)
+        {
+            if (node_j.Id()==neighbour_ids[0]) continue;
+
+            distance_i = GetNodalDistance(node_i,node_j);
+            if (distance_i<distance)
+            {
+                distance=distance_i;
+                neighbour_ids[1] = node_j.Id();
+            }
+        }
+
+        if (mParameters["debug_info"].GetBool())
+        {
+            KRATOS_WATCH(node_i.Id())
+            KRATOS_WATCH(neighbour_ids)
+            std::cout << "_________________________" << std::endl;
+        }
+        return neighbour_ids;
+        KRATOS_CATCH("")
+    }
+
+    double GetNodalDistance(const NodeType& node_i, const NodeType& node_j)
+    {
+        const array_1d<double, 3> delta_pos =
+            node_j.GetInitialPosition().Coordinates() -
+            node_i.GetInitialPosition().Coordinates() +
+            node_j.FastGetSolutionStepValue(DISPLACEMENT) -
+            node_i.FastGetSolutionStepValue(DISPLACEMENT);
+
+        const double l = MathUtils<double>::Norm3(delta_pos);
+        return l;
     }
 
   protected:

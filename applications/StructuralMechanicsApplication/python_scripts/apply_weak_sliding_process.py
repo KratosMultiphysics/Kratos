@@ -18,7 +18,8 @@ class ApplyWeakSlidingProcess(KratosMultiphysics.Process):
             "model_part_name_master"          : "example_part_master",
             "computing_model_part_name"       : "computing_domain",
             "element_id"                      : 1,
-            "property_id"                     : 1
+            "property_id"                     : 1,
+            "debug_info"                      : false
         }
         """)
         default_settings.ValidateAndAssignDefaults(settings)

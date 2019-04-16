@@ -351,14 +351,13 @@ int WeakSlidingElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     if (dimension != msDimension ||number_of_nodes != msNumberOfNodes) {
-        KRATOS_ERROR << "The truss element works only in 3D and with 2 noded elements" << std::endl;
+        KRATOS_ERROR << "The element works only in 3D and with 3 nodes" << std::endl;
     }
     // verify that the variables are correctly initialized
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
     KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(CROSS_AREA);
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for (IndexType i = 0; i < number_of_nodes; ++i) {
@@ -370,25 +369,11 @@ int WeakSlidingElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode);
     }
 
-    if (GetProperties().Has(CROSS_AREA) == false ||
-            GetProperties()[CROSS_AREA] <= numerical_limit) {
-        KRATOS_ERROR << "CROSS_AREA not provided for this element" << Id()
-                     << std::endl;
-    }
-
     if (GetProperties().Has(YOUNG_MODULUS) == false ||
             GetProperties()[YOUNG_MODULUS] <= numerical_limit) {
         KRATOS_ERROR << "YOUNG_MODULUS not provided for this element" << Id()
                      << std::endl;
     }
-    if (GetProperties().Has(DENSITY) == false) {
-        KRATOS_ERROR << "DENSITY not provided for this element" << Id()
-                     << std::endl;
-    }
-
-    KRATOS_ERROR_IF(StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this)
-                    < std::numeric_limits<double>::epsilon())
-            << "Element #" << Id() << " has a length of zero!" << std::endl;
 
     return 0;
 
