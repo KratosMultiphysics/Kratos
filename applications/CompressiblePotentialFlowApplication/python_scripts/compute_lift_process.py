@@ -89,7 +89,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
                  break
 
         velocity_infinity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.VELOCITY_INFINITY)
-        u_inf = math.sqrt(DotProduct(velocity_infinity,velocity_infinity))
+        u_inf = velocity_infinity.norm_2()
         
         node_velocity_potential_te = te.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
         node_auxiliary_velocity_potential_te = te.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
@@ -104,8 +104,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         if(self.wake_direction.Size() != 3):
             raise Exception('The wake direction should be a vector with 3 components!')
 
-        dnorm = math.sqrt(
-            self.wake_direction[0]**2 + self.wake_direction[1]**2 + self.wake_direction[2]**2)
+        dnorm = self.wake_direction.norm_2()
         self.wake_direction[0] /= dnorm
         self.wake_direction[1] /= dnorm
         self.wake_direction[2] /= dnorm
