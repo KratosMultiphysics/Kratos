@@ -38,7 +38,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.inlet_phi = settings["inlet_phi"].GetDouble()
 
         # Computing free stream velocity
-        self.u_inf = self.mach_inf * self.seed_of_sound_inf
+        self.u_inf = self.mach_inf * self.speed_of_sound_inf
         self.velocity_infinity = KratosMultiphysics.Vector(3)
         self.velocity_infinity[0] = round(self.u_inf*math.cos(self.angle_of_attack),8)
         self.velocity_infinity[1] = round(self.u_inf*math.sin(self.angle_of_attack),8)
