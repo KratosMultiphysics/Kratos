@@ -62,7 +62,7 @@ namespace Python
         py::class_<IdRenumberingProcess, IdRenumberingProcess::Pointer, Process>
         (m, "IdRenumberingProcess")
         .def(py::init<Model&>())
-        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, StringVectorType&>())
         .def("RenumberNodes", &IdRenumberingProcess::RenumberNodes)
         .def("RenumberElements", &IdRenumberingProcess::RenumberElements)
         .def("RenumberConditions", &IdRenumberingProcess::RenumberConditions)

@@ -16,7 +16,7 @@ class IdRenumberingProcess(KM.Process):
         default_settings = KM.Parameters("""
             {
                 "renumber_all_model_parts" : true,
-                "model_part_list"          : [],
+                "model_parts_list"         : [],
                 "renumber_nodes"           : true,
                 "renumber_elements"        : true,
                 "renumber_conditions"      : true
@@ -28,7 +28,7 @@ class IdRenumberingProcess(KM.Process):
         if settings["renumber_all_model_parts"].GetBool():
             self.process = SW.IdRenumberingProcess(model)
         else:
-            self.process = SW.IdRenumberingProcess(model, settings)
+            self.process = SW.IdRenumberingProcess(model, settings["model_parts_list"].GetStringArray())
 
         self.renumber_nodes = settings["renumber_nodes"].GetBool()
         self.renumber_elements = settings["renumber_elements"].GetBool()
