@@ -19,6 +19,8 @@
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_axisym_2D_law.hpp"
+#include "custom_constitutive/new_nklh_3D_law.hpp"
+#include "custom_constitutive/new_nklh_2D_law.hpp"
 
 #include "custom_constitutive/hyperelastic_U_P_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_U_P_plane_strain_2D_law.hpp"
