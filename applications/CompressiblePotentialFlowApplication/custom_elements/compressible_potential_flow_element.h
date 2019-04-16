@@ -267,7 +267,7 @@ private:
 
     void ComputeElementInternalEnergy();
 
-    void GetPotentialOnNormalElement(array_1d<double, NumNodes>& phis) const;
+    void GetPotentialOnNormalElement(array_1d<double, NumNodes>& rPotentials) const;
 
     void GetPotentialOnWakeElement(Vector& split_element_values,
                                    const array_1d<double, NumNodes>& distances) const;
