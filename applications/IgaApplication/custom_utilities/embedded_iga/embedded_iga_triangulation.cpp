@@ -28,6 +28,7 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
     const std::vector<std::vector<array_1d<double,2>>>& rInnerPolygon,
     std::vector<Matrix>& rTriangulation_xyz)
 {
+    std::cout << "EmbeddedIgaTriangulation" << std::endl; 
     /**
      * This function generates a triangulation of the patch in the parametric space
     */
@@ -147,16 +148,22 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
     // in_data.numberofholes = rInnerPolygon.size(); 
     // in_data.holelist = (REAL*) malloc(in_data.numberofholes * 2 * sizeof(REAL));
 
-    // in_data.holelist[0] = 3; 
-    // in_data.holelist[1] = 2.5;
-    // in_data.holelist[2] = 6; 
-    // in_data.holelist[3] = 3; 
+    // for (unsigned int poly_i = 0; poly_i < rInnerPolygon.size(); ++poly_i)
+    // {
+    //     mapbox::geometry::polygon<double> polygon; 
+    //     mapbox::geometry::linear_ring<double> linear_ring; 
+    //     for (unsigned int node_i = 0; node_i < rInnerPolygon[poly_i].size(); ++node_i)
+    //     {
+    //         linear_ring.push_back(mapbox::geometry::point<double> (rInnerPolygon[poly_i][node_i][0], rInnerPolygon[poly_i][node_i][1])); 
+    //     }
+    //     polygon.push_back(linear_ring); 
 
+    //     mapbox::geometry::point<double> inner_coord = mapbox::polylabel(polygon, 1e-6);
+    //     in_data.holelist[poly_i * 2] = inner_coord.x; 
+    //     in_data.holelist[poly_i * 2 + 1] = inner_coord.y; 
+    // }
 
-    mapbox::geometry::point<double> p = mapbox::polylabel(mapbox::geometry::polygon<double>({{{0, 0}, {5, 0}, {5, 1}, {1, 1},{1,2},{5,2},{5,5},{0,5}}}), 0.00001); 
-
-    
-    std::cout << "x: " << p.x <<  "- y: " << p.y << std::endl;     
+  
 
 
     
