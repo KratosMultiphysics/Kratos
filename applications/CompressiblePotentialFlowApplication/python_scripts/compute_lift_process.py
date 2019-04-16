@@ -3,10 +3,7 @@ import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import math
 
 def DotProduct(A,B):
-    result = 0
-    for i, j in zip(A,B):
-        result += i*j
-    return result
+    return sum(i[0]*i[1] for i in zip(A, B))
 
 def CrossProduct(A, B):
     C = KratosMultiphysics.Vector(3)
@@ -54,20 +51,14 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             cp = cond.GetValue(KratosMultiphysics.PRESSURE)
 
             # Computing forces
-            total_force[0] += n[0]*cp
-            total_force[1] += n[1]*cp
-            total_force[2] += n[2]*cp
+            total_force += n.__mul__(cp)
 
             # Computing moment
             mid_point = cond.GetGeometry().Center()
             lever = mid_point-self.moment_reference_point
             total_moment += CrossProduct(lever, n*(-cp))
 
-        Cf = KratosMultiphysics.Vector(3)
-        Cf[0] = total_force[0]/self.reference_area
-        Cf[1] = total_force[1]/self.reference_area
-        Cf[2] = total_force[2]/self.reference_area
-
+        Cf = total_force.__div__(self.reference_area)
         self.Cm = total_moment[2]/self.reference_area
 
         self.__ReadWakeDirection()
