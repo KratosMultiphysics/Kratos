@@ -60,7 +60,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         force_coefficient /= self.reference_area
         self.moment_coefficient /= self.reference_area
 
-        self.__ReadWakeDirection()
+        self.__CalculateWakeTangentAndNormalDirections()
 
         self.lift_coefficient = _DotProduct(force_coefficient,self.wake_normal)
         self.drag_coefficient = _DotProduct(force_coefficient,self.wake_direction)
@@ -96,7 +96,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             potential_jump_phi_minus_psi_te = node_auxiliary_velocity_potential_te - node_velocity_potential_te
         self.lift_coefficient_jump = 2*potential_jump_phi_minus_psi_te/u_inf
 
-    def __ReadWakeDirection(self):
+    def __CalculateWakeTangentAndNormalDirections(self):
         self.wake_direction = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
         if(self.wake_direction.Size() != 3):
             raise Exception('The wake direction should be a vector with 3 components!')
