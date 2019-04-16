@@ -681,6 +681,7 @@ namespace Kratos {
     void SphericContinuumParticle::RemoveSpheresInsideInnerHole() {
 
         const bool sand_production_simulation = true;
+        const bool blind_simulation = true;
 
         if (!sand_production_simulation) return;
 
@@ -692,6 +693,8 @@ namespace Kratos {
         const bool bigger_hole = true;
 
         if (bigger_hole) inner_radius = 0.012065; //95% of the real hole. This is for the CTW10 specimen (larger inner radius)
+
+        if (blind_simulation) inner_radius = 0.036195; //95% of the real hole.
 
         if (sqrt(X_coord * X_coord + Y_coord * Y_coord) < inner_radius) this->Set(TO_ERASE, true);
     }
