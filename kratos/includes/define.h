@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -507,8 +507,8 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #ifdef KRATOS_DEFINE_LOCAL_FLAG
 #undef KRATOS_DEFINE_LOCAL_FLAG
 #endif
-#define KRATOS_DEFINE_LOCAL_FLAG(name)        \
-  static const Kratos::Flags name;            \
+#define KRATOS_DEFINE_LOCAL_FLAG(name)		\
+  static const Kratos::Flags name;			\
   static const Kratos::Flags NOT_##name
 
 #ifdef KRATOS_DEFINE_LOCAL_APPLICATION_FLAG
@@ -521,8 +521,8 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #ifdef KRATOS_CREATE_LOCAL_FLAG
 #undef KRATOS_CREATE_LOCAL_FLAG
 #endif
-#define KRATOS_CREATE_LOCAL_FLAG(class_name, name, position)        \
-  const Kratos::Flags class_name::name(Kratos::Flags::Create(position));        \
+#define KRATOS_CREATE_LOCAL_FLAG(class_name, name, position)		\
+  const Kratos::Flags class_name::name(Kratos::Flags::Create(position));		\
   const Kratos::Flags class_name::NOT_##name(Kratos::Flags::Create(position, false))
 
 
@@ -585,9 +585,6 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION_MESSAGE(message, major_version, minor_version, patch_version) message "This method is deprecated since version: " major_version "." minor_version "." patch_version static_assert(false, "Please remove");
 #define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION(major_version, minor_version, patch_version) KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION_MESSAGE("", major_version, minor_version, patch_version)
 #endif
-
-namespace Kratos
-{
 
 // The following block defines the macro KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
 // If written in a file, for the following lines of code the compiler will not print warnings of type 'deprecated function'.
@@ -656,10 +653,10 @@ namespace Kratos
 }  /* namespace Kratos.*/
 
 #define KRATOS_SERIALIZE_SAVE_BASE_CLASS(Serializer, BaseType) \
-    Serializer.save_base("BaseClass",*static_cast<const BaseType *>(this));
+	Serializer.save_base("BaseClass",*static_cast<const BaseType *>(this));
 
 #define KRATOS_SERIALIZE_LOAD_BASE_CLASS(Serializer, BaseType) \
-    Serializer.load_base("BaseClass",*static_cast<BaseType *>(this));
+	Serializer.load_base("BaseClass",*static_cast<BaseType *>(this));
 
 
 #endif /* KRATOS_DEFINE_H_INCLUDED  defined */
