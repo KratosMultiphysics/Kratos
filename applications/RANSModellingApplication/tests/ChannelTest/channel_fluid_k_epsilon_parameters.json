@@ -219,7 +219,6 @@
             "Parameters": {
                 "model_part_name": "MainModelPart.NoSlip2D_Walls",
                 "variable_name": "TURBULENT_KINETIC_ENERGY",
-                "is_fixed": false,
                 "value": 1e-10
             }
         },
@@ -231,7 +230,6 @@
             "Parameters": {
                 "model_part_name": "MainModelPart.NoSlip2D_Walls",
                 "variable_name": "TURBULENT_ENERGY_DISSIPATION_RATE",
-                "is_fixed": false,
                 "value": 1e-10
             }
         }

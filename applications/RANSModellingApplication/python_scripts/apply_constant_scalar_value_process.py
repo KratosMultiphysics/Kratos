@@ -16,7 +16,7 @@ class ApplyConstantScalarValueProcess(KratosMultiphysics.Process):
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "is_fixed": false,
+                "is_fixed": true,
                 "value" : 1.0,
                 "boundary_condition_type" : "structure"
             }  """ )
