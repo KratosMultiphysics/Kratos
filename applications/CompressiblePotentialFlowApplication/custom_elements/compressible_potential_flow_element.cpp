@@ -648,7 +648,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CheckWakeCondition() const
 template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo)
 {
-    const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
+    const array_1d<double, 3>& vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
     const double vinfinity_norm = sqrt(inner_prod(vinfinity, vinfinity));
 
     array_1d<double, NumNodes> distances;
@@ -833,7 +833,7 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureCoefficie
     const ProcessInfo& rCurrentProcessInfo) const
 {
     // Reading free stream conditions
-    const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
+    const array_1d<double, 3>& vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
     const double M_inf = rCurrentProcessInfo[MACH_INFINITY];
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
 
@@ -860,7 +860,7 @@ template <int Dim, int NumNodes>
 double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensity(const ProcessInfo& rCurrentProcessInfo) const
 {
     // Reading free stream conditions
-    const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
+    const array_1d<double, 3>& vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
     const double rho_inf = rCurrentProcessInfo[DENSITY_INFINITY];
     const double M_inf = rCurrentProcessInfo[MACH_INFINITY];
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
