@@ -176,7 +176,7 @@ public:
      * @note this function is threadsafe and can be used within OpenMP loops
      * @warning This is legacy version (using array instead of vector for shape function)
      */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version (using array instead of vector for shape function)") bool FindPointOnMesh(
+    KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION_MESSAGE("This is legacy version (using array instead of vector for shape function)", 7, 1, 0) bool FindPointOnMesh(
         const array_1d<double, 3 >& rCoordinates,
         array_1d<double, TDim + 1 >& rNShapeFunction,
         typename EntityType::Pointer& pEntity,
@@ -240,7 +240,7 @@ public:
         if (results_found > 0) {
             // Loop over the candidate entities and check if the particle falls within
             for (IndexType i = 0; i < static_cast<IndexType>(results_found); i++) {
-              
+
                 GeometryType& geom = (*(ItResultBegin + i))->GetGeometry();
 
                 // Find local position
@@ -353,26 +353,26 @@ private:
      * @param The corresponding element array
      */
     static inline void GetContainer(
-        ModelPart& rModelPart, 
+        ModelPart& rModelPart,
         PointerVectorSet<Element, IndexedObject>::ContainerType& rContainerArray
         )
     {
         rContainerArray = rModelPart.ElementsArray();
     }
-    
+
     /**
      * @brief This operation is defined to the the corresponding container type
      * @param rModelPart The model part to get the condition container
      * @param The corresponding condition array
      */
     static inline void GetContainer(
-        ModelPart& rModelPart, 
+        ModelPart& rModelPart,
         PointerVectorSet<Condition, IndexedObject>::ContainerType& rContainerArray
         )
     {
         rContainerArray = rModelPart.ConditionsArray();
     }
-    
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -390,7 +390,7 @@ private:
     ///@{
     ///@}
 };
-    
+
 } // namespace Kratos.
 
 #endif // KRATOS_BINBASED_FAST_POINT_LOCATOR_INCLUDED  defined
