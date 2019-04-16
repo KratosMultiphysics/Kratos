@@ -36,7 +36,6 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
         self.reference_area =  settings["reference_area"].GetDouble()
         self.create_output_file = settings["create_output_file"].GetBool()
-        self.moment_reference_point = KratosMultiphysics.Vector(3)
         self.moment_reference_point = settings["moment_reference_point"].GetVector()
         
 
