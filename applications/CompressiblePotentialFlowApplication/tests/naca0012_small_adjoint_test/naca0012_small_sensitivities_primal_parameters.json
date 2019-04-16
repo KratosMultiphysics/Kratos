@@ -70,7 +70,7 @@
                     "list_of_variables": ["VELOCITY_POTENTIAL", "AUXILIARY_VELOCITY_POTENTIAL"]
                 },
                 "output_time_settings" :{
-                    "output_step_frequency": 1
+                    "step_frequency": 1
                 }
             }
         }]    
