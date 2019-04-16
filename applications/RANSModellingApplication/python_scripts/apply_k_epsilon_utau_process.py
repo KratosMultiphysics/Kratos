@@ -32,8 +32,8 @@ class ApplyKEpsilonUtauProcess(KratosMultiphysics.Process):
         self.settings.RemoveValue("y_plus_model")
 
         if (not self.settings["is_initialization_process"].GetBool()):
-            from model_part_factory import ApplyFlagsToModelPart
-            ApplyFlagsToModelPart(self.model_part, self.settings["boundary_condition_type"].GetString(), True)
+            from model_part_factory import ApplyFlagsToNodeList
+            ApplyFlagsToNodeList(self.model_part.Nodes, self.settings["boundary_condition_type"].GetString(), True)
         self.settings.RemoveValue("boundary_condition_type")
 
         self.k_epsilon_utau_process = KratosRANS.RansKEpsilonEvaluationUtauProcess(Model, self.settings, self.y_plus_model)
