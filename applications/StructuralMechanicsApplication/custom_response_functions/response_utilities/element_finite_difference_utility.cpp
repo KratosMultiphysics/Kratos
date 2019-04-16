@@ -37,7 +37,7 @@ namespace Kratos
             Vector RHS_perturbed;
 
             if ( (rOutput.size1() != 1) || (rOutput.size2() != rRHS.size() ) )
-                rOutput.resize(1, rRHS.size());
+                rOutput.resize(1, rRHS.size(), false);
 
             // Save property pointer
             Properties::Pointer p_global_properties = rElement.pGetProperties();
@@ -77,35 +77,30 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
+        if( rDesignVariable == SHAPE_SENSITIVITY_X || rDesignVariable == SHAPE_SENSITIVITY_Y || rDesignVariable == SHAPE_SENSITIVITY_Z )
         {
-            KRATOS_WARNING_IF("ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
-                << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
+            const IndexType coord_dir =
+                ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
 
-            #pragma omp critical
-            {
-                const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
+            // define working variables
+            Vector RHS_perturbed;
 
-                // define working variables
-                Vector RHS_perturbed;
+            if (rOutput.size() != rRHS.size())
+                rOutput.resize(rRHS.size(), false);
 
-                if ( rOutput.size() != rRHS.size() )
-                    rOutput.resize(rRHS.size(), false);
+            // perturb the design variable
+            rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
+            rNode.Coordinates()[coord_dir] += rPertubationSize;
 
-                // perturb the design variable
-                rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
-                rNode.Coordinates()[coord_dir] += rPertubationSize;
+            // compute LHS after perturbation
+            rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
 
-                // compute LHS after perturbation
-                rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+            // compute derivative of RHS w.r.t. design variable with finite differences
+            noalias(rOutput) = (RHS_perturbed - rRHS) / rPertubationSize;
 
-                //compute derivative of RHS w.r.t. design variable with finite differences
-                noalias(rOutput) = (RHS_perturbed - rRHS) / rPertubationSize;
-
-                 // unperturb the design variable
-                rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
-                rNode.Coordinates()[coord_dir] -= rPertubationSize;
-            }
+            // unperturb the design variable
+            rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
+            rNode.Coordinates()[coord_dir] -= rPertubationSize;
         }
         else
         {
@@ -127,7 +122,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
+        if( rDesignVariable == SHAPE_SENSITIVITY_X || rDesignVariable == SHAPE_SENSITIVITY_Y || rDesignVariable == SHAPE_SENSITIVITY_Z )
         {
             KRATOS_WARNING_IF("ElementFiniteDifferenceUtility::CalculateLeftHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
                 << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
@@ -141,7 +136,7 @@ namespace Kratos
                 Vector dummy;
 
                 if ( (rOutput.size1() != rLHS.size1()) || (rOutput.size2() != rLHS.size2() ) )
-                    rOutput.resize(rLHS.size1(), rLHS.size2());
+                    rOutput.resize(rLHS.size1(), rLHS.size2(), false);
 
                 // perturb the design variable
                 rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
@@ -178,7 +173,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
+        if( rDesignVariable == SHAPE_SENSITIVITY_X || rDesignVariable == SHAPE_SENSITIVITY_Y || rDesignVariable == SHAPE_SENSITIVITY_Z )
         {
             KRATOS_WARNING_IF("ElementFiniteDifferenceUtility::CalculateMassMatrixDerivative", OpenMPUtils::IsInParallel() != 0)
                 << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
@@ -191,7 +186,7 @@ namespace Kratos
                 Matrix perturbed_mass_matrix;
 
                 if ( (rOutput.size1() != rMassMatrix.size1()) || (rOutput.size2() != rMassMatrix.size2() ) )
-                    rOutput.resize(rMassMatrix.size1(), rMassMatrix.size2());
+                    rOutput.resize(rMassMatrix.size1(), rMassMatrix.size2(), false);
 
                 // perturb the design variable
                 rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
@@ -220,15 +215,15 @@ namespace Kratos
 
     std::size_t ElementFiniteDifferenceUtility::GetCoordinateDirection(const array_1d_component_type& rDesignVariable)
     {
-        if( rDesignVariable == SHAPE_X )
+        if( rDesignVariable == SHAPE_SENSITIVITY_X )
             return 0;
-        else if( rDesignVariable == SHAPE_Y )
+        else if( rDesignVariable == SHAPE_SENSITIVITY_Y )
             return 1;
-        else if( rDesignVariable == SHAPE_Z )
+        else if( rDesignVariable == SHAPE_SENSITIVITY_Z )
             return 2;
         else
             KRATOS_ERROR << "Invalid valiable component: " << rDesignVariable.Name() <<
-                "Available is only 'SHAPE_X','SHAPE_Y' and 'SHAPE_Z' " << std::endl;
+                "Available is only 'SHAPE_SENSITIVITY_X','SHAPE_SENSITIVITY_Y' and 'SHAPE_SENSITIVITY_Z' " << std::endl;
     }
 
 }  // namespace Kratos.

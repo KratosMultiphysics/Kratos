@@ -61,7 +61,8 @@ install(TARGETS KratosFluidTransportCore DESTINATION libs )
 install(TARGETS KratosFluidTransportApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/FluidTransportApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/FluidTransportApplication.py" DESTINATION "KratosMultiphysics/FluidTransportApplication" RENAME "__init__.py")
+
 
 # install the python files
 if(${INSTALL_PYTHON_FILES} MATCHES ON)

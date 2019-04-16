@@ -6,17 +6,23 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 class TestMPIDataCommunicatorPython(UnitTest.TestCase):
 
     def setUp(self):
-        self.world = Kratos.ParallelEnvironment.GetDefaultDataCommunicator()
+        self.world = Kratos.DataCommunicator.GetDefault()
         self.rank = self.world.Rank()
         self.size = self.world.Size()
 
     def tearDown(self):
         pass
 
-    def testDataCommunicatorRetrieval(self):
+    def testDataCommunicatorRetrievalFromParallelEnvironment(self):
         default_comm = Kratos.ParallelEnvironment.GetDefaultDataCommunicator()
 
         self.assertTrue(Kratos.ParallelEnvironment.HasDataCommunicator("World"))
+
+        # if we imported mpi, default should be "World" (wrapping MPI_COMM_WORLD)
+        self.assertTrue(default_comm.IsDistributed())
+
+    def testDataCommunicatorRetrievalFromDataCommunicator(self):
+        default_comm = Kratos.DataCommunicator.GetDefault()
 
         # if we imported mpi, default should be "World" (wrapping MPI_COMM_WORLD)
         self.assertTrue(default_comm.IsDistributed())

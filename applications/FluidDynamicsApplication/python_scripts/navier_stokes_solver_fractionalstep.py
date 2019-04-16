@@ -39,7 +39,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
             "pressure_linear_solver_settings":  {
-                "solver_type"                    : "AMGCL",
+                "solver_type"                    : "amgcl",
                 "max_iteration"                  : 200,
                 "tolerance"                      : 1e-6,
                 "provide_coordinates"            : false,
@@ -52,7 +52,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
                 "verbosity"                      : 0
             },
             "velocity_linear_solver_settings": {
-                "solver_type"                    : "AMGCL",
+                "solver_type"                    : "amgcl",
                 "max_iteration"                  : 200,
                 "tolerance"                      : 1e-6,
                 "provide_coordinates"            : false,
@@ -86,9 +86,6 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         self.element_name = "FractionalStep"
         self.condition_name = "WallCondition"
         self.min_buffer_size = 3
-
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
 
         ## Construct the linear solvers
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
@@ -127,8 +124,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Fluid solver variables added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Fluid solver variables added correctly.")
 
     def PrepareModelPart(self):
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:

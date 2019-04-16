@@ -3,11 +3,8 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 ## Import base class file
-from shallow_water_base_solver import ShallowWaterBaseSolver
+from KratosMultiphysics.ShallowWaterApplication.shallow_water_base_solver import ShallowWaterBaseSolver
 
 def CreateSolver(model, custom_settings):
     return Pfem2PrimitiveVarSolver(model, custom_settings)
@@ -46,7 +43,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(Shallow.HEIGHT, self.main_model_part)
 
-        self.print_on_rank_zero("::[Pfem2PrimitiveVarSolver]::", "Shallow water solver DOFs added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("::[Pfem2PrimitiveVarSolver]::", "Shallow water solver DOFs added correctly.")
 
     def Initialize(self):
         super(Pfem2PrimitiveVarSolver, self).Initialize()
@@ -63,7 +60,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
         # Creating the solution strategy for the particle stage
         self.moveparticles = Shallow.MoveShallowWaterParticleUtility(self.main_model_part, self.settings["pfem2_settings"])
         self.moveparticles.MountBin()
-        self.print_on_rank_zero("::[Pfem2PrimitiveVarSolver]::", "Pfem2 stage initialization finished")
+        KratosMultiphysics.Logger.PrintInfo("::[Pfem2PrimitiveVarSolver]::", "Pfem2 stage initialization finished")
 
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
@@ -92,7 +89,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
             # Compute free surface
             self.ShallowVariableUtils.ComputeFreeSurfaceElevation()
             # If water height is negative or close to zero, reset values
-            self.ShallowVariableUtils.CheckDryPrimitiveVariables()
+            # self.ShallowVariableUtils.CheckDryPrimitiveVariables()
 
             return is_converged
 

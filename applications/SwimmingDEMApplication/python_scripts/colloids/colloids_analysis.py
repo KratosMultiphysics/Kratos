@@ -1,5 +1,4 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
+import KratosMultiphysics as Kratos
 import swimming_DEM_procedures as SDP
 import math
 import swimming_DEM_analysis
@@ -12,26 +11,31 @@ class ColloidsAnalysis(BaseAnalysis):
 
     def SetBetaParameters(self):
         BaseAnalysis.SetBetaParameters(self)
-        self.pp.CFD_DEM.alpha = 0.01
-        self.pp["TranslationalIntegrationScheme"].SetString('TerminalVelocityScheme')
-        self.pp.CFD_DEM.AddEmptyValue("basset_force_type").SetInt(0)
-        self.pp.CFD_DEM.PostCationConcentration = True
-        self.pp.initial_concentration = 10
-        self.pp.final_concentration = 0.01
-        self.pp.fluid_speed = 1e-6
-        self.pp.cation_concentration_frequence = 1
-        self.pp.CFD_DEM.drag_force_type = 9
-        self.pp.CFD_DEM["do_solve_dem"].SetBool(False)
+        Add = self.project_parameters.AddEmptyValue
+        Add('PostCationConcentration').SetBool(True)
+        Add('alpha').SetDouble(0.01)
+        Add('initial_concentration').SetDouble(10)
+        Add('final_concentration').SetDouble(10)
+        Add('fluid_speed').SetDouble(10)
+        Add('cation_concentration_frequence').SetDouble(10)
+        self.project_parameters["custom_dem"]["translational_integration_scheme"].SetString('TerminalVelocityScheme')
+        self.project_parameters["custom_dem"]["do_solve_dem"].SetBool(False)
 
     def PerformInitialDEMStepOperations(self, time = None):
         if self.cation_concentration_counter.Tick():
-            self.pp.concentration = self.pp.final_concentration + (self.pp.initial_concentration - self.pp.final_concentration) * math.exp(- self.pp.CFD_DEM.alpha * time / self.pp.CFD_DEM["MaxTimeStep"].GetDouble())
+            self.concentration = (self.project_parameters['final_concentration'].GetDouble()
+                                  + (self.project_parameters['initial_concentration'].GetDouble()
+                                  - self.project_parameters['final_concentration'].GetDouble())
+                                  * math.exp(- self.project_parameters['alpha'].GetDouble() * time
+                                             / self.project_parameters["time_stepping"]["time_step"].GetDouble()))
+
             for node in self.spheres_model_part.Nodes:
-                node.SetSolutionStepValue(CATION_CONCENTRATION, self.pp.concentration)
+                node.SetSolutionStepValue(Kratos.CATION_CONCENTRATION, self.concentration)
+
             if self.cation_concentration_counter.SuperTick(1000):
                 print()
-                print('Current cation concentration: ', str(self.pp.concentration))
+                print('Current cation concentration: ', str(self.concentration))
                 print()
 
     def GetCationConcentrationCounter(self):
-        return SDP.Counter(self.pp.cation_concentration_frequence, 1)
+        return SDP.Counter(self.project_parameters['cation_concentration_frequence'].GetInt(), 1)
