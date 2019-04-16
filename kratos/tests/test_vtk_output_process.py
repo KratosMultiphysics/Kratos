@@ -185,6 +185,7 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", dimension = "2D"):
             "file_format"                        : "ascii",
             "output_precision"                   : 8,
             "output_frequency"                   : 2,
+            "output_sub_model_parts"             : true,
             "folder_name"                        : "test_vtk_output",
             "nodal_solution_step_data_variables" : ["PRESSURE","DISPLACEMENT", "VELOCITY"],
             "element_data_value_variables"       : ["DETERMINANT"],
@@ -214,13 +215,13 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", dimension = "2D"):
             vtk_output_process.PrintOutput()
 
             Check(os.path.join("test_vtk_output","Main_0_" + str(step)+".vtk"),\
-                os.path.join("vtk_output_process_ref_files", file_format + dimension, "Main_0_"+str(step)+".vtk"))
+                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + dimension, "Main_0_"+str(step)+".vtk"))
 
             Check(os.path.join("test_vtk_output","Main_FixedEdgeNodes_0_" + str(step)+".vtk"),\
-                os.path.join("vtk_output_process_ref_files", file_format + dimension, "Main_FixedEdgeNodes_0_"+str(step)+".vtk"))
+                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + dimension, "Main_FixedEdgeNodes_0_"+str(step)+".vtk"))
 
             Check(os.path.join("test_vtk_output","Main_MovingNodes_0_"+str(step)+".vtk"),\
-                os.path.join("vtk_output_process_ref_files", file_format + dimension, "Main_MovingNodes_0_"+str(step)+".vtk"))
+                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + dimension, "Main_MovingNodes_0_"+str(step)+".vtk"))
 
 
 if __name__ == '__main__':

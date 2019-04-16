@@ -137,7 +137,7 @@ BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
 {
     Parameters default_parameters( R"(
         {
-            "min_fluid_fraction": 0.2,
+            "backward_coupling": {},
             "coupling_type": 1,
             "time_averaging_type": 0,
             "viscosity_modification_type" : 0,
@@ -146,8 +146,7 @@ BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
         }  )" );
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
-
-    mMinFluidFraction = rParameters["min_fluid_fraction"].GetDouble();
+    mMinFluidFraction = rParameters["backward_coupling"]["min_fluid_fraction"].GetDouble();
     mCouplingType = rParameters["coupling_type"].GetInt();
     mTimeAveragingType = rParameters["time_averaging_type"].GetInt();
     mViscosityModificationType = rParameters["viscosity_modification_type"].GetInt();

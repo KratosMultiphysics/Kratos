@@ -208,9 +208,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
     def __init__(self, model, custom_settings):
         super(NavierStokesSolverMonolithic,self).__init__(model,custom_settings)
 
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
         self.formulation = StabilizedFormulation(self.settings["formulation"])
         self.element_name = self.formulation.element_name
         self.condition_name = self.formulation.condition_name
@@ -261,8 +258,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Fluid solver variables added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Fluid solver variables added correctly.")
 
 
     def PrepareModelPart(self):
@@ -383,6 +379,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
                     raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
                 kin_viscosity = dyn_viscosity / rho
                 break
+            else:
+                raise Exception("No fluid elements found in the main model part.")
 
             KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
             KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
