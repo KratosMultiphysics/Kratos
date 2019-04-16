@@ -57,29 +57,29 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             lever = mid_point-self.moment_reference_point
             total_moment += CrossProduct(lever, n*(-cp))
 
-        Cf = total_force.__div__(self.reference_area)
-        self.Cm = total_moment[2]/self.reference_area
+        force_coefficient = total_force.__div__(self.reference_area)
+        self.moment_coefficient = total_moment[2]/self.reference_area
 
         self.__ReadWakeDirection()
 
-        self.Cl = DotProduct(Cf,self.wake_normal)
-        self.Cd = DotProduct(Cf,self.wake_direction)
+        self.lift_coefficient = DotProduct(force_coefficient,self.wake_normal)
+        self.Cd = DotProduct(force_coefficient,self.wake_direction)
 
         self.__ComputeLiftJump()
 
-        KratosMultiphysics.Logger.PrintInfo(' Cl = ', self.Cl)
+        KratosMultiphysics.Logger.PrintInfo(' Cl = ', self.lift_coefficient)
         KratosMultiphysics.Logger.PrintInfo(' Cd = ', self.Cd)
-        KratosMultiphysics.Logger.PrintInfo(' RZ = ', Cf[2])
-        KratosMultiphysics.Logger.PrintInfo(' Cm = ', self.Cm)
-        KratosMultiphysics.Logger.PrintInfo(' Cl = ' , self.Cl_te, ' = 2 * DPhi / U_inf ')
+        KratosMultiphysics.Logger.PrintInfo(' RZ = ', force_coefficient[2])
+        KratosMultiphysics.Logger.PrintInfo(' Cm = ', self.moment_coefficient)
+        KratosMultiphysics.Logger.PrintInfo(' Cl = ' , self.lift_coefficient_jump, ' = 2 * DPhi / U_inf ')
 
         if self.create_output_file:
             with open("cl.dat", 'w') as cl_file:
-                cl_file.write('{0:15.12f}'.format(self.Cl))
+                cl_file.write('{0:15.12f}'.format(self.lift_coefficient))
             with open("moment.dat", 'w') as mom_file:
-                mom_file.write('{0:15.12f}'.format(self.Cm))
+                mom_file.write('{0:15.12f}'.format(self.moment_coefficient))
                 with open("cl_jump.dat", 'w') as cl_file:
-                 cl_file.write('{0:15.12f}'.format(self.Cl_te))
+                 cl_file.write('{0:15.12f}'.format(self.lift_coefficient_jump))
 
     def __ComputeLiftJump(self):
         # Find the Trailing Edge node
@@ -97,7 +97,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             potential_jump_phi_minus_psi_te = node_velocity_potential_te - node_auxiliary_velocity_potential_te
         else:
             potential_jump_phi_minus_psi_te = node_auxiliary_velocity_potential_te - node_velocity_potential_te
-        self.Cl_te = 2*potential_jump_phi_minus_psi_te/u_inf
+        self.lift_coefficient_jump = 2*potential_jump_phi_minus_psi_te/u_inf
 
     def __ReadWakeDirection(self):
         self.wake_direction = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.VELOCITY_INFINITY)
