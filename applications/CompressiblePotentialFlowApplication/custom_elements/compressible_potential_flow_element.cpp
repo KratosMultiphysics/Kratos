@@ -32,8 +32,7 @@ Element::Pointer CompressiblePotentialFlowElement<Dim, NumNodes>::Create(
     IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<CompressiblePotentialFlowElement>(
-        NewId, pGeom, pProperties);
+    return Kratos::make_shared<CompressiblePotentialFlowElement>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
@@ -51,14 +50,15 @@ template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
-
     const CompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0) // Normal element (non-wake) - eventually an embedded
-        CalculateLocalSystemNormalElement(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+        CalculateLocalSystemNormalElement(
+            rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
     else // Wake element
-        CalculateLocalSystemWakeElement(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+        CalculateLocalSystemWakeElement(
+            rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 }
 
 template <int Dim, int NumNodes>
@@ -109,7 +109,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::EquationIdVector(
 
 template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                                   ProcessInfo& CurrentProcessInfo)
+                                                                 ProcessInfo& CurrentProcessInfo)
 {
     const CompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -173,7 +173,7 @@ int CompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rC
 
     for (unsigned int i = 0; i < this->GetGeometry().size(); i++)
     {
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_POTENTIAL,this->GetGeometry()[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_POTENTIAL, this->GetGeometry()[i]);
     }
 
     return out;
@@ -281,20 +281,23 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::PrintData(std::ostream& rO
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::GetWakeDistances(array_1d<double, NumNodes>& distances) const
+void CompressiblePotentialFlowElement<Dim, NumNodes>::GetWakeDistances(
+    array_1d<double, NumNodes>& distances) const
 {
     noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const
+void CompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorNormalElement(
+    EquationIdVectorType& rResult) const
 {
     for (unsigned int i = 0; i < NumNodes; i++)
         rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult) const
+void CompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorKuttaElement(
+    EquationIdVectorType& rResult) const
 {
     // Kutta elements have only negative part
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -307,7 +310,8 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorKuttaEl
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorWakeElement(EquationIdVectorType& rResult) const
+void CompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorWakeElement(
+    EquationIdVectorType& rResult) const
 {
     array_1d<double, NumNodes> distances;
     GetWakeDistances(distances);
@@ -396,7 +400,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNormal
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
     const double density = ComputeDensity(rCurrentProcessInfo);
-    const double DrhoDu2 = ComputeDensityDerivative(density,rCurrentProcessInfo);
+    const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
 
     // Computing local velocity
     array_1d<double, Dim> v;
@@ -404,8 +408,9 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNormal
 
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, v);
 
-    noalias(rLeftHandSideMatrix) += data.vol*density*prod(data.DN_DX, trans(data.DN_DX));
-    noalias(rLeftHandSideMatrix) += data.vol*2*DrhoDu2*outer_prod(DNV, trans(DNV));
+    noalias(rLeftHandSideMatrix) +=
+        data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
+    noalias(rLeftHandSideMatrix) += data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
 
     const BoundedMatrix<double, NumNodes, NumNodes> rLaplacianMatrix =
         data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
@@ -436,8 +441,8 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWakeEl
     GetWakeDistances(data.distances);
 
     const double density = ComputeDensity(rCurrentProcessInfo);
-    const double DrhoDu2 = ComputeDensityDerivative(density,rCurrentProcessInfo);
-    
+    const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
+
     // Computing local velocity
     array_1d<double, Dim> v;
     ComputeVelocityUpperWakeElement(v);
@@ -448,36 +453,41 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWakeEl
         data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
 
     const BoundedMatrix<double, NumNodes, NumNodes> lhs_total =
-        data.vol * density * prod(data.DN_DX, trans(data.DN_DX))+
-        data.vol * 2*DrhoDu2 * outer_prod(DNV, trans(DNV));
+        data.vol * density * prod(data.DN_DX, trans(data.DN_DX)) +
+        data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
 
     if (this->Is(STRUCTURE))
     {
         Matrix lhs_positive = ZeroMatrix(NumNodes, NumNodes);
         Matrix lhs_negative = ZeroMatrix(NumNodes, NumNodes);
 
-        Matrix laplacian_positive = ZeroMatrix(NumNodes,NumNodes);
+        Matrix laplacian_positive = ZeroMatrix(NumNodes, NumNodes);
         Matrix laplacian_negative = ZeroMatrix(NumNodes, NumNodes);
 
-        CalculateLocalSystemSubdividedElement(
-            lhs_positive, lhs_negative, laplacian_positive, laplacian_negative, rCurrentProcessInfo);
+        CalculateLocalSystemSubdividedElement(lhs_positive, lhs_negative, laplacian_positive,
+                                              laplacian_negative, rCurrentProcessInfo);
         AssignLocalSystemSubdividedElement(
             rLeftHandSideMatrix, lhs_positive, lhs_negative, lhs_total, rLaplacianMatrix,
             laplacian_positive, laplacian_negative, laplacian_total, data);
     }
-    else{
+    else
+    {
         AssignLocalSystemWakeElement(rLeftHandSideMatrix, lhs_total, data);
         AssignLocalSystemWakeElement(rLaplacianMatrix, laplacian_total, data);
     }
 
-    Vector split_element_values(2*NumNodes);
-    GetPotentialOnWakeElement(split_element_values,data.distances);
+    Vector split_element_values(2 * NumNodes);
+    GetPotentialOnWakeElement(split_element_values, data.distances);
     noalias(rRightHandSideVector) = -prod(rLaplacianMatrix, split_element_values);
 }
 
 template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubdividedElement(
-    Matrix& lhs_positive, Matrix& lhs_negative, Matrix& laplacian_positive, Matrix& laplacian_negative, const ProcessInfo& rCurrentProcessInfo)
+    Matrix& lhs_positive,
+    Matrix& lhs_negative,
+    Matrix& laplacian_positive,
+    Matrix& laplacian_negative,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     ElementalData<NumNodes, Dim> data;
 
@@ -510,7 +520,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubdiv
         PartitionsSign, GradientsValue, NEnriched);
 
     const double density = ComputeDensity(rCurrentProcessInfo);
-    const double DrhoDu2 = ComputeDensityDerivative(density,rCurrentProcessInfo);
+    const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
 
     // Computing local velocity
     array_1d<double, Dim> v;
@@ -521,17 +531,25 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubdiv
     // Compute the lhs and rhs that would correspond to it being divided
     for (unsigned int i = 0; i < nsubdivisions; ++i)
     {
-        if (PartitionsSign[i] > 0){
-            noalias(lhs_positive) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
-            noalias(lhs_positive) += Volumes[i]*2*DrhoDu2*outer_prod(DNV, trans(DNV));
+        if (PartitionsSign[i] > 0)
+        {
+            noalias(lhs_positive) +=
+                Volumes[i] * density * prod(data.DN_DX, trans(data.DN_DX));
+            noalias(lhs_positive) +=
+                Volumes[i] * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
 
-            noalias(laplacian_positive) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
+            noalias(laplacian_positive) +=
+                Volumes[i] * density * prod(data.DN_DX, trans(data.DN_DX));
         }
-        else{
-            noalias(lhs_negative) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
-            noalias(lhs_negative) += Volumes[i]*2*DrhoDu2*outer_prod(DNV, trans(DNV));
+        else
+        {
+            noalias(lhs_negative) +=
+                Volumes[i] * density * prod(data.DN_DX, trans(data.DN_DX));
+            noalias(lhs_negative) +=
+                Volumes[i] * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
 
-            noalias(laplacian_negative) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
+            noalias(laplacian_negative) +=
+                Volumes[i] * density * prod(data.DN_DX, trans(data.DN_DX));
         }
     }
 }
@@ -570,7 +588,8 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemSubdivide
                 rLaplacianMatrix(i + NumNodes, j + NumNodes) = laplacian_negative(i, j);
             }
         }
-        else{
+        else
+        {
             AssignLocalSystemWakeNode(rLeftHandSideMatrix, lhs_total, data, i);
             AssignLocalSystemWakeNode(rLaplacianMatrix, laplacian_total, data, i);
         }
@@ -579,7 +598,9 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemSubdivide
 
 template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemWakeElement(
-    MatrixType& rLeftHandSideMatrix, const BoundedMatrix<double, NumNodes, NumNodes>& lhs_total, const ElementalData<NumNodes, Dim>& data) const
+    MatrixType& rLeftHandSideMatrix,
+    const BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
+    const ElementalData<NumNodes, Dim>& data) const
 {
     for (unsigned int row = 0; row < NumNodes; ++row)
         AssignLocalSystemWakeNode(rLeftHandSideMatrix, lhs_total, data, row);
@@ -635,13 +656,15 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(const
 
     for (unsigned int i = 0; i < NumNodes; i++)
     {
-        double aux_potential = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+        double aux_potential =
+            GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
         double potential = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         double potential_jump = aux_potential - potential;
 
         if (distances[i] > 0)
         {
-            GetGeometry()[i].SetValue(POTENTIAL_JUMP, -2.0 / vinfinity_norm * (potential_jump));
+            GetGeometry()[i].SetValue(POTENTIAL_JUMP,
+                                      -2.0 / vinfinity_norm * (potential_jump));
         }
         else
         {
@@ -728,7 +751,8 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnLowerWakeEle
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpper(array_1d<double, Dim>& velocity) const
+void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpper(
+    array_1d<double, Dim>& velocity) const
 {
     velocity.clear();
 
@@ -742,7 +766,8 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpper(array
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLower(array_1d<double, Dim>& velocity) const
+void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLower(
+    array_1d<double, Dim>& velocity) const
 {
     velocity.clear();
 
@@ -804,7 +829,8 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLowerWakeEl
 }
 
 template <int Dim, int NumNodes>
-double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureCoefficient(const ProcessInfo& rCurrentProcessInfo) const
+double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureCoefficient(
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     // Reading free stream conditions
     const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
@@ -816,9 +842,9 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureCoefficie
     ComputeVelocityUpper(v);
 
     // Computing squares
-    const double v_inf_2 = inner_prod(vinfinity,vinfinity);
-    const double M_inf_2 = M_inf*M_inf;
-    double v_2 = inner_prod(v,v);
+    const double v_inf_2 = inner_prod(vinfinity, vinfinity);
+    const double M_inf_2 = M_inf * M_inf;
+    double v_2 = inner_prod(v, v);
 
     KRATOS_ERROR_IF(v_inf_2 < std::numeric_limits<double>::epsilon())
         << "Error on element -> " << this->Id() << "\n"
@@ -826,7 +852,8 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureCoefficie
 
     const double base = 1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2;
 
-    return 2 * (pow(base, heat_capacity_ratio / (heat_capacity_ratio - 1)) - 1) / (heat_capacity_ratio * M_inf_2);
+    return 2 * (pow(base, heat_capacity_ratio / (heat_capacity_ratio - 1)) - 1) /
+           (heat_capacity_ratio * M_inf_2);
 }
 
 template <int Dim, int NumNodes>
@@ -872,14 +899,16 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensity(const Pro
 }
 
 template <int Dim, int NumNodes>
-double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensityDerivative(const double rho, const ProcessInfo& rCurrentProcessInfo) const
+double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensityDerivative(
+    const double rho, const ProcessInfo& rCurrentProcessInfo) const
 {
     // Reading free stream conditions
     const double rho_inf = rCurrentProcessInfo[DENSITY_INFINITY];
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
     const double a_inf = rCurrentProcessInfo[SOUND_VELOCITY];
 
-    return -pow(rho_inf, heat_capacity_ratio - 1) * pow(rho, 2 - heat_capacity_ratio) / (2 * a_inf * a_inf);
+    return -pow(rho_inf, heat_capacity_ratio - 1) *
+           pow(rho, 2 - heat_capacity_ratio) / (2 * a_inf * a_inf);
 }
 
 // serializer

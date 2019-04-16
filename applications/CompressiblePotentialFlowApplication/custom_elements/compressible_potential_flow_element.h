@@ -81,27 +81,35 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    explicit CompressiblePotentialFlowElement(IndexType NewId = 0){}
+    explicit CompressiblePotentialFlowElement(IndexType NewId = 0)
+    {
+    }
 
     /**
      * Constructor using an array of nodes
      */
     CompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : Element(NewId, ThisNodes){}
+        : Element(NewId, ThisNodes)
+    {
+    }
 
     /**
      * Constructor using Geometry
      */
     CompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : Element(NewId, pGeometry){}
+        : Element(NewId, pGeometry)
+    {
+    }
 
     /**
      * Constructor using Properties
      */
     CompressiblePotentialFlowElement(IndexType NewId,
-                                       GeometryType::Pointer pGeometry,
-                                       PropertiesType::Pointer pProperties)
-        : Element(NewId, pGeometry, pProperties){}
+                                     GeometryType::Pointer pGeometry,
+                                     PropertiesType::Pointer pProperties)
+        : Element(NewId, pGeometry, pProperties)
+    {
+    }
 
     /**
      * Copy Constructor
@@ -116,7 +124,9 @@ public:
     /**
      * Destructor
      */
-    ~CompressiblePotentialFlowElement() override{}
+    ~CompressiblePotentialFlowElement() override
+    {
+    }
 
     ///@}
     ///@name Operators
@@ -150,7 +160,7 @@ public:
                                 ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                ProcessInfo& rCurrentProcessInfo) override;
+                               ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override;
 
@@ -282,7 +292,8 @@ private:
 
     double ComputeDensity(const ProcessInfo& rCurrentProcessInfo) const;
 
-    double ComputeDensityDerivative(const double density, const ProcessInfo& rCurrentProcessInfo) const;
+    double ComputeDensityDerivative(const double density,
+                                    const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}
     ///@name Private Operations
