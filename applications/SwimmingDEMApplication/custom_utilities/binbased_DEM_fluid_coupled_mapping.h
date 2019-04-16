@@ -139,9 +139,7 @@ BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
         {
             "backward_coupling": {},
             "coupling_type": 1,
-             "forward_coupling" : {
-              "time_averaging_type" : 0
-            },
+            "forward_coupling" : {},
             "viscosity_modification_type" : 0,
             "n_particles_per_depth_distance" : 1,
             "body_force_per_unit_mass_variable_name" : "BODY_FORCE"
