@@ -730,24 +730,24 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnWakeElement(
 
 template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnUpperWakeElement(
-    array_1d<double, NumNodes>& upper_phis, const array_1d<double, NumNodes>& distances) const
+    array_1d<double, NumNodes>& rUpperPotentials, const array_1d<double, NumNodes>& distances) const
 {
     for (unsigned int i = 0; i < NumNodes; i++)
         if (distances[i] > 0)
-            upper_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+            rUpperPotentials[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         else
-            upper_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+            rUpperPotentials[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
 }
 
 template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnLowerWakeElement(
-    array_1d<double, NumNodes>& lower_phis, const array_1d<double, NumNodes>& distances) const
+    array_1d<double, NumNodes>& rLowerPotentials, const array_1d<double, NumNodes>& distances) const
 {
     for (unsigned int i = 0; i < NumNodes; i++)
         if (distances[i] < 0)
-            lower_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+            rLowerPotentials[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         else
-            lower_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+            rLowerPotentials[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
 }
 
 template <int Dim, int NumNodes>

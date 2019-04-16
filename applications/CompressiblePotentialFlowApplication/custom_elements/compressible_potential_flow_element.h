@@ -272,10 +272,10 @@ private:
     void GetPotentialOnWakeElement(Vector& split_element_values,
                                    const array_1d<double, NumNodes>& distances) const;
 
-    void GetPotentialOnUpperWakeElement(array_1d<double, NumNodes>& upper_phis,
+    void GetPotentialOnUpperWakeElement(array_1d<double, NumNodes>& rUpperPotentials,
                                         const array_1d<double, NumNodes>& distances) const;
 
-    void GetPotentialOnLowerWakeElement(array_1d<double, NumNodes>& lower_phis,
+    void GetPotentialOnLowerWakeElement(array_1d<double, NumNodes>& rLowerPotentials,
                                         const array_1d<double, NumNodes>& distances) const;
 
     void ComputeVelocityUpper(array_1d<double, Dim>& velocity) const;
