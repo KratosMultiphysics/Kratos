@@ -26,8 +26,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             "model_part_name": "please specify the model part that contains the surface nodes",
             "velocity_infinity": [1.0,0.0,0.0],
             "reference_area": 1.0,
-            "moment_reference_point" : [],
-            "create_output_file": false
+            "moment_reference_point" : []
         }''')
 
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -35,9 +34,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.body_model_part = Model[settings["model_part_name"].GetString()]
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
         self.reference_area =  settings["reference_area"].GetDouble()
-        self.create_output_file = settings["create_output_file"].GetBool()
         self.moment_reference_point = settings["moment_reference_point"].GetVector()
-        
 
     def ExecuteFinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','COMPUTE LIFT')
@@ -63,23 +60,20 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.__ReadWakeDirection()
 
         self.lift_coefficient = DotProduct(force_coefficient,self.wake_normal)
-        self.Cd = DotProduct(force_coefficient,self.wake_direction)
+        self.drag_coefficient = DotProduct(force_coefficient,self.wake_direction)
 
         self.__ComputeLiftJump()
 
         KratosMultiphysics.Logger.PrintInfo(' Cl = ', self.lift_coefficient)
-        KratosMultiphysics.Logger.PrintInfo(' Cd = ', self.Cd)
+        KratosMultiphysics.Logger.PrintInfo(' Cd = ', self.drag_coefficient)
         KratosMultiphysics.Logger.PrintInfo(' RZ = ', force_coefficient[2])
         KratosMultiphysics.Logger.PrintInfo(' Cm = ', self.moment_coefficient)
         KratosMultiphysics.Logger.PrintInfo(' Cl = ' , self.lift_coefficient_jump, ' = 2 * DPhi / U_inf ')
 
-        if self.create_output_file:
-            with open("cl.dat", 'w') as cl_file:
-                cl_file.write('{0:15.12f}'.format(self.lift_coefficient))
-            with open("moment.dat", 'w') as mom_file:
-                mom_file.write('{0:15.12f}'.format(self.moment_coefficient))
-            with open("cl_jump.dat", 'w') as cl_file:
-                cl_file.write('{0:15.12f}'.format(self.lift_coefficient_jump))
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT, self.lift_coefficient)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DRAG_COEFFICIENT, self.drag_coefficient)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MOMENT_COEFFICIENT, self.moment_coefficient)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT_JUMP, self.lift_coefficient_jump)
 
     def __ComputeLiftJump(self):
         # Find the Trailing Edge node

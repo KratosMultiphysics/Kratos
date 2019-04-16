@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as UnitTest
@@ -33,7 +34,6 @@ class PotentialFlowTests(UnitTest.TestCase):
     def setUp(self):
         # Set to true to get post-process files for the test
         self.print_output = False
-        self.remove_output_files = True
 
     def test_Naca0012SmallAdjoint(self):
         if not hdf5_is_available:
@@ -47,9 +47,9 @@ class PotentialFlowTests(UnitTest.TestCase):
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name_primal)
-            self._check_results("cl.dat", 0.327805503865, 1e-12, 1e-9)
-            self._check_results("moment.dat", -0.105810071870, 1e-12, 1e-9)
-            self._check_results("cl_jump.dat", 0.3230253050805644, 1e-12, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.327805503865, 1e-12, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.105810071870, 1e-12, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.3230253050805644, 1e-12, 1e-9)
             self._runTest(settings_file_name_adjoint)
 
             for file_name in os.listdir(os.getcwd()):
@@ -99,20 +99,16 @@ class PotentialFlowTests(UnitTest.TestCase):
 
         potential_flow_analysis = PotentialFlowAnalysis(model, settings)
         potential_flow_analysis.Run()
+        self.main_model_part = model.GetModelPart(settings["solver_settings"]["model_part_name"].GetString())
 
-    def _check_results(self, result_file, reference, rel_tol, abs_tol):
-        with open (result_file, 'r') as rfile:
-            result = rfile.readlines()
+    def _check_results(self, result, reference, rel_tol, abs_tol):
+        isclosethis = t_isclose(result, reference, rel_tol, abs_tol)
 
-        isclosethis = t_isclose(float(result[0]), reference, rel_tol, abs_tol)
         full_msg =  "Failed with following parameters:\n"
-        full_msg += str(float(result[0])) + " != " + str(reference) + ", rel_tol = "
+        full_msg += str(result) + " != " + str(reference) + ", rel_tol = "
         full_msg += str(rel_tol) + ", abs_tol = " + str(abs_tol)
+
         self.assertTrue(isclosethis, msg=full_msg)
-
-        if self.remove_output_files:
-            kratos_utilities.DeleteFileIfExisting(result_file)
-
 
 if __name__ == '__main__':
     UnitTest.main()
