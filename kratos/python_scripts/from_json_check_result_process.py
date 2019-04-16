@@ -46,7 +46,9 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
             "historical_value"     : true,
             "tolerance"            : 1e-3,
             "relative_tolerance"   : 1e-6,
-            "time_frequency"       : 1.00
+            "time_frequency"       : 1.00,
+            "use_node_coordinates" : false,
+            "check_only_local_entities" : false
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -82,6 +84,8 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         self.data = read_external_json(self.params["input_file_name"].GetString())
         self.abs_tol = self.params["tolerance"].GetDouble()
         self.rel_tol = self.params["relative_tolerance"].GetDouble()
+        self.use_node_coordinates = self.params["use_node_coordinates"].GetBool()
+        self.check_only_local_entities = self.params["check_only_local_entities"].GetBool()
         self.__compute_relevant_digits()
 
         # Initialize counter
@@ -105,10 +109,12 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
             input_time_list = self.data["TIME"]
 
             # Nodal values
-            for node in self.model_part.Nodes:
+            for node in self.__get_nodes():
                 compute = self.__check_flag(node)
 
                 if compute:
+                    node_identifier = "NODE_" + self.__get_node_identifier(node)
+
                     for i in range(self.params["check_variables"].size()):
                         out = self.params["check_variables"][i]
                         variable_name = out.GetString()
@@ -122,29 +128,29 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
 
                         # Scalar variable
                         if (variable_type == "Double" or variable_type == "Component"):
-                            values_json = self.data["NODE_" + str(node.Id)][variable_name]
+                            values_json = self.data[node_identifier][variable_name]
                             value_json = self.__linear_interpolation(time, input_time_list, values_json)
                             self.__check_values(node.Id, "Node", value, value_json, variable_name)
                         # Array variable
                         elif variable_type == "Array":
                             if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
                                 for component_index, component in enumerate(["_X", "_Y", "_Z"]):
-                                    values_json = self.data["NODE_" + str(node.Id)][variable_name+component]
+                                    values_json = self.data[node_identifier][variable_name+component]
                                     value_json = self.__linear_interpolation(time, input_time_list, values_json)
                                     self.__check_values(node.Id, "Node", value[component_index], value_json, variable_name+component)
                             else:
-                                values_json = self.data["NODE_"+str(node.Id)][variable_name][self.step_counter]
+                                values_json = self.data[node_identifier][variable_name][self.step_counter]
                                 for index in range(len(value)):
                                     value_json = values_json[index] # self.__linear_interpolation(time, input_time_list, values_json[index])
                                     self.__check_values(node.Id, "Node", value[index], value_json, variable_name)
                         # Vector variable
                         elif variable_type == "Vector":
-                            values_json = self.data["NODE_"+str(node.Id)][variable_name][self.step_counter]
+                            values_json = self.data[node_identifier][variable_name][self.step_counter]
                             for index in range(len(value)):
                                 value_json = values_json[index] # self.__linear_interpolation(time, input_time_list, values_json[index])
                                 self.__check_values(node.Id, "Node", value[index], value_json, variable_name)
             # Nodal values
-            for elem in self.model_part.Elements:
+            for elem in self.__get_elements():
                 compute = self.__check_flag(elem)
 
                 if compute is True:
@@ -262,3 +268,45 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         """
         relevant_tol = min(self.rel_tol, self.abs_tol)
         self.digits = ceil(abs(log10(relevant_tol))) + 1 # +1 for one more digit of output
+
+    def __get_node_identifier(self, node):
+        """ returns the identifier/key for saving nodal results in the json
+        this can be either the node Id or its coordinates
+        The coordinates can be used to check the nodal results in MPI
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        node -- The Kratos node to get the identifier for
+        """
+        if self.use_node_coordinates:
+            return 'X_{0:.{digits}f}_Y_{1:.{digits}f}_Z_{2:.{digits}f}'.format(node.X0, node.Y0, node.Z0, digits=6)
+        else:
+            return str(node.Id)
+
+    def __get_nodes(self):
+        """ returns the nodes to be checked
+        Either only local or all (local and ghost)
+        This is ONLY relevant in MPI
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        node -- The Kratos node to get the identifier for
+        """
+        if self.check_only_local_entities:
+            return self.model_part.GetCommunicator().LocalMesh().Nodes
+        else:
+            return self.model_part.Nodes
+
+    def __get_elements(self):
+        """ returns the elements to be checked
+        Either only local or all (local and ghost)
+        This is ONLY relevant in MPI
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        node -- The Kratos node to get the identifier for
+        """
+        if self.check_only_local_entities:
+            return self.model_part.GetCommunicator().LocalMesh().Elements
+        else:
+            return self.model_part.Elements
