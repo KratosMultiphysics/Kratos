@@ -20,7 +20,6 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "inlet_phi": 1.0,
                 "velocity_infinity": [1.0,0.0,0]
             }  """ )
