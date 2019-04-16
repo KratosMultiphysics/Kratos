@@ -94,8 +94,8 @@ namespace Kratos {
 
       Vector distances(3);
       distances(0) = 1.0;
-      distances(0) = -1.0;
-      distances(0) = -1.0;
+      distances(1) = -1.0;
+      distances(2) = -1.0;
 
       pElement->GetValue(ELEMENTAL_DISTANCES) = distances;
       pElement->GetValue(WAKE) = true;
@@ -107,7 +107,7 @@ namespace Kratos {
           pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i);
       }
       for (unsigned int i = 0; i < 3; i++){
-        if (distances(i) > 0.0)
+        if (distances(i) < 0.0)
           pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i)+5;
         else
           pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i)+5;
@@ -123,10 +123,10 @@ namespace Kratos {
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
       KRATOS_CHECK_NEAR(RHS(0), 0.5, 1e-7);
       KRATOS_CHECK_NEAR(RHS(1), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(2), -0.5, 1e-7);
+      KRATOS_CHECK_NEAR(RHS(2), 0.0, 1e-7);
       KRATOS_CHECK_NEAR(RHS(3), 0.0, 1e-7);
       KRATOS_CHECK_NEAR(RHS(4), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(5), 0.5, 1e-7);
+      KRATOS_CHECK_NEAR(RHS(5), -0.5, 1e-7);
     }
 
     /** Checks the IncompressiblePotentialFlowElement element.
