@@ -47,7 +47,8 @@ C. Bayer, H. Hoel, E. von Schwerin, R. Tempone; On NonAsymptotyc optimal stoppin
 # TODO: in [3] formula 4.1 I use unbiased formula, not biased, as sample moments. Check it's fine
 # TODO: now batch_size = difference_number_samples, in future it may have flags for different behaviours
 # TODO: now we are using scipy so we can avoid _ComputeCDFStandardNormalDistribution
-# TODO: update input and output after new task formulations
+# TODO: update input and output descriptions after new task formulations
+# TODO: for now batch_size = initial_batch_size, in future it may have flags for different behaviours
 
 
 """
@@ -244,7 +245,6 @@ class MonteCarlo(object):
         # batches_convergence_finished: boolean true or false if convergence computation of batch is finished or not
         self.batches_convergence_finished = []
         # batch_size: number of iterations of each epoch
-        # TODO: for now batch_size = difference_number_samples, in future it may have flags for different behaviours
         self.batch_size = []
         # current_convergence_batch: current batch for which convergence is computed
         self.current_convergence_batch = 0

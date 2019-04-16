@@ -16,7 +16,7 @@ from simulation_definition import SimulationScenario
 from KratosMultiphysics.MultilevelMonteCarloApplication.statistical_variable_utilities import StatisticalVariable
 
 # Import refinement library
-import KratosMultiphysics.MultilevelMonteCarloApplication.adaptive_refinement_utilities as hessian_metric_refinement
+from KratosMultiphysics.MultilevelMonteCarloApplication.adaptive_refinement_utilities import AdaptiveRefinement
 
 # Import random variable generator
 import KratosMultiphysics.MultilevelMonteCarloApplication.generator_utilities as generator
@@ -46,7 +46,7 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 
 # TODO: insert distinction between scalar and field Quantity of Interests
 # TODO: create function updating lists
-# TODO: run cmlmc without refinement
+# TODO: run cmlmc without refinement, i.e. adaptive_refinement setting
 
 
 """
@@ -174,8 +174,8 @@ def ExecuteInstanceAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coar
         else:
             maximal_mesh_size_level = 10.0
         # refine the model Kratos object
-        refined_model,refined_project_parameters = \
-            hessian_metric_refinement.ComputeRefinementHessianMetric(current_model,current_project_parameters,minimal_mesh_size_level,maximal_mesh_size_level,current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters)
+        adaptive_refinement_manager = AdaptiveRefinement(current_model,current_project_parameters,current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters,minimal_mesh_size_level,maximal_mesh_size_level)
+        refined_model,refined_project_parameters = adaptive_refinement_manager.ComputeAdaptiveRefinement()
         # initialize the model Kratos object
         simulation = current_analysis_stage(refined_model,refined_project_parameters,sample)
         simulation.Initialize()
@@ -244,6 +244,8 @@ class MultilevelMonteCarlo(object):
 
         # default settings of the Continuation Multilevel Monte Carlo (CMLMC) algorithm
         # run_multilevel_monte_carlo: flag to run or not the algorithm
+        # adaptive_refinement: if True refine from mesh level 0 each time a different random variable is used
+        # store_lower_levels_samples: if True, store also lower level values of QoI to compute statistics, if avaiable from adaptive refinement --> produces a BIAS in the results
         # initial_tolerance: tolerance iter 0
         # tolerance: tolerance final
         # confidence: confidence on tolerance
@@ -264,6 +266,8 @@ class MultilevelMonteCarlo(object):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "run_multilevel_monte_carlo" : "True",
+            "adaptive_refinement"        : "True",
+            "store_lower_levels_samples" : "False",
             "k0" : 0.1,
             "k1" : 0.1,
             "r1" : 1.25,
@@ -290,15 +294,17 @@ class MultilevelMonteCarlo(object):
             self.SetXMCParameters()
             # warning if initial_mesh_size parameter not set by the user
             if not (self.settings.Has("initial_mesh_size")):
-                print("\n ######## WARNING: initial_mesh_size parameter not set ---> using defalut value 0.5 as initial minimum size ########\n")
+                print("\n ######## WARNING: initial_mesh_size parameter not set --> using defalut value 0.5 as initial minimum size ########\n")
             # compute cphi = CDF**-1 (confidence)
             self.settings.AddEmptyValue("cphi_confidence")
             if (self.settings["confidence"].GetDouble()==1.0):
                 self.settings["confidence"].SetDouble(0.999) # reduce confidence to not get +inf for cphi_confidence
             self.settings["cphi_confidence"].SetDouble(norm.ppf(self.settings["confidence"].GetDouble()))
-
         # validate and assign default parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
+        # warning if store_lower_levels_samples is True
+        if (self.settings["store_lower_levels_samples"].GetString() == "True"):
+            print("\n ######## WARNING: store_lower_levels_samples set to True --> introducing a BIAS in the problem ########\n")
         # current_number_levels: number of levels of current iteration
         self.current_number_levels = self.settings["levels_screening"].GetInt()
         # previous_number_levels: number of levels of previous iteration
@@ -743,7 +749,11 @@ class MultilevelMonteCarlo(object):
     def AddResults(self,simulation_results):
         simulation_results_class = simulation_results[0]
         level = simulation_results[1]
-        for lev in range (level+1):
+        if (self.settings["store_lower_levels_samples"].GetString() == "True"):
+            start_level = 0
+        else:
+            start_level = np.maximum(0,level)
+        for lev in range (start_level,level+1):
             difference_QoI_value, time_ML_value = AddResultsAux_Task(simulation_results_class,lev)
             # update values of difference QoI and time ML per each level
             self.difference_QoI.values[lev] = np.append(self.difference_QoI.values[lev], difference_QoI_value)
