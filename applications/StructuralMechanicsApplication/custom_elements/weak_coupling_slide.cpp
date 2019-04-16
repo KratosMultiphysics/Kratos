@@ -211,40 +211,6 @@ WeakSlidingElement3D3N::CreateElementStiffnessMatrix(
     KRATOS_CATCH("")
 }
 
-void WeakSlidingElement3D3N::CalculateDampingMatrix(
-    MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
-{
-    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
-        *this,
-        rDampingMatrix,
-        rCurrentProcessInfo,
-        msLocalSize);
-}
-
-void WeakSlidingElement3D3N::CalculateMassMatrix(
-    MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
-)
-{
-    KRATOS_TRY
-
-    // Compute lumped mass matrix
-    VectorType temp_vector(msLocalSize);
-    CalculateLumpedMassVector(temp_vector);
-
-    // Clear matrix
-    if (rMassMatrix.size1() != msLocalSize || rMassMatrix.size2() != msLocalSize) {
-        rMassMatrix.resize(msLocalSize, msLocalSize, false);
-    }
-    rMassMatrix = ZeroMatrix(msLocalSize, msLocalSize);
-
-    // Fill the matrix
-    for (IndexType i = 0; i < msLocalSize; ++i) {
-        rMassMatrix(i, i) = temp_vector[i];
-    }
-
-    KRATOS_CATCH("")
-}
 
 void WeakSlidingElement3D3N::GetValuesVector(Vector& rValues, int Step)
 {
@@ -430,33 +396,6 @@ int WeakSlidingElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
 }
 
 void WeakSlidingElement3D3N::AddExplicitContribution(
-    const VectorType& rRHSVector,
-    const Variable<VectorType>& rRHSVariable,
-    Variable<double >& rDestinationVariable,
-    const ProcessInfo& rCurrentProcessInfo
-)
-{
-    KRATOS_TRY;
-
-    auto& r_geom = GetGeometry();
-
-    if (rDestinationVariable == NODAL_MASS) {
-        VectorType element_mass_vector(msLocalSize);
-        CalculateLumpedMassVector(element_mass_vector);
-
-        for (SizeType i = 0; i < msNumberOfNodes; ++i) {
-            double& r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
-            int index = i * msDimension;
-
-            #pragma omp atomic
-            r_nodal_mass += element_mass_vector(index);
-        }
-    }
-
-    KRATOS_CATCH("")
-}
-
-void WeakSlidingElement3D3N::AddExplicitContribution(
     const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
     Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
@@ -469,37 +408,14 @@ void WeakSlidingElement3D3N::AddExplicitContribution(
         BoundedVector<double, msLocalSize> damping_residual_contribution = ZeroVector(msLocalSize);
         Vector current_nodal_velocities = ZeroVector(msLocalSize);
         GetFirstDerivativesVector(current_nodal_velocities);
-        Matrix damping_matrix;
         ProcessInfo temp_process_information; // cant pass const ProcessInfo
-        CalculateDampingMatrix(damping_matrix, temp_process_information);
-        // current residual contribution due to damping
-        noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
 
         for (size_t i = 0; i < msNumberOfNodes; ++i) {
             size_t index = msDimension * i;
             array_1d<double, 3>& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
             for (size_t j = 0; j < msDimension; ++j) {
                 #pragma omp atomic
-                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
-            }
-        }
-    } else if (rDestinationVariable == NODAL_INERTIA) {
-
-        // Getting the vector mass
-        VectorType mass_vector(msLocalSize);
-        CalculateLumpedMassVector(mass_vector);
-
-        for (int i = 0; i < msNumberOfNodes; ++i) {
-            double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
-            array_1d<double, msDimension>& r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
-            int index = i * msDimension;
-
-            #pragma omp atomic
-            r_nodal_mass += mass_vector[index];
-
-            for (int k = 0; k < msDimension; ++k) {
-                #pragma omp atomic
-                r_nodal_inertia[k] += 0.0;
+                r_force_residual[j] += rRHSVector[index + j];
             }
         }
     }
@@ -509,39 +425,10 @@ void WeakSlidingElement3D3N::AddExplicitContribution(
 void WeakSlidingElement3D3N::save(Serializer &rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 }
+
 void WeakSlidingElement3D3N::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 }
-
-
-void WeakSlidingElement3D3N::CalculateLumpedMassVector(VectorType& rMassVector)
-{
-    KRATOS_TRY
-
-    // Clear matrix
-    if (rMassVector.size() != msLocalSize) {
-        rMassVector.resize(msLocalSize, false);
-    }
-
-    const double A = GetProperties()[CROSS_AREA];
-    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-    const double rho = GetProperties()[DENSITY];
-
-    //const double total_mass = A * L * rho;
-    const double total_mass = 0.0;
-
-    for (int i = 0; i < msNumberOfNodes; ++i) {
-        for (int j = 0; j < msDimension; ++j) {
-            int index = i * msDimension + j;
-
-            rMassVector[index] = total_mass * 0.50;
-        }
-    }
-
-    KRATOS_CATCH("")
-}
-
-
 
 } // namespace Kratos.

@@ -125,45 +125,10 @@ namespace Kratos
             MatrixType& rLeftHandSideMatrix,
             ProcessInfo& rCurrentProcessInfo) override;
 
-        void CalculateMassMatrix(
-            MatrixType& rMassMatrix,
-            ProcessInfo& rCurrentProcessInfo) override;
-
-        void CalculateDampingMatrix(
-            MatrixType& rDampingMatrix,
-            ProcessInfo& rCurrentProcessInfo) override;
-
-
-    /**
-     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable (double version)
-     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
-     * The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
-     * @param rRHSVector input variable containing the RHS vector to be assembled
-     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void AddExplicitContribution(
-        const VectorType& rRHSVector,
-        const Variable<VectorType>& rRHSVariable,
-        Variable<double >& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable (array_1d<double, 3>) version rDestinationVariable.
-     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
-     * The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
-     * @param rRHSVector input variable containing the RHS vector to be assembled
-     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void AddExplicitContribution(const VectorType& rRHSVector,
-        const Variable<VectorType>& rRHSVariable,
-        Variable<array_1d<double, 3> >& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        void AddExplicitContribution(
+            const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
+            Variable<array_1d<double, 3>>& rDestinationVariable,
+            const ProcessInfo& rCurrentProcessInfo) override;
 
 
         void GetValuesVector(
@@ -182,11 +147,6 @@ namespace Kratos
             const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
-    /**
-     * @brief This method computes directly the lumped mass vector
-     * @param rMassVector The lumped mass vector
-     */
-    void CalculateLumpedMassVector(VectorType& rMassVector);
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
