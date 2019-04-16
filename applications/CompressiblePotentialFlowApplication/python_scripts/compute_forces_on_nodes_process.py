@@ -1,5 +1,4 @@
 import KratosMultiphysics
-from KratosMultiphysics.CompressiblePotentialFlowApplication.compute_lift_process import ComputeLiftProcess
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
@@ -25,11 +24,11 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
         self.Execute()
-    
+
     def Execute(self):
         KratosMultiphysics.Logger.PrintInfo('COMPUTE FORCES AT NODES')
 
-        KratosMultiphysics.VariableUtils().SetToZero_VectorVar(KratosMultiphysics.FORCE, self.body_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetToZero_VectorVar(KratosMultiphysics.REACTION, self.body_model_part.Nodes)
 
         for cond in self.body_model_part.Conditions:
             n = cond.GetValue(KratosMultiphysics.NORMAL)
@@ -40,11 +39,11 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
                 force = KratosMultiphysics.Vector(3)
 
                 added_force = n*(cp/2.0)
-                force = node.GetValue(KratosMultiphysics.FORCE) + added_force
-                node.SetValue(KratosMultiphysics.FORCE, force)
+                force = node.GetValue(KratosMultiphysics.REACTION) + added_force
+                node.SetValue(KratosMultiphysics.REACTION, force)
 
-        total_force = KratosMultiphysics.VariableUtils().SumNonHistoricalNodeVectorVariable(KratosMultiphysics.FORCE, self.body_model_part)
-        
+        total_force = KratosMultiphysics.VariableUtils().SumNonHistoricalNodeVectorVariable(KratosMultiphysics.REACTION, self.body_model_part)
+
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Cl = ', total_force[1])
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Cd = ', total_force[0])
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','RZ = ', total_force[2])
