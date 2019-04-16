@@ -82,12 +82,12 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         # Find the Trailing Edge node
         for node in self.body_model_part.Nodes:
             if node.GetValue(CPFApp.TRAILING_EDGE):
-                 te=node
-                 break
+                te = node
+                break
 
         free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
         u_inf = free_stream_velocity.norm_2()
-        
+
         node_velocity_potential_te = te.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
         node_auxiliary_velocity_potential_te = te.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
         if(te.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0):
