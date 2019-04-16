@@ -78,8 +78,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
                 cl_file.write('{0:15.12f}'.format(self.lift_coefficient))
             with open("moment.dat", 'w') as mom_file:
                 mom_file.write('{0:15.12f}'.format(self.moment_coefficient))
-                with open("cl_jump.dat", 'w') as cl_file:
-                 cl_file.write('{0:15.12f}'.format(self.lift_coefficient_jump))
+            with open("cl_jump.dat", 'w') as cl_file:
+                cl_file.write('{0:15.12f}'.format(self.lift_coefficient_jump))
 
     def __ComputeLiftJump(self):
         # Find the Trailing Edge node
