@@ -235,7 +235,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
 
     def _CheckUniformValuesVector(self, entities, variable, exp_value):
         for entity in entities:
-            val = node.GetValue(variable)
+            val = entity.GetValue(variable)
             self.assertAlmostEqual(val[0], exp_value[0])
             self.assertAlmostEqual(val[1], exp_value[1])
             self.assertAlmostEqual(val[2], exp_value[2])
