@@ -70,6 +70,7 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
             "dem_force_variable_name": "TOTAL_FORCES",
             "target_stress_variable_name": "TARGET_STRESS",
             "reaction_stress_variable_name": "REACTION_STRESS",
+            "loading_velocity_variable_name": "LOADING_VELOCITY",
             "imposed_direction" : 2,
             "target_stress_table_id" : 1,
             "initial_velocity" : 0.0,
@@ -92,6 +93,7 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
         mDemForceVariableName = rParameters["dem_force_variable_name"].GetString() + std::string("_Z");
         mTargetStressVariableName = rParameters["target_stress_variable_name"].GetString() + std::string("_Z");
         mReactionStressVariableName = rParameters["reaction_stress_variable_name"].GetString() + std::string("_Z");
+        mLoadingVelocityVariableName = rParameters["loading_velocity_variable_name"].GetString() + std::string("_Z");
         mDemVelocityVariableName = "IMPOSED_VELOCITY_Z_VALUE";
     }
     else if(ImposedDirection == 1)
@@ -101,6 +103,7 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
         mDemForceVariableName = rParameters["dem_force_variable_name"].GetString() + std::string("_Y");
         mTargetStressVariableName = rParameters["target_stress_variable_name"].GetString() + std::string("_Y");
         mReactionStressVariableName = rParameters["reaction_stress_variable_name"].GetString() + std::string("_Y");
+        mLoadingVelocityVariableName = rParameters["loading_velocity_variable_name"].GetString() + std::string("_Y");
         mDemVelocityVariableName = "IMPOSED_VELOCITY_Y_VALUE";
     }
     else
@@ -110,6 +113,7 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
         mDemForceVariableName = rParameters["dem_force_variable_name"].GetString() + std::string("_X");
         mTargetStressVariableName = rParameters["target_stress_variable_name"].GetString() + std::string("_X");
         mReactionStressVariableName = rParameters["reaction_stress_variable_name"].GetString() + std::string("_X");
+        mLoadingVelocityVariableName = rParameters["loading_velocity_variable_name"].GetString() + std::string("_X");
         mDemVelocityVariableName = "IMPOSED_VELOCITY_X_VALUE";
     }
     mTargetStressTableId = rParameters["target_stress_table_id"].GetInt();
@@ -223,7 +227,14 @@ void ExecuteFinalizeSolutionStep()
 
         if(std::abs(mVelocity) > std::abs(mLimitVelocity))
         {
-            mVelocity = mLimitVelocity;
+            if(mVelocity >= 0.0)
+            {
+                mVelocity = std::abs(mLimitVelocity);
+            }
+            else
+            {
+                mVelocity = -1.0*std::abs(mLimitVelocity);
+            }
         }
 
         Variable<double> DemVelocityVar = KratosComponents< Variable<double> >::Get( mDemVelocityVariableName );
@@ -233,6 +244,7 @@ void ExecuteFinalizeSolutionStep()
         // TODO: This output is updated after printing the current step.
         ComponentType TargetStressVarComponent = KratosComponents< ComponentType >::Get(mTargetStressVariableName);
         ComponentType ReactionStressVarComponent = KratosComponents< ComponentType >::Get(mReactionStressVariableName);
+        ComponentType LoadingVelocityVarComponent = KratosComponents< ComponentType >::Get(mLoadingVelocityVariableName);
         #pragma omp parallel for
         for(int i = 0; i<NNodes; i++)
         {
@@ -240,6 +252,7 @@ void ExecuteFinalizeSolutionStep()
 
             it->FastGetSolutionStepValue(TargetStressVarComponent) = pTargetStressTable->GetValue(CurrentTime);
             it->FastGetSolutionStepValue(ReactionStressVarComponent) = ReactionStress;
+            it->FastGetSolutionStepValue(LoadingVelocityVarComponent) = mVelocity;
         }
     }
 }
@@ -296,6 +309,7 @@ protected:
     std::string mDemForceVariableName;
     std::string mTargetStressVariableName;
     std::string mReactionStressVariableName;
+    std::string mLoadingVelocityVariableName;
     unsigned int mTargetStressTableId;
     double mVelocity;
     double mLimitVelocity;
