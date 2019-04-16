@@ -123,20 +123,10 @@ public:
     ///@{
 
     /// Assignment operator.
-    CompressiblePotentialFlowElement& operator=(CompressiblePotentialFlowElement const& rOther)
-    {
-        BaseType::operator=(rOther);
-        Flags::operator=(rOther);
-        return *this;
-    }
+    CompressiblePotentialFlowElement& operator=(CompressiblePotentialFlowElement const& rOther) = delete;
 
     /// Move operator.
-    CompressiblePotentialFlowElement& operator=(CompressiblePotentialFlowElement&& rOther)
-    {
-        BaseType::operator=(rOther);
-        Flags::operator=(rOther);
-        return *this;
-    }
+    CompressiblePotentialFlowElement& operator=(CompressiblePotentialFlowElement&& rOther) = delete;
 
     ///@}
     ///@name Operations
