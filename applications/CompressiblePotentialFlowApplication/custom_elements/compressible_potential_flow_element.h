@@ -242,7 +242,7 @@ private:
                                           const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLocalSystemSubdividedElement(
-        MatrixType& rLeftHandSideMatrix,
+        Matrix& rLeftHandSideMatrix,
         Matrix& lhs_positive,
         Matrix& lhs_negative,
         const BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,

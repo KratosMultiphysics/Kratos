@@ -563,7 +563,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeLHSGaussPointContri
 
 template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemSubdividedElement(
-    MatrixType& rLeftHandSideMatrix,
+    Matrix& rLeftHandSideMatrix,
     Matrix& lhs_positive,
     Matrix& lhs_negative,
     const BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
