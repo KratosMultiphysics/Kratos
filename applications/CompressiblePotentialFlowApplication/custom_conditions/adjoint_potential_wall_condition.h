@@ -11,15 +11,15 @@
 //  Main authors:    Marc Nuñez, based on A. Geiser, M. Fusseder, I. Lopez and R. Rossi work
 //
 
-#ifndef KRATOS_INCOMPRESSIBLE_ADJOINT_POTENTIAL_WALL_CONDITION_H
-#define KRATOS_INCOMPRESSIBLE_ADJOINT_POTENTIAL_WALL_CONDITION_H
+#ifndef KRATOS_ADJOINT_POTENTIAL_WALL_CONDITION_H
+#define KRATOS_ADJOINT_POTENTIAL_WALL_CONDITION_H
 
 namespace Kratos
 {
 
 
 template <class TPrimalCondition>
-class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) AdjointIncompressiblePotentialWallCondition : public Condition
+class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) AdjointPotentialWallCondition : public Condition
 {
 public:
     ///@name Type Definitions
@@ -28,26 +28,26 @@ public:
     static constexpr int TNumNodes = TPrimalCondition::NumNodes;
     static constexpr int TDim = TPrimalCondition::Dim;
 
-    /// Pointer definition of AdjointIncompressiblePotentialWallCondition
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointIncompressiblePotentialWallCondition);
+    /// Pointer definition of AdjointPotentialWallCondition
+    KRATOS_CLASS_POINTER_DEFINITION(AdjointPotentialWallCondition);
 
     typedef Element::WeakPointer ElementWeakPointerType;
     
     typedef Element::Pointer ElementPointerType;
 
-    AdjointIncompressiblePotentialWallCondition(IndexType NewId = 0)
+    AdjointPotentialWallCondition(IndexType NewId = 0)
     : Condition(NewId),
       mpPrimalCondition(std::make_shared<TPrimalCondition>(NewId, pGetGeometry()))
     {
     }
 
-    AdjointIncompressiblePotentialWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    AdjointPotentialWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : Condition(NewId, pGeometry),
       mpPrimalCondition(std::make_shared<TPrimalCondition>(NewId, pGeometry))
     {
     }
 
-    AdjointIncompressiblePotentialWallCondition(IndexType NewId,
+    AdjointPotentialWallCondition(IndexType NewId,
                         GeometryType::Pointer pGeometry,
                         PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties),
@@ -56,9 +56,9 @@ public:
     }
 
     /// Destructor.
-    ~AdjointIncompressiblePotentialWallCondition() override {}
+    ~AdjointPotentialWallCondition() override {}
 
-    AdjointIncompressiblePotentialWallCondition & operator=(AdjointIncompressiblePotentialWallCondition const& rOther)
+    AdjointPotentialWallCondition & operator=(AdjointPotentialWallCondition const& rOther)
     {
         Condition::operator=(rOther);
         return *this;
@@ -131,14 +131,14 @@ private:
 
 
 
-}; // Class AdjointIncompressiblePotentialWallCondition
+}; // Class AdjointPotentialWallCondition
 
 ///@}
 
 /// input stream function
 template <class TPrimalCondition>
 inline std::istream& operator>>(std::istream& rIStream,
-                                AdjointIncompressiblePotentialWallCondition<TPrimalCondition>& rThis)
+                                AdjointPotentialWallCondition<TPrimalCondition>& rThis)
 {
     return rIStream;
 }
@@ -146,7 +146,7 @@ inline std::istream& operator>>(std::istream& rIStream,
 /// output stream function
 template <class TPrimalCondition>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const AdjointIncompressiblePotentialWallCondition<TPrimalCondition>& rThis)
+                                const AdjointPotentialWallCondition<TPrimalCondition>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
