@@ -26,7 +26,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
         self.Execute()
 
     def Execute(self):
-        KratosMultiphysics.Logger.PrintInfo('COMPUTE FORCES AT NODES')
+        KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess', 'Compute reactions at nodes')
 
         KratosMultiphysics.VariableUtils().SetToZero_VectorVar(KratosMultiphysics.REACTION, self.body_model_part.Nodes)
 
@@ -35,9 +35,6 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
             cp = cond.GetValue(KratosMultiphysics.PRESSURE)
 
             for node in cond.GetNodes():
-                added_force = KratosMultiphysics.Vector(3)
-                force = KratosMultiphysics.Vector(3)
-
                 added_force = n*(cp/2.0)
                 force = node.GetValue(KratosMultiphysics.REACTION) + added_force
                 node.SetValue(KratosMultiphysics.REACTION, force)
