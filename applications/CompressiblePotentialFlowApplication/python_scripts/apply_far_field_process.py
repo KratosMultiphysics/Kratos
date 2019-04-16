@@ -42,11 +42,11 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.heat_capacity_ratio = settings["heat_capacity_ratio"].GetDouble()
         self.angle_of_attack = settings["angle_of_attack"].GetDouble()
         self.pressure_inf = settings["pressure_infinity"].GetDouble()
-        self.a_inf = settings["speed_of_sound"].GetDouble()
+        self.speed_of_sound = settings["speed_of_sound"].GetDouble()
         self.initialize = settings["initialize_flow_field"].GetBool()
 
         # Computing free stream velocity
-        self.u_inf = self.mach_inf * self.a_inf
+        self.u_inf = self.mach_inf * self.speed_of_sound
         self.velocity_inf = KratosMultiphysics.Vector(3)
         self.velocity_inf[0] = round(self.u_inf*math.cos(self.angle_of_attack),8)
         self.velocity_inf[1] = round(self.u_inf*math.sin(self.angle_of_attack),8)
@@ -56,7 +56,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DENSITY_INFINITY,self.density_inf)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_INFINITY,self.mach_inf)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.HEAT_CAPACITY_RATIO,self.heat_capacity_ratio)
-        self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY,self.a_inf)
+        self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY,self.speed_of_sound)
 
     def Execute(self):
         #KratosMultiphysics.VariableUtils().SetVectorVar(CPFApp.VELOCITY_INFINITY, self.velocity_inf, self.far_field_model_part.Conditions)
