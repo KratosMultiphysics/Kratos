@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Inigo Lopez and Riccardo Rossi
+//  Main authors:    Marc Núñez, based on Inigo Lopez and Riccardo Rossi work
 //
 
 #if !defined(KRATOS_EMBEDDED_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H)
@@ -37,44 +37,14 @@ public:
     ///@{
 
     typedef IncompressiblePotentialFlowElement<Dim,NumNodes> BaseType;
-    
-    typedef Node<3> NodeType;
 
-    typedef Properties PropertiesType;
+    typedef typename BaseType::IndexType IndexType;
+    typedef typename BaseType::GeometryType GeometryType;
+    typedef typename BaseType::PropertiesType PropertiesType;
+    typedef typename BaseType::NodesArrayType NodesArrayType;
+    typedef typename BaseType::VectorType VectorType;
+    typedef typename BaseType::MatrixType MatrixType;
 
-    typedef Geometry<NodeType> GeometryType;
-
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-
-    typedef Vector VectorType;
-
-    typedef Matrix MatrixType;
-
-    typedef std::size_t IndexType;
-
-    typedef std::size_t SizeType;
-
-    typedef std::vector<std::size_t> EquationIdVectorType;
-
-    typedef std::vector<Dof<double>::Pointer> DofsVectorType;
-
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef Element::WeakPointer ElementWeakPointerType;
-
-    typedef Element::Pointer ElementPointerType;
-    
-    template <unsigned int TNumNodes, unsigned int TDim>
-    struct ElementalData
-    {
-        array_1d<double, TNumNodes> phis, distances;
-        double vol;
-
-        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
-        array_1d<double, TNumNodes> N;
-    };
-
-    ///@}
     ///@name Pointer Definitions
     /// Pointer definition of EmbeddedIncompressiblePotentialFlowElement
     KRATOS_CLASS_POINTER_DEFINITION(EmbeddedIncompressiblePotentialFlowElement);
@@ -100,15 +70,15 @@ public:
     /**
      * Constructor using Geometry
      */
-    EmbeddedIncompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    EmbeddedIncompressiblePotentialFlowElement(IndexType NewId, typename GeometryType::Pointer pGeometry)
         : IncompressiblePotentialFlowElement<Dim,NumNodes>(NewId, pGeometry){}
 
     /**
      * Constructor using Properties
      */
     EmbeddedIncompressiblePotentialFlowElement(IndexType NewId,
-                                       GeometryType::Pointer pGeometry,
-                                       PropertiesType::Pointer pProperties)
+                                       typename GeometryType::Pointer pGeometry,
+                                       typename PropertiesType::Pointer pProperties)
         : IncompressiblePotentialFlowElement<Dim,NumNodes>(NewId, pGeometry, pProperties){}
 
     /**
@@ -146,17 +116,13 @@ public:
         return *this;
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
-
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const override;
+                            typename PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+                            typename GeometryType::Pointer pGeom,
+                            typename PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
@@ -164,41 +130,7 @@ public:
                               VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override;
-
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override;
-
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                     std::vector<double>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
-                                     std::vector<int>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                     std::vector<array_1d<double, 3>>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
     /// Turn back information as a string.
     std::string Info() const override;
 
@@ -208,61 +140,12 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override;
 
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
 
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
 
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Serialization
-    ///@{
     void CalculateEmbeddedLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo);
@@ -272,33 +155,8 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
 }; // Class EmbeddedIncompressiblePotentialFlowElement
-
-///@}
-
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
-
-///@}
 
 } // namespace Kratos.
 
-#endif // KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H  defined
+#endif // KRATOS_EMBEDDED_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H  defined

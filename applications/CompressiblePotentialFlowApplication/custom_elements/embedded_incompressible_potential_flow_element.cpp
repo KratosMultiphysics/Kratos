@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Inigo Lopez and Riccardo Rossi
+//  Main authors:    Marc Núñez, based on Inigo Lopez and Riccardo Rossi work
 //
 #include "embedded_incompressible_potential_flow_element.h"
 
@@ -18,7 +18,7 @@ namespace Kratos
 
 template <int Dim, int NumNodes>
 Element::Pointer EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Create(
-    IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    IndexType NewId, NodesArrayType const& ThisNodes, typename PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
     return Kratos::make_shared<EmbeddedIncompressiblePotentialFlowElement>(
@@ -28,7 +28,7 @@ Element::Pointer EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Crea
 
 template <int Dim, int NumNodes>
 Element::Pointer EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Create(
-    IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+    IndexType NewId, typename GeometryType::Pointer pGeom, typename PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
     return Kratos::make_shared<EmbeddedIncompressiblePotentialFlowElement>(
@@ -72,12 +72,12 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
         rRightHandSideVector.resize(NumNodes, false);
     rLeftHandSideMatrix.clear();
 
-    ElementalData<NumNodes,Dim> data;
-    array_1d<double,NumNodes> elemental_distance;
+    array_1d<double, NumNodes> potential;
+    array_1d<double, NumNodes> elemental_distance;
     for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
         elemental_distance[i_node] = this->GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET);
 
-    BaseType::GetPotentialOnNormalElement(data.phis);
+    BaseType::GetPotentialOnNormalElement(potential);
 
     const Vector& r_elemental_distances=elemental_distance;
     Triangle2D3ModifiedShapeFunctions triangle_shape_functions(this->pGetGeometry(), r_elemental_distances);
@@ -90,49 +90,18 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
         positive_side_weights,
         GeometryData::GI_GAUSS_2);
 
+        BoundedMatrix<double,NumNodes,NumNodes> aux_matrix;
+        BoundedMatrix<double,NumNodes,Dim> DN_DX;
         for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
-            MatrixType aux_matrix;
-            bounded_matrix<double,NumNodes,Dim> DN_DX;
             DN_DX=positive_side_sh_func_gradients(i_gauss);
-
-            //reading properties and conditions
-            aux_matrix=prod(DN_DX,trans(DN_DX))*positive_side_weights(i_gauss);  // Bt D B
+            aux_matrix=prod(DN_DX,trans(DN_DX))*positive_side_weights(i_gauss);
 
             noalias(rLeftHandSideMatrix) += aux_matrix;
         }
 
-    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
+    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, potential);
 }
 
-
-template <int Dim, int NumNodes>
-void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-{
-    // TODO: improve speed
-    Matrix tmp;
-    CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
-}
-
-template <int Dim, int NumNodes>
-void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::EquationIdVector(
-    EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
-{
-    BaseType::EquationIdVector(rResult, rCurrentProcessInfo);
-}
-
-template <int Dim, int NumNodes>
-void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                                   ProcessInfo& rCurrentProcessInfo)
-{
-    BaseType::GetDofList(rElementalDofList, rCurrentProcessInfo);
-}
-
-template <int Dim, int NumNodes>
-void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-{
-    BaseType::FinalizeSolutionStep(rCurrentProcessInfo);
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
@@ -149,12 +118,9 @@ int EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const Proce
         return out;
     }
 
-    KRATOS_ERROR_IF(this->GetGeometry().Area() <= 0.0)
-        << this->Id() << "Area cannot be less than or equal to 0" << std::endl;
-
     for (unsigned int i = 0; i < this->GetGeometry().size(); i++)
     {
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_POTENTIAL,this->GetGeometry()[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(LEVEL_SET,this->GetGeometry()[i]);
     }
 
     return out;
@@ -162,30 +128,6 @@ int EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const Proce
     KRATOS_CATCH("");
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <int Dim, int NumNodes>
-void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
-    const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
-{
-    BaseType::GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-template <int Dim, int NumNodes>
-void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
-    const Variable<int>& rVariable, std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo)
-{
-    BaseType::GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-template <int Dim, int NumNodes>
-void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    BaseType::GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Input and output
