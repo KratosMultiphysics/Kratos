@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +32,6 @@ THE SOFTWARE.
 \ingroup adapters
 */
 
-#include <boost/container/static_vector.hpp>
-
 #include <amgcl/util.hpp>
 #include <amgcl/backend/detail/matrix_ops.hpp>
 
@@ -42,7 +40,7 @@ namespace adapter {
 
 template <class Matrix, class BlockType>
 struct block_matrix_adapter {
-    typedef BlockType val_type;
+    typedef BlockType value_type;
     static const int BlockSize = math::static_rows<BlockType>::value;
 
     const Matrix &A;
@@ -73,19 +71,21 @@ struct block_matrix_adapter {
         typedef ptrdiff_t col_type;
         typedef BlockType val_type;
 
-        boost::container::static_vector<Base, BlockSize> base;
+        std::array<char, sizeof(Base) * BlockSize> buf;
+        Base * base;
 
         bool done;
         col_type cur_col;
         val_type cur_val;
 
-        row_iterator(const Matrix &A, col_type row) : done(true) {
+        row_iterator(const Matrix &A, col_type row)
+            : base(reinterpret_cast<Base*>(buf.data())), done(true)
+        {
             for(int i = 0; i < BlockSize; ++i) {
-                Base a = backend::row_begin(A, row * BlockSize + i);
-                base.push_back(a);
+                new (base + i) Base(backend::row_begin(A, row * BlockSize + i));
 
-                if (a) {
-                    col_type col = a.col() / BlockSize;
+                if (base[i]) {
+                    col_type col = base[i].col() / BlockSize;
                     if (done) {
                         cur_col = col;
                         done = false;
@@ -106,6 +106,10 @@ struct block_matrix_adapter {
                     cur_val(i, base[i].col() % BlockSize) = base[i].value();
                 }
             }
+        }
+
+        ~row_iterator() {
+            for(int i = 0; i < BlockSize; ++i) base[i].~Base();
         }
 
         operator bool() const {
@@ -167,62 +171,11 @@ block_matrix_adapter<Matrix, BlockType> block_matrix(const Matrix &A) {
 
 namespace backend {
 
-//---------------------------------------------------------------------------
-// Specialization of matrix interface
-//---------------------------------------------------------------------------
-template <class Matrix, class BlockType>
-struct value_type< adapter::block_matrix_adapter<Matrix, BlockType> >
-{
-    typedef BlockType type;
-};
-
-template <class Matrix, class BlockType>
-struct rows_impl< adapter::block_matrix_adapter<Matrix, BlockType> >
-{
-    static size_t get(const adapter::block_matrix_adapter<Matrix, BlockType> &A) {
-        return A.rows();
-    }
-};
-
-template <class Matrix, class BlockType>
-struct cols_impl< adapter::block_matrix_adapter<Matrix, BlockType> >
-{
-    static size_t get(const adapter::block_matrix_adapter<Matrix, BlockType> &A) {
-        return A.cols();
-    }
-};
-
-template <class Matrix, class BlockType>
-struct nonzeros_impl< adapter::block_matrix_adapter<Matrix, BlockType> >
-{
-    static size_t get(const adapter::block_matrix_adapter<Matrix, BlockType> &A) {
-        return A.nonzeros();
-    }
-};
-
-template <class Matrix, class BlockType>
-struct row_iterator< adapter::block_matrix_adapter<Matrix, BlockType> >
-{
-    typedef
-        typename adapter::block_matrix_adapter<Matrix, BlockType>::row_iterator
-        type;
-};
-
-template <class Matrix, class BlockType>
-struct row_begin_impl< adapter::block_matrix_adapter<Matrix, BlockType> >
-{
-    typedef adapter::block_matrix_adapter<Matrix, BlockType> BM;
-    static typename row_iterator<BM>::type
-    get(const BM &matrix, size_t row) {
-        return matrix.row_begin(row);
-    }
-};
-
 namespace detail {
 
 template <class Matrix, class BlockType>
 struct use_builtin_matrix_ops< adapter::block_matrix_adapter<Matrix, BlockType> >
-    : boost::true_type
+    : std::true_type
 {};
 
 } // namespace detail

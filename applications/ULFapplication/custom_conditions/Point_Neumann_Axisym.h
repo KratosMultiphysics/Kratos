@@ -112,7 +112,7 @@ namespace Kratos
       PointNeumannAxisym(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
       /// Destructor.
-      virtual ~PointNeumannAxisym();
+      ~PointNeumannAxisym() override;
       
 
       ///@}

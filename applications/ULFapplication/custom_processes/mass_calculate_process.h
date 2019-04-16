@@ -124,8 +124,8 @@ public:
     {
     }
 
-    /// Destructor.
-    virtual ~MassCalculateProcess()
+    /// Destructor. 
+    ~MassCalculateProcess() override
     {
     }
 
@@ -144,7 +144,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
         KRATOS_TRY
 
@@ -188,19 +188,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "MassCalculateProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MassCalculateProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

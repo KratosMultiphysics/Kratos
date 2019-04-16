@@ -3,29 +3,13 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    have_external_solvers = True
-except ImportError as e:
-    have_external_solvers = False
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as KratosUtilities
+
+have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
 # Import Python modules
 import math
-import os
-
-class WorkFolderScope:
-    def __init__(self, work_folder):
-        self.currentPath = os.getcwd()
-        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
 
 @KratosUnittest.skipUnless(have_external_solvers, "Missing required application: ExternalSolversApplication")
 class ManufacturedSolutionTest(KratosUnittest.TestCase):
@@ -48,15 +32,12 @@ class ManufacturedSolutionTest(KratosUnittest.TestCase):
                             #"manufactured_solution_ref4"]
 
     def tearDown(self):
-        with WorkFolderScope(self.work_folder):
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             for filename in self.meshes_list:
-                try:
-                    os.remove(filename + '.time')
-                except FileNotFoundError as e:
-                    pass
+                KratosUtilities.DeleteFileIfExisting(filename + '.time')
 
     def runTest(self):
-        with WorkFolderScope(self.work_folder):
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             with open(self.settings, 'r') as parameter_file:
                 self.OriginalProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
@@ -128,8 +109,8 @@ class ManufacturedSolutionTest(KratosUnittest.TestCase):
                 plt.savefig('l2_norm_convergence.png')
 
             # Check obtained solution
-            expected_velocity_errors = [0.020910246816825257, 0.0062279017039999045, 0.0014846307453335115, 0.0003540805601027302, 8.621417044815537e-05]
-            expected_pressure_errors = [46.48407227368183, 4.678777003089299, 0.8570316463968392, 0.2160365355817885, 0.06642008924417026]
+            expected_velocity_errors = [0.01708951546622635, 0.005366727106714455, 0.0013142808355902074, 0.00032206907919625683, 8.037719698951708e-05]
+            expected_pressure_errors = [44.03061907965929, 4.8775536490608316, 0.8950814197625788, 0.2200468445178847, 0.0666813658821848]
 
             for i in range(len(self.meshes_list)):
                 self.assertAlmostEqual(err_v[i], expected_velocity_errors[i])

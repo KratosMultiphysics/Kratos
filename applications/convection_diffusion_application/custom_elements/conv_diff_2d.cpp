@@ -1,57 +1,17 @@
-/*
-==============================================================================
-KratosConvectionDiffusionApplication 
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
-//   
-//   Project Name:        Kratos       
-//   Last modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:32 $
-//   Revision:            $Revision: 1.4 $
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
 //
-
+//  Main authors:  Riccardo Rossi
+//
 
 // System includes 
 
-
 // External includes 
-
 
 // Project includes 
 #include "includes/define.h"
@@ -64,33 +24,43 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
+ConvDiff2D::ConvDiff2D(IndexType NewId, GeometryType::Pointer pGeometry)
+: Element(NewId, pGeometry)
+{
+    //DO NOT ADD DOFS HERE!!!
+}
 
-    //************************************************************************************
-    //************************************************************************************
+//************************************************************************************
+//************************************************************************************
 
-    ConvDiff2D::ConvDiff2D(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
-    {
-        //DO NOT ADD DOFS HERE!!!
-    }
+ConvDiff2D::ConvDiff2D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+: Element(NewId, pGeometry, pProperties)
+{
 
-    //************************************************************************************
-    //************************************************************************************
+}
 
-    ConvDiff2D::ConvDiff2D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
-    {
+//************************************************************************************
+//************************************************************************************
 
-    }
+Element::Pointer ConvDiff2D::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_shared<ConvDiff2D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
 
-  Element::Pointer ConvDiff2D::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
-  {
-    return Element::Pointer(new ConvDiff2D(NewId, GetGeometry().Create(ThisNodes), pProperties));
-  }
-  
-  ConvDiff2D::~ConvDiff2D()
-  {
-  }
+//************************************************************************************
+//************************************************************************************
+
+Element::Pointer ConvDiff2D::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_shared<ConvDiff2D>(NewId, pGeom, pProperties);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+ConvDiff2D::~ConvDiff2D()
+{
+}
   
   //************************************************************************************
   //************************************************************************************
@@ -113,17 +83,17 @@ namespace Kratos
     if (rRightHandSideVector.size() != number_of_points)
       rRightHandSideVector.resize(number_of_points, false);
     
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > msMassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);
-    boost::numeric::ublas::bounded_matrix<double, 3, 2 > msDN_DX;
+    BoundedMatrix<double, 3, 3 > msMassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);
+    BoundedMatrix<double, 3, 2 > msDN_DX;
     array_1d<double, 3 > msN;
     array_1d<double, 2 > ms_vel_gauss;
     array_1d<double, 3 > ms_temp_vec_np;
     array_1d<double, 3 > ms_u_DN;
     array_1d<double, 2 > grad_g;
-    boost::numeric::ublas::bounded_matrix<double, 2, 2 > Identity = IdentityMatrix(2, 2);
-    boost::numeric::ublas::bounded_matrix<double, 2, 2 > First;
-    boost::numeric::ublas::bounded_matrix<double, 2, 2 > Second;
-    boost::numeric::ublas::bounded_matrix<double, 2, 3 > Third;
+    BoundedMatrix<double, 2, 2 > Identity = IdentityMatrix(2, 2);
+    BoundedMatrix<double, 2, 2 > First;
+    BoundedMatrix<double, 2, 2 > Second;
+    BoundedMatrix<double, 2, 3 > Third;
     
     
     //getting data for the given geometry
@@ -279,7 +249,7 @@ namespace Kratos
         KRATOS_TRY
                 int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
 
-        boost::numeric::ublas::bounded_matrix<double, 3, 2 > msDN_DX;
+        BoundedMatrix<double, 3, 2 > msDN_DX;
         array_1d<double, 3 > msN;
         array_1d<double, 2 > ms_vel_gauss;
         array_1d<double, 3 > ms_temp_vec_np;
@@ -369,9 +339,9 @@ namespace Kratos
  
     //************************************************************************************
     //************************************************************************************
-	/*double ConvDiff2D::ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double& h, const double& C, const double nu )
+	/*double ConvDiff2D::ComputeSmagorinskyViscosity(const BoundedMatrix<double, 3, 2 > & DN_DX, const double& h, const double& C, const double nu )
   {
-    boost::numeric::ublas::bounded_matrix<double, 2, 2 > dv_dx = ZeroMatrix(2, 2);
+    BoundedMatrix<double, 2, 2 > dv_dx = ZeroMatrix(2, 2);
     
     // Compute Symmetric Grad(u). Note that only the lower half of the matrix is filled
     for (unsigned int k = 0; k < 3; ++k)

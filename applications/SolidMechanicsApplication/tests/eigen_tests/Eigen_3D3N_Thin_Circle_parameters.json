@@ -35,7 +35,7 @@
         "model_part_name" : "DISPLACEMENT_support"
     },{
         "model_part_name" : "ROTATION_support",
-        "variable_name"   : "ROTATION",	    
+        "variable_name"   : "ROTATION",
 	"constrained"     : false
     }],
     "check_process_list" :[{
@@ -44,7 +44,7 @@
         "process_name"  : "CheckEigenvaluesProcess",
         "Parameters"    : {
             "model_part_name" : "solid_domain",
-	    "variable_name"   : "EIGENVALUE_VECTOR",                                              
+	    "variable_name"   : "EIGENVALUE_VECTOR",
             "reference_values": "[5870.389149394735, 46368.8484822989, 46368.848484378315, 156722.65667084238, 156722.65668679585, 211940.23752820952, 379353.4270953061, 379353.42713109404]"
         }
     }]

@@ -13,7 +13,6 @@
 #if !defined(KRATOS_POSTPROCESS_EIGENVALUES_H_INCLUDED )
 #define  KRATOS_POSTPROCESS_EIGENVALUES_H_INCLUDED
 
-
 // System includes
 
 // External includes
@@ -23,32 +22,16 @@
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
 
-#include "custom_io/gid_eigen_io.h"
-
-
 namespace Kratos {
 
 ///@name Kratos Globals
 ///@{
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
 /// Process to create the animated Eigenvectors
-/** This process takes the results of an Eigenvalue Analysis and creates the 
+/** This process takes the results of an Eigenvalue Analysis and creates the
  * animated Eigenvectors (Eigenmodes) for GiD using the GidEigenIO, which
  * is customized for this case
  * The Input should be the ComputingModelPart! (Otherwise nodal results migth be messed up)
@@ -56,8 +39,7 @@ namespace Kratos {
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PostprocessEigenvaluesProcess : public Process
 {
-  public:
-
+public:
     ///@name Type Definitions
     ///@{
 
@@ -69,36 +51,19 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PostprocessEigenvaluesProcess
     typedef std::size_t SizeType;
 
     typedef ModelPart::NodeType::DofsContainerType DofsContainerType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    PostprocessEigenvaluesProcess(ModelPart &rModelPart,
+    PostprocessEigenvaluesProcess(ModelPart& rModelPart,
                                   Parameters OutputParameters);
-
-    ///@}
-    ///@name Operators
-    ///@{
-
 
     ///@}
     ///@name Operations
     ///@{
 
-    void ExecuteInitialize() override;
-
-    void ExecuteBeforeSolutionLoop() override;
-
-    void ExecuteFinalize() override;
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
+    void ExecuteFinalizeSolutionStep() override;
 
     ///@}
     ///@name Input and output
@@ -119,62 +84,18 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PostprocessEigenvaluesProcess
     }
 
     ///@}
-    ///@name Friends
-    ///@{
 
-    ///@}
-
-  protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
-  private:
-
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
+private:
     ///@name Member Variables
     ///@{
+
     ModelPart& mrModelPart;
     Parameters mOutputParameters;
-    GidEigenIO::Pointer mpGidEigenIO;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
 
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     std::string GetLabel(const int NumberOfEigenValue,
                          const double EigenValueSolution);
 
@@ -182,30 +103,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PostprocessEigenvaluesProcess
                       std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults);
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-
-    ///@}
 
 }; // Class PostprocessEigenvaluesProcess
-
-///@}
-
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
 
 ///@}
 

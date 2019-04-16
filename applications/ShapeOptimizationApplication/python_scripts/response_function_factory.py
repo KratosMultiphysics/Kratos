@@ -18,18 +18,18 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 import structural_response_function_factory
 
 # ==============================================================================
-def CreateListOfResponseFunctions( optimization_settings, optimization_model_part ):
+def CreateListOfResponseFunctions( optimization_settings, model ):
     list_of_response_functions = {}
-    response_creator = ResponseFunctionCreator( optimization_settings, optimization_model_part )
+    response_creator = ResponseFunctionCreator( optimization_settings, model )
     response_creator.AddSpecifiedKratosResponseFunctionsToList( list_of_response_functions )
     return list_of_response_functions
 
 # ==============================================================================
 class ResponseFunctionCreator:
     # --------------------------------------------------------------------------
-    def __init__( self, optimization_settings, optimization_model_part ):
+    def __init__( self, optimization_settings, model ):
         self.optimization_settings = optimization_settings
-        self.optimization_model_part = optimization_model_part
+        self.model = model
 
      # --------------------------------------------------------------------------
     def AddSpecifiedKratosResponseFunctionsToList( self, list_of_response_functions ):
@@ -67,7 +67,7 @@ class ResponseFunctionCreator:
     def __CreateAndAddGivenResponse( self, response_id, response_settings ):
         response_type = response_settings["response_type"].GetString()
         if response_type in ["strain_energy", "mass", "eigenfrequency"]:
-            self.list_of_response_functions[response_id] = structural_response_function_factory.CreateResponseFunction(response_id, response_settings, self.optimization_model_part)
+            self.list_of_response_functions[response_id] = structural_response_function_factory.CreateResponseFunction(response_id, response_settings, self.model)
         else:
             raise NameError("The following response function is not available for optimization: " + response_id)
 

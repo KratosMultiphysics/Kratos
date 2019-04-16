@@ -106,7 +106,7 @@ void DynamicVMS<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcess
 //    this->LinearUpdateSubscale(rCurrentProcessInfo);
     this->UpdateSubscale(rCurrentProcessInfo);
 //    for (unsigned int g = 0; g < this->GetGeometry().IntegrationPointsNumber(this->mIntegrationMethod); g++)
-//        mSubscaleVel[g] = array_1d<double,3>(3,0.0);
+//        mSubscaleVel[g] = ZeroVector(3);
 }
 
 
@@ -192,8 +192,8 @@ void DynamicVMS<TDim>::CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo 
             // Evaluate problem parameters at integration point
             double Density = 0.0;
             double Viscosity = 0.0;
-            array_1d<double,3> ConvVel(3,0.0);
-            array_1d<double,3> BodyForce(3,0.0);
+            array_1d<double,3> ConvVel = ZeroVector(3);
+            array_1d<double,3> BodyForce = ZeroVector(3);
             Vector Convection = ZeroVector(NumNodes);
 
             this->EvaluateInPoint(Density,DENSITY,N);
@@ -397,13 +397,13 @@ void DynamicVMS<TDim>::Calculate(const Variable<array_1d<double,3> > &rVariable,
             const double GaussWeight = mDetJ * IntegrationPoints[g].Weight();
 
             double Density = 0.0;
-            array_1d<double,3> ConvVel(3,0.0);
+            array_1d<double,3> ConvVel = ZeroVector(3);
 
             this->EvaluateInPoint(Density, DENSITY, N);
             this->EvaluateConvVelocity(ConvVel,mSubscaleVel[g],N);
 
             // Output containers
-            array_1d< double, 3 > ElementalMomRes(3,0.0);
+            array_1d< double, 3 > ElementalMomRes = ZeroVector(3);
             double ElementalMassRes(0.0);
 
             this->OSSMomentumResidual(ElementalMomRes,Density,ConvVel,N);
@@ -450,7 +450,7 @@ void DynamicVMS<TDim>::GetValueOnIntegrationPoints(const Variable<double> &rVari
 
         double Density = 0.0;
         double Viscosity = 0.0;
-        array_1d<double,3> ConvVel(3,0.0);
+        array_1d<double,3> ConvVel = ZeroVector(3);
 
         for (unsigned int g = 0; g < NumGauss; g++)
         {
@@ -590,12 +590,12 @@ void DynamicVMS<TDim>::CalculateGeometryData()
     MathUtils<double>::InvertMatrix( J[0], InvJ, mDetJ );
 
     // calculate the shape function derivatives in global coordinates
-    mDN_DX.resize(NumNodes,TDim);
+    mDN_DX.resize(NumNodes,TDim, false);
     noalias( mDN_DX ) = prod( DN_De[0], InvJ );
 
     // calculate minimum element length (used in stabilization Tau)
     /// @todo Use heights
-    array_1d<double,3> Edge(3,0.0);
+    array_1d<double,3> Edge = ZeroVector(3);
     Edge = rGeom[1].Coordinates() - rGeom[0].Coordinates();
     mElemSize = Edge[0]*Edge[0];
     for (SizeType d = 1; d < TDim; d++)
@@ -623,7 +623,7 @@ void DynamicVMS<TDim>::UpdateSubscale(const ProcessInfo &rCurrentProcessInfo)
 
     double Density = 0.0;
     double Viscosity = 0.0;
-    array_1d<double,3> CoarseConvVel(3,0.0);
+    array_1d<double,3> CoarseConvVel = ZeroVector(3);
 
     // Elemental large-scale velocity gradient
     Matrix CoarseVelGradient = ZeroMatrix(TDim,TDim);
@@ -649,11 +649,11 @@ void DynamicVMS<TDim>::UpdateSubscale(const ProcessInfo &rCurrentProcessInfo)
         this->EvaluateViscosity(Viscosity,N);
 
         // Part of the residual that does not depend on the subscale
-        array_1d<double,3> StaticResidual(3,0.0);
+        array_1d<double,3> StaticResidual = ZeroVector(3);
         if ( rCurrentProcessInfo[OSS_SWITCH] == 1.0 )
         {
             this->OSSMomentumResidual(StaticResidual,Density,CoarseConvVel,N);
-            array_1d<double,3> MomentumProjection(3,0.0);
+            array_1d<double,3> MomentumProjection = ZeroVector(3);
             this->EvaluateInPoint(MomentumProjection,ADVPROJ,N);
             StaticResidual -= MomentumProjection;
         }
@@ -762,8 +762,8 @@ void DynamicVMS<TDim>::LinearUpdateSubscale(const ProcessInfo &rCurrentProcessIn
             // Evaluate problem parameters at integration point
             double Density = 0.0;
             double Viscosity = 0.0;
-            array_1d<double,3> ConvVel(3,0.0);
-            array_1d<double,3> BodyForce(3,0.0);
+            array_1d<double,3> ConvVel= ZeroVector(3);
+            array_1d<double,3> BodyForce = ZeroVector(3);
 
             this->EvaluateInPoint(Density,DENSITY,N);
             this->EvaluateViscosity(Viscosity,N);
@@ -778,11 +778,11 @@ void DynamicVMS<TDim>::LinearUpdateSubscale(const ProcessInfo &rCurrentProcessIn
 
             double Tau_t = this->TauTime(Density,Viscosity,ConvVelNorm,Dt);
 
-            array_1d<double,3> ElementalMomRes(3,0.0);
+            array_1d<double,3> ElementalMomRes = ZeroVector(3);
             if (rCurrentProcessInfo[OSS_SWITCH] == 1.0)
             {
                 this->OSSMomentumResidual(ElementalMomRes,Density,ConvVel+mOldSubscaleVel[g],N);
-                array_1d<double,3> ElementalMomProj(3,0.0);
+                array_1d<double,3> ElementalMomProj = ZeroVector(3);
                 this->EvaluateInPoint(ElementalMomProj,ADVPROJ,N);
                 ElementalMomRes -= ElementalMomProj;
             }
@@ -833,8 +833,8 @@ void DynamicVMS<TDim>::CalculateASGSVelocityContribution(MatrixType &rDampingMat
         double Density = 0.0;
         double Viscosity = 0.0;
         const array_1d<double,3>& rSubscaleVel = mSubscaleVel[g];
-        array_1d<double,3> ConvVel(3,0.0);
-        array_1d<double,3> BodyForce(3,0.0);
+        array_1d<double,3> ConvVel = ZeroVector(3);
+        array_1d<double,3> BodyForce = ZeroVector(3);
         Vector Convection = ZeroVector(NumNodes);
 
         this->EvaluateInPoint(Density,DENSITY,N);
@@ -973,8 +973,8 @@ void DynamicVMS<TDim>::CalculateOSSVelocityContribution(MatrixType &rDampingMatr
         // Evaluate problem parameters at integration point
         double Density = 0.0;
         double Viscosity = 0.0;
-        array_1d<double,3> ConvVel(3,0.0);
-        array_1d<double,3> BodyForce(3,0.0);
+        array_1d<double,3> ConvVel = ZeroVector(3);
+        array_1d<double,3> BodyForce = ZeroVector(3);
         Vector Convection = ZeroVector(NumNodes);
 
         this->EvaluateInPoint(Density,DENSITY,N);
@@ -986,7 +986,7 @@ void DynamicVMS<TDim>::CalculateOSSVelocityContribution(MatrixType &rDampingMatr
         BodyForce *= Density;
         Convection *= Density;
 
-        array_1d<double,3> MomentumProjection(3,0.0);
+        array_1d<double,3> MomentumProjection = ZeroVector(3);
         double MassProjection = 0.0;
         this->EvaluateInPoint(MomentumProjection,ADVPROJ,N);
         this->EvaluateInPoint(MassProjection,DIVPROJ,N);
@@ -1281,7 +1281,7 @@ void DynamicVMS<TDim>::OSSMomentumResidual(array_1d<double,3> &rResult,
 {
     GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
-    rResult = array_1d<double,3>(3,0.0);
+    rResult = ZeroVector(3);;
 
     for (unsigned int i = 0; i < NumNodes; i++)
     {

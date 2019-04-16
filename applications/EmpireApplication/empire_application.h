@@ -75,7 +75,7 @@ namespace Kratos
 		KratosEmpireApplication();
 
 		/// Destructor.
-		virtual ~KratosEmpireApplication(){}
+		~KratosEmpireApplication() override {}
 
 
 		///@}

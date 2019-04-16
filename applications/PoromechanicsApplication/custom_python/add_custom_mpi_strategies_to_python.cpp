@@ -1,11 +1,11 @@
-//   
+//
 //   Project Name:        KratosPoromechanicsApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:              March 2017 $
 //   Revision:            $Revision:                 1.0 $
 //
 
-// External includes 
+// External includes
 #include "spaces/ublas_space.h"
 
 // Project includes
@@ -36,7 +36,7 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 void  AddCustomMPIStrategiesToPython(pybind11::module& m)
 {
@@ -44,23 +44,23 @@ void  AddCustomMPIStrategiesToPython(pybind11::module& m)
     typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
 
     typedef Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosBaseSchemeType;
-    
+
     typedef TrilinosNewmarkQuasistaticUPwScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosNewmarkQuasistaticUPwSchemeType;
     typedef TrilinosNewmarkQuasistaticDampedUPwScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosNewmarkQuasistaticDampedUPwSchemeType;
     typedef TrilinosNewmarkDynamicUPwScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosNewmarkDynamicUPwSchemeType;
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+
     // Schemes
-    class_< TrilinosNewmarkQuasistaticUPwSchemeType, typename TrilinosNewmarkQuasistaticUPwSchemeType::Pointer, TrilinosBaseSchemeType >
+    py::class_< TrilinosNewmarkQuasistaticUPwSchemeType, typename TrilinosNewmarkQuasistaticUPwSchemeType::Pointer, TrilinosBaseSchemeType >
     (m, "TrilinosNewmarkQuasistaticUPwScheme")
-    .def(init< double, double, double >() );
-    class_< TrilinosNewmarkQuasistaticDampedUPwSchemeType, typename TrilinosNewmarkQuasistaticDampedUPwSchemeType::Pointer, TrilinosBaseSchemeType >
+    .def( py::init< double, double, double >() );
+    py::class_< TrilinosNewmarkQuasistaticDampedUPwSchemeType, typename TrilinosNewmarkQuasistaticDampedUPwSchemeType::Pointer, TrilinosBaseSchemeType >
     (m, "TrilinosNewmarkQuasistaticDampedUPwScheme")
-    .def(init<  double, double, double, double, double >());
-    class_< TrilinosNewmarkDynamicUPwSchemeType, typename TrilinosNewmarkDynamicUPwSchemeType::Pointer, TrilinosBaseSchemeType >
+    .def( py::init<  double, double, double, double, double >());
+    py::class_< TrilinosNewmarkDynamicUPwSchemeType, typename TrilinosNewmarkDynamicUPwSchemeType::Pointer, TrilinosBaseSchemeType >
     (m, "TrilinosNewmarkDynamicUPwScheme")
-    .def(init<  double, double, double, double, double >());
+    .def( py::init<  double, double, double, double, double >());
 
 }
 

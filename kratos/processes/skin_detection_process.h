@@ -99,17 +99,23 @@ public:
     /// Definition of the key comparor considered
     typedef VectorIndexComparor<VectorIndexType> VectorIndexComparorType;
 
-    /// Define the set considered for elemento pointers
+    /// Define the set considered for element pointers
     typedef std::unordered_set<VectorIndexType, VectorIndexHasherType, VectorIndexComparorType > HashSetVectorIntType;
 
-    /// Define the HashMapVectorIntElementPointerType iterator type
+    /// Define the HashSetVectorIntTypeIteratorType iterator type
     typedef HashSetVectorIntType::iterator HashSetVectorIntTypeIteratorType;
 
-    /// Define the map considered for elemento pointers
+    /// Define the map considered for face ids
     typedef std::unordered_map<VectorIndexType, VectorIndexType, VectorIndexHasherType, VectorIndexComparorType > HashMapVectorIntType;
 
-    /// Define the HashMapVectorIntElementPointerType iterator type
+    /// Define the HashMapVectorIntTypeIteratorType iterator type
     typedef HashMapVectorIntType::iterator HashMapVectorIntTypeIteratorType;
+
+    /// Define the map considered for properties ids
+    typedef std::unordered_map<VectorIndexType, IndexType, VectorIndexHasherType, VectorIndexComparorType > HashMapVectorIntIdsType;
+
+    /// Define the HashMapVectorIntIdsType iterator type
+    typedef HashMapVectorIntIdsType::iterator HashMapVectorIntIdsTypeIteratorType;
 
     ///@}
     ///@name Life Cycle

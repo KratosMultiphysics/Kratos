@@ -27,8 +27,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/serializer.h"
-
 
 namespace Kratos
 {
@@ -55,7 +53,8 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class Flags
+class Serializer;
+class KRATOS_API(KRATOS_CORE) Flags
 {
 public:
     ///@name Type Definitions
@@ -187,19 +186,9 @@ public:
     ///@name Operations
     ///@{
 
-    void Set(Flags ThisFlag)
-    {
-        mIsDefined |= ThisFlag.mIsDefined;
-        mFlags &= (~ThisFlag.mIsDefined); // First reseting the flag value to zero
-        mFlags |= ThisFlag.mFlags;
-    }
+    void Set(Flags ThisFlag);
 
-    void Set(Flags ThisFlag, bool Value)
-    {
-        mIsDefined |= ThisFlag.mIsDefined;
-        mFlags &= (~ThisFlag.mIsDefined); // First reseting the flag value to zero
-        mFlags |= (ThisFlag.mFlags * BlockType(Value)) | ((ThisFlag.mIsDefined ^ ThisFlag.mFlags) * BlockType(!Value));
-    }
+    void Set(Flags ThisFlag, bool Value);
 
     void Reset(Flags ThisFlag)
     {
@@ -328,47 +317,17 @@ public:
     ///@{
 
 
-    friend bool operator==(const Flags& Left, const Flags& Right )
-    {
-        return (Left.mFlags == Right.mFlags);
-    }
+    friend bool operator==(const Flags& Left, const Flags& Right );
 
-    friend bool operator!=(const Flags& Left, const Flags& Right )
-    {
-        return (Left.mFlags != Right.mFlags);
-    }
+    friend bool operator!=(const Flags& Left, const Flags& Right );
 
-    friend Flags operator|(const Flags& Left, const Flags& Right )
-    {
-        Flags results(Left);
-        results |= Right;
-        return results;
-    }
+    friend Flags KRATOS_API(KRATOS_CORE) operator|(const Flags& Left, const Flags& Right );
 
-    KRATOS_DEPRECATED friend Flags operator&(const Flags& Left, const Flags& Right )
-    {
-        // This looks like copy paste error but the idea is to
-        // define the & operator like the or one.
-        Flags results(Left);
-        results |= Right;
-        return results;
-    }
+    friend Flags KRATOS_API(KRATOS_CORE) operator&(const Flags& Left, const Flags& Right );
 
-    const Flags& operator|=(const Flags& Other )
-    {
-        mIsDefined |= Other.mIsDefined;
-        mFlags |= Other.mFlags;
-        return *this;
-    }
+    const Flags& operator|=(const Flags& Other );
 
-    KRATOS_DEPRECATED const Flags& operator&=(const Flags& Other )
-    {
-        // This looks like copy paste error but the idea is to
-        // define the & operator like the or one.
-        mIsDefined |= Other.mIsDefined;
-        mFlags |= Other.mFlags;
-        return *this;
-    }
+    const Flags& operator&=(const Flags& Other );
 
     ///@}
 
@@ -431,22 +390,25 @@ private:
     ///@name Private Operations
     ///@{
 
+    friend class MPIDataCommunicator;
+
+    BlockType GetDefined() const;
+
+    void SetDefined(const BlockType& rDefined);
+
+    BlockType GetFlags() const;
+
+    void SetFlags(const BlockType& rValues);
+
     ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
-    {
-        rSerializer.save("IsDefined",  mIsDefined);
-        rSerializer.save("Flags",  mFlags);
-    }
+    virtual void save(Serializer& rSerializer) const;
 
-    virtual void load(Serializer& rSerializer)
-    {
-        rSerializer.load("IsDefined",  mIsDefined);
-        rSerializer.load("Flags",  mFlags);
-    }
+    virtual void load(Serializer& rSerializer);
+
     ///@}
     ///@name Private  Access
     ///@{

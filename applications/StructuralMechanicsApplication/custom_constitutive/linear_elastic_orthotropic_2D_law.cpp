@@ -197,7 +197,7 @@ namespace Kratos
 		//double Q44 = G23;
 		//double Q55 = G13;
 
-		const double theta = 0.0;	// rotation currently handled through 
+		const double theta = 0.0;	// rotation currently handled through
 		// "shell_cross_section.cpp" variable iPlyAngle. Left in for clarity.
 
 		const double c = std::cos(theta);

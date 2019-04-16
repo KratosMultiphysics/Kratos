@@ -15,17 +15,13 @@
 #if !defined(KRATOS_STRATEGIES_PYTHON_H_INCLUDED )
 #define  KRATOS_STRATEGIES_PYTHON_H_INCLUDED
 
-
-
 // System includes
 #include <pybind11/pybind11.h>
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
-
 
 namespace Kratos
 {

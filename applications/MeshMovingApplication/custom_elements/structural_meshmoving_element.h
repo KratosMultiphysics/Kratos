@@ -19,10 +19,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
 
 namespace Kratos {
 ///@name Kratos Globals
@@ -48,7 +45,6 @@ namespace Kratos {
  * with large displacements, ASME J. Appl. Mech. 70 (2003) 58-63.
  */
 
-// template<unsigned int TDim>
 class StructuralMeshMovingElement : public Element {
 public:
   ///@name Type Definitions
@@ -127,6 +123,8 @@ public:
 
   void GetValuesVector(VectorType &rValues, int Step = 0) override;
 
+  int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
   ///@}
   ///@name Access
   ///@{
@@ -180,13 +178,10 @@ protected:
 private:
   ///@name Static Member Variables
   ///@{
-  // IntegrationMethod mThisIntegrationMethod;
+
   ///@}
   ///@name Member Variables
   ///@{
-  ///@}
-
-  StructuralMeshMovingElement() {}
 
   ///@}
   ///@name Private Operators
@@ -195,14 +190,18 @@ private:
 
   ///@name Private Operations
   ///@{
+  ///@}
 
-  MatrixType SetAndModifyConstitutiveLaw(const int &dimension,
-                                         const double &rPointNumber);
+  // A private default constructor necessary for serialization
+  StructuralMeshMovingElement() {}
 
-  MatrixType CalculateBMatrix(const int &dimension, const double &rPointNumber);
+  MatrixType SetAndModifyConstitutiveLaw(const int Dimension,
+                                         const double PointNumber) const;
+
+  MatrixType CalculateBMatrix(const int Dimension, const double PointNumber) const;
 
   void CheckElementMatrixDimension(MatrixType &rLeftHandSideMatrix,
-                                   VectorType &rRightHandSideVector);
+                                   VectorType &rRightHandSideVector) const;
   ///@}
 
   ///@name Private  Access
@@ -219,9 +218,18 @@ private:
 
   ///@name Serialization
   ///@{
+
   friend class Serializer;
 
-  // A private default constructor necessary for serialization
+  void save(Serializer& rSerializer) const override
+  {
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
+  }
+
+  void load(Serializer& rSerializer) override
+  {
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
+  }
 
   ///@}
 

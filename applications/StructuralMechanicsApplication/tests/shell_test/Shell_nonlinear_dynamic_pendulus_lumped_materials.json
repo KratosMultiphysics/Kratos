@@ -4,14 +4,14 @@
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw"
+                "name" : "LinearElasticPlaneStress2DLaw"
             },
             "Variables"        : {
                 "THICKNESS"     : 0.1,
                 "DENSITY"       : 7850.0,
                 "YOUNG_MODULUS" : 1000000000.0,
                 "POISSON_RATIO" : 0.0,
-                "KratosMultiphysics.StructuralMechanicsApplication.USE_LUMPED_MASS_MATRIX" : true
+                "USE_LUMPED_MASS_MATRIX" : true
             },
             "Tables"           : {}
         }
@@ -20,14 +20,14 @@
         "properties_id"   : 2,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw"
+                "name" : "LinearElasticPlaneStress2DLaw"
             },
             "Variables"        : {
                 "THICKNESS"     : 0.1,
                 "DENSITY"       : 7850.0,
                 "YOUNG_MODULUS" : 1000000000.0,
                 "POISSON_RATIO" : 0.0,
-                "KratosMultiphysics.StructuralMechanicsApplication.USE_LUMPED_MASS_MATRIX" : true
+                "USE_LUMPED_MASS_MATRIX" : true
             },
             "Tables"           : {}
         }
@@ -36,14 +36,14 @@
         "properties_id"   : 3,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw"
+                "name" : "LinearElasticPlaneStress2DLaw"
             },
             "Variables"        : {
                 "THICKNESS"     : 0.1,
                 "DENSITY"       : 7850.0,
                 "YOUNG_MODULUS" : 1000000000.0,
                 "POISSON_RATIO" : 0.0,
-                "KratosMultiphysics.StructuralMechanicsApplication.USE_LUMPED_MASS_MATRIX" : true
+                "USE_LUMPED_MASS_MATRIX" : true
             },
             "Tables"           : {}
         }
@@ -52,14 +52,14 @@
         "properties_id"   : 4,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw"
+                "name" : "LinearElasticPlaneStress2DLaw"
             },
             "Variables"        : {
                 "THICKNESS"     : 0.1,
                 "DENSITY"       : 7850.0,
                 "YOUNG_MODULUS" : 1000000000.0,
                 "POISSON_RATIO" : 0.0,
-                "KratosMultiphysics.StructuralMechanicsApplication.USE_LUMPED_MASS_MATRIX" : true
+                "USE_LUMPED_MASS_MATRIX" : true
             },
             "Tables"           : {}
         }

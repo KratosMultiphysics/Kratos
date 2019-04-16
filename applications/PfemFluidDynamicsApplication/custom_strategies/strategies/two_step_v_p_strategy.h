@@ -17,7 +17,7 @@
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
 
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
@@ -33,8 +33,8 @@
 #include "pfem_fluid_dynamics_application_variables.h"
 
 
-#include <stdio.h>      
-#include <math.h>     
+#include <stdio.h>
+#include <math.h>
 
 
 namespace Kratos {
@@ -121,7 +121,7 @@ public:
                double VelTol = 0.0001,
                double PresTol = 0.0001,
                int MaxPressureIterations = 1,// Only for predictor-corrector
-               unsigned int TimeOrder = 2, 
+               unsigned int TimeOrder = 2,
                unsigned int DomainSize = 2):
         BaseType(rModelPart), // Move Mesh flag, pass as input?
         mVelocityTolerance(VelTol),
@@ -150,7 +150,7 @@ public:
         //initializing fractional velocity solution step
         typedef Scheme< TSparseSpace, TDenseSpace > SchemeType;
         typename SchemeType::Pointer pScheme;
- 
+
 	typename SchemeType::Pointer Temp = typename SchemeType::Pointer(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
 	pScheme.swap(Temp);
 
@@ -163,7 +163,7 @@ public:
         this->mpMomentumStrategy->SetEchoLevel( BaseType::GetEchoLevel() );
 
 	vel_build->SetCalculateReactionsFlag(false);
-	
+
         /* BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pPressureLinearSolver, PRESSURE)); */
         BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver >(pPressureLinearSolver));
 
@@ -172,7 +172,7 @@ public:
         this->mpPressureStrategy->SetEchoLevel( BaseType::GetEchoLevel() );
 
 	pressure_build->SetCalculateReactionsFlag(false);
-	
+
         KRATOS_CATCH("");
     }
 
@@ -207,11 +207,11 @@ public:
             if (ierr != 0) break;
         }
 
-        for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond)
-        {
-            ierr = itCond->Check(rCurrentProcessInfo);
-            if (ierr != 0) break;
-        }
+        /* for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond) */
+        /* { */
+        /*     ierr = itCond->Check(rCurrentProcessInfo); */
+        /*     if (ierr != 0) break; */
+        /* } */
 
         return ierr;
 
@@ -228,14 +228,10 @@ public:
       double currentTime = rCurrentProcessInfo[TIME];
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
       bool timeIntervalChanged=  rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
- 
+
       unsigned int maxNonLinearIterations=mMaxPressureIter;
-      /* if ( BaseType::GetEchoLevel() > 1) */
-      /* 	std::cout << "Solve with two_step_vp strategy "  << std::endl; */
 
-
-      std::cout << "\n                   Solve with two_step_vp strategy at t="<< currentTime<<"s"<<std::endl;
-
+      KRATOS_INFO("TwoStepVPStrategy") << "\n                   Solve with two_step_vp strategy at t="<< currentTime<<"s"<<std::endl;
 
       if(timeIntervalChanged==true && currentTime>10*timeInterval ){
 	maxNonLinearIterations*=2;
@@ -254,7 +250,7 @@ public:
       bool continuityConverged = false;
       bool fixedTimeStep=false;
       /* boost::timer solve_step_time; */
-      
+
       // Iterative solution for pressure
       /* unsigned int timeStep = rCurrentProcessInfo[STEP]; */
       /* if(timeStep==1){ */
@@ -276,8 +272,8 @@ public:
 
 	  this->UpdateTopology(rModelPart, BaseType::GetEchoLevel());
 
-   
-	  
+
+
 	  if( fixedTimeStep==false){
 	    continuityConverged = this->SolveContinuityIteration(it,maxNonLinearIterations);
 	  }
@@ -288,14 +284,18 @@ public:
 	    {
 	      rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,false);
 	      rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE,false);
-	      /* if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) */
-		std::cout << "V-P strategy converged in " << it+1 << " iterations." << std::endl;
+
+          KRATOS_INFO("TwoStepVPStrategy") << "V-P strategy converged in " << it+1 << " iterations." << std::endl;
+
 	      break;
 	    }
+     	  if( fixedTimeStep==true){
+	    break;
+	  } 
 
 	}
 
-   
+
       /* } */
 
       if (!continuityConverged && !momentumConverged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
@@ -322,16 +322,16 @@ public:
     void UpdateTopology(ModelPart& rModelPart, unsigned int echoLevel)
     {
       KRATOS_TRY;
-      
-      this->CalculateDisplacements();
+
+      this->CalculateDisplacementsAndPorosity();
       BaseType::MoveMesh();
-      BoundaryNormalsCalculationUtilities BoundaryComputation;
-      BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel);
-      
+      /* BoundaryNormalsCalculationUtilities BoundaryComputation; */
+      /* BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel); */
+
       KRATOS_CATCH("");
-  
+
     }
-    
+
     void CalculatePressureVelocity()
     {
       ModelPart& rModelPart = BaseType::GetModelPart();
@@ -351,7 +351,7 @@ public:
 	    double  & CurrentPressureVelocity  = (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 0);
 	    CurrentPressureVelocity = (CurrentPressure-PreviousPressure)/timeInterval;
 	  }
-       
+
         }
     }
 
@@ -373,17 +373,17 @@ public:
 	    double & PreviousPressureVelocity     = (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 1);
 	    double & CurrentPressureAcceleration  = (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 0);
 	    CurrentPressureAcceleration = (CurrentPressureVelocity-PreviousPressureVelocity)/timeInterval;
-
 	  }
+
         }
     }
 
-    void CalculateAccelerations()
+    virtual void CalculateTemporalVariables()
     {
       ModelPart& rModelPart = BaseType::GetModelPart();
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
       Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-      
+
       for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
 	   i != rModelPart.NodesEnd(); ++i)
         {
@@ -402,12 +402,74 @@ public:
 	    (i)->FastGetSolutionStepValue(ACCELERATION,0) = Zeros;
 	    (i)->FastGetSolutionStepValue(ACCELERATION,1) = Zeros;
 	  }else {
-	    (i)->FastGetSolutionStepValue(PRESSURE,0) = 0.0; 
-	    (i)->FastGetSolutionStepValue(PRESSURE,1) = 0.0; 
-	    (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY,0) = 0.0; 
-	    (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY,1) = 0.0; 
-	    (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION,0) = 0.0; 
-	    (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION,1) = 0.0; 
+	    (i)->FastGetSolutionStepValue(PRESSURE,0) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE,1) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY,0) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY,1) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION,0) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION,1) = 0.0;
+	    if((i)->SolutionStepsDataHas(VOLUME_ACCELERATION)){
+	      array_1d<double, 3 >& VolumeAcceleration = (i)->FastGetSolutionStepValue(VOLUME_ACCELERATION);
+	      (i)->FastGetSolutionStepValue(ACCELERATION,0) = VolumeAcceleration;
+	      (i)->FastGetSolutionStepValue(VELOCITY,0) += VolumeAcceleration*rCurrentProcessInfo[DELTA_TIME];
+	    }
+	  }
+
+	  const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+	  unsigned int timeStep = rCurrentProcessInfo[STEP];
+	  if(timeStep==1){
+	    (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 0)=0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 1)=0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 0)=0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 1)=0;
+	  }else{
+	    double  & CurrentPressure      = (i)->FastGetSolutionStepValue(PRESSURE, 0);
+	    double  & PreviousPressure     = (i)->FastGetSolutionStepValue(PRESSURE, 1);
+	    double  & CurrentPressureVelocity  = (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 0);
+	    double & CurrentPressureAcceleration  = (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 0);
+
+	    CurrentPressureAcceleration = CurrentPressureVelocity/timeInterval;
+
+	    CurrentPressureVelocity = (CurrentPressure-PreviousPressure)/timeInterval;
+
+	    CurrentPressureAcceleration += -CurrentPressureVelocity/timeInterval;
+
+	  }
+
+
+        }
+    }
+
+    void CalculateAccelerations()
+    {
+      ModelPart& rModelPart = BaseType::GetModelPart();
+      ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+      Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+
+      for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
+	   i != rModelPart.NodesEnd(); ++i)
+        {
+
+	  array_1d<double, 3 > & CurrentVelocity      = (i)->FastGetSolutionStepValue(VELOCITY, 0);
+	  array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
+
+	  array_1d<double, 3 > & CurrentAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
+	  array_1d<double, 3 > & PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
+
+	  /* if((i)->IsNot(ISOLATED) || (i)->Is(SOLID)){ */
+	  if((i)->IsNot(ISOLATED) && (i)->IsNot(RIGID)){
+	    UpdateAccelerations (CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity,BDFcoeffs);
+	  }else if((i)->Is(RIGID)){
+	    array_1d<double, 3>  Zeros(3,0.0);
+	    (i)->FastGetSolutionStepValue(ACCELERATION,0) = Zeros;
+	    (i)->FastGetSolutionStepValue(ACCELERATION,1) = Zeros;
+	  }else {
+	    (i)->FastGetSolutionStepValue(PRESSURE,0) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE,1) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY,0) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY,1) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION,0) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION,1) = 0.0;
 	    if((i)->SolutionStepsDataHas(VOLUME_ACCELERATION)){
 	      array_1d<double, 3 >& VolumeAcceleration = (i)->FastGetSolutionStepValue(VOLUME_ACCELERATION);
 	      (i)->FastGetSolutionStepValue(ACCELERATION,0) = VolumeAcceleration;
@@ -432,12 +494,12 @@ public:
       // std::cout<<"rBDFCoeffs[2] is "<<rBDFCoeffs[2]<<std::endl;//1/(2*delta_t)
     }
 
-    void CalculateDisplacements()
+  virtual void CalculateDisplacementsAndPorosity()
     {
       ModelPart& rModelPart = BaseType::GetModelPart();
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
       const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
-      
+
       for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
 	   i != rModelPart.NodesEnd(); ++i)
         {
@@ -447,21 +509,22 @@ public:
 
 	  array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
 	  array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-	  
+
 	  /* if( i->IsFixed(DISPLACEMENT_X) == false ) */
-	    CurrentDisplacement[0] = 0.5* TimeStep *(CurrentVelocity[0]+PreviousVelocity[0]) + PreviousDisplacement[0];	  
+	  CurrentDisplacement[0] = 0.5* TimeStep *(CurrentVelocity[0]+PreviousVelocity[0]) + PreviousDisplacement[0];
 
 	  /* if( i->IsFixed(DISPLACEMENT_Y) == false ) */
-	    CurrentDisplacement[1] = 0.5* TimeStep *(CurrentVelocity[1]+PreviousVelocity[1]) + PreviousDisplacement[1];
+	  CurrentDisplacement[1] = 0.5* TimeStep *(CurrentVelocity[1]+PreviousVelocity[1]) + PreviousDisplacement[1];
 
 	  /* if( i->IsFixed(DISPLACEMENT_Z) == false ) */
-	    CurrentDisplacement[2] = 0.5* TimeStep *(CurrentVelocity[2]+PreviousVelocity[2]) + PreviousDisplacement[2];
+	  CurrentDisplacement[2] = 0.5* TimeStep *(CurrentVelocity[2]+PreviousVelocity[2]) + PreviousDisplacement[2];
 
+	  // currentFluidFractionRate = (currentFluidFraction - previousFluidFraction)/TimeStep;
         }
     }
 
-  
-       
+
+
 
    void UpdateStressStrain()
    {
@@ -481,9 +544,11 @@ public:
 
      }
 
-     this->CalculateAccelerations(); 
-     this->CalculatePressureVelocity();
-     this->CalculatePressureAcceleration();
+     /* this->CalculateAccelerations(); */
+     /* this->CalculatePressureVelocity(); */
+     /* this->CalculatePressureAcceleration(); */
+
+     this->CalculateTemporalVariables();
 
    }
 
@@ -517,7 +582,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "TwoStepVPStrategy" ;
@@ -525,10 +590,16 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "TwoStepVPStrategy";}
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "TwoStepVPStrategy";
+    }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const override
+    {
+
+    }
 
 
     ///@}
@@ -620,17 +691,24 @@ protected:
       /* else{ */
       /* 	NormDv = mpMomentumStrategy->Solve(); */
       /* } */
-      NormDv = mpMomentumStrategy->Solve(); 
-	  
+      NormDv = mpMomentumStrategy->Solve();
+
       if (BaseType::GetEchoLevel() > 1 && Rank == 0)
 	std::cout<<"-------------- s o l v e d ! ------------------"<<std::endl;
 
-      double DvErrorNorm = 0; 
+      double DvErrorNorm = 0;
       ConvergedMomentum = this->CheckVelocityConvergence(NormDv,DvErrorNorm);
+
+      unsigned int iterationForCheck=3;
+
       // Check convergence
       if(it==maxIt-1){
-	std::cout<<"iteration("<<it<<") Final Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
+
+        KRATOS_INFO("TwoStepVPStrategy") << "iteration("<<it<<") Final Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
+
 	fixedTimeStep=this->FixTimeStepMomentum(DvErrorNorm);
+      }else if(it>iterationForCheck){
+	      fixedTimeStep=this->CheckMomentumConvergence(DvErrorNorm);
       }
 
       if (!ConvergedMomentum && BaseType::GetEchoLevel() > 0 && Rank == 0)
@@ -647,11 +725,11 @@ protected:
       bool ConvergedContinuity = false;
       double NormDp = 0;
 
-      // 2. Pressure solution 
+      // 2. Pressure solution
       rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,5);
 
       /* std::cout<<"     ---- c o n t i n u i t y   e q u a t i o n ----"<<std::endl; */
- 
+
       if(it==0){
 	mpPressureStrategy->InitializeSolutionStep();
       }
@@ -663,12 +741,14 @@ protected:
       if (BaseType::GetEchoLevel() > 0 && Rank == 0)
 	std::cout << "The norm of pressure is: " << NormDp << std::endl;
 
-      double DpErrorNorm = 0; 
+      double DpErrorNorm = 0;
       ConvergedContinuity = this->CheckPressureConvergence(NormDp,DpErrorNorm);
 
       // Check convergence
       if(it==maxIt-1){
-	std::cout<<"       iteration("<<it<<") Final Pressure error: "<<DpErrorNorm <<" presTol: "<<mPressureTolerance << std::endl;
+
+          KRATOS_INFO("TwoStepVPStrategy") <<"       iteration("<<it<<") Final Pressure error: "<<DpErrorNorm <<" presTol: "<<mPressureTolerance << std::endl;
+
       	ConvergedContinuity=this->FixTimeStepContinuity(DpErrorNorm);
       }
 
@@ -712,7 +792,7 @@ protected:
         if (NormV == 0.0) NormV = 1.00;
 
 	errorNormDv = NormDv / NormV;
-	
+
         if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0){
 	  std::cout << "The norm of velocity increment is: " << NormDv << std::endl;
 	  std::cout << "The norm of velocity is: " << NormV << std::endl;
@@ -721,7 +801,7 @@ protected:
 	/* else{ */
 	/*   std::cout<<"Velocity error: "<< errorNormDv <<" velTol: " << mVelocityTolerance<< std::endl; */
 	/* } */
-	
+
         if (errorNormDv < mVelocityTolerance)
         {
             return true;
@@ -800,7 +880,7 @@ protected:
 	if(DvErrorNorm>minTolerance){
 	  std::cout<< "BAD CONVERGENCE!!! I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS"<<DvErrorNorm<< std::endl;
 	  fixedTimeStep=true;
-#pragma omp parallel 
+#pragma omp parallel
 	  {
 	    ModelPart::NodeIterator NodeBegin;
 	    ModelPart::NodeIterator NodeEnd;
@@ -819,6 +899,45 @@ protected:
       }
       return fixedTimeStep;
     }
+
+
+
+
+    bool CheckMomentumConvergence(const double DvErrorNorm)
+    {
+      ModelPart& rModelPart = BaseType::GetModelPart();
+      ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+      double minTolerance=0.99999;
+      bool fixedTimeStep=false;
+
+      bool isItNan=false;
+      isItNan=std::isnan(DvErrorNorm);
+      bool isItInf=false;
+      isItInf=std::isinf(DvErrorNorm);
+      if((DvErrorNorm>minTolerance || (DvErrorNorm<0 && DvErrorNorm>0) || (DvErrorNorm!=DvErrorNorm) || isItNan==true || isItInf==true) && DvErrorNorm!=0 && DvErrorNorm!=1){
+      	rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,true);
+	      std::cout<< "           BAD CONVERGENCE DETECTED DURING THE ITERATIVE LOOP!!! error: "<<DvErrorNorm<<" higher than 0.9999"<< std::endl;
+	      std::cout<< "      I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS"<< std::endl;
+	      fixedTimeStep=true;
+#pragma omp parallel
+	  {
+	      ModelPart::NodeIterator NodeBegin;
+	      ModelPart::NodeIterator NodeEnd;
+	      OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
+	      for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+	      {
+	      	itNode->FastGetSolutionStepValue(VELOCITY,0)=itNode->FastGetSolutionStepValue(VELOCITY,1);
+	      	itNode->FastGetSolutionStepValue(PRESSURE,0)=itNode->FastGetSolutionStepValue(PRESSURE,1);
+		      itNode->FastGetSolutionStepValue(ACCELERATION,0)=itNode->FastGetSolutionStepValue(ACCELERATION,1);
+	      }
+	  }
+      }else{
+	rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,false);
+      }
+      return fixedTimeStep;
+    }
+
+
 
    bool FixTimeStepContinuity(const double DvErrorNorm)
     {
@@ -865,7 +984,6 @@ protected:
 
     ///@}
 
-private:
     ///@name Static Member Variables
     ///@{
 
@@ -911,12 +1029,12 @@ private:
     ///@{
 
 
-    void InitializeStrategy(SolverSettingsType& rSolverConfig)
+    virtual void InitializeStrategy(SolverSettingsType& rSolverConfig)
     {
         KRATOS_TRY;
-        
+
         mTimeOrder = rSolverConfig.GetTimeOrder();
-        
+
         // Check that input parameters are reasonable and sufficient.
         this->Check();
 

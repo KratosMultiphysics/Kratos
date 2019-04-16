@@ -12,7 +12,7 @@ import ValidationTests
 
 from test_modified_cam_clay import TestModifiedCamClayModel
 
-def AssambleTestSuites():
+def AssembleTestSuites():
 
     # Suites to run
     suites = KratosUnittest.KratosSuites
@@ -36,4 +36,4 @@ def AssambleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())

@@ -68,7 +68,7 @@ public:
 	KratosHDF5Application();
 
 	/// Destructor.
-	virtual ~KratosHDF5Application(){}
+	~KratosHDF5Application() override {}
 
 
 	///@}

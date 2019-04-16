@@ -73,24 +73,24 @@ namespace Python
 {
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
 
-    class_<DuplicateInterfaceNodesCreateConditionsProcess, DuplicateInterfaceNodesCreateConditionsProcess::Pointer, Process>
+    py::class_<DuplicateInterfaceNodesCreateConditionsProcess, DuplicateInterfaceNodesCreateConditionsProcess::Pointer, Process>
     (m,"DuplicateInterfaceNodesCreateConditionsProcess")
-    .def( init<ModelPart&, char* ,int, const Matrix >())
+    .def( py::init<ModelPart&, char* ,int, const Matrix >())
     .def("Execute", &DuplicateInterfaceNodesCreateConditionsProcess::Execute)
     .def("PairToId", &DuplicateInterfaceNodesCreateConditionsProcess::PairToId)
     .def("IdToPair", &DuplicateInterfaceNodesCreateConditionsProcess::IdToPair)
     ;
-    class_<ActivationDeactivationConditionsProcess, ActivationDeactivationConditionsProcess::Pointer, Process>
+    py::class_<ActivationDeactivationConditionsProcess, ActivationDeactivationConditionsProcess::Pointer, Process>
     (m, "ActivationDeactivationConditionsProcess")
-    .def( init<ModelPart& ,int, const Matrix >())
+    .def( py::init<ModelPart& ,int, const Matrix >())
     .def("Execute", &ActivationDeactivationConditionsProcess::Execute)
     ;
-    class_<SolidificationProcess, SolidificationProcess::Pointer, Process>
+    py::class_<SolidificationProcess, SolidificationProcess::Pointer, Process>
     (m, "SolidificationProcess")
-    .def(init<ModelPart& ,const double  >())
+    .def(py::init<ModelPart& ,const double  >())
     .def("Execute", &SolidificationProcess::Execute)
     ;
 

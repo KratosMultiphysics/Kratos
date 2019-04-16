@@ -80,7 +80,7 @@ class CompositeCriterion : public ConvergenceCriterion< TSparseSpace, TDenseSpac
 
   /// Constructor.
   CompositeCriterion(ConvergenceCriterionVectorType& rConvergenceCriteria) : BaseType(), mConvergenceCriteria(rConvergenceCriteria)
-  {    
+  {
   }
 
   /// Copy constructor
@@ -123,12 +123,12 @@ class CompositeCriterion : public ConvergenceCriterion< TSparseSpace, TDenseSpac
                    const SystemVectorType& rb) override
   {
     if(this->Is(LocalFlagType::AND)){
-      
+
       for(typename ConvergenceCriterionVectorType::iterator it=mConvergenceCriteria.begin();
           it!=mConvergenceCriteria.end(); ++it)
         if( !((*it)->PreCriteria(rModelPart,rDofSet,rA,rDx,rb)) )
           return false;
-      
+
       return true;
     }
     else if (this->Is(LocalFlagType::OR)){
@@ -137,8 +137,8 @@ class CompositeCriterion : public ConvergenceCriterion< TSparseSpace, TDenseSpac
           it!=mConvergenceCriteria.end(); ++it)
         if( ((*it)->PreCriteria(rModelPart,rDofSet,rA,rDx,rb)) )
           return true;
-      
-      return false;      
+
+      return false;
     }
 
     return false;
@@ -154,12 +154,12 @@ class CompositeCriterion : public ConvergenceCriterion< TSparseSpace, TDenseSpac
                     const SystemVectorType& rb) override
   {
     if(this->Is(LocalFlagType::AND)){
-      
+
       for(typename ConvergenceCriterionVectorType::iterator it=mConvergenceCriteria.begin();
           it!=mConvergenceCriteria.end(); ++it)
         if( !((*it)->PostCriteria(rModelPart,rDofSet,rA,rDx,rb)) )
           return false;
-      
+
       return true;
     }
     else if (this->Is(LocalFlagType::OR)){
@@ -168,8 +168,8 @@ class CompositeCriterion : public ConvergenceCriterion< TSparseSpace, TDenseSpac
           it!=mConvergenceCriteria.end(); ++it)
         if( ((*it)->PostCriteria(rModelPart,rDofSet,rA,rDx,rb)) )
           return true;
-      
-      return false; 
+
+      return false;
     }
 
     return false;
@@ -211,14 +211,14 @@ class CompositeCriterion : public ConvergenceCriterion< TSparseSpace, TDenseSpac
 
     if( !(this->Is(LocalFlagType::AND) || this->Is(LocalFlagType::OR)) )
       KRATOS_ERROR << "Flag AND or OR is not set for the Composite Convergence Criterion "<< std::endl;
-        
+
     for(typename ConvergenceCriterionVectorType::iterator it=mConvergenceCriteria.begin();
         it!=mConvergenceCriteria.end(); ++it)
       if( ((*it)->Check(rModelPart)) != 0 )
         return 1;
-      
-    return 0; 
-    
+
+    return 0;
+
     KRATOS_CATCH("")
   }
 

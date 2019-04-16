@@ -16,7 +16,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_bounding_to_python.h"
-#include "custom_python/add_custom_modelers_to_python.h"
+#include "custom_python/add_custom_meshers_to_python.h"
 #include "custom_python/add_custom_friction_laws_to_python.h"
 
 #include "contact_mechanics_application.h"
@@ -27,22 +27,22 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 
 PYBIND11_MODULE(KratosContactMechanicsApplication,m)
 {
 
-  class_<KratosContactMechanicsApplication,
+  py::class_<KratosContactMechanicsApplication,
          KratosContactMechanicsApplication::Pointer,
          KratosApplication>(m,"KratosContactMechanicsApplication")
-      .def(init<>())
+      .def(py::init<>())
       ;
 
   AddCustomUtilitiesToPython(m);
   AddCustomProcessesToPython(m);
   AddCustomBoundingToPython(m);
-  AddCustomModelersToPython(m);
+  AddCustomMeshersToPython(m);
   AddCustomFrictionLawsToPython(m);
 
   //registering variables in python
@@ -64,10 +64,10 @@ PYBIND11_MODULE(KratosContactMechanicsApplication,m)
   KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONTACT_PLASTIC_SLIP )
 
   //KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA)
-	
+
   KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FRICTION_LAW )
   KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FRICTION_LAW_NAME )
-
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONTACT_STEP_TIME )
   }
 
 

@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.ConvectionDiffusionApplication import *
-CheckForPreviousImport()
 
 #implementation for string (py) settings
 def AddVariables(model_part, py_settings=None):
@@ -59,7 +58,7 @@ def AddDofs(model_part, settings=None):
 def CreateSolver(model_part, config):
     convection_solver = PFEM2ConvectionDiffusionSolver(model_part, config.domain_size)
     # linear solver settings
-    import linear_solver_factory
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
     if(hasattr(config, "convection_linear_solver_config")):
         self.linear_solver = linear_solver_factory.ConstructSolver(
             config.convection_linear_solver_config)
@@ -73,7 +72,7 @@ class BFECCConvectionDiffusionSolver:
 
         # assignation of parameters to be used
         self.ReformDofAtEachIteration = False;
-        
+
         self.scalar_var_convected = 1
 
         # definition of the solvers
@@ -99,9 +98,9 @@ class BFECCConvectionDiffusionSolver:
 
         #now tools for pfem2:
         self.VariableUtils = VariableUtils()
-        
+
         #construct the utility to move the points
-        if self.domain_size ==2: 
+        if self.domain_size ==2:
             self.bfecc_utility = BFECCConvection2D(self.locator)
         else:
             self.bfecc_utility = BFECCConvection3D(self.locator)
@@ -111,13 +110,13 @@ class BFECCConvectionDiffusionSolver:
 
     def Solve(self):
         substepping  = 10.0
-        (self.VariableUtils).CopyScalarVar(self.unknown_var,self.projection_var,self.model_part.Nodes)   
-        self.bfecc_utility.CopyScalarVarToPreviousTimeStep(self.model_part,self.projection_var)        
-        self.bfecc_utility.BFECCconvect(self.model_part,self.projection_var,self.velocity_var,substepping)        
-        #self.bfecc_utility.ResetBoundaryConditions(self.model_part,self.unknown_var)        
-        #self.bfecc_utility.CopyScalarVarToPreviousTimeStep(self.model_part,self.unknown_var)        
+        (self.VariableUtils).CopyScalarVar(self.unknown_var,self.projection_var,self.model_part.Nodes)
+        self.bfecc_utility.CopyScalarVarToPreviousTimeStep(self.model_part,self.projection_var)
+        self.bfecc_utility.BFECCconvect(self.model_part,self.projection_var,self.velocity_var,substepping)
+        #self.bfecc_utility.ResetBoundaryConditions(self.model_part,self.unknown_var)
+        #self.bfecc_utility.CopyScalarVarToPreviousTimeStep(self.model_part,self.unknown_var)
         #we only solve the mesh problem if there is diffusion or heat sources. otherwise->pure convection problem
-        if (self.thermal_settings).IsDefinedDiffusionVariable() or (self.thermal_settings).IsDefinedSurfaceSourceVariable() or (self.thermal_settings).IsDefinedVolumeSourceVariable(): 
+        if (self.thermal_settings).IsDefinedDiffusionVariable() or (self.thermal_settings).IsDefinedSurfaceSourceVariable() or (self.thermal_settings).IsDefinedVolumeSourceVariable():
               (self.diffusion_solver).Solve()
 
 
@@ -125,7 +124,7 @@ class BFECCConvectionDiffusionSolver:
 def CreateSolver(model_part, config):
     convection_solver = BFECCConvectionDiffusionSolver(model_part, config.domain_size)
     # linear solver settings
-    import linear_solver_factory
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
     if(hasattr(config, "convection_linear_solver_config")):
         self.linear_solver = linear_solver_factory.ConstructSolver(
             config.convection_linear_solver_config)

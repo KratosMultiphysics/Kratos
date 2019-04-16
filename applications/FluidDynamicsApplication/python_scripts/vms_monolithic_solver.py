@@ -2,9 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
 
 def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(VELOCITY)
@@ -45,7 +42,7 @@ def AddDofs(model_part, config=None):
         node.AddDof(VELOCITY_X, REACTION_X)
         node.AddDof(VELOCITY_Y, REACTION_Y)
         node.AddDof(VELOCITY_Z, REACTION_Z)
-        node.AddDof(PRESSURE, REACTION_WATER_PRESSURE)       
+        node.AddDof(PRESSURE, REACTION_WATER_PRESSURE)
 
     if config is not None:
         if hasattr(config, "TurbulenceModel"):
@@ -63,7 +60,7 @@ class MonolithicSolver:
             raise TypeError("'periodic' attribute no longer supported.")
         else:
             self.__dict__[name] = value
-    
+
     def __init__(self, model_part, domain_size):
 
         self.model_part = model_part
@@ -71,7 +68,7 @@ class MonolithicSolver:
 
         self.alpha = -0.3
         self.move_mesh_strategy = 0
-        
+
         # definition of the solvers
         try:
             from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
@@ -140,7 +137,7 @@ class MonolithicSolver:
         # creating the solution strategy
         self.conv_criteria = VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol,
                                            self.rel_pres_tol, self.abs_pres_tol)
-        
+
         (self.conv_criteria).SetEchoLevel(self.echo_level)
 
         # custom schemes should be defined in the calling python script
@@ -171,7 +168,7 @@ class MonolithicSolver:
                                                                                                 self.move_mesh_strategy,
                                                                                                 self.domain_size,
                                                                                                 self.turbulence_model)
-                
+
         # custom builder and solvers should be defined before calling
         # Initialize().
         #
@@ -181,7 +178,7 @@ class MonolithicSolver:
         #                                    PATCH_INDEX)
         if self.builder_and_solver is None:
             self.builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-        
+
         self.solver = ResidualBasedNewtonRaphsonStrategy(
             self.model_part, self.time_scheme, self.linear_solver, self.conv_criteria,
             self.builder_and_solver, self.max_iter, self.compute_reactions, self.ReformDofSetAtEachStep, self.MoveMeshFlag)
@@ -193,7 +190,7 @@ class MonolithicSolver:
         self.model_part.ProcessInfo.SetValue(M, self.regularization_coef)
 
         print ("Initialization monolithic solver finished")
-    
+
     def Solve(self):
 
         if self.divergence_clearance_steps > 0:
@@ -301,7 +298,7 @@ class MonolithicSolver:
             #pPrecond = DiagonalPreconditioner()
             #self.spalart_allmaras_linear_solver = BICGSTABSolver(
                 #1e-9, 300, pPrecond)
-            
+
             import KratosMultiphysics.ExternalSolversApplication as kes
             smoother_type = kes.AMGCLSmoother.ILU0
             solver_type = kes.AMGCLIterativeSolverType.GMRES
@@ -317,7 +314,7 @@ class MonolithicSolver:
                     verbosity,
                     gmres_size)
             #self.spalart_allmaras_linear_solver =  ScalingSolver(linear_solver, True)
-            
+
             #self.spalart_allmaras_linear_solver = kes.SuperLUSolver()
             self.spalart_allmaras_linear_solver = kes.PastixSolver(0,False)
 
@@ -375,7 +372,7 @@ def CreateSolver(model_part, config):
                          undefined."""
                 raise Exception(msg)
 
-    import linear_solver_factory
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
     if(hasattr(config, "linear_solver_config")):
         fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(
             config.linear_solver_config)

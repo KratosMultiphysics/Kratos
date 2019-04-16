@@ -1,6 +1,6 @@
 {
     "properties" : [{
-        "model_part_name" : "Parts_structure",
+        "model_part_name" : "structure.Parts_structure",
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {

@@ -102,14 +102,14 @@ void UpdatedLagrangianFluid3D::CalculateLocalSystem(MatrixType& rLeftHandSideMat
 {
     KRATOS_TRY
     //aux variables
-    boost::numeric::ublas::bounded_matrix<double,6,12> msB = ZeroMatrix(6,12);
-    boost::numeric::ublas::bounded_matrix<double,6,6> ms_constitutive_matrix;
-    boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp;
+    BoundedMatrix<double,6,12> msB = ZeroMatrix(6,12);
+    BoundedMatrix<double,6,6> ms_constitutive_matrix;
+    BoundedMatrix<double,6,12> ms_temp;
 
     //the one below - not changed yet (coz I dont know what is stored in this vector)
     array_1d<double,6> ms_temp_vec;
 
-    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_Dx;
+    BoundedMatrix<double,4,3> msDN_Dx;
     array_1d<double,4> msN; //dimension = number of nodes
 
     const double density = 0.25*(GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
@@ -258,14 +258,14 @@ void UpdatedLagrangianFluid3D::CalculateRightHandSide(VectorType& rRightHandSide
 {
 
     //aux variables
-    boost::numeric::ublas::bounded_matrix<double,6,12> msB = ZeroMatrix(6,12);
-    boost::numeric::ublas::bounded_matrix<double,6,6> ms_constitutive_matrix;
-    boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp;
+    BoundedMatrix<double,6,12> msB = ZeroMatrix(6,12);
+    BoundedMatrix<double,6,6> ms_constitutive_matrix;
+    BoundedMatrix<double,6,12> ms_temp;
 
     //the one below - not changed yet (coz I dont know what is stored in this vector)
     array_1d<double,6> ms_temp_vec;
 
-    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_Dx;
+    BoundedMatrix<double,4,3> msDN_Dx;
     array_1d<double,4> msN; //dimension = number of nodes
 
     const double& density = 0.25*(GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
@@ -339,14 +339,14 @@ void UpdatedLagrangianFluid3D::CalculateMassMatrix(MatrixType& rMassMatrix, Proc
 {
     KRATOS_TRY
     //aux variables
-    boost::numeric::ublas::bounded_matrix<double,6,12> msB = ZeroMatrix(6,12);
-    boost::numeric::ublas::bounded_matrix<double,6,6> ms_constitutive_matrix;
-    boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp;
+    BoundedMatrix<double,6,12> msB = ZeroMatrix(6,12);
+    BoundedMatrix<double,6,6> ms_constitutive_matrix;
+    BoundedMatrix<double,6,12> ms_temp;
 
     //the one below - not changed yet (coz I dont know what is stored in this vector)
     array_1d<double,6> ms_temp_vec;
 
-    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_Dx;
+    BoundedMatrix<double,4,3> msDN_Dx;
     array_1d<double,4> msN; //dimension = number of nodes
 
     const double& density = 0.25*(GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
@@ -383,14 +383,14 @@ void UpdatedLagrangianFluid3D::CalculateDampingMatrix(MatrixType& rDampingMatrix
 {
     KRATOS_TRY
     //aux variables
-    boost::numeric::ublas::bounded_matrix<double,6,12> msB = ZeroMatrix(6,12);
-    boost::numeric::ublas::bounded_matrix<double,6,6> ms_constitutive_matrix;
-    boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp;
+    BoundedMatrix<double,6,12> msB = ZeroMatrix(6,12);
+    BoundedMatrix<double,6,6> ms_constitutive_matrix;
+    BoundedMatrix<double,6,12> ms_temp;
 
     //the one below - not changed yet (coz I dont know what is stored in this vector)
     array_1d<double,6> ms_temp_vec;
 
-    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_Dx;
+    BoundedMatrix<double,4,3> msDN_Dx;
     array_1d<double,4> msN; //dimension = number of nodes
 
     unsigned int number_of_nodes = GetGeometry().size();
@@ -594,14 +594,14 @@ void UpdatedLagrangianFluid3D::GetSecondDerivativesVector(Vector& values, int St
 void  UpdatedLagrangianFluid3D::Calculate(const Variable<double >& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
 {
     //aux variables
-    boost::numeric::ublas::bounded_matrix<double,6,12> msB = ZeroMatrix(6,12);
-    boost::numeric::ublas::bounded_matrix<double,6,6> ms_constitutive_matrix;
-    boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp;
+    BoundedMatrix<double,6,12> msB = ZeroMatrix(6,12);
+    BoundedMatrix<double,6,6> ms_constitutive_matrix;
+    BoundedMatrix<double,6,12> ms_temp;
 
     //the one below - not changed yet (coz I dont know what is stored in this vector)
     array_1d<double,6> ms_temp_vec;
 
-    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_Dx;
+    BoundedMatrix<double,4,3> msDN_Dx;
     array_1d<double,4> msN; //dimension = number of nodes
     if(rVariable == PRESSURE)
     {

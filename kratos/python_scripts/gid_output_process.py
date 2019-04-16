@@ -1,11 +1,26 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+import KratosMultiphysics as KM
+from KratosMultiphysics import * # TODO remove
+
 import os
-from KratosMultiphysics import *
-CheckForPreviousImport()
 
-class GiDOutputProcess(Process):
+def Factory(settings, Model):
+    if not isinstance(settings, KM.Parameters):
+        raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
+    model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
+    output_name = settings["Parameters"]["output_name"].GetString()
+    postprocess_parameters = settings["Parameters"]["postprocess_parameters"]
 
-    defaults = Parameters('''{
+    if model_part.GetCommunicator().TotalProcesses() > 1:
+        from KratosMultiphysics.TrilinosApplication.gid_output_process_mpi import GiDOutputProcessMPI
+        return GiDOutputProcessMPI(model_part, output_name, postprocess_parameters)
+    else:
+        return GiDOutputProcess(model_part, output_name, postprocess_parameters)
+
+class GiDOutputProcess(KM.Process):
+
+    defaults = KM.Parameters('''{
         "result_file_configuration": {
             "gidpost_flags": {
                 "GiDPostMode": "GiD_PostBinary",
@@ -16,6 +31,7 @@ class GiDOutputProcess(Process):
             "file_label": "time",
             "output_control_type": "step",
             "output_frequency": 1.0,
+            "flush_after_output": false,
             "body_output": true,
             "node_output": false,
             "skin_output": false,
@@ -23,58 +39,60 @@ class GiDOutputProcess(Process):
             "nodal_results": [],
             "nodal_nonhistorical_results": [],
             "nodal_flags_results": [],
+            "elemental_conditional_flags_results": [],
             "gauss_point_results": [],
             "additional_list_files": []
         },
         "point_data_configuration": []
     }''')
 
-    default_plane_output_data = Parameters('''{
+    default_plane_output_data = KM.Parameters('''{
         "normal": [0.0, 0.0, 0.0],
         "point" : [0.0, 0.0, 0.0]
     }''')
 
     __post_mode = {
                     # JSON input
-                    "GiD_PostAscii":        GiDPostMode.GiD_PostAscii,
-                    "GiD_PostAsciiZipped":  GiDPostMode.GiD_PostAsciiZipped,
-                    "GiD_PostBinary":       GiDPostMode.GiD_PostBinary,
-                    "GiD_PostHDF5":         GiDPostMode.GiD_PostHDF5,
+                    "GiD_PostAscii":        KM.GiDPostMode.GiD_PostAscii,
+                    "GiD_PostAsciiZipped":  KM.GiDPostMode.GiD_PostAsciiZipped,
+                    "GiD_PostBinary":       KM.GiDPostMode.GiD_PostBinary,
+                    "GiD_PostHDF5":         KM.GiDPostMode.GiD_PostHDF5,
                     # Legacy
-                    "Binary":               GiDPostMode.GiD_PostBinary,
-                    "Ascii":                GiDPostMode.GiD_PostAscii,
-                    "AsciiZipped":          GiDPostMode.GiD_PostAsciiZipped,
+                    "Binary":               KM.GiDPostMode.GiD_PostBinary,
+                    "Ascii":                KM.GiDPostMode.GiD_PostAscii,
+                    "AsciiZipped":          KM.GiDPostMode.GiD_PostAsciiZipped,
                     }
 
     __write_deformed_mesh = {
                     # JSON input
-                    "WriteDeformed":        WriteDeformedMeshFlag.WriteDeformed,
-                    "WriteUndeformed":      WriteDeformedMeshFlag.WriteUndeformed,
+                    "WriteDeformed":        KM.WriteDeformedMeshFlag.WriteDeformed,
+                    "WriteUndeformed":      KM.WriteDeformedMeshFlag.WriteUndeformed,
                     # Legacy
-                    True:                   WriteDeformedMeshFlag.WriteDeformed,
-                    False:                  WriteDeformedMeshFlag.WriteUndeformed,
+                    True:                   KM.WriteDeformedMeshFlag.WriteDeformed,
+                    False:                  KM.WriteDeformedMeshFlag.WriteUndeformed,
                     }
 
     __write_conditions = {
                     # JSON input
-                    "WriteConditions":      WriteConditionsFlag.WriteConditions,
-                    "WriteElementsOnly":    WriteConditionsFlag.WriteElementsOnly,
-                    "WriteConditionsOnly":  WriteConditionsFlag.WriteConditionsOnly,
+                    "WriteConditions":      KM.WriteConditionsFlag.WriteConditions,
+                    "WriteElementsOnly":    KM.WriteConditionsFlag.WriteElementsOnly,
+                    "WriteConditionsOnly":  KM.WriteConditionsFlag.WriteConditionsOnly,
                     # Legacy
-                    True:                   WriteConditionsFlag.WriteConditions,
-                    False:                  WriteConditionsFlag.WriteElementsOnly,
+                    True:                   KM.WriteConditionsFlag.WriteConditions,
+                    False:                  KM.WriteConditionsFlag.WriteElementsOnly,
                     }
 
     __multi_file_flag = {
                     # JSON input
-                    "SingleFile":           MultiFileFlag.SingleFile,
-                    "MultipleFiles":        MultiFileFlag.MultipleFiles,
+                    "SingleFile":           KM.MultiFileFlag.SingleFile,
+                    "MultipleFiles":        KM.MultiFileFlag.MultipleFiles,
                     # Legacy
-                    "Multiples":            MultiFileFlag.MultipleFiles,
-                    "Single":               MultiFileFlag.SingleFile,
+                    "Multiples":            KM.MultiFileFlag.MultipleFiles,
+                    "Single":               KM.MultiFileFlag.SingleFile,
                     }
 
     def __init__(self,model_part,file_name,param = None):
+        KM.Process.__init__(self)
 
         if param is None:
             param = self.defaults
@@ -108,10 +126,7 @@ class GiDOutputProcess(Process):
         self.printed_step_count = 0
         self.next_output = 0.0
 
-
-
     def ExecuteInitialize(self):
-
         result_file_configuration = self.param["result_file_configuration"]
         result_file_configuration.ValidateAndAssignDefaults(self.defaults["result_file_configuration"])
 
@@ -127,7 +142,7 @@ class GiDOutputProcess(Process):
         # Generate the cuts and store them in self.cut_model_part
         if self.skin_output or self.num_planes > 0:
             self.cut_model_part = ModelPart("CutPart")
-            self.cut_manager = CuttingUtility()
+            self.cut_manager = self._CreateCuttingUtility()
             self._initialize_cut_output(plane_output_configuration)
 
         # Retrieve gidpost flags and setup GiD output tool
@@ -144,6 +159,10 @@ class GiDOutputProcess(Process):
         self.nodal_flags_names =[]
         for i in range(result_file_configuration["nodal_flags_results"].size()):
             self.nodal_flags_names.append(result_file_configuration["nodal_flags_results"][i].GetString())
+        self.elemental_conditional_flags = self._GenerateFlagsListFromInput(result_file_configuration["elemental_conditional_flags_results"])
+        self.elemental_conditional_flags_names =[]
+        for i in range(result_file_configuration["elemental_conditional_flags_results"].size()):
+            self.elemental_conditional_flags_names.append(result_file_configuration["elemental_conditional_flags_results"][i].GetString())
 
         # Set up output frequency and format
         output_file_label = result_file_configuration["file_label"].GetString()
@@ -165,35 +184,18 @@ class GiDOutputProcess(Process):
             raise Exception(msg)
 
         self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
+        self.flush_after_output = result_file_configuration["flush_after_output"].GetBool()
 
         # get .post.lst files
         additional_list_file_data = result_file_configuration["additional_list_files"]
         additional_list_files = [ additional_list_file_data[i].GetInt() for i in range(0,additional_list_file_data.size()) ]
 
-
         # Set current time parameters
-        if(  self.model_part.ProcessInfo[IS_RESTARTED] == True ):
-            self.step_count = self.model_part.ProcessInfo[STEP]
-            self.printed_step_count = self.model_part.ProcessInfo[PRINTED_STEP]
-
-            if self.output_control_is_time:
-                self.next_output = self.model_part.ProcessInfo[TIME]
-            else:
-                self.next_output = self.model_part.ProcessInfo[STEP]
-
-                # Remove post results
-            if self.output_label_is_time:
-                label = self.model_part.ProcessInfo[TIME]
-            else:
-                label = self.printed_step_count
-
-            self.__remove_post_results_files(label)
-
-            # Restart .post.lst files
-            self.__restart_list_files(additional_list_files)
+        if self.model_part.ProcessInfo[KM.IS_RESTARTED]:
+            self._SetCurrentTimeParameters(additional_list_files)
         else:
             # Create .post.lst files
-            self.__initialize_list_files(additional_list_files)
+            self._InitializeListFiles(additional_list_files)
 
         # Process point recording data
         if self.point_output_process is not None:
@@ -219,13 +221,13 @@ class GiDOutputProcess(Process):
             self.__write_nodal_results(label)
             self.__write_nonhistorical_nodal_results(label)
             self.__write_nodal_flags(label)
+            self.__write_elemental_conditional_flags(label)
             self.__finalize_results()
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
-
         self.step_count += 1
 
         if self.point_output_process is not None:
@@ -233,12 +235,10 @@ class GiDOutputProcess(Process):
 
 
     def ExecuteFinalizeSolutionStep(self):
-
         if self.point_output_process is not None:
             self.point_output_process.ExecuteFinalizeSolutionStep()
 
     def IsOutputStep(self):
-
         if self.output_control_is_time:
             time = self.__get_pretty_time(self.model_part.ProcessInfo[TIME])
             return (time >= self.__get_pretty_time(self.next_output))
@@ -246,7 +246,6 @@ class GiDOutputProcess(Process):
             return ( self.step_count >= self.next_output )
 
     def PrintOutput(self):
-
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeOutputStep()
 
@@ -267,6 +266,13 @@ class GiDOutputProcess(Process):
         self.__write_gp_results(time)
         self.__write_nonhistorical_nodal_results(time)
         self.__write_nodal_flags(time)
+        self.__write_elemental_conditional_flags(time)
+
+        if self.flush_after_output and self.multifile_flag != MultiFileFlag.MultipleFiles:
+            if self.body_io is not None:
+                self.body_io.Flush()
+            if self.cut_io is not None:
+                self.cut_io.Flush()
 
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
             self.__finalize_results()
@@ -283,12 +289,6 @@ class GiDOutputProcess(Process):
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteAfterOutputStep()
-
-    def ExecuteBeforeOutputStep(self):
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        pass
 
     def ExecuteFinalize(self):
         '''Finalize files and free resources.'''
@@ -311,7 +311,6 @@ class GiDOutputProcess(Process):
         # a better solution yet (jcotela 12/V/2016)
         del self.body_io
         del self.cut_io
-
 
     def _InitializeGiDIO(self,gidpost_flags,param):
         '''Initialize GidIO objects (for volume and cut outputs) and related data.'''
@@ -353,7 +352,6 @@ class GiDOutputProcess(Process):
 
         return value
 
-
     def _initialize_cut_output(self,plane_output_configuration):
         '''Set up tools used to produce output in skin and cut planes.'''
 
@@ -371,7 +369,7 @@ class GiDOutputProcess(Process):
 
             self.__define_output_plane(cut_data)
 
-    def __initialize_list_files(self,additional_frequencies):
+    def _InitializeListFiles(self,additional_frequencies):
         '''Set up .post.lst files for global and cut results.
         If we have only one tipe of output (volume or cut), the
         list file is called <gid_model_name>.post.lst. When we have
@@ -436,7 +434,6 @@ class GiDOutputProcess(Process):
 
                     self.cut_list_files.append( [freq,list_file] )
 
-
     def __define_output_plane(self,cut_data):
         '''Add a plane to the output plane list.'''
 
@@ -484,7 +481,6 @@ class GiDOutputProcess(Process):
         return [ globals()[ param[i].GetString() ] for i in range( 0,param.size() ) ]
 
     def __write_mesh(self, label):
-
         if self.body_io is not None:
             self.body_io.InitializeMesh(label)
             if self.body_output:
@@ -499,7 +495,6 @@ class GiDOutputProcess(Process):
             self.cut_io.FinalizeMesh()
 
     def __initialize_results(self, label):
-
         if self.body_io is not None:
             self.body_io.InitializeResults(label, self.model_part.GetMesh())
 
@@ -507,7 +502,6 @@ class GiDOutputProcess(Process):
             self.cut_io.InitializeResults(label,self.cut_model_part.GetMesh())
 
     def __write_nodal_results(self, label):
-
         if self.body_io is not None:
             for variable in self.nodal_variables:
                 self.body_io.WriteNodalResults(variable, self.model_part.GetCommunicator().LocalMesh().Nodes, label, 0)
@@ -518,7 +512,6 @@ class GiDOutputProcess(Process):
                 self.cut_io.WriteNodalResults(variable, self.cut_model_part.GetCommunicator().LocalMesh().Nodes, label, 0)
 
     def __write_gp_results(self, label):
-
         #if self.body_io is not None:
         if self.body_output: # Note: if we only print nodes, there are no GaussPoints
             for variable in self.gauss_point_variables:
@@ -527,9 +520,7 @@ class GiDOutputProcess(Process):
         # Gauss point results depend on the type of element!
         # they are not implemented for cuts (which are generic Condition3D)
 
-
     def __write_nonhistorical_nodal_results(self, label):
-
         if self.body_io is not None:
             for variable in self.nodal_nonhistorical_variables:
                 self.body_io.WriteNodalResultsNonHistorical(variable, self.model_part.Nodes, label)
@@ -549,14 +540,22 @@ class GiDOutputProcess(Process):
             for flag in range(len(self.nodal_flags)):
                 self.cut_io.WriteNodalFlags(self.nodal_flags[flag], self.nodal_flags_names[flag], self.cut_model_part.Nodes, label)
 
-    def __finalize_results(self):
+    def __write_elemental_conditional_flags(self, label):
+        if self.body_io is not None:
+            for flag in range(len(self.elemental_conditional_flags)):
+                self.body_io.PrintFlagsOnGaussPoints(self.elemental_conditional_flags[flag], self.elemental_conditional_flags_names[flag], self.model_part, label)
 
+        if self.cut_io is not None:
+            self.cut_manager.UpdateCutData(self.cut_model_part, self.model_part)
+            for flag in range(len(self.elemental_conditional_flags)):
+                self.cut_io.PrintFlagsOnGaussPoints(self.elemental_conditional_flags[flag], self.elemental_conditional_flags_names[flag], self.cut_model_part, label)
+
+    def __finalize_results(self):
         if self.body_io is not None:
             self.body_io.FinalizeResults()
 
         if self.cut_io is not None:
             self.cut_io.FinalizeResults()
-
 
     def __write_step_to_list(self,step_label=None):
         if self.post_mode == GiDPostMode.GiD_PostBinary:
@@ -587,12 +586,10 @@ class GiDOutputProcess(Process):
                     f.write("{0}{1}{2}\n".format(self.cut_file_name,pretty_label,ext))
                     f.flush()
 
-    #
     def __restart_list_files(self,additional_frequencies):
-
         self.__remove_list_files()
 
-        self.__initialize_list_files(additional_frequencies)
+        self._InitializeListFiles(additional_frequencies)
 
         if self.post_mode == GiDPostMode.GiD_PostBinary:
             ext = ".post.bin"
@@ -620,8 +617,13 @@ class GiDOutputProcess(Process):
                 end_parts  = file_parts[num_parts-1].split(".") # you get ["145","post","bin"]
                 print_id   = end_parts[0] # you get "145"
 
-                if( print_id != "0" ):
-                    file_id.append(int(print_id))
+                try:
+                    label = int(print_id)
+                    if label != 0:
+                        file_id.append(label)
+                except ValueError:
+                    # Whatever we got was not convertible to int, probably the input file has a different format
+                    pass
 
             file_id.sort()
 
@@ -648,9 +650,7 @@ class GiDOutputProcess(Process):
                         f.write(list_file_name)
                         f.flush()
 
-    #
     def __remove_list_files(self):
-
         path = os.getcwd()
 
         # remove previous list files:
@@ -665,9 +665,7 @@ class GiDOutputProcess(Process):
                     except OSError:
                         pass
 
-    #
     def __remove_post_results_files(self, step_label):
-
         path = os.getcwd()
 
         if self.post_mode == GiDPostMode.GiD_PostBinary:
@@ -709,3 +707,26 @@ class GiDOutputProcess(Process):
                         os.remove(f)
                     except OSError:
                         pass
+
+    def _CreateCuttingUtility(self):
+        return KM.CuttingUtility()
+
+    def _SetCurrentTimeParameters(self, additional_list_files):
+        self.step_count = self.model_part.ProcessInfo[KM.STEP]
+        self.printed_step_count = self.model_part.ProcessInfo[KM.PRINTED_STEP]
+
+        if self.output_control_is_time:
+            self.next_output = self.model_part.ProcessInfo[KM.TIME]
+        else:
+            self.next_output = self.model_part.ProcessInfo[KM.STEP]
+
+            # Remove post results
+        if self.output_label_is_time:
+            label = self.model_part.ProcessInfo[KM.TIME]
+        else:
+            label = self.printed_step_count
+
+        self.__remove_post_results_files(label)
+
+        # Restart .post.lst files
+        self.__restart_list_files(additional_list_files) # FIXME

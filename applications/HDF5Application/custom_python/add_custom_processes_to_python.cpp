@@ -8,18 +8,18 @@
 // Application includes
 #include "custom_processes/hdf5_xdmf_connectivities_writer_process.h"
 
-namespace Kratos
-{
-namespace Python
-{
+namespace Kratos {
+namespace Python {
 
 void AddCustomProcessesToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
-    class_<HDF5::XdmfConnectivitiesWriterProcess, HDF5::XdmfConnectivitiesWriterProcess::Pointer, Process>(m,"HDF5XdmfConnectivitiesWriterProcess")
-    .def(init<const std::string&, const std::string&>())
-    ;
+    py::class_<HDF5::XdmfConnectivitiesWriterProcess, HDF5::XdmfConnectivitiesWriterProcess::Pointer, Process>(
+        m,"HDF5XdmfConnectivitiesWriterProcess")
+        .def(py::init<const std::string&, const std::string&>())
+        ;
 }
+
 } // namespace Python.
 } // Namespace Kratos

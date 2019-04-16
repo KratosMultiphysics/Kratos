@@ -4,12 +4,15 @@ from KratosMultiphysics import *
 from KratosMultiphysics.CompressiblePotentialFlowApplication import *
 import run_cpp_unit_tests
 
+##### SMALL TESTS #####
+from potential_flow_test_factory import PotentialFlowTests
+
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests or test_classes to create the suites
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
@@ -28,6 +31,9 @@ def AssambleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallSuite = suites['small']
+    smallSuite.addTest(PotentialFlowTests('test_SmallLiftJumpTest'))
+    smallSuite.addTest(PotentialFlowTests('test_LiftAndMoment'))
+    smallSuite.addTest(PotentialFlowTests('test_Naca0012SmallAdjoint'))
     #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPotentialElement2D]))
 
     # Create a test suite with the selected tests
@@ -47,5 +53,5 @@ if __name__ == '__main__':
     run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

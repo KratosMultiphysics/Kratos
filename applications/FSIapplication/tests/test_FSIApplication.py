@@ -11,7 +11,6 @@ from convergence_accelerator_test import ConvergenceAcceleratorTest
 from convergence_accelerator_spring_test import ConvergenceAcceleratorSpringTest
 from FSI_problem_emulator_test import FSIProblemEmulatorTest
 from non_conformant_one_side_map_test import NonConformantOneSideMapTest
-from variable_redistribution_test import VariableRedistributionTest
 
 ## NIGTHLY TESTS
 
@@ -49,11 +48,6 @@ def AssembleTestSuites():
     smallSuite.addTest(NonConformantOneSideMapTest('test2D_2'))
     smallSuite.addTest(NonConformantOneSideMapTest('test3D_1'))
     smallSuite.addTest(NonConformantOneSideMapTest('test3D_two_faces'))
-    smallSuite.addTest(VariableRedistributionTest('testLinearFunction'))
-    smallSuite.addTest(VariableRedistributionTest('testSharpCorners'))
-    smallSuite.addTest(VariableRedistributionTest('testVector'))
-    smallSuite.addTest(VariableRedistributionTest('testQuadratic'))
-    smallSuite.addTest(VariableRedistributionTest('testNodalArea'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']

@@ -16,7 +16,7 @@
 
 namespace Kratos
 {
-  
+
   KRATOS_CREATE_LOCAL_FLAG( ConstitutiveModelData, IMPLEX_ACTIVE,                0 );
 
   KRATOS_CREATE_LOCAL_FLAG( ConstitutiveModelData, STRAIN_COMPUTED,              1 );
@@ -27,7 +27,7 @@ namespace Kratos
   KRATOS_CREATE_LOCAL_FLAG( ConstitutiveModelData, PLASTIC_RATE_REGION,          5 );
   KRATOS_CREATE_LOCAL_FLAG( ConstitutiveModelData, RETURN_MAPPING_COMPUTED,      6 );
   KRATOS_CREATE_LOCAL_FLAG( ConstitutiveModelData, UPDATE_INTERNAL_VARIABLES,    7 );
-  
+
 }  // namespace Kratos.
 
 

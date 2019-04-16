@@ -5,9 +5,6 @@ import sys
 import KratosMultiphysics
 from python_solver import PythonSolver
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
-
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
@@ -21,9 +18,6 @@ class FluidSolver(PythonSolver):
 
         super(FluidSolver,self).__init__(model, settings)
 
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
         ## Set the element and condition names for the replace settings
         ## These should be defined in derived classes
         self.element_name = None
@@ -34,14 +28,17 @@ class FluidSolver(PythonSolver):
         model_part_name = self.settings["model_part_name"].GetString()
 
         if model_part_name == "":
-            raise Exception('Please specify a model_part name!')
+            raise Exception('Please provide the model part name as the "model_part_name" (string) parameter!')
 
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model.GetModelPart(model_part_name)
         else:
-            self.main_model_part = KratosMultiphysics.ModelPart(model_part_name)
+            self.main_model_part = model.CreateModelPart(model_part_name)
 
         domain_size = self.settings["domain_size"].GetInt()
+        if domain_size == -1:
+            raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
+
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
     def AddVariables(self):
@@ -53,8 +50,7 @@ class FluidSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Fluid solver DOFs added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Fluid solver DOFs added correctly.")
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
@@ -69,19 +65,14 @@ class FluidSolver(PythonSolver):
             ## Set buffer size
             self.main_model_part.SetBufferSize(self.min_buffer_size)
 
-        if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
-            self.model.AddModelPart(self.main_model_part)
-
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Model reading finished.")
+        KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Model reading finished.")
 
     def ExportModelPart(self):
         ## Model part writing
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Model export finished.")
+        KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Model export finished.")
 
     def GetMinimumBufferSize(self):
         return self.min_buffer_size
@@ -109,8 +100,8 @@ class FluidSolver(PythonSolver):
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
             is_converged = self.solver.SolveSolutionStep()
-            if not is_converged and self._IsPrintingRank():
-                msg  = "Fluid solver did not converge for iteration " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
+            if not is_converged:
+                msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
                 msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
                 KratosMultiphysics.Logger.PrintWarning("FluidSolver",msg)
 
@@ -124,21 +115,6 @@ class FluidSolver(PythonSolver):
     def Clear(self):
         (self.solver).Clear()
 
-    def Solve(self):
-        message = "".join([
-            "Calling FluidSolver.Solve() method, which is deprecated\n",
-            "Please call the individual methods instead:\n",
-            "solver.InitializeSolutionStep()\n",
-            "solver.Predict()\n",
-            "solver.SolveSolutionStep()\n",
-            "solver.FinalizeSolutionStep()\n"]
-        )
-        KratosMultiphysics.Logger.PrintWarning("FluidSolver",message)
-        self.InitializeSolutionStep()
-        self.Predict()
-        self.SolveSolutionStep()
-        self.FinalizeSolutionStep()
-
     def GetComputingModelPart(self):
         if not self.main_model_part.HasSubModelPart("fluid_computational_model_part"):
             raise Exception("The ComputingModelPart was not created yet!")
@@ -149,9 +125,6 @@ class FluidSolver(PythonSolver):
     def _TimeBufferIsInitialized(self):
         # We always have one extra old step (step 0, read from input)
         return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
-
-    def _IsPrintingRank(self):
-        return self._is_printing_rank
 
     def _ValidateSettings(self, settings):
         raise Exception("Please define the _ValidateSettings() method in your derived solver class to validate the Kratos::Parameters configuration.")
@@ -237,11 +210,11 @@ class FluidSolver(PythonSolver):
         return delta_time
 
     def _GetAutomaticTimeSteppingUtility(self):
-        if (self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.computing_model_part,
+        if (self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.GetComputingModelPart(),
                                                                      self.settings["time_stepping"])
         else:
-            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.computing_model_part,
+            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.GetComputingModelPart(),
                                                                      self.settings["time_stepping"])
 
         return EstimateDeltaTimeUtility

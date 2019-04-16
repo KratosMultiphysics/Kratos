@@ -2,22 +2,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-
-# Importing the solvers (if available)
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "not imported")
-try:
-    import KratosMultiphysics.EigenSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "not imported")
+import KratosMultiphysics.StructuralMechanicsApplication.python_solvers_wrapper_structural as structural_solvers
 
 # Importing the base class
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 class StructuralMechanicsAnalysis(AnalysisStage):
     """
@@ -28,35 +16,108 @@ class StructuralMechanicsAnalysis(AnalysisStage):
     def __init__(self, model, project_parameters):
         # Making sure that older cases still work by properly initalizing the parameters
         solver_settings = project_parameters["solver_settings"]
+
+        if solver_settings.Has("domain_size") and project_parameters["problem_data"].Has("domain_size"):
+            warn_msg  = '"domain_size" defined both in "problem_data" and "solver_settings"!'
+            warn_msg += 'the definition in the "solver_settings" will be employed'
+            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
+
+        if solver_settings.Has("model_part_name") and project_parameters["problem_data"].Has("model_part_name"):
+            warn_msg  = '"model_part_name" defined both in problem_data" and "solver_settings"!'
+            warn_msg += 'the definition in the "solver_sett"ings" will be employed'
+            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
+
+        if solver_settings.Has("time_stepping") and project_parameters["problem_data"].Has("time_Step"):
+            warn_msg  = '"time_stepping" defined both in "problem_data" and "solver_settings"!'
+            warn_msg += 'the definition in the "solver_settings" will be employed'
+            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
+
         if not solver_settings.Has("time_stepping"):
-            KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the time_step, this will be removed!")
+            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "Using the old way to pass the time_step, this will be removed!")
             time_stepping_params = KratosMultiphysics.Parameters("{}")
             time_stepping_params.AddValue("time_step", project_parameters["problem_data"]["time_step"])
             solver_settings.AddValue("time_stepping", time_stepping_params)
 
         if not solver_settings.Has("domain_size"):
-            KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
+            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
             solver_settings.AddEmptyValue("domain_size")
             solver_settings["domain_size"].SetInt(project_parameters["problem_data"]["domain_size"].GetInt())
 
         if not solver_settings.Has("model_part_name"):
-            KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
+            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(project_parameters["problem_data"]["model_part_name"].GetString())
 
         super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
-        ## Import parallel modules if needed
-        if (self.parallel_type == "MPI"):
-            import KratosMultiphysics.MetisApplication as MetisApplication
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+
+    def Check(self):
+        super(StructuralMechanicsAnalysis, self).Check()
+
+        # performing some checks if the submodelparts used for the processes and
+        # the material-assignments are being added to the ComputingModelPart
+        solver_settings = self.project_parameters["solver_settings"]
+        main_model_part_name = solver_settings["model_part_name"].GetString()
+
+        # Checking if the material-submodelparts are added to the ComputingModelPart
+        materials_filename = solver_settings["material_import_settings"]["materials_filename"].GetString()
+        if (materials_filename != ""): # Materials are specified through a file
+            # creating a list with the names of smps that will be added to the ComputingModelPart
+            # note that the names here are WITHOUT the MainModelPart-Name
+            domain_smp_param = solver_settings["problem_domain_sub_model_part_list"]
+            list_domain_mp_names = [domain_smp_param[i].GetString() for i in range(domain_smp_param.size())]
+
+            if not main_model_part_name in list_domain_mp_names:
+                # if the mainmodelpart is added to the computingmodelpart, then also all
+                # submodelparts are added, no need to further check the submodelparts
+
+                with open(materials_filename,'r') as materials_file: # reading the materials-file
+                    materials = KratosMultiphysics.Parameters(materials_file.read())
+
+                for i in range(materials["properties"].size()):
+                    model_part_name = materials["properties"][i]["model_part_name"].GetString()
+                    if model_part_name.startswith(main_model_part_name): # removing the MainModelPart-Name
+                        model_part_name = model_part_name.replace(main_model_part_name+".", "")
+                    if model_part_name not in list_domain_mp_names:
+                        warn_msg  = 'The ModelPart with name "' + model_part_name + '"\n'
+                        warn_msg += 'is used for assigning materials but is not added to the ComputingModelPart!\n'
+                        warn_msg += 'This can be done by adding it to "problem_domain_sub_model_part_list" '
+                        warn_msg += 'in "solver_settings"\n'
+                        KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis; Warning", warn_msg)
+
+        if not self.project_parameters.Has("processes"): # TODO this check is only for backwards-compatibility => to be removed
+            return
+
+        # Checking if the processes-submodelparts are added to the ComputingModelPart
+        # creating a list with the names of smps that will be added to the ComputingModelPart
+        # note that the names here are WITHOUT the MainModelPart-Name
+        processes_smp_param = solver_settings["processes_sub_model_part_list"]
+        list_proc_mp_names = [processes_smp_param[i].GetString() for i in range(processes_smp_param.size())]
+
+        if not main_model_part_name in list_proc_mp_names:
+            # if the mainmodelpart is added to the computingmodelpart, then also all
+            # submodelparts are added, no need to further check the submodelparts
+
+            for processes_block in self.project_parameters["processes"].values():
+                for i_proc in range(processes_block.size()):
+                    process_params = processes_block[i_proc]["Parameters"]
+                    if process_params.Has("model_part_name"):
+                        model_part_name = process_params["model_part_name"].GetString()
+                        if model_part_name.startswith(main_model_part_name): # removing the MainModelPart-Name
+                            model_part_name = model_part_name.replace(main_model_part_name+".", "")
+                        if model_part_name not in list_proc_mp_names:
+                            proc_name = processes_block[i_proc]["python_module"].GetString()
+                            warn_msg  = 'The ModelPart with name "' + model_part_name + '"\n'
+                            warn_msg += 'is used for a process ("{}") \nbut is not added to the '.format(proc_name)
+                            warn_msg += 'ComputingModelPart!\nThis can be done by adding it to '
+                            warn_msg += '"processes_sub_model_part_list" in "solver_settings"\n'
+                            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis; Warning", warn_msg)
 
     #### Internal functions ####
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
-        import python_solvers_wrapper_structural
-        return python_solvers_wrapper_structural.CreateSolver(self.model, self.project_parameters)
+        return structural_solvers.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
@@ -68,20 +129,32 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         if parameter_name == "processes":
             processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process",
                 "json_check_process", "check_analytic_results_process", "contact_process_list"]
-            if len(list_of_processes) == 0: # Processes are given in the old format
-                KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
-                from process_factory import KratosProcessFactory
+            if len(list_of_processes) == 0: # Processes are given in the old format (or no processes are specified)
+                deprecation_warning_issued = False
+                from KratosMultiphysics.process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
-                    if (self.project_parameters.Has(process_name) is True):
+                    if self.project_parameters.Has(process_name):
+                        if not deprecation_warning_issued:
+                            info_msg  = "Using the old way to create the processes, this will be removed!\n"
+                            info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
+                            info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
+                            info_msg += "for a description of the new format"
+                            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", info_msg)
+                            deprecation_warning_issued = True
+
                         list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
             else: # Processes are given in the new format
                 for process_name in processes_block_names:
-                    if (self.project_parameters.Has(process_name) is True):
-                        raise Exception("Mixing of process initialization is not alowed!")
+                    if self.project_parameters.Has(process_name):
+                        raise Exception("Mixing of process initialization is not allowed!")
         elif parameter_name == "output_processes":
             if self.project_parameters.Has("output_configuration"):
-                #KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to create the gid-output, this will be removed!")
+                info_msg  = "Using the old way to create the gid-output, this will be removed!\n"
+                info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
+                info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
+                info_msg += "for a description of the new format"
+                KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", info_msg)
                 gid_output= self._SetUpGiDOutput()
                 list_of_processes += [gid_output,]
         else:
@@ -93,9 +166,9 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         '''Initialize a GiD output instance'''
         self.__CheckForDeprecatedGiDSettings()
         if self.parallel_type == "OpenMP":
-            from gid_output_process import GiDOutputProcess as OutputProcess
+            from KratosMultiphysics.gid_output_process import GiDOutputProcess as OutputProcess
         elif self.parallel_type == "MPI":
-            from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
+            from KratosMultiphysics.TrilinosApplication.gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
 
         gid_output = OutputProcess(self._GetSolver().GetComputingModelPart(),
                                    self.project_parameters["problem_data"]["problem_name"].GetString() ,

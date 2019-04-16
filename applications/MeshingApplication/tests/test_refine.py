@@ -24,7 +24,8 @@ class TestRedistance(KratosUnittest.TestCase):
         return area       
         
     def test_refine_all(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         KratosMultiphysics.ModelPartIO(GetFilePath("coarse_sphere")).ReadModelPart(model_part)
         model_part.SetBufferSize(2)
@@ -54,7 +55,8 @@ class TestRedistance(KratosUnittest.TestCase):
         self.assertEqual(len(model_part.Nodes), 482)
         
     def test_refine_half(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         KratosMultiphysics.ModelPartIO(GetFilePath("coarse_sphere")).ReadModelPart(model_part)
         model_part.SetBufferSize(2)
@@ -86,7 +88,8 @@ class TestRedistance(KratosUnittest.TestCase):
         self.assertEqual(len(model_part.Nodes), 462)
                          
     def test_refine_half_and_improve(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         KratosMultiphysics.ModelPartIO(GetFilePath("coarse_sphere")).ReadModelPart(model_part)
         model_part.SetBufferSize(2)

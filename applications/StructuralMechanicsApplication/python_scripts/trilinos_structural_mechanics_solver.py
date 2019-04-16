@@ -2,24 +2,17 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.mpi as KratosMPI
-
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication","TrilinosApplication")
 
 # Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
 # Import base class file
-import structural_mechanics_solver
-
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return TrilinosMechanicalSolver(model, custom_settings)
 
-
-class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
+class TrilinosMechanicalSolver(MechanicalSolver):
     """The base class for trilinos structural mechanics solver.
 
     See structural_mechanics_solver.py for more information.
@@ -27,41 +20,36 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def __init__(self, model, custom_settings):
         if not custom_settings.Has("linear_solver_settings"): # Override defaults in the base class.
             linear_solver_settings = KratosMultiphysics.Parameters("""{
-                "solver_type" : "AmesosSolver",
+                "solver_type" : "amesos",
                 "amesos_solver_type" : "Amesos_Klu"
             }""")
             custom_settings.AddValue("linear_solver_settings", linear_solver_settings)
 
         # Construct the base solver.
         super(TrilinosMechanicalSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Construction finished")
 
     def AddVariables(self):
-        if not self.is_restarted():
-            super(TrilinosMechanicalSolver, self).AddVariables()
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-            self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Variables ADDED")
+        super(TrilinosMechanicalSolver, self).AddVariables()
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Variables ADDED")
 
-    def ReadModelPart(self):
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Reading model part.")
-        if self.is_restarted():
-            self.get_restart_utility().LoadRestart()
-        elif(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            # Construct the Trilinos import model part utility.
-            import trilinos_import_model_part_utility
-            self.trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
-            # Execute the Metis partitioning and reading.
-            self.trilinos_model_part_importer.ExecutePartitioningAndReading()
-        else:
-            raise Exception("Other model part input options are not yet implemented.")
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Finished reading model part.")
+    def ImportModelPart(self):
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Importing model part.")
+        from trilinos_import_model_part_utility import TrilinosImportModelPartUtility
+        self.trilinos_model_part_importer = TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+        self.trilinos_model_part_importer.ImportModelPart()
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Finished importing model part.")
 
-    def PrepareModel(self):
-        if not self.is_restarted():
-            super(TrilinosMechanicalSolver, self).PrepareModelPart()
-            # Construct the communicators
-            self.trilinos_model_part_importer.CreateCommunicators()
+    def PrepareModelPart(self):
+        super(TrilinosMechanicalSolver, self).PrepareModelPart()
+        # Construct the mpi-communicator
+        self.trilinos_model_part_importer.CreateCommunicators()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]::", "ModelPart prepared for Solver.")
+
+    def Finalize(self):
+        super(TrilinosMechanicalSolver, self).Finalize()
+        self.get_mechanical_solution_strategy().Clear() # needed for proper finalization of MPI
 
     #### Specific internal functions ####
 
@@ -69,11 +57,6 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         if not hasattr(self, '_epetra_communicator'):
             self._epetra_communicator = self._create_epetra_communicator()
         return self._epetra_communicator
-
-    def print_on_rank_zero(self, *args):
-        KratosMPI.mpi.world.barrier()
-        if KratosMPI.mpi.rank == 0:
-            KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
 
     #### Private functions ####
 
@@ -93,6 +76,9 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def _create_builder_and_solver(self):
         if self.settings["multi_point_constraints_used"].GetBool():
             raise Exception("MPCs not yet implemented in MPI")
+
+        if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
+            KratosMultiphysics.Logger.PrintWarning("Constraints are not yet implemented in MPI and will therefore not be considered!")
 
         linear_solver = self.get_linear_solver()
         epetra_communicator = self.get_epetra_communicator()
@@ -139,10 +125,3 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                                                                  self.settings["compute_reactions"].GetBool(),
                                                                  self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                  self.settings["move_mesh_flag"].GetBool())
-
-    def _create_restart_utility(self):
-        """Create the restart utility."""
-        import trilinos_restart_utility as restart_utility
-        rest_utility = restart_utility.RestartUtility(self.main_model_part,
-                                                      self._get_restart_settings())
-        return rest_utility

@@ -109,16 +109,27 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /** Constructor.
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit SolvingStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : mrModelPart(rModelPart)
+    {
+        const bool move_mesh_flag = ThisParameters.Has("move_mesh_flag") ? ThisParameters["move_mesh_flag"].GetBool() : false;
+        SetMoveMeshFlag(move_mesh_flag);
+    }
+
+    /**
+     * @brief Default constructor.
      * @param rModelPart The model part to be computed
      * @param MoveMeshFlag The flag to set if the mesh is moved or not
      */
-
-    SolvingStrategy(
+    explicit SolvingStrategy(
         ModelPart& rModelPart,
         bool MoveMeshFlag = false
-    )
-        : mrModelPart(rModelPart)
+        ) : mrModelPart(rModelPart)
     {
         SetMoveMeshFlag(MoveMeshFlag);
     }
@@ -308,27 +319,20 @@ public:
     {
         KRATOS_TRY
 
-        if (GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
-        {
-            KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
-        }
+        KRATOS_ERROR_IF(GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false) << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
 
         NodesArrayType& NodesArray = GetModelPart().Nodes();
         const int numNodes = static_cast<int>(NodesArray.size());
 
         #pragma omp parallel for
-        for(int i = 0; i < numNodes; i++)
-        {
+        for(int i = 0; i < numNodes; ++i) {
             auto it_node = NodesArray.begin() + i;
 
             noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
             noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
         }
-
-        if (this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0 )
-        {
-            std::cout<<" MESH MOVED "<<std::endl;
-        }
+             
+        KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0) <<" MESH MOVED "<<std::endl;
 
         KRATOS_CATCH("")
     }
@@ -348,7 +352,6 @@ public:
      */
     virtual double GetResidualNorm()
     {
-        KRATOS_ERROR << "You are calling to the base class method GetResidualNorm, please define in you derived class the method" << std::endl;
         return 0.0;
     }
 
@@ -388,6 +391,28 @@ public:
         return 0;
 
         KRATOS_CATCH("")
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "SolvingStrategy";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << Info();
     }
 
     ///@}

@@ -69,7 +69,7 @@ public:
     ModifiedExponentialDamageHardeningLaw& operator=(ModifiedExponentialDamageHardeningLaw const& rOther);
 
     /// Destructor.
-    ~ModifiedExponentialDamageHardeningLaw();
+    ~ModifiedExponentialDamageHardeningLaw() override;
 
     ///@}
     ///@name Operators
@@ -88,7 +88,7 @@ public:
     double& CalculateHardening(double &rHardening, const Parameters& rValues) override;
 
     double& CalculateDeltaHardening(double &rDeltaHardening, const Parameters& rValues) override;
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -210,4 +210,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MODIFIED_EXPONENTIAL_DAMAGE_HARDENING_LAW_H_INCLUDED  defined 
+#endif // KRATOS_MODIFIED_EXPONENTIAL_DAMAGE_HARDENING_LAW_H_INCLUDED  defined

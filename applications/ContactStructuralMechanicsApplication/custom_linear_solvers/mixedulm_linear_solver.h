@@ -19,7 +19,6 @@
 #include <cstddef>
 
 // External includes
-#include <boost/numeric/ublas/vector.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -107,6 +106,9 @@ public:
     /// The node type
     typedef Node<3> NodeType;
 
+    /// The definition of the dof type
+    typedef typename ModelPart::DofType DofType;
+
     /// The array containing the dofs
     typedef typename ModelPart::DofsArrayType DofsArrayType;
 
@@ -122,17 +124,13 @@ public:
     /// The index type
     typedef std::size_t IndexType;
 
-    /// The signed index type
-    typedef std::ptrdiff_t  SignedIndexType;
-
     /// A vector of indexes
     typedef DenseVector<IndexType> IndexVectorType;
 
-    /// A vector of indexes (signed)
-    typedef DenseVector<SignedIndexType> SignedIndexVectorType;
-
     /// A vector of types
     typedef DenseVector<BlockType> BlockTypeVectorType;
+
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
     ///@name Life Cycle
@@ -163,10 +161,10 @@ public:
      */
 
     MixedULMLinearSolver(
-            LinearSolverPointerType pSolverDispBlock,
-            Parameters ThisParameters =  Parameters(R"({})")
-            ): BaseType (),
-               mpSolverDispBlock(pSolverDispBlock)
+        LinearSolverPointerType pSolverDispBlock,
+        Parameters ThisParameters =  Parameters(R"({})")
+        ): BaseType (),
+            mpSolverDispBlock(pSolverDispBlock)
 
     {
         KRATOS_TRY
@@ -178,6 +176,7 @@ public:
         // Initializing the remaining variables
         this->SetTolerance( ThisParameters["tolerance"].GetDouble() );
         this->SetMaxIterationsNumber( ThisParameters["max_iteration_number"].GetInt() );
+        mEchoLevel = ThisParameters["echo_level"].GetInt();
         mBlocksAreAllocated = false;
         mIsInitialized = false;
 
@@ -186,9 +185,37 @@ public:
 
 
     /// Copy constructor.
-    MixedULMLinearSolver (const MixedULMLinearSolver& Other)
+    MixedULMLinearSolver (const MixedULMLinearSolver& rOther)
+        : BaseType(rOther),
+          mpSolverDispBlock(rOther.mpSolverDispBlock),
+          mBlocksAreAllocated(rOther.mBlocksAreAllocated),
+          mIsInitialized(rOther.mIsInitialized),
+          mMasterIndices(rOther.mMasterIndices),
+          mSlaveInactiveIndices(rOther.mSlaveInactiveIndices),
+          mSlaveActiveIndices(rOther.mSlaveActiveIndices),
+          mLMInactiveIndices(rOther.mLMInactiveIndices),
+          mLMActiveIndices(rOther.mLMActiveIndices),
+          mOtherIndices(rOther.mOtherIndices),
+          mGlobalToLocalIndexing(rOther.mGlobalToLocalIndexing),
+          mWhichBlockType(rOther.mWhichBlockType),
+          mKDispModified(rOther.mKDispModified),
+          mKLMAModified(rOther.mKLMAModified),
+          mKLMIModified(rOther.mKLMIModified),
+          mKSAN(rOther.mKSAN),
+          mKSAM(rOther.mKSAM),
+          mKSASI(rOther.mKSASI),
+          mKSASA(rOther.mKSASA),
+          mPOperator(rOther.mPOperator),
+          mCOperator(rOther.mCOperator),
+          mResidualLMActive(rOther.mResidualLMActive),
+          mResidualLMInactive(rOther.mResidualLMInactive),
+          mResidualDisp(rOther.mResidualDisp),
+          mLMActive(rOther.mLMActive),
+          mLMInactive(rOther.mLMInactive),
+          mDisp(rOther.mDisp),
+          mEchoLevel(rOther.mEchoLevel),
+          mFileCreated(rOther.mFileCreated)
     {
-        KRATOS_ERROR << "Copy constructor not correctly implemented" << std::endl;
     }
 
     /// Destructor.
@@ -379,6 +406,20 @@ public:
         VectorType& rB
         ) override
     {
+        // We print the system before condensate (if needed)
+        if (mEchoLevel == 2) { //if it is needed to print the debug info
+            KRATOS_INFO("RHS BEFORE CONDENSATION") << "RHS  = " << rB << std::endl;
+        } else if (mEchoLevel == 3) { //if it is needed to print the debug info
+            KRATOS_INFO("LHS BEFORE CONDENSATION") << "SystemMatrix = " << rA << std::endl;
+            KRATOS_INFO("RHS BEFORE CONDENSATION") << "RHS  = " << rB << std::endl;
+        } else if (mEchoLevel >= 4) { //print to matrix market file
+            const std::string matrix_market_name = "before_condensation_A_" + std::to_string(mFileCreated) + ".mm";
+            TSparseSpaceType::WriteMatrixMarketMatrix(matrix_market_name.c_str(), rA, false);
+
+            const std::string matrix_market_vectname = "before_condensation_b_" + std::to_string(mFileCreated) + ".mm.rhs";
+            TSparseSpaceType::WriteMatrixMarketVector(matrix_market_vectname.c_str(), rB);
+        }
+
         if (mIsInitialized == false)
             this->Initialize (rA,rX,rB);
 
@@ -387,6 +428,23 @@ public:
         this->PerformSolutionStep (rA,rX,rB);
 
         this->FinalizeSolutionStep (rA,rX,rB);
+
+        // We print the resulting system (if needed)
+        if (mEchoLevel == 2) { //if it is needed to print the debug info
+            KRATOS_INFO("Dx")  << "Solution obtained = " << mDisp << std::endl;
+            KRATOS_INFO("RHS") << "RHS  = " << mResidualDisp << std::endl;
+        } else if (mEchoLevel == 3) { //if it is needed to print the debug info
+            KRATOS_INFO("LHS") << "SystemMatrix = " << mKDispModified << std::endl;
+            KRATOS_INFO("Dx")  << "Solution obtained = " << mDisp << std::endl;
+            KRATOS_INFO("RHS") << "RHS  = " << mResidualDisp << std::endl;
+        } else if (mEchoLevel >= 4) { //print to matrix market file
+            const std::string matrix_market_name = "A_" + std::to_string(mFileCreated) + ".mm";
+            TSparseSpaceType::WriteMatrixMarketMatrix(matrix_market_name.c_str(), mKDispModified, false);
+
+            const std::string matrix_market_vectname = "b_" + std::to_string(mFileCreated) + ".mm.rhs";
+            TSparseSpaceType::WriteMatrixMarketVector(matrix_market_vectname.c_str(), mResidualDisp);
+            mFileCreated++;
+        }
 
         return false;
     }
@@ -442,22 +500,44 @@ public:
         SizeType n_master_dofs = 0;
         SizeType n_slave_inactive_dofs = 0, n_slave_active_dofs = 0;
         SizeType tot_active_dofs = 0;
-        for (auto& i_dof : rDofSet) {
-            node_id = i_dof.Id();
-            const NodeType& node = rModelPart.GetNode(node_id);
-            if (i_dof.EquationId() < rA.size1()) {
+
+        // We separate if we consider a block builder and solver or an elimination builder and solver
+        if (rModelPart.IsNot(TO_SPLIT)) {
+            // In case of block builder and solver
+            for (auto& i_dof : rDofSet) {
+                node_id = i_dof.Id();
+                const NodeType& node = rModelPart.GetNode(node_id);
+                if (i_dof.EquationId() < rA.size1()) {
+                    tot_active_dofs++;
+                    if (IsLMDof(i_dof)) {
+                        if (node.Is(ACTIVE))
+                            n_lm_active_dofs++;
+                        else
+                            n_lm_inactive_dofs++;
+                    } else if (node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
+                        if (node.Is(MASTER)) {
+                            n_master_dofs++;
+                        } else if (node.Is(SLAVE)) {
+                            if (node.Is(ACTIVE))
+                                n_slave_active_dofs++;
+                            else
+                                n_slave_inactive_dofs++;
+                        }
+                    }
+                }
+            }
+        } else {
+            // In case of elimination builder and solver
+            for (auto& i_dof : rDofSet) {
+                node_id = i_dof.Id();
+                const NodeType& node = rModelPart.GetNode(node_id);
                 tot_active_dofs++;
-                if (i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_X ||
-                    i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_Y ||
-                    i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_Z) {
+                if (IsLMDof(i_dof)) {
                     if (node.Is(ACTIVE))
                         n_lm_active_dofs++;
                     else
                         n_lm_inactive_dofs++;
-                } else if (node.Is(INTERFACE) &&
-                   (i_dof.GetVariable() == DISPLACEMENT_X ||
-                    i_dof.GetVariable() == DISPLACEMENT_Y ||
-                    i_dof.GetVariable() == DISPLACEMENT_Z)) {
+                } else if (node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
                     if (node.Is(MASTER)) {
                         n_master_dofs++;
                     } else if (node.Is(SLAVE)) {
@@ -470,7 +550,7 @@ public:
             }
         }
 
-        KRATOS_ERROR_IF(tot_active_dofs != rA.size1()) << "Total system size does not coincide with the free dof map" << std::endl;
+        KRATOS_ERROR_IF(tot_active_dofs != rA.size1()) << "Total system size does not coincide with the free dof map: " << tot_active_dofs << " vs " << rA.size1() << std::endl;
 
         // Resize arrays as needed
         if (mMasterIndices.size() != n_master_dofs)
@@ -506,14 +586,66 @@ public:
         SizeType slave_inactive_counter = 0, slave_active_counter = 0;
         SizeType other_counter = 0;
         IndexType global_pos = 0;
-        for (auto& i_dof : rDofSet) {
-            node_id = i_dof.Id();
-            const NodeType& node = rModelPart.GetNode(node_id);
-            if (i_dof.EquationId() < rA.size1()) {
-                if (i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_X ||
-                    i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_Y ||
-                    i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_Z) {
-                    if (node.Is(ACTIVE)) {
+
+        // We separate if we consider a block builder and solver or an elimination builder and solver
+        if (rModelPart.IsNot(TO_SPLIT)) {
+            // In case of block builder and solver
+            for (auto& i_dof : rDofSet) {
+                node_id = i_dof.Id();
+                const NodeType& r_node = rModelPart.GetNode(node_id);
+                if (i_dof.EquationId() < rA.size1()) {
+                    if (IsLMDof(i_dof)) {
+                        if (r_node.Is(ACTIVE)) {
+                            mLMActiveIndices[lm_active_counter] = global_pos;
+                            mGlobalToLocalIndexing[global_pos] = lm_active_counter;
+                            mWhichBlockType[global_pos] = BlockType::LM_ACTIVE;
+                            ++lm_active_counter;
+                        } else {
+                            mLMInactiveIndices[lm_inactive_counter] = global_pos;
+                            mGlobalToLocalIndexing[global_pos] = lm_inactive_counter;
+                            mWhichBlockType[global_pos] = BlockType::LM_INACTIVE;
+                            ++lm_inactive_counter;
+                        }
+                    } else if ( r_node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
+                        if (r_node.Is(MASTER)) {
+                            mMasterIndices[master_counter] = global_pos;
+                            mGlobalToLocalIndexing[global_pos] = master_counter;
+                            mWhichBlockType[global_pos] = BlockType::MASTER;
+                            ++master_counter;
+                        } else if (r_node.Is(SLAVE)) {
+                            if (r_node.Is(ACTIVE)) {
+                                mSlaveActiveIndices[slave_active_counter] = global_pos;
+                                mGlobalToLocalIndexing[global_pos] = slave_active_counter;
+                                mWhichBlockType[global_pos] = BlockType::SLAVE_ACTIVE;
+                                ++slave_active_counter;
+                            } else {
+                                mSlaveInactiveIndices[slave_inactive_counter] = global_pos;
+                                mGlobalToLocalIndexing[global_pos] = slave_inactive_counter;
+                                mWhichBlockType[global_pos] = BlockType::SLAVE_INACTIVE;
+                                ++slave_inactive_counter;
+                            }
+                        } else { // We need to consider always an else to ensure that the system size is consistent
+                            mOtherIndices[other_counter] = global_pos;
+                            mGlobalToLocalIndexing[global_pos] = other_counter;
+                            mWhichBlockType[global_pos] = BlockType::OTHER;
+                            ++other_counter;
+                        }
+                    } else {
+                        mOtherIndices[other_counter] = global_pos;
+                        mGlobalToLocalIndexing[global_pos] = other_counter;
+                        mWhichBlockType[global_pos] = BlockType::OTHER;
+                        ++other_counter;
+                    }
+                    ++global_pos;
+                }
+            }
+        } else {
+            // In case of elimination builder and solver
+            for (auto& i_dof : rDofSet) {
+                node_id = i_dof.Id();
+                const NodeType& r_node = rModelPart.GetNode(node_id);
+                if (IsLMDof(i_dof)) {
+                    if (r_node.Is(ACTIVE)) {
                         mLMActiveIndices[lm_active_counter] = global_pos;
                         mGlobalToLocalIndexing[global_pos] = lm_active_counter;
                         mWhichBlockType[global_pos] = BlockType::LM_ACTIVE;
@@ -524,17 +656,14 @@ public:
                         mWhichBlockType[global_pos] = BlockType::LM_INACTIVE;
                         ++lm_inactive_counter;
                     }
-                } else if ( node.Is(INTERFACE) &&
-                   (i_dof.GetVariable() == DISPLACEMENT_X ||
-                    i_dof.GetVariable() == DISPLACEMENT_Y ||
-                    i_dof.GetVariable() == DISPLACEMENT_Z)) {
-                    if (node.Is(MASTER)) {
+                } else if ( r_node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
+                    if (r_node.Is(MASTER)) {
                         mMasterIndices[master_counter] = global_pos;
                         mGlobalToLocalIndexing[global_pos] = master_counter;
                         mWhichBlockType[global_pos] = BlockType::MASTER;
                         ++master_counter;
-                    } else if (node.Is(SLAVE)) {
-                        if (node.Is(ACTIVE)) {
+                    } else if (r_node.Is(SLAVE)) {
+                        if (r_node.Is(ACTIVE)) {
                             mSlaveActiveIndices[slave_active_counter] = global_pos;
                             mGlobalToLocalIndexing[global_pos] = slave_active_counter;
                             mWhichBlockType[global_pos] = BlockType::SLAVE_ACTIVE;
@@ -654,7 +783,6 @@ protected:
         const SizeType slave_active_size = mSlaveActiveIndices.size();
         const SizeType lm_active_size = mLMActiveIndices.size();
         const SizeType lm_inactive_size = mLMInactiveIndices.size();
-        const double tolerance = std::numeric_limits<double>::epsilon();
 
         if (NeedAllocation)
             AllocateBlocks();
@@ -719,9 +847,7 @@ protected:
                     for (IndexType j=row_begin; j<row_end; j++) {
                         const IndexType col_index = index2[j];
                         if ( mWhichBlockType[col_index] == BlockType::LM_ACTIVE) { // KMLMA block
-                            if (std::abs(values[j]) > tolerance) {
-                                ++KMLMA_cols;
-                            }
+                            ++KMLMA_cols;
                         }
                     }
                     KRATOS_DEBUG_ERROR_IF(local_row_id > master_size) << "MASTER:: Local row ID: " << local_row_id <<" is greater than the number of rows " << master_size << std::endl;
@@ -730,25 +856,15 @@ protected:
                     for (IndexType j=row_begin; j<row_end; j++) {
                         const IndexType col_index = index2[j];
                         if (mWhichBlockType[col_index] == BlockType::OTHER) {                 // KSAN block
-                            if (std::abs(values[j]) > tolerance) {
-                                ++mKSAN_cols;
-                            }
+                            ++mKSAN_cols;
                         } else if (mWhichBlockType[col_index] == BlockType::MASTER) {         // KSAM block
-                            if (std::abs(values[j]) > tolerance) {
-                                ++mKSAM_cols;
-                            }
+                            ++mKSAM_cols;
                         } else if (mWhichBlockType[col_index] == BlockType::SLAVE_INACTIVE) { // KSASI block
-                            if (std::abs(values[j]) > tolerance) {
-                                ++mKSASI_cols;
-                            }
+                            ++mKSASI_cols;
                         } else if (mWhichBlockType[col_index] == BlockType::SLAVE_ACTIVE) {   // KSASA block
-                            if (std::abs(values[j]) > tolerance) {
-                                ++mKSASA_cols;
-                            }
+                            ++mKSASA_cols;
                         } else if ( mWhichBlockType[col_index] == BlockType::LM_ACTIVE) {     // KSALMA block (diagonal)
-                            if (std::abs(values[j]) > tolerance) {
-                                ++KSALMA_cols;
-                            }
+                            ++KSALMA_cols;
                         }
                     }
                     KRATOS_DEBUG_ERROR_IF(local_row_id > slave_active_size) << "SLAVE_ACTIVE:: Local row ID: " << local_row_id <<" is greater than the number of rows " << slave_active_size << std::endl;
@@ -761,9 +877,7 @@ protected:
                     for (IndexType j=row_begin; j<row_end; j++) {
                         const IndexType col_index = index2[j];
                         if (mWhichBlockType[col_index] == BlockType::LM_INACTIVE) { // KLMILMI block (diagonal)
-                            if (std::abs(values[j]) > tolerance) {
-                                ++KLMILMI_cols;
-                            }
+                            ++KLMILMI_cols;
                         }
                     }
                     KRATOS_DEBUG_ERROR_IF(local_row_id > lm_inactive_size) << "LM_INACTIVE:: Local row ID: " << local_row_id <<" is greater than the number of rows " << lm_inactive_size << std::endl;
@@ -772,9 +886,7 @@ protected:
                     for (IndexType j=row_begin; j<row_end; j++) {
                         const IndexType col_index = index2[j];
                         if (mWhichBlockType[col_index] == BlockType::LM_ACTIVE) { // KLMALMA block
-                            if (std::abs(values[j]) > tolerance) {
-                                ++KLMALMA_cols;
-                            }
+                            ++KLMALMA_cols;
                         }
                     }
                     KRATOS_DEBUG_ERROR_IF(local_row_id > lm_active_size) << "LM_ACTIVE:: Local row ID: " << local_row_id <<" is greater than the number of rows " << lm_active_size << std::endl;
@@ -786,42 +898,42 @@ protected:
         // We initialize the blocks sparse matrix
         std::partial_sum(KMLMA_ptr, KMLMA_ptr + master_size + 1, KMLMA_ptr);
         const std::size_t KMLMA_nonzero_values = KMLMA_ptr[master_size];
-        SignedIndexType* aux_index2_KMLMA= new SignedIndexType[KMLMA_nonzero_values];
+        IndexType* aux_index2_KMLMA= new IndexType[KMLMA_nonzero_values];
         double* aux_val_KMLMA= new double[KMLMA_nonzero_values];
 
         std::partial_sum(mKSAN_ptr, mKSAN_ptr + slave_active_size + 1, mKSAN_ptr);
         const std::size_t mKSAN_nonzero_values = mKSAN_ptr[slave_active_size];
-        SignedIndexType* aux_index2_mKSAN= new SignedIndexType[mKSAN_nonzero_values];
+        IndexType* aux_index2_mKSAN= new IndexType[mKSAN_nonzero_values];
         double* aux_val_mKSAN= new double[mKSAN_nonzero_values];
 
         std::partial_sum(mKSAM_ptr, mKSAM_ptr + slave_active_size + 1, mKSAM_ptr);
         const std::size_t mKSAM_nonzero_values = mKSAM_ptr[slave_active_size];
-        SignedIndexType* aux_index2_mKSAM= new SignedIndexType[mKSAM_nonzero_values];
+        IndexType* aux_index2_mKSAM= new IndexType[mKSAM_nonzero_values];
         double* aux_val_mKSAM= new double[mKSAM_nonzero_values];
 
         std::partial_sum(mKSASI_ptr, mKSASI_ptr + slave_active_size + 1, mKSASI_ptr);
         const std::size_t mKSASI_nonzero_values = mKSASI_ptr[slave_active_size];
-        SignedIndexType* aux_index2_mKSASI= new SignedIndexType[mKSASI_nonzero_values];
+        IndexType* aux_index2_mKSASI= new IndexType[mKSASI_nonzero_values];
         double* aux_val_mKSASI= new double[mKSASI_nonzero_values];
 
         std::partial_sum(mKSASA_ptr, mKSASA_ptr + slave_active_size + 1, mKSASA_ptr);
         const std::size_t mKSASA_nonzero_values = mKSASA_ptr[slave_active_size];
-        SignedIndexType* aux_index2_mKSASA= new SignedIndexType[mKSASA_nonzero_values];
+        IndexType* aux_index2_mKSASA= new IndexType[mKSASA_nonzero_values];
         double* aux_val_mKSASA = new double[mKSASA_nonzero_values];
 
         std::partial_sum(KSALMA_ptr, KSALMA_ptr + slave_active_size + 1, KSALMA_ptr);
         const std::size_t KSALMA_nonzero_values = KSALMA_ptr[slave_active_size];
-        SignedIndexType* aux_index2_KSALMA= new SignedIndexType[KSALMA_nonzero_values];
+        IndexType* aux_index2_KSALMA= new IndexType[KSALMA_nonzero_values];
         double* aux_val_KSALMA = new double[KSALMA_nonzero_values];
 
         std::partial_sum(KLMILMI_ptr, KLMILMI_ptr + lm_inactive_size + 1, KLMILMI_ptr);
         const std::size_t KLMILMI_nonzero_values = KLMILMI_ptr[lm_inactive_size];
-        SignedIndexType* aux_index2_KLMILMI= new SignedIndexType[KLMILMI_nonzero_values];
+        IndexType* aux_index2_KLMILMI= new IndexType[KLMILMI_nonzero_values];
         double* aux_val_KLMILMI = new double[KLMILMI_nonzero_values];
 
         std::partial_sum(KLMALMA_ptr, KLMALMA_ptr + lm_active_size + 1, KLMALMA_ptr);
         const std::size_t KLMALMA_nonzero_values = KLMALMA_ptr[lm_active_size];
-        SignedIndexType* aux_index2_KLMALMA = new SignedIndexType[KLMALMA_nonzero_values];
+        IndexType* aux_index2_KLMALMA = new IndexType[KLMALMA_nonzero_values];
         double* aux_val_KLMALMA = new double[KLMALMA_nonzero_values];
 
         #pragma omp parallel
@@ -834,95 +946,79 @@ protected:
                 const IndexType local_row_id = mGlobalToLocalIndexing[i];
 
                 if ( mWhichBlockType[i] == BlockType::MASTER) { // KMLMA
-                    SignedIndexType KMLMA_row_beg = KMLMA_ptr[local_row_id];
-                    SignedIndexType KMLMA_row_end = KMLMA_row_beg;
+                    IndexType KMLMA_row_beg = KMLMA_ptr[local_row_id];
+                    IndexType KMLMA_row_end = KMLMA_row_beg;
                     for (IndexType j=row_begin; j<row_end; j++) {
                         const IndexType col_index = index2[j];
                         if ( mWhichBlockType[col_index] == BlockType::LM_ACTIVE) { // KMLMA block
                             const double value = values[j];
-                            if (std::abs(value) > tolerance) {
-                                const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
-                                aux_index2_KMLMA[KMLMA_row_end] = local_col_id;
-                                aux_val_KMLMA[KMLMA_row_end] = value;
-                                ++KMLMA_row_end;
-                            }
+                            const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
+                            aux_index2_KMLMA[KMLMA_row_end] = local_col_id;
+                            aux_val_KMLMA[KMLMA_row_end] = value;
+                            ++KMLMA_row_end;
                         }
                     }
                 } else if ( mWhichBlockType[i] == BlockType::SLAVE_ACTIVE) { //either KSAN or KSAM or KSASA or KSASA or KSALM
-                    SignedIndexType mKSAN_row_beg = mKSAN_ptr[local_row_id];
-                    SignedIndexType mKSAN_row_end = mKSAN_row_beg;
-                    SignedIndexType mKSAM_row_beg = mKSAM_ptr[local_row_id];
-                    SignedIndexType mKSAM_row_end = mKSAM_row_beg;
-                    SignedIndexType mKSASI_row_beg = mKSASI_ptr[local_row_id];
-                    SignedIndexType mKSASI_row_end = mKSASI_row_beg;
-                    SignedIndexType mKSASA_row_beg = mKSASA_ptr[local_row_id];
-                    SignedIndexType mKSASA_row_end = mKSASA_row_beg;
-                    SignedIndexType KSALMA_row_beg = KSALMA_ptr[local_row_id];
-                    SignedIndexType KSALMA_row_end = KSALMA_row_beg;
+                    IndexType mKSAN_row_beg = mKSAN_ptr[local_row_id];
+                    IndexType mKSAN_row_end = mKSAN_row_beg;
+                    IndexType mKSAM_row_beg = mKSAM_ptr[local_row_id];
+                    IndexType mKSAM_row_end = mKSAM_row_beg;
+                    IndexType mKSASI_row_beg = mKSASI_ptr[local_row_id];
+                    IndexType mKSASI_row_end = mKSASI_row_beg;
+                    IndexType mKSASA_row_beg = mKSASA_ptr[local_row_id];
+                    IndexType mKSASA_row_end = mKSASA_row_beg;
+                    IndexType KSALMA_row_beg = KSALMA_ptr[local_row_id];
+                    IndexType KSALMA_row_end = KSALMA_row_beg;
                     for (IndexType j=row_begin; j<row_end; j++) {
                         const IndexType col_index = index2[j];
                         const double value = values[j];
                         const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
                         if (mWhichBlockType[col_index] == BlockType::OTHER) {                 // KSAN block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_mKSAN[mKSAN_row_end] = local_col_id;
-                                aux_val_mKSAN[mKSAN_row_end] = value;
-                                ++mKSAN_row_end;
-                            }
+                            aux_index2_mKSAN[mKSAN_row_end] = local_col_id;
+                            aux_val_mKSAN[mKSAN_row_end] = value;
+                            ++mKSAN_row_end;
                         } else if (mWhichBlockType[col_index] == BlockType::MASTER) {         // KSAM block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_mKSAM[mKSAM_row_end] = local_col_id;
-                                aux_val_mKSAM[mKSAM_row_end] = value;
-                                ++mKSAM_row_end;
-                            }
+                            aux_index2_mKSAM[mKSAM_row_end] = local_col_id;
+                            aux_val_mKSAM[mKSAM_row_end] = value;
+                            ++mKSAM_row_end;
                         } else if (mWhichBlockType[col_index] == BlockType::SLAVE_INACTIVE) { // KSASI block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_mKSASI[mKSASI_row_end] = local_col_id;
-                                aux_val_mKSASI[mKSASI_row_end] = value;
-                                ++mKSASI_row_end;
-                            }
+                            aux_index2_mKSASI[mKSASI_row_end] = local_col_id;
+                            aux_val_mKSASI[mKSASI_row_end] = value;
+                            ++mKSASI_row_end;
                         } else if (mWhichBlockType[col_index] == BlockType::SLAVE_ACTIVE) {   // KSASA block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_mKSASA[mKSASA_row_end] = local_col_id;
-                                aux_val_mKSASA[mKSASA_row_end] = value;
-                                ++mKSASA_row_end;
-                            }
+                            aux_index2_mKSASA[mKSASA_row_end] = local_col_id;
+                            aux_val_mKSASA[mKSASA_row_end] = value;
+                            ++mKSASA_row_end;
                         } else if ( mWhichBlockType[col_index] == BlockType::LM_ACTIVE) {     // KSALMA block (diagonal)
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_KSALMA[KSALMA_row_end] = local_col_id;
-                                aux_val_KSALMA[KSALMA_row_end] = value;
-                                ++KSALMA_row_end;
-                            }
+                            aux_index2_KSALMA[KSALMA_row_end] = local_col_id;
+                            aux_val_KSALMA[KSALMA_row_end] = value;
+                            ++KSALMA_row_end;
                         }
                     }
                 } else if ( mWhichBlockType[i] == BlockType::LM_INACTIVE) { // KLMILMI
-                    SignedIndexType KLMILMI_row_beg = KLMILMI_ptr[local_row_id];
-                    SignedIndexType KLMILMI_row_end = KLMILMI_row_beg;
+                    IndexType KLMILMI_row_beg = KLMILMI_ptr[local_row_id];
+                    IndexType KLMILMI_row_end = KLMILMI_row_beg;
                     for (IndexType j=row_begin; j<row_end; j++) {
                         const IndexType col_index = index2[j];
                         if (mWhichBlockType[col_index] == BlockType::LM_INACTIVE) { // KLMILMI block (diagonal)
                             const double value = values[j];
-                            if (std::abs(value) > tolerance) {
-                                const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
-                                aux_index2_KLMILMI[KLMILMI_row_end] = local_col_id;
-                                aux_val_KLMILMI[KLMILMI_row_end] = value;
-                                ++KLMILMI_row_end;
-                            }
+                            const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
+                            aux_index2_KLMILMI[KLMILMI_row_end] = local_col_id;
+                            aux_val_KLMILMI[KLMILMI_row_end] = value;
+                            ++KLMILMI_row_end;
                         }
                     }
                 } else if ( mWhichBlockType[i] == BlockType::LM_ACTIVE) { // KLMALMA
-                    SignedIndexType KLMALMA_row_beg = KLMALMA_ptr[local_row_id];
-                    SignedIndexType KLMALMA_row_end = KLMALMA_row_beg;
+                    IndexType KLMALMA_row_beg = KLMALMA_ptr[local_row_id];
+                    IndexType KLMALMA_row_end = KLMALMA_row_beg;
                     for (IndexType j=row_begin; j<row_end; j++) {
                         const IndexType col_index = index2[j];
                         if (mWhichBlockType[col_index] == BlockType::LM_ACTIVE) { // KLMALMA block
                             const double value = values[j];
-                            if (std::abs(value) > tolerance) {
-                                const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
-                                aux_index2_KLMALMA[KLMALMA_row_end] = local_col_id;
-                                aux_val_KLMALMA[KLMALMA_row_end] = value;
-                                ++KLMALMA_row_end;
-                            }
+                            const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
+                            aux_index2_KLMALMA[KLMALMA_row_end] = local_col_id;
+                            aux_val_KLMALMA[KLMALMA_row_end] = value;
+                            ++KLMALMA_row_end;
                         }
                     }
                 }
@@ -942,14 +1038,14 @@ protected:
         // KSALMA it is supposed to be a diagonal matrix (in fact it is the key point of this formulation)
         // (NOTE: technically it is not a stiffness matrix, we give that name)
         if (lm_active_size > 0) {
-            ComputeDiagonalByLumping(KSALMA, mKLMAModified, tolerance);
+            ComputeDiagonalByLumping(KSALMA, mKLMAModified, ZeroTolerance);
         }
 
         // We compute directly the inverse of the KLMILMI matrix
         // KLMILMI it is supposed to be a diagonal matrix (in fact it is the key point of this formulation)
         // (NOTE: technically it is not a stiffness matrix, we give that name)
         if (lm_inactive_size > 0) {
-            ComputeDiagonalByLumping(KLMILMI, mKLMIModified, tolerance);
+            ComputeDiagonalByLumping(KLMILMI, mKLMIModified, ZeroTolerance);
         }
 
         // Compute the P and C operators
@@ -1003,13 +1099,13 @@ protected:
             #pragma omp for
             for (int i=0; i<static_cast<int>(rA.size1()); i++) {
                 if ( mWhichBlockType[i] == BlockType::OTHER) { //either KNN or KNM or KNSI or KNSA
-                    ComputeNonZeroColumnsDispDoFs( index1, index2, values,  i, other_dof_initial_index, K_disp_modified_ptr_aux1, tolerance);
+                    ComputeNonZeroColumnsDispDoFs( index1, index2, values,  i, other_dof_initial_index, K_disp_modified_ptr_aux1);
                 } else if ( mWhichBlockType[i] == BlockType::MASTER) { //either KMN or KMM or KMSI or KMLM
-                    ComputeNonZeroColumnsDispDoFs( index1, index2, values,  i, master_dof_initial_index, K_disp_modified_ptr_aux1, tolerance);
+                    ComputeNonZeroColumnsDispDoFs( index1, index2, values,  i, master_dof_initial_index, K_disp_modified_ptr_aux1);
                 } else if ( mWhichBlockType[i] == BlockType::SLAVE_INACTIVE) { //either KSIN or KSIM or KSISI or KSISA
-                    ComputeNonZeroColumnsDispDoFs( index1, index2, values,  i, slave_inactive_dof_initial_index, K_disp_modified_ptr_aux1, tolerance);
+                    ComputeNonZeroColumnsDispDoFs( index1, index2, values,  i, slave_inactive_dof_initial_index, K_disp_modified_ptr_aux1);
                 } else if ( mWhichBlockType[i] == BlockType::LM_ACTIVE) { //either KLMAM or KLMASI or KLMASA
-                    ComputeNonZeroColumnsPartialDispDoFs( index1, index2, values,  i, assembling_slave_dof_initial_index, K_disp_modified_ptr_aux1, tolerance);
+                    ComputeNonZeroColumnsPartialDispDoFs( index1, index2, values,  i, assembling_slave_dof_initial_index, K_disp_modified_ptr_aux1);
                 }
             }
         }
@@ -1017,7 +1113,7 @@ protected:
         // We initialize the final sparse matrix
         std::partial_sum(K_disp_modified_ptr_aux1, K_disp_modified_ptr_aux1 + nrows + 1, K_disp_modified_ptr_aux1);
         const SizeType nonzero_values_aux1 = K_disp_modified_ptr_aux1[nrows];
-        SignedIndexType* aux_index2_K_disp_modified_aux1 = new SignedIndexType[nonzero_values_aux1];
+        IndexType* aux_index2_K_disp_modified_aux1 = new IndexType[nonzero_values_aux1];
         double* aux_val_K_disp_modified_aux1 = new double[nonzero_values_aux1];
 
         #pragma omp parallel
@@ -1025,13 +1121,13 @@ protected:
             #pragma omp for
             for (int i=0; i<static_cast<int>(rA.size1()); i++) {
                 if ( mWhichBlockType[i] == BlockType::OTHER) { //either KNN or KNM or KNSI or KNSA
-                    ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, other_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1, tolerance);
+                    ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, other_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
                 } else if ( mWhichBlockType[i] == BlockType::MASTER) { //either KMN or KMM or KMSI or KMLM
-                    ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, master_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1, tolerance);
+                    ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, master_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
                 } else if ( mWhichBlockType[i] == BlockType::SLAVE_INACTIVE) { //either KSIN or KSIM or KSISI or KSISA
-                    ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, slave_inactive_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1, tolerance);
+                    ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, slave_inactive_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
                 } else if ( mWhichBlockType[i] == BlockType::LM_ACTIVE) { //either KLMAM or KLMASI or KLMASA
-                    ComputeAuxiliarValuesPartialDispDoFs( index1, index2, values,  i, assembling_slave_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1, tolerance);
+                    ComputeAuxiliarValuesPartialDispDoFs( index1, index2, values,  i, assembling_slave_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
                 }
             }
         }
@@ -1054,22 +1150,22 @@ protected:
 
                 // Get access to master_auxKSAN data
                 if (master_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    ComputeNonZeroBlocks(master_auxKSAN, i, K_disp_modified_cols_aux2, tolerance);
+                    ComputeNonZeroBlocks(master_auxKSAN, i, K_disp_modified_cols_aux2);
                 }
 
                 // Get access to master_auxKSAM data
                 if (master_auxKSAM.nnz() > 0) {
-                    ComputeNonZeroBlocks(master_auxKSAM, i, K_disp_modified_cols_aux2, tolerance);
+                    ComputeNonZeroBlocks(master_auxKSAM, i, K_disp_modified_cols_aux2);
                 }
 
                 // Get access to master_auxKSASI data
                 if (master_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    ComputeNonZeroBlocks(master_auxKSASI, i, K_disp_modified_cols_aux2, tolerance);
+                    ComputeNonZeroBlocks(master_auxKSASI, i, K_disp_modified_cols_aux2);
                 }
 
                 // Get access to master_auxKSASA data
                 if (master_auxKSASA.nnz() > 0 && slave_active_size > 0) {
-                    ComputeNonZeroBlocks(master_auxKSASA, i, K_disp_modified_cols_aux2, tolerance);
+                    ComputeNonZeroBlocks(master_auxKSASA, i, K_disp_modified_cols_aux2);
                 }
 
                 K_disp_modified_ptr_aux2[master_dof_initial_index + i + 1] = K_disp_modified_cols_aux2;
@@ -1082,22 +1178,22 @@ protected:
 
                 // Get access to aslave_auxKSAN data
                 if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSAN, i, K_disp_modified_cols_aux2, tolerance);
+                    ComputeNonZeroBlocks(aslave_auxKSAN, i, K_disp_modified_cols_aux2);
                 }
 
                 // Get access to aslave_auxKSAM data
                 if (aslave_auxKSAM.nnz() > 0 && master_size > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSAM, i, K_disp_modified_cols_aux2, tolerance);
+                    ComputeNonZeroBlocks(aslave_auxKSAM, i, K_disp_modified_cols_aux2);
                 }
 
                 // Get access to aslave_auxKSASI data
                 if (aslave_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSASI, i, K_disp_modified_cols_aux2, tolerance);
+                    ComputeNonZeroBlocks(aslave_auxKSASI, i, K_disp_modified_cols_aux2);
                 }
 
                 // Get access to aslave_auxKSASA data
                 if (aslave_auxKSASA.nnz() > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSASA, i, K_disp_modified_cols_aux2, tolerance);
+                    ComputeNonZeroBlocks(aslave_auxKSASA, i, K_disp_modified_cols_aux2);
                 }
 
                 K_disp_modified_ptr_aux2[assembling_slave_dof_initial_index + i + 1] = K_disp_modified_cols_aux2;
@@ -1107,7 +1203,7 @@ protected:
         // We initialize the final sparse matrix
         std::partial_sum(K_disp_modified_ptr_aux2, K_disp_modified_ptr_aux2 + nrows + 1, K_disp_modified_ptr_aux2);
         const SizeType nonzero_values_aux2 = K_disp_modified_ptr_aux2[nrows];
-        SignedIndexType* aux_index2_K_disp_modified_aux2 = new SignedIndexType[nonzero_values_aux2];
+        IndexType* aux_index2_K_disp_modified_aux2 = new IndexType[nonzero_values_aux2];
         double* aux_val_K_disp_modified_aux2 = new double[nonzero_values_aux2];
 
         #pragma omp parallel
@@ -1119,22 +1215,22 @@ protected:
 
                 // Get access to master_auxKSAN data
                 if (master_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    ComputeAuxiliarValuesBlocks(master_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index, tolerance);
+                    ComputeAuxiliarValuesBlocks(master_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index);
                 }
 
                 // Get access to master_auxKSAM data
                 if (master_auxKSAM.nnz() > 0) {
-                    ComputeAuxiliarValuesBlocks(master_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index, tolerance);
+                    ComputeAuxiliarValuesBlocks(master_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index);
                 }
 
                 // Get access to master_auxKSASI data
                 if (master_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    ComputeAuxiliarValuesBlocks(master_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index, tolerance);
+                    ComputeAuxiliarValuesBlocks(master_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index);
                 }
 
                 // Get access to master_auxKSASA data
                 if (master_auxKSASA.nnz() > 0 && slave_active_size > 0) {
-                    ComputeAuxiliarValuesBlocks(master_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index, tolerance);
+                    ComputeAuxiliarValuesBlocks(master_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index);
                 }
             }
 
@@ -1145,22 +1241,22 @@ protected:
 
                 // Get access to aslave_auxKSAN data
                 if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    ComputeAuxiliarValuesBlocks(aslave_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index, tolerance);
+                    ComputeAuxiliarValuesBlocks(aslave_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index);
                 }
 
                 // Get access to aslave_auxKSAM data
                 if (aslave_auxKSAM.nnz() > 0 && master_size > 0) {
-                    ComputeAuxiliarValuesBlocks(aslave_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index, tolerance);
+                    ComputeAuxiliarValuesBlocks(aslave_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index);
                 }
 
                 // Get access to aslave_auxKSASI data
                 if (aslave_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    ComputeAuxiliarValuesBlocks(aslave_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index, tolerance);
+                    ComputeAuxiliarValuesBlocks(aslave_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index);
                 }
 
                 // Get access to aslave_auxKSASA data
                 if (aslave_auxKSASA.nnz() > 0) {
-                    ComputeAuxiliarValuesBlocks(aslave_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index, tolerance);
+                    ComputeAuxiliarValuesBlocks(aslave_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index);
                 }
             }
         }
@@ -1169,8 +1265,11 @@ protected:
         SparseMatrixType K_disp_modified_aux2(nrows, ncols);
         CreateMatrix(K_disp_modified_aux2, nrows, ncols, K_disp_modified_ptr_aux2, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2);
 
-        // Finally we sum the auxiliar matrices
+        // We sum the auxiliar matrices
         SparseMatrixMultiplicationUtility::MatrixAdd<SparseMatrixType, SparseMatrixType>(mKDispModified, K_disp_modified_aux2, 1.0);
+
+        // Finally we ensure that the matrix is structurally symmetric
+        EnsureStructuralSymmetryMatrix(mKDispModified);
 
     #ifdef KRATOS_DEBUG
         CheckMatrix(mKDispModified);
@@ -1234,6 +1333,9 @@ private:
     VectorType mLMInactive;         /// The solution of the inactive lagrange multiplies
     VectorType mDisp;               /// The solution of the rest of displacements
 
+    IndexType mEchoLevel = 0;       /// The echo level of the solver
+    IndexType mFileCreated = 0;     /// The index used to identify the file created
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -1250,7 +1352,6 @@ private:
      * @param CurrentRow The current row computed
      * @param InitialIndex The index corresponding to the current row in the global contribution
      * @param Ptr The nonzero terms of each column
-     * @param Tolerance The tolerance considered to check if the values are almost 0
      */
     inline void ComputeNonZeroColumnsDispDoFs(
         const IndexType* Index1,
@@ -1258,8 +1359,7 @@ private:
         const double* Values,
         const int CurrentRow,
         const IndexType InitialIndex,
-        IndexType* Ptr,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
+        IndexType* Ptr
         )
     {
         const IndexType row_begin = Index1[CurrentRow];
@@ -1271,17 +1371,13 @@ private:
         for (IndexType j=row_begin; j<row_end; j++) {
             const IndexType col_index = Index2[j];
             if (mWhichBlockType[col_index] == BlockType::OTHER) {
-                if (std::abs(Values[j]) > Tolerance)
-                    ++cols;
+                ++cols;
             } else if (mWhichBlockType[col_index] == BlockType::MASTER) {
-                if (std::abs(Values[j]) > Tolerance)
-                    ++cols;
+                ++cols;
             } else if (mWhichBlockType[col_index] == BlockType::SLAVE_INACTIVE) {
-                if (std::abs(Values[j]) > Tolerance)
-                    ++cols;
+                ++cols;
             } else if (mWhichBlockType[col_index] == BlockType::SLAVE_ACTIVE) {
-                if (std::abs(Values[j]) > Tolerance)
-                    ++cols;
+                ++cols;
             }
         }
         Ptr[local_row_id + 1] = cols;
@@ -1296,7 +1392,6 @@ private:
      * @param CurrentRow The current row computed
      * @param InitialIndex The index corresponding to the current row in the global contribution
      * @param Ptr The nonzero terms of each column
-     * @param Tolerance The tolerance considered to check if the values are almost 0
      */
     inline void ComputeNonZeroColumnsPartialDispDoFs(
         const IndexType* Index1,
@@ -1304,8 +1399,7 @@ private:
         const double* Values,
         const int CurrentRow,
         const IndexType InitialIndex,
-        IndexType* Ptr,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
+        IndexType* Ptr
         )
     {
         const IndexType row_begin = Index1[CurrentRow];
@@ -1317,14 +1411,11 @@ private:
         for (IndexType j=row_begin; j<row_end; j++) {
             const IndexType col_index = Index2[j];
             if (mWhichBlockType[col_index] == BlockType::MASTER) {
-                if (std::abs(Values[j]) > Tolerance)
-                    ++cols;
+                ++cols;
             } else if (mWhichBlockType[col_index] == BlockType::SLAVE_INACTIVE) {
-                if (std::abs(Values[j]) > Tolerance)
-                    ++cols;
+                ++cols;
             } else if (mWhichBlockType[col_index] == BlockType::SLAVE_ACTIVE) {
-                if (std::abs(Values[j]) > Tolerance)
-                    ++cols;
+                ++cols;
             }
         }
         Ptr[local_row_id + 1] = cols;
@@ -1340,7 +1431,6 @@ private:
      * @param Ptr The nonzero terms of each column
      * @param AuxIndex2 The indexes of the non zero columns
      * @param AuxVals The values of the final matrix
-     * @param Tolerance The tolerance considered to check if the values are almost 0
      */
     inline void ComputeAuxiliarValuesDispDoFs(
         const IndexType* Index1,
@@ -1349,9 +1439,8 @@ private:
         const int CurrentRow,
         const IndexType InitialIndex,
         IndexType* Ptr,
-        SignedIndexType* AuxIndex2,
-        double* AuxVals,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
+        IndexType* AuxIndex2,
+        double* AuxVals
         )
     {
         // Auxiliar sizes
@@ -1379,29 +1468,21 @@ private:
             const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
             const double value = Values[j];
             if (mWhichBlockType[col_index] == BlockType::OTHER) {
-                if (std::abs(value) > Tolerance) {
-                    AuxIndex2[row_end] = local_col_id + other_dof_initial_index;
-                    AuxVals[row_end] = value;
-                    ++row_end;
-                }
+                AuxIndex2[row_end] = local_col_id + other_dof_initial_index;
+                AuxVals[row_end] = value;
+                ++row_end;
             } else if (mWhichBlockType[col_index] == BlockType::MASTER) {
-                if (std::abs(value) > Tolerance) {
-                    AuxIndex2[row_end] = local_col_id + master_dof_initial_index;
-                    AuxVals[row_end] = value;
-                    ++row_end;
-                }
+                AuxIndex2[row_end] = local_col_id + master_dof_initial_index;
+                AuxVals[row_end] = value;
+                ++row_end;
             } else if (mWhichBlockType[col_index] == BlockType::SLAVE_INACTIVE) {
-                if (std::abs(value) > Tolerance) {
-                    AuxIndex2[row_end] = local_col_id + slave_inactive_dof_initial_index;
-                    AuxVals[row_end] = value;
-                    ++row_end;
-                }
+                AuxIndex2[row_end] = local_col_id + slave_inactive_dof_initial_index;
+                AuxVals[row_end] = value;
+                ++row_end;
             } else if (mWhichBlockType[col_index] == BlockType::SLAVE_ACTIVE) {
-                if (std::abs(value) > Tolerance) {
-                    AuxIndex2[row_end] = local_col_id + assembling_slave_dof_initial_index;
-                    AuxVals[row_end] = value;
-                    ++row_end;
-                }
+                AuxIndex2[row_end] = local_col_id + assembling_slave_dof_initial_index;
+                AuxVals[row_end] = value;
+                ++row_end;
             }
         }
     }
@@ -1417,7 +1498,6 @@ private:
      * @param Ptr The nonzero terms of each column
      * @param AuxIndex2 The indexes of the non zero columns
      * @param AuxVals The values of the final matrix
-     * @param Tolerance The tolerance considered to check if the values are almost 0
      */
     inline void ComputeAuxiliarValuesPartialDispDoFs(
         const IndexType* Index1,
@@ -1426,9 +1506,8 @@ private:
         const int CurrentRow,
         const IndexType InitialIndex,
         IndexType* Ptr,
-        SignedIndexType* AuxIndex2,
-        double* AuxVals,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
+        IndexType* AuxIndex2,
+        double* AuxVals
         )
     {
         // Auxiliar sizes
@@ -1455,23 +1534,17 @@ private:
             const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
             const double value = Values[j];
             if (mWhichBlockType[col_index] == BlockType::MASTER) {
-                if (std::abs(value) > Tolerance) {
-                    AuxIndex2[row_end] = local_col_id + master_dof_initial_index;
-                    AuxVals[row_end] = value;
-                    ++row_end;
-                }
+                AuxIndex2[row_end] = local_col_id + master_dof_initial_index;
+                AuxVals[row_end] = value;
+                ++row_end;
             } else if (mWhichBlockType[col_index] == BlockType::SLAVE_INACTIVE) {
-                if (std::abs(value) > Tolerance) {
-                    AuxIndex2[row_end] = local_col_id + slave_inactive_dof_initial_index;
-                    AuxVals[row_end] = value;
-                    ++row_end;
-                }
+                AuxIndex2[row_end] = local_col_id + slave_inactive_dof_initial_index;
+                AuxVals[row_end] = value;
+                ++row_end;
             } else if (mWhichBlockType[col_index] == BlockType::SLAVE_ACTIVE) {
-                if (std::abs(value) > Tolerance) {
-                    AuxIndex2[row_end] = local_col_id + assembling_slave_dof_initial_index;
-                    AuxVals[row_end] = value;
-                    ++row_end;
-                }
+                AuxIndex2[row_end] = local_col_id + assembling_slave_dof_initial_index;
+                AuxVals[row_end] = value;
+                ++row_end;
             }
         }
     }
@@ -1481,26 +1554,21 @@ private:
      * @param AuxK The auxiliar block
      * @param CurrentRow The current row computed
      * @param KDispModifiedColsAux2 The nonzero rows array
-     * @param Tolerance The tolerance considered to check if the values are almost 0
      */
     inline void ComputeNonZeroBlocks(
         const SparseMatrixType& AuxK,
         const int CurrentRow,
-        IndexType& KDispModifiedColsAux2,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
+        IndexType& KDispModifiedColsAux2
         )
     {
         // Get access to aux_K data
-        const double* aux_values = AuxK.value_data().begin();
         const IndexType* aux_K_index1 = AuxK.index1_data().begin();
 
         const IndexType row_begin = aux_K_index1[CurrentRow];
         const IndexType row_end   = aux_K_index1[CurrentRow + 1];
 
         for (IndexType j=row_begin; j<row_end; j++) {
-            if (std::abs(aux_values[j]) > Tolerance) {
-                ++KDispModifiedColsAux2;
-            }
+            ++KDispModifiedColsAux2;
         }
     }
 
@@ -1512,16 +1580,14 @@ private:
      * @param CurrentRow The current row computed
      * @param RowEnd The last column computed
      * @param InitialIndexColumn The initial column index of the auxiliar block in the final matrix
-     * @param Tolerance The tolerance considered to check if the values are almost 0
      */
     inline void ComputeAuxiliarValuesBlocks(
         const SparseMatrixType& AuxK,
-        SignedIndexType* AuxIndex2,
+        IndexType* AuxIndex2,
         double* AuxVals,
         const int CurrentRow,
         IndexType& RowEnd,
-        const SizeType InitialIndexColumn,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
+        const SizeType InitialIndexColumn
         )
     {
         // Get access to aux_K data
@@ -1533,12 +1599,10 @@ private:
         const IndexType aux_K_row_end   = aux_K_index1[CurrentRow + 1];
 
         for (IndexType j=aux_K_row_begin; j<aux_K_row_end; j++) {
-            if (std::abs(aux_values[j]) > Tolerance) {
-                const IndexType col_index = InitialIndexColumn + aux_K_index2[j];
-                AuxIndex2[RowEnd] = col_index;
-                AuxVals[RowEnd] = -aux_values[j];
-                ++RowEnd;
-            }
+            const IndexType col_index = InitialIndexColumn + aux_K_index2[j];
+            AuxIndex2[RowEnd] = col_index;
+            AuxVals[RowEnd] = -aux_values[j];
+            ++RowEnd;
         }
     }
 
@@ -1809,6 +1873,23 @@ private:
     }
 
     /**
+     * @brief This method is intended to use to ensure the matrix is structurally symmetric
+     * @param rA The matrix to be checked
+     */
+    void EnsureStructuralSymmetryMatrix (SparseMatrixType& rA)
+    {
+        // We compute the transposed matrix
+        const SizeType size_system_1 = rA.size1();
+        const SizeType size_system_2 = rA.size2();
+        SparseMatrixType transpose(size_system_2, size_system_1);
+
+        SparseMatrixMultiplicationUtility::TransposeMatrix<SparseMatrixType, SparseMatrixType>(transpose, rA, 0.0);
+
+        // Finally we sum the auxiliar matrices
+        SparseMatrixMultiplicationUtility::MatrixAdd<SparseMatrixType, SparseMatrixType>(rA, transpose, 1.0);
+    }
+
+    /**
      * @brief This method is intended to use to check the matrix
      * @param rA The matrix to be checked
      */
@@ -1819,7 +1900,7 @@ private:
         const std::size_t* index2 = rA.index2_data().begin();
         const double* values = rA.value_data().begin();
         double norm = 0.0;
-        for (std::size_t i=0; i<rA.size1(); i++) {
+        for (std::size_t i=0; i<rA.size1(); ++i) {
             std::size_t row_begin = index1[i];
             std::size_t row_end   = index1[i+1];
             if (row_end - row_begin == 0)
@@ -1849,7 +1930,7 @@ private:
         const SizeType NRows,
         const SizeType NCols,
         IndexType* Ptr,
-        SignedIndexType* AuxIndex2,
+        IndexType* AuxIndex2,
         double* AuxVal
         )
     {
@@ -1875,7 +1956,7 @@ private:
     void ComputeDiagonalByLumping (
         const SparseMatrixType& rA,
         SparseMatrixType& rdiagA,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
+        const double Tolerance = ZeroTolerance
         )
     {
         // Aux values
@@ -1905,9 +1986,9 @@ private:
 //             }
 //         }
 
-        SignedIndexType* ptr = new SignedIndexType[size_A + 1];
+        IndexType* ptr = new IndexType[size_A + 1];
         ptr[0] = 0;
-        SignedIndexType* aux_index2 = new SignedIndexType[size_A];
+        IndexType* aux_index2 = new IndexType[size_A];
         double* aux_val = new double[size_A];
 
         #pragma omp parallel for
@@ -1930,6 +2011,40 @@ private:
     }
 
     /**
+     * @brief Checks if the degree of freedom belongs to a displacement DoF
+     * @param rDoF The degree of freedom
+     * @return True if the DoF corresponds with a displacement dof
+     */
+    static inline bool IsDisplacementDof(const DofType& rDoF)
+    {
+        const auto& r_variable = rDoF.GetVariable();
+        if (r_variable == DISPLACEMENT_X ||
+            r_variable == DISPLACEMENT_Y ||
+            r_variable == DISPLACEMENT_Z) {
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @brief Checks if the degree of freedom belongs to a LM DoF
+     * @param rDoF The degree of freedom
+     * @return True if the DoF corresponds with a LM dof
+     */
+    static inline bool IsLMDof(const DofType& rDoF)
+    {
+        const auto& r_variable = rDoF.GetVariable();
+        if (r_variable == VECTOR_LAGRANGE_MULTIPLIER_X ||
+            r_variable == VECTOR_LAGRANGE_MULTIPLIER_Y ||
+            r_variable == VECTOR_LAGRANGE_MULTIPLIER_Z) {
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @brief This method returns the defaulr parameters in order to avoid code duplication
      * @return Returns the default parameters
      */
@@ -1938,9 +2053,10 @@ private:
     {
         Parameters default_parameters( R"(
         {
-            "solver_type": "mixed_ulm_linear_solver",
-            "tolerance" : 1.0e-6,
-            "max_iteration_number" : 200
+            "solver_type"          : "mixed_ulm_linear_solver",
+            "tolerance"            : 1.0e-6,
+            "max_iteration_number" : 200,
+            "echo_level"           : 0
         }  )" );
 
         return default_parameters;

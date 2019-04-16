@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -39,15 +39,15 @@ namespace Python
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
-    class_<PlotUtility > (m,"PlotUtils")
-        .def(init<>())
+    py::class_<PlotUtility > (m,"PlotUtils")
+        .def(py::init<>())
         .def("PlotVariable", &PlotUtility::PlotVariable)
     ;
 
-    class_<CheckConstitutiveLawUtility > (m,"CheckConstitutiveLawUtils")
-        .def(init<Properties::Pointer , ProcessInfo&, double >())
+    py::class_<CheckConstitutiveLawUtility > (m,"CheckConstitutiveLawUtils")
+        .def(py::init<Properties::Pointer , ProcessInfo&, double >())
         .def("CheckConstitutiveLaw", &CheckConstitutiveLawUtility::CheckConstitutiveLaw)
         .def("GetScalarVar",&CheckConstitutiveLawUtility::GetScalarVar)
         .def("InitializeSolutionStep",&CheckConstitutiveLawUtility::InitializeSolutionStep)

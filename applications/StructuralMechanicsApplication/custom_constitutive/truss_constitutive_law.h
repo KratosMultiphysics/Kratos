@@ -22,11 +22,11 @@
 namespace Kratos
 {
 
-/** 
+/**
  * @namespace TrussConstitutiveLaw
- * 
+ *
  * @brief This constitutive law represents a linear elastic 1D law
- * 
+ *
  * @author Klaus B Sautter
  */
 
@@ -89,7 +89,7 @@ public:
     {
         return 1;
     }
-    
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -110,10 +110,14 @@ public:
 
     double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<double>& rThisVariable,double& rValue) override;
-        
+
     Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<Vector>& rThisVariable,
         Vector& rValue) override;
+
+    array_1d<double, 3 > & CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<array_1d<double, 3 > >& rVariable,
+        array_1d<double, 3 > & rValue) override;
 
     void CalculateMaterialResponse(
         const Vector& rStrainVector,const Matrix& rDeformationGradient,
@@ -122,19 +126,31 @@ public:
         const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues,
         bool CalculateStresses,int CalculateTangent,bool SaveInternalVariables) override;
 
+
+    //empty because called in the element and this base class throws an error
+    //if this is not overriden
+    void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
+                    const GeometryType& rElementGeometry,
+                    const Vector& rShapeFunctionsValues,
+                    const ProcessInfo& rCurrentProcessInfo) override {} ;
+
+    //this functions calculates the current stress based on an element given (set)
+    //strain
+    double CalculateStressElastic(ConstitutiveLaw::Parameters& rParameterValues) const;
+
 protected:
 
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -144,11 +160,10 @@ private:
 
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
-    double mStressState = 0.0; // The current stress state
     ///@}
     ///@name Private Operators
     ///@{
@@ -172,16 +187,14 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw);
-        rSerializer.save("StressState", this->mStressState);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw);
-        rSerializer.load("StressState", this->mStressState);
     }
 
 
 }; // Class TrussConstitutiveLaw
 }  // namespace Kratos.
-#endif // KRATOS_DUMMY_TRUSS_LAW_H_INCLUDED  defined 
+#endif // KRATOS_DUMMY_TRUSS_LAW_H_INCLUDED  defined

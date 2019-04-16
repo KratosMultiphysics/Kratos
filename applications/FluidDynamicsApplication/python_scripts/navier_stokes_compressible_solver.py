@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 ## Import base class file
 from fluid_solver import FluidSolver
 
@@ -19,11 +16,12 @@ class NavierStokesCompressibleSolver(FluidSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "compressible_solver_from_defaults",
-            "model_part_name": "FluidModelPart",
-            "domain_size": 2,
+            "model_part_name": "",
+            "domain_size": -1,
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "two_element_test"
+                "input_filename": "two_element_test",
+                "reorder": false
             },
             "maximum_iterations": 10,
             "echo_level": 1,
@@ -33,7 +31,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
             "relative_tolerance" : 1e-3,
             "absolute_tolerance" : 1e-5,
             "linear_solver_settings"       : {
-                "solver_type"         : "AMGCL",
+                "solver_type"         : "amgcl",
                 "max_iteration"       : 200,
                 "tolerance"           : 1e-7,
                 "provide_coordinates" : false,
@@ -53,8 +51,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
                 "maximum_delta_time"  : 0.01
             },
             "periodic": "periodic",
-            "move_mesh_flag": false,
-            "reorder": false
+            "move_mesh_flag": false
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -68,11 +65,8 @@ class NavierStokesCompressibleSolver(FluidSolver):
         self.condition_name = "Condition"
         self.min_buffer_size = 3
 
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
         ## Construct the linear solver
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         ## Set the element replace settings
@@ -167,9 +161,6 @@ class NavierStokesCompressibleSolver(FluidSolver):
         (self.solver).Initialize()
 
 
-        (self.solver).Check()
-
-
         # self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble()) # REMEMBER TO CHECK MY STAB CONSTANTS
 
         print ("Monolithic compressible solver initialization finished.")
@@ -186,7 +177,8 @@ class NavierStokesCompressibleSolver(FluidSolver):
 
     def PrepareModelPart(self):
         super(NavierStokesCompressibleSolver,self).PrepareModelPart()
-        self._ExecuteAfterReading()
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self._ExecuteAfterReading()
 
     def _ExecuteAfterReading(self):
         ## Replace element and conditions

@@ -24,17 +24,19 @@ def convert_active_inactive_int(list_active):
 # Debug
 #dim_combinations = [2]
 #nnodes_combinations = [2]
+#nnodes_master_combinations = [2]
 #normal_combs = 2
 
-dim_combinations = [2,3,3]
-nnodes_combinations = [2,3,4]
+dim_combinations = [2,3,3,3,3]
+nnodes_combinations = [2,3,4,3,4]
+nnodes_master_combinations = [2,3,4,4,3]
 normal_combs = 2
 
-lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\nvoid AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes, TNormalVariation>::CalculateLocalLHS(\n    Matrix& rLocalLHS,\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    const DerivativeDataType& rDerivativeData,\n    const IndexType rActiveInactive,\n    const ProcessInfo& rCurrentProcessInfo\n    )\n{\n    // Initialize values\n    const BoundedMatrix<double, TNumNodes, TDim>& u1 = rDerivativeData.u1;\n    const BoundedMatrix<double, TNumNodes, TDim>& u2 = rDerivativeData.u2;\n    const BoundedMatrix<double, TNumNodes, TDim>& X1 = rDerivativeData.X1;\n    const BoundedMatrix<double, TNumNodes, TDim>& X2 = rDerivativeData.X2;\n    \n    const BoundedMatrix<double, TNumNodes, TDim> LM = MortarUtilities::GetVariableMatrix<TDim, TNumNodes>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0);\n    \n    const BoundedMatrix<double, TNumNodes, TDim>& NormalSlave = rDerivativeData.NormalSlave;\n\n    // The ALM parameters\n    const array_1d<double, TNumNodes> DynamicFactor = MortarUtilities::GetVariableVector<TNumNodes>(this->GetGeometry(), DYNAMIC_FACTOR);\n    const double ScaleFactor = rDerivativeData.ScaleFactor;\n    const array_1d<double, TNumNodes>& PenaltyParameter = rDerivativeData.PenaltyParameter;\n    \n    // Mortar operators\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n    // Mortar operators derivatives\n    const array_1d<BoundedMatrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;\n    const array_1d<BoundedMatrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;\n\n"
+lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\nvoid AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster>::CalculateLocalLHS(\n    Matrix& rLocalLHS,\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    const DerivativeDataType& rDerivativeData,\n    const IndexType rActiveInactive,\n    const ProcessInfo& rCurrentProcessInfo\n    )\n{\n    // Initialize values\n    const BoundedMatrix<double, TNumNodes, TDim>& u1 = rDerivativeData.u1;\n    const BoundedMatrix<double, TNumNodesMaster, TDim>& u2 = rDerivativeData.u2;\n    const BoundedMatrix<double, TNumNodes, TDim>& X1 = rDerivativeData.X1;\n    const BoundedMatrix<double, TNumNodesMaster, TDim>& X2 = rDerivativeData.X2;\n    \n    const BoundedMatrix<double, TNumNodes, TDim> LM = MortarUtilities::GetVariableMatrix<TDim, TNumNodes>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0);\n    \n    const BoundedMatrix<double, TNumNodes, TDim>& NormalSlave = rDerivativeData.NormalSlave;\n\n    // The ALM parameters\n    const array_1d<double, TNumNodes> DynamicFactor = MortarUtilities::GetVariableVector<TNumNodes>(this->GetGeometry(), DYNAMIC_FACTOR);\n    const double ScaleFactor = rDerivativeData.ScaleFactor;\n    const array_1d<double, TNumNodes>& PenaltyParameter = rDerivativeData.PenaltyParameter;\n    \n    // Mortar operators\n    const BoundedMatrix<double, TNumNodes, TNumNodesMaster>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n    // Mortar operators derivatives\n    const array_1d<BoundedMatrix<double, TNumNodes, TNumNodesMaster>, SIZEDERIVATIVES2>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;\n    const array_1d<BoundedMatrix<double, TNumNodes, TNumNodes>, SIZEDERIVATIVES2>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;\n\n"
 
 lhs_template_end_string = "\n}\n"
 
-rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\nvoid AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes, TNormalVariation>::CalculateLocalRHS(\n    Vector& rLocalRHS,\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    const DerivativeDataType& rDerivativeData,\n    const IndexType rActiveInactive,\n    const ProcessInfo& rCurrentProcessInfo\n    )\n{\n    // Initialize values\n    const BoundedMatrix<double, TNumNodes, TDim>& u1 = rDerivativeData.u1;\n    const BoundedMatrix<double, TNumNodes, TDim>& u2 = rDerivativeData.u2;\n    const BoundedMatrix<double, TNumNodes, TDim>& X1 = rDerivativeData.X1;\n    const BoundedMatrix<double, TNumNodes, TDim>& X2 = rDerivativeData.X2;\n    \n    const BoundedMatrix<double, TNumNodes, TDim> LM = MortarUtilities::GetVariableMatrix<TDim, TNumNodes>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0);\n    \n    const BoundedMatrix<double, TNumNodes, TDim>& NormalSlave = rDerivativeData.NormalSlave;\n\n    // The ALM parameters\n    const array_1d<double, TNumNodes> DynamicFactor = MortarUtilities::GetVariableVector<TNumNodes>(this->GetGeometry(), DYNAMIC_FACTOR);\n    const double ScaleFactor = rDerivativeData.ScaleFactor;\n    const array_1d<double, TNumNodes>& PenaltyParameter = rDerivativeData.PenaltyParameter;\n    \n    // Mortar operators\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n\n"
+rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\nvoid AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster>::CalculateLocalRHS(\n    Vector& rLocalRHS,\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    const DerivativeDataType& rDerivativeData,\n    const IndexType rActiveInactive,\n    const ProcessInfo& rCurrentProcessInfo\n    )\n{\n    // Initialize values\n    const BoundedMatrix<double, TNumNodes, TDim>& u1 = rDerivativeData.u1;\n    const BoundedMatrix<double, TNumNodesMaster, TDim>& u2 = rDerivativeData.u2;\n    const BoundedMatrix<double, TNumNodes, TDim>& X1 = rDerivativeData.X1;\n    const BoundedMatrix<double, TNumNodesMaster, TDim>& X2 = rDerivativeData.X2;\n    \n    const BoundedMatrix<double, TNumNodes, TDim> LM = MortarUtilities::GetVariableMatrix<TDim, TNumNodes>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0);\n    \n    const BoundedMatrix<double, TNumNodes, TDim>& NormalSlave = rDerivativeData.NormalSlave;\n\n    // The ALM parameters\n    const array_1d<double, TNumNodes> DynamicFactor = MortarUtilities::GetVariableVector<TNumNodes>(this->GetGeometry(), DYNAMIC_FACTOR);\n    const double ScaleFactor = rDerivativeData.ScaleFactor;\n    const array_1d<double, TNumNodes>& PenaltyParameter = rDerivativeData.PenaltyParameter;\n    \n    // Mortar operators\n    const BoundedMatrix<double, TNumNodes, TNumNodesMaster>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n\n"
 
 rhs_template_end_string = "\n}\n"
 
@@ -52,11 +54,11 @@ for normalvar in range(normal_combs):
     if normalvar == 1:
         lhs_template_begin_string += "   const array_1d<BoundedMatrix<double, TNumNodes, TDim>,  (TNumNodes * TDim)> DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;\n\n"
 
-    for dim, nnodes in zip(dim_combinations, nnodes_combinations):
+    for dim, nnodes, nnodes_master in zip(dim_combinations, nnodes_combinations, nnodes_master_combinations):
 
         # Update counter and calculate dof
         output_count += 1
-        number_dof = dim * (3 * nnodes)
+        number_dof = dim * (nnodes_master + 2 * nnodes)
 
         from sympy.utilities.iterables import ibin
         active_inactive_combinations = list(ibin(nnodes, 'all'))
@@ -71,18 +73,18 @@ for normalvar in range(normal_combs):
 
             #Defining the unknowns
             u1 = DefineMatrix('u1',nnodes,dim) #u1(i,j) is displacement of node i component j at domain 1
-            u2 = DefineMatrix('u2',nnodes,dim) #u2(i,j) is displacement of node i component j at domain 2
+            u2 = DefineMatrix('u2',nnodes_master,dim) #u2(i,j) is displacement of node i component j at domain 2
             LM = DefineMatrix('LM',nnodes,dim)
             NormalGap = DefineVector('NormalGap',nnodes)
             DOperator = DefineMatrix('DOperator',nnodes,nnodes)
-            MOperator = DefineMatrix('MOperator',nnodes,nnodes)
+            MOperator = DefineMatrix('MOperator',nnodes,nnodes_master)
 
             # Define other parameters
             # Normal and tangets of the slave
             NormalSlave = DefineMatrix('NormalSlave',nnodes,dim)
 
             X1 = DefineMatrix('X1',nnodes,dim)
-            X2 = DefineMatrix('X2',nnodes,dim)
+            X2 = DefineMatrix('X2',nnodes_master,dim)
             x1 = X1 + u1
             x2 = X2 + u2
 
@@ -93,7 +95,7 @@ for normalvar in range(normal_combs):
 
             # Define test functions
             w1 = DefineMatrix('w1',nnodes,dim)
-            w2 = DefineMatrix('w2',nnodes,dim)
+            w2 = DefineMatrix('w2',nnodes_master,dim)
             wLM = DefineMatrix('wLMN',nnodes,dim)
 
             # Defining normal and tangent components
@@ -144,7 +146,7 @@ for normalvar in range(normal_combs):
             dofs = Matrix( zeros(number_dof, 1) )
             testfunc = Matrix( zeros(number_dof, 1) )
             count = 0
-            for i in range(0,nnodes):
+            for i in range(0,nnodes_master):
                 for k in range(0,dim):
                     dofs[count] = u2[i,k]
                     testfunc[count] = w2[i,k]
@@ -220,12 +222,14 @@ for normalvar in range(normal_combs):
                 rhs_string += rhs_template_end_string
 
             lhs_string = lhs_string.replace("TDim", str(dim))
+            lhs_string = lhs_string.replace("TNumNodesMaster", str(nnodes_master))
             lhs_string = lhs_string.replace("TNumNodes", str(nnodes))
             lhs_string = lhs_string.replace("MatrixSize", str(lhs.shape[0]))
             lhs_string = lhs_string.replace("TNormalVariation", normalvarstring)
-            lhs_string = lhs_string.replace("SIZEDERIVATIVES2", str(2 * (nnodes * dim)))
+            lhs_string = lhs_string.replace("SIZEDERIVATIVES2", str(((nnodes + nnodes_master) * dim)))
 
             rhs_string = rhs_string.replace("TDim", str(dim))
+            rhs_string = rhs_string.replace("TNumNodesMaster", str(nnodes_master))
             rhs_string = rhs_string.replace("TNumNodes", str(nnodes))
             rhs_string = rhs_string.replace("TNormalVariation", normalvarstring)
             rhs_string = rhs_string.replace("MatrixSize", str(lhs.shape[0]))

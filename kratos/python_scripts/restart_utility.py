@@ -24,7 +24,8 @@ class RestartUtility(object):
             "load_restart_files_from_folder" : true,
             "restart_save_frequency"         : 0.0,
             "restart_control_type"           : "time",
-            "save_restart_files_in_folder"   : true
+            "save_restart_files_in_folder"   : true,
+            "set_mpi_communicator"           : true
         }
         """)
 
@@ -37,6 +38,7 @@ class RestartUtility(object):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.model_part = model_part
+        self.model_part_name = model_part.Name
 
         # the path is splitted in case it already contains a path (neeeded if files are moved to a folder)
         self.raw_path, self.raw_file_name = os.path.split(settings["input_filename"].GetString())
@@ -76,7 +78,7 @@ class RestartUtility(object):
 
     #### Public functions ####
 
-    def LoadRestart(self, restart_file_name=""):
+    def LoadRestart(self,  restart_file_name=""):
         """
         This function loads a restart file into a ModelPart
         """
@@ -89,13 +91,13 @@ class RestartUtility(object):
             restart_path = restart_file_name
 
         # Check path
-        if (os.path.exists(restart_path+".rest") == False):
-            raise Exception("Restart file not found: " + restart_path + ".rest")
-        self._PrintOnRankZero("::[Restart Utility]::", "Loading restart file:", restart_path + ".rest")
+        if not os.path.exists(restart_path+".rest"):
+            raise FileNotFoundError("Restart file not found: " + restart_path + ".rest")
+        KratosMultiphysics.Logger.PrintInfo("Restart Utility", "Loading restart file:", restart_path + ".rest")
 
         # Load the ModelPart
-        serializer = KratosMultiphysics.Serializer(restart_path, self.serializer_flag)
-        serializer.Load(self.model_part.Name, self.model_part)
+        serializer = KratosMultiphysics.FileSerializer(restart_path, self.serializer_flag)
+        serializer.Load(self.model_part_name, self.model_part)
 
         self._ExecuteAfterLoad()
 
@@ -103,31 +105,36 @@ class RestartUtility(object):
         load_step = self.model_part.ProcessInfo[KratosMultiphysics.STEP] + 1
         self.model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
 
-        self._PrintOnRankZero("::[Restart Utility]::", "Finished loading model part from restart file.")
+        KratosMultiphysics.Logger.PrintInfo("Restart Utility", "Finished loading model part from restart file.")
 
     def SaveRestart(self):
         """
         This function saves the restart file. It should be called at the end of a time-step.
         Use "IsRestartOutputStep" to check if a restart file should be written in this time-step
         """
-        if self.save_restart_files_in_folder:
-            folder_path = self.__GetFolderPathSave()
-            if not os.path.isdir(folder_path):
-                os.makedirs(folder_path)
-
         if self.restart_control_type_is_time:
             time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
             control_label = self.__GetPrettyTime(time)
         else:
             control_label = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
 
+        self.CreateOutputFolder()
+
+        if not os.path.isdir(self.__GetFolderPathSave()):
+            err_msg  = 'The directory for saving the restart-files of modelpart "'
+            err_msg += self.model_part_name + '" does not exist!\n'
+            if self.save_restart_files_in_folder:
+                err_msg += 'Something went wrong with the creation of the folder "'
+                err_msg += self.__GetFolderPathSave()+ '"!'
+            raise Exception(err_msg)
+
         file_name = self.__GetFileNameSave(control_label)
 
         # Save the ModelPart
-        serializer = KratosMultiphysics.Serializer(file_name, self.serializer_flag)
+        serializer = KratosMultiphysics.FileSerializer(file_name, self.serializer_flag)
         serializer.Save(self.model_part.Name, self.model_part)
         if self.echo_level > 0:
-            self._PrintOnRankZero("::[Restart Utility]::", "Saved restart file", file_name + ".rest")
+            KratosMultiphysics.Logger.PrintInfo("Restart Utility", "Saved restart file", file_name + ".rest")
 
         # Schedule next output
         if self.restart_save_frequency > 0.0: # Note: if == 0, we'll just always print
@@ -143,6 +150,14 @@ class RestartUtility(object):
         else:
             return (self.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.next_output)
 
+    def CreateOutputFolder(self):
+        if self.save_restart_files_in_folder:
+            folder_path = self.__GetFolderPathSave()
+            if not os.path.isdir(folder_path) and self.model_part.GetCommunicator().MyPID() == 0:
+                os.makedirs(folder_path)
+            self.model_part.GetCommunicator().Barrier()
+
+
     #### Protected functions ####
 
     def _GetFileLabelLoad(self):
@@ -154,10 +169,6 @@ class RestartUtility(object):
     def _ExecuteAfterLoad(self):
         """This function creates the communicators in MPI/trilinos"""
         pass
-
-    def _PrintOnRankZero(self, *args):
-        # This function will be overridden in the trilinos-version
-        KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
 
     #### Private functions ####
 

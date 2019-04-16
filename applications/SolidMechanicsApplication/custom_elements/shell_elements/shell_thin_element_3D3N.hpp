@@ -50,9 +50,9 @@ class ShellT3_CoordinateTransformation;
  *
  * This element represents a 3-node Shell element
  * based on the Assumed Natural DEviatoric Strain (ANDES) by Felippa.
- * This element is formulated for small strains, 
+ * This element is formulated for small strains,
  * but can be used in Geometrically nonlinear problems
- * involving large displacements and rotations 
+ * involving large displacements and rotations
  * using a Corotational Coordinate Transformation.
  * Material nonlinearity is handled by means of the cross section object.
  */
@@ -62,9 +62,9 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThinElement3D3N : public Elem
 
   ///@name Type Definitions
   ///@{
-    
+
   KRATOS_CLASS_POINTER_DEFINITION(ShellThinElement3D3N);
-    
+
   typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
 
   typedef ShellT3_CoordinateTransformation CoordinateTransformationBaseType;
@@ -81,30 +81,30 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThinElement3D3N : public Elem
   ///@{
 
   // TODO: Add Calulation Data
-	
+
   ///@}
 
   ///@name Life Cycle
   ///@{
 
-  ShellThinElement3D3N(IndexType NewId, 
-                       GeometryType::Pointer pGeometry, 
-                       bool NLGeom = false);
-    
-  ShellThinElement3D3N(IndexType NewId, 
-                       GeometryType::Pointer pGeometry, 
-                       PropertiesType::Pointer pProperties, 
+  ShellThinElement3D3N(IndexType NewId,
+                       GeometryType::Pointer pGeometry,
                        bool NLGeom = false);
 
-  ShellThinElement3D3N(IndexType NewId, 
-                       GeometryType::Pointer pGeometry, 
-                       PropertiesType::Pointer pProperties, 
+  ShellThinElement3D3N(IndexType NewId,
+                       GeometryType::Pointer pGeometry,
+                       PropertiesType::Pointer pProperties,
+                       bool NLGeom = false);
+
+  ShellThinElement3D3N(IndexType NewId,
+                       GeometryType::Pointer pGeometry,
+                       PropertiesType::Pointer pProperties,
                        CoordinateTransformationBasePointerType pCoordinateTransformation);
 
-  virtual ~ShellThinElement3D3N();
+  ~ShellThinElement3D3N() override;
 
   ///@}
-    
+
   ///@name Operations
   ///@{
 
@@ -113,7 +113,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThinElement3D3N : public Elem
   Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
   IntegrationMethod GetIntegrationMethod() const override;
-    
+
   void Initialize() override;
 
   void ResetConstitutiveLaw() override;
@@ -129,7 +129,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThinElement3D3N : public Elem
   void GetValuesVector(Vector& values, int Step = 0) override;
 
   void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
-    
+
   void GetSecondDerivativesVector(Vector& values, int Step = 0) override;
 
   void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
@@ -173,17 +173,17 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThinElement3D3N : public Elem
   ///@}
 
  protected:
-    
+
   ///@name Protected Lyfe Cycle
   ///@{
-    
+
   /**
    * Protected empty constructor
    */
   ShellThinElement3D3N() : Element()
   {
   }
-    
+
   ///@}
 
  private:
@@ -309,11 +309,11 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThinElement3D3N : public Elem
                     const bool RHSrequired);
 
   bool TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
-                                                          std::vector<array_1d<double,3> >& rValues, 
+                                                          std::vector<array_1d<double,3> >& rValues,
                                                           const ProcessInfo& rCurrentProcessInfo);
 
   bool TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
-                                                                   std::vector<Matrix>& rValues, 
+                                                                   std::vector<Matrix>& rValues,
                                                                    const ProcessInfo& rCurrentProcessInfo);
 
   ///@}
@@ -321,18 +321,18 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThinElement3D3N : public Elem
   ///@name Static Member Variables
   ///@{
   ///@}
-    
+
   ///@name Member Variables
   ///@{
-    
+
   CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
   CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
 
   IntegrationMethod mThisIntegrationMethod; /*!< Currently selected integration method */
-    
+
   ///@}
-    
+
   ///@name Serialization
   ///@{
 
@@ -341,22 +341,22 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThinElement3D3N : public Elem
   void save(Serializer& rSerializer) const override;
 
   void load(Serializer& rSerializer) override;
-    
+
   ///@}
-    
+
   ///@name Private  Access
   ///@{
   ///@}
-    
+
   ///@name Private Inquiry
   ///@{
   ///@}
-    
+
   ///@name Un accessible methods
   ///@{
   ///@}
-    
+
 };
 
-} 
+}
 #endif // SHELL_THIN_ELEMENT_3D3N_H_INCLUDED

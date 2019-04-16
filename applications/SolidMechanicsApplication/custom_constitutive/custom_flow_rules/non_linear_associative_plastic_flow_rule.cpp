@@ -8,16 +8,13 @@
 //
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/properties.h"
-#include "solid_mechanics_application_variables.h"
 #include "custom_constitutive/custom_flow_rules/non_linear_associative_plastic_flow_rule.hpp"
+
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -27,7 +24,7 @@ namespace Kratos
 
 NonLinearAssociativePlasticFlowRule::NonLinearAssociativePlasticFlowRule()
 {
-   
+
 }
 
 //*****************************INITIALIZATION CONSTRUCTOR*****************************
@@ -36,7 +33,7 @@ NonLinearAssociativePlasticFlowRule::NonLinearAssociativePlasticFlowRule()
 NonLinearAssociativePlasticFlowRule::NonLinearAssociativePlasticFlowRule(YieldCriterionPointer pYieldCriterion)
 	:FlowRule(pYieldCriterion)
 {
-   
+
 }
 
 
@@ -63,8 +60,7 @@ NonLinearAssociativePlasticFlowRule::NonLinearAssociativePlasticFlowRule(NonLine
 
 FlowRule::Pointer NonLinearAssociativePlasticFlowRule::Clone() const
 {
-  FlowRule::Pointer p_clone(new NonLinearAssociativePlasticFlowRule(*this));
-  return p_clone;
+  return Kratos::make_shared<NonLinearAssociativePlasticFlowRule>(*this);
 }
 
 //********************************DESTRUCTOR******************************************
@@ -107,11 +103,11 @@ void NonLinearAssociativePlasticFlowRule::SetCriterionParameters( RadialReturnVa
 	rCriterionParameters.SetEquivalentPlasticStrainOld( rPlasticVariables.EquivalentPlasticStrainOld );
 
 	rCriterionParameters.SetTemperature( rReturnMappingVariables.Temperature );
-	
+
 
 	// changing variables during the return mapping
 	rReturnMappingVariables.DeltaGamma = 0;
-	
+
 	rCriterionParameters.SetDeltaGamma( rReturnMappingVariables.DeltaGamma );
 
 	rCriterionParameters.SetEquivalentPlasticStrain( rPlasticVariables.EquivalentPlasticStrain );
@@ -129,11 +125,11 @@ void NonLinearAssociativePlasticFlowRule::SetCriterionParameters( RadialReturnVa
 
 bool NonLinearAssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix )
 {
-	  
+
 	//0.- Initialize Variables
 	bool PlasticityActive = false;
 	rReturnMappingVariables.Options.Set(PLASTIC_REGION,false);
-	
+
 	InternalVariables PlasticVariables = mInternalVariables;
 	YieldCriterion::Parameters CriterionParameters;
 	this->SetCriterionParameters ( rReturnMappingVariables, PlasticVariables, CriterionParameters );
@@ -149,10 +145,10 @@ bool NonLinearAssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVa
 	//3.- Initialize PlasticDissipation
 	mThermalVariables.PlasticDissipation = 0;
 	mThermalVariables.DeltaPlasticDissipation = 0;
-	  
-	
 
-	if( rReturnMappingVariables.Options.Is(IMPLEX_ACTIVE) ) 
+
+
+	if( rReturnMappingVariables.Options.Is(IMPLEX_ACTIVE) )
 	  {
 
    	     this->CalculateImplexReturnMapping ( rReturnMappingVariables, PlasticVariables, CriterionParameters, rIsoStressMatrix );
@@ -173,20 +169,20 @@ bool NonLinearAssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVa
 
 	      //3.- Calculate the consistency condition
   	      bool converged = this->CalculateConsistencyCondition( rReturnMappingVariables, PlasticVariables, CriterionParameters);
-	    
+
 	      if(!converged)
 	       	std::cout<<" ConstitutiveLaw did not converge "<<std::endl;
 
 
 	      //4.- Update back stress, plastic strain and stress
 	      UpdateConfiguration( rReturnMappingVariables, rIsoStressMatrix );
-	    
+
 
 	      //5.- Calculate thermal dissipation and delta thermal dissipation
-	      this->CalculateThermalDissipation( CriterionParameters, rReturnMappingVariables.Thermal );   
+	      this->CalculateThermalDissipation( CriterionParameters, rReturnMappingVariables.Thermal );
 
 	      PlasticityActive = true;
-	      rReturnMappingVariables.Options.Set(PLASTIC_REGION,true);	    
+	      rReturnMappingVariables.Options.Set(PLASTIC_REGION,true);
 	    }
 
 	}
@@ -196,7 +192,7 @@ bool NonLinearAssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVa
 	// mThermalVariables.print();
 	// std::cout<<" rIsoStressMatrix "<<rIsoStressMatrix<<std::endl;
 
-	rReturnMappingVariables.Options.Set(RETURN_MAPPING_COMPUTED,true);	    
+	rReturnMappingVariables.Options.Set(RETURN_MAPPING_COMPUTED,true);
 
 	return 	PlasticityActive;
 }
@@ -227,24 +223,24 @@ bool NonLinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialR
 		//Calculate DeltaGamma:
 		DeltaDeltaGamma  = StateFunction/DeltaStateFunction;
 		rReturnMappingVariables.DeltaGamma += DeltaDeltaGamma;
-	       
+
 		//Update Equivalent Plastic Strain:
 		rPlasticVariables.DeltaPlasticStrain       = sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
 		rPlasticVariables.EquivalentPlasticStrain  = rPlasticVariables.EquivalentPlasticStrainOld + rPlasticVariables.DeltaPlasticStrain;
-	       	
+
 		//Calculate State Function:
 		StateFunction = mpYieldCriterion->CalculateStateFunction( StateFunction, rCriterionParameters );
-		
+
 
 		iter++;
 	}
-	   
+
 
 	if(iter>MaxIterations)
 	  return false;
 
 
-	return true;	
+	return true;
 }
 
 
@@ -255,24 +251,24 @@ bool NonLinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialR
 void NonLinearAssociativePlasticFlowRule::CalculateImplexReturnMapping( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters, Matrix& rIsoStressMatrix )
 {
 
-  
+
         //1.-Computation of the plastic Multiplier
         rReturnMappingVariables.DeltaGamma = sqrt(3.0/2.0) * ( rPlasticVariables.EquivalentPlasticStrain - rPlasticVariables.EquivalentPlasticStrainOld );
-	
+
 	//2.- Update back stress, plastic strain and stress
 	UpdateConfiguration( rReturnMappingVariables, rIsoStressMatrix );
 
 	//3.- Calculate thermal dissipation and delta thermal dissipation
 	if( rReturnMappingVariables.DeltaGamma > 0 ){
-	  
+
   	  this->CalculateImplexThermalDissipation( rCriterionParameters );
 	  rReturnMappingVariables.Options.Set(PLASTIC_REGION,true);
 	}
 	else{
 	  mThermalVariables.PlasticDissipation = 0;
 	  mThermalVariables.DeltaPlasticDissipation = 0;
-	} 
-  
+	}
+
 
 }
 
@@ -284,14 +280,14 @@ void NonLinearAssociativePlasticFlowRule::CalculateThermalDissipation( YieldCrit
 {
 
       //1.- Thermal Dissipation:
- 
+
       mThermalVariables.PlasticDissipation = mpYieldCriterion->CalculatePlasticDissipation( mThermalVariables.PlasticDissipation, rCriterionParameters);
-  
+
 
       //2.- Thermal Dissipation Increment:
 
       mThermalVariables.DeltaPlasticDissipation = mpYieldCriterion->CalculateDeltaPlasticDissipation( mThermalVariables.DeltaPlasticDissipation, rCriterionParameters );
-		    		    
+
 }
 
 
@@ -300,18 +296,18 @@ void NonLinearAssociativePlasticFlowRule::CalculateThermalDissipation( YieldCrit
 
 void NonLinearAssociativePlasticFlowRule::CalculateImplexThermalDissipation( YieldCriterion::Parameters& rCriterionParameters )
 {
- 
+
       //1.- Thermal Dissipation:
-  
+
       mThermalVariables.PlasticDissipation = mpYieldCriterion->CalculateImplexPlasticDissipation( mThermalVariables.PlasticDissipation, rCriterionParameters );
-  
+
       //2.- Thermal Dissipation Increment:
-      
+
       mThermalVariables.DeltaPlasticDissipation = mpYieldCriterion->CalculateImplexDeltaPlasticDissipation( mThermalVariables.DeltaPlasticDissipation, rCriterionParameters );
 
 
-   
-  
+
+
 }
 
 //***************************UPDATE STRESS CONFIGURATION *****************************
@@ -320,17 +316,17 @@ void NonLinearAssociativePlasticFlowRule::CalculateImplexThermalDissipation( Yie
 void NonLinearAssociativePlasticFlowRule::UpdateConfiguration( RadialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix )
 {
 	//Back Stress update
-        
+
 	//Plastic Strain Update
         if( rReturnMappingVariables.NormIsochoricStress > 0 ){
-    
-	  //Stress Update: 
+
+	  //Stress Update:
 	  double Auxiliar   = 2.0 * rReturnMappingVariables.LameMu_bar * rReturnMappingVariables.DeltaGamma;
 
 	  Matrix Normal     = rIsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );
-	  
+
 	  rIsoStressMatrix -= ( Normal * Auxiliar );
-	  
+
 	}
 
 }
@@ -340,7 +336,7 @@ void NonLinearAssociativePlasticFlowRule::UpdateConfiguration( RadialReturnVaria
 
 bool NonLinearAssociativePlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables )
 {
-	
+
 	mInternalVariables.EquivalentPlasticStrainOld  = mInternalVariables.EquivalentPlasticStrain;
 
 	mInternalVariables.DeltaPlasticStrain          = sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
@@ -348,10 +344,10 @@ bool NonLinearAssociativePlasticFlowRule::UpdateInternalVariables( RadialReturnV
 	mInternalVariables.EquivalentPlasticStrain    += mInternalVariables.DeltaPlasticStrain;
 
 	mInternalVariables.DeltaPlasticStrain         *= ( 1.0/rReturnMappingVariables.DeltaTime );
- 	
+
 	//update thermal variables
 	// mThermalVariables = rReturnMappingVariables.Thermal;
-	
+
 	// mInternalVariables.print();
 	// mThermalVariables.print();
 
@@ -364,7 +360,7 @@ bool NonLinearAssociativePlasticFlowRule::UpdateInternalVariables( RadialReturnV
 
 void NonLinearAssociativePlasticFlowRule::CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors )
 {
-  
+
  	//1.-Identity build
 	Matrix Identity   = identity_matrix<double> (3);
 
@@ -383,16 +379,16 @@ void NonLinearAssociativePlasticFlowRule::CalculateScalingFactors(const RadialRe
 	double EquivalentPlasticStrain = mInternalVariables.EquivalentPlasticStrain + sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
 	double DeltaHardening = 0;
 
-	if( rReturnMappingVariables.Options.Is(IMPLEX_ACTIVE) ) 
+	if( rReturnMappingVariables.Options.Is(IMPLEX_ACTIVE) )
 	  {
 	    rScalingFactors.Beta0 = 0;
-		
+
 	    rScalingFactors.Beta1 = 2.0 * rReturnMappingVariables.LameMu_bar * rReturnMappingVariables.DeltaGamma / rReturnMappingVariables.NormIsochoricStress;
-		
+
 	    rScalingFactors.Beta2 = (2.0/3.0) * rReturnMappingVariables.NormIsochoricStress * rReturnMappingVariables.DeltaGamma / (rReturnMappingVariables.LameMu_bar) ;
-		
+
 	    rScalingFactors.Beta3 = ( - rScalingFactors.Beta1 + rScalingFactors.Beta2 );
-		
+
 	    rScalingFactors.Beta4 = ( - rScalingFactors.Beta1 ) * rReturnMappingVariables.NormIsochoricStress / ( rReturnMappingVariables.LameMu_bar ) ;
 
 	  }
@@ -404,7 +400,7 @@ void NonLinearAssociativePlasticFlowRule::CalculateScalingFactors(const RadialRe
 	    HardeningParameters.SetEquivalentPlasticStrain(EquivalentPlasticStrain);
 	    HardeningParameters.SetDeltaGamma(rReturnMappingVariables.DeltaGamma);
 	    HardeningParameters.SetDeltaTime(rReturnMappingVariables.DeltaTime);
-	    
+
 	    if( rReturnMappingVariables.Options.Is(PLASTIC_RATE_REGION) )
 	      HardeningParameters.SetRateFactor(1);
 	    else if ( rReturnMappingVariables.Options.IsNot(PLASTIC_RATE_REGION) )
@@ -413,17 +409,17 @@ void NonLinearAssociativePlasticFlowRule::CalculateScalingFactors(const RadialRe
 	    DeltaHardening = mpYieldCriterion->GetHardeningLaw().CalculateDeltaHardening( DeltaHardening, HardeningParameters );
 
 	    rScalingFactors.Beta0 = 1.0 + DeltaHardening/(3.0 * rReturnMappingVariables.LameMu_bar);
-		
+
 	    rScalingFactors.Beta1 = 2.0 * rReturnMappingVariables.LameMu_bar * rReturnMappingVariables.DeltaGamma / rReturnMappingVariables.NormIsochoricStress;
-		
+
 	    rScalingFactors.Beta2 = ( ( 1.0 - ( 1.0 / rScalingFactors.Beta0 ) ) * (2.0/3.0) * rReturnMappingVariables.NormIsochoricStress * rReturnMappingVariables.DeltaGamma )/(rReturnMappingVariables.LameMu_bar) ;
-		
+
 	    rScalingFactors.Beta3 = ( ( 1.0 / rScalingFactors.Beta0 ) - rScalingFactors.Beta1 + rScalingFactors.Beta2 );
-		
+
 	    rScalingFactors.Beta4 = ( ( 1.0 / rScalingFactors.Beta0 ) - rScalingFactors.Beta1 ) * rReturnMappingVariables.NormIsochoricStress / ( rReturnMappingVariables.LameMu_bar ) ;
 
 	  }
-	
+
 	//std::cout<<"FACTORS:: Beta0 "<<rScalingFactors.Beta0<<" Beta 1 "<<rScalingFactors.Beta1<<" Beta2 "<<rScalingFactors.Beta2<<" Beta 3 "<<rScalingFactors.Beta3<<" Beta4 "<<rScalingFactors.Beta4<<std::endl;
 }
 

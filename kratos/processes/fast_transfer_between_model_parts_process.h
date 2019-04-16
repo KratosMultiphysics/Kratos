@@ -48,6 +48,7 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
  * @details This function assigns a value to a variable belonging to all of the nodes in a given mesh
+ * @note If the MODIFIED flag is set it will create new entities, copying the geometry and data, instead of just transfering
  * @author Vicente Mataix Ferrandiz
 */
 class KRATOS_API(KRATOS_CORE) FastTransferBetweenModelPartsProcess
@@ -61,14 +62,16 @@ public:
     typedef Node<3> NodeType;
 
     // General containers type definitions
-    typedef ModelPart::NodesContainerType              NodesArrayType;
-    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
-    typedef ModelPart::ElementsContainerType        ElementsArrayType;
+    typedef ModelPart::NodesContainerType                                 NodesArrayType;
+    typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
+    typedef ModelPart::ElementsContainerType                           ElementsArrayType;
+    typedef ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintArrayType;
 
     // General containers iterators type definitions
-    typedef NodesArrayType::iterator            IteratorNodesArrayType;
-    typedef ConditionsArrayType::iterator  IteratorConditionsArrayType;
-    typedef ElementsArrayType::iterator      IteratorElementsArrayType;
+    typedef NodesArrayType::iterator                                  IteratorNodesArrayType;
+    typedef ConditionsArrayType::iterator                        IteratorConditionsArrayType;
+    typedef ElementsArrayType::iterator                            IteratorElementsArrayType;
+    typedef MasterSlaveConstraintArrayType::iterator IteratorMasterSlaveConstraintsArrayType;
 
     /// The type used to identify the size
     typedef std::size_t SizeType;
@@ -82,6 +85,7 @@ public:
 
     /**
      * @brief This enum helps us to identify the elements to transfer between the modelparts
+     * @todo Add intermediate combinations of constraints, conditions and elements
      */
     enum class EntityTransfered {
         NODES = 0,
@@ -89,7 +93,9 @@ public:
         NODESANDELEMENTS = 2,
         CONDITIONS = 3,
         NODESANDCONDITIONS = 4,
-        ALL = 5
+        CONSTRAINTS = 5,
+        NODESANDCONSTRAINTS = 6,
+        ALL = 7
     };
 
     ///@}
@@ -102,12 +108,14 @@ public:
      * @param rOriginModelPart The origin model part
      * @param Entity The elements to transfer
      * @param Flag The flag used to differentiate between elements to transfer
+     * @param ReplicateEntities  If the entities are replicated or transfered
      */
     FastTransferBetweenModelPartsProcess(
         ModelPart& rDestinationModelPart,
         ModelPart& rOriginModelPart,
         const EntityTransfered Entity = EntityTransfered::ALL,
-        const Flags Flag = Flags()
+        const Flags Flag = Flags(),
+        const bool ReplicateEntities = false
         );
 
     /// Destructor.
@@ -216,6 +224,32 @@ private:
     ///@name Private Operations
     ///@{
     
+    /**
+     * @brief This method transfer the entities without considering the flags
+     */
+    void TransferWithoutFlags();
+
+    /**
+     * @brief This method transfer the entities considering the flags
+     */
+    void TransferWithFlags();
+
+    /**
+     * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
+     */
+
+    void ReorderAllIds(ModelPart& rThhisModelPart);
+
+    /**
+     * @brief This method replicates the entities without considering the flags
+     */
+    void ReplicateWithoutFlags();
+
+    /**
+     * @brief This method replicates the entities considering the flags
+     */
+    void ReplicateWithFlags();
+
     ///@}
     ///@name Private  Access
     ///@{

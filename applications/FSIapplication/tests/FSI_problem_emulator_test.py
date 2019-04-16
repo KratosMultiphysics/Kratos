@@ -40,8 +40,8 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
         self.point_load_updater = 1.5
         self.initial_point_load = 10000
 
-        self.nl_tol = 1.0e-9
-        self.max_nl_it = 50
+        self.max_nl_it = 250
+        self.nl_tol = 1.0e-10
         self.initial_relaxation = 0.825
 
     def tearDown(self):
@@ -59,12 +59,14 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
         self.RunTestCase()
 
     def testFSIProblemEmulatorWithMVQN(self):
-        self.coupling_utility = MVQNFullJacobianConvergenceAccelerator(self.initial_relaxation)
+        abs_cut_off = 1.0e-2
+        self.coupling_utility = MVQNFullJacobianConvergenceAccelerator(self.initial_relaxation, abs_cut_off)
         self.RunTestCase()
 
     def testFSIProblemEmulatorWithMVQNRecursive(self):
         buffer_size = 7
-        self.coupling_utility = MVQNRecursiveJacobianConvergenceAccelerator(self.initial_relaxation, buffer_size)
+        abs_cut_off = 1.0e-2
+        self.coupling_utility = MVQNRecursiveJacobianConvergenceAccelerator(self.initial_relaxation, buffer_size, abs_cut_off)
         self.RunTestCase()
 
     def RunTestCase(self):
@@ -139,10 +141,15 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
             step = 0
             time = 0.0
 
+
             while(time <= self.end_time):
 
                 time = time + self.Dt
                 step = step + 1
+
+                print("##################################")
+                print("########## step = ", step, "#############")
+                print("##################################")
 
                 self.structure_solver.main_model_part.ProcessInfo.SetValue(TIME_STEPS, step)
 
@@ -154,7 +161,7 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
                 self.structure_solver.Predict()
 
                 self.coupling_utility.InitializeSolutionStep()
-
+                
                 for nl_it in range(1,self.max_nl_it+1):
 
                     self.coupling_utility.InitializeNonLinearIteration()
@@ -162,6 +169,8 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
                     # Residual computation
                     disp_residual = self.ComputeDirichletNeumannResidual()
                     nl_res_norm = UblasSparseSpace().TwoNorm(disp_residual)
+
+                    print("nl_it: ",nl_it," nl_res_norm: ",nl_res_norm)
 
                     # Check convergence
                     if nl_res_norm < self.nl_tol:

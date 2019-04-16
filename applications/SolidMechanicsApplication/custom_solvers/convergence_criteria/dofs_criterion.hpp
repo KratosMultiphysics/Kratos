@@ -144,8 +144,10 @@ class DofsCriterion : public ConvergenceCriterion<TSparseSpace,TDenseSpace>
         size = CalculateReferenceNorm(rDofSet,rDx, ReferenceNorm, CorrectionNorm);
       }
 
-      if( size == 0 )
-        KRATOS_ERROR << "Dofs vector has size: " << size << std::endl;
+      if( size == 0 ){
+        KRATOS_WARNING("") << GetDofName() <<" Dofs vector has size: " << size << std::endl;
+        return true;
+      }
 
       if(CorrectionNorm != 0)
       {
@@ -163,7 +165,8 @@ class DofsCriterion : public ConvergenceCriterion<TSparseSpace,TDenseSpace>
       {
         if(this->GetEchoLevel() >= 1)
         {
-          std::cout << "VARIABLE (" << GetDofName() << ") :: Ratio = " << ratio << "; Norm = " << absolute_norm << std::endl;
+          std::cout << "DOF (" << GetDofName() << ") ["<<rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER]<<"] :: Ratio = " << ratio << "; Norm = " << absolute_norm << std::endl;
+          std::cout << " CorrectionNorm = " << CorrectionNorm << "; ReferenceNorm = " << ReferenceNorm << std::endl;
         }
       }
 

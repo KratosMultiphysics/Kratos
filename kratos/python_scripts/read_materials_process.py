@@ -7,7 +7,7 @@ import KratosMultiphysics
 import sys
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ReadMaterialsProcess(Model, settings["Parameters"])
 
@@ -31,6 +31,9 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         See _AssignPropertyBlock for detail on how properties are imported.
         """
+        
+        KratosMultiphysics.Logger.PrintWarning("ReadMaterialsProcess", "\n\nDEPRECATED: This process is deprecated, please use the C++ utility: ReadMaterialsUtility")
+        
         KratosMultiphysics.Process.__init__(self)
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -46,8 +49,12 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         with open(settings["materials_filename"].GetString(), 'r') as parameter_file:
             materials = KratosMultiphysics.Parameters(parameter_file.read())
 
-        for i in range(materials["properties"].size()):
-            self._AssignPropertyBlock(materials["properties"][i])
+        props = materials["properties"]
+
+        CheckUniqueMaterialAssignment(props)
+
+        for i in range(props.size()):
+            self._AssignPropertyBlock(props[i])
 
         KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Finished")
 
@@ -96,7 +103,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         """
         return self._get_attribute(my_string, KratosMultiphysics.KratosGlobals.GetVariable, "Variable")
 
-    def _GetConstitutiveLaw(self, my_string):
+    def _GetConstitutiveLaw(self, param):
         """Return the python object of a Constitutive Law named by the string argument.
 
         Example:
@@ -108,7 +115,18 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         model_part.GetProperties(prop_id).SetValue(CONSTITUTIVE_LAW, constitutive_law)
         """
-        return self._get_attribute(my_string, KratosMultiphysics.KratosGlobals.GetConstitutiveLaw, "Constitutive Law")
+        my_string = param["name"].GetString()
+        splitted = my_string.split(".")
+
+        if len(splitted) == 0:
+            raise Exception("Something wrong. Trying to split the string " + my_string)
+        if len(splitted) > 3:
+            raise Exception("Something wrong. String " + my_string + " has too many arguments")
+
+        cl_name = splitted[-1]
+        param["name"].SetString(cl_name)
+        cl = self._get_attribute(cl_name, KratosMultiphysics.KratosGlobals.GetConstitutiveLaw, "Constitutive Law")
+        return cl.Create(param)
 
     def _AssignPropertyBlock(self, data):
         """Set constitutive law and material properties and assign to elements and conditions.
@@ -167,7 +185,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         # Set the CONSTITUTIVE_LAW for the current properties.
         if (mat.Has("constitutive_law")):
-            constitutive_law = self._GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString() )
+            constitutive_law = self._GetConstitutiveLaw( mat["constitutive_law"] )
 
             prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law.Clone())
         else:
@@ -204,3 +222,24 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
                 new_table.AddRow(table["data"][i][0].GetDouble(), table["data"][i][1].GetDouble())
 
             prop.SetTable(input_var,output_var,new_table)
+
+def CheckUniqueMaterialAssignment(properties_block):
+    """This function check if the materials are assigned uniquely
+    I.e. defining materials multiple times for the same ModelPart is not allowed
+    Also defining materials for parent- and submodelparts is not allowed
+    """
+    model_part_names = [properties_block[i]["model_part_name"].GetString() for i in range(properties_block.size())]
+
+    for name in model_part_names:
+        if model_part_names.count(name) > 1:
+            raise Exception('Error: Materials for ModelPart "' + name + '" are specified multiple times!')
+
+        parent_model_part_name = name
+
+        while "." in parent_model_part_name:
+            parent_model_part_name = parent_model_part_name[:parent_model_part_name.rfind(".")]
+            if parent_model_part_name in model_part_names:
+                err_msg  = 'Error: Materials for ModelPart "' + name + '" are specified multiple times!\n'
+                err_msg += 'Overdefined due to also specifying the materials for Parent-ModelPart "'
+                err_msg += parent_model_part_name + '"!'
+                raise Exception(err_msg)

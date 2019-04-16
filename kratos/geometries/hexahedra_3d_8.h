@@ -12,6 +12,7 @@
 //                   Felix Nagel
 //  contributors:    Hoang Giang Bui
 //                   Josep Maria Carbonell
+//                   Bodhinanda Chandra
 //
 
 #if !defined(KRATOS_HEXAHEDRA_3D_8_H_INCLUDED )
@@ -28,9 +29,26 @@
 namespace Kratos
 {
 /**
- * An eight node hexahedra geometry with linear shape functions
+ * @class Hexahedra3D8
+ * @ingroup KratosCore
+ * @brief An eight node hexahedra geometry with linear shape functions
+ * @details The node ordering corresponds with:
+ *             v
+ *      3----------2
+ *      |\     ^   |\
+ *      | \    |   | \
+ *      |  \   |   |  \
+ *      |   7------+---6
+ *      |   |  +-- |-- | -> u
+ *      0---+---\--1   |
+ *       \  |    \  \  |
+ *        \ |     \  \ |
+ *         \|      w  \|
+ *          4----------5
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Hexahedra3D8 : public Geometry<TPointType>
 {
 public:
@@ -203,7 +221,7 @@ public:
         this->Points().push_back( pPoint8 );
     }
 
-    Hexahedra3D8( const PointsArrayType& ThisPoints )
+    explicit Hexahedra3D8( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 8 )
@@ -236,7 +254,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Hexahedra3D8( Hexahedra3D8<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Hexahedra3D8( Hexahedra3D8<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -319,16 +337,6 @@ public:
 
     //     return p_clone;
     // }
-
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-        if(rResult.size() != 8)
-            rResult.resize( 8, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 8.00 );
-        return rResult;
-    }
-
 
     /**
      * Information
@@ -453,16 +461,16 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
+    bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
@@ -586,6 +594,33 @@ public:
         return faces;
     }
 
+
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
+    {
+        using Quadrilateral3D4Type = Quadrilateral3D4<TPointType>;
+        // Check if faces have intersection
+        if(Quadrilateral3D4Type(this->pGetPoint(3),this->pGetPoint(2), this->pGetPoint(1), this->pGetPoint(0)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Quadrilateral3D4Type(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(5), this->pGetPoint(4)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Quadrilateral3D4Type(this->pGetPoint(2),this->pGetPoint(6), this->pGetPoint(5), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Quadrilateral3D4Type(this->pGetPoint(7),this->pGetPoint(6), this->pGetPoint(2), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Quadrilateral3D4Type(this->pGetPoint(7),this->pGetPoint(3), this->pGetPoint(0), this->pGetPoint(4)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Quadrilateral3D4Type(this->pGetPoint(4),this->pGetPoint(5), this->pGetPoint(6), this->pGetPoint(7)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+
+        CoordinatesArrayType local_coordinates;
+        // if there are no faces intersecting the box then or the box is inside the hexahedron or it does not have intersection
+        if(IsInside(rLowPoint,local_coordinates))
+            return true;
+
+        return false;
+    }
+
+
     /**
      * Shape Function
      */
@@ -649,7 +684,7 @@ public:
       rResult[4] =  0.125*( 1.0 - rCoordinates[0] )*( 1.0 - rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ;
       rResult[5] =  0.125*( 1.0 + rCoordinates[0] )*( 1.0 - rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ;
       rResult[6] =  0.125*( 1.0 + rCoordinates[0] )*( 1.0 + rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ;
-      rResult[7] =  0.125*( 1.0 - rCoordinates[0] )*( 1.0 + rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ;        
+      rResult[7] =  0.125*( 1.0 - rCoordinates[0] )*( 1.0 + rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ;
         return rResult;
     }
 
@@ -1210,4 +1245,4 @@ GeometryData Hexahedra3D8<TPointType>::msGeometryData(
 
 }// namespace Kratos.
 
-#endif // KRATOS_HEXAHEDRA_3D_8_H_INCLUDED  defined 
+#endif // KRATOS_HEXAHEDRA_3D_8_H_INCLUDED  defined

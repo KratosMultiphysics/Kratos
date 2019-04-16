@@ -56,62 +56,102 @@ page 232)
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementBbar
         : public BaseSolidElement
 {
+protected:
+/**
+* Internal variables used in the kinematic calculations
+*/
+struct KinematicVariablesBbar
+    : public KinematicVariables
+{
+    Vector Bh;
+
+    /**
+    * The default constructor
+    * @param StrainSize The size of the strain vector in Voigt notation
+    * @param Dimension The problem dimension: 2D or 3D
+    * @param NumberOfNodes The number of nodes in the element
+    */
+    KinematicVariablesBbar(
+        const SizeType StrainSize,
+        const SizeType Dimension,
+        const SizeType NumberOfNodes
+        ) : KinematicVariables(StrainSize, Dimension, NumberOfNodes)
+    {
+        Bh = ZeroVector(Dimension * NumberOfNodes);
+    }
+};
+
 public:
-        ///@name Type Definitions
-        ///@{
-        ///Reference type definition for constitutive laws
-        typedef ConstitutiveLaw ConstitutiveLawType;
-        ///Pointer type for constitutive laws
-        typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-        ///Type definition for integration methods
-        typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///@name Type Definitions
+    ///@{
+    ///Reference type definition for constitutive laws
+    typedef ConstitutiveLaw ConstitutiveLawType;
+    ///Pointer type for constitutive laws
+    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+    ///Type definition for integration methods
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-        /// Counted pointer of SmallDisplacementStrElement
-        KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacementBbar);
+    /// The base element type
+    typedef BaseSolidElement BaseType;
 
-        ///@}
-        ///@name Life Cycle
-        ///@{
+    /// The definition of the index type
+    typedef std::size_t IndexType;
 
-        /// Default constructor.
-        SmallDisplacementBbar(IndexType NewId, GeometryType::Pointer pGeometry);
-        SmallDisplacementBbar(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
 
-        /// Destructor.
-        ~SmallDisplacementBbar() override;
+    /// Counted pointer of SmallDisplacementStrElement
+    KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacementBbar);
 
-        ///@}
-        ///@name Operators
-        ///@{
-        ///@}
-        ///@name Operations
-        ///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-        /**
-        * @brief Creates a new element
-        * @param NewId The Id of the new created element
-        * @param pGeom The pointer to the geometry of the element
-        * @param pProperties The pointer to property
-        * @return The pointer to the created element
-        */
-        Element::Pointer Create(
-            IndexType NewId,
-            GeometryType::Pointer pGeom,
-            PropertiesType::Pointer pProperties
-            ) const override;
+    /// Default constructor.
+    SmallDisplacementBbar(IndexType NewId, GeometryType::Pointer pGeometry);
+    SmallDisplacementBbar(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-        /**
-        * @brief Creates a new element
-        * @param NewId The Id of the new created element
-        * @param ThisNodes The array containing nodes
-        * @param pProperties The pointer to property
-        * @return The pointer to the created element
-        */
-        Element::Pointer Create(
-            IndexType NewId,
-            NodesArrayType const& ThisNodes,
-            PropertiesType::Pointer pProperties
-            ) const override;
+    // Copy constructor
+    SmallDisplacementBbar(SmallDisplacementBbar const& rOther)
+        :BaseType(rOther)
+    {};
+
+
+    /// Destructor.
+    ~SmallDisplacementBbar() override;
+
+    ///@}
+    ///@name Operators
+    ///@{
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+    * @brief Creates a new element
+    * @param NewId The Id of the new created element
+    * @param pGeom The pointer to the geometry of the element
+    * @param pProperties The pointer to property
+    * @return The pointer to the created element
+    */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+    * @brief Creates a new element
+    * @param NewId The Id of the new created element
+    * @param ThisNodes The array containing nodes
+    * @param pProperties The pointer to property
+    * @return The pointer to the created element
+    */
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -122,195 +162,208 @@ public:
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-        /**
-         * Calculate a Matrix Variable on the Element Constitutive Law
-         * @param rVariable The variable we want to get
-         * @param rOutput The values obtained int the integration points
-         * @param rCurrentProcessInfo the current process info instance
-         */
-        void CalculateOnIntegrationPoints(
-                const Variable<Matrix>& rVariable,
-                std::vector<Matrix>& rOutput,
-                const ProcessInfo& rCurrentProcessInfo
+    /**
+    * Calculate a Matrix Variable on the Element Constitutive Law
+    * @param rVariable The variable we want to get
+    * @param rOutput The values obtained int the integration points
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+            const Variable<Matrix>& rVariable,
+            std::vector<Matrix>& rOutput,
+            const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
+    * Calculate a Vector Variable on the Element Constitutive Law
+    * @param rVariable The variable we want to get
+    * @param rOutput The values obtained int the integration points
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+            const Variable<Vector>& rVariable,
+            std::vector<Vector>& rOutput,
+            const ProcessInfo& rCurrentProcessInfo
+            ) override;
+
+    /**
+    * Calculate a double Variable on the Element Constitutive Law
+    * @param rVariable The variable we want to get
+    * @param rOutput The values obtained int the integration points
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+            const Variable<double>& rVariable,
+            std::vector<double>& rOutput,
+            const ProcessInfo& rCurrentProcessInfo
+            ) override;
+
+    /**
+    * Called at the end of eahc solution step
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+protected:
+
+    ///@name Protected static Member Variables
+    ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    SmallDisplacementBbar() : BaseSolidElement()
+    {
+    }
+
+    /**
+    * @brief This method returns if the element provides the strain
+    */
+    bool UseElementProvidedStrain() const override;
+
+    /**
+    * This functions updates the kinematics variables
+    * @param rThisKinematicVariables The kinematic variables to be calculated
+    * @param PointNumber The integration point considered
+    */
+    void CalculateKinematicVariables(
+        KinematicVariables& rThisKinematicVariables,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
 
-        /**
-         * Calculate a Vector Variable on the Element Constitutive Law
-         * @param rVariable The variable we want to get
-         * @param rOutput The values obtained int the integration points
-         * @param rCurrentProcessInfo the current process info instance
-         */
-        void CalculateOnIntegrationPoints(
-                const Variable<Vector>& rVariable,
-                std::vector<Vector>& rOutput,
-                const ProcessInfo& rCurrentProcessInfo
-                ) override;
+    /**
+    * Calculation of the RHS
+    */
+    void CalculateAndAddResidualVector(
+        VectorType& rRightHandSideVector,
+        const KinematicVariables& rThisKinematicVariables,
+        const ProcessInfo& rCurrentProcessInfo,
+        const array_1d<double, 3>& rBodyForce,
+        const Vector& rStressVector,
+        const double IntegrationWeight
+        ) const override;
 
-        /**
-         * Calculate a double Variable on the Element Constitutive Law
-         * @param rVariable The variable we want to get
-         * @param rOutput The values obtained int the integration points
-         * @param rCurrentProcessInfo the current process info instance
-         */
-        void CalculateOnIntegrationPoints(
-                const Variable<double>& rVariable,
-                std::vector<double>& rOutput,
-                const ProcessInfo& rCurrentProcessInfo
-                ) override;
-
-        /**
-         * Called at the end of eahc solution step
-         * @param rCurrentProcessInfo the current process info instance
-         */
-        void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    protected:
-
-        ///@name Protected static Member Variables
-        ///@{
-        ///@}
-        ///@name Protected member Variables
-        ///@{
-
-        ///@}
-        ///@name Protected Operators
-        ///@{
-        
-        SmallDisplacementBbar() : BaseSolidElement()
-        {
-        }
-
-     /**
-     * @brief This method returns if the element provides the strain
+    /**
+     * This functions updates the data structure passed to the CL
+     * @param rThisKinematicVariables The kinematic variables to be calculated
+     * @param rThisConstitutiveVariables The constitutive variables
+     * @param rValues The CL parameters
+     * @param PointNumber The integration point considered
+     * @param IntegrationPoints The list of integration points
+     * @param ThisStressMeasure The stress measure considered
      */
-    bool UseElementProvidedStrain() override;
+    void SetConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveLaw::Parameters& rValues,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        ) override;
 
-        /**
-         * This functions updates the kinematics variables
-         * @param rThisKinematicVariables The kinematic variables to be calculated
-         * @param PointNumber The integration point considered
-         */
+    /**
+     * This functions updates the constitutive variables
+     * @param rThisKinematicVariables The kinematic variables to be calculated
+     * @param rThisConstitutiveVariables The constitutive variables
+     * @param rValues The CL parameters
+     * @param PointNumber The integration point considered
+     * @param IntegrationPoints The list of integration points
+     * @param ThisStressMeasure The stress measure considered
+     */
+    void CalculateConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveLaw::Parameters& rValues,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure
+        ) override;
 
-        /**
-         * Calculation of the RHS
-         */
-        void CalculateAndAddResidualVector(
-                VectorType& rRightHandSideVector,
-                const KinematicVariables& rThisKinematicVariables,
-                const ProcessInfo& rCurrentProcessInfo,
-                const Vector& rBodyForce,
-                const Vector& rStressVector,
-                const double IntegrationWeight
-                );
+    /**
+    * This functions calculates both the RHS and the LHS
+    * @param rLeftHandSideMatrix The LHS
+    * @param rRightHandSideVector The RHS
+    * @param rCurrentProcessInfo The current process info instance
+    * @param CalculateStiffnessMatrixFlag The flag to set if compute the LHS
+    * @param CalculateResidualVectorFlag The flag to set if compute the RHS
+    */
+    void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
+        ) override;
 
-        /**
-         * Calculation of B standard matrices and other parameters
-         */
-        void CalculateKinematicVariables(
-                KinematicVariables& rThisKinematicVariables,
-                const unsigned int PointNumber,
-                const GeometryType::IntegrationMethod& rIntegrationMethod
-                ) override;
+    /**
+    * Calculation of the Deformation Matrix B
+    * @param B The deformation matrix
+    * @param DN_DX The derivatives of the shape functions
+    */
+    void CalculateB(
+        Matrix& rB,
+        const Matrix& DN_DX
+    );
 
-        /**
-        * This functions updates the constitutive variables
+    Matrix ComputeEquivalentF(const Vector& rStrainTensor);
+
+    /**
+        * This functions updates the kinematics variables
         * @param rThisKinematicVariables The kinematic variables to be calculated
-        * @param rThisConstitutiveVariables The constitutive variables
-        * @param rValues The CL parameters
         * @param PointNumber The integration point considered
-        * @param IntegrationPoints The list of integration points
-        * @param ThisStressMeasure The stress measure considered
         */
-        void CalculateConstitutiveVariables(
-                KinematicVariables& rThisKinematicVariables,
-                ConstitutiveVariables& rThisConstitutiveVariables,
-                ConstitutiveLaw::Parameters& rValues,
-                const unsigned int PointNumber,
-                const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                const ConstitutiveLaw::StressMeasure ThisStressMeasure
-                ) override;
-
-        /**
-         * This functions calculates both the RHS and the LHS
-         * @param rLeftHandSideMatrix The LHS
-         * @param rRightHandSideVector The RHS
-         * @param rCurrentProcessInfo The current process info instance
-         * @param CalculateStiffnessMatrixFlag The flag to set if compute the LHS
-         * @param CalculateResidualVectorFlag The flag to set if compute the RHS
-         */
-        void CalculateAll(
-                MatrixType& rLeftHandSideMatrix,
-                VectorType& rRightHandSideVector,
-                ProcessInfo& rCurrentProcessInfo,
-                const bool CalculateStiffnessMatrixFlag,
-                const bool CalculateResidualVectorFlag
-                ) override;
-
-        /**
-         * Calculation of the Deformation Matrix B
-         * @param B The deformation matrix
-         * @param DN_DX The derivatives of the shape functions
-         */
-        virtual void CalculateB(
-                Matrix& rB,
-                const Matrix& DN_DX
-        );
-        virtual Matrix ComputeEquivalentF(const Vector& rStrainTensor);
-
-        /**
-         * This functions updates the kinematics variables
-         * @param rThisKinematicVariables The kinematic variables to be calculated
-         * @param PointNumber The integration point considered
-         */
-        void CalculateKinematicVariablesBbar(
-                KinematicVariables& rThisKinematicVariables,
-                const unsigned int PointNumber,
-                const GeometryType::IntegrationPointsArrayType& IntegrationPoints
-                );
-
-
-        /**
-         * Calculation of the Deformation Matrix Bbar
-         * @param B The deformation matrix
-         * @param DN_DX The derivatives of the shape functions
-         */
-        virtual void CalculateBbar(
-                Matrix &rB,
-                Vector &rBh,
-                const Matrix &DN_DX,
-                const GeometryType::IntegrationPointsArrayType &IntegrationPoints,
-                const unsigned int PointNumber
+    void CalculateKinematicVariablesBbar(
+        KinematicVariablesBbar& rThisKinematicVariables,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
         );
 
-        // Compute Bbar components
-        /**
-         * This functions updates the kinematics variables
-         * @param rThisKinematicVariables The kinematic variables to be calculated
-         */
-        void CalculateHydrostaticDeformationMatrix(KinematicVariables& rThisKinematicVariables);
+    /**
+    * Calculation of the Deformation Matrix Bbar
+    * @param B The deformation matrix
+    * @param DN_DX The derivatives of the shape functions
+    */
+    void CalculateBbar(
+        Matrix &rB,
+        Vector &rBh,
+        const Matrix &DN_DX,
+        const GeometryType::IntegrationPointsArrayType &IntegrationPoints,
+        const IndexType PointNumber
+    );
 
-    private:
+    // Compute Bbar components
+    /**
+    * This functions updates the kinematics variables
+    * @param rThisKinematicVariables The kinematic variables to be calculated
+    */
+    void CalculateHydrostaticDeformationMatrix(KinematicVariablesBbar& rThisKinematicVariables);
 
-        friend class Serializer;
+private:
 
-        // A private default constructor necessary for serialization
+    friend class Serializer;
 
-        void save(Serializer& rSerializer) const override;
+    // A private default constructor necessary for serialization
 
-        void load(Serializer& rSerializer) override;
+    void save(Serializer& rSerializer) const override;
 
-        ///@name Private Inquiry
-        ///@{
-        ///@}
-        ///@name Un accessible methods
-        ///@{
-        /// Assignment operator.
-        //SmallDisplacementStrElement& operator=(const SmallDisplacementStrElement& rOther);
-        /// Copy constructor.
-        //SmallDisplacementStrElement(const SmallDisplacementStrElement& rOther);
-        ///@}
+    void load(Serializer& rSerializer) override;
 
-    }; // Class SmallDisplacementBbar
+    ///@name Private Inquiry
+    ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+    /// Assignment operator.
+    //SmallDisplacementStrElement& operator=(const SmallDisplacementStrElement& rOther);
+    /// Copy constructor.
+    //SmallDisplacementStrElement(const SmallDisplacementStrElement& rOther);
+    ///@}
+
+}; // Class SmallDisplacementBbar
 
 ///@}
 ///@name Type Definitions

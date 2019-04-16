@@ -54,7 +54,7 @@ public:
     LinearElasticPlastic3DLaw();
 
 
-    LinearElasticPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    LinearElasticPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -77,7 +77,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~LinearElasticPlastic3DLaw();
+    ~LinearElasticPlastic3DLaw() override;
 
     /**
      * Operators
@@ -88,7 +88,7 @@ public:
      */
 
     double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
-    
+
     double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
 
     /**
@@ -144,7 +144,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     /**
      * Calculates the characteristic size of the element
      * @param rCharacteristicSize
@@ -152,8 +152,8 @@ protected:
      */
 
     virtual void CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry );
-    
-    
+
+
     /**
      * Calculates the linear elastic constitutive matrix in terms of Young's modulus and
      * Poisson ratio
@@ -173,7 +173,7 @@ protected:
      * @param LinearElasticMatrix
      * @param StrainVector
      */
-    
+
     virtual void CalculateReturnMapping( FlowRule::RadialReturnVariables& rReturnMappingVariables, Matrix& rStressMatrix,
                                             Vector& rStressVector, const Matrix& LinearElasticMatrix, const Vector& StrainVector );
 
@@ -193,7 +193,7 @@ protected:
      * @param rReturnMappingVariables, plastic variables
      * @param rStressVector
      * @param LinearElasticMatrix
-     * @param StrainVector     
+     * @param StrainVector
      */
 
     virtual void UpdateInternalStateVariables( FlowRule::RadialReturnVariables& rReturnMappingVariables, Vector& rStressVector,

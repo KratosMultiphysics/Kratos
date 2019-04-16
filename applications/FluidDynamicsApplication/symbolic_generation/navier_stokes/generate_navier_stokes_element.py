@@ -33,8 +33,21 @@ elif (dim_to_compute == "3D"):
 elif (dim_to_compute == "Both"):
     dim_vector = [2,3]
 
-## Read the template file
-templatefile = open("navier_stokes_cpp_template.cpp")
+## Read the template file and set the output filename accordingly
+template_filename = "symbolic_navier_stokes_cpp_template.cpp"
+
+if template_filename == "navier_stokes_cpp_template.cpp":
+    output_filename = "navier_stokes.cpp"
+elif template_filename == "symbolic_navier_stokes_cpp_template.cpp":
+    output_filename = "symbolic_navier_stokes.cpp"
+else:
+    err_msg = "Wrong template_filename provided. Must be (template --> output):\n"
+    err_msg +=  "\t- navier_stokes_cpp_template.cpp --> navier_stokes.cpp (old element)"
+    err_msg +=  "\t- symbolic_navier_stokes_cpp_template.cpp --> symbolic_navier_stokes.cpp (new element)"
+    raise Exception(err_msg)
+
+## Initialize the outstring to be filled with the template .cpp file
+templatefile = open(template_filename)
 outstring = templatefile.read()
 
 for dim in dim_vector:
@@ -106,7 +119,7 @@ for dim in dim_vector:
     vconv_gauss_norm = sqrt(vconv_gauss_norm)
 
     tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h))   # Stabilization parameter 1
-    tau2 = mu + (stab_c2*vconv_gauss_norm*h)/stab_c1                                        # Stabilization parameter 2
+    tau2 = mu + (stab_c2*rho*vconv_gauss_norm*h)/stab_c1                                    # Stabilization parameter 2
 
     ## Compute the rest of magnitudes at the Gauss points
     accel_gauss = (bdf0*v + bdf1*vn + bdf2*vnn).transpose()*N
@@ -208,7 +221,7 @@ for dim in dim_vector:
     lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications) # Compute the LHS (considering stress as C*(B*v) to derive w.r.t. v)
     lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
 
-
+    ## Replace the computed RHS and LHS in the template outstring
     if(dim == 2):
         outstring = outstring.replace("//substitute_lhs_2D", lhs_out)
         outstring = outstring.replace("//substitute_rhs_2D", rhs_out)
@@ -216,16 +229,16 @@ for dim in dim_vector:
         outstring = outstring.replace("//substitute_lhs_3D", lhs_out)
         outstring = outstring.replace("//substitute_rhs_3D", rhs_out)
 
-    ## Compute velocity subscale Gauss point value
-    v_s_gauss = tau1*rho*(f_gauss - accel_gauss - convective_term.transpose()) - tau1*grad_p
-    v_s_gauss_out = OutputVector_CollectingFactors(v_s_gauss, "v_s_gauss", mode)
-
-    if(dim == 2):
-        outstring = outstring.replace("//substitute_gausspt_subscale_2D", v_s_gauss_out)
-    elif(dim == 3):
-        outstring = outstring.replace("//substitute_gausspt_subscale_3D", v_s_gauss_out)
+    ## Compute velocity subscale Gauss point value (only implemented in the old element)
+    if template_filename == "navier_stokes_cpp_template.cpp":
+        v_s_gauss = tau1*rho*(f_gauss - accel_gauss - convective_term.transpose()) - tau1*grad_p
+        v_s_gauss_out = OutputVector_CollectingFactors(v_s_gauss, "v_s_gauss", mode)
+        if(dim == 2):
+            outstring = outstring.replace("//substitute_gausspt_subscale_2D", v_s_gauss_out)
+        elif(dim == 3):
+            outstring = outstring.replace("//substitute_gausspt_subscale_3D", v_s_gauss_out)
 
 ## Write the modified template
-out = open("navier_stokes.cpp",'w')
+out = open(output_filename,'w')
 out.write(outstring)
 out.close()

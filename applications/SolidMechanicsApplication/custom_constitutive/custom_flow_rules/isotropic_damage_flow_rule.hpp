@@ -71,9 +71,9 @@ namespace Kratos
 
     /// Assignment operator.
     IsotropicDamageFlowRule& operator=(IsotropicDamageFlowRule const& rOther);
-	
+
     /// Destructor.
-    virtual ~IsotropicDamageFlowRule();
+    ~IsotropicDamageFlowRule() override;
 
 
     ///@}
@@ -85,15 +85,15 @@ namespace Kratos
      * @return a pointer to a new instance of this flow rule
      */
     FlowRule::Pointer Clone() const override;
-   
+
     ///@}
     ///@name Operations
     ///@{
 
-    void InitializeMaterial(YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties) override; 
+    void InitializeMaterial(YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties) override;
 
     bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen) override;
-    
+
     bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix ) override;
 
     void ComputeElastoPlasticTangentMatrix( const RadialReturnVariables& rReturnMappingVariables, const Matrix& rElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticMatrix) override;
@@ -130,7 +130,7 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -164,13 +164,13 @@ namespace Kratos
   private:
     ///@name Static Member Variables
     ///@{
-    
+
 
     ///@}
     ///@name Member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -238,4 +238,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ISOTROPIC_DAMAGE_FLOW_RULE_H_INCLUDED  defined 
+#endif // KRATOS_ISOTROPIC_DAMAGE_FLOW_RULE_H_INCLUDED  defined

@@ -591,7 +591,7 @@ protected:
 		BoundedMatrix<double,TBlockSize,TBlockSize>& rRot,
 		GeometryType::PointType& rThisPoint) const
 	{
-		noalias(rRot) = IdentityMatrix(TBlockSize,TBlockSize);
+		noalias(rRot) = IdentityMatrix(TBlockSize);
 
 		// Get the normal evaluated at the node
 		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
@@ -610,7 +610,7 @@ protected:
 		BoundedMatrix<double,TBlockSize,TBlockSize>& rRot,
 		GeometryType::PointType& rThisPoint) const
 	{
-		noalias(rRot) = IdentityMatrix(TBlockSize,TBlockSize);
+		noalias(rRot) = IdentityMatrix(TBlockSize);
 
 		// Get the normal evaluated at the node
 		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);

@@ -2,17 +2,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 
 import KratosMultiphysics.KratosUnittest as UnitTest
-
-class WorkFolderScope:
-    def __init__(self, work_folder):
-        self.currentPath = os.getcwd()
-        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
+import KratosMultiphysics.kratos_utilities as KratosUtilities
 
 class DarcyChannelTest(UnitTest.TestCase):
 
@@ -44,16 +34,11 @@ class DarcyChannelTest(UnitTest.TestCase):
         self.print_output = False
 
     def tearDown(self):
-        import os
-        with WorkFolderScope(self.work_folder):
-            try:
-                os.remove(self.input_file+'.time')
-            except FileNotFoundError as e:
-                pass
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
+            KratosUtilities.DeleteFileIfExisting(self.input_file+'.time')
 
     def testDarcyChannel(self):
-
-        with WorkFolderScope(self.work_folder):
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
             self.setUpModel()
             self.setUpSolver()
             self.setUpProblem()
@@ -83,9 +68,9 @@ class DarcyChannelTest(UnitTest.TestCase):
 
     def testDarcyDensity(self):
         self.u0 = 2.0
-        self.linear_darcy_coefficient = 1.0
-        self.nonlinear_darcy_coefficient = 1.0
         self.rho = 1000.0
+        self.linear_darcy_coefficient = 1.0/self.rho
+        self.nonlinear_darcy_coefficient = 1.0/self.rho
         self.testDarcyChannel()
 
     def testReferenceValues(self):
@@ -111,7 +96,7 @@ class DarcyChannelTest(UnitTest.TestCase):
                 self.density = float(density)
                 self.temperature = float(temperature)
                 self.kinematic_viscosity = float(kinematic_viscosity)
- 
+
         fluids = [
             Fluid("Water",7,1000,1.38E-06),
             Fluid("Pure Aluminium",710,2386,5.25E-07),
@@ -175,10 +160,10 @@ class DarcyChannelTest(UnitTest.TestCase):
         self.rho = fluid.density
         self.nu = fluid.kinematic_viscosity
 
-        self.linear_darcy_coefficient = self.rho * self.nu / filt.k1
-        self.nonlinear_darcy_coefficient = self.rho / filt.k2
+        self.linear_darcy_coefficient = 1.0 / filt.k1
+        self.nonlinear_darcy_coefficient = 1.0 / filt.k2
 
-        print("A: {0} B: {1}".format(self.linear_darcy_coefficient,self.nonlinear_darcy_coefficient))
+        Logger.PrintInfo("Darcy Test","A: {0} B: {1}".format(self.linear_darcy_coefficient,self.nonlinear_darcy_coefficient))
 
         self.do_check = False # override default verification function
         self.testDarcyChannel()
@@ -192,14 +177,14 @@ class DarcyChannelTest(UnitTest.TestCase):
 
 
         # dP/dX = (mu/k1) * u0 + (rho/k2) * u0**2
-        expected_pressure_drop = (self.xmax - self.xmin) * (self.linear_darcy_coefficient*self.u0 + self.nonlinear_darcy_coefficient*self.u0**2)
+        expected_pressure_drop = (self.xmax - self.xmin) * (self.nu*self.rho*self.linear_darcy_coefficient*self.u0 + self.rho*self.nonlinear_darcy_coefficient*self.u0**2)
         measured_pressure_drop = p_in - p_out
         rel_error = 100. * (measured_pressure_drop-expected_pressure_drop)/expected_pressure_drop
         outfile.write("{0}; {1}; {2}; {3}; {4}; {5}; {6}\n".format(fluid.name,filt.name,self.dt,self.dynamic_tau,expected_pressure_drop,measured_pressure_drop,rel_error))
 
     def setUpModel(self):
-
-        self.fluid_model_part = ModelPart("Fluid")
+        self.model = Model()
+        self.fluid_model_part = self.model.CreateModelPart("Fluid")
 
         self.fluid_model_part.Properties[0].SetValue(LIN_DARCY_COEF,self.linear_darcy_coefficient)
         self.fluid_model_part.Properties[0].SetValue(NONLIN_DARCY_COEF,self.nonlinear_darcy_coefficient)
@@ -228,8 +213,11 @@ class DarcyChannelTest(UnitTest.TestCase):
         self.fluid_solver.conv_criteria.SetEchoLevel(0)
 
         self.fluid_solver.time_scheme = ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction(self.domain_size)
-        precond = DiagonalPreconditioner()
-        self.fluid_solver.linear_solver = BICGSTABSolver(1e-6, 5000, precond)
+
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+        self.fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(Parameters(r'''{
+                "solver_type" : "amgcl"
+            }'''))
         builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.fluid_solver.linear_solver)
         self.fluid_solver.max_iter = 50
         self.fluid_solver.compute_reactions = False
@@ -304,7 +292,7 @@ class DarcyChannelTest(UnitTest.TestCase):
             p_out = node_out.GetSolutionStepValue(PRESSURE)
 
             # dP/dX = (mu/k1) * u0 + (rho/k2) * u0**2
-            expected_pressure_drop = (self.xmax-self.xmin) * (self.linear_darcy_coefficient*self.u0 + self.nonlinear_darcy_coefficient*self.u0**2)
+            expected_pressure_drop = (self.xmax-self.xmin) * (self.nu*self.rho*self.linear_darcy_coefficient*self.u0 + self.rho*self.nonlinear_darcy_coefficient*self.u0**2)
             measured_pressure_drop = p_in - p_out
             self.assertAlmostEqual(expected_pressure_drop,measured_pressure_drop,6)
         else:
@@ -326,7 +314,7 @@ class DarcyChannelTest(UnitTest.TestCase):
         label = self.fluid_model_part.ProcessInfo[TIME]
         self.gid_io.WriteNodalResults(VELOCITY,self.fluid_model_part.Nodes,label,0)
         self.gid_io.WriteNodalResults(PRESSURE,self.fluid_model_part.Nodes,label,0)
-    
+
     def FinalizeOutput(self):
         self.gid_io.FinalizeResults()
 

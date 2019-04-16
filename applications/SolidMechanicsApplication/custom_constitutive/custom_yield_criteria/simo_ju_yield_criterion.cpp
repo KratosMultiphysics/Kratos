@@ -8,15 +8,13 @@
 //
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "solid_mechanics_application_variables.h"
 #include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
+
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -27,7 +25,7 @@ namespace Kratos
 SimoJuYieldCriterion::SimoJuYieldCriterion()
 	:YieldCriterion()
 {
-   
+
 }
 
 
@@ -37,7 +35,7 @@ SimoJuYieldCriterion::SimoJuYieldCriterion()
 SimoJuYieldCriterion::SimoJuYieldCriterion(HardeningLawPointer pHardeningLaw)
 	:YieldCriterion(pHardeningLaw)
 {
-   
+
 }
 
 //*******************************ASSIGMENT OPERATOR***********************************
@@ -63,8 +61,7 @@ SimoJuYieldCriterion::SimoJuYieldCriterion(SimoJuYieldCriterion const& rOther)
 
 YieldCriterion::Pointer SimoJuYieldCriterion::Clone() const
 {
-  YieldCriterion::Pointer p_clone(new SimoJuYieldCriterion(*this));
-  return p_clone;
+  return Kratos::make_shared<SimoJuYieldCriterion>(*this);
 }
 
 //********************************DESTRUCTOR******************************************
@@ -84,10 +81,10 @@ double& SimoJuYieldCriterion::CalculateYieldCondition(double & rStateFunction, c
 {
     // Compute Theta parameter
     double Theta;
-    
+
     const Matrix& StressMatrix = rVariables.GetStressMatrix();
     const unsigned int Dim = StressMatrix.size1();
-    
+
     Vector PrincipalStresses(Dim);
     if(Dim == 2)
     {
@@ -104,9 +101,9 @@ double& SimoJuYieldCriterion::CalculateYieldCondition(double & rStateFunction, c
     }
 
     double Macaulay_PrincipalStress = 0.0, Absolute_PrincipalStress = 0.0;
-    
+
     for(unsigned int i = 0; i < Dim; i++)
-    { 
+    {
         if(PrincipalStresses[i] > 0.0)
         {
             Macaulay_PrincipalStress += PrincipalStresses[i];
@@ -126,23 +123,23 @@ double& SimoJuYieldCriterion::CalculateYieldCondition(double & rStateFunction, c
     {
         Theta = 0.5;
     }
-    
+
     // Compute Equivalent Strain (rStateFunction)
     const Matrix& StrainMatrix = rVariables.GetStrainMatrix();
     Matrix Auxiliar(Dim,Dim);
     noalias(Auxiliar) = prod(StrainMatrix,StressMatrix);
-    
+
     double StressNorm = 0.0;
-    
-    for(unsigned int i = 0; i < Dim; i++) 
+
+    for(unsigned int i = 0; i < Dim; i++)
     {
         StressNorm += Auxiliar(i,i);
     }
-    
+
     const double& StrengthRatio = mpHardeningLaw->GetProperties()[STRENGTH_RATIO];
-    
+
     rStateFunction = (Theta+(1.0-Theta)/StrengthRatio)*sqrt(StressNorm);
-    
+
     return rStateFunction;
 }
 
@@ -151,11 +148,11 @@ double& SimoJuYieldCriterion::CalculateYieldCondition(double & rStateFunction, c
 //************************************************************************************
 
 double& SimoJuYieldCriterion::CalculateStateFunction(double& rStateFunction, const Parameters& rVariables)
-{    
+{
     const HardeningLaw::Parameters& HardeningLawParameters = rVariables.GetHardeningParameters();
-    
+
     mpHardeningLaw->CalculateHardening(rStateFunction, HardeningLawParameters);
-    
+
 	return rStateFunction;
 }
 
@@ -166,9 +163,9 @@ double& SimoJuYieldCriterion::CalculateStateFunction(double& rStateFunction, con
 double& SimoJuYieldCriterion::CalculateDeltaStateFunction(double& rDeltaStateFunction, const Parameters& rVariables)
 {
     const HardeningLaw::Parameters& HardeningLawParameters = rVariables.GetHardeningParameters();
-    
+
     mpHardeningLaw->CalculateDeltaHardening(rDeltaStateFunction, HardeningLawParameters);
-    
+
 	return rDeltaStateFunction;
 }
 

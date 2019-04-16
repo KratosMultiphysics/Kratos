@@ -62,24 +62,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "empire_application.h"
 
 
-namespace Kratos
+namespace Kratos {
+namespace Python {
+
+PYBIND11_MODULE(KratosEmpireApplication,m)
 {
-
-namespace Python
-{
-  using namespace pybind11;
-
-  PYBIND11_MODULE(KratosEmpireApplication,m)
-  {
-    class_<KratosEmpireApplication, KratosEmpireApplication::Pointer,
-         KratosApplication>(m,"KratosEmpireApplication")
-         .def(init<>());
-
-  }
-
+    pybind11::class_<KratosEmpireApplication, KratosEmpireApplication::Pointer,
+        KratosApplication>(m,"KratosEmpireApplication")
+        .def(pybind11::init<>());
+}
 
 }  // namespace Python.
-
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

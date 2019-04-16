@@ -328,7 +328,8 @@ public:
 
         //DistanceFluidStructure();
 
-		CalculateDistanceToSkinProcess(mrFluidModelPart, mrBodyModelPart).Execute();
+		CalculateDistanceToSkinProcess<3> distance_process(mrFluidModelPart, mrBodyModelPart);
+        distance_process.Execute();
 
         //          ------------------------------------------------------------------
         //          GenerateNodes();
@@ -358,7 +359,7 @@ public:
     void MappingPressureToStructure(BinBasedFastPointLocator<3>& node_locator)
     {
         //loop over nodes and find the tetra in which it falls, than do interpolation
-        array_1d<double, 4 > N;
+        Vector N;
         const int max_results = 10000;
         BinBasedFastPointLocator<3>::ResultContainerType results(max_results);
         const int n_structure_nodes = mrSkinModelPart.Nodes().size();
@@ -694,7 +695,7 @@ public:
                                Node<3>& node)
     {
         //loop over nodes and find the tetra in which it falls, than do interpolation
-        array_1d<double, 4 > N;
+        Vector N;
         const int max_results = 10000;
         BinBasedFastPointLocator<3>::ResultContainerType results(max_results);
         BinBasedFastPointLocator<3>::ResultIteratorType result_begin = results.begin();
@@ -782,7 +783,7 @@ public:
 
         ModelPart::ElementsContainerType& pElements = mrFluidModelPart.Elements();
 
-        vector<unsigned int> Element_partition;
+        DenseVector<unsigned int> Element_partition;
         CreatePartition(number_of_threads, pElements.size(), Element_partition);
 
 #pragma omp parallel for
@@ -2770,7 +2771,7 @@ private:
     }
 
 
-    inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
+    inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, DenseVector<unsigned int>& partitions)
     {
         partitions.resize(number_of_threads + 1);
         int partition_size = number_of_rows / number_of_threads;

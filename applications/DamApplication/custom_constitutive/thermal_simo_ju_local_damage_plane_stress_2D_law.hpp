@@ -24,7 +24,7 @@
 namespace Kratos
 {
 
-class ThermalSimoJuLocalDamagePlaneStress2DLaw : public ThermalLocalDamagePlaneStress2DLaw
+class KRATOS_API(DAM_APPLICATION) ThermalSimoJuLocalDamagePlaneStress2DLaw : public ThermalLocalDamagePlaneStress2DLaw
 {
 
 public:

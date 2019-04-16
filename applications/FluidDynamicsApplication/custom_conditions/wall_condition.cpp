@@ -13,7 +13,8 @@ template <>
 void WallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
                                                     ProcessInfo& rCurrentProcessInfo)
 {
-    int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+    const ProcessInfo& r_process_info = rCurrentProcessInfo;
+    int step = r_process_info[FRACTIONAL_STEP];
     if ( step == 1 )
     {
         const unsigned int NumNodes = 2;
@@ -31,23 +32,23 @@ void WallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
     }
     else
     {
-        		if(this->Is(INTERFACE) && step==5 )
+        if(this->Is(INTERFACE) && step==5 )
         {
                 //add here a mass matrix in the form Dt/rho_equivalent_structure to the lhs alone
                 const SizeType NumNodes = 2;
 
                 if (rResult.size() != NumNodes)
-					rResult.resize(NumNodes, false);
+                    rResult.resize(NumNodes, false);
 
                 unsigned int LocalIndex = 0;
 
                 for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-					rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
+                    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
         }
         else
         {
-			rResult.resize(0,false);
-		}
+            rResult.resize(0,false);
+        }
     }
 }
 
@@ -58,7 +59,8 @@ template <>
 void WallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
                                                     ProcessInfo& rCurrentProcessInfo)
 {
-    int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+    const ProcessInfo& r_process_info = rCurrentProcessInfo;
+    int step = r_process_info[FRACTIONAL_STEP];
     if ( step == 1 )
     {
         const SizeType NumNodes = 3;
@@ -77,23 +79,23 @@ void WallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
     }
     else
     {
-		if(this->Is(INTERFACE) && step==5 )
+        if(this->Is(INTERFACE) && step==5 )
         {
-                //add here a mass matrix in the form Dt/rho_equivalent_structure to the lhs alone
-                const SizeType NumNodes = 3;
+            //add here a mass matrix in the form Dt/rho_equivalent_structure to the lhs alone
+            const SizeType NumNodes = 3;
 
-                if (rResult.size() != NumNodes)
-					rResult.resize(NumNodes, false);
+            if (rResult.size() != NumNodes)
+                rResult.resize(NumNodes, false);
 
-                unsigned int LocalIndex = 0;
+            unsigned int LocalIndex = 0;
 
-                for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-					rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
+            for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+                rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
         }
         else
         {
-			rResult.resize(0,false);
-		}
+            rResult.resize(0,false);
+        }
     }
 }
 
@@ -104,7 +106,8 @@ template <>
 void WallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
                                               ProcessInfo& rCurrentProcessInfo)
 {
- 	int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+ 	const ProcessInfo& r_process_info = rCurrentProcessInfo;
+	int step = r_process_info[FRACTIONAL_STEP];
     if ( step == 1 )
     {
         const SizeType NumNodes = 2;
@@ -139,7 +142,7 @@ void WallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
         else
         {
             rElementalDofList.resize(0);
-        }        
+        }
     }
 }
 
@@ -150,7 +153,8 @@ template <>
 void WallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
                                     ProcessInfo& rCurrentProcessInfo)
 {
-	int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+    const ProcessInfo& r_process_info = rCurrentProcessInfo;
+	int step = r_process_info[FRACTIONAL_STEP];
     if ( step == 1 )
     {
         const SizeType NumNodes = 3;
@@ -264,7 +268,7 @@ void WallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &rLocalMatr
             }
 
             // Velocity inflow correction
-            array_1d<double,3> Vel(3,0.0);
+            array_1d<double,3> Vel = ZeroVector(3);
             double Density = 0.0;
 
             for (unsigned int i = 0; i < TNumNodes; i++)

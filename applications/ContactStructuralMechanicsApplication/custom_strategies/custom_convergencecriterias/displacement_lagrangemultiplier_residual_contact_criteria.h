@@ -17,8 +17,6 @@
 /* External includes */
 
 /* Project includes */
-#include "includes/model_part.h"
-#include "includes/define.h"
 #include "utilities/table_stream_utility.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/color_utilities.h"
@@ -42,13 +40,13 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
-    
+
 ///@name Kratos Classes
 ///@{
 
 /**
- * @class DisplacementLagrangeMultiplierResidualContactCriteria 
- * @ingroup ContactStructuralMechanicsApplication 
+ * @class DisplacementLagrangeMultiplierResidualContactCriteria
+ * @ingroup ContactStructuralMechanicsApplication
  * @brief Convergence criteria for contact problems
  * This class implements a convergence control based on nodal displacement and
  * lagrange multiplier values. The error is evaluated separately for each of them, and
@@ -57,7 +55,7 @@ namespace Kratos
  */
 template<   class TSparseSpace,
             class TDenseSpace >
-class DisplacementLagrangeMultiplierResidualContactCriteria 
+class DisplacementLagrangeMultiplierResidualContactCriteria
     : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
@@ -65,34 +63,34 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Pointer definition of DisplacementLagrangeMultiplierResidualContactCriteria
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementLagrangeMultiplierResidualContactCriteria );
 
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >     BaseType;
+    /// The base class definition (and it subclasses)
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+    typedef typename BaseType::TDataType                    TDataType;
+    typedef typename BaseType::DofsArrayType            DofsArrayType;
+    typedef typename BaseType::TSystemMatrixType    TSystemMatrixType;
+    typedef typename BaseType::TSystemVectorType    TSystemVectorType;
 
-    typedef TSparseSpace                                  SparseSpaceType;
+    /// The sparse space used
+    typedef TSparseSpace                              SparseSpaceType;
 
-    typedef typename BaseType::TDataType                        TDataType;
+    /// The table stream definition TODO: Replace by logger
+    typedef TableStreamUtility::Pointer       TablePrinterPointerType;
 
-    typedef typename BaseType::DofsArrayType                DofsArrayType;
+    /// The index type definition
+    typedef std::size_t                                     IndexType;
 
-    typedef typename BaseType::TSystemMatrixType        TSystemMatrixType;
-
-    typedef typename BaseType::TSystemVectorType        TSystemVectorType;
-
-    typedef OpenMPUtils::PartitionVector                  PartitionVector;
-
-    typedef std::size_t                                           KeyType;
-    
-    typedef TableStreamUtility::Pointer           TablePrinterPointerType;
-    
-    typedef std::size_t                                         IndexType;
+    /// The key type definition
+    typedef std::size_t                                       KeyType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
     /**
+     * @brief Default constructor (parameters)
      * @param DispRatioTolerance Relative tolerance for displacement residual error
      * @param DispAbsTolerance Absolute tolerance for displacement residual error
      * @param LMRatioTolerance Relative tolerance for lagrange multiplier residual  error
@@ -101,13 +99,12 @@ public:
      * @param pTable The pointer to the output table
      * @param PrintingOutput If the output is going to be printed in a txt file
      */
-    
-    DisplacementLagrangeMultiplierResidualContactCriteria(  
-        TDataType DispRatioTolerance,
-        TDataType DispAbsTolerance,
-        TDataType LMRatioTolerance,
-        TDataType LMAbsTolerance,
-        bool EnsureContact = false,
+    explicit DisplacementLagrangeMultiplierResidualContactCriteria(
+        const TDataType DispRatioTolerance,
+        const TDataType DispAbsTolerance,
+        const TDataType LMRatioTolerance,
+        const TDataType LMAbsTolerance,
+        const bool EnsureContact = false,
         const bool PrintingOutput = false
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
@@ -120,13 +117,50 @@ public:
 
         mLMRatioTolerance = LMRatioTolerance;
         mLMAbsTolerance = LMAbsTolerance;
-        
+
+        mInitialResidualIsSet = false;
+    }
+
+    /**
+     * @brief Default constructor (parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit DisplacementLagrangeMultiplierResidualContactCriteria( Parameters ThisParameters = Parameters(R"({})"))
+        : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
+          mTableIsInitialized(false)
+    {
+        // The default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "ensure_contact"                                 : false,
+            "print_convergence_criterion"                    : false,
+            "residual_relative_tolerance"                    : 1.0e-4,
+            "residual_absolute_tolerance"                    : 1.0e-9,
+            "contact_residual_relative_tolerance"            : 1.0e-4,
+            "contact_residual_absolute_tolerance"            : 1.0e-9
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        // The displacement residual
+        mDispRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
+        mDispAbsTolerance = ThisParameters["residual_absolute_tolerance"].GetDouble();
+
+        // The contact residual
+        mLMRatioTolerance =  ThisParameters["contact_displacement_absolute_tolerance"].GetDouble();
+        mLMAbsTolerance =  ThisParameters["contact_residual_absolute_tolerance"].GetDouble();
+
+        // Additional flags -> NOTE: Replace for a ral flag?¿
+        mEnsureContact = ThisParameters["ensure_contact"].GetBool();
+        mPrintingOutput = ThisParameters["print_convergence_criterion"].GetBool();
+
+        // We "initialize" the flag-> NOTE: Replace for a ral flag?¿
         mInitialResidualIsSet = false;
     }
 
     //* Copy constructor.
     DisplacementLagrangeMultiplierResidualContactCriteria( DisplacementLagrangeMultiplierResidualContactCriteria const& rOther )
-      :BaseType(rOther) 
+      :BaseType(rOther)
       ,mInitialResidualIsSet(rOther.mInitialResidualIsSet)
       ,mDispRatioTolerance(rOther.mDispRatioTolerance)
       ,mDispAbsTolerance(rOther.mDispAbsTolerance)
@@ -140,7 +174,7 @@ public:
       ,mTableIsInitialized(rOther.mTableIsInitialized)
     {
     }
-    
+
     /// Destructor.
     ~DisplacementLagrangeMultiplierResidualContactCriteria() override = default;
 
@@ -149,24 +183,23 @@ public:
     ///@{
 
     /**
-     * Compute relative and absolute error.
+     * @brief Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual)
      * @return true if convergence is achieved, false otherwise
      */
-    
-    bool PostCriteria(  
+    bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b 
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
     {
-        if (SparseSpaceType::Size(b) != 0) { //if we are solving for something
+        if (SparseSpaceType::Size(rb) != 0) { //if we are solving for something
             // Initialize
             TDataType disp_residual_solution_norm = 0.0, lm_residual_solution_norm = 0.0;
             IndexType disp_dof_num(0),lm_dof_num(0);
@@ -178,10 +211,10 @@ public:
 
                 std::size_t dof_id;
                 TDataType residual_dof_value;
-                
+
                 if (it_dof->IsFree()) {
                     dof_id = it_dof->EquationId();
-                    residual_dof_value = b[dof_id];
+                    residual_dof_value = rb[dof_id];
 
                     const auto curr_var = it_dof->GetVariable();
                     if ((curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
@@ -196,10 +229,10 @@ public:
 
             mDispCurrentResidualNorm = disp_residual_solution_norm;
             mLMCurrentResidualNorm = lm_residual_solution_norm;
-            
+
             TDataType residual_disp_ratio = 1.0;
             TDataType residual_lm_ratio = 1.0;
-            
+
             // We initialize the solution
             if (mInitialResidualIsSet == false) {
                 mDispInitialResidualNorm = (disp_residual_solution_norm == 0.0) ? 1.0 : disp_residual_solution_norm;
@@ -208,22 +241,22 @@ public:
                 residual_lm_ratio = 1.0;
                 mInitialResidualIsSet = true;
             }
-            
+
             // We calculate the ratio of the displacements
             residual_disp_ratio = mDispCurrentResidualNorm/mDispInitialResidualNorm;
-            
+
             // We calculate the ratio of the LM
             residual_lm_ratio = mLMCurrentResidualNorm/mLMInitialResidualNorm;
 
             KRATOS_ERROR_IF(mEnsureContact && residual_lm_ratio == 0.0) << "ERROR::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
-            
+
             // We calculate the absolute norms
             const TDataType residual_disp_abs = mDispCurrentResidualNorm/disp_dof_num;
             const TDataType residual_lm_abs = mLMCurrentResidualNorm/lm_dof_num;
 
             // The process info of the model part
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-            
+
             // We print the results // TODO: Replace for the new log
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
                 if (r_process_info.Has(TABLE_UTILITY)) {
@@ -247,11 +280,11 @@ public:
 
             r_process_info[CONVERGENCE_RATIO] = (residual_disp_ratio > residual_lm_ratio) ? residual_disp_ratio : residual_lm_ratio;
             r_process_info[RESIDUAL_NORM] = (residual_lm_abs > mLMAbsTolerance) ? residual_lm_abs : mLMAbsTolerance;
-            
+
             // We check if converged
             const bool disp_converged = (residual_disp_ratio <= mDispRatioTolerance || residual_disp_abs <= mDispAbsTolerance);
             const bool lm_converged = (!mEnsureContact && residual_lm_ratio == 0.0) ? true : (residual_lm_ratio <= mLMRatioTolerance || residual_lm_abs <= mLMAbsTolerance);
-            
+
             if (disp_converged && lm_converged ) {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
                     if (r_process_info.Has(TABLE_UTILITY)) {
@@ -292,14 +325,13 @@ public:
     }
 
     /**
-     * This function initialize the convergence criteria
+     * @brief This function initialize the convergence criteria
      * @param rModelPart Reference to the ModelPart containing the contact problem. (unused)
      */
-    
     void Initialize( ModelPart& rModelPart) override
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
-        
+
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         if (r_process_info.Has(TABLE_UTILITY) && mTableIsInitialized == false) {
             TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
@@ -318,20 +350,19 @@ public:
     }
 
     /**
-     * This function initializes the solution step
+     * @brief This function initializes the solution step
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual)
      */
-        
-    void InitializeSolutionStep(    
+    void InitializeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b 
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
     {
         mInitialResidualIsSet = false;
@@ -354,7 +385,7 @@ public:
     ///@{
 
 protected:
-    
+
     ///@name Protected static Member Variables
     ///@{
 
@@ -386,28 +417,28 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     bool mInitialResidualIsSet; /// This "flag" is set in order to set that the initial residual is already computed
-    
-    const bool mEnsureContact; /// This "flag" is used to check that the norm of the LM is always greater than 0 (no contact)
-    
+
+    bool mEnsureContact; /// This "flag" is used to check that the norm of the LM is always greater than 0 (no contact)
+
     bool mPrintingOutput;      /// If the colors and bold are printed
     bool mTableIsInitialized;  /// If the table is already initialized
-    
+
     TDataType mDispRatioTolerance;      /// The ratio threshold for the norm of the displacement residual
-    TDataType mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement residual 
+    TDataType mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement residual
     TDataType mDispInitialResidualNorm; /// The reference norm of the displacement residual
     TDataType mDispCurrentResidualNorm; /// The current norm of the displacement residual
-    
+
     TDataType mLMRatioTolerance;      /// The ratio threshold for the norm of the LM  residual
     TDataType mLMAbsTolerance;        /// The absolute value threshold for the norm of the LM  residual
     TDataType mLMInitialResidualNorm; /// The reference norm of the LM residual
     TDataType mLMCurrentResidualNorm; /// The current norm of the LM residual
-    
+
     ///@}
     ///@name Private Operators
     ///@{

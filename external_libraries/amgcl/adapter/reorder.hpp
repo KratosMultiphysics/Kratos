@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ THE SOFTWARE.
 \ingroup adapters
 */
 
-#include <boost/type_traits.hpp>
+#include <type_traits>
 #include <boost/range/size.hpp>
 #include <boost/iterator/permutation_iterator.hpp>
 
@@ -102,9 +102,9 @@ struct reordered_matrix {
 
 template <class Vector>
 struct reordered_vector {
-    typedef typename backend::value_type<typename boost::decay<Vector>::type>::type raw_value_type;
-    typedef typename boost::conditional<
-        boost::is_const<Vector>::value,
+    typedef typename backend::value_type<typename std::decay<Vector>::type>::type raw_value_type;
+    typedef typename std::conditional<
+        std::is_const<Vector>::value,
         const raw_value_type,
         raw_value_type
         >::type value_type;
@@ -123,7 +123,7 @@ struct reordered_vector {
     }
 
     boost::permutation_iterator<
-        typename boost::decay<Vector>::type::iterator,
+        typename std::decay<Vector>::type::iterator,
         const ptrdiff_t*
         >
     begin() {
@@ -131,7 +131,7 @@ struct reordered_vector {
     }
 
     boost::permutation_iterator<
-        typename boost::decay<Vector>::type::const_iterator,
+        typename std::decay<Vector>::type::const_iterator,
         const ptrdiff_t*
         >
     begin() const {
@@ -139,7 +139,7 @@ struct reordered_vector {
     }
 
     boost::permutation_iterator<
-        typename boost::decay<Vector>::type::iterator,
+        typename std::decay<Vector>::type::iterator,
         const ptrdiff_t*
         >
     end() {
@@ -147,7 +147,7 @@ struct reordered_vector {
     }
 
     boost::permutation_iterator<
-        typename boost::decay<Vector>::type::const_iterator,
+        typename std::decay<Vector>::type::const_iterator,
         const ptrdiff_t*
         >
     end() const {
@@ -158,62 +158,11 @@ struct reordered_vector {
 } // namespace adapter
 
 namespace backend {
-
-//---------------------------------------------------------------------------
-// Specialization of matrix interface
-//---------------------------------------------------------------------------
-template <class Matrix>
-struct value_type< adapter::reordered_matrix<Matrix> >
-    : value_type<Matrix>
-{};
-
-template <class Matrix>
-struct rows_impl< adapter::reordered_matrix<Matrix> >
-{
-    static size_t get(const adapter::reordered_matrix<Matrix> &A) {
-        return A.rows();
-    }
-};
-
-template <class Matrix>
-struct cols_impl< adapter::reordered_matrix<Matrix> >
-{
-    static size_t get(const adapter::reordered_matrix<Matrix> &A) {
-        return A.cols();
-    }
-};
-
-template <class Matrix>
-struct nonzeros_impl< adapter::reordered_matrix<Matrix> >
-{
-    static size_t get(const adapter::reordered_matrix<Matrix> &A) {
-        return A.nonzeros();
-    }
-};
-
-template <class Matrix>
-struct row_iterator< adapter::reordered_matrix<Matrix> >
-{
-    typedef
-        typename adapter::reordered_matrix<Matrix>::row_iterator
-        type;
-};
-
-template <class Matrix>
-struct row_begin_impl< adapter::reordered_matrix<Matrix> >
-{
-    typedef adapter::reordered_matrix<Matrix> M;
-    static typename row_iterator<M>::type
-    get(const M &matrix, size_t row) {
-        return matrix.row_begin(row);
-    }
-};
-
 namespace detail {
 
 template <class Matrix>
 struct use_builtin_matrix_ops< adapter::reordered_matrix<Matrix> >
-    : boost::true_type
+    : std::true_type
 {};
 
 } // namespace detail
@@ -221,7 +170,7 @@ struct use_builtin_matrix_ops< adapter::reordered_matrix<Matrix> >
 
 template <class Vector>
 struct is_builtin_vector< adapter::reordered_vector<Vector> >
-    : is_builtin_vector<typename boost::decay<Vector>::type>
+    : is_builtin_vector<typename std::decay<Vector>::type>
 {};
 
 } // namespace backend
@@ -240,8 +189,8 @@ class reorder {
         }
 
         template <class Matrix>
-        typename boost::disable_if<
-            backend::is_builtin_vector<Matrix>,
+        typename std::enable_if<
+            !backend::is_builtin_vector<Matrix>::value,
             reordered_matrix<Matrix>
         >::type
         operator()(const Matrix &A) const {
@@ -249,8 +198,8 @@ class reorder {
         }
 
         template <class Vector>
-        typename boost::enable_if<
-            backend::is_builtin_vector<Vector>,
+        typename std::enable_if<
+            backend::is_builtin_vector<Vector>::value,
             reordered_vector<Vector>
         >::type
         operator()(Vector &x) const {
@@ -258,8 +207,8 @@ class reorder {
         }
 
         template <class Vector>
-        typename boost::enable_if<
-            backend::is_builtin_vector<Vector>,
+        typename std::enable_if<
+            backend::is_builtin_vector<Vector>::value,
             reordered_vector<const Vector>
         >::type
         operator()(const Vector &x) const {

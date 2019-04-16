@@ -20,6 +20,10 @@
 /* Project includes */
 #include "spaces/ublas_space.h"
 #include "utilities/math_utils.h"
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#include "boost/numeric/ublas/matrix.hpp" // for the identity matrix used here.
+#else
+#endif // KRATOS_USE_AMATRIX
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -73,7 +77,7 @@ public:
     typedef std::size_t IndexType;
 
     /// The sparse space considered (the one containing the compressed matrix)
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
 
     /// The dense space considered
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -176,7 +180,10 @@ public:
         DenseMatrixType eigen_vectors;
 
         const SizeType size_matrix = InputMatrix.size1();
-        SparseMatrixType identity_matrix = IdentityMatrix(size_matrix, size_matrix);
+
+        SparseMatrixType identity_matrix(size_matrix, size_matrix);
+        for (IndexType i = 0; i < size_matrix; ++i)
+            identity_matrix.push_back(i, i, 1.0);
 
         pEigenSolverMax->Solve(InputMatrix, identity_matrix, eigen_values, eigen_vectors);
         const double max_lambda = eigen_values[0];

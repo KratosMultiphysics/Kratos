@@ -1,9 +1,15 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_U_PW_ELEMENT_H_INCLUDED )
 #define  KRATOS_U_PW_ELEMENT_H_INCLUDED
@@ -18,7 +24,7 @@
 #include "includes/constitutive_law.h"
 
 // Application includes
-#include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/poro_element_utilities.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
@@ -46,7 +52,7 @@ public:
     /// Constructor using Properties
     UPwElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : Element( NewId, pGeometry, pProperties ) 
     {
-        mThisIntegrationMethod = this->GetGeometry().GetDefaultIntegrationMethod();
+        mThisIntegrationMethod = this->GetIntegrationMethod();
     }
 
     /// Destructor
@@ -63,6 +69,8 @@ public:
     void Initialize() override;
     
     void GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo ) override;
+
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

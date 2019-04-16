@@ -8,7 +8,7 @@ def Factory(settings, Model):
     return CheckScalarOnElementsProcess(Model, settings["Parameters"])
 
 
-##all the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class CheckScalarOnElementsProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)

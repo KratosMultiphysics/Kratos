@@ -21,28 +21,28 @@ namespace Kratos
 {
 ///@addtogroup SolidMechanicsApplication
 ///@{
-  
+
 ///@name Kratos Globals
 ///@{
-  
+
 ///@}
 ///@name Type Definitions
 ///@{
-  
+
 ///@}
 ///@name  Enum's
 ///@{
-  
+
 ///@}
 ///@name  Functions
 ///@{
-  
+
 ///@}
 ///@name Kratos Classes
 ///@{
 
-/** A container for time integration methods.     
- * This class implements a container for setting all methods in ProcessInfo     
+/** A container for time integration methods.
+ * This class implements a container for setting all methods in ProcessInfo
  */
 template<class TVariableType, class TValueType>
 class TimeIntegrationMethodsContainer
@@ -53,7 +53,7 @@ public:
 
   /// Pointer definition of TimeIntegrationMethodsContainer
   KRATOS_CLASS_POINTER_DEFINITION(TimeIntegrationMethodsContainer);
-    
+
   typedef TimeIntegrationMethod<TVariableType,TValueType>                TimeIntegrationMethodType;
   typedef typename TimeIntegrationMethodType::Pointer             TimeIntegrationMethodPointerType;
   typedef std::string LabelType;
@@ -97,27 +97,27 @@ public:
   }
 
   bool Has(LabelType const& rLabel)
-  {    
+  {
     typename std::map<LabelType,TimeIntegrationMethodPointerType>::iterator it_method = mTimeIntegrationMethods.find(rLabel);
-    
+
     if ( it_method != mTimeIntegrationMethods.end() )
       return true;
     else
       return false;
   }
-  
+
   LabelType GetMethodVariableName(LabelType const& rLabel)
   {
 
     for(typename std::map<LabelType,TimeIntegrationMethodPointerType>::const_iterator it=mTimeIntegrationMethods.begin(); it!=mTimeIntegrationMethods.end(); ++it)
-    {      
+    {
       if( (*it->second).HasVariableName(rLabel) )
         return it->first;
     }
 
     return rLabel;
   }
-  
+
   ///@}
   ///@name Inquiry
   ///@{
@@ -134,7 +134,7 @@ public:
       buffer << "["<<it->first<<"] = "<<*(it->second)<< "\n";
     return buffer.str();
   }
-  
+
   /// Print information about this object.
   virtual void PrintInfo(std::ostream& rOStream) const
   {
@@ -143,13 +143,13 @@ public:
       rOStream << "["<<it->first<<"] = "<<*(it->second)<<std::endl;
 
   }
-  
+
   /// Print object's data.
   virtual void PrintData(std::ostream& rOStream) const
   {
-    rOStream << "TimeIntegrationMethodsContainer Data";     
+    rOStream << "TimeIntegrationMethodsContainer Data";
   }
-  
+
   ///@}
   ///@name Friends
   ///@{
@@ -157,7 +157,7 @@ public:
 
   ///@}
 
-protected:   
+protected:
   ///@name Protected member Variables
   ///@{
   ///@}
@@ -199,11 +199,11 @@ private:
   virtual void save(Serializer& rSerializer) const
   {
   };
-  
+
   virtual void load(Serializer& rSerializer)
   {
   };
-  
+
   ///@}
   ///@}
   ///@name Private Inquiry
@@ -212,15 +212,15 @@ private:
   ///@}
   ///@name Un accessible methods
   ///@{
-  
+
   ///@}
-    
+
 public:
 
   DECLARE_HAS_THIS_TYPE_PROCESS_INFO
   DECLARE_ADD_THIS_TYPE_TO_PROCESS_INFO
   DECLARE_GET_THIS_TYPE_FROM_PROCESS_INFO
- 
+
 }; // Class TimeIntegrationMethodsContainer
 ///@}
 
@@ -247,7 +247,7 @@ inline std::ostream & operator << (std::ostream & rOStream, const TimeIntegratio
 ///@}
 
 ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_TIME_INTEGRATION_METHODS_CONTAINER_H_INCLUDED defined

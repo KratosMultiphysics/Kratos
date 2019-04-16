@@ -12,11 +12,8 @@
 //                    
 //
 
-
 #if !defined(KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED )
 #define KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -24,11 +21,7 @@
 #include <cstddef>
 #include <cstring>
 
-
-
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -59,9 +52,15 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-/// Short class definition.
-/** Detail class definition.
+    
+/** 
+* @class VariablesListDataValueContainer
+* @ingroup KratosCore 
+* @brief A  shared  variable  list gives the position of each variable in the containers sharing it. 
+* @details The mechanism is very simple. There is an array which stores the local offset for each variable in the container and assigns  the  value−1  for  the  rest  of  the variables
+* For more details see P. Dadvand, R. Rossi, E. Oñate: An Object-oriented Environment for Developing Finite Element Codes for Multi-disciplinary Applications. Computational Methods in Engineering. 2010
+* @author Pooyan Dadvand
+* @author Riccardo Rossi
 */
 class KRATOS_API(KRATOS_CORE) VariablesListDataValueContainer
 {
@@ -86,7 +85,7 @@ public:
     ///@{
 
     /// Default constructor.
-    VariablesListDataValueContainer(SizeType NewQueueSize = 1)
+    explicit VariablesListDataValueContainer(SizeType NewQueueSize = 1)
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
           mpData(0), mpVariablesList(&GetDefaultVariablesList())
     {
@@ -333,7 +332,6 @@ public:
     TDataType& GetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex)
     {
         KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
-        KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "Trying to access data from step " << QueueIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
         return *(TDataType*)Position(rThisVariable, QueueIndex);
     }
 
@@ -348,7 +346,6 @@ public:
     const TDataType& GetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex) const
     {
         KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;    
-        KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "Trying to access data from step " << QueueIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
         return *(const TDataType*)Position(rThisVariable, QueueIndex);
     }
 
@@ -386,22 +383,19 @@ public:
     template<class TDataType>
     TDataType* pFastGetValue(const Variable<TDataType>& rThisVariable)
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         return (TDataType*)Position(rThisVariable);
     }
 
     template<class TDataType>
     TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex)
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
-        KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "Trying to access data from step " << QueueIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
         return *(TDataType*)Position(rThisVariable, QueueIndex);
     }
 
     template<class TDataType>
     TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex, SizeType ThisPosition)
-    {    
-        KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
+    {   
+        KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;	
         KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "Trying to access data from step " << QueueIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
         return *(TDataType*)(Position(QueueIndex) + ThisPosition);
     }
@@ -967,11 +961,14 @@ private:
 
     inline BlockType* Position(VariableData const & rThisVariable) const
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         return mpCurrentPosition + mpVariablesList->Index(rThisVariable);
     }
 
     inline BlockType* Position(VariableData const & rThisVariable, SizeType ThisIndex) const
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
+        KRATOS_DEBUG_ERROR_IF((ThisIndex + 1) > mQueueSize) << "Trying to access data from step " << ThisIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
         return Position(ThisIndex) + mpVariablesList->Index(rThisVariable);
     }
 
@@ -1000,7 +997,7 @@ private:
         if(mpVariablesList->DataSize() != 0 )
             rSerializer.save("QueueIndex", SizeType(mpCurrentPosition-mpData)/mpVariablesList->DataSize());
         else
-            rSerializer.save("QueueIndex", 0);
+            rSerializer.save("QueueIndex", SizeType(0));
 
 
         if(mpData == 0)

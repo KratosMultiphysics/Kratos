@@ -57,6 +57,10 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+    ///Type for element variables
+    typedef LargeDisplacementElement::ElementDataType ElementDataType;
 
     /// Counted pointer of LargeDisplacementVElement
     KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementVElement );
@@ -78,7 +82,7 @@ public:
 
 
     /// Destructor.
-    virtual ~LargeDisplacementVElement();
+    ~LargeDisplacementVElement() override;
 
     ///@}
     ///@name Operators
@@ -125,7 +129,7 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
 
- 
+
     //************************************************************************************
     //************************************************************************************
     /**
@@ -171,47 +175,21 @@ protected:
      */
 
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                            ElementVariables& rVariables,
+                            ElementDataType& rVariables,
                             double& rIntegrationWeight) override;
-    
+
     /**
      * Get element size from the dofs
-     */    
-    unsigned int GetDofsSize() override;
+     */
+    SizeType GetDofsSize() override;
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    void SetElementVariables(ElementVariables& rVariables,
-                             ConstitutiveLaw::Parameters& rValues,
-                             const int & rPointNumber) override;
-    
-    /**
-     * Calculation of the velocity gradient
-     */
-    void CalculateVelocityGradient(Matrix& rH,
-                                   const Matrix& rDN_DX,
-                                   unsigned int step = 0);
+    void SetElementData(ElementDataType& rVariables,
+                        ConstitutiveLaw::Parameters& rValues,
+                        const int & rPointNumber) override;
 
-    /**
-     * Calculation of the velocity gradient
-     */
-    void CalculateVelocityGradientVector(Vector& rH,
-                                         const Matrix& rDN_DX,
-                                         unsigned int step = 0);
-
-    
-    /**
-     * Calculation of the symmetric velocity gradient Vector
-     */
-    void CalculateSymmetricVelocityGradient(const Matrix& rH,
-                                            Vector& rStrainVector);
-
-    /**
-     * Calculation of the skew symmetric velocity gradient Vector
-     */
-    void CalculateSkewSymmetricVelocityGradient(const Matrix& rH,
-                                                Vector& rStrainVector);
 
     ///@}
     ///@name Protected  Access
@@ -248,9 +226,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry
@@ -271,4 +249,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_LARGE_DISPLACEMENT_V_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_LARGE_DISPLACEMENT_V_ELEMENT_H_INCLUDED  defined

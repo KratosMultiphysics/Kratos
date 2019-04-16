@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosPFEM2Application 
+KratosPFEM2Application
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,47 +41,47 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author:  $
 //   Date:                $Date: $
 //   Revision:            $Revision: 1.3 $
 //
 //
 
-// System includes 
+// System includes
 
 #if defined(KRATOS_PYTHON)
-// External includes 
+// External includes
 //#include <boost/python.hpp>
 
 
-// Project includes 
+// Project includes
 //#include "includes/define.h"
 #include "includes/define_python.h"
 #include "pfem_2_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
- 
+
 namespace Kratos
 {
 
 namespace Python
 {
 
-  using namespace pybind11;
-  
-  
+  namespace py = pybind11;
+
+
   PYBIND11_MODULE(KratosPFEM2Application,m)
   {
 
-    class_<KratosPFEM2Application, KratosPFEM2Application::Pointer,KratosApplication>(m,"KratosPFEM2Application").def(init<>());
-    
+    py::class_<KratosPFEM2Application, KratosPFEM2Application::Pointer,KratosApplication>(m,"KratosPFEM2Application").def(py::init<>());
+
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
-    
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,G_VALUE)
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,PREVIOUS_ITERATION_PRESSURE)
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,FIRST_ITERATION_PRESSURE)
@@ -98,11 +98,11 @@ namespace Python
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CORRECTED_DISTANCE)
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,SOLID_PRESSURE)
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,SOLID_YP)
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,WATER_DISTANCE)	
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,WATER_DISTANCE)
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,VOLUMETRIC_STRAIN)
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,ELASTIC_PRESSURE)
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,USE_PRESS_PROJ)
-      KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,WATER_VELOCITY)	
+      KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,WATER_VELOCITY)
       KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,WATER_MESH_VELOCITY)
 
       KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,PROJECTED_VELOCITY)
@@ -115,10 +115,10 @@ namespace Python
 	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_AIR);
 
   }
-  
-  
+
+
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

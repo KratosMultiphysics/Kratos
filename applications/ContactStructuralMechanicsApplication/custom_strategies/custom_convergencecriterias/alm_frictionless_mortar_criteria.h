@@ -20,12 +20,13 @@
 #include "utilities/table_stream_utility.h"
 #include "custom_strategies/custom_convergencecriterias/base_mortar_criteria.h"
 #include "utilities/color_utilities.h"
+#include "custom_utilities/active_set_utilities.h"
 
 namespace Kratos
 {
 ///@addtogroup ContactStructuralMechanicsApplication
 ///@{
-    
+
 ///@name Kratos Globals
 ///@{
 
@@ -45,59 +46,62 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**  
- * @class ALMFrictionlessMortarConvergenceCriteria 
- * @ingroup ContactStructuralMechanicsApplication 
+/**
+ * @class ALMFrictionlessMortarConvergenceCriteria
+ * @ingroup ContactStructuralMechanicsApplication
  * @brief Custom convergence criteria for the mortar condition for frictionless case with components
  * @author Vicente Mataix Ferrandiz
  */
 template<class TSparseSpace, class TDenseSpace>
-class ALMFrictionlessMortarConvergenceCriteria 
+class ALMFrictionlessMortarConvergenceCriteria
     : public  BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
     ///@{
 
+    /// Pointer definition of ALMFrictionlessMortarConvergenceCriteria
     KRATOS_CLASS_POINTER_DEFINITION( ALMFrictionlessMortarConvergenceCriteria );
 
+    /// The base convergence criteria class definition
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > ConvergenceCriteriaBaseType;
-    
-    typedef BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >          BaseType;
 
+    /// The base class definition (and it subclasses)
+    typedef BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >          BaseType;
+    typedef typename BaseType::TDataType                                       TDataType;
+    typedef typename BaseType::DofsArrayType                               DofsArrayType;
+    typedef typename BaseType::TSystemMatrixType                       TSystemMatrixType;
+    typedef typename BaseType::TSystemVectorType                       TSystemVectorType;
+
+    /// The sparse space used
     typedef TSparseSpace                                                 SparseSpaceType;
 
-    typedef typename BaseType::TDataType                                       TDataType;
-
-    typedef typename BaseType::DofsArrayType                               DofsArrayType;
-
-    typedef typename BaseType::TSystemMatrixType                       TSystemMatrixType;
-
-    typedef typename BaseType::TSystemVectorType                       TSystemVectorType;
-    
-    typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
-    
+    /// The components containers
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
-    
+    typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
+
+    /// The table stream definition TODO: Replace by logger
     typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
-    
+
+    /// The index type definition
     typedef std::size_t                                                        IndexType;
 
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     /// Default constructors
-    ALMFrictionlessMortarConvergenceCriteria(
+    explicit ALMFrictionlessMortarConvergenceCriteria(
         const bool PrintingOutput = false,
+        const bool ComputeDynamicFactor = false,
         const bool GiDIODebug = false
-        ) : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(GiDIODebug),
+        ) : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(ComputeDynamicFactor, GiDIODebug),
         mPrintingOutput(PrintingOutput),
         mTableIsInitialized(false)
     {
     }
 
-    ///Copy constructor 
+    ///Copy constructor
     ALMFrictionlessMortarConvergenceCriteria( ALMFrictionlessMortarConvergenceCriteria const& rOther )
       :BaseType(rOther)
       ,mPrintingOutput(rOther.mPrintingOutput)
@@ -111,127 +115,96 @@ public:
     ///@}
     ///@name Operators
     ///@{
-    
+
     /**
      * @brief Criterias that need to be called before getting the solution
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual)
      * @return true if convergence is achieved, false otherwise
      */
-    
     bool PreCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
-    {        
-        BaseType::PreCriteria(rModelPart, rDofSet, A, Dx, b);
-        
+    {
+        BaseType::PreCriteria(rModelPart, rDofSet, rA, rDx, rb);
+
         return true;
     }
-    
+
     /**
      * @brief Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual)
      * @return true if convergence is achieved, false otherwise
      */
-
     bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
     {
         // We call the base class
-        BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
-        
-        // Defining the convergence
-        IndexType is_converged = 0;
-        
-        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-//         const double epsilon = r_process_info[INITIAL_PENALTY];
-        const double scale_factor = r_process_info[SCALE_FACTOR];
-        
-        NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        BaseType::PostCriteria(rModelPart, rDofSet, rA, rDx, rb);
 
-        #pragma omp parallel for reduction(+:is_converged)
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
-            
-            const double epsilon = it_node->GetValue(INITIAL_PENALTY);
-            
-            const double augmented_normal_pressure = scale_factor * it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) + epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);     
-                
-            it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
+        // Compute the active set
+        const IndexType is_converged = ActiveSetUtilities::ComputeALMFrictionlessActiveSet(rModelPart);
 
-            if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
-                if (it_node->Is(ACTIVE) == false ) {
-                    it_node->Set(ACTIVE, true);
-                    is_converged += 1;
-                }
-            } else {
-                if (it_node->Is(ACTIVE) == true ) {
-                    it_node->Set(ACTIVE, false);
-                    is_converged += 1;
-                }
-            }
-        }
-        
         // We save to the process info if the active set has converged
         const bool active_set_converged = (is_converged == 0 ? true : false);
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         r_process_info[ACTIVE_SET_CONVERGED] = active_set_converged;
-        
+
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
             if (r_process_info.Has(TABLE_UTILITY)) {
                 TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
                 auto& table = p_table->GetTable();
                 if (active_set_converged) {
-                    if (mPrintingOutput == false)
+                    if (!mPrintingOutput)
                         table << BOLDFONT(FGRN("       Achieved"));
                     else
                         table << "Achieved";
                 } else {
-                    if (mPrintingOutput == false)
+                    if (!mPrintingOutput)
                         table << BOLDFONT(FRED("   Not achieved"));
                     else
                         table << "Not achieved";
                 }
             } else {
                 if (active_set_converged) {
-                    if (mPrintingOutput == false)
+                    if (!mPrintingOutput)
                         KRATOS_INFO("ALMFrictionlessMortarConvergenceCriteria")  << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
                 } else {
-                    if (mPrintingOutput == false)
+                    if (!mPrintingOutput)
                         KRATOS_INFO("ALMFrictionlessMortarConvergenceCriteria")  << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
                     else
                         KRATOS_INFO("ALMFrictionlessMortarConvergenceCriteria")  << "\tActive set convergence is not achieved" << std::endl;
                 }
             }
         }
-        
+
         return active_set_converged;
     }
-    
+
     /**
      * @brief This function initialize the convergence criteria
      * @param rModelPart The model part of interest
-     */ 
-    
+     */
     void Initialize(ModelPart& rModelPart) override
     {
         ConvergenceCriteriaBaseType::mConvergenceCriteriaIsInitialized = true;
-        
+
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         if (r_process_info.Has(TABLE_UTILITY) && mTableIsInitialized == false) {
             TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
@@ -240,7 +213,7 @@ public:
             mTableIsInitialized = true;
         }
     }
-    
+
     ///@}
     ///@name Operations
     ///@{
@@ -258,14 +231,14 @@ public:
     ///@{
 
 protected:
-    
+
     ///@name Protected static Member Variables
     ///@{
 
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -290,15 +263,15 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     TablePrinterPointerType p_table; /// Pointer to the fancy table
     bool mPrintingOutput;            /// If the colors and bold are printed
     bool mTableIsInitialized;        /// If the table is already initialized
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -323,12 +296,12 @@ private:
     ///@{
     ///@}
 
-}; // Class ALMFrictionlessMortarConvergenceCriteria 
+}; // Class ALMFrictionlessMortarConvergenceCriteria
 
 ///@name Explicit Specializations
 ///@{
 
-}  // namespace Kratos 
+}  // namespace Kratos
 
 #endif /* KRATOS_ALM_FRICTIONLESS_MORTAR_CRITERIA_H  defined */
 

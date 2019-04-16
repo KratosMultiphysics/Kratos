@@ -14,12 +14,12 @@ class TestConditionNumber(KratosUnittest.TestCase):
             import KratosMultiphysics.ExternalSolversApplication
         except:
             self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-            
+
         space = KratosMultiphysics.UblasSparseSpace()
 
         # Read the matrices
         K = KratosMultiphysics.CompressedMatrix()
-        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath("A.mm"),K)
+        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath("auxiliar_files_for_python_unnitest/sparse_matrix_files/A.mm"),K)
 
         # Construct the solver
         import eigen_solver_factory

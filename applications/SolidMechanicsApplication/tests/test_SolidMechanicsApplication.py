@@ -2,6 +2,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.ConstitutiveModelsApplication
+import run_cpp_tests
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -17,7 +18,7 @@ import NightTests
 # VALIDATION TESTS
 import ValidationTests
 
-def AssambleTestSuites():
+def AssembleTestSuites():
 
     # Suites to run
     suites = KratosUnittest.KratosSuites
@@ -46,4 +47,10 @@ def AssambleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosMultiphysics.Logger.PrintInfo(":", "Running cpp unit tests ...")
+    run_cpp_tests.run()
+    KratosMultiphysics.Logger.PrintInfo(":", "Finished running cpp tests")
+
+    KratosMultiphysics.Logger.PrintInfo(":", "Running python tests ...")
+    KratosUnittest.runTests(AssembleTestSuites())
+    KratosMultiphysics.Logger.PrintInfo(":", "Finished python tests!")

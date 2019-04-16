@@ -23,11 +23,11 @@
 namespace Kratos
 {
 
-/** 
+/**
  * @namespace TrussPlasticityConstitutiveLaw
- * 
+ *
  * @brief This constitutive law represents a linear hardening plasticity 1D law
- * 
+ *
  * @author Klaus B Sautter
  */
 
@@ -107,6 +107,10 @@ public:
                 const Variable<Vector>& rThisVariable,
                 Vector& rValue) override;
 
+    array_1d<double, 3 > & CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<array_1d<double, 3 > >& rVariable,
+        array_1d<double, 3 > & rValue) override;
+
     void CalculateMaterialResponse(const Vector& rStrainVector,
                                     const Matrix& rDeformationGradient,
                                     Vector& rStressVector,
@@ -127,13 +131,38 @@ public:
     double TrialYieldFunction(const Properties& rMaterialProperties,
      const double& rCurrentStress);
 
-        /**
+    /**
      * @brief This function checks if the current stress is in the plastic regime
      * @param rMaterialProperties Material Properties of the problem
      * @param rCurrentStress Current stress value
      */
     bool CheckIfIsPlasticRegime(const Properties& rMaterialProperties,
         const double& rCurrentStress);
+
+    void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
+					    const GeometryType& rElementGeometry,
+					    const Vector& rShapeFunctionsValues,
+					    const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeSolutionStep(const Properties& rMaterialProperties,
+                        const GeometryType& rElementGeometry,
+                        const Vector& rShapeFunctionsValues,
+                        const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    /**
+     * @brief This function checks if the predicted stress state is in the elastic regime
+     * but was in the plastic regime in the previous non_linear iteration step
+     */
+    bool CheckPlasticIterationHistory() const
+    {
+        bool check_flag = false;
+        if(this->mPreviousInElasticFlag && !this->mCurrentInElasticFlag)
+        {
+            check_flag = true;
+        }
+        return check_flag;
+    }
 
     /**
      * Voigt tensor size:
@@ -142,7 +171,7 @@ public:
     {
         return 1;
     }
-    
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -162,15 +191,15 @@ protected:
 
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -180,14 +209,23 @@ private:
 
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
-    bool mInelasticFlag = false; /// This flags tells if we are in a elastic or ineslastic regime
-    double mAccumulatedPlasticStrain = 0.0; /// The current accumulated plastic strain
-    double mPlasticAlpha = 0.0; /// The current plastic increment
     double mStressState = 0.0; // The current stress state
+
+    //the following members are
+    //mCurrentInElasticFlag is the current non_linear iteration step
+    //mPreviousInElasticFlag is the previous non_linear iteration step
+    bool mPreviousInElasticFlag = false;/// This flags tells if we are in a elastic or ineslastic regime
+    bool mCurrentInElasticFlag = false;/// This flags tells if we are in a elastic or ineslastic regime
+
+
+    BoundedVector<double, 2> mPlasticAlphaVector = ZeroVector(2); /// The current plastic increment
+    BoundedVector<double, 2> mAccumulatedPlasticStrainVector = ZeroVector(2); /// The current accumulated plastic strain
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -212,21 +250,23 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw);
         rSerializer.save("StressState", this->mStressState);
-        rSerializer.save("PlasticAlpha", this->mPlasticAlpha);
-        rSerializer.save("AccumulatedPlasticStrain", this->mAccumulatedPlasticStrain);
-        rSerializer.save("InelasticFlag", this->mInelasticFlag);
+        rSerializer.save("PlasticAlpha", this->mPlasticAlphaVector);
+        rSerializer.save("AccumulatedPlasticStrain", this->mAccumulatedPlasticStrainVector);
+        rSerializer.save("PreviousInelasticFlag", this->mPreviousInElasticFlag);
+        rSerializer.save("CurrentInElasticFlag", this->mCurrentInElasticFlag);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw);
         rSerializer.load("StressState", this->mStressState);
-        rSerializer.load("PlasticAlpha", this->mPlasticAlpha);
-        rSerializer.load("AccumulatedPlasticStrain", this->mAccumulatedPlasticStrain);
-        rSerializer.load("InelasticFlag", this->mInelasticFlag);
+        rSerializer.load("PlasticAlpha", this->mPlasticAlphaVector);
+        rSerializer.load("AccumulatedPlasticStrain", this->mAccumulatedPlasticStrainVector);
+        rSerializer.load("PreviousInelasticFlag", this->mPreviousInElasticFlag);
+        rSerializer.load("CurrentInElasticFlag", this->mCurrentInElasticFlag);
     }
 
 
 }; // Class TrussPlasticityConstitutiveLaw
 }  // namespace Kratos.
-#endif // KRATOS_DUMMY_TRUSS_LAW_H_INCLUDED  defined 
+#endif // KRATOS_DUMMY_TRUSS_LAW_H_INCLUDED  defined

@@ -67,8 +67,8 @@ void GeometricalSensitivityUtility::CalculateSensitivity(ShapeParameter Deriv, d
 double GeometricalSensitivityUtility::CalculateDeterminantOfJacobianSensitivity(ShapeParameter Deriv) const
 {
     return inner_prod(
-        matrix_row<const MatrixType>(mCofactorJ, Deriv.Direction),
-        matrix_row<const ShapeFunctionsLocalGradientType>(mrDN_De, Deriv.NodeIndex));
+        row(mCofactorJ, Deriv.Direction),
+        row(mrDN_De, Deriv.NodeIndex));
 }
 
 GeometricalSensitivityUtility::MatrixType GeometricalSensitivityUtility::CalculateCofactorOfJacobianSensitivity(
@@ -95,7 +95,11 @@ GeometricalSensitivityUtility::MatrixType GeometricalSensitivityUtility::Calcula
             IndexType i_coord_sub = (Deriv.Direction > i) ? Deriv.Direction - 1 : Deriv.Direction;
             for (unsigned j = 0; j < mrJ.size2(); ++j)
             {
-                IndirectArrayType ia1(mrJ.size1() - 1), ia2(mrJ.size2() - 1);
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+				DenseVector<std::size_t> ia1(mrJ.size1() - 1), ia2(mrJ.size2() - 1);
+#else
+				IndirectArrayType ia1(mrJ.size1() - 1), ia2(mrJ.size2() - 1);
+#endif // ifdef KRATOS_USE_AMATRIX
 
                 // Construct the Jacobian submatrix structure for the first minor.
                 unsigned i_sub = 0;
@@ -116,8 +120,8 @@ GeometricalSensitivityUtility::MatrixType GeometricalSensitivityUtility::Calcula
                 const SubMatrixType sub_DN_De(mrDN_De, ia3, ia2);
 
                 const double first_minor_deriv = inner_prod(
-                    matrix_row<const MatrixType>(cofactor_sub_jacobian, i_coord_sub),
-                    matrix_row<const SubMatrixType>(sub_DN_De, Deriv.NodeIndex));
+                    row(cofactor_sub_jacobian, i_coord_sub),
+                    row(sub_DN_De, Deriv.NodeIndex));
 
                 result(i, j) = ((i + j) % 2) ? -first_minor_deriv : first_minor_deriv;
             }

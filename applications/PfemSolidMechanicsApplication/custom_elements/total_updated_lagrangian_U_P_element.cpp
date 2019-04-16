@@ -84,11 +84,11 @@ Element::Pointer TotalUpdatedLagrangianUPElement::Clone( IndexType NewId, NodesA
     if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
       {
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
-	
+
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
 	  KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
       }
-    
+
 
     for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
       {
@@ -106,10 +106,10 @@ Element::Pointer TotalUpdatedLagrangianUPElement::Clone( IndexType NewId, NodesA
     }
 
     NewElement.mDeterminantF0 = mDeterminantF0;
-    
+
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
-        
+
     return Element::Pointer( new TotalUpdatedLagrangianUPElement(NewElement) );
 }
 
@@ -127,12 +127,12 @@ TotalUpdatedLagrangianUPElement::~TotalUpdatedLagrangianUPElement()
 //************************************************************************************
 
 
-void TotalUpdatedLagrangianUPElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+void TotalUpdatedLagrangianUPElement::InitializeElementData (ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    LargeDisplacementUPElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
+    LargeDisplacementUPElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
     //Calculate Delta Position
-    rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+    ElementUtilities::CalculateDeltaPosition(rVariables.DeltaPosition,this->GetGeometry());
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
@@ -145,7 +145,7 @@ void TotalUpdatedLagrangianUPElement::InitializeElementVariables (ElementVariabl
 //************************************************************************************
 
 
-void TotalUpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+void TotalUpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
 {
 
     //contributions to stiffness matrix calculated on the reference config
@@ -163,7 +163,7 @@ void TotalUpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& 
 //************************************************************************************
 //************************************************************************************
 
-void TotalUpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void TotalUpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
 
     //contribution to external forces
@@ -180,7 +180,7 @@ void TotalUpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& 
 //************************************************************************************
 
 
-void TotalUpdatedLagrangianUPElement::CalculateKinematics(ElementVariables& rVariables,
+void TotalUpdatedLagrangianUPElement::CalculateKinematics(ElementDataType& rVariables,
         const double& rPointNumber)
 
 {
@@ -300,7 +300,7 @@ void TotalUpdatedLagrangianUPElement::CalculateDeformationMatrix(Matrix& rB,
 //************************************************************************************
 //************************************************************************************
 
-void TotalUpdatedLagrangianUPElement::CalculatePushForwardDN_DX(ElementVariables& rVariables)
+void TotalUpdatedLagrangianUPElement::CalculatePushForwardDN_DX(ElementDataType& rVariables)
 {
     //SET DN_DX WITH THE NON LINEAR PART  = F^-1 * DN_DX
 
@@ -333,13 +333,13 @@ void TotalUpdatedLagrangianUPElement::CalculatePushForwardDN_DX(ElementVariables
 //************************************************************************************
 //************************************************************************************
 
-void TotalUpdatedLagrangianUPElement::TransformElementVariables(ElementVariables& rVariables, const double& rPointNumber)
+void TotalUpdatedLagrangianUPElement::TransformElementData(ElementDataType& rVariables, const double& rPointNumber)
 {
 
   // pull_back the stresses to last_known configuration
   mConstitutiveLawVector[rPointNumber]->TransformStresses(rVariables.StressVector, rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK2);
 
-  // pull_back the constitutive tensor to last_known configuration    
+  // pull_back the constitutive tensor to last_known configuration
   mConstitutiveLawVector[rPointNumber]->PullBackConstitutiveMatrix(rVariables.ConstitutiveMatrix, rVariables.F);
 
 }
@@ -347,7 +347,7 @@ void TotalUpdatedLagrangianUPElement::TransformElementVariables(ElementVariables
 //************************************************************************************
 //************************************************************************************
 
-void TotalUpdatedLagrangianUPElement::GetHistoricalVariables( ElementVariables& rVariables, const double& rPointNumber )
+void TotalUpdatedLagrangianUPElement::GetHistoricalVariables( ElementDataType& rVariables, const double& rPointNumber )
 {
     LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
 
@@ -359,10 +359,10 @@ void TotalUpdatedLagrangianUPElement::GetHistoricalVariables( ElementVariables& 
 //************************************CALCULATE VOLUME CHANGE*************************
 //************************************************************************************
 
-double& TotalUpdatedLagrangianUPElement::CalculateVolumeChange( double& rVolumeChange, ElementVariables& rVariables )
+double& TotalUpdatedLagrangianUPElement::CalculateVolumeChange( double& rVolumeChange, ElementDataType& rVariables )
 {
     KRATOS_TRY
-      
+
     rVolumeChange = 1.0 / (rVariables.detF0);
 
     return rVolumeChange;
@@ -386,5 +386,3 @@ void TotalUpdatedLagrangianUPElement::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-
-
