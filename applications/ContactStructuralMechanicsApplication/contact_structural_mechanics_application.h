@@ -30,7 +30,9 @@
 #include "custom_conditions/ALM_frictionless_mortar_contact_axisym_condition.h"
 #include "custom_conditions/penalty_frictionless_mortar_contact_axisym_condition.h"
 #include "custom_conditions/ALM_frictional_mortar_contact_condition.h"
+#include "custom_conditions/penalty_frictional_mortar_contact_condition.h"
 #include "custom_conditions/ALM_frictional_mortar_contact_axisym_condition.h"
+#include "custom_conditions/penalty_frictional_mortar_contact_axisym_condition.h"
 
 namespace Kratos
 {
@@ -242,6 +244,19 @@ private:
     const PenaltyMethodFrictionlessMortarContactCondition<3, 3, true,  4> mPenaltyNVFrictionlessMortarContactCondition3D3N4N;
     const PenaltyMethodFrictionlessMortarContactCondition<3, 4, false, 3> mPenaltyFrictionlessMortarContactCondition3D4N3N;
     const PenaltyMethodFrictionlessMortarContactCondition<3, 4, true,  3> mPenaltyNVFrictionlessMortarContactCondition3D4N3N;
+    // Frictional penalty cases
+    const PenaltyMethodFrictionalMortarContactCondition<2, 2, false> mPenaltyFrictionalMortarContactCondition2D2N;
+    const PenaltyMethodFrictionalMortarContactCondition<2, 2, true> mPenaltyNVFrictionalMortarContactCondition2D2N;
+    const PenaltyMethodFrictionalMortarContactAxisymCondition<2, false> mPenaltyFrictionalAxisymMortarContactCondition2D2N;
+    const PenaltyMethodFrictionalMortarContactAxisymCondition<2, true> mPenaltyNVFrictionalAxisymMortarContactCondition2D2N;
+    const PenaltyMethodFrictionalMortarContactCondition<3, 3, false, 3> mPenaltyFrictionalMortarContactCondition3D3N;
+    const PenaltyMethodFrictionalMortarContactCondition<3, 3, true,  3> mPenaltyNVFrictionalMortarContactCondition3D3N;
+    const PenaltyMethodFrictionalMortarContactCondition<3, 4, false, 4> mPenaltyFrictionalMortarContactCondition3D4N;
+    const PenaltyMethodFrictionalMortarContactCondition<3, 4, true,  4> mPenaltyNVFrictionalMortarContactCondition3D4N;
+    const PenaltyMethodFrictionalMortarContactCondition<3, 3, false, 4> mPenaltyFrictionalMortarContactCondition3D3N4N;
+    const PenaltyMethodFrictionalMortarContactCondition<3, 3, true,  4> mPenaltyNVFrictionalMortarContactCondition3D3N4N;
+    const PenaltyMethodFrictionalMortarContactCondition<3, 4, false, 3> mPenaltyFrictionalMortarContactCondition3D4N3N;
+    const PenaltyMethodFrictionalMortarContactCondition<3, 4, true,  3> mPenaltyNVFrictionalMortarContactCondition3D4N3N;
 
     ///@}
     ///@name Private Operators
