@@ -19,7 +19,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "includes/checks.h"
-#include "solving_strategies/schemes/residual_based_bossak_velocity_scheme.h"
+#include "residual_based_bossak_velocity_scheme.h"
 
 // Application includes
 #include "rans_modelling_application_variables.h"

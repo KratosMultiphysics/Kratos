@@ -23,7 +23,8 @@
 
 // Project includes
 #include "includes/kratos_application.h"
-
+#include "custom_elements/evm_k_epsilon/evm_k_element.h"
+#include "custom_elements/evm_k_epsilon/evm_epsilon_element.h"
 
 namespace Kratos {
 
@@ -175,8 +176,12 @@ private:
     ///@name Member Variables
     ///@{
 
-    // const Elem2D   mElem2D;
-    // const Elem3D   mElem3D;
+    /// k-epsilon turbulence model elements
+    const EvmKElement<2, 3> mRANSEVMK2D;
+    const EvmKElement<3, 4> mRANSEVMK3D;
+
+    const EvmEpsilonElement<2, 3> mRANSEVMEPSILON2D;
+    const EvmEpsilonElement<3, 4> mRANSEVMEPSILON3D;
 
     ///@}
     ///@name Private Operators

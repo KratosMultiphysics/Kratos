@@ -15,6 +15,7 @@
 
 // System includes
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -237,8 +238,10 @@ private:
 
         RansVariableUtils rans_variable_utils;
 
-        ModelPart::NodesContainerType& r_nodes =
-            mrModelPart.Nodes();
+        ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
+
+        int iteration_format_length =
+            static_cast<int>(std::log10(this->mMaxIterations)) + 1;
 
         while (!is_converged && iteration <= this->mMaxIterations)
         {
@@ -265,19 +268,28 @@ private:
             is_converged = (convergence_relative < this->mConvergenceRelativeTolerance ||
                             convergence_absolute < this->mConvergenceAbsoluteTolerance);
 
-            KRATOS_INFO_IF(this->Info(), this->mEchoLevel > 0)
-                << "[ " << iteration
-                << " ] CONVERGENCE CHECK: " << mrConvergenceVariable.Name()
-                << " ratio = " << std::scientific << convergence_relative
-                << "; exp. ratio = " << std::scientific
-                << this->mConvergenceRelativeTolerance << "; abs = " << std::scientific
-                << convergence_absolute << "; exp.abs = " << std::scientific
-                << this->mConvergenceAbsoluteTolerance;
+            if (this->mEchoLevel > 1)
+            {
+                std::stringstream conv_check_msg;
+                conv_check_msg
+                    << "[Itr.#" << std::setw(iteration_format_length) << iteration
+                    << "] CONVERGENCE CHECK: " << mrConvergenceVariable.Name()
+                    << " ratio = " << std::setprecision(3) << std::scientific << convergence_relative
+                    << "; exp. ratio = " << this->mConvergenceRelativeTolerance
+                    << "; abs = " << convergence_absolute
+                    << "; exp.abs = " << this->mConvergenceAbsoluteTolerance << "\n";
+                KRATOS_INFO(this->Info()) << conv_check_msg.str();
 
-            KRATOS_INFO_IF(this->Info(), this->mEchoLevel > 0 && is_converged)
-                << "[ " << iteration
-                << " ] CONVERGENCE CHECK: " << mrConvergenceVariable.Name()
-                << " *** CONVERGENCE IS ACHIEVED ***";
+                if (is_converged)
+                {
+                    std::stringstream conv_msg;
+                    conv_msg
+                        << "[Itr.#" << std::setw(iteration_format_length) << iteration
+                        << "] CONVERGENCE CHECK: " << mrConvergenceVariable.Name()
+                        << " *** CONVERGENCE IS ACHIEVED ***\n";
+                    KRATOS_INFO(this->Info()) << conv_msg.str();
+                }
+            }
 
             iteration++;
         }
@@ -290,7 +302,8 @@ private:
             << "\n             Please increase coupling max_iterations   "
             << "\n             or decrease coupling                      "
             << "\n             relative_tolerance/absolute tolerance     "
-            << "\n-------------------------------------------------------";
+            << "\n-------------------------------------------------------"
+            << "\n";
 
         for (SolvingStrategyType* p_solving_strategy : this->mrSolvingStrategiesList)
             p_solving_strategy->FinalizeSolutionStep();

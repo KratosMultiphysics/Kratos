@@ -20,12 +20,17 @@
 // Project includes
 #include "rans_modelling_application.h"
 #include "rans_modelling_application_variables.h"
-
+#include "geometries/triangle_2d_3.h"
+#include "geometries/tetrahedra_3d_4.h"
 
 namespace Kratos {
 
 KratosRANSModellingApplication::KratosRANSModellingApplication():
-    KratosApplication("RANSModellingApplication")
+    KratosApplication("RANSModellingApplication"),
+    mRANSEVMK2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mRANSEVMK3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mRANSEVMEPSILON2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mRANSEVMEPSILON3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
     {}
 
 void KratosRANSModellingApplication::Register()
@@ -52,6 +57,12 @@ void KratosRANSModellingApplication::Register()
   KRATOS_REGISTER_VARIABLE( TURBULENT_VISCOSITY_MAX )
   KRATOS_REGISTER_VARIABLE( TURBULENT_KINETIC_ENERGY_SIGMA )
   KRATOS_REGISTER_VARIABLE( TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA )
+
+  // Register Elements
+  KRATOS_REGISTER_ELEMENT("RANSEVMK2D3N",mRANSEVMK2D);
+  KRATOS_REGISTER_ELEMENT("RANSEVMK3D4N",mRANSEVMK3D);
+  KRATOS_REGISTER_ELEMENT("RANSEVMEPSILON2D3N",mRANSEVMEPSILON2D);
+  KRATOS_REGISTER_ELEMENT("RANSEVMEPSILON3D4N",mRANSEVMEPSILON3D);
 
 }
 }  // namespace Kratos.
