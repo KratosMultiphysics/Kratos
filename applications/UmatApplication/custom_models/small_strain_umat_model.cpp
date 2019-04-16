@@ -103,6 +103,10 @@ namespace Kratos
          this->InitializeStateVariables( mStateVariablesFinalized, rMaterialProperties);
 
          mStressVectorFinalized.clear();
+         mStressVectorFinalized[0] = 100.0;
+         mStressVectorFinalized[1] = 200.0;
+         mStressVectorFinalized[2] = 100.0;
+
 
          mStrainVectorFinalized.clear();
       }
@@ -276,6 +280,18 @@ namespace Kratos
 
       this->SetConstitutiveMatrix( rConstitutiveMatrix, Matrix, rStressMatrix);
 
+      std::cout << " " << std::endl;
+      std::cout << " " << std::endl;
+      std::cout << " " << std::endl;
+
+      std::cout << " C " << rConstitutiveMatrix << std::endl;
+      std::cout << " s " << rStressMatrix << std::endl;
+
+
+      std::cout << " " << std::endl;
+      std::cout << " " << std::endl;
+      std::cout << " " << std::endl;
+      std::cout << " " << std::endl;
 
       // update internal variables
       if ( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES) ) {

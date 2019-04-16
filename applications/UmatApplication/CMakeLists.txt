@@ -24,7 +24,7 @@ set( KRATOS_UMAT_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/CompLib_new.f
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/umat_fortran_wrapper.f
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/xit.f
-	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/umat_Sanisand.f
+	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/sanisand/umat_sanisand.f
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/small_strain_umat_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/von_mises_umat_small_strain_model.cpp

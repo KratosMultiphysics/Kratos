@@ -515,8 +515,6 @@ typedef array_1d<double,6> Vector6;
    const LinearElasticPlaneStrain2DLaw           mLinearElasticPlaneStrain2DLaw;
    const LinearElasticPlaneStress2DLaw           mLinearElasticPlaneStress2DLaw;
    const LinearElasticAxisym2DLaw                mLinearElasticAxisym2DLaw;
-   const NewNKLH3DLaw                            mNewNKLH3DLaw;
-   const NewNKLH2DLaw                            mNewNKLH2DLaw;
 
    //Hyperelastic Plastic J2 specilization laws
    const HyperElasticPlasticJ23DLaw              mHyperElasticPlasticJ23DLaw;
