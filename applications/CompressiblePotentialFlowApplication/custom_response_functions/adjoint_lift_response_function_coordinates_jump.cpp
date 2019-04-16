@@ -40,7 +40,7 @@ namespace Kratos
         KRATOS_TRY;
 
         Element tracedElem = rModelPart.GetElement(mpNeighboringElement->Id());
-        const array_1d<double, 3> v_inf = rModelPart.GetProcessInfo().GetValue(VELOCITY_INFINITY);
+        const array_1d<double, 3> v_inf = rModelPart.GetProcessInfo().GetValue(FREE_STREAM_VELOCITY);
         double vinfinity_norm = norm_2(v_inf);
         unsigned int NumNodes = tracedElem.GetGeometry().size();
         double lift_coefficient=0.0;
@@ -72,7 +72,7 @@ namespace Kratos
         rResponseGradient.clear();
         if( rAdjointElement.Id() == mpNeighboringElement->Id() )
         {
-            const array_1d<double, 3> v_inf = rProcessInfo.GetValue(VELOCITY_INFINITY);
+            const array_1d<double, 3> v_inf = rProcessInfo.GetValue(FREE_STREAM_VELOCITY);
             double v_norm = norm_2(v_inf);
             double derivative = 2.0/v_norm;
             unsigned int NumNodes = rAdjointElement.GetGeometry().size();

@@ -690,7 +690,7 @@ protected:
 
     double ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo)
     {
-        const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
+        const array_1d<double, 3> vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
         const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
 
         KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
@@ -707,7 +707,7 @@ protected:
 
     double ComputePressureWakeElement(const ProcessInfo& rCurrentProcessInfo)
     {
-        const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
+        const array_1d<double, 3> vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
         const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
 
         KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())

@@ -24,7 +24,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "please specify the model part that contains the surface nodes",
-            "velocity_infinity": [1.0,0.0,0.0],
+            "free_stream_velocity": [1.0,0.0,0.0],
             "reference_area": 1.0,
             "moment_reference_point" : [0.0,0.0,0.0]
         }''')
@@ -82,8 +82,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
                  te=node
                  break
 
-        velocity_infinity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.VELOCITY_INFINITY)
-        u_inf = velocity_infinity.norm_2()
+        free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
+        u_inf = free_stream_velocity.norm_2()
         
         node_velocity_potential_te = te.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
         node_auxiliary_velocity_potential_te = te.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
@@ -94,7 +94,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.lift_coefficient_jump = 2*potential_jump_phi_minus_psi_te/u_inf
 
     def __ReadWakeDirection(self):
-        self.wake_direction = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.VELOCITY_INFINITY)
+        self.wake_direction = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
         if(self.wake_direction.Size() != 3):
             raise Exception('The wake direction should be a vector with 3 components!')
 

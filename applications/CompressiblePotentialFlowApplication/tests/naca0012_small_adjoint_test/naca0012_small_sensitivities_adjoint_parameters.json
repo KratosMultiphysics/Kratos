@@ -42,7 +42,7 @@
             "Parameters"    : {
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "inlet_phi"         : 1.0,
-                "velocity_infinity" : [10.0,0.0,0.0]
+                "free_stream_velocity" : [10.0,0.0,0.0]
             }
         },{
             "python_module" : "define_wake_process_2d",

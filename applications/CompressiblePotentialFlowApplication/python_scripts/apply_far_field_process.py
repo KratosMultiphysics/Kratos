@@ -17,27 +17,27 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
                 "inlet_phi": 1.0,
-                "velocity_infinity": [1.0,0.0,0]
+                "free_stream_velocity": [1.0,0.0,0]
             }  """ );
 
 
         settings.ValidateAndAssignDefaults(default_parameters);
 
         self.model_part = Model[settings["model_part_name"].GetString()]
-        self.velocity_infinity = KratosMultiphysics.Vector(3)#array('d', [1.0, 2.0, 3.14])#np.array([0,0,0])#np.zeros(3)#vector(3)
-        self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
-        self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
-        self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
+        self.free_stream_velocity = KratosMultiphysics.Vector(3)#array('d', [1.0, 2.0, 3.14])#np.array([0,0,0])#np.zeros(3)#vector(3)
+        self.free_stream_velocity[0] = settings["free_stream_velocity"][0].GetDouble()
+        self.free_stream_velocity[1] = settings["free_stream_velocity"][1].GetDouble()
+        self.free_stream_velocity[2] = settings["free_stream_velocity"][2].GetDouble()
         #self.density_infinity = settings["density_infinity"].GetDouble() #TODO: must read this from the properties
         self.inlet_phi = settings["inlet_phi"].GetDouble()
-        self.model_part.ProcessInfo.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY,self.velocity_infinity)
+        self.model_part.ProcessInfo.SetValue(CompressiblePotentialFlowApplication.FREE_STREAM_VELOCITY,self.free_stream_velocity)
 
 
 
     def Execute(self):
-        #KratosMultiphysics.VariableUtils().SetVectorVar(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity, self.model_part.Conditions)
+        #KratosMultiphysics.VariableUtils().SetVectorVar(CompressiblePotentialFlowApplication.FREE_STREAM_VELOCITY, self.free_stream_velocity, self.model_part.Conditions)
         for cond in self.model_part.Conditions:
-            cond.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity)
+            cond.SetValue(CompressiblePotentialFlowApplication.FREE_STREAM_VELOCITY, self.free_stream_velocity)
 
         #select the first node
         for node in self.model_part.Nodes:
@@ -55,7 +55,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             dy = node.Y - y0
             dz = node.Z - z0
 
-            tmp = dx*self.velocity_infinity[0] + dy*self.velocity_infinity[1] + dz*self.velocity_infinity[2]
+            tmp = dx*self.free_stream_velocity[0] + dy*self.free_stream_velocity[1] + dz*self.free_stream_velocity[2]
 
             if(tmp < pos):
                 pos = tmp
@@ -65,7 +65,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             dy = node.Y - y0
             dz = node.Z - z0
 
-            tmp = dx*self.velocity_infinity[0] + dy*self.velocity_infinity[1] + dz*self.velocity_infinity[2]
+            tmp = dx*self.free_stream_velocity[0] + dy*self.free_stream_velocity[1] + dz*self.free_stream_velocity[2]
 
             if(tmp < pos+1e-9):
                 node.Fix(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL)
