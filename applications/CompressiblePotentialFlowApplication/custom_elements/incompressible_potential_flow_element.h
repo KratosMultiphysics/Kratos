@@ -23,24 +23,10 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/enrichment_utilities.h"
+#include "custom_utilities/potential_flow_utilities.h"
+
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -122,20 +108,10 @@ public:
     ///@{
 
     /// Assignment operator.
-    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement const& rOther)
-    {
-        BaseType::operator=(rOther);
-        Flags::operator=(rOther);
-        return *this;
-    }
+    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement const& rOther) = delete;
 
     /// Move operator.
-    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement&& rOther)
-    {
-        BaseType::operator=(rOther);
-        Flags::operator=(rOther);
-        return *this;
-    }
+    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement&& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -259,7 +235,7 @@ private:
 
     void ComputeElementInternalEnergy();
 
-    void GetPotentialOnNormalElement(array_1d<double, NumNodes>& phis) const;
+    //void GetPotentialOnNormalElement(array_1d<double, NumNodes>& phis) const;
 
     void GetPotentialOnWakeElement(Vector& split_element_values,
                                    const array_1d<double, NumNodes>& distances) const;
