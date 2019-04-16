@@ -20,7 +20,6 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "density_infinity"  : 1.0,
                 "speed_of_sound": 340,
                 "heat_capacity_ratio": 1.4,
-                "mesh_id": 0,
                 "inlet_phi": 1.0,
                 "velocity_infinity": [1.0,0.0,0]
             }  """ );
