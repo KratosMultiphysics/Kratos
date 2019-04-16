@@ -10,7 +10,7 @@
         "run_multilevel_monte_carlo"    : "True",
         "initial_tolerance"             : 0.25,
         "tolerance"                     : 0.1,
-        "confidence"                    : 0.9,
+        "confidence"                    : 0.7,
         "number_samples_screening"      : 25,
         "levels_screening"              : 2,
         "maximum_number_levels"         : 4,
