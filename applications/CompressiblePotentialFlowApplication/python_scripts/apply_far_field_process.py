@@ -26,9 +26,6 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.fluid_model_part = self.model_part.GetRootModelPart()
         self.velocity_infinity = settings["velocity_infinity"].GetVector()
-        self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
-        self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
-        self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         self.inlet_potential = settings["inlet_phi"].GetDouble()
         self.model_part.ProcessInfo.SetValue(CPFApp.VELOCITY_INFINITY,self.velocity_infinity)
         self.initialize_flow_field = settings["initialize_flow_field"].GetBool()
