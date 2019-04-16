@@ -16,11 +16,11 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     '''
 
     @classmethod
-    def setUpClass(cls, mapper_parameters, switch_sides=False):
+    def setUpMapper(cls, mapper_parameters, switch_sides=False):
         if switch_sides:
-            super(BasicMapperTests, cls).setUpClass("cube_quad", "cube_tri")
+            super(BasicMapperTests, cls).setUpModelParts("cube_quad", "cube_tri")
         else:
-            super(BasicMapperTests, cls).setUpClass("cube_tri", "cube_quad")
+            super(BasicMapperTests, cls).setUpModelParts("cube_tri", "cube_quad")
         # TODO ATTENTION: currently the MapperFactory removes some keys, hence those checks have to be done beforehand => improve this!
 
         cls.mapper_type = mapper_parameters["mapper_type"].GetString()
@@ -204,17 +204,17 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self.assertAlmostEqual(sum_origin[1], sum_destination[1])
         self.assertAlmostEqual(sum_origin[2], sum_destination[2])
 
-    def test_UpdateInterface(self):
-        pass
+    # def test_UpdateInterface(self):
+    #     pass
 
-    def test_TO_NON_HISTORICAL(self):
-        pass
+    # def test_TO_NON_HISTORICAL(self):
+    #     pass
 
-    def test_FROM_NON_HISTORICAL(self):
-        pass
+    # def test_FROM_NON_HISTORICAL(self):
+    #     pass
 
-    def test_both_NON_HISTORICAL(self):
-        pass
+    # def test_both_NON_HISTORICAL(self):
+    #     pass
 
 
 

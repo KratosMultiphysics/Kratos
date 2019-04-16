@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as KM
-import KratosMultiphysics.MappingApplication as KratosMapping
 import basic_mapper_tests
 
 class NearestElementBasicTestsLine(basic_mapper_tests.BasicMapperTests):
@@ -13,7 +12,7 @@ class NearestElementBasicTestsLine(basic_mapper_tests.BasicMapperTests):
             "interface_submodel_part_destination": "line_quad",
             "echo_level" : 0
         }""")
-        super(NearestElementBasicTestsLine, cls).setUpClass(mapper_params)
+        super(NearestElementBasicTestsLine, cls).setUpMapper(mapper_params)
 
 class NearestElementBasicTestsLineSwitchedSides(basic_mapper_tests.BasicMapperTests):
     @classmethod
@@ -24,7 +23,7 @@ class NearestElementBasicTestsLineSwitchedSides(basic_mapper_tests.BasicMapperTe
             "interface_submodel_part_destination": "line_tri",
             "echo_level" : 0
         }""")
-        super(NearestElementBasicTestsLineSwitchedSides, cls).setUpClass(mapper_params, switch_sides=True)
+        super(NearestElementBasicTestsLineSwitchedSides, cls).setUpMapper(mapper_params, switch_sides=True)
 
 class NearestElementBasicTestsSurface(basic_mapper_tests.BasicMapperTests):
     @classmethod
@@ -35,7 +34,7 @@ class NearestElementBasicTestsSurface(basic_mapper_tests.BasicMapperTests):
             "interface_submodel_part_destination": "surface_quad",
             "echo_level" : 0
         }""")
-        super(NearestElementBasicTestsSurface, cls).setUpClass(mapper_params)
+        super(NearestElementBasicTestsSurface, cls).setUpMapper(mapper_params)
 
 class NearestElementBasicTestsSurfaceSwitchedSides(basic_mapper_tests.BasicMapperTests):
     @classmethod
@@ -46,7 +45,7 @@ class NearestElementBasicTestsSurfaceSwitchedSides(basic_mapper_tests.BasicMappe
             "interface_submodel_part_destination": "surface_tri",
             "echo_level" : 0
         }""")
-        super(NearestElementBasicTestsSurfaceSwitchedSides, cls).setUpClass(mapper_params, switch_sides=True)
+        super(NearestElementBasicTestsSurfaceSwitchedSides, cls).setUpMapper(mapper_params, switch_sides=True)
 
 class NearestElementBasicTestsVolume(basic_mapper_tests.BasicMapperTests):
     @classmethod
@@ -57,7 +56,7 @@ class NearestElementBasicTestsVolume(basic_mapper_tests.BasicMapperTests):
             "interface_submodel_part_destination": "volume_quad",
             "echo_level" : 0
         }""")
-        super(NearestElementBasicTestsVolume, cls).setUpClass(mapper_params)
+        super(NearestElementBasicTestsVolume, cls).setUpMapper(mapper_params)
 
 class NearestElementBasicTestsVolumeSwitchedSides(basic_mapper_tests.BasicMapperTests):
     @classmethod
@@ -68,7 +67,7 @@ class NearestElementBasicTestsVolumeSwitchedSides(basic_mapper_tests.BasicMapper
             "interface_submodel_part_destination": "volume_tri",
             "echo_level" : 0
         }""")
-        super(NearestElementBasicTestsVolumeSwitchedSides, cls).setUpClass(mapper_params, switch_sides=True)
+        super(NearestElementBasicTestsVolumeSwitchedSides, cls).setUpMapper(mapper_params, switch_sides=True)
 
 if __name__ == '__main__':
     import sys
