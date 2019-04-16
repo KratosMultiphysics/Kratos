@@ -36,6 +36,9 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.reference_area =  settings["reference_area"].GetDouble()
         self.moment_reference_point = settings["moment_reference_point"].GetVector()
 
+        if not self.reference_area > 0.0:
+            raise Exception('The reference area should be larger than 0.')
+
     def ExecuteFinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','COMPUTE LIFT')
 
