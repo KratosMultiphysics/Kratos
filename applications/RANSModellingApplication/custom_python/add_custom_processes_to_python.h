@@ -5,31 +5,29 @@
 //                   Multi-Physics
 //
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//					 license: HDF5Application/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
+//
 
-#if !defined(KRATOS_RANS_STRATEGIES_PYTHON_H_INCLUDED )
-#define  KRATOS_RANS_STRATEGIES_PYTHON_H_INCLUDED
-
+#if !defined(KRATOS_ADD_CUSTOM_RANS_PROCESSES_TO_PYTHON_H_INCLUDED)
+#define KRATOS_ADD_CUSTOM_RANS_PROCESSES_TO_PYTHON_H_INCLUDED
 
 // System includes
 
-
 // External includes
-
+#include "pybind11/pybind11.h"
 
 // Project includes
-#include "includes/define_python.h"
-
+#include "includes/define.h"
 
 namespace Kratos {
 namespace Python {
 
-void  AddCustomStrategiesToPython(pybind11::module& m);
+void  AddCustomProcessesToPython(pybind11::module& m);
 
 }  // namespace Python.
 }  // namespace Kratos.
 
-#endif // KRATOS_RANS_STRATEGIES_PYTHON_H_INCLUDED  defined
+#endif // KRATOS_ADD_CUSTOM_RANS_PROCESSES_TO_PYTHON_H_INCLUDED defined
