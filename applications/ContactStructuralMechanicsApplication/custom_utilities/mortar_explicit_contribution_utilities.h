@@ -165,6 +165,21 @@ public:
         );
 
     /**
+     * @brief This method computes the previous mortar operators
+     * @details This method is created in order to avoid duplicated code
+     * @param pCondition The condition pointer to compute the explicit contribution
+     * @param rCurrentProcessInfo The current instance process info
+     * @param rPreviousMortarOperators The previous mortar operators
+     */
+    static void ComputePreviousMortarOperators(
+        PairedCondition* pCondition,
+        ProcessInfo& rCurrentProcessInfo,
+        MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
+        const IndexType IntegrationOrder = 2,
+        const bool AxisymmetricCase = false
+        );
+
+    /**
      * @brief Calculate condition kinematics (shape functions, jacobians, ...)
      * @details This can be used in the mortar conditions
      * @param pCondition The pointer to the condition
