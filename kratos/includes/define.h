@@ -579,8 +579,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 
 #define KRATOS_VERSION_AS_INT (KRATOS_MAJOR_VERSION*100+KRATOS_MINOR_VERSION*10+KRATOS_PATCH_VERSION)
-#define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION_MESSAGE(deprecated_message, major_version, minor_version, patch_version) KRATOS_DEPRECATED_MESSAGE(deprecated_message); static_assert((major_version*100+minor_version*10+patch_version) > KRATOS_VERSION_AS_INT, "This method is deprecated for the current version. Please remove");
-#define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION(major_version, minor_version, patch_version) KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION_MESSAGE("", major_version, minor_version, patch_version);
+#define KRATOS_TO_BE_REMOVED_IN_VERSION(major_version, minor_version, patch_version) static_assert((major_version*100+minor_version*10+patch_version) > KRATOS_VERSION_AS_INT, "This method is deprecated for the current version. Please remove");
 
 // The following block defines the macro KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
 // If written in a file, for the following lines of code the compiler will not print warnings of type 'deprecated function'.

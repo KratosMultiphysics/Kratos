@@ -176,7 +176,7 @@ public:
      * @note this function is threadsafe and can be used within OpenMP loops
      * @warning This is legacy version (using array instead of vector for shape function)
      */
-    KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION_MESSAGE("This is legacy version (using array instead of vector for shape function)", 7, 1, 0) bool FindPointOnMesh(
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version (using array instead of vector for shape function)") bool FindPointOnMesh(
         const array_1d<double, 3 >& rCoordinates,
         array_1d<double, TDim + 1 >& rNShapeFunction,
         typename EntityType::Pointer& pEntity,
@@ -185,6 +185,8 @@ public:
         const double Tolerance = 1.0e-5
         )
     {
+        KRATOS_TO_BE_REMOVED_IN_VERSION(7, 1, 0)
+
         // Ask to the container for the list of candidate entities
         SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(PointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
 
