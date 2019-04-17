@@ -37,7 +37,7 @@ public:
     template <unsigned int TNumNodes, unsigned int TDim>
     struct ElementalData
     {
-        array_1d<double, TNumNodes> phis, distances;
+        array_1d<double, TNumNodes> potentials, distances;
         double vol;
 
         BoundedMatrix<double, TNumNodes, TDim> DN_DX;
@@ -234,8 +234,6 @@ private:
     void ComputePotentialJump(ProcessInfo& rCurrentProcessInfo);
 
     void ComputeElementInternalEnergy();
-
-    //void GetPotentialOnNormalElement(array_1d<double, NumNodes>& phis) const;
 
     void GetPotentialOnWakeElement(Vector& split_element_values,
                                    const array_1d<double, NumNodes>& distances) const;
