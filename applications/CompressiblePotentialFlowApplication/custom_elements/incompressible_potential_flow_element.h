@@ -13,10 +13,6 @@
 #if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H)
 #define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H
 
-// System includes
-
-// External includes
-
 // Project includes
 #include "includes/element.h"
 #include "includes/kratos_flags.h"
@@ -265,10 +261,6 @@ private:
     double ComputePressureLowerWakeElement(const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -279,32 +271,10 @@ private:
     void load(Serializer& rSerializer) override;
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
 
 }; // Class IncompressiblePotentialFlowElement
 
 ///@}
-
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
-
-///@}
-
 } // namespace Kratos.
 
 #endif // KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H  defined
