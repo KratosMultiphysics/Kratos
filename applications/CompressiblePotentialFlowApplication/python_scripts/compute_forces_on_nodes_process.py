@@ -27,7 +27,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
         self.Execute()
 
     def Execute(self):
-        KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess', 'Compute reactions at nodes')
+        KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess', 'COMPUTE REACTIONS ON NODES')
 
         # density_infinity = self.body_model_part.GetProperties()[0].Has(DENSITY)
         # KratosMultiphysics.Logger.PrintInfo('DENSITY INFINITY', density_infinity)
@@ -36,7 +36,6 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
 
         velocity_infinity = self.body_model_part.ProcessInfo.GetValue(CPFApp.VELOCITY_INFINITY)
         self.body_model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, 1.225)
-        KratosMultiphysics.Logger.PrintInfo('New Process Info =', self.body_model_part.ProcessInfo)
         density_infinity = self.body_model_part.ProcessInfo.GetValue(KratosMultiphysics.DENSITY)
         u_inf = velocity_infinity.norm_2()
         dynamic_pressure = 0.5*density_infinity*u_inf**2
@@ -46,20 +45,17 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
             cp = cond.GetValue(KratosMultiphysics.PRESSURE)
 
             for node in cond.GetNodes():
-                added_force = n*(cp/2.0)
+                added_force = n*(cp/2.0)*dynamic_pressure
                 force = node.GetValue(KratosMultiphysics.REACTION) + added_force
                 node.SetValue(KratosMultiphysics.REACTION, force)
 
         total_force = KratosMultiphysics.VariableUtils().SumNonHistoricalNodeVectorVariable(KratosMultiphysics.REACTION, self.body_model_part)
 
-        KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Lift Reaction = ', total_force[1])
-        KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Drag Reaction = ', total_force[0])
-        KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','RZ = ', total_force[2])
+        KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Lift Force = ', total_force[1])
+        KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Drag Force = ', total_force[0])
+        KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Side Force = ', total_force[2])
 
         if self.create_output_file:
             with open("cl_points_with_lift.dat", 'w') as cl_file:
-                cl_file.write('{0:15.12f}'.format(total_force[1]))
+                cl_file.write('{0:15.12f}'.format(total_force[1]/dynamic_pressure))
 
-
-
-# total_force += dynamic_pressure
