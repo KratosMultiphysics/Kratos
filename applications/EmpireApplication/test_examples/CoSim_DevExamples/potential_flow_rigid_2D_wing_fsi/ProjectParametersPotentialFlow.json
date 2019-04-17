@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "PotentialFlow_Cylinder",
+        "problem_name": "PotentialFlow_Airfoil",
         "parallel_type": "OpenMP",
         "echo_level": 0,
         "start_time": 0.0,
@@ -42,7 +42,7 @@
             "solver_type": "mesh_solver_structural_similarity"
         },
         "fluid_solver_settings": {
-            "solver_type": "potential_flow",
+            "solver_type": "kratos_potential_flow",
             "domain_size": 2,
             "model_part_name": "MainModelPart",
             "model_import_settings": {

@@ -9,21 +9,20 @@
     },
     "solver_settings" :
     {
-        "solver_type" : "gauss_seidel_strong_coupling",
+        "solver_type" : "simple_steady_coupling",
         "echo_level" : 0,
-        "num_coupling_iterations" : 1,
+        "num_coupling_iterations" : 2,
         "start_coupling_time" : 0.0,
-        "predictor_settings" :
+        "convergence_criteria_settings" :
         {
-            "predictor_type" : "linear_derivative_based",
-            "data_list"      :
+            "data_list" :
             [
                 {
-                    "solver": "fluid",
-                    "data_name"  : "disp_y",
-                    "derivative_data_name"  : "vel_y"
+                    "solver"   : "fluid",
+                    "data_name"     : "disp_y",
+                    "abs_tolerance" : 1e-5,
+                    "rel_tolerance" : 1e-5
                 }
-
             ]
         },
         "coupling_loop":
