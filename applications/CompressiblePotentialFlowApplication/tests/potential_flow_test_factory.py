@@ -62,6 +62,24 @@ class PotentialFlowTests(UnitTest.TestCase):
                 if file_name.endswith(".h5") or file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
+    def test_Naca0012SmallAdjointAnalytical(self):
+        if not hdf5_is_available:
+            self.skipTest("Missing required application: HDF5Application")
+        if not structural_mechanics_is_available:
+            self.skipTest("Missing required application: StructuralMechanicsApplication")
+        file_name = "naca0012_small_sensitivities"
+        settings_file_name_primal = file_name + "_primal_parameters.json"
+        settings_file_name_adjoint = file_name + "_adjoint_analytical_parameters.json"
+        work_folder = "naca0012_small_adjoint_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name_primal)
+            self._runTest(settings_file_name_adjoint)
+
+            for file_name in os.listdir():
+                if file_name.endswith(".h5") or file_name.endswith(".time"):
+                    kratos_utilities.DeleteFileIfExisting(file_name)
+
     def test_SmallLiftJumpTest(self):
         file_name = "small_lift_jump"
         settings_file_name = file_name + "_parameters.json"
