@@ -168,9 +168,7 @@ public:
             normal,
             normal));
 
-        bool is_inside = rGeom.IsInside(projected_point, rLocalCoords, 1E-14);
-
-        return is_inside;
+        return rGeom.IsInside(projected_point, rLocalCoords, 1E-14);
     }
 
     /**
