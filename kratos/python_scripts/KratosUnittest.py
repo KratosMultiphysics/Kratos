@@ -161,11 +161,6 @@ def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
 
 
 class WorkFolderScope:
-<<<<<<< HEAD
-    """Helper-class to execute test in a specific path"""
-    def __init__(self, rel_path_work_folder, file_path, add_to_path=False):
-        """file_path is the __file__ argument"""
-=======
     """ Helper-class to execute test in a specific target path
 
         Input
@@ -181,7 +176,6 @@ class WorkFolderScope:
     """
 
     def __init__(self, rel_path_work_folder, file_path, add_to_path=False):
->>>>>>> origin/master
         self.currentPath = os.getcwd()
         self.add_to_path = add_to_path
         if self.add_to_path:
@@ -196,8 +190,4 @@ class WorkFolderScope:
     def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.currentPath)
         if self.add_to_path:
-<<<<<<< HEAD
             sys.path = self.currentPythonpath
-=======
-            sys.path = self.currentPythonpath
->>>>>>> origin/master
