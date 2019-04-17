@@ -9,19 +9,19 @@ template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement)
 {
     const int kutta = rElement.GetValue(KUTTA);
-    array_1d<double, NumNodes> phis;
+    array_1d<double, NumNodes> potentials;
 
     if (kutta == 0)
         for (unsigned int i = 0; i < NumNodes; i++)
-            phis[i] = rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+            potentials[i] = rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
     else
         for (unsigned int i = 0; i < NumNodes; i++)
             if (!rElement.GetGeometry()[i].GetValue(TRAILING_EDGE))
-                phis[i] = rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+                potentials[i] = rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
             else
-                phis[i] = rElement.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+                potentials[i] = rElement.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
 
-    return phis;
+    return potentials;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
