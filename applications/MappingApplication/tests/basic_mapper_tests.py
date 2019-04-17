@@ -259,10 +259,14 @@ def SetHistoricalNonUniformSolutionVector(nodes, variable):
         node.SetSolutionStepValue(variable, KM.Vector([val_1, val_2, val_3]))
 
 def OutputReferenceSolution(model_part, variable, file_name):
+    full_model_part_name = model_part.Name
+    if model_part.IsSubModelPart():
+        full_model_part_name = model_part.GetParentModelPart().Name  + "." + full_model_part_name
+
     output_parameters = KM.Parameters("""{
         "output_variables"     : [\"""" + variable.Name() + """\"],
         "output_file_name"     : \"""" + file_name + """\",
-        "model_part_name"      : \"""" + model_part.Name + """\",
+        "model_part_name"      : \"""" + full_model_part_name + """\",
         "time_frequency"       : 0.00,
         "use_node_coordinates" : true
     }""")
@@ -279,10 +283,14 @@ def CheckHistoricalNonUniformValues(model_part, variable, file_name, output_refe
         KM.Logger.PrintWarning('MapperTest', 'Writing reference solution for ModelPart "{}"; Variable "{}"; FileName "{}"'.format(model_part.Name, variable.Name(), file_name))
         OutputReferenceSolution(model_part, variable, file_name)
     else:
+        full_model_part_name = model_part.Name
+        if model_part.IsSubModelPart():
+            full_model_part_name = model_part.GetParentModelPart().Name  + "." + full_model_part_name
+
         check_parameters = KM.Parameters("""{
             "check_variables"           : [\"""" + variable.Name() + """\"],
             "input_file_name"           : \"""" + file_name + """\",
-            "model_part_name"           : \"""" + model_part.Name + """\",
+            "model_part_name"           : \"""" + full_model_part_name + """\",
             "tolerance"                 : 1e-6,
             "relative_tolerance"        : 1e-9,
             "time_frequency"            : 0.00,
