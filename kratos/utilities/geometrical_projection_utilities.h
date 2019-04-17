@@ -183,20 +183,20 @@ public:
                            array_1d<double,3>& rLocalCoords,
                            double& rDistance)
     {
-        array_1d<double,3> local_coords_init;
-
         Point projected_point;
 
-        // using the center as trial for the projection
-        rGeom.PointLocalCoordinates(local_coords_init, rGeom.Center());
+        // using the normal in the center as trial for the projection
+        array_1d<double,3> local_coords_center;
+        rGeom.PointLocalCoordinates(local_coords_center, rGeom.Center());
+        const array_1d<double,3> normal = rGeom.UnitNormal(local_coords_center);
 
         // trying to project to the geometry
         rDistance = std::abs(FastProjectDirection(
             rGeom,
             rPointToProject,
             projected_point,
-            rGeom.UnitNormal(local_coords_init),
-            rGeom.UnitNormal(local_coords_init)));
+            normal,
+            normal));
 
         bool is_inside = rGeom.IsInside(projected_point, rLocalCoords, 1E-14);
 
