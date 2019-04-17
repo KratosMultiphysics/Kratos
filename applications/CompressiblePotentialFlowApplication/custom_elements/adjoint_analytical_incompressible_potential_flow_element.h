@@ -46,7 +46,7 @@ public:
     /**
      * Constructor.
      */
-    AdjointAnalyticalIncompressiblePotentialFlowElement(IndexType NewId = 0)
+    explicit AdjointAnalyticalIncompressiblePotentialFlowElement(IndexType NewId = 0)
      : Element(NewId),
      mpPrimalElement(std::make_shared<TPrimalElement>(NewId))
     {};
