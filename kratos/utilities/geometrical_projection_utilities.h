@@ -169,6 +169,40 @@ public:
     }
 
     /**
+     * @brief Project a point over a line/plane (simplified since using the normal in the center)
+     * @tparam TGeometryType The type of the geometry
+     * @param rGeom The geometry where to be projected
+     * @param rPointDestiny The point to be projected
+     * @param rLocalCoords The local coordinates of the projection
+     * @return Inside True is inside, false not
+     */
+    template<class TGeometryType>
+    bool ProjectOnGeometry(TGeometryType& rGeom,
+                           const Point& rPointDestiny,
+                           array_1d<double,3>& rLocalCoords,
+                           double& rDistance)
+    {
+        array_1d<double,3> local_coords_init;
+
+        Point projected_point;
+
+        // using the center as trial for the projection
+        rGeom.PointLocalCoordinates(local_coords_init, rGeom.Center());
+
+        // trying to project to the geometry
+        rDistance = std::abs(FastProjectDirection(
+            rGeom,
+            rPointDestiny,
+            projected_point,
+            rGeom.UnitNormal(local_coords_init),
+            rGeom.UnitNormal(local_coords_init)));
+
+        bool is_inside = rGeom.IsInside(projected_point, rLocalCoords, 1E-14);
+
+        return is_inside;
+    }
+
+    /**
      * @brief Projects iteratively to get the coordinate
      * @tparam TGeometryType The type of the geometry
      * @param rGeomOrigin The origin geometry
