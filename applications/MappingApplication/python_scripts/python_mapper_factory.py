@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
+import KratosMultiphysics
 
 # Python factory for all the currently available Mappers in Kratos
 # The intention is to give the users a unique place to create Mappers
@@ -34,6 +35,9 @@ available_mappers = {
 }
 
 def CreateMapper(model_part_origin, model_part_destination, mapper_settings):
+    if not isinstance(mapper_settings, KratosMultiphysics.Parameters):
+        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+
     mapper_type = mapper_settings["mapper_type"].GetString()
 
     if MapperFactory.HasMapper(mapper_type): # use the MappingApp if it has the requested mapper
