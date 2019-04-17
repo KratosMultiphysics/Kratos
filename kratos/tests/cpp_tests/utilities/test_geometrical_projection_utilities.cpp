@@ -27,6 +27,9 @@ using NodeType = Node<3>;
 using GeometryNodeType = Geometry<NodeType>;
 using GeometryPointType = Geometry<Point>;
 
+namespace
+{
+
 GeometryNodeType::Pointer CreateTriangle2D3NForTestNode()
 {
     GeometryNodeType::PointsArrayType points;
@@ -47,11 +50,10 @@ GeometryPointType::Pointer CreateTriangle2D3NForTestPoint()
     return GeometryPointType::Pointer(new Triangle3D3<Point>(points));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectDirectionNode, KratosCoreFastSuite)
+template<class TGeometryType>
+void TestFastProjectDirection(const TGeometryType& rGeom)
 {
-    GeometryNodeType::Pointer p_geom = CreateTriangle2D3NForTestNode();
-
-    double expected_proj_dist = 1.258;
+    const double expected_proj_dist = 1.258;
 
     const double x_coord = 0.325;
     const double y_coord = 0.147;
@@ -72,7 +74,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectDirectionNode
     Point projected_point;
 
     double proj_distance = GeometricalProjectionUtilities::FastProjectDirection(
-        *p_geom,
+        rGeom,
         point_to_proj,
         projected_point,
         normal_vector,
@@ -84,41 +86,20 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectDirectionNode
     KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), 0.0);
 }
 
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectDirectionNode, KratosCoreFastSuite)
+{
+    GeometryNodeType::Pointer p_geom = CreateTriangle2D3NForTestNode();
+
+    TestFastProjectDirection(*p_geom);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectDirectionPoint, KratosCoreFastSuite)
 {
     GeometryPointType::Pointer p_geom = CreateTriangle2D3NForTestPoint();
 
-    double expected_proj_dist = 1.258;
-
-    const double x_coord = 0.325;
-    const double y_coord = 0.147;
-
-    const Point point_to_proj(x_coord, y_coord, expected_proj_dist);
-
-    array_1d<double,3> dir_vector;
-    array_1d<double,3> normal_vector;
-
-    dir_vector[0] = 0.0;
-    dir_vector[1] = 0.0;
-    dir_vector[2] = -1.0;
-
-    normal_vector[0] = 0.0;
-    normal_vector[1] = 0.0;
-    normal_vector[2] = 1.0;
-
-    Point projected_point;
-
-    double proj_distance = GeometricalProjectionUtilities::FastProjectDirection(
-        *p_geom,
-        point_to_proj,
-        projected_point,
-        normal_vector,
-        dir_vector);
-
-    KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.X(), x_coord);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Y(), y_coord);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), 0.0);
+    TestFastProjectDirection(*p_geom);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProject, KratosCoreFastSuite)
