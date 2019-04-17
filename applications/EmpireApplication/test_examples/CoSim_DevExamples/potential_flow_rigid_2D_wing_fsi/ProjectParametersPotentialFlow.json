@@ -75,15 +75,6 @@
                 "inlet_phi"         : 1.0,
                 "velocity_infinity" : [10.0,0.0,0.0]
             }
-        },{
-            "python_module" : "define_wake_process_2d",
-            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
-            "process_name"  : "DefineWakeProcess",
-            "Parameters"    : {
-                "model_part_name" : "MainModelPart.Body2D_BodySurface",
-                "wake_direction"  : [1.0,0.0,0.0],
-                "epsilon"         : 1e-9
-            }
         },
         {
             "python_module" : "assign_vector_variable_process",

@@ -15,6 +15,8 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         # Call the base Kratos process constructor
         KratosMultiphysics.Process.__init__(self)
 
+        print("debug - model as seen from define wake process 2d:\n", Model)
+
         # Check default settings
         default_settings = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "",
@@ -66,6 +68,10 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 node.Set(KratosMultiphysics.SOLID)
 
     def ExecuteInitialize(self):
+        self.FindWakeElements()
+
+
+    def FindWakeElements(self):
         # Save the trailing edge for further computations
         self.SaveTrailingEdgeNode()
         # Check which elements are cut and mark them as wake
@@ -223,17 +229,20 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 else: #Rest of elements touching the trailing edge but not part of the wake
                     elem.SetValue(CPFApp.WAKE, False)
 
+    #'''
     def CleanMarking(self):
         # This function removes all the markers set by ExecuteInitialize()
 
         #
-        for elem in self.fluid_model_part.El:
+        for elem in self.fluid_model_part.Elements:
             elem.SetValue(CPFApp.WAKE, False)
             elem.SetValue(CPFApp.KUTTA, False)
             elem.SetValue(CPFApp.TRAILING_EDGE, False)
             elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, 0.0)
+            elem.Reset(KratosMultiphysics.STRUCTURE)
 
         # undo SaveTrailingEdgeNode()
         for node in self.body_model_part.Nodes:
             node.SetValue(CPFApp.TRAILING_EDGE, False)
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0.0)
+    #'''
