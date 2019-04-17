@@ -102,6 +102,7 @@ public:
 
     /**
      * @brief Project a point over a line/plane following an arbitrary direction
+     * @tparam TGeometryType The type of the geometry
      * @param rGeom The geometry where to be projected
      * @param rPointDestiny The point to be projected
      * @param rPointProjected The point pojected over the plane
@@ -110,8 +111,9 @@ public:
      * @param EchoLevel If we want debugging info we should consider greater than 0
      * @return Distance The distance between surfaces
      */
+    template<class TGeometryType>
     static inline double FastProjectDirection(
-        const GeometryType& rGeom,
+        const TGeometryType& rGeom,
         const PointType& rPointDestiny,
         PointType& rPointProjected,
         const array_1d<double,3>& rNormal,
@@ -173,13 +175,15 @@ public:
 
     /**
      * @brief Projects iteratively to get the coordinate
+     * @tparam TGeometryType The type of the geometry
      * @param rGeomOrigin The origin geometry
      * @param rPointDestiny The destination point
      * @param rResultingPoint The distance between the point and the plane
      * @return Inside True is inside, false not
      */
+    template<class TGeometryType>
     static inline bool ProjectIterativeLine2D(
-        GeometryType& rGeomOrigin,
+        TGeometryType& rGeomOrigin,
         const GeometryType::CoordinatesArrayType& rPointDestiny,
         GeometryType::CoordinatesArrayType& rResultingPoint,
         const array_1d<double, 3>& rNormal,
