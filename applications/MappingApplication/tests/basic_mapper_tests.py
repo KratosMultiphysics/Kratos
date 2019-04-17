@@ -9,6 +9,9 @@ from KratosMultiphysics import json_output_process
 from math import sin, cos
 import os
 
+def GetFilePath(file_name):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), file_name)
+
 class BasicMapperTests(mapper_test_case.MapperTestCase):
     '''This class contains basic tests that every mapper should pass
     This included e.g. testing if mapping a constant field works
@@ -73,22 +76,22 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_Map_non_constant_scalar(self):
         SetHistoricalNonUniformSolutionScalar(self.interface_model_part_origin.Nodes, KM.PRESSURE)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE)
-        CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.TEMPERATURE, self.__GetFileName("map_scalar"))
+        CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.TEMPERATURE, GetFilePath(self.__GetFileName("map_scalar")))
 
     def test_InverseMap_non_constant_scalar(self):
         SetHistoricalNonUniformSolutionScalar(self.interface_model_part_destination.Nodes, KM.TEMPERATURE)
         self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE)
-        CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.PRESSURE, self.__GetFileName("inverse_map_scalar"))
+        CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.PRESSURE, GetFilePath(self.__GetFileName("inverse_map_scalar")))
 
     def test_Map_non_constant_vector(self):
         SetHistoricalNonUniformSolutionVector(self.interface_model_part_origin.Nodes, KM.FORCE)
         self.mapper.Map(KM.FORCE, KM.VELOCITY)
-        CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.VELOCITY, self.__GetFileName("map_vector"))
+        CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.VELOCITY, GetFilePath(self.__GetFileName("map_vector")))
 
     def test_InverseMap_non_constant_vector(self):
         SetHistoricalNonUniformSolutionVector(self.interface_model_part_destination.Nodes, KM.VELOCITY)
         self.mapper.InverseMap(KM.FORCE, KM.VELOCITY)
-        CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.FORCE, self.__GetFileName("inverse_map_vector"))
+        CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.FORCE, GetFilePath(self.__GetFileName("inverse_map_vector")))
 
     def test_SWAP_SIGN_Map_scalar(self):
         val = 1.234
