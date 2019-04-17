@@ -390,7 +390,11 @@ public:
      * @return tangent_matrix The matrix containing the tangent vectors of the r_gt
      */
     template< std::size_t TDim, std::size_t TNumNodes>
-    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(const GeometryType& rGeometry, const std::size_t StepSlip) {
+    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(
+        const GeometryType& rGeometry,
+        const std::size_t StepSlip = 1
+        )
+    {
         /* DEFINITIONS */
         // Zero tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
