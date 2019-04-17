@@ -161,9 +161,21 @@ def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
 
 
 class WorkFolderScope:
-    """Helper-class to execute test in a specific path"""
+    """ Helper-class to execute test in a specific target path
+
+        Input
+        -----
+        - rel_path_work_folder: String
+            Relative path of the target dir from the calling script
+
+        - file_path: String
+            Absolute path of the calling script
+
+        - add_to_path: Bool
+            "False" (default) if no need to add the target dir to the path, "True" otherwise.
+    """
+
     def __init__(self, rel_path_work_folder, file_path, add_to_path=False):
-        """file_path is the __file__ argument"""
         self.currentPath = os.getcwd()
         self.add_to_path = add_to_path
         if self.add_to_path:

@@ -7,16 +7,21 @@ import run_cpp_unit_tests
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-try:
-    import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-    missing_external_dependencies = False
-    missing_application = ''
-except ImportError as e:
-    missing_external_dependencies = True
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
-                                    '{0}'.format(e)).group(1)
+# Import subprocess
+import subprocess
+
+# Using kratos_utilities
+import KratosMultiphysics.kratos_utilities as kratos_utilities
+if kratos_utilities.CheckIfApplicationsAvailable("ExternalSolversApplication"):
+    has_external_solvers_application = True
+else:
+    has_external_solvers_application = False
+
+import os
+import sys
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+sys.path.insert(0, GetFilePath('../../../kratos/tests/'))
 
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
@@ -24,8 +29,6 @@ except ImportError as e:
 from test_process_factory import TestProcessFactory as TTestProcessFactory
 from test_double_curvature_integration import TestDoubleCurvatureIntegration as TTestDoubleCurvatureIntegration
 from test_dynamic_search import TestDynamicSearch as TTestDynamicSearch
-import sys
-sys.path.insert(0, '../../../kratos/tests/')
 from test_mortar_mapper import TestMortarMapperCore as TTestMortarMapperCore
 
 # Mesh tying tests
@@ -57,6 +60,7 @@ from SmallTests import ALMThreeDPatchMatchingTestContact                        
 from SmallTests import ALMThreeDPatchNotMatchingTestContact                        as TALMThreeDPatchNotMatchingTestContact
 
 # Penalty frictionless tests
+from SmallTests import PenaltyFrictionlessHyperSimplePatchFrictionalTestContact as TPenaltyFrictionlessHyperSimplePatchFrictionalTestContact
 from SmallTests import PenaltyThreeDSimplestPatchMatchingTestContact as TPenaltyThreeDSimplestPatchMatchingTestContact
 from NightlyTests import ExplicitPenaltyThreeDSimplestPatchMatchingTestContact as TExplicitPenaltyThreeDSimplestPatchMatchingTestContact
 
@@ -81,6 +85,13 @@ from SmallTests import ComponentsALMThreeDPatchNotMatchingTestContact           
 
 # ALM frictional tests
 from SmallTests import ALMHyperSimplePatchFrictionalTestContact                      as TALMHyperSimplePatchFrictionalTestContact
+
+# Penalty frictional tests
+from SmallTests import PenaltyNoFrictionHyperSimplePatchFrictionalTestContact        as TPenaltyNoFrictionHyperSimplePatchFrictionalTestContact
+from SmallTests import PenaltyPerfectStickHyperSimplePatchFrictionalTestContact      as TPenaltyPerfectStickHyperSimplePatchFrictionalTestContact
+from SmallTests import PenaltyThresholdSlipHyperSimplePatchFrictionalTestContact     as TPenaltyThresholdSlipHyperSimplePatchFrictionalTestContact
+from SmallTests import PenaltyHyperSimplePatchFrictionalSlipTestContact              as TPenaltyHyperSimplePatchFrictionalSlipTestContact
+from SmallTests import PenaltyHyperSimplePatchFrictionalStickTestContact             as TPenaltyHyperSimplePatchFrictionalStickTestContact
 
 ## NIGTHLY TESTS
 # ALM frictionless tests
@@ -173,6 +184,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TALMThreeDPatchComplexGeomTestContact('test_execution'))
 
     # Penalty frictionless tests
+    smallSuite.addTest(TPenaltyFrictionlessHyperSimplePatchFrictionalTestContact('test_execution'))
     smallSuite.addTest(TPenaltyThreeDSimplestPatchMatchingTestContact('test_execution'))
 
     # Components ALM frictionless tests
@@ -195,8 +207,14 @@ def AssembleTestSuites():
     # ALM frictional tests
     smallSuite.addTest(TALMHyperSimplePatchFrictionalTestContact('test_execution'))
 
-    # Create a test suit with the selected tests plus all small tests
-    nightSuite = suites['nightly']
+    # Penalty frictional tests
+    smallSuite.addTest(TPenaltyNoFrictionHyperSimplePatchFrictionalTestContact('test_execution'))
+    smallSuite.addTest(TPenaltyPerfectStickHyperSimplePatchFrictionalTestContact('test_execution'))
+    smallSuite.addTest(TPenaltyThresholdSlipHyperSimplePatchFrictionalTestContact('test_execution'))
+    smallSuite.addTest(TPenaltyHyperSimplePatchFrictionalSlipTestContact('test_execution'))
+    smallSuite.addTest(TPenaltyHyperSimplePatchFrictionalStickTestContact('test_execution'))
+
+    # Fill with all small tests
     nightSuite.addTests(smallSuite)
 
     # Exact integration tests
@@ -306,6 +324,7 @@ def AssembleTestSuites():
             TALMThreeDPatchComplexGeomTestContact,
             TALMTThreeDPatchMatchingTestContact,
             TALMThreeDPatchNotMatchingTestContact,
+            TPenaltyFrictionlessHyperSimplePatchFrictionalTestContact,
             TPenaltyThreeDSimplestPatchMatchingTestContact,
             TExplicitPenaltyThreeDSimplestPatchMatchingTestContact,
             TComponentsALMHyperSimpleTrianglePatchTestContact,
@@ -326,6 +345,11 @@ def AssembleTestSuites():
             TComponentsALMTThreeDPatchMatchingTestContact,
             TComponentsALMThreeDPatchNotMatchingTestContact,
             TALMHyperSimplePatchFrictionalTestContact,
+            TPenaltyNoFrictionHyperSimplePatchFrictionalTestContact,
+            TPenaltyPerfectStickHyperSimplePatchFrictionalTestContact,
+            TPenaltyThresholdSlipHyperSimplePatchFrictionalTestContact,
+            TPenaltyHyperSimplePatchFrictionalSlipTestContact,
+            TPenaltyHyperSimplePatchFrictionalStickTestContact,
             #### NIGTHLY
             TALMTaylorPatchTestContact,
             TALMHertzSimpleTestContact,

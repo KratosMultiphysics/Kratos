@@ -3,7 +3,7 @@ import KratosMultiphysics
 from numpy import *
 import itertools
 import matplotlib.pyplot as plt
-from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
+# from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to exequte with the IT4 scheduler
 # from exaqute.ExaquteTaskLocal import *      # to execute with python3
 def Factory(settings, Model):

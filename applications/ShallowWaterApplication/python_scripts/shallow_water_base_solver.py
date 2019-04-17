@@ -2,10 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 # Importing the Kratos Library
 import KratosMultiphysics
-from python_solver import PythonSolver
-
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("ShallowWaterApplication")
+from KratosMultiphysics.python_solver import PythonSolver
 
 # Import applications
 import KratosMultiphysics.ShallowWaterApplication as Shallow
@@ -56,11 +53,14 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(Shallow.BATHYMETRY)
         self.main_model_part.AddNodalSolutionStepVariable(Shallow.MANNING)
         self.main_model_part.AddNodalSolutionStepVariable(Shallow.RAIN)
+        self.main_model_part.AddNodalSolutionStepVariable(Shallow.TOPOGRAPHY_GRADIENT)
         # Auxiliary variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
 
     def AddDofs(self):
         raise Exception("Calling the base class instead of the derived one")
@@ -116,11 +116,9 @@ class ShallowWaterBaseSolver(PythonSolver):
         return self.main_model_part
 
     def Initialize(self):
-        self.computing_model_part = self.GetComputingModelPart()
-
-        # If needed, create the estimate time step utility
-        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            raise Exception("Estimation Dt utility not yet implemented")
+        # The time step utility needs the NODAL_H
+        KratosMultiphysics.FindNodalHProcess(self.GetComputingModelPart()).Execute()
+        self.EstimateDeltaTimeUtility = Shallow.EstimateDtShallow(self.GetComputingModelPart(), self.settings["time_stepping"])
 
         # Initialize shallow water variables utility
         self.ShallowVariableUtils = Shallow.ShallowWaterVariablesUtility(self.main_model_part, self.settings["dry_height"].GetDouble())
@@ -130,14 +128,14 @@ class ShallowWaterBaseSolver(PythonSolver):
                                                                      self.settings["absolute_tolerance"].GetDouble())
         (self.conv_criteria).SetEchoLevel(self.echo_level)
 
-        #~ self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(domain_size,   # DomainSize
-                                                                                             domain_size+1) # BlockSize
+        self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        # domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        # self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(domain_size,   # DomainSize
+        #                                                                                      domain_size+1) # BlockSize
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
-        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.main_model_part,
+        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.GetComputingModelPart(),
                                                                             self.time_scheme,
                                                                             self.linear_solver,
                                                                             self.conv_criteria,
@@ -154,7 +152,7 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         (self.solver).Initialize()
 
-        self.print_on_rank_zero("::[ShallowWaterBaseSolver]::", "Mesh stage solver initialization finished")
+        KratosMultiphysics.Logger.PrintInfo("::[ShallowWaterBaseSolver]::", "Mesh stage solver initialization finished")
 
     def AdvanceInTime(self, current_time):
         dt = self._ComputeDeltaTime()
@@ -198,12 +196,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
 
     def _ComputeDeltaTime(self):
-        # Automatic time step computation according to user defined CFL number
-        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            delta_time = self.EstimateDeltaTimeUtility.EstimateDt()
-        # User-defined delta time
-        else:
-            delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
+        delta_time = self.EstimateDeltaTimeUtility.EstimateDt()
 
         # Move particles utility needs to read delta_time
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, delta_time)
@@ -250,7 +243,8 @@ class ShallowWaterBaseSolver(PythonSolver):
             "time_stepping"            : {
                 "automatic_time_step"      : false,
                 "time_step"                : 0.01
-            }
+            },
+            "multigrid_settings"   : {}
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
