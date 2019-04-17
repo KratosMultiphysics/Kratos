@@ -178,7 +178,7 @@ public:
      * @return Inside True is inside, false not
      */
     template<class TGeometryType>
-    bool ProjectOnGeometry(TGeometryType& rGeom,
+    static inline bool ProjectOnGeometry(TGeometryType& rGeom,
                            const Point& rPointToProject,
                            array_1d<double,3>& rLocalCoords,
                            double& rDistance)
