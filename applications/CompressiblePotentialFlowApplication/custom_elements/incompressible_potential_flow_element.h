@@ -203,50 +203,8 @@ public:
     void PrintData(std::ostream& rOStream) const override;
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
     ///@name Private Operators
     ///@{
 
@@ -265,29 +223,33 @@ private:
     void GetDofListWakeElement(DofsVectorType& rElementalDofList) const;
 
     void CalculateLocalSystemNormalElement(MatrixType& rLeftHandSideMatrix,
-                                           VectorType& rRightHandSideVector);
+                                           VectorType& rRightHandSideVector,
+                                           const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateLocalSystemWakeElement(MatrixType& rLeftHandSideMatrix,
-                                         VectorType& rRightHandSideVector);
+                                         VectorType& rRightHandSideVector,
+                                         const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateLocalSystemSubdividedElement(Matrix& lhs_positive, Matrix& lhs_negative);
+    void CalculateLocalSystemSubdividedElement(BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
+                                               BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
+                                               const ProcessInfo& rCurrentProcessInfo);
 
     void ComputeLHSGaussPointContribution(const double weight,
-                                          Matrix& lhs,
+                                          BoundedMatrix<double, NumNodes, NumNodes>& lhs,
                                           const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLocalSystemSubdividedElement(MatrixType& rLeftHandSideMatrix,
-                                            Matrix& lhs_positive,
-                                            Matrix& lhs_negative,
-                                            Matrix& lhs_total,
+                                            BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
+                                            BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
+                                            BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
                                             const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLocalSystemWakeElement(MatrixType& rLeftHandSideMatrix,
-                                      Matrix& lhs_total,
+                                      BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
                                       const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLocalSystemWakeNode(MatrixType& rLeftHandSideMatrix,
-                                   Matrix& lhs_total,
+                                   BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
                                    const ElementalData<NumNodes, Dim>& data,
                                    unsigned int& row) const;
 
