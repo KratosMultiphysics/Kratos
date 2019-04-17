@@ -398,7 +398,7 @@ class MonteCarlo(object):
                     self.QoI.ComputeSampleCentralMomentsFromScratch(current_level,self.number_samples[current_level])   # not possible to use self.StatisticalVariable.number_samples[current_level]
                                                                                                                         # inside the function because it is a pycompss.runtime.binding.Future object
                 self.QoI.ComputeHStatistics(current_level)
-                self.QoI.ComputeSkewnessKurtosis(current_level)
+                # self.QoI.ComputeSkewnessKurtosis(current_level)
                 self.CheckConvergence(current_level)
                 self.batches_convergence_finished[batch] = True
                 # synchronization point needed to launch new tasks if convergence is false
