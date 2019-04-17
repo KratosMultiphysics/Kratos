@@ -97,9 +97,11 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
 
     def GetYPlusModel(self):
         if self.y_plus_model_process is None:
+            y_plus_model_settings = self.settings["y_plus_model"]
             import rans_y_plus_model_factory
+            rans_y_plus_model_factory.InitializeModelPartName(y_plus_model_settings, self.model, self.fluid_model_part)
             self.y_plus_model_process = rans_y_plus_model_factory.Factory(
-                self.fluid_model_part, self.settings["y_plus_model"])
+                y_plus_model_settings, self.model)
             Kratos.Logger.PrintInfo(self.__class__.__name__,
                       "Initialized " + self.y_plus_model_process.__str__())
 

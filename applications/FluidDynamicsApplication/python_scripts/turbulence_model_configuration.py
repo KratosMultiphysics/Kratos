@@ -17,7 +17,7 @@ def CreateTurbulenceModel(model, settings):
     # print(dir(Kratos))
 
     from turbulence_model_factory import Factory
-    return Factory(model, settings)
+    return Factory(settings, model)
 
 class TurbulenceModelConfiguration(PythonSolver):
     def AddVariables(self):

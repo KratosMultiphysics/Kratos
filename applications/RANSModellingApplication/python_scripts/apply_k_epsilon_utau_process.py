@@ -4,6 +4,9 @@ import KratosMultiphysics.RANSModellingApplication as KratosRANS
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if(type(Model) != KratosMultiphysics.Model):
+        raise Exception("expected input shall be a Model object")
+
     return ApplyKEpsilonUtauProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
@@ -13,11 +16,9 @@ class ApplyKEpsilonUtauProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters( """
             {
-                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "y_plus_model"      : {
-                    "model_type"     : "logarithmic"
-                },
-                "constants"            : {},
+                "model_part_name"           : "PLEASE_CHOOSE_MODEL_PART_NAME",
+                "y_plus_model"              : {},
+                "constants"                 : {},
                 "is_initialization_process" : false,
                 "boundary_condition_type"   : "inlet"
             }  """ )
@@ -26,9 +27,11 @@ class ApplyKEpsilonUtauProcess(KratosMultiphysics.Process):
         self.settings = settings
 
         self.model_part = Model[settings["model_part_name"].GetString()]
-        from rans_y_plus_model_factory import Factory
+        import rans_y_plus_model_factory
 
-        self.y_plus_model = Factory(self.model_part, self.settings["y_plus_model"])
+        rans_y_plus_model_factory.InitializeModelPartName(settings["y_plus_model"], Model, self.model_part)
+
+        self.y_plus_model = rans_y_plus_model_factory.Factory(self.settings["y_plus_model"], Model)
         self.settings.RemoveValue("y_plus_model")
 
         if (not self.settings["is_initialization_process"].GetBool()):

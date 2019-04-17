@@ -1,16 +1,32 @@
 import KratosMultiphysics
 import KratosMultiphysics.RANSModellingApplication as KratosRANS
 
-def Factory(model_part, settings):
+def Factory(settings, Model):
+    if(type(settings) != KratosMultiphysics.Parameters):
+        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if(type(Model) != KratosMultiphysics.Model):
+        raise Exception("expected input shall be a Model object")
+
     default_settings = KratosMultiphysics.Parameters(r'''
     {
-        "model_type"     : "logarithmic",
-        "model_settings" : {}
+        "model_type"      : "logarithmic",
+        "model_part_name" : "PLEASE_CHOOSE_MODEL_PART_NAME",
+        "model_settings"  : {}
     }''')
 
     settings.ValidateAndAssignDefaults(default_settings)
+    model_part = Model[settings["model_part_name"].GetString()]
+    y_plus_model_name = settings["model_type"].GetString()
 
-    if settings["model_type"].GetString() == "logarithmic":
+    y_plus_model_list = ["logarithmic"]
+
+    if (not y_plus_model_name in y_plus_model_list):
+        raise Exception("Unknown y_plus \"model_type\" name: \"" + y_plus_model_name + "\".\nAllowed \"model_type\" names: " + y_plus_model_list.__str__())
+
+    if y_plus_model_name == "logarithmic":
         return KratosRANS.RansLogarithmicYPlusModelProcess(model_part, settings["model_settings"])
-    else:
-        raise Exception("Unknown y_plus model_type: " + settings["model_type"].GetString())
+
+def InitializeModelPartName(settings, Model, model_part):
+    if (not settings.Has("model_part_name")):
+        settings.AddEmptyValue("model_part_name")
+        settings["model_part_name"].SetString(model_part.Name)
