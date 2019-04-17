@@ -29,25 +29,22 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
     def Execute(self):
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess', 'COMPUTE REACTIONS ON NODES')
 
-        # density_infinity = self.body_model_part.GetProperties()[0].Has(DENSITY)
-        # KratosMultiphysics.Logger.PrintInfo('DENSITY INFINITY', density_infinity)
-
         KratosMultiphysics.VariableUtils().SetToZero_VectorVar(KratosMultiphysics.REACTION, self.body_model_part.Nodes)
 
-        velocity_infinity = self.body_model_part.ProcessInfo.GetValue(CPFApp.VELOCITY_INFINITY)
-        self.body_model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, 1.225)
-        density_infinity = self.body_model_part.ProcessInfo.GetValue(KratosMultiphysics.DENSITY)
-        u_inf = velocity_infinity.norm_2()
-        dynamic_pressure = 0.5*density_infinity*u_inf**2
+        free_stream_velocity = self.body_model_part.ProcessInfo.GetValue(CPFApp.VELOCITY_INFINITY)
+        #TODO: Read density from ProcessInfo once available
+        free_stream_density = 1.225
+        free_stream_velocity_norm = free_stream_velocity.norm_2()
+        dynamic_pressure = 0.5*free_stream_density*free_stream_velocity_norm**2
 
         for cond in self.body_model_part.Conditions:
-            n = cond.GetValue(KratosMultiphysics.NORMAL)
-            cp = cond.GetValue(KratosMultiphysics.PRESSURE)
+            condition_normal = cond.GetValue(KratosMultiphysics.NORMAL)
+            pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE)
 
             for node in cond.GetNodes():
-                added_force = n*(cp/2.0)*dynamic_pressure
-                force = node.GetValue(KratosMultiphysics.REACTION) + added_force
-                node.SetValue(KratosMultiphysics.REACTION, force)
+                added_force = condition_normal*(pressure_coefficient/2.0)*dynamic_pressure
+                nodal_force = node.GetValue(KratosMultiphysics.REACTION) + added_force
+                node.SetValue(KratosMultiphysics.REACTION, nodal_force)
 
         total_force = KratosMultiphysics.VariableUtils().SumNonHistoricalNodeVectorVariable(KratosMultiphysics.REACTION, self.body_model_part)
 
