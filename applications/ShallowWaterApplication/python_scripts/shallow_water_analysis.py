@@ -24,7 +24,7 @@ class ShallowWaterAnalysis(AnalysisStage):
 
     def Initialize(self):
         if self.project_parameters["problem_data"].Has("model_import_settings"):
-            from model_import_utilities import ModelImportUtilities
+            from KratosMultiphysics.ShallowWaterApplication.model_import_utilities import ModelImportUtilities
             import_utility = ModelImportUtilities(
                 self.model,
                 self.project_parameters["problem_data"]["model_import_settings"]
