@@ -76,7 +76,8 @@ class PointOutputProcess(KratosMultiphysics.Process):
         self.output_variables.append(output_vars)
         # validate types of variables
         for var in self.output_variables[0]:
-            self.__CheckVariableIsSolutionStepVariable(var)
+            if self.historical_value:
+                self.__CheckVariableIsSolutionStepVariable(var)
             if type(var) == KratosMultiphysics.DoubleVariable:
                 continue
             elif type(var) == KratosMultiphysics.Array1DVariable3:
@@ -92,7 +93,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
         entity_type = self.params["entity_type"].GetString()
 
         if entity_type == "node":
-            tol = 1e-12
+            tol = 1e-6
             found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindNode(point, tol)
             if found_id > -1:
                 self.entity.append(self.model_part.Nodes[found_id]) # note that this is a find!

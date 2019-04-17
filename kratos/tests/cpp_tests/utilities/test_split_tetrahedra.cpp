@@ -92,7 +92,7 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraSplitModes, KratosCoreFastSuite)
 
     aux_ids[0] = 2; aux_ids[1] = 1; aux_ids[2] = 4; aux_ids[3] = 3; // Vertices
     aux_ids[4] = -1; // Edge 01
-    aux_ids[5] =  1; // Edge 02 (split) 
+    aux_ids[5] =  1; // Edge 02 (split)
     aux_ids[6] = -1; // Edge 03
     aux_ids[7] =  1; // Edge 12 (split)
     aux_ids[8] = -1; // Edge 13
@@ -131,7 +131,7 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraSplitEdgesPatterns, KratosCoreFastSuite)
     // Loop all the splitting patterns
     std::vector<std::vector<unsigned int>> a(6);
     a[0] = {0,1,4}; // Edge 01 candidate nodes
-    a[1] = {0,2,5}; // Edge 02 candidate nodes 
+    a[1] = {0,2,5}; // Edge 02 candidate nodes
     a[2] = {0,3,6}; // Edge 03 candidate nodes
     a[3] = {1,2,7}; // Edge 12 candidate nodes
     a[4] = {1,3,8}; // Edge 13 candidate nodes
@@ -143,7 +143,7 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraSplitEdgesPatterns, KratosCoreFastSuite)
     const bool print_edges_and_ext_faces = false;
 
     // Loop and check all the edges permutations
-    int n_elems;
+    int n_elems=0;
     int steiner_node;
     int n_split_edges;
     std::vector<int> t(56);
@@ -155,7 +155,7 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraSplitEdgesPatterns, KratosCoreFastSuite)
                 for(auto i3 : a[3]) {
                     for(auto i4 : a[4]) {
                         for(auto i5 : a[5]) {
-                            
+
                             permutation++;
                             edge_int_vect[0] = i0;
                             edge_int_vect[1] = i1;
@@ -193,8 +193,8 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraSplitEdgesPatterns, KratosCoreFastSuite)
                                     }
                                 }
 
-                                KRATOS_ERROR_IF(sub_vol < 1e-12) << "Negative subdivision " << 
-                                    i_elem << " volume for edges: " << 
+                                KRATOS_ERROR_IF(sub_vol < 1e-12) << "Negative subdivision " <<
+                                    i_elem << " volume for edges: " <<
                                     edge_int_vect[0] << " " <<
                                     edge_int_vect[1] << " " <<
                                     edge_int_vect[2] << " " <<

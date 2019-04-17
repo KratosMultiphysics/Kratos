@@ -9,9 +9,6 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 # Import base class file
 from fluid_solver import FluidSolver
 
-# from KratosMultiphysics.FluidDynamicsApplication import *
-
-
 
 def CreateSolver(model, custom_settings):
     return NavierStokesTwoFluidsSolver(model, custom_settings)
@@ -44,7 +41,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"       : {
-                "solver_type"         : "AMGCL"
+                "solver_type"         : "amgcl"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
@@ -72,9 +69,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.condition_name = "NavierStokesWallCondition"
 
         self.min_buffer_size = 3
-
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
@@ -118,7 +112,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.computing_model_part = self.GetComputingModelPart()
 
         ## Construct the linear solver
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.computing_model_part, self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
@@ -252,12 +246,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 self.main_model_part,
                 self.linear_solver,
                 maximum_iterations,
-                KratosMultiphysics.ParallelDistanceCalculator2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
         else:
             variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess3D(
                 self.main_model_part,
                 self.linear_solver,
                 maximum_iterations,
-                KratosMultiphysics.ParallelDistanceCalculator3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
         return variational_distance_process

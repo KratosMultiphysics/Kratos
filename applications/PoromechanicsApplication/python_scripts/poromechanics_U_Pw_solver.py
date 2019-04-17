@@ -2,10 +2,7 @@ from __future__ import print_function, absolute_import, division # makes KratosM
 
 # Importing the Kratos Library
 import KratosMultiphysics
-from python_solver import PythonSolver
-
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","PoromechanicsApplication")
+from KratosMultiphysics.python_solver import PythonSolver
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -21,9 +18,6 @@ class UPwSolver(PythonSolver):
         settings = self._ValidateSettings(custom_settings)
 
         super(UPwSolver,self).__init__(model, settings)
-
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
 
         self.min_buffer_size = 2
 
@@ -105,8 +99,7 @@ class UPwSolver(PythonSolver):
             ## Set buffer size
             self._SetBufferSize()
 
-        if self._is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Model reading finished.")
+        KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Model reading finished.")
 
     def AddDofs(self):
         ## Solid dofs
@@ -127,8 +120,7 @@ class UPwSolver(PythonSolver):
                 node.AddDof(KratosMultiphysics.ACCELERATION_Y)
                 node.AddDof(KratosMultiphysics.ACCELERATION_Z)
 
-        if self._is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo("UPwSolver", "DOFs added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("UPwSolver", "DOFs added correctly.")
 
     def GetMinimumBufferSize(self):
         return self.min_buffer_size
@@ -234,7 +226,7 @@ class UPwSolver(PythonSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "poromechanics_U_Pw_solver",
-            "model_part_name": "PorousDomain",
+            "model_part_name": "PorousModelPart",
             "domain_size": 2,
             "start_time": 0.0,
             "time_step": 0.1,
@@ -272,12 +264,12 @@ class UPwSolver(PythonSolver):
             "characteristic_length": 0.05,
             "search_neighbours_step": false,
             "linear_solver_settings":{
-                "solver_type": "AMGCL",
+                "solver_type": "amgcl",
                 "tolerance": 1.0e-6,
                 "max_iteration": 100,
                 "scaling": false,
                 "verbosity": 0,
-                "preconditioner_type": "ILU0Preconditioner",
+                "preconditioner_type": "ilu0",
                 "smoother_type": "ilu0",
                 "krylov_type": "gmres",
                 "coarsening_type": "aggregation"
@@ -320,11 +312,11 @@ class UPwSolver(PythonSolver):
         params.AddValue("loads_sub_model_part_list",self.settings["loads_sub_model_part_list"])
         params.AddValue("loads_sub_sub_model_part_list",self.loads_sub_sub_model_part_list)
         # CheckAndPrepareModelProcess creates the porous_computational_model_part
-        import check_and_prepare_model_process_poro
+        from KratosMultiphysics.PoromechanicsApplication import check_and_prepare_model_process_poro
         check_and_prepare_model_process_poro.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # Constitutive law import
-        import poromechanics_constitutivelaw_utility
+        from KratosMultiphysics.PoromechanicsApplication import poromechanics_constitutivelaw_utility
         poromechanics_constitutivelaw_utility.SetConstitutiveLaw(self.main_model_part)
 
     def _SetBufferSize(self):
@@ -352,9 +344,8 @@ class UPwSolver(PythonSolver):
             self.main_model_part.CloneTimeStep(time)
 
     def _ConstructLinearSolver(self):
-        import linear_solver_factory
-        linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-        return linear_solver
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+        return linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
     def _ConstructBuilderAndSolver(self, block_builder):
 

@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -18,9 +19,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/base_load_condition.h"
-#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -44,16 +43,41 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
-
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  LineLoadCondition2D
+/**
+ * @class LineLoadCondition2D
+ * @ingroup StructuralMechanicsApplication
+ * @brief This class is the responsible to add the contributions of the RHS and LHS of the line loads of the structure
+ * @details It allows to consider different types of pressure and line loads
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
+ */
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LineLoadCondition2D
     : public BaseLoadCondition
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    /// We define the base class BaseLoadCondition
+    typedef BaseLoadCondition BaseType;
+
+    /// Dfinition of the index type
+    typedef BaseType::IndexType IndexType;
+
+    /// Definition of the size type
+    typedef BaseType::SizeType SizeType;
+
+    /// Definition of the node type
+    typedef BaseType::NodeType NodeType;
+
+    /// Definition of the properties type
+    typedef BaseType::PropertiesType PropertiesType;
+
+    /// Definition of the geometry type with given NodeType
+    typedef BaseType::GeometryType GeometryType;
+
+    /// Definition of nodes container type, redefined from GeometryType
+    typedef BaseType::NodesArrayType NodesArrayType;
 
     /// Counted pointer of LineLoadCondition2D
     KRATOS_CLASS_POINTER_DEFINITION( LineLoadCondition2D );
@@ -62,9 +86,18 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    LineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry );
-    LineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+    // Constructor using an array of nodes
+    LineLoadCondition2D(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry
+        );
+
+    // Constructor using an array of nodes with properties
+    LineLoadCondition2D(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties
+        );
 
     /// Destructor.
     ~LineLoadCondition2D() override;
@@ -78,16 +111,41 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param pGeom the geometry to be employed
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const override;
 
-    Condition::Pointer Create(
+    /**
+     * @brief Creates a new condition pointer and clones the previous condition data
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone (
         IndexType NewId,
-        NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties
+        NodesArrayType const& ThisNodes
         ) const override;
 
     ///@}
@@ -105,14 +163,25 @@ public:
     ///@{
 
     /// Turn back information as a string.
-//      virtual String Info() const;
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "LineLoadCondition2D #" << Id();
+        return buffer.str();
+    }
 
     /// Print information about this object.
-//      virtual void PrintInfo(std::ostream& rOStream) const;
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "LineLoadCondition2D #" << Id();
+    }
 
     /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
 
     ///@}
     ///@name Friends
@@ -141,7 +210,7 @@ protected:
     ///@{
 
     /**
-     * This functions calculates both the RHS and the LHS
+     * @brief This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix: The LHS
      * @param rRightHandSideVector: The RHS
      * @param rCurrentProcessInfo: The current process info instance
@@ -151,26 +220,43 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
         ) override;
 
+    /**
+     * @brief This method adds the local contribution of the pressure to the LHS matrix
+     * @param rK The local LHS contribution
+     * @param rDN_De The local gradient of the geometry
+     * @param rN The shape function of the current integration point
+     * @param Pressure The pressure to be applied
+     * @param Weight The integration contribution
+     */
     void CalculateAndSubKp(
-        Matrix& K,
-        const Matrix& DN_De,
-        const Vector& N,
+        Matrix& rK,
+        const Matrix& rDN_De,
+        const Vector& rN,
         const double Pressure,
         const double IntegrationWeight
-        );
+        ) const;
 
+    /**
+     * @brief This method adds the pressure contribution to the RHS
+     * @param rResidualVector The local contribution to the RHS
+     * @param rN The corresponding shape function
+     * @param rNormal The normal to the geometry surface
+     * @param Pressure The pressure to be applied
+     * @param Weight The integration contribution
+     * @param rCurrentProcessInfo The current instance of process info
+     */
     void CalculateAndAddPressureForce(
         VectorType& rRightHandSideVector,
-        const Vector& N,
-        const array_1d<double, 3>& Normal,
+        const Vector& rN,
+        const array_1d<double, 3>& rNormal,
         const double Pressure,
         const double IntegrationWeight
-        );
+        ) const;
 
     ///@}
     ///@name Protected  Access
@@ -258,21 +344,20 @@ private:
 ///@name Input and output
 ///@{
 
-
 /// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
+inline std::istream& operator >> (std::istream& rIStream,
         LineLoadCondition2D& rThis);
-*/
 /// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
+inline std::ostream& operator << (std::ostream& rOStream,
         const LineLoadCondition2D& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
 
-      return rOStream;
-    }*/
+    return rOStream;
+}
+
 ///@}
 
 }  // namespace Kratos.

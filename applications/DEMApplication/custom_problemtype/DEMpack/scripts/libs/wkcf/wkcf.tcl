@@ -235,8 +235,8 @@ proc ::wkcf::SelectPythonScript {} {
 
     # For DEM application
     if {$DEMApplication =="Yes" && $FluidApplication =="No" && $DSOLID =="No"} {
-	set endfilename "KratosDEM.py"
-	set ppfilename "KratosDEM.py"
+	set endfilename "KratosDEMAnalysis.py"
+	set ppfilename "KratosDEMAnalysis.py"
 	set tofname [file native [file join $PDir $endfilename]]
 	set fromfname [file native [file join "$PTDir/python" $ppfilename]]
 	if {[catch {file copy -force "$fromfname" "$tofname"} error]} {
@@ -258,14 +258,14 @@ proc ::wkcf::SelectPythonScript {} {
     # For Swimming DEM application
     if {$DEMApplication =="Yes" && $FluidApplication =="Yes"} {
 
-	set ppfilename "KratosSwimmingDEM.py"
+	set ppfilename "KratosSwimmingDEMAnalysis.py"
 	set cxpath "DEM//c.DEM-Cohesivegroup"
 	set glist [::xmlutils::setXmlContainerIds $cxpath]
 
 	if { [llength $glist] } {
 	    WarnWin [= "DEM continuum simulations are not available when interacting with fluid."]
 	}
-	set endfilename "KratosSwimmingDEM.py"
+	set endfilename "KratosSwimmingDEMAnalysis.py"
 	set tofname [file native [file join $PDir $endfilename]]
 	set fromfname [file native [file join "$PTDir/python" $ppfilename]]
 
@@ -450,7 +450,7 @@ proc ::wkcf::WriteProperties {AppId} {
 		                    GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEM2D"
 		                } elseif {$propvalue == "KDEMFabric"} {
 		                    set using_dem_kdem 1
-		                    GiD_File fprintf $filechannel "FABRIC_COEFFICIENT [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_Fabric_Coefficient" dv read {} mat]"
+		                    GiD_File fprintf $filechannel "ROTATIONAL_MOMENT_COEFFICIENT [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_Fabric_Coefficient" dv read {} mat]"
 		                    GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEMFabric2D"
 		                } else {
 		                    WarnWin [= "Unknown Continuum Constitutive Law for material $material"]
@@ -481,7 +481,7 @@ proc ::wkcf::WriteProperties {AppId} {
 		                } elseif {$propvalue == "KDEMFabric"} {
 		                    set using_dem_kdem 1
                                     GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEMFabric"
-                                    GiD_File fprintf $filechannel "FABRIC_COEFFICIENT [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_Fabric_Coefficient" dv read {} mat]"
+                                    GiD_File fprintf $filechannel "ROTATIONAL_MOMENT_COEFFICIENT [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_Fabric_Coefficient" dv read {} mat]"
 		                } else {
 		                    WarnWin [= "Unknown Continuum Constitutive Law for material $material"]
 		                }

@@ -54,7 +54,8 @@ namespace Kratos
 template<class TSparseSpace,
          class TDenseSpace
          >
-class DisplacementCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class DisplacementCriteria
+    : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
@@ -84,13 +85,36 @@ public:
 
     /** Constructor.
     */
+    explicit DisplacementCriteria(Kratos::Parameters Settings)
+        : BaseType()
+    {
+        if (Settings.Has("displacement_absolute_tolerance")) {
+            mAlwaysConvergedNorm = Settings["displacement_absolute_tolerance"].GetDouble();
+        } else if (Settings.Has("absolute_tolerance")) {
+            mAlwaysConvergedNorm = Settings["absolute_tolerance"].GetDouble();
+        } else {
+            KRATOS_WARNING("DisplacementCriteria") << "displacement_absolute_tolerance or absolute_tolerance nor defined on settings. Using default 1.0e-9" << std::endl;
+            mAlwaysConvergedNorm = 1.0e-9;
+        }
+        if (Settings.Has("displacement_relative_tolerance")) {
+            mRatioTolerance = Settings["displacement_relative_tolerance"].GetDouble();
+        } else if (Settings.Has("relative_tolerance")) {
+            mRatioTolerance = Settings["relative_tolerance"].GetDouble();
+        } else {
+            KRATOS_WARNING("DisplacementCriteria") << "displacement_relative_tolerance or relative_tolerance nor defined on settings. Using default 1.0e-4" << std::endl;
+            mRatioTolerance = 1.0e-4;
+        }
+    }
+
+    /** Constructor.
+    */
     explicit DisplacementCriteria(
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm)
-        : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
+        : BaseType(),
+          mRatioTolerance(NewRatioTolerance),
+          mAlwaysConvergedNorm(AlwaysConvergedNorm)
     {
-        mRatioTolerance = NewRatioTolerance;
-        mAlwaysConvergedNorm = AlwaysConvergedNorm;
     }
 
     /** Copy constructor.
@@ -367,13 +391,13 @@ private:
             if (it_dof->IsFree()) {
                 dof_id = it_dof->EquationId();
                 variation_dof_value = Dx[dof_id];
-                final_correction_norm += variation_dof_value * variation_dof_value;
+                final_correction_norm += std::pow(variation_dof_value, 2);
                 dof_num++;
             }
         }
 
         rDofNum = dof_num;
-        return final_correction_norm;
+        return std::sqrt(final_correction_norm);
     }
 
     ///@}

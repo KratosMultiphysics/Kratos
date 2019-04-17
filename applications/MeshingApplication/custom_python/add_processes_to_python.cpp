@@ -26,7 +26,6 @@
 #include "custom_processes/metrics_error_process.h"
 #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
-#include "custom_processes/integration_values_extrapolation_to_nodes_process.h"
 #include "custom_processes/multiscale_refining_process.h"
 
 #ifdef INCLUDE_MMG
@@ -60,12 +59,6 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<InternalVariablesInterpolationProcess, InternalVariablesInterpolationProcess::Pointer, Process>(m, "InternalVariablesInterpolationProcess")
     .def(py::init<ModelPart&, ModelPart&>())
     .def(py::init<ModelPart&, ModelPart&, Parameters>())
-    ;
-
-    // The process to recover internal variables
-    py::class_<IntegrationValuesExtrapolationToNodesProcess, IntegrationValuesExtrapolationToNodesProcess::Pointer, Process>(m, "IntegrationValuesExtrapolationToNodesProcess")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
     ;
 
     /* METRICS PROCESSES */
@@ -119,8 +112,13 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, ModelPart&, ModelPart&, Parameters>())
     .def("ExecuteRefinement", &MultiscaleRefiningProcess::ExecuteRefinement)
     .def("ExecuteCoarsening", &MultiscaleRefiningProcess::ExecuteCoarsening)
-    .def("InitializeNewModelPart", &MultiscaleRefiningProcess::InitializeNewModelPart)
-    .def("TransferLastStepToCoarseModelPart", &MultiscaleRefiningProcess::TransferLastStepToCoarseModelPart)
+    .def("InitializeVisualizationModelPart", &MultiscaleRefiningProcess::InitializeVisualizationModelPart)
+    .def("InitializeRefinedModelPart", &MultiscaleRefiningProcess::InitializeRefinedModelPart)
+    .def("TransferLastStepToCoarseModelPart", &MultiscaleRefiningProcess::TransferLastStepToCoarseModelPart<Variable<double>>)
+    .def("TransferLastStepToCoarseModelPart", &MultiscaleRefiningProcess::TransferLastStepToCoarseModelPart<Variable<array_1d<double,3>>>)
+    .def("TransferLastStepToCoarseModelPart", &MultiscaleRefiningProcess::TransferLastStepToCoarseModelPart<Variable<array_1d<double,4>>>)
+    .def("TransferLastStepToCoarseModelPart", &MultiscaleRefiningProcess::TransferLastStepToCoarseModelPart<Variable<array_1d<double,6>>>)
+    .def("TransferLastStepToCoarseModelPart", &MultiscaleRefiningProcess::TransferLastStepToCoarseModelPart<Variable<array_1d<double,9>>>)
     .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<double>>)
     .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,3>>>)
     .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,4>>>)

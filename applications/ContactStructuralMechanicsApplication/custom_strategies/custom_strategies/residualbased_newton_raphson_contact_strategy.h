@@ -31,6 +31,7 @@
 #include "utilities/color_utilities.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/process_factory_utility.h"
+#include "custom_utilities/contact_utilities.h"
 
 namespace Kratos {
 
@@ -213,7 +214,7 @@ public:
         KRATOS_TRY
         
         // Auxiliar zero array
-        const array_1d<double, 3> zero_array(3, 0.0);
+        const array_1d<double, 3> zero_array = ZeroVector(3);
 
         // Set to zero the weighted gap
         ModelPart& r_model_part = StrategyBaseType::GetModelPart();
@@ -227,13 +228,8 @@ public:
                 VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, nodes_array);
             }
 
-            ConditionsArrayType& conditions_array = r_model_part.GetSubModelPart("ComputingContact").Conditions();
-
-            KRATOS_TRACE_IF("Empty model part", conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
-
-            #pragma omp parallel for
-            for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
-                (conditions_array.begin() + i)->AddExplicitContribution(r_model_part.GetProcessInfo());
+            // Compute the current gap
+            ContactUtilities::ComputeExplicitContributionConditions(r_model_part.GetSubModelPart("ComputingContact"));
 
             // We predict a contact pressure
             ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
@@ -266,14 +262,8 @@ public:
 //         if (nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
 //             VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
 //             
-//             ConditionsArrayType& conditions_array = r_model_part.GetSubModelPart("ComputingContact").Conditions();
-//         
-//             if (conditions_array.size() == 0) 
-//                 KRATOS_TRACE("Empty model part") << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
-//             
-//             #pragma omp parallel for
-//             for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
-//                 (conditions_array.begin() + i)->AddExplicitContribution(r_model_part.GetProcessInfo());
+//             // Compute the current gap
+//             ContactUtilities::ComputeExplicitContributionConditions(r_model_part.GetSubModelPart("ComputingContact"));
 //             
 //             // We predict a contact pressure
 //             ProcessInfo& r_process_info = r_model_part.GetProcessInfo();

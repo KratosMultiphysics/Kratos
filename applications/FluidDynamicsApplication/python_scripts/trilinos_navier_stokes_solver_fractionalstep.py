@@ -42,7 +42,7 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
             "pressure_linear_solver_settings": {
-                "solver_type"                        : "MultiLevelSolver",
+                "solver_type"                        : "multi_level",
                 "max_iteration"                      : 200,
                 "tolerance"                          : 1e-6,
                 "symmetric"                          : true,
@@ -51,7 +51,7 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
                 "verbosity"                          : 0
             },
             "velocity_linear_solver_settings": {
-                "solver_type"                        : "MultiLevelSolver",
+                "solver_type"                        : "multi_level",
                 "max_iteration"                      : 200,
                 "tolerance"                          : 1e-6,
                 "symmetric"                          : false,
@@ -83,8 +83,6 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
         self.condition_name = "WallCondition"
         self.min_buffer_size = 3
 
-        self._is_printing_rank = (KratosMPI.mpi.rank == 0)
-
         ## Construct the linear solvers
         import trilinos_linear_solver_factory
         self.pressure_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
@@ -92,9 +90,7 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
 
         self.compute_reactions = self.settings["compute_reactions"].GetBool()
 
-        if self._IsPrintingRank():
-            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
-            KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","Construction of TrilinosNavierStokesSolverFractionalStep solver finished.")
+        KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","Construction of TrilinosNavierStokesSolverFractionalStep solver finished.")
 
 
     def AddVariables(self):
@@ -103,11 +99,10 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
 
         ## Add specific MPI variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.PATCH_INDEX)
         KratosMPI.mpi.world.barrier()
 
-        if self._IsPrintingRank():
-            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
-            KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","variables for the trilinos fractional step solver added correctly")
+        KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","variables for the trilinos fractional step solver added correctly")
 
 
     def ImportModelPart(self):
@@ -117,9 +112,7 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
         ## Execute the Metis partitioning and reading
         self.trilinos_model_part_importer.ImportModelPart()
 
-        if self._IsPrintingRank():
-            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
-            KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","MPI model reading finished.")
+        KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","MPI model reading finished.")
 
     def PrepareModelPart(self):
         super(TrilinosNavierStokesSolverFractionalStep,self).PrepareModelPart()
@@ -132,9 +125,7 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
         super(TrilinosNavierStokesSolverFractionalStep, self).AddDofs()
         KratosMPI.mpi.world.barrier()
 
-        if self._IsPrintingRank():
-            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
-            KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","DOFs for the VMS Trilinos fluid solver added correctly in all processors.")
+        KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","DOFs for the VMS Trilinos fluid solver added correctly in all processors.")
 
 
     def Initialize(self):
@@ -190,7 +181,8 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
 
         (self.solver).Initialize()
 
-        if self._IsPrintingRank():
-            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
-            KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","Initialization TrilinosNavierStokesSolverFractionalStep finished")
+        KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","Initialization TrilinosNavierStokesSolverFractionalStep finished")
+
+    def Finalize(self):
+        self.solver.Clear()
 

@@ -196,6 +196,9 @@ public:
                                           GeometryData::Kratos_Line3D3,
                                           GiD_Linear, "Kratos_Line3D3_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
+                                          GeometryData::Kratos_Point2D,
+                                          GiD_Point, "Kratos_Point2D_Mesh" ) );
+        mGidMeshContainers.push_back( TMeshContainer(
                                           GeometryData::Kratos_Point3D,
                                           GiD_Point, "Kratos_Point3D_Mesh" ) );
 
@@ -952,6 +955,25 @@ public:
                          GiD_OnNodes, NULL, NULL, 0, NULL );
         for ( NodesContainerType::iterator it_node = rNodes.begin();
                 it_node != rNodes.end() ; ++it_node)
+            GiD_fWriteScalar( mResultFile, it_node->Id(), it_node->GetValue(rVariable) );
+        GiD_fEndResult(mResultFile);
+
+        Timer::Stop("Writing Results");
+
+    }
+
+    /**
+     * writes nodal results for variables of type int
+     */
+    void WriteNodalResultsNonHistorical( Variable<int> const& rVariable, NodesContainerType& rNodes, double SolutionTag)
+    {
+
+        Timer::Start("Writing Results");
+        GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
+                          SolutionTag, GiD_Scalar,
+                          GiD_OnNodes, NULL, NULL, 0, NULL );
+        for ( NodesContainerType::iterator it_node = rNodes.begin();
+              it_node != rNodes.end() ; ++it_node)
             GiD_fWriteScalar( mResultFile, it_node->Id(), it_node->GetValue(rVariable) );
         GiD_fEndResult(mResultFile);
 

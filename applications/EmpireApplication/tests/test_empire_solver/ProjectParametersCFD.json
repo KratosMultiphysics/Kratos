@@ -52,10 +52,10 @@
         "relative_pressure_tolerance" : 1e-6,
         "absolute_pressure_tolerance" : 1e-6,
         "linear_solver_settings"      : {
-            "solver_type"         : "BICGSTABSolver",
+            "solver_type"         : "bicgstab",
             "max_iteration"       : 200,
             "tolerance"           : 1e-7,
-            "preconditioner_type" : "ILU0Preconditioner",
+            "preconditioner_type" : "ilu0",
             "scaling"             : false
         },
         "volume_model_part_name"      : "Parts_Fluid",

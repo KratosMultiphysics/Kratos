@@ -108,8 +108,7 @@ namespace Kratos
                       ParticleCreatorDestructor::Pointer,
                       DEM_FEM_Search::Pointer,
                       SpatialSearch::Pointer,
-                      Parameters,
-                      const bool>());
+                      Parameters>());
 
             typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
             typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;

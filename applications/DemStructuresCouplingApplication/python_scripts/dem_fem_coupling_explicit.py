@@ -77,9 +77,9 @@ def RunCoupledSystem():
         print('current t: ',dem_analysis.time)
 
         ## call dem functions
-        dem_analysis.UpdateTimeParameters()
+        dem_analysis._UpdateTimeParameters()
 
-        dem_analysis.BeforeSolveOperations(dem_analysis.time)
+        dem_analysis._BeforeSolveOperations(dem_analysis.time)
         dem_analysis.SolverSolve()
         dem_analysis.AfterSolveOperations()
 

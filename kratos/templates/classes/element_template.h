@@ -171,10 +171,10 @@ public:
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLocalSystem override(
+    void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo);
+        ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -199,10 +199,10 @@ public:
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateFirstDerivativesContributions override(
+    void CalculateFirstDerivativesContributions(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo);
+        ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -237,10 +237,10 @@ public:
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateSecondDerivativesContributions override(
+    void CalculateSecondDerivativesContributions(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo);
+        ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -248,9 +248,9 @@ public:
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateSecondDerivativesLHS override(
+    void CalculateSecondDerivativesLHS(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo);
+        ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -258,9 +258,9 @@ public:
      * @param rRightHandSideVector: the elemental right hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateSecondDerivativesRHS override(
+    void CalculateSecondDerivativesRHS(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo);
+        ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order

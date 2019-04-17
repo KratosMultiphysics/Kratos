@@ -24,7 +24,7 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
         # Remove the .time file
         try:
             os.remove('levelset_convection_process_mesh.time')
-        except FileNotFoundError as e:
+        except :
             pass
 
     def test_levelset_convection(self):
@@ -32,7 +32,7 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        KratosMultiphysics.ModelPartIO(GetFilePath("levelset_convection_process_mesh")).ReadModelPart(model_part)
+        KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/levelset_convection_process_mesh")).ReadModelPart(model_part)
         model_part.SetBufferSize(2)
 
         for node in model_part.Nodes:
@@ -43,9 +43,9 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
             if node.X < 0.001:
                 node.Fix(KratosMultiphysics.DISTANCE)
 
-        import new_linear_solver_factory
-        linear_solver = new_linear_solver_factory.ConstructSolver(
-            KratosMultiphysics.Parameters("""{"solver_type" : "SkylineLUFactorizationSolver"}"""))
+        from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+        linear_solver = linear_solver_factory.ConstructSolver(
+            KratosMultiphysics.Parameters("""{"solver_type" : "skyline_lu_factorization"}"""))
 
         model_part.CloneTimeStep(40.0)
 

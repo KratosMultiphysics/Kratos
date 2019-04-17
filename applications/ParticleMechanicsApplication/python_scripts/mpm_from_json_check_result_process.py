@@ -26,16 +26,16 @@ class ParticleMPMFromJsonCheckResultProcess(FromJsonCheckResultProcess, KratosUn
 
         tol = self.params["tolerance"].GetDouble()
         reltol = self.params["relative_tolerance"].GetDouble()
-        time = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
-        dt = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
-        step = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.STEP)
+        time = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
+        dt = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
+        step = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.STEP)
         self.time_counter += dt
         if self.time_counter > self.frequency:
             self.time_counter = 0.0
             input_time_list = self.data["TIME"]
 
             # Material points values
-            for mp in self.sub_model_part.Elements:
+            for mp in self.model_part.Elements:
                 compute = self.__check_flag(mp)
 
                 if (compute == True):

@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from new_linear_solver_factory import ConstructSolver
+from KratosMultiphysics.python_linear_solver_factory import ConstructSolver
 
 class TestEigenDirectSolver(KratosUnittest.TestCase):
     def _execute_eigen_direct_solver_test(self, class_name, solver_type):
@@ -15,7 +15,7 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
 
         space = KratosMultiphysics.UblasSparseSpace()
 
-        settings = KratosMultiphysics.Parameters('{ "solver_type" : "' + solver_type + '" }')
+        settings = KratosMultiphysics.Parameters('{ "solver_type" : "EigenSolversApplication.' + solver_type + '" }')
 
         solver = ConstructSolver(settings)
 
@@ -23,9 +23,10 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
 
         this_file_dir = os.path.dirname(os.path.realpath(__file__))
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(this_file_dir)))
-        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "A.mm")
+        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "auxiliar_files_for_python_unnitest", "sparse_matrix_files", "A.mm")
 
-        KratosMultiphysics.ReadMatrixMarketMatrix(matrix_file_path, a) # symmetric test matrix
+        file_read = KratosMultiphysics.ReadMatrixMarketMatrix(matrix_file_path, a) # symmetric test matrix
+        self.assertTrue(file_read, msg="The MatrixFile could not be read")
 
         dimension = a.Size1()
 
@@ -47,16 +48,16 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
             self.assertAlmostEqual(b_act[i], b_exp[i], 7)
 
     def test_eigen_sparse_lu(self):
-        self._execute_eigen_direct_solver_test('SparseLUSolver', 'eigen_sparse_lu')
+        self._execute_eigen_direct_solver_test('SparseLUSolver', 'sparse_lu')
 
     def test_eigen_pardiso_lu(self):
-        self._execute_eigen_direct_solver_test('PardisoLUSolver', 'eigen_pardiso_lu')
+        self._execute_eigen_direct_solver_test('PardisoLUSolver', 'pardiso_lu')
 
     def test_eigen_pardiso_ldlt(self):
-        self._execute_eigen_direct_solver_test('PardisoLDLTSolver', 'eigen_pardiso_ldlt')
+        self._execute_eigen_direct_solver_test('PardisoLDLTSolver', 'pardiso_ldlt')
 
     def test_eigen_pardiso_llt(self):
-        self._execute_eigen_direct_solver_test('PardisoLLTSolver', 'eigen_pardiso_llt')
+        self._execute_eigen_direct_solver_test('PardisoLLTSolver', 'pardiso_llt')
 
 if __name__ == '__main__':
     KratosUnittest.main()

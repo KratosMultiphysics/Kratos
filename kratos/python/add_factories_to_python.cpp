@@ -11,11 +11,9 @@
 //
 //
 
-
 // System includes
 
 // External includes
-
 
 // Project includes
 #include "includes/define_python.h"
@@ -60,6 +58,7 @@ void  AddFactoriesToPython(pybind11::module& m)
     py::class_<PreconditionerFactoryType, PreconditionerFactoryType::Pointer >(m, "PreconditionerFactory")
      .def( py::init< >() )
      .def("Create",&PreconditionerFactoryType::Create)
+     .def("Has",&PreconditionerFactoryType::Has)
     ;
 
 }
@@ -67,4 +66,3 @@ void  AddFactoriesToPython(pybind11::module& m)
 }  // namespace Python.
 
 } // Namespace Kratos
-

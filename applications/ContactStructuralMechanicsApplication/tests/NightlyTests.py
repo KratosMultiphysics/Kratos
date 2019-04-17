@@ -1,5 +1,8 @@
 from contact_structural_mechanics_test_factory import ContactStructuralMechanicsTestFactory as TestFactory
 
+class ExplicitPenaltyThreeDSimplestPatchMatchingTestContact(TestFactory):
+    file_name = "penalty_frictionless_contact_test_3D/explicit_3D_contact_simplest_patch_matching_test"
+
 class ALMTaylorPatchTestContact(TestFactory):
     file_name = "ALM_frictionless_contact_test_2D/taylor_patch_test"
 
@@ -14,7 +17,7 @@ class ALMHertzSphereTestContact(TestFactory):
 
 class ALMHertzCompleteTestContact(TestFactory):
     file_name = "ALM_frictionless_contact_test_2D/hertz_complete_test"
-    
+
 class ComponentsALMTaylorPatchTestContact(TestFactory):
     frictionless_by_components = True
     file_name = "ALM_frictionless_contact_test_2D/taylor_patch_test"

@@ -1,5 +1,5 @@
 # Applications requiered
-from KratosDelaunayMeshingApplication import *
+from KratosMultiphysics.DelaunayMeshingApplication import *
 
 from KratosContactMechanicsApplication import *
 application = KratosContactMechanicsApplication()

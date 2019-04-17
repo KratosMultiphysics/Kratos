@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -73,7 +73,7 @@ inline std::istream& operator>>(std::istream &in, type &s)
     if (val == "aggregation")
         s = aggregation;
     else if (val == "smoothed_aggregation")
-        s = aggregation;
+        s = smoothed_aggregation;
     else
         throw std::invalid_argument("Invalid coarsening value. Valid choices are: "
                 "aggregation, smoothed_aggregation.");

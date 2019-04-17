@@ -20,22 +20,25 @@
 #include "explicit_mesh_moving_utilities.h"
 
 // Project includes
+#include "includes/mesh_moving_variables.h"
 #include "spatial_containers/spatial_containers.h"
+#include "utilities/variable_utils.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/spatial_containers_configure.h"
-#include "includes/mesh_moving_variables.h"
+#include "custom_utilities/mesh_velocity_calculation.h"
 
 namespace Kratos
 {
     /* Public functions *******************************************************/
 
     ExplicitMeshMovingUtilities::ExplicitMeshMovingUtilities(
-        ModelPart &rModelPart,
+        ModelPart &rVirtualModelPart,
         ModelPart &rStructureModelPart,
         const double SearchRadius) :
         mSearchRadius(SearchRadius),
-        mrVirtualModelPart(rModelPart),
-        mrStructureModelPart(rStructureModelPart)
+        mrVirtualModelPart(rVirtualModelPart),
+        mrStructureModelPart(rStructureModelPart),
+        mpOriginModelPart(nullptr)
     {
         if (mrStructureModelPart.GetBufferSize() < 2) {
             (mrStructureModelPart.GetRootModelPart()).SetBufferSize(2);
@@ -43,27 +46,26 @@ namespace Kratos
         }
     }
 
-    void ExplicitMeshMovingUtilities::FillVirtualModelPart(ModelPart& rOriginModelPart){
-
+    void ExplicitMeshMovingUtilities::FillVirtualModelPart(ModelPart& rOriginModelPart)
+    {
         // Check that the origin model part has nodes and elements to be copied
         KRATOS_ERROR_IF(rOriginModelPart.NumberOfNodes() == 0) << "Origin model part has no nodes.";
         KRATOS_ERROR_IF(rOriginModelPart.NumberOfElements() == 0) << "Origin model part has no elements.";
 
+        // Save the selected origin model part
+        mpOriginModelPart = &rOriginModelPart;
+
         // Set the buffer size in the virtual model part
         mrVirtualModelPart.SetBufferSize(rOriginModelPart.GetBufferSize());
 
-        // Copy the origin model part nodes and fixity
+        // Copy the origin model part nodes
         auto &r_nodes_array = rOriginModelPart.NodesArray();
-        for(auto it_node : r_nodes_array){
-            // Create a copy of the origin model part node
+        for(auto &it_node : r_nodes_array){
+            // Create a copy of the origin model part node and add DOFs
             auto p_node = mrVirtualModelPart.CreateNewNode(it_node->Id(),*it_node, 0);
-            // Check fixity
-            if (it_node->IsFixed(MESH_DISPLACEMENT_X))
-                p_node->Fix(MESH_DISPLACEMENT_X);
-            if (it_node->IsFixed(MESH_DISPLACEMENT_Y))
-                p_node->Fix(MESH_DISPLACEMENT_Y);
-            if (it_node->IsFixed(MESH_DISPLACEMENT_Z))
-                p_node->Fix(MESH_DISPLACEMENT_Z);
+            p_node->pAddDof(MESH_DISPLACEMENT_X);
+            p_node->pAddDof(MESH_DISPLACEMENT_Y);
+            p_node->pAddDof(MESH_DISPLACEMENT_Z);
         }
 
         // Copy the origin model part elements
@@ -88,15 +90,16 @@ namespace Kratos
             << "Origin and virtual model part have different number of elements.";
     }
 
-    void ExplicitMeshMovingUtilities::ComputeExplicitMeshMovement(const double DeltaTime){
-
-        const int time_order = 1;
+    void ExplicitMeshMovingUtilities::ComputeExplicitMeshMovement(const double DeltaTime)
+    {
         VectorResultNodesContainerType search_results;
         DistanceVectorContainerType search_distance_results;
 
         SearchStructureNodes(search_results, search_distance_results);
         ComputeMeshDisplacement(search_results, search_distance_results);
-        MoveMeshUtilities::CalculateMeshVelocities(mrVirtualModelPart, time_order, DeltaTime);
+        TimeDiscretization::BDF1 time_disc_BDF1;
+        mrVirtualModelPart.GetProcessInfo()[DELTA_TIME] = DeltaTime;
+        MeshVelocityCalculation::CalculateMeshVelocities(mrVirtualModelPart, time_disc_BDF1);
         MoveMeshUtilities::MoveMesh(mrVirtualModelPart.Nodes());
 
         // Check that the moved virtual mesh has no negative Jacobian elements
@@ -104,10 +107,10 @@ namespace Kratos
             KRATOS_ERROR_IF((it_elem->GetGeometry()).Area() < 0.0) << "Element " << it_elem->Id() << " in virtual model part has negative jacobian." << std::endl;
     }
 
-    void ExplicitMeshMovingUtilities::UndoMeshMovement(){
-
+    void ExplicitMeshMovingUtilities::UndoMeshMovement()
+    {
         auto &r_nodes = mrVirtualModelPart.Nodes();
-        MoveMeshUtilities::SetMeshToInitialConfiguration(r_nodes);
+        VariableUtils().UpdateCurrentToInitialConfiguration(r_nodes);
     }
 
     template <unsigned int TDim>
@@ -135,19 +138,52 @@ namespace Kratos
             if (is_found){
                 // Initialize historical data
                 // The current step values are also set as a prediction
-                it_node->GetSolutionStepValue(MESH_VELOCITY) = ZeroVector(3);
-                for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
-                    it_node->GetSolutionStepValue(PRESSURE, i_step) = 0.0;
-                    it_node->GetSolutionStepValue(VELOCITY, i_step) = ZeroVector(3);
+                auto &r_mesh_vel = it_node->GetSolutionStepValue(MESH_VELOCITY);
+                r_mesh_vel = ZeroVector(3);
+                if (!it_node->IsFixed(PRESSURE)) {
+                    for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
+                        it_node->GetSolutionStepValue(PRESSURE, i_step) = 0.0;
+                    }
+                }
+                if (!it_node->IsFixed(VELOCITY_X)) {
+                    for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
+                        it_node->GetSolutionStepValue(VELOCITY_X, i_step) = 0.0;
+                    }
+                }
+                if (!it_node->IsFixed(VELOCITY_Y)) {
+                    for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
+                        it_node->GetSolutionStepValue(VELOCITY_Y, i_step) = 0.0;
+                    }
+                }
+                if (!it_node->IsFixed(VELOCITY_Z)) {
+                    for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
+                        it_node->GetSolutionStepValue(VELOCITY_Z, i_step) = 0.0;
+                    }
                 }
 
-                // Interpolate the origin model part node value
+                // Interpolate the origin model part nodal values
                 auto &r_geom = p_elem->GetGeometry();
                 for (std::size_t i_virt_node = 0; i_virt_node < r_geom.PointsNumber(); ++i_virt_node){
-                    it_node->GetSolutionStepValue(MESH_VELOCITY) += aux_N(i_virt_node) * r_geom[i_virt_node].GetSolutionStepValue(MESH_VELOCITY);
-                    for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
-                        it_node->GetSolutionStepValue(PRESSURE, i_step) += aux_N(i_virt_node) * r_geom[i_virt_node].GetSolutionStepValue(PRESSURE, i_step);
-                        it_node->GetSolutionStepValue(VELOCITY, i_step) += aux_N(i_virt_node) * r_geom[i_virt_node].GetSolutionStepValue(VELOCITY, i_step);
+                    r_mesh_vel += aux_N(i_virt_node) * r_geom[i_virt_node].GetSolutionStepValue(MESH_VELOCITY);
+                    if (!it_node->IsFixed(PRESSURE)) {
+                        for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
+                            it_node->GetSolutionStepValue(PRESSURE, i_step) += aux_N(i_virt_node) * r_geom[i_virt_node].GetSolutionStepValue(PRESSURE, i_step);
+                        }
+                    }
+                    if (!it_node->IsFixed(VELOCITY_X)) {
+                        for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
+                            it_node->GetSolutionStepValue(VELOCITY_X, i_step) += aux_N(i_virt_node) * r_geom[i_virt_node].GetSolutionStepValue(VELOCITY_X, i_step);
+                        }
+                    }
+                    if (!it_node->IsFixed(VELOCITY_Y)) {
+                        for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
+                            it_node->GetSolutionStepValue(VELOCITY_Y, i_step) += aux_N(i_virt_node) * r_geom[i_virt_node].GetSolutionStepValue(VELOCITY_Y, i_step);
+                        }
+                    }
+                    if (!it_node->IsFixed(VELOCITY_Z)) {
+                        for (unsigned int i_step = 0; i_step < BufferSize; ++i_step){
+                            it_node->GetSolutionStepValue(VELOCITY_Z, i_step) += aux_N(i_virt_node) * r_geom[i_virt_node].GetSolutionStepValue(VELOCITY_Z, i_step);
+                        }
                     }
                 }
             } else {
@@ -196,8 +232,8 @@ namespace Kratos
 
     void ExplicitMeshMovingUtilities::ComputeMeshDisplacement(
         const VectorResultNodesContainerType &rSearchResults,
-        const DistanceVectorContainerType &rSearchDistanceResults){
-
+        const DistanceVectorContainerType &rSearchDistanceResults)
+    {
         #pragma omp parallel for
         for(int i_fl = 0; i_fl < static_cast<int>(mrVirtualModelPart.NumberOfNodes()); ++i_fl){
             // Get auxiliar current fluid node info.
@@ -206,38 +242,63 @@ namespace Kratos
             const auto i_fl_str_dists = rSearchDistanceResults[i_fl];
             const std::size_t n_str_nodes = i_fl_str_nodes.size();
 
-            // Initialize the current virtal model part node MESH_DISPLACEMENT
+            // Check origin model part mesh displacementfixity
+            const auto it_orig_node = mpOriginModelPart->NodesBegin() + i_fl;
+            if (it_orig_node->IsFixed(MESH_DISPLACEMENT_X)) {
+                it_node->Fix(MESH_DISPLACEMENT_X);
+            }
+            if (it_orig_node->IsFixed(MESH_DISPLACEMENT_Y)) {
+                it_node->Fix(MESH_DISPLACEMENT_Y);
+            }
+            if (it_orig_node->IsFixed(MESH_DISPLACEMENT_Z)) {
+                it_node->Fix(MESH_DISPLACEMENT_Z);
+            }
+
+            // Initialize the current virtual model part node MESH_DISPLACEMENT
             auto &r_mesh_disp = it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
             r_mesh_disp = ZeroVector(3);
 
             // Check if any structure node is found
             if (n_str_nodes != 0){
-                // Compute the average MESH_DISPLACEMENT
-                for(unsigned int i_str = 0; i_str < n_str_nodes; ++i_str){
+                // Compute the closest structure node MESH_DISPLACEMENT
+                double min_distance = 1.01;
+                Node<3>::Pointer str_node_ptr = nullptr;
+                for(unsigned int i_str = 0; i_str < n_str_nodes; ++i_str) {
                     // Compute the structure point weight according to the kernel function
-                    const double normalised_distance = i_fl_str_dists[i_str] / mSearchRadius;
-                    const double weight = this->ComputeKernelValue(normalised_distance);
+                    const double normalised_distance = std::sqrt(i_fl_str_dists[i_str]) / mSearchRadius;
 
-                    // Accumulate the current step structure pt. DISPLACEMENT values
-                    const auto &r_str_disp_0 = (*(i_fl_str_nodes[i_str])).FastGetSolutionStepValue(DISPLACEMENT,0);
-                    const auto &r_str_disp_1 = (*(i_fl_str_nodes[i_str])).FastGetSolutionStepValue(DISPLACEMENT,1);
-                    const auto str_disp = r_str_disp_0 - r_str_disp_1;
-                    if (!it_node->IsFixed(MESH_DISPLACEMENT_X))
-                        r_mesh_disp[0] += weight * str_disp[0];
-                    if (!it_node->IsFixed(MESH_DISPLACEMENT_Y))
-                        r_mesh_disp[1] += weight * str_disp[1];
-                    if (!it_node->IsFixed(MESH_DISPLACEMENT_Z))
-                        r_mesh_disp[2] += weight * str_disp[2];
+                    // Check if the point is closer than the current one
+                    if (normalised_distance < min_distance) {
+                        min_distance = normalised_distance;
+                        str_node_ptr = i_fl_str_nodes[i_str];
+                    }
                 }
 
-                r_mesh_disp /= n_str_nodes;
+                // Current step structure pt. DISPLACEMENT values
+                if (str_node_ptr) {
+                    const double weight = this->ComputeKernelValue(min_distance);
+                    const auto &r_str_disp_0 = str_node_ptr->FastGetSolutionStepValue(DISPLACEMENT,0);
+                    const auto &r_str_disp_1 = str_node_ptr->FastGetSolutionStepValue(DISPLACEMENT,1);
+                    const auto str_disp = weight * (r_str_disp_0 - r_str_disp_1);
+                    if (!it_node->IsFixed(MESH_DISPLACEMENT_X)) {
+                        r_mesh_disp[0] = str_disp[0];
+                    }
+                    if (!it_node->IsFixed(MESH_DISPLACEMENT_Y)) {
+                        r_mesh_disp[1] = str_disp[1];
+                    }
+                    if (!it_node->IsFixed(MESH_DISPLACEMENT_Z)) {
+                        r_mesh_disp[2] = str_disp[2];
+                    }
+                }
             }
         }
     }
 
     inline double ExplicitMeshMovingUtilities::ComputeKernelValue(const double NormalisedDistance){
         // Epanechnikov (parabolic) kernel function
-        return (std::abs(NormalisedDistance) <= 1.0) ? std::abs((3.0/4.0)*(1.0-std::pow(NormalisedDistance,2))) : 0.0;
+        // return (std::abs(NormalisedDistance) < 1.0) ? std::abs((3.0/4.0)*(1.0-std::pow(NormalisedDistance,2))) : 0.0;
+        // Triangle kernel function
+        return (std::abs(NormalisedDistance) < 1.0) ? 1.0 - std::abs(NormalisedDistance) : 0.0;
     }
 
     /* External functions *****************************************************/

@@ -51,9 +51,8 @@ namespace Kratos
  * @brief This class includes several utilities necessaries for the computation of the constitutive law
  * @details The methods are static, so it can be called without constructing the class
  * @tparam TVoigtSize The number of components on the Voigt notation
- * @author Vicente Mataix Ferrandiz
  * @author Alejandro Cornejo
- * @todo Finish adapt for 2D dimension
+ * @author Vicente Mataix Ferrandiz
  */
 template <SizeType TVoigtSize = 6>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
@@ -209,6 +208,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @return The characteristic length
      */
     static double CalculateCharacteristicLength(const GeometryType& rGeometry);
+
+    /**
+     * @brief Calculates the maximal distance between corner node of a geometry and its center (on reference configuration)
+     * @param rGeometry The geometry to compute
+     * @return The characteristic length
+     */
+    static double CalculateCharacteristicLengthOnReferenceConfiguration(const GeometryType& rGeometry);
 
     /**
      * @brief This method computes the equivalent deformation gradient for the elements which provide the deformation gradient as input

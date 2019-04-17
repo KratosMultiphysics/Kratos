@@ -56,8 +56,10 @@
 
 // Builder And Solver
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_with_constraints.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_constraints.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_constraints_elementwise.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -254,7 +256,8 @@ namespace Kratos
                 typename ResidualBasedBossakDisplacementSchemeType::Pointer,
                 BaseSchemeType  >
                 (m,"ResidualBasedBossakDisplacementScheme")
-                .def(py::init< double >() )
+                .def(py::init< double >())
+                .def(py::init< double, double >())
                 ;
 
 	         // Residual Based Newmark Scheme Type
@@ -403,15 +406,28 @@ namespace Kratos
 
             typedef ResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverType;
             py::class_< ResidualBasedEliminationBuilderAndSolverType, ResidualBasedEliminationBuilderAndSolverType::Pointer, BuilderAndSolverType>(m,"ResidualBasedEliminationBuilderAndSolver")
-                .def(py::init< LinearSolverType::Pointer > ());
+            .def(py::init< LinearSolverType::Pointer > ())
+            ;
+
+            typedef ResidualBasedEliminationBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverWithConstraintsType;
+            py::class_< ResidualBasedEliminationBuilderAndSolverWithConstraintsType, ResidualBasedEliminationBuilderAndSolverWithConstraintsType::Pointer, BuilderAndSolverType>(m,"ResidualBasedEliminationBuilderAndSolverWithConstraints")
+            .def(py::init< LinearSolverType::Pointer > ())
+            .def(py::init< LinearSolverType::Pointer, bool > ())
+            .def(py::init< LinearSolverType::Pointer, bool, bool > ())
+            .def(py::init< LinearSolverType::Pointer, Parameters > ())
+            ;
 
             typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
             py::class_< ResidualBasedBlockBuilderAndSolverType, ResidualBasedBlockBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolver")
-                .def(py::init< LinearSolverType::Pointer > ());
+            .def(py::init< LinearSolverType::Pointer > ())
+            ;
 
-            typedef ResidualBasedBlockBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithConstraintsType;
-            py::class_< ResidualBasedBlockBuilderAndSolverWithConstraintsType, ResidualBasedBlockBuilderAndSolverWithConstraintsType::Pointer,ResidualBasedBlockBuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolverWithConstraints")
-                .def(py::init< LinearSolverType::Pointer > ());
+            typedef ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithConstraintsElementWiseType;
+            py::class_< ResidualBasedBlockBuilderAndSolverWithConstraintsElementWiseType, 
+                        ResidualBasedBlockBuilderAndSolverWithConstraintsElementWiseType::Pointer,
+                        BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise")
+            .def(py::init< LinearSolverType::Pointer > ())
+            ;
 
             //********************************************************************
             //********************************************************************

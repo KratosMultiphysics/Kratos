@@ -164,7 +164,7 @@ public:
 
         if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
             rAParameter = 1.00 / (fracture_energy * young_modulus / (CharacteristicLength * std::pow(yield_compression, 2)) - 0.5);
-            KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture enerDerivativePlasticPotentialy is too low, increase FRACTURE_ENERGY..." << std::endl;
+            KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
         } else { // linear
             rAParameter = -std::pow(yield_compression, 2) / (2.0 * young_modulus * fracture_energy / CharacteristicLength);
         }
@@ -208,17 +208,11 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
-
-        ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
+        array_1d<double, VoigtSize> second_vector;
         ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
-
-        const double c1 = 0.0;
         const double c2 = std::sqrt(3.0);
-        const double c3 = 0.0;
 
-        noalias(rFFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+        noalias(rFFlux) = c2 * second_vector;
     }
 
     /**
