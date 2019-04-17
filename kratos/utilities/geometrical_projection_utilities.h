@@ -64,11 +64,6 @@ public:
     // Some geometrical definitions
     typedef Node<3>                                              NodeType;
     typedef Point                                               PointType;
-    typedef PointType::CoordinatesArrayType          CoordinatesArrayType;
-
-    /// Definition of geometries
-    typedef Geometry<NodeType>                               GeometryType;
-    typedef Geometry<PointType>                         GeometryPointType;
 
     /// Index type definition
     typedef std::size_t                                         IndexType;
@@ -184,8 +179,8 @@ public:
     template<class TGeometryType>
     static inline bool ProjectIterativeLine2D(
         TGeometryType& rGeomOrigin,
-        const GeometryType::CoordinatesArrayType& rPointDestiny,
-        GeometryType::CoordinatesArrayType& rResultingPoint,
+        const array_1d<double,3>& rPointDestiny,
+        array_1d<double,3>& rResultingPoint,
         const array_1d<double, 3>& rNormal,
         const double Tolerance = 1.0e-8,
         double DeltaXi = 0.5
