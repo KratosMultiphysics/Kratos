@@ -36,13 +36,6 @@ def CheckOutputFile(output_file, string_array, tests_success):
 
     return tests_success
 
-def DeleteAuxTestFiles(Path, MDPAFileNames):
-    # This function deletes the time and the partitioned files
-    files = os.listdir(Path)
-    for file in files:
-        if file not in MDPAFileNames:
-            os.remove(os.path.join(Path,file))
-
 
 input_file = "test_MappingApplication.py"
 input_file_mpi = "test_MappingApplication_mpi.py"
@@ -81,21 +74,3 @@ tests_success = CheckOutputFile(kratos_output_file, keyword_array, tests_success
 
 test_runtime = datetime.timedelta(seconds=int((time() - start_time)))
 print("\nTests Sucessful: " + str(tests_success) + ", Runtime: " + str(test_runtime))
-
-
-## Removing the files that are created during the tests (patritioned mdpas and time files)
-tests_execution_path = os.path.dirname(os.path.realpath(__file__))
-mdpa_files_path = os.path.join(tests_execution_path, "MapperTests_mdpa")
-DeleteAuxTestFiles(mdpa_files_path,
-                   ["MappingApplication_test_geometry_quad.mdpa",
-                    "MappingApplication_test_geometry_tri.mdpa"])
-
-mdpa_files_path = os.path.join(tests_execution_path, "NearestNeighborMapperTest_mdpa")
-DeleteAuxTestFiles(mdpa_files_path,
-                   ["origin.mdpa",
-                    "destination.mdpa"])
-
-mdpa_files_path = os.path.join(tests_execution_path, "NearestElementMapperTest2D_mdpa")
-DeleteAuxTestFiles(mdpa_files_path,
-                   ["origin.mdpa",
-                    "destination.mdpa"])

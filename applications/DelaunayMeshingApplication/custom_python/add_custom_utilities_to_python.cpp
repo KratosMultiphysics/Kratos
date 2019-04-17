@@ -266,6 +266,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
       .def("GetOptions",&MesherUtilities::MeshingParameters::GetOptions)
       .def("InitializeMeshing",&MesherUtilities::MeshingParameters::InitializeMeshing)
       .def("FinalizeMeshing",&MesherUtilities::MeshingParameters::FinalizeMeshing)
+      .def("SetUseBoundingBox",&MesherUtilities::MeshingParameters::SetUseBoundingBox)
+      .def("SetBoundingBoxLowerPoint",&MesherUtilities::MeshingParameters::SetBoundingBoxLowerPoint)
+      .def("SetBoundingBoxUpperPoint",&MesherUtilities::MeshingParameters::SetBoundingBoxUpperPoint)
+      .def("SetBoundingBoxTimeInterval",&MesherUtilities::MeshingParameters::SetBoundingBoxTimeInterval)
       ;
 
 }

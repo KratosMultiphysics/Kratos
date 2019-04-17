@@ -237,11 +237,8 @@ public:
         array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
         ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
         ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
 
-        const double c3 = 0.0;
-
-        const double friction_angle = r_material_properties[FRICTION_ANGLE];
+        const double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0;;
         const double sin_phi = std::sin(friction_angle);
         const double Root3 = std::sqrt(3.0);
 
@@ -249,7 +246,7 @@ public:
         const double c1 = CFL * 2.0 * sin_phi / (Root3 * (3.0 - sin_phi));
         const double c2 = CFL;
 
-        noalias(rFFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+        noalias(rFFlux) = c1 * first_vector + c2 * second_vector;
     }
 
     /**
