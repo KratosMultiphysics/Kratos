@@ -263,6 +263,10 @@ def OutputReferenceSolution(model_part, variable, file_name):
     if model_part.IsSubModelPart():
         full_model_part_name = model_part.GetParentModelPart().Name  + "." + full_model_part_name
 
+    if data_comm.IsDistributed():
+        raise Exception("Writing of reference results in not possible in MPI!")
+    KM.Logger.PrintWarning('BasicMapperTests', 'Writing reference solution for ModelPart "{}"; Variable "{}"; FileName "{}"'.format(full_model_part_name, variable.Name(), file_name))
+
     output_parameters = KM.Parameters("""{
         "output_variables"     : [\"""" + variable.Name() + """\"],
         "output_file_name"     : \"""" + file_name + """\",
@@ -278,9 +282,6 @@ def OutputReferenceSolution(model_part, variable, file_name):
 
 def CheckHistoricalNonUniformValues(model_part, variable, file_name, output_reference_solution=False):
     if output_reference_solution:
-        if data_comm.IsDistributed():
-            raise Exception("Writing of reference results in not possible in MPI!")
-        KM.Logger.PrintWarning('MapperTest', 'Writing reference solution for ModelPart "{}"; Variable "{}"; FileName "{}"'.format(model_part.Name, variable.Name(), file_name))
         OutputReferenceSolution(model_part, variable, file_name)
     else:
         full_model_part_name = model_part.Name
