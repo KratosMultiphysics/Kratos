@@ -76,6 +76,8 @@ public:
     ///@name Life Cycle
     ///@{
 
+    GeometricalProjectionUtilities() = delete;
+
     ///@}
     ///@name Access
     ///@{
