@@ -74,10 +74,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
             "variable_names"                : ["DISPLACEMENT_Y","DISPLACEMENT_Z"],
             "reform_every_step"             : true,
             "debug_info"                    : true,
-            "must_find_neighbor"            : true,
-            "angled_initial_line"           : false,
-            "neighbor_search_radius"        : 0.40,
-            "bucket_size"                   : 10
+            "angled_initial_line"           : false
         })" );
         default_parameters.ValidateAndAssignDefaults(InputParameters);
         KRATOS_CATCH("")
@@ -91,10 +88,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
       {
         if (mParameters["reform_every_step"].GetBool())
         {
-          this->CoupleModelParts();
+          //this->CoupleModelParts();
+          this->CoupleModelPartsCustom();
         }
       }
-      else this->CoupleModelParts();
+      //else this->CoupleModelParts();
+      else this->CoupleModelPartsCustom();
       KRATOS_CATCH("");
     }
 
@@ -362,6 +361,101 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
 
     void SetmIsInitialized(const bool& check) {this->mIsInitialized = check;}
     const bool GetmIsInitialized() const {return this->mIsInitialized;}
+
+
+
+    std::vector<int> FindNearestNeighboursCustom(const NodeType& node_i, std::vector<double>& weights)
+    {
+        KRATOS_TRY;
+        const double numerical_limit    = std::numeric_limits<double>::epsilon();
+        ModelPart &master_model_part    = mrModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
+        NodesArrayType &r_nodes_master  = master_model_part.Nodes();
+
+        double distance = 1e12;
+        double distance_i = 0.0;
+        std::vector<int> neighbour_ids = {0,0};
+        weights.clear();
+        weights = {0.0,0.0};
+
+        for(NodeType& node_j : r_nodes_master)
+        {
+            distance_i = GetNodalDistance(node_i,node_j);
+            if (distance_i<distance)
+            {
+                distance=distance_i;
+                neighbour_ids[0] = node_j.Id();
+            }
+        }
+        weights[0] = distance;
+        distance = 1e12;
+
+        for(NodeType& node_j : r_nodes_master)
+        {
+            if (node_j.Id()==neighbour_ids[0]) continue;
+
+            distance_i = GetNodalDistance(node_i,node_j);
+            if (distance_i<distance)
+            {
+                distance=distance_i;
+                neighbour_ids[1] = node_j.Id();
+            }
+        }
+        weights[1] = distance;
+        const double total_distance = weights[0]+weights[1];
+        weights[0] = 1.0 - (weights[0]/total_distance);
+        weights[1] = 1.0 - (weights[1]/total_distance);
+
+
+        if (mParameters["debug_info"].GetBool())
+        {
+            KRATOS_WATCH(node_i.Id())
+            KRATOS_WATCH(neighbour_ids)
+            KRATOS_WATCH(weights)
+            std::cout << "_________________________" << std::endl;
+        }
+        return neighbour_ids;
+        KRATOS_CATCH("")
+    }
+
+    double GetNodalDistance(const NodeType& node_i, const NodeType& node_j)
+    {
+        const array_1d<double, 3> delta_pos =
+            node_j.GetInitialPosition().Coordinates() -
+            node_i.GetInitialPosition().Coordinates() +
+            node_j.FastGetSolutionStepValue(DISPLACEMENT) -
+            node_i.FastGetSolutionStepValue(DISPLACEMENT);
+
+        const double l = MathUtils<double>::Norm3(delta_pos);
+        return l;
+    }
+
+    void CoupleModelPartsCustom()
+    {
+      KRATOS_TRY;
+      ModelPart &master_model_part    = mrModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
+      ModelPart &slave_model_part     = mrModelPart.GetSubModelPart(mParameters["slave_sub_model_part_name"].GetString());
+      NodesArrayType &r_nodes_master  = master_model_part.Nodes();
+      NodesArrayType &r_nodes_slave   = slave_model_part.Nodes();
+
+      const int max_number_of_neighbours = 2;
+
+      for(NodeType& node_i : r_nodes_slave)
+      {
+        std::vector<double> nodal_weights = {0.0,0.0};
+        std::vector<int> neighbour_node_ids = FindNearestNeighboursCustom(node_i,nodal_weights);
+        NodeVector neighbour_nodes( max_number_of_neighbours );
+        neighbour_nodes[0] = master_model_part.pGetNode(neighbour_node_ids[0]);
+        neighbour_nodes[1] = master_model_part.pGetNode(neighbour_node_ids[1]);
+
+        if(mParameters["angled_initial_line"].GetBool())
+            {this->CoupleSlaveToNeighborMasterNodesInitialAngledLine(node_i,neighbour_nodes,nodal_weights,max_number_of_neighbours);}
+        else
+            {this->CoupleSlaveToNeighborMasterNodes(node_i,neighbour_nodes,nodal_weights,max_number_of_neighbours);}
+      }
+
+      this->SetmIsInitialized(true);
+      KRATOS_CATCH("");
+    }
 
   protected:
 
