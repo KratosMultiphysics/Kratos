@@ -82,6 +82,10 @@ KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApp
     mALMNVFrictionalMortarContactCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     mALMFrictionalMortarContactCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
     mALMNVFrictionalMortarContactCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mALMFrictionalMortarContactCondition3D3N4N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mALMNVFrictionalMortarContactCondition3D3N4N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mALMFrictionalMortarContactCondition3D4N3N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mALMNVFrictionalMortarContactCondition3D4N3N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
     // Penalty method Contact mortar conditions
     // Frictionless
     // 2D
@@ -199,6 +203,10 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "ALMNVFrictionalMortarContactCondition3D3N", mALMNVFrictionalMortarContactCondition3D3N );
     KRATOS_REGISTER_CONDITION( "ALMFrictionalMortarContactCondition3D4N", mALMFrictionalMortarContactCondition3D4N );
     KRATOS_REGISTER_CONDITION( "ALMNVFrictionalMortarContactCondition3D4N", mALMNVFrictionalMortarContactCondition3D4N );
+    KRATOS_REGISTER_CONDITION( "ALMFrictionalMortarContactCondition3D3N4N", mALMFrictionalMortarContactCondition3D3N4N );
+    KRATOS_REGISTER_CONDITION( "ALMNVFrictionalMortarContactCondition3D3N4N", mALMNVFrictionalMortarContactCondition3D3N4N );
+    KRATOS_REGISTER_CONDITION( "ALMFrictionalMortarContactCondition3D4N3N", mALMFrictionalMortarContactCondition3D4N3N );
+    KRATOS_REGISTER_CONDITION( "ALMNVFrictionalMortarContactCondition3D4N3N", mALMNVFrictionalMortarContactCondition3D4N3N );
     // Frictionless penalty cases
     KRATOS_REGISTER_CONDITION( "PenaltyFrictionlessMortarContactCondition2D2N", mPenaltyFrictionlessMortarContactCondition2D2N );
     KRATOS_REGISTER_CONDITION( "PenaltyNVFrictionlessMortarContactCondition2D2N", mPenaltyNVFrictionlessMortarContactCondition2D2N );

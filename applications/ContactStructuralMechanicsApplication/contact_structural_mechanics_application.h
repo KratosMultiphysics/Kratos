@@ -227,10 +227,14 @@ private:
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<2, 2, true> mALMNVFrictionalMortarContactCondition2D2N;
     const AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition<2, false> mALMFrictionalAxisymMortarContactCondition2D2N;
     const AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition<2, true> mALMNVFrictionalAxisymMortarContactCondition2D2N;
-    const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 3, false> mALMFrictionalMortarContactCondition3D3N;
-    const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 3, true> mALMNVFrictionalMortarContactCondition3D3N;
-    const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 4, false> mALMFrictionalMortarContactCondition3D4N;
-    const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 4, true> mALMNVFrictionalMortarContactCondition3D4N;
+    const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 3, false, 3> mALMFrictionalMortarContactCondition3D3N;
+    const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 3, true,  3> mALMNVFrictionalMortarContactCondition3D3N;
+    const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 4, false, 4> mALMFrictionalMortarContactCondition3D4N;
+    const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 4, true,  4> mALMNVFrictionalMortarContactCondition3D4N;
+    const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 3, false, 4> mALMFrictionalMortarContactCondition3D3N4N;
+    const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 3, true,  4> mALMNVFrictionalMortarContactCondition3D3N4N;
+    const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 4, false, 3> mALMFrictionalMortarContactCondition3D4N3N;
+    const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 4, true,  3> mALMNVFrictionalMortarContactCondition3D4N3N;
     // Frictionless penalty cases
     const PenaltyMethodFrictionlessMortarContactCondition<2, 2, false> mPenaltyFrictionlessMortarContactCondition2D2N;
     const PenaltyMethodFrictionlessMortarContactCondition<2, 2, true> mPenaltyNVFrictionlessMortarContactCondition2D2N;
