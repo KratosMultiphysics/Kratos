@@ -2,6 +2,7 @@
 from __future__ import print_function, absolute_import, division
 
 # Application dependent names and paths
+import KratosMultiphysics as KM
 from KratosShallowWaterApplication import *
 application = KratosShallowWaterApplication()
 application_name = "KratosShallowWaterApplication"
