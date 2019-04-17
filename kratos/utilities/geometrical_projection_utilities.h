@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
+//                   Philipp Bucher
 //
 
 #if !defined(KRATOS_GEOMETRICAL_PROJECTION_UTILITIES)
@@ -99,7 +100,7 @@ public:
      * @brief Project a point over a line/plane following an arbitrary direction
      * @tparam TGeometryType The type of the geometry
      * @param rGeom The geometry where to be projected
-     * @param rPointDestiny The point to be projected
+     * @param rPointToProject The point to be projected
      * @param rPointProjected The point pojected over the plane
      * @param rNormal The normal of the geometry
      * @param rVector The direction to project
@@ -109,7 +110,7 @@ public:
     template<class TGeometryType>
     static inline double FastProjectDirection(
         const TGeometryType& rGeom,
-        const PointType& rPointDestiny,
+        const PointType& rPointToProject,
         PointType& rPointProjected,
         const array_1d<double,3>& rNormal,
         const array_1d<double,3>& rVector,
@@ -122,17 +123,17 @@ public:
         // We define the distance
         double distance = 0.0;
 
-        const array_1d<double,3> vector_points = rGeom[0].Coordinates() - rPointDestiny.Coordinates();
+        const array_1d<double,3> vector_points = rGeom[0].Coordinates() - rPointToProject.Coordinates();
 
         if( norm_2( rVector ) < zero_tolerance && norm_2( rNormal ) > zero_tolerance ) {
             distance = inner_prod(vector_points, rNormal)/norm_2(rNormal);
-            noalias(rPointProjected.Coordinates()) = rPointDestiny.Coordinates() + rVector * distance;
+            noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates() + rVector * distance;
             KRATOS_WARNING_IF("GeometricalProjectionUtilities", EchoLevel > 0) << "WARNING:: Zero projection vector. Projection using the condition vector instead." << std::endl;
         } else if (std::abs(inner_prod(rVector, rNormal) ) > zero_tolerance) {
             distance = inner_prod(vector_points, rNormal)/inner_prod(rVector, rNormal);
-            noalias(rPointProjected.Coordinates()) = rPointDestiny.Coordinates() + rVector * distance;
+            noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates() + rVector * distance;
         } else {
-            noalias(rPointProjected.Coordinates()) = rPointDestiny.Coordinates();
+            noalias(rPointProjected.Coordinates()) = rPointToProject.Coordinates();
             KRATOS_WARNING_IF("GeometricalProjectionUtilities", EchoLevel > 0) << "WARNING:: The line and the plane are coplanar. Something wrong happened " << std::endl;
         }
 
@@ -142,27 +143,27 @@ public:
     /**
      * @brief Project a point over a plane (avoiding some steps)
      * @param rPointOrigin A point in the plane
-     * @param rPointDestiny The point to be projected
+     * @param rPointToProject The point to be projected
      * @param rNormal The normal of the plane
      * @param rDistance The distance to the projection
      * @return PointProjected The point pojected over the plane
      */
     static inline PointType FastProject(
         const PointType& rPointOrigin,
-        const PointType& rPointDestiny,
+        const PointType& rPointToProject,
         const array_1d<double,3>& rNormal,
         double& rDistance
         )
     {
-        const array_1d<double,3> vector_points = rPointDestiny.Coordinates() - rPointOrigin.Coordinates();
+        const array_1d<double,3> vector_points = rPointToProject.Coordinates() - rPointOrigin.Coordinates();
 
         rDistance = inner_prod(vector_points, rNormal);
 
         PointType point_projected;
     #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        point_projected.Coordinates() = rPointDestiny.Coordinates() - rNormal * rDistance;
+        point_projected.Coordinates() = rPointToProject.Coordinates() - rNormal * rDistance;
     #else
-        noalias(point_projected.Coordinates()) = rPointDestiny.Coordinates() - rNormal * rDistance;
+        noalias(point_projected.Coordinates()) = rPointToProject.Coordinates() - rNormal * rDistance;
     #endif // ifdef KRATOS_USE_AMATRIX
 
         return point_projected;
@@ -172,13 +173,13 @@ public:
      * @brief Project a point over a line/plane (simplified since using the normal in the center)
      * @tparam TGeometryType The type of the geometry
      * @param rGeom The geometry where to be projected
-     * @param rPointDestiny The point to be projected
+     * @param rPointToProject The point to be projected
      * @param rLocalCoords The local coordinates of the projection
      * @return Inside True is inside, false not
      */
     template<class TGeometryType>
     bool ProjectOnGeometry(TGeometryType& rGeom,
-                           const Point& rPointDestiny,
+                           const Point& rPointToProject,
                            array_1d<double,3>& rLocalCoords,
                            double& rDistance)
     {
@@ -192,7 +193,7 @@ public:
         // trying to project to the geometry
         rDistance = std::abs(FastProjectDirection(
             rGeom,
-            rPointDestiny,
+            rPointToProject,
             projected_point,
             rGeom.UnitNormal(local_coords_init),
             rGeom.UnitNormal(local_coords_init)));
