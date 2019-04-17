@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Marc Núñez, based on Inigo Lopez and Riccardo Rossi work
+//  Main authors:    Marc Núñez, based on Iñigo Lopez and Riccardo Rossi work
 //
 
 #if !defined(KRATOS_EMBEDDED_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H)
@@ -143,6 +143,7 @@ public:
 
 protected:
 
+    ModifiedShapeFunctions::Pointer pGetModifiedShapeFunctions(Vector& rDistances);
 
 private:
 

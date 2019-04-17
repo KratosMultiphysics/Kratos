@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Marc Núñez, based on Inigo Lopez and Riccardo Rossi work
+//  Main authors:    Marc Núñez, based on Iñigo Lopez and Riccardo Rossi work
 //
 #include "embedded_incompressible_potential_flow_element.h"
 
@@ -73,18 +73,17 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
     rLeftHandSideMatrix.clear();
 
     array_1d<double, NumNodes> potential;
-    array_1d<double, NumNodes> elemental_distance;
+    Vector distances(NumNodes);
     for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-        elemental_distance[i_node] = this->GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET);
+        distances(i_node) = this->GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET);
 
     BaseType::GetPotentialOnNormalElement(potential);
 
-    const Vector& r_elemental_distances=elemental_distance;
-    Triangle2D3ModifiedShapeFunctions triangle_shape_functions(this->pGetGeometry(), r_elemental_distances);
+    ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(distances);
     Matrix positive_side_sh_func;
     ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
     Vector positive_side_weights;
-    triangle_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
+    pModifiedShFunc -> ComputePositiveSideShapeFunctionsAndGradientsValues(
         positive_side_sh_func,
         positive_side_sh_func_gradients,
         positive_side_weights,
@@ -102,6 +101,13 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, potential);
 }
 
+template <int Dim, int NumNodes>
+ModifiedShapeFunctions::Pointer EmbeddedIncompressiblePotentialFlowElement<Dim, 
+                                NumNodes>::pGetModifiedShapeFunctions(Vector& rDistances){
+        KRATOS_ERROR_IF(Dim != 2) << "Only 2D cases are supported. Current dimension:" 
+                            << Dim << std::endl;
+        return ModifiedShapeFunctions::Pointer(new Triangle2D3ModifiedShapeFunctions(this->pGetGeometry(),rDistances));
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
