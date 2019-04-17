@@ -82,10 +82,10 @@ public:
     ///@{
 
     /// Constructor with filenames.
-    ModelPartIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR);
+    ModelPartIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR|IO::SKIP_TIMER);
 
     /// Constructor with stream.
-    ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags Options = IO::NOT_IGNORE_VARIABLES_ERROR);
+    ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags Options = IO::NOT_IGNORE_VARIABLES_ERROR|IO::SKIP_TIMER);
 
 
     /// Constructor with filenames.
