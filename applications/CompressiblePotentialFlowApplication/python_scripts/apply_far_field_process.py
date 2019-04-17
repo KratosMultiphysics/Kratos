@@ -17,7 +17,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "model_part_name":"",
                 "angle_of_attack": 0.0,
                 "mach_infinity": 0.02941176471,
-                "density_infinity"  : 1.0,
+                "free_stream_density"  : 1.0,
                 "speed_of_sound": 340,
                 "heat_capacity_ratio": 1.4,
                 "inlet_phi": 1.0,
@@ -31,29 +31,29 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.fluid_model_part = self.model_part.GetRootModelPart()
 
         self.angle_of_attack = settings["angle_of_attack"].GetDouble()
-        self.mach_inf = settings["mach_infinity"].GetDouble()
-        self.density_inf = settings["density_infinity"].GetDouble()
-        self.seed_of_sound_inf = settings["speed_of_sound"].GetDouble()
+        self.free_stream_mach = settings["mach_infinity"].GetDouble()
+        self.density_inf = settings["free_stream_density"].GetDouble()
+        self.free_stream_speed_of_sound = settings["speed_of_sound"].GetDouble()
         self.heat_capacity_ratio = settings["heat_capacity_ratio"].GetDouble()
         self.inlet_phi = settings["inlet_phi"].GetDouble()
 
         # Computing free stream velocity
-        self.u_inf = self.mach_inf * self.speed_of_sound_inf
+        self.u_inf = self.free_stream_mach * self.free_stream_speed_of_sound
         self.velocity_infinity = KratosMultiphysics.Vector(3)
         self.velocity_infinity[0] = round(self.u_inf*math.cos(self.angle_of_attack),8)
         self.velocity_infinity[1] = round(self.u_inf*math.sin(self.angle_of_attack),8)
         self.velocity_infinity[2] = 0.0
 
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_INFINITY,self.mach_inf)
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.VELOCITY_INFINITY,self.velocity_infinity)
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DENSITY_INFINITY,self.density_inf)
-        self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY,self.seed_of_sound_inf)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_MACH,self.free_stream_mach)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_VELOCITY,self.velocity_infinity)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_DENSITY,self.density_inf)
+        self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY,self.free_stream_speed_of_sound)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.HEAT_CAPACITY_RATIO,self.heat_capacity_ratio)
 
     def Execute(self):
-        #KratosMultiphysics.VariableUtils().SetVectorVar(CPFApp.VELOCITY_INFINITY, self.velocity_infinity, self.model_part.Conditions)
+        #KratosMultiphysics.VariableUtils().SetVectorVar(CPFApp.FREE_STREAM_VELOCITY, self.velocity_infinity, self.model_part.Conditions)
         for cond in self.model_part.Conditions:
-            cond.SetValue(CPFApp.VELOCITY_INFINITY, self.velocity_infinity)
+            cond.SetValue(CPFApp.FREE_STREAM_VELOCITY, self.velocity_infinity)
 
         #select the first node
         for node in self.model_part.Nodes:
