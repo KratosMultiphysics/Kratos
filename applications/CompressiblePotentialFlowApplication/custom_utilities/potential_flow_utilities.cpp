@@ -4,7 +4,6 @@ namespace Kratos
 {
 namespace PotentialFlow
 {
-
 template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement)
 {
@@ -17,9 +16,11 @@ array_1d<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement)
     else
         for (unsigned int i = 0; i < NumNodes; i++)
             if (!rElement.GetGeometry()[i].GetValue(TRAILING_EDGE))
-                potentials[i] = rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+                potentials[i] =
+                    rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
             else
-                potentials[i] = rElement.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+                potentials[i] = rElement.GetGeometry()[i].FastGetSolutionStepValue(
+                    AUXILIARY_VELOCITY_POTENTIAL);
 
     return potentials;
 }
