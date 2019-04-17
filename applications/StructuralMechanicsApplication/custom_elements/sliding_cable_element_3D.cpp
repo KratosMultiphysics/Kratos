@@ -572,14 +572,27 @@ void SlidingCableElement3D::CalculateLumpedMassVector(VectorType &rMassVector)
     const double A = this->GetProperties()[CROSS_AREA];
     const double L = this->GetRefLength();
     const double rho = this->GetProperties()[DENSITY];
+    const Vector l_array = this->GetCurrentLengthArray();
+    const double l = this->GetCurrentLength();
 
     const double total_mass = A * L * rho;
 
+    double nodal_mass = 0.0;
+
     for (int i = 0; i < points_number; ++i) {
+
+        double weight_fraction = 0.0;
+        if (i==0) weight_fraction = l_array[i]/l;
+        else if (i==points_number-1) weight_fraction = l_array[i-1]/l;
+        else weight_fraction = (l_array[i]+l_array[i-1])/l;
+
+        nodal_mass = total_mass * weight_fraction * 0.5;
+
         for (int j = 0; j < dimension; ++j) {
             int index = i * dimension + j;
 
-            rMassVector[index] = total_mass;
+            rMassVector[index] = nodal_mass;
+            //rMassVector[index] = total_mass;
         }
     }
 
