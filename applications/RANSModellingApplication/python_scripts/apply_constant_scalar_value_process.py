@@ -31,9 +31,6 @@ class ApplyConstantScalarValueProcess(KratosMultiphysics.Process):
         self.settings.RemoveValue("boundary_condition_type")
 
         self.scalar_value_process = KratosMultiphysics.ApplyConstantScalarValueProcess(self.model_part, self.settings)
-        self.is_constant_scalars_applied = False
 
-    def ExecuteInitializeSolutionStep(self):
-        if (self.model_part.ProcessInfo[KratosRANS.IS_CO_SOLVING_PROCESS_ACTIVE] and not self.is_constant_scalars_applied):
-            self.scalar_value_process.ExecuteInitialize()
-            self.is_constant_scalars_applied = True
+    def ExecuteInitialize(self):
+        self.scalar_value_process.ExecuteInitialize()
