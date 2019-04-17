@@ -26,22 +26,6 @@
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -77,22 +61,6 @@ public:
     ///@{
 
     GeometricalProjectionUtilities() = delete;
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
 
     ///@}
     ///@name Operations
@@ -300,6 +268,8 @@ public:
 
 private:
 };// class GeometricalProjectionUtilities
+
+///@}
 
 }
 #endif /* KRATOS_GEOMETRICAL_PROJECTION_UTILITIES defined */
