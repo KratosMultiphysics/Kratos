@@ -11,15 +11,9 @@
 //
 //
 
-// System includes
-#include <set>
-
-// External includes
-#include "containers/model.h"
-
 // Project includes
 #include "testing/testing.h"
-#include "includes/model_part.h"
+#include "containers/model.h"
 #include "custom_elements/incompressible_potential_flow_element.h"
 
 namespace Kratos {
@@ -200,5 +194,31 @@ namespace Kratos {
       KRATOS_CHECK(EquationIdVector[4] == 4);
       KRATOS_CHECK(EquationIdVector[5] == 5);
     }
+
+    // Checks the function GetPotentialOnNormalElement
+    KRATOS_TEST_CASE_IN_SUITE(GetPotentialOnNormalElement, CompressiblePotentialApplicationFastSuite)
+    {
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      GenerateElement(model_part);
+      Element::Pointer pElement = model_part.pGetElement(1);
+
+      // Define the nodal values
+      Vector potential(3);
+      potential(0) = 0.0;
+      potential(1) = 1.0;
+      potential(2) = 2.0;
+
+      for (unsigned int i = 0; i < 3; i++)
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
+
+      auto potentials = PotentialFlow::GetPotentialOnNormalElement<2,3>(*pElement);
+
+      KRATOS_CHECK_NEAR(potentials(0), 0.0, 1e-7);
+      KRATOS_CHECK_NEAR(potentials(1), 1.0, 1e-7);
+      KRATOS_CHECK_NEAR(potentials(2), 2.0, 1e-7);
+    }
+
   } // namespace Testing
 }  // namespace Kratos.
