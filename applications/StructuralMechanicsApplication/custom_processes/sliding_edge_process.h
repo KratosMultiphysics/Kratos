@@ -74,9 +74,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
             "variable_names"                : ["DISPLACEMENT_Y","DISPLACEMENT_Z"],
             "reform_every_step"             : true,
             "debug_info"                    : true,
-            "angled_initial_line"           : false
+            "angled_initial_line"           : false,
+            "follow_line"                   : false
         })" );
         default_parameters.ValidateAndAssignDefaults(InputParameters);
+
+
+        KRATOS_ERROR_IF(mParameters["angled_initial_line"].GetBool() && mParameters["follow_line"].GetBool())
+         << "either 'angled_initial_line' or 'follow_line' or both 'false'" << std::endl;
         KRATOS_CATCH("")
     }
 
@@ -447,8 +452,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
         neighbour_nodes[0] = master_model_part.pGetNode(neighbour_node_ids[0]);
         neighbour_nodes[1] = master_model_part.pGetNode(neighbour_node_ids[1]);
 
+
+        // couples displacement of slave to itself to follow rigid angled line
         if(mParameters["angled_initial_line"].GetBool())
             {this->CoupleSlaveToNeighborMasterNodesInitialAngledLine(node_i,neighbour_nodes,nodal_weights,max_number_of_neighbours);}
+        // linearized line equation
+        else if(mParameters["follow_line"].GetBool())
+            {this->CoupleSlaveToNeighborMasterNodesLineEquation(node_i,neighbour_nodes,nodal_weights,max_number_of_neighbours);}
+        //basic version
         else
             {this->CoupleSlaveToNeighborMasterNodes(node_i,neighbour_nodes,nodal_weights,max_number_of_neighbours);}
       }
@@ -456,6 +467,128 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
       this->SetmIsInitialized(true);
       KRATOS_CATCH("");
     }
+
+    void CoupleSlaveToNeighborMasterNodesLineEquation(const NodeType& rCurrentSlaveNode,
+        const NodeVector& rNeighborNodes, const DoubleVector& rNodalNeighborWeights,
+        const SizeType& rNumberOfNeighbors)
+    {
+        ModelPart &master_model_part    = mrModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
+        ModelPart &slave_model_part     = mrModelPart.GetSubModelPart(mParameters["slave_sub_model_part_name"].GetString());
+        NodesArrayType &r_nodes_master  = master_model_part.Nodes();
+        NodesArrayType &r_nodes_slave   = slave_model_part.Nodes();
+        const double numerical_limit = std::numeric_limits<double>::epsilon();
+
+
+        const auto node_i = rNeighborNodes[0];
+        const auto node_j = rNeighborNodes[1];
+
+        const VariableComponentType check_dof_z = KratosComponents<VariableComponentType>::Get("DISPLACEMENT_Z");
+        const VariableComponentType check_dof_y = KratosComponents<VariableComponentType>::Get("DISPLACEMENT_Y");
+        const VariableComponentType check_dof_x = KratosComponents<VariableComponentType>::Get("DISPLACEMENT_X");
+
+        const double ua = node_i->FastGetSolutionStepValue(DISPLACEMENT_X);
+        const double va = node_i->FastGetSolutionStepValue(DISPLACEMENT_Y);
+        const double wa = node_i->FastGetSolutionStepValue(DISPLACEMENT_Z);
+
+        const double ub = node_j->FastGetSolutionStepValue(DISPLACEMENT_X);
+        const double vb = node_j->FastGetSolutionStepValue(DISPLACEMENT_Y);
+        const double wb = node_j->FastGetSolutionStepValue(DISPLACEMENT_Z);
+
+        const double us = rCurrentSlaveNode.FastGetSolutionStepValue(DISPLACEMENT_X);
+        const double vs = rCurrentSlaveNode.FastGetSolutionStepValue(DISPLACEMENT_Y);
+        const double ws = rCurrentSlaveNode.FastGetSolutionStepValue(DISPLACEMENT_Z);
+
+        const double xa = node_i->X0();
+        const double ya = node_i->Y0();
+        const double za = node_i->Z0();
+
+        const double xb = node_j->X0();
+        const double yb = node_j->Y0();
+        const double zb = node_j->Z0();
+
+        const double xs = rCurrentSlaveNode.X0();
+        const double ys = rCurrentSlaveNode.Y0();
+        const double zs = rCurrentSlaveNode.Z0();
+
+        const double dx = xb+ub-xa-ua;
+        const double dy = yb+vb-ya-va;
+        const double dz = zb+wb-za-wa;
+
+        ////////////////////////////   !!!!   ////////////////////////////
+        //////////////////////////////////////////////////////////////////
+        //if explicit time int we might have to couple vel/acc here !
+        //////////////////////////////////////////////////////////////////
+        ////////////////////////////   !!!!   ////////////////////////////
+
+
+        // realize the coupling
+        if (std::abs(dx)>numerical_limit)
+        {
+            const double constant_x = (ya-ys) - (xa*dy/dx) + (xs*(yb-ya-va)/dx);
+
+            double weight_i = 1.0;
+            ModelPart::IndexType current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_1 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_master[node_i->Id()],
+                check_dof_y,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_y,
+                weight_i,
+                constant_x);
+            p_current_constraint_1->Set(TO_ERASE);
+
+            weight_i = -1.0*dy/dx;
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_2 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_master[node_i->Id()],
+                check_dof_x,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_y,
+                weight_i,
+                0.0);
+            p_current_constraint_2->Set(TO_ERASE);
+
+
+            weight_i = xs/dx;
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_3 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_master[node_j->Id()],
+                check_dof_y,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_y,
+                weight_i,
+                0.0);
+            p_current_constraint_3->Set(TO_ERASE);
+
+
+            weight_i = 1.0*dy/dx;
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_4 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_x,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_y,
+                weight_i,
+                0.0);
+            p_current_constraint_4->Set(TO_ERASE);
+
+        }
+        else if (std::abs(dy)>numerical_limit)
+        {
+            KRATOS_ERROR << "not yet implemented" << std::endl;
+        }
+        else if (std::abs(dz)>numerical_limit)
+        {
+            KRATOS_ERROR << "not yet implemented" << std::endl;
+        }
+        else KRATOS_ERROR << "sliding edge is a point for slave node " << rCurrentSlaveNode.Id() << std::endl;
+    }
+
+
 
   protected:
 

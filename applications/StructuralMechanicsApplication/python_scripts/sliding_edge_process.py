@@ -20,7 +20,8 @@ class SlidingEdgeProcess(KratosMultiphysics.Process):
             "variable_names"                : ["DISPLACEMENT_Y","DISPLACEMENT_Z"],
             "reform_every_step"             : true,
             "debug_info"                    : true,
-            "angled_initial_line"           : false
+            "angled_initial_line"           : false,
+            "follow_line"                   : false
         }
         """)
         default_settings.ValidateAndAssignDefaults(settings)
