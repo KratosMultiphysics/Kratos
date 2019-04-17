@@ -192,6 +192,17 @@ class PrimalBossakInput(VariableIO):
             model_part.Nodes, model_part.GetCommunicator())
 
 
+class MoveMesh(object):
+    '''Perform a mesh move operation on a model part.
+
+    The primary use case is to set the mesh to the current configuration after
+    reading the model part.
+    '''
+
+    def __call__(self, model_part, *args):
+        KratosMultiphysics.SolvingStrategy(model_part, True).MoveMesh()
+
+
 def Create(settings):
     '''Return the operation specified by the setting 'operation_type'.
 
@@ -223,6 +234,8 @@ def Create(settings):
         return PrimalBossakOutput(settings)
     elif operation_type == 'primal_bossak_input':
         return PrimalBossakInput(settings)
+    elif operation_type == 'move_mesh':
+        return MoveMesh()
     else:
         if settings.Has('module_name'):
             module_name = settings['module_name'].GetString()
