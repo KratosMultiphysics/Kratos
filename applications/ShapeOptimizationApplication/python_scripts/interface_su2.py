@@ -46,6 +46,7 @@ class InterfaceSU2():
                 "gradient_method"             : "DISCRETE_ADJOINT",
                 "write_frequency_adjoint_run" : 1000,
                 "use_restart_in_adjoint_run"  : "NO",
+                "residual_min_adjoint_run"    : -10,
                 "mesh_file"                   : "None",
                 "mesh_motion_file"            : "mesh_motion.dat",
                 "design_surface_tag"          : "None"
@@ -160,9 +161,11 @@ class InterfaceSU2():
     # --------------------------------------------------------------------------
     def ComputeGradient(self, response_id, update_mesh, design_number):
         direct_solution_frequency = self.project.config["WRT_SOL_FREQ"]
+        direct_residual_min = self.project.config["RESIDUAL_MINVAL"]
         direct_restart_option = self.project.config["RESTART_SOL"]
 
         self.project.config["WRT_SOL_FREQ"] = self.interface_parameters["su2_related"]["write_frequency_adjoint_run"].GetInt()
+        self.project.config["RESIDUAL_MINVAL"] = self.interface_parameters["su2_related"]["residual_min_adjoint_run"].GetInt()
         self.project.config["RESTART_SOL"] = self.interface_parameters["su2_related"]["use_restart_in_adjoint_run"].GetString()
 
         if self.interface_parameters["echo_level"].GetInt()==2:
@@ -174,6 +177,7 @@ class InterfaceSU2():
         kratos_gradient = self.__TranslateGradientToKratosFormat(su2_gradient)
 
         self.project.config["WRT_SOL_FREQ"] = direct_solution_frequency
+        self.project.config["RESIDUAL_MINVAL"] = direct_residual_min
         self.project.config["RESTART_SOL"] = direct_restart_option
 
         return kratos_gradient
@@ -230,143 +234,143 @@ class InterfaceSU2():
         # initialize variables
         self.su2_mesh_data["MARKS"]  = {}
 
-        # open meshfile
-        f_tb_read = open(self.interface_parameters["su2_related"]["mesh_file"].GetString(),'r')
+            # open meshfile
+            f_tb_read = open(self.interface_parameters["su2_related"]["mesh_file"].GetString(),'r')
 
-        # readline helper functin
-        def mesh_readlines(n_lines=1):
-            fileslice = islice(f_tb_read,n_lines)
-            return list(fileslice)
+            # readline helper functin
+            def mesh_readlines(n_lines=1):
+                fileslice = islice(f_tb_read,n_lines)
+                return list(fileslice)
 
-        # scan file until end of file
-        keepon = True
-        while keepon:
+            # scan file until end of file
+            keepon = True
+            while keepon:
 
-            # read line
-            line = mesh_readlines()
+                # read line
+                line = mesh_readlines()
 
-            # stop if line is empty
-            if not line:
-                keepon = False
-                break
+                # stop if line is empty
+                if not line:
+                    keepon = False
+                    break
 
-            # fix white space
-            line = line[0]
-            line = line.replace('\t',' ')
-            line = line.replace('\n',' ')
+                # fix white space
+                line = line[0]
+                line = line.replace('\t',' ')
+                line = line.replace('\n',' ')
 
-            # skip comments
-            if line[0] == "%":
-                pass
+                # skip comments
+                if line[0] == "%":
+                    pass
 
-            # number of dimensions
-            elif "NDIME=" in line:
-                # save to SU2_MESH data
-                self.su2_mesh_data["NDIME"] = int( line.split("=")[1].strip() )
+                # number of dimensions
+                elif "NDIME=" in line:
+                    # save to SU2_MESH data
+                    self.su2_mesh_data["NDIME"] = int( line.split("=")[1].strip() )
 
-            # elements
-            elif "NELEM=" in line:
+                # elements
+                elif "NELEM=" in line:
 
-                # number of elements
-                nelem = int( line.split("=")[1].strip() )
-                # save to SU2_MESH data
-                self.su2_mesh_data["NELEM"] = nelem
+                    # number of elements
+                    nelem = int( line.split("=")[1].strip() )
+                    # save to SU2_MESH data
+                    self.su2_mesh_data["NELEM"] = nelem
 
-                # only read nelem lines
-                fileslice = islice(f_tb_read,nelem)
+                    # only read nelem lines
+                    fileslice = islice(f_tb_read,nelem)
 
-                # the data pattern
-                pattern = tuple( [int] + [int]*9 )
+                    # the data pattern
+                    pattern = tuple( [int] + [int]*9 )
 
-                # scan next lines for element data
-                elem = [
-                    [ t(s) for t,s in zip(pattern,line.split()) ]
-                    for line in fileslice
-                ]
+                    # scan next lines for element data
+                    elem = [
+                        [ t(s) for t,s in zip(pattern,line.split()) ]
+                        for line in fileslice
+                    ]
 
-                # save to SU2_MESH data
-                self.su2_mesh_data["ELEM"] = elem
+                    # save to SU2_MESH data
+                    self.su2_mesh_data["ELEM"] = elem
 
-            # points
-            elif "NPOIN=" in line:
+                # points
+                elif "NPOIN=" in line:
 
-                # number of points
-                npoin = int( line.split("=")[1].strip().split(' ')[0] )
-                # save to SU2_MESH data
-                self.su2_mesh_data["NPOIN"] = npoin
+                    # number of points
+                    npoin = int( line.split("=")[1].strip().split(' ')[0] )
+                    # save to SU2_MESH data
+                    self.su2_mesh_data["NPOIN"] = npoin
 
-                # only read npoin lines
-                fileslice = islice(f_tb_read,npoin)
+                    # only read npoin lines
+                    fileslice = islice(f_tb_read,npoin)
 
-                # the data pattern
-                pattern = None
-                if self.su2_mesh_data["NDIME"] == 2:
-                    pattern = tuple( [float]*2 + [int] )
-                else:
-                    pattern = tuple( [float]*3 + [int] )
+                    # the data pattern
+                    pattern = None
+                    if self.su2_mesh_data["NDIME"] == 2:
+                        pattern = tuple( [float]*2 + [int] )
+                    else:
+                        pattern = tuple( [float]*3 + [int] )
 
-                # scan next lines for element data
-                poin = [
-                    [ t(s) for t,s in zip(pattern,line.split()) ]
-                    for line in fileslice
-                ]
+                    # scan next lines for element data
+                    poin = [
+                        [ t(s) for t,s in zip(pattern,line.split()) ]
+                        for line in fileslice
+                    ]
 
-                # save to SU2_MESH data
-                su2_point_ids = [row[-1] for row in poin]
-                su2_point_coordinates = [row[0:-1] for row in poin]
-                self.su2_mesh_data["POIN"] = dict(zip(su2_point_ids,su2_point_coordinates))
+                    # save to SU2_MESH data
+                    su2_point_ids = [row[-1] for row in poin]
+                    su2_point_coordinates = [row[0:-1] for row in poin]
+                    self.su2_mesh_data["POIN"] = dict(zip(su2_point_ids,su2_point_coordinates))
 
-            # number of markers
-            elif "NMARK=" in line:
-                nmark = int( line.split("=")[1].strip() )
-                # save to SU2_MESH data
-                self.su2_mesh_data["NMARK"] = nmark
+                # number of markers
+                elif "NMARK=" in line:
+                    nmark = int( line.split("=")[1].strip() )
+                    # save to SU2_MESH data
+                    self.su2_mesh_data["NMARK"] = nmark
 
-            # a marker
-            elif "MARKER_TAG=" in line:
-                # marker tag
-                thistag = line.split("=")[1].strip()
+                # a marker
+                elif "MARKER_TAG=" in line:
+                    # marker tag
+                    thistag = line.split("=")[1].strip()
 
-                # start SU2_MARK dictionary
-                thismark = {}
+                    # start SU2_MARK dictionary
+                    thismark = {}
 
-                # read number of marker elements
-                line = mesh_readlines()[0]
-                if not "MARKER_ELEMS=" in line:
-                    raise Exception("Marker Specification Error")
+                    # read number of marker elements
+                    line = mesh_readlines()[0]
+                    if not "MARKER_ELEMS=" in line:
+                        raise Exception("Marker Specification Error")
 
-                # convert string to int int
-                thisnelem = int( line.split("=")[1].strip() )
+                    # convert string to int int
+                    thisnelem = int( line.split("=")[1].strip() )
 
-                # save to SU2_MARK data
-                thismark["NELEM"] = thisnelem
+                    # save to SU2_MARK data
+                    thismark["NELEM"] = thisnelem
 
-                # only read thisnelem lines
-                fileslice = islice(f_tb_read,thisnelem)
+                    # only read thisnelem lines
+                    fileslice = islice(f_tb_read,thisnelem)
 
-                # the data pattern
-                pattern = tuple( [int] + [int]*9 )
+                    # the data pattern
+                    pattern = tuple( [int] + [int]*9 )
 
-                # scan next lines for element data
-                markelem = [
-                    [ t(s) for t,s in zip(pattern,line.split()) ]
-                    for line in fileslice
-                ]
+                    # scan next lines for element data
+                    markelem = [
+                        [ t(s) for t,s in zip(pattern,line.split()) ]
+                        for line in fileslice
+                    ]
 
-                # save to SU2_MARK data
-                thismark["ELEM"] = markelem
+                    # save to SU2_MARK data
+                    thismark["ELEM"] = markelem
 
-                # Assign to marker their corresponding SU2 node IDs
-                thismark["POIN_IDS"] = []
-                for elem in thismark["ELEM"]:
-                    # loop over all points
-                    for itr in range(1,len(elem)):
-                        su2_point_id = int("%i " % elem[itr])
-                        if su2_point_id not in thismark["POIN_IDS"]:
-                            thismark["POIN_IDS"].append(su2_point_id)
+                    # Assign to marker their corresponding SU2 node IDs
+                    thismark["POIN_IDS"] = []
+                    for elem in thismark["ELEM"]:
+                        # loop over all points
+                        for itr in range(1,len(elem)):
+                            su2_point_id = int("%i " % elem[itr])
+                            if su2_point_id not in thismark["POIN_IDS"]:
+                                thismark["POIN_IDS"].append(su2_point_id)
 
-                # add to marker list
-                self.su2_mesh_data["MARKS"][thistag] = thismark
+                    # add to marker list
+                    self.su2_mesh_data["MARKS"][thistag] = thismark
 
         # Close read file
         f_tb_read.close()
@@ -400,7 +404,7 @@ class InterfaceSU2():
 
     # --------------------------------------------------------------------------
     def __WriteHeader(self):
-        self.new_file.write("Begin Properties 1\n")
+        self.new_file.write("Begin Properties 0\n")
         self.new_file.write("End Properties\n\n")
 
     # --------------------------------------------------------------------------
@@ -467,7 +471,7 @@ class InterfaceSU2():
                 self.new_file.write("\t")
                 self.new_file.write(str(self.element_id_su2_to_kratos[entry[-1]]))
                 self.new_file.write("\t")
-                self.new_file.write("1")
+                self.new_file.write("0")
                 self.new_file.write("\t")
                 self.new_file.write(str(self.node_id_su2_to_kratos[entry[1]]))
                 self.new_file.write("\t")
@@ -485,7 +489,7 @@ class InterfaceSU2():
                 self.new_file.write("\t")
                 self.new_file.write(str(self.element_id_su2_to_kratos[entry[-1]]))
                 self.new_file.write("\t")
-                self.new_file.write("1")
+                self.new_file.write("0")
                 self.new_file.write("\t")
                 self.new_file.write(str(self.node_id_su2_to_kratos[entry[1]]))
                 self.new_file.write("\t")
@@ -512,7 +516,7 @@ class InterfaceSU2():
                 self.new_file.write("\t")
                 self.new_file.write(str(elemID_tet1))
                 self.new_file.write("\t")
-                self.new_file.write("1")
+                self.new_file.write("0")
                 self.new_file.write("\t")
                 self.new_file.write(str(self.node_id_su2_to_kratos[entry[2]]))
                 self.new_file.write("\t")
@@ -526,7 +530,7 @@ class InterfaceSU2():
                 self.new_file.write("\t")
                 self.new_file.write(str(elemID_tet2))
                 self.new_file.write("\t")
-                self.new_file.write("1")
+                self.new_file.write("0")
                 self.new_file.write("\t")
                 self.new_file.write(str(self.node_id_su2_to_kratos[entry[4]]))
                 self.new_file.write("\t")
@@ -547,7 +551,7 @@ class InterfaceSU2():
                 self.new_file.write("\t")
                 self.new_file.write(str(self.element_id_su2_to_kratos[entry[-1]]))
                 self.new_file.write("\t")
-                self.new_file.write("1")
+                self.new_file.write("0")
                 self.new_file.write("\t")
                 self.new_file.write(str(self.node_id_su2_to_kratos[entry[4]]))
                 self.new_file.write("\t")
@@ -566,12 +570,12 @@ class InterfaceSU2():
         # write hex elements
         if hex_entries:
             self.new_file.write("Begin Elements GenericElement3D8N\n")
-            for list_index in prism_entries:
+            for list_index in hex_entries:
                 entry = self.su2_mesh_data["ELEM"][list_index]
                 self.new_file.write("\t")
                 self.new_file.write(str(self.element_id_su2_to_kratos[entry[-1]]))
                 self.new_file.write("\t")
-                self.new_file.write("1")
+                self.new_file.write("0")
                 self.new_file.write("\t")
                 self.new_file.write(str(self.node_id_su2_to_kratos[entry[1]]))
                 self.new_file.write("\t")
@@ -621,7 +625,7 @@ class InterfaceSU2():
                 self.new_file.write("\t")
                 self.new_file.write(str(condition_id))
                 self.new_file.write("\t")
-                self.new_file.write("1")
+                self.new_file.write("0")
                 self.new_file.write("\t")
                 self.new_file.write(str(self.node_id_su2_to_kratos[entry[1]]))
                 self.new_file.write("\t")
@@ -641,7 +645,7 @@ class InterfaceSU2():
                 self.new_file.write("\t")
                 self.new_file.write(str(condition_id))
                 self.new_file.write("\t")
-                self.new_file.write("1")
+                self.new_file.write("0")
                 self.new_file.write("\t")
                 self.new_file.write(str(self.node_id_su2_to_kratos[entry[1]]))
                 self.new_file.write("\t")
@@ -663,7 +667,7 @@ class InterfaceSU2():
                 self.new_file.write("\t")
                 self.new_file.write(str(condition_id))
                 self.new_file.write("\t")
-                self.new_file.write("1")
+                self.new_file.write("0")
                 self.new_file.write("\t")
                 self.new_file.write(str(self.node_id_su2_to_kratos[entry[1]]))
                 self.new_file.write("\t")
