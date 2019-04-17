@@ -30,3 +30,7 @@ def InitializeModelPartName(settings, Model, model_part):
     if (not settings.Has("model_part_name")):
         settings.AddEmptyValue("model_part_name")
         settings["model_part_name"].SetString(model_part.Name)
+    else:
+        model_part_name = settings["model_part_name"].GetString()
+        if model_part_name != model_part.Name:
+            KratosMultiphysics.Logger.PrintWarning("RANSYPlusModelSettings", "Using a different model part (i.e. \"" + model_part_name + "\") over the intended model part \"" + model_part.Name + "\"")
