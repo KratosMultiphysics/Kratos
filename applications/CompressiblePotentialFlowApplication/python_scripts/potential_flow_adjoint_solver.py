@@ -64,8 +64,9 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
 
     def PrepareModelPart(self):
         super(PotentialFlowAdjointSolver, self).PrepareModelPart()
-       # defines how the primal elements should be replaced with their adjoint counterparts
-        replacement_settings = KratosMultiphysics.Parameters("""
+        # defines how the primal elements should be replaced with their adjoint counterparts
+        if self.response_function_settings["gradient_mode"].GetString()=="semi_analytic":
+            replacement_settings = KratosMultiphysics.Parameters("""
             {
                 "element_name_table" :
                 {
@@ -76,7 +77,20 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
                     "PotentialWallCondition2D2N"             : "AdjointPotentialWallCondition2D2N"
                 }
             }
-        """)
+            """)
+        elif self.response_function_settings["gradient_mode"].GetString()=="analytic":
+            replacement_settings = KratosMultiphysics.Parameters("""
+            {
+                "element_name_table" :
+                {
+                    "IncompressiblePotentialFlowElement2D3N" : "AdjointAnalyticalIncompressiblePotentialFlowElement2D3N"
+                },
+                "condition_name_table" :
+                {
+                    "PotentialWallCondition2D2N"             : "AdjointPotentialWallCondition2D2N"
+                }
+            }
+            """)
 
         ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
 

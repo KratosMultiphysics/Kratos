@@ -40,9 +40,15 @@ namespace Kratos
             double delta = ResponseSettings["step_size"].GetDouble();
             mDelta = delta;
         }
+        else if (gradient_mode == "analytic")
+        {
+            mGradientMode = 2;
+        }
         else
-            KRATOS_ERROR << "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: " <<  gradient_mode << std::endl;
-
+            KRATOS_ERROR << "Specified gradient_mode not recognized. The only "
+                            "options are: semi_analytic and analytic. "
+                            "Specified gradient_mode: "
+                         << gradient_mode << std::endl;
 
         KRATOS_CATCH("");
     }

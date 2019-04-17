@@ -29,6 +29,7 @@ KratosCompressiblePotentialFlowApplication::KratosCompressiblePotentialFlowAppli
     KratosApplication("CompressiblePotentialFlowApplication"),
     mIncompressiblePotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mAdjointPotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mAdjointAnalyticalIncompressiblePotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mPotentialWallCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
     mPotentialWallCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mAdjointPotentialWallCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2))))
@@ -77,6 +78,7 @@ void KratosCompressiblePotentialFlowApplication::Register()
     //Register elements
     KRATOS_REGISTER_ELEMENT("IncompressiblePotentialFlowElement2D3N", mIncompressiblePotentialFlowElement2D3N);
     KRATOS_REGISTER_ELEMENT("AdjointPotentialFlowElement2D3N", mAdjointPotentialFlowElement2D3N);
+    KRATOS_REGISTER_ELEMENT("AdjointAnalyticalIncompressiblePotentialFlowElement2D3N", mAdjointAnalyticalIncompressiblePotentialFlowElement2D3N);
 
     //Register conditions
     KRATOS_REGISTER_CONDITION("PotentialWallCondition2D2N", mPotentialWallCondition2D2N);
