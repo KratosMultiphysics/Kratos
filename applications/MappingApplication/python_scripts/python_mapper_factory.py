@@ -1,7 +1,5 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-import KratosMultiphysics
-
 # Python factory for all the currently available Mappers in Kratos
 # The intention is to give the users a unique place to create Mappers
 # The goal is to implement the Mappers from the other Apps also in the
@@ -9,6 +7,7 @@ import KratosMultiphysics
 # the long run.
 # This way users won't notice / won't have to change their code
 
+import KratosMultiphysics
 from KratosMultiphysics.MappingApplication import MapperFactory
 
 def _CreateCoreMortarMapper(model_part_origin, model_part_destination, mapper_settings):
