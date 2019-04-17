@@ -23,8 +23,8 @@ namespace Kratos
 namespace Testing
 {
 
-using NodeType = typename GeometricalProjectionUtilities::NodeType;
-using GeometryType = typename GeometricalProjectionUtilities::GeometryType;
+using NodeType = Node<3>;
+using GeometryType = Geometry<NodeType>;
 
 GeometryType::Pointer CreateTriangle2D3NForTest()
 {
