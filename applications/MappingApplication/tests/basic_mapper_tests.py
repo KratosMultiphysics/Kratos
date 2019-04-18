@@ -9,6 +9,9 @@ from KratosMultiphysics import json_output_process
 from math import sin, cos
 import os
 
+def GetFilePath(file_name):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), file_name)
+
 class BasicMapperTests(mapper_test_case.MapperTestCase):
     '''This class contains basic tests that every mapper should pass
     This included e.g. testing if mapping a constant field works
@@ -73,22 +76,22 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_Map_non_constant_scalar(self):
         SetHistoricalNonUniformSolutionScalar(self.interface_model_part_origin.Nodes, KM.PRESSURE)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE)
-        CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.TEMPERATURE, self.__GetFileName("map_scalar"))
+        CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.TEMPERATURE, GetFilePath(self.__GetFileName("map_scalar")))
 
     def test_InverseMap_non_constant_scalar(self):
         SetHistoricalNonUniformSolutionScalar(self.interface_model_part_destination.Nodes, KM.TEMPERATURE)
         self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE)
-        CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.PRESSURE, self.__GetFileName("inverse_map_scalar"))
+        CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.PRESSURE, GetFilePath(self.__GetFileName("inverse_map_scalar")))
 
     def test_Map_non_constant_vector(self):
         SetHistoricalNonUniformSolutionVector(self.interface_model_part_origin.Nodes, KM.FORCE)
         self.mapper.Map(KM.FORCE, KM.VELOCITY)
-        CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.VELOCITY, self.__GetFileName("map_vector"))
+        CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.VELOCITY, GetFilePath(self.__GetFileName("map_vector")))
 
     def test_InverseMap_non_constant_vector(self):
         SetHistoricalNonUniformSolutionVector(self.interface_model_part_destination.Nodes, KM.VELOCITY)
         self.mapper.InverseMap(KM.FORCE, KM.VELOCITY)
-        CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.FORCE, self.__GetFileName("inverse_map_vector"))
+        CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.FORCE, GetFilePath(self.__GetFileName("inverse_map_vector")))
 
     def test_SWAP_SIGN_Map_scalar(self):
         val = 1.234
@@ -256,10 +259,18 @@ def SetHistoricalNonUniformSolutionVector(nodes, variable):
         node.SetSolutionStepValue(variable, KM.Vector([val_1, val_2, val_3]))
 
 def OutputReferenceSolution(model_part, variable, file_name):
+    full_model_part_name = model_part.Name
+    if model_part.IsSubModelPart():
+        full_model_part_name = model_part.GetParentModelPart().Name  + "." + full_model_part_name
+
+    if data_comm.IsDistributed():
+        raise Exception("Writing of reference results in not possible in MPI!")
+    KM.Logger.PrintWarning('BasicMapperTests', 'Writing reference solution for ModelPart "{}"; Variable "{}"; FileName "{}"'.format(full_model_part_name, variable.Name(), file_name))
+
     output_parameters = KM.Parameters("""{
         "output_variables"     : [\"""" + variable.Name() + """\"],
         "output_file_name"     : \"""" + file_name + """\",
-        "model_part_name"      : \"""" + model_part.Name + """\",
+        "model_part_name"      : \"""" + full_model_part_name + """\",
         "time_frequency"       : 0.00,
         "use_node_coordinates" : true
     }""")
@@ -271,15 +282,16 @@ def OutputReferenceSolution(model_part, variable, file_name):
 
 def CheckHistoricalNonUniformValues(model_part, variable, file_name, output_reference_solution=False):
     if output_reference_solution:
-        if data_comm.IsDistributed():
-            raise Exception("Writing of reference results in not possible in MPI!")
-        KM.Logger.PrintWarning('MapperTest', 'Writing reference solution for ModelPart "{}"; Variable "{}"; FileName "{}"'.format(model_part.Name, variable.Name(), file_name))
         OutputReferenceSolution(model_part, variable, file_name)
     else:
+        full_model_part_name = model_part.Name
+        if model_part.IsSubModelPart():
+            full_model_part_name = model_part.GetParentModelPart().Name  + "." + full_model_part_name
+
         check_parameters = KM.Parameters("""{
             "check_variables"           : [\"""" + variable.Name() + """\"],
             "input_file_name"           : \"""" + file_name + """\",
-            "model_part_name"           : \"""" + model_part.Name + """\",
+            "model_part_name"           : \"""" + full_model_part_name + """\",
             "tolerance"                 : 1e-6,
             "relative_tolerance"        : 1e-9,
             "time_frequency"            : 0.00,
