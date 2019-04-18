@@ -1,6 +1,5 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
-import math
 
 def _DotProduct(A,B):
     return sum(i[0]*i[1] for i in zip(A, B))
