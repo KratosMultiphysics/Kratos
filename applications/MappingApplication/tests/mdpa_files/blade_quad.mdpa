@@ -564,7 +564,7 @@ Begin Nodes
 542 0.137024733217 0.013356652687 4.208783891801
 End Nodes
 
-Begin Elements Element2D4N
+Begin Elements Element3D4N
 1 0 1 11 151 66
 2 0 66 151 152 65
 3 0 65 152 153 64
@@ -1015,7 +1015,7 @@ Begin Elements Element2D4N
 448 0 540 92 93 541
 449 0 541 93 94 542
 450 0 542 94 7 95
-End Elements // Element2D4N
+End Elements // Element3D4N
 
 Begin SubModelPart domain
 Begin SubModelPartNodes
