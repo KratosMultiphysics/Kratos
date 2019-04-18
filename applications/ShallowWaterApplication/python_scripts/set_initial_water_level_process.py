@@ -29,8 +29,8 @@ class SetInitialWaterLevelProcess(KratosMultiphysics.Process):
         self.variable = settings["variable_name"].GetString()
         self.model_part = Model[settings["model_part_name"].GetString()]
 
-        import assign_scalar_variable_process
-        self.process = assign_scalar_variable_process.AssignScalarVariableProcess(Model, settings)
+        from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
+        self.process = AssignScalarVariableProcess(Model, settings)
         self.variables_utility = KratosShallow.ShallowWaterVariablesUtility(self.model_part)
 
     def ExecuteInitialize(self):
