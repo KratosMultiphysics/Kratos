@@ -43,36 +43,36 @@ class BladeMappingTests(mapper_test_case.MapperTestCase):
     def test_map_displacements(self):
         SetDisplacements(self.model_part_structure)
         if self.print_output:
-            mapper_test_case.VtkOutputNodesHistorical(self.model_part_structure, KM.DISPLACEMENT, "Blade_Structure_prescr_disp")
+            mapper_test_case.VtkOutputNodesHistorical(self.model_part_structure, KM.DISPLACEMENT, "Blade_" + self.mapper_type + "_Structure_prescr_disp")
 
         self.mapper.Map(KM.DISPLACEMENT, KM.MESH_DISPLACEMENT)
 
         if self.print_output:
-            mapper_test_case.VtkOutputNodesHistorical(self.model_part_fluid, KM.MESH_DISPLACEMENT, "Blade_Fluid_mapped_disp")
+            mapper_test_case.VtkOutputNodesHistorical(self.model_part_fluid, KM.MESH_DISPLACEMENT, "Blade_" + self.mapper_type + "_Fluid_mapped_disp")
 
         mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_fluid, KM.MESH_DISPLACEMENT, GetFilePath(self.__GetFileName("balde_map_disp")))
 
     def test_map_forces(self):
         SetReactions(self.model_part_fluid)
         if self.print_output:
-            mapper_test_case.VtkOutputNodesHistorical(self.model_part_fluid, KM.REACTION, "Blade_Fluid_prescr_force")
+            mapper_test_case.VtkOutputNodesHistorical(self.model_part_fluid, KM.REACTION, "Blade_" + self.mapper_type + "_Fluid_prescr_force")
 
         self.mapper.InverseMap(KM.FORCE, KM.REACTION, KratosMapping.Mapper.SWAP_SIGN) # this would be POINT_LOAD in regular StructuralMechanics (using FORCE to avoid the StructuralMechanics import)
 
         if self.print_output:
-            mapper_test_case.VtkOutputNodesHistorical(self.model_part_structure, KM.FORCE, "Blade_Structure_mapped_force")
+            mapper_test_case.VtkOutputNodesHistorical(self.model_part_structure, KM.FORCE, "Blade_" + self.mapper_type + "_Structure_mapped_force")
 
         mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_structure, KM.FORCE, GetFilePath(self.__GetFileName("balde_map_force")))
 
     def test_map_forces_conservative(self):
         SetReactions(self.model_part_fluid)
         if self.print_output:
-            mapper_test_case.VtkOutputNodesHistorical(self.model_part_fluid, KM.REACTION, "Blade_Fluid_prescr_force")
+            mapper_test_case.VtkOutputNodesHistorical(self.model_part_fluid, KM.REACTION, "Blade_" + self.mapper_type + "_Fluid_prescr_force")
 
         self.mapper.InverseMap(KM.FORCE, KM.REACTION, KratosMapping.Mapper.SWAP_SIGN | KratosMapping.Mapper.USE_TRANSPOSE) # this would be POINT_LOAD in regular StructuralMechanics (using FORCE to avoid the StructuralMechanics import)
 
         if self.print_output:
-            mapper_test_case.VtkOutputNodesHistorical(self.model_part_structure, KM.FORCE, "Blade_Structure_mapped_force_conserv")
+            mapper_test_case.VtkOutputNodesHistorical(self.model_part_structure, KM.FORCE, "Blade_" + self.mapper_type + "_Structure_mapped_force_conserv")
 
         mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_structure, KM.FORCE, GetFilePath(self.__GetFileName("balde_map_force_conserv")))
         self.__CheckValuesSum(self.model_part_fluid, self.model_part_structure, KM.REACTION, KM.FORCE)
