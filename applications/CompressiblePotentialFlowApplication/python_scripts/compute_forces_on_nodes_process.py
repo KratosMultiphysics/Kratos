@@ -17,10 +17,10 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
             "create_output_file": false
         }''')
 
-        settings.ValidateAndAssignDefaults(default_parameters)
+        # settings.ValidateAndAssignDefaults(default_parameters)
 
         self.body_model_part = Model[settings["model_part_name"].GetString()]
-        self.create_output_file = settings["create_output_file"].GetBool()
+        # self.create_output_file = settings["create_output_file"].GetBool()
 
     # def __init__(self, body_model_part):
     #     KratosMultiphysics.Process.__init__(self)
@@ -54,7 +54,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Cd = ', total_force[0])
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','RZ = ', total_force[2])
 
-        if self.create_output_file:
-            with open("cl_points_with_lift.dat", 'w') as cl_file:
-                cl_file.write('{0:15.12f}'.format(total_force[1]))
+        # if self.create_output_file:
+        #     with open("cl_points_with_lift.dat", 'w') as cl_file:
+        #         cl_file.write('{0:15.12f}'.format(total_force[1]))
 

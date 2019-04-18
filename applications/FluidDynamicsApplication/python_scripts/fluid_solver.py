@@ -98,8 +98,12 @@ class FluidSolver(PythonSolver):
             self.solver.Predict()
 
     def SolveSolutionStep(self):
+        print('aaaaaaaaaaaaaaaaaaaaaaaa')
         if self._TimeBufferIsInitialized():
+            print(self._TimeBufferIsInitialized, "\n")
+            print(self.solver)
             is_converged = self.solver.SolveSolutionStep()
+            print('c')
             if not is_converged:
                 msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
                 msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"

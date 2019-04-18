@@ -26,7 +26,9 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
 
         # Extract and check data from custom settings
+        # self.wake_direction = settings["wake_direction"].GetVector()
         self.wake_direction = settings["wake_direction"].GetVector()
+
         if(self.wake_direction.Size() != 3):
             raise Exception('The wake direction should be a vector with 3 components!')
 
@@ -35,6 +37,8 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             err_msg = "Empty model_part_name in DefineWakeProcess2D\n"
             err_msg += "Please specify the model part that contains the body surface nodes"
             raise Exception(err_msg)
+
+        KratosMultiphysics.Logger.PrintInfo("BodyModelPART:", settings)
         self.body_model_part = Model[body_model_part_name]
 
         self.epsilon = settings["epsilon"].GetDouble()
@@ -51,7 +55,14 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.wake_normal[2] = 0.0
 
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
-        self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
+        print("\nffffffffff", self.fluid_model_part, "ffffffffffff\n")
+        if not self.fluid_model_part.HasSubModelPart("trailing_edge_model_part"):
+            self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
+            # return self.trailing_edge_model_part
+        else: self.trailing_edge_model_part = self.fluid_model_part.GetSubModelPart("trailing_edge_model_part")
+        # else: self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
+        # else:
+        #     return self.trailing_edge_model_part
 
         # Call the nodal normal calculation util
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
@@ -79,6 +90,8 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.MarkKuttaElements()
         # Mark the trailing edge element that is further downstream as wake
         self.MarkWakeTEElement()
+        # Having a trial
+        self.CleanMarking()
 
     def SaveTrailingEdgeNode(self):
         # This function finds and saves the trailing edge for further computations
@@ -123,6 +136,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         # This function marks the elements touching the trailing
         # edge and saves them in the trailing_edge_model_part for
         # further computations
+        self.trailing_edge_model_part
         for elnode in elem.GetNodes():
             if(elnode.GetValue(CPFApp.TRAILING_EDGE)):
                 elem.SetValue(CPFApp.TRAILING_EDGE, True)
