@@ -178,7 +178,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeAnd, KratosMPICoreFastSuite)
     KRATOS_CHECK_EQUAL(r_center.Is(PERIODIC), rank_is_even); // This one should be left untouched
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorHistoricalAssembly, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataAssembly, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -259,6 +259,49 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorHistoricalAssembly, KratosMPICoreFastSu
     KRATOS_CHECK_EQUAL(r_assembled_ghost_vector.size(), 2);
     //KRATOS_CHECK_EQUAL(r_assembled_ghost_vector[0], 0.0);
     //KRATOS_CHECK_EQUAL(r_assembled_ghost_vector[1], 1.0*expected_int);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchronize, KratosMPICoreFastSuite)
+{
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+    r_model_part.AddNodalSolutionStepVariable(DOMAIN_SIZE);           // Variable<int>
+    r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);           // Variable<double>
+    r_model_part.AddNodalSolutionStepVariable(VELOCITY);              // Variable< array_1d<double,3> >
+
+    MPIDataCommunicator comm_world(MPI_COMM_WORLD);
+    Internals::ModelPartForMPICommunicatorTests(r_model_part, comm_world);
+
+    Communicator& r_comm = r_model_part.GetCommunicator();
+    ModelPart::NodesContainerType& r_local_nodes = r_comm.LocalMesh().Nodes();
+    for (auto i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
+    {
+        i_node->FastGetSolutionStepValue(DOMAIN_SIZE, 0) = 1;
+        i_node->FastGetSolutionStepValue(TEMPERATURE, 0) = 2.0;
+        i_node->FastGetSolutionStepValue(VELOCITY_X, 0) = 1.0;
+        i_node->FastGetSolutionStepValue(VELOCITY_Y, 0) = 2.0;
+    }
+
+    r_comm.SynchronizeVariable(DOMAIN_SIZE);
+    for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
+    {
+        KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(DOMAIN_SIZE,0), 1);
+    }
+
+    r_comm.SynchronizeVariable(TEMPERATURE);
+    for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
+    {
+        KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(TEMPERATURE,0), 2.0);
+    }
+
+    r_comm.SynchronizeVariable(VELOCITY);
+    for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
+    {
+        KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(VELOCITY_X,0), 1.0);
+        KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(VELOCITY_Y,0), 2.0);
+        KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(VELOCITY_Z,0), 0.0);
+    }
 }
 
 }
