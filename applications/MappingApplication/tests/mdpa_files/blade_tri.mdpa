@@ -926,7 +926,7 @@ Begin Nodes
 904 0.239887532487 -0.01656079575 1.986720521768
 End Nodes
 
-Begin Elements Element2D3N
+Begin Elements Element3D3N
 1 0 41 184 3
 2 0 185 223 40
 3 0 91 185 184
