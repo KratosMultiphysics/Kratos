@@ -210,50 +210,6 @@ void SetValue(IteratorType& iter, const TValue& rValue)
 }
 
 };
-
-/*
-template<typename TValue, class TDatabaseAccess, class TReductionOperation>
-struct BufferManager: public TDatabaseAccess<TValue>, TReductionOperation
-{
-
-typedef Communicator::MeshType MeshType;
-
-BufferManager(const Variable<TValue>& rVariable):
-    TDatabaseAccess(rVariable)
-{}
-
-void AllocateBuffer(std::vector<TValue>& rBuffer, const MeshType& rSourceMesh)
-{
-    auto& r_container = GetContainer(rSourceMesh, Color);
-    std::size_t num_objects = r_container.size();
-    std::size_t buffer_size = num_objects * DataSize<TValue>::Value;
-
-    if (rBuffer.size() != buffer_size)
-    {
-        rBuffer.resize(buffer_size);
-    }
-}
-
-void FillBuffer(std::vector<TValue>& rBuffer)
-{
-    MeshType& r_mesh = GetMesh<TSourceMesh>(mrCommunicator);
-    auto& r_container = GetContainer(r_mesh, Color);
-    TValue* p_buffer = rBuffer.data();
-    std::size_t position = 0;
-    for (auto it_node = r_nodes.begin(); it_node != r_nodes.end(); ++it_node)
-    {
-        *(TValue*)(p_buffer + position) = GetValue(it_node);
-        position += DataSize<TValue>::Value;
-    }
-}
-
-void UpdateValues()
-{
-
-}
-
-};
-*/
 }
 
 /// Short class definition.
@@ -739,7 +695,8 @@ public:
 
     bool AssembleCurrentData(Variable<double> const& ThisVariable) override
     {
-        AssembleThisVariable<double,double>(ThisVariable);
+        MPIInternals::NodalSolutionStepValueAccess<double> solution_step_access(ThisVariable);
+        AssembleFixedSizeValues(solution_step_access);
         return true;
     }
 
@@ -2274,12 +2231,27 @@ private:
 
     void TestSynchronize(const Variable<double>& rVariable)
     {
-        MeshAccess<MPIInternals::Local> local_meshes;
-        MeshAccess<MPIInternals::Ghost> ghost_meshes;
+        constexpr MeshAccess<MPIInternals::Local> local_meshes;
+        constexpr MeshAccess<MPIInternals::Ghost> ghost_meshes;
         MPIInternals::NodalSolutionStepValueAccess<double> solution_step_variable(rVariable);
-        OperationType<MPIInternals::Replace> replace;
+        constexpr OperationType<MPIInternals::Replace> replace;
 
         TransferDistributedValues(local_meshes, ghost_meshes, solution_step_variable, replace);
+    }
+
+    template<typename TValue, template<typename> class TDatabaseAccess>
+    void AssembleFixedSizeValues(TDatabaseAccess<TValue>& rVariableAccess)
+    {
+        constexpr MeshAccess<MPIInternals::Local> local_meshes;
+        constexpr MeshAccess<MPIInternals::Ghost> ghost_meshes;
+        constexpr OperationType<MPIInternals::Replace> replace;
+        constexpr OperationType<MPIInternals::SumValues> sum;
+
+        // Assemble results on owner rank
+        TransferDistributedValues(ghost_meshes, local_meshes, rVariableAccess, sum);
+
+        // Synchronize result on ghost copies
+        TransferDistributedValues(local_meshes, ghost_meshes, rVariableAccess, replace);
     }
 
     using LocalAccess = MeshAccess<MPIInternals::Local>;
