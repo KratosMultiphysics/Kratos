@@ -167,8 +167,8 @@ public:
             rPointToProject,
             projected_point,
             normal,
-            normal),
-            EchoLevel);
+            normal,
+            EchoLevel));
 
         return rGeom.IsInside(projected_point, rLocalCoords, 1E-14);
     }
