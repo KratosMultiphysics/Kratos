@@ -2358,8 +2358,10 @@ private:
         }
     }
     
-    template< typename TValue, class TAccess >
-    void AllocateBuffer(std::vector<TValue>& rBuffer, const MeshType& rSourceMesh, TAccess Access)
+    template<
+        typename TValue, template<typename> class TAccess,
+        typename TSendType = typename MPIInternals::SendTraits<TValue>::SendType>
+    void AllocateBuffer(std::vector<TSendType>& rBuffer, const MeshType& rSourceMesh, TAccess<TValue> Access)
     {
         const auto& r_container = Access.GetContainer(rSourceMesh);
         std::size_t num_objects = r_container.size();
@@ -2371,26 +2373,29 @@ private:
         }
     }
 
-    template< typename TValue, class TAccess >
-    void FillBuffer(std::vector<TValue>& rBuffer, MeshType& rSourceMesh, TAccess Access)
+    template<
+        typename TValue, template<typename> class TAccess,
+        typename TSendType = typename MPIInternals::SendTraits<TValue>::SendType>
+    void FillBuffer(std::vector<TSendType>& rBuffer, MeshType& rSourceMesh, TAccess<TValue> Access)
     {
         /*const*/ auto& r_container = Access.GetContainer(rSourceMesh);
-        TValue* p_buffer = rBuffer.data();
+        TSendType* p_buffer = rBuffer.data();
         std::size_t position = 0;
         for (auto iter = r_container.begin(); iter != r_container.end(); ++iter)
         {
             TValue& r_value = Access.GetValue(iter);
-            *(p_buffer + position) = r_value;
+            *(p_buffer + position) = *reinterpret_cast<TSendType*>(&r_value);
             position += MPIInternals::DataSize<TValue>::Value;
         }
     }
 
-    template<typename TValue, class TDatabaseAccess, typename TReductionOperation>
+    template<
+        typename TValue, template<typename> class TDatabaseAccess, typename TReductionOperation,
+        typename TSendType = typename MPIInternals::SendTraits<TValue>::SendType>
     void UpdateValues(
-        //const std::vector<typename MPIInternals::SendTraits<TValue>::SendType>& rBuffer,
-        const std::vector<TValue>& rBuffer,
+        const std::vector<TSendType>& rBuffer,
         MeshType& rSourceMesh,
-        TDatabaseAccess Access,
+        TDatabaseAccess<TValue> Access,
         TReductionOperation Operation)
     {
         auto& r_container = Access.GetContainer(rSourceMesh);
