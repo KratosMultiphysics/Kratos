@@ -151,7 +151,8 @@ public:
     static inline bool ProjectOnGeometry(TGeometryType& rGeom,
                            const Point& rPointToProject,
                            array_1d<double,3>& rLocalCoords,
-                           double& rDistance)
+                           double& rDistance,
+                           const SizeType EchoLevel = 0)
     {
         Point projected_point;
 
@@ -166,7 +167,8 @@ public:
             rPointToProject,
             projected_point,
             normal,
-            normal));
+            normal,
+            EchoLevel));
 
         return rGeom.IsInside(projected_point, rLocalCoords, 1E-14);
     }
