@@ -27,7 +27,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
         self.Execute()
 
     def Execute(self):
-        KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess', 'COMPUTE REACTIONS ON NODES')
+        KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess', 'Computing reactions on nodes')
 
         KratosMultiphysics.VariableUtils().SetToZero_VectorVar(KratosMultiphysics.REACTION, self.body_model_part.Nodes)
 
