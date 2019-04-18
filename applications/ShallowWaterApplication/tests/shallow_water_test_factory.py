@@ -3,7 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.ShallowWaterApplication
-import KratosMultiphysics.ExternalSolversApplication
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
