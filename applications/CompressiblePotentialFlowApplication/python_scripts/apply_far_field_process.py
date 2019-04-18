@@ -54,8 +54,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         return reference_inlet_node
 
     def _AssignFarFieldBoundaryConditions(self, reference_inlet_node):
-        # A Dirichlet condition is applyed at the inlet nodes and
-        # a Neumann condition is applyed at the outlet nodes
+        # A Dirichlet condition is applied at the inlet nodes and
+        # a Neumann condition is applied at the outlet nodes
 
         for cond in self.far_field_model_part.Conditions:
             normal = cond.GetValue(KratosMultiphysics.NORMAL)
