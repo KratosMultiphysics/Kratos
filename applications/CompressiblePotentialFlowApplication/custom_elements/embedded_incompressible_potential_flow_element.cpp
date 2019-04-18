@@ -105,12 +105,6 @@ template <>
 ModifiedShapeFunctions::Pointer EmbeddedIncompressiblePotentialFlowElement<2,3>::pGetModifiedShapeFunctions(Vector& rDistances) {                   
     return Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(this->pGetGeometry(), rDistances);
 }
-ModifiedShapeFunctions::Pointer EmbeddedIncompressiblePotentialFlowElement<Dim, 
-                                NumNodes>::pGetModifiedShapeFunctions(Vector& rDistances){
-        KRATOS_ERROR_IF(Dim != 2) << "Only 2D cases are supported. Current dimension:" 
-                            << Dim << std::endl;
-        return ModifiedShapeFunctions::Pointer(new Triangle2D3ModifiedShapeFunctions(this->pGetGeometry(),rDistances));
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
