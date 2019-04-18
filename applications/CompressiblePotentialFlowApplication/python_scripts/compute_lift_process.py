@@ -12,7 +12,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "please specify the model part that contains the surface nodes",
-            "velocity_infinity": [1.0,0.0,0.0],
+            "free_stream_velocity": [1.0,0.0,0.0],
             "reference_area": 1.0,
             "create_output_file": false
         }''')
@@ -20,10 +20,10 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_parameters)
 
         self.body_model_part = Model[settings["model_part_name"].GetString()]
-        self.velocity_infinity = [0,0,0]
-        self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
-        self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
-        self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
+        self.free_stream_velocity = [0,0,0]
+        self.free_stream_velocity[0] = settings["free_stream_velocity"][0].GetDouble()
+        self.free_stream_velocity[1] = settings["free_stream_velocity"][1].GetDouble()
+        self.free_stream_velocity[2] = settings["free_stream_velocity"][2].GetDouble()
         self.reference_area =  settings["reference_area"].GetDouble()
         self.create_output_file = settings["create_output_file"].GetBool()
 
@@ -52,7 +52,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Cl = ', Cl)
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Cd = ', Cd)
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','RZ = ', RZ)
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Mach = ', self.velocity_infinity[0]/340)
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Mach = ', self.free_stream_velocity[0]/340)
 
         if self.create_output_file:
             with open("cl.dat", 'w') as cl_file:

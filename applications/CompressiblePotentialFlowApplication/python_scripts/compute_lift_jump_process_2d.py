@@ -16,7 +16,7 @@ class ComputeLiftJumpProcess2D(KratosMultiphysics.Process):
         # Check default settings
         default_settings = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "",
-            "velocity_infinity": [1.0,0.0,0],
+            "free_stream_velocity": [1.0,0.0,0],
             "create_output_file": false
         }''')
         settings.ValidateAndAssignDefaults(default_settings)
@@ -28,10 +28,10 @@ class ComputeLiftJumpProcess2D(KratosMultiphysics.Process):
             raise Exception(err_msg)
         self.body_model_part = Model[body_model_part_name]
 
-        self.velocity_infinity = [0,0,0]
-        self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
-        self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
-        self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
+        self.free_stream_velocity = [0,0,0]
+        self.free_stream_velocity[0] = settings["free_stream_velocity"][0].GetDouble()
+        self.free_stream_velocity[1] = settings["free_stream_velocity"][1].GetDouble()
+        self.free_stream_velocity[2] = settings["free_stream_velocity"][2].GetDouble()
         self.create_output_file = settings["create_output_file"].GetBool()
 
     def ExecuteFinalizeSolutionStep(self):
@@ -47,7 +47,7 @@ class ComputeLiftJumpProcess2D(KratosMultiphysics.Process):
             potential_jump_phi_minus_psi_te = node_velocity_potential_te - node_auxiliary_velocity_potential_te
         else:
             potential_jump_phi_minus_psi_te = node_auxiliary_velocity_potential_te - node_velocity_potential_te
-        Cl_te = 2*potential_jump_phi_minus_psi_te/self.velocity_infinity[0]
+        Cl_te = 2*potential_jump_phi_minus_psi_te/self.free_stream_velocity[0]
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftJumpProcess2D','Potential Jump: Phi - Psi (at trailing edge node) = ', potential_jump_phi_minus_psi_te, '=> CL = ',Cl_te)
 
         if self.create_output_file:

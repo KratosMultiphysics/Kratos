@@ -21,7 +21,7 @@ class ComputeMomentProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters("""{
                 "model_part_name": "please specify the model part that contains the surface nodes",
                 "reference_point" : [0.0,0.0,0.0],
-                "velocity_infinity": [1.0,0.0,0.0],
+                "free_stream_velocity": [1.0,0.0,0.0],
                 "reference_area": 1,
                 "create_output_file": false
             }  """)
@@ -29,8 +29,8 @@ class ComputeMomentProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_parameters)
 
         self.body_model_part = Model[settings["model_part_name"].GetString()]
-        self.velocity_infinity = KratosMultiphysics.Vector(3)
-        self.velocity_infinity = settings["velocity_infinity"].GetVector()
+        self.free_stream_velocity = KratosMultiphysics.Vector(3)
+        self.free_stream_velocity = settings["free_stream_velocity"].GetVector()
         self.reference_area = settings["reference_area"].GetDouble()
         self.create_output_file = settings["create_output_file"].GetBool()
         self.reference_point = KratosMultiphysics.Vector(3)
@@ -52,7 +52,7 @@ class ComputeMomentProcess(KratosMultiphysics.Process):
 
         Logger.PrintInfo('moment', m[2])
         Logger.PrintInfo('Cm', Cm)
-        Logger.PrintInfo('Mach', self.velocity_infinity[0]/340)
+        Logger.PrintInfo('Mach', self.free_stream_velocity[0]/340)
 
         if self.create_output_file:
             with open("moment.dat", 'w') as mom_file:

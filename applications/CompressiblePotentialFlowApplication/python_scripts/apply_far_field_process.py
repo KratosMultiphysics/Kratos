@@ -21,27 +21,25 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "inlet_phi": 1.0,
-                "velocity_infinity": [1.0,0.0,0]
+                "free_stream_velocity": [1.0,0.0,0]
             }  """ )
 
 
         settings.ValidateAndAssignDefaults(default_parameters);
 
         self.far_field_model_part = Model[settings["model_part_name"].GetString()]
-        self.velocity_infinity = KratosMultiphysics.Vector(3)#array('d', [1.0, 2.0, 3.14])#np.array([0,0,0])#np.zeros(3)#vector(3)
-        self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
-        self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
-        self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
-        #self.density_infinity = settings["density_infinity"].GetDouble() #TODO: must read this from the properties
+        self.free_stream_velocity = KratosMultiphysics.Vector(3)#array('d', [1.0, 2.0, 3.14])#np.array([0,0,0])#np.zeros(3)#vector(3)
+        self.free_stream_velocity[0] = settings["free_stream_velocity"][0].GetDouble()
+        self.free_stream_velocity[1] = settings["free_stream_velocity"][1].GetDouble()
+        self.free_stream_velocity[2] = settings["free_stream_velocity"][2].GetDouble()
         self.inlet_phi_0 = settings["inlet_phi"].GetDouble()
-        self.far_field_model_part.ProcessInfo.SetValue(CPFApp.VELOCITY_INFINITY,self.velocity_infinity)
+        self.far_field_model_part.ProcessInfo.SetValue(CPFApp.VELOCITY_INFINITY,self.free_stream_velocity)
 
 
 
     def Execute(self):
-        #KratosMultiphysics.VariableUtils().SetVectorVar(CPFApp.VELOCITY_INFINITY, self.velocity_infinity, self.far_field_model_part.Conditions)
         for cond in self.far_field_model_part.Conditions:
-            cond.SetValue(CPFApp.VELOCITY_INFINITY, self.velocity_infinity)
+            cond.SetValue(CPFApp.VELOCITY_INFINITY, self.free_stream_velocity)
 
         # Select the first node in the mesh as reference
         for node in self.far_field_model_part.Nodes:
@@ -58,7 +56,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             dy = node.Y - y0
             dz = node.Z - z0
 
-            distance_to_reference = dx*self.velocity_infinity[0] + dy*self.velocity_infinity[1] + dz*self.velocity_infinity[2]
+            distance_to_reference = dx*self.free_stream_velocity[0] + dy*self.free_stream_velocity[1] + dz*self.free_stream_velocity[2]
 
             if(distance_to_reference < pos):
                 pos = distance_to_reference
@@ -67,7 +65,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         # Fix nodes in the inlet
         for cond in self.far_field_model_part.Conditions:
             normal = cond.GetValue(KratosMultiphysics.NORMAL)
-            projection = DotProduct(normal,self.velocity_infinity)
+            projection = DotProduct(normal,self.free_stream_velocity)
 
             if( projection < 0):
                 for node in cond.GetNodes():
@@ -76,7 +74,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                     dy = node.Y - self.reference_inlet_node.Y
                     dz = node.Z - self.reference_inlet_node.Z
 
-                    inlet_phi = dx*self.velocity_infinity[0] + dy*self.velocity_infinity[1] + dz*self.velocity_infinity[2]
+                    inlet_phi = dx*self.free_stream_velocity[0] + dy*self.free_stream_velocity[1] + dz*self.free_stream_velocity[2]
                     node.Fix(CPFApp.VELOCITY_POTENTIAL)
                     node.SetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL,0,inlet_phi + self.inlet_phi_0)
                     if self.far_field_model_part.HasNodalSolutionStepVariable(CPFApp.ADJOINT_VELOCITY_POTENTIAL):

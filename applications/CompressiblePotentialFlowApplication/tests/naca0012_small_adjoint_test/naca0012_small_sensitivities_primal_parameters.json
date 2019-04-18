@@ -33,7 +33,7 @@
             "Parameters"    : {
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "inlet_phi"         : 1.0,
-                "velocity_infinity" : [10.0,0.0,0.0]
+                "free_stream_velocity" : [10.0,0.0,0.0]
             }
         },{
             "python_module" : "define_wake_process_2d",
@@ -50,7 +50,7 @@
             "process_name"  : "ComputeLiftProcess3D",
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.Body2D_Body",
-                "velocity_infinity" : [10.0,0.0,0.0],
+                "free_stream_velocity" : [10.0,0.0,0.0],
                 "create_output_file": false
             }
         }],
@@ -64,7 +64,7 @@
                 "file_settings" : {
                     "file_access_mode" : "truncate"
                 },
-                
+
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY_POTENTIAL", "AUXILIARY_VELOCITY_POTENTIAL"]
                 },
@@ -72,6 +72,6 @@
                     "step_frequency": 1
                 }
             }
-        }]    
+        }]
     }
 }
