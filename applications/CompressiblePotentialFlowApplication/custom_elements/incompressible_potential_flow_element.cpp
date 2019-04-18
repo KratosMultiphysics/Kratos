@@ -401,7 +401,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNorm
     noalias(rLeftHandSideMatrix) =
         data.vol * density_infinity * prod(data.DN_DX, trans(data.DN_DX));
 
-    data.potentials = PotentialFlow::GetPotentialOnNormalElement<2,3>(*this);
+    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*this);
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.potentials);
 }
 
@@ -699,7 +699,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityNormalEle
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    data.potentials = PotentialFlow::GetPotentialOnNormalElement<2,3>(*this);
+    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*this);
 
     noalias(velocity) = prod(trans(data.DN_DX), data.potentials);
 }

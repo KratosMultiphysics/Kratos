@@ -213,7 +213,7 @@ namespace Kratos {
       for (unsigned int i = 0; i < 3; i++)
         pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
 
-      auto potentials = PotentialFlow::GetPotentialOnNormalElement<2,3>(*pElement);
+      auto potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*pElement);
 
       KRATOS_CHECK_NEAR(potentials(0), 0.0, 1e-7);
       KRATOS_CHECK_NEAR(potentials(1), 1.0, 1e-7);
