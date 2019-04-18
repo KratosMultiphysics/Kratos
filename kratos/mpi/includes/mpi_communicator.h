@@ -698,7 +698,7 @@ public:
     {
         MPIInternals::NodalSolutionStepValueAccess<int> solution_step_access(ThisVariable);
         AssembleFixedSizeValues(solution_step_access);
-        return true
+        return true;
     }
 
     bool AssembleCurrentData(Variable<double> const& ThisVariable) override
