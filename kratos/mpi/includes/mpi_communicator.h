@@ -2299,13 +2299,13 @@ private:
         TDatabaseAccess<TDataType> DataBase,
         TReductionOperation Reduction)
     {
-        //int rank = mrDataCommunicator.Rank();
+        using TSendType = typename MPIInternals::SendTraits<TDataType>::SendType;
         int destination = 0;
 
         NeighbourIndicesContainerType& neighbour_indices = NeighbourIndices();
 
-        std::vector<TDataType> send_values;
-        std::vector<TDataType> recv_values;
+        std::vector<TSendType> send_values;
+        std::vector<TSendType> recv_values;
 
         for (unsigned int i_color = 0; i_color < neighbour_indices.size(); i_color++)
         {
@@ -2313,8 +2313,9 @@ private:
             {
                 MeshType& r_source_mesh = GetMesh(i_color, SourceType);
                 MeshType& r_destination_mesh = GetMesh(i_color, DestinationType);
-                FillBuffer(send_values, r_source_mesh, DataBase);
+                AllocateBuffer(send_values, r_source_mesh, DataBase);
                 AllocateBuffer(recv_values, r_destination_mesh, DataBase);
+                FillBuffer(send_values, r_source_mesh, DataBase);
 
                 if ( (send_values.size() == 0) && (recv_values.size() == 0) )
                 {
@@ -2350,13 +2351,13 @@ private:
         typename TSendType = typename MPIInternals::SendTraits<TValue>::SendType>
     void FillBuffer(std::vector<TSendType>& rBuffer, MeshType& rSourceMesh, TAccess<TValue> Access)
     {
-        /*const*/ auto& r_container = Access.GetContainer(rSourceMesh);
+        auto& r_container = Access.GetContainer(rSourceMesh);
         TSendType* p_buffer = rBuffer.data();
         std::size_t position = 0;
         for (auto iter = r_container.begin(); iter != r_container.end(); ++iter)
         {
             TValue& r_value = Access.GetValue(iter);
-            *(p_buffer + position) = *reinterpret_cast<TSendType*>(&r_value);
+            *(TValue*) (p_buffer + position) = r_value;
             position += MPIInternals::DataSize<TValue>::Value;
         }
     }
