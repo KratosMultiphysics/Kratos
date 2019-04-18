@@ -12,19 +12,14 @@
 //
 //
 
-
-
 #if !defined(KRATOS_MPI_COMMUNICATOR_H_INCLUDED )
 #define  KRATOS_MPI_COMMUNICATOR_H_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream>
 #include <sstream>
 #include <cstddef>
-
 
 // External includes
 #include "mpi.h"
@@ -114,24 +109,6 @@ template<std::size_t TDim> struct SendTraits< array_1d<double,TDim> >
 template<class TValue> struct DataSize
 {
     constexpr static std::size_t Value = sizeof(TValue) / sizeof(typename SendTraits<TValue>::SendType);
-};
-
-enum MeshAccess {
-    Local,
-    Ghost
-};
-
-// Auxiliary templated type for compile-time dispatch of overloaded methods
-template<unsigned int TValue> struct Int2Type
-{
-    constexpr static unsigned int Value = TValue;
-};
-
-enum Operation {
-    Replace,
-    SumValues,
-    OrFlags,
-    AndFlags
 };
 
 template<class TValue> class NodalSolutionStepValueAccess
@@ -225,6 +202,31 @@ void SetValue(IteratorType& iter, const TValue& rValue)
  */
 class MPICommunicator : public Communicator
 {
+
+enum class MeshAccessType {
+    Local,
+    Ghost
+};
+
+// Auxiliary type for compile-time dispatch of local/ghost mesh access
+template<MeshAccessType TAccess> struct MeshAccess
+{
+    constexpr static MeshAccessType Value = TAccess;
+};
+
+enum class OperationType {
+    Replace,
+    SumValues,
+    OrFlags,
+    AndFlags
+};
+
+// Auxiliary type for compile-time dispatch of the reduction operation in data transfer methods
+template<OperationType TOperation> struct Operation
+{
+    constexpr static OperationType Value = TOperation;
+};
+
 public:
     ///@name  Enum's
     ///@{
@@ -2232,18 +2234,12 @@ private:
         return true;
     }
 
-    template<MPIInternals::MeshAccess TAccess>
-    using MeshAccess = MPIInternals::Int2Type<TAccess>;
-
-    template<MPIInternals::Operation TOperation>
-    using OperationType = MPIInternals::Int2Type<TOperation>;
-
     void TestSynchronize(const Variable<double>& rVariable)
     {
-        constexpr MeshAccess<MPIInternals::Local> local_meshes;
-        constexpr MeshAccess<MPIInternals::Ghost> ghost_meshes;
+        constexpr MeshAccess<MeshAccessType::Local> local_meshes;
+        constexpr MeshAccess<MeshAccessType::Ghost> ghost_meshes;
         MPIInternals::NodalSolutionStepValueAccess<double> solution_step_variable(rVariable);
-        constexpr OperationType<MPIInternals::Replace> replace;
+        constexpr Operation<OperationType::Replace> replace;
 
         TransferDistributedValues(local_meshes, ghost_meshes, solution_step_variable, replace);
     }
@@ -2251,10 +2247,10 @@ private:
     template<typename TValue, template<typename> class TDatabaseAccess>
     void AssembleFixedSizeValues(TDatabaseAccess<TValue>& rVariableAccess)
     {
-        constexpr MeshAccess<MPIInternals::Local> local_meshes;
-        constexpr MeshAccess<MPIInternals::Ghost> ghost_meshes;
-        constexpr OperationType<MPIInternals::Replace> replace;
-        constexpr OperationType<MPIInternals::SumValues> sum;
+        constexpr MeshAccess<MeshAccessType::Local> local_meshes;
+        constexpr MeshAccess<MeshAccessType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+        constexpr Operation<OperationType::SumValues> sum;
 
         // Assemble results on owner rank
         TransferDistributedValues(ghost_meshes, local_meshes, rVariableAccess, sum);
@@ -2263,15 +2259,12 @@ private:
         TransferDistributedValues(local_meshes, ghost_meshes, rVariableAccess, replace);
     }
 
-    using LocalAccess = MeshAccess<MPIInternals::Local>;
-    using GhostAccess = MeshAccess<MPIInternals::Ghost>;
-
-    MeshType& GetMesh(IndexType Color, LocalAccess)
+    MeshType& GetMesh(IndexType Color, const MeshAccess<MeshAccessType::Local>)
     {
         return LocalMesh(Color);
     }
 
-    MeshType& GetMesh(IndexType Color, GhostAccess)
+    MeshType& GetMesh(IndexType Color, const MeshAccess<MeshAccessType::Ghost>)
     {
         return GhostMesh(Color);
     }
@@ -2281,7 +2274,7 @@ private:
         const TValue& rRecvValue,
         TDatabaseAccess Access,
         typename TDatabaseAccess::IteratorType ContainerIterator,
-        OperationType<MPIInternals::Replace>)
+        Operation<OperationType::Replace>)
     {
         Access.SetValue(ContainerIterator, rRecvValue);
     }
@@ -2291,7 +2284,7 @@ private:
         const TValue& rRecvValue,
         TDatabaseAccess Access,
         typename TDatabaseAccess::IteratorType ContainerIterator,
-        OperationType<MPIInternals::SumValues>)
+        Operation<OperationType::SumValues>)
     {
         Access.GetValue(ContainerIterator) += rRecvValue;
     }
