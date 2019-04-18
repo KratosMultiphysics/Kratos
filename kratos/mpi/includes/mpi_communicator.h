@@ -90,6 +90,13 @@ template<> inline MPI_Datatype DataType(const double&)
 
 template<class TValue> struct SendTraits;
 
+template<> struct SendTraits<int>
+{
+    typedef double SendType;
+    constexpr static std::size_t SendSize = 1;
+    constexpr static MPI_Datatype DataType = MPI_INT;
+};
+
 template<> struct SendTraits<double>
 {
     typedef double SendType;
@@ -689,8 +696,9 @@ public:
 
     bool AssembleCurrentData(Variable<int> const& ThisVariable) override
     {
-        AssembleThisVariable<int,int>(ThisVariable);
-        return true;
+        MPIInternals::NodalSolutionStepValueAccess<int> solution_step_access(ThisVariable);
+        AssembleFixedSizeValues(solution_step_access);
+        return true
     }
 
     bool AssembleCurrentData(Variable<double> const& ThisVariable) override
@@ -702,7 +710,8 @@ public:
 
     bool AssembleCurrentData(Variable<array_1d<double, 3 > > const& ThisVariable) override
     {
-        AssembleThisVariable<array_1d<double,3>,double>(ThisVariable);
+        MPIInternals::NodalSolutionStepValueAccess<array_1d<double,3>> solution_step_access(ThisVariable);
+        AssembleFixedSizeValues(solution_step_access);
         return true;
     }
 
@@ -2312,15 +2321,17 @@ private:
             if ( (destination = neighbour_indices[i_color]) >= 0)
             {
                 MeshType& r_source_mesh = GetMesh(i_color, SourceType);
-                MeshType& r_destination_mesh = GetMesh(i_color, DestinationType);
                 AllocateBuffer(send_values, r_source_mesh, DataBase);
+
+                MeshType& r_destination_mesh = GetMesh(i_color, DestinationType);
                 AllocateBuffer(recv_values, r_destination_mesh, DataBase);
-                FillBuffer(send_values, r_source_mesh, DataBase);
 
                 if ( (send_values.size() == 0) && (recv_values.size() == 0) )
                 {
                     continue; // nothing to transfer, skip communication step
                 }
+                
+                FillBuffer(send_values, r_source_mesh, DataBase);
 
                 mrDataCommunicator.SendRecv(
                     send_values, destination, i_color,
@@ -2372,7 +2383,7 @@ private:
         TReductionOperation Operation)
     {
         auto& r_container = Access.GetContainer(rSourceMesh);
-        const TValue* p_buffer = rBuffer.data();
+        const TSendType* p_buffer = rBuffer.data();
         std::size_t position = 0;
                 
         for (auto iter = r_container.begin(); iter != r_container.end(); ++iter)
