@@ -517,6 +517,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
         ////////////////////////////   !!!!   ////////////////////////////
         //////////////////////////////////////////////////////////////////
         //if explicit time int we might have to couple vel/acc here !
+        // nahhhh we have to treat this differenttly
         //////////////////////////////////////////////////////////////////
         ////////////////////////////   !!!!   ////////////////////////////
 
@@ -524,9 +525,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
         // realize the coupling
         if (std::abs(dx)>numerical_limit)
         {
-            const double constant_x = (ya-ys) - (xa*dy/dx) + (xs*(yb-ya-va)/dx);
+            double constant = (ya-ys) - (xa*(yb-ya)/dx) + (xs*(yb-ya)/dx);
 
-            double weight_i = 1.0;
+            double weight_i = 1.0 + (xa/dx) - (xs/dx);
             ModelPart::IndexType current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
             ConstraintPointer p_current_constraint_1 = master_model_part.CreateNewMasterSlaveConstraint(
                 mParameters["constraint_set_name"].GetString(),current_id,
@@ -535,7 +536,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
                 r_nodes_slave[rCurrentSlaveNode.Id()],
                 check_dof_y,
                 weight_i,
-                constant_x);
+                constant);
             p_current_constraint_1->Set(TO_ERASE);
 
             weight_i = -1.0*dy/dx;
@@ -551,7 +552,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
             p_current_constraint_2->Set(TO_ERASE);
 
 
-            weight_i = xs/dx;
+            weight_i = (xs/dx) - (xa/dx);
             current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
             ConstraintPointer p_current_constraint_3 = master_model_part.CreateNewMasterSlaveConstraint(
                 mParameters["constraint_set_name"].GetString(),current_id,
@@ -576,14 +577,279 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
                 0.0);
             p_current_constraint_4->Set(TO_ERASE);
 
+
+
+
+
+            constant = (za-zs) - (xa*(zb-za)/dx) + (xs*(zb-za)/dx);
+
+            weight_i = 1.0 + (xa/dx) - (xs/dx);
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_5 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_master[node_i->Id()],
+                check_dof_z,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_z,
+                weight_i,
+                constant);
+            p_current_constraint_5->Set(TO_ERASE);
+
+            weight_i = -1.0*dz/dx;
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_6 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_master[node_i->Id()],
+                check_dof_x,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_z,
+                weight_i,
+                0.0);
+            p_current_constraint_6->Set(TO_ERASE);
+
+
+            weight_i = (xs/dx) - (xa/dx);
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_7 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_master[node_j->Id()],
+                check_dof_z,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_z,
+                weight_i,
+                0.0);
+            p_current_constraint_7->Set(TO_ERASE);
+
+
+            weight_i = 1.0*dz/dx;
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_8 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_x,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_z,
+                weight_i,
+                0.0);
+            p_current_constraint_8->Set(TO_ERASE);
+
         }
         else if (std::abs(dy)>numerical_limit)
         {
-            KRATOS_ERROR << "not yet implemented" << std::endl;
+            double constant = (xa-xs) - (ya*(xb-xa)/dy) + (ys*(xb-xa)/dy);
+
+            double weight_i = 1.0 + (ya/dy) - (ys/dy);
+            ModelPart::IndexType current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_1 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_master[node_i->Id()],
+                check_dof_x,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_x,
+                weight_i,
+                constant);
+            p_current_constraint_1->Set(TO_ERASE);
+
+            weight_i = -1.0*dx/dy;
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_2 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_master[node_i->Id()],
+                check_dof_y,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_x,
+                weight_i,
+                0.0);
+            p_current_constraint_2->Set(TO_ERASE);
+
+
+            weight_i = (ys/dy) - (ya/dy);
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_3 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_master[node_j->Id()],
+                check_dof_x,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_x,
+                weight_i,
+                0.0);
+            p_current_constraint_3->Set(TO_ERASE);
+
+
+            weight_i = 1.0*dx/dy;
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_4 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_y,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_x,
+                weight_i,
+                0.0);
+            p_current_constraint_4->Set(TO_ERASE);
+
+
+            constant = (za-zs) - (ya*(zb-za)/dy) + (ys*(zb-za)/dy);
+
+            weight_i = 1.0 + (ya/dy) - (ys/dy);
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_5 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_master[node_i->Id()],
+                check_dof_z,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_z,
+                weight_i,
+                constant);
+            p_current_constraint_5->Set(TO_ERASE);
+
+            weight_i = -1.0*dz/dy;
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_6 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_master[node_i->Id()],
+                check_dof_y,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_z,
+                weight_i,
+                0.0);
+            p_current_constraint_6->Set(TO_ERASE);
+
+
+            weight_i = (ys/dy) - (ya/dy);
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_7 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_master[node_j->Id()],
+                check_dof_z,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_z,
+                weight_i,
+                0.0);
+            p_current_constraint_7->Set(TO_ERASE);
+
+
+            weight_i = 1.0*dz/dy;
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_8 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_y,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_z,
+                weight_i,
+                0.0);
+            p_current_constraint_8->Set(TO_ERASE);
         }
         else if (std::abs(dz)>numerical_limit)
         {
-            KRATOS_ERROR << "not yet implemented" << std::endl;
+            double constant = (xa-xs) - (za*(xb-xa)/dz) + (zs*(xb-xa)/dz);
+
+            double weight_i = 1.0 + (za/dz) - (zs/dz);
+            ModelPart::IndexType current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_1 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_master[node_i->Id()],
+                check_dof_x,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_x,
+                weight_i,
+                constant);
+            p_current_constraint_1->Set(TO_ERASE);
+
+            weight_i = -1.0*dx/dz;
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_2 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_master[node_i->Id()],
+                check_dof_z,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_x,
+                weight_i,
+                0.0);
+            p_current_constraint_2->Set(TO_ERASE);
+
+
+            weight_i = (zs/dz) - (za/dz);
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_3 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_master[node_j->Id()],
+                check_dof_x,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_x,
+                weight_i,
+                0.0);
+            p_current_constraint_3->Set(TO_ERASE);
+
+
+            weight_i = 1.0*dx/dz;
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_4 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_z,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_x,
+                weight_i,
+                0.0);
+            p_current_constraint_4->Set(TO_ERASE);
+
+
+
+
+
+            constant = (ya-ys) - (za*(yb-ya)/dz) + (zs*(yb-ya)/dz);
+
+            weight_i = 1.0 + (za/dz) - (zs/dz);
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_5 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_master[node_i->Id()],
+                check_dof_y,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_y,
+                weight_i,
+                constant);
+            p_current_constraint_5->Set(TO_ERASE);
+
+            weight_i = -1.0*dy/dz;
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_6 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_master[node_i->Id()],
+                check_dof_z,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_y,
+                weight_i,
+                0.0);
+            p_current_constraint_6->Set(TO_ERASE);
+
+
+            weight_i = (zs/dz) - (za/dz);
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_7 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_master[node_j->Id()],
+                check_dof_y,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_y,
+                weight_i,
+                0.0);
+            p_current_constraint_7->Set(TO_ERASE);
+
+
+            weight_i = 1.0*dy/dz;
+            current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+            ConstraintPointer p_current_constraint_8 = master_model_part.CreateNewMasterSlaveConstraint(
+                mParameters["constraint_set_name"].GetString(),current_id,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_z,
+                r_nodes_slave[rCurrentSlaveNode.Id()],
+                check_dof_y,
+                weight_i,
+                0.0);
+            p_current_constraint_8->Set(TO_ERASE);
         }
         else KRATOS_ERROR << "sliding edge is a point for slave node " << rCurrentSlaveNode.Id() << std::endl;
     }
