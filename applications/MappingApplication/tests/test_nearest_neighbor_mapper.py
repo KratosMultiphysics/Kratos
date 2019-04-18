@@ -71,7 +71,7 @@ class NearestNeighborBladeMapping(blade_mapping_test.BladeMappingTests):
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_neighbor",
-            "echo_level" : 2
+            "echo_level" : 0
         }""")
         super(NearestNeighborBladeMapping, cls).setUpMapper(mapper_params)
         cls.print_output = False
