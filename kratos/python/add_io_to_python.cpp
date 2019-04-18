@@ -23,6 +23,7 @@
 
 #include "includes/model_part_io.h"
 #include "includes/reorder_consecutive_model_part_io.h"
+#include "input_output/stl_io.h"
 #include "includes/gid_io.h"
 #include "python/add_io_to_python.h"
 #include "containers/flags.h"
@@ -322,6 +323,13 @@ void  AddIOToPython(pybind11::module& m)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<double>&, const double)) &UnvOutput::WriteNodalResults)
         .def("PrintOutput", (void (UnvOutput::*)(const Variable<array_1d<double,3>>&, const double)) &UnvOutput::WriteNodalResults)
         ;
+
+
+    py::class_<StlIO, StlIO::Pointer, IO>(m, "StlIO")
+        .def(py::init< std::string const& >())
+        ;
+
+
 }
 }  // namespace Python.
 
