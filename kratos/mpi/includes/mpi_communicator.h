@@ -594,19 +594,22 @@ public:
 
     bool SynchronizeVariable(Variable<int> const& rThisVariable) override
     {
-        SynchronizeVariable<int,int>(rThisVariable);
+        MPIInternals::NodalSolutionStepValueAccess<int> solution_step_value_access(rThisVariable);
+        SynchronizeFixedSizeValues(solution_step_value_access);
         return true;
     }
 
     bool SynchronizeVariable(Variable<double> const& rThisVariable) override
     {
-        SynchronizeVariable<double,double>(rThisVariable);
+        MPIInternals::NodalSolutionStepValueAccess<double> solution_step_value_access(rThisVariable);
+        SynchronizeFixedSizeValues(solution_step_value_access);
         return true;
     }
 
     bool SynchronizeVariable(Variable<array_1d<double, 3 > > const& rThisVariable) override
     {
-        SynchronizeVariable<array_1d<double, 3 >,double >(rThisVariable);
+        MPIInternals::NodalSolutionStepValueAccess<array_1d<double,3>> solution_step_value_access(rThisVariable);
+        SynchronizeFixedSizeValues(solution_step_value_access);
         return true;
     }
 
@@ -2234,14 +2237,14 @@ private:
         return true;
     }
 
-    void TestSynchronize(const Variable<double>& rVariable)
+    template<typename TValue, template<typename> class TDatabaseAccess>
+    void SynchronizeFixedSizeValues(TDatabaseAccess<TValue>& rVariableAccess)
     {
         constexpr MeshAccess<MeshAccessType::Local> local_meshes;
         constexpr MeshAccess<MeshAccessType::Ghost> ghost_meshes;
-        MPIInternals::NodalSolutionStepValueAccess<double> solution_step_variable(rVariable);
         constexpr Operation<OperationType::Replace> replace;
 
-        TransferDistributedValues(local_meshes, ghost_meshes, solution_step_variable, replace);
+        TransferDistributedValues(local_meshes, ghost_meshes, rVariableAccess, replace);
     }
 
     template<typename TValue, template<typename> class TDatabaseAccess>
