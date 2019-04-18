@@ -136,6 +136,7 @@ public:
 
 typedef Communicator::MeshType::NodesContainerType ContainerType;
 typedef Communicator::MeshType::NodesContainerType::iterator IteratorType;
+typedef Communicator::MeshType::NodesContainerType::const_iterator ConstIteratorType;
 
 NodalSolutionStepValueAccess(const Variable<TValue>& mrVariable):
     mrVariable(mrVariable)
@@ -177,6 +178,7 @@ public:
 
 typedef Communicator::MeshType::NodesContainerType ContainerType;
 typedef Communicator::MeshType::NodesContainerType::iterator IteratorType;
+typedef Communicator::MeshType::NodesContainerType::const_iterator ConstIteratorType;
 
 NodalDataAccess(const Variable<TValue>& mrVariable):
     mrVariable(mrVariable)
@@ -2370,14 +2372,15 @@ private:
     }
 
     template< typename TValue, class TAccess >
-    void FillBuffer(std::vector<TValue>& rBuffer, const MeshType& rSourceMesh, TAccess Access)
+    void FillBuffer(std::vector<TValue>& rBuffer, MeshType& rSourceMesh, TAccess Access)
     {
-        const auto& r_container = Access.GetContainer(rSourceMesh);
+        /*const*/ auto& r_container = Access.GetContainer(rSourceMesh);
         TValue* p_buffer = rBuffer.data();
         std::size_t position = 0;
         for (auto iter = r_container.begin(); iter != r_container.end(); ++iter)
         {
-            p_buffer + position = *(TValue*)Access.GetValue(iter);
+            TValue& r_value = Access.GetValue(iter);
+            *(p_buffer + position) = r_value;
             position += MPIInternals::DataSize<TValue>::Value;
         }
     }
@@ -2386,7 +2389,7 @@ private:
     void UpdateValues(
         //const std::vector<typename MPIInternals::SendTraits<TValue>::SendType>& rBuffer,
         const std::vector<TValue>& rBuffer,
-        const MeshType& rSourceMesh,
+        MeshType& rSourceMesh,
         TDatabaseAccess Access,
         TReductionOperation Operation)
     {
@@ -2396,7 +2399,7 @@ private:
                 
         for (auto iter = r_container.begin(); iter != r_container.end(); ++iter)
         {
-            TValue* recv_data = reinterpret_cast<TValue*>(p_buffer + position);
+            const TValue* recv_data = reinterpret_cast<const TValue*>(p_buffer + position);
             ReduceValues(*recv_data, Access, iter, Operation);
             position += MPIInternals::DataSize<TValue>::Value;
         }
