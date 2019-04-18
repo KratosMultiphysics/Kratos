@@ -20,7 +20,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "inlet_phi": 1.0,
+                "inlet_potential": 1.0,
                 "free_stream_velocity": [1.0,0.0,0]
             }  """ )
 
@@ -28,59 +28,67 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_parameters);
 
         self.far_field_model_part = Model[settings["model_part_name"].GetString()]
-        self.free_stream_velocity = KratosMultiphysics.Vector(3)#array('d', [1.0, 2.0, 3.14])#np.array([0,0,0])#np.zeros(3)#vector(3)
-        self.free_stream_velocity[0] = settings["free_stream_velocity"][0].GetDouble()
-        self.free_stream_velocity[1] = settings["free_stream_velocity"][1].GetDouble()
-        self.free_stream_velocity[2] = settings["free_stream_velocity"][2].GetDouble()
-        self.inlet_phi_0 = settings["inlet_phi"].GetDouble()
+        self.free_stream_velocity = settings["free_stream_velocity"].GetVector()
+        self.inlet_phi_0 = settings["inlet_potential"].GetDouble()
         self.far_field_model_part.ProcessInfo.SetValue(CPFApp.VELOCITY_INFINITY,self.free_stream_velocity)
-
-
-
-    def Execute(self):
-        for cond in self.far_field_model_part.Conditions:
-            cond.SetValue(CPFApp.VELOCITY_INFINITY, self.free_stream_velocity)
-
-        # Select the first node in the mesh as reference
-        for node in self.far_field_model_part.Nodes:
-            x0 = node.X
-            y0 = node.Y
-            z0 = node.Z
-            break
-
-        # Find smallest distance_to_reference
-        pos = 1e30
-        for node in self.far_field_model_part.Nodes:
-            # Computing distance to reference
-            dx = node.X - x0
-            dy = node.Y - y0
-            dz = node.Z - z0
-
-            distance_to_reference = dx*self.free_stream_velocity[0] + dy*self.free_stream_velocity[1] + dz*self.free_stream_velocity[2]
-
-            if(distance_to_reference < pos):
-                pos = distance_to_reference
-                self.reference_inlet_node = node
-
-        # Fix nodes in the inlet
-        for cond in self.far_field_model_part.Conditions:
-            normal = cond.GetValue(KratosMultiphysics.NORMAL)
-            projection = DotProduct(normal,self.free_stream_velocity)
-
-            if( projection < 0):
-                for node in cond.GetNodes():
-                    # Computing distance to reference
-                    dx = node.X - self.reference_inlet_node.X
-                    dy = node.Y - self.reference_inlet_node.Y
-                    dz = node.Z - self.reference_inlet_node.Z
-
-                    inlet_phi = dx*self.free_stream_velocity[0] + dy*self.free_stream_velocity[1] + dz*self.free_stream_velocity[2]
-                    node.Fix(CPFApp.VELOCITY_POTENTIAL)
-                    node.SetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL,0,inlet_phi + self.inlet_phi_0)
-                    if self.far_field_model_part.HasNodalSolutionStepVariable(CPFApp.ADJOINT_VELOCITY_POTENTIAL):
-                        node.Fix(CPFApp.ADJOINT_VELOCITY_POTENTIAL)
-                        node.SetSolutionStepValue(CPFApp.ADJOINT_VELOCITY_POTENTIAL,0,inlet_phi)
 
     def ExecuteInitializeSolutionStep(self):
         self.Execute()
+
+    def Execute(self):
+        reference_inlet_node = self._FindFarthestUpstreamBoundaryNode()
+        self._AssignFarFieldDirichletBoundaryCondition(reference_inlet_node)
+        self._AssignFarFieldNeumannBoundaryCondition()
+
+    def _FindFarthestUpstreamBoundaryNode(self):
+        # The farthes upstream boundary node is the node with smallest
+        # projection of its distante to a given reference node onto
+        # the free stream velocity.
+
+        # Select a random node in the mesh as reference (e.g. the first node)
+        for node in self.far_field_model_part.Nodes:
+            reference_node = node
+            break
+
+        # Find the farthest upstream boundary node
+        temporal_smallest_projection = 1e30
+        for node in self.far_field_model_part.Nodes:
+            distance_to_reference = node - reference_node
+            # Projecting the distance to the reference onto the free stream velocity
+            distance_projection = DotProduct(distance_to_reference, self.free_stream_velocity)
+
+            if(distance_projection < temporal_smallest_projection):
+                temporal_smallest_projection = distance_projection
+                reference_inlet_node = node
+
+        return reference_inlet_node
+
+    def _AssignFarFieldDirichletBoundaryCondition(self, reference_inlet_node):
+        # Fix nodes in the inlet
+        for cond in self.far_field_model_part.Conditions:
+            normal = cond.GetValue(KratosMultiphysics.NORMAL)
+            # Computing the projection of the free stream velocity onto the normal
+            velocity_projection = DotProduct(normal, self.free_stream_velocity)
+
+            # A negative projection means inflow (i.e. inlet condition)
+            # A positive projection means outlow (i.e. outlet condition)
+            if( velocity_projection < 0):
+                for node in cond.GetNodes():
+                    # Computing the value of the potential at the inlet
+                    inlet_potential = DotProduct( node - reference_inlet_node, self.free_stream_velocity)
+                    # Fixing the potential at the inlet nodes
+                    node.Fix(CPFApp.VELOCITY_POTENTIAL)
+                    node.SetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL,0,inlet_potential + self.inlet_phi_0)
+
+                    # Applying Dirichlet condition in the adjoint problem
+                    if self.far_field_model_part.HasNodalSolutionStepVariable(CPFApp.ADJOINT_VELOCITY_POTENTIAL):
+                        node.Fix(CPFApp.ADJOINT_VELOCITY_POTENTIAL)
+                        node.SetSolutionStepValue(CPFApp.ADJOINT_VELOCITY_POTENTIAL,0,inlet_potential)
+
+    def _AssignFarFieldNeumannBoundaryCondition(self):
+        for cond in self.far_field_model_part.Conditions:
+            cond.SetValue(CPFApp.VELOCITY_INFINITY, self.free_stream_velocity)
+
+
+
 
