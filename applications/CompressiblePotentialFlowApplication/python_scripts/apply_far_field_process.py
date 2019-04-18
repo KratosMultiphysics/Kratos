@@ -39,20 +39,13 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
 
     def _FindFarthestUpstreamBoundaryNode(self):
         # The farthes upstream boundary node is the node with smallest
-        # projection of its distante to a given reference node onto
-        # the free stream velocity.
-
-        # Select a random node in the mesh as reference (e.g. the first node)
-        for node in self.far_field_model_part.Nodes:
-            reference_node = node
-            break
+        # projection of its position vector onto the free stream velocity.
 
         # Find the farthest upstream boundary node
         temporal_smallest_projection = 1e30
         for node in self.far_field_model_part.Nodes:
-            distance_to_reference = node - reference_node
-            # Projecting the distance to the reference onto the free stream velocity
-            distance_projection = DotProduct(distance_to_reference, self.free_stream_velocity)
+            # Projecting the node position vector onto the free stream velocity
+            distance_projection = DotProduct(node, self.free_stream_velocity)
 
             if(distance_projection < temporal_smallest_projection):
                 temporal_smallest_projection = distance_projection
