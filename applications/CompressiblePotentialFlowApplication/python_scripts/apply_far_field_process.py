@@ -23,13 +23,11 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "inlet_potential": 1.0,
                 "free_stream_velocity": [1.0,0.0,0]
             }  """ )
-
-
         settings.ValidateAndAssignDefaults(default_parameters);
 
         self.far_field_model_part = Model[settings["model_part_name"].GetString()]
         self.free_stream_velocity = settings["free_stream_velocity"].GetVector()
-        self.inlet_phi_0 = settings["inlet_potential"].GetDouble()
+        self.inlet_potential_0 = settings["inlet_potential"].GetDouble()
         self.far_field_model_part.ProcessInfo.SetValue(CPFApp.VELOCITY_INFINITY,self.free_stream_velocity)
 
     def ExecuteInitializeSolutionStep(self):
@@ -37,8 +35,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
 
     def Execute(self):
         reference_inlet_node = self._FindFarthestUpstreamBoundaryNode()
-        self._AssignFarFieldDirichletBoundaryCondition(reference_inlet_node)
-        self._AssignFarFieldNeumannBoundaryCondition()
+        self._AssignFarFieldBoundaryConditions(reference_inlet_node)
 
     def _FindFarthestUpstreamBoundaryNode(self):
         # The farthes upstream boundary node is the node with smallest
@@ -63,31 +60,39 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
 
         return reference_inlet_node
 
-    def _AssignFarFieldDirichletBoundaryCondition(self, reference_inlet_node):
-        # Fix nodes in the inlet
+    def _AssignFarFieldBoundaryConditions(self, reference_inlet_node):
+        # A Dirichlet condition is applyed at the inlet nodes and
+        # a Neumann condition is applyed at the outlet nodes
+
         for cond in self.far_field_model_part.Conditions:
             normal = cond.GetValue(KratosMultiphysics.NORMAL)
+
             # Computing the projection of the free stream velocity onto the normal
             velocity_projection = DotProduct(normal, self.free_stream_velocity)
 
-            # A negative projection means inflow (i.e. inlet condition)
-            # A positive projection means outlow (i.e. outlet condition)
             if( velocity_projection < 0):
-                for node in cond.GetNodes():
-                    # Computing the value of the potential at the inlet
-                    inlet_potential = DotProduct( node - reference_inlet_node, self.free_stream_velocity)
-                    # Fixing the potential at the inlet nodes
-                    node.Fix(CPFApp.VELOCITY_POTENTIAL)
-                    node.SetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL,0,inlet_potential + self.inlet_phi_0)
+                # A negative projection means inflow (i.e. inlet condition)
+                self._AssignDirichletFarFieldBoundaryCondition(reference_inlet_node, cond)
+            else:
+                # A positive projection means outlow (i.e. outlet condition)
+                self._AssignNeumannFarFieldBoundaryCondition(cond)
 
-                    # Applying Dirichlet condition in the adjoint problem
-                    if self.far_field_model_part.HasNodalSolutionStepVariable(CPFApp.ADJOINT_VELOCITY_POTENTIAL):
-                        node.Fix(CPFApp.ADJOINT_VELOCITY_POTENTIAL)
-                        node.SetSolutionStepValue(CPFApp.ADJOINT_VELOCITY_POTENTIAL,0,inlet_potential)
+    def _AssignDirichletFarFieldBoundaryCondition(self, reference_inlet_node, cond):
+        for node in cond.GetNodes():
+            # Computing the value of the potential at the inlet
+            inlet_potential = DotProduct( node - reference_inlet_node, self.free_stream_velocity)
 
-    def _AssignFarFieldNeumannBoundaryCondition(self):
-        for cond in self.far_field_model_part.Conditions:
-            cond.SetValue(CPFApp.VELOCITY_INFINITY, self.free_stream_velocity)
+            # Fixing the potential at the inlet nodes
+            node.Fix(CPFApp.VELOCITY_POTENTIAL)
+            node.SetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL,0,inlet_potential + self.inlet_potential_0)
+
+            # Applying Dirichlet condition in the adjoint problem
+            if self.far_field_model_part.HasNodalSolutionStepVariable(CPFApp.ADJOINT_VELOCITY_POTENTIAL):
+                node.Fix(CPFApp.ADJOINT_VELOCITY_POTENTIAL)
+                node.SetSolutionStepValue(CPFApp.ADJOINT_VELOCITY_POTENTIAL,0,inlet_potential)
+
+    def _AssignNeumannFarFieldBoundaryCondition(self, cond):
+        cond.SetValue(CPFApp.VELOCITY_INFINITY, self.free_stream_velocity)
 
 
 
