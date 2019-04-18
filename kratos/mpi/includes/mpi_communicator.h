@@ -92,7 +92,7 @@ template<class TValue> struct SendTraits;
 
 template<> struct SendTraits<int>
 {
-    typedef double SendType;
+    typedef int SendType;
     constexpr static std::size_t SendSize = 1;
     constexpr static MPI_Datatype DataType = MPI_INT;
 };
