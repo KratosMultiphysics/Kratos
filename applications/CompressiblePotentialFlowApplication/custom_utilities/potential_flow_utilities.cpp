@@ -2,7 +2,7 @@
 
 namespace Kratos
 {
-namespace PotentialFlow
+namespace PotentialFlowUtilities
 {
 template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement)
