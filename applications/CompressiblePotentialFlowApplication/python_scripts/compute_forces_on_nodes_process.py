@@ -22,11 +22,11 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
         self.body_model_part = Model[settings["model_part_name"].GetString()]
         self.create_output_file = settings["create_output_file"].GetBool()
 
-    def __init__(self, body_model_part):
-        KratosMultiphysics.Process.__init__(self)
+    # def __init__(self, body_model_part):
+    #     KratosMultiphysics.Process.__init__(self)
 
-        self.body_model_part = body_model_part
-        self.create_output_file = False
+    #     self.body_model_part = body_model_part
+    #     self.create_output_file = False
 
     def ExecuteFinalizeSolutionStep(self):
         self.Execute()
