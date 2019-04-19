@@ -2,18 +2,12 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "not imported")
 
 # Importing the base class
 from kratos_base_field_solver import KratosBaseFieldSolver
 
 # Other imports
-from particle_mechanics_analysis import ParticleMechanicsAnalysis
+from KratosMultiphysics.ParticleMechanicsApplication.particle_mechanics_analysis import ParticleMechanicsAnalysis
 
 def CreateSolver(cosim_solver_settings, level):
     return KratosParticleSolver(cosim_solver_settings, level)
