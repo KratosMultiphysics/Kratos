@@ -61,9 +61,9 @@
 namespace Kratos
 {
 // The member variables related with the MMG library
-MMG5_pMesh mMmgMesh;
-MMG5_pSol  mMmgSol;
-// MMG5_pSol  mmgDisp;
+MMG5_pMesh mMmgMesh; /// The mesh data from MMG
+MMG5_pSol  mMmgSol;  /// The metric variable for MMG
+// MMG5_pSol  mmgDisp; /// The displacement variable for MMG
 
 /************************************* CONSTRUCTOR *********************************/
 /***********************************************************************************/
@@ -3223,7 +3223,6 @@ void MmgProcess<TMMGLibray>::AssignAndClearAuxiliarSubModelPartForFlags()
     mrThisModelPart.RemoveSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
 }
 
-
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -3365,8 +3364,6 @@ void MmgProcess<TMMGLibray>::CleanSuperfluousNodes()
     const int final_num = mrThisModelPart.Nodes().size();
     KRATOS_INFO("MmgProcess") << "In total " << (initial_num - final_num) <<" superfluous nodes were cleared" << std::endl;
 }
-
-
 
 /***********************************************************************************/
 /***********************************************************************************/
