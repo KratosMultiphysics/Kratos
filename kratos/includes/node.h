@@ -34,7 +34,7 @@
 #include "utilities/indexed_object.h"
 #include "containers/flags.h"
 
-#include "containers/weak_pointer_vector.h"
+//#include "containers/weak_pointer_vector.h"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -1197,14 +1197,14 @@ inline std::ostream& operator << (std::ostream& rOStream,
 //*********************************************************************************
 //*********************************************************************************
 
-#undef  KRATOS_EXPORT_MACRO
-#define KRATOS_EXPORT_MACRO KRATOS_API
+// #undef  KRATOS_EXPORT_MACRO
+// #define KRATOS_EXPORT_MACRO KRATOS_API
 
-KRATOS_DEFINE_VARIABLE(WeakPointerVector<Node<3> >, NEIGHBOUR_NODES)
-KRATOS_DEFINE_VARIABLE(WeakPointerVector<Node<3> >, FATHER_NODES)
+// KRATOS_DEFINE_VARIABLE(GlobalPointersVector<Node<3> >, NEIGHBOUR_NODES)
+// KRATOS_DEFINE_VARIABLE(GlobalPointersVector<Node<3> >, FATHER_NODES)
 
-#undef  KRATOS_EXPORT_MACRO
-#define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
+// #undef  KRATOS_EXPORT_MACRO
+// #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
 
 
 //     namespace Globals

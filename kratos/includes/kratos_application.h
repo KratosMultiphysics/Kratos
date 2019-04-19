@@ -92,8 +92,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     void RegisterVariables();
 
     ///////////////////////////////////////////////////////////////////
-    void
-    RegisterDeprecatedVariables();  //TODO: remove, this variables should not be there
+    void RegisterDeprecatedVariables();  //TODO: remove, this variables should not be there
     void RegisterC2CVariables();                  //TODO: move to application
     void RegisterCFDVariables();                  //TODO: move to application
     void RegisterALEVariables();                  //TODO: move to application
@@ -102,6 +101,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     void RegisterFSIVariables();                  //TODO: move to application
     void RegisterMATVariables();                  //TODO: move to application
     void RegisterLegacyStructuralAppVariables();  //TODO: move to application
+    void RegisterGlobalPointerVariables();  
 
     const std::string& Name() const { return mApplicationName; }
 
