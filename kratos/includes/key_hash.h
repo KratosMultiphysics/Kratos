@@ -39,7 +39,8 @@ namespace Kratos
     typedef std::size_t HashType;
 
     // The node definition
-    typedef Node<3> NodeType;
+//    template< int TDim> class Node; //forward declaration
+//    typedef Node<3> NodeType;
 
 ///@}
 ///@name  Enum's
@@ -275,7 +276,7 @@ namespace Kratos
          * @brief The () operator
          * @param pDoF The DoF pointer
          */
-        HashType operator()(const NodeType::DofType::Pointer& pDoF) const
+        HashType operator()(const typename Node<3>::DofType::Pointer& pDoF) const
         {
             HashType seed = 0;
             HashCombine(seed, pDoF->Id());
@@ -295,7 +296,7 @@ namespace Kratos
          * @param pDoF1 The first DoF pointer
          * @param pDoF2 The second DoF pointer
          */
-        bool operator()(const NodeType::DofType::Pointer& pDoF1, const NodeType::DofType::Pointer& pDoF2) const
+        bool operator()(const typename Node<3>::DofType::Pointer& pDoF1, const typename Node<3>::DofType::Pointer& pDoF2) const
         {
             return (((pDoF1->Id() == pDoF2->Id() && (pDoF1->GetVariable()).Key()) == (pDoF2->GetVariable()).Key()));
         }
