@@ -18,9 +18,9 @@ class KratosParticleSolver(KratosBaseFieldSolver):
         return ParticleMechanicsAnalysis(self.model, self.project_parameters)
 
     def SolveSolutionStep(self):
-        ##FIXME: Need to move this somewhere, should not be called here.
         coupling_model_part = self.model.GetModelPart("MPM_Coupling_Interface")
-        model_part = self.model["MPM_Material.Slip3D_Slip_Auto1"]
+        model_part_name = self.project_parameters["coupling_settings"]["interface_model_part_name"].GetString()
+        model_part = self.model.GetModelPart(model_part_name)
 
         ## Transfer information from coupling_mp to mp
         for coupling_node in coupling_model_part.Nodes:
