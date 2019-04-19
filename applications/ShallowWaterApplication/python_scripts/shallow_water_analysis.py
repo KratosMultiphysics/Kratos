@@ -2,10 +2,9 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 class ShallowWaterAnalysis(AnalysisStage):
     ''' Main script for shallow water simulations '''

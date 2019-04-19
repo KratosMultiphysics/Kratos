@@ -39,7 +39,7 @@ class AdaptativeRemeshingImplicitMechanicalSolver(structural_mechanics_implicit_
 
         # Construct the base solver.
         super(AdaptativeRemeshingImplicitMechanicalSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[AdaptativeRemeshingImplicitMechanicalSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[AdaptativeRemeshingImplicitMechanicalSolver]:: ", "Construction finished")
 
     #### Private functions ####
 
@@ -47,7 +47,7 @@ class AdaptativeRemeshingImplicitMechanicalSolver(structural_mechanics_implicit_
         super(AdaptativeRemeshingImplicitMechanicalSolver, self).AddVariables()
         if not missing_meshing_dependencies:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
-        self.print_on_rank_zero("::[AdaptativeRemeshingImplicitMechanicalSolver]:: ", "Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[AdaptativeRemeshingImplicitMechanicalSolver]:: ", "Variables ADDED")
 
     def get_remeshing_process(self):
         if not hasattr(self, '_remeshing_process'):
