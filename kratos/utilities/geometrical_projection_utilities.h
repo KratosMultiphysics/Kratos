@@ -149,7 +149,7 @@ public:
      * @return Distance The distance between surfaces
      */
     template<class TGeometryType>
-    static inline double FastProjectOnGeometry(TGeometryType& rGeom,
+    static inline double FastProjectOnGeometry(const TGeometryType& rGeom,
                                                const Point& rPointToProject,
                                                PointType& rPointProjected,
                                                const SizeType EchoLevel = 0)
