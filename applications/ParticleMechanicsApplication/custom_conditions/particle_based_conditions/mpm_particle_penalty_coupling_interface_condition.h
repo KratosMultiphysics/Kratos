@@ -184,8 +184,6 @@ protected:
 
     virtual void CalculateNodalContactForce( const VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, const bool CalculateResidualVectorFlag );
 
-    // virtual void CalculateNodalContactForceAlternative( const MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo, const bool CalculateStiffnessMatrixFlag );
-
     virtual void CalculateInterfaceContactForce( ProcessInfo& rCurrentProcessInfo );
 
     ///@}

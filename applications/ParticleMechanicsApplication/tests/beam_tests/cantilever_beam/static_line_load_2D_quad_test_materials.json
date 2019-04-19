@@ -4,7 +4,7 @@
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "LinearElasticPlaneStrain2DLaw"
+                "name" : "LinearElasticIsotropicPlaneStrain2DLaw"
             },
             "Variables"        : {
                 "THICKNESS"     : 1.0,

@@ -4,7 +4,7 @@
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "HyperElasticPlaneStrainUP2DLaw"
+                "name" : "HyperElasticNeoHookeanPlaneStrainUP2DLaw"
             },
             "Variables"        : {
                 "THICKNESS"     : 1.0,
