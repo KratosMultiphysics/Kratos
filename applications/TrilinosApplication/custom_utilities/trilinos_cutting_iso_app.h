@@ -1280,8 +1280,8 @@ public:
         //looping the nodes, no data is assigned to elements
         for (ModelPart::NodesContainerType::iterator it = new_model_part.NodesBegin(); it != new_model_part.NodesEnd(); it++)
         {
-            double* node0_data = it->GetValue(FATHER_NODES)[0].SolutionStepData().Data(0); //current step only, (since we'll call this every timestep
-            double* node1_data = it->GetValue(FATHER_NODES)[1].SolutionStepData().Data(0);
+            double* node0_data = it->GetValue(FATHER_NODES)[0]->SolutionStepData().Data(0); //current step only, (since we'll call this every timestep
+            double* node1_data = it->GetValue(FATHER_NODES)[1]->SolutionStepData().Data(0);
             double weight = it->GetValue(WEIGHT_FATHER_NODES);
             double* step_data = (it)->SolutionStepData().Data(0);
             double partition_index= it->FastGetSolutionStepValue(PARTITION_INDEX);
