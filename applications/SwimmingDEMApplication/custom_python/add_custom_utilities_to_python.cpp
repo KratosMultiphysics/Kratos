@@ -396,7 +396,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 
 
     py::class_<BassetForceTools> (m, "BassetForceTools")
-        .def(py::init<>())
+        .def(py::init<Parameters&>())
         .def("FillDaitcheVectors", &BassetForceTools::FillDaitcheVectors)
         .def("FillHinsbergVectors", &BassetForceTools::FillHinsbergVectors)
         .def("AppendIntegrands", &BassetForceTools::AppendIntegrands)

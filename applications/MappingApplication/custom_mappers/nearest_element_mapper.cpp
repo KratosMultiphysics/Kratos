@@ -93,7 +93,7 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rIn
     if ((geom_family == GeometryData::Kratos_Linear        && num_nodes == 2) || // linear line
         (geom_family == GeometryData::Kratos_Triangle      && num_nodes == 3) || // linear triangle
         (geom_family == GeometryData::Kratos_Quadrilateral && num_nodes == 4)) { // linear quad
-        is_inside = ProjectTo1D2D(p_geom, point_to_proj, local_coords, proj_dist);
+        is_inside = GeometricalProjectionUtilities::ProjectOnGeometry(*p_geom, point_to_proj, local_coords, proj_dist);
     }
     else if (geom_family == GeometryData::Kratos_Tetrahedra ||
              geom_family == GeometryData::Kratos_Prism ||
@@ -220,8 +220,14 @@ std::string NearestElementLocalSystem::PairingInfo(const int EchoLevel, const in
 
     std::stringstream buffer;
     buffer << "NearestElementLocalSystem based on " << mpNode->Info();
-    if (EchoLevel > 1) // TODO leave here?
+    if (EchoLevel > 1) {// TODO leave here?
         buffer << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
+        if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
+            mpNode->SetValue(PAIRING_STATUS, 0);
+        } else {
+            mpNode->SetValue(PAIRING_STATUS, -1);
+        }
+    }
     buffer << " in rank " << CommRank;
     return buffer.str();
 }

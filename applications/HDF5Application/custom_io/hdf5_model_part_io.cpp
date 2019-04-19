@@ -8,6 +8,7 @@
 #include "custom_utilities/factor_elements_and_conditions_utility.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/openmp_utils.h"
+#include "input_output/logger.h"
 
 namespace Kratos
 {
@@ -206,8 +207,9 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
     WriteConditions(rModelPart.Conditions());
     WriteSubModelParts(rModelPart);
 
-    if (mpFile->GetEchoLevel() == 1 && mpFile->GetPID() == 0)
-        std::cout << "Time to write model part \"" << rModelPart.Name() << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
+    KRATOS_INFO_IF("HDF5Application", mpFile->GetEchoLevel() == 1)
+        << "Time to write model part \"" << rModelPart.Name()
+        << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -226,8 +228,9 @@ void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
     Internals::ReadAndAssignBufferSize(*mpFile, mPrefix, rModelPart);
     ReadSubModelParts(rModelPart);
 
-    if (mpFile->GetEchoLevel() == 1 && mpFile->GetPID() == 0)
-        std::cout << "Time to read model part \"" << rModelPart.Name() << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
+    KRATOS_INFO_IF("HDF5Application", mpFile->GetEchoLevel() == 1)
+        << "Time to read model part \"" << rModelPart.Name()
+        << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
 
     KRATOS_CATCH("");
 }
