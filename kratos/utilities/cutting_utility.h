@@ -55,6 +55,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "processes/node_erase_process.h"
 #include "spatial_containers/spatial_containers.h"
+#include "includes/global_pointer_variables.h"
 
 
 namespace Kratos
@@ -345,12 +346,11 @@ public:
         for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i)
         {
             int index_i = i->Id() - 1;
-            WeakPointerVector< Node < 3 > >& neighb_nodes = i->GetValue(NEIGHBOUR_NODES);
+            auto& neighb_nodes = i->GetValue(NEIGHBOUR_NODES);
             Coord.push_back(index_i, index_i, -1);        //only modification added, now the diagonal is filled with -1 too.
 
             unsigned int active = 0;
-            for (WeakPointerVector< Node < 3 > >::iterator inode = neighb_nodes.begin();
-                    inode != neighb_nodes.end(); inode++)
+            for(auto& inode : neighb_nodes)
             {
                 int index_j = inode->Id() - 1;
                 if (index_j > index_i)
@@ -942,8 +942,8 @@ public:
         //looping the nodes, no data is assigned to elements
         for (ModelPart::NodesContainerType::iterator it = new_model_part.NodesBegin(); it != new_model_part.NodesEnd(); it++)
         {
-            double* node0_data = it->GetValue(FATHER_NODES)[0].SolutionStepData().Data(0); //current step only, (since we'll call this every timestep
-            double* node1_data = it->GetValue(FATHER_NODES)[1].SolutionStepData().Data(0);
+            double* node0_data = it->GetValue(FATHER_NODES)[0]->SolutionStepData().Data(0); //current step only, (since we'll call this every timestep
+            double* node1_data = it->GetValue(FATHER_NODES)[1]->SolutionStepData().Data(0);
             double    weight   = it->GetValue(WEIGHT_FATHER_NODES);
             double* step_data = (it)->SolutionStepData().Data(0);
 

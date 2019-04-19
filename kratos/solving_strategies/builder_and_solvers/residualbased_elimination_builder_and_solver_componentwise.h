@@ -28,6 +28,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -634,25 +635,23 @@ protected:
         #pragma omp parallel for firstprivate(number_of_threads,pos) schedule(static,1)
         for(int k=0; k<number_of_threads; k++)
         {
-            WeakPointerVector< Node<3> >::iterator it_begin = mActiveNodes.begin()+partition[k];
-            WeakPointerVector< Node<3> >::iterator it_end = mActiveNodes.begin()+partition[k+1];
+            auto it_begin = mActiveNodes.begin()+partition[k];
+            auto it_end = mActiveNodes.begin()+partition[k+1];
 
-            for(WeakPointerVector< Node<3> >::iterator in = it_begin;
-                    in!=it_end; in++)
+            for(auto in = it_begin;in!=it_end; in++)
             {
                 const Node<3>::DofType& current_dof = in->GetDof(rVar,pos);
                 if( current_dof.IsFixed() == false)
                 {
                     int index_i = (current_dof).EquationId();
-                    WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+                    auto& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
                     std::vector<int>& indices = index_list[index_i];
                     indices.reserve(neighb_nodes.size()+1);
 
                     //filling the first neighbours list
                     indices.push_back(index_i);
-                    for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
-                            i != neighb_nodes.end(); i++)
+                    for(auto& i : neighb_nodes)
                     {
 
                         const Node<3>::DofType& neighb_dof = i->GetDof(rVar,pos);

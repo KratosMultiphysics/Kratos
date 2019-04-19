@@ -12,7 +12,6 @@
 //                    
 //
 
-#include "includes/model_part.h"
 
 #if !defined(KRATOS_BODY_DISTANCE_CALCULATION_UTILS )
 #define  KRATOS_BODY_DISTANCE_CALCULATION_UTILS
@@ -28,7 +27,8 @@
 //#include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "includes/deprecated_variables.h"
-
+#include "includes/global_pointer_variables.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -356,7 +356,7 @@ public:
                 confirmed_failures++;
                 double davg = 0.0;
                 double counter = 0.0;
-                for (WeakPointerVector< Node < 3 > >::iterator in = it->GetValue(NEIGHBOUR_NODES).begin(); in != it->GetValue(NEIGHBOUR_NODES).end(); in++)
+                for(auto& in : it->GetValue(NEIGHBOUR_NODES))
                 {
                     if (in->GetValue(IS_VISITED) == 1)
                     {

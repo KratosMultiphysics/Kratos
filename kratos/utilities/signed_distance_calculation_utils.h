@@ -472,8 +472,7 @@ public:
             double zc = in->Z();
 
             double h = 0.0;
-            for (WeakPointerVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
-                    i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
+            for(auto& i : in->GetValue(NEIGHBOUR_NODES))
             {
                 double x = i->X();
                 double y = i->Y();

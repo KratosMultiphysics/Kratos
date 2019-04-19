@@ -452,9 +452,9 @@ KRATOS_CREATE_VARIABLE(Matrix, INERTIA)
 //for General kratos application:
 KRATOS_CREATE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW)
 //NEIGHBOUR_NODES defined in node.h
-KRATOS_CREATE_VARIABLE(WeakPointerVector<NodeType >, NEIGHBOUR_NODES)
+//KRATOS_CREATE_VARIABLE(GlobalPointersVector< NodeType >, NEIGHBOUR_NODES)
 //FATHER_NODES defined in node.h
-KRATOS_CREATE_VARIABLE(WeakPointerVector<NodeType >, FATHER_NODES)
+//KRATOS_CREATE_VARIABLE(GlobalPointersVector< NodeType >, FATHER_NODES)
 //NEIGHBOR_ELEMENTS defined in element.h
 KRATOS_CREATE_VARIABLE(WeakPointerVector<Element>, NEIGHBOUR_ELEMENTS)
 //NEIGHBOR_CONDITIONS defined in condition.h
@@ -568,8 +568,8 @@ void KratosApplication::RegisterVariables() {
     KratosApplication::RegisterDEMVariables();      //TODO: move to application
     KratosApplication::RegisterFSIVariables();      //TODO: move to application
     KratosApplication::RegisterMATVariables();      //TODO: move to application
-    KratosApplication::
-        RegisterLegacyStructuralAppVariables();  //TODO: move to application
+    KratosApplication::RegisterLegacyStructuralAppVariables();  //TODO: move to application
+    KratosApplication::RegisterGlobalPointerVariables();
 
     // Variables that should be moved to applications (but have too many dependencies)
     KRATOS_REGISTER_VARIABLE(FRACTIONAL_STEP)
@@ -723,8 +723,8 @@ void KratosApplication::RegisterVariables() {
     //GEOMETRICAL
     KRATOS_REGISTER_VARIABLE(NODAL_H)
 
-    KRATOS_REGISTER_VARIABLE(NEIGHBOUR_NODES)
-    KRATOS_REGISTER_VARIABLE(FATHER_NODES)
+    //KRATOS_REGISTER_VARIABLE(NEIGHBOUR_NODES)
+    //KRATOS_REGISTER_VARIABLE(FATHER_NODES)
     KRATOS_REGISTER_VARIABLE(NEIGHBOUR_ELEMENTS)
     KRATOS_REGISTER_VARIABLE(NEIGHBOUR_CONDITIONS)
 

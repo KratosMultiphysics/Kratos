@@ -21,7 +21,7 @@
 #include "includes/define.h"
 #include "includes/c2c_variables.h"
 #include "includes/kernel.h"
-#include "includes/node.h"
+//#include "includes/node.h"
 
 #include "includes/kratos_flags.h"
 
