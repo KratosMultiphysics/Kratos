@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 
 # Importing the base class
 from kratos_base_field_solver import KratosBaseFieldSolver
