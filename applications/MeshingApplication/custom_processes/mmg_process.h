@@ -115,16 +115,12 @@ public:
     typedef Geometry<NodeType>                                     GeometryType;
     /// Properties definition
     typedef Properties                                           PropertiesType;
-    /// Element definition
-    typedef Element                                                 ElementType;
-    /// Condition definition
-    typedef Condition                                             ConditionType;
 
     /// DoF definition
     typedef Dof<double>                                                 DofType;
 
     /// Mesh definition
-    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
+    typedef Mesh<NodeType, PropertiesType, Element, Condition>         MeshType;
     /// Properties container definition
     typedef MeshType::PropertiesContainerType           PropertiesContainerType;
     /// Nodes container definition
@@ -484,7 +480,7 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pCondition The pointer to the new condition created
      */
-    ConditionType::Pointer CreateCondition0(
+    Condition::Pointer CreateCondition0(
         const IndexType CondId,
         int& PropId,
         int& IsRequired,
@@ -498,7 +494,7 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pCondition The pointer to the new condition created
      */
-    ConditionType::Pointer CreateCondition1(
+    Condition::Pointer CreateCondition1(
         const IndexType CondId,
         int& PropId,
         int& IsRequired,
@@ -512,7 +508,7 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pElement The pointer to the new condition created
      */
-    ElementType::Pointer CreateElement0(
+    Element::Pointer CreateElement0(
         const IndexType ElemId,
         int& PropId,
         int& IsRequired,
@@ -526,7 +522,7 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pElement The pointer to the new condition created
      */
-    ElementType::Pointer CreateElement1(
+    Element::Pointer CreateElement1(
         const IndexType ElemId,
         int& PropId,
         int& IsRequired,
