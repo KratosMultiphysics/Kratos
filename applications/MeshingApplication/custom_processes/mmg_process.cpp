@@ -32,7 +32,6 @@
 #include "utilities/binbased_fast_point_locator.h"
 // Include the spatial containers needed for search
 #include "spatial_containers/spatial_containers.h" // kd-tree
-#include "includes/io.h"
 #include "includes/gid_io.h"
 #include "includes/model_part_io.h"
 
@@ -76,64 +75,7 @@ MmgProcess<TMMGLibray>::MmgProcess(
     ):mrThisModelPart(rThisModelPart),
       mThisParameters(ThisParameters)
 {
-    Parameters default_parameters = Parameters(R"(
-    {
-        "filename"                             : "out",
-        "discretization_type"                  : "Standard",
-        "isosurface_parameters"                :
-        {
-            "isosurface_variable"              : "DISTANCE",
-            "nonhistorical_variable"           : false,
-            "remove_regions"                   : false
-        },
-        "framework"                            : "Eulerian",
-        "internal_variables_parameters"        :
-        {
-            "allocation_size"                      : 1000,
-            "bucket_size"                          : 4,
-            "search_factor"                        : 2,
-            "interpolation_type"                   : "LST",
-            "internal_variable_interpolation_list" :[]
-        },
-        "force_sizes"                          :
-        {
-            "force_min"                           : false,
-            "minimal_size"                        : 0.1,
-            "force_max"                           : false,
-            "maximal_size"                        : 10.0
-        },
-        "advanced_parameters"                  :
-        {
-            "force_hausdorff_value"               : false,
-            "hausdorff_value"                     : 0.0001,
-            "no_move_mesh"                        : false,
-            "no_surf_mesh"                        : false,
-            "no_insert_mesh"                      : false,
-            "no_swap_mesh"                        : false,
-            "normal_regularization_mesh"          : false,
-            "deactivate_detect_angle"             : false,
-            "force_gradation_value"               : false,
-            "gradation_value"                     : 1.3
-        },
-        "save_external_files"                  : false,
-        "save_mdpa_file"                       : false,
-        "max_number_of_searchs"                : 1000,
-        "interpolate_non_historical"           : true,
-        "extrapolate_contour_values"           : true,
-        "surface_elements"                     : false,
-        "search_parameters"                    : {
-            "allocation_size"                     : 1000,
-            "bucket_size"                         : 4,
-            "search_factor"                       : 2.0
-        },
-        "echo_level"                           : 3,
-        "debug_result_mesh"                    : false,
-        "step_data_size"                       : 0,
-        "initialize_entities"                  : true,
-        "remesh_at_non_linear_iteration"       : false,
-        "buffer_size"                          : 0
-    })" );
-
+    Parameters default_parameters = GetDefaultParameters();
     mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     mStdStringFilename = mThisParameters["filename"].GetString();
