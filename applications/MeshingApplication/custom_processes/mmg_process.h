@@ -28,6 +28,7 @@
 #include "includes/kratos_parameters.h"
 #include "utilities/variable_utils.h"
 #include "containers/variables_list.h"
+#include "meshing_application.h"
 
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
@@ -61,27 +62,17 @@ namespace Kratos
 ///@{
 
     /// Index definition
-    typedef std::size_t                                               IndexType;
+    typedef std::size_t                  IndexType;
 
     /// Size definition
-    typedef std::size_t                                                SizeType;
+    typedef std::size_t                   SizeType;
 
     /// Index vector
-    typedef std::vector<IndexType>                              IndexVectorType;
+    typedef std::vector<IndexType> IndexVectorType;
 
 ///@}
 ///@name  Enum's
 ///@{
-
-    /**
-     * @brief This enum defines the type of MMG libray used
-     */
-    enum class MMGLibray
-    {
-        MMG2D = 0,
-        MMG3D = 1,
-        MMGS  = 2
-    };
 
 ///@}
 ///@name  Functions
@@ -270,7 +261,12 @@ public:
     void ExecuteFinalize() override;
 
     /**
-     * @brief This function removes superfluous (defined by "not belonging to an element") nodes from the model part
+     * @brief This sets the output mesh in a .mdpa format
+     */
+    void OutputMdpa();
+
+    /**
+     * @brief Ths function removes superfluous (defined by "not belonging to an element") nodes from the model part
      */
     void CleanSuperfluousNodes();
 
