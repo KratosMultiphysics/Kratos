@@ -157,7 +157,7 @@ public:
         // using the normal in the center of the geometry for the projection
         array_1d<double,3> local_coords_center;
         rGeom.PointLocalCoordinates(local_coords_center, rGeom.Center());
-        const array_1d<double,3> normal = rGeom.Normal(local_coords_center);
+        const array_1d<double,3> normal = rGeom.UnitNormal(local_coords_center);
 
         return FastProjectDirection(
             rGeom,
