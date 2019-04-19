@@ -144,33 +144,28 @@ public:
      * @tparam TGeometryType The type of the geometry
      * @param rGeom The geometry where to be projected
      * @param rPointToProject The point to be projected
-     * @param rLocalCoords The local coordinates of the projection
-     * @return Inside True is inside, false not
+     * @param rPointProjected The point pojected over the line/plane
+     * @param EchoLevel If we want debugging info we should consider greater than 0
+     * @return Distance The distance between surfaces
      */
     template<class TGeometryType>
-    static inline bool ProjectOnGeometry(TGeometryType& rGeom,
-                           const Point& rPointToProject,
-                           array_1d<double,3>& rLocalCoords,
-                           double& rDistance,
-                           const SizeType EchoLevel = 0)
+    static inline double FastProjectOnGeometry(TGeometryType& rGeom,
+                                               const Point& rPointToProject,
+                                               PointType& rPointProjected,
+                                               const SizeType EchoLevel = 0)
     {
-        Point projected_point;
-
-        // using the normal in the center as trial for the projection
+        // using the normal in the center of the geometry for the projection
         array_1d<double,3> local_coords_center;
         rGeom.PointLocalCoordinates(local_coords_center, rGeom.Center());
-        const array_1d<double,3> normal = rGeom.UnitNormal(local_coords_center);
+        const array_1d<double,3> normal = rGeom.Normal(local_coords_center);
 
-        // trying to project to the geometry
-        rDistance = std::abs(FastProjectDirection(
+        return std::abs(FastProjectDirection(
             rGeom,
             rPointToProject,
-            projected_point,
+            rPointProjected,
             normal,
             normal,
             EchoLevel));
-
-        return rGeom.IsInside(projected_point, rLocalCoords, 1E-14);
     }
 
     /**
