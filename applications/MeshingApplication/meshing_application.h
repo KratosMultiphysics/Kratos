@@ -74,6 +74,16 @@ KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, double, CONTACT_ANGLE)
         MMGS  = 2
     };
 
+    /**
+     * @brief This enums allows to differentiate the working framework
+     */
+    enum class FrameworkEulerLagrange {EULERIAN = 0, LAGRANGIAN = 1, ALE = 2};
+
+    /**
+     * @brief This enums allows to differentiate the discretization options
+     */
+    enum class DiscretizationOption {STANDARD = 0, LAGRANGIAN = 1, ISOSURFACE = 2};
+
 ///@}
 ///@name  Functions
 ///@{
