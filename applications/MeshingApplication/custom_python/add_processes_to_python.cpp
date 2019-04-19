@@ -140,18 +140,21 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<MmgProcess<MMGLibray::MMG2D>, MmgProcess<MMGLibray::MMG2D>::Pointer, Process>(m, "MmgProcess2D")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
+    .def("CleanSuperfluousNodes", &MmgProcess<MMGLibray::MMG2D>::CleanSuperfluousNodes)
     ;
 
     // 3D
     py::class_<MmgProcess<MMGLibray::MMG3D>, MmgProcess<MMGLibray::MMG3D>::Pointer, Process>(m, "MmgProcess3D")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
+    .def("CleanSuperfluousNodes", &MmgProcess<MMGLibray::MMG3D>::CleanSuperfluousNodes)
     ;
 
     // 3D surfaces
     py::class_<MmgProcess<MMGLibray::MMGS>, MmgProcess<MMGLibray::MMGS>::Pointer, Process>(m, "MmgProcess3DSurfaces")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
+    .def("CleanSuperfluousNodes", &MmgProcess<MMGLibray::MMGS>::CleanSuperfluousNodes)
     ;
 #endif
 }
