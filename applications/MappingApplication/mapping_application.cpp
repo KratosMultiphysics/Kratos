@@ -99,5 +99,6 @@ void KratosMappingApplication::Register()
     KRATOS_REGISTER_MAPPER(NearestElementMapper,  "nearest_element");
 
     KRATOS_REGISTER_VARIABLE( INTERFACE_EQUATION_ID )
+    KRATOS_REGISTER_VARIABLE( PAIRING_STATUS )
 }
 }  // namespace Kratos.
