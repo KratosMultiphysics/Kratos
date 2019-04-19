@@ -43,6 +43,7 @@
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
 #include "processes/calculate_distance_to_skin_process.h"
+#include "includes/global_pointer_variables.h"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -442,13 +443,13 @@ public:
                         int n_good_neighbors = 0;
                         double pos_pres = 0.0;
                         double neg_pres = 0.0;
-                        WeakPointerVector< Node < 3 > >& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
+                        auto& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
                         
-                        for (WeakPointerVector< Node < 3 > >::iterator j = neighours.begin(); j != neighours.end(); j++) {
-                            if (j->Is(VISITED)) {
+                        for (auto j = neighours.begin(); j != neighours.end(); j++) {
+                            if ((*j)->Is(VISITED)) {
                                 n_good_neighbors++;
-                                pos_pres += j->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-                                neg_pres += j->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                                pos_pres += (*j)->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                                neg_pres += (*j)->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
                                 //KRATOS_WATCH("Good neighbor found")
                             }
                         }
@@ -489,22 +490,21 @@ public:
 		    double pos_pressure=p_structure_node->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
 		    double neg_pressure=p_structure_node->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
                     
-                    WeakPointerVector< Node < 3 > >& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
+            auto& neighbours = p_structure_node->GetValue(NEIGHBOUR_NODES);
 			
-	  	    if (neighours.size()>=1.0)
+	  	    if (neighbours.size()>=1.0)
 			{			    
 			    double av_pos_pres=0.0;
 			    double av_neg_pres=0.0;
-			    for( WeakPointerVector< Node<3> >::iterator j = neighours.begin();
-				        j != neighours.end(); j++)
+                for(auto& j : neighbours)
 			    {
 				
 					av_pos_pres+=j->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
 					av_neg_pres+=j->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
 										
 			    }
-			    av_pos_pres/=neighours.size();
-			    av_neg_pres/=neighours.size();
+			    av_pos_pres/=neighbours.size();
+			    av_neg_pres/=neighbours.size();
 			    
 			    //IF the average pressure of the neighbors is 10 times lower than of the given node, something is bad and we reset its value
 			    if (fabs(pos_pressure)>3.0*fabs(av_pos_pres))

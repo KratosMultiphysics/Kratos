@@ -18,6 +18,7 @@
 
 // Project includes
 #include "processes/mesh_node_collapsing_process.h"
+#include "includes/global_pointer_variables.h"
 
 
 
@@ -82,8 +83,8 @@ namespace Kratos
 		current_quality *= .1;
 
 		for (auto i_neighbour_node = r_neighbours.begin(); i_neighbour_node != r_neighbours.end(); i_neighbour_node++) {
-			if ((i_neighbour_node->IsNot(TO_COLLAPSE))) {
-				auto quality = CalculateQualityIfNodeCollapses(rThisNode, *i_neighbour_node);
+			if ((*i_neighbour_node)->IsNot(TO_COLLAPSE)) {
+				auto quality = CalculateQualityIfNodeCollapses(rThisNode, **i_neighbour_node);
 				if (quality > current_quality) {
 					current_quality = quality;
 					i_coarse_node = i_neighbour_node;
@@ -95,14 +96,17 @@ namespace Kratos
 			rThisNode.Set(TO_ERASE);
 			auto& neighbour_elements = rThisNode.GetValue(NEIGHBOUR_ELEMENTS);
 			for (auto i_element = neighbour_elements.begin(); i_element != neighbour_elements.end(); i_element++)
-				if (ElementHas(*i_element, *i_coarse_node))
+				if (ElementHas(*i_element, **i_coarse_node))
 					i_element->Set(TO_ERASE);
 				else
-					SwapElementNode(*i_element, rThisNode, i_coarse_node.base()->lock());
+				KRATOS_ERROR << "WE NEED INTRUSIVE PTR TO DO THIS - DISABLING";
+					//SwapElementNode(*i_element, rThisNode, **i_coarse_node);
 		}
 	}
 
-	double MeshNodeCollapsingProcess::CalculateQualityIfNodeCollapses(Node<3>& rThisNode, Node<3> const& rCoarseNode) {
+	double MeshNodeCollapsingProcess::CalculateQualityIfNodeCollapses(
+			Node<3>& rThisNode, 
+			Node<3> const& rCoarseNode) {
 		Point original_coordinates = rThisNode;
 		rThisNode.Coordinates() = rCoarseNode.Coordinates();
 		double min_quality = CalculateMinQualityOfNeighbourElements(rThisNode, rCoarseNode);

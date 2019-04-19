@@ -26,6 +26,7 @@
 #include "processes/find_nodal_neighbours_process.h"
 #include "modeler/tetrahedra_ball.h"
 #include "includes/checks.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -135,16 +136,17 @@ namespace Kratos
 		}
 	}
 
-	void MeshLocalSmoothingProcess::FindOptimumPositionsAndWeights(NodeType& rNode, PointsVectorType& rOptimumPoints, Vector& rWeights)
+	void MeshLocalSmoothingProcess::FindOptimumPositionsAndWeights(NodeType& rNode, 
+	PointsVectorType& rOptimumPoints, Vector& rWeights)
 	{
-		NeighboursVectorType const& r_neighbours = rNode.GetValue(NEIGHBOUR_NODES);
+		auto const& r_neighbours = rNode.GetValue(NEIGHBOUR_NODES);
 		// A laplacian smoothing is provided by this base class
 		const std::size_t size = r_neighbours.size();
 		rOptimumPoints.resize(size, Point{ZeroVector(3)});
 		rWeights.resize(size);
 		for (std::size_t i = 0; i < size; i++)
 		{
-			rOptimumPoints[i] = r_neighbours[i];
+			rOptimumPoints[i] = Point(r_neighbours[i]->Coordinates());
 			rWeights[i] = 1.00;
 		}
 	}
