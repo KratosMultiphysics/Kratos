@@ -14,6 +14,7 @@
 // Project includes
 #include "processes/mesh_coarsening_process.h"
 #include "modeler/tetrahedra_ball.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -61,8 +62,10 @@ namespace Kratos
 			if (i_node->IsNot(COARSE_MESH_NODE)) {
 				bool is_seed = true; // as a candidate
 				auto& r_neighbours = i_node->GetValue(NEIGHBOUR_NODES);
-				for (auto i_neighbour_node = r_neighbours.begin(); i_neighbour_node != r_neighbours.end(); i_neighbour_node++) {
-					if ((i_neighbour_node->Is(COARSE_MESH_NODE))) {
+				for (auto i_neighbour_node = r_neighbours.begin(); 
+					      i_neighbour_node != r_neighbours.end(); 
+						  i_neighbour_node++) {
+					if ((*i_neighbour_node)->Is(COARSE_MESH_NODE)) {
 						is_seed = false;
 						break;
 					}
