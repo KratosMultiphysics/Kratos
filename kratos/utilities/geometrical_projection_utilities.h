@@ -159,13 +159,13 @@ public:
         rGeom.PointLocalCoordinates(local_coords_center, rGeom.Center());
         const array_1d<double,3> normal = rGeom.Normal(local_coords_center);
 
-        return std::abs(FastProjectDirection(
+        return FastProjectDirection(
             rGeom,
             rPointToProject,
             rPointProjected,
             normal,
             normal,
-            EchoLevel));
+            EchoLevel);
     }
 
     /**
