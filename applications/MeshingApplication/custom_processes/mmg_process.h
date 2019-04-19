@@ -346,8 +346,8 @@ private:
 
     std::unordered_map<IndexType,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
 
-    std::unordered_map<IndexType,Element::Pointer>   mpRefElement;   /// Reference condition
-    std::unordered_map<IndexType,Condition::Pointer> mpRefCondition; /// Reference element
+    std::unordered_map<IndexType,Element::Pointer>   mpRefElement;   /// Reference element
+    std::unordered_map<IndexType,Condition::Pointer> mpRefCondition; /// Reference condition
 
     ///@}
     ///@name Private Operators
