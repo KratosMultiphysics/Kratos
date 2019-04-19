@@ -5,8 +5,8 @@ import KratosMultiphysics.ShallowWaterApplication as Shallow
 import KratosMultiphysics.MeshingApplication as Meshing
 
 ## Import base class file
-from eulerian_primitive_var_solver import EulerianPrimitiveVarSolver
-from multiscale_refining_process import MultiscaleRefiningProcess
+from KratosMultiphysics.ShallowWaterApplication.eulerian_primitive_var_solver import EulerianPrimitiveVarSolver
+from KratosMultiphysics.MeshingApplication.multiscale_refining_process import MultiscaleRefiningProcess
 
 def CreateSolver(model, custom_settings):
     return MultigridSolver(model, custom_settings)
@@ -60,7 +60,7 @@ class MultigridSolver(EulerianPrimitiveVarSolver):
 
         self.multigrid.ExecuteInitializeSolutionStep()
 
-        self.print_on_rank_zero("::[Multigrid solver]::", "Subscale Index:", self.GetComputingModelPart().GetValue(Meshing.SUBSCALE_INDEX))
+        KratosMultiphysics.Logger.PrintInfo("::[Multigrid solver]::", "Subscale Index:", self.GetComputingModelPart().GetValue(Meshing.SUBSCALE_INDEX))
 
         return new_time
 
