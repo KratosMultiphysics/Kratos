@@ -10,8 +10,9 @@
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
 //                   Felix Nagel
-//  contributors:    Hoang Giang Bui
+//  Contributors:    Hoang Giang Bui
 //                   Josep Maria Carbonell
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_LINE_2D_2_H_INCLUDED )
@@ -25,7 +26,7 @@
 #include "geometries/geometry.h"
 #include "integration/line_gauss_legendre_integration_points.h"
 #include "integration/line_collocation_integration_points.h"
-
+#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
@@ -53,8 +54,8 @@ namespace Kratos
  * @class Line2D2
  * @ingroup KratosCore
  * @brief An two node 2D line geometry with linear shape functions
- * @details The node ordering corresponds with: 
- *      0----------1 --> u  
+ * @details The node ordering corresponds with:
+ *      0----------1 --> u
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -883,6 +884,31 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
+        // The center of the geometry
+        const auto& r_center = this->Center();
+
+        // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
+        const CoordinatesArrayType aux_point = ZeroVector(3);
+        const array_1d<double, 3> normal = this->UnitNormal(aux_point);
+
+        // We compute the distance, if it is not in the pane we
+        const Point point_to_project(rPoint);
+        Point point_projected;
+        const array_1d<double,3> vector_points = rPoint - r_center.Coordinates();
+
+        const double distance = GeometricalProjectionUtilities::FastProjectDirection(*this, point_to_project, point_projected, normal,  vector_points, 0);
+
+        // We check if we are on the plane
+        if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
+            if (std::abs(distance) > 1.0e-6 * Length()) {
+                KRATOS_WARNING("Line2D2") << "The point of coordinates X: " << rPoint[0] << "\tY: " << rPoint[1] << " it is in a distance: " << std::abs(distance) << std::endl;
+                return false;
+            }
+
+            // Not in the plane, but allowing certain distance, projecting
+            noalias(point_projected) = rPoint - normal * distance;
+        }
+
         PointLocalCoordinates( rResult, rPoint );
 
         if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) ) {
