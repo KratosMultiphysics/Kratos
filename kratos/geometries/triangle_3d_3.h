@@ -28,6 +28,7 @@
 #include "geometries/line_3d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
+#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
@@ -873,13 +874,15 @@ public:
         const auto& r_center = this->Center();
 
         // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
-        CoordinatesArrayType aux_point = ZeroVector(3);
+        const CoordinatesArrayType aux_point = ZeroVector(3);
         const array_1d<double, 3> normal = this->UnitNormal(aux_point);
 
         // We compute the distance, if it is not in the pane we
-        CoordinatesArrayType point_projected = rPoint;
+        const Point point_to_project(rPoint);
+        Point point_projected;
         const array_1d<double,3> vector_points = rPoint - r_center.Coordinates();
-        const double distance = inner_prod(vector_points, normal);
+
+        const double distance = GeometricalProjectionUtilities::FastProjectDirection(*this, point_to_project, point_projected, normal,  vector_points, 0);
 
         // We check if we are on the plane
         if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
