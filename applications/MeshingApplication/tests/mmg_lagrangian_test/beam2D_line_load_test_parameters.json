@@ -33,6 +33,9 @@
         "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
         "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","LineLoad2D_Load_on_lines_Auto1"],
+        "linear_solver_settings"             : {
+            "solver_type" : "skyline_lu_factorization"
+        },
         "auxiliary_variables_list" : []
     },
     "processes"        : {
