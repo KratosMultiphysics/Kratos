@@ -27,30 +27,6 @@ namespace Kratos {
 typedef std::size_t IndexType;
 typedef std::size_t SizeType;
 
-typedef Node<3> NodeType;
-typedef Geometry<NodeType> GeometryType;
-typedef GeometryType* GeometryPointerType;
-typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
-
-namespace {
-
-bool ProjectIntoVolume(const GeometryPointerType pGeometry,
-                       const Point& rPointToProject,
-                       CoordinatesArrayType& rLocalCoords,
-                       double& rDistance)
-{
-    bool is_inside = pGeometry->IsInside(rPointToProject, rLocalCoords);
-
-    if (is_inside) {
-        // Calculate Distance
-        rDistance = MapperUtilities::ComputeDistance(rPointToProject, pGeometry->Center());
-        rDistance /= pGeometry->Volume(); // Normalize Distance by Volume
-    }
-
-    return is_inside;
-}
-}
-
 void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject,
                                                       const double NeighborDistance)
 {
@@ -61,7 +37,7 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rIn
 
     bool is_inside;
     double proj_dist;
-    CoordinatesArrayType local_coords;
+    array_1d<double, 3> local_coords;
 
     const Point point_to_proj(this->Coordinates());
 
@@ -76,7 +52,7 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rIn
     else if (geom_family == GeometryData::Kratos_Tetrahedra ||
              geom_family == GeometryData::Kratos_Prism ||
              geom_family == GeometryData::Kratos_Hexahedra) { // Volume projection
-        is_inside = ProjectIntoVolume(p_geom, point_to_proj, local_coords, proj_dist);
+        is_inside = MapperUtilities::ProjectIntoVolume(*p_geom, point_to_proj, local_coords, proj_dist);
     }
     else {
         is_inside = false;
