@@ -1,19 +1,19 @@
-// File created on Sat Apr 20 00:59:10 2019
+// File created on Sat Apr 20 11:26:49 2019
 // Mesh Information:
 // Number of Nodes: 363
 // Number of Elements: 0
 // Number of Conditions: 690
 // Number of SubModelParts: 2
-// SubModelPart pressure_side
+// SubModelPart pressure_side_tri
 //   Number of Nodes: 147
 //   Number of Elements: 0
 //   Number of Conditions: 232
-// SubModelPart suction_side
+// SubModelPart suction_side_tri
 //   Number of Nodes: 266
 //   Number of Elements: 0
 //   Number of Conditions: 458
 
-// Listing the SubModelParts: "pressure_side", "suction_side"
+// Listing the SubModelParts: "pressure_side_tri", "suction_side_tri"
 
 
 Begin ModelPartData
@@ -1082,7 +1082,7 @@ Begin Conditions SurfaceCondition3D3N
 690 0 182 218 185
 End Conditions // SurfaceCondition3D3N
 
-Begin SubModelPart pressure_side
+Begin SubModelPart pressure_side_tri
 Begin SubModelPartNodes
 1
 2
@@ -1468,9 +1468,9 @@ Begin SubModelPartConditions
 231
 232
 End SubModelPartConditions
-End SubModelPart // pressure_side
+End SubModelPart // pressure_side_tri
 
-Begin SubModelPart suction_side
+Begin SubModelPart suction_side_tri
 Begin SubModelPartNodes
 1
 2
@@ -2201,5 +2201,5 @@ Begin SubModelPartConditions
 689
 690
 End SubModelPartConditions
-End SubModelPart // suction_side
+End SubModelPart // suction_side_tri
 
