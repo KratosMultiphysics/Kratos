@@ -872,13 +872,9 @@ public:
         // The center of the geometry
         const auto& r_center = this->Center();
 
-        // Tangent vectors
-        const array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
-        const array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
-
         // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
-        array_1d<double, 3> normal;
-        MathUtils<double>::UnitCrossProduct(normal, tangent_xi, tangent_eta);
+        CoordinatesArrayType aux_point = ZeroVector(3);
+        const array_1d<double, 3> normal = this->UnitNormal(aux_point);
 
         // We compute the distance, if it is not in the pane we
         CoordinatesArrayType point_projected = rPoint;
