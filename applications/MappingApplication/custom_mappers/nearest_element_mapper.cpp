@@ -33,30 +33,6 @@ typedef GeometryType* GeometryPointerType;
 typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
 namespace {
-bool ProjectTo1D2D(const GeometryPointerType pGeometry,
-                   const Point& rPointToProject,
-                   CoordinatesArrayType& rLocalCoords,
-                   double& rDistance)
-{
-    CoordinatesArrayType local_coords_init;
-
-    Point projected_point;
-
-    // using the center as trial for the projection
-    pGeometry->PointLocalCoordinates(local_coords_init, pGeometry->Center());
-
-    // trying to project to the geometry
-    rDistance = std::abs(GeometricalProjectionUtilities::FastProjectDirection(
-        *pGeometry,
-        rPointToProject,
-        projected_point,
-        pGeometry->UnitNormal(local_coords_init),
-        pGeometry->UnitNormal(local_coords_init)));
-
-    bool is_inside = pGeometry->IsInside(projected_point, rLocalCoords, 1E-14);
-
-    return is_inside;
-}
 
 bool ProjectIntoVolume(const GeometryPointerType pGeometry,
                        const Point& rPointToProject,
