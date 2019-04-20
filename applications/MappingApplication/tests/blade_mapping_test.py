@@ -81,13 +81,19 @@ class BladeMappingTests(mapper_test_case.MapperTestCase):
 
          # this would be POINT_LOAD in regular StructuralMechanics (using FORCE to avoid the StructuralMechanics import)
         self.mapper_pressure_side.InverseMap(KM.FORCE, KM.REACTION, KratosMapping.Mapper.SWAP_SIGN | KratosMapping.Mapper.USE_TRANSPOSE)
+        self.__CheckValuesSum(self.model_part_fluid.GetSubModelPart("pressure_side_tri"), self.model_part_structure.GetSubModelPart("pressure_side_quad"), KM.REACTION, KM.FORCE)
+
+        # Note: Setting the solution again because in this case some nodes are shared and hence
+        # would slightly influence the computation
+        SetReactions(self.model_part_fluid)
         self.mapper_suction_side.InverseMap(KM.FORCE, KM.REACTION, KratosMapping.Mapper.SWAP_SIGN | KratosMapping.Mapper.USE_TRANSPOSE)
 
         if self.print_output:
             mapper_test_case.VtkOutputNodesHistorical(self.model_part_structure, KM.FORCE, "Blade_" + self.mapper_type + "_Structure_mapped_force_conserv")
 
         mapper_test_case.CheckHistoricalNonUniformValues(self.model_part_structure, KM.FORCE, GetFilePath(self.__GetFileName("balde_map_force_conserv")))
-        self.__CheckValuesSum(self.model_part_fluid, self.model_part_structure, KM.REACTION, KM.FORCE)
+
+        self.__CheckValuesSum(self.model_part_fluid.GetSubModelPart("suction_side_tri"), self.model_part_structure.GetSubModelPart("suction_side_quad"), KM.REACTION, KM.FORCE)
 
     def __CheckValuesSum(self, mp1, mp2, var1, var2):
         val_1 = KM.VariableUtils().SumHistoricalNodeVectorVariable(var1, mp1, 0)
