@@ -34,8 +34,6 @@ FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObj
     ) : mrModelPart1(rPart1),
         mrModelPart2(rPart2)
 {
-    const Parameters default_parameters = GetDefaultParameters();
-    mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 }
 
 /***********************************************************************************/
@@ -46,15 +44,14 @@ FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObj
     Model& rModel,
     Parameters ThisParameters
     ) : mrModelPart1(rModel.GetModelPart(ThisParameters["first_model_part_name"].GetString())),
-        mrModelPart2(rModel.GetModelPart(ThisParameters["second_model_part_name"].GetString())),
-        mThisParameters(ThisParameters)
+        mrModelPart2(rModel.GetModelPart(ThisParameters["second_model_part_name"].GetString()))
 {
     const Parameters default_parameters = GetDefaultParameters();
-    mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // Checking that the names of the model parts are not empty (this is supposed to be already declared)
-    const std::string& r_first_model_part_name = mThisParameters["first_model_part_name"].GetString();
-    const std::string& r_second_model_part_name = mThisParameters["second_model_part_name"].GetString();
+    const std::string& r_first_model_part_name = ThisParameters["first_model_part_name"].GetString();
+    const std::string& r_second_model_part_name = ThisParameters["second_model_part_name"].GetString();
 
     KRATOS_ERROR_IF(r_first_model_part_name == "") << "first_model_part_name must be defined on parameters" << std::endl;
     KRATOS_ERROR_IF(r_second_model_part_name == "") << "second_model_part_name must be defined on parameters" << std::endl;
