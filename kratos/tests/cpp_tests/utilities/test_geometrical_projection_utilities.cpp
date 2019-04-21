@@ -16,6 +16,7 @@
 #include "testing/testing.h"
 #include "utilities/geometrical_projection_utilities.h"
 
+#include "geometries/line_3d_2.h"
 #include "geometries/triangle_3d_3.h"
 
 namespace Kratos
@@ -29,6 +30,42 @@ using GeometryPointType = Geometry<Point>;
 
 namespace
 {
+
+GeometryNodeType::Pointer CreateLine3D2NForTestNode2D()
+{
+    GeometryNodeType::PointsArrayType points;
+    points.push_back(Kratos::make_shared<NodeType>(1, 0.0, 0.0, 0.0));
+    points.push_back(Kratos::make_shared<NodeType>(2, 1.0, 0.0, 0.0));
+
+    return GeometryNodeType::Pointer(new Line3D2<NodeType>(points));
+}
+
+GeometryPointType::Pointer CreateLine3D2NForTestPoint2D()
+{
+    GeometryPointType::PointsArrayType points;
+    points.push_back(Kratos::make_shared<Point>(0.0, 0.0, 0.0));
+    points.push_back(Kratos::make_shared<Point>(1.0, 0.0, 0.0));
+
+    return GeometryPointType::Pointer(new Line3D2<Point>(points));
+}
+
+GeometryNodeType::Pointer CreateLine3D2NForTestNode3D()
+{
+    GeometryNodeType::PointsArrayType points;
+    points.push_back(Kratos::make_shared<NodeType>(1, 1.0, 3.0, -1.0));
+    points.push_back(Kratos::make_shared<NodeType>(2, 3.0, 6.0, 0.0));
+
+    return GeometryNodeType::Pointer(new Line3D2<NodeType>(points));
+}
+
+GeometryPointType::Pointer CreateLine3D2NForTestPoint3D()
+{
+    GeometryPointType::PointsArrayType points;
+    points.push_back(Kratos::make_shared<Point>(1.0, 3.0, -1.0));
+    points.push_back(Kratos::make_shared<Point>(3.0, 6.0, 0.0));
+
+    return GeometryPointType::Pointer(new Line3D2<Point>(points));
+}
 
 GeometryNodeType::Pointer CreateTriangle3D3NForTestNode()
 {
@@ -108,6 +145,51 @@ void TestFastProjectOnGeometry(TGeometryType& rGeom)
     KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), 0.0);
 }
 
+template<class TGeometryType>
+void TestFastProjectOnLine2D(TGeometryType& rGeom)
+{
+    const double expected_proj_dist = -1.258;
+
+    const double x_coord = 0.325;
+
+    const Point point_to_proj(x_coord, expected_proj_dist,0.0);
+    Point projected_point;
+
+    const double proj_distance = GeometricalProjectionUtilities::FastProjectOnLine(
+        rGeom,
+        point_to_proj,
+        projected_point);
+
+    KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
+    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.X(), x_coord);
+    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Y(), 0.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), 0.0);
+}
+
+template<class TGeometryType>
+void TestFastProjectOnLine3D(TGeometryType& rGeom)
+{
+    // Reference: Ref: https://www.qc.edu.hk/math/Advanced%20Level/Point_to_line.htm "Method 3 Using Dot Product"
+    const Point point_to_proj(-2.0, 4.0, -3.0);
+    Point projected_point;
+
+    const double proj_distance = GeometricalProjectionUtilities::FastProjectOnLine(
+        rGeom,
+        point_to_proj,
+        projected_point);
+
+    const double expected_proj_dist = std::sqrt(171/14);
+
+    const double expected_coord_x = 4/14;
+    const double expected_coord_y = 27/14;
+    const double expected_coord_z = -19/14;
+
+    KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
+    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.X(), expected_coord_x);
+    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Y(), expected_coord_y);
+    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), expected_coord_z);
+}
+
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectDirectionNode, KratosCoreFastSuite)
@@ -136,6 +218,24 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectOnGeometryPoi
     GeometryPointType::Pointer p_geom = CreateTriangle3D3NForTestPoint();
 
     TestFastProjectOnGeometry(*p_geom);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectOnLineNode, KratosCoreFastSuite)
+{
+    GeometryNodeType::Pointer p_geom = CreateLine3D2NForTestNode2D();
+    TestFastProjectOnLine2D(*p_geom);
+
+    p_geom = CreateLine3D2NForTestNode3D();
+    TestFastProjectOnLine3D(*p_geom);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectOnLinePoint, KratosCoreFastSuite)
+{
+    GeometryPointType::Pointer p_geom = CreateLine3D2NForTestPoint2D();
+    TestFastProjectOnLine2D(*p_geom);
+
+    p_geom = CreateLine3D2NForTestPoint3D();
+    TestFastProjectOnLine3D(*p_geom);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProject, KratosCoreFastSuite)
