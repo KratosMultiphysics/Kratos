@@ -169,6 +169,33 @@ public:
     }
 
     /**
+     * @brief Project a point over a line (2D or 3D)
+     * @tparam TGeometryType The type of the line
+     * @param rGeom The line where to be projected
+     * @param rPointToProject The point to be projected
+     * @param rPointProjected The point pojected over the line
+     * @return Distance The distance between point and line
+     * source: https://www.qc.edu.hk/math/Advanced%20Level/Point_to_line.htm "Method 3 Using Dot Product"
+     */
+    template<class TGeometryType>
+    static inline double FastProjectOnLine(const TGeometryType& rGeom,
+                                           const Point& rPointToProject,
+                                           PointType& rPointProjected)
+    {
+        const array_1d<double, 3> p_a = rGeom[0].Coordinates();
+        const array_1d<double, 3> p_b = rGeom[1].Coordinates();
+        const array_1d<double, 3> ab = p_b - p_a;
+
+        const array_1d<double, 3> p_c = rPointToProject.Coordinates();
+
+        const double factor = (inner_prod(p_b, p_c) - inner_prod(p_a, p_c) - inner_prod(p_b, p_a) + inner_prod(p_a, p_a)) / inner_prod(ab, ab);
+
+        rPointProjected.Coordinates() = p_a + factor * ab;
+
+        return norm_2(rPointProjected.Coordinates()-p_c);
+    }
+
+    /**
      * @brief Projects iteratively to get the coordinate
      * @tparam TGeometryType The type of the geometry
      * @param rGeomOrigin The origin geometry
