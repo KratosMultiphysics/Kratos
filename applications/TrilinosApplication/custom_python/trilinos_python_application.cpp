@@ -55,7 +55,7 @@ PYBIND11_MODULE(KratosTrilinosApplication,m)
     AddCustomUtilitiesToPython(m);
     AddZoltanProcessesToPython(m);
 
-    //registering variables in python
+    // Registering variables in python
 
 }
 
