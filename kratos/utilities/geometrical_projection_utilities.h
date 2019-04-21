@@ -175,7 +175,7 @@ public:
      * @param rPointToProject The point to be projected
      * @param rPointProjected The point pojected over the line
      * @return Distance The distance between point and line
-     * source: https://www.qc.edu.hk/math/Advanced%20Level/Point_to_line.htm "Method 3 Using Dot Product"
+     * @link https://www.qc.edu.hk/math/Advanced%20Level/Point_to_line.htm "Method 3 Using Dot Product"
      */
     template<class TGeometryType>
     static inline double FastProjectOnLine(const TGeometryType& rGeom,
