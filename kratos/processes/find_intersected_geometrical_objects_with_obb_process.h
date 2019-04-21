@@ -166,6 +166,7 @@ protected:
     double mBoundingBoxFactor = -1.0;         /// The factor to be consider when computing the bounding box (if negative not considered)
     bool mDebugOBB = false;                   /// If we debug the boxes
     OBBHasIntersectionType mIntersectionType; /// Intersection type
+    Parameters mThisParameters;               /// The configuration parameters
 
     ///@}
     ///@name Protected Operators

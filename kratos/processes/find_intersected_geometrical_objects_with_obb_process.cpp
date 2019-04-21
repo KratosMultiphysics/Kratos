@@ -58,17 +58,17 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometr
 {
     const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-    BaseType::mThisParameters = ThisParameters;
+    mThisParameters = ThisParameters;
 
     // Checking that the names of the model parts are not empty (this is supposed to be already declared)
-    const std::string& r_first_model_part_name = BaseType::mThisParameters["first_model_part_name"].GetString();
-    const std::string& r_second_model_part_name = BaseType::mThisParameters["second_model_part_name"].GetString();
+    const std::string& r_first_model_part_name = mThisParameters["first_model_part_name"].GetString();
+    const std::string& r_second_model_part_name = mThisParameters["second_model_part_name"].GetString();
 
     KRATOS_ERROR_IF(r_first_model_part_name == "") << "first_model_part_name must be defined on parameters" << std::endl;
     KRATOS_ERROR_IF(r_second_model_part_name == "") << "second_model_part_name must be defined on parameters" << std::endl;
 
     // Setting the bounding box factor
-    mBoundingBoxFactor = BaseType::mThisParameters["bounding_box_factor"].GetDouble();
+    mBoundingBoxFactor = mThisParameters["bounding_box_factor"].GetDouble();
 
     // In case we consider the bounding box we set the BOUNDARY flag
     if (mBoundingBoxFactor > 0.0)
@@ -77,10 +77,10 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometr
         this->Set(BOUNDARY, false);
 
     // If we debug OBB
-    mDebugOBB = BaseType::mThisParameters["debug_obb"].GetBool();
+    mDebugOBB = mThisParameters["debug_obb"].GetBool();
 
     // The intersection type
-    mIntersectionType = ConvertInter(BaseType::mThisParameters["OBB_intersection_type"].GetString());
+    mIntersectionType = ConvertInter(mThisParameters["OBB_intersection_type"].GetString());
 
     // We create new properties for debugging
     if (mDebugOBB) {
