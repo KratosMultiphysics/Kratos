@@ -47,7 +47,7 @@ namespace Kratos {
             Properties::Pointer p_properties(new Properties(0));
             skin_part.CreateNewElement("Element2D2N", 1, {{ 100,200 }}, p_properties);
             StructuredMeshGeneratorProcess(geometry, surface_part, mesher_parameters).Execute();
-            FindIntersectedGeometricalObjectsProcess find_intersections(surface_part, skin_part);
+            FindIntersectedGeometricalObjectsProcess<Element> find_intersections(surface_part, skin_part);
             find_intersections.Execute();
 
             // GidIO<> gid_io_fluid("/home/rzorrilla/Desktop/surface_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
@@ -107,7 +107,7 @@ namespace Kratos {
             Properties::Pointer p_properties(new Properties(0));
             skin_part.CreateNewElement("Element2D2N", 1, {{ 100,200 }}, p_properties);
             StructuredMeshGeneratorProcess(geometry, surface_part, mesher_parameters).Execute();
-            FindIntersectedGeometricalObjectsProcess find_intersections(surface_part, skin_part);
+            FindIntersectedGeometricalObjectsProcess<Element> find_intersections(surface_part, skin_part);
             find_intersections.Execute();
 
             for (auto it_elem = surface_part.ElementsBegin(); it_elem != surface_part.ElementsEnd(); ++it_elem){
@@ -117,7 +117,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcessBoundingBoxIntersection2D, KratosCoreFastSuite)
         {
-              Model current_model;
+            Model current_model;
             ModelPart &skin_part = current_model.CreateModelPart("Boundaries");
             ModelPart &surface_part = current_model.CreateModelPart("Surface");
 
@@ -140,7 +140,7 @@ namespace Kratos {
             skin_part.CreateNewElement("Element2D2N", 1, {{ 100,200 }}, p_properties);
 
             // Create and call the FindIntersectedGeometricalObjectsProcess
-            FindIntersectedGeometricalObjectsProcess find_intersections(surface_part, skin_part);
+            FindIntersectedGeometricalObjectsProcess<Element> find_intersections(surface_part, skin_part);
             find_intersections.Execute();
 
             KRATOS_CHECK_IS_FALSE((surface_part.Elements()[0]).Is(SELECTED));
@@ -176,7 +176,7 @@ namespace Kratos {
             Properties::Pointer p_properties(new Properties(0));
             skin_part.CreateNewElement("Element3D3N", 1, { 1,2,3 }, p_properties);
             StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
-            FindIntersectedGeometricalObjectsProcess(volume_part, skin_part).Execute();
+            FindIntersectedGeometricalObjectsProcess<Element>(volume_part, skin_part).Execute();
             KRATOS_CHECK(volume_part.GetElement(3).IsNot(SELECTED));
             KRATOS_CHECK(volume_part.GetElement(4).IsNot(SELECTED));
             KRATOS_CHECK(volume_part.GetElement(5).Is(SELECTED));
@@ -188,7 +188,7 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcessNoIntersection3D, KratosCoreFastSuite)
         {
             // Generate the tetrahedron element
-              Model current_model;
+            Model current_model;
             ModelPart &volume_part = current_model.CreateModelPart("Volume");
             volume_part.CreateNewNode(34, 0.865646, 0.657938, 0.222985);
             volume_part.CreateNewNode(58, 0.770744, 0.570027, 0.204129);
@@ -220,7 +220,7 @@ namespace Kratos {
             skin_part.CreateNewElement("Element3D3N", 496, {723,652,710}, p_properties_1);
 
             // Call the intersections process
-            FindIntersectedGeometricalObjectsProcess(volume_part, skin_part).Execute();
+            FindIntersectedGeometricalObjectsProcess<Element>(volume_part, skin_part).Execute();
 
             // Check that there is no intersection
             KRATOS_CHECK(volume_part.GetElement(139).IsNot(SELECTED));
