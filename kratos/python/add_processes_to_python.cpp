@@ -56,8 +56,8 @@
 #include "processes/simple_mortar_mapper_wrapper_process.h"
 #include "processes/skin_detection_process.h"
 #include "processes/apply_periodic_boundary_condition_process.h"
+#include "processes/find_intersected_geometrical_objects_process.h"
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
-#include "includes/node.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -539,7 +539,17 @@ void  AddProcessesToPython(pybind11::module& m)
         ;
 
     py::class_<ApplyPeriodicConditionProcess, ApplyPeriodicConditionProcess::Pointer, Process>(m,"ApplyPeriodicConditionProcess")
-            .def(py::init<ModelPart&,ModelPart&, Parameters>())
+    .def(py::init<ModelPart&,ModelPart&, Parameters>())
+    ;
+
+    py::class_<FindIntersectedGeometricalObjectsProcess<Element>, FindIntersectedGeometricalObjectsProcess<Element>::Pointer, Process>(m,"FindIntersectedElementsProcess")
+    .def(py::init<ModelPart&,ModelPart&>())
+    .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<FindIntersectedGeometricalObjectsProcess<Condition>, FindIntersectedGeometricalObjectsProcess<Condition>::Pointer, Process>(m,"FindIntersectedConditionsProcess")
+    .def(py::init<ModelPart&,ModelPart&>())
+    .def(py::init<Model&, Parameters>())
     ;
 
     // The process to recover internal variables
