@@ -27,6 +27,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/variable_utils.h"
+#include "custom_utilities/mmg_utilities.h"
 #include "containers/variables_list.h"
 #include "meshing_application.h"
 
@@ -113,22 +114,6 @@ public:
     typedef Node <3>                                                   NodeType;
     // Geometry definition
     typedef Geometry<NodeType>                                     GeometryType;
-    /// Properties definition
-    typedef Properties                                           PropertiesType;
-
-    /// DoF definition
-    typedef Dof<double>                                                 DofType;
-
-    /// Mesh definition
-    typedef Mesh<NodeType, PropertiesType, Element, Condition>         MeshType;
-    /// Properties container definition
-    typedef MeshType::PropertiesContainerType           PropertiesContainerType;
-    /// Nodes container definition
-    typedef MeshType::NodeConstantIterator                 NodeConstantIterator;
-    /// Conditions container definition
-    typedef MeshType::ConditionConstantIterator       ConditionConstantIterator;
-    /// Elements container definition
-    typedef MeshType::ElementConstantIterator           ElementConstantIterator;
 
     /// Conditions array size
     static constexpr SizeType Dimension = (TMMGLibray == MMGLibray::MMG2D) ? 2 : 3;
@@ -142,20 +127,12 @@ public:
     /// The type of array considered for the tensor
     typedef typename std::conditional<Dimension == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
 
-    /// Double vector
-    typedef std::vector<double> DoubleVectorType;
-
-    /// Double vector map
-    typedef std::unordered_map<DoubleVectorType, IndexType, KeyHasherRange<DoubleVectorType>, KeyComparorRange<DoubleVectorType> > DoubleVectorMapType;
-
-    /// Index vector map
-    typedef std::unordered_map<IndexVectorType, IndexType, KeyHasherRange<IndexVectorType>, KeyComparorRange<IndexVectorType> > IndexVectorMapType;
-
     /// Colors map
     typedef std::unordered_map<IndexType,IndexType> ColorsMapType;
 
     /// Index pair
     typedef std::pair<IndexType,IndexType> IndexPairType;
+
 
     ///@}
     ///@name  Enum's
@@ -331,6 +308,8 @@ private:
     Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
     NodeType::DofsContainerType  mDofs;                              /// Storage for the dof of the node
 
+    MmgUtilities<TMMGLibray> mMmmgUtilities;                         /// The MMG utilities class
+
     char* mFilename;                                                 /// I/O file name
     std::string mStdStringFilename;                                  /// I/O file name (string)
     IndexType mEchoLevel;                                            /// The echo level
@@ -418,118 +397,6 @@ private:
     void InitializeElementsAndConditions();
 
     /**
-     * @brief It checks if the nodes are repeated and remove the repeated ones
-     */
-    IndexVectorType CheckNodes();
-
-    /**
-     * @brief It checks if the conditions are repeated and remove the repeated ones
-     */
-    IndexVectorType CheckConditions0();
-
-    /**
-     * @brief It checks if the conditions are repeated and remove the repeated ones
-     */
-    IndexVectorType CheckConditions1();
-
-    /**
-     * @brief It checks if the elemenst are removed and remove the repeated ones
-     */
-    IndexVectorType CheckElements0();
-
-    /**
-     * @brief It checks if the elemenst are removed and remove the repeated ones
-     */
-    IndexVectorType CheckElements1();
-
-    /**
-     * @brief It blocks certain nodes before remesh the model
-     * @param iNode The index of the node
-     */
-    void BlockNode(IndexType iNode);
-
-    /**
-     * @brief It blocks certain conditions before remesh the model
-     * @param iCondition The index of the condition
-     */
-    void BlockCondition(IndexType iCondition);
-
-    /**
-     * @brief It blocks certain elements before remesh the model
-     * @param iElement The index of the element
-     */
-    void BlockElement(IndexType iElement);
-
-    /**
-     * @brief It creates the new node
-     * @param iNode The index of the new noode
-     * @param Ref The submodelpart id
-     * @param IsRequired MMG value (I don't know that it does)
-     * @return pNode The pointer to the new node created
-     */
-    NodeType::Pointer CreateNode(
-        IndexType iNode,
-        int& Ref,
-        int& IsRequired
-        );
-
-    /**
-     * @brief It creates the new condition
-     * @param CondId The id of the condition
-     * @param PropId The submodelpart id
-     * @param IsRequired MMG value (I don't know that it does)
-     * @return pCondition The pointer to the new condition created
-     */
-    Condition::Pointer CreateCondition0(
-        const IndexType CondId,
-        int& PropId,
-        int& IsRequired,
-        bool SkipCreation
-        );
-
-    /**
-     * @brief It creates the new condition
-     * @param CondId The id of the condition
-     * @param PropId The submodelpart id
-     * @param IsRequired MMG value (I don't know that it does)
-     * @return pCondition The pointer to the new condition created
-     */
-    Condition::Pointer CreateCondition1(
-        const IndexType CondId,
-        int& PropId,
-        int& IsRequired,
-        bool SkipCreation
-        );
-
-    /**
-     * @brief It creates the new element
-     * @param ElemId The id of the element
-     * @param PropId The submodelpart id
-     * @param IsRequired MMG value (I don't know that it does)
-     * @return pElement The pointer to the new condition created
-     */
-    Element::Pointer CreateElement0(
-        const IndexType ElemId,
-        int& PropId,
-        int& IsRequired,
-        bool SkipCreation
-        );
-
-    /**
-     * @brief It creates the new element
-     * @param ElemId The id of the element
-     * @param PropId The submodelpart id
-     * @param IsRequired MMG value (I don't know that it does)
-     * @return pElement The pointer to the new condition created
-     */
-    Element::Pointer CreateElement1(
-        const IndexType ElemId,
-        int& PropId,
-        int& IsRequired,
-        bool SkipCreation
-        );
-
-    /**
      * @brief It saves the solution and mesh to files (for debugging pourpose g.e)
      * @param PostOutput If the file to save is after or before remeshing
      */
@@ -539,165 +406,6 @@ private:
      * @brief It frees the memory used during all the process
      */
     void FreeMemory();
-
-    /**
-     * @brief Initialisation of mesh and sol structures
-     * @detauils Initialisation of mesh and sol structures args of InitMesh:
-     * -# MMG5_ARG_start we start to give the args of a variadic func
-     * -# MMG5_ARG_ppMesh next arg will be a pointer over a MMG5_pMesh
-     * -# &mmgMesh pointer toward your MMG5_pMesh (that store your mesh)
-     * -# MMG5_ARG_ppMet next arg will be a pointer over a MMG5_pSol storing a metric
-     * -# &mmgSol pointer toward your MMG5_pSol (that store your metric)
-     */
-    void InitMesh();
-
-    /**
-     * @brief Here the verbosity is set
-     */
-    void InitVerbosity();
-
-    /**
-     * @brief Here the verbosity is set using the API
-     * @param VerbosityMMG The equivalent verbosity level in the MMG API
-     */
-    void InitVerbosityParameter(const IndexType VerbosityMMG);
-
-    /**
-     * @brief This sets the size of the mesh
-     * @param NumNodes Number of nodes
-     * @param NumArrayElements Number of Elements
-     * @param NumArrayConditions Number of Conditions
-     */
-    void SetMeshSize(
-        const SizeType NumNodes,
-        const array_1d<SizeType, ElementsArraySize>& NumArrayElements,
-        const array_1d<SizeType, ConditionsArraySize>& NumArrayConditions
-        );
-
-    /**
-     * @brief This sets the size of the solution for the scalar case
-     * @param NumNodes Number of nodes
-     */
-    void SetSolSizeScalar(const SizeType NumNodes);
-
-    /**
-     * @brief This sets the size of the solution for the vector case
-     * @param NumNodes Number of nodes
-     */
-    void SetSolSizeVector(const SizeType NumNodes);
-
-    /**
-     * @brief This sets the size of the solution for the tensor case
-     * @param NumNodes Number of nodes
-     */
-    void SetSolSizeTensor(const SizeType NumNodes);
-
-    /**
-     * @brief This checks the mesh data and prints if it is OK
-     */
-    void CheckMeshData();
-
-    /**
-     * @brief This sets the output mesh
-     * @param PostOutput If the ouput file is the solution after take into account the metric or not
-     * @param Step The step to postprocess
-     */
-    void OutputMesh(
-        const bool PostOutput,
-        const IndexType Step
-        );
-
-    /**
-     * @brief This sets the output sol
-     * @param PostOutput If the ouput file is the solution after take into account the metric or not
-     * @param Step The step to postprocess
-     */
-    void OutputSol(
-        const bool PostOutput,
-        const IndexType Step
-        );
-
-    /**
-     * @brief This loads the solution
-     */
-    void MMGLibCallMetric();
-
-    /**
-     * @brief This loads the solution
-     */
-    void MMGLibCallIsoSurface();
-
-    /**
-     * @brief This frees the MMG structures
-     */
-    void FreeAll();
-
-    /**
-     * @brief This sets the nodes of the mesh
-     * @param X Coordinate X
-     * @param Y Coordinate Y
-     * @param Z Coordinate Z
-     * @param Color Reference of the node(submodelpart)
-     * @param Index The index number of the node
-     */
-    void SetNodes(
-        const double X,
-        const double Y,
-        const double Z,
-        const IndexType Color,
-        const IndexType Index
-        );
-
-    /**
-     * @brief This sets the conditions of the mesh
-     * @param Geom The geometry of the condition
-     * @param Color Reference of the node(submodelpart)
-     * @param Index The index number of the node
-     */
-    void SetConditions(
-        GeometryType& Geom,
-        const IndexType Color,
-        const IndexType Index
-        );
-
-    /**
-     * @brief This sets elements of the mesh
-     * @param Geom The geometry of the element
-     * @param Color Reference of the node(submodelpart)
-     * @param Index The index number of the node
-     */
-    void SetElements(
-        GeometryType& Geom,
-        const IndexType Color,
-        const IndexType Index
-        );
-
-    /**
-     * @brief This function is used to compute the metric scalar
-     * @param Metric The inverse of the size node
-     */
-    void SetMetricScalar(
-        const double Metric,
-        const IndexType NodeId
-        );
-
-    /**
-     * @brief This function is used to compute the metric vector (x, y, z)
-     * @param Metric This array contains the components of the metric vector
-     */
-    void SetMetricVector(
-        const array_1d<double, Dimension>& Metric,
-        const IndexType NodeId
-        );
-
-    /**
-     * @brief This function is used to compute the Hessian metric tensor, note that when using the Hessian, more than one metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
-     * @param Metric This array contains the components of the metric tensor in the MMG defined order
-     */
-    void SetMetricTensor(
-        const TensorArrayType& Metric,
-        const IndexType NodeId
-        );
 
     /**
      * @brief This function generates a list of submodelparts to be able to reassign flags after remesh
