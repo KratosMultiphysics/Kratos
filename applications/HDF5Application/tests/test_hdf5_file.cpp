@@ -530,7 +530,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_WriteAttribute2, KratosHDF5TestSuite)
         const int attr = 1;
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
             test_file.WriteAttribute("/foo", "ATTRIBUTE", attr);
-            , "H5Acreate_by_name failed.");
+            , "H5Aexists_by_name failed.");
         KRATOS_CHECK(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
     }
     H5close(); // Clean HDF5 for next unit test.
@@ -543,12 +543,30 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_WriteAttribute3, KratosHDF5TestSuite)
     {
         H5_stderr_muter muter;
         auto test_file = GetTestFile();
+        const double double_attr = 1.0;
+        test_file.CreateGroup("/foo");
+        test_file.WriteAttribute("/foo", "ATTRIBUTE", double_attr);
+        const HDF5::Matrix<int> mat_int_attr = TestMatrix<int>();
+        test_file.WriteAttribute("/foo", "ATTRIBUTE", mat_int_attr);
+        KRATOS_CHECK(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
+    }
+    H5close(); // Clean HDF5 for next unit test.
+    KRATOS_CATCH_WITH_BLOCK("", H5close(););
+}
+
+KRATOS_TEST_CASE_IN_SUITE(HDF5_File_DeleteAttribute1, KratosHDF5TestSuite)
+{
+    KRATOS_TRY;
+    {
+        H5_stderr_muter muter;
+        auto test_file = GetTestFile();
         const double attr = 1.0;
         test_file.CreateGroup("/foo");
         test_file.WriteAttribute("/foo", "ATTRIBUTE", attr);
+        test_file.DeleteAttribute("/foo", "ATTRIBUTE");
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
-            test_file.WriteAttribute("/foo", "ATTRIBUTE", attr);
-            , "H5Acreate_by_name failed.");
+            test_file.DeleteAttribute("/foo", "ATTRIBUTE");
+            , "H5Adelete_by_name failed.");
         KRATOS_CHECK(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
     }
     H5close(); // Clean HDF5 for next unit test.
