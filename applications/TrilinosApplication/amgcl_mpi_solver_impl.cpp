@@ -1,3 +1,18 @@
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
+//
+//  License:             BSD License
+//                                       Kratos default license: kratos/license.txt
+//
+//  Main authors:    Demis Denidov
+//
+
+// System includes
+
+// External includes
 #include <boost/range/iterator_range.hpp>
 #include <boost/property_tree/ptree.hpp>
 
@@ -19,10 +34,12 @@
 #  include <amgcl/backend/vexcl_static_matrix.hpp>
 #endif
 
+//Trilinos includes
 #include "Epetra_FECrsMatrix.h"
 #include "Epetra_FEVector.h"
-#include "trilinos_space.h"
 
+// Project includes
+#include "trilinos_space.h"
 #include "external_includes/amgcl_mpi_solve_functions.h"
 
 namespace Kratos
