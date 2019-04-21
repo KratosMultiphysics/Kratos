@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 import KratosMultiphysics as KM
 import basic_mapper_tests
+import blade_mapping_test
 
 class NearestElementBasicTestsLine(basic_mapper_tests.BasicMapperTests):
     @classmethod
@@ -68,6 +69,16 @@ class NearestElementBasicTestsVolumeSwitchedSides(basic_mapper_tests.BasicMapper
             "echo_level" : 0
         }""")
         super(NearestElementBasicTestsVolumeSwitchedSides, cls).setUpMapper(mapper_params, switch_sides=True)
+
+class NearestElementBladeMapping(blade_mapping_test.BladeMappingTests):
+    @classmethod
+    def setUpClass(cls):
+        mapper_params = KM.Parameters("""{
+            "mapper_type": "nearest_element",
+            "echo_level" : 0
+        }""")
+        super(NearestElementBladeMapping, cls).setUpMapper(mapper_params)
+        cls.print_output = False
 
 if __name__ == '__main__':
     import sys
