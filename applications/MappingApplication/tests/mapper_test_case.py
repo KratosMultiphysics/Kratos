@@ -127,7 +127,7 @@ def OutputReferenceSolution(model_part, variable, file_name):
 
     output_parameters = KM.Parameters("""{
         "output_variables"     : [\"""" + variable.Name() + """\"],
-        "output_file_name"     : \"""" + file_name + """\",
+        "output_file_name"     : \"""" + file_name + ".json" + """\",
         "model_part_name"      : \"""" + full_model_part_name + """\",
         "time_frequency"       : 0.00,
         "use_node_coordinates" : true
@@ -146,7 +146,7 @@ def CheckHistoricalNonUniformValues(model_part, variable, file_name, output_refe
 
         check_parameters = KM.Parameters("""{
             "check_variables"           : [\"""" + variable.Name() + """\"],
-            "input_file_name"           : \"""" + file_name + """\",
+            "input_file_name"           : \"""" + file_name + ".json" + """\",
             "model_part_name"           : \"""" + full_model_part_name + """\",
             "tolerance"                 : 1e-6,
             "relative_tolerance"        : 1e-9,

@@ -87,30 +87,25 @@ void TestFastProjectDirection(const TGeometryType& rGeom)
 }
 
 template<class TGeometryType>
-void TestProjectOnGeometry(TGeometryType& rGeom)
+void TestFastProjectOnGeometry(TGeometryType& rGeom)
 {
-    const double expected_proj_dist = 1.258;
+    const double expected_proj_dist = -1.258;
 
     const double x_coord = 0.325;
     const double y_coord = 0.147;
 
-    const Point point_to_proj(x_coord, y_coord, expected_proj_dist);
+    const Point point_to_proj(x_coord, y_coord, -expected_proj_dist);
+    Point projected_point;
 
-    array_1d<double,3> projection_local_coords;
-
-    double proj_distance;
-
-    const bool is_inside = GeometricalProjectionUtilities::ProjectOnGeometry(
+    const double proj_distance = GeometricalProjectionUtilities::FastProjectOnGeometry(
         rGeom,
         point_to_proj,
-        projection_local_coords,
-        proj_distance);
+        projected_point);
 
-    KRATOS_CHECK(is_inside);
     KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
-    KRATOS_CHECK_DOUBLE_EQUAL(projection_local_coords[0], 0.14315441462465977596);
-    KRATOS_CHECK_DOUBLE_EQUAL(projection_local_coords[1], 0.12813107740178911187);
-    KRATOS_CHECK_DOUBLE_EQUAL(projection_local_coords[2], 0.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.X(), x_coord);
+    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Y(), y_coord);
+    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), 0.0);
 }
 
 }
@@ -129,18 +124,18 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectDirectionPoin
     TestFastProjectDirection(*p_geom);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesProjectOnGeometryNode, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectOnGeometryNode, KratosCoreFastSuite)
 {
     GeometryNodeType::Pointer p_geom = CreateTriangle2D3NForTestNode();
 
-    TestProjectOnGeometry(*p_geom);
+    TestFastProjectOnGeometry(*p_geom);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesProjectOnGeometryPoint, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectOnGeometryPoint, KratosCoreFastSuite)
 {
     GeometryPointType::Pointer p_geom = CreateTriangle2D3NForTestPoint();
 
-    TestProjectOnGeometry(*p_geom);
+    TestFastProjectOnGeometry(*p_geom);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProject, KratosCoreFastSuite)
