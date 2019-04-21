@@ -507,7 +507,6 @@ protected:
     ModelPart& mrModelPart1;          /// First model part
     ModelPart& mrModelPart2;          /// Second model part
     OctreeType mOctree;               /// The octree structucture that performs the search
-    Parameters mThisParameters;       /// The configuration parameters
 
     ///@}
     ///@name Protected Operators
