@@ -30,7 +30,7 @@ using GeometryPointType = Geometry<Point>;
 namespace
 {
 
-GeometryNodeType::Pointer CreateTriangle2D3NForTestNode()
+GeometryNodeType::Pointer CreateTriangle3D3NForTestNode()
 {
     GeometryNodeType::PointsArrayType points;
     points.push_back(Kratos::make_shared<NodeType>(1,0.04, 0.02, 0.0));
@@ -40,7 +40,7 @@ GeometryNodeType::Pointer CreateTriangle2D3NForTestNode()
     return GeometryNodeType::Pointer(new Triangle3D3<NodeType>(points));
 }
 
-GeometryPointType::Pointer CreateTriangle2D3NForTestPoint()
+GeometryPointType::Pointer CreateTriangle3D3NForTestPoint()
 {
     GeometryPointType::PointsArrayType points;
     points.push_back(Kratos::make_shared<Point>(0.04, 0.02, 0.0));
@@ -112,28 +112,28 @@ void TestFastProjectOnGeometry(TGeometryType& rGeom)
 
 KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectDirectionNode, KratosCoreFastSuite)
 {
-    GeometryNodeType::Pointer p_geom = CreateTriangle2D3NForTestNode();
+    GeometryNodeType::Pointer p_geom = CreateTriangle3D3NForTestNode();
 
     TestFastProjectDirection(*p_geom);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectDirectionPoint, KratosCoreFastSuite)
 {
-    GeometryPointType::Pointer p_geom = CreateTriangle2D3NForTestPoint();
+    GeometryPointType::Pointer p_geom = CreateTriangle3D3NForTestPoint();
 
     TestFastProjectDirection(*p_geom);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectOnGeometryNode, KratosCoreFastSuite)
 {
-    GeometryNodeType::Pointer p_geom = CreateTriangle2D3NForTestNode();
+    GeometryNodeType::Pointer p_geom = CreateTriangle3D3NForTestNode();
 
     TestFastProjectOnGeometry(*p_geom);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectOnGeometryPoint, KratosCoreFastSuite)
 {
-    GeometryPointType::Pointer p_geom = CreateTriangle2D3NForTestPoint();
+    GeometryPointType::Pointer p_geom = CreateTriangle3D3NForTestPoint();
 
     TestFastProjectOnGeometry(*p_geom);
 }
