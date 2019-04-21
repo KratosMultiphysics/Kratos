@@ -303,7 +303,7 @@ namespace Internals {
     private:
 
         /// Assignment operator.
-        DistanceSpatialContainersConfigure& operator=(DistanceSpatialContainersConfigure const& rOther);
+        DistanceSpatialContainersConfigure& operator=(DistanceSpatialContainersConfigure const& rOther) = delete;
 
         /// Copy constructor.
         DistanceSpatialContainersConfigure(DistanceSpatialContainersConfigure const& rOther);
