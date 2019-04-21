@@ -398,7 +398,7 @@ public:
     FindIntersectedGeometricalObjectsProcess(FindIntersectedGeometricalObjectsProcess const& rOther) = delete;
 
     /// Destructor.
-    ~FindIntersectedGeometricalObjectsProcess() override {}
+    ~FindIntersectedGeometricalObjectsProcess() override = default;
 
     ///@name Member Variables
     ///@{
