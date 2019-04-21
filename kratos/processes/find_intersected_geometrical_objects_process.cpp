@@ -69,39 +69,19 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::Initialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void FindIntersectedGeometricalObjectsProcess<Element>::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults)
+template<class TEntity>
+void FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults)
 {
-    const SizeType number_of_elements = mrModelPart1.NumberOfElements();
-    auto& r_elements_array = mrModelPart1.ElementsArray();
+    auto& r_entities_array = this->GetIntersectingEntities();
+    const SizeType number_of_entities = r_entities_array.size();
     OtreeCellVectorType leaves;
 
     IndexType counter = 0;
-    rResults.resize(number_of_elements);
-    for (auto& r_element : r_elements_array) {
+    rResults.resize(number_of_entities);
+    for (auto& r_element : r_entities_array) {
         leaves.clear();
         mOctree.GetIntersectedLeaves(r_element, leaves);
         FindIntersectedSkinObjects(*r_element, leaves, rResults[counter]);
-        ++counter;
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void FindIntersectedGeometricalObjectsProcess<Condition>::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults)
-{
-    const SizeType number_of_conditions = mrModelPart1.NumberOfConditions();
-    auto& r_conditions_array = mrModelPart1.ConditionsArray();
-    OtreeCellVectorType leaves;
-
-    IndexType counter = 0;
-    rResults.resize(number_of_conditions);
-    for (auto& r_condition : r_conditions_array) {
-        leaves.clear();
-        mOctree.GetIntersectedLeaves(r_condition, leaves);
-        FindIntersectedSkinObjects(*r_condition, leaves, rResults[counter]);
         ++counter;
     }
 }
@@ -163,44 +143,23 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::Clear()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void FindIntersectedGeometricalObjectsProcess<Element>::Execute()
+template<class TEntity>
+void FindIntersectedGeometricalObjectsProcess<TEntity>::Execute()
 {
     // Calling initialize first (initialize Octree)
     ExecuteInitialize();
 
     OtreeCellVectorType leaves;
-    const int number_of_elements = static_cast<int>(mrModelPart1.NumberOfElements());
+    auto& r_entities_array = this->GetIntersectingEntities();
+    const SizeType number_of_entities = r_entities_array.size();
 
-    const auto it_elem_begin = mrModelPart1.ElementsBegin();
-
-    #pragma omp parallel for private(leaves)
-    for (int i = 0; i < number_of_elements; i++) {
-        auto it_elem = it_elem_begin + i;
-        leaves.clear();
-        IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_elem.base()), leaves);
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void FindIntersectedGeometricalObjectsProcess<Condition>::Execute()
-{
-    // Calling initialize first (initialize Octree)
-    ExecuteInitialize();
-
-    OtreeCellVectorType leaves;
-    const int number_of_conditions = static_cast<int>(mrModelPart1.NumberOfConditions());
-
-    const auto it_cond_begin = mrModelPart1.ConditionsBegin();
+    const auto it_entities_begin = r_entities_array.begin();
 
     #pragma omp parallel for private(leaves)
-    for (int i = 0; i < number_of_conditions; i++) {
-        auto it_cond = it_cond_begin + i;
+    for (int i = 0; i < number_of_entities; i++) {
+        auto it_entities = it_entities_begin + i;
         leaves.clear();
-        IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), leaves);
+        IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_entities.base()), leaves);
     }
 }
 
@@ -454,6 +413,24 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedSkinObjec
             }
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Element, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Element>::GetIntersectingEntities()
+{
+    return mrModelPart1.ElementsArray();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Condition, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Condition>::GetIntersectingEntities()
+{
+    return mrModelPart1.ConditionsArray();
 }
 
 /***********************************************************************************/
