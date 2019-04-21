@@ -11,10 +11,19 @@
 //                  Philipp Bucher
 //
 
+// System includes
 
-// // Project includes
+// External includes
 
-// // Linear solvers
+// Project includes
+
+//Trilinos includes
+#include "Epetra_FEVector.h"
+#include "Epetra_FECrsMatrix.h"
+
+// Project includes
+
+// Linear solvers
 #include "trilinos_linear_solver_factory.h"
 
 #include "external_includes/aztec_solver.h"
