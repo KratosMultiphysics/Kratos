@@ -148,11 +148,11 @@ void TestFastProjectOnGeometry(TGeometryType& rGeom)
 template<class TGeometryType>
 void TestFastProjectOnLine2D(TGeometryType& rGeom)
 {
-    const double expected_proj_dist = -1.258;
+    const double expected_proj_dist = 1.258;
 
     const double x_coord = 0.325;
 
-    const Point point_to_proj(x_coord, expected_proj_dist,0.0);
+    const Point point_to_proj(x_coord, expected_proj_dist, 0.0);
     Point projected_point;
 
     const double proj_distance = GeometricalProjectionUtilities::FastProjectOnLine(
@@ -178,11 +178,11 @@ void TestFastProjectOnLine3D(TGeometryType& rGeom)
         point_to_proj,
         projected_point);
 
-    const double expected_proj_dist = std::sqrt(171/14);
+    const double expected_proj_dist = std::sqrt(171.0/14.0);
 
-    const double expected_coord_x = 4/14;
-    const double expected_coord_y = 27/14;
-    const double expected_coord_z = -19/14;
+    const double expected_coord_x = 4.0/14.0;
+    const double expected_coord_y = 27.0/14.0;
+    const double expected_coord_z = -19.0/14.0;
 
     KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
     KRATOS_CHECK_DOUBLE_EQUAL(projected_point.X(), expected_coord_x);
