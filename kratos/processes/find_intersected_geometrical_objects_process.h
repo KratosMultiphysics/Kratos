@@ -504,9 +504,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mrModelPart1;          /// First model part
-    ModelPart& mrModelPart2;          /// Second model part
-    OctreeType mOctree;               /// The octree structucture that performs the search
+    ModelPart& mrModelPartIntersected;  /// Model part intersected
+    ModelPart& mrModelPartIntersecting; /// Model part intersecting
+    OctreeType mOctree;                 /// The octree structucture that performs the search
 
     ///@}
     ///@name Protected Operators
