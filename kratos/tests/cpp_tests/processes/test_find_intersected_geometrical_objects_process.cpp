@@ -273,8 +273,22 @@ namespace Kratos {
                 "echo_level"                            : 0
             })");
 
-            SkinDetectionProcess<3> surface_skin_process(r_surface_part, surface_parameters);
-            surface_skin_process.Execute();
+//             SkinDetectionProcess<3> surface_skin_process(r_surface_part, surface_parameters);
+//             surface_skin_process.Execute();
+
+            // Deterministic creation
+            r_surface_part.CreateNewCondition("SurfaceCondition3D3N",1, {{ 1, 6, 2 }}, p_properties_1);
+            r_surface_part.CreateNewCondition("SurfaceCondition3D3N",2, {{ 3, 1, 2 }}, p_properties_1);
+            r_surface_part.CreateNewCondition("SurfaceCondition3D3N",3, {{ 5, 6, 8 }}, p_properties_1);
+            r_surface_part.CreateNewCondition("SurfaceCondition3D3N",4, {{ 4, 7, 6 }}, p_properties_1);
+            r_surface_part.CreateNewCondition("SurfaceCondition3D3N",5, {{ 5, 8, 3 }}, p_properties_1);
+            r_surface_part.CreateNewCondition("SurfaceCondition3D3N",6, {{ 2, 5, 3 }}, p_properties_1);
+            r_surface_part.CreateNewCondition("SurfaceCondition3D3N",7, {{ 7, 3, 8 }}, p_properties_1);
+            r_surface_part.CreateNewCondition("SurfaceCondition3D3N",8, {{ 2, 6, 5 }}, p_properties_1);
+            r_surface_part.CreateNewCondition("SurfaceCondition3D3N",9, {{ 7, 8, 6 }}, p_properties_1);
+            r_surface_part.CreateNewCondition("SurfaceCondition3D3N",10, {{ 4, 6, 1 }}, p_properties_1);
+            r_surface_part.CreateNewCondition("SurfaceCondition3D3N",11, {{ 4, 3, 7 }}, p_properties_1);
+            r_surface_part.CreateNewCondition("SurfaceCondition3D3N",12, {{ 4, 1, 3 }}, p_properties_1);
 
             ModelPart& r_skin_part = r_main_model_part.CreateSubModelPart("Boundaries");
             r_skin_part.CreateNewNode(9 , -0.1 , 1.0 , 1.0);
