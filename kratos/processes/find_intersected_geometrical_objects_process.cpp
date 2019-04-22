@@ -14,15 +14,12 @@
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "geometries/line_2d_2.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "utilities/intersection_utilities.h"
-
 
 namespace Kratos
 {
@@ -156,7 +153,7 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::Execute()
     const auto it_entities_begin = r_entities_array.begin();
 
     #pragma omp parallel for private(leaves)
-    for (int i = 0; i < number_of_entities; i++) {
+    for (int i = 0; i < static_cast<int>(number_of_entities); i++) {
         auto it_entities = it_entities_begin + i;
         leaves.clear();
         IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_entities.base()), leaves);
@@ -175,19 +172,13 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::ExecuteInitialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-std::size_t FindIntersectedGeometricalObjectsProcess<Element>::WorkingSpaceDimension()
+template<class TEntity>
+std::size_t FindIntersectedGeometricalObjectsProcess<TEntity>::WorkingSpaceDimension()
 {
-    return mrModelPartIntersected.Elements().begin()->GetGeometry().WorkingSpaceDimension();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-std::size_t FindIntersectedGeometricalObjectsProcess<Condition>::WorkingSpaceDimension()
-{
-    return mrModelPartIntersected.Conditions().begin()->GetGeometry().WorkingSpaceDimension();
+    auto& r_entities_array = this->GetIntersectingEntities();
+    const auto it_entities_begin = r_entities_array.begin();
+    const auto& r_geometry = (*(it_entities_begin).base())->GetGeometry();
+    return r_geometry.WorkingSpaceDimension();
 }
 
 /***********************************************************************************/
