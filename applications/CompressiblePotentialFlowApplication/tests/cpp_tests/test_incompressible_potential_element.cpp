@@ -95,9 +95,14 @@ namespace Kratos {
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      KRATOS_CHECK_NEAR(RHS(0), 0.5, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(1), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(2), -0.5, 1e-7);
+      std::vector<double> reference(3);
+      reference[0] = 0.5;
+      reference[1] = 0.0;
+      reference[2] = -0.5;
+
+      for (unsigned int i = 0; i < RHS.size(); i++) {
+        KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
+      } 
     }
 
     KRATOS_TEST_CASE_IN_SUITE(IncompressiblePotentialFlowElementCalculateLocalSystemWake, CompressiblePotentialApplicationFastSuite)
@@ -143,12 +148,17 @@ namespace Kratos {
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      KRATOS_CHECK_NEAR(RHS(0), 0.5, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(1), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(2), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(3), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(4), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(5), -0.5, 1e-7);
+      std::vector<double> reference(6);
+      reference[0] = 0.5;
+      reference[1] = 0.0;
+      reference[2] = 0.0;
+      reference[3] = 0.0;
+      reference[4] = 0.0;
+      reference[5] = -0.5;
+
+      for (unsigned int i = 0; i < RHS.size(); i++) {
+        KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
+      } 
     }
 
     KRATOS_TEST_CASE_IN_SUITE(EmbeddedIncompressiblePotentialFlowElementCalculateLocalSystem, CompressiblePotentialApplicationFastSuite)
@@ -181,14 +191,19 @@ namespace Kratos {
       Vector RHS = ZeroVector(3);
       Matrix LHS = ZeroMatrix(3, 3);
 
-      pElement -> Set(BOUNDARY);
+      pElement->Set(BOUNDARY);
       pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      KRATOS_CHECK_NEAR(RHS(0), 0.125, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(1), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(2), -0.125, 1e-7);
+      std::vector<double> reference(3);
+      reference[0] = 0.125;
+      reference[1] = 0.0;
+      reference[2] = -0.125;
+
+      for (unsigned int i = 0; i < RHS.size(); i++) {
+        KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
+      } 
     }
 
 
@@ -217,9 +232,9 @@ namespace Kratos {
       pElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
 
       // Check the EquationIdVector values
-      KRATOS_CHECK(EquationIdVector[0] == 0);
-      KRATOS_CHECK(EquationIdVector[1] == 1);
-      KRATOS_CHECK(EquationIdVector[2] == 2);
+      for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
+        KRATOS_CHECK(EquationIdVector[i] == i);
+      } 
     }
 
     /** Checks the IncompressiblePotentialFlowElement element.
@@ -256,12 +271,9 @@ namespace Kratos {
       pElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
 
       //Check the EquationIdVector values
-      KRATOS_CHECK(EquationIdVector[0] == 0);
-      KRATOS_CHECK(EquationIdVector[1] == 1);
-      KRATOS_CHECK(EquationIdVector[2] == 2);
-      KRATOS_CHECK(EquationIdVector[3] == 3);
-      KRATOS_CHECK(EquationIdVector[4] == 4);
-      KRATOS_CHECK(EquationIdVector[5] == 5);
+      for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
+        KRATOS_CHECK(EquationIdVector[i] == i);
+      } 
     }
   } // namespace Testing
 }  // namespace Kratos.
