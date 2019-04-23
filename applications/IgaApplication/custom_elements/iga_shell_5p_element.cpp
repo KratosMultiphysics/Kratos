@@ -48,13 +48,13 @@ namespace Kratos
     {
         KRATOS_TRY
         
-        // if (m_phi1 == 1)
-        // KRATOS_WATCH("here: CalculateAllStart");
+        if (Id() == 1)
+            KRATOS_WATCH("here: CalculateAllStart");
 
         
         // definition of problem size
         const unsigned int number_of_nodes = GetGeometry().size();
-        unsigned int mat_size = number_of_nodes * 5;
+        const unsigned int mat_size = number_of_nodes * 5;
 
         //set up properties for Constitutive Law
         ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -83,28 +83,44 @@ namespace Kratos
         const Matrix& DDN_DDe = GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
     
         Vector shear_difference_vector = ZeroVector(3);
+        // derivatives of the shear difference vector
+        Vector Dw_D1 = ZeroVector(3);
+        Vector Dw_D2 = ZeroVector(3);
         // components w_alpha of the shear difference vector which calculates as (w_alpha(1) * g1 + w_alpha(2) * g2)
         Vector w_alpha = ZeroVector(2);
         // derivatives of the components w_alpha
         Matrix Dw_alpha_Dbeta = ZeroMatrix(2, 2);
 
+            KRATOS_WATCH("before metric")
+
         MetricVariables actual_metric(3, 6);
         CalculateMetric(actual_metric);
-        CalculateShearDifferenceVector(shear_difference_vector, w_alpha, Dw_alpha_Dbeta, actual_metric.g1, actual_metric.g2);
+        KRATOS_WATCH("metric 1")
+        CalculateShearDifferenceVector(shear_difference_vector, Dw_D1, Dw_D2, w_alpha, Dw_alpha_Dbeta, actual_metric);
+        KRATOS_WATCH("metric 2")
         ConstitutiveVariables constitutive_variables_membrane(6);
         ConstitutiveVariables constitutive_variables_curvature(6);
-        ConstitutiveVariables constitutive_variables_membrane_hr(6);
-        ConstitutiveVariables constitutive_variables_curvature_hr(6);
-        CalculateConstitutiveVariables(actual_metric, shear_difference_vector,
-            w_alpha, Dw_alpha_Dbeta, constitutive_variables_membrane, constitutive_variables_curvature,
-            constitutive_variables_membrane_hr, constitutive_variables_curvature_hr, Values, 
+        ConstitutiveVariables constitutive_variables_membrane_HR(6);
+        ConstitutiveVariables constitutive_variables_curvature_HR(6);
+        KRATOS_WATCH("metric3")
+        CalculateConstitutiveVariables(actual_metric, shear_difference_vector, w_alpha, 
+            Dw_alpha_Dbeta, Dw_D1, Dw_D2, constitutive_variables_membrane, constitutive_variables_curvature,
+            constitutive_variables_membrane_HR, constitutive_variables_curvature_HR, Values, 
             ConstitutiveLaw::StressMeasure_PK2);
 
+            KRATOS_WATCH("before B Matrices")
         // calculate B MATRICES
         Matrix BMembrane = ZeroMatrix(6, mat_size);
         Matrix BCurvature = ZeroMatrix(6, mat_size);
         CalculateBMembrane(BMembrane, actual_metric);
         CalculateBCurvature(BCurvature, actual_metric);
+        Matrix B_membrane_HR = ZeroMatrix(6, mat_size);
+        Matrix B_curvature_HR = ZeroMatrix(6, mat_size);
+        KRATOS_WATCH("B Matrices 1")
+        CalculateBMembraneHR(B_membrane_HR, shear_difference_vector, w_alpha, actual_metric.g1, actual_metric.g2);
+        KRATOS_WATCH("B Matrices 2")
+        CalculateBCurvatureHR(B_curvature_HR, w_alpha, Dw_alpha_Dbeta, Dw_D1, Dw_D2, actual_metric);
+        KRATOS_WATCH("after B Matrices")
 
         double integration_weight = GetValue(INTEGRATION_WEIGHT) * mInitialMetric.dA;
 
@@ -115,28 +131,34 @@ namespace Kratos
             
             // Nonlinear Deformation
             SecondVariations second_variations_strain(mat_size);
-            SecondVariations second_variations_curvature(mat_size);
+            SecondVariations second_variations_curvature(mat_size);        
+            SecondVariations second_variations_membrane_HR(mat_size);
+            SecondVariations second_variations_curvature_HR(mat_size);
             CalculateSecondVariationStrainCurvature(
                 second_variations_strain,
                 second_variations_curvature,
                 actual_metric);
+            CalculateSecondVariationStrainCurvatureHR(
+                second_variations_membrane_HR, second_variations_curvature_HR, w_alpha, Dw_alpha_Dbeta, actual_metric);
             
             //adding membrane contributions to the stiffness matrix
             CalculateAndAddKm(rLeftHandSideMatrix, BMembrane, constitutive_variables_membrane.D, integration_weight);
+            CalculateAndAddKm(rLeftHandSideMatrix, B_membrane_HR, constitutive_variables_membrane_HR.D, integration_weight);
             
             // KRATOS_WATCH(rLeftHandSideMatrix)
 
             //adding curvature contributions to the stiffness matrix
             CalculateAndAddKm(rLeftHandSideMatrix, BCurvature, constitutive_variables_curvature.D, integration_weight);
+            CalculateAndAddKm(rLeftHandSideMatrix, B_curvature_HR, constitutive_variables_curvature_HR.D, integration_weight);
 
             // adding  non-linear-contribution to Stiffness-Matrix
-            CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
-                second_variations_strain,
-                constitutive_variables_membrane.S,
+            CalculateAndAddNonlinearKm(rLeftHandSideMatrix, second_variations_strain, constitutive_variables_membrane.S,
                 integration_weight);
-            CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
-                second_variations_curvature,
-                constitutive_variables_curvature.S,
+            CalculateAndAddNonlinearKm(rLeftHandSideMatrix, second_variations_curvature, constitutive_variables_curvature.S,
+                integration_weight);
+            CalculateAndAddNonlinearKm(rLeftHandSideMatrix, second_variations_membrane_HR, constitutive_variables_membrane_HR.S,
+                integration_weight);
+            CalculateAndAddNonlinearKm(rLeftHandSideMatrix, second_variations_curvature_HR, constitutive_variables_curvature_HR.S,
                 integration_weight);
         }
 
@@ -149,6 +171,8 @@ namespace Kratos
             // operation performed: rRightHandSideVector -= Weight*IntForce
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.S);
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.S);
+            noalias(rRightHandSideVector) -= integration_weight * prod(trans(B_membrane_HR), constitutive_variables_membrane_HR.S);
+            noalias(rRightHandSideVector) -= integration_weight * prod(trans(B_curvature_HR), constitutive_variables_curvature_HR.S);
 
             // KRATOS_WATCH(rRightHandSideVector)
         }
@@ -337,6 +361,8 @@ namespace Kratos
         const Vector& rShearDifferenceVector,
         const Vector& rw_alpha,
         const Matrix& rDw_alpha_Dbeta,
+        const Vector& rDw_D1,
+        const Vector& rDw_D2,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         ConstitutiveVariables& rThisConstitutiveVariablesHRMembrane,
@@ -357,10 +383,9 @@ namespace Kratos
         rThisConstitutiveVariablesCurvature.E = prod(mInitialMetric.Q, curvature_vector);
         CalculateStrainHR(hr_strain_vector, rShearDifferenceVector, rActualMetric.g1, rActualMetric.g2);
         rThisConstitutiveVariablesHRMembrane.E = prod(mInitialMetric.Q, hr_strain_vector);
-        CalculateCurvatureHR(hr_curvature_vector, rw_alpha, rDw_alpha_Dbeta, rActualMetric);
+        CalculateCurvatureHR(hr_curvature_vector, rDw_D1, rDw_D2, rActualMetric.g1, rActualMetric.g2);
         rThisConstitutiveVariablesHRCurvature.E = prod(mInitialMetric.Q, hr_curvature_vector);
 
-        // 0ML
         //Constitive Matrices DMembrane and DCurvature
         rValues.SetStrainVector(rThisConstitutiveVariablesMembrane.E); //this is the input parameter
         rValues.SetStressVector(rThisConstitutiveVariablesMembrane.S);    //this is an ouput parameter
@@ -372,12 +397,18 @@ namespace Kratos
 
         rThisConstitutiveVariablesMembrane.D *= thickness;
         rThisConstitutiveVariablesCurvature.D = rThisConstitutiveVariablesMembrane.D * (pow(thickness, 2) / 12);
+        rThisConstitutiveVariablesHRMembrane.D = rThisConstitutiveVariablesMembrane.D * 5 / 6;
+        rThisConstitutiveVariablesHRCurvature.D = rThisConstitutiveVariablesHRMembrane.D;
 
         //Local Cartesian Forces and Moments
         rThisConstitutiveVariablesMembrane.S = prod(
             trans(rThisConstitutiveVariablesMembrane.D), rThisConstitutiveVariablesMembrane.E);
         rThisConstitutiveVariablesCurvature.S = prod(
             trans(rThisConstitutiveVariablesCurvature.D), rThisConstitutiveVariablesCurvature.E);
+        rThisConstitutiveVariablesHRMembrane.S = prod(
+            trans(rThisConstitutiveVariablesHRMembrane.D), rThisConstitutiveVariablesHRMembrane.E);
+        rThisConstitutiveVariablesHRCurvature.S = prod(
+            trans(rThisConstitutiveVariablesHRCurvature.D), rThisConstitutiveVariablesHRCurvature.E);
     }
 
     void IgaShell5pElement::CalculateStrain(
@@ -410,10 +441,11 @@ namespace Kratos
 
     void IgaShell5pElement::CalculateShearDifferenceVector(
         Vector& rShearDifferenceVector,
+        Vector& rDw_D1,
+        Vector& rDw_D2,
         Vector& rw_alpha,
         Matrix& rDw_alpha_Dbeta,
-        const Vector& rg1,
-        const Vector& rg2)
+        const MetricVariables& rActualMetric)
     {
         KRATOS_TRY; 
         
@@ -437,7 +469,16 @@ namespace Kratos
             rw_alpha(1) += N[i] * w_2;
         }
 
-        rShearDifferenceVector = rw_alpha(0) * rg1 + rw_alpha(1) * rg2;
+        // derivatives of the shear difference vector
+        rDw_D1 = rDw_alpha_Dbeta(0, 0) * rActualMetric.g1 + rDw_alpha_Dbeta(1, 0) * rActualMetric.g2;
+        rDw_D2 = rDw_alpha_Dbeta(0, 1) * rActualMetric.g1 + rDw_alpha_Dbeta(1, 1) * rActualMetric.g2;
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            rDw_D1[i] += rw_alpha(1) * rActualMetric.H(i, 0) + rw_alpha(2) * rActualMetric.H(i, 2);
+            rDw_D2[i] += rw_alpha(2) * rActualMetric.H(i, 2) + rw_alpha(2) * rActualMetric.H(i, 1);
+        }
+
+        rShearDifferenceVector = rw_alpha(0) * rActualMetric.g1 + rw_alpha(1) * rActualMetric.g2;
 
         KRATOS_CATCH("")
     }
@@ -455,27 +496,14 @@ namespace Kratos
 
     void IgaShell5pElement::CalculateCurvatureHR(
         Vector& rHRCurvatureVector,
-        const Vector& rw_alpha,
-        const Matrix& rDw_alpha_Dbeta,
-        const MetricVariables& rActualMetric)
+        const Vector& rDw_D1,
+        const Vector& rDw_D2,
+        const Vector& rg1,
+        const Vector& rg2)
     {
-        const Vector& N = GetValue(SHAPE_FUNCTION_VALUES);
-        const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-
-        // derivatives of the shear difference vector
-        Vector Dw_D1 = ZeroVector(3);
-        Vector Dw_D2 = ZeroVector(3);
-        Dw_D1 = rDw_alpha_Dbeta(0, 0) * rActualMetric.g1 + rDw_alpha_Dbeta(1, 0) * rActualMetric.g2;
-        Dw_D2 = rDw_alpha_Dbeta(0, 1) * rActualMetric.g1 + rDw_alpha_Dbeta(1, 1) * rActualMetric.g2;
-        for (unsigned int i = 0; i < 3; i++)
-        {
-            Dw_D1[i] += rw_alpha(1) * rActualMetric.H(i, 0) + rw_alpha(2) * rActualMetric.H(i, 2);
-            Dw_D2[i] += rw_alpha(2) * rActualMetric.H(i, 2) + rw_alpha(2) * rActualMetric.H(i, 1);
-        }
-
-        rHRCurvatureVector[0] = inner_prod(Dw_D1, rActualMetric.g1);
-        rHRCurvatureVector[1] = inner_prod(Dw_D2, rActualMetric.g2);
-        rHRCurvatureVector[3] = 0.5 * (inner_prod(Dw_D1, rActualMetric.g2) + inner_prod(Dw_D2, rActualMetric.g1));
+        rHRCurvatureVector[0] = inner_prod(rDw_D1, rg1);
+        rHRCurvatureVector[1] = inner_prod(rDw_D2, rg2);
+        rHRCurvatureVector[3] = 0.5 * (inner_prod(rDw_D1, rg2) + inner_prod(rDw_D2, rg1));
         // the other entries are (remain) zero
     }
 
@@ -486,27 +514,34 @@ namespace Kratos
         const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 
         const unsigned int number_of_control_points = GetGeometry().size();
-        const unsigned int mat_size = number_of_control_points * 3;
+        const unsigned int mat_size = number_of_control_points * 5;
 
-        if (rB.size1() != 3 || rB.size2() != mat_size)
-            rB.resize(3, mat_size);
-        rB = ZeroMatrix(3, mat_size);
+        if (rB.size1() != 6 || rB.size2() != mat_size)
+            rB.resize(6, mat_size);
+        rB = ZeroMatrix(6, mat_size);
 
         for (int r = 0; r < static_cast<int>(mat_size); r++)
         {
             // local node number kr and dof direction dirr
-            int kr = r / 3;
-            int dirr = r % 3;
+            int kr = r / 5;
+            int dirr = r % 5;
 
-            Vector dE_curvilinear = ZeroVector(3);
-            // strain
-            dE_curvilinear[0] = DN_De(kr, 0)*rMetric.g1(dirr);
-            dE_curvilinear[1] = DN_De(kr, 1)*rMetric.g2(dirr);
-            dE_curvilinear[2] = 0.5*(DN_De(kr, 0)*rMetric.g2(dirr) + rMetric.g1(dirr)*DN_De(kr, 1));
+            // "if" guarantees that there are zero entries corresponding to the new parameters w_1 and w_2
+            if (dirr == 0 || dirr == 1 || dirr == 2)
+            {
+                Vector dE_curvilinear = ZeroVector(3);
+                // strain
+                dE_curvilinear[0] = DN_De(kr, 0)*rMetric.g1(dirr);
+                dE_curvilinear[1] = DN_De(kr, 1)*rMetric.g2(dirr);
+                dE_curvilinear[2] = 0.5*(DN_De(kr, 0)*rMetric.g2(dirr) + rMetric.g1(dirr)*DN_De(kr, 1));
 
-            rB(0, r) = mInitialMetric.Q(0, 0)*dE_curvilinear[0] + mInitialMetric.Q(0, 1)*dE_curvilinear[1] + mInitialMetric.Q(0, 2)*dE_curvilinear[2];
-            rB(1, r) = mInitialMetric.Q(1, 0)*dE_curvilinear[0] + mInitialMetric.Q(1, 1)*dE_curvilinear[1] + mInitialMetric.Q(1, 2)*dE_curvilinear[2];
-            rB(2, r) = mInitialMetric.Q(2, 0)*dE_curvilinear[0] + mInitialMetric.Q(2, 1)*dE_curvilinear[1] + mInitialMetric.Q(2, 2)*dE_curvilinear[2];
+                // calculated with simplified Q (ML)
+                rB(0, r) = mInitialMetric.Q(0, 0) * dE_curvilinear[0] + mInitialMetric.Q(0, 1) * dE_curvilinear[1] 
+                + mInitialMetric.Q(0, 3) * dE_curvilinear[2];
+                rB(1, r) = mInitialMetric.Q(1, 1) * dE_curvilinear[1];
+                rB(3, r) = mInitialMetric.Q(3, 1) * dE_curvilinear[1] + mInitialMetric.Q(3, 3) * dE_curvilinear[2];
+                // all other entries of rB are (remain) zero
+            }
         }
         // KRATOS_WATCH(rB)
     }
@@ -522,18 +557,24 @@ namespace Kratos
             const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
             const Matrix& DDN_DDe = GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
             const int number_of_control_points = GetGeometry().size();
-            const int mat_size = number_of_control_points * 3;
+            const int mat_size_KL = number_of_control_points * 3;
+            const int mat_size = number_of_control_points * 5;
+            
+            if (rB.size1() != 6 || rB.size2() != mat_size)
+                rB.resize(6, mat_size);
+            rB = ZeroMatrix(6, mat_size);
 
             Matrix dg3 = ZeroMatrix(3, 3);
             Matrix dn = ZeroMatrix(3, 3);
-            Matrix b = ZeroMatrix(3, mat_size);
+            Matrix b = ZeroMatrix(3, mat_size_KL);
 
             double invdA = 1 / rMetric.dA;
             double inddA3 = 1 / std::pow(rMetric.dA, 3);
 
             for (int i = 0; i < number_of_control_points; i++)
             {
-                unsigned int index = 3 * i;
+                unsigned int index_KL = 3 * i;
+                unsigned int index = 5 * i;
                 //first line
                 dg3(0, 0) = 0;
                 dg3(0, 1) = -DN_De(i, 0) * rMetric.g2[2] + DN_De(i, 1)*rMetric.g1[2];
@@ -560,23 +601,19 @@ namespace Kratos
                     dn(j, 2) = dg3(j, 2)*invdA - rMetric.g3_notnorm[2] * g3dg3lg3;
                 }
 
-                // curvature vector [K11,K22,K12] referred to curvilinear coordinate system
-                b(0, index) = 0 - (DDN_DDe(i, 0) * rMetric.g3[0] + rMetric.H(0, 0)*dn(0, 0) + rMetric.H(1, 0)*dn(0, 1) + rMetric.H(2, 0)*dn(0, 2));
-                b(0, index + 1) = 0 - (DDN_DDe(i, 0) * rMetric.g3[1] + rMetric.H(0, 0)*dn(1, 0) + rMetric.H(1, 0)*dn(1, 1) + rMetric.H(2, 0)*dn(1, 2));
-                b(0, index + 2) = 0 - (DDN_DDe(i, 0) * rMetric.g3[2] + rMetric.H(0, 0)*dn(2, 0) + rMetric.H(1, 0)*dn(2, 1) + rMetric.H(2, 0)*dn(2, 2));
-
-                //second line
-                b(1, index) = 0 - (DDN_DDe(i, 1) * rMetric.g3[0] + rMetric.H(0, 1)*dn(0, 0) + rMetric.H(1, 1)*dn(0, 1) + rMetric.H(2, 1)*dn(0, 2));
-                b(1, index + 1) = 0 - (DDN_DDe(i, 1) * rMetric.g3[1] + rMetric.H(0, 1)*dn(1, 0) + rMetric.H(1, 1)*dn(1, 1) + rMetric.H(2, 1)*dn(1, 2));
-                b(1, index + 2) = 0 - (DDN_DDe(i, 1) * rMetric.g3[2] + rMetric.H(0, 1)*dn(2, 0) + rMetric.H(1, 1)*dn(2, 1) + rMetric.H(2, 1)*dn(2, 2));
-
-                //third line
-                b(2, index) = 0 - (DDN_DDe(i, 2) * rMetric.g3[0] + rMetric.H(0, 2)*dn(0, 0) + rMetric.H(1, 2)*dn(0, 1) + rMetric.H(2, 2)*dn(0, 2));
-                b(2, index + 1) = 0 - (DDN_DDe(i, 2) * rMetric.g3[1] + rMetric.H(0, 2)*dn(1, 0) + rMetric.H(1, 2)*dn(1, 1) + rMetric.H(2, 2)*dn(1, 2));
-                b(2, index + 2) = 0 - (DDN_DDe(i, 2) * rMetric.g3[2] + rMetric.H(0, 2)*dn(2, 0) + rMetric.H(1, 2)*dn(2, 1) + rMetric.H(2, 2)*dn(2, 2));
+                // b refers to curvilinear and rB to local cartesian coordinate system
+                // "index" guarantees that there are zero entries corresponding to the new parameters w_1 and w_2
+                for (unsigned int j = 0; j < 3; j++)
+                {
+                    for (unsigned int k = 0; k < 3; k++)
+                        b(k, index_KL + j) = - (DDN_DDe(i, k) * rMetric.g3[j] + rMetric.H(0, k) * dn(j, 0) 
+                        + rMetric.H(1, k) * dn(j, 1) + rMetric.H(2, k) * dn(j, 2));
+                    rB(0, index + j) = mInitialMetric.Q(0, 0) * b(0, index + j) + mInitialMetric.Q(0, 1) * b(1, index + j)
+                    + mInitialMetric.Q(0, 3) * b(2, index + j);
+                    rB(1, index + j) = mInitialMetric.Q(1, 1) * b(1, index + j);
+                    rB(2, index + j) = mInitialMetric.Q(3, 1) * b(1, index + j) + mInitialMetric.Q(3, 3) * b(2, index + j);
+                }
             }
-
-            rB = - prod(mInitialMetric.Q, b);
         }
         else
         {
@@ -596,7 +633,7 @@ namespace Kratos
             const Matrix& DDN_DDe = GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
 
             const int number_of_control_points = GetGeometry().size();
-            const int mat_size = number_of_control_points * 3;
+            const int mat_size_KL = number_of_control_points * 3;
 
             double lg3_3 = pow(rMetric.dA, 3);
             double lg3_5 = pow(rMetric.dA, 5);
@@ -604,12 +641,12 @@ namespace Kratos
             double inv_lg3_3 = 1 / lg3_3;
             double inv_lg3_5 = 1 / lg3_5;
 
-            Matrix S_dg3 = ZeroMatrix(3, mat_size);
-            Vector S_g3dg3 = ZeroVector(mat_size);
-            Vector S_g3dg3lg3_3 = ZeroVector(mat_size);
-            Matrix S_dn = ZeroMatrix(3, mat_size);
+            Matrix S_dg3 = ZeroMatrix(3, mat_size_KL);
+            Vector S_g3dg3 = ZeroVector(mat_size_KL);
+            Vector S_g3dg3lg3_3 = ZeroVector(mat_size_KL);
+            Matrix S_dn = ZeroMatrix(3, mat_size_KL);
             // first variation of strain and curvature w.r.t. dof
-            for (int r = 0; r < mat_size; r++)
+            for (int r = 0; r < mat_size_KL; r++)
             {
                 // local node number kr and dof direction dirr
                 int kr = r / 3;
@@ -634,7 +671,7 @@ namespace Kratos
             }
 
             // second variation of strain and curvature w.r.t. dofs
-            for (int r = 0; r < mat_size; r++)
+            for (int r = 0; r < mat_size_KL; r++)
             {
                 // local node number kr and dof direction dirr
                 int kr = r / 3;
@@ -654,9 +691,10 @@ namespace Kratos
                         ddE_cu[1] = DN_De(kr, 1)*DN_De(ks, 1);
                         ddE_cu[2] = 0.5*(DN_De(kr, 0)*DN_De(ks, 1) + DN_De(kr, 1)*DN_De(ks, 0));
 
-                        rSecondVariationsStrain.B11(r, s) = mInitialMetric.Q(0, 0)*ddE_cu[0] + mInitialMetric.Q(0, 1)*ddE_cu[1] + mInitialMetric.Q(0, 2)*ddE_cu[2];
-                        rSecondVariationsStrain.B22(r, s) = mInitialMetric.Q(1, 0)*ddE_cu[0] + mInitialMetric.Q(1, 1)*ddE_cu[1] + mInitialMetric.Q(1, 2)*ddE_cu[2];
-                        rSecondVariationsStrain.B12(r, s) = mInitialMetric.Q(2, 0)*ddE_cu[0] + mInitialMetric.Q(2, 1)*ddE_cu[1] + mInitialMetric.Q(2, 2)*ddE_cu[2];
+                        // calculated with simplified Q (ML)
+                        rSecondVariationsStrain.B11(r, s) = mInitialMetric.Q(0, 0) * ddE_cu[0] + mInitialMetric.Q(0, 1) * ddE_cu[1] + mInitialMetric.Q(0, 3) * ddE_cu[2];
+                        rSecondVariationsStrain.B22(r, s) = mInitialMetric.Q(1, 1) * ddE_cu[1];
+                        rSecondVariationsStrain.B12(r, s) = mInitialMetric.Q(3, 1) * ddE_cu[1] + mInitialMetric.Q(3, 3) * ddE_cu[2];
                     }
 
                     // curvature
@@ -687,12 +725,567 @@ namespace Kratos
                     ddK_cu[2] = DDN_DDe(kr, 2)*S_dn(dirr, s) + DDN_DDe(ks, 2)*S_dn(dirs, r)
                         + rMetric.H(0, 2)*ddn[0] + rMetric.H(1, 2)*ddn[1] + rMetric.H(2, 2)*ddn[2];
 
-                    rSecondVariationsCurvature.B11(r, s) = mInitialMetric.Q(0, 0)*ddK_cu[0] + mInitialMetric.Q(0, 1)*ddK_cu[1] + mInitialMetric.Q(0, 2)*ddK_cu[2];
+                    // calculated with simplified Q (ML)
+                    rSecondVariationsCurvature.B11(r, s) = mInitialMetric.Q(0, 0) * ddK_cu[0] + mInitialMetric.Q(0, 1) * ddK_cu[1] 
+                    + mInitialMetric.Q(0, 3) * ddK_cu[2];
                     rSecondVariationsCurvature.B11(s, r) = rSecondVariationsCurvature.B11(r, s);
-                    rSecondVariationsCurvature.B22(r, s) = mInitialMetric.Q(1, 0)*ddK_cu[0] + mInitialMetric.Q(1, 1)*ddK_cu[1] + mInitialMetric.Q(1, 2)*ddK_cu[2];
+                    rSecondVariationsCurvature.B22(r, s) = mInitialMetric.Q(1, 1) * ddK_cu[1];
                     rSecondVariationsCurvature.B22(s, r) = rSecondVariationsCurvature.B22(r, s);
-                    rSecondVariationsCurvature.B12(r, s) = mInitialMetric.Q(2, 0)*ddK_cu[0] + mInitialMetric.Q(2, 1)*ddK_cu[1] + mInitialMetric.Q(2, 2)*ddK_cu[2];
+                    rSecondVariationsCurvature.B12(r, s) = mInitialMetric.Q(3, 1) * ddK_cu[1] + mInitialMetric.Q(3, 3) * ddK_cu[2];
                     rSecondVariationsCurvature.B12(s, r) = rSecondVariationsCurvature.B12(r, s);
+                }
+            }
+        }
+    }
+
+    void IgaShell5pElement::CalculateBMembraneHR(
+        Matrix& rB,
+        const Vector& rShearDifferenceVector,
+        const Vector& rw_alpha,
+        const Vector& rg1,
+        const Vector& rg2)
+    {
+        KRATOS_WATCH("Start: CalculateBMembraneHR")
+        const Vector& N = GetValue(SHAPE_FUNCTION_VALUES);
+        const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+        const unsigned int number_of_control_points = GetGeometry().size();
+        const unsigned int mat_size = number_of_control_points * 5;
+        
+        if (rB.size1() != 6 || rB.size2() != mat_size)
+            rB.resize(6, mat_size);
+        rB = ZeroMatrix(6, mat_size);
+        
+        for (unsigned int r = 0; r < mat_size; r++){
+            // local node number kr and dof direction dirr
+            int kr = r / 5;
+            int dirr = r % 5;
+            
+            array_1d<double, 3> Dw_Dr = ZeroVector(3);
+            // the two entries E23 and E13 w.r.t. the curvilinear coord. sys. are saved in dE_cur
+            array_1d<double, 2> dE_cur = ZeroVector(2);
+
+
+            if (dirr == 0 || dirr == 1 || dirr || 2){
+                Dw_Dr[dirr] += rw_alpha(0) * DN_De(kr, 0) + rw_alpha(1) * DN_De(kr, 1);
+                dE_cur[0] = 0.5 * (rShearDifferenceVector(dirr) * DN_De(kr, 2));
+                dE_cur[1] = 0.5 * (rShearDifferenceVector(dirr) * DN_De(kr, 1));
+            }
+            else if(dirr == 3){
+                Dw_Dr[0] += N(kr) * rg1(0);
+                Dw_Dr[1] += N(kr) * rg1(1);
+                Dw_Dr[2] += N(kr) * rg1(2);
+            }
+            else {
+                Dw_Dr[0] += N(kr) * rg2(0);
+                Dw_Dr[1] += N(kr) * rg2(1);
+                Dw_Dr[2] += N(kr) * rg2(2);                
+            }
+            dE_cur[0] += 0.5 * (Dw_Dr[0] * rg2(0) + Dw_Dr[1] * rg2(1) + Dw_Dr[2] * rg2(2));
+            dE_cur[1] += 0.5 * (Dw_Dr[0] * rg1(0) + Dw_Dr[1] * rg1(1) + Dw_Dr[2] * rg1(2));
+            
+            // calculated with the simplified Q (ML)
+            rB(0, r) = mInitialMetric.Q(0, 4) * dE_cur[0];
+            rB(4, r) = mInitialMetric.Q(4, 4) * dE_cur[0];
+            rB(5, r) = mInitialMetric.Q(4, 5) * dE_cur[0] + mInitialMetric.Q(5, 5) * dE_cur[1];
+            // the other entries are (remain) zero
+        }
+        KRATOS_WATCH(rB)
+        KRATOS_WATCH("End: CalculateBMembraneHR")
+    }
+
+    void IgaShell5pElement::CalculateBCurvatureHR(
+        Matrix& rB,
+        const Vector& rw_alpha,
+        const Matrix& rDw_alpha_Dbeta,
+        const Vector& rDw_D1,
+        const Vector& rDw_D2,
+        const MetricVariables& rActualMetric)
+    {
+        const Vector& N = GetValue(SHAPE_FUNCTION_VALUES);
+        const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+        const Matrix& DDN_DDe = GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
+        const unsigned int number_of_control_points = GetGeometry().size();
+        const unsigned int mat_size = number_of_control_points * 5;
+        
+        if (rB.size1() != 6 || rB.size2() != mat_size)
+            rB.resize(6, mat_size);
+        rB = ZeroMatrix(6, mat_size);
+        
+        for (unsigned int r = 0; r < mat_size; r++)
+        {
+            // local node number kr and dof direction dirr
+            int kr = r / 5;
+            int dirr = r % 5;
+
+            array_1d<double, 3> dK_cu = ZeroVector(3);
+            array_1d<double, 3> DDw_DD1r = ZeroVector(3);
+            array_1d<double, 3> DDw_DD2r = ZeroVector(3);
+
+            if (dirr == 0 || dirr == 1 || dirr == 2){
+                DDw_DD1r[dirr] = rDw_alpha_Dbeta(0, 0) * DN_De(kr, 0)  + rw_alpha[0] * DDN_DDe(kr, 0)
+                + rDw_alpha_Dbeta(1, 0) * DN_De(kr, 1) + rw_alpha[1] * DDN_DDe(kr, 2);
+                DDw_DD2r[dirr] = rDw_alpha_Dbeta(0, 1) * DN_De(kr, 0) + rw_alpha[0] * DDN_DDe(kr, 2)
+                + rDw_alpha_Dbeta(1, 1) * DN_De(kr, 1) + rw_alpha[1] * DDN_DDe(kr, 1);
+                dK_cu[0] = rDw_D1[dirr] * DN_De(kr, 0);
+                dK_cu[1] = rDw_D2[dirr] * DN_De(kr, 1);
+                dK_cu[2] = rDw_D1[dirr] * DN_De(kr, 1) + rDw_D2[dirr] * DN_De(kr, 2);
+            }
+            else if (dirr == 3){
+                DDw_DD1r += DN_De(kr, 0) * rActualMetric.g1;
+                DDw_DD1r[0] += N(kr) * rActualMetric.H(0, 0);
+                DDw_DD1r[1] += N(kr) * rActualMetric.H(1, 0);
+                DDw_DD1r[2] += N(kr) * rActualMetric.H(2, 0);
+                DDw_DD2r += DN_De(kr, 1) * rActualMetric.g1;
+                DDw_DD2r[0] += N(kr) * rActualMetric.H(0, 2);
+                DDw_DD2r[1] += N(kr) * rActualMetric.H(1, 2);
+                DDw_DD2r[2] += N(kr) * rActualMetric.H(2, 2);                
+            }
+            else if (dirr == 4){
+                DDw_DD1r += DN_De(kr, 0) * rActualMetric.g2;
+                DDw_DD1r[0] += N(kr) * rActualMetric.H(0, 2);
+                DDw_DD1r[1] += N(kr) * rActualMetric.H(1, 2);
+                DDw_DD1r[2] += N(kr) * rActualMetric.H(2, 2);
+                DDw_DD2r += DN_De(kr, 1) * rActualMetric.g2;
+                DDw_DD2r[0] += N(kr) * rActualMetric.H(0, 1);
+                DDw_DD2r[1] += N(kr) * rActualMetric.H(1, 1);
+                DDw_DD2r[2] += N(kr) * rActualMetric.H(2, 1);
+            }
+            dK_cu[0] += inner_prod(DDw_DD1r, rActualMetric.g1);
+            dK_cu[1] += inner_prod(DDw_DD2r, rActualMetric.g2);
+            dK_cu[2] += inner_prod(DDw_DD1r, rActualMetric.g2) + inner_prod(DDw_DD2r, rActualMetric.g1);
+
+            // calculated with simplified Q (ML)
+            rB(0, r) = mInitialMetric.Q(0, 0) * dK_cu[0] + mInitialMetric.Q(0, 1) * dK_cu[1] + mInitialMetric.Q(0, 3) * dK_cu[2];
+            rB(1, r) = mInitialMetric.Q(1, 1) * dK_cu[1];
+            rB(3, r) = mInitialMetric.Q(3, 1) * dK_cu[1] + mInitialMetric.Q(3, 3) * dK_cu[2];
+            // all other entries are (remain) zero
+        }
+    }
+
+    void IgaShell5pElement::CalculateSecondVariationStrainCurvatureHR(
+        SecondVariations& rSecondVariationsHRMembrane,
+        SecondVariations& rSecondVariationsHRCurvature,
+        const Vector& rw_alpha,
+        const Matrix& rDw_alpha_Dbeta,
+        const MetricVariables& rActualMetric)
+    {
+        const Vector& N = GetValue(SHAPE_FUNCTION_VALUES);
+        const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+        const Matrix& DDN_DDe = GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
+        const unsigned int number_of_control_points = GetGeometry().size();
+        const unsigned int mat_size = number_of_control_points * 5;
+        
+        if (rSecondVariationsHRMembrane.B11.size1() != mat_size || rSecondVariationsHRMembrane.B11.size2() != mat_size)
+            rSecondVariationsHRMembrane.B11.resize(mat_size, mat_size);
+        rSecondVariationsHRMembrane.B11 = ZeroMatrix(mat_size, mat_size);
+        if (rSecondVariationsHRMembrane.B23.size1() != mat_size || rSecondVariationsHRMembrane.B23.size2() != mat_size)
+            rSecondVariationsHRMembrane.B23.resize(mat_size, mat_size);
+        rSecondVariationsHRMembrane.B23 = ZeroMatrix(mat_size, mat_size);        
+        if (rSecondVariationsHRMembrane.B13.size1() != mat_size || rSecondVariationsHRMembrane.B13.size2() != mat_size)
+            rSecondVariationsHRMembrane.B13.resize(mat_size, mat_size);
+        rSecondVariationsHRMembrane.B13 = ZeroMatrix(mat_size, mat_size);
+        
+        if (rSecondVariationsHRCurvature.B11.size1() != mat_size || rSecondVariationsHRCurvature.B11.size2() != mat_size)
+            rSecondVariationsHRCurvature.B11.resize(mat_size, mat_size);
+        rSecondVariationsHRCurvature.B11 = ZeroMatrix(mat_size, mat_size);
+        if (rSecondVariationsHRCurvature.B22.size1() != mat_size || rSecondVariationsHRCurvature.B22.size2() != mat_size)
+            rSecondVariationsHRCurvature.B22.resize(mat_size, mat_size);
+        rSecondVariationsHRCurvature.B22 = ZeroMatrix(mat_size, mat_size);        
+        if (rSecondVariationsHRCurvature.B12.size1() != mat_size || rSecondVariationsHRCurvature.B12.size2() != mat_size)
+            rSecondVariationsHRCurvature.B12.resize(mat_size, mat_size);
+        rSecondVariationsHRCurvature.B12 = ZeroMatrix(mat_size, mat_size);                    
+                    
+        for (unsigned int r = 0; r < mat_size; r++)
+        {
+            // local node number kr and dof direction dirr
+            int kr = r / 5;
+            int dirr = r % 5;
+        
+            array_1d<double, 3> Dw_Dr = ZeroVector(3);
+
+                if (dirr == 0 || dirr == 1 || dirr || 2){
+                    Dw_Dr[dirr] += rw_alpha(0) * DN_De(kr, 0) + rw_alpha(1) * DN_De(kr, 1);
+                }
+                else if(dirr == 3){
+                    Dw_Dr[0] += N(kr) * rActualMetric.g1(0);
+                    Dw_Dr[1] += N(kr) * rActualMetric.g1(1);
+                    Dw_Dr[2] += N(kr) * rActualMetric.g1(2);
+                }
+                else {
+                    Dw_Dr[0] += N(kr) * rActualMetric.g2(0);
+                    Dw_Dr[1] += N(kr) * rActualMetric.g2(1);
+                    Dw_Dr[2] += N(kr) * rActualMetric.g2(2);                
+                }
+
+            array_1d<double, 3> DDw_DD1r = ZeroVector(3);
+            array_1d<double, 3> DDw_DD2r = ZeroVector(3);
+
+            if (dirr == 0 || dirr == 1 || dirr == 2){
+                DDw_DD1r[dirr] = rDw_alpha_Dbeta(0, 0) * DN_De(kr, 0)  + rw_alpha[0] * DDN_DDe(kr, 0)
+                + rDw_alpha_Dbeta(1, 0) * DN_De(kr, 1) + rw_alpha[1] * DDN_DDe(kr, 2);
+                DDw_DD2r[dirr] = rDw_alpha_Dbeta(0, 1) * DN_De(kr, 0) + rw_alpha[0] * DDN_DDe(kr, 2)
+                + rDw_alpha_Dbeta(1, 1) * DN_De(kr, 1) + rw_alpha[1] * DDN_DDe(kr, 1);
+            }
+            else if (dirr == 3){
+                DDw_DD1r += DN_De(kr, 0) * rActualMetric.g1;
+                DDw_DD1r[0] += N(kr) * rActualMetric.H(0, 0);
+                DDw_DD1r[1] += N(kr) * rActualMetric.H(1, 0);
+                DDw_DD1r[2] += N(kr) * rActualMetric.H(2, 0);
+                DDw_DD2r += DN_De(kr, 1) * rActualMetric.g1;
+                DDw_DD2r[0] += N(kr) * rActualMetric.H(0, 2);
+                DDw_DD2r[1] += N(kr) * rActualMetric.H(1, 2);
+                DDw_DD2r[2] += N(kr) * rActualMetric.H(2, 2);                
+            }
+            else if (dirr == 4){
+                DDw_DD1r += DN_De(kr, 0) * rActualMetric.g2;
+                DDw_DD1r[0] += N(kr) * rActualMetric.H(0, 2);
+                DDw_DD1r[1] += N(kr) * rActualMetric.H(1, 2);
+                DDw_DD1r[2] += N(kr) * rActualMetric.H(2, 2);
+                DDw_DD2r += DN_De(kr, 1) * rActualMetric.g2;
+                DDw_DD2r[0] += N(kr) * rActualMetric.H(0, 1);
+                DDw_DD2r[1] += N(kr) * rActualMetric.H(1, 1);
+                DDw_DD2r[2] += N(kr) * rActualMetric.H(2, 1);
+            }
+
+            for (unsigned int s = 0; s <= mat_size; s++)
+                {
+                    // local node number ks and dof direction dirs
+                    int ks = s / 5;
+                    int dirs = s % 5;
+                    
+                    // second variation of strain
+                    array_1d <double, 3> DDw_DDrs = ZeroVector(3);
+                    array_1d <double, 2> ddE_cu = ZeroVector(2);
+
+                    if (dirs == 0 || dirs == 1 || dirs == 2){
+                        ddE_cu[0] = 0.5 * (Dw_Dr[dirs] * DN_De(ks, 1));
+                        ddE_cu[1] = 0.5 * (Dw_Dr[dirs] * DN_De(ks, 0));
+                    }
+                    else if (dirr == 3 && (dirs == 0 || dirs == 1 || dirs == 2))
+                        DDw_DDrs(dirs) += N(kr) * DN_De(ks, 0);
+                    else if (dirs == 3 && (dirr == 0 || dirr == 1 || dirr == 2))
+                        DDw_DDrs(dirr) += N(ks) * DN_De(kr, 0);       
+                    else if (dirr == 4 && (dirs == 0 || dirs == 1 || dirs == 2))
+                        DDw_DDrs(dirs) += N(kr) * DN_De(ks, 1);
+                    else if (dirs == 4 && (dirr == 0 || dirr == 1 || dirr == 2))
+                        DDw_DDrs(dirr) += N(ks) * DN_De(kr, 1);
+                    ddE_cu[0] += 0.5 * inner_prod(DDw_DDrs, rActualMetric.g2);
+                    ddE_cu[1] += 0.5 * inner_prod(DDw_DDrs, rActualMetric.g1);
+
+                    // calculated with simplified Q (ML)
+                    rSecondVariationsHRMembrane.B11(r, s) = mInitialMetric.Q(0, 4) * ddE_cu[0];
+                    rSecondVariationsHRMembrane.B11(s, r) = rSecondVariationsHRMembrane.B11(r, s);
+                    rSecondVariationsHRMembrane.B23(r, s) = mInitialMetric.Q(4, 4) * ddE_cu[0];
+                    rSecondVariationsHRMembrane.B23(s, r) = rSecondVariationsHRMembrane.B23(r, s);
+                    rSecondVariationsHRMembrane.B13(r, s) = mInitialMetric.Q(5, 4) * ddE_cu[0] + mInitialMetric.Q(5, 5) * ddE_cu[1];
+                    rSecondVariationsHRMembrane.B13(s, r) = rSecondVariationsHRMembrane.B13(r, s);
+                    // all other entries are (remain) zero
+
+                    // second variations of curvature
+                    array_1d <double, 3> DDDw_DDD1rs = ZeroVector(3);
+                    array_1d <double, 3> DDDw_DDD2rs = ZeroVector(3);
+                    array_1d <double, 3> ddK_cu = ZeroVector(3);
+                    array_1d<double, 3> DDw_DD1s = ZeroVector(3);
+                    array_1d<double, 3> DDw_DD2s = ZeroVector(3);
+
+                    if (dirs == 0 || dirs == 1 || dirs == 2){
+                        DDw_DD1s[dirs] = rDw_alpha_Dbeta(0, 0) * DN_De(ks, 0)  + rw_alpha[0] * DDN_DDe(ks, 0)
+                        + rDw_alpha_Dbeta(1, 0) * DN_De(ks, 1) + rw_alpha[1] * DDN_DDe(ks, 2);
+                        DDw_DD2s[dirs] = rDw_alpha_Dbeta(0, 1) * DN_De(ks, 0) + rw_alpha[0] * DDN_DDe(ks, 2)
+                        + rDw_alpha_Dbeta(1, 1) * DN_De(ks, 1) + rw_alpha[1] * DDN_DDe(ks, 1);
+                    }
+                    else if (dirs == 3){
+                        DDw_DD1s += DN_De(ks, 0) * rActualMetric.g1;
+                        DDw_DD1s[0] += N(ks) * rActualMetric.H(0, 0);
+                        DDw_DD1s[1] += N(ks) * rActualMetric.H(1, 0);
+                        DDw_DD1s[2] += N(ks) * rActualMetric.H(2, 0);
+                        DDw_DD2s += DN_De(ks, 1) * rActualMetric.g1;
+                        DDw_DD2s[0] += N(ks) * rActualMetric.H(0, 2);
+                        DDw_DD2s[1] += N(ks) * rActualMetric.H(1, 2);
+                        DDw_DD2s[2] += N(ks) * rActualMetric.H(2, 2);                
+                    }
+                    else if (dirs == 4){
+                        DDw_DD1s += DN_De(ks, 0) * rActualMetric.g2;
+                        DDw_DD1s[0] += N(ks) * rActualMetric.H(0, 2);
+                        DDw_DD1s[1] += N(ks) * rActualMetric.H(1, 2);
+                        DDw_DD1s[2] += N(ks) * rActualMetric.H(2, 2);
+                        DDw_DD2s += DN_De(ks, 1) * rActualMetric.g2;
+                        DDw_DD2s[0] += N(ks) * rActualMetric.H(0, 1);
+                        DDw_DD2s[1] += N(ks) * rActualMetric.H(1, 1);
+                        DDw_DD2s[2] += N(ks) * rActualMetric.H(2, 1);
+                    }
+                    
+                    if (dirr == 0 || dirr == 1 || dirr == 2){
+                        ddK_cu[0] = DDw_DD1r[dirr] * DN_De(ks, 0);
+                        ddK_cu[1] = DDw_DD2r[dirr] * DN_De(ks, 1);
+                        ddK_cu[2] = DDw_DD1r[dirr] * DN_De(ks, 1) + DDw_DD2r[dirr] * DN_De(ks, 0);
+                        }
+                    if (dirs == 0 || dirs == 1 || dirs == 2){
+                        ddK_cu[0] += DDw_DD1s[dirs] * DN_De(kr, 0);
+                        ddK_cu[1] += DDw_DD2s[dirs] * DN_De(kr, 1);
+                        ddK_cu[2] += DDw_DD1s[dirs] * DN_De(kr, 1) + DDw_DD2s[dirs] * DN_De(kr, 0);
+                        }
+                    else if (dirr == 3 && (dirs == 0 || dirs == 1 || dirs == 2)){
+                        DDDw_DDD1rs[dirr] = DN_De(kr, 0) * DN_De(ks, 0) + N(kr) * DDN_DDe(ks, 0);
+                        DDDw_DDD2rs[dirr] = DN_De(kr, 1) * DN_De(ks, 0) + N(kr) * DDN_DDe(ks, 2);
+                    }
+                    else if (dirs == 3 && (dirr == 0 || dirr == 1 || dirr == 2)){
+                        DDDw_DDD1rs[dirs] += DN_De(ks, 0) * DN_De(kr, 0) + N(ks) * DDN_DDe(kr, 0);
+                        DDDw_DDD2rs[dirs] += DN_De(ks, 1) * DN_De(kr, 0) + N(ks) * DDN_DDe(kr, 2);
+                    }
+                    else if (dirr == 4 && (dirs == 0 || dirs == 1 || dirs == 2)){
+                        DDDw_DDD1rs[dirr] += DN_De(kr, 0) * DN_De(ks, 1) + N(kr) * DDN_DDe(ks, 2);
+                        DDDw_DDD2rs[dirr] += DN_De(kr, 1) * DN_De(ks, 1) + N(kr) * DDN_DDe(ks, 1);
+                    }
+                    else if (dirs == 4 && (dirr == 0 || dirr == 1 || dirr == 2)){
+                        DDDw_DDD1rs[dirs] += DN_De(ks, 0) * DN_De(kr, 1) + N(kr) * DDN_DDe(kr, 2);
+                        DDDw_DDD2rs[dirs] += DN_De(ks, 1) * DN_De(kr, 1) + N(kr) * DDN_DDe(kr, 1);
+                    }
+                    ddK_cu[0] += inner_prod(DDDw_DDD1rs, rActualMetric.g1);
+                    ddK_cu[1] += inner_prod(DDDw_DDD2rs, rActualMetric.g2);
+                    ddK_cu[2] += inner_prod(DDDw_DDD1rs, rActualMetric.g2) + inner_prod(DDDw_DDD2rs, rActualMetric.g1);
+
+                    // calculated with simplified Q (ML)
+                    rSecondVariationsHRCurvature.B11(r, s) = mInitialMetric.Q(0, 0) * ddK_cu[0] + mInitialMetric.Q(0, 1) * ddK_cu[1]
+                    + mInitialMetric.Q(0, 3) * ddK_cu[3];
+                    rSecondVariationsHRCurvature.B11(s, r) = rSecondVariationsHRCurvature.B11(r, s);
+                    rSecondVariationsHRCurvature.B22(r, s) = mInitialMetric.Q(1, 1) * ddK_cu[1];
+                    rSecondVariationsHRCurvature.B22(s, r) = rSecondVariationsHRCurvature.B22(r, s);
+                    rSecondVariationsHRCurvature.B12(r, s) = mInitialMetric.Q(3, 1) * ddK_cu[1] + mInitialMetric.Q(3, 3) * ddK_cu[2];
+                    rSecondVariationsHRCurvature.B12(s, r) = rSecondVariationsHRCurvature.B12(r, s);
+                    // all other entries are (remain) zero
+            }
+        }
+    }
+
+    void IgaShell5pElement::CalculateVariationsHR(        
+        Matrix& rBHRMembrane,
+        Matrix& rBHRCurvature,
+        SecondVariations& rSecondVariationsHRMembrane,
+        SecondVariations& rSecondVariationsHRCurvature,
+        const Vector& rShearDifferenceVector,
+        const Vector& rDw_D1,
+        const Vector& rDw_D2,
+        const Vector& rw_alpha,
+        const Matrix& rDw_alpha_Dbeta,
+        const MetricVariables& rActualMetric,
+        const bool& rCalculateStiffnessMatrixFlag)
+    {
+        const Vector& N = GetValue(SHAPE_FUNCTION_VALUES);
+        const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+        const Matrix& DDN_DDe = GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
+        const unsigned int number_of_control_points = GetGeometry().size();
+        const unsigned int mat_size = number_of_control_points * 5;
+        
+        // 1. First strain variation
+        Matrix Dw_Dr = ZeroMatrix(3, mat_size);
+        
+        for (unsigned int r = 0; r < mat_size; r++){
+            // local node number kr and dof direction dirr
+            int kr = r / 5;
+            int dirr = r % 5;
+            // the two entries E23 and E13 w.r.t. the curvilinear coord. sys. are saved in dE_cur
+            array_1d<double, 2> dE_cur = ZeroVector(2);
+
+            if (dirr == 0 || dirr == 1 || dirr || 2){
+                Dw_Dr(dirr, r) += rw_alpha(0) * DN_De(kr, 0) + rw_alpha(1) * DN_De(kr, 1);
+                dE_cur[0] = 0.5 * (rShearDifferenceVector(dirr) * DN_De(kr, 2));
+                dE_cur[1] = 0.5 * (rShearDifferenceVector(dirr) * DN_De(kr, 1));
+            }
+            else if(dirr == 3){
+                Dw_Dr(0, r) += N(kr) * rActualMetric.g1(0);
+                Dw_Dr(1, r) += N(kr) * rActualMetric.g1(1);
+                Dw_Dr(2, r) += N(kr) * rActualMetric.g1(2);
+            }
+            else {
+                Dw_Dr(0, r) += N(kr) * rActualMetric.g2(0);
+                Dw_Dr(1, r) += N(kr) * rActualMetric.g2(1);
+                Dw_Dr(2, r) += N(kr) * rActualMetric.g2(2);                
+            }
+            dE_cur[0] += 0.5 * (Dw_Dr(0, r) * rActualMetric.g2(0) + Dw_Dr(1, r) * rActualMetric.g2(1) + Dw_Dr(2, r) * rActualMetric.g2(2));
+            dE_cur[1] += 0.5 * (Dw_Dr(0, r) * rActualMetric.g1(0) + Dw_Dr(1, r) * rActualMetric.g1(1) + Dw_Dr(2, r) * rActualMetric.g1(2));
+            
+            // calculated with the simplified Q (ML)
+            rBHRMembrane(0, r) = mInitialMetric.Q(0, 4) * dE_cur[0];
+            rBHRMembrane(4, r) = mInitialMetric.Q(4, 4) * dE_cur[0];
+            rBHRMembrane(5, r) = mInitialMetric.Q(4, 5) * dE_cur[0] + mInitialMetric.Q(5, 5) * dE_cur[1];
+            // the other entries are (remain) zero
+        }
+
+        if (rCalculateStiffnessMatrixFlag == true){
+            // 2. Second Strain Variation
+            for (unsigned int r = 0; r < mat_size; r++)
+            {
+                // local node number kr and dof direction dirr
+                int kr = r / 5;
+                int dirr = r % 5;
+
+                for (unsigned int s = 0; s <= mat_size; s++)
+                {
+                    // local node number ks and dof direction dirs
+                    int ks = s / 5;
+                    int dirs = s % 5;
+                    
+                    array_1d <double, 3> DDw_DDrs = ZeroVector(3);
+                    array_1d <double, 2> ddE_cu = ZeroVector(2);
+
+                    if (dirs == 0 || dirs == 1 || dirs == 2){
+                        ddE_cu[0] = 0.5 * (Dw_Dr(dirs, r) * DN_De(ks, 1));
+                        ddE_cu[1] = 0.5 * (Dw_Dr(dirs, r) * DN_De(ks, 0));
+                    }
+                    else if (dirr == 3 && (dirs == 0 || dirs == 1 || dirs == 2))
+                        DDw_DDrs(dirs) += N(kr) * DN_De(ks, 0);
+                    else if (dirs == 3 && (dirr == 0 || dirr == 1 || dirr == 2))
+                        DDw_DDrs(dirr) += N(ks) * DN_De(kr, 0);       
+                    else if (dirr == 4 && (dirs == 0 || dirs == 1 || dirs == 2))
+                        DDw_DDrs(dirs) += N(kr) * DN_De(ks, 1);
+                    else if (dirs == 4 && (dirr == 0 || dirr == 1 || dirr == 2))
+                        DDw_DDrs(dirr) += N(ks) * DN_De(kr, 1);
+                    ddE_cu[0] += 0.5 * inner_prod(DDw_DDrs, rActualMetric.g2);
+                    ddE_cu[1] += 0.5 * inner_prod(DDw_DDrs, rActualMetric.g1);
+
+                    // calculated with simplified Q (ML)
+                    rSecondVariationsHRMembrane.B11(r, s) = mInitialMetric.Q(0, 4) * ddE_cu[0];
+                    rSecondVariationsHRMembrane.B11(s, r) = rSecondVariationsHRMembrane.B11(r, s);
+                    rSecondVariationsHRMembrane.B23(r, s) = mInitialMetric.Q(4, 4) * ddE_cu[0];
+                    rSecondVariationsHRMembrane.B23(s, r) = rSecondVariationsHRMembrane.B23(r, s);
+                    rSecondVariationsHRMembrane.B13(r, s) = mInitialMetric.Q(5, 4) * ddE_cu[0] + mInitialMetric.Q(5, 5) * ddE_cu[1];
+                    rSecondVariationsHRMembrane.B13(s, r) = rSecondVariationsHRMembrane.B13(r, s);
+                    // all other entries are (remain) zero
+                }
+            }
+        }
+
+        // 3. First curvature variation
+        for (unsigned int r = 0; r < mat_size; r++)
+        {
+            // local node number kr and dof direction dirr
+            int kr = r / 5;
+            int dirr = r % 5;
+
+            array_1d<double, 3> dK_cu = ZeroVector(3);
+            array_1d<double, 3> DDw_DD1r = ZeroVector(3);
+            array_1d<double, 3> DDw_DD2r = ZeroVector(3);
+
+            if (dirr == 0 || dirr == 1 || dirr == 2){
+                DDw_DD1r[dirr] = rDw_alpha_Dbeta(0, 0) * DN_De(kr, 0)  + rw_alpha[0] * DDN_DDe(kr, 0)
+                + rDw_alpha_Dbeta(1, 0) * DN_De(kr, 1) + rw_alpha[1] * DDN_DDe(kr, 2);
+                DDw_DD2r[dirr] = rDw_alpha_Dbeta(0, 1) * DN_De(kr, 0) + rw_alpha[0] * DDN_DDe(kr, 2)
+                + rDw_alpha_Dbeta(1, 1) * DN_De(kr, 1) + rw_alpha[1] * DDN_DDe(kr, 1);
+                dK_cu[0] = rDw_D1[dirr] * DN_De(kr, 0);
+                dK_cu[1] = rDw_D2[dirr] * DN_De(kr, 1);
+                dK_cu[2] = rDw_D1[dirr] * DN_De(kr, 1) + rDw_D2[dirr] * DN_De(kr, 2);
+            }
+            else if (dirr == 3){
+                DDw_DD1r += DN_De(kr, 0) * rActualMetric.g1;
+                DDw_DD1r[0] += N(kr) * rActualMetric.H(0, 0);
+                DDw_DD1r[1] += N(kr) * rActualMetric.H(1, 0);
+                DDw_DD1r[2] += N(kr) * rActualMetric.H(2, 0);
+                DDw_DD2r += DN_De(kr, 1) * rActualMetric.g1;
+                DDw_DD2r[0] += N(kr) * rActualMetric.H(0, 2);
+                DDw_DD2r[1] += N(kr) * rActualMetric.H(1, 2);
+                DDw_DD2r[2] += N(kr) * rActualMetric.H(2, 2);                
+            }
+            else if (dirr == 4){
+                DDw_DD1r += DN_De(kr, 0) * rActualMetric.g2;
+                DDw_DD1r[0] += N(kr) * rActualMetric.H(0, 2);
+                DDw_DD1r[1] += N(kr) * rActualMetric.H(1, 2);
+                DDw_DD1r[2] += N(kr) * rActualMetric.H(2, 2);
+                DDw_DD2r += DN_De(kr, 1) * rActualMetric.g2;
+                DDw_DD2r[0] += N(kr) * rActualMetric.H(0, 1);
+                DDw_DD2r[1] += N(kr) * rActualMetric.H(1, 1);
+                DDw_DD2r[2] += N(kr) * rActualMetric.H(2, 1);
+            }
+            dK_cu[0] += inner_prod(DDw_DD1r, rActualMetric.g1);
+            dK_cu[1] += inner_prod(DDw_DD2r, rActualMetric.g2);
+            dK_cu[2] += inner_prod(DDw_DD1r, rActualMetric.g2) + inner_prod(DDw_DD2r, rActualMetric.g1);
+
+            // calculated with simplified Q (ML)
+            rBHRCurvature(0, r) = mInitialMetric.Q(0, 0) * dK_cu[0] + mInitialMetric.Q(0, 1) * dK_cu[1] + mInitialMetric.Q(0, 3) * dK_cu[2];
+            rBHRCurvature(1, r) = mInitialMetric.Q(1, 1) * dK_cu[1];
+            rBHRCurvature(3, r) = mInitialMetric.Q(3, 1) * dK_cu[1] + mInitialMetric.Q(3, 3) * dK_cu[2];
+            // all other entries are (remain) zero
+
+            if (rCalculateStiffnessMatrixFlag == true){
+                // 4. Second curvature variation
+                for (unsigned int s = 0; s <= mat_size; s++)
+                {
+                    // local node number ks and dof direction dirs
+                    int ks = s / 5;
+                    int dirs = s % 5;
+                    
+                    array_1d <double, 3> DDDw_DDD1rs = ZeroVector(3);
+                    array_1d <double, 3> DDDw_DDD2rs = ZeroVector(3);
+                    array_1d <double, 3> ddK_cu = ZeroVector(3);
+                    array_1d<double, 3> DDw_DD1s = ZeroVector(3);
+                    array_1d<double, 3> DDw_DD2s = ZeroVector(3);
+
+                    if (dirs == 0 || dirs == 1 || dirs == 2){
+                        DDw_DD1s[dirs] = rDw_alpha_Dbeta(0, 0) * DN_De(ks, 0)  + rw_alpha[0] * DDN_DDe(ks, 0)
+                        + rDw_alpha_Dbeta(1, 0) * DN_De(ks, 1) + rw_alpha[1] * DDN_DDe(ks, 2);
+                        DDw_DD2s[dirs] = rDw_alpha_Dbeta(0, 1) * DN_De(ks, 0) + rw_alpha[0] * DDN_DDe(ks, 2)
+                        + rDw_alpha_Dbeta(1, 1) * DN_De(ks, 1) + rw_alpha[1] * DDN_DDe(ks, 1);
+                    }
+                    else if (dirs == 3){
+                        DDw_DD1s += DN_De(ks, 0) * rActualMetric.g1;
+                        DDw_DD1s[0] += N(ks) * rActualMetric.H(0, 0);
+                        DDw_DD1s[1] += N(ks) * rActualMetric.H(1, 0);
+                        DDw_DD1s[2] += N(ks) * rActualMetric.H(2, 0);
+                        DDw_DD2s += DN_De(ks, 1) * rActualMetric.g1;
+                        DDw_DD2s[0] += N(ks) * rActualMetric.H(0, 2);
+                        DDw_DD2s[1] += N(ks) * rActualMetric.H(1, 2);
+                        DDw_DD2s[2] += N(ks) * rActualMetric.H(2, 2);                
+                    }
+                    else if (dirs == 4){
+                        DDw_DD1s += DN_De(ks, 0) * rActualMetric.g2;
+                        DDw_DD1s[0] += N(ks) * rActualMetric.H(0, 2);
+                        DDw_DD1s[1] += N(ks) * rActualMetric.H(1, 2);
+                        DDw_DD1s[2] += N(ks) * rActualMetric.H(2, 2);
+                        DDw_DD2s += DN_De(ks, 1) * rActualMetric.g2;
+                        DDw_DD2s[0] += N(ks) * rActualMetric.H(0, 1);
+                        DDw_DD2s[1] += N(ks) * rActualMetric.H(1, 1);
+                        DDw_DD2s[2] += N(ks) * rActualMetric.H(2, 1);
+                    }
+                    
+                    if (dirr == 0 || dirr == 1 || dirr == 2){
+                        ddK_cu[0] = DDw_DD1r[dirr] * DN_De(ks, 0);
+                        ddK_cu[1] = DDw_DD2r[dirr] * DN_De(ks, 1);
+                        ddK_cu[2] = DDw_DD1r[dirr] * DN_De(ks, 1) + DDw_DD2r[dirr] * DN_De(ks, 0);
+                        }
+                    if (dirs == 0 || dirs == 1 || dirs == 2){
+                        ddK_cu[0] += DDw_DD1s[dirs] * DN_De(kr, 0);
+                        ddK_cu[1] += DDw_DD2s[dirs] * DN_De(kr, 1);
+                        ddK_cu[2] += DDw_DD1s[dirs] * DN_De(kr, 1) + DDw_DD2s[dirs] * DN_De(kr, 0);
+                        }
+                    else if (dirr == 3 && (dirs == 0 || dirs == 1 || dirs == 2)){
+                        DDDw_DDD1rs[dirr] = DN_De(kr, 0) * DN_De(ks, 0) + N(kr) * DDN_DDe(ks, 0);
+                        DDDw_DDD2rs[dirr] = DN_De(kr, 1) * DN_De(ks, 0) + N(kr) * DDN_DDe(ks, 2);
+                    }
+                    else if (dirs == 3 && (dirr == 0 || dirr == 1 || dirr == 2)){
+                        DDDw_DDD1rs[dirs] += DN_De(ks, 0) * DN_De(kr, 0) + N(ks) * DDN_DDe(kr, 0);
+                        DDDw_DDD2rs[dirs] += DN_De(ks, 1) * DN_De(kr, 0) + N(ks) * DDN_DDe(kr, 2);
+                    }
+                    else if (dirr == 4 && (dirs == 0 || dirs == 1 || dirs == 2)){
+                        DDDw_DDD1rs[dirr] += DN_De(kr, 0) * DN_De(ks, 1) + N(kr) * DDN_DDe(ks, 2);
+                        DDDw_DDD2rs[dirr] += DN_De(kr, 1) * DN_De(ks, 1) + N(kr) * DDN_DDe(ks, 1);
+                    }
+                    else if (dirs == 4 && (dirr == 0 || dirr == 1 || dirr == 2)){
+                        DDDw_DDD1rs[dirs] += DN_De(ks, 0) * DN_De(kr, 1) + N(kr) * DDN_DDe(kr, 2);
+                        DDDw_DDD2rs[dirs] += DN_De(ks, 1) * DN_De(kr, 1) + N(kr) * DDN_DDe(kr, 1);
+                    }
+                    ddK_cu[0] += inner_prod(DDDw_DDD1rs, rActualMetric.g1);
+                    ddK_cu[1] += inner_prod(DDDw_DDD2rs, rActualMetric.g2);
+                    ddK_cu[2] += inner_prod(DDDw_DDD1rs, rActualMetric.g2) + inner_prod(DDDw_DDD2rs, rActualMetric.g1);
+
+                    // calculated with simplified Q (ML)
+                    rSecondVariationsHRCurvature.B11(r, s) = mInitialMetric.Q(0, 0) * ddK_cu[0] + mInitialMetric.Q(0, 1) * ddK_cu[1]
+                    + mInitialMetric.Q(0, 3) * ddK_cu[3];
+                    rSecondVariationsHRCurvature.B11(s, r) = rSecondVariationsHRCurvature.B11(r, s);
+                    rSecondVariationsHRCurvature.B22(r, s) = mInitialMetric.Q(1, 1) * ddK_cu[1];
+                    rSecondVariationsHRCurvature.B22(s, r) = rSecondVariationsHRCurvature.B22(r, s);
+                    rSecondVariationsHRCurvature.B12(r, s) = mInitialMetric.Q(3, 1) * ddK_cu[1] + mInitialMetric.Q(3, 3) * ddK_cu[2];
+                    rSecondVariationsHRCurvature.B12(s, r) = rSecondVariationsHRCurvature.B12(r, s);
+                    // all other entries are (remain) zero
                 }
             }
         }

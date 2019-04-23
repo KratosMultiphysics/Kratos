@@ -241,7 +241,7 @@ private:
         * The default constructor
         * @param StrainSize: The size of the strain vector in Voigt notation
         */
-        SecondVariations(const int& mat_size)
+        SecondVariations(const unsigned int& mat_size)
         {
             B11 = ZeroMatrix(mat_size, mat_size);
             B22 = ZeroMatrix(mat_size, mat_size);
@@ -290,6 +290,8 @@ private:
         const Vector& rShearDifferenceVector,
         const Vector& rw_alpha,
         const Matrix& rDw_alpha_Dbeta,
+        const Vector& rDw_D1,
+        const Vector& rDw_D2,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         ConstitutiveVariables& rThisConstitutiveVariablesHRMembrane,
@@ -308,15 +310,14 @@ private:
     /**
      * @brief Function determines the values of the shear dofs w_1 and w_2 and calculates the shear difference vector
      * @detail Reissner-Mindlin shell with hierarchic rotations (Oesterle 2018)
-     * @param rg1 = first base vector of the actual metric
-     * @param rg2 = second base vector of the actual metric
      */
     void CalculateShearDifferenceVector(
         Vector& rShearDifferenceVector,
+        Vector& rDw_D1,
+        Vector& rDw_D2,
         Vector& rw_alpha,
         Matrix& rDw_alpha_Dbeta,
-        const Vector& rg1,
-        const Vector& rg2);
+        const MetricVariables& rActualMetric);
 
     void CalculateStrainHR(
         Vector& rHRStrainVector,
@@ -326,9 +327,10 @@ private:
 
     void CalculateCurvatureHR(
         Vector& rHRCurvatureVector,
-        const Vector& rw_alpha,
-        const Matrix& rDw_alpha_Dbeta,
-        const MetricVariables& rActualMetric);
+        const Vector& rDw_D1,
+        const Vector& rDw_D2,
+        const Vector& rg1,
+        const Vector& rg2);
 
 	void CalculateBMembrane(
 		Matrix& rB,
@@ -342,6 +344,41 @@ private:
         SecondVariations& rSecondVariationsStrain,
         SecondVariations& rSecondVariationsCurvature,
         const MetricVariables& rMetric);
+    
+    void CalculateBMembraneHR(
+        Matrix& rB,
+        const Vector& rShearDifferenceVector,
+        const Vector& rw_alpha,
+        const Vector& rg1,
+        const Vector& rg2);    
+    
+    void CalculateBCurvatureHR(
+        Matrix& rB,
+        const Vector& rw_alpha,
+        const Matrix& rDw_alpha_Dbeta,
+        const Vector& rDw_D1,
+        const Vector& rDw_D2,
+        const MetricVariables& rActualMetric);    
+        
+    void CalculateSecondVariationStrainCurvatureHR(
+        SecondVariations& rSecondVariationsHRMembrane,
+        SecondVariations& rSecondVariationsHRCurvature,
+        const Vector& rw_alpha,
+        const Matrix& rDw_alpha_Dbeta,
+        const MetricVariables& rActualMetric);
+
+    void CalculateVariationsHR(        
+        Matrix& rBHRMembrane,
+        Matrix& rBHRCurvature,
+        SecondVariations& rSecondVariationsHRMembrane,
+        SecondVariations& rSecondVariationsHRCurvature,
+        const Vector& rShearDifferenceVector,
+        const Vector& rDw_D1,
+        const Vector& rDw_D2,
+        const Vector& rw_alpha,
+        const Matrix& rDw_alpha_Dbeta,
+        const MetricVariables& rActualMetric,
+        const bool& rCalculateStiffnessMatrixFlag);
     ///@}
 
     ///@}

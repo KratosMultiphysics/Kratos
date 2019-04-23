@@ -28,6 +28,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        KRATOS_WATCH("start: Initialize")
         //Constitutive Law initialisation
         BaseDiscreteElement::Initialize();
 
@@ -424,7 +425,7 @@ namespace Kratos
                 b(2, index + 2) = 0 - (DDN_DDe(i, 2) * n[2] + rMetric.H(0, 2)*dn(2, 0) + rMetric.H(1, 2)*dn(2, 1) + rMetric.H(2, 2)*dn(2, 2));
             }
 
-            rB = - prod(mInitialMetric.Q, b);
+            rB = prod(mInitialMetric.Q, b);
         }
         else
         {
