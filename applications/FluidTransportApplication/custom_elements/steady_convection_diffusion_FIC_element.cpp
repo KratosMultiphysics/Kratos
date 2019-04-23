@@ -658,7 +658,8 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InitializeElementVaria
     //Nodal Variables
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
-        rVariables.NodalPhi[i] = Geom[i].FastGetSolutionStepValue(rUnknownVar);
+        // rVariables.NodalPhi[i] = Geom[i].FastGetSolutionStepValue(rUnknownVar);
+        rVariables.NodalPhi[i] = Geom[i].FastGetSolutionStepValue(rUnknownVar, 1);
 
         for (unsigned int j = 0; j < TDim; j++)
         {

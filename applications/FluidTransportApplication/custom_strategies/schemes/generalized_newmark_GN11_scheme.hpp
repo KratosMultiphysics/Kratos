@@ -231,6 +231,18 @@ public:
     }
 
 
+// //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+//     void Predict(
+//         ModelPart& r_model_part,
+//         DofsArrayType& rDofSet,
+//         TSystemMatrixType& A,
+//         TSystemVectorType& Dx,
+//         TSystemVectorType& b) override
+//     {
+//         this->UpdateVariablesDerivatives(r_model_part);
+//     }
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void Predict(
@@ -240,7 +252,7 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b) override
     {
-        this->UpdateVariablesDerivatives(r_model_part);
+        // this->UpdateVariablesDerivatives(r_model_part);
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -371,24 +383,23 @@ public:
 
         int thread = OpenMPUtils::ThisThread();
 
+        const double& Theta = CurrentProcessInfo[THETA];
+
         (rCurrentElement) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+
+        LHS_Contribution = LHS_Contribution * Theta;
+        RHS_Contribution = RHS_Contribution * (1.0 - Theta);
 
         (rCurrentElement) -> CalculateFirstDerivativesContributions(mMMatrix[thread], mMVector[thread],CurrentProcessInfo);
 
         // adding transient contribution
         if (mMMatrix[thread].size1() != 0)
-            noalias(LHS_Contribution) += 1.0 / (mTheta*mDeltaTime) * mMMatrix[thread];
+            noalias(LHS_Contribution) += 1.0 / (mDeltaTime) * mMMatrix[thread];
 
         if (mMVector[thread].size() != 0)
-            noalias(RHS_Contribution) += mMVector[thread];
+            noalias(RHS_Contribution) += 1.0 / (mDeltaTime) * mMVector[thread];
 
         (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
-
-// if(rCurrentElement->Id() == 8)
-// {
-//     KRATOS_WATCH(LHS_Contribution)
-//     KRATOS_WATCH(RHS_Contribution)
-// }
 
         KRATOS_CATCH( "" )
     }
@@ -506,6 +517,40 @@ public:
         KRATOS_CATCH( "" )
     }
 
+// //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+//     void Update(
+//         ModelPart& r_model_part,
+//         DofsArrayType& rDofSet,
+//         TSystemMatrixType& A,
+//         TSystemVectorType& Dx,
+//         TSystemVectorType& b) override
+//     {
+//         KRATOS_TRY
+
+//         int NumThreads = OpenMPUtils::GetNumThreads();
+//         OpenMPUtils::PartitionVector DofSetPartition;
+//         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
+
+//         #pragma omp parallel
+//         {
+//             int k = OpenMPUtils::ThisThread();
+
+//             typename DofsArrayType::iterator DofsBegin = rDofSet.begin() + DofSetPartition[k];
+//             typename DofsArrayType::iterator DofsEnd = rDofSet.begin() + DofSetPartition[k+1];
+
+//             //Update Phi (DOFs)
+//             for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof)
+//             {
+//                 if (itDof->IsFree())
+//                     itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx, itDof->EquationId());
+//             }
+//         }
+
+//         this->UpdateVariablesDerivatives(r_model_part);
+
+//         KRATOS_CATCH( "" )
+//     }
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void Update(
@@ -532,11 +577,11 @@ public:
             for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof)
             {
                 if (itDof->IsFree())
-                    itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx, itDof->EquationId());
+                    itDof->GetSolutionStepValue() = TSparseSpace::GetValue(Dx, itDof->EquationId());
             }
         }
 
-        this->UpdateVariablesDerivatives(r_model_part);
+        //this->UpdateVariablesDerivatives(r_model_part);
 
         KRATOS_CATCH( "" )
     }
@@ -555,30 +600,30 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    inline void UpdateVariablesDerivatives(ModelPart& r_model_part)
-    {
-        KRATOS_TRY
+    // inline void UpdateVariablesDerivatives(ModelPart& r_model_part)
+    // {
+    //     KRATOS_TRY
 
-        ConvectionDiffusionSettings::Pointer my_settings = r_model_part.GetProcessInfo().GetValue(CONVECTION_DIFFUSION_SETTINGS);
-        const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
+    //     ConvectionDiffusionSettings::Pointer my_settings = r_model_part.GetProcessInfo().GetValue(CONVECTION_DIFFUSION_SETTINGS);
+    //     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
-        const int NNodes = static_cast<int>(r_model_part.Nodes().size());
-        ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
+    //     const int NNodes = static_cast<int>(r_model_part.Nodes().size());
+    //     ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
 
-        #pragma omp parallel for
-        for(int i = 0; i < NNodes; i++)
-        {
-            ModelPart::NodesContainerType::iterator itNode = node_begin + i;
+    //     #pragma omp parallel for
+    //     for(int i = 0; i < NNodes; i++)
+    //     {
+    //         ModelPart::NodesContainerType::iterator itNode = node_begin + i;
 
-            double& CurrentPhi = itNode->FastGetSolutionStepValue(TEMPERATURE);
-            const double& PreviousPhi = itNode->FastGetSolutionStepValue(TEMPERATURE, 1);
-            const double& CurrentPhiTheta = itNode->FastGetSolutionStepValue(rUnknownVar);
+    //         double& CurrentPhi = itNode->FastGetSolutionStepValue(TEMPERATURE);
+    //         const double& PreviousPhi = itNode->FastGetSolutionStepValue(TEMPERATURE, 1);
+    //         const double& CurrentPhiTheta = itNode->FastGetSolutionStepValue(rUnknownVar);
 
-            CurrentPhi = 1.0 / mTheta * CurrentPhiTheta + (1.0 - 1.0 / mTheta) * PreviousPhi;
-        }
+    //         CurrentPhi = 1.0 / mTheta * CurrentPhiTheta + (1.0 - 1.0 / mTheta) * PreviousPhi;
+    //     }
 
-        KRATOS_CATCH( "" )
-    }
+    //     KRATOS_CATCH( "" )
+    // }
 
 }; // Class GeneralizedNewmarkGN11Scheme
 }  // namespace Kratos

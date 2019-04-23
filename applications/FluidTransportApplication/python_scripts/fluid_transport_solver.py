@@ -53,7 +53,8 @@ class FluidTransportSolver(PythonSolver):
         if(self.settings["solution_type"].GetString() == "Steady"):
             thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)
         elif(self.settings["scheme_type"].GetString() == "Implicit"):
-            thermal_settings.SetUnknownVariable(KratosFluidTransport.PHI_THETA)
+            #thermal_settings.SetUnknownVariable(KratosFluidTransport.PHI_THETA)
+            thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)
         else:
             thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)
 
@@ -117,7 +118,8 @@ class FluidTransportSolver(PythonSolver):
             if(self.settings["solution_type"].GetString() == "Steady"):
                 node.AddDof(KratosMultiphysics.TEMPERATURE, KratosMultiphysics.REACTION_FLUX)
             elif(self.settings["scheme_type"].GetString() == "Implicit"):
-                node.AddDof(KratosFluidTransport.PHI_THETA, KratosMultiphysics.REACTION_FLUX)
+                #node.AddDof(KratosFluidTransport.PHI_THETA, KratosMultiphysics.REACTION_FLUX)
+                node.AddDof(KratosMultiphysics.TEMPERATURE, KratosMultiphysics.REACTION_FLUX)
             else:
                 node.AddDof(KratosMultiphysics.TEMPERATURE, KratosMultiphysics.REACTION_FLUX)
 

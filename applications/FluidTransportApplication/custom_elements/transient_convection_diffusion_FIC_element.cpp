@@ -136,6 +136,7 @@ void TransientConvectionDiffusionFICElement<TDim, TNumNodes>::CalculateFirstDeri
 
     Variables.IterationNumber = rCurrentProcessInfo[NL_ITERATION_NUMBER];
 
+    BoundedMatrix<double,TNumNodes,TNumNodes> MMatrixAux = ZeroMatrix( TNumNodes, TNumNodes );
     BoundedMatrix<double,TNumNodes,TNumNodes> MMatrixAux1 = ZeroMatrix( TNumNodes, TNumNodes );
     BoundedMatrix<double,TNumNodes,TNumNodes> MMatrixAuxRight = ZeroMatrix( TNumNodes, TNumNodes );
 
@@ -165,22 +166,43 @@ void TransientConvectionDiffusionFICElement<TDim, TNumNodes>::CalculateFirstDeri
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
 
-        array_1d <double, TNumNodes> AuxMVector;
-        noalias(AuxMVector) = Variables.rho_dot_c * (Variables.N + 0.5 * prod(Variables.GradNT,Variables.HVector));
+    //     array_1d <double, TNumNodes> AuxMVector;
+    //     //noalias(AuxMVector) = Variables.rho_dot_c * (Variables.N + 0.5 * prod(Variables.GradNT,Variables.HVector));
+    //     noalias(AuxMVector) = Variables.rho_dot_c * (Variables.N);
 
-        MMatrixAux1 += outer_prod(AuxMVector,Variables.N) * Variables.IntegrationCoefficient;
+    //     MMatrixAux1 += outer_prod(AuxMVector,Variables.N) * Variables.IntegrationCoefficient;
 
-        // for (unsigned int i = 0 ; i < TNumNodes ; i++ )
-        // {
-        //     for (unsigned int j = 0 ; j < TNumNodes ; j ++ )
-        //     {
-        //         MMatrixAuxRight (i,i) += MMatrixAux1(i,j) / 3.0;
-        //     }
-        // }
+    //     // for (unsigned int i = 0 ; i < TNumNodes ; i++ )
+    //     // {
+    //     //     for (unsigned int j = 0 ; j < TNumNodes ; j ++ )
+    //     //     {
+    //     //         MMatrixAuxRight (i,i) += MMatrixAux1(i,j) / 3.0;
+    //     //     }
+    //     // }
 
-        noalias(rLeftHandSideMatrix) += outer_prod(AuxMVector,Variables.N) * Variables.IntegrationCoefficient;
+    //     noalias(rLeftHandSideMatrix) += outer_prod(AuxMVector,Variables.N) * Variables.IntegrationCoefficient;
+    // }
+        array_1d <double, TNumNodes> AuxMVector1;
+
+        noalias(AuxMVector1) = Variables.rho_dot_c * Variables.N;
+        //// M matrix
+        BoundedMatrix<double,TNumNodes,TNumNodes> MMatrixAux1 = ZeroMatrix( TNumNodes, TNumNodes );
+
+        MMatrixAux1 = outer_prod(AuxMVector1,Variables.N) * Variables.IntegrationCoefficient;
+
+        // We are not considering MMatrixAux2, which is the h term
+        MMatrixAux += MMatrixAux1 ;
     }
 
+    for (unsigned int i = 0 ; i < TNumNodes ; i++ )
+    {
+        for (unsigned int j = 0 ; j < TNumNodes ; j ++ )
+        {
+            // LHS = Md lumped
+            rLeftHandSideMatrix (i,i) += MMatrixAux(i,j);
+        }
+
+    }
     //rLeftHandSideMatrix = MMatrixAuxRight;
 
     //RightHandSideVector
@@ -198,9 +220,9 @@ void TransientConvectionDiffusionFICElement<TDim, TNumNodes>::CalculateFirstDeri
 
     array_1d<double,TNumNodes> aux_vector;
 
-    noalias(aux_vector) = Variables.NodalPhi - NodalPhi0;
+    noalias(aux_vector) = NodalPhi0;
 
-    noalias(rRightHandSideVector) -= 1.0 / (Theta*DeltaTime) * prod(rLeftHandSideMatrix, aux_vector);
+    noalias(rRightHandSideVector) += prod(rLeftHandSideMatrix, aux_vector);
 
     KRATOS_CATCH("")
 }
@@ -455,6 +477,8 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
     {
         rVariables.AlphaV = 1.0;
     }
+
+    rVariables.AlphaV = 0.0;
 
     //////////////////////////////////////////////////////
     // Calculate Ds
