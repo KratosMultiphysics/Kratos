@@ -18,16 +18,14 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "mesh_id": 0,
                 "inlet_phi": 1.0,
                 "velocity_infinity": [1.0,0.0,0]
-            }  """ );
+            }  """ )
 
 
-        settings.ValidateAndAssignDefaults(default_parameters);
+        settings.ValidateAndAssignDefaults(default_parameters)
 
         self.model_part = Model[settings["model_part_name"].GetString()]
-        self.velocity_infinity = KratosMultiphysics.Vector(3)#array('d', [1.0, 2.0, 3.14])#np.array([0,0,0])#np.zeros(3)#vector(3)
-        self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
-        self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
-        self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
+        self.velocity_infinity = KratosMultiphysics.Vector(3)
+        self.velocity_infinity = settings["velocity_infinity"].GetVector()
         #self.density_infinity = settings["density_infinity"].GetDouble() #TODO: must read this from the properties
         self.inlet_phi = settings["inlet_phi"].GetDouble()
         self.model_part.ProcessInfo.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY,self.velocity_infinity)
@@ -55,8 +53,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
 
         #find the node with the minimal x
         x0 = node1.X
-        y0 = node1.X
-        z0 = node1.X
+        y0 = node1.Y
+        z0 = node1.Z
 
         pos = 1e30
         for node in self.model_part.Nodes:
