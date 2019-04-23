@@ -1,11 +1,10 @@
 {
     "problem_data"                     : {
         "problem_name"    : "Tutorial1_CFD2D2",
-        "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,
         "start_time"      : 0.0,
-        "end_time"        : 100
+        "end_time"        : 1
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -34,12 +33,12 @@
         "Restart_Step"     : 0
     },
     "solver_settings"                  : {
-        "solver_type"                     : "FractionalStep",
-		"ale_settings"                     :{
+        "solver_type"                     : "ale_fluid",
+        "ale_boundary_parts" : ["NoSlip2D_structure"],
+		"mesh_motion_solver_settings"                     :{
             "solver_type" : "mesh_solver_structural_similarity",
-            "ale_boundary_parts" : ["NoSlip2D_structure"],
             "mesh_motion_linear_solver_settings" : {
-                "solver_type" : "AMGCL",
+                "solver_type" : "amgcl",
                 "smoother_type":"ilu0",
                 "krylov_type": "gmres",
                 "coarsening_type": "aggregation",
@@ -54,49 +53,52 @@
                 "coarse_enough" : 5000
             },
             "time_order" : 2,
-            "reform_dofs_each_step" : false,
-            "compute_reactions"     : false
+            "reform_dofs_each_step" : false
         },
-        "domain_size"                  : 2,
-        "model_part_name"              : "FluidModelPart",
-        "model_import_settings"           : {
-            "input_type"     : "mdpa",
-            "input_filename" : "Tutorial1_CFD2D2"
-        },
-        "echo_level"                      : 0,
-        "compute_reactions"               : true,
-        "dynamic_tau"                     : 0.1,
-        "predictor_corrector"             : false,
-        "pressure_tolerance"              : 0.001,
-        "maximum_pressure_iterations"     : 4,
-        "velocity_tolerance"              : 0.001,
-        "maximum_velocity_iterations"     : 15,
-        "velocity_linear_solver_settings" : {
-            "solver_type"         : "AMGCL",
-            "max_iteration"       : 200,
-            "tolerance"           : 1e-7,
-            "provide_coordinates" : false,
-            "smoother_type"       : "ilu0",
-            "krylov_type"         : "gmres",
-            "coarsening_type"     : "aggregation",
-            "scaling"             : false
-        },
-        "pressure_linear_solver_settings" : {
-            "solver_type"         : "AMGCL",
-            "max_iteration"       : 200,
-            "tolerance"           : 1e-7,
-            "provide_coordinates" : false,
-            "smoother_type"       : "ilu0",
-            "krylov_type"         : "cg",
-            "coarsening_type"     : "aggregation",
-            "scaling"             : false
-        },
-        "volume_model_part_name"          : "Parts_fluid",
-        "skin_parts"                      : ["Outlet2D_outlet","Slip2D_wall","NoSlip2D_structure"],
-        "no_skin_parts"                   : ["Drag_structure","VelocityConstraints2D_inlet"],
-        "time_stepping"                   : {
-            "automatic_time_step" : false,
-            "time_step"           : 0.05
+        "fluid_solver_settings"                             :{
+            "solver_type"                  :"FractionalStep",
+            "domain_size"                  : 2,
+            "model_part_name"              : "FluidModelPart",
+            "model_import_settings"        : {
+                "input_type"     : "mdpa",
+                "domain_size"     : 2,
+                "input_filename" : "Tutorial1_CFD2D2"
+            },
+            "predictor_corrector"             : false,
+            "pressure_tolerance"              : 0.001,
+            "maximum_pressure_iterations"     : 4,
+            "velocity_tolerance"              : 0.001,
+            "maximum_velocity_iterations"     : 15,
+            "dynamic_tau"                     : 0.1,
+            "echo_level"                      : 0,
+            "compute_reactions"               : true,
+            "pressure_linear_solver_settings" : {
+                "solver_type"         : "amgcl",
+                "max_iteration"       : 200,
+                "tolerance"           : 1e-7,
+                "provide_coordinates" : false,
+                "smoother_type"       : "ilu0",
+                "krylov_type"         : "cg",
+                "coarsening_type"     : "aggregation",
+                "scaling"             : false
+            },
+            "velocity_linear_solver_settings" : {
+                "solver_type"         : "amgcl",
+                "max_iteration"       : 200,
+                "tolerance"           : 1e-7,
+                "provide_coordinates" : false,
+                "smoother_type"       : "ilu0",
+                "krylov_type"         : "gmres",
+                "coarsening_type"     : "aggregation",
+                "scaling"             : false
+            },
+            "volume_model_part_name"          : "Parts_fluid",
+            "skin_parts"                      : ["Outlet2D_outlet","Slip2D_wall","NoSlip2D_structure"],
+            "no_skin_parts"                   : ["Drag_structure","VelocityConstraints2D_inlet"],
+            "time_stepping"                   : {
+                "automatic_time_step" : false,
+                "time_step"           : 0.05
+            }
         }
     },
     "initial_conditions_process_list"  : [],
