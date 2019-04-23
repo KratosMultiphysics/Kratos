@@ -24,20 +24,20 @@
 namespace Kratos
 {
 
-template<class TEntity>
-FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObjectsProcess(
-    ModelPart& rPart1,
-    ModelPart& rPart2
-    ) : mrModelPartIntersected(rPart1),
-        mrModelPartIntersecting(rPart2)
+template<class TIntersectedEntity, class TIntersectingEntity>
+FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::FindIntersectedGeometricalObjectsProcess(
+    ModelPart& rModelPartIntersected,
+    ModelPart& rModelPartIntersecting
+    ) : mrModelPartIntersected(rModelPartIntersected),
+        mrModelPartIntersecting(rModelPartIntersecting)
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObjectsProcess(
+template<class TIntersectedEntity, class TIntersectingEntity>
+FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::FindIntersectedGeometricalObjectsProcess(
     Model& rModel,
     Parameters ThisParameters
     ) : mrModelPartIntersected(rModel.GetModelPart(ThisParameters["intersected_model_part_name"].GetString())),
@@ -57,8 +57,8 @@ FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObj
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-void FindIntersectedGeometricalObjectsProcess<TEntity>::Initialize()
+template<class TIntersectedEntity, class TIntersectingEntity>
+void FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::Initialize()
 {
     GenerateOctree();
 }
@@ -66,8 +66,8 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::Initialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-void FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults)
+template<class TIntersectedEntity, class TIntersectingEntity>
+void FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults)
 {
     auto& r_entities_array = this->GetIntersectedEntitiesArray();
     const SizeType number_of_entities = r_entities_array.size();
@@ -86,8 +86,8 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedSkinObjec
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-void FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersections()
+template<class TIntersectedEntity, class TIntersectingEntity>
+void FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::FindIntersections()
 {
     this->FindIntersectedSkinObjects(mIntersectedObjects);
 }
@@ -95,8 +95,8 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersections()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-std::vector<PointerVector<GeometricalObject>>& FindIntersectedGeometricalObjectsProcess<TEntity>::GetIntersections()
+template<class TIntersectedEntity, class TIntersectingEntity>
+std::vector<PointerVector<GeometricalObject>>& FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::GetIntersections()
 {
     return mIntersectedObjects;
 }
@@ -104,8 +104,8 @@ std::vector<PointerVector<GeometricalObject>>& FindIntersectedGeometricalObjects
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-ModelPart& FindIntersectedGeometricalObjectsProcess<TEntity>::GetModelPart1()
+template<class TIntersectedEntity, class TIntersectingEntity>
+ModelPart& FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::GetModelPart1()
 {
     return mrModelPartIntersected;
 }
@@ -113,8 +113,8 @@ ModelPart& FindIntersectedGeometricalObjectsProcess<TEntity>::GetModelPart1()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-ModelPart& FindIntersectedGeometricalObjectsProcess<TEntity>::GetModelPart2()
+template<class TIntersectedEntity, class TIntersectingEntity>
+ModelPart& FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::GetModelPart2()
 {
     return mrModelPartIntersecting;
 }
@@ -122,8 +122,8 @@ ModelPart& FindIntersectedGeometricalObjectsProcess<TEntity>::GetModelPart2()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-OctreeBinary<OctreeBinaryCell<typename FindIntersectedGeometricalObjectsProcess<TEntity>::ConfigurationType>>* FindIntersectedGeometricalObjectsProcess<TEntity>::GetOctreePointer()
+template<class TIntersectedEntity, class TIntersectingEntity>
+OctreeBinary<OctreeBinaryCell<typename FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::ConfigurationType>>* FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::GetOctreePointer()
 {
     return& mOctree;
 }
@@ -131,8 +131,8 @@ OctreeBinary<OctreeBinaryCell<typename FindIntersectedGeometricalObjectsProcess<
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-void FindIntersectedGeometricalObjectsProcess<TEntity>::Clear()
+template<class TIntersectedEntity, class TIntersectingEntity>
+void FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::Clear()
 {
     mIntersectedObjects.clear();
 }
@@ -140,8 +140,8 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::Clear()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-void FindIntersectedGeometricalObjectsProcess<TEntity>::Execute()
+template<class TIntersectedEntity, class TIntersectingEntity>
+void FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::Execute()
 {
     // Calling initialize first (initialize Octree)
     ExecuteInitialize();
@@ -163,8 +163,8 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-void FindIntersectedGeometricalObjectsProcess<TEntity>::ExecuteInitialize()
+template<class TIntersectedEntity, class TIntersectingEntity>
+void FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::ExecuteInitialize()
 {
     GenerateOctree();
 }
@@ -172,8 +172,8 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::ExecuteInitialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-std::size_t FindIntersectedGeometricalObjectsProcess<TEntity>::WorkingSpaceDimension()
+template<class TIntersectedEntity, class TIntersectingEntity>
+std::size_t FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::WorkingSpaceDimension()
 {
     auto& r_entities_array = this->GetIntersectedEntities();
     const auto it_entities_begin = r_entities_array.begin();
@@ -184,8 +184,8 @@ std::size_t FindIntersectedGeometricalObjectsProcess<TEntity>::WorkingSpaceDimen
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void FindIntersectedGeometricalObjectsProcess<Element>::GenerateOctree()
+template<class TIntersectedEntity, class TIntersectingEntity>
+void FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::GenerateOctree()
 {
     this->SetOctreeBoundingBox();
 
@@ -199,41 +199,23 @@ void FindIntersectedGeometricalObjectsProcess<Element>::GenerateOctree()
 #endif // ifdef KRATOS_USE_AMATRIX
     }
 
-    // Iterate over the elements
-    for (auto it_elem = mrModelPartIntersecting.ElementsBegin(); it_elem != mrModelPartIntersecting.ElementsEnd(); it_elem++) {
-        mOctree.Insert(*(it_elem).base());
+    // Additional
+    auto& r_entities_array = this->GetIntersectingEntities();
+    const auto it_entities_begin = r_entities_array.begin();
+    const SizeType number_of_entities = r_entities_array.size();
+
+    // Iterate over the entities
+    for (int i = 0; i < static_cast<int>(number_of_entities); i++) {
+        auto it_entities = it_entities_begin + i;
+        mOctree.Insert(*(it_entities).base());
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void FindIntersectedGeometricalObjectsProcess<Condition>::GenerateOctree()
-{
-    this->SetOctreeBoundingBox();
-
-    // Adding mrModelPart2 to the octree
-    for (auto it_node = mrModelPartIntersecting.NodesBegin(); it_node != mrModelPartIntersecting.NodesEnd(); it_node++) {
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        mOctree.Insert(it_node->Coordinates().data());
-
-#else
-        mOctree.Insert(it_node->Coordinates().data().data());
-#endif // ifdef KRATOS_USE_AMATRIX
-    }
-
-    // Iterate over the conditons
-    for (auto it_cond = mrModelPartIntersecting.ConditionsBegin(); it_cond != mrModelPartIntersecting.ConditionsEnd(); it_cond++) {
-        mOctree.Insert(*(it_cond).base());
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TEntity>
-void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
+template<class TIntersectedEntity, class TIntersectingEntity>
+void  FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::SetOctreeBoundingBox()
 {
     PointType low(mrModelPartIntersected.NodesBegin()->Coordinates());
     PointType high(mrModelPartIntersected.NodesBegin()->Coordinates());
@@ -275,9 +257,9 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-void  FindIntersectedGeometricalObjectsProcess<TEntity>::IdentifyNearEntitiesAndCheckEntityForIntersection(
-    typename TEntity::Pointer pEntity,
+template<class TIntersectedEntity, class TIntersectingEntity>
+void  FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::IdentifyNearEntitiesAndCheckEntityForIntersection(
+    typename TIntersectedEntity::Pointer pEntity,
     OtreeCellVectorType& rLeaves
     )
 {
@@ -288,17 +270,17 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::IdentifyNearEntitiesAnd
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-void  FindIntersectedGeometricalObjectsProcess<TEntity>::MarkIfIntersected(
-    TEntity& rEntity1,
+template<class TIntersectedEntity, class TIntersectingEntity>
+void  FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::MarkIfIntersected(
+    TIntersectedEntity& rIntersectedEntity,
     OtreeCellVectorType& rLeaves
     )
 {
     for (auto p_leaf : rLeaves) {
         auto& r_leaf = *(p_leaf->pGetObjects());
-        for (auto p_entity_2 : r_leaf) {
-            if (HasIntersection(rEntity1.GetGeometry(),p_entity_2->GetGeometry())) {
-                rEntity1.Set(SELECTED);
+        for (auto p_intersecting_entity : r_leaf) {
+            if (HasIntersection(rIntersectedEntity.GetGeometry(),p_intersecting_entity->GetGeometry())) {
+                rIntersectedEntity.Set(SELECTED);
                 return;
             }
         }
@@ -308,8 +290,8 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::MarkIfIntersected(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-bool FindIntersectedGeometricalObjectsProcess<TEntity>::HasIntersection(
+template<class TIntersectedEntity, class TIntersectingEntity>
+bool FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::HasIntersection(
     GeometryType& rFirstGeometry,
     GeometryType& rSecondGeometry
     )
@@ -325,8 +307,8 @@ bool FindIntersectedGeometricalObjectsProcess<TEntity>::HasIntersection(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-bool FindIntersectedGeometricalObjectsProcess<TEntity>::HasIntersection2D(
+template<class TIntersectedEntity, class TIntersectingEntity>
+bool FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::HasIntersection2D(
     GeometryType& rFirstGeometry,
     GeometryType& rSecondGeometry
     )
@@ -361,8 +343,8 @@ bool FindIntersectedGeometricalObjectsProcess<TEntity>::HasIntersection2D(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-bool FindIntersectedGeometricalObjectsProcess<TEntity>::HasIntersection3D(
+template<class TIntersectedEntity, class TIntersectingEntity>
+bool FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::HasIntersection3D(
     GeometryType& rFirstGeometry,
     GeometryType& rSecondGeometry
     )
@@ -388,19 +370,19 @@ bool FindIntersectedGeometricalObjectsProcess<TEntity>::HasIntersection3D(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-void FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedSkinObjects(
-    TEntity& rEntity1,
-    FindIntersectedGeometricalObjectsProcess<TEntity>::OtreeCellVectorType& rLeaves,
+template<class TIntersectedEntity, class TIntersectingEntity>
+void FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::FindIntersectedSkinObjects(
+    TIntersectedEntity& rIntersectedEntity,
+    FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::OtreeCellVectorType& rLeaves,
     PointerVector<GeometricalObject>& rResults
     )
 {
     for (auto p_leaf : rLeaves) {
-        for (auto p_entity_2 : *(p_leaf->pGetObjects())) {
-            if (HasIntersection(rEntity1.GetGeometry(), p_entity_2->GetGeometry())) {
-                rEntity1.Set(SELECTED);
-                if(std::find(rResults.ptr_begin(), rResults.ptr_end(), p_entity_2) == rResults.ptr_end())
-                    rResults.push_back(p_entity_2);
+        for (auto p_intersecting_entity : *(p_leaf->pGetObjects())) {
+            if (HasIntersection(rIntersectedEntity.GetGeometry(), p_intersecting_entity->GetGeometry())) {
+                rIntersectedEntity.Set(SELECTED);
+                if(std::find(rResults.ptr_begin(), rResults.ptr_end(), p_intersecting_entity) == rResults.ptr_end())
+                    rResults.push_back(p_intersecting_entity);
             }
         }
     }
@@ -428,6 +410,24 @@ PointerVectorSet<Condition, IndexedObject>& FindIntersectedGeometricalObjectsPro
 /***********************************************************************************/
 
 template<>
+PointerVectorSet<Element, IndexedObject>& FindIntersectedGeometricalObjectsProcess<Element, Condition>::GetIntersectedEntities()
+{
+    return mrModelPartIntersected.Elements();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Condition, IndexedObject>& FindIntersectedGeometricalObjectsProcess<Condition, Element>::GetIntersectedEntities()
+{
+    return mrModelPartIntersected.Conditions();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
 PointerVectorSet<Element, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Element>::GetIntersectedEntitiesArray()
 {
     return mrModelPartIntersected.ElementsArray();
@@ -441,11 +441,102 @@ PointerVectorSet<Condition, IndexedObject>::ContainerType& FindIntersectedGeomet
 {
     return mrModelPartIntersected.ConditionsArray();
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntity>
-Parameters FindIntersectedGeometricalObjectsProcess<TEntity>::GetDefaultParameters()
+template<>
+PointerVectorSet<Element, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Element, Condition>::GetIntersectedEntitiesArray()
+{
+    return mrModelPartIntersected.ElementsArray();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Condition, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Condition, Element>::GetIntersectedEntitiesArray()
+{
+    return mrModelPartIntersected.ConditionsArray();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Element, IndexedObject>& FindIntersectedGeometricalObjectsProcess<Element>::GetIntersectingEntities()
+{
+    return mrModelPartIntersecting.Elements();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Condition, IndexedObject>& FindIntersectedGeometricalObjectsProcess<Condition>::GetIntersectingEntities()
+{
+    return mrModelPartIntersecting.Conditions();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Condition, IndexedObject>& FindIntersectedGeometricalObjectsProcess<Element, Condition>::GetIntersectingEntities()
+{
+    return mrModelPartIntersecting.Conditions();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Element, IndexedObject>& FindIntersectedGeometricalObjectsProcess<Condition, Element>::GetIntersectingEntities()
+{
+    return mrModelPartIntersecting.Elements();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Element, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Element>::GetIntersectingEntitiesArray()
+{
+    return mrModelPartIntersecting.ElementsArray();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Condition, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Condition>::GetIntersectingEntitiesArray()
+{
+    return mrModelPartIntersecting.ConditionsArray();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Condition, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Element, Condition>::GetIntersectingEntitiesArray()
+{
+    return mrModelPartIntersecting.ConditionsArray();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Element, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Condition,Element>::GetIntersectingEntitiesArray()
+{
+    return mrModelPartIntersecting.ElementsArray();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TIntersectedEntity, class TIntersectingEntity>
+Parameters FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::GetDefaultParameters()
 {
     Parameters default_parameters = Parameters(R"(
     {
@@ -461,5 +552,7 @@ Parameters FindIntersectedGeometricalObjectsProcess<TEntity>::GetDefaultParamete
 
 template class FindIntersectedGeometricalObjectsProcess<Condition>;
 template class FindIntersectedGeometricalObjectsProcess<Element>;
+template class FindIntersectedGeometricalObjectsProcess<Condition, Element>;
+template class FindIntersectedGeometricalObjectsProcess<Element, Condition>;
 
 }  // namespace Kratos.
