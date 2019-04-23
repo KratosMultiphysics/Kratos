@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "utilities/math_utils.h"
 #include "custom_conditions/mortar_contact_condition.h"
 
 namespace Kratos
@@ -62,7 +63,7 @@ namespace Kratos
  * @tparam TNormalVariation If we are consider normal variation
  * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster >
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster = TNumNodes>
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) PenaltyMethodFrictionalMortarContactCondition
     : public MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, TNormalVariation, TNumNodesMaster>
 {
@@ -120,6 +121,8 @@ public:
     typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>                         DerivativeDataType;
 
     static constexpr IndexType MatrixSize = TDim * (TNumNodes + TNumNodesMaster);
+
+    static constexpr IndexType StepSlip = TNormalVariation ? 0 : 1;
 
     ///@}
     ///@name Life Cycle
@@ -181,9 +184,15 @@ public:
     void Initialize() override;
 
     /**
-    * @brief Called at the ending of each solution step
-    * @param rCurrentProcessInfo the current process info instance
-    */
+     * @brief Called at the begining of each solution step
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Called at the ending of each solution step
+     * @param rCurrentProcessInfo the current process info instance
+     */
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -353,7 +362,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    MortarBaseConditionMatrices mPreviousMortarOperators; /// These are the mortar operators from the previous converged step, necessary for a consistent definition of the slip
+    bool mPreviousMortarOperatorsInitialized = false;     /// In order to know iw we need to initialize the previous operators
+
+    MortarBaseConditionMatrices mPreviousMortarOperators; /// These are the mortar operators from the previous converged step, necessary for a consistent definition of the r_gt
 
     // TODO: Define the "CL" or friction law to compute this. Or do it nodally
 
@@ -375,6 +386,7 @@ protected:
      * @param rMortarConditionMatrices The mortar operators to be considered
      * @param rDerivativeData The class containing all the derivatives uses to compute the jacobian
      * @param rActiveInactive The integer that is used to identify which case is the currectly computed
+     * @param rCurrentProcessInfo The current process information
      */
     void CalculateLocalLHS(
         Matrix& rLocalLHS,
@@ -390,6 +402,7 @@ protected:
      * @param rMortarConditionMatrices The mortar operators to be considered
      * @param rDerivativeData The class containing all the derivatives uses to compute the jacobian
      * @param rActiveInactive The integer that is used to identify which case is the currectly computed
+     * @param rCurrentProcessInfo The current process information
      */
     void CalculateLocalRHS(
         Vector& rLocalRHS,
@@ -472,11 +485,17 @@ private:
     ///@{
 
     /**
-     * @brief It calculates the matrix containing the tangent vector of the slip (for frictional contact)
-     * @param ThisNodes The geometry to calculate
-     * @return tangent_matrix The matrix containing the tangent vectors of the slip
+     * @brief It computes the previous mortar operators
+     * @param rCurrentProcessInfo The current process information
      */
-    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(const GeometryType& ThisNodes) {
+    void ComputePreviousMortarOperators( ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * @brief It calculates the matrix containing the tangent vector of the r_gt (for frictional contact)
+     * @param rGeometry The geometry to calculate
+     * @return tangent_matrix The matrix containing the tangent vectors of the r_gt
+     */
+    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(const GeometryType& rGeometry) {
         /* DEFINITIONS */
         // Zero tolerance
         const double zero_tolerance = std::numeric_limits<double>::epsilon();
@@ -484,16 +503,28 @@ private:
         BoundedMatrix<double, TNumNodes, TDim> tangent_matrix;
 
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-            const array_1d<double, 3>& slip = ThisNodes[i_node].FastGetSolutionStepValue(WEIGHTED_SLIP);
-            const double norm_slip = norm_2(slip);
-            if (norm_slip > zero_tolerance) { // Non zero slip
-                const array_1d<double, 3> tangent_slip = slip/norm_slip;
+            const array_1d<double, 3>& r_gt = rGeometry[i_node].FastGetSolutionStepValue(WEIGHTED_SLIP, StepSlip);
+            const double norm_slip = norm_2(r_gt);
+            if (norm_slip > zero_tolerance) { // Non zero r_gt
+                const array_1d<double, 3> tangent_slip = r_gt/norm_slip;
                 for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
                     tangent_matrix(i_node, i_dof) = tangent_slip[i_dof];
             } else { // We consider the tangent direction as auxiliar
-                const array_1d<double, 3>& tangent_xi = ThisNodes[i_node].GetValue(TANGENT_XI);
-                for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
-                    tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
+                const array_1d<double, 3>& r_normal = rGeometry[i_node].FastGetSolutionStepValue(NORMAL);
+                array_1d<double, 3> tangent_xi, tangent_eta;
+                MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
+                if (TDim == 3) {
+                    for (std::size_t i_dof = 0; i_dof < 3; ++i_dof)
+                        tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
+                } else  {
+                    if (std::abs(tangent_xi[2]) > std::numeric_limits<double>::epsilon()) {
+                        for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
+                            tangent_matrix(i_node, i_dof) = tangent_eta[i_dof];
+                    } else {
+                        for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
+                            tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
+                    }
+                }
             }
         }
 

@@ -47,7 +47,8 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
             "tolerance"            : 1e-3,
             "relative_tolerance"   : 1e-6,
             "time_frequency"       : 1.00,
-            "use_node_coordinates" : false
+            "use_node_coordinates" : false,
+            "check_only_local_entities" : false
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -84,6 +85,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         self.abs_tol = self.params["tolerance"].GetDouble()
         self.rel_tol = self.params["relative_tolerance"].GetDouble()
         self.use_node_coordinates = self.params["use_node_coordinates"].GetBool()
+        self.check_only_local_entities = self.params["check_only_local_entities"].GetBool()
         self.__compute_relevant_digits()
 
         # Initialize counter
@@ -107,7 +109,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
             input_time_list = self.data["TIME"]
 
             # Nodal values
-            for node in self.model_part.Nodes:
+            for node in self.__get_nodes():
                 compute = self.__check_flag(node)
 
                 if compute:
@@ -148,7 +150,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                                 value_json = values_json[index] # self.__linear_interpolation(time, input_time_list, values_json[index])
                                 self.__check_values(node.Id, "Node", value[index], value_json, variable_name)
             # Nodal values
-            for elem in self.model_part.Elements:
+            for elem in self.__get_elements():
                 compute = self.__check_flag(elem)
 
                 if compute is True:
@@ -280,3 +282,31 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
             return 'X_{0:.{digits}f}_Y_{1:.{digits}f}_Z_{2:.{digits}f}'.format(node.X0, node.Y0, node.Z0, digits=6)
         else:
             return str(node.Id)
+
+    def __get_nodes(self):
+        """ returns the nodes to be checked
+        Either only local or all (local and ghost)
+        This is ONLY relevant in MPI
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        node -- The Kratos node to get the identifier for
+        """
+        if self.check_only_local_entities:
+            return self.model_part.GetCommunicator().LocalMesh().Nodes
+        else:
+            return self.model_part.Nodes
+
+    def __get_elements(self):
+        """ returns the elements to be checked
+        Either only local or all (local and ghost)
+        This is ONLY relevant in MPI
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        node -- The Kratos node to get the identifier for
+        """
+        if self.check_only_local_entities:
+            return self.model_part.GetCommunicator().LocalMesh().Elements
+        else:
+            return self.model_part.Elements

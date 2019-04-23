@@ -116,6 +116,26 @@ public:
             std::make_pair(rMapperName, pMapperPrototype));
     }
 
+    template<class TSparseSpace, class TDenseSpace>
+    static bool HasMapper(const std::string& rMapperName)
+    {
+        const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
+        return mapper_list.find(rMapperName) != mapper_list.end();
+    }
+
+    template<class TSparseSpace, class TDenseSpace>
+    static std::vector<std::string> GetRegisteredMapperNames()
+    {
+        const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
+
+        std::vector<std::string> mapper_names;
+
+        for (auto const& r_registered_mapper : mapper_list) {
+            mapper_names.push_back(r_registered_mapper.first);
+        }
+
+        return mapper_names;
+    }
 
     ///@}
     ///@name Input and output
