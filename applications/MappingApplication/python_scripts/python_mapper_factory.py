@@ -10,13 +10,27 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 from KratosMultiphysics.MappingApplication import MapperFactory
 
+# Import applications
+try:
+    from KratosMultiphysics.FSIApplication import NonConformant_OneSideMap
+    have_fsi = True
+except ImportError:
+    have_fsi = False
+
 def _CreateCoreMortarMapper(model_part_origin, model_part_destination, mapper_settings):
     # return core mortar mapper
     raise NotImplementedError
 
 def _CreateApproximateMortarMapper(model_part_origin, model_part_destination, mapper_settings):
-    # return mapper from FSIApp
-    raise NotImplementedError
+    if (have_fsi):
+        return NonConformant_OneSideMap.NonConformant_OneSideMap(
+            model_part_origin,
+            model_part_destination,
+            mapper_settings["search_radius_factor"].GetDouble(),
+            mapper_settings["mapper_max_iterations"].GetInt(),
+            mapper_settings["mapper_tolerance"].GetDouble())
+    else:
+        raise Exception("FSIApplication is required to construct the approximate_mortar mapper.")
 
 def _CreateVertexMorphingMapper(model_part_origin, model_part_destination, mapper_settings):
     # return mapper from ShapeOptApp

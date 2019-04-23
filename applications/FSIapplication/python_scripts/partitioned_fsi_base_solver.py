@@ -3,6 +3,7 @@ from math import sqrt   # Import the square root from python library
 
 # Import utilities
 from KratosMultiphysics.FSIApplication import NonConformant_OneSideMap                # Import non-conformant mapper
+from KratosMultiphysics.MappingApplication import python_mapper_factory
 from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
 from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
 from KratosMultiphysics.MeshMovingApplication import python_solvers_wrapper_mesh_motion      # Import the mesh motion Python solvers wrapper
@@ -14,6 +15,7 @@ from KratosMultiphysics.python_solver import PythonSolver
 
 # Import applications
 import KratosMultiphysics.FSIApplication as KratosFSI
+import KratosMultiphysics.MappingApplication as KratosMapping
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 def CreateSolver(model, project_parameters):
@@ -375,10 +377,6 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
     def _SetUpMapper(self):
         # Recall, to set the INTERFACE flag in both the fluid and solid interface before the mapper construction
-        search_radius_factor = 2.0
-        mapper_max_iterations = 200
-        mapper_tolerance = 1e-12
-
         mappers_settings = self.settings["coupling_settings"]["mapper_settings"]
 
         if (mappers_settings.size() == 1):
@@ -387,16 +385,25 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
             fluid_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(fluid_submodelpart_name)
             structure_submodelpart = self.structure_solver.main_model_part.GetSubModelPart(structure_submodelpart_name)
+            mapper_settings = KratosMultiphysics.Parameters("""{
+                "mapper_type": "approximate_mortar",
+                "search_radius_factor": 2.0,
+                "mapper_max_iterations": 200,
+                "mapper_tolerance": 1e-12
+            }""")
 
-            self.interface_mapper = NonConformant_OneSideMap.NonConformant_OneSideMap(fluid_submodelpart,
-                                                                                      structure_submodelpart,
-                                                                                      search_radius_factor,
-                                                                                      mapper_max_iterations,
-                                                                                      mapper_tolerance)
+            self.interface_mapper = python_mapper_factory.CreateMapper(
+                fluid_submodelpart,
+                structure_submodelpart,
+                mapper_settings)
 
             self.double_faced_structure = False
 
         elif (mappers_settings.size() == 2):
+            search_radius_factor = 2.0
+            mapper_max_iterations = 200
+            mapper_tolerance = 1e-12
+
             # Get the fluid interface faces submodelpart names
             for mapper_id in range(2):
                 if (mappers_settings[mapper_id]["mapper_face"].GetString() == "Positive"):
