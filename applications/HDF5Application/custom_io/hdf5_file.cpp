@@ -243,8 +243,16 @@ bool File::HasAttribute(const std::string& rObjectPath, const std::string& rName
     KRATOS_TRY;
     htri_t status =
         H5Aexists_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), H5P_DEFAULT);
-    KRATOS_ERROR_IF(status < 0) << "H5Aexists_by_name failed" << std::endl;
+    KRATOS_ERROR_IF(status < 0) << "H5Aexists_by_name failed." << std::endl;
     return (status > 0);
+    KRATOS_CATCH("");
+}
+
+void File::DeleteAttribute(const std::string& rObjectPath, const std::string& rName)
+{
+    KRATOS_TRY;
+    KRATOS_ERROR_IF(H5Adelete_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), H5P_DEFAULT) < 0)
+        << "H5Adelete_by_name failed.";
     KRATOS_CATCH("");
 }
 
@@ -357,7 +365,10 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     KRATOS_TRY;
     BuiltinTimer timer;
     hid_t type_id, space_id, attr_id;
-
+    if (HasAttribute(rObjectPath, rName))
+    {
+        DeleteAttribute(rObjectPath, rName);
+    }
     type_id = Internals::GetScalarDataType(Value);
     space_id = H5Screate(H5S_SCALAR);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
@@ -379,7 +390,10 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     KRATOS_TRY;
     BuiltinTimer timer;
     hid_t type_id, space_id, attr_id;
-
+    if (HasAttribute(rObjectPath, rName))
+    {
+        DeleteAttribute(rObjectPath, rName);
+    }
     type_id = Internals::GetScalarDataType(rValue);
     const hsize_t dim = rValue.size();
     space_id = H5Screate_simple(1, &dim, nullptr);
@@ -402,7 +416,10 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     KRATOS_TRY;
     BuiltinTimer timer;
     hid_t type_id, space_id, attr_id;
-
+    if (HasAttribute(rObjectPath, rName))
+    {
+        DeleteAttribute(rObjectPath, rName);
+    }
     type_id = Internals::GetScalarDataType(rValue);
     const std::array<hsize_t, 2> dims = {rValue.size1(), rValue.size2()};
     space_id = H5Screate_simple(dims.size(), dims.data(), nullptr);
@@ -424,7 +441,10 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     KRATOS_TRY;
     BuiltinTimer timer;
     hid_t type_id, space_id, attr_id;
-
+    if (HasAttribute(rObjectPath, rName))
+    {
+        DeleteAttribute(rObjectPath, rName);
+    }
     type_id = H5T_NATIVE_CHAR;
     const std::array<hsize_t, 1> dims = {rValue.size()};
     space_id = H5Screate_simple(dims.size(), dims.data(), nullptr);

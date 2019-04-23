@@ -170,6 +170,11 @@ ModelPart& Model::GetModelPart(const std::string& rFullModelPartName)
     KRATOS_CATCH("")
 }
 
+const ModelPart& Model::GetModelPart(const std::string& rFullModelPartName) const
+{
+    return this->GetModelPart(rFullModelPartName);
+}
+
 bool Model::HasModelPart(const std::string& rFullModelPartName) const
 {
     KRATOS_TRY
@@ -200,7 +205,7 @@ bool Model::HasModelPart(const std::string& rFullModelPartName) const
     KRATOS_CATCH("")
 }
 
-std::vector<std::string> Model::GetModelPartNames()
+std::vector<std::string> Model::GetModelPartNames() const
 {
     std::vector<std::string> model_parts_names;
 
