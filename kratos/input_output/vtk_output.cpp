@@ -352,12 +352,15 @@ void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& r
     // Write entity types
     for (const auto& r_entity : rContainer) {
         int cell_type = -1;
-        if (geo_type_vtk_cell_type_map.count(r_entity.GetGeometry().GetGeometryType()) > 0) {
-            cell_type = geo_type_vtk_cell_type_map.at(r_entity.GetGeometry().GetGeometryType());
+        const auto& r_kratos_cell = r_entity.GetGeometry().GetGeometryType();
+        if (geo_type_vtk_cell_type_map.count(r_kratos_cell) > 0) {
+            cell_type = geo_type_vtk_cell_type_map.at(r_kratos_cell);
         }
         else {
+            const auto& r_kratos_cell = r_entity.GetGeometry().GetGeometryType();
             KRATOS_ERROR << "Modelpart contains elements or conditions with "
-             << "geometries for which no VTK-output is implemented!" << std::endl;
+             << "geometries for which no VTK-output is implemented!" << std::endl
+             << "Cell type: " << static_cast<int>(r_kratos_cell) << std::endl;
         }
 
         WriteScalarDataToFile( (int)cell_type, rFileStream);
