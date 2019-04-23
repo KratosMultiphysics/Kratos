@@ -248,7 +248,7 @@ private:
      * @param pModelPart Pointer of the model part where search recursively
      * @return The pointer of the model part of interest
      */
-    ModelPart* RecursiveSearchByName(const std::string& rModelPartName, ModelPart* pModelPart);
+    ModelPart* RecursiveSearchByName(const std::string& rModelPartName, ModelPart* pModelPart) const;
 
     /**
      * @brief This method splits the name of the model part using "." to define the hierarchy
