@@ -202,8 +202,9 @@ namespace Internals {
          * @param rLowPoint The lowest point of the box
          * @param rHighPoint The highest point of the box
          */
+        template<class TPointerType>
         static inline void GetBoundingBox(
-            const PointerType pObject,
+            const TPointerType pObject,
             double* rLowPoint,
             double* rHighPoint
             )
@@ -233,9 +234,10 @@ namespace Internals {
          * @param pObj2 The pointer to the second object
          * @return True if there is an intersection
          */
+        template<class TPointerType1, class TPointerType2>
         static inline bool Intersection(
-            const PointerType& pObj1,
-            const PointerType& pObj2
+            const TPointerType1& pObj1,
+            const TPointerType2& pObj2
             )
         {
             GeometryType& r_geom_1 = pObj1->GetGeometry();
@@ -250,8 +252,9 @@ namespace Internals {
          * @param rHighPoint The highest point of the box
          * @return True if there is an intersection
          */
+        template<class TPointerType>
         static inline bool IntersectionBox(
-            const PointerType& pObject,
+            const TPointerType& pObject,
             const PointType& rLowPoint,
             const PointType& rHighPoint
             )
@@ -266,8 +269,9 @@ namespace Internals {
          * @param rLowPoint The lowest point of the box
          * @param rHighPoint The highest point of the box
          */
+        template<class TPointerType>
         static inline bool IsIntersected(
-            const PointerType pObject,
+            const TPointerType pObject,
             double Tolerance,
             const double* rLowPoint,
             const double* rHighPoint
@@ -324,11 +328,12 @@ namespace Internals {
  * @ingroup KratosCore
  * @brief This class takes two modelparts and marks the intersected ones with SELECTED flag.
  * @details It creates a spatial datastructure and search for interaction. It also provides some helper methods for derived classes to check individual element or condition interesections.
- * @tparam TEntity The type of geometrical entity considered (if conditions or elements)
+ * @tparam TIntersectedEntity The type of geometrical (intersected) entity considered (if conditions or elements)
+ * @tparam TIntersectingEntity The type of geometrical (intersecting) entity considered (if conditions or elements)
  * @todo Add possibility to use conditions with elements and vice versa (add second template argument)
  * @author Pooyan Dadvand
 */
-template<class TEntity = Element>
+template<class TIntersectedEntity = Element, class TIntersectingEntity = TIntersectedEntity>
 class KRATOS_API(KRATOS_CORE) FindIntersectedGeometricalObjectsProcess
     : public Process
 {
@@ -340,7 +345,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(FindIntersectedGeometricalObjectsProcess);
 
     /// Octree definitions
-    using ConfigurationType = Internals::DistanceSpatialContainersConfigure<TEntity>;
+    using ConfigurationType = Internals::DistanceSpatialContainersConfigure<TIntersectingEntity>;
     using CellType = OctreeBinaryCell<ConfigurationType>;
     using OctreeType = OctreeBinary<CellType>;
     using CellNodeDataType = typename ConfigurationType::cell_node_data_type;
@@ -362,7 +367,8 @@ public:
     using GeometryType = Geometry<NodeType>;
 
     /// Definition of the entity container type
-    typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;
+    typedef PointerVectorSet<TIntersectingEntity, IndexedObject> IntersectingEntityContainerType;
+    typedef PointerVectorSet<TIntersectedEntity, IndexedObject> IntersectedEntityContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -376,12 +382,12 @@ public:
 
     /**
      * @brief Constructor to be used.
-     * @param rPart1 First model part (the one to compute the intersection)
+     * @param rModelPartIntersected First model part (the one to compute the intersection)
      * @param rPart2 Second model part (the "skin" model part)
      */
     FindIntersectedGeometricalObjectsProcess(
-        ModelPart& rPart1,
-        ModelPart& rPart2
+        ModelPart& rModelPartIntersected,
+        ModelPart& rModelPartIntersecting
         );
 
     /**
@@ -472,7 +478,7 @@ public:
      * @param rLeaves The Octree cells vectors
      */
     virtual void IdentifyNearEntitiesAndCheckEntityForIntersection(
-        typename TEntity::Pointer pEntity,
+        typename TIntersectedEntity::Pointer pEntity,
         OtreeCellVectorType& rLeaves
         );
 
@@ -523,11 +529,11 @@ protected:
 
     /**
      * @brief This method marks if intersected
-     * @param rEntity1 The entity of interest
+     * @param rIntersectedEntity The entity of interest
      * @param rLeaves The Octree cells vectors
      */
     virtual void MarkIfIntersected(
-        TEntity& rEntity1,
+        TIntersectedEntity& rIntersectedEntity,
         OtreeCellVectorType& rLeaves
         );
 
@@ -610,12 +616,12 @@ private:
 
     /**
      * @brief This method finds intected skin objects
-     * @param rEntity1 The entity of interest
+     * @param rIntersectedEntity The entity of interest
      * @param rLeaves The Octree cells vectors
      * @param rResults The expected results
      */
     void FindIntersectedSkinObjects(
-        TEntity& rEntity1,
+        TIntersectedEntity& rIntersectedEntity,
         OtreeCellVectorType& rLeaves,
         PointerVector<GeometricalObject>& rResults
         );
@@ -624,13 +630,25 @@ private:
      * @brief Returns the corresponding array of entities
      * @return The array of entities
      */
-    EntityContainerType& GetIntersectedEntities();
+    IntersectedEntityContainerType& GetIntersectedEntities();
 
     /**
      * @brief Returns the corresponding array of entities array
      * @return The array of entities
      */
-    typename EntityContainerType::ContainerType& GetIntersectedEntitiesArray();
+    typename IntersectedEntityContainerType::ContainerType& GetIntersectedEntitiesArray();
+
+    /**
+     * @brief Returns the corresponding array of entities
+     * @return The array of entities
+     */
+    IntersectingEntityContainerType& GetIntersectingEntities();
+
+    /**
+     * @brief Returns the corresponding array of entities array
+     * @return The array of entities
+     */
+    typename IntersectingEntityContainerType::ContainerType& GetIntersectingEntitiesArray();
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
@@ -661,14 +679,14 @@ private:
 
 
 /// input stream function
-template<class TEntity = Element>
+template<class TIntersectingEntity = Element>
 inline std::istream& operator >> (std::istream& rIStream,
-                FindIntersectedGeometricalObjectsProcess<TEntity>& rThis);
+                FindIntersectedGeometricalObjectsProcess<TIntersectingEntity>& rThis);
 
 /// output stream function
-template<class TEntity = Element>
+template<class TIntersectingEntity = Element>
 inline std::ostream& operator << (std::ostream& rOStream,
-                const FindIntersectedGeometricalObjectsProcess<TEntity>& rThis)
+                const FindIntersectedGeometricalObjectsProcess<TIntersectingEntity>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
