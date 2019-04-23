@@ -28,8 +28,8 @@ template<class TEntity>
 FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObjectsProcess(
     ModelPart& rPart1,
     ModelPart& rPart2
-    ) : mrModelPartIntersecting(rPart1),
-        mrModelPartIntersected(rPart2)
+    ) : mrModelPartIntersected(rPart1),
+        mrModelPartIntersecting(rPart2)
 {
 }
 
@@ -40,18 +40,18 @@ template<class TEntity>
 FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedGeometricalObjectsProcess(
     Model& rModel,
     Parameters ThisParameters
-    ) : mrModelPartIntersecting(rModel.GetModelPart(ThisParameters["intersecting_model_part_name"].GetString())),
-        mrModelPartIntersected(rModel.GetModelPart(ThisParameters["intersected_model_part_name"].GetString()))
+    ) : mrModelPartIntersected(rModel.GetModelPart(ThisParameters["intersected_model_part_name"].GetString())),
+        mrModelPartIntersecting(rModel.GetModelPart(ThisParameters["intersecting_model_part_name"].GetString()))
 {
     const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // Checking that the names of the model parts are not empty (this is supposed to be already declared)
-    const std::string& r_intersecting_model_part_name = ThisParameters["intersecting_model_part_name"].GetString();
     const std::string& r_intersected_model_part_name = ThisParameters["intersected_model_part_name"].GetString();
+    const std::string& r_intersecting_model_part_name = ThisParameters["intersecting_model_part_name"].GetString();
 
-    KRATOS_ERROR_IF(r_intersecting_model_part_name == "") << "intersecting_model_part_name must be defined on parameters" << std::endl;
     KRATOS_ERROR_IF(r_intersected_model_part_name == "") << "intersected_model_part_name must be defined on parameters" << std::endl;
+    KRATOS_ERROR_IF(r_intersecting_model_part_name == "") << "intersecting_model_part_name must be defined on parameters" << std::endl;
 }
 
 /***********************************************************************************/
@@ -107,7 +107,7 @@ std::vector<PointerVector<GeometricalObject>>& FindIntersectedGeometricalObjects
 template<class TEntity>
 ModelPart& FindIntersectedGeometricalObjectsProcess<TEntity>::GetModelPart1()
 {
-    return mrModelPartIntersecting;
+    return mrModelPartIntersected;
 }
 
 /***********************************************************************************/
@@ -116,7 +116,7 @@ ModelPart& FindIntersectedGeometricalObjectsProcess<TEntity>::GetModelPart1()
 template<class TEntity>
 ModelPart& FindIntersectedGeometricalObjectsProcess<TEntity>::GetModelPart2()
 {
-    return mrModelPartIntersected;
+    return mrModelPartIntersecting;
 }
 
 /***********************************************************************************/
@@ -190,7 +190,7 @@ void FindIntersectedGeometricalObjectsProcess<Element>::GenerateOctree()
     this->SetOctreeBoundingBox();
 
     // Adding mrModelPart2 to the octree
-    for (auto it_node = mrModelPartIntersected.NodesBegin(); it_node != mrModelPartIntersected.NodesEnd(); it_node++) {
+    for (auto it_node = mrModelPartIntersecting.NodesBegin(); it_node != mrModelPartIntersecting.NodesEnd(); it_node++) {
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
         mOctree.Insert(it_node->Coordinates().data());
 
@@ -200,7 +200,7 @@ void FindIntersectedGeometricalObjectsProcess<Element>::GenerateOctree()
     }
 
     // Iterate over the elements
-    for (auto it_elem = mrModelPartIntersected.ElementsBegin(); it_elem != mrModelPartIntersected.ElementsEnd(); it_elem++) {
+    for (auto it_elem = mrModelPartIntersecting.ElementsBegin(); it_elem != mrModelPartIntersecting.ElementsEnd(); it_elem++) {
         mOctree.Insert(*(it_elem).base());
     }
 }
@@ -214,7 +214,7 @@ void FindIntersectedGeometricalObjectsProcess<Condition>::GenerateOctree()
     this->SetOctreeBoundingBox();
 
     // Adding mrModelPart2 to the octree
-    for (auto it_node = mrModelPartIntersected.NodesBegin(); it_node != mrModelPartIntersected.NodesEnd(); it_node++) {
+    for (auto it_node = mrModelPartIntersecting.NodesBegin(); it_node != mrModelPartIntersecting.NodesEnd(); it_node++) {
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
         mOctree.Insert(it_node->Coordinates().data());
 
@@ -224,7 +224,7 @@ void FindIntersectedGeometricalObjectsProcess<Condition>::GenerateOctree()
     }
 
     // Iterate over the conditons
-    for (auto it_cond = mrModelPartIntersected.ConditionsBegin(); it_cond != mrModelPartIntersected.ConditionsEnd(); it_cond++) {
+    for (auto it_cond = mrModelPartIntersecting.ConditionsBegin(); it_cond != mrModelPartIntersecting.ConditionsEnd(); it_cond++) {
         mOctree.Insert(*(it_cond).base());
     }
 }
@@ -235,11 +235,11 @@ void FindIntersectedGeometricalObjectsProcess<Condition>::GenerateOctree()
 template<class TEntity>
 void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
 {
-    PointType low(mrModelPartIntersecting.NodesBegin()->Coordinates());
-    PointType high(mrModelPartIntersecting.NodesBegin()->Coordinates());
+    PointType low(mrModelPartIntersected.NodesBegin()->Coordinates());
+    PointType high(mrModelPartIntersected.NodesBegin()->Coordinates());
 
     // Loop over all nodes in first modelpart
-    for (auto it_node = mrModelPartIntersecting.NodesBegin(); it_node != mrModelPartIntersecting.NodesEnd(); it_node++) {
+    for (auto it_node = mrModelPartIntersected.NodesBegin(); it_node != mrModelPartIntersected.NodesEnd(); it_node++) {
         const array_1d<double,3>& r_coordinates = it_node->Coordinates();
         for (IndexType i = 0; i < 3; i++) {
             low[i] = r_coordinates[i] < low[i] ? r_coordinates[i] : low[i];
@@ -248,7 +248,7 @@ void  FindIntersectedGeometricalObjectsProcess<TEntity>::SetOctreeBoundingBox()
     }
 
     // Loop over all skin nodes
-    for (auto it_node = mrModelPartIntersected.NodesBegin(); it_node != mrModelPartIntersected.NodesEnd(); it_node++) {
+    for (auto it_node = mrModelPartIntersecting.NodesBegin(); it_node != mrModelPartIntersecting.NodesEnd(); it_node++) {
         const array_1d<double,3>& r_coordinates = it_node->Coordinates();
         for (IndexType i = 0; i < 3; i++) {
             low[i] = r_coordinates[i] < low[i] ? r_coordinates[i] : low[i];
@@ -412,7 +412,7 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedSkinObjec
 template<>
 PointerVectorSet<Element, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Element>::GetIntersectingEntities()
 {
-    return mrModelPartIntersecting.ElementsArray();
+    return mrModelPartIntersected.ElementsArray();
 }
 
 /***********************************************************************************/
@@ -421,7 +421,7 @@ PointerVectorSet<Element, IndexedObject>::ContainerType& FindIntersectedGeometri
 template<>
 PointerVectorSet<Condition, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Condition>::GetIntersectingEntities()
 {
-    return mrModelPartIntersecting.ConditionsArray();
+    return mrModelPartIntersected.ConditionsArray();
 }
 
 /***********************************************************************************/
@@ -432,8 +432,8 @@ Parameters FindIntersectedGeometricalObjectsProcess<TEntity>::GetDefaultParamete
 {
     Parameters default_parameters = Parameters(R"(
     {
-        "intersecting_model_part_name"  : "",
-        "intersected_model_part_name" : ""
+        "intersected_model_part_name"  : "",
+        "intersecting_model_part_name" : ""
     })" );
 
     return default_parameters;
