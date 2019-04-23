@@ -131,6 +131,14 @@ public:
     ModelPart& GetModelPart(const std::string& rFullModelPartName);
 
     /**
+     * @brief This method returns a model part given a certain name
+     * @details Iterates over the list of submodelparts of the root model part
+     * @param rFullModelPartName The name of the model part to be returned
+     * @return Reference to the model part of interest
+     */
+    const ModelPart& GetModelPart(const std::string& rFullModelPartName) const;
+
+    /**
      * @brief This method checks if a certain a model part exists given a certain name
      * @details Iterates over the list of submodelparts of the root model part
      * @param rFullModelPartName The name of the model part to be checked
@@ -143,7 +151,7 @@ public:
      * @details Iterates over the list of submodelparts of the root model part
      * @return A vector of strings containing the model parts names
      */
-    std::vector<std::string> GetModelPartNames();
+    std::vector<std::string> GetModelPartNames() const;
 
     ///@}
     ///@name Access
