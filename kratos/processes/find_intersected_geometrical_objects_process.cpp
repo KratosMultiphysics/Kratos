@@ -410,7 +410,7 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedSkinObjec
 /***********************************************************************************/
 
 template<>
-PointerVectorSet<Element, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Element>::GetIntersectingEntities()
+PointerVectorSet<Element, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Element>::GetIntersectedEntities()
 {
     return mrModelPartIntersected.ElementsArray();
 }
@@ -419,7 +419,7 @@ PointerVectorSet<Element, IndexedObject>::ContainerType& FindIntersectedGeometri
 /***********************************************************************************/
 
 template<>
-PointerVectorSet<Condition, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Condition>::GetIntersectingEntities()
+PointerVectorSet<Condition, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Condition>::GetIntersectedEntities()
 {
     return mrModelPartIntersected.ConditionsArray();
 }

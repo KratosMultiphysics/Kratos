@@ -624,7 +624,7 @@ private:
      * @brief Returns the corresponding array of entities
      * @return The array of entities
      */
-    typename EntityContainerType::ContainerType& GetIntersectingEntities();
+    typename EntityContainerType::ContainerType& GetIntersectedEntities();
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
