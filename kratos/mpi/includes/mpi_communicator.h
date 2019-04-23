@@ -88,6 +88,7 @@ template<class TValue> struct SendTraits;
 template<> struct SendTraits<int>
 {
     typedef int SendType;
+    constexpr static bool IsFixedSize = true;
     constexpr static std::size_t SendSize = 1;
     constexpr static MPI_Datatype DataType = MPI_INT;
 };
@@ -95,6 +96,7 @@ template<> struct SendTraits<int>
 template<> struct SendTraits<double>
 {
     typedef double SendType;
+    constexpr static bool IsFixedSize = true;
     constexpr static std::size_t SendSize = 1;
     constexpr static MPI_Datatype DataType = MPI_DOUBLE;
 };
@@ -102,8 +104,19 @@ template<> struct SendTraits<double>
 template<std::size_t TDim> struct SendTraits< array_1d<double,TDim> >
 {
     typedef double SendType;
+    constexpr static bool IsFixedSize = true;
     constexpr static std::size_t SendSize = TDim;
     constexpr static MPI_Datatype DataType = MPI_DOUBLE;
+};
+
+template<> struct SendTraits< Vector >
+{
+    typedef double SendType;
+    constexpr static bool IsFixedSize = false;
+    static inline std::size_t GetSendSize(const Vector& rValue)
+    {
+        return rValue.size();
+    }
 };
 
 template<class TValue> struct DataSize
@@ -198,6 +211,53 @@ void SetValue(IteratorType& iter, const TValue& rValue)
 }
 
 };
+
+template<
+    class TAccess,
+    bool IsFixedSize = SendTraits<typename TAccess::ValueType>::IsFixedSize >
+struct BufferAllocation {
+    using ValueType = typename TAccess::ValueType;
+    static inline std::size_t GetSize(TAccess Access, const Communicator::MeshType& rSourceMesh);
+    static inline std::size_t GetSize(const ValueType& rValue);
+};
+
+template<class TAccess>
+struct BufferAllocation<TAccess, true> {
+    using ValueType = typename TAccess::ValueType;
+    static inline std::size_t GetSize(TAccess Access, const Communicator::MeshType& rSourceMesh)
+    {
+        const auto& r_container = Access.GetContainer(rSourceMesh);
+        std::size_t num_objects = r_container.size();
+        return num_objects * MPIInternals::DataSize<ValueType>::Value;
+    }
+
+    static inline std::size_t GetSize(const ValueType&)
+    {
+        return MPIInternals::DataSize<ValueType>::Value;
+    }
+};
+
+template<class TAccess>
+struct BufferAllocation<TAccess, false> {
+    using ValueType = typename TAccess::ValueType;
+    static inline std::size_t GetSize(TAccess Access, const Communicator::MeshType& rSourceMesh)
+    {
+        const auto& r_container = Access.GetContainer(rSourceMesh);
+        std::size_t buffer_size = 0;
+        for (auto iter = r_container.begin(); iter != r_container.end(); ++iter)
+        {
+            buffer_size += MPIInternals::SendTraits<ValueType>::GetSendSize(Access.GetValue(iter));
+        }
+
+        return buffer_size;
+    }
+
+    static inline std::size_t GetSize(const ValueType& rValue)
+    {
+        return MPIInternals::SendTraits<ValueType>::GetSendSize(rValue);
+    }
+};
+
 }
 
 /// Short class definition.
@@ -2248,7 +2308,7 @@ private:
         constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
         constexpr Operation<OperationType::Replace> replace;
 
-        TransferDistributedValues(local_meshes, ghost_meshes, rVariableAccess, replace);
+        TransferFixedSizeValues(local_meshes, ghost_meshes, rVariableAccess, replace);
     }
 
     template<class TDatabaseAccess>
@@ -2260,10 +2320,10 @@ private:
         constexpr Operation<OperationType::SumValues> sum;
 
         // Assemble results on owner rank
-        TransferDistributedValues(ghost_meshes, local_meshes, rVariableAccess, sum);
+        TransferFixedSizeValues(ghost_meshes, local_meshes, rVariableAccess, sum);
 
         // Synchronize result on ghost copies
-        TransferDistributedValues(local_meshes, ghost_meshes, rVariableAccess, replace);
+        TransferFixedSizeValues(local_meshes, ghost_meshes, rVariableAccess, replace);
     }
 
     MeshType& GetMesh(IndexType Color, const MeshAccess<DistributedType::Local>)
@@ -2301,7 +2361,7 @@ private:
         typename TDestinationAccess,
         class TDatabaseAccess,
         typename TReductionOperation>
-    void TransferDistributedValues(
+    void TransferFixedSizeValues(
         TSourceAccess SourceType,
         TDestinationAccess DestinationType,
         TDatabaseAccess DataBase,
@@ -2348,9 +2408,7 @@ private:
         typename TSendType = typename MPIInternals::SendTraits<TValue>::SendType>
     void AllocateBuffer(std::vector<TSendType>& rBuffer, const MeshType& rSourceMesh, TAccess Access)
     {
-        const auto& r_container = Access.GetContainer(rSourceMesh);
-        std::size_t num_objects = r_container.size();
-        std::size_t buffer_size = num_objects * MPIInternals::DataSize<TValue>::Value;
+        const std::size_t buffer_size = MPIInternals::BufferAllocation<TAccess>::GetSize(Access, rSourceMesh);
 
         if (rBuffer.size() != buffer_size)
         {
@@ -2371,7 +2429,7 @@ private:
         {
             TValue& r_value = Access.GetValue(iter);
             *(TValue*) (p_buffer + position) = r_value;
-            position += MPIInternals::DataSize<TValue>::Value;
+            position += MPIInternals::BufferAllocation<TAccess>::GetSize(r_value);
         }
     }
 
@@ -2394,7 +2452,7 @@ private:
         {
             const TValue* recv_data = reinterpret_cast<const TValue*>(p_buffer + position);
             ReduceValues(*recv_data, Access, iter, Operation);
-            position += MPIInternals::DataSize<TValue>::Value;
+            position += MPIInternals::BufferAllocation<TDatabaseAccess>::GetSize(*recv_data);
         }
 
         KRATOS_WARNING_IF_ALL_RANKS("MPICommunicator", position > rBuffer.size())
