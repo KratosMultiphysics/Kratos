@@ -49,13 +49,14 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief This class takes two modelparts and marks the intersected ones with SELECTED flag. Does the check considering an OBB for the intersection
  * @details It creates a spatial datastructure and search for interaction. It also provides some helper methods for derived classes to check individual element or condition interesections.
- * @tparam TEntity The type of geometrical entity considered (if conditions or elements)
+ * @tparam TIntersectedEntity The type of geometrical (intersected) entity considered (if conditions or elements)
+ * @tparam TIntersectingEntity The type of geometrical (intersecting) entity considered (if conditions or elements)
  * @todo Add possibility to use conditions with elements and vice versa (add second template argument)
  * @author Vicente Mataix Ferrandiz
 */
-template<class TEntity = Element>
+template<class TIntersectedEntity = Element, class TIntersectingEntity = TIntersectedEntity>
 class KRATOS_API(KRATOS_CORE) FindIntersectedGeometricalObjectsWithOBBProcess
-    : public FindIntersectedGeometricalObjectsProcess<TEntity>
+    : public FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>
 {
 public:
     ///@name Type Definitions
@@ -74,7 +75,7 @@ public:
     typedef Point PointType;
 
     /// Definition of the base type
-    typedef FindIntersectedGeometricalObjectsProcess<TEntity> BaseType;
+    typedef FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity> BaseType;
 
     /// Octree type definition
     typedef typename BaseType::OctreeType OctreeType;
@@ -86,7 +87,8 @@ public:
     using GeometryType = Geometry<NodeType>;
 
     /// Definition of the entity container type
-    typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;
+    typedef PointerVectorSet<TIntersectingEntity, IndexedObject> IntersectingEntityContainerType;
+    typedef PointerVectorSet<TIntersectedEntity, IndexedObject> IntersectedEntityContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -100,12 +102,12 @@ public:
 
     /**
      * @brief Constructor to be used.
-     * @param rPart1 First model part (the one to compute the intersection)
-     * @param rPart2 Second model part (the "skin" model part)
+     * @param rModelPartIntersected First model part (the one to compute the intersection)
+     * @param rModelPartIntersecting Second model part (the "skin" model part)
      */
     FindIntersectedGeometricalObjectsWithOBBProcess(
-        ModelPart& rPart1,
-        ModelPart& rPart2,
+        ModelPart& rModelPartIntersected,
+        ModelPart& rModelPartIntersecting,
         const double BoundingBoxFactor = -1.0,
         const bool DebugOBB = false,
         OBBHasIntersectionType IntersectionType = OBBHasIntersectionType::SeparatingAxisTheorem
@@ -306,14 +308,14 @@ private:
 
 
 /// input stream function
-template<class TEntity = Element>
+template<class TIntersectedEntity = Element, class TIntersectingEntity = TIntersectedEntity>
 inline std::istream& operator >> (std::istream& rIStream,
-                FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>& rThis);
+                FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity>& rThis);
 
 /// output stream function
-template<class TEntity = Element>
+template<class TIntersectedEntity = Element, class TIntersectingEntity = TIntersectedEntity>
 inline std::ostream& operator << (std::ostream& rOStream,
-                const FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>& rThis)
+                const FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
