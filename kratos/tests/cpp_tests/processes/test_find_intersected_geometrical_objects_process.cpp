@@ -212,8 +212,8 @@ namespace Kratos {
 
             Parameters parameters = Parameters(R"(
             {
-                "intersecting_model_part_name"  : "Surface",
-                "intersected_model_part_name" : "Boundaries",
+                "intersected_model_part_name"  : "Surface",
+                "intersecting_model_part_name" : "Boundaries",
                 "bounding_box_factor"          : 0.2,
                 "debug_obb"                    : false
             })" );
