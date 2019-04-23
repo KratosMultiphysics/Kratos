@@ -577,6 +577,20 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<Model&, Parameters>())
     ;
 
+    py::class_<FindIntersectedGeometricalObjectsWithOBBProcess<Element, Condition>, FindIntersectedGeometricalObjectsWithOBBProcess<Element, Condition>::Pointer, Process>(m,"FindIntersectedElementsConditionsWithOBBProcess")
+    .def(py::init<ModelPart&,ModelPart&>())
+    .def(py::init<ModelPart&,ModelPart&, const double>())
+    .def(py::init<ModelPart&,ModelPart&, const double, const bool>())
+    .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<FindIntersectedGeometricalObjectsWithOBBProcess<Condition, Element>, FindIntersectedGeometricalObjectsWithOBBProcess<Condition, Element>::Pointer, Process>(m,"FindIntersectedConditionsElementsWithOBBProcess")
+    .def(py::init<ModelPart&,ModelPart&>())
+    .def(py::init<ModelPart&,ModelPart&, const double>())
+    .def(py::init<ModelPart&,ModelPart&, const double, const bool>())
+    .def(py::init<Model&, Parameters>())
+    ;
+
     // The process to recover internal variables
     py::class_<IntegrationValuesExtrapolationToNodesProcess, IntegrationValuesExtrapolationToNodesProcess::Pointer, Process>(m, "IntegrationValuesExtrapolationToNodesProcess")
     .def(py::init<ModelPart&>())
