@@ -552,6 +552,17 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&,ModelPart&>())
     .def(py::init<Model&, Parameters>())
     ;
+
+    py::class_<FindIntersectedGeometricalObjectsProcess<Element, Condition>, FindIntersectedGeometricalObjectsProcess<Element, Condition>::Pointer, Process>(m,"FindIntersectedElementsConditionsProcess")
+    .def(py::init<ModelPart&,ModelPart&>())
+    .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<FindIntersectedGeometricalObjectsProcess<Condition, Element>, FindIntersectedGeometricalObjectsProcess<Condition, Element>::Pointer, Process>(m,"FindIntersectedConditionsElementsProcess")
+    .def(py::init<ModelPart&,ModelPart&>())
+    .def(py::init<Model&, Parameters>())
+    ;
+
     py::class_<FindIntersectedGeometricalObjectsWithOBBProcess<Element>, FindIntersectedGeometricalObjectsWithOBBProcess<Element>::Pointer, Process>(m,"FindIntersectedElementsWithOBBProcess")
     .def(py::init<ModelPart&,ModelPart&>())
     .def(py::init<ModelPart&,ModelPart&, const double>())
