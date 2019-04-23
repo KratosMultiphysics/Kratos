@@ -624,7 +624,7 @@ private:
      * @brief Returns the corresponding array of entities
      * @return The array of entities
      */
-    typename EntityContainerType& GetIntersectedEntities();
+    EntityContainerType& GetIntersectedEntities();
 
     /**
      * @brief Returns the corresponding array of entities array
