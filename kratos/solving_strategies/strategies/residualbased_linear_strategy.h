@@ -371,8 +371,8 @@ public:
             #pragma omp parallel for firstprivate(it_begin)
             for(int i=0; i<static_cast<int>(BaseType::GetModelPart().MasterSlaveConstraints().size()); ++i)
                  (it_begin+i)->Apply(rProcessInfo);
-            
-            //the following is needed since we need to eventually compute time derivatives after applying 
+
+            //the following is needed since we need to eventually compute time derivatives after applying
             //Master slave relations
             TSparseSpace::SetToZero(rDx);
             this->GetScheme()->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
@@ -624,12 +624,20 @@ public:
         if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
         p_scheme->FinalizeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
+        std::cout << "!!FinalizeNonLinearIteration has been called!!" << std::endl;
 
         // Calculate reactions if required
-        if (mCalculateReactionsFlag == true)
+        if (mCalculateReactionsFlag == true) {
+            std::cout << "p_scheme =" << p_scheme << std::endl;
+            std::cout << "ModelPart =" << BaseType::GetModelPart() << std::endl;
+            std::cout << "rA =" << rA << std::endl;
+            std::cout << "rDx =" << rDx << std::endl;
+            std::cout << "rb =" << rb << std::endl;
             p_builder_and_solver->CalculateReactions(p_scheme,
                                                      BaseType::GetModelPart(),
                                                      rA, rDx, rb);
+            std::cout << "!!CalculateReactions has been used!!" << std::endl;}
+        std::cout << "!!Last if Statement has been ignored = no Reaction Flag was Raised(FALSE)!!" << std::endl;
 
         return true;
     }

@@ -28,12 +28,12 @@ class SimpleSteadyCouplingSolver(CoSimulationBaseCouplingSolver):
 
     def SolveSolutionStep(self):
         for k in range(self.num_coupling_iterations):
-            if self.echo_level > 0:
-                couplingsolverprint(self.lvl, self._Name(),
-                                    cyan("Coupling iteration:"), bold(str(k+1)+" / " + str(self.num_coupling_iterations)))
 
             for solver_name in self.solver_names:
                 solver = self.solvers[solver_name]
                 self._SynchronizeInputData(solver, solver_name)
                 solver.SolveSolutionStep()
                 self._SynchronizeOutputData(solver, solver_name)
+                if self.echo_level > 0:
+                    couplingsolverprint(self.lvl, self._Name(),
+                                        cyan("Coupling iteration:"), bold(str(k+1)+" / " + str(self.num_coupling_iterations)))
