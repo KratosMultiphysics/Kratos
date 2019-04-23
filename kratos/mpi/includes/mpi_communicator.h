@@ -118,9 +118,11 @@ const Variable<TValue>& mrVariable;
 
 public:
 
-typedef Communicator::MeshType::NodesContainerType ContainerType;
-typedef Communicator::MeshType::NodesContainerType::iterator IteratorType;
-typedef Communicator::MeshType::NodesContainerType::const_iterator ConstIteratorType;
+using ValueType = TValue;
+using SendType = typename SendTraits<TValue>::SendType; 
+using ContainerType = Communicator::MeshType::NodesContainerType;
+using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
+using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
 
 NodalSolutionStepValueAccess(const Variable<TValue>& mrVariable):
     mrVariable(mrVariable)
@@ -160,9 +162,11 @@ const Variable<TValue>& mrVariable;
 
 public:
 
-typedef Communicator::MeshType::NodesContainerType ContainerType;
-typedef Communicator::MeshType::NodesContainerType::iterator IteratorType;
-typedef Communicator::MeshType::NodesContainerType::const_iterator ConstIteratorType;
+using ValueType = TValue;
+using SendType = typename SendTraits<TValue>::SendType; 
+using ContainerType = Communicator::MeshType::NodesContainerType;
+using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
+using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
 
 NodalDataAccess(const Variable<TValue>& mrVariable):
     mrVariable(mrVariable)
@@ -203,15 +207,15 @@ void SetValue(IteratorType& iter, const TValue& rValue)
 class MPICommunicator : public Communicator
 {
 
-enum class MeshAccessType {
+enum class DistributedType {
     Local,
     Ghost
 };
 
 // Auxiliary type for compile-time dispatch of local/ghost mesh access
-template<MeshAccessType TAccess> struct MeshAccess
+template<DistributedType TDistributed> struct MeshAccess
 {
-    constexpr static MeshAccessType Value = TAccess;
+    constexpr static DistributedType Value = TDistributed;
 };
 
 enum class OperationType {
@@ -2237,21 +2241,21 @@ private:
         return true;
     }
 
-    template<typename TValue, template<typename> class TDatabaseAccess>
-    void SynchronizeFixedSizeValues(TDatabaseAccess<TValue>& rVariableAccess)
+    template<class TDatabaseAccess>
+    void SynchronizeFixedSizeValues(TDatabaseAccess& rVariableAccess)
     {
-        constexpr MeshAccess<MeshAccessType::Local> local_meshes;
-        constexpr MeshAccess<MeshAccessType::Ghost> ghost_meshes;
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
         constexpr Operation<OperationType::Replace> replace;
 
         TransferDistributedValues(local_meshes, ghost_meshes, rVariableAccess, replace);
     }
 
-    template<typename TValue, template<typename> class TDatabaseAccess>
-    void AssembleFixedSizeValues(TDatabaseAccess<TValue>& rVariableAccess)
+    template<class TDatabaseAccess>
+    void AssembleFixedSizeValues(TDatabaseAccess& rVariableAccess)
     {
-        constexpr MeshAccess<MeshAccessType::Local> local_meshes;
-        constexpr MeshAccess<MeshAccessType::Ghost> ghost_meshes;
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
         constexpr Operation<OperationType::Replace> replace;
         constexpr Operation<OperationType::SumValues> sum;
 
@@ -2262,12 +2266,12 @@ private:
         TransferDistributedValues(local_meshes, ghost_meshes, rVariableAccess, replace);
     }
 
-    MeshType& GetMesh(IndexType Color, const MeshAccess<MeshAccessType::Local>)
+    MeshType& GetMesh(IndexType Color, const MeshAccess<DistributedType::Local>)
     {
         return LocalMesh(Color);
     }
 
-    MeshType& GetMesh(IndexType Color, const MeshAccess<MeshAccessType::Ghost>)
+    MeshType& GetMesh(IndexType Color, const MeshAccess<DistributedType::Ghost>)
     {
         return GhostMesh(Color);
     }
@@ -2293,17 +2297,17 @@ private:
     }
 
     template<
-        typename TDataType,
         typename TSourceAccess,
         typename TDestinationAccess,
-        template<class> class TDatabaseAccess,
+        class TDatabaseAccess,
         typename TReductionOperation>
     void TransferDistributedValues(
         TSourceAccess SourceType,
         TDestinationAccess DestinationType,
-        TDatabaseAccess<TDataType> DataBase,
+        TDatabaseAccess DataBase,
         TReductionOperation Reduction)
     {
+        using TDataType = typename TDatabaseAccess::ValueType;
         using TSendType = typename MPIInternals::SendTraits<TDataType>::SendType;
         int destination = 0;
 
@@ -2339,9 +2343,10 @@ private:
     }
     
     template<
-        typename TValue, template<typename> class TAccess,
+        class TAccess,
+        typename TValue = typename TAccess::ValueType,
         typename TSendType = typename MPIInternals::SendTraits<TValue>::SendType>
-    void AllocateBuffer(std::vector<TSendType>& rBuffer, const MeshType& rSourceMesh, TAccess<TValue> Access)
+    void AllocateBuffer(std::vector<TSendType>& rBuffer, const MeshType& rSourceMesh, TAccess Access)
     {
         const auto& r_container = Access.GetContainer(rSourceMesh);
         std::size_t num_objects = r_container.size();
@@ -2354,9 +2359,10 @@ private:
     }
 
     template<
-        typename TValue, template<typename> class TAccess,
+        class TAccess,
+        typename TValue = typename TAccess::ValueType,
         typename TSendType = typename MPIInternals::SendTraits<TValue>::SendType>
-    void FillBuffer(std::vector<TSendType>& rBuffer, MeshType& rSourceMesh, TAccess<TValue> Access)
+    void FillBuffer(std::vector<TSendType>& rBuffer, MeshType& rSourceMesh, TAccess Access)
     {
         auto& r_container = Access.GetContainer(rSourceMesh);
         TSendType* p_buffer = rBuffer.data();
@@ -2370,12 +2376,14 @@ private:
     }
 
     template<
-        typename TValue, template<typename> class TDatabaseAccess, typename TReductionOperation,
+        class TDatabaseAccess,
+        typename TReductionOperation,
+        typename TValue = typename TDatabaseAccess::ValueType,
         typename TSendType = typename MPIInternals::SendTraits<TValue>::SendType>
     void UpdateValues(
         const std::vector<TSendType>& rBuffer,
         MeshType& rSourceMesh,
-        TDatabaseAccess<TValue> Access,
+        TDatabaseAccess Access,
         TReductionOperation Operation)
     {
         auto& r_container = Access.GetContainer(rSourceMesh);
