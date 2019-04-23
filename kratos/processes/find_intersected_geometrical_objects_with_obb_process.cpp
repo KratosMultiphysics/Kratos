@@ -53,19 +53,19 @@ template<class TEntity>
 FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::FindIntersectedGeometricalObjectsWithOBBProcess(
     Model& rModel,
     Parameters ThisParameters
-    ) : BaseType(rModel.GetModelPart(ThisParameters["intersected_model_part_name"].GetString()),
-        rModel.GetModelPart(ThisParameters["intersecting_model_part_name"].GetString()))
+    ) : BaseType(rModel.GetModelPart(ThisParameters["intersecting_model_part_name"].GetString()),
+        rModel.GetModelPart(ThisParameters["intersected_model_part_name"].GetString()))
 {
     const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
     mThisParameters = ThisParameters;
 
     // Checking that the names of the model parts are not empty (this is supposed to be already declared)
-    const std::string& r_intersected_model_part_name = mThisParameters["intersected_model_part_name"].GetString();
     const std::string& r_intersecting_model_part_name = mThisParameters["intersecting_model_part_name"].GetString();
+    const std::string& r_intersected_model_part_name = mThisParameters["intersected_model_part_name"].GetString();
 
-    KRATOS_ERROR_IF(r_intersected_model_part_name == "") << "intersected_model_part_name must be defined on parameters" << std::endl;
     KRATOS_ERROR_IF(r_intersecting_model_part_name == "") << "intersecting_model_part_name must be defined on parameters" << std::endl;
+    KRATOS_ERROR_IF(r_intersected_model_part_name == "") << "intersected_model_part_name must be defined on parameters" << std::endl;
 
     // Setting the bounding box factor
     mBoundingBoxFactor = mThisParameters["bounding_box_factor"].GetDouble();
@@ -98,15 +98,15 @@ template<class TEntity>
 void FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::SetOctreeBoundingBox()
 {
     // Getting first iterators
-    const auto it_node_begin_1 = BaseType::mrModelPartIntersected.NodesBegin();
-    const auto it_node_begin_2 = BaseType::mrModelPartIntersecting.NodesBegin();
+    const auto it_node_begin_1 = BaseType::mrModelPartIntersecting.NodesBegin();
+    const auto it_node_begin_2 = BaseType::mrModelPartIntersected.NodesBegin();
 
     // Setting initial guess
     PointType low(it_node_begin_1->Coordinates());
     PointType high(it_node_begin_1->Coordinates());
 
     // Loop over all nodes in first modelpart
-    for (IndexType i_node = 0 ; i_node < BaseType::mrModelPartIntersected.NumberOfNodes(); ++i_node) {
+    for (IndexType i_node = 0 ; i_node < BaseType::mrModelPartIntersecting.NumberOfNodes(); ++i_node) {
         auto it_node = it_node_begin_1 + i_node;
         const array_1d<double,3>& r_coordinates = it_node->Coordinates();
         for (IndexType i = 0; i < 3; i++) {
@@ -116,7 +116,7 @@ void FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::SetOctreeBounding
     }
 
     // Loop over all skin nodes
-    for (IndexType i_node = 0 ; i_node < BaseType::mrModelPartIntersecting.NumberOfNodes(); ++i_node) {
+    for (IndexType i_node = 0 ; i_node < BaseType::mrModelPartIntersected.NumberOfNodes(); ++i_node) {
         auto it_node = it_node_begin_2 + i_node;
         const array_1d<double,3>& r_coordinates = it_node->Coordinates();
         for (IndexType i = 0; i < 3; i++) {
@@ -135,7 +135,7 @@ void FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::SetOctreeBounding
 
     // In case we consider the bounding box we extend box
     if (mBoundingBoxFactor > 0.0) {
-        const std::size_t dimension = BaseType::mrModelPartIntersected.GetProcessInfo()[DOMAIN_SIZE];
+        const std::size_t dimension = BaseType::mrModelPartIntersecting.GetProcessInfo()[DOMAIN_SIZE];
         for(IndexType i = 0 ; i < dimension; i++) {
             if (std::abs(high[i] - low[i]) < mBoundingBoxFactor) {
 //                 low[i] -= mBoundingBoxFactor;
@@ -358,8 +358,8 @@ Parameters FindIntersectedGeometricalObjectsWithOBBProcess<TEntity>::GetDefaultP
 {
     Parameters default_parameters = Parameters(R"(
     {
-        "intersected_model_part_name"  : "",
-        "intersecting_model_part_name" : "",
+        "intersecting_model_part_name"  : "",
+        "intersected_model_part_name" : "",
         "bounding_box_factor"          : -1.0,
         "debug_obb"                    : false,
         "OBB_intersection_type"        : "SeparatingAxisTheorem"
