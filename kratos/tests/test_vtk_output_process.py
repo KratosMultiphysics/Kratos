@@ -244,14 +244,14 @@ def Check(output_file,reference_file):
     cmp_process.ExecuteAfterOutputStep()
     cmp_process.ExecuteFinalize()
 
-def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", dimension = "2D"):
+def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     current_model = KratosMultiphysics.Model()
     model_part_name = "Main"
     model_part = current_model.CreateModelPart(model_part_name)
-    if dimension == "2D":
+    if setup == "2D":
         SetupModelPart2D(model_part)
-    elif dimension == "3D":
+    elif setup == "3D":
         SetupModelPart3D(model_part)
     else:
         SetupModelPartQuadratic3D(model_part)
@@ -292,13 +292,13 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", dimension = "2D"):
             vtk_output_process.PrintOutput()
 
             Check(os.path.join("test_vtk_output","Main_0_" + str(step)+".vtk"),\
-                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + dimension, "Main_0_"+str(step)+".vtk"))
+                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + setup, "Main_0_"+str(step)+".vtk"))
 
             Check(os.path.join("test_vtk_output","Main_FixedEdgeNodes_0_" + str(step)+".vtk"),\
-                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + dimension, "Main_FixedEdgeNodes_0_"+str(step)+".vtk"))
+                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + setup, "Main_FixedEdgeNodes_0_"+str(step)+".vtk"))
 
             Check(os.path.join("test_vtk_output","Main_MovingNodes_0_"+str(step)+".vtk"),\
-                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + dimension, "Main_MovingNodes_0_"+str(step)+".vtk"))
+                os.path.join("auxiliar_files_for_python_unnitest", "vtk_output_process_ref_files", file_format + setup, "Main_MovingNodes_0_"+str(step)+".vtk"))
 
 
 if __name__ == '__main__':
