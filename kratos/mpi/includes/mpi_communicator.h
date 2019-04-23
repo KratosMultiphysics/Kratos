@@ -156,7 +156,7 @@ TValue& GetValue(IteratorType& iter)
     return iter->FastGetSolutionStepValue(mrVariable);
 }
 
-const TValue& GetValue(const IteratorType& iter)
+const TValue& GetValue(const ConstIteratorType& iter)
 {
     return iter->FastGetSolutionStepValue(mrVariable);
 }
@@ -200,7 +200,7 @@ TValue& GetValue(IteratorType& iter)
     return iter->GetValue(mrVariable);
 }
 
-const TValue& GetValue(const IteratorType& iter)
+const TValue& GetValue(const ConstIteratorType& iter)
 {
     return iter->GetValue(mrVariable);
 }
@@ -786,7 +786,8 @@ public:
 
     bool AssembleCurrentData(Variable<Vector> const& ThisVariable) override
     {
-        AssembleDynamicallyAllocatedVariable(ThisVariable);
+        MPIInternals::NodalSolutionStepValueAccess<Vector> solution_step_access(ThisVariable);
+        AssembleDynamicVectorValues(solution_step_access);
         return true;
     }
 
@@ -1343,204 +1344,6 @@ private:
 
 
 
-
-        return true;
-    }
-
-    template<class TDataType, class TSendType = typename TDataType::value_type >
-    bool AssembleDynamicallyAllocatedVariable(Variable<TDataType> const& rThisVariable)
-    {
-        const int rank = mrDataCommunicator.Rank();
-        int destination = 0;
-
-        NeighbourIndicesContainerType& neighbour_indices = NeighbourIndices();
-        bool resize_error = false;
-
-        for (unsigned int color = 0; color < neighbour_indices.size(); color++)
-        {
-            if ( (destination = neighbour_indices[color]) >= 0)
-            {
-                NodesContainerType& r_local_nodes = LocalMesh(color).Nodes();
-                NodesContainerType& r_ghost_nodes = GhostMesh(color).Nodes();
-
-                // first we need to check that the sizes match
-                unsigned int num_local_nodes = r_local_nodes.size();
-                unsigned int num_ghost_nodes = r_ghost_nodes.size();
-
-                if ((num_local_nodes == 0) && (num_ghost_nodes == 0))
-                    continue; // nothing to transfer!
-
-                std::vector<int> local_sizes(num_local_nodes);
-                std::vector<int> ghost_sizes(num_ghost_nodes);
-
-                unsigned int i = 0;
-                for (auto i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
-                {
-                    ghost_sizes[i++] = (i_node->FastGetSolutionStepValue(rThisVariable)).data().size();
-                }
-
-                mrDataCommunicator.SendRecv(ghost_sizes, destination, color, local_sizes, destination, color);
-
-                i = 0;
-                for (auto i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
-                {
-                    unsigned int source_size = local_sizes[i++];
-                    if (source_size != 0)
-                    {
-                        auto& local_value = i_node->FastGetSolutionStepValue(rThisVariable);
-                        if (local_value.size() == source_size)
-                        {
-                            continue; // everything ok!
-                        }
-                        else if (local_value.size() == 0)
-                        {
-                            local_value.resize(source_size, false);
-                        }
-                        else
-                        {
-                            resize_error = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        KRATOS_ERROR_IF(mrDataCommunicator.ErrorIfTrueOnAnyRank(resize_error))
-        << "Size mismatch in Variable<Vector> synchronization." << std::endl;
-
-        for (unsigned int color = 0; color < neighbour_indices.size(); color++)
-        {
-            if ( (destination = neighbour_indices[color]) >= 0)
-            {
-                NodesContainerType& r_local_nodes = LocalMesh(color).Nodes();
-                NodesContainerType& r_ghost_nodes = GhostMesh(color).Nodes();
-
-                // first we need to check that the sizes match
-                unsigned int num_local_nodes = r_local_nodes.size();
-                unsigned int num_ghost_nodes = r_ghost_nodes.size();
-
-                if ((num_local_nodes == 0) && (num_ghost_nodes == 0))
-                    continue; // nothing to transfer!
-
-                std::vector<int> local_sizes(num_local_nodes);
-                std::vector<int> ghost_sizes(num_ghost_nodes);
-
-                unsigned int i = 0;
-                for (auto i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
-                {
-                    local_sizes[i++] = (i_node->FastGetSolutionStepValue(rThisVariable)).data().size();
-                }
-
-                mrDataCommunicator.SendRecv(local_sizes, destination, color, ghost_sizes, destination, color);
-
-                i = 0;
-                for (auto i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
-                {
-                    unsigned int source_size = ghost_sizes[i++];
-                    auto& local_value = i_node->FastGetSolutionStepValue(rThisVariable);
-                    if (source_size != local_value.size())
-                    {
-                        local_value.resize(source_size, false);
-                    }
-                }
-            }
-        }
-
-        for (unsigned int color = 0; color < neighbour_indices.size(); color++)
-        {
-            if ( (destination = neighbour_indices[color]) >= 0)
-            {
-                NodesContainerType& r_local_nodes = LocalMesh(color).Nodes();
-                NodesContainerType& r_ghost_nodes = GhostMesh(color).Nodes();
-
-                // first we need to check that the sizes match
-                unsigned int num_local_nodes = r_local_nodes.size();
-                unsigned int num_ghost_nodes = r_ghost_nodes.size();
-
-                if ((num_local_nodes == 0) && (num_ghost_nodes == 0))
-                    continue; // nothing to transfer!
-
-                unsigned int send_data_size = 0;
-                // dynamically compute send size :(
-                // allocate buffer
-                // do send
-                // do recv
-            }
-        }
-
-        // synchronize
-/*
-        std::vector<TSendType*> receive_buffer(neighbours_indices.size());
-        std::vector<int> receive_buffer_size(neighbours_indices.size());
-
-        TSendType Value = TSendType();
-        MPI_Datatype ThisMPI_Datatype = MPIInternals::DataType(Value);
-
-        //first of all gather everything to the owner node
-        for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
-            if ((destination = neighbours_indices[i_color]) >= 0)
-            {
-                NodesContainerType& r_local_nodes = InterfaceMesh(i_color).Nodes();
-                NodesContainerType& r_ghost_nodes = InterfaceMesh(i_color).Nodes();
-
-                // Calculating send and received buffer size
-                // NOTE: This part can be optimized getting the offset from variables list and using pointers.
-                unsigned int nodal_data_size = sizeof (TDataType) / sizeof (TSendType);
-                unsigned int local_nodes_size = r_local_nodes.size();
-                unsigned int ghost_nodes_size = r_ghost_nodes.size();
-                unsigned int send_buffer_size = local_nodes_size * nodal_data_size;
-                receive_buffer_size[i_color] = ghost_nodes_size * nodal_data_size;
-
-                if ((local_nodes_size == 0) && (ghost_nodes_size == 0))
-                    continue; // nothing to transfer!
-
-                unsigned int position = 0;
-                TSendType* send_buffer = new TSendType[send_buffer_size];
-                receive_buffer[i_color] = new TSendType[receive_buffer_size[i_color]];
-
-                // Filling the buffer
-                for (ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
-                {
-                    *(TDataType*) (send_buffer + position) = i_node->FastGetSolutionStepValue(ThisVariable);
-                    position += nodal_data_size;
-                }
-
-                MPI_Status status;
-
-                if (position > send_buffer_size)
-                    std::cout << rank << " Error in estimating send buffer size...." << std::endl;
-
-                int send_tag = i_color;
-                int receive_tag = i_color;
-
-                MPI_Sendrecv(send_buffer, send_buffer_size, ThisMPI_Datatype, destination, send_tag,
-                             receive_buffer[i_color], receive_buffer_size[i_color], ThisMPI_Datatype, destination, receive_tag,
-                             MPI_COMM_WORLD, &status);
-
-                delete [] send_buffer;
-            }
-
-        for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
-            if ((destination = neighbours_indices[i_color]) >= 0)
-            {
-                // Updating nodes
-                int position = 0;
-                unsigned int nodal_data_size = sizeof (TDataType) / sizeof (TSendType);
-                NodesContainerType& r_ghost_nodes = InterfaceMesh(i_color).Nodes();
-
-                for (ModelPart::NodeIterator i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
-                {
-                    i_node->FastGetSolutionStepValue(ThisVariable) += *reinterpret_cast<TDataType*> (receive_buffer[i_color] + position);
-                    position += nodal_data_size;
-                }
-
-                if (position > receive_buffer_size[i_color])
-                    std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
-
-                delete [] receive_buffer[i_color];
-            }
-
-        SynchronizeVariable<TDataType,TSendType>(ThisVariable);*/
 
         return true;
     }
@@ -2326,6 +2129,30 @@ private:
         TransferFixedSizeValues(local_meshes, ghost_meshes, rVariableAccess, replace);
     }
 
+    template<class TDatabaseAccess>
+    void AssembleDynamicVectorValues(TDatabaseAccess& rVariableAccess)
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+        constexpr Operation<OperationType::SumValues> sum;
+
+        // Combine vector sizes on owner rank
+        MatchDynamicVectorSizes(ghost_meshes, local_meshes, rVariableAccess);
+
+        // Communicate vector sizes to ghost copies
+        MatchDynamicVectorSizes(local_meshes, ghost_meshes, rVariableAccess);
+
+        // From this point on, we can assume buffer sizes will always match
+/*
+        // Assemble results on owner rank
+        TransferFixedSizeValues(ghost_meshes, local_meshes, rVariableAccess, sum);
+
+        // Synchronize result on ghost copies
+        TransferFixedSizeValues(local_meshes, ghost_meshes, rVariableAccess, replace);
+*/        
+    }
+
     MeshType& GetMesh(IndexType Color, const MeshAccess<DistributedType::Local>)
     {
         return LocalMesh(Color);
@@ -2457,6 +2284,91 @@ private:
 
         KRATOS_WARNING_IF_ALL_RANKS("MPICommunicator", position > rBuffer.size())
         << "Error in estimating receive buffer size." << std::endl;
+    }
+
+    template<
+        typename TSourceAccess,
+        typename TDestinationAccess,
+        class TDatabaseAccess>
+    void MatchDynamicVectorSizes(
+        TSourceAccess SourceType,
+        TDestinationAccess DestinationType,
+        TDatabaseAccess Access)
+    {
+        using TVectorType = typename TDatabaseAccess::ValueType;
+        int destination = 0;
+
+        NeighbourIndicesContainerType& neighbour_indices = NeighbourIndices();
+
+        std::vector<int> send_sizes;
+        std::vector<int> recv_sizes;
+
+        bool resize_error = false;
+
+        for (unsigned int i_color = 0; i_color < neighbour_indices.size(); i_color++)
+        {
+            if ( (destination = neighbour_indices[i_color]) >= 0)
+            {
+                MeshType& r_source_mesh = GetMesh(i_color, SourceType);
+                const auto& r_source_container = Access.GetContainer(r_source_mesh);
+                const std::size_t num_values_to_send = r_source_container.size();
+
+                MeshType& r_destination_mesh = GetMesh(i_color, DestinationType);
+                auto& r_destination_container = Access.GetContainer(r_destination_mesh);
+                const std::size_t num_values_to_recv = r_destination_container.size();
+
+                if ( (num_values_to_send == 0) && (num_values_to_recv == 0) )
+                {
+                    continue; // nothing to transfer, skip communication step
+                }
+
+                if (send_sizes.size() != num_values_to_send)
+                {
+                    send_sizes.resize(num_values_to_send);
+                }
+                
+                if (recv_sizes.size() != num_values_to_recv)
+                {
+                    recv_sizes.resize(num_values_to_recv);
+                }
+
+                int position = 0;
+                for (auto iter = r_source_container.begin(); iter != r_source_container.end(); ++iter)
+                {
+                    const TVectorType& r_value = Access.GetValue(iter);
+                    send_sizes[position++] = r_value.size();
+                }
+
+                mrDataCommunicator.SendRecv(
+                    send_sizes, destination, i_color,
+                    recv_sizes, destination, i_color);
+
+                position = 0;
+                for (auto iter = r_destination_container.begin(); iter != r_destination_container.end(); ++iter)
+                {
+                    std::size_t source_size = recv_sizes[position++];
+                    if (source_size != 0)
+                    {
+                        TVectorType& r_value = Access.GetValue(iter);
+                        if (r_value.size() == source_size)
+                        {
+                            continue; // everything ok!
+                        }
+                        else if (r_value.size() == 0)
+                        {
+                            r_value.resize(source_size, false);
+                        }
+                        else
+                        {
+                            resize_error = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        KRATOS_ERROR_IF(mrDataCommunicator.ErrorIfTrueOnAnyRank(resize_error))
+        << "Size mismatch in Vector size synchronization." << std::endl;
     }
 
     //       friend class boost::serialization::access;
