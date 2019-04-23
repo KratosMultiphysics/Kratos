@@ -14,7 +14,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
 
         default_parameters = KratosMultiphysics.Parameters(r'''{
-            "model_part_name": "please specify the model part that contains the surface nodes",
+            "model_part_name": "",
             "create_output_file": false
         }''')
 
