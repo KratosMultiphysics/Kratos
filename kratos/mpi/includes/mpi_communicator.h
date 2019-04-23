@@ -90,7 +90,16 @@ template<> struct SendTraits<int>
     typedef int SendType;
     constexpr static bool IsFixedSize = true;
     constexpr static std::size_t SendSize = 1;
-    constexpr static MPI_Datatype DataType = MPI_INT;
+
+    static inline void WriteBuffer(const int& rValue, SendType* pBuffer)
+    {
+        *pBuffer = rValue;
+    }
+
+    static inline void ReadBuffer(const SendType* pBuffer, int& rValue)
+    {
+        rValue = *pBuffer;
+    }
 };
 
 template<> struct SendTraits<double>
@@ -98,7 +107,16 @@ template<> struct SendTraits<double>
     typedef double SendType;
     constexpr static bool IsFixedSize = true;
     constexpr static std::size_t SendSize = 1;
-    constexpr static MPI_Datatype DataType = MPI_DOUBLE;
+
+    static inline void WriteBuffer(const double& rValue, SendType* pBuffer)
+    {
+        *pBuffer = rValue;
+    }
+
+    static inline void ReadBuffer(const SendType* pBuffer, double& rValue)
+    {
+        rValue = *pBuffer;    
+    }
 };
 
 template<std::size_t TDim> struct SendTraits< array_1d<double,TDim> >
@@ -106,16 +124,36 @@ template<std::size_t TDim> struct SendTraits< array_1d<double,TDim> >
     typedef double SendType;
     constexpr static bool IsFixedSize = true;
     constexpr static std::size_t SendSize = TDim;
-    constexpr static MPI_Datatype DataType = MPI_DOUBLE;
+
+    static inline void WriteBuffer(const array_1d<double,TDim>& rValue, SendType* pBuffer)
+    {
+        *(array_1d<double,TDim>*) (pBuffer) = rValue;
+    }
+
+    static inline void ReadBuffer(const SendType* pBuffer, array_1d<double,TDim>& rValue)
+    {
+        rValue = *(reinterpret_cast<const array_1d<double,TDim>*>(pBuffer));
+    }
 };
 
 template<> struct SendTraits< Vector >
 {
     typedef double SendType;
     constexpr static bool IsFixedSize = false;
+    
     static inline std::size_t GetSendSize(const Vector& rValue)
     {
         return rValue.size();
+    }
+
+    static inline void WriteBuffer(const Vector& rValue, SendType* pBuffer)
+    {
+        // COPY MEMORY!!!
+    }
+
+    static inline void ReadBuffer(const SendType* pBuffer, Vector& rValue)
+    {
+        // COPY MEMORY!!!!
     }
 };
 
@@ -2111,7 +2149,7 @@ private:
         constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
         constexpr Operation<OperationType::Replace> replace;
 
-        TransferFixedSizeValues(local_meshes, ghost_meshes, rVariableAccess, replace);
+        TransferDistributedValues(local_meshes, ghost_meshes, rVariableAccess, replace);
     }
 
     template<class TDatabaseAccess>
@@ -2123,10 +2161,10 @@ private:
         constexpr Operation<OperationType::SumValues> sum;
 
         // Assemble results on owner rank
-        TransferFixedSizeValues(ghost_meshes, local_meshes, rVariableAccess, sum);
+        TransferDistributedValues(ghost_meshes, local_meshes, rVariableAccess, sum);
 
         // Synchronize result on ghost copies
-        TransferFixedSizeValues(local_meshes, ghost_meshes, rVariableAccess, replace);
+        TransferDistributedValues(local_meshes, ghost_meshes, rVariableAccess, replace);
     }
 
     template<class TDatabaseAccess>
@@ -2144,12 +2182,12 @@ private:
         MatchDynamicVectorSizes(local_meshes, ghost_meshes, rVariableAccess);
 
         // From this point on, we can assume buffer sizes will always match
-/*
-        // Assemble results on owner rank
-        TransferFixedSizeValues(ghost_meshes, local_meshes, rVariableAccess, sum);
 
+        // Assemble results on owner rank
+        TransferDistributedValues(ghost_meshes, local_meshes, rVariableAccess, sum);
+/*
         // Synchronize result on ghost copies
-        TransferFixedSizeValues(local_meshes, ghost_meshes, rVariableAccess, replace);
+        TransferDistributedValues(local_meshes, ghost_meshes, rVariableAccess, replace);
 */        
     }
 
@@ -2188,7 +2226,7 @@ private:
         typename TDestinationAccess,
         class TDatabaseAccess,
         typename TReductionOperation>
-    void TransferFixedSizeValues(
+    void TransferDistributedValues(
         TSourceAccess SourceType,
         TDestinationAccess DestinationType,
         TDatabaseAccess DataBase,
@@ -2255,7 +2293,7 @@ private:
         for (auto iter = r_container.begin(); iter != r_container.end(); ++iter)
         {
             TValue& r_value = Access.GetValue(iter);
-            *(TValue*) (p_buffer + position) = r_value;
+            MPIInternals::SendTraits<TValue>::WriteBuffer(r_value, p_buffer + position);
             position += MPIInternals::BufferAllocation<TAccess>::GetSize(r_value);
         }
     }
@@ -2277,9 +2315,10 @@ private:
                 
         for (auto iter = r_container.begin(); iter != r_container.end(); ++iter)
         {
-            const TValue* recv_data = reinterpret_cast<const TValue*>(p_buffer + position);
-            ReduceValues(*recv_data, Access, iter, Operation);
-            position += MPIInternals::BufferAllocation<TDatabaseAccess>::GetSize(*recv_data);
+            TValue recv_data = Access.GetValue(iter); // copying: dynamic types need correct size here
+            MPIInternals::SendTraits<TValue>::ReadBuffer(p_buffer + position, recv_data);
+            ReduceValues(recv_data, Access, iter, Operation);
+            position += MPIInternals::BufferAllocation<TDatabaseAccess>::GetSize(recv_data);
         }
 
         KRATOS_WARNING_IF_ALL_RANKS("MPICommunicator", position > rBuffer.size())
