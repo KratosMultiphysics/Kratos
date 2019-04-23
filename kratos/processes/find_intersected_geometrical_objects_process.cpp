@@ -69,7 +69,7 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::Initialize()
 template<class TEntity>
 void FindIntersectedGeometricalObjectsProcess<TEntity>::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults)
 {
-    auto& r_entities_array = this->GetIntersectingEntities();
+    auto& r_entities_array = this->GetIntersectedEntities();
     const SizeType number_of_entities = r_entities_array.size();
     OtreeCellVectorType leaves;
 
@@ -147,7 +147,7 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::Execute()
     ExecuteInitialize();
 
     OtreeCellVectorType leaves;
-    auto& r_entities_array = this->GetIntersectingEntities();
+    auto& r_entities_array = this->GetIntersectedEntities();
     const SizeType number_of_entities = r_entities_array.size();
 
     const auto it_entities_begin = r_entities_array.begin();
@@ -175,7 +175,7 @@ void FindIntersectedGeometricalObjectsProcess<TEntity>::ExecuteInitialize()
 template<class TEntity>
 std::size_t FindIntersectedGeometricalObjectsProcess<TEntity>::WorkingSpaceDimension()
 {
-    auto& r_entities_array = this->GetIntersectingEntities();
+    auto& r_entities_array = this->GetIntersectedEntities();
     const auto it_entities_begin = r_entities_array.begin();
     const auto& r_geometry = (*(it_entities_begin).base())->GetGeometry();
     return r_geometry.WorkingSpaceDimension();
