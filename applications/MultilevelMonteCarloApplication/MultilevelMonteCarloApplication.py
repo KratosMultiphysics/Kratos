@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division
 # Application dependent names and paths
 import KratosMultiphysics
 import KratosMultilevelMonteCarloApplication
-application = KratosMultilevelMonteCarloApplication()
+application = KratosMultilevelMonteCarloApplication.KratosMultilevelMonteCarloApplication()
 application_name = "KratosMultilevelMonteCarloApplication"
 application_folder = "MultilevelMonteCarloApplication"
 
