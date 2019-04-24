@@ -7,14 +7,12 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import base class file
-import structural_mechanics_solver
-
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return ImplicitMechanicalSolver(model, custom_settings)
 
-
-class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
+class ImplicitMechanicalSolver(MechanicalSolver):
     """The structural mechanics implicit dynamic solver.
 
     This class creates the mechanical solvers for implicit dynamic analysis.
@@ -31,6 +29,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         {
             "scheme_type"   : "bossak",
             "damp_factor_m" :-0.3,
+            "newmark_beta" : 0.25,
             "rayleigh_alpha": 0.0,
             "rayleigh_beta" : 0.0
         }
@@ -40,7 +39,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
         # Construct the base solver.
         super(ImplicitMechanicalSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[ImplicitMechanicalSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[ImplicitMechanicalSolver]:: ", "Construction finished")
 
         # Setting minimum buffer
         scheme_type = self.dynamic_settings["scheme_type"].GetString()
@@ -51,12 +50,12 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def AddVariables(self):
         super(ImplicitMechanicalSolver, self).AddVariables()
         self._add_dynamic_variables()
-        self.print_on_rank_zero("::[ImplicitMechanicalSolver]:: ", "Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[ImplicitMechanicalSolver]:: ", "Variables ADDED")
 
     def AddDofs(self):
         super(ImplicitMechanicalSolver, self).AddDofs()
         self._add_dynamic_dofs()
-        self.print_on_rank_zero("::[ImplicitMechanicalSolver]:: ", "DOF's ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[ImplicitMechanicalSolver]:: ", "DOF's ADDED")
 
     def InitializeSolutionStep(self):
         # Using the base InitializeSolutionStep
@@ -81,10 +80,12 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         # Setting the time integration schemes
         if(scheme_type == "newmark"):
             damp_factor_m = 0.0
-            mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
+            newmark_beta = self.dynamic_settings["newmark_beta"].GetDouble()
+            mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m, newmark_beta)
         elif(scheme_type == "bossak"):
             damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
-            mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
+            newmark_beta = self.dynamic_settings["newmark_beta"].GetDouble()
+            mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m, newmark_beta)
         elif(scheme_type == "pseudo_static"):
             mechanical_scheme = KratosMultiphysics.ResidualBasedPseudoStaticDisplacementScheme(StructuralMechanicsApplication.RAYLEIGH_BETA)
         elif(scheme_type.startswith("bdf") or scheme_type == "backward_euler"):

@@ -7,7 +7,7 @@ import KratosMultiphysics
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
 # Import base class file
-import convection_diffusion_base_solver
+from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_base_solver
 
 def CreateSolver(model, custom_settings):
     return ConvectionDiffusionTransientSolver(model, custom_settings)
@@ -38,7 +38,7 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_base_solver.Convec
         # Overwrite the base solver minimum buffer size
         self.min_buffer_size = 2
 
-        self.print_on_rank_zero("::[ConvectionDiffusionTransientSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionTransientSolver]:: ", "Construction finished")
 
     #### Private functions ####
     def _create_solution_scheme(self):

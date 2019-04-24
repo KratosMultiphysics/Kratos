@@ -127,9 +127,12 @@ namespace Kratos {
 
         std::string ElementNameString;
         bool breakable = false;
+        bool contact_info_element = false;
         if (GetProperties()[BREAKABLE_CLUSTER]) breakable = true;
+        if (GetProperties()[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] == "DEM_D_Conical_damage" || GetProperties()[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] == "DEM_D_Stress_Dependent_Cohesive") contact_info_element = true;
 
         if (continuum_strategy) ElementNameString= "SphericContinuumParticle3D";
+        else if (contact_info_element) ElementNameString= "ContactInfoSphericParticle3D";
         else ElementNameString= "SphericParticle3D";
 
         if (!continuum_strategy && breakable) KRATOS_THROW_ERROR(std::runtime_error,"Breakable cluster elements are being used inside a non-deformable strategy. The program will now stop.","")
