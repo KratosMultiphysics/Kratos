@@ -30,7 +30,7 @@
         "convergence_criteria" : [
             {
                 "solver"        : "fluid",
-                "data_name"     : "disp",
+                "data_name"     : "MESH_DISPLACEMENT",
                 "abs_tolerance" : 1e-5,
                 "rel_tolerance" : 1e-5
             }
@@ -98,7 +98,7 @@
                 "data" : {
                     "disp" : {
                         "geometry_name"   : "GENERIC_FSI",
-                        "dimension" : 22,
+                        "dimension" : 2,
                         "name" : "DISPLACEMENT"
                     },
                     "force" : {
