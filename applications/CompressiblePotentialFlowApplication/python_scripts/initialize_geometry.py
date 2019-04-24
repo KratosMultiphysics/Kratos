@@ -110,7 +110,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         self.ApplyFlags()
 
         ''' ############################################################################################## '''
-        ''' THIS FUNCTION CALLS ARE TEMPORARY AND WILL BE REMOVED ONCE THE EMBEDDED WAKE PROCESS IS DEFINED '''
+        ''' THESE FUNCTION CALLS ARE TEMPORARY AND WILL BE REMOVED ONCE THE EMBEDDED WAKE PROCESS IS DEFINED '''
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.main_model_part,self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
         # Find nodal neigbours util call
         avg_elem_num = 10
