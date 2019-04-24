@@ -76,17 +76,17 @@
                 "data" : {
                     "disp" : {
                         "geometry_name"   : "FluidModelPart.NoSlip2D_FSI",
-                        "dimension" : 3,
+                        "dimension" : 2,
                         "name" : "MESH_DISPLACEMENT"
                     },
                     "force" : {
                         "geometry_name"   : "FluidModelPart.NoSlip2D_FSI",
-                        "dimension" : 3,
+                        "dimension" : 2,
                         "name" : "REACTION"
                     },
                     "vel" : {
                         "geometry_name"   : "FluidModelPart.NoSlip2D_FSI",
-                        "dimension" : 3,
+                        "dimension" : 2,
                         "name" : "VELOCITY"
                     }
                 }
@@ -98,17 +98,17 @@
                 "data" : {
                     "disp" : {
                         "geometry_name"   : "GENERIC_FSI",
-                        "dimension" : 3,
+                        "dimension" : 22,
                         "name" : "DISPLACEMENT"
                     },
                     "force" : {
                         "geometry_name"   : "GENERIC_FSI",
-                        "dimension" : 3,
+                        "dimension" : 2,
                         "name" : "POINT_LOAD"
                     },
                     "vel" : {
                         "geometry_name"   : "GENERIC_FSI",
-                        "dimension" : 3,
+                        "dimension" : 2,
                         "name" : "VELOCITY"
                     }
                 }
