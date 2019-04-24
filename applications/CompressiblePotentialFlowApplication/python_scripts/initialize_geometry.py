@@ -102,6 +102,8 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             self.ExtendDistance()
             self.RefineMesh()
             self.CalculateDistance()
+            self.UpdateParameters()
+
         KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Elapsed time: ',time.time()-ini_time)
 
         KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.LEVEL_SET, self.main_model_part.Nodes)
@@ -195,6 +197,11 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
 
         KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Remesh time: ',time.time()-ini_time)
         self.PrintOutput('remeshed_output'+str(self.step))
+
+    def UpdateParameters(self):
+        ''' This process updates remeshing parameters in case more than one iteration is performed'''
+        previous_size=self.MetricParameters["minimal_size"].GetDouble()
+        self.MetricParameters["minimal_size"].SetDouble(previous_size*0.5)
 
     def ApplyFlags(self):
         ''' This process finds the elements that are cut and the elements that lie inside the geometry.
