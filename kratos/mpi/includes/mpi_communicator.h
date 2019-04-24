@@ -2321,6 +2321,7 @@ private:
         std::vector<int> recv_sizes;
 
         bool resize_error = false;
+        std::stringstream error_detail;
 
         for (unsigned int i_color = 0; i_color < neighbour_indices.size(); i_color++)
         {
@@ -2378,6 +2379,10 @@ private:
                         else
                         {
                             resize_error = true;
+                            error_detail 
+                            << "On rank " << mrDataCommunicator.Rank() << ": "
+                            << "local size: " << r_value.size() << " "
+                            << "source size: " << source_size << "." << std::endl;
                         }
                     }
                 }
@@ -2385,7 +2390,8 @@ private:
         }
 
         KRATOS_ERROR_IF(mrDataCommunicator.ErrorIfTrueOnAnyRank(resize_error))
-        << "Size mismatch in Vector size synchronization." << std::endl;
+        << "Size mismatch in Vector size synchronization." << std::endl
+        << error_detail.str();
     }
 
     template<
@@ -2459,7 +2465,7 @@ private:
                         {
                             continue; // everything ok!
                         }
-                        else if (r_value.size1() == 0 && r_value.size2())
+                        else if (r_value.size1() == 0 && r_value.size2() == 0)
                         {
                             r_value.resize(source_size_1, source_size_2, false);
                         }
