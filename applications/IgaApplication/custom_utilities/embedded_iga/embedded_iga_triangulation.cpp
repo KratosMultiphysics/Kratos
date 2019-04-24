@@ -28,7 +28,6 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
     const std::vector<std::vector<array_1d<double,2>>>& rInnerPolygon,
     std::vector<Matrix>& rTriangulation_xyz)
 {
-    std::cout << "EmbeddedIgaTriangulation" << std::endl; 
     /**
      * This function generates a triangulation of the patch in the parametric space
     */
@@ -220,10 +219,6 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
         
         auto max_error = *std::max_element(std::begin(error), std::end(error));
         
-        std::cout << "Iteration " << it << std::endl;
-        std::cout <<  "Area: " << max_area << " - max_error: " << max_error << std::endl;
-        
-
         auto tolerance = false; 
         for (unsigned int i = 0; i < error.size(); ++i)
         {

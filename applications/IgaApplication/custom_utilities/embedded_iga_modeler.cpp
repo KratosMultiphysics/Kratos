@@ -26,9 +26,10 @@ void EmbeddedIgaModeler::CreateElements2D(ModelPart& rSkinModelPart)
      * This function creates 2d line elements for the nodes created in the 
      * tessellation of the curve geometry.
     */
-   unsigned int node_id = 0; 
-   unsigned int element_id = 0; 
-   unsigned int vertex_id = 0;
+    KRATOS_INFO("EMBEDDED_IGA") << "Start creating 2D SkinModelPart" << std::endl;   
+    unsigned int node_id = 0; 
+    unsigned int element_id = 0; 
+    unsigned int vertex_id = 0;
     for (unsigned int brep_i = 0; brep_i < m_brep_model_vector.size(); ++brep_i)
     {
         #pragma omp parallel for 
@@ -66,7 +67,7 @@ void EmbeddedIgaModeler::CreateElements2D(ModelPart& rSkinModelPart)
             }
         }
     }
-    KRATOS_WATCH(rSkinModelPart)
+    KRATOS_INFO("EMBEDDED_IGA") << "Finished creating 2D SkinModelPart" << std::endl;   
 }
 
 void EmbeddedIgaModeler::CreateElements3D(ModelPart& rSkinModelPart)
@@ -74,14 +75,14 @@ void EmbeddedIgaModeler::CreateElements3D(ModelPart& rSkinModelPart)
     /** This function triangulates the surface of the exact geometry using 3d triangular elements (Elements3d3n) and adds
      * them to the SkinModelPart, which is needed for the embedding of the exact geometry into a 3d flow analysis
     */
-
+    KRATOS_INFO("EMBEDDED_IGA") << "Start creating 3D SkinModelPart" << std::endl;   
     unsigned int node_id = 0;
     unsigned int vertex_id = 0;
     unsigned int element_id = 0;
     
     for(unsigned int brep_i = 0; brep_i < m_brep_model_vector.size(); ++brep_i)
     {
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(dynamic)
         for (unsigned int face_i = 0; face_i < m_brep_model_vector[brep_i].GetFaceVector().size(); ++face_i)
         {   
             const auto face = m_brep_model_vector[brep_i].GetFaceVector()[face_i];
@@ -123,6 +124,7 @@ void EmbeddedIgaModeler::CreateElements3D(ModelPart& rSkinModelPart)
             }   
         }
     }
+    KRATOS_INFO("EMBEDDED_IGA") << "Finished creating 3D SkinModelPart" << std::endl;   
 }
 
 // void EmbeddedIgaModeler::CalculateDistanceToExactSurface
@@ -139,8 +141,6 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::TestCreateElements3D()
         #pragma omp parallel for    
         for (unsigned int face_i = 0; face_i < m_brep_model_vector[brep_i].GetFaceVector().size(); ++face_i)
         {
-            std::cout << "BREP " << brep_i << "- FACE " << face_i << std::endl;
-            std::cout << "THREAD: " << omp_get_thread_num() << std::endl; 
             const auto face = m_brep_model_vector[brep_i].GetFaceVector()[face_i];
 
             std::vector<std::vector<array_1d<double, 2>>> outer_polygon_uv;
