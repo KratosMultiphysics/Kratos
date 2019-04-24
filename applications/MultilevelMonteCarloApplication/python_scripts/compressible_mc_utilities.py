@@ -46,7 +46,6 @@ C. Bayer, H. Hoel, E. von Schwerin, R. Tempone; On NonAsymptotyc optimal stoppin
 # TODO: in CheckConvergence convert formulas from unbiased to biased
 # TODO: in [3] formula 4.1 I use unbiased formula, not biased, as sample moments. Check it's fine
 # TODO: now batch_size = difference_number_samples, in future it may have flags for different behaviours
-# TODO: now we are using scipy so we can avoid _ComputeCDFStandardNormalDistribution
 # TODO: update input and output descriptions after new task formulations
 # TODO: for now batch_size = initial_batch_size, in future it may have flags for different behaviours
 
@@ -85,7 +84,8 @@ def CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,curr
         # define local variables
         current_convergence_coefficient = np.sqrt(current_number_samples) * current_tol / np.sqrt(current_h2)
         # evaluate probability of failure
-        main_contribute = 2*(1-_ComputeCDFStandardNormalDistribution(current_convergence_coefficient))
+        # main_contribute = 2*(1-_ComputeCDFStandardNormalDistribution(current_convergence_coefficient))
+        main_contribute = 2*(1-norm.cdf(current_convergence_coefficient))
         if(main_contribute < current_delta):
             convergence_boolean = True
     elif(convergence_criteria == "MC_higher_moments_sequential_stopping_rule"):
@@ -96,7 +96,8 @@ def CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,curr
         current_moment_4_coefficient = (current_h4 / (current_moment_2_coefficient**4)) - 3
         current_convergence_coefficient = np.sqrt(current_number_samples) * current_tol / np.sqrt(current_moment_2_coefficient)
         # evaluate probability of failure and penalty term
-        main_contribute = 2 * (1 - _ComputeCDFStandardNormalDistribution(current_convergence_coefficient))
+        # main_contribute = 2*(1-_ComputeCDFStandardNormalDistribution(current_convergence_coefficient))
+        main_contribute = 2*(1-norm.cdf(current_convergence_coefficient))
         penalty_contribute = 2 * np.minimum(4 * (2/(current_number_samples - 1) + (current_moment_4_coefficient / current_number_samples)), 1) * \
             _ComputeBoundFunction(current_convergence_coefficient,current_moment_3_absolute_coefficient) / np.sqrt(current_number_samples) + \
             (1 - np.minimum(4 * (2/(current_number_samples - 1) + (current_moment_4_coefficient / current_number_samples)), 1)) * \
@@ -105,6 +106,7 @@ def CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,curr
             (3 * np.sqrt(2 * np.pi * current_number_samples))
         if (main_contribute + penalty_contribute < current_delta):
             convergence_boolean = True
+    # TODO: check if this convergence criteria coincides with the first
     elif(convergence_criteria == "total_error_stopping_rule"):
         cphi_confidence = norm.ppf(1.0 - current_delta) # this stopping criteria checks total error like MLMC, thus need to use confidence and not error probability
         statistical_error = cphi_confidence*sqrt(current_h2/current_number_samples)
