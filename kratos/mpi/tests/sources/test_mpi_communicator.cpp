@@ -205,8 +205,9 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataAssembly, KratosMP
         r_cauchy_stress = ZeroVector(2);
         r_cauchy_stress[1] = 1.0;
         Matrix& r_deformation_gradient = i_node->FastGetSolutionStepValue(DEFORMATION_GRADIENT, 0);
-        r_deformation_gradient.resize(2,2,false);
-        r_deformation_gradient = IdentityMatrix(2);
+        r_deformation_gradient.resize(3,2,false);
+        r_deformation_gradient = ZeroMatrix(3,2);
+        r_deformation_gradient(2,0) = 1.0;
     }
 
     Communicator& r_comm = r_model_part.GetCommunicator();
@@ -259,6 +260,25 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataAssembly, KratosMP
     KRATOS_CHECK_EQUAL(r_assembled_ghost_vector.size(), 2);
     KRATOS_CHECK_EQUAL(r_assembled_ghost_vector[0], 0.0);
     KRATOS_CHECK_EQUAL(r_assembled_ghost_vector[1], 1.0*expected_int);
+
+    r_comm.AssembleCurrentData(DEFORMATION_GRADIENT);
+    const auto& r_assembled_center_matrix = r_center.FastGetSolutionStepValue(DEFORMATION_GRADIENT,0);
+    KRATOS_CHECK_EQUAL(r_assembled_center_matrix.size1(), 3);
+    KRATOS_CHECK_EQUAL(r_assembled_center_matrix.size2(), 2);
+    KRATOS_CHECK_EQUAL(r_assembled_center_matrix(0,0), 0.0);
+    KRATOS_CHECK_EQUAL(r_assembled_center_matrix(2,0), 1.0*size);
+
+    const auto& r_assembled_local_matrix = r_local.FastGetSolutionStepValue(DEFORMATION_GRADIENT,0);
+    KRATOS_CHECK_EQUAL(r_assembled_local_matrix.size1(), 3);
+    KRATOS_CHECK_EQUAL(r_assembled_local_matrix.size2(), 2);
+    KRATOS_CHECK_EQUAL(r_assembled_local_matrix(0,0), 0.0);
+    KRATOS_CHECK_EQUAL(r_assembled_local_matrix(2,0), 1.0*expected_int);
+
+    const auto& r_assembled_ghost_matrix = r_ghost.FastGetSolutionStepValue(DEFORMATION_GRADIENT,0);
+    KRATOS_CHECK_EQUAL(r_assembled_ghost_matrix.size1(), 3);
+    KRATOS_CHECK_EQUAL(r_assembled_ghost_matrix.size2(), 2);
+    KRATOS_CHECK_EQUAL(r_assembled_ghost_matrix(0,0), 0.0);
+    KRATOS_CHECK_EQUAL(r_assembled_ghost_matrix(2,0), 1.0*expected_int);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchronize, KratosMPICoreFastSuite)

@@ -157,6 +157,27 @@ template<> struct SendTraits< Vector >
     }
 };
 
+template<> struct SendTraits< Matrix >
+{
+    typedef double SendType;
+    constexpr static bool IsFixedSize = false;
+    
+    static inline std::size_t GetSendSize(const Matrix& rValue)
+    {
+        return rValue.data().size();
+    }
+
+    static inline void WriteBuffer(const Matrix& rValue, SendType* pBuffer)
+    {
+        std::memcpy(pBuffer, &(rValue.data()[0]), rValue.data().size()*sizeof(double));
+    }
+
+    static inline void ReadBuffer(const SendType* pBuffer, Matrix& rValue)
+    {
+        std::memcpy(&(rValue.data()[0]), pBuffer, rValue.data().size()*sizeof(double));
+    }
+};
+
 template<class TValue> struct DataSize
 {
     constexpr static std::size_t Value = sizeof(TValue) / sizeof(typename SendTraits<TValue>::SendType);
@@ -831,7 +852,8 @@ public:
 
     bool AssembleCurrentData(Variable<Matrix> const& ThisVariable) override
     {
-        AssembleThisVariable<Matrix,double>(ThisVariable);
+        MPIInternals::NodalSolutionStepValueAccess<Matrix> solution_step_access(ThisVariable);
+        AssembleDynamicMatrixValues(solution_step_access);
         return true;
     }
 
@@ -2190,6 +2212,29 @@ private:
         TransferDistributedValues(local_meshes, ghost_meshes, rVariableAccess, replace);
     }
 
+    template<class TDatabaseAccess>
+    void AssembleDynamicMatrixValues(TDatabaseAccess& rVariableAccess)
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+        constexpr Operation<OperationType::SumValues> sum;
+
+        // Combine matrix sizes on owner rank
+        MatchDynamicMatrixSizes(ghost_meshes, local_meshes, rVariableAccess);
+
+        // Communicate matrix sizes to ghost copies
+        MatchDynamicMatrixSizes(local_meshes, ghost_meshes, rVariableAccess);
+
+        // From this point on, we can assume buffer sizes will always match for all ranks
+
+        // Assemble results on owner rank
+        TransferDistributedValues(ghost_meshes, local_meshes, rVariableAccess, sum);
+
+        // Synchronize result on ghost copies
+        TransferDistributedValues(local_meshes, ghost_meshes, rVariableAccess, replace);
+    }
+
     MeshType& GetMesh(IndexType Color, const MeshAccess<DistributedType::Local>)
     {
         return LocalMesh(Color);
@@ -2407,6 +2452,93 @@ private:
 
         KRATOS_ERROR_IF(mrDataCommunicator.ErrorIfTrueOnAnyRank(resize_error))
         << "Size mismatch in Vector size synchronization." << std::endl;
+    }
+
+    template<
+        typename TSourceAccess,
+        typename TDestinationAccess,
+        class TDatabaseAccess>
+    void MatchDynamicMatrixSizes(
+        TSourceAccess SourceType,
+        TDestinationAccess DestinationType,
+        TDatabaseAccess Access)
+    {
+        using TMatrixType = typename TDatabaseAccess::ValueType;
+        int destination = 0;
+
+        NeighbourIndicesContainerType& neighbour_indices = NeighbourIndices();
+
+        std::vector<int> send_sizes;
+        std::vector<int> recv_sizes;
+
+        bool resize_error = false;
+
+        for (unsigned int i_color = 0; i_color < neighbour_indices.size(); i_color++)
+        {
+            if ( (destination = neighbour_indices[i_color]) >= 0)
+            {
+                MeshType& r_source_mesh = GetMesh(i_color, SourceType);
+                const auto& r_source_container = Access.GetContainer(r_source_mesh);
+                const std::size_t num_values_to_send = 2*r_source_container.size();
+
+                MeshType& r_destination_mesh = GetMesh(i_color, DestinationType);
+                auto& r_destination_container = Access.GetContainer(r_destination_mesh);
+                const std::size_t num_values_to_recv = 2*r_destination_container.size();
+
+                if ( (num_values_to_send == 0) && (num_values_to_recv == 0) )
+                {
+                    continue; // nothing to transfer, skip communication step
+                }
+
+                if (send_sizes.size() != num_values_to_send)
+                {
+                    send_sizes.resize(num_values_to_send);
+                }
+                
+                if (recv_sizes.size() != num_values_to_recv)
+                {
+                    recv_sizes.resize(num_values_to_recv);
+                }
+
+                int position = 0;
+                for (auto iter = r_source_container.begin(); iter != r_source_container.end(); ++iter)
+                {
+                    const TMatrixType& r_value = Access.GetValue(iter);
+                    send_sizes[position++] = r_value.size1();
+                    send_sizes[position++] = r_value.size2();
+                }
+
+                mrDataCommunicator.SendRecv(
+                    send_sizes, destination, i_color,
+                    recv_sizes, destination, i_color);
+
+                position = 0;
+                for (auto iter = r_destination_container.begin(); iter != r_destination_container.end(); ++iter)
+                {
+                    std::size_t source_size_1 = recv_sizes[position++];
+                    std::size_t source_size_2 = recv_sizes[position++];
+                    if (source_size_1 != 0  && source_size_2 != 0)
+                    {
+                        TMatrixType& r_value = Access.GetValue(iter);
+                        if (r_value.size1() == source_size_1 && r_value.size2() == source_size_2)
+                        {
+                            continue; // everything ok!
+                        }
+                        else if (r_value.size1() == 0 && r_value.size2())
+                        {
+                            r_value.resize(source_size_1, source_size_2, false);
+                        }
+                        else
+                        {
+                            resize_error = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        KRATOS_ERROR_IF(mrDataCommunicator.ErrorIfTrueOnAnyRank(resize_error))
+        << "Size mismatch in Matrix size synchronization." << std::endl;
     }
 
     //       friend class boost::serialization::access;
