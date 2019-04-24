@@ -57,8 +57,8 @@ MMG5_pSol  mMmgSol;  /// The metric variable for MMG
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgUtilities<TMMGLibray>::PrintMmgMeshInfo(
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::PrintMmgMeshInfo(
     SizeType& rNumberOfNodes,
     array_1d<SizeType, 2>& rNumberOfConditions,
     array_1d<SizeType, 2>& rNumberOfElements,
@@ -66,20 +66,20 @@ void MmgUtilities<TMMGLibray>::PrintMmgMeshInfo(
     )
 {
     rNumberOfNodes = mMmgMesh->np;
-    if (TMMGLibray == MMGLibray::MMG2D) { // 2D
+    if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
         rNumberOfConditions[0] = mMmgMesh->na;
         rNumberOfConditions[1] = 0;
-    } else if (TMMGLibray == MMGLibray::MMG3D) { // 3D
+    } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
         rNumberOfConditions[0] = mMmgMesh->nt;
         rNumberOfConditions[1] = mMmgMesh->nquad;
     } else { // Surfaces
         rNumberOfConditions[0] = mMmgMesh->na;
         rNumberOfConditions[1] = 0;
     }
-    if (TMMGLibray == MMGLibray::MMG2D) { // 2D
+    if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
         rNumberOfElements[0] = mMmgMesh->nt;
         rNumberOfElements[1] = 0;
-    } else if (TMMGLibray == MMGLibray::MMG3D) { // 3D
+    } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
         rNumberOfElements[0] = mMmgMesh->ne;
         rNumberOfElements[1] = mMmgMesh->nprism;
     } else { // Surfaces
@@ -88,11 +88,11 @@ void MmgUtilities<TMMGLibray>::PrintMmgMeshInfo(
     }
 
     KRATOS_INFO_IF("MmgUtilities", EchoLevel > 0) << "\tNodes created: " << rNumberOfNodes << std::endl;
-    if (TMMGLibray == MMGLibray::MMG2D) { // 2D
+    if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
         KRATOS_INFO_IF("MmgUtilities", EchoLevel > 0) <<
         "Conditions created: " << rNumberOfConditions[0] << "\n" <<
         "Elements created: " << rNumberOfElements[0] << std::endl;
-    } else if (TMMGLibray == MMGLibray::MMG3D) { // 3D
+    } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
         KRATOS_INFO_IF("MmgUtilities", EchoLevel > 0) <<
         "Conditions created: " << rNumberOfConditions[0] + rNumberOfConditions[1] << "\n\tTriangles: " << rNumberOfConditions[0] << "\tQuadrilaterals: " << rNumberOfConditions[1] << "\n" <<
         "Elements created: " << rNumberOfElements[0] + rNumberOfElements[1] << "\n\tTetrahedron: " << rNumberOfElements[0] << "\tPrisms: " << rNumberOfElements[1] << std::endl;
@@ -106,8 +106,8 @@ void MmgUtilities<TMMGLibray>::PrintMmgMeshInfo(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-IndexVectorType MmgUtilities<TMMGLibray>::CheckNodes(
+template<MMGLibrary TMMGLibrary>
+IndexVectorType MmgUtilities<TMMGLibrary>::CheckNodes(
     ModelPart& rModelPart,
     const IndexType EchoLevel
     )
@@ -144,7 +144,7 @@ IndexVectorType MmgUtilities<TMMGLibray>::CheckNodes(
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibray::MMG2D>::CheckConditions0(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckConditions0(const IndexType EchoLevel)
 {
     IndexVectorMapType edge_map;
 
@@ -178,7 +178,7 @@ IndexVectorType MmgUtilities<MMGLibray::MMG2D>::CheckConditions0(const IndexType
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibray::MMG3D>::CheckConditions0(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckConditions0(const IndexType EchoLevel)
 {
     IndexVectorMapType triangle_map;
 
@@ -212,7 +212,7 @@ IndexVectorType MmgUtilities<MMGLibray::MMG3D>::CheckConditions0(const IndexType
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibray::MMGS>::CheckConditions0(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckConditions0(const IndexType EchoLevel)
 {
     IndexVectorMapType edge_map;
 
@@ -246,7 +246,7 @@ IndexVectorType MmgUtilities<MMGLibray::MMGS>::CheckConditions0(const IndexType 
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibray::MMG2D>::CheckConditions1(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckConditions1(const IndexType EchoLevel)
 {
     IndexVectorType conditions_to_remove(0);
 
@@ -257,7 +257,7 @@ IndexVectorType MmgUtilities<MMGLibray::MMG2D>::CheckConditions1(const IndexType
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibray::MMG3D>::CheckConditions1(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckConditions1(const IndexType EchoLevel)
 {
     IndexVectorMapType quadrilateral_map;
 
@@ -292,7 +292,7 @@ IndexVectorType MmgUtilities<MMGLibray::MMG3D>::CheckConditions1(const IndexType
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibray::MMGS>::CheckConditions1(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckConditions1(const IndexType EchoLevel)
 {
     IndexVectorType conditions_to_remove(0);
 
@@ -303,7 +303,7 @@ IndexVectorType MmgUtilities<MMGLibray::MMGS>::CheckConditions1(const IndexType 
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibray::MMG2D>::CheckElements0(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckElements0(const IndexType EchoLevel)
 {
     IndexVectorMapType triangle_map;
 
@@ -338,7 +338,7 @@ IndexVectorType MmgUtilities<MMGLibray::MMG2D>::CheckElements0(const IndexType E
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibray::MMG3D>::CheckElements0(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckElements0(const IndexType EchoLevel)
 {
     IndexVectorMapType triangle_map;
 
@@ -373,7 +373,7 @@ IndexVectorType MmgUtilities<MMGLibray::MMG3D>::CheckElements0(const IndexType E
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibray::MMGS>::CheckElements0(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckElements0(const IndexType EchoLevel)
 {
     IndexVectorMapType triangle_map;
 
@@ -408,7 +408,7 @@ IndexVectorType MmgUtilities<MMGLibray::MMGS>::CheckElements0(const IndexType Ec
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibray::MMG2D>::CheckElements1(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckElements1(const IndexType EchoLevel)
 {
     IndexVectorType elements_to_remove(0);
     return elements_to_remove;
@@ -418,7 +418,7 @@ IndexVectorType MmgUtilities<MMGLibray::MMG2D>::CheckElements1(const IndexType E
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibray::MMG3D>::CheckElements1(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckElements1(const IndexType EchoLevel)
 {
     IndexVectorMapType prism_map;
 
@@ -455,7 +455,7 @@ IndexVectorType MmgUtilities<MMGLibray::MMG3D>::CheckElements1(const IndexType E
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibray::MMGS>::CheckElements1(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckElements1(const IndexType EchoLevel)
 {
     IndexVectorType elements_to_remove(0);
     return elements_to_remove;
@@ -465,7 +465,7 @@ IndexVectorType MmgUtilities<MMGLibray::MMGS>::CheckElements1(const IndexType Ec
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::BlockNode(const IndexType iNode)
+void MmgUtilities<MMGLibrary::MMG2D>::BlockNode(const IndexType iNode)
 {
     if (MMG2D_Set_requiredVertex(mMmgMesh, iNode) != 1 )
         exit(EXIT_FAILURE);
@@ -476,7 +476,7 @@ void MmgUtilities<MMGLibray::MMG2D>::BlockNode(const IndexType iNode)
 
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::BlockNode(const IndexType iNode)
+void MmgUtilities<MMGLibrary::MMG3D>::BlockNode(const IndexType iNode)
 {
     if (MMG3D_Set_requiredVertex(mMmgMesh, iNode) != 1 )
         exit(EXIT_FAILURE);
@@ -486,7 +486,7 @@ void MmgUtilities<MMGLibray::MMG3D>::BlockNode(const IndexType iNode)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::BlockNode(const IndexType iNode)
+void MmgUtilities<MMGLibrary::MMGS>::BlockNode(const IndexType iNode)
 {
     if (MMGS_Set_requiredVertex(mMmgMesh, iNode) != 1 )
         exit(EXIT_FAILURE);
@@ -496,7 +496,7 @@ void MmgUtilities<MMGLibray::MMGS>::BlockNode(const IndexType iNode)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::BlockCondition(const IndexType iCondition)
+void MmgUtilities<MMGLibrary::MMG2D>::BlockCondition(const IndexType iCondition)
 {
     if (MMG2D_Set_requiredEdge(mMmgMesh, iCondition) != 1 )
         exit(EXIT_FAILURE);
@@ -506,7 +506,7 @@ void MmgUtilities<MMGLibray::MMG2D>::BlockCondition(const IndexType iCondition)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::BlockCondition(const IndexType iCondition)
+void MmgUtilities<MMGLibrary::MMG3D>::BlockCondition(const IndexType iCondition)
 {
     if (MMG3D_Set_requiredTriangle(mMmgMesh, iCondition) != 1 )
         exit(EXIT_FAILURE);
@@ -516,7 +516,7 @@ void MmgUtilities<MMGLibray::MMG3D>::BlockCondition(const IndexType iCondition)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::BlockCondition(const IndexType iCondition)
+void MmgUtilities<MMGLibrary::MMGS>::BlockCondition(const IndexType iCondition)
 {
     if (MMGS_Set_requiredEdge(mMmgMesh, iCondition) != 1 )
         exit(EXIT_FAILURE);
@@ -526,7 +526,7 @@ void MmgUtilities<MMGLibray::MMGS>::BlockCondition(const IndexType iCondition)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::BlockElement(const IndexType iElement)
+void MmgUtilities<MMGLibrary::MMG2D>::BlockElement(const IndexType iElement)
 {
     if (MMG2D_Set_requiredTriangle(mMmgMesh, iElement) != 1 )
         exit(EXIT_FAILURE);
@@ -537,7 +537,7 @@ void MmgUtilities<MMGLibray::MMG2D>::BlockElement(const IndexType iElement)
 
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::BlockElement(const IndexType iElement)
+void MmgUtilities<MMGLibrary::MMG3D>::BlockElement(const IndexType iElement)
 {
     if (MMG3D_Set_requiredTetrahedron(mMmgMesh, iElement) != 1 )
         exit(EXIT_FAILURE);
@@ -547,7 +547,7 @@ void MmgUtilities<MMGLibray::MMG3D>::BlockElement(const IndexType iElement)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::BlockElement(const IndexType iElement)
+void MmgUtilities<MMGLibrary::MMGS>::BlockElement(const IndexType iElement)
 {
     if (MMGS_Set_requiredTriangle(mMmgMesh, iElement) != 1 )
         exit(EXIT_FAILURE);
@@ -557,7 +557,7 @@ void MmgUtilities<MMGLibray::MMGS>::BlockElement(const IndexType iElement)
 /***********************************************************************************/
 
 template<>
-NodeType::Pointer MmgUtilities<MMGLibray::MMG2D>::CreateNode(
+NodeType::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -580,7 +580,7 @@ NodeType::Pointer MmgUtilities<MMGLibray::MMG2D>::CreateNode(
 /***********************************************************************************/
 
 template<>
-NodeType::Pointer MmgUtilities<MMGLibray::MMG3D>::CreateNode(
+NodeType::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -603,7 +603,7 @@ NodeType::Pointer MmgUtilities<MMGLibray::MMG3D>::CreateNode(
 /***********************************************************************************/
 
 template<>
-NodeType::Pointer MmgUtilities<MMGLibray::MMGS>::CreateNode(
+NodeType::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -626,7 +626,7 @@ NodeType::Pointer MmgUtilities<MMGLibray::MMGS>::CreateNode(
 /***********************************************************************************/
 
 template<>
-Condition::Pointer MmgUtilities<MMGLibray::MMG2D>::CreateCondition0(
+Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateCondition0(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     const IndexType CondId,
@@ -684,7 +684,7 @@ Condition::Pointer MmgUtilities<MMGLibray::MMG2D>::CreateCondition0(
 /***********************************************************************************/
 
 template<>
-Condition::Pointer MmgUtilities<MMGLibray::MMG3D>::CreateCondition0(
+Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateCondition0(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     const IndexType CondId,
@@ -745,7 +745,7 @@ Condition::Pointer MmgUtilities<MMGLibray::MMG3D>::CreateCondition0(
 /***********************************************************************************/
 
 template<>
-Condition::Pointer MmgUtilities<MMGLibray::MMGS>::CreateCondition0(
+Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateCondition0(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     const IndexType CondId,
@@ -792,7 +792,7 @@ Condition::Pointer MmgUtilities<MMGLibray::MMGS>::CreateCondition0(
 /***********************************************************************************/
 
 template<>
-Condition::Pointer MmgUtilities<MMGLibray::MMG2D>::CreateCondition1(
+Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateCondition1(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     const IndexType CondId,
@@ -811,7 +811,7 @@ Condition::Pointer MmgUtilities<MMGLibray::MMG2D>::CreateCondition1(
 /***********************************************************************************/
 
 template<>
-Condition::Pointer MmgUtilities<MMGLibray::MMG3D>::CreateCondition1(
+Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateCondition1(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     const IndexType CondId,
@@ -861,7 +861,7 @@ Condition::Pointer MmgUtilities<MMGLibray::MMG3D>::CreateCondition1(
 /***********************************************************************************/
 
 template<>
-Condition::Pointer MmgUtilities<MMGLibray::MMGS>::CreateCondition1(
+Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateCondition1(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     const IndexType CondId,
@@ -880,7 +880,7 @@ Condition::Pointer MmgUtilities<MMGLibray::MMGS>::CreateCondition1(
 /***********************************************************************************/
 
 template<>
-Element::Pointer MmgUtilities<MMGLibray::MMG2D>::CreateElement0(
+Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateElement0(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
     const IndexType ElemId,
@@ -961,7 +961,7 @@ Element::Pointer MmgUtilities<MMGLibray::MMG2D>::CreateElement0(
 /***********************************************************************************/
 
 template<>
-Element::Pointer MmgUtilities<MMGLibray::MMG3D>::CreateElement0(
+Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateElement0(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
     const IndexType ElemId,
@@ -1044,7 +1044,7 @@ Element::Pointer MmgUtilities<MMGLibray::MMG3D>::CreateElement0(
 /***********************************************************************************/
 
 template<>
-Element::Pointer MmgUtilities<MMGLibray::MMGS>::CreateElement0(
+Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateElement0(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
     const IndexType ElemId,
@@ -1091,7 +1091,7 @@ Element::Pointer MmgUtilities<MMGLibray::MMGS>::CreateElement0(
 /***********************************************************************************/
 
 template<>
-Element::Pointer MmgUtilities<MMGLibray::MMG2D>::CreateElement1(
+Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateElement1(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
     const IndexType ElemId,
@@ -1110,7 +1110,7 @@ Element::Pointer MmgUtilities<MMGLibray::MMG2D>::CreateElement1(
 /***********************************************************************************/
 
 template<>
-Element::Pointer MmgUtilities<MMGLibray::MMG3D>::CreateElement1(
+Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateElement1(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
     const IndexType ElemId,
@@ -1164,7 +1164,7 @@ Element::Pointer MmgUtilities<MMGLibray::MMG3D>::CreateElement1(
 /***********************************************************************************/
 
 template<>
-Element::Pointer MmgUtilities<MMGLibray::MMGS>::CreateElement1(
+Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateElement1(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
     const IndexType ElemId,
@@ -1183,7 +1183,7 @@ Element::Pointer MmgUtilities<MMGLibray::MMGS>::CreateElement1(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::InitMesh(
+void MmgUtilities<MMGLibrary::MMG2D>::InitMesh(
     DiscretizationOption Discretization,
     const IndexType EchoLevel
     )
@@ -1208,7 +1208,7 @@ void MmgUtilities<MMGLibray::MMG2D>::InitMesh(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::InitMesh(
+void MmgUtilities<MMGLibrary::MMG3D>::InitMesh(
     DiscretizationOption Discretization,
     const IndexType EchoLevel
     )
@@ -1235,7 +1235,7 @@ void MmgUtilities<MMGLibray::MMG3D>::InitMesh(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::InitMesh(
+void MmgUtilities<MMGLibrary::MMGS>::InitMesh(
     DiscretizationOption Discretization,
     const IndexType EchoLevel
     )
@@ -1259,8 +1259,8 @@ void MmgUtilities<MMGLibray::MMGS>::InitMesh(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgUtilities<TMMGLibray>::InitVerbosity(IndexType EchoLevel)
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::InitVerbosity(IndexType EchoLevel)
 {
     /* We set the MMG verbosity */
     int verbosity_mmg;
@@ -1282,7 +1282,7 @@ void MmgUtilities<TMMGLibray>::InitVerbosity(IndexType EchoLevel)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::InitVerbosityParameter(const IndexType VerbosityMMG)
+void MmgUtilities<MMGLibrary::MMG2D>::InitVerbosityParameter(const IndexType VerbosityMMG)
 {
     if ( !MMG2D_Set_iparameter(mMmgMesh,mMmgSol,MMG2D_IPARAM_verbose, VerbosityMMG) )
         exit(EXIT_FAILURE);
@@ -1292,7 +1292,7 @@ void MmgUtilities<MMGLibray::MMG2D>::InitVerbosityParameter(const IndexType Verb
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::InitVerbosityParameter(const IndexType VerbosityMMG)
+void MmgUtilities<MMGLibrary::MMG3D>::InitVerbosityParameter(const IndexType VerbosityMMG)
 {
     if ( !MMG3D_Set_iparameter(mMmgMesh,mMmgSol,MMG3D_IPARAM_verbose, VerbosityMMG) )
         exit(EXIT_FAILURE);
@@ -1302,7 +1302,7 @@ void MmgUtilities<MMGLibray::MMG3D>::InitVerbosityParameter(const IndexType Verb
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::InitVerbosityParameter(const IndexType VerbosityMMG)
+void MmgUtilities<MMGLibrary::MMGS>::InitVerbosityParameter(const IndexType VerbosityMMG)
 {
     if ( !MMGS_Set_iparameter(mMmgMesh,mMmgSol,MMGS_IPARAM_verbose, VerbosityMMG) )
         exit(EXIT_FAILURE);
@@ -1312,7 +1312,7 @@ void MmgUtilities<MMGLibray::MMGS>::InitVerbosityParameter(const IndexType Verbo
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::SetMeshSize(
+void MmgUtilities<MMGLibrary::MMG2D>::SetMeshSize(
     const SizeType NumNodes,
     const array_1d<SizeType, ElementsArraySize>& NumArrayElements,
     const array_1d<SizeType, ConditionsArraySize>& NumArrayConditions
@@ -1327,7 +1327,7 @@ void MmgUtilities<MMGLibray::MMG2D>::SetMeshSize(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::SetMeshSize(
+void MmgUtilities<MMGLibrary::MMG3D>::SetMeshSize(
     const SizeType NumNodes,
     const array_1d<SizeType, ElementsArraySize>& NumArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
     const array_1d<SizeType, ConditionsArraySize>& NumArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
@@ -1342,7 +1342,7 @@ void MmgUtilities<MMGLibray::MMG3D>::SetMeshSize(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::SetMeshSize(
+void MmgUtilities<MMGLibrary::MMGS>::SetMeshSize(
     const SizeType NumNodes,
     const array_1d<SizeType, ElementsArraySize>& NumArrayElements,
     const array_1d<SizeType, ConditionsArraySize>& NumArrayConditions
@@ -1357,7 +1357,7 @@ void MmgUtilities<MMGLibray::MMGS>::SetMeshSize(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::SetSolSizeScalar(const SizeType NumNodes)
+void MmgUtilities<MMGLibrary::MMG2D>::SetSolSizeScalar(const SizeType NumNodes)
 {
     if ( MMG2D_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 )
         exit(EXIT_FAILURE);
@@ -1367,7 +1367,7 @@ void MmgUtilities<MMGLibray::MMG2D>::SetSolSizeScalar(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::SetSolSizeScalar(const SizeType NumNodes)
+void MmgUtilities<MMGLibrary::MMG3D>::SetSolSizeScalar(const SizeType NumNodes)
 {
     if ( MMG3D_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 )
         exit(EXIT_FAILURE);
@@ -1377,7 +1377,7 @@ void MmgUtilities<MMGLibray::MMG3D>::SetSolSizeScalar(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::SetSolSizeScalar(const SizeType NumNodes)
+void MmgUtilities<MMGLibrary::MMGS>::SetSolSizeScalar(const SizeType NumNodes)
 {
     if ( MMGS_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 )
         exit(EXIT_FAILURE);
@@ -1387,7 +1387,7 @@ void MmgUtilities<MMGLibray::MMGS>::SetSolSizeScalar(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::SetSolSizeVector(const SizeType NumNodes)
+void MmgUtilities<MMGLibrary::MMG2D>::SetSolSizeVector(const SizeType NumNodes)
 {
     if ( MMG2D_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 )
         exit(EXIT_FAILURE);
@@ -1397,7 +1397,7 @@ void MmgUtilities<MMGLibray::MMG2D>::SetSolSizeVector(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::SetSolSizeVector(const SizeType NumNodes)
+void MmgUtilities<MMGLibrary::MMG3D>::SetSolSizeVector(const SizeType NumNodes)
 {
     if ( MMG3D_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 )
         exit(EXIT_FAILURE);
@@ -1407,7 +1407,7 @@ void MmgUtilities<MMGLibray::MMG3D>::SetSolSizeVector(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::SetSolSizeVector(const SizeType NumNodes)
+void MmgUtilities<MMGLibrary::MMGS>::SetSolSizeVector(const SizeType NumNodes)
 {
     if ( MMGS_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 )
         exit(EXIT_FAILURE);
@@ -1417,7 +1417,7 @@ void MmgUtilities<MMGLibray::MMGS>::SetSolSizeVector(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::SetSolSizeTensor(const SizeType NumNodes)
+void MmgUtilities<MMGLibrary::MMG2D>::SetSolSizeTensor(const SizeType NumNodes)
 {
     if ( MMG2D_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Tensor) != 1 )
         exit(EXIT_FAILURE);
@@ -1427,7 +1427,7 @@ void MmgUtilities<MMGLibray::MMG2D>::SetSolSizeTensor(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::SetSolSizeTensor(const SizeType NumNodes)
+void MmgUtilities<MMGLibrary::MMG3D>::SetSolSizeTensor(const SizeType NumNodes)
 {
     if ( MMG3D_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Tensor) != 1 )
         exit(EXIT_FAILURE);
@@ -1437,7 +1437,7 @@ void MmgUtilities<MMGLibray::MMG3D>::SetSolSizeTensor(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::SetSolSizeTensor(const SizeType NumNodes)
+void MmgUtilities<MMGLibrary::MMGS>::SetSolSizeTensor(const SizeType NumNodes)
 {
     if ( MMGS_Set_solSize(mMmgMesh,mMmgSol,MMG5_Vertex,NumNodes,MMG5_Tensor) != 1 )
         exit(EXIT_FAILURE);
@@ -1447,7 +1447,7 @@ void MmgUtilities<MMGLibray::MMGS>::SetSolSizeTensor(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::CheckMeshData()
+void MmgUtilities<MMGLibrary::MMG2D>::CheckMeshData()
 {
     if ( MMG2D_Chk_meshData(mMmgMesh, mMmgSol) != 1 )
         exit(EXIT_FAILURE);
@@ -1457,7 +1457,7 @@ void MmgUtilities<MMGLibray::MMG2D>::CheckMeshData()
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::CheckMeshData()
+void MmgUtilities<MMGLibrary::MMG3D>::CheckMeshData()
 {
     if ( MMG3D_Chk_meshData(mMmgMesh, mMmgSol) != 1 )
         exit(EXIT_FAILURE);
@@ -1467,7 +1467,7 @@ void MmgUtilities<MMGLibray::MMG3D>::CheckMeshData()
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::CheckMeshData()
+void MmgUtilities<MMGLibrary::MMGS>::CheckMeshData()
 {
     if ( MMGS_Chk_meshData(mMmgMesh, mMmgSol) != 1 )
         exit(EXIT_FAILURE);
@@ -1477,7 +1477,7 @@ void MmgUtilities<MMGLibray::MMGS>::CheckMeshData()
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::InputMesh(const std::string& rOutputName)
+void MmgUtilities<MMGLibrary::MMG2D>::InputMesh(const std::string& rOutputName)
 {
     const std::string mesh_name = rOutputName + ".mesh";
 
@@ -1495,7 +1495,7 @@ void MmgUtilities<MMGLibray::MMG2D>::InputMesh(const std::string& rOutputName)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::InputMesh(const std::string& rOutputName)
+void MmgUtilities<MMGLibrary::MMG3D>::InputMesh(const std::string& rOutputName)
 {
     const std::string mesh_name = rOutputName + ".mesh";
 
@@ -1513,7 +1513,7 @@ void MmgUtilities<MMGLibray::MMG3D>::InputMesh(const std::string& rOutputName)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::InputMesh(const std::string& rOutputName)
+void MmgUtilities<MMGLibrary::MMGS>::InputMesh(const std::string& rOutputName)
 {
     const std::string mesh_name = rOutputName + ".mesh";
 
@@ -1531,7 +1531,7 @@ void MmgUtilities<MMGLibray::MMGS>::InputMesh(const std::string& rOutputName)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::InputSol(const std::string& rInputName)
+void MmgUtilities<MMGLibrary::MMG2D>::InputSol(const std::string& rInputName)
 {
     const std::string sol_name = rInputName + ".sol";
 
@@ -1549,7 +1549,7 @@ void MmgUtilities<MMGLibray::MMG2D>::InputSol(const std::string& rInputName)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::InputSol(const std::string& rInputName)
+void MmgUtilities<MMGLibrary::MMG3D>::InputSol(const std::string& rInputName)
 {
     const std::string sol_name = rInputName + ".sol";
 
@@ -1567,7 +1567,7 @@ void MmgUtilities<MMGLibray::MMG3D>::InputSol(const std::string& rInputName)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::InputSol(const std::string& rInputName)
+void MmgUtilities<MMGLibrary::MMGS>::InputSol(const std::string& rInputName)
 {
     const std::string sol_name = rInputName + ".sol";
 
@@ -1585,7 +1585,7 @@ void MmgUtilities<MMGLibray::MMGS>::InputSol(const std::string& rInputName)
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::OutputMesh(
+void MmgUtilities<MMGLibrary::MMG2D>::OutputMesh(
     const std::string& rOutputName,
     const bool PostOutput,
     const IndexType Step
@@ -1607,7 +1607,7 @@ void MmgUtilities<MMGLibray::MMG2D>::OutputMesh(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::OutputMesh(
+void MmgUtilities<MMGLibrary::MMG3D>::OutputMesh(
     const std::string& rOutputName,
     const bool PostOutput,
     const IndexType Step
@@ -1629,7 +1629,7 @@ void MmgUtilities<MMGLibray::MMG3D>::OutputMesh(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::OutputMesh(
+void MmgUtilities<MMGLibrary::MMGS>::OutputMesh(
     const std::string& rOutputName,
     const bool PostOutput,
     const IndexType Step
@@ -1651,7 +1651,7 @@ void MmgUtilities<MMGLibray::MMGS>::OutputMesh(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::OutputSol(
+void MmgUtilities<MMGLibrary::MMG2D>::OutputSol(
     const std::string& rOutputName,
     const bool PostOutput,
     const IndexType Step
@@ -1673,7 +1673,7 @@ void MmgUtilities<MMGLibray::MMG2D>::OutputSol(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::OutputSol(
+void MmgUtilities<MMGLibrary::MMG3D>::OutputSol(
     const std::string& rOutputName,
     const bool PostOutput,
     const IndexType Step
@@ -1695,7 +1695,7 @@ void MmgUtilities<MMGLibray::MMG3D>::OutputSol(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::OutputSol(
+void MmgUtilities<MMGLibrary::MMGS>::OutputSol(
     const std::string& rOutputName,
     const bool PostOutput,
     const IndexType Step
@@ -1717,7 +1717,7 @@ void MmgUtilities<MMGLibray::MMGS>::OutputSol(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::FreeAll()
+void MmgUtilities<MMGLibrary::MMG2D>::FreeAll()
 {
     MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgSol,MMG5_ARG_end);
 }
@@ -1726,7 +1726,7 @@ void MmgUtilities<MMGLibray::MMG2D>::FreeAll()
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::FreeAll()
+void MmgUtilities<MMGLibrary::MMG3D>::FreeAll()
 {
     MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgSol,MMG5_ARG_end);
 }
@@ -1735,7 +1735,7 @@ void MmgUtilities<MMGLibray::MMG3D>::FreeAll()
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::FreeAll()
+void MmgUtilities<MMGLibrary::MMGS>::FreeAll()
 {
     MMGS_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgSol,MMG5_ARG_end);
 }
@@ -1744,7 +1744,7 @@ void MmgUtilities<MMGLibray::MMGS>::FreeAll()
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::MMGLibCallMetric(Parameters ConfigurationParameters)
+void MmgUtilities<MMGLibrary::MMG2D>::MMGLibCallMetric(Parameters ConfigurationParameters)
 {
     KRATOS_TRY;
 
@@ -1811,7 +1811,7 @@ void MmgUtilities<MMGLibray::MMG2D>::MMGLibCallMetric(Parameters ConfigurationPa
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::MMGLibCallIsoSurface(Parameters ConfigurationParameters)
+void MmgUtilities<MMGLibrary::MMG2D>::MMGLibCallIsoSurface(Parameters ConfigurationParameters)
 {
     KRATOS_TRY;
 
@@ -1844,7 +1844,7 @@ void MmgUtilities<MMGLibray::MMG2D>::MMGLibCallIsoSurface(Parameters Configurati
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::MMGLibCallMetric(Parameters ConfigurationParameters)
+void MmgUtilities<MMGLibrary::MMG3D>::MMGLibCallMetric(Parameters ConfigurationParameters)
 {
     KRATOS_TRY;
 
@@ -1911,7 +1911,7 @@ void MmgUtilities<MMGLibray::MMG3D>::MMGLibCallMetric(Parameters ConfigurationPa
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::MMGLibCallIsoSurface(Parameters ConfigurationParameters)
+void MmgUtilities<MMGLibrary::MMG3D>::MMGLibCallIsoSurface(Parameters ConfigurationParameters)
 {
     KRATOS_TRY;
 
@@ -1970,7 +1970,7 @@ void MmgUtilities<MMGLibray::MMG3D>::MMGLibCallIsoSurface(Parameters Configurati
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::MMGLibCallMetric(Parameters ConfigurationParameters)
+void MmgUtilities<MMGLibrary::MMGS>::MMGLibCallMetric(Parameters ConfigurationParameters)
 {
     KRATOS_TRY;
 
@@ -2038,7 +2038,7 @@ void MmgUtilities<MMGLibray::MMGS>::MMGLibCallMetric(Parameters ConfigurationPar
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::MMGLibCallIsoSurface(Parameters ConfigurationParameters)
+void MmgUtilities<MMGLibrary::MMGS>::MMGLibCallIsoSurface(Parameters ConfigurationParameters)
 {
     KRATOS_TRY;
 
@@ -2070,7 +2070,7 @@ void MmgUtilities<MMGLibray::MMGS>::MMGLibCallIsoSurface(Parameters Configuratio
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::SetNodes(
+void MmgUtilities<MMGLibrary::MMG2D>::SetNodes(
     const double X,
     const double Y,
     const double Z,
@@ -2086,7 +2086,7 @@ void MmgUtilities<MMGLibray::MMG2D>::SetNodes(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::SetNodes(
+void MmgUtilities<MMGLibrary::MMG3D>::SetNodes(
     const double X,
     const double Y,
     const double Z,
@@ -2102,7 +2102,7 @@ void MmgUtilities<MMGLibray::MMG3D>::SetNodes(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::SetNodes(
+void MmgUtilities<MMGLibrary::MMGS>::SetNodes(
     const double X,
     const double Y,
     const double Z,
@@ -2118,7 +2118,7 @@ void MmgUtilities<MMGLibray::MMGS>::SetNodes(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::SetConditions(
+void MmgUtilities<MMGLibrary::MMG2D>::SetConditions(
     GeometryType& rGeometry,
     const IndexType Color,
     const IndexType Index
@@ -2154,7 +2154,7 @@ void MmgUtilities<MMGLibray::MMG2D>::SetConditions(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::SetConditions(
+void MmgUtilities<MMGLibrary::MMG3D>::SetConditions(
     GeometryType& rGeometry,
     const IndexType Color,
     const IndexType Index
@@ -2221,7 +2221,7 @@ void MmgUtilities<MMGLibray::MMG3D>::SetConditions(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::SetConditions(
+void MmgUtilities<MMGLibrary::MMGS>::SetConditions(
     GeometryType& rGeometry,
     const IndexType Color,
     const IndexType Index
@@ -2257,7 +2257,7 @@ void MmgUtilities<MMGLibray::MMGS>::SetConditions(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::SetElements(
+void MmgUtilities<MMGLibrary::MMG2D>::SetElements(
     GeometryType& rGeometry,
     const IndexType Color,
     const IndexType Index
@@ -2275,7 +2275,7 @@ void MmgUtilities<MMGLibray::MMG2D>::SetElements(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::SetElements(
+void MmgUtilities<MMGLibrary::MMG3D>::SetElements(
     GeometryType& rGeometry,
     const IndexType Color,
     const IndexType Index
@@ -2313,7 +2313,7 @@ void MmgUtilities<MMGLibray::MMG3D>::SetElements(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::SetElements(
+void MmgUtilities<MMGLibrary::MMGS>::SetElements(
     GeometryType& rGeometry,
     const IndexType Color,
     const IndexType Index
@@ -2331,7 +2331,7 @@ void MmgUtilities<MMGLibray::MMGS>::SetElements(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::SetMetricScalar(
+void MmgUtilities<MMGLibrary::MMG2D>::SetMetricScalar(
 
     const double Metric,
     const IndexType NodeId
@@ -2345,7 +2345,7 @@ void MmgUtilities<MMGLibray::MMG2D>::SetMetricScalar(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::SetMetricScalar(
+void MmgUtilities<MMGLibrary::MMG3D>::SetMetricScalar(
     const double Metric,
     const IndexType NodeId
     )
@@ -2358,7 +2358,7 @@ void MmgUtilities<MMGLibray::MMG3D>::SetMetricScalar(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::SetMetricScalar(
+void MmgUtilities<MMGLibrary::MMGS>::SetMetricScalar(
     const double Metric,
     const IndexType NodeId
     )
@@ -2371,7 +2371,7 @@ void MmgUtilities<MMGLibray::MMGS>::SetMetricScalar(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::SetMetricVector(
+void MmgUtilities<MMGLibrary::MMG2D>::SetMetricVector(
     const array_1d<double, 2>& Metric,
     const IndexType NodeId
     )
@@ -2384,7 +2384,7 @@ void MmgUtilities<MMGLibray::MMG2D>::SetMetricVector(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::SetMetricVector(
+void MmgUtilities<MMGLibrary::MMG3D>::SetMetricVector(
     const array_1d<double, 3>& Metric,
     const IndexType NodeId
     )
@@ -2397,7 +2397,7 @@ void MmgUtilities<MMGLibray::MMG3D>::SetMetricVector(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::SetMetricVector(
+void MmgUtilities<MMGLibrary::MMGS>::SetMetricVector(
     const array_1d<double, 3>& Metric,
     const IndexType NodeId
     )
@@ -2410,7 +2410,7 @@ void MmgUtilities<MMGLibray::MMGS>::SetMetricVector(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG2D>::SetMetricTensor(
+void MmgUtilities<MMGLibrary::MMG2D>::SetMetricTensor(
     const array_1d<double, 3>& Metric,
     const IndexType NodeId
     )
@@ -2424,7 +2424,7 @@ void MmgUtilities<MMGLibray::MMG2D>::SetMetricTensor(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMG3D>::SetMetricTensor(
+void MmgUtilities<MMGLibrary::MMG3D>::SetMetricTensor(
     const array_1d<double, 6>& Metric,
     const IndexType NodeId
     )
@@ -2438,7 +2438,7 @@ void MmgUtilities<MMGLibray::MMG3D>::SetMetricTensor(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibray::MMGS>::SetMetricTensor(
+void MmgUtilities<MMGLibrary::MMGS>::SetMetricTensor(
     const array_1d<double, 6>& Metric,
     const IndexType NodeId
     )
@@ -2451,8 +2451,8 @@ void MmgUtilities<MMGLibray::MMGS>::SetMetricTensor(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class MmgUtilities<MMGLibray::MMG2D>;
-template class MmgUtilities<MMGLibray::MMG3D>;
-template class MmgUtilities<MMGLibray::MMGS>;
+template class MmgUtilities<MMGLibrary::MMG2D>;
+template class MmgUtilities<MMGLibrary::MMG3D>;
+template class MmgUtilities<MMGLibrary::MMGS>;
 
 }// namespace Kratos.

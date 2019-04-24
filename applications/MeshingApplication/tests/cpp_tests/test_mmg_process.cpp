@@ -91,7 +91,7 @@ namespace Kratos
 
             // Compute remesh
             Parameters params = Parameters(R"({ "echo_level" : 0 })" );
-            MmgProcess<MMGLibray::MMG2D> mmg_process(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG2D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
             // Compute NodalH
@@ -173,7 +173,7 @@ namespace Kratos
 
             // Compute remesh
             Parameters params = Parameters(R"({ "echo_level" : 0 })" );
-            MmgProcess<MMGLibray::MMG3D> mmg_process(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG3D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
             // Compute NodalH

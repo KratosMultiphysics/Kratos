@@ -82,7 +82,7 @@ namespace Kratos
  * @details This class are different utilities that uses the MMG library
  * @author Vicente Mataix Ferrandiz
  */
-template<MMGLibray TMMGLibray>
+template<MMGLibrary TMMGLibray>
 class KRATOS_API(MESHING_APPLICATION) MmgUtilities
 {
 public:
@@ -99,7 +99,7 @@ public:
     typedef Geometry<NodeType>                                     GeometryType;
 
     /// Conditions array size
-    static constexpr SizeType Dimension = (TMMGLibray == MMGLibray::MMG2D) ? 2 : 3;
+    static constexpr SizeType Dimension = (TMMGLibray == MMGLibrary::MMG2D) ? 2 : 3;
 
     /// Conditions array size
     static constexpr SizeType ConditionsArraySize = (Dimension == 2) ? 1 : 2;
@@ -625,12 +625,12 @@ private:
 ///@{
 
 /// input stream function
-template<MMGLibray TMMGLibray>
+template<MMGLibrary TMMGLibray>
 inline std::istream& operator >> (std::istream& rIStream,
                                   MmgUtilities<TMMGLibray>& rThis);
 
 /// output stream function
-template<MMGLibray TMMGLibray>
+template<MMGLibrary TMMGLibray>
 inline std::ostream& operator << (std::ostream& rOStream,
                                   const MmgUtilities<TMMGLibray>& rThis)
 {

@@ -59,8 +59,8 @@ namespace Kratos
 /************************************* CONSTRUCTOR *********************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-MmgProcess<TMMGLibray>::MmgProcess(
+template<MMGLibrary TMMGLibrary>
+MmgProcess<TMMGLibrary>::MmgProcess(
     ModelPart& rThisModelPart,
     Parameters ThisParameters
     ):mrThisModelPart(rThisModelPart),
@@ -94,8 +94,8 @@ MmgProcess<TMMGLibray>::MmgProcess(
 /*************************************** EXECUTE ***********************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::Execute()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::Execute()
 {
     KRATOS_TRY;
 
@@ -110,8 +110,8 @@ void MmgProcess<TMMGLibray>::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::ExecuteInitialize()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::ExecuteInitialize()
 {
     KRATOS_TRY;
 
@@ -130,8 +130,8 @@ void MmgProcess<TMMGLibray>::ExecuteInitialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::ExecuteBeforeSolutionLoop()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::ExecuteBeforeSolutionLoop()
 {
     KRATOS_TRY;
 
@@ -141,8 +141,8 @@ void MmgProcess<TMMGLibray>::ExecuteBeforeSolutionLoop()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::ExecuteInitializeSolutionStep()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY;
 
@@ -193,8 +193,8 @@ void MmgProcess<TMMGLibray>::ExecuteInitializeSolutionStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::ExecuteFinalizeSolutionStep()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::ExecuteFinalizeSolutionStep()
 {
     KRATOS_TRY;
 
@@ -204,8 +204,8 @@ void MmgProcess<TMMGLibray>::ExecuteFinalizeSolutionStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::ExecuteBeforeOutputStep()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::ExecuteBeforeOutputStep()
 {
     KRATOS_TRY;
 
@@ -215,8 +215,8 @@ void MmgProcess<TMMGLibray>::ExecuteBeforeOutputStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::ExecuteAfterOutputStep()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::ExecuteAfterOutputStep()
 {
     KRATOS_TRY;
 
@@ -226,8 +226,8 @@ void MmgProcess<TMMGLibray>::ExecuteAfterOutputStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::ExecuteFinalize()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::ExecuteFinalize()
 {
     KRATOS_TRY;
 
@@ -245,8 +245,8 @@ void MmgProcess<TMMGLibray>::ExecuteFinalize()
 /************************************* OPERATOR() **********************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::operator()()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::operator()()
 {
     Execute();
 }
@@ -254,8 +254,8 @@ void MmgProcess<TMMGLibray>::operator()()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::InitializeMeshData()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::InitializeMeshData()
 {
     // We create a list of submodelparts to later reassign flags after remesh
     CreateAuxiliarSubModelPartForFlags();
@@ -289,10 +289,10 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
     /* Manually set of the mesh */
     array_1d<SizeType, ConditionsArraySize> num_array_conditions;
     array_1d<SizeType, ElementsArraySize> num_array_elements;
-    if (TMMGLibray == MMGLibray::MMG2D) { // 2D
+    if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
         num_array_conditions[0] = r_conditions_array.size();
         num_array_elements[0]   = r_elements_array.size();
-    } else if (TMMGLibray == MMGLibray::MMG3D) { // 3D
+    } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
         /* Elements */
         std::size_t num_tetra = 0, num_prisms = 0;
         #pragma omp parallel for reduction(+:num_tetra,num_prisms)
@@ -435,7 +435,7 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
     /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition) */
     // First we add the main model part
     if (r_conditions_array.size() > 0) {
-        const std::string type_name = (Dimension == 2) ? "Condition2D2N" : (TMMGLibray == MMGLibray::MMG3D) ? "Condition3D" : "Condition3D2N";
+        const std::string type_name = (Dimension == 2) ? "Condition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "Condition3D" : "Condition3D2N";
         Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
         mpRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), r_conditions_array.begin()->pGetProperties());
     }
@@ -457,8 +457,8 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::InitializeSolDataMetric()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::InitializeSolDataMetric()
 {
     ////////* SOLUTION FILE *////////
 
@@ -487,8 +487,8 @@ void MmgProcess<TMMGLibray>::InitializeSolDataMetric()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::InitializeSolDataDistance()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::InitializeSolDataDistance()
 {
     ////////* SOLUTION FILE for ISOSURFACE*////////
     // Iterate in the nodes
@@ -530,8 +530,8 @@ void MmgProcess<TMMGLibray>::InitializeSolDataDistance()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::ExecuteRemeshing()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 {
     // Getting the parameters
     const bool save_to_file = mThisParameters["save_external_files"].GetBool();
@@ -801,7 +801,7 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
     interpolate_parameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
     interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
     interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
-    if (TMMGLibray == MMGLibray::MMGS) interpolate_parameters["surface_elements"].SetBool(true);
+    if (TMMGLibrary == MMGLibrary::MMGS) interpolate_parameters["surface_elements"].SetBool(true);
     NodalValuesInterpolationProcess<Dimension> InterpolateNodalValues = NodalValuesInterpolationProcess<Dimension>(r_old_model_part, mrThisModelPart, interpolate_parameters);
     InterpolateNodalValues.Execute();
 
@@ -849,8 +849,8 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::ReorderAllIds()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::ReorderAllIds()
 {
     // Iterate over nodes
     NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
@@ -874,8 +874,8 @@ void MmgProcess<TMMGLibray>::ReorderAllIds()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::InitializeElementsAndConditions()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::InitializeElementsAndConditions()
 {
     // Iterate over conditions
     ConditionsArrayType& r_conditions_array = mrThisModelPart.Conditions();
@@ -895,8 +895,8 @@ void MmgProcess<TMMGLibray>::InitializeElementsAndConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::SaveSolutionToFile(const bool PostOutput)
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
 {
     /* GET RESULTS */
 
@@ -916,8 +916,8 @@ void MmgProcess<TMMGLibray>::SaveSolutionToFile(const bool PostOutput)
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::FreeMemory()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::FreeMemory()
 {
     // Free the MMG structures
     mMmmgUtilities.FreeAll();
@@ -934,8 +934,8 @@ void MmgProcess<TMMGLibray>::FreeMemory()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::OutputMdpa()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::OutputMdpa()
 {
     std::ofstream output_file;
     ModelPartIO model_part_io("output", IO::WRITE);
@@ -945,8 +945,8 @@ void MmgProcess<TMMGLibray>::OutputMdpa()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::CreateAuxiliarSubModelPartForFlags()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::CreateAuxiliarSubModelPartForFlags()
 {
     ModelPart& r_auxiliar_model_part = mrThisModelPart.CreateSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
 
@@ -972,8 +972,8 @@ void MmgProcess<TMMGLibray>::CreateAuxiliarSubModelPartForFlags()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::AssignAndClearAuxiliarSubModelPartForFlags()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::AssignAndClearAuxiliarSubModelPartForFlags()
 {
     const auto& flags = KratosComponents<Flags>::GetComponents();
 
@@ -994,8 +994,8 @@ void MmgProcess<TMMGLibray>::AssignAndClearAuxiliarSubModelPartForFlags()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::ClearConditionsDuplicatedGeometries()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::ClearConditionsDuplicatedGeometries()
 {
     // Next check that the conditions are oriented accordingly to do so begin by putting all of the conditions in a set
     typedef std::unordered_set<DenseVector<IndexType>, KeyHasherRange<DenseVector<IndexType>>, KeyComparorRange<DenseVector<IndexType>> > HashSetType;
@@ -1032,8 +1032,8 @@ void MmgProcess<TMMGLibray>::ClearConditionsDuplicatedGeometries()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
 {
     Model& owner_model = mrThisModelPart.GetModel();
     ModelPart& auxiliar_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Auxiliar", mrThisModelPart.GetBufferSize());
@@ -1100,8 +1100,8 @@ void MmgProcess<TMMGLibray>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModel
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::CleanSuperfluousNodes()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
 {
     const int initial_num = mrThisModelPart.Nodes().size();
 
@@ -1136,8 +1136,75 @@ void MmgProcess<TMMGLibray>::CleanSuperfluousNodes()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class MmgProcess<MMGLibray::MMG2D>;
-template class MmgProcess<MMGLibray::MMG3D>;
-template class MmgProcess<MMGLibray::MMGS>;
+template<MMGLibrary TMMGLibrary>
+Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters()
+{
+    Parameters default_parameters = Parameters(R"(
+    {
+        "filename"                             : "out",
+        "discretization_type"                  : "Standard",
+        "isosurface_parameters"                :
+        {
+            "isosurface_variable"              : "DISTANCE",
+            "nonhistorical_variable"           : false,
+            "remove_regions"                   : false
+        },
+        "framework"                            : "Eulerian",
+        "internal_variables_parameters"        :
+        {
+            "allocation_size"                      : 1000,
+            "bucket_size"                          : 4,
+            "search_factor"                        : 2,
+            "interpolation_type"                   : "LST",
+            "internal_variable_interpolation_list" :[]
+        },
+        "force_sizes"                          :
+        {
+            "force_min"                           : false,
+            "minimal_size"                        : 0.1,
+            "force_max"                           : false,
+            "maximal_size"                        : 10.0
+        },
+        "advanced_parameters"                  :
+        {
+            "force_hausdorff_value"               : false,
+            "hausdorff_value"                     : 0.0001,
+            "no_move_mesh"                        : false,
+            "no_surf_mesh"                        : false,
+            "no_insert_mesh"                      : false,
+            "no_swap_mesh"                        : false,
+            "normal_regularization_mesh"          : false,
+            "deactivate_detect_angle"             : false,
+            "force_gradation_value"               : false,
+            "gradation_value"                     : 1.3
+        },
+        "save_external_files"                  : false,
+        "save_mdpa_file"                       : false,
+        "max_number_of_searchs"                : 1000,
+        "interpolate_non_historical"           : true,
+        "extrapolate_contour_values"           : true,
+        "surface_elements"                     : false,
+        "search_parameters"                    : {
+            "allocation_size"                     : 1000,
+            "bucket_size"                         : 4,
+            "search_factor"                       : 2.0
+        },
+        "echo_level"                           : 3,
+        "debug_result_mesh"                    : false,
+        "step_data_size"                       : 0,
+        "initialize_entities"                  : true,
+        "remesh_at_non_linear_iteration"       : false,
+        "buffer_size"                          : 0
+    })" );
+
+    return default_parameters;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class MmgProcess<MMGLibrary::MMG2D>;
+template class MmgProcess<MMGLibrary::MMG3D>;
+template class MmgProcess<MMGLibrary::MMGS>;
 
 }// namespace Kratos.

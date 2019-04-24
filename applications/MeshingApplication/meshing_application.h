@@ -67,7 +67,7 @@ KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, double, CONTACT_ANGLE)
     /**
      * @brief This enum defines the type of MMG libray used
      */
-    enum class MMGLibray
+    enum class MMGLibrary
     {
         MMG2D = 0,
         MMG3D = 1,
