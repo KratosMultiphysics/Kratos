@@ -361,6 +361,7 @@ template<DistributedType TDistributed> struct MeshAccess
 enum class OperationType {
     Replace,
     SumValues,
+    MinValues,
     OrFlags,
     AndFlags
 };
@@ -851,9 +852,19 @@ public:
     // This function is for test and will be changed. Pooyan.
     bool SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable) override
     {
-        SynchronizeMinThisVariable<double,double>(ThisVariable);
-        return true;
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+        constexpr Operation<OperationType::MinValues> min;
+        MPIInternals::NodalSolutionStepValueAccess<double> nodal_solution_step_access(ThisVariable);
 
+        // Calculate min on owner rank
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_solution_step_access, min);
+
+        // Synchronize result on ghost copies
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_solution_step_access, replace);
+        
+        return true;
     }
 
     bool AssembleCurrentData(Variable<int> const& ThisVariable) override
@@ -2081,6 +2092,17 @@ private:
         Operation<OperationType::SumValues>)
     {
         Access.GetValue(ContainerIterator) += rRecvValue;
+    }
+
+    template<typename TValue, class TDatabaseAccess>
+    void ReduceValues(
+        const TValue& rRecvValue,
+        TDatabaseAccess Access,
+        typename TDatabaseAccess::IteratorType ContainerIterator,
+        Operation<OperationType::MinValues>)
+    {
+        TValue& r_current = Access.GetValue(ContainerIterator);
+        if (rRecvValue < r_current) r_current = rRecvValue;
     }
 
     template<
