@@ -21,22 +21,22 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
         if not numpy_available:
             self.skipTest("Numpy not available")
         with KratosUnittest.WorkFolderScope(".", __file__):
-            self.createTest("fsi_mok", "cosim_mok_fsi")
+            self._createTest("fsi_mok", "cosim_mok_fsi")
             self.__ManipulateSettings()
             # self.__AddVtkOutputToCFD() # uncomment to get output
             self.__DumpUpdatedCFDSettings()
-            self.runTest()
+            self._runTest()
 
     def test_MokFSI_aitken(self):
         self.name = "aitken"
         if not numpy_available:
             self.skipTest("Numpy not available")
         with KratosUnittest.WorkFolderScope(".", __file__):
-            self.createTest("fsi_mok", "cosim_mok_fsi")
+            self._createTest("fsi_mok", "cosim_mok_fsi")
             self.__ManipulateSettings()
             # self.__AddVtkOutputToCFD() # uncomment to get output
             self.__DumpUpdatedCFDSettings()
-            self.runTest()
+            self._runTest()
 
     def __ManipulateSettings(self):
 
@@ -89,20 +89,20 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
         if not numpy_available:
             self.skipTest("Numpy not available")
         with KratosUnittest.WorkFolderScope(".", __file__):
-            self.createTest("fsi_wall", "cosim_wall_weak_coupling_fsi")
-            self.runTest()
+            self._createTest("fsi_wall", "cosim_wall_weak_coupling_fsi")
+            self._runTest()
 
     def _test_SDoFDragRectangleFSI(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
         with KratosUnittest.WorkFolderScope(".", __file__):
-            self.createTest("fsi_sdof_drag_rectangle", "cosim_sdof_drag_rectangle_fsi")
-            self.runTest()
+            self._createTest("fsi_sdof_drag_rectangle", "cosim_sdof_drag_rectangle_fsi")
+            self._runTest()
 
     # def test_MDoFDragPitchRectangleFSI(self):
     #     with co_simulation_test_case.WorkFolderScope(".", __file__):
-    #         self.createTest("fsi_mdof_drag_pitch_rectangle", "cosim_mdof_drag_pitch_rectangle_fsi")
-    #         self.runTest()
+    #         self._createTest("fsi_mdof_drag_pitch_rectangle", "cosim_mdof_drag_pitch_rectangle_fsi")
+    #         self._runTest()
 
 if __name__ == '__main__':
     KratosUnittest.main()

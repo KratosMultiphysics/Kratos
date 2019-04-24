@@ -14,7 +14,7 @@ class CoSimulationTestCase(KratosUnittest.TestCase):
     It can be used to test complete cases with the "CoSimulation-Analysis"
     '''
 
-    def createTest(self, problem_dir_name, parameter_file_name):
+    def _createTest(self, problem_dir_name, parameter_file_name):
         self.problem_dir_name = problem_dir_name
 
         global cs_data_structure
@@ -31,7 +31,7 @@ class CoSimulationTestCase(KratosUnittest.TestCase):
         else:
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.INFO)
 
-    def runTest(self):
+    def _runTest(self):
         model = KM.Model()
         CoSimulationAnalysis(model, self.cosim_parameters).Run()
         kratos_utils.DeleteTimeFiles(self.problem_dir_name)
