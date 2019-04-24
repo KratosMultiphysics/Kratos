@@ -148,12 +148,12 @@ template<> struct SendTraits< Vector >
 
     static inline void WriteBuffer(const Vector& rValue, SendType* pBuffer)
     {
-        // COPY MEMORY!!!
+        std::memcpy(pBuffer, &(rValue.data()[0]), rValue.size()*sizeof(double));
     }
 
     static inline void ReadBuffer(const SendType* pBuffer, Vector& rValue)
     {
-        // COPY MEMORY!!!!
+        std::memcpy(&(rValue.data()[0]), pBuffer, rValue.size()*sizeof(double));
     }
 };
 
@@ -2181,14 +2181,13 @@ private:
         // Communicate vector sizes to ghost copies
         MatchDynamicVectorSizes(local_meshes, ghost_meshes, rVariableAccess);
 
-        // From this point on, we can assume buffer sizes will always match
+        // From this point on, we can assume buffer sizes will always match for all ranks
 
         // Assemble results on owner rank
         TransferDistributedValues(ghost_meshes, local_meshes, rVariableAccess, sum);
-/*
+
         // Synchronize result on ghost copies
         TransferDistributedValues(local_meshes, ghost_meshes, rVariableAccess, replace);
-*/        
     }
 
     MeshType& GetMesh(IndexType Color, const MeshAccess<DistributedType::Local>)
