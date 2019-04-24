@@ -9,6 +9,10 @@ def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return InitializeGeometryProcess(Model, settings["Parameters"])
+def MoveModelPart(origin, skin_model_part):
+    for node in skin_model_part.Nodes:
+        node.X=origin[0]+node.X
+        node.Y=origin[1]+node.Y
 def RotateModelPart(origin, angle, model_part):
     ox,oy=origin
     for node in model_part.Nodes:
@@ -64,10 +68,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
 
         self.MetricParameters = settings["metric_parameters"]
         # We set to zero the metric
-        ZeroVector = KratosMultiphysics.Vector(3)
-        ZeroVector[0] = 0.0
-        ZeroVector[1] = 0.0
-        ZeroVector[2] = 0.0
+        ZeroVector = [0.0,0.0,0.0]
         KratosMultiphysics.VariableUtils().SetVectorVar(MeshingApplication.METRIC_TENSOR_2D, ZeroVector, self.main_model_part.Nodes)
 
 
@@ -127,18 +128,14 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             It also rotates the skin model part around the initial point according to the (self.geometry_parameter)'''
         ini_time=time.time()
         if self.skin_model_part_name=='naca0012':
-            angle=math.radians(-self.geometry_parameter)
+            MoveModelPart(self.initial_point, self.skin_model_part)
             self.origin=[0.25+self.initial_point[0],0+self.initial_point[1]]
-            for node in self.skin_model_part.Nodes:
-                node.X=self.initial_point[0]+node.X
-                node.Y=self.initial_point[1]+node.Y
+            angle=math.radians(-self.geometry_parameter)
             RotateModelPart(self.origin,angle,self.skin_model_part)
         elif self.skin_model_part_name=='ellipse':
-            angle=math.radians(-self.geometry_parameter)
+            MoveModelPart(self.initial_point, self.skin_model_part)
             self.origin=[self.initial_point[0],self.initial_point[1]]
-            for node in self.skin_model_part.Nodes:
-                node.X=self.initial_point[0]+node.X
-                node.Y=self.initial_point[1]+node.Y
+            angle=math.radians(-self.geometry_parameter)
             RotateModelPart(self.origin,angle,self.skin_model_part)
         KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','InitializeSkin time: ',time.time()-ini_time)
 
