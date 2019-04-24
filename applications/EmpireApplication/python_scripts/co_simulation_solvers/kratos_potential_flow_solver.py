@@ -30,17 +30,13 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
     def InitializeSolutionStep(self):
         super(KratosPotentialFlowSolver, self).InitializeSolutionStep()
 
-        default_settings = KratosMultiphysics.Parameters(r'''{
-            "model_part_name": "FluidModelPart.Body2D_Body"
-        }''')
+        sub_project_parameters = self.project_parameters["processes"]["boundary_conditions_process_list"]
 
-        self.wake_process = DefineWakeProcess2D(self.model, default_settings)
+        self.wake_process = DefineWakeProcess2D(self.model, sub_project_parameters[1]["Parameters"])
 
         if not hasattr(self, "wake_process"):
             raise Exception("potential flow requires specification of a process for the wake (currently specifically using 'define_wake_process_2d')")
-
-        self.conversion_process = ComputeForcesOnNodesProcess(self.model, self.project_parameters["solver_settings"]["fluid_solver_settings"])
-
+        self.conversion_process = ComputeForcesOnNodesProcess(self.model, sub_project_parameters[4]["Parameters"])
 
 
     def SolveSolutionStep(self):
