@@ -338,6 +338,50 @@ void SetValue(IteratorType& iter, const TValue& rValue)
 
 };
 
+class NodalFlagsAccess
+{
+
+const Kratos::Flags& mrMask;
+
+public:
+
+using ValueType = Kratos::Flags;
+using SendType = typename SendTools<ValueType>::SendType; 
+using ContainerType = Communicator::MeshType::NodesContainerType;
+using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
+using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
+
+NodalFlagsAccess(const Kratos::Flags& rMask):
+    mrMask(rMask)
+{}
+
+ContainerType& GetContainer(Communicator::MeshType& rMesh)
+{
+    return rMesh.Nodes();
+}
+
+const ContainerType& GetContainer(const Communicator::MeshType& rMesh)
+{
+    return rMesh.Nodes();
+}
+
+Kratos::Flags& GetValue(IteratorType& iter)
+{
+    return *iter;
+}
+
+const Kratos::Flags& GetValue(const ConstIteratorType& iter)
+{
+    return *iter;
+}
+
+void SetValue(IteratorType& iter, const Kratos::Flags& rValue)
+{
+    iter->AssignFlags(rValue);
+}
+
+};
+
 }
 
 /// Short class definition.
