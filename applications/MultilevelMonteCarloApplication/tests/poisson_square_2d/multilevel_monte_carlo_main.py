@@ -37,7 +37,7 @@ if __name__ == '__main__':
     """
 
     # set the ProjectParameters.json path
-    project_parameters_path = "problem_settings/parameters_poisson_square_2d_coarse.json"
+    project_parameters_path = "problem_settings/parameters_poisson_square_2d_finer.json"
     # customize setting parameters of the MLMC simulation
     parameters_x_monte_carlo_path = "problem_settings/parameters_x_monte_carlo.json"
     # customize setting parameters of the metric of the adaptive refinement utility and setting parameters of the remesh of the adaptive refinement utility
