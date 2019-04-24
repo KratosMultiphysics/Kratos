@@ -28,9 +28,8 @@
 #include "processes/find_conditions_neighbours_process.h"
 #include "processes/find_elements_neighbours_process.h"
 #include "processes/calculate_nodal_area_process.h"
-#include "processes/node_erase_process.h"
-#include "processes/element_erase_process.h"
-#include "processes/condition_erase_process.h"
+#include "processes/node_erase_process.h" // TODO: To be removed
+#include "processes/entity_erase_process.h"
 #include "processes/eliminate_isolated_nodes_process.h"
 #include "processes/calculate_signed_distance_to_3d_skin_process.h"
 #include "processes/calculate_embedded_signed_distance_to_3d_skin_process.h"
@@ -56,9 +55,8 @@
 #include "processes/simple_mortar_mapper_wrapper_process.h"
 #include "processes/skin_detection_process.h"
 #include "processes/apply_periodic_boundary_condition_process.h"
-#include "processes/find_intersected_geometrical_objects_process.h"
-#include "processes/find_intersected_geometrical_objects_with_obb_process.h"
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
+#include "includes/node.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -165,20 +163,21 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, std::size_t>())
     ;
 
+//     py::class_<EntitiesEraseProcess<Node<3>>, EntitiesEraseProcess<Node<3>>::Pointer, Process>(m,"NodeEraseProcess") // TODO: Replace when the remainings of NodeEraseProcess have been cleaned up
     py::class_<NodeEraseProcess, NodeEraseProcess::Pointer, Process>(m,"NodeEraseProcess")
-            .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&>())
     ;
 
-    py::class_<ElementEraseProcess, ElementEraseProcess::Pointer, Process>(m,"ElementEraseProcess")
-            .def(py::init<ModelPart&>())
+    py::class_<EntitiesEraseProcess<Element>, EntitiesEraseProcess<Element>::Pointer, Process>(m,"ElementEraseProcess")
+    .def(py::init<ModelPart&>())
     ;
 
-    py::class_<ConditionEraseProcess, ConditionEraseProcess::Pointer, Process>(m,"ConditionEraseProcess")
-            .def(py::init<ModelPart&>())
+    py::class_<EntitiesEraseProcess<Condition>, EntitiesEraseProcess<Condition>::Pointer, Process>(m,"ConditionEraseProcess")
+    .def(py::init<ModelPart&>())
     ;
 
     py::class_<EliminateIsolatedNodesProcess, EliminateIsolatedNodesProcess::Pointer, Process>(m,"EliminateIsolatedNodesProcess")
-            .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&>())
     ;
 
     py::class_<CalculateSignedDistanceTo3DSkinProcess, CalculateSignedDistanceTo3DSkinProcess::Pointer, Process>(m,"CalculateSignedDistanceTo3DSkinProcess")
@@ -540,55 +539,7 @@ void  AddProcessesToPython(pybind11::module& m)
         ;
 
     py::class_<ApplyPeriodicConditionProcess, ApplyPeriodicConditionProcess::Pointer, Process>(m,"ApplyPeriodicConditionProcess")
-    .def(py::init<ModelPart&,ModelPart&, Parameters>())
-    ;
-
-    py::class_<FindIntersectedGeometricalObjectsProcess<Element>, FindIntersectedGeometricalObjectsProcess<Element>::Pointer, Process>(m,"FindIntersectedElementsProcess")
-    .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<Model&, Parameters>())
-    ;
-
-    py::class_<FindIntersectedGeometricalObjectsProcess<Condition>, FindIntersectedGeometricalObjectsProcess<Condition>::Pointer, Process>(m,"FindIntersectedConditionsProcess")
-    .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<Model&, Parameters>())
-    ;
-
-    py::class_<FindIntersectedGeometricalObjectsProcess<Element, Condition>, FindIntersectedGeometricalObjectsProcess<Element, Condition>::Pointer, Process>(m,"FindIntersectedElementsConditionsProcess")
-    .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<Model&, Parameters>())
-    ;
-
-    py::class_<FindIntersectedGeometricalObjectsProcess<Condition, Element>, FindIntersectedGeometricalObjectsProcess<Condition, Element>::Pointer, Process>(m,"FindIntersectedConditionsElementsProcess")
-    .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<Model&, Parameters>())
-    ;
-
-    py::class_<FindIntersectedGeometricalObjectsWithOBBProcess<Element>, FindIntersectedGeometricalObjectsWithOBBProcess<Element>::Pointer, Process>(m,"FindIntersectedElementsWithOBBProcess")
-    .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<ModelPart&,ModelPart&, const double>())
-    .def(py::init<ModelPart&,ModelPart&, const double, const bool>())
-    .def(py::init<Model&, Parameters>())
-    ;
-
-    py::class_<FindIntersectedGeometricalObjectsWithOBBProcess<Condition>, FindIntersectedGeometricalObjectsWithOBBProcess<Condition>::Pointer, Process>(m,"FindIntersectedConditionsWithOBBProcess")
-    .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<ModelPart&,ModelPart&, const double>())
-    .def(py::init<ModelPart&,ModelPart&, const double, const bool>())
-    .def(py::init<Model&, Parameters>())
-    ;
-
-    py::class_<FindIntersectedGeometricalObjectsWithOBBProcess<Element, Condition>, FindIntersectedGeometricalObjectsWithOBBProcess<Element, Condition>::Pointer, Process>(m,"FindIntersectedElementsConditionsWithOBBProcess")
-    .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<ModelPart&,ModelPart&, const double>())
-    .def(py::init<ModelPart&,ModelPart&, const double, const bool>())
-    .def(py::init<Model&, Parameters>())
-    ;
-
-    py::class_<FindIntersectedGeometricalObjectsWithOBBProcess<Condition, Element>, FindIntersectedGeometricalObjectsWithOBBProcess<Condition, Element>::Pointer, Process>(m,"FindIntersectedConditionsElementsWithOBBProcess")
-    .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<ModelPart&,ModelPart&, const double>())
-    .def(py::init<ModelPart&,ModelPart&, const double, const bool>())
-    .def(py::init<Model&, Parameters>())
+            .def(py::init<ModelPart&,ModelPart&, Parameters>())
     ;
 
     // The process to recover internal variables
