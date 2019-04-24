@@ -61,12 +61,12 @@ class DamMechanicalSolver(object):
                 "characteristic_length": 0.05,
                 "search_neighbours_step": false,
                 "linear_solver_settings":{
-                    "solver_type": "AMGCL",
+                    "solver_type": "amgcl",
                     "tolerance": 1.0e-6,
                     "max_iteration": 100,
                     "scaling": false,
                     "verbosity": 0,
-                    "preconditioner_type": "ILU0Preconditioner",
+                    "preconditioner_type": "ilu0",
                     "smoother_type": "ilu0",
                     "krylov_type": "gmres",
                     "coarsening_type": "aggregation"

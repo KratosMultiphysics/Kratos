@@ -36,7 +36,7 @@ class DamUPSolver:
                 "move_mesh_flag"              : false,
                 "echo_level"                  : 0,
                 "linear_solver_settings"      : {
-                    "solver_type"   : "AMGCL",
+                    "solver_type"   : "amgcl",
                     "max_iteration" : 200,
                     "tolerance"     : 1e-7,
                     "verbosity"     : 0,
