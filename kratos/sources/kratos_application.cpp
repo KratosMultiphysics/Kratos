@@ -53,6 +53,7 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
+#include "geometries/integration_point_surface_3d.h"
 
 /* Factories */
 #include "includes/standard_linear_solver_factory.h"
@@ -289,6 +290,10 @@ void KratosApplication::RegisterKratosCore() {
 
     Hexahedra3D27<NodeType > Hexahedra3D27Prototype( GeometryType::PointsArrayType(27));
     Serializer::Register("Hexahedra3D27", Hexahedra3D27Prototype);
+
+    IntegrationPointSurface3d<NodeType > IntegrationPointSurface3dPrototype(
+        GeometryType::PointsArrayType, GeometryType::CoordinatesArrayType, double, Matrix);
+    Serializer::Register("IntegrationPointSurface3d", IntegrationPointSurface3dPrototype);
 
     // Register flags:
     KRATOS_REGISTER_FLAG(STRUCTURE);
