@@ -23,9 +23,9 @@
 namespace Kratos
 {
 template<class TEntity>
-const Kratos::Flags EntitiesEraseProcess<TEntity>::REMOVE_FROM_ALL_LEVELS(Kratos::Flags::Create(0));
+const Kratos::Flags EntitiesEraseProcess<TEntity>::ERASE_ALL_ENTITIES(Kratos::Flags::Create(0));
 template<class TEntity>
-const Kratos::Flags EntitiesEraseProcess<TEntity>::NOT_REMOVE_FROM_ALL_LEVELS(Kratos::Flags::Create(0, false));
+const Kratos::Flags EntitiesEraseProcess<TEntity>::NOT_ERASE_ALL_ENTITIES(Kratos::Flags::Create(0, false));
 template<class TEntity>
 const Kratos::Flags EntitiesEraseProcess<TEntity>::ASSIGN_FLAG(Kratos::Flags::Create(1));
 template<class TEntity>
@@ -64,7 +64,7 @@ EntitiesEraseProcess<TEntity>::EntitiesEraseProcess(
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // Assign parameters
-    mrOptions.Set(REMOVE_FROM_ALL_LEVELS, ThisParameters["remove_from_all_levels"].GetBool());
+    mrOptions.Set(ERASE_ALL_ENTITIES, ThisParameters["remove_from_all_levels"].GetBool());
     mrOptions.Set(ASSIGN_FLAG, ThisParameters["assign_flag"].GetBool());
 
     KRATOS_CATCH("")
@@ -82,7 +82,7 @@ void EntitiesEraseProcess<Node<3>>::Execute()
     if (mrOptions.Is(ASSIGN_FLAG)) VariableUtils().SetFlag(TO_ERASE, true, mrModelPart.Nodes());
 
     // Remove nodes
-    if (mrOptions.Is(REMOVE_FROM_ALL_LEVELS)) {
+    if (mrOptions.Is(ERASE_ALL_ENTITIES)) {
         mrModelPart.RemoveNodesFromAllLevels(TO_ERASE);
     } else {
         mrModelPart.RemoveNodes(TO_ERASE);
@@ -103,7 +103,7 @@ void EntitiesEraseProcess<Element>::Execute()
     if (mrOptions.Is(ASSIGN_FLAG)) VariableUtils().SetFlag(TO_ERASE, true, mrModelPart.Elements());
 
     // Remove elements
-    if (mrOptions.Is(REMOVE_FROM_ALL_LEVELS)) {
+    if (mrOptions.Is(ERASE_ALL_ENTITIES)) {
         mrModelPart.RemoveElementsFromAllLevels(TO_ERASE);
     } else {
         mrModelPart.RemoveElements(TO_ERASE);
@@ -124,7 +124,7 @@ void EntitiesEraseProcess<Condition>::Execute()
     if (mrOptions.Is(ASSIGN_FLAG)) VariableUtils().SetFlag(TO_ERASE, true, mrModelPart.Conditions());
 
     // Remove conditions
-    if (mrOptions.Is(REMOVE_FROM_ALL_LEVELS)) {
+    if (mrOptions.Is(ERASE_ALL_ENTITIES)) {
         mrModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
     } else {
         mrModelPart.RemoveConditions(TO_ERASE);
