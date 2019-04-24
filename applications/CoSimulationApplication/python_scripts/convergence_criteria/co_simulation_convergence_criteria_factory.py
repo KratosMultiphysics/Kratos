@@ -6,13 +6,13 @@ from numpy import linalg as la
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint, bold, green, red
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
-def CreateConvergenceCriteria(settings, solvers):
-    return CoSimulationConvergenceCriteria(settings, solvers)
+def CreateConvergenceCriteria(settings, solver):
+    return CoSimulationConvergenceCriteria(settings, solver)
 
 class CoSimulationConvergenceCriteria(object):
-    def __init__(self, settings, solvers):
+    def __init__(self, settings, solver):
         self.settings = settings
-        self.solvers = solvers
+        self.solver = solver
         self.echo_level = 0
         self.abs_tolerance = self.settings["abs_tolerance"].GetDouble()
         self.rel_tolerance = self.settings["rel_tolerance"].GetDouble()
@@ -35,17 +35,15 @@ class CoSimulationConvergenceCriteria(object):
 
     def InitializeNonLinearIteration(self):
         # Saving the previous data (at beginning of iteration) for the computation of the residual
-        solver = self.solvers[self.settings["solver"].GetString()]
         data_name = self.settings["data_name"].GetString()
-        cs_tools.ImportArrayFromSolver(solver, data_name, self.old_data)
+        cs_tools.ImportArrayFromSolver(self.solver, data_name, self.old_data)
 
     def FinalizeNonLinearIteration(self):
         pass
 
     def IsConverged(self):
-        solver = self.solvers[self.settings["solver"].GetString()]
         data_name = self.settings["data_name"].GetString()
-        cs_tools.ImportArrayFromSolver(solver, data_name, self.new_data)
+        cs_tools.ImportArrayFromSolver(self.solver, data_name, self.new_data)
 
         residual = self.new_data - self.old_data
         res_norm = la.norm(residual)

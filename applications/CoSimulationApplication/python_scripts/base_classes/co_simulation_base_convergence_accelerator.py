@@ -5,9 +5,9 @@ import numpy as np
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 class CoSimulationBaseConvergenceAccelerator(object):
-    def __init__(self, settings, solvers):
+    def __init__(self, settings, solver):
         self.settings = settings
-        self.solvers = solvers
+        self.solver = solver
         self.echo_level = 0
 
         ## Here we preallocate the arrays that will be used to exchange data
@@ -29,24 +29,22 @@ class CoSimulationBaseConvergenceAccelerator(object):
     def InitializeNonLinearIteration(self):
         # Saving the previous data for the computation of the residual
         # and the computation of the solution update
-        solver = self.solvers[self.settings["solver"].GetString()]
         data_name = self.settings["data_name"].GetString()
-        cs_tools.ImportArrayFromSolver(solver, data_name, self.prev_data)
+        cs_tools.ImportArrayFromSolver(self.solver, data_name, self.prev_data)
 
     def FinalizeNonLinearIteration(self):
         pass
 
     def ComputeUpdate(self):
-        solver = self.solvers[self.settings["solver"].GetString()]
         data_name = self.settings["data_name"].GetString()
 
-        cs_tools.ImportArrayFromSolver(solver, data_name, self.data_array)
+        cs_tools.ImportArrayFromSolver(self.solver, data_name, self.data_array)
 
         residual = self.data_array - self.prev_data
 
         updated_data = self.prev_data + self._ComputeUpdate(residual, self.prev_data)
 
-        cs_tools.ExportArrayToSolver(solver, data_name, updated_data)
+        cs_tools.ExportArrayToSolver(self.solver, data_name, updated_data)
 
     def PrintInfo(self):
         '''Function to print Info abt the Object

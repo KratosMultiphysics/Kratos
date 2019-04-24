@@ -11,13 +11,13 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 # "A new staggered scheme for fluid-structure interaction"; W.G. Dettmer and D. Peric
 # Numerical Methods in Engineering 2013; 93; 1-22
 
-def Create(predictor_settings, solvers):
-    return AverageValuePredictor(predictor_settings, solvers)
+def Create(predictor_settings, solver):
+    return AverageValuePredictor(predictor_settings, solver)
 
 class AverageValuePredictor(CosimulationBasePredictor):
     # @param beta factor for weighting last and current value of the predicted values. Can be set in interval: [0, 1.0]
-    def __init__(self, settings, solvers):
-        super(AverageValuePredictor, self).__init__(settings, solvers)
+    def __init__(self, settings, solver):
+        super(AverageValuePredictor, self).__init__(settings, solver)
         if "beta" in self.settings:
             self.beta = self.settings["beta"]
             if self.beta > 1.0 or self.beta < 0:
@@ -31,19 +31,17 @@ class AverageValuePredictor(CosimulationBasePredictor):
         self.data_array_aux        = np.array([])
 
     def Predict(self):
-        solver = self.solvers[self.settings["solver"].GetString()]
         data_name = self.settings["data_name"].GetString()
-        cs_tools.ImportArrayFromSolver(solver, data_name, self.data_array_prediction, 0)
-        cs_tools.ImportArrayFromSolver(solver, data_name, self.data_array_aux, 1)
+        cs_tools.ImportArrayFromSolver(self.solver, data_name, self.data_array_prediction, 0)
+        cs_tools.ImportArrayFromSolver(self.solver, data_name, self.data_array_aux, 1)
 
         self.data_array_prediction = 2*self.data_array_prediction - self.data_array_aux
 
         self._UpdateData(self.data_array_prediction)
 
     def FinalizeSolutionStep(self):
-        solver = self.solvers[self.settings["solver"].GetString()]
         data_name = self.settings["data_name"].GetString()
-        cs_tools.ImportArrayFromSolver(solver, data_name, self.data_array_aux, 0)
+        cs_tools.ImportArrayFromSolver(self.solver, data_name, self.data_array_aux, 0)
 
         self.data_array_prediction = self.beta * self.data_array_aux + (1-self.beta) * self.data_array_prediction
 
