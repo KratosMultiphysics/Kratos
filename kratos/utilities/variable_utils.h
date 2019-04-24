@@ -552,26 +552,6 @@ public:
         );
 
     /**
-     * @brief In a node set, sets a vector variable to zero
-     * @param Variable reference to the vector variable to be set to 0
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariableToZero")
-    void SetToZero_VectorVar(
-        const ArrayVarType &Variable,
-        NodesContainerType &rNodes);
-
-    /**
-     * @brief In a node set, sets a double variable to zero
-     * @param Variable reference to the double variable to be set to 0
-     * @param rNodes reference to the objective node set
-     */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariableToZero")
-    void SetToZero_ScalarVar(
-        const DoubleVarType &Variable,
-        NodesContainerType &rNodes);
-
-    /**
      * @brief Returns a list of nodes filtered using the given double variable and value
      * @param Variable reference to the double variable to be filtered
      * @param Value Filtering Value
