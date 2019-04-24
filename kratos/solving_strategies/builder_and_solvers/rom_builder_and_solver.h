@@ -384,7 +384,7 @@ public:
 				}
 			//KRATOS_WATCH(rom_unknowns)
         }
-		//KRATOS_WATCH(rom_unknowns)
+		KRATOS_WATCH(rom_unknowns)
         return rom_unknowns;
 	}
 
@@ -444,6 +444,7 @@ public:
 		//KRATOS_WATCH(x)
 		//KRATOS_WATCH(mDofList)
         Vector xrom = this->ProjectToReducedBasis(x, rModelPart.Nodes());
+		//KRATOS_WATCH(xrom)
         
         //build the system matrix by looping over elements and conditions and assembling to A
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
@@ -486,38 +487,55 @@ public:
                 {
                     //calculate elemental contribution
                     pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
+					Element::DofsVectorType dofs;
+					it->GetDofList(dofs, CurrentProcessInfo);
                     //assemble the elemental contribution - here is where the ROM acts
                     //compute the elemental reduction matrix T
                     const auto& geom = it->GetGeometry();
                     Matrix Telemental(geom.size()*mnodal_dofs, mrom_dofs);
 					//KRATOS_WATCH(Telemental)
+
+					int counter = 0;
                     for(unsigned int i=0; i<geom.size(); ++i)
                     {
                         const Matrix& rom_nodal_basis = geom[i].GetValue(ROM_BASIS);
 						//KRATOS_WATCH(rom_nodal_basis)
                         for(unsigned int k=0; k<rom_nodal_basis.size1(); ++k)
                         {
-                            row(Telemental, i*mnodal_dofs+k) = row(rom_nodal_basis,k);
+							if (dofs[i*mnodal_dofs + k]->IsFixed())
+								row(Telemental, i*mnodal_dofs + k) = ZeroVector(Telemental.size2());
+							else
+								row(Telemental, i*mnodal_dofs+k) = row(rom_nodal_basis,k);
 							//KRATOS_WATCH(row(rom_nodal_basis, k))
 						}
 						//KRATOS_WATCH(Telemental)
                     }
-                    
+                    //KRATOS_WATCH(Telemental)
                     //compute LHS_ROM = Ttrans*LHS_Contribution*T
                     //and     RHS_ROM = Ttrans*b
                     //and sum such contributions to Arom and brom
 
-                    Matrix aux = prod(LHS_Contribution, Telemental);
 
-                    noalias(Arom) += prod(trans(Telemental), aux);
+					//KRATOS_WATCH(Arom)
+					//KRATOS_WATCH(LHS_Contribution)
+					//KRATOS_WATCH(RHS_Contribution)
+                    Matrix aux = prod(LHS_Contribution, Telemental);
+					noalias(Arom) += prod(trans(Telemental), aux);
+					
+					//KRATOS_WATCH(Arom)
+
+
                     noalias(brom) += prod(trans(Telemental), RHS_Contribution);
+
+					//KRATOS_WATCH(brom)
 
                     // clean local elemental me overridemory
                     pScheme->CleanMemory(*(it.base()));
                 } 
  
             } 
+			KRATOS_WATCH(Arom)
+			KRATOS_WATCH(brom)
  
             // #pragma omp for  schedule(guided , 512)
             for (int k = 0; k < nconditions;  k++)
@@ -570,12 +588,17 @@ public:
 
         Vector dxrom(xrom.size());
 		//KRATOS_WATCH(dxrom)
+		KRATOS_WATCH(Arom)
+		KRATOS_WATCH(brom)
         MathUtils<double>::Solve(Arom,dxrom,brom);
 
         //update database
         noalias(xrom) += dxrom;
-        KRATOS_WATCH(xrom)
-
+		KRATOS_WATCH(xrom)
+		KRATOS_WATCH(dxrom)
+		//dxrom[0] = -1.6595e+03;
+		//dxrom[1] = -0.0345e+03;
+		//dxrom[2] = -0.0023e+03;
         //update fine Dx
         ProjectToFineBasis(dxrom, rModelPart.Nodes(),  Dx);
     }
