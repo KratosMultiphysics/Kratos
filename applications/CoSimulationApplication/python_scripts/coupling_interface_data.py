@@ -35,20 +35,20 @@ class CouplingInterfaceData(object):
         for filter in self.filters:
             filter.Apply()
 
-    def GetPythonList(self):
+    def GetPythonList(self, solution_step_index=0):
         data_mesh = self.solver.model[self.mesh_name]
         data = [0]*len(data_mesh.Nodes)*self.dimension
         data_variable = cs_data_structure.KratosGlobals.GetVariable(self.name)
         node_index = 0
         for node in data_mesh.Nodes:
-            data_value = node.GetSolutionStepValue(data_variable,0) #TODO what if non-historical?
+            data_value = node.GetSolutionStepValue(data_variable,solution_step_index) #TODO what if non-historical?
             for i in range(self.dimension):
                 data[node_index*self.dimension + i] = data_value[i]
             node_index+=1
         return data
 
-    def GetNumpyArray(self):
-        return np.asarray(self.GetPythonList(), dtype=np.float64)
+    def GetNumpyArray(self, solution_step_index=0):
+        return np.asarray(self.GetPythonList(solution_step_index), dtype=np.float64)
 
     def ApplyUpdateToData(self, update):
         data_mesh = self.solver.model[self.mesh_name]
