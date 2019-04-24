@@ -86,10 +86,6 @@ class CoSimulationBaseSolver(object):
             raise Exception('IO for "' + self.name + '" is not initialized!')
         self.io.ExportCouplingInterface(geometry_name, to_client)
 
-    def GetInterfaceDataOld(self, data_name):
-        return self.cosim_solver_settings["data"][data_name]
-
-
     def GetInterfaceData(self, data_name):
         try:
             return self.data_map[data_name]

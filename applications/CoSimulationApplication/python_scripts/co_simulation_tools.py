@@ -215,32 +215,6 @@ def CheckCoSimulationSettingsAndAssignDefaults(co_simulation_settings):
 
 
 
-
-def ImportArrayFromSolver(solver, data_name, data_array, buffer_index=0):
-    if not isinstance(data_name, str):
-        raise Exception("not a string!")
-    data_settings = {
-        "data_format"  : "numpy_array",
-        "data_name"    : data_name,
-        "data_array"   : data_array,
-        "buffer_index" : buffer_index
-    }
-
-    solver.ExportCouplingInterfaceData(data_settings, solver)
-
-def ExportArrayToSolver(solver, data_name, data_array, buffer_index=0):
-    if not isinstance(data_name, str):
-        raise Exception("not a string!")
-    data_settings = {
-        "data_format"  : "numpy_array",
-        "data_name"    : data_name,
-        "data_array"   : data_array,
-        "buffer_index" : buffer_index
-    }
-
-    solver.ImportCouplingInterfaceData(data_settings, solver)
-
-
 def ValidateAndAssignDefaults(defaults, settings, recursive=False):
     for key, val in settings.items():
         # check if the current entry also exists in the defaults
