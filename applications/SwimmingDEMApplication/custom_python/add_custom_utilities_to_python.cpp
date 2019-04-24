@@ -330,14 +330,13 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def(py::init<SpaceTimeSet&, VelocityField&, const double, const double >())
         ;
 
+    typedef Variable<double> ScalarVariableType;
+    typedef Variable<array_1d<double, 3> > VectorVariableType;
+
     py::class_<RecoveryVariablesContainer, RecoveryVariablesContainer::Pointer>
     (m, "RecoveryVariablesContainer")
         .def(py::init<>())
-        .def("AddGradientRecoveryPair", &RecoveryVariablesContainer::AddGradientRecoveryPair)
-        .def("AddDivergenceRecoveryPair", &RecoveryVariablesContainer::AddDivergenceRecoveryPair)
-        .def("AddLaplacianRecoveryPair", &RecoveryVariablesContainer::AddLaplacianRecoveryPair)
-        .def("AddRotationalRecoveryPair", &RecoveryVariablesContainer::AddRotationalRecoveryPair)
-        .def("AddMaterialDerivativeRecoveryPair", &RecoveryVariablesContainer::AddMaterialDerivativeRecoveryPair)
+        .def("AddRecoveryPair", &RecoveryVariablesContainer::AddRecoveryPair)
         ;
 
     py::class_<DerivativeRecoveryUtility, DerivativeRecoveryUtility::Pointer>
