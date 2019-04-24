@@ -310,7 +310,7 @@ namespace Internals {
         DistanceSpatialContainersConfigure& operator=(DistanceSpatialContainersConfigure const& rOther) = delete;
 
         /// Copy constructor.
-        DistanceSpatialContainersConfigure(DistanceSpatialContainersConfigure const& rOther);
+        DistanceSpatialContainersConfigure(DistanceSpatialContainersConfigure const& rOther) = delete;
 
 
     }; // Class DistanceSpatialContainersConfigure
