@@ -142,13 +142,13 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                 node.X=self.initial_point[0]+node.X
                 node.Y=self.initial_point[1]+node.Y
             RotateModelPart(self.origin,angle,self.skin_model_part)
-        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','InitializeSkin Time: ',time.time()-ini_time)
+        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','InitializeSkin time: ',time.time()-ini_time)
 
     def CalculateDistance(self):
         ''' This function calculate the distance to skin for every node in the main_model_part.'''
         ini_time=time.time()
         KratosMultiphysics.CalculateDistanceToSkinProcess2D(self.main_model_part, self.skin_model_part).Execute()
-        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','CalculateDistance Time: ',time.time()-ini_time)
+        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','CalculateDistance time: ',time.time()-ini_time)
 
     def ExtendDistance(self):
         ''' This function extends the distance field to all the nodes of the main_model_part in order to
@@ -167,7 +167,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                 self.linear_solver,
                 maximum_iterations)
         variational_distance_process.Execute()
-        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Variational distance process Time: ',time.time()-ini_time)
+        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Variational distance process time: ',time.time()-ini_time)
 
 
     def RefineMesh(self):
@@ -198,28 +198,15 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         mmg_process = MeshingApplication.MmgProcess2D(self.main_model_part, mmg_parameters)
         mmg_process.Execute()
 
-        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Remesh Time: ',time.time()-ini_time)
+        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Remesh time: ',time.time()-ini_time)
         self.PrintOutput('remeshed_output'+str(self.step))
 
     def ApplyFlags(self):
-        ''' TO_DO: This function should be defined in a C++ process
+        ''' This process finds the elements that are cut and the elements that lie inside the geometry.
         '''
-        max_x=-1e10
-        for element in self.main_model_part.Elements:
-            IsPositive=False
-            IsNegative=False
-            element.Set(KratosMultiphysics.ACTIVE,True)
-            for node in element.GetNodes():
-                distance=node.GetSolutionStepValue(CompressiblePotentialFlow.LEVEL_SET)
-                if distance>0:
-                    IsPositive=True
-                else:
-                    IsNegative=True
-            if IsPositive and IsNegative:
-                element.Set(KratosMultiphysics.BOUNDARY,True)
-            elif IsNegative:
-                element.Set(KratosMultiphysics.ACTIVE,False)
-                element.Set(KratosMultiphysics.BOUNDARY,False)
+        ini_time = time.time()
+        KratosMultiphysics.CompressiblePotentialFlowApplication.ApplyFlagsProcess(self.main_model_part).Execute()
+        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Apply flags time: ',time.time()-ini_time)
 
     def PrintOutput(self,filename):
         if self.print_output_flag:
