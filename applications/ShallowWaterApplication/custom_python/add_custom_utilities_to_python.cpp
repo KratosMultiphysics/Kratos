@@ -21,11 +21,7 @@
 #include "custom_utilities/move_shallow_water_particle_utility.h"
 #include "custom_utilities/shallow_water_variables_utility.h"
 #include "custom_utilities/estimate_dt_utility.h"
-<<<<<<< HEAD
-=======
-#include "custom_utilities/replicate_model_part_utility.h"
 #include "custom_utilities/post_process_utilities.h"
->>>>>>> a73c3a1... printing the topography
 
 
 namespace Kratos
