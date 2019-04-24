@@ -26,28 +26,21 @@ class AverageValuePredictor(CosimulationBasePredictor):
             self.beta = 0.5
         # TODO check buffer_size
 
-        # TODO add comment why we do this
-        self.data_array_prediction = np.array([])
-        self.data_array_aux        = np.array([])
-
     def Predict(self):
-        data_name = self.settings["data_name"].GetString()
-        cs_tools.ImportArrayFromSolver(self.solver, data_name, self.data_array_prediction, 0)
-        cs_tools.ImportArrayFromSolver(self.solver, data_name, self.data_array_aux, 1)
+        current_data  = self.interface_data.GetNumpyArray(0)
+        previous_data = self.interface_data.GetNumpyArray(1)
 
-        self.data_array_prediction = 2*self.data_array_prediction - self.data_array_aux
+        self.predicted_data = 2*current_data - previous_data
 
-        self._UpdateData(self.data_array_prediction)
+        self._UpdateData(self.predicted_data)
 
     def FinalizeSolutionStep(self):
-        data_name = self.settings["data_name"].GetString()
-        cs_tools.ImportArrayFromSolver(self.solver, data_name, self.data_array_aux, 0)
+        current_data  = self.interface_data.GetNumpyArray(0)
 
-        self.data_array_prediction = self.beta * self.data_array_aux + (1-self.beta) * self.data_array_prediction
+        self.predicted_data = self.beta * current_data + (1-self.beta) * self.predicted_data
 
-        self._UpdateData(self.data_array_prediction)
+        self._UpdateData(self.predicted_data)
 
 
     def _Name(self):
         return self.__class__.__name__
-

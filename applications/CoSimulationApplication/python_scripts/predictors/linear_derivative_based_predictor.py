@@ -13,24 +13,19 @@ def Create(predictor_settings, solver):
 class LinearDerivativeBasedPredictor(CosimulationBasePredictor):
     def __init__(self, settings, solver):
         super(LinearDerivativeBasedPredictor, self).__init__(settings, solver)
-        # TODO add comment why we do this
-        self.data_array            = np.array([])
-        self.derivative_data_array = np.array([])
 
+        self.interface_derivative_data = self.solver.GetInterfaceData(self.settings["derivative_data_name"].GetString())
         # TODO check buffer size!
 
     def Predict(self):
-        data_name = self.settings["data_name"].GetString()
-        deriv_data_name = self.settings["derivative_data_name"].GetString()
-        cs_tools.ImportArrayFromSolver(self.solver, deriv_data_name, self.derivative_data_array, 1)
-        cs_tools.ImportArrayFromSolver(self.solver, data_name, self.data_array, 1)
+        data  = self.interface_data.GetNumpyArray(1)
+        derivative_data  = self.interface_derivative_data.GetNumpyArray(1)
 
         # TODO get the delta-time from the ModelPart-ProcessInfo in the future
         # => this will be accessible through the data-object (=> has the model)
-        self.data_array += self.solver.GetDeltaTime() * self.derivative_data_array
+        data += self.solver.GetDeltaTime() * derivative_data
 
-        self._UpdateData(self.data_array)
+        self._UpdateData(data)
 
     def _Name(self):
         return self.__class__.__name__
-

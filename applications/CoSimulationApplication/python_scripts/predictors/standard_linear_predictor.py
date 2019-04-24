@@ -13,21 +13,16 @@ def Create(predictor_settings, solver):
 class StandardLinearPredictor(CosimulationBasePredictor):
     def __init__(self, settings, solver):
         super(StandardLinearPredictor, self).__init__(settings, solver)
-        # TODO add comment why we do this
-        self.data_array_t0 = np.array([])
-        self.data_array_t1 = np.array([])
 
         # TODO check buffer size!
 
     def Predict(self):
-        data_name = self.settings["data_name"].GetString()
-        cs_tools.ImportArrayFromSolver(self.solver, data_name, self.data_array_t0, 0)
-        cs_tools.ImportArrayFromSolver(self.solver, data_name, self.data_array_t1, 1)
+        current_data  = self.interface_data.GetNumpyArray(0)
+        previous_data  = self.interface_data.GetNumpyArray(1)
 
-        self.data_array_t0 = 2*self.data_array_t0 - data_array_t1
+        predicted_data = 2*current_data - previous_data
 
-        self._UpdateData(self.data_array_t0)
+        self._UpdateData(predicted_data)
 
     def _Name(self):
         return self.__class__.__name__
-

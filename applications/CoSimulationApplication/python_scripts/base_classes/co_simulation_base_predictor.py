@@ -7,6 +7,7 @@ class CosimulationBasePredictor(object):
     def __init__(self, settings, solver):
         self.settings = settings
         self.solver = solver
+        self.interface_data = self.solver.GetInterfaceData(self.settings["data_name"].GetString())
         self.echo_level = 0
 
     def Initialize(self):
@@ -43,8 +44,7 @@ class CosimulationBasePredictor(object):
         raise Exception('"_Name" has to be implemented in the derived class!')
 
     def _UpdateData(self, updated_data):
-        data_name = self.settings["data_name"].GetString()
-        cs_tools.ExportArrayToSolver(self.solver, data_name, updated_data)
+        self.interface_data.ApplyUpdateToData(updated_data)
 
         if self.echo_level > 3:
             cs_tools.classprint(self._Name(), "Computed prediction")
