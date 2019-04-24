@@ -884,19 +884,10 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
-        // The center of the geometry
-        const auto& r_center = this->Center();
-
-        // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
-        const CoordinatesArrayType aux_point = ZeroVector(3);
-        const array_1d<double, 3> normal = this->UnitNormal(aux_point);
-
         // We compute the distance, if it is not in the pane we
         const Point point_to_project(rPoint);
         Point point_projected;
-        const array_1d<double,3> vector_points = rPoint - r_center.Coordinates();
-
-        const double distance = GeometricalProjectionUtilities::FastProjectDirection(*this, point_to_project, point_projected, normal,  vector_points, 0);
+        const double distance = GeometricalProjectionUtilities::FastProjectOnLine(*this, point_to_project, point_projected);
 
         // We check if we are on the plane
         if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
@@ -904,12 +895,9 @@ public:
                 KRATOS_WARNING("Line2D2") << "The point of coordinates X: " << rPoint[0] << "\tY: " << rPoint[1] << " it is in a distance: " << std::abs(distance) << std::endl;
                 return false;
             }
-
-            // Not in the plane, but allowing certain distance, projecting
-            noalias(point_projected) = rPoint - normal * distance;
         }
 
-        PointLocalCoordinates( rResult, rPoint );
+        PointLocalCoordinates( rResult, point_projected );
 
         if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) ) {
             return true;
