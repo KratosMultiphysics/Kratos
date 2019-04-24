@@ -1129,10 +1129,10 @@ public:
         constexpr MeshAccess<DistributedType::Local> local_meshes;
         constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
         MPIInternals::NodalFlagsAccess nodal_flag_access(TheFlags);
-        constexpr Operation<OperationType::AndMaskedFlags> masked_and;
+        constexpr Operation<OperationType::OrMaskedFlags> masked_or;
         constexpr Operation<OperationType::ReplaceMaskedFlags> masked_replace;
 
-        TransferDistributedValues(ghost_meshes, local_meshes, nodal_flag_access, masked_and);
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_flag_access, masked_or);
 
         TransferDistributedValues(local_meshes, ghost_meshes, nodal_flag_access, masked_replace);
         return true;
@@ -1147,10 +1147,10 @@ public:
         constexpr MeshAccess<DistributedType::Local> local_meshes;
         constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
         MPIInternals::NodalFlagsAccess nodal_flag_access(TheFlags);
-        constexpr Operation<OperationType::OrMaskedFlags> masked_or;
+        constexpr Operation<OperationType::AndMaskedFlags> masked_and;
         constexpr Operation<OperationType::ReplaceMaskedFlags> masked_replace;
 
-        TransferDistributedValues(ghost_meshes, local_meshes, nodal_flag_access, masked_or);
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_flag_access, masked_and);
 
         TransferDistributedValues(local_meshes, ghost_meshes, nodal_flag_access, masked_replace);
         return true;
