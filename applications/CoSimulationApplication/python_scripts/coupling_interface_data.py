@@ -30,6 +30,7 @@ class CouplingInterfaceData(object):
         self.destination_data = None
         self.origin_data = None
         self.mapper_settings = None
+        # TODO check DOMAIN_SIZE against the dimension
 
     def ApplyFilters(self):
         for filter in self.filters:
@@ -54,8 +55,8 @@ class CouplingInterfaceData(object):
         data_mesh = self.solver.model[self.mesh_name]
         data_variable = cs_data_structure.KratosGlobals.GetVariable(self.name)
         node_index = 0
+        updated_value = [0]*3 # TODO this is a hack, find better solution! => check var_type
         for node in data_mesh.Nodes: # #TODO: local nodes to also work in MPI?
-            updated_value = [0]*self.dimension
             # TODO: aditya the data might also be non-historical => GetValue
             for i in range(self.dimension):
                 updated_value[i] = update[node_index*self.dimension + i]
