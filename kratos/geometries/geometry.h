@@ -540,7 +540,7 @@ public:
     @see WorkingSpaceDimension()
     @see LocalSpaceDimension()
     */
-    inline SizeType Dimension() const
+    virtual inline SizeType Dimension() const
     {
         return mpGeometryData->Dimension();
     }
@@ -552,7 +552,7 @@ public:
     @see Dimension()
     @see LocalSpaceDimension()
     */
-    inline SizeType WorkingSpaceDimension() const
+	virtual inline SizeType WorkingSpaceDimension() const
     {
         return mpGeometryData->WorkingSpaceDimension();
     }
@@ -565,7 +565,7 @@ public:
     @see Dimension()
     @see WorkingSpaceDimension()
     */
-    inline SizeType LocalSpaceDimension() const
+	virtual inline SizeType LocalSpaceDimension() const
     {
         return mpGeometryData->LocalSpaceDimension();
     }
@@ -2029,7 +2029,7 @@ public:
     @see ShapeFunctionLocalGradient
     */
 
-    const ShapeFunctionsGradientsType& ShapeFunctionsLocalGradients() const
+    virtual const ShapeFunctionsGradientsType& ShapeFunctionsLocalGradients() const
     {
         return mpGeometryData->ShapeFunctionsLocalGradients();
     }
@@ -2055,7 +2055,7 @@ public:
     @see ShapeFunctionValue
     @see ShapeFunctionLocalGradient
     */
-    const ShapeFunctionsGradientsType& ShapeFunctionsLocalGradients( IntegrationMethod ThisMethod ) const
+    virtual const ShapeFunctionsGradientsType& ShapeFunctionsLocalGradients( IntegrationMethod ThisMethod ) const
     {
         return mpGeometryData->ShapeFunctionsLocalGradients( ThisMethod );
     }
@@ -2082,7 +2082,7 @@ public:
     @see ShapeFunctionValue
     @see ShapeFunctionsLocalGradients
     */
-    const Matrix& ShapeFunctionLocalGradient( IndexType IntegrationPointIndex )  const
+    virtual const Matrix& ShapeFunctionLocalGradient( IndexType IntegrationPointIndex )  const
     {
         return mpGeometryData->ShapeFunctionLocalGradient( IntegrationPointIndex );
     }
@@ -2110,12 +2110,12 @@ public:
     @see ShapeFunctionValue
     @see ShapeFunctionsLocalGradients
     */
-    const Matrix& ShapeFunctionLocalGradient(IndexType IntegrationPointIndex , IntegrationMethod ThisMethod)  const
+    virtual const Matrix& ShapeFunctionLocalGradient(IndexType IntegrationPointIndex , IntegrationMethod ThisMethod)  const
     {
         return mpGeometryData->ShapeFunctionLocalGradient(IntegrationPointIndex, ThisMethod);
     }
 
-    const Matrix& ShapeFunctionLocalGradient(IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex, IntegrationMethod ThisMethod)  const
+    virtual const Matrix& ShapeFunctionLocalGradient(IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex, IntegrationMethod ThisMethod)  const
     {
         return mpGeometryData->ShapeFunctionLocalGradient(IntegrationPointIndex, ShapeFunctionIndex, ThisMethod);
     }
@@ -2165,7 +2165,7 @@ public:
     }
 
 
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult ) const
+    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult ) const
     {
         ShapeFunctionsIntegrationPointsGradients( rResult, mpGeometryData->DefaultIntegrationMethod() );
         return rResult;
