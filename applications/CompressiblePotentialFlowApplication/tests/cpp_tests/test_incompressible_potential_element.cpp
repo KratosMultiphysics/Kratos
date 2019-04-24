@@ -95,7 +95,7 @@ namespace Kratos {
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      std::vector<double> reference(3);
+      std::vector<double> reference({0.5, 0.0, -0.5});
       reference[0] = 0.5;
       reference[1] = 0.0;
       reference[2] = -0.5;
