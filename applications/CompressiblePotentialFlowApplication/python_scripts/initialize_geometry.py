@@ -24,19 +24,13 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                 "model_part_name": "insert_model_part",
                 "skin_model_part_name": "insert_skin_model_part",
                 "geometry_parameter": 0.0,
-                "maximum_iterations": 3,
+                "maximum_iterations": 1,
+                "print_output": false,
                 "remeshing_flag": false,
                 "initial_point": [0,0],
                 "metric_parameters":  {
                     "minimal_size"                         : 5e-3,
                     "maximal_size"                         : 1.0,
-                    "custom_settings":
-                    {
-                        "ratio"                         : 0.5,
-                        "chord_ratio"                   : 4.0,
-                        "max_node"                      : [0.0,0.0,0.0],
-                        "min_node"                      : [0.0,0.0,0.0]
-                    },
                     "sizing_parameters": {
                         "reference_variable_name"               : "DISTANCE",
                         "boundary_layer_max_distance"           : 1.0,
@@ -68,6 +62,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         '''Loop parameters'''
         self.step = 0
         self.max_iter = settings["maximum_iterations"].GetInt()
+        self.print_output_flag = settings["print_output"].GetBool()
 
         self.MetricParameters = settings["metric_parameters"]
         # We set to zero the metric
@@ -75,9 +70,10 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         ZeroVector[0] = 0.0
         ZeroVector[1] = 0.0
         ZeroVector[2] = 0.0
-        for node in self.main_model_part.Nodes:
-            node.SetValue(MeshingApplication.METRIC_TENSOR_2D, ZeroVector)
+        KratosMultiphysics.VariableUtils().SetVectorVar(MeshingApplication.METRIC_TENSOR_2D, ZeroVector, self.main_model_part.Nodes)
 
+
+        ''' Defining linear solver to be used by the variational distance process'''
         import python_linear_solver_factory #Linear solver for variational distance process
         linear_solver_settings=KratosMultiphysics.Parameters("""
         {
@@ -102,56 +98,61 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
 
         ini_time=time.time()
         while self.step < self.max_iter and self.do_remeshing:
-
             self.step += 1
-            previous_ratio=self.MetricParameters["custom_settings"]["ratio"].GetDouble()
-            self.MetricParameters["custom_settings"]["ratio"].SetDouble(previous_ratio*0.5)
-
             KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','##### Executing refinement #', self.step, ' #####')
             self.ExtendDistance()
             self.RefineMesh()
             self.CalculateDistance()
         KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Elapsed time: ',time.time()-ini_time)
 
-        KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.LEVEL_SET_DISTANCE, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.LEVEL_SET, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DISTANCE, 0.0, self.main_model_part.Nodes)
         self.ApplyFlags()
-        self.ComputeKuttaNodeAndElement()
-        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Level Set geometry initialized')
 
+        ''' ############################################################################################## '''
+        ''' THIS FUNCTION CALLS ARE TEMPORARY AND WILL BE REMOVED ONCE THE EMBEDDED WAKE PROCESS IS DEFINED '''
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.main_model_part,self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+        # Find nodal neigbours util call
+        avg_elem_num = 10
+        avg_node_num = 10
+        KratosMultiphysics.FindNodalNeighboursProcess(
+            self.main_model_part, avg_elem_num, avg_node_num).Execute()
+        ''' ############################################################################################## '''
+
+        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Level Set geometry initialized')
 
     def ExecuteInitialize(self):
         self.Execute()
 
     def InitializeSkinModelPart(self):
+        ''' This function moves the skin_model_part in the main_model_part to the desired initial point (self.initial_point).
+            It also rotates the skin model part around the initial point according to the (self.geometry_parameter)'''
         ini_time=time.time()
         if self.skin_model_part_name=='naca0012':
             angle=math.radians(-self.geometry_parameter)
-            self.origin=[0.25+self.initial_point[0],0+self.initial_point[1]] #to be defined from skin model part
+            self.origin=[0.25+self.initial_point[0],0+self.initial_point[1]]
             for node in self.skin_model_part.Nodes:
                 node.X=self.initial_point[0]+node.X
                 node.Y=self.initial_point[1]+node.Y
             RotateModelPart(self.origin,angle,self.skin_model_part)
-        elif self.skin_model_part_name=='circle':
-            for node in self.skin_model_part.Nodes:
-                node.X=node.X+1e-5
-                node.Y=node.Y+1e-5
-        elif self.skin_model_part_name=='ellipse' or self.skin_model_part_name=='ellipse_fine':
+        elif self.skin_model_part_name=='ellipse':
             angle=math.radians(-self.geometry_parameter)
-            self.origin=[self.initial_point[0],self.initial_point[1]] #to be defined from skin model part
+            self.origin=[self.initial_point[0],self.initial_point[1]]
             for node in self.skin_model_part.Nodes:
                 node.X=self.initial_point[0]+node.X
                 node.Y=self.initial_point[1]+node.Y
             RotateModelPart(self.origin,angle,self.skin_model_part)
-        self.FindXMaxAndMinSkin()
         KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','InitializeSkin Time: ',time.time()-ini_time)
 
     def CalculateDistance(self):
+        ''' This function calculate the distance to skin for every node in the main_model_part.'''
         ini_time=time.time()
         KratosMultiphysics.CalculateDistanceToSkinProcess2D(self.main_model_part, self.skin_model_part).Execute()
         KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','CalculateDistance Time: ',time.time()-ini_time)
 
     def ExtendDistance(self):
+        ''' This function extends the distance field to all the nodes of the main_model_part in order to
+            remesh the background mesh.'''
         ini_time=time.time()
         # Construct the variational distance calculation process
         maximum_iterations = 2 #TODO: Make this user-definable
@@ -170,13 +171,15 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
 
 
     def RefineMesh(self):
+        ''' This function remeshes the main_model_part according to the distance, using the MMG process from the MeshingApplication.
+            In order to perform the refinement, it is needed to calculate the distance gradient, the initial nodal_h and the level_set metric.
+        '''
         ini_time=time.time()
         local_gradient = KratosMultiphysics.ComputeNodalGradientProcess2D(self.main_model_part, KratosMultiphysics.DISTANCE, KratosMultiphysics.DISTANCE_GRADIENT, KratosMultiphysics.NODAL_AREA)
         local_gradient.Execute()
 
         find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.main_model_part)
         find_nodal_h.Execute()
-
 
         metric_process = MeshingApplication.ComputeLevelSetSolMetricProcess2D(self.main_model_part,  KratosMultiphysics.DISTANCE_GRADIENT, self.MetricParameters)
         metric_process.Execute()
@@ -188,194 +191,64 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             "discretization_type"                  : "STANDARD",
             "save_external_files"              : false,
             "initialize_entities"              : false,
-            "echo_level"                       : 0,
-            "isosurface_parameters"                    : {
-                    "remove_regions"                   : false
-                }
+            "echo_level"                       : 0
         }
         """)
 
-        # We create the remeshing utility
-        # mmg_parameters["filename"].SetString(file_path + "/" + mmg_parameters["filename"].GetString())
         mmg_process = MeshingApplication.MmgProcess2D(self.main_model_part, mmg_parameters)
-
-        # We remesh
         mmg_process.Execute()
 
         KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Remesh Time: ',time.time()-ini_time)
-
         self.PrintOutput('remeshed_output'+str(self.step))
 
     def ApplyFlags(self):
+        ''' TO_DO: This function should be defined in a C++ process
+        '''
         max_x=-1e10
         for element in self.main_model_part.Elements:
             IsPositive=False
             IsNegative=False
             element.Set(KratosMultiphysics.ACTIVE,True)
             for node in element.GetNodes():
-                distance=node.GetSolutionStepValue(CompressiblePotentialFlow.LEVEL_SET_DISTANCE)
+                distance=node.GetSolutionStepValue(CompressiblePotentialFlow.LEVEL_SET)
                 if distance>0:
                     IsPositive=True
                 else:
                     IsNegative=True
             if IsPositive and IsNegative:
                 element.Set(KratosMultiphysics.BOUNDARY,True)
-                self.boundary_model_part.Elements.append(element)
-                # for node in element.GetNodes():
-                #     if node.X>max_x:
-                #         max_x=node.X
-                #         self.max_node=node
-            elif IsPositive:
-                element.Set(KratosMultiphysics.FLUID,True)
-            else:
-                element.Set(KratosMultiphysics.FLUID,False)
+            elif IsNegative:
                 element.Set(KratosMultiphysics.ACTIVE,False)
                 element.Set(KratosMultiphysics.BOUNDARY,False)
-                for node in element.GetNodes():
-                    if node.X>max_x:
-                        max_x=node.X
-                        self.max_node=node
-    def ComputeKuttaNodeAndElement(self):
-        # x0 =  self.origin[0]
-        # y0 =  self.origin[1]
-        # direction = KratosMultiphysics.Vector(3)
-        # angle=math.radians(self.geometry_parameter)
-        # direction[0]=-math.cos(angle)
-        # direction[1]=math.sin(angle)
-        # n = KratosMultiphysics.Vector(3)
-        # xn = KratosMultiphysics.Vector(3)
-        # n[0] = -direction[1]
-        # n[1] = direction[0]
-        # n[2] = 0.0
-        # max_x_center = -1e10
-        # for elem in self.boundary_model_part.Elements:
-        #     distances = KratosMultiphysics.Vector(len(elem.GetNodes()))
-        #     '''with positive epsilon'''
-        #     npos = 0
-        #     nneg = 0
-        #     for elnode in elem.GetNodes():
-        #         xn[0] = elnode.X - x0
-        #         xn[1] = elnode.Y - y0
-        #         xn[2] = 0.0
-        #         d =  xn[0]*n[0] + xn[1]*n[1]
-        #         if(d < 0):
-        #             nneg += 1
-        #         else:
-        #             npos += 1
-        #         elnode.SetValue(KratosMultiphysics.TEMPERATURE,d)
-        #     if(nneg>0 and npos>0):
-        #         center_X=elem.GetGeometry().Center().X
-        #         if (center_X>self.origin[0]):
-        #             elem.Set(KratosMultiphysics.THERMAL,True)
-        #             elem.Set(KratosMultiphysics.ACTIVE,False)
-        #             elem.Set(KratosMultiphysics.BOUNDARY,False)
-        #             if (center_X > max_x_center):
-        #                 max_x_center = center_X
-        #                 max_elem = elem
-
-        # max_elem.Set(KratosMultiphysics.ACTIVE,False)
-        # max_elem.Set(KratosMultiphysics.BOUNDARY,False)
-        # max_x_node=-1e10
-        # for elnode in max_elem.GetNodes():
-        #     if elnode.X>max_x_node:
-        #         max_node=elnode
-        #         max_x_node=elnode.X
-        # self.main_model_part.CreateSubModelPart('KuttaLS').AddNode(max_node,0)
-        # self.main_model_part.CreateSubModelPart('KuttaLS').AddNode(self.max_node,0)
-
-
-
-        max_x_node=-1e10
-        deactivated_model_part=self.main_model_part.CreateSubModelPart('deactivated')
-        for element in self.boundary_model_part.Elements:
-            for elnode in element.GetNodes():
-                if elnode.Id == self.max_node.Id:
-                    self.DeactivateActive(element)
-                    deactivated_model_part.Elements.append(element)
-        max_x_center=-1e10
-        for element in deactivated_model_part.Elements:
-            n_center = 0
-            center_X=element.GetGeometry().Center().X
-            if center_X>max_x_center:
-                max_x_center=center_X
-                max_elem=element
-
-        kutta_model_part=self.main_model_part.CreateSubModelPart('KuttaLS')
-        for elnode in max_elem.GetNodes():
-            if elnode.X>max_elem.GetGeometry().Center().X:
-                n_center+=1
-                kutta_model_part.AddNode(elnode,0)
-        for elnode in max_elem.GetNodes():
-            if elnode.X>max_x_node:
-                max_x_node=elnode.X
-                max_node=elnode
-                # max_elem=element
-                # max_n_center=n_center
-
-        kutta_model_part.AddNode(max_node,0)
-
-        for element in self.boundary_model_part.Elements:
-            center_X=element.GetGeometry().Center().X
-            if center_X>self.max_node.X:
-                self.DeactivateBoundary(element)
-
-        for node in self.main_model_part.GetSubModelPart('KuttaLS').Nodes:
-            node.SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.TRAILING_EDGE,True)
-    def DeactivateActive(self,elem):
-        elem.Set(KratosMultiphysics.ACTIVE,False)
-        elem.Set(KratosMultiphysics.BOUNDARY,False)
-    def DeactivateBoundary(self,elem):
-        elem.Set(KratosMultiphysics.BOUNDARY,False)
 
     def PrintOutput(self,filename):
-        from gid_output_process import GiDOutputProcess
-        gid_output = GiDOutputProcess(self.main_model_part,
-                                    filename,
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "nodal_results" : ["DISTANCE"],
-                                                "nodal_nonhistorical_results": ["METRIC_TENSOR_2D"]
+        if self.print_output_flag:
+            from gid_output_process import GiDOutputProcess
+            gid_output = GiDOutputProcess(self.main_model_part,
+                                        filename,
+                                        KratosMultiphysics.Parameters("""
+                                            {
+                                                "result_file_configuration" : {
+                                                    "gidpost_flags": {
+                                                        "GiDPostMode": "GiD_PostBinary",
+                                                        "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                        "WriteConditionsFlag": "WriteConditions",
+                                                        "MultiFileFlag": "SingleFile"
+                                                    },
+                                                    "nodal_results" : ["DISTANCE"],
+                                                    "nodal_nonhistorical_results": ["METRIC_TENSOR_2D"]
 
+                                                }
                                             }
-                                        }
-                                        """)
-                                    )
+                                            """)
+                                        )
 
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
-        gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()
+            gid_output.ExecuteInitialize()
+            gid_output.ExecuteBeforeSolutionLoop()
+            gid_output.ExecuteInitializeSolutionStep()
+            gid_output.PrintOutput()
+            gid_output.ExecuteFinalizeSolutionStep()
+            gid_output.ExecuteFinalize()
 
-    def FindXMaxAndMinSkin(self):
-        max_x=-1e10
-        min_x=1e10
-        for node in self.skin_model_part.Nodes:
-            if node.X > max_x:
-                max_x=node.X
-                max_node=node
-            if node.X < min_x:
-                min_x=node.X
-                min_node=node
-        min_node_vec=KratosMultiphysics.Vector(3)
-        min_node_vec[0]=min_node.X
-        min_node_vec[1]=min_node.Y
-        min_node_vec[2]=min_node.Z
-        max_node_vec=KratosMultiphysics.Vector(3)
-        max_node_vec[0]=max_node.X
-        max_node_vec[1]=max_node.Y
-        max_node_vec[2]=max_node.Z
-        self.MetricParameters["custom_settings"]["max_node"].SetVector(max_node_vec)
-        self.MetricParameters["custom_settings"]["min_node"].SetVector(min_node_vec)
-        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','MIN SKIN NODE', min_node.X, min_node.Y)
-        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','MAX SKIN NODE', max_node.X, max_node.Y)
 
 
