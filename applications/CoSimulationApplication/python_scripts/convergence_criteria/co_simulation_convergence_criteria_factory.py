@@ -13,13 +13,11 @@ class CoSimulationConvergenceCriteria(object):
     def __init__(self, settings, solver):
         self.settings = settings
         self.solver = solver
+        self.interface_data = self.solver.GetInterfaceData(self.settings["data_name"].GetString())
         self.echo_level = 0
         self.abs_tolerance = self.settings["abs_tolerance"].GetDouble()
         self.rel_tolerance = self.settings["rel_tolerance"].GetDouble()
 
-        ## Here we preallocate the arrays that will be used to exchange data
-        self.old_data = np.array([])
-        self.new_data = np.array([])
 
     def Initialize(self):
         pass
@@ -35,19 +33,17 @@ class CoSimulationConvergenceCriteria(object):
 
     def InitializeNonLinearIteration(self):
         # Saving the previous data (at beginning of iteration) for the computation of the residual
-        data_name = self.settings["data_name"].GetString()
-        cs_tools.ImportArrayFromSolver(self.solver, data_name, self.old_data)
+        self.old_data = self.interface_data.GetNumpyArray()
 
     def FinalizeNonLinearIteration(self):
         pass
 
     def IsConverged(self):
-        data_name = self.settings["data_name"].GetString()
-        cs_tools.ImportArrayFromSolver(self.solver, data_name, self.new_data)
+        new_data = self.interface_data.GetNumpyArray()
 
-        residual = self.new_data - self.old_data
+        residual = new_data - self.old_data
         res_norm = la.norm(residual)
-        norm_new_data = la.norm(self.new_data)
+        norm_new_data = la.norm(new_data)
         if norm_new_data < 1e-15:
             norm_new_data = 1.0 # to avoid division by zero
         abs_norm = res_norm / np.sqrt(residual.size)
