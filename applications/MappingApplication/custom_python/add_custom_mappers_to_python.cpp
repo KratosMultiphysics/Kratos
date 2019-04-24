@@ -163,8 +163,12 @@ void  AddCustomMappersToPython(pybind11::module& m)
     // Exposing the MapperFactory
     py::class_< MapperFactory, MapperFactory::Pointer>(m, "MapperFactory")
         .def_static("CreateMapper", &MapperFactory::CreateMapper<SparseSpaceType, DenseSpaceType>)
+        .def_static("HasMapper", &MapperFactory::HasMapper<SparseSpaceType, DenseSpaceType>)
+        .def_static("GetRegisteredMapperNames", &MapperFactory::GetRegisteredMapperNames<SparseSpaceType, DenseSpaceType>)
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
         .def_static("CreateMPIMapper", &MapperFactory::CreateMapper<MPISparseSpaceType, DenseSpaceType>)
+        .def_static("HasMPIMapper", &MapperFactory::HasMapper<MPISparseSpaceType, DenseSpaceType>)
+        .def_static("GetRegisteredMPIMapperNames", &MapperFactory::GetRegisteredMapperNames<MPISparseSpaceType, DenseSpaceType>)
 #endif
     ;
 }
