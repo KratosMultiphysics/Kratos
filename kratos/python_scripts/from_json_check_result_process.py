@@ -255,7 +255,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         value_json -- The reference value from the json
         variable_name -- The name of the variable
         """
-        relevant_digits = max(self.rel_tol_digits, self.abs_tol_digits)+1 # +1 for one more digit of output
+        relevant_digits = int(max(self.rel_tol_digits, self.abs_tol_digits))+1 # +1 for one more digit of output
         isclosethis = t_isclose(value_entity, value_json, rel_tol=self.rel_tol, abs_tol=self.abs_tol)
         msg  = 'Error checking {} #{} for variable {} results:\n'.format(entity_type, entity_id, variable_name)
         msg += '%.*f != %.*f; rel_tol=%.*f, abs_tol=%.*f' % (relevant_digits, value_entity, relevant_digits, value_json, self.rel_tol_digits, self.rel_tol, self.abs_tol_digits, self.abs_tol)
@@ -310,4 +310,4 @@ def ComputeRelevantDigits(number):
     Keyword arguments:
     self -- It signifies an instance of a class.
     """
-    return ceil(abs(log10(number)))
+    return int(ceil(abs(log10(number))))
