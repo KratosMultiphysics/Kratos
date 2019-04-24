@@ -15,15 +15,16 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         # Call the base Kratos process constructor
         KratosMultiphysics.Process.__init__(self)
 
-        print("debug - model as seen from define wake process 2d:\n", Model)
+        # print("debug - model as seen from define wake process 2d:\n", Model)
+        print("debug - model as seen from define wake process 2d:\n")
 
         # Check default settings
-        default_settings = KratosMultiphysics.Parameters(r'''{
+        default_settings_wake = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "",
             "wake_direction": [1.0,0.0,0.0],
             "epsilon": 1e-9
         }''')
-        settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(default_settings_wake)
 
         # Extract and check data from custom settings
         # self.wake_direction = settings["wake_direction"].GetVector()
@@ -38,7 +39,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             err_msg += "Please specify the model part that contains the body surface nodes"
             raise Exception(err_msg)
 
-        KratosMultiphysics.Logger.PrintInfo("BodyModelPART:", settings)
         self.body_model_part = Model[body_model_part_name]
 
         self.epsilon = settings["epsilon"].GetDouble()
@@ -55,14 +55,9 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.wake_normal[2] = 0.0
 
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
-        print("\nffffffffff", self.fluid_model_part, "ffffffffffff\n")
         if not self.fluid_model_part.HasSubModelPart("trailing_edge_model_part"):
             self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
-            # return self.trailing_edge_model_part
         else: self.trailing_edge_model_part = self.fluid_model_part.GetSubModelPart("trailing_edge_model_part")
-        # else: self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
-        # else:
-        #     return self.trailing_edge_model_part
 
         # Call the nodal normal calculation util
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
