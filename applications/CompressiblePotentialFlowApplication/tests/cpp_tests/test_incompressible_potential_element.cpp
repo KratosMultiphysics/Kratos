@@ -96,13 +96,10 @@ namespace Kratos {
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
       std::vector<double> reference({0.5, 0.0, -0.5});
-      reference[0] = 0.5;
-      reference[1] = 0.0;
-      reference[2] = -0.5;
 
       for (unsigned int i = 0; i < RHS.size(); i++) {
         KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
-      } 
+      }
     }
 
     KRATOS_TEST_CASE_IN_SUITE(IncompressiblePotentialFlowElementCalculateLocalSystemWake, CompressiblePotentialApplicationFastSuite)
@@ -148,17 +145,11 @@ namespace Kratos {
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      std::vector<double> reference(6);
-      reference[0] = 0.5;
-      reference[1] = 0.0;
-      reference[2] = 0.0;
-      reference[3] = 0.0;
-      reference[4] = 0.0;
-      reference[5] = -0.5;
+      std::vector<double> reference({0.5, 0.0, 0.0, 0.0, 0.0, -0.5});
 
       for (unsigned int i = 0; i < RHS.size(); i++) {
         KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
-      } 
+      }
     }
 
     KRATOS_TEST_CASE_IN_SUITE(EmbeddedIncompressiblePotentialFlowElementCalculateLocalSystem, CompressiblePotentialApplicationFastSuite)
@@ -196,14 +187,11 @@ namespace Kratos {
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      std::vector<double> reference(3);
-      reference[0] = 0.125;
-      reference[1] = 0.0;
-      reference[2] = -0.125;
+      std::vector<double> reference({0.125, 0.0, -0.125});
 
       for (unsigned int i = 0; i < RHS.size(); i++) {
         KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
-      } 
+      }
     }
 
 
@@ -234,7 +222,7 @@ namespace Kratos {
       // Check the EquationIdVector values
       for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
         KRATOS_CHECK(EquationIdVector[i] == i);
-      } 
+      }
     }
 
     /** Checks the IncompressiblePotentialFlowElement element.
@@ -273,7 +261,7 @@ namespace Kratos {
       //Check the EquationIdVector values
       for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
         KRATOS_CHECK(EquationIdVector[i] == i);
-      } 
+      }
     }
   } // namespace Testing
 }  // namespace Kratos.
