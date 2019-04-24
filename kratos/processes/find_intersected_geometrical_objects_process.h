@@ -660,7 +660,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    FindIntersectedGeometricalObjectsProcess& operator=(FindIntersectedGeometricalObjectsProcess const& rOther);
+    FindIntersectedGeometricalObjectsProcess& operator=(FindIntersectedGeometricalObjectsProcess const& rOther) = delete;
 
 
     ///@}
