@@ -42,8 +42,8 @@ class CoSimulationBaseSolver(object):
             raise Exception('IO for "' + self.name + '" is already initialized!')
 
         self.io = io_factory.CreateIO(self._GetIOName(),
-                                      solvers,
-                                      self.name)
+                                      self.model,
+                                      self.cosim_solver_settings["io_settings"])
         self.io.SetEchoLevel(io_echo_level)
         self.io_is_initialized = True
 
@@ -133,7 +133,8 @@ class CoSimulationBaseSolver(object):
         print("\n\nsolver_name", self.name)
         # print(self.cosim_solver_settings.PrettyPrintJsonString())
         # for i in range(self.cosim_solver_settings["data"].size()):
-        for data_conf in self.cosim_solver_settings["data"]:
+        for i in range(self.cosim_solver_settings["data"].size()):
+            data_conf = self.cosim_solver_settings["data"][i]
             data_name = data_conf["name"].GetString()
             print(data_conf.PrettyPrintJsonString())
             print(data_name)

@@ -92,41 +92,39 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         if self.coupling_started:
             solver = self.participating_solvers[solver_name]
             input_data_list = self.coupling_sequence[solver_name]["input_data_list"]
-            # TODO reimplement this properly!
-            # if self.time >= self.coupling_sequence[solver_name]["input_coupling_start_time"]:
-            for input_data in input_data_list:
+            num_input_data = input_data_list.size()
+
+            for i in range(num_input_data):
+                input_data = input_data_list[i]
                 from_solver = self.participating_solvers[input_data["from_solver"].GetString()]
                 data_name = input_data["data_name"].GetString()
-                data_definition = from_solver.GetInterfaceDataOld(data_name)
+                from_solver_data = from_solver.GetInterfaceData(data_name)
+                solver_data = solver.GetInterfaceData(input_data["destination_data"].GetString())
 
-                data_format = "kratos_modelpart"
-                if data_definition.Has("data_format"):
-                    data_definition["data_format"].GetString()
+                if(input_data.Has("mapper_settings")):
+                    solver_data.origin_data = from_solver_data
+                    solver_data.mapper_settings = input_data["mapper_settings"]
 
-                data_settings = { "data_format" : data_format,
-                                  "data_name"   : data_name,
-                                  "io_settings" : input_data["io_settings"] }
-                solver.ImportCouplingInterfaceData(data_settings, from_solver)
+                solver.ImportCouplingInterfaceData(solver_data, from_solver)
 
     def _SynchronizeOutputData(self, solver_name):
         if self.coupling_started:
             solver = self.participating_solvers[solver_name]
             output_data_list = self.coupling_sequence[solver_name]["output_data_list"]
-            # TODO reimplement this properly!
-            # if self.time >= self.coupling_sequence[solver_name]["output_coupling_start_time"]:
-            for output_data in output_data_list:
+            num_output_data = output_data_list.size()
+
+            for i in range(num_output_data):
+                output_data = output_data_list[i]
                 to_solver = self.participating_solvers[output_data["to_solver"].GetString()]
                 data_name = output_data["data_name"].GetString()
-                data_definition = to_solver.GetInterfaceDataOld(data_name)
+                to_solver_data = to_solver.GetInterfaceData(data_name)
+                solver_data = solver.GetInterfaceData(output_data["origin_data"].GetString())
 
-                data_format = "kratos_modelpart"
-                if data_definition.Has("data_format"):
-                    data_definition["data_format"].GetString()
+                if(output_data.Has("mapper_settings")):
+                    solver_data.destination_data = to_solver_data
+                    solver_data.mapper_settings = output_data["mapper_settings"]
 
-                data_settings = { "data_format" : data_format,
-                                  "data_name"   : data_name,
-                                  "io_settings" : output_data["io_settings"] }
-                solver.ExportCouplingInterfaceData(data_settings, to_solver)
+                solver.ExportCouplingInterfaceData(solver_data, to_solver)
 
     def PrintInfo(self):
         super(CoSimulationBaseCouplingSolver, self).PrintInfo()

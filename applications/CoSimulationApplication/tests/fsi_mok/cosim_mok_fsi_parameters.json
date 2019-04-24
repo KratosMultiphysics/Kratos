@@ -37,35 +37,39 @@
         ],
         "coupling_sequence":
         [
-        {
-            "name": "fluid",
-            "input_data_list"  : [],
-            "output_data_list" : []
-        },
-        {
-            "name": "structure",
-            "input_data_list": [
-                {
-                    "from_solver" : "fluid",
-                    "data_name"   : "force",
-                    "io_settings"   : {
-                        "mapper_type" : "nearest_neighbor",
-                        "mapper_args" : ["swap_sign"]
-                    }
+            {
+                "name": "fluid",
+                "input_data_list"  : [],
+                "output_data_list" : []
+            },
+            {
+                "name": "structure",
+                "input_data_list": [
+                    {
+                        "from_solver"       : "fluid",
+                        "data_name"         : "REACTION",
+                        "destination_data"  :"POINT_LOAD",
+                        "mapper_settings"   : {
+                            "type" : "nearest_neighbor",
+                            "flags" : ["swap_sign"]
+                        },
+                        "filters":[]
 
-                }
-            ],
-            "output_data_list": [
-                {
-                    "to_solver" : "fluid",
-                    "data_name"   : "disp",
-                    "io_settings"   : {
-                        "mapper_type" : "nearest_neighbor"
                     }
-
-                }
-            ]
-        }
+                ],
+                "output_data_list": [
+                    {
+                        "to_solver"   : "fluid",
+                        "data_name"   : "MESH_DISPLACEMENT",
+                        "origin_data" : "DISPLACEMENT",
+                        "mapper_settings"   : {
+                            "type" : "nearest_neighbor",
+                            "flags":[]
+                        },
+                        "filters":[]
+                    }
+                ]
+            }
         ],
         "solvers" :
         {
@@ -73,45 +77,39 @@
             {
                 "solver_type" : "kratos_fluid",
                 "input_file"  : "fsi_mok/ProjectParametersCFD",
-                "data" : {
-                    "disp" : {
+                "data" : [{
                         "geometry_name"   : "FluidModelPart.NoSlip2D_FSI",
                         "dimension" : 2,
                         "name" : "MESH_DISPLACEMENT"
-                    },
-                    "force" : {
+                    },{
                         "geometry_name"   : "FluidModelPart.NoSlip2D_FSI",
                         "dimension" : 2,
                         "name" : "REACTION"
-                    },
-                    "vel" : {
+                    },{
                         "geometry_name"   : "FluidModelPart.NoSlip2D_FSI",
                         "dimension" : 2,
                         "name" : "VELOCITY"
                     }
-                }
+                ]
             },
             "structure" :
             {
                 "solver_type" : "kratos_structural",
                 "input_file"  : "fsi_mok/ProjectParametersCSM",
-                "data" : {
-                    "disp" : {
+                "data" : [{
                         "geometry_name"   : "GENERIC_FSI",
                         "dimension" : 2,
                         "name" : "DISPLACEMENT"
-                    },
-                    "force" : {
+                    },{
                         "geometry_name"   : "GENERIC_FSI",
                         "dimension" : 2,
                         "name" : "POINT_LOAD"
-                    },
-                    "vel" : {
+                    }, {
                         "geometry_name"   : "GENERIC_FSI",
                         "dimension" : 2,
                         "name" : "VELOCITY"
                     }
-                }
+                ]
             }
         }
     }

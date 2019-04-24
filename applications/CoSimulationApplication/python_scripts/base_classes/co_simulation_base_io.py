@@ -11,10 +11,8 @@ class CoSimulationBaseIO(object):
     #
     def __init__(self, model, settings):
         self.echo_level = 0
-        # self.settings = settings
-        # self.model = model
-        self.solvers = model
-        self.solver_name = settings
+        self.settings = settings
+        self.model = model
 
     ## ImportCouplingInterfaceData :  used to import data from other solvers
     #                Follow EXAMPLE implementation below.

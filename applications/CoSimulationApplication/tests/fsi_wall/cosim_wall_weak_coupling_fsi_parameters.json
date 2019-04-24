@@ -24,24 +24,26 @@
             "name": "structure",
             "input_data_list": [
                 {
-                    "from_solver" : "fluid",
-                    "data_name"   : "force",
-                    "io_settings"   : {
-                        "mapper_type" : "nearest_neighbor",
-                        "mapper_args" : ["swap_sign"]
-                    }
-
-
+                    "from_solver"       : "fluid",
+                    "data_name"         : "REACTION",
+                    "destination_data"  :"POINT_LOAD",
+                    "mapper_settings"   : {
+                        "type" : "nearest_neighbor",
+                        "flags" : ["swap_sign"]
+                    },
+                    "filters":[]
                 }
             ],
             "output_data_list": [
                 {
-                    "to_solver" : "fluid",
-                    "data_name"   : "disp",
-                    "io_settings"   : {
-                        "mapper_type" : "nearest_neighbor"
-                    }
-
+                    "to_solver"   : "fluid",
+                    "data_name"   : "MESH_DISPLACEMENT",
+                    "origin_data" : "DISPLACEMENT",
+                    "mapper_settings"   : {
+                        "type" : "nearest_neighbor",
+                        "flags":[]
+                    },
+                    "filters":[]
                 }
             ]
         },
@@ -57,45 +59,39 @@
             {
                 "solver_type" : "kratos_fluid",
                 "input_file"  : "fsi_wall/ProjectParametersCFD",
-                "data" : {
-                    "disp" : {
+                "data" : [{
                         "geometry_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
                         "name" : "MESH_DISPLACEMENT",
                         "dimension" : 2
-                    },
-                        "force" : {
+                    },{
                         "geometry_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
                         "name" : "REACTION",
                         "dimension" : 2
-                    },
-                        "vel" : {
+                    },{
                         "geometry_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
                         "name" : "VELOCITY",
                         "dimension" : 2
                     }
-                }
+                ]
             },
             "structure" :
             {
                 "solver_type" : "kratos_structural",
                 "input_file"  : "fsi_wall/ProjectParametersCSM",
-                "data" : {
-                    "disp" : {
+                "data" : [{
                         "geometry_name" : "GENERIC_FSI_Interface",
                         "name" : "DISPLACEMENT",
                         "dimension" : 2
-                    },
-                        "force" : {
+                    },{
                         "geometry_name" : "GENERIC_FSI_Interface",
                         "name" : "POINT_LOAD",
                         "dimension" : 2
-                    },
-                         "vel" : {
+                    },{
                         "geometry_name" : "GENERIC_FSI_Interface",
                         "name" : "VELOCITY",
                         "dimension" : 2
                     }
-                }
+                ]
             }
         }
     }
