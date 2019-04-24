@@ -16,8 +16,8 @@
             {
                 "type"                 : "linear_derivative_based",
                 "solver"               : "fluid",
-                "data_name"            : "disp",
-                "derivative_data_name" : "vel"
+                "data_name"            : "MESH_DISPLACEMENT",
+                "derivative_data_name" : "VELOCITY"
             }
         ],
         "convergence_accelerators" : [

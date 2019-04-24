@@ -15,7 +15,7 @@
             {
                 "type" : "average_value_based",
                 "solver"         : "fluid",
-                "data_name"      : "force"
+                "data_name"      : "REACTION"
             }
         ],
         "coupling_sequence":
