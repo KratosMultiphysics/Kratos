@@ -269,6 +269,21 @@ public:
     }
 
     /**
+     * @brief Sets the nodal value of any variable to zero
+     * @param rVariable reference to the scalar variable to be set
+     * @param rNodes reference to the objective node set
+     */
+    template< class TType >
+    void SetVariableToZero(
+        const Variable< TType >& rVariable,
+        NodesContainerType& rNodes)
+    {
+        KRATOS_TRY
+        this->SetVariable(rVariable, rVariable.Zero(), rNodes);
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Sets the nodal value of a scalar variable (considering flag)
      * @param rVariable reference to the scalar variable to be set
      * @param Value Value to be set
@@ -541,20 +556,20 @@ public:
      * @param Variable reference to the vector variable to be set to 0
      * @param rNodes reference to the objective node set
      */
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariableToZero")
     void SetToZero_VectorVar(
-        const ArrayVarType& Variable,
-        NodesContainerType& rNodes
-        );
+        const ArrayVarType &Variable,
+        NodesContainerType &rNodes);
 
     /**
      * @brief In a node set, sets a double variable to zero
      * @param Variable reference to the double variable to be set to 0
      * @param rNodes reference to the objective node set
      */
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariableToZero")
     void SetToZero_ScalarVar(
-        const DoubleVarType& Variable,
-        NodesContainerType& rNodes
-        );
+        const DoubleVarType &Variable,
+        NodesContainerType &rNodes);
 
     /**
      * @brief Returns a list of nodes filtered using the given double variable and value

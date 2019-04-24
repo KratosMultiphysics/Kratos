@@ -333,6 +333,31 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), 0.0)
 
+    def test_set_variable_to_zero(self):
+        ## Set the model part
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        ## Initialize the variable values
+        for node in model_part.Nodes:
+            node.SetSolutionStepValue(VISCOSITY, node.Id)
+            node.SetSolutionStepValue(DISPLACEMENT, [node.Id, 2 * node.Id, 3.0 * node.Id])
+
+        ## Set the variable values to zero
+        VariableUtils().SetVariableToZero(VISCOSITY, model_part.Nodes)
+        VariableUtils().SetVariableToZero(DISPLACEMENT, model_part.Nodes)
+
+        ## Verify the result
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(VISCOSITY), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)
+
     def test_select_node_list(self):
         current_model = Model()
 
