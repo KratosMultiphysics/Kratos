@@ -206,7 +206,6 @@ double SmallStrainIsotropicDamage3D::EvaluateHardeningModulus(
 
     const double H0 = rMaterialProperties[HARDENING_MODULI_VECTOR][0];
     const double H1 = rMaterialProperties[HARDENING_MODULI_VECTOR][1];
-    //const double H1 = 0.;
 
     const double r0 = yield_stress / std::sqrt(young_modulus);
     const double q0 = r0;  // strain_variable_init
