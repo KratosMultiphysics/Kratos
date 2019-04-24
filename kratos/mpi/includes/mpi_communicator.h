@@ -136,6 +136,23 @@ template<std::size_t TDim> struct SendTools< array_1d<double,TDim> >
     }
 };
 
+template<> struct SendTools< Kratos::Flags >
+{
+    typedef double SendType;
+    constexpr static bool IsFixedSize = true;
+    constexpr static std::size_t SendSize = sizeof(Kratos::Flags)/sizeof(double);
+
+    static inline void WriteBuffer(const Kratos::Flags& rValue, SendType* pBuffer)
+    {
+        *(Kratos::Flags*) (pBuffer) = rValue;
+    }
+
+    static inline void ReadBuffer(const SendType* pBuffer, Kratos::Flags& rValue)
+    {
+        rValue = *(reinterpret_cast<const Kratos::Flags*>(pBuffer));
+    }
+};
+
 template<> struct SendTools< Vector >
 {
     typedef double SendType;
@@ -340,10 +357,9 @@ void SetValue(IteratorType& iter, const TValue& rValue)
 
 class NodalFlagsAccess
 {
+public:
 
 const Kratos::Flags& mrMask;
-
-public:
 
 using ValueType = Kratos::Flags;
 using SendType = typename SendTools<ValueType>::SendType; 
@@ -406,8 +422,9 @@ enum class OperationType {
     Replace,
     SumValues,
     MinValues,
-    OrFlags,
-    AndFlags
+    OrMaskedFlags,
+    AndMaskedFlags,
+    ReplaceMaskedFlags
 };
 
 // Auxiliary type for compile-time dispatch of the reduction operation in data transfer methods
@@ -1109,62 +1126,15 @@ public:
      */
     bool SynchronizeOrNodalFlags(const Flags& TheFlags) override
     {
-        constexpr unsigned int flag_size = sizeof(Flags) / sizeof(double);
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        MPIInternals::NodalFlagsAccess nodal_flag_access(TheFlags);
+        constexpr Operation<OperationType::AndMaskedFlags> masked_and;
+        constexpr Operation<OperationType::ReplaceMaskedFlags> masked_replace;
 
-        const NeighbourIndicesContainerType& r_neighbour_indices = NeighbourIndices();
-        const unsigned int number_of_communication_steps = r_neighbour_indices.size();
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_flag_access, masked_and);
 
-        std::vector<double> send_buffer;
-        std::vector< std::vector<double>*> receive_buffers(number_of_communication_steps);
-
-        for (unsigned int step = 0; step < number_of_communication_steps; step++)
-        {
-            if (r_neighbour_indices[step] >= 0) // If this rank communicates during this step
-            {
-                NodesContainerType& r_local_nodes = LocalMesh(step).Nodes();
-                NodesContainerType& r_ghost_nodes = GhostMesh(step).Nodes();
-
-                unsigned int send_size = r_ghost_nodes.size() * flag_size;
-                unsigned int recv_size = r_local_nodes.size() * flag_size;
-
-                if ( (send_size == 0) && (recv_size == 0) )
-                    continue;
-
-                send_buffer.resize(send_size);
-                receive_buffers[step] = new std::vector<double>(recv_size);
-
-                double* isend = send_buffer.data();
-                for (ModelPart::NodeIterator inode = r_ghost_nodes.begin(); inode < r_ghost_nodes.end(); ++inode)
-                {
-                    *(Flags*)(isend) = Flags(*inode);
-                    isend += flag_size;
-                }
-
-                mrDataCommunicator.SendRecv(
-                    send_buffer, r_neighbour_indices[step], step,
-                    *(receive_buffers[step]), r_neighbour_indices[step], step);
-            }
-        }
-
-        for (unsigned int step = 0; step < number_of_communication_steps; step++)
-        {
-            if (r_neighbour_indices[step] >= 0) // If this rank communicates during this step
-            {
-                double* irecv = receive_buffers[step]->data();
-                NodesContainerType& r_local_nodes = LocalMesh(step).Nodes();
-                for (ModelPart::NodeIterator inode = r_local_nodes.begin(); inode < r_local_nodes.end(); ++inode)
-                {
-                    Flags recv = *reinterpret_cast<Flags*>(irecv);
-                    (*inode) |= recv & TheFlags;
-                    irecv += flag_size;
-                }
-
-                delete receive_buffers[step];
-            }
-        }
-
-        SynchronizeNodalFlags(TheFlags);
-
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_flag_access, masked_replace);
         return true;
     }
 
@@ -1174,62 +1144,15 @@ public:
      */
     bool SynchronizeAndNodalFlags(const Flags& TheFlags) override
     {
-        constexpr unsigned int flag_size = sizeof(Flags) / sizeof(double);
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        MPIInternals::NodalFlagsAccess nodal_flag_access(TheFlags);
+        constexpr Operation<OperationType::OrMaskedFlags> masked_or;
+        constexpr Operation<OperationType::ReplaceMaskedFlags> masked_replace;
 
-        const NeighbourIndicesContainerType& r_neighbour_indices = NeighbourIndices();
-        const unsigned int number_of_communication_steps = r_neighbour_indices.size();
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_flag_access, masked_or);
 
-        std::vector<double> send_buffer;
-        std::vector< std::vector<double>*> receive_buffers(number_of_communication_steps);
-
-        for (unsigned int step = 0; step < number_of_communication_steps; step++)
-        {
-            if (r_neighbour_indices[step] >= 0) // If this rank communicates during this step
-            {
-                NodesContainerType& r_local_nodes = LocalMesh(step).Nodes();
-                NodesContainerType& r_ghost_nodes = GhostMesh(step).Nodes();
-
-                unsigned int send_size = r_ghost_nodes.size() * flag_size;
-                unsigned int recv_size = r_local_nodes.size() * flag_size;
-
-                if ( (send_size == 0) && (recv_size == 0) )
-                    continue;
-
-                send_buffer.resize(send_size);
-                receive_buffers[step] = new std::vector<double>(recv_size);
-
-                double* isend = send_buffer.data();
-                for (ModelPart::NodeIterator inode = r_ghost_nodes.begin(); inode < r_ghost_nodes.end(); ++inode)
-                {
-                    *(Flags*)(isend) = Flags(*inode);
-                    isend += flag_size;
-                }
-
-                mrDataCommunicator.SendRecv(
-                    send_buffer, r_neighbour_indices[step], step,
-                    *(receive_buffers[step]), r_neighbour_indices[step], step);
-            }
-        }
-
-        for (unsigned int step = 0; step < number_of_communication_steps; step++)
-        {
-            if (r_neighbour_indices[step] >= 0) // If this rank communicates during this step
-            {
-                double* irecv = receive_buffers[step]->data();
-                NodesContainerType& r_local_nodes = LocalMesh(step).Nodes();
-                for (ModelPart::NodeIterator inode = r_local_nodes.begin(); inode < r_local_nodes.end(); ++inode)
-                {
-                    Flags recv = *reinterpret_cast<Flags*>(irecv);
-                    (*inode) &= recv | ~TheFlags;
-                    irecv += flag_size;
-                }
-
-                delete receive_buffers[step];
-            }
-        }
-
-        SynchronizeNodalFlags(TheFlags);
-
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_flag_access, masked_replace);
         return true;
     }
 
@@ -1987,6 +1910,37 @@ private:
     {
         TValue& r_current = Access.GetValue(ContainerIterator);
         if (rRecvValue < r_current) r_current = rRecvValue;
+    }
+
+    template<typename TValue, class TDatabaseAccess>
+    void ReduceValues(
+        const TValue& rRecvValue,
+        TDatabaseAccess Access,
+        typename TDatabaseAccess::IteratorType ContainerIterator,
+        Operation<OperationType::AndMaskedFlags>)
+    {
+        Access.GetValue(ContainerIterator) &= rRecvValue | ~Access.mrMask;
+    }
+
+    template<typename TValue, class TDatabaseAccess>
+    void ReduceValues(
+        const TValue& rRecvValue,
+        TDatabaseAccess Access,
+        typename TDatabaseAccess::IteratorType ContainerIterator,
+        Operation<OperationType::OrMaskedFlags>)
+    {
+        Access.GetValue(ContainerIterator) |= rRecvValue & Access.mrMask;
+    }
+
+    template<typename TValue, class TDatabaseAccess>
+    void ReduceValues(
+        const TValue& rRecvValue,
+        TDatabaseAccess Access,
+        typename TDatabaseAccess::IteratorType ContainerIterator,
+        Operation<OperationType::ReplaceMaskedFlags>)
+    {
+        TValue& r_current = Access.GetValue(ContainerIterator);
+        r_current.AssignFlags( (rRecvValue & Access.mrMask) | (r_current & ~Access.mrMask) );
     }
 
     template<
