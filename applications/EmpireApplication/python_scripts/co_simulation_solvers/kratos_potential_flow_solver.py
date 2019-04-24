@@ -38,13 +38,15 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
             raise Exception("potential flow requires specification of a process for the wake (currently specifically using 'define_wake_process_2d')")
         self.conversion_process = ComputeForcesOnNodesProcess(self.model, sub_project_parameters[4]["Parameters"])
 
+        # KratosMultiphysics.Logger.PrintInfo("REACTIONS for this case are == ", KratosMultiphysics.REACTION)
+        # self.conversion_process.Execute()
 
     def SolveSolutionStep(self):
         self.wake_process.FindWakeElements()
 
         super(KratosPotentialFlowSolver, self).SolveSolutionStep()
 
-        self.conversion_process.Execute()
+        # self.conversion_process.Execute()
         self.wake_process.CleanMarking()
 
     def _GetParallelType(self):
