@@ -38,9 +38,9 @@ class KratosIO(CoSimulationBaseIO):
         if data_format == "numpy_array":
             # TODO check if var in ModelPart!
             # In this case the from_client is the solver itself
-            data_definition = from_client.GetInterfaceData(data_name)
+            data_definition = from_client.GetInterfaceDataOld(data_name)
             geometry_name = data_definition["geometry_name"].GetString()
-            var_name = data_definition["data_identifier"].GetString()
+            var_name = data_definition["name"].GetString()
             data_array = data_settings["data_array"]
 
             model_part = from_client.model[geometry_name]
@@ -73,9 +73,9 @@ class KratosIO(CoSimulationBaseIO):
         elif data_format == "scalar_value":
             # TODO check if var in ModelPart!
             # In this case the from_client is the solver itself
-            data_definition = from_client.GetInterfaceData(data_name)
+            data_definition = from_client.GetInterfaceDataOld(data_name)
             geometry_name = data_definition["geometry_name"].GetString()
-            var_name = data_definition["data_identifier"].GetString()
+            var_name = data_definition["name"].GetString()
             value = data_settings["scalar_value"]
 
             model_part = from_client.model[geometry_name]
@@ -103,9 +103,9 @@ class KratosIO(CoSimulationBaseIO):
         if data_format == "numpy_array":
             # TODO check if var in ModelPart!
             # In this case the to_client is the solver itself
-            data_definition = to_client.GetInterfaceData(data_name)
+            data_definition = to_client.GetInterfaceDataOld(data_name)
             geometry_name = data_definition["geometry_name"].GetString()
-            var_name = data_definition["data_identifier"].GetString()
+            var_name = data_definition["name"].GetString()
             data_array = data_settings["data_array"]
             buffer_index = data_settings["buffer_index"]
 
@@ -156,7 +156,7 @@ class KratosIO(CoSimulationBaseIO):
 
         if data_format == "numpy_array_mesh":
             # In this case the to_client is the solver itself
-            data_definition = to_client.GetInterfaceData(data_name)
+            data_definition = to_client.GetInterfaceDataOld(data_name)
             geometry_name = data_definition["geometry_name"].GetString()
             model_part = to_client.model[geometry_name]
 
@@ -199,8 +199,8 @@ class KratosIO(CoSimulationBaseIO):
 
     def __GetMapper(self, from_client, to_client, data_settings):
         data_name = data_settings["data_name"]
-        data_definition_from = from_client.GetInterfaceData(data_name)
-        data_definition_to   = to_client.GetInterfaceData(data_name)
+        data_definition_from = from_client.GetInterfaceDataOld(data_name)
+        data_definition_to   = to_client.GetInterfaceDataOld(data_name)
 
         geometry_name_from = data_definition_from["geometry_name"].GetString()
         geometry_name_to = data_definition_to["geometry_name"].GetString()
@@ -249,15 +249,15 @@ class KratosIO(CoSimulationBaseIO):
 
             data_name = data_settings["data_name"]
 
-            data_definition_from = from_client.GetInterfaceData(data_name)
-            data_definition_to = to_client.GetInterfaceData(data_name)
+            data_definition_from = from_client.GetInterfaceDataOld(data_name)
+            data_definition_to = to_client.GetInterfaceDataOld(data_name)
 
             if is_inverse_mapper:
-                var_origin = self.__GetKratosVariable(data_definition_to["data_identifier"].GetString())
-                var_dest = self.__GetKratosVariable(data_definition_from["data_identifier"].GetString())
+                var_origin = self.__GetKratosVariable(data_definition_to["name"].GetString())
+                var_dest = self.__GetKratosVariable(data_definition_from["name"].GetString())
             else:
-                var_origin = self.__GetKratosVariable(data_definition_from["data_identifier"].GetString())
-                var_dest = self.__GetKratosVariable(data_definition_to["data_identifier"].GetString())
+                var_origin = self.__GetKratosVariable(data_definition_from["name"].GetString())
+                var_dest = self.__GetKratosVariable(data_definition_to["name"].GetString())
 
             var_origin_for_mapping = var_origin
             var_dest_for_mapping = var_dest

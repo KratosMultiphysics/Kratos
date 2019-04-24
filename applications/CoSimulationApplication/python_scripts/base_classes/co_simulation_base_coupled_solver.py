@@ -97,10 +97,15 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             for input_data in input_data_list:
                 from_solver = self.participating_solvers[input_data["from_solver"].GetString()]
                 data_name = input_data["data_name"].GetString()
-                data_definition = from_solver.GetInterfaceData(data_name)
-                data_settings = { "data_format" : data_definition["data_format"].GetString(),
-                                "data_name"   : data_name,
-                                "io_settings" : input_data["io_settings"] }
+                data_definition = from_solver.GetInterfaceDataOld(data_name)
+
+                data_format = "kratos_modelpart"
+                if data_definition.Has("data_format"):
+                    data_definition["data_format"].GetString()
+
+                data_settings = { "data_format" : data_format,
+                                  "data_name"   : data_name,
+                                  "io_settings" : input_data["io_settings"] }
                 solver.ImportCouplingInterfaceData(data_settings, from_solver)
 
     def _SynchronizeOutputData(self, solver_name):
@@ -112,10 +117,15 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             for output_data in output_data_list:
                 to_solver = self.participating_solvers[output_data["to_solver"].GetString()]
                 data_name = output_data["data_name"].GetString()
-                data_definition = to_solver.GetInterfaceData(data_name)
-                data_settings = { "data_format" : data_definition["data_format"].GetString(),
-                                "data_name"   : data_name,
-                                "io_settings" : output_data["io_settings"] }
+                data_definition = to_solver.GetInterfaceDataOld(data_name)
+
+                data_format = "kratos_modelpart"
+                if data_definition.Has("data_format"):
+                    data_definition["data_format"].GetString()
+
+                data_settings = { "data_format" : data_format,
+                                  "data_name"   : data_name,
+                                  "io_settings" : output_data["io_settings"] }
                 solver.ExportCouplingInterfaceData(data_settings, to_solver)
 
     def PrintInfo(self):
