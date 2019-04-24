@@ -32,7 +32,7 @@ class CoSimulationBaseSolver(object):
         self.name = solver_name
         self.echo_level = self.cosim_solver_settings["echo_level"].GetInt()
         self.io_is_initialized = False
-        # self.data_map = self.__CreateInterfaceDataMap()
+        self.data_map = self.__CreateInterfaceDataMap()
 
     def Initialize(self):
         pass
@@ -86,8 +86,15 @@ class CoSimulationBaseSolver(object):
             raise Exception('IO for "' + self.name + '" is not initialized!')
         self.io.ExportCouplingInterface(mesh_name, to_client)
 
-    def GetInterfaceData(self, data_name):
+    def GetInterfaceDataOld(self, data_name):
         return self.cosim_solver_settings["data"][data_name]
+
+
+    def GetInterfaceData(self, data_name):
+        try:
+            return self.data_map[data_name]
+        except KeyError:
+            raise Exception("Requested data field " + data_name + " does not exist in the solver ")
 
     def GetBufferSize(self):
         raise Exception('"GetBufferSize" function must be implemented in derived class!')
@@ -119,9 +126,17 @@ class CoSimulationBaseSolver(object):
     #  @param self            The object pointer.
     def __CreateInterfaceDataMap(self):
         data_map = dict()
-        num_data = self.cosim_solver_settings["data"].size()
+        # # num_data = self.cosim_solver_settings["data"].size()
+        # print(self.cosim_solver_settings["data"].keys())
+        # errrr
+
+        print("\n\nsolver_name", self.name)
+        # print(self.cosim_solver_settings.PrettyPrintJsonString())
+        # for i in range(self.cosim_solver_settings["data"].size()):
         for data_conf in self.cosim_solver_settings["data"]:
             data_name = data_conf["name"].GetString()
+            print(data_conf.PrettyPrintJsonString())
+            print(data_name)
             data_obj = CouplingInterfaceData(data_conf, self)
             data_map[data_name] = data_obj
 
