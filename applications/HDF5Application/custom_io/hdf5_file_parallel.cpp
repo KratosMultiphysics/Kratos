@@ -345,7 +345,7 @@ void FileParallel::WriteDataSetMatrixImpl(const std::string& rPath,
         local_start[0] = 0;
 
     // Set the data type.
-    hid_t dtype_id = Internals::GetScalarDataType<T>();
+    hid_t dtype_id = Internals::GetScalarDataType(rData);
 
     // Create and write the data set.
     hid_t file_id = GetFileId();
@@ -528,7 +528,7 @@ void FileParallel::ReadDataSetMatrixImpl(const std::string& rPath,
     local_start[0] = StartIndex;
 
     // Set the data type.
-    hid_t dtype_id = Internals::GetScalarDataType<T>();
+    hid_t dtype_id = Internals::GetScalarDataType(rData);
     if (dtype_id == H5T_NATIVE_INT)
     {
         KRATOS_ERROR_IF_NOT(HasIntDataType(rPath))
