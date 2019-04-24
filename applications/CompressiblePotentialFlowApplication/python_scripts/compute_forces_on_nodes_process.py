@@ -18,10 +18,10 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
             "create_output_file": false
         }''')
 
-        # settings.ValidateAndAssignDefaults(default_parameters)
+        settings.ValidateAndAssignDefaults(default_parameters)
 
         self.body_model_part = Model[settings["model_part_name"].GetString()]
-        # self.create_output_file = settings["create_output_file"].GetBool()
+        self.create_output_file = settings["create_output_file"].GetBool()
 
     # def __init__(self, body_model_part):
     #     KratosMultiphysics.Process.__init__(self)
@@ -35,6 +35,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
 
     def Execute(self):
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess', 'Computing reactions on nodes')
+        KratosMultiphysics.Logger.PrintInfo('Model taken here', self.body_model_part)
 
         KratosMultiphysics.VariableUtils().SetToZero_VectorVar(KratosMultiphysics.REACTION, self.body_model_part.Nodes)
 
@@ -49,17 +50,24 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
             pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE)
 
             for node in cond.GetNodes():
+                # KratosMultiphysics.Logger.PrintInfo("Printing Condition and Nodal Values")
+                # KratosMultiphysics.Logger.PrintInfo("condition_normal   ",condition_normal)
+                # KratosMultiphysics.Logger.PrintInfo("pressure_coefficient   ",pressure_coefficient)
+                # KratosMultiphysics.Logger.PrintInfo("dynamic_pressure   ",dynamic_pressure)
                 added_force = condition_normal*(pressure_coefficient/2.0)*dynamic_pressure
                 nodal_force = node.GetValue(KratosMultiphysics.REACTION) + added_force
                 node.SetValue(KratosMultiphysics.REACTION, nodal_force)
+                # KratosMultiphysics.Logger.PrintInfo("REACTION   ",node.GetValue(KratosMultiphysics.REACTION))
 
         total_force = KratosMultiphysics.VariableUtils().SumNonHistoricalNodeVectorVariable(KratosMultiphysics.REACTION, self.body_model_part)
+        # KratosMultiphysics.Logger.PrintInfo("total_force   ",total_force)
 
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Lift Force = ', total_force[1])
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Drag Force = ', total_force[0])
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Side Force = ', total_force[2])
 
-        if self.create_output_file:
-            with open("cl_points_with_lift.dat", 'w') as cl_file:
-                cl_file.write('{0:15.12f}'.format(total_force[1]/dynamic_pressure))
+        return self.body_model_part.GetValue(KratosMultiphysics.REACTION)
+        # if self.create_output_file:
+        #     with open("cl_points_with_lift.dat", 'w') as cl_file:
+        #         cl_file.write('{0:15.12f}'.format(total_force[1]/dynamic_pressure))
 
