@@ -17,10 +17,10 @@
 
 
 // Project includes
-#include "includes/define_python.h"
-#include "custom_python/add_custom_utilities_to_python.h"
+#include "add_custom_utilities_to_python.h"
 #include "custom_utilities/move_shallow_water_particle_utility.h"
 #include "custom_utilities/shallow_water_variables_utility.h"
+#include "custom_utilities/estimate_dt_utility.h"
 
 
 namespace Kratos
@@ -69,6 +69,12 @@ namespace Python
         .def("SetMeshPosition", &ShallowWaterVariablesUtility::SetMeshPosition)
         .def("SetElementsActive", &ShallowWaterVariablesUtility::SetElementsActive)
         ;
+
+    py::class_< EstimateDtShallow > (m, "EstimateDtShallow")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("EstimateDt", &EstimateDtShallow::EstimateDt)
+        ;
+
   }
 
 }  // namespace Python.

@@ -97,6 +97,8 @@ public:
 
     bool HasAttribute(const std::string& rObjectPath, const std::string& rName) const;
 
+    void DeleteAttribute(const std::string& rObjectPath, const std::string& rName);
+
     std::vector<std::string> GetAttributeNames(const std::string& rObjectPath) const;
 
     void CreateGroup(const std::string& rPath);
@@ -300,12 +302,20 @@ bool IsPath(const std::string& rPath);
 /// Return vector of non-empty substrings separated by a delimiter.
 std::vector<std::string> Split(const std::string& rPath, char Delimiter);
 
-template <class TScalar>
-hid_t GetScalarDataType();
+hid_t GetScalarDataType(const Vector<int>&);
+hid_t GetScalarDataType(const Vector<double>&);
+hid_t GetScalarDataType(const Vector<array_1d<double, 3>>&);
+hid_t GetScalarDataType(const Matrix<int>&);
+hid_t GetScalarDataType(const Matrix<double>&);
+hid_t GetScalarDataType(int);
+hid_t GetScalarDataType(double);
 
-extern template hid_t GetScalarDataType<int>();
-extern template hid_t GetScalarDataType<double>();
-
+std::vector<hsize_t> GetDataDimensions(const Vector<int>& rData);
+std::vector<hsize_t> GetDataDimensions(const Vector<double>& rData);
+std::vector<hsize_t> GetDataDimensions(const Vector<array_1d<double, 3>>& rData);
+std::vector<hsize_t> GetDataDimensions(const Matrix<int>& rData);
+std::vector<hsize_t> GetDataDimensions(const Matrix<double>& rData);
+std::vector<hsize_t> GetDataDimensions(const File& rFile, const std::string& rPath);
 } // namespace Internals.
 
 ///@} addtogroup
