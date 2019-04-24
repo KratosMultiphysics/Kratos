@@ -9,9 +9,9 @@ def Create(model, cosim_solver_settings, solver_name):
 class GaussSeidelWeakCouplingSolver(CoSimulationBaseCouplingSolver):
     def SolveSolutionStep(self):
         for solver_name, solver in self.participating_solvers.items():
-            self._SynchronizeInputData(solver, solver_name)
+            self._SynchronizeInputData(solver_name)
             solver.SolveSolutionStep()
-            self._SynchronizeOutputData(solver, solver_name)
+            self._SynchronizeOutputData(solver_name)
 
     def _Name(self):
         return self.__class__.__name__

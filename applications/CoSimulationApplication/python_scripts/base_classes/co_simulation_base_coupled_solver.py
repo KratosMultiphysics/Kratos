@@ -88,8 +88,9 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         err_msg += 'This function has to be implemented in the derived class!'
         raise Exception(err_msg)
 
-    def _SynchronizeInputData(self, solver, solver_name):
+    def _SynchronizeInputData(self, solver_name):
         if self.coupling_started:
+            solver = self.participating_solvers[solver_name]
             input_data_list = self.coupling_sequence[solver_name]["input_data_list"]
             # TODO reimplement this properly!
             # if self.time >= self.coupling_sequence[solver_name]["input_coupling_start_time"]:
@@ -102,8 +103,9 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
                                 "io_settings" : input_data["io_settings"] }
                 solver.ImportCouplingInterfaceData(data_settings, from_solver)
 
-    def _SynchronizeOutputData(self, solver, solver_name):
+    def _SynchronizeOutputData(self, solver_name):
         if self.coupling_started:
+            solver = self.participating_solvers[solver_name]
             output_data_list = self.coupling_sequence[solver_name]["output_data_list"]
             # TODO reimplement this properly!
             # if self.time >= self.coupling_sequence[solver_name]["output_coupling_start_time"]:
