@@ -178,6 +178,32 @@ template<> struct SendTools< Matrix >
     }
 };
 
+template<std::size_t TDim> struct SendTools< DenseVector<array_1d<double,TDim> > >
+{
+    typedef double SendType;
+    constexpr static bool IsFixedSize = false;
+    
+    static inline std::size_t GetSendSize(const DenseVector<array_1d<double,TDim>>& rValue)
+    {
+        return rValue.size()*sizeof(array_1d<double,TDim>)/sizeof(double);
+    }
+
+    static inline void WriteBuffer(const DenseVector<array_1d<double,TDim> >& rValue, SendType* pBuffer)
+    {
+        std::memcpy(pBuffer, &(rValue.data()[0]), rValue.size()*sizeof(array_1d<double,TDim>));
+    }
+
+    static inline void ReadBuffer(const SendType* pBuffer, DenseVector<array_1d<double,TDim> >& rValue)
+    {
+        std::size_t position = 0;
+        for (unsigned int i = 0; i < rValue.size(); i++)
+        {
+            rValue[i] = *(reinterpret_cast<const array_1d<double,TDim>*>(pBuffer + position));
+            position += sizeof(array_1d<double,TDim>) / sizeof(double);
+        }
+    }
+};
+
 template<
     class TAccess,
     bool IsFixedSize = SendTools<typename TAccess::ValueType>::IsFixedSize >
@@ -768,49 +794,57 @@ public:
 
     bool SynchronizeNonHistoricalVariable(Variable<int> const& rThisVariable) override
     {
-        SynchronizeNonHistoricalVariable<int,int>(rThisVariable);
+        MPIInternals::NodalDataAccess<int> nodal_data_access(rThisVariable);
+        SynchronizeFixedSizeValues(nodal_data_access);
         return true;
     }
 
     bool SynchronizeNonHistoricalVariable(Variable<double> const& rThisVariable) override
     {
-        SynchronizeNonHistoricalVariable<double,double>(rThisVariable);
+        MPIInternals::NodalDataAccess<double> nodal_data_access(rThisVariable);
+        SynchronizeFixedSizeValues(nodal_data_access);
         return true;
     }
 
     bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 3 > > const& rThisVariable) override
     {
-        SynchronizeNonHistoricalVariable<array_1d<double, 3 >,double>(rThisVariable);
+        MPIInternals::NodalDataAccess<array_1d<double,3>> nodal_data_access(rThisVariable);
+        SynchronizeFixedSizeValues(nodal_data_access);
         return true;
     }
 
     bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 4 > > const& rThisVariable) override
     {
-        SynchronizeNonHistoricalVariable<array_1d<double, 4 >,double>(rThisVariable);
+        MPIInternals::NodalDataAccess<array_1d<double,4>> nodal_data_access(rThisVariable);
+        SynchronizeFixedSizeValues(nodal_data_access);
         return true;
     }
 
     bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 6 > > const& rThisVariable) override
     {
-        SynchronizeNonHistoricalVariable<array_1d<double, 6 >,double>(rThisVariable);
+        MPIInternals::NodalDataAccess<array_1d<double,6>> nodal_data_access(rThisVariable);
+        SynchronizeFixedSizeValues(nodal_data_access);
         return true;
     }
 
     bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 9 > > const& rThisVariable) override
     {
-        SynchronizeNonHistoricalVariable<array_1d<double, 9 >,double>(rThisVariable);
+        MPIInternals::NodalDataAccess<array_1d<double,9>> nodal_data_access(rThisVariable);
+        SynchronizeFixedSizeValues(nodal_data_access);
         return true;
     }
 
     bool SynchronizeNonHistoricalVariable(Variable<Vector> const& rThisVariable) override
     {
-        SynchronizeNonHistoricalVariable<Vector,double>(rThisVariable);
+        MPIInternals::NodalDataAccess<Vector> nodal_data_access(rThisVariable);
+        SynchronizeDynamicVectorValues(nodal_data_access);
         return true;
     }
 
     bool SynchronizeNonHistoricalVariable(Variable<Matrix> const& rThisVariable) override
     {
-        SynchronizeNonHistoricalVariable<Matrix,double>(rThisVariable);
+        MPIInternals::NodalDataAccess<Matrix> nodal_data_access(rThisVariable);
+        SynchronizeDynamicMatrixValues(nodal_data_access);
         return true;
     }
 
@@ -859,37 +893,43 @@ public:
 
     bool AssembleNonHistoricalData(Variable<int> const& ThisVariable) override
     {
-        AssembleThisNonHistoricalVariable<int,int>(ThisVariable);
+        MPIInternals::NodalDataAccess<int> nodal_data_access(ThisVariable);
+        AssembleFixedSizeValues(nodal_data_access);
         return true;
     }
 
     bool AssembleNonHistoricalData(Variable<double> const& ThisVariable) override
     {
-        AssembleThisNonHistoricalVariable<double,double>(ThisVariable);
+        MPIInternals::NodalDataAccess<double> nodal_data_access(ThisVariable);
+        AssembleFixedSizeValues(nodal_data_access);
         return true;
     }
 
     bool AssembleNonHistoricalData(Variable<array_1d<double, 3 > > const& ThisVariable) override
     {
-        AssembleThisNonHistoricalVariable<array_1d<double,3>,double>(ThisVariable);
+        MPIInternals::NodalDataAccess<array_1d<double,3>> nodal_data_access(ThisVariable);
+        AssembleFixedSizeValues(nodal_data_access);
         return true;
     }
 
     bool AssembleNonHistoricalData(Variable<DenseVector<array_1d<double,3> > > const& ThisVariable) override
     {
-        AssembleThisNonHistoricalVariable<DenseVector<array_1d<double,3> >,double>(ThisVariable);
+        MPIInternals::NodalDataAccess<DenseVector<array_1d<double,3>>> nodal_data_access(ThisVariable);
+        AssembleDynamicVectorValues(nodal_data_access);
         return true;
     }
 
     bool AssembleNonHistoricalData(Variable<Vector> const& ThisVariable) override
     {
-        AssembleThisNonHistoricalVariable<Vector,double>(ThisVariable);
+        MPIInternals::NodalDataAccess<Vector> nodal_data_access(ThisVariable);
+        AssembleDynamicVectorValues(nodal_data_access);
         return true;
     }
 
     bool AssembleNonHistoricalData(Variable<Matrix> const& ThisVariable) override
     {
-        AssembleThisNonHistoricalVariable<Matrix,double>(ThisVariable);
+        MPIInternals::NodalDataAccess<Matrix> nodal_data_access(ThisVariable);
+        AssembleDynamicMatrixValues(nodal_data_access);
         return true;
     }
 
