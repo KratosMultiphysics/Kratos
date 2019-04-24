@@ -49,7 +49,7 @@ namespace Kratos
  * - POISSON_RATIO
  * - YIELD_STRESS
  * - INFINITY_YIELD_STRESS
- * - ISOTROPIC_HARDENING_MODULUS
+ * - HARDENING_MODULI_VECTOR: List of hardening modules (only two branches considered)
  * @warning Valid for small strains
  * @note
  * @author Marcelo Raschi

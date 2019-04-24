@@ -228,23 +228,6 @@ double SmallStrainIsotropicDamage3D::EvaluateHardeningLaw(
         double r,
         const Properties &rMaterialProperties)
 {
-//    const double yield_stress = rMaterialProperties[YIELD_STRESS];
-//    const double inf_yield_stress = rMaterialProperties[INFINITY_YIELD_STRESS];
-//    const double young_modulus = rMaterialProperties[YOUNG_MODULUS];
-//    const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
-//    const double strain_variable_init = yield_stress / std::sqrt(young_modulus);
-//    const double stress_variable_inf = inf_yield_stress / std::sqrt(young_modulus);
-//    double stress_variable;
-//    const double tolerance = std::numeric_limits<double>::epsilon();
-//
-//    if (StrainVariable < strain_variable_init)
-//        return strain_variable_init;
-//    stress_variable = strain_variable_init + hardening_modulus * (StrainVariable - strain_variable_init);
-//    if ((hardening_modulus > tolerance && stress_variable > stress_variable_inf) ||
-//        (hardening_modulus < tolerance && stress_variable < stress_variable_inf))
-//        stress_variable = stress_variable_inf;
-//    return stress_variable;    const double yield_stress = rMaterialProperties[YIELD_STRESS];
-
     const double yield_stress = rMaterialProperties[YIELD_STRESS];
     const double inf_yield_stress = rMaterialProperties[INFINITY_YIELD_STRESS];
     const double young_modulus = rMaterialProperties[YOUNG_MODULUS];
