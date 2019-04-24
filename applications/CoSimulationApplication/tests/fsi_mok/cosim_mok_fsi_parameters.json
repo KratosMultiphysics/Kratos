@@ -24,7 +24,7 @@
             {
                 "type"      : "mvqn",
                 "solver"    : "fluid",
-                "data_name" : "disp"
+                "data_name" : "MESH_DISPLACEMENT"
             }
         ],
         "convergence_criteria" : [
@@ -76,19 +76,18 @@
                 "data" : {
                     "disp" : {
                         "geometry_name"   : "FluidModelPart.NoSlip2D_FSI",
-                        "data_identifier" : "MESH_DISPLACEMENT",
-                        "data_format"     : "kratos_modelpart"
+                        "dimension" : 3,
+                        "name" : "MESH_DISPLACEMENT"
                     },
                     "force" : {
                         "geometry_name"   : "FluidModelPart.NoSlip2D_FSI",
-                        "type_of_quantity": "_nodal_point",
-                        "data_identifier" : "REACTION",
-                        "data_format"     : "kratos_modelpart"
+                        "dimension" : 3,
+                        "name" : "REACTION"
                     },
                     "vel" : {
                         "geometry_name"   : "FluidModelPart.NoSlip2D_FSI",
-                        "data_identifier" : "VELOCITY",
-                        "data_format"     : "kratos_modelpart"
+                        "dimension" : 3,
+                        "name" : "VELOCITY"
                     }
                 }
             },
@@ -99,19 +98,18 @@
                 "data" : {
                     "disp" : {
                         "geometry_name"   : "GENERIC_FSI",
-                        "data_identifier" : "DISPLACEMENT",
-                        "data_format"     : "kratos_modelpart"
+                        "dimension" : 3,
+                        "name" : "DISPLACEMENT"
                     },
                     "force" : {
                         "geometry_name"   : "GENERIC_FSI",
-                        "data_identifier" : "POINT_LOAD",
-                        "type_of_quantity": "_nodal_point",
-                        "data_format"     : "kratos_modelpart"
+                        "dimension" : 3,
+                        "name" : "POINT_LOAD"
                     },
                     "vel" : {
                         "geometry_name"   : "GENERIC_FSI",
-                        "data_identifier" : "VELOCITY",
-                        "data_format"     : "kratos_modelpart"
+                        "dimension" : 3,
+                        "name" : "VELOCITY"
                     }
                 }
             }

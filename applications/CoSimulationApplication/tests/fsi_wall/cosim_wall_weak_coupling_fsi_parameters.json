@@ -60,18 +60,18 @@
                 "data" : {
                     "disp" : {
                         "geometry_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
-                        "data_identifier" : "MESH_DISPLACEMENT",
-                        "data_format"     : "kratos_modelpart"
+                        "name" : "MESH_DISPLACEMENT",
+                        "dimension" : 3
                     },
                         "force" : {
                         "geometry_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
-                        "data_identifier" : "REACTION",
-                        "data_format"     : "kratos_modelpart"
+                        "name" : "REACTION",
+                        "dimension" : 3
                     },
                         "vel" : {
                         "geometry_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
-                        "data_identifier" : "VELOCITY",
-                        "data_format"     : "kratos_modelpart"
+                        "name" : "VELOCITY",
+                        "dimension" : 3
                     }
                 }
             },
@@ -82,18 +82,18 @@
                 "data" : {
                     "disp" : {
                         "geometry_name" : "GENERIC_FSI_Interface",
-                        "data_identifier" : "DISPLACEMENT",
-                        "data_format"     : "kratos_modelpart"
+                        "name" : "DISPLACEMENT",
+                        "dimension" : 3
                     },
                         "force" : {
                         "geometry_name" : "GENERIC_FSI_Interface",
-                        "data_identifier" : "POINT_LOAD",
-                        "data_format"     : "kratos_modelpart"
+                        "name" : "POINT_LOAD",
+                        "dimension" : 3
                     },
                          "vel" : {
                         "geometry_name" : "GENERIC_FSI_Interface",
-                        "data_identifier" : "VELOCITY",
-                        "data_format"     : "kratos_modelpart"
+                        "name" : "VELOCITY",
+                        "dimension" : 3
                     }
                 }
             }
