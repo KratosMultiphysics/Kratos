@@ -72,19 +72,19 @@ class CoSimulationBaseSolver(object):
         if not self.io_is_initialized:
             raise Exception('IO for "' + self.name + '" is not initialized!')
         self.io.ImportCouplingInterfaceData(data_name, from_client)
-    def ImportCouplingInterface(self, mesh_name, from_client):
+    def ImportCouplingInterface(self, geometry_name, from_client):
         if not self.io_is_initialized:
             raise Exception('IO for "' + self.name + '" is not initialized!')
-        self.io.ImportCouplingInterface(mesh_name, from_client)
+        self.io.ImportCouplingInterface(geometry_name, from_client)
 
     def ExportCouplingInterfaceData(self, data_name, to_client):
         if not self.io_is_initialized:
             raise Exception('IO for "' + self.name + '" is not initialized!')
         self.io.ExportCouplingInterfaceData(data_name, to_client)
-    def ExportCouplingInterface(self, mesh_name, to_client):
+    def ExportCouplingInterface(self, geometry_name, to_client):
         if not self.io_is_initialized:
             raise Exception('IO for "' + self.name + '" is not initialized!')
-        self.io.ExportCouplingInterface(mesh_name, to_client)
+        self.io.ExportCouplingInterface(geometry_name, to_client)
 
     def GetInterfaceDataOld(self, data_name):
         return self.cosim_solver_settings["data"][data_name]
