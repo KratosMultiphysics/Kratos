@@ -56,9 +56,8 @@
 #include "processes/simple_mortar_mapper_wrapper_process.h"
 #include "processes/skin_detection_process.h"
 #include "processes/apply_periodic_boundary_condition_process.h"
-#include "processes/find_intersected_geometrical_objects_process.h"
-#include "processes/find_intersected_geometrical_objects_with_obb_process.h"
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
+#include "includes/node.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -540,55 +539,7 @@ void  AddProcessesToPython(pybind11::module& m)
         ;
 
     py::class_<ApplyPeriodicConditionProcess, ApplyPeriodicConditionProcess::Pointer, Process>(m,"ApplyPeriodicConditionProcess")
-    .def(py::init<ModelPart&,ModelPart&, Parameters>())
-    ;
-
-    py::class_<FindIntersectedGeometricalObjectsProcess<Element>, FindIntersectedGeometricalObjectsProcess<Element>::Pointer, Process>(m,"FindIntersectedElementsProcess")
-    .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<Model&, Parameters>())
-    ;
-
-    py::class_<FindIntersectedGeometricalObjectsProcess<Condition>, FindIntersectedGeometricalObjectsProcess<Condition>::Pointer, Process>(m,"FindIntersectedConditionsProcess")
-    .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<Model&, Parameters>())
-    ;
-
-    py::class_<FindIntersectedGeometricalObjectsProcess<Element, Condition>, FindIntersectedGeometricalObjectsProcess<Element, Condition>::Pointer, Process>(m,"FindIntersectedElementsConditionsProcess")
-    .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<Model&, Parameters>())
-    ;
-
-    py::class_<FindIntersectedGeometricalObjectsProcess<Condition, Element>, FindIntersectedGeometricalObjectsProcess<Condition, Element>::Pointer, Process>(m,"FindIntersectedConditionsElementsProcess")
-    .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<Model&, Parameters>())
-    ;
-
-    py::class_<FindIntersectedGeometricalObjectsWithOBBProcess<Element>, FindIntersectedGeometricalObjectsWithOBBProcess<Element>::Pointer, Process>(m,"FindIntersectedElementsWithOBBProcess")
-    .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<ModelPart&,ModelPart&, const double>())
-    .def(py::init<ModelPart&,ModelPart&, const double, const bool>())
-    .def(py::init<Model&, Parameters>())
-    ;
-
-    py::class_<FindIntersectedGeometricalObjectsWithOBBProcess<Condition>, FindIntersectedGeometricalObjectsWithOBBProcess<Condition>::Pointer, Process>(m,"FindIntersectedConditionsWithOBBProcess")
-    .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<ModelPart&,ModelPart&, const double>())
-    .def(py::init<ModelPart&,ModelPart&, const double, const bool>())
-    .def(py::init<Model&, Parameters>())
-    ;
-
-    py::class_<FindIntersectedGeometricalObjectsWithOBBProcess<Element, Condition>, FindIntersectedGeometricalObjectsWithOBBProcess<Element, Condition>::Pointer, Process>(m,"FindIntersectedElementsConditionsWithOBBProcess")
-    .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<ModelPart&,ModelPart&, const double>())
-    .def(py::init<ModelPart&,ModelPart&, const double, const bool>())
-    .def(py::init<Model&, Parameters>())
-    ;
-
-    py::class_<FindIntersectedGeometricalObjectsWithOBBProcess<Condition, Element>, FindIntersectedGeometricalObjectsWithOBBProcess<Condition, Element>::Pointer, Process>(m,"FindIntersectedConditionsElementsWithOBBProcess")
-    .def(py::init<ModelPart&,ModelPart&>())
-    .def(py::init<ModelPart&,ModelPart&, const double>())
-    .def(py::init<ModelPart&,ModelPart&, const double, const bool>())
-    .def(py::init<Model&, Parameters>())
+            .def(py::init<ModelPart&,ModelPart&, Parameters>())
     ;
 
     // The process to recover internal variables
