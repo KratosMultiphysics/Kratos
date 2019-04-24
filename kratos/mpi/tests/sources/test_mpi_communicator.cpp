@@ -289,6 +289,8 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchronize, Krato
     r_model_part.AddNodalSolutionStepVariable(DOMAIN_SIZE);           // Variable<int>
     r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);           // Variable<double>
     r_model_part.AddNodalSolutionStepVariable(VELOCITY);              // Variable< array_1d<double,3> >
+    r_model_part.AddNodalSolutionStepVariable(CAUCHY_STRESS_VECTOR);  // Variable<Vector>
+    r_model_part.AddNodalSolutionStepVariable(DEFORMATION_GRADIENT);  // Variable<Matrix>
 
     MPIDataCommunicator comm_world(MPI_COMM_WORLD);
     Internals::ModelPartForMPICommunicatorTests(r_model_part, comm_world);
@@ -301,6 +303,14 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchronize, Krato
         i_node->FastGetSolutionStepValue(TEMPERATURE, 0) = 2.0;
         i_node->FastGetSolutionStepValue(VELOCITY_X, 0) = 1.0;
         i_node->FastGetSolutionStepValue(VELOCITY_Y, 0) = 2.0;
+        Vector& r_cauchy_stress = i_node->FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR, 0);
+        r_cauchy_stress.resize(2, false);
+        r_cauchy_stress = ZeroVector(2);
+        r_cauchy_stress[1] = 1.0;
+        Matrix& r_deformation_gradient = i_node->FastGetSolutionStepValue(DEFORMATION_GRADIENT, 0);
+        r_deformation_gradient.resize(3,2,false);
+        r_deformation_gradient = ZeroMatrix(3,2);
+        r_deformation_gradient(2,1) = 1.0;
     }
 
     r_comm.SynchronizeVariable(DOMAIN_SIZE);
@@ -321,6 +331,25 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchronize, Krato
         KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(VELOCITY_X,0), 1.0);
         KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(VELOCITY_Y,0), 2.0);
         KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(VELOCITY_Z,0), 0.0);
+    }
+
+    r_comm.SynchronizeVariable(CAUCHY_STRESS_VECTOR);
+    for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
+    {
+        const auto& r_vector = i_node->FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR,0);
+        KRATOS_CHECK_EQUAL(r_vector.size(), 2);
+        KRATOS_CHECK_EQUAL(r_vector[0], 0.0);
+        KRATOS_CHECK_EQUAL(r_vector[1], 1.0);
+    }
+
+    r_comm.SynchronizeVariable(DEFORMATION_GRADIENT);
+    for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
+    {
+        const auto& r_matrix = i_node->FastGetSolutionStepValue(DEFORMATION_GRADIENT,0);
+        KRATOS_CHECK_EQUAL(r_matrix.size1(), 3);
+        KRATOS_CHECK_EQUAL(r_matrix.size2(), 2);
+        KRATOS_CHECK_EQUAL(r_matrix(0,0), 0.0);
+        KRATOS_CHECK_EQUAL(r_matrix(2,1), 1.0);
     }
 }
 

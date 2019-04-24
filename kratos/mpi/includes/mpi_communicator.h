@@ -733,31 +733,36 @@ public:
 
     bool SynchronizeVariable(Variable<array_1d<double, 4 > > const& rThisVariable) override
     {
-        SynchronizeVariable<array_1d<double, 4 >,double >(rThisVariable);
+        MPIInternals::NodalSolutionStepValueAccess<array_1d<double,4>> solution_step_value_access(rThisVariable);
+        SynchronizeFixedSizeValues(solution_step_value_access);
         return true;
     }
 
     bool SynchronizeVariable(Variable<array_1d<double, 6 > > const& rThisVariable) override
     {
-        SynchronizeVariable<array_1d<double, 6 >,double >(rThisVariable);
+        MPIInternals::NodalSolutionStepValueAccess<array_1d<double,6>> solution_step_value_access(rThisVariable);
+        SynchronizeFixedSizeValues(solution_step_value_access);
         return true;
     }
 
     bool SynchronizeVariable(Variable<array_1d<double, 9 > > const& rThisVariable) override
     {
-        SynchronizeVariable<array_1d<double, 9 >,double >(rThisVariable);
+        MPIInternals::NodalSolutionStepValueAccess<array_1d<double,9>> solution_step_value_access(rThisVariable);
+        SynchronizeFixedSizeValues(solution_step_value_access);
         return true;
     }
 
     bool SynchronizeVariable(Variable<Vector> const& rThisVariable) override
     {
-        SynchronizeVariable<Vector,double>(rThisVariable);
+        MPIInternals::NodalSolutionStepValueAccess<Vector> solution_step_value_access(rThisVariable);
+        SynchronizeDynamicVectorValues(solution_step_value_access);
         return true;
     }
 
     bool SynchronizeVariable(Variable<Matrix> const& rThisVariable) override
     {
-        SynchronizeVariable<Matrix,double>(rThisVariable);
+        MPIInternals::NodalSolutionStepValueAccess<Matrix> solution_step_value_access(rThisVariable);
+        SynchronizeDynamicMatrixValues(solution_step_value_access);
         return true;
     }
 
@@ -1307,100 +1312,6 @@ private:
             std::cout << i_node->Id() << ", ";
 
         std::cout << std::endl;
-    }
-
-    template<class TDataType, class TSendType>
-    bool AssembleThisVariable(Variable<TDataType> const& ThisVariable)
-    {
-        // PrintNodesId();
-        /*	KRATOS_WATCH("AssembleThisVariable")
-                KRATOS_WATCH(ThisVariable)*/
-        int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-        int destination = 0;
-
-        NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
-        std::vector<TSendType*> receive_buffer(neighbours_indices.size());
-        std::vector<int> receive_buffer_size(neighbours_indices.size());
-
-        TSendType Value = TSendType();
-        MPI_Datatype ThisMPI_Datatype = MPIInternals::DataType(Value);
-
-        //first of all gather everything to the owner node
-        for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
-            if ((destination = neighbours_indices[i_color]) >= 0)
-            {
-                NodesContainerType& r_local_nodes = InterfaceMesh(i_color).Nodes();
-                NodesContainerType& r_ghost_nodes = InterfaceMesh(i_color).Nodes();
-
-                // Calculating send and received buffer size
-                // NOTE: This part can be optimized getting the offset from variables list and using pointers.
-                unsigned int nodal_data_size = sizeof (TDataType) / sizeof (TSendType);
-                unsigned int local_nodes_size = r_local_nodes.size();
-                unsigned int ghost_nodes_size = r_ghost_nodes.size();
-                unsigned int send_buffer_size = local_nodes_size * nodal_data_size;
-                receive_buffer_size[i_color] = ghost_nodes_size * nodal_data_size;
-
-                if ((local_nodes_size == 0) && (ghost_nodes_size == 0))
-                    continue; // nothing to transfer!
-
-                unsigned int position = 0;
-                TSendType* send_buffer = new TSendType[send_buffer_size];
-                receive_buffer[i_color] = new TSendType[receive_buffer_size[i_color]];
-
-                // Filling the buffer
-                for (ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
-                {
-                    *(TDataType*) (send_buffer + position) = i_node->FastGetSolutionStepValue(ThisVariable);
-                    position += nodal_data_size;
-                }
-
-                MPI_Status status;
-
-                if (position > send_buffer_size)
-                    std::cout << rank << " Error in estimating send buffer size...." << std::endl;
-
-                int send_tag = i_color;
-                int receive_tag = i_color;
-
-                MPI_Sendrecv(send_buffer, send_buffer_size, ThisMPI_Datatype, destination, send_tag,
-                             receive_buffer[i_color], receive_buffer_size[i_color], ThisMPI_Datatype, destination, receive_tag,
-                             MPI_COMM_WORLD, &status);
-
-                delete [] send_buffer;
-            }
-
-        for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
-            if ((destination = neighbours_indices[i_color]) >= 0)
-            {
-                // Updating nodes
-                int position = 0;
-                unsigned int nodal_data_size = sizeof (TDataType) / sizeof (TSendType);
-                NodesContainerType& r_ghost_nodes = InterfaceMesh(i_color).Nodes();
-
-                for (ModelPart::NodeIterator i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
-                {
-                    i_node->FastGetSolutionStepValue(ThisVariable) += *reinterpret_cast<TDataType*> (receive_buffer[i_color] + position);
-                    position += nodal_data_size;
-                }
-
-                if (position > receive_buffer_size[i_color])
-                    std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
-
-                delete [] receive_buffer[i_color];
-            }
-
-        //MPI_Barrier(MPI_COMM_WORLD);
-
-
-        //SynchronizeNodalSolutionStepsData();
-        SynchronizeVariable<TDataType,TSendType>(ThisVariable);
-
-
-
-
-        return true;
     }
 
     // this function is for test only and to be removed. Pooyan.
@@ -2170,6 +2081,34 @@ private:
     }
 
     template<class TDatabaseAccess>
+    void SynchronizeDynamicVectorValues(TDatabaseAccess& rVariableAccess)
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+
+        // Communicate vector sizes to ghost copies
+        MatchDynamicVectorSizes(local_meshes, ghost_meshes, rVariableAccess);
+
+        // Synchronize values on ghost copies
+        TransferDistributedValues(local_meshes, ghost_meshes, rVariableAccess, replace);
+    }
+
+    template<class TDatabaseAccess>
+    void SynchronizeDynamicMatrixValues(TDatabaseAccess& rVariableAccess)
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+
+        // Communicate matrix sizes to ghost copies
+        MatchDynamicMatrixSizes(local_meshes, ghost_meshes, rVariableAccess);
+
+        // Synchronize values on ghost copies
+        TransferDistributedValues(local_meshes, ghost_meshes, rVariableAccess, replace);
+    }
+
+    template<class TDatabaseAccess>
     void AssembleFixedSizeValues(TDatabaseAccess& rVariableAccess)
     {
         constexpr MeshAccess<DistributedType::Local> local_meshes;
@@ -2467,6 +2406,7 @@ private:
         std::vector<int> recv_sizes;
 
         bool resize_error = false;
+        std::stringstream error_detail;
 
         for (unsigned int i_color = 0; i_color < neighbour_indices.size(); i_color++)
         {
@@ -2526,6 +2466,10 @@ private:
                         else
                         {
                             resize_error = true;
+                            error_detail 
+                            << "On rank " << mrDataCommunicator.Rank() << ": "
+                            << "local size: (" << r_value.size1() << "," << r_value.size2() << ") "
+                            << "source size: (" << source_size_1 << "," << source_size_2 << ")." << std::endl;
                         }
                     }
                 }
@@ -2533,7 +2477,8 @@ private:
         }
 
         KRATOS_ERROR_IF(mrDataCommunicator.ErrorIfTrueOnAnyRank(resize_error))
-        << "Size mismatch in Matrix size synchronization." << std::endl;
+        << "Size mismatch in Matrix size synchronization." << std::endl
+        << error_detail.str();
     }
 
     //       friend class boost::serialization::access;
