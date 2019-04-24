@@ -4,16 +4,16 @@ import KratosMultiphysics.ShallowWaterApplication as SW
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ShallowWaterGidOutputProcess(model, settings["Parameters"])
+    return ShallowWaterGiDOutputProcess(model, settings["Parameters"])
 
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 ## This process sets the value of a scalar variable using the AssignScalarVariableProcess.
-class ShallowWaterGidOutputProcess(GiDOutputProcess):
+class ShallowWaterGiDOutputProcess(GiDOutputProcess):
     def __init__(self, model, settings):
         first_level_defaults = KM.Parameters("""
         {
-            "output_name"               : "file"
+            "output_name"               : "file",
             "model_part_name"           : "unknown",
             "result_file_configuration" : {},
             "point_data_configuration"  : []
@@ -26,6 +26,10 @@ class ShallowWaterGidOutputProcess(GiDOutputProcess):
         self.model_part = model[self.param["model_part_name"].GetString()]
         self.body_io = None
         self.volume_list_files = []
+
+        # Initializing the topographic post process tool
+        self.topographic_tool = SW.PostProcessUtilities(self.model_part)
+        self.topographic_tool.DefineAuxiliaryProperties()
 
         # This output does not support cuts. Initializing empty instances
         self.cut_model_part = None
@@ -58,7 +62,7 @@ class ShallowWaterGidOutputProcess(GiDOutputProcess):
         super(ShallowWaterGiDOutputProcess, self).ExecuteFinalizeSolutionStep()
 
     def ExecuteBeforeOutputStep(self):
-        super(ShallowWaterGiDOutputProcess, self).ExecuteBeforeOutputStep()
+        pass
 
     def IsOutputStep(self):
         return super(ShallowWaterGiDOutputProcess, self).IsOutputStep()
@@ -67,19 +71,26 @@ class ShallowWaterGidOutputProcess(GiDOutputProcess):
         super(ShallowWaterGiDOutputProcess, self).PrintOutput()
 
     def ExecuteAfterOutputStep(self):
-        super(ShallowWaterGiDOutputProcess, self).ExecuteAfterOutputStep()
+        pass
 
     def ExecuteFinalize(self):
         super(ShallowWaterGiDOutputProcess, self).ExecuteFinalize()
 
     def Check(self):
-        super(ShallowWaterGiDOutputProcess, self).Check()
+        return 1
 
-    def __write_mesh(self, label):
+    def _GiDOutputProcess__write_mesh(self, label):
         if self.body_io is not None:
             self.body_io.InitializeMesh(label)
             if self.body_output:
+                # Write the standard mesh
                 self.body_io.WriteMesh(self.model_part.GetMesh())
+
+                # Write the topographic mesh
+                self.__prepare_topographic_mesh()
+                self.body_io.WriteMesh(self.model_part.GetMesh())
+                self.__reset_standard_mesh()
+
             if self.node_output:
                 self.body_io.WriteNodeMesh(self.model_part.GetMesh())
             self.body_io.FinalizeMesh()
@@ -89,22 +100,38 @@ class ShallowWaterGidOutputProcess(GiDOutputProcess):
             self.cut_io.WriteMesh(self.cut_model_part.GetMesh())
             self.cut_io.FinalizeMesh()
 
-    def __write_nodal_results(self, label):
+    def _GiDOutputProcess__write_nodal_results(self, label):
         if self.body_io is not None:
+            # Write the standard results
+            self.__prepare_standard_mesh()
             for variable in self.nodal_variables:
                 self.body_io.WriteNodalResults(variable, self.model_part.GetCommunicator().LocalMesh().Nodes, label, 0)
+
+            # Write the topographic results
+            self.__prepare_topographic_mesh()
+            self.body_io.WriteNodalResults(SW.BATHYMETRY, self.model_part.GetCommunicator().LocalMesh().Nodes, label, 0)
+            self.__reset_standard_mesh()
 
         if self.cut_io is not None:
             self.cut_manager.UpdateCutData(self.cut_model_part, self.model_part)
             for variable in self.nodal_variables:
                 self.cut_io.WriteNodalResults(variable, self.cut_model_part.GetCommunicator().LocalMesh().Nodes, label, 0)
 
-    def __write_nonhistorical_nodal_results(self, label):
-        if self.body_io is not None:
-            for variable in self.nodal_nonhistorical_variables:
-                self.body_io.WriteNodalResultsNonHistorical(variable, self.model_part.Nodes, label)
+    def __prepare_standard_mesh(self):
+        self.topographic_tool.SetFreeSurfaceMeshPosition()
+        self.topographic_tool.AssignDryWetProperties(KM.FLUID)
 
-        if self.cut_io is not None:
-            self.cut_manager.UpdateCutData(self.cut_model_part, self.model_part)
-            for variable in self.nodal_nonhistorical_variables:
-                self.cut_io.WriteNodalResultsNonHistorical(variable, self.cut_model_part.Nodes, label)
+    def __prepare_topographic_mesh(self):
+        self.topographic_tool.RestoreDryWetProperties()
+        self.topographic_tool.ApplyIdOffsetOnNodes()
+        self.topographic_tool.ApplyIdOffsetOnElements()
+        self.topographic_tool.ApplyIdOffsetOnConditions()
+        self.topographic_tool.AssignSolidFluidProperties()
+        self.topographic_tool.SetBathymetryMeshPosition()
+    
+    def __reset_standard_mesh(self):
+        self.topographic_tool.UndoIdOffsetOnNodes()
+        self.topographic_tool.UndoIdOffsetOnElements()
+        self.topographic_tool.UndoIdOffsetOnConditions()
+        self.topographic_tool.RestoreSolidFluidProperties()
+        self.topographic_tool.ResetMeshPosition()
