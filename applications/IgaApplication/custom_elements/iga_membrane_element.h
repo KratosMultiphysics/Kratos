@@ -22,6 +22,7 @@
 // Project includes
 #include "iga_base_element.h"
 
+#include "custom_utilities/geometry_utilities/iga_curve_on_surface_utilities.h"
 
 namespace Kratos
 {
@@ -47,6 +48,8 @@ class IgaMembraneElement
 {
 protected: //aus surface_base_element.h übernommen
 
+//std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;//SPANNUGEN
+
     struct MetricVariables 
     {
         Vector gab; // covariant metric
@@ -61,6 +64,7 @@ protected: //aus surface_base_element.h übernommen
         Matrix H; //Hessian
         Matrix Q; //Transformation matrix Q from contravariant to cartesian basis
         Matrix T; //Transformation matrix T from contravariant to local cartesian basis
+        //Matrix R; //.R
 
         MetricVariables(const unsigned int& Dimension)
         {
@@ -81,6 +85,7 @@ protected: //aus surface_base_element.h übernommen
             Matrix H = ZeroMatrix(3, 3);
             Matrix Q = ZeroMatrix(3, 3);
             Matrix T = ZeroMatrix(3, 3);
+            //Matrix R = ZeroMatrix(3, 3);//.R
         }
 
     }; 
@@ -156,6 +161,7 @@ public:
 	* @param pProperties The pointer to property
 	* @return The pointer to the created element
 	*/
+
 	Element::Pointer Create(
 		IndexType NewId,
 		GeometryType::Pointer pGeom,
@@ -191,9 +197,46 @@ public:
     //    SecondVariations& rSecondVariationsCurvature,
     //    const MetricVariables& rMetric);
 
+/**
+    * Calculate a double Variable on the Element Constitutive Law
+    * @param rVariable: The variable we want to get
+    * @param rOutput: The values obtained int the integration points
+    * @param rCurrentProcessInfo: the current process info instance
+    */
+    void Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
+    * Calculate a Vector Variable on the Element
+    * @param rVariable: The variable we want to get
+    * @param rOutput: The values obtained int the integration points
+    * @param rCurrentProcessInfo: the current process info instance
+    */
+    void Calculateplus(
+       const Variable<double>& rVariable,// const Variable<Vector>& rVariable,
+        double& rOutput,//Vector& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+    ); //override;
+
+    void CalculateStresses(
+        Vector& rStresses,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculatePresstressTensor(
+        Vector& rPrestressTensor,
+        MetricVariables& rMetric);
+    
+
+   
+
 private:
 
 ConstitutiveLaw::Pointer mConstitutiveLaw; //benötige für Initilize()
+//Vector3 mReferenceBaseVector; //.R
+//Vector3 GetActualBaseVector() const; //.R
 
 void CalculateMetric( MetricVariables& metric ); //aus surface_base_element.h übernommen
 

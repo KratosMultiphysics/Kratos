@@ -7,8 +7,7 @@ import KratosMultiphysics
 import KratosMultiphysics.IgaApplication as IgaApplication
 
 # Importing the base class
-#from KratosMultiphysics.python_solver import PythonSolver
-from kratos.python_scripts.python_solver import PythonSolver
+from KratosMultiphysics.python_solver import PythonSolver
 
 
 def CreateSolver(model, custom_settings):
@@ -81,6 +80,8 @@ class IgaSolver(PythonSolver):
                 "scaling": false,
                 "verbosity": 1
             },
+            "problem_domain_sub_model_part_list": [ "StructuralAnalysis" ],
+            "processes_sub_model_part_list": [ "IgaModelPart" ],
             "auxiliary_variables_list" : [],
             "auxiliary_dofs_list" : [],
             "auxiliary_reaction_list" : []

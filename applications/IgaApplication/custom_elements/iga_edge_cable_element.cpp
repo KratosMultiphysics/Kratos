@@ -88,7 +88,6 @@ void IgaEdgeCableElement::Initialize()
         {
         mReferenceBaseVector = GetActualBaseVector();
         }*/
-    //std::cout << "initialize Cable" << std::endl;
     mReferenceBaseVector = GetActualBaseVector();
     
 }
@@ -208,9 +207,9 @@ KRATOS_WATCH(reference_aa)
 
     const double e11_membrane = 0.5 * (actual_aa - reference_aa);
 
-    // normal force
+    // normal forcereference_aa
 
-    const double s11_membrane = prestress * A + e11_membrane * A * E / reference_aa;
+    const double s11_membrane = prestress * A + e11_membrane * A * E / inner_prod(mReferenceBaseVector,mReferenceBaseVector); //reference_aa;
 
 //KRATOS_WATCH(prestress)
 //KRATOS_WATCH(e11_membrane)
@@ -231,11 +230,16 @@ KRATOS_WATCH(reference_aa)
         //KRATOS_WATCH(r)
         //KRATOS_WATCH(dof_type_r)
         //KRATOS_WATCH(shape_index_r)
-  
+        //if(reference_a == actual_a) //NEUNEU 
+        //{//NEUNEU
+        //const double epsilon_var_r = 0;//NEUNEU
+        //}//NEUNEU
+        //else//NEUNEU
+        //{ //NEUNEU
         const double epsilon_var_r = actual_base_vector[dof_type_r] *
             (shape_derivatives(shape_index_r, 0) * t[0] 
-            + shape_derivatives(shape_index_r, 1) * t[1]) / reference_aa;
-        
+            + shape_derivatives(shape_index_r, 1) * t[1]) / inner_prod(mReferenceBaseVector,mReferenceBaseVector);//reference_aa;
+        //} //NEUNEU
         //KRATOS_WATCH(epsilon_var_r)
  
        if (ComputeLeftHandSide) {
@@ -254,11 +258,12 @@ KRATOS_WATCH(reference_aa)
                     actual_base_vector[dof_type_s] *
                     (shape_derivatives(shape_index_s, 0) * t[0]
                     + shape_derivatives(shape_index_s, 1) * t[1])
-                    / reference_aa;
+                    / inner_prod(mReferenceBaseVector,mReferenceBaseVector);//reference_aa;
 
                 //KRATOS_WATCH(epsilon_var_s)
 
-                rLeftHandSideMatrix(r, s) = E * A * epsilon_var_r *
+                rLeftHandSideMatrix(r, s) = 
+                E * A * epsilon_var_r *
                     epsilon_var_s;
 
             
@@ -266,7 +271,7 @@ KRATOS_WATCH(reference_aa)
                 if (dof_type_r == dof_type_s) {
                     const double epsilon_var_rs =
                         (shape_derivatives(shape_index_r, 0) * t[0] + shape_derivatives(shape_index_r, 1) * t[1]) *
-                        (shape_derivatives(shape_index_s, 0) * t[0] + shape_derivatives(shape_index_s, 1) * t[1]) / reference_aa;
+                        (shape_derivatives(shape_index_s, 0) * t[0] + shape_derivatives(shape_index_s, 1) * t[1]) /inner_prod(mReferenceBaseVector,mReferenceBaseVector);// reference_aa;
                     
                 //KRATOS_WATCH(epsilon_var_rs)
  
