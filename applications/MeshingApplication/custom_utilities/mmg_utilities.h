@@ -626,12 +626,12 @@ private:
 
 /// input stream function
 template<MMGLibrary TMMGLibray>
-inline std::istream& operator >> (std::istream& rIStream,
+extern inline std::istream& operator >> (std::istream& rIStream,
                                   MmgUtilities<TMMGLibray>& rThis);
 
 /// output stream function
 template<MMGLibrary TMMGLibray>
-inline std::ostream& operator << (std::ostream& rOStream,
+extern inline std::ostream& operator << (std::ostream& rOStream,
                                   const MmgUtilities<TMMGLibray>& rThis)
 {
     rThis.PrintInfo(rOStream);
