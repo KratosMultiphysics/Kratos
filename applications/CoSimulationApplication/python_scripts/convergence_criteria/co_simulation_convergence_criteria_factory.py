@@ -7,14 +7,18 @@ from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import class
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 def CreateConvergenceCriteria(settings, solver):
+    cs_tools.SettingsTypeCheck(settings)
     return CoSimulationConvergenceCriteria(settings, solver)
 
 class CoSimulationConvergenceCriteria(object):
     def __init__(self, settings, solver):
         self.settings = settings
+        self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
+
         self.solver = solver
         self.interface_data = self.solver.GetInterfaceData(self.settings["data_name"].GetString())
-        self.echo_level = 0
+
+        self.echo_level = self.settings["abs_tolerance"].GetInt()
         self.abs_tolerance = self.settings["abs_tolerance"].GetDouble()
         self.rel_tolerance = self.settings["rel_tolerance"].GetDouble()
 
@@ -76,3 +80,14 @@ class CoSimulationConvergenceCriteria(object):
 
     def _Name(self):
         return self.__class__.__name__
+
+    @classmethod
+    def _GetDefaultSettings(cls):
+        return cs_tools.cs_data_structure.Parameters("""{
+            "type"       : "UNSPECIFIED",
+            "solver"     : "UNSPECIFIED",
+            "data_name"  : "UNSPECIFIED",
+            "abs_tolerance" : 1e-5,
+            "rel_tolerance" : 1e-5,
+            "echo_level" : 0
+        }""")
