@@ -31,7 +31,7 @@
 #include "containers/global_pointers_vector.h"
 #include "containers/global_pointers_unordered_map.h"
 
-#include "mpi/utilities/mpi_coloring_utilities.h"
+#include "utilities/mpi_coloring_utilities.h"
 
 namespace Kratos
 {
@@ -75,15 +75,15 @@ public:
     ///@{
 
     /// Default constructor.
-    GlobalPointerUtilities(DataCommunicator& rDataCommunicator):
+    GlobalPointerUtilities(const DataCommunicator& rDataCommunicator):
         mrDataCommunicator(rDataCommunicator)
     {}
 
     /// Destructor.
-    virtual ~GlobalPointerUtilities(){}
+    virtual ~GlobalPointerUtilities() {}
 
-    
-    GlobalPointersVector< TDataType > RetrieveGlobalIndexedPointers(
+
+    std::unordered_map< int, GlobalPointer<TDataType> > RetrieveGlobalIndexedPointersMap(
         TContainerType& container,
         const std::vector<int>& id_list)
     {
@@ -91,7 +91,7 @@ public:
         const int current_rank = mrDataCommunicator.Rank();
         const int world_size = mrDataCommunicator.Size();
         std::vector<int> empty = {-1};
-                 
+
         std::vector<int> remote_ids;
         for(const int id : id_list )
         {
@@ -112,132 +112,146 @@ public:
         //gather everything onto master_rank processor
         int master_rank = 0;
 
-            std::vector<int> all_remote_ids;
-            std::vector< std::vector<int> > collected_remote_ids(world_size);
-            std::unordered_map< int, GlobalPointer<TDataType> > all_non_local_gp_map;
+        std::vector<int> all_remote_ids;
+        std::vector< std::vector<int> > collected_remote_ids(world_size);
+        std::unordered_map< int, GlobalPointer<TDataType> > all_non_local_gp_map;
 
-            //STEP1 - here we send the id we need to the master_rank
-            //NOTE: here we DO NOT use a collective since we need to keep distinguished the ids per rank
-            for(int i=0; i<world_size; ++i)
+        //STEP1 - here we send the id we need to the master_rank
+        //NOTE: here we DO NOT use a collective since we need to keep distinguished the ids per rank
+        for(int i=0; i<world_size; ++i)
+        {
+            if(i != master_rank)
             {
-                if(i != master_rank)
+                if(current_rank == master_rank) //only master executes
                 {
-                    if(current_rank == master_rank) //only master executes
-                    {
-                        collected_remote_ids[i] = mrDataCommunicator.SendRecv(empty,i,i);
-                    }
-                    else if(current_rank == i) //only processor i executes
-                    {
-                        mrDataCommunicator.SendRecv(remote_ids,master_rank,master_rank);
-                    }
+                    collected_remote_ids[i] = mrDataCommunicator.SendRecv(empty,i,i);
                 }
-                else //no communication needed
+                else if(current_rank == i) //only processor i executes
                 {
-                    if(current_rank == master_rank) //only master executes
-                        collected_remote_ids[i] = remote_ids;
+                    mrDataCommunicator.SendRecv(remote_ids,master_rank,master_rank);
                 }
-               
+            }
+            else //no communication needed
+            {
+                if(current_rank == master_rank) //only master executes
+                    collected_remote_ids[i] = remote_ids;
+            }
+
+            if(current_rank == master_rank)
+            {
+                for(const int id : collected_remote_ids[i])
+                    all_remote_ids.push_back( id );
+            }
+        }
+
+        // very useful for debugging. do not remove for now
+        // if(current_rank == master_rank)
+        // {
+        //     std::cout << "collected ids " << std::endl;
+        //     for(unsigned int rank=0; rank<collected_remote_ids.size(); ++rank)
+        //     {
+        //         std::cout << " r = " << rank << " - ";
+        //         for(int id : collected_remote_ids[rank])
+        //             std::cout << id << " " ;
+        //         std::cout << std::endl;
+        //     }
+
+        //     std::cout << "all remote ids " << std::endl;
+        //     for(int id : all_remote_ids)
+        //         std::cout << id << " ";
+        //     std::cout << std::endl;
+        // }
+
+        if(current_rank == master_rank)
+        {
+            std::sort(all_remote_ids.begin(), all_remote_ids.end());
+            std::unique(all_remote_ids.begin(), all_remote_ids.end());
+        }
+
+        //communicate the size of all remote_ids and resize the vector accordingly
+        int number_of_all_remote_ids = all_remote_ids.size();
+        mrDataCommunicator.Broadcast(number_of_all_remote_ids,master_rank);
+
+        if(current_rank != master_rank)
+            all_remote_ids.resize(number_of_all_remote_ids);
+
+        //STEP2 - here we give to every processor the ids that are needed by someone
+        mrDataCommunicator.Broadcast(all_remote_ids,master_rank);
+
+        //STEP3 - here we obtain the list of gps we own and we send it back to the master_rank
+        //gather results on master_rank
+        for(int i=0; i<world_size; ++i)
+        {
+
+            if(i != master_rank)
+            {
                 if(current_rank == master_rank)
                 {
-                    for(const int id : collected_remote_ids[i])
-                        all_remote_ids.push_back( id );
-                }
-            }
-
-            // very useful for debugging. do not remove for now
-            // if(current_rank == master_rank)
-            // {
-            //     std::cout << "collected ids " << std::endl;
-            //     for(unsigned int rank=0; rank<collected_remote_ids.size(); ++rank)
-            //     {
-            //         std::cout << " r = " << rank << " - ";
-            //         for(int id : collected_remote_ids[rank])
-            //             std::cout << id << " " ;
-            //         std::cout << std::endl;
-            //     }
-
-            //     std::cout << "all remote ids " << std::endl;
-            //     for(int id : all_remote_ids) 
-            //         std::cout << id << " ";
-            //     std::cout << std::endl;
-            // }
-
-            if(current_rank == master_rank){
-                std::sort(all_remote_ids.begin(), all_remote_ids.end());
-                std::unique(all_remote_ids.begin(), all_remote_ids.end());
-            }
-
-            //communicate the size of all remote_ids and resize the vector accordingly
-            int number_of_all_remote_ids = all_remote_ids.size();
-            mrDataCommunicator.Broadcast(number_of_all_remote_ids,master_rank);
-
-            if(current_rank != master_rank)
-                all_remote_ids.resize(number_of_all_remote_ids);
-
-            //STEP2 - here we give to every processor the ids that are needed by someone
-            mrDataCommunicator.Broadcast(all_remote_ids,master_rank);
-
-            //STEP3 - here we obtain the list of gps we own and we send it back to the master_rank
-            //gather results on master_rank
-            for(int i=0; i<world_size; ++i)
-            {
-                
-                if(i != master_rank)
-                {
-                    if(current_rank == master_rank)
-                    {
-                        //TODO: here we could use separately send and recv
-                        auto recv_gps = SendRecv(empty_gp_list,i,i);
-
-                        for(auto& it : recv_gps)
-                            all_non_local_gp_map.emplace(it.first, it.second);
-                    } 
-                    else if(current_rank == i)
-                    {
-                        auto non_local_gp_map = ComputeGpMap(container, all_remote_ids, current_rank);
-                        SendRecv(non_local_gp_map,master_rank,master_rank);
-                    }
-                }
-                else
-                {
-                    auto recv_gps = ComputeGpMap(container, all_remote_ids, current_rank);
+                    //TODO: here we could use separately send and recv
+                    auto recv_gps = SendRecv(empty_gp_list,i,i);
 
                     for(auto& it : recv_gps)
-                        all_non_local_gp_map.emplace(it.first, it.second); 
+                        all_non_local_gp_map.emplace(it.first, it.second);
+                }
+                else if(current_rank == i)
+                {
+                    auto non_local_gp_map = ComputeGpMap(container, all_remote_ids, current_rank);
+                    SendRecv(non_local_gp_map,master_rank,master_rank);
                 }
             }
-
-            //STEP4 - here we obtain from the master_rank the list of gps we need
-            //extract data and send to everyone
-            for(int i=0; i<world_size; ++i)
+            else
             {
-                if(i != master_rank)
-                {
-                    if(current_rank == master_rank) //only master executes
-                    {
-                        auto gp_list = ExtractById(all_non_local_gp_map,collected_remote_ids[i]);
-                    
-                        //TODO: here we could use separately send and recv
-                        SendRecv(gp_list,i,i);
-                    }
-                    else if(current_rank == i) //only processor i executes
-                    {
-                        auto gp_list = SendRecv(empty_gp_list,master_rank, master_rank);
+                auto recv_gps = ComputeGpMap(container, all_remote_ids, current_rank);
 
-                        for(auto& it : gp_list)
-                            global_pointers_list.emplace(it.first, it.second); 
-                    }
+                for(auto& it : recv_gps)
+                    all_non_local_gp_map.emplace(it.first, it.second);
+            }
+        }
 
-                }
-                else
+        //STEP4 - here we obtain from the master_rank the list of gps we need
+        //extract data and send to everyone
+        for(int i=0; i<world_size; ++i)
+        {
+            if(i != master_rank)
+            {
+                if(current_rank == master_rank) //only master executes
                 {
                     auto gp_list = ExtractById(all_non_local_gp_map,collected_remote_ids[i]);
 
-                    for(auto& it : gp_list)
-                        global_pointers_list.emplace(it.first, it.second); 
+                    //TODO: here we could use separately send and recv
+                    SendRecv(gp_list,i,i);
                 }
-            }            
-            
+                else if(current_rank == i) //only processor i executes
+                {
+                    auto gp_list = SendRecv(empty_gp_list,master_rank, master_rank);
+
+                    for(auto& it : gp_list)
+                        global_pointers_list.emplace(it.first, it.second);
+                }
+
+            }
+            else
+            {
+                auto gp_list = ExtractById(all_non_local_gp_map,collected_remote_ids[i]);
+
+                for(auto& it : gp_list)
+                    global_pointers_list.emplace(it.first, it.second);
+            }
+        }
+
+        return global_pointers_list;
+
+    }
+
+    GlobalPointersVector< TDataType > RetrieveGlobalIndexedPointers(
+        TContainerType& container,
+        const std::vector<int>& id_list)
+    {
+
+        auto global_pointers_list = RetrieveGlobalIndexedPointersMap(container, id_list);
+
+        int current_rank = mrDataCommunicator.Rank();
+
         //compute final array
         GlobalPointersVector< TDataType > result;
         result.reserve(id_list.size());
@@ -281,13 +295,16 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-    std::stringstream buffer;
-    buffer << "GlobalPointerUtilities" ;
-    return buffer.str();
+        std::stringstream buffer;
+        buffer << "GlobalPointerUtilities" ;
+        return buffer.str();
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "GlobalPointerUtilities";}
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "GlobalPointerUtilities";
+    }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
@@ -357,7 +374,7 @@ private:
         if(it->FastGetSolutionStepValue(PARTITION_INDEX) == CurrentRank)
             return true;
         else
-            return false;        
+            return false;
     }
 
     ///@}
@@ -380,22 +397,22 @@ private:
     }
 
     std::unordered_map< int, GlobalPointer<TDataType> > ExtractById(
-                std::unordered_map< int, GlobalPointer<TDataType> >& gp_list,
-                const std::vector<int>& ids)
+        std::unordered_map< int, GlobalPointer<TDataType> >& gp_list,
+        const std::vector<int>& ids)
     {
         std::unordered_map< int, GlobalPointer<TDataType> > extracted_list;
         for(auto id : ids)
         {
             auto gp = gp_list[id];
-            extracted_list[id] = gp; 
+            extracted_list[id] = gp;
         }
         return extracted_list;
     }
 
     std::unordered_map< int, GlobalPointer<TDataType> > ComputeGpMap(
-            const TContainerType& container,
-            const std::vector<int>& ids,
-            int current_rank)
+        const TContainerType& container,
+        const std::vector<int>& ids,
+        int current_rank)
     {
         std::unordered_map< int, GlobalPointer<TDataType> > extracted_list;
         for(auto id : ids)
@@ -454,15 +471,15 @@ private:
 /// input stream function
 template< class TPointerDataType, class TSendType >
 inline std::istream& operator >> (std::istream& rIStream,
-                GlobalPointerUtilities<TPointerDataType, TSendType>& rThis)
-                {
-                    return rIStream;
-                }
+                                  GlobalPointerUtilities<TPointerDataType, TSendType>& rThis)
+{
+    return rIStream;
+}
 
 /// output stream function
 template< class TPointerDataType, class TSendType >
 inline std::ostream& operator << (std::ostream& rOStream,
-                const GlobalPointerUtilities<TPointerDataType, TSendType>& rThis)
+                                  const GlobalPointerUtilities<TPointerDataType, TSendType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
