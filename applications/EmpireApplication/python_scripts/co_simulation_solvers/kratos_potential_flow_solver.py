@@ -46,7 +46,7 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
 
         super(KratosPotentialFlowSolver, self).SolveSolutionStep()
 
-        # self.conversion_process.Execute()
+        self.conversion_process.Execute()
         self.wake_process.CleanMarking()
 
     def _GetParallelType(self):

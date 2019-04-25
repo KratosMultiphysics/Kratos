@@ -11,7 +11,7 @@ import KratosMultiphysics.MeshMovingApplication.python_solvers_wrapper_mesh_moti
 class AleFluidSolver(PythonSolver):
     def __init__(self, model, solver_settings, parallelism):
         default_settings = KM.Parameters("""{
-            "solver_type"                 : "ale_fluid",
+            "solver_type"                 : "",
             "echo_level"                  : 0,
             "start_fluid_solution_time"   : 0.0,
             "ale_boundary_parts"          : [ ],

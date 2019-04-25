@@ -15,7 +15,8 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "",
-            "create_output_file": false
+            "create_output_file": false,
+            "output_variables" : []
         }''')
 
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -66,7 +67,6 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Drag Force = ', total_force[0])
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Side Force = ', total_force[2])
 
-        return self.body_model_part.GetValue(KratosMultiphysics.REACTION)
         # if self.create_output_file:
         #     with open("cl_points_with_lift.dat", 'w') as cl_file:
         #         cl_file.write('{0:15.12f}'.format(total_force[1]/dynamic_pressure))

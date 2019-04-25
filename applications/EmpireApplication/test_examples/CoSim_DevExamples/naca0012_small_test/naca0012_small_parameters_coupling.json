@@ -94,7 +94,8 @@
             "process_name"  : "ComputeForcesOnNodesProcess",
             "Parameters"    : {
                 "model_part_name" : "FluidModelPart.Body2D_Body",
-                "create_output_file": true
+                "create_output_file": true,
+                "output_variables" : ["VELOCITY_POTENTIAL","REACTION"]
             }
         },{
             "python_module" : "placeholder_process",
@@ -122,7 +123,7 @@
                 "output_file_settings": {
                     "file_name"  : "naca0012_test_probe1.dat"
                 },
-                "output_variables" : ["VELOCITY_POTENTIAL"]
+                "output_variables" : ["VELOCITY_POTENTIAL","REACTION"]
             }
          }]
     }
