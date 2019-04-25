@@ -399,8 +399,9 @@ protected:
      */
 
 private:
-    ///@name Members
+    ///@name Static Member Variables
     ///@{
+    static const GeometryData msGeometryData;
 
     /** This member holds the higher order shape function derivatives */
     Matrix mShapeFunctions;
