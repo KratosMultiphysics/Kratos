@@ -75,7 +75,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
     array_1d<double, NumNodes> potential;
     Vector distances(NumNodes);
     for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-        distances(i_node) = this->GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET);
+        distances(i_node) = this->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
 
     BaseType::GetPotentialOnNormalElement(potential);
 
@@ -123,7 +123,7 @@ int EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const Proce
 
     for (unsigned int i = 0; i < this->GetGeometry().size(); i++)
     {
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(LEVEL_SET,this->GetGeometry()[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(GEOMETRY_DISTANCE,this->GetGeometry()[i]);
     }
 
     return out;
