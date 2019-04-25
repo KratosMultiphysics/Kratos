@@ -52,7 +52,7 @@ namespace Kratos {
       // Variables addition
       rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
       rModelPart.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
-      rModelPart.AddNodalSolutionStepVariable(LEVEL_SET);
+      rModelPart.AddNodalSolutionStepVariable(GEOMETRY_DISTANCE);
 
 
       // Set the element properties
@@ -175,7 +175,7 @@ namespace Kratos {
 
       for (unsigned int i = 0; i < 3; i++){
         pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(LEVEL_SET) = level_set(i);
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = level_set(i);
       }
 
       // Compute RHS and LHS
