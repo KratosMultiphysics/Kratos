@@ -18,16 +18,16 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
         super(GaussSeidelStrongCouplingSolver, self).__init__(model, cosim_solver_settings, solver_name)
 
         self.convergence_accelerators_list = cs_tools.CreateConvergenceAccelerators(
-            self.cosim_solver_settings["convergence_accelerators"],
+            self.settings["convergence_accelerators"],
             self.participating_solvers,
             self.echo_level)
 
         self.convergence_criteria_list = cs_tools.CreateConvergenceCriteria(
-            self.cosim_solver_settings["convergence_criteria"],
+            self.settings["convergence_criteria"],
             self.participating_solvers,
             self.echo_level)
 
-        self.num_coupling_iterations = self.cosim_solver_settings["num_coupling_iterations"].GetInt()
+        self.num_coupling_iterations = self.settings["num_coupling_iterations"].GetInt()
 
     def Initialize(self):
         super(GaussSeidelStrongCouplingSolver, self).Initialize()
@@ -108,5 +108,13 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
         for conv_crit in self.convergence_criteria_list:
             conv_crit.Check()
 
-    def _Name(self):
-        return self.__class__.__name__
+    @classmethod
+    def _GetDefaultSettings(cls):
+        this_defaults = cs_tools.cs_data_structure.Parameters("""{
+            "convergence_accelerators" : [],
+            "convergence_criteria"     : [],
+            "num_coupling_iterations"  : 10
+        }""")
+        this_defaults.AddMissingParameters(super(GaussSeidelStrongCouplingSolver, cls)._GetDefaultSettings())
+
+        return this_defaults

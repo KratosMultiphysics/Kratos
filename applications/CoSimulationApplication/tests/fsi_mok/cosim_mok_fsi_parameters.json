@@ -8,7 +8,7 @@
     },
     "solver_settings" :
     {
-        "solver_type" : "gauss_seidel_strong",
+        "type" : "gauss_seidel_strong",
         "echo_level" : 0,
         "num_coupling_iterations" : 12,
         "predictors" : [
@@ -74,8 +74,10 @@
         {
             "fluid":
             {
-                "solver_type" : "kratos_fluid",
-                "input_file"  : "fsi_mok/ProjectParametersCFD",
+                "type" : "kratos_fluid",
+                "settings" : {
+                    "input_file"  : "fsi_mok/ProjectParametersCFD"
+                },
                 "data" : [{
                         "geometry_name"   : "FluidModelPart.NoSlip2D_FSI",
                         "dimension" : 2,
@@ -93,8 +95,10 @@
             },
             "structure" :
             {
-                "solver_type" : "kratos_structural",
-                "input_file"  : "fsi_mok/ProjectParametersCSM",
+                "type" : "kratos_structural",
+                "settings" : {
+                    "input_file"  : "fsi_mok/ProjectParametersCSM"
+                },
                 "data" : [{
                         "geometry_name"   : "GENERIC_FSI",
                         "dimension" : 2,

@@ -9,8 +9,8 @@ from . import kratos_base_field_solver
 # Other imports
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
-def CreateSolver(model, cosim_solver_settings, solver_name):
-    return KratosStructuralSolver(model, cosim_solver_settings, solver_name)
+def CreateSolver(model, settings, solver_name):
+    return KratosStructuralSolver(model, settings, solver_name)
 
 class KratosStructuralSolver(kratos_base_field_solver.KratosBaseFieldSolver):
     def _CreateAnalysisStage(self):

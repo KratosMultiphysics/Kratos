@@ -8,7 +8,7 @@
     },
     "solver_settings" :
     {
-        "solver_type" : "gauss_seidel_weak",
+        "type" : "gauss_seidel_weak",
         "echo_level" : 0,
         "predictors" : [
             {
@@ -56,8 +56,10 @@
         {
             "fluid":
             {
-                "solver_type" : "kratos_fluid",
-                "input_file"  : "fsi_wall/ProjectParametersCFD",
+                "type" : "kratos_fluid",
+                "settings" : {
+                    "input_file"  : "fsi_wall/ProjectParametersCFD"
+                },
                 "data" : [{
                         "geometry_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
                         "name" : "MESH_DISPLACEMENT",
@@ -75,8 +77,10 @@
             },
             "structure" :
             {
-                "solver_type" : "kratos_structural",
-                "input_file"  : "fsi_wall/ProjectParametersCSM",
+                "type" : "kratos_structural",
+                "settings" : {
+                    "input_file"  : "fsi_wall/ProjectParametersCSM"
+                },
                 "data" : [{
                         "geometry_name" : "GENERIC_FSI_Interface",
                         "name" : "DISPLACEMENT",

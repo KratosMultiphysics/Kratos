@@ -11,10 +11,10 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as co_simu
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import solverprint, bold, red
 
 class KratosBaseFieldSolver(CoSimulationBaseSolver):
-    def __init__(self, model, cosim_solver_settings, solver_name):
-        super(KratosBaseFieldSolver, self).__init__(model, cosim_solver_settings, solver_name)
+    def __init__(self, model, settings, solver_name):
+        super(KratosBaseFieldSolver, self).__init__(model, settings, solver_name)
 
-        input_file_name = self.cosim_solver_settings["input_file"].GetString()
+        input_file_name = self.settings["settings"]["input_file"].GetString()
         if not input_file_name.endswith(".json"):
             input_file_name += ".json"
 

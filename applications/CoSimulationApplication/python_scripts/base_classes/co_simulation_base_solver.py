@@ -3,34 +3,28 @@ from __future__ import print_function, absolute_import, division
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.solver_interfaces.co_simulation_io_factory as io_factory
 
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as tools
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 # Other imports
-cs_data_structure = tools.cs_data_structure
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 
-def CreateSolver(model, cosim_solver_settings):
-    return CoSimulationBaseSolver(model, cosim_solver_settings)
+def CreateSolver(model, settings):
+    return CoSimulationBaseSolver(model, settings)
 
 class CoSimulationBaseSolver(object):
     """The base class for the CoSimulation Solvers
     """
-    def __init__(self, model, cosim_solver_settings, solver_name):
+    def __init__(self, model, settings, solver_name):
         """Constructor of the Base-Solver
         Deriving classes should call it in their constructors
         """
-        default_settings = cs_data_structure.Parameters("""{
-            "solver_type" : "",
-            "io_settings" : {},
-            "settings"    : {},
-            "data"        : [],
-            "echo_level"  : 0
-        }""")
 
         self.model = model
-        self.cosim_solver_settings = cosim_solver_settings
-        self.cosim_solver_settings.AddMissingParameters(default_settings)
+
+        self.settings = settings
+        self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())
+
         self.name = solver_name
-        self.echo_level = self.cosim_solver_settings["echo_level"].GetInt()
+        self.echo_level = self.settings["echo_level"].GetInt()
         self.io_is_initialized = False
         self.data_map = self.__CreateInterfaceDataMap()
 
@@ -43,7 +37,7 @@ class CoSimulationBaseSolver(object):
 
         self.io = io_factory.CreateIO(self._GetIOName(),
                                       self.model,
-                                      self.cosim_solver_settings["io_settings"])
+                                      self.settings["io_settings"])
         self.io.SetEchoLevel(io_echo_level)
         self.io_is_initialized = True
 
@@ -51,7 +45,7 @@ class CoSimulationBaseSolver(object):
         pass
 
     def AdvanceInTime(self, current_time):
-        return current_time + self.cosim_solver_settings["time_step"] # needed if this solver is used as dummy
+        return current_time + self.settings["time_step"] # needed if this solver is used as dummy
 
     def Predict(self):
         pass
@@ -122,10 +116,20 @@ class CoSimulationBaseSolver(object):
     #  @param self            The object pointer.
     def __CreateInterfaceDataMap(self):
         data_map = dict()
-        for i in range(self.cosim_solver_settings["data"].size()):
-            data_conf = self.cosim_solver_settings["data"][i]
+        for i in range(self.settings["data"].size()):
+            data_conf = self.settings["data"][i]
             data_name = data_conf["name"].GetString()
             data_obj = CouplingInterfaceData(data_conf, self) # TODO pass only the model?
             data_map[data_name] = data_obj
 
         return data_map
+
+    @classmethod
+    def _GetDefaultSettings(cls):
+        return cs_tools.cs_data_structure.Parameters("""{
+            "type"        : "",
+            "io_settings" : {},
+            "settings"    : {},
+            "data"        : [],
+            "echo_level"  : 0
+        }""")

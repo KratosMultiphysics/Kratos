@@ -12,6 +12,3 @@ class GaussSeidelWeakCouplingSolver(CoSimulationBaseCouplingSolver):
             self._SynchronizeInputData(solver_name)
             solver.SolveSolutionStep()
             self._SynchronizeOutputData(solver_name)
-
-    def _Name(self):
-        return self.__class__.__name__

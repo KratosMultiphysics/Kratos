@@ -16,7 +16,7 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
         ### Creating the predictors
         self.predictors_list = cs_tools.CreatePredictors(
-            self.cosim_solver_settings["predictors"],
+            self.settings["predictors"],
             self.participating_solvers,
             self.echo_level)
 
@@ -142,15 +142,15 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         from collections import OrderedDict
         # first create all solvers
         solvers = {}
-        for solver_name, solver_settings in self.cosim_solver_settings["solvers"].items():
+        for solver_name, solver_settings in self.settings["solvers"].items():
             solvers[solver_name] = solver_factory.CreateSolverInterface(
                 self.model, solver_settings, solver_name)
 
         # then order them according to the coupling-loop
         # NOTE solvers that are not used in the coupling-sequence will not participate
         solvers_map = OrderedDict()
-        for i_solver_settings in range(self.cosim_solver_settings["coupling_sequence"].size()):
-            solver_settings = self.cosim_solver_settings["coupling_sequence"][i_solver_settings]
+        for i_solver_settings in range(self.settings["coupling_sequence"].size()):
+            solver_settings = self.settings["coupling_sequence"][i_solver_settings]
             solver_name = solver_settings["name"].GetString()
             solvers_map[solver_name] = solvers[solver_name]
 
@@ -158,8 +158,19 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
     def __GetSolverCoSimulationDetails(self):
         solver_cosim_details = {}
-        for i_solver_settings in range(self.cosim_solver_settings["coupling_sequence"].size()):
-            solver_settings = self.cosim_solver_settings["coupling_sequence"][i_solver_settings]
+        for i_solver_settings in range(self.settings["coupling_sequence"].size()):
+            solver_settings = self.settings["coupling_sequence"][i_solver_settings]
             solver_name = solver_settings["name"].GetString()
             solver_cosim_details[solver_name] = solver_settings
         return solver_cosim_details
+
+    @classmethod
+    def _GetDefaultSettings(cls):
+        this_defaults = cs_tools.cs_data_structure.Parameters("""{
+            "coupling_sequence" : [],
+            "solvers"           : {},
+            "predictors"        : []
+        }""")
+        this_defaults.AddMissingParameters(super(CoSimulationBaseCouplingSolver, cls)._GetDefaultSettings())
+
+        return this_defaults

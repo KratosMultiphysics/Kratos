@@ -9,8 +9,8 @@ from . import kratos_base_field_solver
 # Other imports
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
-def CreateSolver(model, cosim_solver_settings, solver_name):
-    return KratosFluidSolver(model, cosim_solver_settings, solver_name)
+def CreateSolver(model, settings, solver_name):
+    return KratosFluidSolver(model, settings, solver_name)
 
 class KratosFluidSolver(kratos_base_field_solver.KratosBaseFieldSolver):
     def _CreateAnalysisStage(self):
