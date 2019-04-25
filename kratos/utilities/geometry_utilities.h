@@ -445,22 +445,22 @@ public:
 
         const double t = - inner_prod(v1,v2) / square_distance;
 
-        if(t < 0.00) { // it is before point 1
+        if(t < 0.0) { // it is before point 1
             // We return the distance to point 1
-            v3 = rLinePoint1 - rToPoint;
+            noalias(v3) = rLinePoint1 - rToPoint;
 
             return norm_2(v3);
         }
 
         if(t > 1.00) { // it is after point 2
             // We return the distance to point 2
-            v3 = rLinePoint2 - rToPoint;
+            noalias(v3) = rLinePoint2 - rToPoint;
 
             return norm_2(v3);
         }
 
         // The projection point is between point 1 and 2 of the line segment
-        v3 = rLinePoint1 * (1.00 - t) + rLinePoint2 * t;
+        noalias(v3) = rLinePoint1 * (1.0 - t) + rLinePoint2 * t;
 
         return norm_2(v3 - rToPoint);
 
@@ -501,8 +501,8 @@ public:
         double square_distance = 0.00;
 
         if ( s + t <= det ) {
-            if ( s < 0.00 ) {
-                if ( t < 0.00 ) { // region 4
+            if ( s < 0.0 ) {
+                if ( t < 0.0 ) { // region 4
                     if (d < 0) {
                         t = 0;
                         if (-d >= a) {
@@ -528,9 +528,9 @@ public:
                         }
                     }
                 } else { // region 3
-                    s = 0.00;
-                    if(e >= 0.00) {
-                        t = 0.00;
+                    s = 0.0;
+                    if(e >= 0.0) {
+                        t = 0.0;
                         square_distance = f;
                     } else {
                         if (-e >= c) {
@@ -551,14 +551,14 @@ public:
                 } else {
                     if (-d >= a) {
                         s = 1;
-                        square_distance = a + 2.00 * d + f;
+                        square_distance = a + 2.0 * d + f;
                     } else {
                         s = -d / a;
                         square_distance = d * s + f;
                     }
                 }
             } else { // region 0
-                double inv_det = 1.00 / det;
+                double inv_det = 1.0 / det;
                 s *= inv_det;
                 t *= inv_det;
                 square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
@@ -572,22 +572,22 @@ public:
                     const double numer = temp1 - temp0;
                     const double denom = a - 2*b + c;
                     if(numer >= denom) {
-                        s = 1.00;
-                        t = 0.00;
+                        s = 1.0;
+                        t = 0.0;
                         square_distance = a + 2*d + f;
                     } else {
                         s = numer/denom;
-                        t = 1.00-s;
+                        t = 1.0 - s;
                         square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
                     }
                 } else { // Minimum on edge s=0
-                    s = 0.00;
-                    if(temp1 <= 0.00) {
+                    s = 0.0;
+                    if(temp1 <= 0.0) {
                         t = 1;
                         square_distance = c + 2*e + f;
                     } else {
-                        if(e >= 0.00) {
-                            t = 0.00;
+                        if(e >= 0.0) {
+                            t = 0.0;
                             square_distance = f;
                         } else {
                             t = -e/c;
@@ -595,7 +595,7 @@ public:
                         }
                     }
                 }
-            } else if ( t < 0.00 ) {
+            } else if ( t < 0.0 ) {
                 // Region 6
                 double temp0 = b + e;
                 double temp1 = a + d;
@@ -603,22 +603,22 @@ public:
                     double numer = temp1 - temp0;
                     double denom = a - 2*b + c;
                     if(numer >= denom) {
-                        s = 0.00;
-                        t = 1.00;
+                        s = 0.0;
+                        t = 1.0;
                         square_distance = c + 2*e + f;
                     } else {
                         t = numer/denom;
-                        s = 1.00-t;
+                        s = 1.0 - t;
                         square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
                     }
                 } else {
-                    t = 0.00;
-                    if(temp1 <= 0.00) {
+                    t = 0.0;
+                    if(temp1 <= 0.0) {
                         s = 1;
                         square_distance = a + 2*d + f;
                     } else {
-                        if(d >= 0.00) {
-                            s = 0.00;
+                        if(d >= 0.0) {
+                            s = 0.0;
                             square_distance = f;
                         } else {
                             s = -d/a;
@@ -630,27 +630,27 @@ public:
                 // Region 1
                 double numer = c + e - b - d;
 
-                if (numer <= 0.00) {
-                    s = 0.00;
-                    t = 1.00;
-                    square_distance = c + 2.00 * e + f;
+                if (numer <= 0.0) {
+                    s = 0.0;
+                    t = 1.0;
+                    square_distance = c + 2.0 * e + f;
                 } else {
-                    double denom = a - 2.00 * b + c;
+                    double denom = a - 2.0 * b + c;
                     if (numer >= denom) {
-                        s = 1.00;
-                        t = 0.00;
-                        square_distance = a + 2.00 * d + f;
+                        s = 1.0;
+                        t = 0.0;
+                        square_distance = a + 2.0 * d + f;
                     } else {
                         s = numer / denom;
-                        t = 1.00 - s;
+                        t = 1.0 - s;
                         square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
                     }
                 }
             }
         }
 
-        if(square_distance < 0.00)
-            return 0.00; // avoiding -0 case!!
+        if(square_distance < 0.0)
+            return 0.0; // avoiding -0 case!!
 
         return std::sqrt(square_distance);
     }
