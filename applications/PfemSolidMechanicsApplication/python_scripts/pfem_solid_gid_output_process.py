@@ -41,24 +41,24 @@ class PfemGiDOutputProcess(GiDOutputProcess):
 
         if self.multifile_flag == MultiFileFlag.SingleFile:
             mesh_name = 0.0
-            self._GiDOutputProcess__write_mesh(mesh_name)
-            self._GiDOutputProcess__initialize_results(mesh_name)
+            self._write_mesh(mesh_name)
+            self._initialize_results(mesh_name)
 
             if self.post_mode == GiDPostMode.GiD_PostBinary:
-                self._GiDOutputProcess__write_step_to_list()
+                self._write_step_to_list()
             else:
-                self._GiDOutputProcess__write_step_to_list(0)
+                self._write_step_to_list(0)
         
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
             label = 0.0
-            self._GiDOutputProcess__write_mesh(label)
-            self._GiDOutputProcess__initialize_results(label)
+            self._write_mesh(label)
+            self._initialize_results(label)
 
-            self._GiDOutputProcess__write_nodal_results(label)
-            self._GiDOutputProcess__write_gp_results(label)
-            self._GiDOutputProcess__write_nonhistorical_nodal_results(label)
-            self._GiDOutputProcess__write_nodal_flags(label)
-            self._GiDOutputProcess__finalize_results()
+            self._write_nodal_results(label)
+            self._write_gp_results(label)
+            self._write_nonhistorical_nodal_results(label)
+            self._write_nodal_flags(label)
+            self._finalize_results()
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeSolutionLoop()
