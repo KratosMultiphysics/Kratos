@@ -11,7 +11,6 @@
         "solver_type" : "gauss_seidel_strong",
         "echo_level" : 0,
         "num_coupling_iterations" : 12,
-        "start_coupling_time" : 0.0,
         "predictors" : [
             {
                 "type"                 : "linear_derivative_based",
