@@ -183,13 +183,56 @@ public:
     {
         IntegrationPoint(rLocalCoordinates[0], rLocalCoordinates[1], rIntegrationWeight);
 
-        mIntegrationPoints = IntegrationPointsContainerType(1);
-        mIntegrationPoints[0] = IntegrationPoint;
+        IntegrationPoints = IntegrationPointsContainerType(1);
+        IntegrationPoints[0] = IntegrationPoint;
 
-        KRATOS_ERROR_IF(rShapeFunctions.size1() != ThisPoints.size()) <<
+        msGeometryData.IntegrationPoints(IntegrationPoints);
+
+        KRATOS_ERROR_IF(rShapeFunctions.size2() != ThisPoints.size()) <<
             "Length of shape function array in matrix does not fit to number of points. Length of point vector: " << ThisPoints.size()
             << " Length of corresponding shape function vector: " << rShapeFunctions.size2() << std::endl;
-        mShapeFunctions = rShapeFunctions;
+
+        // shape functions
+        if (rShapeFunctions.size1() > 0)
+        {
+            Matrix ShapeFunctionsValues = ZeroMatrix(1, PointsNumber());
+            for (IndexType i = 0; i < PointsNumber(); ++i)
+            {
+                ShapeFunctionsValues(0, i) = rShapeFunctions(0, i);
+            }
+            msGeometryData.ShapeFunctionsValues(ShapeFunctionsValues);
+        }
+
+        // first derivatives/ gradients
+        if (rShapeFunctions.size1() > 2)
+        {
+            ShapeFunctionsGradientsType ShapeFunctionsLocalGradients(1);
+            Matrix ShapeFunctionsLocalGradientsIntegrationPoint = ZeroMatrix(2, PointsNumber());
+            for (IndexType i = 0; i < PointsNumber(); ++i)
+            {
+                ShapeFunctionsLocalGradientsIntegrationPoint(i, 0) = rShapeFunctions(1, i);
+                ShapeFunctionsLocalGradientsIntegrationPoint(i, 1) = rShapeFunctions(2, i);
+            }
+            ShapeFunctionsLocalGradients.push_back(ShapeFunctionsLocalGradientsIntegrationPoint);
+            msGeometryData.ShapeFunctionsLocalGradients(ShapeFunctionsLocalGradients);
+        }
+
+        // for higher order shape functions
+        if (rShapeFunctions.size1() > 3)
+        {
+            Matrix ShapeFunctionsDerivatives = ZeroMatrix(rShapeFunctions.size1() - 3, PointsNumber());
+            for (IndexType i = 0; i < PointsNumber(); ++i)
+            {
+                for (IndexType j = 0; j < rShapeFunctions.size1() - 3; ++j)
+                {
+                    ShapeFunctionsLocalGradientsIntegrationPoint(i, j) = rShapeFunctions(1, j + 3 );
+                }
+            }
+            ShapeFunctionsLocalGradients.push_back(ShapeFunctionsLocalGradientsIntegrationPoint);
+            msGeometryData.ShapeFunctionsLocalGradients(ShapeFunctionsLocalGradients);
+
+            mShapeFunctions = rShapeFunctions;
+        }
     }
 
     /**
@@ -288,96 +331,6 @@ public:
     }
 
     ///@}
-    ///@name Integration Points
-    ///@{
-
-    /** IntegrationPointSurface3d is a geometry which is based on a single
-    gauss point. Thus, the size is always 1. Independent on the integration
-    method.
-
-    @return SizeType which is always 1.
-    */
-    SizeType IntegrationPointsNumber() const override
-    {
-        return 1;
-    }
-
-    /** IntegrationPointSurface3d is a geometry which is based on a single
-    gauss point. Thus, the size is always 1. Independent on the integration
-    method.
-
-    @return SizeType which is always 1.
-    */
-    SizeType IntegrationPointsNumber(IntegrationMethod ThisMethod) const override
-    {
-        return 1;
-    }
-
-
-    /** This method returns the member variable of the precomputed integration point.
-
-    @return const IntegrationPointsArrayType which is Vector of size 1
-    of this integration points
-    for default integrating method.
-    */
-    const IntegrationPointsArrayType& IntegrationPoints() const override
-    {
-        return mIntegrationPoints;
-    }
-
-    /** Integtation points for given integration
-    method. This method use integration points data base to
-    obtain integration points Vector respected to
-    given method.
-
-    @return const IntegrationPointsArrayType which is Vector of integration points
-    for default integrating method.
-    */
-    const IntegrationPointsArrayType& IntegrationPoints(IntegrationMethod ThisMethod) const override
-    {
-        return mIntegrationPoints;
-    }
-
-    ///@}
-    ///@name Informations
-    ///@{
-
-    /** Dimension of the Integration Point, is always set to 3.
-
-    @return SizeType, dimension of this geometry.
-    @see WorkingSpaceDimension()
-    @see LocalSpaceDimension()
-    */
-    inline SizeType Dimension() const override
-    {
-        return 3;
-    }
-
-    /** Working Space Dimension of the Integration Point, is always set to 3.
-
-    @return SizeType, working space dimension of this geometry.
-    @see Dimension()
-    @see LocalSpaceDimension()
-    */
-    inline SizeType WorkingSpaceDimension() const override
-    {
-        return 3();
-    }
-
-    /** Local Space Dimension of surface integration point are always the 
-    two coordinates of the surface.
-
-    @return SizeType, local space dimension of this geometry.
-    @see Dimension()
-    @see WorkingSpaceDimension()
-    */
-    inline SizeType LocalSpaceDimension() const override
-    {
-        return 2;
-    }
-
-    ///@}
-
     /** Calculates global location of this integration point.
 
     \f[
@@ -399,70 +352,6 @@ public:
             location.Coordinates() += (*this)[i].Coordinates()* Matrix(0, i);
         }
         return location;
-    }
-
-
-    ///@name Shape Function
-    ///@{
-    /** This method gives all non-zero shape functions values
-    evaluated at the rCoordinates provided
-
-    @return Vector of values of shape functions \f$ F_{i} \f$
-    where i is the shape function index (for NURBS it is the index
-    of the local enumeration in the element).
-
-    @see ShapeFunctionValue
-    @see ShapeFunctionsLocalGradients
-    @see ShapeFunctionLocalGradient
-    */
-    double ShapeFunctionValue(
-        IndexType IntegrationPointIndex,
-        IndexType ShapeFunctionIndex
-    ) const override
-    {
-        mShapeFunctionValues(0, ShapeFunctionIndex)
-
-        return 0;
-    }
-
-    /** This method gives the shape functions values corresponding to
-    this integration point evaluated at each nodes. There is no 
-    calculation of the shape functions it just returns it from 
-    member container.
-
-    @return Matrix of values of shape functions \f$ F_{ij} \f$
-    where i is the integration point index and j is the shape
-    function index. In other word component \f$ f_{ij} \f$ is value
-    of the shape function corresponding to node j evaluated in
-    integration point i of default integration method.
-
-    @see ShapeFunctionValue
-    @see ShapeFunctionsLocalGradients
-    @see ShapeFunctionLocalGradient
-    */
-    const Matrix& ShapeFunctionsValues() const
-    {
-        Matrix ShapeFunctionsValues = ZeroMatrix(0, PointsNumber());
-
-        for (IndexType i = 0; i < PointsNumber(); ++i)
-        {
-            ShapeFunctionsValues(0, i) = mShapeFunctions(0, i);
-        }
-
-        return ShapeFunctionsValues();
-    }
-
-    /** This method gives the shape functions values corresponding to
-    this integration point evaluated at each nodes.
-
-    \note The integration at one point is independent on the method.
-
-    @see ShapeFunctionsValues
-    */
-    const Matrix& ShapeFunctionsValues(IntegrationMethod ThisMethod)  const
-    {
-
-        return ShapeFunctionsValues();
     }
 
     ///@}
@@ -513,10 +402,7 @@ private:
     ///@name Members
     ///@{
 
-    IntegrationPointsContainerType mIntegrationPoints;
-
-    /** This member holds the shape functions and its evaluated
-    *   derivative  */
+    /** This member holds the higher order shape function derivatives */
     Matrix mShapeFunctions;
 
     ///@}
@@ -571,6 +457,15 @@ template<class TPointType> inline std::ostream& operator << (
     rThis.PrintData( rOStream );
     return rOStream;
 }
+
+template<class TPointType>
+const GeometryData IntegrationPointSurface3d<TPointType>::msGeometryData(3,
+    3,
+    2,
+    GeometryData::GI_GAUSS_1,
+    {},
+    {},
+    {});
 
 }  // namespace Kratos.
 

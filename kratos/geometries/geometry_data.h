@@ -263,6 +263,15 @@ public:
     {
     }
 
+    GeometryData(SizeType ThisDimension,
+        SizeType ThisWorkingSpaceDimension,
+        SizeType ThisLocalSpaceDimension)
+        : mDimension(ThisDimension)
+        , mWorkingSpaceDimension(ThisWorkingSpaceDimension)
+        , mLocalSpaceDimension(ThisLocalSpaceDimension)
+    {
+    }
+
     /** Copy constructor.
     Construct this geometry data as a copy of given geometry data.
     */
@@ -407,6 +416,15 @@ public:
         return mIntegrationPoints[ThisMethod].size();
     }
 
+    /** Set integration points by predefined integration points.
+
+    IntegrationPointsArrayType which is Vector of integration points
+    for default integrating method.
+    */
+    void IntegrationPoints(IntegrationPointsArrayType& IntegrationPoints)
+    {
+        mIntegrationPoints[mDefaultMethod] = IntegrationPoints;
+    }
 
     /** Integtation points for default integration
     method. This method just call IntegrationPoints(enum
@@ -437,6 +455,21 @@ public:
     ///@}
     ///@name Shape Function
     ///@{
+
+    /** This method sets the shape function values for all
+    integration points.
+
+    @param Matrix ShapeFunctionsValues of values of 
+    shape functions \f$ F_{ij} \f$ where i is the integration point
+    index and j is the shape function index. In other word component
+    \f$ f_{ij} \f$ is value of the shape function corresponding to 
+    node j evaluated in integration point i of default integration method.
+
+    */
+    void ShapeFunctionsValues(Matrix& ShapeFunctionsValues)
+    {
+        mShapeFunctionsValues[mDefaultMethod] = ShapeFunctionsValues;
+    }
 
     /** This method gives all shape functions values evaluated in all
     integration points of default integration method. It just
@@ -550,6 +583,21 @@ public:
             KRATOS_ERROR << "No existing shape function value" << std::endl;
 
         return mShapeFunctionsValues[ThisMethod]( IntegrationPointIndex, ShapeFunctionIndex );
+    }
+
+    /** This method sets all shape functions gradients evaluated in all
+    integration points of default integration method.
+
+    @param shape functions' gradients \f$ F_{ijk} \f$ where i
+    is the integration point index and j is the shape function
+    index and k is local coordinate index. In other word
+    component \f$ f_{ijk} \f$ is k'th component of gradient of
+    the shape function corresponding to node j evaluated in
+    integration point i of default integration method.
+    */
+    void ShapeFunctionsLocalGradients(ShapeFunctionsGradientsType& ShapeFunctionsLocalGradients)
+    {
+        mShapeFunctionsLocalGradients[mDefaultMethod] = ShapeFunctionsLocalGradients;
     }
 
     /** This method gives all shape functions gradients evaluated in all
