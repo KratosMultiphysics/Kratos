@@ -4,18 +4,16 @@ from __future__ import print_function, absolute_import, division  # makes these 
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_predictor import CosimulationBasePredictor
 
 # Other imports
-import numpy as np
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
-def Create(predictor_settings, solver):
-    return LinearDerivativeBasedPredictor(predictor_settings, solver)
+def Create(settings, solver):
+    cs_tools.SettingsTypeCheck(settings)
+    return LinearDerivativeBasedPredictor(settings, solver)
 
 class LinearDerivativeBasedPredictor(CosimulationBasePredictor):
     def __init__(self, settings, solver):
         super(LinearDerivativeBasedPredictor, self).__init__(settings, solver)
-
         self.interface_derivative_data = self.solver.GetInterfaceData(self.settings["derivative_data_name"].GetString())
-        # TODO check buffer size!
 
     def Predict(self):
         data  = self.interface_data.GetNumpyArray(1)
@@ -27,5 +25,10 @@ class LinearDerivativeBasedPredictor(CosimulationBasePredictor):
 
         self._UpdateData(data)
 
-    def _Name(self):
-        return self.__class__.__name__
+    @classmethod
+    def _GetDefaultSettings(cls):
+        this_defaults = cs_tools.cs_data_structure.Parameters("""{
+            "derivative_data_name" : "UNSPECIFIED"
+        }""")
+        this_defaults.AddMissingParameters(super(LinearDerivativeBasedPredictor, cls)._GetDefaultSettings())
+        return this_defaults

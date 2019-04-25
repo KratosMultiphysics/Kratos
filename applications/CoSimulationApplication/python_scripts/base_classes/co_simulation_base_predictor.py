@@ -6,9 +6,15 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 class CosimulationBasePredictor(object):
     def __init__(self, settings, solver):
         self.settings = settings
+        self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
+
         self.solver = solver
         self.interface_data = self.solver.GetInterfaceData(self.settings["data_name"].GetString())
-        self.echo_level = 0
+
+        self.echo_level = self.settings["echo_level"].GetInt()
+
+        # TODO check buffer size
+        self._GetMinimumBufferSize()
 
     def Initialize(self):
         pass
@@ -25,9 +31,6 @@ class CosimulationBasePredictor(object):
     def FinalizeSolutionStep(self):
         pass
 
-    # def SetDeltaTime(self, delta_time):
-    #     self.delta_time = delta_time
-
     def PrintInfo(self):
         '''Function to print Info abt the Object
         Can be overridden in derived classes to print more information
@@ -41,10 +44,24 @@ class CosimulationBasePredictor(object):
         self.echo_level = level
 
     def _Name(self):
-        raise Exception('"_Name" has to be implemented in the derived class!')
+        return self.__class__.__name__
 
     def _UpdateData(self, updated_data):
         self.interface_data.ApplyUpdateToData(updated_data)
 
         if self.echo_level > 3:
             cs_tools.classprint(self._Name(), "Computed prediction")
+
+
+    # returns the buffer size needed by the predictor. Can be overridden in derived classes
+    def _GetMinimumBufferSize(self):
+        return 2
+
+    @classmethod
+    def _GetDefaultSettings(cls):
+        return cs_tools.cs_data_structure.Parameters("""{
+            "type"       : "UNSPECIFIED",
+            "solver"     : "UNSPECIFIED",
+            "data_name"  : "UNSPECIFIED",
+            "echo_level" : 0
+        }""")

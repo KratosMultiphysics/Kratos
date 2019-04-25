@@ -11,7 +11,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_
 import numpy as np
 from copy import deepcopy
 from collections import deque
-import  KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 def Create(settings, solver):
     cs_tools.SettingsTypeCheck(settings)
