@@ -275,7 +275,7 @@ private:
     //******************************************************************************************
     //******************************************************************************************
     template< class TDataType > void  AddUniqueWeakPointer
-    (WeakPointerVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
+    (WeakPointerVector< TDataType >& v, const GlobalPointer<TDataType>& candidate)
     {
         typename WeakPointerVector< TDataType >::iterator i = v.begin();
         typename WeakPointerVector< TDataType >::iterator endit = v.end();

@@ -86,10 +86,6 @@ public:
     typedef ConditionsArrayType::iterator      ConditionsIteratorType;
     typedef ElementsArrayType::iterator          ElementsIteratorType;
 
-    // Weak pointers vectors types
-    typedef WeakPointerVector<NodeType> NodePointerVector;
-    typedef WeakPointerVector<Element> ElementPointerVector;
-
     /// Definition of the vector indexes considered
     typedef std::vector<IndexType> VectorIndexType;
 
