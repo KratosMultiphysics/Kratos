@@ -339,17 +339,28 @@ void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& r
         { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, 9 },
         { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4,    10 },
         { GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,     12 },
-        { GeometryData::KratosGeometryType::Kratos_Prism3D6,         13 }
+        { GeometryData::KratosGeometryType::Kratos_Prism3D6,         13 },
+        { GeometryData::KratosGeometryType::Kratos_Line2D3,          21 },
+        { GeometryData::KratosGeometryType::Kratos_Line3D3,          21 },
+        { GeometryData::KratosGeometryType::Kratos_Triangle2D6,      22 },
+        { GeometryData::KratosGeometryType::Kratos_Triangle3D6,      22 },
+        { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8, 23 },
+        { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8, 23 },
+        { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10,   24 }
+//         { GeometryData::KratosGeometryType::Kratos_Hexahedra3D20,    25 } // NOTE: Quadratic hexahedra (20) requires a conversor, order does not coincide with VTK
     };
     // Write entity types
     for (const auto& r_entity : rContainer) {
         int cell_type = -1;
-        if (geo_type_vtk_cell_type_map.count(r_entity.GetGeometry().GetGeometryType()) > 0) {
-            cell_type = geo_type_vtk_cell_type_map.at(r_entity.GetGeometry().GetGeometryType());
+        const auto& r_kratos_cell = r_entity.GetGeometry().GetGeometryType();
+        if (geo_type_vtk_cell_type_map.count(r_kratos_cell) > 0) {
+            cell_type = geo_type_vtk_cell_type_map.at(r_kratos_cell);
         }
         else {
+            const auto& r_kratos_cell = r_entity.GetGeometry().GetGeometryType();
             KRATOS_ERROR << "Modelpart contains elements or conditions with "
-             << "geometries for which no VTK-output is implemented!" << std::endl;
+             << "geometries for which no VTK-output is implemented!" << std::endl
+             << "Cell type: " << static_cast<int>(r_kratos_cell) << std::endl;
         }
 
         WriteScalarDataToFile( (int)cell_type, rFileStream);
