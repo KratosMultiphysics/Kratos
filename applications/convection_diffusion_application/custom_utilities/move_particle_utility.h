@@ -129,10 +129,10 @@ namespace Kratos
 					array_1d<double,3> position_node;
 					double distance=0.0;
 					position_node = pnode->Coordinates();
-					WeakPointerVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
+					auto& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
 					//we loop all the nodes to check all the edges
 					const double number_of_neighbours = double(rneigh.size());
-					for( WeakPointerVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
+					for(auto& inode : rneigh)
 					{
 						array_1d<double,3> position_difference;
 						position_difference = inode->Coordinates() - position_node;
