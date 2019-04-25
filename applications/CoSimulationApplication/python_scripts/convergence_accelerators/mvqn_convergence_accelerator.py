@@ -103,9 +103,9 @@ class MVQN(CoSimulationBaseConvergenceAccelerator):
 
     @classmethod
     def _GetDefaultSettings(cls):
-        mvqn_defaults = cs_tools.cs_data_structure.Parameters("""{
+        this_defaults = cs_tools.cs_data_structure.Parameters("""{
             "horizon" : 15,
             "alpha"   : 0.125
         }""")
-        mvqn_defaults.AddMissingParameters(super(MVQN, cls)._GetDefaultSettings())
-        return mvqn_defaults
+        this_defaults.AddMissingParameters(super(MVQN, cls)._GetDefaultSettings())
+        return this_defaults

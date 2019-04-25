@@ -66,9 +66,9 @@ class Aitken(CoSimulationBaseConvergenceAccelerator):
 
     @classmethod
     def _GetDefaultSettings(cls):
-        aitken_defaults = cs_tools.cs_data_structure.Parameters("""{
+        this_defaults = cs_tools.cs_data_structure.Parameters("""{
             "init_alpha"     : 0.1,
             "init_alpha_max" : 0.45
         }""")
-        aitken_defaults.AddMissingParameters(super(Aitken, cls)._GetDefaultSettings())
-        return aitken_defaults
+        this_defaults.AddMissingParameters(super(Aitken, cls)._GetDefaultSettings())
+        return this_defaults
