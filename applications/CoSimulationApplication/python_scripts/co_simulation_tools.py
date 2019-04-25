@@ -54,6 +54,17 @@ def CreateConvergenceCriteria(convergence_criteria_settings_list, solvers, solve
     return convergence_criteria
 
 
+def SettingsTypeCheck(settings):
+    if not isinstance(settings, cs_data_structure.Parameters):
+        raise TypeError("Expected input shall be a Parameters object, encapsulating a json string")
+
+
+
+
+
+
+
+
 
 
 
