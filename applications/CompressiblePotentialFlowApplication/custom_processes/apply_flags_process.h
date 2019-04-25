@@ -7,11 +7,11 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Marc Núñez
 //
 
-#ifndef KRATOS_APPLY_FLAGS_PROCESS_H
-#define KRATOS_APPLY_FLAGS_PROCESS_H
+#ifndef KRATOS_APPLY_EMBEDDED_FLAGS_PROCESS_H
+#define KRATOS_APPLY_EMBEDDED_FLAGS_PROCESS_H
 
 
 #include "includes/define.h"
@@ -24,15 +24,15 @@
 namespace Kratos
 {
 
-class ApplyFlagsProcess: public Process
+class ApplyEmbeddedFlagsProcess: public Process
 {
 public:
 
     /// Pointer definition of Process
-    KRATOS_CLASS_POINTER_DEFINITION(ApplyFlagsProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(ApplyEmbeddedFlagsProcess);
 
-    /// Constructor for ApplyFlagsProcess Process
-    ApplyFlagsProcess(ModelPart& rModelPart
+    /// Constructor for ApplyEmbeddedFlagsProcess Process
+    ApplyEmbeddedFlagsProcess(ModelPart& rModelPart
                     ):
         Process(),
         mrModelPart(rModelPart)
@@ -40,7 +40,7 @@ public:
     }
 
     /// Destructor.
-    ~ApplyFlagsProcess() override {}
+    ~ApplyEmbeddedFlagsProcess() override {}
 
     void operator()()
     {
@@ -86,13 +86,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ApplyFlagsProcess";
+        return "ApplyEmbeddedFlagsProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ApplyFlagsProcess";
+        rOStream << "ApplyEmbeddedFlagsProcess";
     }
 
     /// Print object's data.
@@ -106,20 +106,20 @@ private:
 
     ModelPart& mrModelPart;
 
-    ApplyFlagsProcess& operator=(ApplyFlagsProcess const& rOther);
+    ApplyEmbeddedFlagsProcess& operator=(ApplyEmbeddedFlagsProcess const& rOther);
 
     /// Copy constructor.
-    ApplyFlagsProcess(ApplyFlagsProcess const& rOther);
+    ApplyEmbeddedFlagsProcess(ApplyEmbeddedFlagsProcess const& rOther);
 
 }; // Class Process
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  ApplyFlagsProcess& rThis);
+                                  ApplyEmbeddedFlagsProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ApplyFlagsProcess& rThis)
+                                  const ApplyEmbeddedFlagsProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
