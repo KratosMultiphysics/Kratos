@@ -19,15 +19,14 @@ class CouplingInterfaceData(object):
         custom_config.ValidateAndAssignDefaults(default_config)
 
         self.name = custom_config["name"].GetString()
-        self.variable = None
         self.filters = []
         self.solver = solver
         self.dimension = custom_config["dimension"].GetInt()
         self.location = custom_config["location"].GetString()
         self.geometry_name = custom_config["geometry_name"].GetString()
+        self.origin_data      = None
         self.destination_data = None
-        self.origin_data = None
-        self.mapper_settings = None
+        self.mapper_settings  = None
         # TODO check DOMAIN_SIZE against the dimension
 
     def ApplyFilters(self):
