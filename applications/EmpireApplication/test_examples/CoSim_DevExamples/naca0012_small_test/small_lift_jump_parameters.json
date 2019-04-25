@@ -14,7 +14,7 @@
             "input_type"     : "mdpa",
             "input_filename" : "naca0012_small"
         },
-        "maximum_iterations"     : 10,
+        "maximum_iterations"     : 2,
         "echo_level"             : 0,
         "linear_solver_settings"  : {
                 "solver_type"             : "ExternalSolversApplication.super_lu"

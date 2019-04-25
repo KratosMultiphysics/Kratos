@@ -4,7 +4,7 @@
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,
         "start_time"      : 0.0,
-        "end_time"        : 1
+        "end_time"        : 1.0
     },
     "solver_settings"                  : {
         "solver_type"            : "ale_potential_flow",
@@ -38,7 +38,7 @@
                 "input_type"     : "mdpa",
                 "input_filename" : "naca0012_small"
             },
-            "maximum_iterations"     : 10,
+            "maximum_iterations"     : 2,
             "echo_level"             : 0,
             "linear_solver_settings"  : {
                     "solver_type"             : "ExternalSolversApplication.super_lu",
@@ -124,6 +124,17 @@
                     "file_name"  : "naca0012_test_probe1.dat"
                 },
                 "output_variables" : ["VELOCITY_POTENTIAL","REACTION"]
+            }
+        },{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "json_output_process",
+            "help"            : "",
+            "process_name"    : "JsonOutputProcess",
+            "Parameters" : {
+                "model_part_name"  : "FluidModelPart",
+                "sub_model_part_name" : "Body2D_Body",
+                "output_file_name" : "naca0012_REACTION",
+                "output_variables" : ["REACTION"]
             }
          }]
     }
