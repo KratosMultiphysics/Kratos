@@ -122,19 +122,10 @@ class CoSimulationBaseSolver(object):
     #  @param self            The object pointer.
     def __CreateInterfaceDataMap(self):
         data_map = dict()
-        # # num_data = self.cosim_solver_settings["data"].size()
-        # print(self.cosim_solver_settings["data"].keys())
-        # errrr
-
-        print("\n\nsolver_name", self.name)
-        # print(self.cosim_solver_settings.PrettyPrintJsonString())
-        # for i in range(self.cosim_solver_settings["data"].size()):
         for i in range(self.cosim_solver_settings["data"].size()):
             data_conf = self.cosim_solver_settings["data"][i]
             data_name = data_conf["name"].GetString()
-            print(data_conf.PrettyPrintJsonString())
-            print(data_name)
-            data_obj = CouplingInterfaceData(data_conf, self)
+            data_obj = CouplingInterfaceData(data_conf, self) # TODO pass only the model?
             data_map[data_name] = data_obj
 
         return data_map

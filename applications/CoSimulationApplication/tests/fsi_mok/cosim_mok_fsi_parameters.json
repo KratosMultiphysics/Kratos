@@ -48,7 +48,7 @@
                     {
                         "from_solver"       : "fluid",
                         "data_name"         : "REACTION",
-                        "destination_data"  :"POINT_LOAD",
+                        "destination_data"  : "POINT_LOAD",
                         "mapper_settings"   : {
                             "type" : "nearest_neighbor",
                             "flags" : ["swap_sign"]

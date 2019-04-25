@@ -92,16 +92,15 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         if self.coupling_started:
             solver = self.participating_solvers[solver_name]
             input_data_list = self.coupling_sequence[solver_name]["input_data_list"]
-            num_input_data = input_data_list.size()
 
-            for i in range(num_input_data):
+            for i in range(input_data_list.size()):
                 input_data = input_data_list[i]
                 from_solver = self.participating_solvers[input_data["from_solver"].GetString()]
                 data_name = input_data["data_name"].GetString()
                 from_solver_data = from_solver.GetInterfaceData(data_name)
                 solver_data = solver.GetInterfaceData(input_data["destination_data"].GetString())
 
-                if(input_data.Has("mapper_settings")):
+                if input_data.Has("mapper_settings"):
                     solver_data.origin_data = from_solver_data
                     solver_data.mapper_settings = input_data["mapper_settings"]
 
@@ -111,16 +110,15 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         if self.coupling_started:
             solver = self.participating_solvers[solver_name]
             output_data_list = self.coupling_sequence[solver_name]["output_data_list"]
-            num_output_data = output_data_list.size()
 
-            for i in range(num_output_data):
+            for i in range(output_data_list.size()):
                 output_data = output_data_list[i]
                 to_solver = self.participating_solvers[output_data["to_solver"].GetString()]
                 data_name = output_data["data_name"].GetString()
                 to_solver_data = to_solver.GetInterfaceData(data_name)
                 solver_data = solver.GetInterfaceData(output_data["origin_data"].GetString())
 
-                if(output_data.Has("mapper_settings")):
+                if output_data.Has("mapper_settings"):
                     solver_data.destination_data = to_solver_data
                     solver_data.mapper_settings = output_data["mapper_settings"]
 
