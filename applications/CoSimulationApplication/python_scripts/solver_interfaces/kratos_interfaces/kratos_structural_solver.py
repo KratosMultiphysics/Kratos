@@ -1,8 +1,5 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-# Importing the Kratos Library
-import KratosMultiphysics
-
 # Importing the base class
 from . import kratos_base_field_solver
 

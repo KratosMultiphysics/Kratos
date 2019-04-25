@@ -7,8 +7,7 @@ import KratosMultiphysics
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_solver import CoSimulationBaseSolver
 
 # Other imports
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as co_simulation_tools
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import solverprint, bold, red
+from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import solverprint, bold
 
 class KratosBaseFieldSolver(CoSimulationBaseSolver):
     def __init__(self, model, settings, solver_name):
