@@ -28,6 +28,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "containers/flags.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
 #include "containers/weak_pointer_vector.h"
@@ -138,6 +139,9 @@ public:
     /// Pointer definition of Serializer
     KRATOS_CLASS_POINTER_DEFINITION(Serializer);
 
+    KRATOS_DEFINE_LOCAL_FLAG( MPI );
+    KRATOS_DEFINE_LOCAL_FLAG( SHALLOW_GLOBAL_POINTERS_SERIALIZATION );
+
     typedef std::size_t SizeType;
 
     typedef void* (*ObjectFactoryType)();
@@ -157,7 +161,7 @@ public:
     ///@{
 
     /// Default constructor.
-    Serializer(BufferType* pBuffer, TraceType const& rTrace=SERIALIZER_NO_TRACE) : 
+    explicit Serializer(BufferType* pBuffer, TraceType const& rTrace=SERIALIZER_NO_TRACE) : 
         mpBuffer(pBuffer), mTrace(rTrace), mNumberOfLines(0)
     {
     }
@@ -177,7 +181,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    ///This function returns the "trace type" used in initializing the serializer. 
+    ///This function returns the "trace type" used in initializing the serializer.
     ///Trace type is one of SERIALIZER_NO_TRACE,SERIALIZER_TRACE_ERROR,SERIALIZER_TRACE_ALL
     TraceType GetTraceType() const {return mTrace;}
 
@@ -185,7 +189,7 @@ public:
     {
         mpBuffer = pBuffer;
     }
-    
+
     template<class TDataType>
     static void* Create()
     {
@@ -582,7 +586,6 @@ public:
         save_map(rTag, rObject);
     }
 
-
     template<class TDataType>
     void save(std::string const & rTag, TDataType const& rObject)
     {
@@ -868,6 +871,25 @@ public:
         return mpBuffer;
     }
 
+    /**
+     * This function let's one introduce "pValue"  between the objects
+     * which are considered to be already serialized
+     * TODO: verify if this should be a void* or if it is correct that it is taken as TDataType
+     */
+    template<class TDataType>
+    void AddToSavedPointers(const TDataType& pValue) {
+        mSavedPointers.insert(pValue);
+    }
+
+    /**
+     * This function is to be used to inform the serializer that the object
+     * initially stored in "pStoredPosition" is after loading located at pAllocatedPosition
+     * This function is useful to substitute some objects with others that already exist.
+     */
+    void RedirectLoadingPointer(void * pStoredPointer, void * pAllocatedPosition) {
+        mLoadedPointers[pStoredPointer]=pAllocatedPosition;
+    }
+
     static RegisteredObjectsContainerType& GetRegisteredObjects()
     {
         return msRegisteredObjects;
@@ -878,11 +900,19 @@ public:
         return msRegisteredObjectsName;
     }
 
+    void Set(Flags ThisFlag)
+    {
+        mFlags.Set(ThisFlag);
+    }
 
     ///@}
     ///@name Inquiry
     ///@{
 
+    bool Is(Flags const & rOtherFlag) const
+    {
+        return mFlags.Is(rOtherFlag);
+    }
 
     ///@}
     ///@name Input and output
@@ -957,6 +987,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    Flags mFlags;
 
     BufferType* mpBuffer;
     TraceType mTrace;
@@ -1376,7 +1408,6 @@ private:
     /// Copy constructor.
     Serializer(Serializer const& rOther);
 
-
     ///@}
 
 }; // Class Serializer
@@ -1423,7 +1454,6 @@ private:
 //       return rOStream;
 //     }
 ///@}
-
 
 }  // namespace Kratos.
 

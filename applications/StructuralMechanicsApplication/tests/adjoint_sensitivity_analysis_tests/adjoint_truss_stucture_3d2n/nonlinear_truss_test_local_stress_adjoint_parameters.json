@@ -16,30 +16,30 @@
         },
         "compute_reactions"			   : false,
         "move_mesh_flag"                    : false,
-        "scheme_settings" : {
-            "scheme_type"              : "adjoint_structural"
-            },
         "response_function_settings" : {
                 "response_type"     : "adjoint_local_stress",
                 "use_kratos"        : true,
                 "gradient_mode"     : "semi_analytic",
-                "sensitivity_model_part_name" : "sensitivity_mp",
-                "nodal_sensitivity_variables"  : ["SHAPE"],
-                "element_sensitivity_variables"  : ["CROSS_AREA"],
-                "condition_sensitivity_variables"  : ["POINT_LOAD"],
                 "step_size"         : 1e-6,
                 "traced_element_id"    : 1,
                 "stress_type"       : "FX",
                 "stress_treatment"  : "GP",
                 "stress_location"   : 1
             },
+        "sensitivity_settings" : {
+                "sensitivity_model_part_name" : "sensitivity_mp",
+                "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+                "element_data_value_sensitivity_variables"  : ["CROSS_AREA"],
+                "condition_data_value_sensitivity_variables"  : ["POINT_LOAD"],
+                "build_mode": "static"
+            },
         "echo_level"                   : 0,
         "problem_domain_sub_model_part_list" : ["Parts_TRUSS"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_BC_DIRICHLET_X_Y_Z","DISPLACEMENT_BC_DIRICHLET_Z","PointLoad3D_BC_NEUMANN"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_BC_DIRICHLET_X_Y_Z","DISPLACEMENT_BC_DIRICHLET_Z","PointLoad3D_BC_NEUMANN","Structure"],
         "computing_model_part_name" : "computing_domain",
         "rotation_dofs"                      : false,
         "linear_solver_settings"       : {
-            "solver_type"         : "Super_LU"
+            "solver_type"         : "ExternalSolversApplication.super_lu"
         },
         "model_import_settings"        : {
             "input_type"     : "mdpa",
@@ -105,22 +105,24 @@
                 "list_of_variables": ["DISPLACEMENT"]
             }
         }
-     },
-     {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"  : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY"],
-            "gauss_points_check_variables" : ["CROSS_AREA_SENSITIVITY"],
-            "input_file_name"  : "nonlinear_truss_test_local_stress_results.json",
-            "model_part_name"  : "Structure",
-            "tolerance"            : 1e-4,
-            "time_frequency"   : -2.0
+    }],
+    "json_check_process":[
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY"],
+                "gauss_points_check_variables" : ["CROSS_AREA_SENSITIVITY"],
+                "input_file_name"  : "nonlinear_truss_test_local_stress_results.json",
+                "model_part_name"  : "Structure",
+                "tolerance"            : 1e-4,
+                "time_frequency"   : -2.0
+            }
         }
-    }
-    ]},
+        ]
+    },
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {

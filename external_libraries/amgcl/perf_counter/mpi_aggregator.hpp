@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 Copyright (c) 2016 Mohammad Siahatgar <siahatgar@luis.uni-hannover.de>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -45,7 +45,9 @@ class mpi_aggregator {
     public:
         typedef typename Counter::value_type value_type;
 
-        mpi_aggregator() : world(MPI_COMM_WORLD), dtype(amgcl::mpi::datatype<value_type>::get()) {
+        mpi_aggregator(MPI_Comm comm = MPI_COMM_WORLD)
+            : world(comm), dtype(amgcl::mpi::datatype<value_type>())
+        {
             if (SingleReaderPerNode) {
                 typedef std::integral_constant<bool, sizeof(size_t) == sizeof(int)>::type _32bit;
 
@@ -107,11 +109,11 @@ class mpi_aggregator {
                 size_t full;
                 struct {
                     int lo, hi;
-                };
+                } part;
             } h;
 
             h.full = std::hash<std::string>()(name);
-            return std::abs(h.lo ^ h.hi);
+            return std::abs(h.part.lo ^ h.part.hi);
         }
 };
 

@@ -4,9 +4,6 @@ import KratosMultiphysics as kratoscore
 import KratosMultiphysics.FluidDynamicsApplication as cfd
 import KratosMultiphysics.IncompressibleFluidApplication
 
-# Check that KratosMultiphysics was imported in the main script
-kratoscore.CheckForPreviousImport()
-
 def CreateSolver(main_model_part, custom_settings):
     return StokesSolver(main_model_part, custom_settings)
 
@@ -59,7 +56,7 @@ class StokesSolver:
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         #construct the linear solvers
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
 

@@ -82,10 +82,8 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
     const unsigned int number_of_positive_gauss_points =
         data.PositiveSideWeights.size();
     for (unsigned int g = 0; g < number_of_positive_gauss_points; g++) {
-        data.UpdateGeometryValues(g, data.PositiveSideWeights[g],
+        this->UpdateIntegrationPointData(data, g, data.PositiveSideWeights[g],
             row(data.PositiveSideN, g), data.PositiveSideDNDX[g]);
-
-        this->CalculateMaterialResponse(data);
 
         this->AddTimeIntegratedSystem(
             data, rLeftHandSideMatrix, rRightHandSideVector);
@@ -96,10 +94,8 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
         const unsigned int number_of_interface_gauss_points =
             data.PositiveInterfaceWeights.size();
         for (unsigned int g = 0; g < number_of_interface_gauss_points; g++) {
-            data.UpdateGeometryValues(g + number_of_positive_gauss_points, data.PositiveInterfaceWeights[g],
+            this->UpdateIntegrationPointData(data, g + number_of_positive_gauss_points, data.PositiveInterfaceWeights[g],
                 row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
-
-            this->CalculateMaterialResponse(data);
 
             this->AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g],
                 rLeftHandSideMatrix, rRightHandSideVector);
@@ -157,8 +153,8 @@ void EmbeddedFluidElement<TBaseElement>::Calculate(
             const unsigned int n_int_pos_gauss = data.PositiveInterfaceWeights.size();
             for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
 
-                // Update the Gauss pt. data
-                data.UpdateGeometryValues(g + number_of_positive_gauss_points,
+                // Update the Gauss pt. data and the constitutive law
+                this->UpdateIntegrationPointData(data, g + number_of_positive_gauss_points,
                    data.PositiveInterfaceWeights[g],row(data.PositiveInterfaceN, g),data.PositiveInterfaceDNDX[g]);
 
                 // Get the interface Gauss pt. unit noromal
@@ -166,9 +162,6 @@ void EmbeddedFluidElement<TBaseElement>::Calculate(
 
                 // Compute Gauss pt. pressure
                 const double p_gauss = inner_prod(data.N, data.Pressure);
-
-                // Call the constitutive law to compute the shear contribution
-                this->CalculateMaterialResponse(data);
 
                 // Get the normal projection matrix in Voigt notation
                 BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
@@ -207,11 +200,33 @@ void EmbeddedFluidElement<TBaseElement>::Calculate(
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+// Access
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::GetValueOnIntegrationPoints(
+    const Variable<array_1d<double, 3>> &rVariable,
+    std::vector<array_1d<double, 3>> &rValues,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    if (rVariable == EMBEDDED_VELOCITY) {
+        const auto &r_geom = this->GetGeometry();
+        const auto &r_integration_points = r_geom.IntegrationPoints(this->GetIntegrationMethod());
+        const std::size_t n_gauss_pts = r_integration_points.size();
+        rValues.resize(n_gauss_pts);
+        for (std::size_t i_gauss = 0; i_gauss < n_gauss_pts; ++i_gauss) {
+            rValues[i_gauss] = this->GetValue(EMBEDDED_VELOCITY);
+        }
+    } else {
+        TBaseElement::GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    }
+}
+
 // Inquiry
 
 template <class TBaseElement>
 int EmbeddedFluidElement<TBaseElement>::Check(
-    const ProcessInfo& rCurrentProcessInfo) {
+    const ProcessInfo &rCurrentProcessInfo)
+{
 
     int out = EmbeddedElementData::Check(*this,rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)
@@ -705,7 +720,7 @@ std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::Comput
 
 template <class TBaseElement>
 std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::ComputeSlipTangentialNitscheCoefficients(
-    const EmbeddedElementData& rData) const 
+    const EmbeddedElementData& rData) const
 {
     const double slip_length = rData.SlipLength;
     const double penalty = 1.0/rData.PenaltyCoefficient;

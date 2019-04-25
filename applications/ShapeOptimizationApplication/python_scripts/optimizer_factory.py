@@ -62,10 +62,10 @@ class VertexMorphingMethod:
         self.analyzer = analyzer
         self.communicator = communicator
 
-        self.__AddNodalVariablesNeededForOptimization()
+        self.__AddVariablesToBeUsedByAllAglorithms()
 
     # --------------------------------------------------------------------------
-    def __AddNodalVariablesNeededForOptimization(self):
+    def __AddVariablesToBeUsedByAllAglorithms(self):
         model_part = self.model_part_controller.GetOptimizationModelPart()
         number_of_objectives = self.optimization_settings["objectives"].size()
         number_of_constraints = self.optimization_settings["constraints"].size()
@@ -84,7 +84,6 @@ class VertexMorphingMethod:
 
         model_part.AddNodalSolutionStepVariable(CONTROL_POINT_UPDATE)
         model_part.AddNodalSolutionStepVariable(CONTROL_POINT_CHANGE)
-        model_part.AddNodalSolutionStepVariable(SEARCH_DIRECTION)
         model_part.AddNodalSolutionStepVariable(SHAPE_UPDATE)
         model_part.AddNodalSolutionStepVariable(SHAPE_CHANGE)
         model_part.AddNodalSolutionStepVariable(MESH_CHANGE)
@@ -99,13 +98,10 @@ class VertexMorphingMethod:
         print("> ", Timer().GetTimeStamp(),": Starting optimization using the following algorithm: ", algorithm_name)
         print("> ==============================================================================================================\n")
 
-        self.model_part_controller.ImportOptimizationModelPart()
-
         algorithm = algorithm_factory.CreateOptimizationAlgorithm(self.optimization_settings,
                                                                   self.analyzer,
                                                                   self.communicator,
                                                                   self.model_part_controller)
-
         algorithm.CheckApplicability()
         algorithm.InitializeOptimizationLoop()
         algorithm.RunOptimizationLoop()

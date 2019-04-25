@@ -25,11 +25,12 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/kratos_application.h"
+// #include "custom_utilities/mapper_interface_info.h"
 
 namespace Kratos
 {
-    KRATOS_DEFINE_VARIABLE(double, NEIGHBOR_RANK);
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(NEIGHBOR_COORDINATES);
+    KRATOS_DEFINE_APPLICATION_VARIABLE( MAPPING_APPLICATION, int, INTERFACE_EQUATION_ID ) // Has to be int bcs of MPI
+    KRATOS_DEFINE_APPLICATION_VARIABLE( MAPPING_APPLICATION, int, PAIRING_STATUS )
 }
 
 #endif	/* KRATOS_MAPPING_APPLICATION_VARIABLES_H_INCLUDED */

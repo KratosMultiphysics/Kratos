@@ -63,7 +63,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class DataValueContainer
+class KRATOS_API(KRATOS_CORE) DataValueContainer
 {
 
 public:
@@ -395,7 +395,7 @@ private:
     {
         std::size_t mI;
     public:
-        IndexCheck(std::size_t I) : mI(I) {}
+        explicit IndexCheck(std::size_t I) : mI(I) {}
         bool operator()(const ValueType& I)
         {
             return I.first->Key() == mI;

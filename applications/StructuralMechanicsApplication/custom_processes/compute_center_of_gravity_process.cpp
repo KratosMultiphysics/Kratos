@@ -27,7 +27,7 @@ void ComputeCenterOfGravityProcess::Execute()
 
     const std::size_t domain_size = mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
     double total_mass = 0.0;
-    array_1d<double, 3> center_of_gravity;
+    array_1d<double, 3> center_of_gravity = ZeroVector(3);
 
     // Now we iterate over the elements to calculate the total mass
     auto& elements_array = mrThisModelPart.GetCommunicator().LocalMesh().Elements();

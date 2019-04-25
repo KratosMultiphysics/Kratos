@@ -94,13 +94,34 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /**
+     * @brief Constructor. The pseudo static scheme (parameters)
+     * @param ThisParameters Configuration parameters
+     */
+    explicit ResidualBasedIncrementalUpdateStaticSchemeSlip(Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"        : "ResidualBasedIncrementalUpdateStaticSchemeSlip",
+            "domain_size" : 3,
+            "block_size"  : 3
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        const int domain_size = ThisParameters["domain_size"].GetInt();
+        const int block_size = ThisParameters["block_size"].GetInt();
+        mpRotationTool = Kratos::make_shared<RotationToolType>(domain_size, block_size, IS_STRUCTURE, 0.0);
+    }
+
     /// Constructor.
     /** @param DomainSize Number of spatial dimensions (2 or 3).
       * @param BlockSize Number of matrix and vector rows associated to each node. Only the first DomainSize rows will be rotated.
       */
-    ResidualBasedIncrementalUpdateStaticSchemeSlip(unsigned int DomainSize,
+    explicit ResidualBasedIncrementalUpdateStaticSchemeSlip(unsigned int DomainSize,
                                                    unsigned int BlockSize):
-        ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>(),
+        BaseType(),
         mpRotationTool(Kratos::make_shared<RotationToolType>(DomainSize,BlockSize,IS_STRUCTURE,0.0))
     {}
 
@@ -108,8 +129,8 @@ public:
 
     /** @param pRotationTool a pointer to the helper class that manages DOF rotation.
       */
-    ResidualBasedIncrementalUpdateStaticSchemeSlip(RotationToolPointerType pRotationTool):
-        ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>(),
+    explicit ResidualBasedIncrementalUpdateStaticSchemeSlip(RotationToolPointerType pRotationTool):
+        BaseType(),
         mpRotationTool(pRotationTool)
     {}
 

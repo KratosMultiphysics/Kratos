@@ -19,10 +19,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
 
 namespace Kratos {
 ///@name Kratos Globals
@@ -48,7 +45,6 @@ namespace Kratos {
  * hexaedral elements,
  * working best for b) and c),
 */
-// template< unsigned int TDim >
 class LaplacianMeshMovingElement : public Element {
 public:
   ///@name Type Definitions
@@ -108,6 +104,8 @@ public:
   void CalculateRightHandSide(VectorType &rRightHandSideVector,
                               ProcessInfo &rCurrentProcessInfo) override;
 
+  int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
   ///@{
 
   ///@}
@@ -165,12 +163,6 @@ private:
   ///@{
   ///@}
 
-  ///@name Serialization
-  ///@{
-  friend class Serializer;
-  LaplacianMeshMovingElement() {}
-  ///@}
-
   ///@name Private Operators
   ///@{
   ///@}
@@ -178,14 +170,14 @@ private:
   ///@name Private Operations
   ///@{
 
+  // A private default constructor necessary for serialization
+  LaplacianMeshMovingElement() {}
+
   void CalculateDeltaPosition(VectorType &IntermediateDisplacements,
-                              ProcessInfo &rCurrentProcessInfo);
+                              const ProcessInfo &rCurrentProcessInfo) const;
 
   void CheckElementMatrixDimension(MatrixType &rLeftHandSideMatrix,
-                                   VectorType &rRightHandSideVector);
-
-  MatrixType CalculateDerivatives(const int &rdimension,
-                                  const double &rPointNumber);
+                                   VectorType &rRightHandSideVector) const;
   ///@}
 
   ///@name Private  Access
@@ -198,6 +190,24 @@ private:
 
   ///@name Un accessible methods
   ///@{
+  ///@}
+
+
+  ///@name Serialization
+  ///@{
+
+  friend class Serializer;
+
+  void save(Serializer& rSerializer) const override
+  {
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
+  }
+
+  void load(Serializer& rSerializer) override
+  {
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
+  }
+
   ///@}
 
 }; // Class LaplacianMeshMovingElement

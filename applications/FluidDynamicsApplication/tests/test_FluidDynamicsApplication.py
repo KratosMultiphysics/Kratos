@@ -11,9 +11,12 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from artificial_compressibility_test import ArtificialCompressibilityTest
 from buoyancy_test import BuoyancyTest
 from darcy_channel_test import DarcyChannelTest
+from embedded_piston_test import EmbeddedPistonTest
 from embedded_reservoir_test import EmbeddedReservoirTest
+from embedded_reservoir_discontinuous_test import EmbeddedReservoirDiscontinuousTest
 from embedded_couette_test import EmbeddedCouetteTest
 from embedded_couette_imposed_test import EmbeddedCouetteImposedTest
+from embedded_velocity_inlet_emulation_test import EmbeddedVelocityInletEmulationTest
 from fluid_element_test import FluidElementTest
 from manufactured_solution_test import ManufacturedSolutionTest
 from navier_stokes_wall_condition_test import NavierStokesWallConditionTest
@@ -25,6 +28,7 @@ from adjoint_vms_element_2d import AdjointVMSElement2D
 from adjoint_vms_sensitivity_2d import AdjointVMSSensitivity2D
 from hdf5_io_test import HDF5IOTest
 from test_statistics_process import IntegrationPointStatisticsTest
+
 import run_cpp_unit_tests
 
 def AssembleTestSuites():
@@ -50,8 +54,11 @@ def AssembleTestSuites():
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipDevelopmentCouette2D'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasDevelopmentCouette2D'))
     smallSuite.addTest(EmbeddedCouetteImposedTest('testEmbeddedCouetteImposed2D'))
+    smallSuite.addTest(EmbeddedPistonTest('testEmbeddedPiston2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir2D'))
+    smallSuite.addTest(EmbeddedVelocityInletEmulationTest('testEmbeddedVelocityInletEmulationEmbedded2D'))
+    smallSuite.addTest(EmbeddedVelocityInletEmulationTest('testEmbeddedVelocityInletEmulationSymbolic2D'))
     smallSuite.addTest(NavierStokesWallConditionTest('testNavierStokesWallCondition'))
     smallSuite.addTest(FluidAnalysisTest('testSteadyAnalysisSmall'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
@@ -67,6 +74,7 @@ def AssembleTestSuites():
     nightSuite.addTest(DarcyChannelTest('testDarcyNonLinear'))
     nightSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir3D'))
     nightSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir3D'))
+    nightSuite.addTest(EmbeddedReservoirDiscontinuousTest('testEmbeddedReservoirDiscontinuous3D'))
     nightSuite.addTest(EmbeddedCouetteTest('testEmbeddedCouette3D'))
     nightSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipCouette3D'))
     nightSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasCouette3D'))
@@ -89,7 +97,6 @@ def AssembleTestSuites():
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSensitivityMatrix'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testOneElement'))
-    nightSuite.addTest(AdjointVMSSensitivity2D('testSteadyCylinder'))
     nightSuite.addTest(HDF5IOTest('testInputOutput'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
@@ -100,6 +107,7 @@ def AssembleTestSuites():
     validationSuite = suites['validation']
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
     validationSuite.addTest(VolumeSourceTest('validationEulerian'))
+    validationSuite.addTest(AdjointVMSSensitivity2D('testSteadyCylinder'))
 
 
     # Create a test suite that contains all the tests:
@@ -109,6 +117,7 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
     run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")

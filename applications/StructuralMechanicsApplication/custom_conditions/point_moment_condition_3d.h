@@ -16,9 +16,7 @@
 
 // External includes
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/base_load_condition.h"
-#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -81,16 +79,41 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param pGeom the geometry to be employed
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const override;
 
-    Condition::Pointer Create(
+    /**
+     * @brief Creates a new condition pointer and clones the previous condition data
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone (
         IndexType NewId,
-        NodesArrayType const& rThisNodes,
-        PropertiesType::Pointer pProperties
+        NodesArrayType const& ThisNodes
         ) const override;
 
     /**
@@ -168,6 +191,27 @@ public:
     ///@name Input and output
     ///@{
 
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "PointMomentCondition3D #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "PointMomentCondition3D #" << Id();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -200,7 +244,7 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
@@ -208,7 +252,7 @@ protected:
     /**
      * It calcules the integration weight for the point moment
      */
-    virtual double GetPointMomentIntegrationWeight();
+    virtual double GetPointMomentIntegrationWeight() const;
 
     ///@}
     ///@name Protected  Access

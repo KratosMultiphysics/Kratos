@@ -5,9 +5,6 @@ import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 #import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 
 def CreateMeshingDomain(main_model_part, custom_settings):
     return FluidMeshingDomain(main_model_part, custom_settings)
@@ -46,9 +43,11 @@ class FluidMeshingDomain(object):
                "reference_condition_type": "CompositeCondition2D2N"
             },
             "spatial_bounding_box":{
-               "upper_point": [0.0, 0.0, 0.0],
-	       "lower_point": [0.0, 0.0, 0.0],
-	       "velocity": [0.0, 0.0, 0.0]
+                "use_bounding_box" : true,
+                "initial_time"     : 0.0,
+                "final_time"       : 1000.0,
+                "upper_point"      : [10,10,10],
+                "lower_point"      : [-10,-10,-10]
             },
             "refining_parameters":{
                "critical_size": 0.0,
@@ -227,18 +226,28 @@ class FluidMeshingDomain(object):
 
         self.MeshingParameters.SetSubModelPartName(self.settings["model_part_name"].GetString())
 
+
+
         if(self.active_remeshing):
 
             self.MeshingParameters.SetAlphaParameter(self.settings["alpha_shape"].GetDouble())
             self.MeshingParameters.SetOffsetFactor(self.settings["offset_factor"].GetDouble())
 
-            self.SetInfoParameters();
-            self.SetTransferParameters();
-            self.SetRefiningParameters();
+            self.SetInfoParameters()
+            self.SetTransferParameters()
+            self.SetRefiningParameters()
 
             self.MeshingParameters.SetInfoParameters(self.InfoParameters)
             self.MeshingParameters.SetTransferParameters(self.TransferParameters)
             self.MeshingParameters.SetRefiningParameters(self.RefiningParameters)
+
+
+            bounding_box = self.settings["spatial_bounding_box"]
+            if(bounding_box["use_bounding_box"].GetBool()):
+              self.MeshingParameters.SetUseBoundingBox(True) 
+              self.MeshingParameters.SetBoundingBoxLowerPoint(bounding_box["lower_point"][0].GetDouble(),bounding_box["lower_point"][1].GetDouble(),bounding_box["lower_point"][2].GetDouble()) 
+              self.MeshingParameters.SetBoundingBoxUpperPoint(bounding_box["upper_point"][0].GetDouble(),bounding_box["upper_point"][1].GetDouble(),bounding_box["upper_point"][2].GetDouble()) 
+              self.MeshingParameters.SetBoundingBoxTimeInterval(bounding_box["initial_time"].GetDouble(),bounding_box["final_time"].GetDouble())
 
     #
     def ExecuteMeshing(self):

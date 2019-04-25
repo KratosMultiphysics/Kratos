@@ -6,7 +6,7 @@ message("**** configuring KratosNvidiaFlexApplication ****")
 include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/DEM_application )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/DEMApplication )
 include_directories( ${NVIDIA_FLEX_ROOT_DIR}/core )
 include_directories( ${NVIDIA_FLEX_ROOT_DIR}/include )
 
@@ -77,4 +77,4 @@ install(TARGETS KratosNvidiaFlexCore DESTINATION libs )
 install(TARGETS KratosNvidiaFlexApplication DESTINATION libs )
 
 # Add to the KratosMultiphysics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/NvidiaFlexApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/NvidiaFlexApplication.py" DESTINATION "KratosMultiphysics/NvidiaFlexApplication" RENAME "__init__.py")

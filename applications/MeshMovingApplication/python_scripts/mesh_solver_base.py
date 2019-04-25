@@ -2,19 +2,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("MeshMovingApplication")
-
-# Import applications
-import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
+import KratosMultiphysics.MeshMovingApplication as KMM
 
 # Other imports
-from python_solver import PythonSolver
-
-
-def CreateSolver(mesh_model_part, custom_settings):
-    return MeshSolverBase(mesh_model_part, custom_settings)
+from KratosMultiphysics.python_solver import PythonSolver
 
 
 class MeshSolverBase(PythonSolver):
@@ -47,7 +38,7 @@ class MeshSolverBase(PythonSolver):
                 "input_filename" : "unknown_name"
             },
             "mesh_motion_linear_solver_settings" : {
-                "solver_type" : "AMGCL",
+                "solver_type" : "amgcl",
                 "smoother_type":"ilu0",
                 "krylov_type": "gmres",
                 "coarsening_type": "aggregation",
@@ -69,6 +60,13 @@ class MeshSolverBase(PythonSolver):
 
         self.settings.ValidateAndAssignDefaults(default_settings)
 
+        if custom_settings["calculate_mesh_velocities"].GetBool():
+            from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+            warn_msg  = '"calculate_mesh_velocities" is set to true for the Solver\n'
+            warn_msg += 'This feature was moved to MeshMovingApplication.MeshVelocityCalculation and will soon be removed\n'
+            warn_msg += 'from the solver. Please update your code'
+            IssueDeprecationWarning("MeshSolverBase", warn_msg)
+
         # Either retrieve the model part from the model or create a new one
         model_part_name = self.settings["model_part_name"].GetString()
 
@@ -86,7 +84,7 @@ class MeshSolverBase(PythonSolver):
 
         self.mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
-        self.print_on_rank_zero("::[MeshSolverBase]:: Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[MeshSolverBase]:: Construction finished")
 
     #### Public user interface functions ####
 
@@ -95,13 +93,13 @@ class MeshSolverBase(PythonSolver):
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_REACTION)
         if (self.settings["calculate_mesh_velocities"].GetBool() == True):
             self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-        self.print_on_rank_zero("::[MeshSolverBase]:: Variables ADDED.")
+        KratosMultiphysics.Logger.PrintInfo("::[MeshSolverBase]:: Variables ADDED.")
 
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_X, KratosMultiphysics.MESH_REACTION_X, self.mesh_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Y, KratosMultiphysics.MESH_REACTION_Y, self.mesh_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Z, KratosMultiphysics.MESH_REACTION_Z, self.mesh_model_part)
-        self.print_on_rank_zero("::[MeshSolverBase]:: DOFs ADDED.")
+        KratosMultiphysics.Logger.PrintInfo("::[MeshSolverBase]:: DOFs ADDED.")
 
     def AdvanceInTime(self, current_time):
         dt = self.settings["time_stepping"]["time_step"].GetDouble()
@@ -114,7 +112,7 @@ class MeshSolverBase(PythonSolver):
     def Initialize(self):
         self.get_mesh_motion_solving_strategy().Initialize()
         #self.neighbour_search.Execute()
-        self.print_on_rank_zero("::[MeshSolverBase]:: Finished initialization.")
+        KratosMultiphysics.Logger.PrintInfo("::[MeshSolverBase]:: Finished initialization.")
 
     def InitializeSolutionStep(self):
         self.get_mesh_motion_solving_strategy().InitializeSolutionStep()
@@ -137,9 +135,6 @@ class MeshSolverBase(PythonSolver):
     def Clear(self):
         self.get_mesh_motion_solving_strategy().Clear()
 
-    def Check(self):
-        self.get_mesh_motion_solving_strategy().Check()
-
     def GetMinimumBufferSize(self):
         buffer_size = 0
         if (self.settings["calculate_mesh_velocities"].GetBool() == True):
@@ -153,7 +148,8 @@ class MeshSolverBase(PythonSolver):
         return max(buffer_size, self.settings["buffer_size"].GetInt(), self.mesh_model_part.GetBufferSize())
 
     def MoveMesh(self):
-        self.get_mesh_motion_solving_strategy().MoveMesh()
+        # move local and ghost nodes
+        KMM.MoveMesh(self.mesh_model_part.Nodes)
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
@@ -181,9 +177,8 @@ class MeshSolverBase(PythonSolver):
     #### Private functions ####
 
     def _create_linear_solver(self):
-        import linear_solver_factory
-        linear_solver = linear_solver_factory.ConstructSolver(self.settings["mesh_motion_linear_solver_settings"])
-        return linear_solver
+        from KratosMultiphysics.python_linear_solver_factory import ConstructSolver
+        return ConstructSolver(self.settings["mesh_motion_linear_solver_settings"])
 
     def _create_mesh_motion_solving_strategy(self):
         """Create the mesh motion solving strategy.

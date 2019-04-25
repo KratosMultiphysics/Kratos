@@ -134,11 +134,11 @@ namespace Testing {
         const auto &r_mesh_vel = p_node_10->FastGetSolutionStepValue(MESH_VELOCITY);
 
         const double tol = 1e-6;
-        KRATOS_CHECK_NEAR(r_vel_n1(0), 0.0710645, tol);
-        KRATOS_CHECK_NEAR(r_vel_n1(1), 0.0294852, tol);
-        KRATOS_CHECK_NEAR(r_mesh_vel(0), -0.439785, tol);
-        KRATOS_CHECK_NEAR(r_mesh_vel(1), 0.384812, tol);
-
+        std::vector<double> expected_values = {0.0702503, 0.0286924, -0.358364, 0.464094}; // Triangular kernel function
+        std::vector<double> obtained_values = {r_vel_n1(0), r_vel_n1(1), r_mesh_vel(0), r_mesh_vel(1)};
+        for (unsigned int i = 0; i < expected_values.size(); ++i) {
+            KRATOS_CHECK_NEAR(obtained_values[i], expected_values[i], tol);
+        }
     }
 }
 }  // namespace Kratos.

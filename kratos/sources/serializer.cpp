@@ -20,6 +20,10 @@
 namespace Kratos
 {
 
+KRATOS_CREATE_LOCAL_FLAG( Serializer, MPI,  0 );
+KRATOS_CREATE_LOCAL_FLAG( Serializer, SHALLOW_GLOBAL_POINTERS_SERIALIZATION, 1 );
+
+
 Serializer::RegisteredObjectsContainerType Serializer::msRegisteredObjects;
 
 Serializer::RegisteredObjectsNameContainerType Serializer::msRegisteredObjectsName;

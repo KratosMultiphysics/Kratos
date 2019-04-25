@@ -2,26 +2,12 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics as KM
-import KratosMultiphysics.StructuralMechanicsApplication as SM
-import KratosMultiphysics.ContactStructuralMechanicsApplication as CSM
-
-# Importing the solvers (if available)
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "not imported")
-try:
-    import KratosMultiphysics.EigenSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "not imported")
 
 # Other imports
 import sys
 
 # Import the base structural analysis
-from structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
 
 class ContactStructuralMechanicsAnalysis(BaseClass):
     """
@@ -29,27 +15,45 @@ class ContactStructuralMechanicsAnalysis(BaseClass):
 
     It can be imported and used as "black-box"
     """
-    def __init__(self, model, project_parameters):
-        # Construct the base analysis.
-        super(ContactStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
-
     def Initialize(self):
         """ Initializing the Analysis """
         super(ContactStructuralMechanicsAnalysis, self).Initialize()
         self._GetSolver().SetEchoLevel(self.echo_level)
         # To avoid many prints
-        if (self.echo_level == 0):
+        if self.echo_level == 0:
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
+
+    def OutputSolutionStep(self):
+        """This function printed / writes output files after the solution of a step
+        """
+
+        # First we check if one of the output processes will print output in this step this is done to save computation in case none of them will print
+        is_output_step = False
+        for output_process in self._GetListOfOutputProcesses():
+            if output_process.IsOutputStep():
+                is_output_step = True
+                break
+
+        if is_output_step:
+            # Informing the output will be created
+            KM.Logger.PrintWarning(self.__get_simulation_name_output(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KM.STEP])
+            KM.Logger.PrintWarning(self.__get_simulation_name_output(), "TIME: ", self.time)
+
+        # Creating output
+        super(ContactStructuralMechanicsAnalysis, self).OutputSolutionStep()
 
     #### Internal functions ####
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
-        import python_solvers_wrapper_contact_structural
+        from KratosMultiphysics.ContactStructuralMechanicsApplication import python_solvers_wrapper_contact_structural
         return python_solvers_wrapper_contact_structural.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):
         return "::[KCSM Simulation]:: "
+
+    def __get_simulation_name_output(self):
+        return "::[KCSM Simulation: Output]:: "
 
 if __name__ == "__main__":
     from sys import argv

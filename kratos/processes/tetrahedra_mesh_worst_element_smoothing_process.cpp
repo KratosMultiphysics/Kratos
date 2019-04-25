@@ -47,7 +47,7 @@ namespace Kratos
 	{
 		auto const& r_neighbours = rNode.GetValue(NEIGHBOUR_ELEMENTS);
 		const std::size_t size = r_neighbours.size();
-		rOptimumPoints.resize(size, ZeroVector(3));
+		rOptimumPoints.resize(size, Point{ZeroVector(3)});
 		rWeights.resize(size);
 		double min_quality = std::numeric_limits<double>::max();
 		std::size_t min_i = 0;
@@ -77,9 +77,9 @@ namespace Kratos
 			std::make_shared<Point>(rTetrahedra(tetrahedra_connectivity[i][2])->Coordinates())
 			);
 		Point center(0.5,0.5,0.5);
-		Point normal = face.UnitNormal(center);
+		auto normal = Point{face.UnitNormal(center)};
 		const double height_coeficient = 0.81649658092772603273242802490196; // sqrt(6.00)/3.00
-		rOptimumPoint = center + normal * face.AverageEdgeLength() * height_coeficient;
+		rOptimumPoint = Point{center + normal * face.AverageEdgeLength() * height_coeficient};
 	}
 
 }  // namespace Kratos.

@@ -63,21 +63,17 @@ MultiscaleRefiningProcess::MultiscaleRefiningProcess(
     Check();
 
     // Initialize the coarse model part
-    InitializeCoarseModelPart();
-
-    // Get the model part hierarchy
-    StringVectorType sub_model_parts_names;
-    sub_model_parts_names = mrCoarseModelPart.GetSubModelPartNames();
+    InitializeCoarseModelPartInterface();
 
     // Initialize the refined model part
-    InitializeRefinedModelPart(sub_model_parts_names);
+    InitializeRefinedModelPartInterface();
 
     // Copy all the entities to the visualization model part
-    InitializeVisualizationModelPart(sub_model_parts_names);
+    // InitializeVisualizationModelPart(sub_model_parts_names);
 }
 
 
-void MultiscaleRefiningProcess::Check()
+int MultiscaleRefiningProcess::Check()
 {
     KRATOS_TRY
 
@@ -87,6 +83,8 @@ void MultiscaleRefiningProcess::Check()
 
     KRATOS_CHECK_EQUAL(mStepDataSize, mrRefinedModelPart.GetNodalSolutionStepDataSize());
     KRATOS_CHECK_EQUAL(mStepDataSize, mrVisualizationModelPart.GetNodalSolutionStepDataSize());
+
+    return 0;
 
     KRATOS_CATCH("")
 }
@@ -136,7 +134,7 @@ void MultiscaleRefiningProcess::ExecuteRefinement()
 
 void MultiscaleRefiningProcess::ExecuteCoarsening()
 {
-    IdentifyParentNodesToErase();
+    IdentifyParentNodesToCoarsen();
     IdentifyElementsToErase();
     IdentifyConditionsToErase();
     IdentifyRefinedNodesToErase();
@@ -151,11 +149,52 @@ void MultiscaleRefiningProcess::ExecuteCoarsening()
 }
 
 
+void MultiscaleRefiningProcess::InitializeVisualizationModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart)
+{
+    // Create the sub model parts and add properties and tables
+    InitializeNewModelPart(rReferenceModelPart, rNewModelPart);
+
+    // Adding the variables
+    VariablesList& variables_list = rNewModelPart.GetNodalSolutionStepVariablesList();
+    variables_list = rReferenceModelPart.GetNodalSolutionStepVariablesList();
+
+    // Add the entities to the root model part
+    FastTransferBetweenModelPartsProcess(rNewModelPart, rReferenceModelPart)();
+
+    // Get the model part hierarchy
+    StringVectorType sub_model_parts_names;
+    sub_model_parts_names = rReferenceModelPart.GetSubModelPartNames();
+
+    // Add the entities to the submodel parts
+    for (auto name : sub_model_parts_names)
+    {
+        ModelPart& destination = rNewModelPart.GetSubModelPart(name);
+        ModelPart& origin = rReferenceModelPart.GetSubModelPart(name);
+        FastTransferBetweenModelPartsProcess(destination, origin)();
+    }
+}
+
+
+void MultiscaleRefiningProcess::InitializeRefinedModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart)
+{
+    // Create the sub model parts and add properties and tables
+    InitializeNewModelPart(rReferenceModelPart, rNewModelPart);
+
+    // Increase the refinement level
+    int subscale_index = rReferenceModelPart.GetValue(SUBSCALE_INDEX);
+    rNewModelPart.SetValue(SUBSCALE_INDEX, ++subscale_index);
+}
+
+
 void MultiscaleRefiningProcess::InitializeNewModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart)
 {
     // Copy all the tables and properties
     AddAllTablesToModelPart(rReferenceModelPart, rNewModelPart);
     AddAllPropertiesToModelPart(rReferenceModelPart, rNewModelPart);
+
+    // Copy the ProcessInfo
+    ProcessInfo& process_info = rNewModelPart.GetProcessInfo();
+    process_info = rReferenceModelPart.GetProcessInfo();
 
     // Get the model part hierarchy
     StringVectorType sub_model_parts_names;
@@ -175,53 +214,31 @@ void MultiscaleRefiningProcess::InitializeNewModelPart(ModelPart& rReferenceMode
 }
 
 
-void MultiscaleRefiningProcess::InitializeCoarseModelPart()
+void MultiscaleRefiningProcess::InitializeCoarseModelPartInterface()
 {
     // Create a model part to store the interface boundary conditions
     if (mrCoarseModelPart.HasSubModelPart(mRefinedInterfaceName))
     {
-        mrCoarseModelPart.RemoveNodesFromAllLevels();
-        mrCoarseModelPart.RemoveElementsFromAllLevels();
-        mrCoarseModelPart.RemoveConditionsFromAllLevels();
+        mrCoarseModelPart.GetSubModelPart(mRefinedInterfaceName).RemoveNodesFromAllLevels();
+        mrCoarseModelPart.GetSubModelPart(mRefinedInterfaceName).RemoveElementsFromAllLevels();
+        mrCoarseModelPart.GetSubModelPart(mRefinedInterfaceName).RemoveConditionsFromAllLevels();
     }
     else
         mrCoarseModelPart.CreateSubModelPart(mRefinedInterfaceName);
 }
 
 
-void MultiscaleRefiningProcess::InitializeRefinedModelPart(const StringVectorType& rNames)
+void MultiscaleRefiningProcess::InitializeRefinedModelPartInterface()
 {
-    // Increase the refinement level
-    int subscale_index = mrCoarseModelPart.GetValue(SUBSCALE_INDEX);
-    mrRefinedModelPart.SetValue(SUBSCALE_INDEX, ++subscale_index);
-
     // Create a model part to store the interface boundary conditions
     if (mrRefinedModelPart.HasSubModelPart(mRefinedInterfaceName))
     {
-        mrRefinedModelPart.RemoveNodesFromAllLevels();
-        mrRefinedModelPart.RemoveElementsFromAllLevels();
-        mrRefinedModelPart.RemoveConditionsFromAllLevels();
+        mrRefinedModelPart.GetSubModelPart(mRefinedInterfaceName).RemoveNodesFromAllLevels();
+        mrRefinedModelPart.GetSubModelPart(mRefinedInterfaceName).RemoveElementsFromAllLevels();
+        mrRefinedModelPart.GetSubModelPart(mRefinedInterfaceName).RemoveConditionsFromAllLevels();
     }
     else
         mrRefinedModelPart.CreateSubModelPart(mRefinedInterfaceName);
-}
-
-
-void MultiscaleRefiningProcess::InitializeVisualizationModelPart(const StringVectorType& rNames)
-{
-    // Create a model part to store the interface boundary conditions
-    mrVisualizationModelPart.CreateSubModelPart(mRefinedInterfaceName);
-
-    // Add the entities to the root model part
-    FastTransferBetweenModelPartsProcess(mrVisualizationModelPart, mrCoarseModelPart)();
-
-    // Add the entities to the submodel parts
-    for (auto name : rNames)
-    {
-        ModelPart& destination = mrVisualizationModelPart.GetSubModelPart(name);
-        ModelPart& origin = mrCoarseModelPart.GetSubModelPart(name);
-        FastTransferBetweenModelPartsProcess(destination, origin)();
-    }        
 }
 
 
@@ -242,7 +259,7 @@ void MultiscaleRefiningProcess::UpdateVisualizationAfterRefinement()
         else
             coarse_node->Set(INSIDE, false);
     }
-    mrVisualizationModelPart.RemoveNodesFromAllLevels(INSIDE);
+    // mrVisualizationModelPart.RemoveNodesFromAllLevels(INSIDE); // TODO: for some reason it is modifying the refined model part...
 
     // Add the new entities which are refined
     FastTransferBetweenModelPartsProcess(mrVisualizationModelPart, mrRefinedModelPart,
@@ -313,7 +330,7 @@ void MultiscaleRefiningProcess::MarkElementsFromNodalFlag()
         {
             if (elem->GetGeometry()[node].IsNot(TO_REFINE))
                 to_refine = false;
-            
+
             if (elem->GetGeometry()[node].Is(NEW_ENTITY))
                 new_entity = true;
         }
@@ -344,7 +361,7 @@ void MultiscaleRefiningProcess::MarkConditionsFromNodalFlag()
         {
             if (cond->GetGeometry()[node].IsNot(TO_REFINE))
                 to_refine = false;
-            
+
             if (cond->GetGeometry()[node].Is(NEW_ENTITY))
                 new_entity = true;
         }
@@ -401,7 +418,7 @@ void MultiscaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
 }
 
 
-void MultiscaleRefiningProcess::IdentifyParentNodesToErase()
+void MultiscaleRefiningProcess::IdentifyParentNodesToCoarsen()
 {
     const int nnodes = static_cast<int>(mrCoarseModelPart.Nodes().size());
     ModelPart::NodesContainerType::iterator nodes_begin = mrCoarseModelPart.NodesBegin();
@@ -440,27 +457,28 @@ void MultiscaleRefiningProcess::IdentifyElementsToErase()
     for (int i = 0; i < nelems_coarse; i++)
     {
         auto coarse_elem = coarse_elem_begin + i;
-        bool to_coarse = false;
-        for (IndexType inode = 0; inode < element_nodes; inode++)
+        if (coarse_elem->Is(MeshingFlags::REFINED))
         {
-            if (coarse_elem->GetGeometry()[inode].Is(MeshingFlags::TO_COARSEN))
-                to_coarse = true;
-        }
-        if (to_coarse)
-        {
-            coarse_elem->Set(MeshingFlags::TO_COARSEN, true);
-            coarse_elem->Set(MeshingFlags::REFINED, false);
+            bool to_coarsen = false;
+            for (IndexType inode = 0; inode < element_nodes; inode++)
+            {
+                if (coarse_elem->GetGeometry()[inode].Is(MeshingFlags::TO_COARSEN))
+                    to_coarsen = true;
+            }
+            coarse_elem->Set(MeshingFlags::TO_COARSEN, to_coarsen);
+            if (to_coarsen)
+                coarse_elem->Set(MeshingFlags::REFINED, false);
         }
     }
 
     // Identify the refined elements to remove
     const int nelems_ref = static_cast<int>(mrRefinedModelPart.Elements().size());
-    ModelPart::ElementsContainerType::iterator ref_elem_begin = mrRefinedModelPart.ElementsBegin();
+    ModelPart::ElementsContainerType::iterator refined_elem_begin = mrRefinedModelPart.ElementsBegin();
 
     #pragma omp parallel for
     for (int i = 0; i < nelems_ref; i++)
     {
-        auto refined_elem = ref_elem_begin + i;
+        auto refined_elem = refined_elem_begin + i;
         if ((refined_elem->GetValue(FATHER_ELEMENT))->Is(MeshingFlags::TO_COARSEN))
             refined_elem->Set(TO_ERASE, true);
     }
@@ -480,27 +498,28 @@ void MultiscaleRefiningProcess::IdentifyConditionsToErase()
     for (int i = 0; i < nconds_coarse; i++)
     {
         auto coarse_cond = coarse_cond_begin + i;
-        bool to_coarse = false;
-        for (IndexType inode = 0; inode < condition_nodes; inode++)
+        if (coarse_cond->Is(MeshingFlags::REFINED))
         {
-            if (coarse_cond->GetGeometry()[inode].Is(MeshingFlags::TO_COARSEN))
-                to_coarse = true;
-        }
-        if (to_coarse)
-        {
-            coarse_cond->Set(MeshingFlags::TO_COARSEN, true);
-            coarse_cond->Set(MeshingFlags::REFINED, false);
+            bool to_coarsen = false;
+            for (IndexType inode = 0; inode < condition_nodes; inode++)
+            {
+                if (coarse_cond->GetGeometry()[inode].Is(MeshingFlags::TO_COARSEN))
+                    to_coarsen = true;
+            }
+            coarse_cond->Set(MeshingFlags::TO_COARSEN, to_coarsen);
+            if (to_coarsen)
+                coarse_cond->Set(MeshingFlags::REFINED, false);
         }
     }
 
     // Identify the refined conditions to remove
     const int nconds_ref = static_cast<int>(mrRefinedModelPart.Conditions().size());
-    ModelPart::ConditionsContainerType::iterator ref_cond_begin = mrRefinedModelPart.ConditionsBegin();
+    ModelPart::ConditionsContainerType::iterator refined_cond_begin = mrRefinedModelPart.ConditionsBegin();
 
     #pragma omp parallel for
     for (int i = 0; i < nconds_ref; i++)
     {
-        auto refined_cond = ref_cond_begin + i;
+        auto refined_cond = refined_cond_begin + i;
         if ((refined_cond->GetValue(FATHER_CONDITION))->Is(MeshingFlags::TO_COARSEN))
             refined_cond->Set(TO_ERASE, true);
     }
@@ -560,7 +579,7 @@ void MultiscaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId, Index
 
             Element::Pointer aux_elem = coarse_elem->Clone(++rElemId, p_elem_nodes);
             mrRefinedModelPart.AddElement(aux_elem);
-            
+
             aux_elem->SetValue(FATHER_ELEMENT, *coarse_elem.base());
             aux_elem->Set(NEW_ENTITY, true);
 
@@ -610,7 +629,7 @@ void MultiscaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId, Ind
 
             Condition::Pointer aux_cond = coarse_cond->Clone(++rCondId, p_cond_nodes);
             mrRefinedModelPart.AddCondition(aux_cond);
-            
+
             aux_cond->SetValue(FATHER_CONDITION, *coarse_cond.base());
             aux_cond->Set(NEW_ENTITY, true);
 
@@ -727,7 +746,7 @@ void MultiscaleRefiningProcess::IdentifyCurrentInterface()
     ModelPart::ElementIterator elem_begin = mrCoarseModelPart.ElementsBegin();
     const IndexType element_nodes = elem_begin->GetGeometry().size();
 
-    // Identify the current interface: 
+    // Identify the current interface:
     // Look for the elements which are not to refine and have some nodes to refine
     for (int i = 0; i < static_cast<int>(mrCoarseModelPart.Elements().size()); i++)
     {
@@ -760,26 +779,9 @@ void MultiscaleRefiningProcess::UpdateRefinedInterface()
             if (father_node->IsNot(INTERFACE))
                 is_refined_interface = false;
         }
+
         if (is_refined_interface)
             mRefinedInterfaceContainer.push_back(NodeType::SharedPointer(*node.base()));
-    }
-}
-
-
-void MultiscaleRefiningProcess::TransferLastStepToCoarseModelPart()
-{
-    ModelPart::NodeIterator refined_begin = mrRefinedModelPart.NodesBegin();
-    for (int i = 0; i < static_cast<int>(mrRefinedModelPart.Nodes().size()); i++)
-    {
-        auto refined_node = refined_begin + i;
-        if (refined_node->GetValue(FATHER_NODES).size() == 1)
-        {
-            double* dest_data = refined_node->GetValue(FATHER_NODES)[0].SolutionStepData().Data(0); // Current step only
-            const double* src_data = refined_node->SolutionStepData().Data(0);
-
-            for (IndexType j = 0; j < mStepDataSize; j++)
-                dest_data[j] = src_data[j];
-        }
     }
 }
 

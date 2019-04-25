@@ -78,6 +78,8 @@ public:
     ///@name Life Cycle
     ///@{
 
+    virtual ~PreconditionerFactory() {}
+
     ///@}
     ///@name Operators
     ///@{
@@ -101,12 +103,17 @@ public:
      */
     virtual typename PreconditionerType::Pointer Create(const std::string& rPreconditionerType)
     {
-        if(Has( rPreconditionerType ) == false) {
-            KRATOS_ERROR << "Trying to construct a preconditioner with type preconditioner_type= " << rPreconditionerType << std::endl <<
-                            "Which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
-                         KratosComponents< FactoryType >() << std::endl;
-        }
-        const auto& aux = KratosComponents< FactoryType >::Get( rPreconditionerType );
+        // remove name of the application (if passed)
+        // e.g. "ExternalSolversApplication.super_lu" => "super_lu"
+        const std::string raw_precond_name = rPreconditionerType.substr(rPreconditionerType.find(".") + 1);
+
+        KRATOS_ERROR_IF_NOT(Has(raw_precond_name))
+            << "Trying to construct a preconditioner with preconditioner_type:\n\""
+            << raw_precond_name << "\" which does not exist.\n"
+            << "The list of available options (for currently loaded applications) is:\n"
+            << KratosComponents< FactoryType >() << std::endl;
+
+        const auto& aux = KratosComponents< FactoryType >::Get(raw_precond_name);
         return aux.CreatePreconditioner();
     }
     ///@}
@@ -148,6 +155,8 @@ typedef TUblasSparseSpace<double> SparseSpaceType;
 typedef TUblasDenseSpace<double> LocalSparseSpaceType;
 
 typedef PreconditionerFactory<SparseSpaceType, LocalSparseSpaceType> PreconditionerFactoryType;
+
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<PreconditionerFactoryType>;
 
 #ifdef KRATOS_REGISTER_PRECONDITIONER
 #undef KRATOS_REGISTER_PRECONDITIONER

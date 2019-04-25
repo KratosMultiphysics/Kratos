@@ -98,7 +98,7 @@ using TUblasSparseSpace =
     UblasSpace<TDataType, boost::numeric::ublas::compressed_matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
 template <class TDataType>
 using TUblasDenseSpace =
-    UblasSpace<TDataType, boost::numeric::ublas::matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
+    UblasSpace<TDataType, DenseMatrix<TDataType>, DenseVector<TDataType>>;
 
 ///@}
 ///@name  Enum's
@@ -139,7 +139,7 @@ public:
     typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
     typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
 
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
     template<typename T> using compressed_matrix = boost::numeric::ublas::compressed_matrix<T>;
 #endif // ifdef KRATOS_USE_AMATRIX
 

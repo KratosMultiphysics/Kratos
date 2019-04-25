@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -199,6 +199,16 @@ class comm_pattern {
 
         std::tuple<int, int> remote_info(ptrdiff_t col) const {
             return idx.at(col);
+        }
+
+        std::unordered_map<ptrdiff_t, std::tuple<int, int> >::const_iterator
+        remote_begin() const {
+            return idx.cbegin();
+        }
+
+        std::unordered_map<ptrdiff_t, std::tuple<int, int> >::const_iterator
+        remote_end() const {
+            return idx.cend();
         }
 
         size_t renumber(size_t n, ptrdiff_t *col) const {

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,8 @@ THE SOFTWARE.
 #include <boost/range/iterator_range.hpp>
 
 #include <amgcl/solver/skyline_lu.hpp>
-#include <vexcl/vexcl.hpp>
+#include <vexcl/vector.hpp>
+#include <vexcl/gather.hpp>
 #include <vexcl/sparse/matrix.hpp>
 #include <vexcl/sparse/distributed.hpp>
 
@@ -260,27 +261,6 @@ struct vexcl {
 //---------------------------------------------------------------------------
 // Backend interface implementation
 //---------------------------------------------------------------------------
-template < typename V, typename C, typename P >
-struct rows_impl< vex::sparse::distributed<vex::sparse::matrix<V, C, P>>> {
-    static size_t get(const vex::sparse::distributed<vex::sparse::matrix<V, C, P>> &A) {
-        return A.rows();
-    }
-};
-
-template < typename V, typename C, typename P >
-struct cols_impl< vex::sparse::distributed<vex::sparse::matrix<V,C,P>> > {
-    static size_t get(const vex::sparse::distributed<vex::sparse::matrix<V,C,P>> &A) {
-        return A.cols();
-    }
-};
-
-template < typename V, typename C, typename P >
-struct nonzeros_impl< vex::sparse::distributed<vex::sparse::matrix<V,C,P>> > {
-    static size_t get(const vex::sparse::distributed<vex::sparse::matrix<V,C,P>> &A) {
-        return A.nonzeros();
-    }
-};
-
 template < typename V, typename C, typename P >
 struct bytes_impl< vex::sparse::distributed<vex::sparse::matrix<V,C,P> > > {
     static size_t get(const vex::sparse::distributed<vex::sparse::matrix<V,C,P> > &A) {

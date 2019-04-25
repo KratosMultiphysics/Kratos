@@ -3,12 +3,8 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -46,22 +42,6 @@ class FormfindingIO(KratosMultiphysics.Process):
         if (self.read_prestress):
             self.formfinding_io.ReadPrestressData()
             KratosMultiphysics.Logger.PrintInfo("FormfindingIO", "Read prestress")
-
-    def ExecuteBeforeSolutionLoop(self):
-        pass
-
-    def ExecuteInitializeSolutionStep(self):
-        pass
-
-    def ExecuteFinalizeSolutionStep(self):
-        pass
-
-    def ExecuteBeforeOutputStep(self):
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        pass
-
 
     def ExecuteFinalize(self):
         if (self.print_mdpa):

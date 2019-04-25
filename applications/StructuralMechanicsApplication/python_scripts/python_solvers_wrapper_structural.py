@@ -6,10 +6,14 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     solver_type = solver_settings["solver_type"].GetString()
 
+    if solver_settings.Has("time_integration_method"):
+        time_integration_method = solver_settings["time_integration_method"].GetString()
+    else:
+        time_integration_method = "implicit" # defaulting to implicit time-integration
+
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
         if (solver_type == "dynamic" or solver_type == "Dynamic"):
-            time_integration_method = solver_settings["time_integration_method"].GetString()
             if (time_integration_method == "implicit"):
                 solver_module_name = "structural_mechanics_implicit_dynamic_solver"
             elif ( time_integration_method == "explicit"):
@@ -42,7 +46,6 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     # Solvers for MPI parallelism
     elif (parallelism == "MPI"):
         if (solver_type == "dynamic" or solver_type == "Dynamic"):
-            time_integration_method = solver_settings["time_integration_method"].GetString()
             if (time_integration_method == "implicit"):
                 solver_module_name = "trilinos_structural_mechanics_implicit_dynamic_solver"
             else:
@@ -66,8 +69,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     solver_settings.RemoveValue("solver_type")
     solver_settings.RemoveValue("time_integration_method") # does not throw even if the value is not existing
 
-    solver_module = __import__(solver_module_name)
-    solver = solver_module.CreateSolver(model, solver_settings)
+    module_full = 'KratosMultiphysics.StructuralMechanicsApplication.' + solver_module_name
+    solver = __import__(module_full, fromlist=[solver_module_name]).CreateSolver(model, solver_settings)
 
     return solver
 

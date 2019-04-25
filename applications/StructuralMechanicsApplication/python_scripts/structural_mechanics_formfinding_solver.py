@@ -3,21 +3,16 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import base class file
-import structural_mechanics_solver
-
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(main_model_part, custom_settings):
     return FormfindingMechanicalSolver(main_model_part, custom_settings)
 
-
-class FormfindingMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
+class FormfindingMechanicalSolver(MechanicalSolver):
     """The structural mechanics formfinding solver.
 
     This class creates the mechanical solver for formdinding.
@@ -29,8 +24,7 @@ class FormfindingMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     """
     def __init__(self, main_model_part, custom_settings):
         # Set defaults and validate custom settings.
-        self.formfinding_settings = KratosMultiphysics.Parameters("""
-        {
+        self.formfinding_settings = KratosMultiphysics.Parameters("""{
             "print_formfinding_iterations": false
         }
         """)
@@ -39,7 +33,7 @@ class FormfindingMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
         # Construct the base solver.
         super(FormfindingMechanicalSolver, self).__init__(main_model_part, custom_settings)
-        self.print_on_rank_zero("::[FormfindingMechanicalSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[FormfindingMechanicalSolver]:: ", "Construction finished")
 
     def _create_solution_scheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()

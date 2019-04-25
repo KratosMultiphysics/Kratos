@@ -10,8 +10,6 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-
-
 // System includes
 
 // External includes
@@ -20,7 +18,6 @@
 #include "includes/define_python.h"
 #include "includes/process_info.h"
 #include "python/add_process_info_to_python.h"
-#include "containers/data_value_container.h"
 
 namespace Kratos
 {
@@ -28,10 +25,14 @@ namespace Kratos
 namespace Python
 {
 
-
-ProcessInfo::Pointer ProcessInfoGetPreviousSolutionStepInfo(ProcessInfo & rProcessInfo)
+ProcessInfo::Pointer ProcessInfoGetPreviousSolutionStepInfo(ProcessInfo& rProcessInfo)
 {
-	return rProcessInfo.pGetPreviousSolutionStepInfo();
+    return rProcessInfo.pGetPreviousSolutionStepInfo();
+}
+
+ProcessInfo::Pointer ProcessInfoGetPreviousTimeStepInfo(ProcessInfo& rProcessInfo)
+{
+    return rProcessInfo.pGetPreviousTimeStepInfo();
 }
 
 //
@@ -42,11 +43,12 @@ void  AddProcessInfoToPython(pybind11::module& m)
     py::class_<ProcessInfo, ProcessInfo::Pointer, DataValueContainer, Flags >(m,"ProcessInfo")
     .def(py::init<>())
     .def("CreateSolutionStepInfo", &ProcessInfo::CreateSolutionStepInfo)
-	.def("GetPreviousSolutionStepInfo", ProcessInfoGetPreviousSolutionStepInfo)
+    .def("GetPreviousSolutionStepInfo", ProcessInfoGetPreviousSolutionStepInfo)
+    .def("GetPreviousTimeStepInfo", ProcessInfoGetPreviousTimeStepInfo)
     .def("__str__", PrintObject<ProcessInfo>)
     ;
 }
-}  // namespace Python.
 
+}  // namespace Python.
 } // Namespace Kratos
 

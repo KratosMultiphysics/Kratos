@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosStructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,8 +41,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
-/* *********************************************************   
-*          
+/* *********************************************************
+*
 *   Last Modified by:    $Author: Nelson $
 *   Date:                $Date: 2009-09-18 $
 *   Revision:            $Revision: 1.0 $
@@ -57,7 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* System includes */
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
 /////////#define _OPENMP
@@ -86,11 +86,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-  
+
  template<
  class TSparseSpace,
- class TDenseSpace, 
- class TLinearSolver> 
+ class TDenseSpace,
+ class TLinearSolver>
  class PFEM2_Explicit_Strategy : public ExplicitStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
      {
 
@@ -101,11 +101,11 @@ namespace Kratos
 	  typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
 	  typedef typename BaseType::TDataType TDataType;
-	  
+
 	  typedef TSparseSpace SparseSpaceType;
 
 	  typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
-	  
+
 	  typedef typename BaseType::TSchemeType TSchemeType;
 
 	  typedef typename BaseType::DofsArrayType DofsArrayType;
@@ -125,9 +125,9 @@ namespace Kratos
 	  typedef ModelPart::ElementsContainerType ElementsArrayType;
 
 	  typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-	  
+
 	  typedef ModelPart::ConditionsContainerType::ContainerType ConditionsContainerType;
-      
+
 	  typedef ConditionsContainerType::iterator                 ConditionsContainerIterator;
 
 	  typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
@@ -143,12 +143,12 @@ namespace Kratos
 
           //typedef WeakPointerVector<Element > ParticleWeakVector;
           //typedef WeakPointerVector<Element >::iterator ParticleWeakIterator;
-	  
+
 
 
 
 	  PFEM2_Explicit_Strategy(
-	                ModelPart& model_part, 
+	                ModelPart& model_part,
 			const int        dimension,
            //             const int        damp_type,
 			//const double     damping_ratio,
@@ -162,14 +162,14 @@ namespace Kratos
 			//typename         TSchemeType::Pointer pScheme,
 			//typename         TBuilderAndSolverType::Pointer pNewBuilderAndSolver
 			)
-			
+
 	  : ExplicitStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, dimension ,MoveMeshFlag)
 	      {
-     
+
 	      }
 
 	  virtual ~PFEM2_Explicit_Strategy () {}
-	           
+
 
 
   //********************************************
@@ -183,53 +183,53 @@ namespace Kratos
       for(unsigned int i = 1; i<number_of_threads; i++)
       partitions[i] = partitions[i-1] + partition_size ;
   }
-  
+
   //SPECIFIC FUNCTIONS FOR MY APPLICATION
-void InitializeSolutionStep()
+void InitializeSolutionStep() override
 {
 	KRATOS_TRY
-	
+
 	ModelPart& r_model_part  = BaseType::GetModelPart();
 	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-	
+
 	switch ( CurrentProcessInfo[FRACTIONAL_STEP] )
 	{
-		case 0: 
+		case 0:
 		{
 			SetToZeroVariablesInViscousIterations(CurrentProcessInfo);
 			break;
 		}
-		case 3: 
+		case 3:
 		{
 			SetToZeroVariablesInPresureIterations(CurrentProcessInfo);
 			break;
 		}
-		case 4: 
+		case 4:
 		{
 			SetToZeroVariablesForVolumetricStrain(CurrentProcessInfo);
 			break;
 		}
-		case 5: 
+		case 5:
 		{
 			SetToZeroVariablesForPressure(CurrentProcessInfo);
 			break;
 		}
-		case 6: 
+		case 6:
 		{
 			SetToZeroVariablesInPresureViscousCorrection(CurrentProcessInfo);
 			break;
 		}
-		case 7: 
+		case 7:
 		{
 			SetToZeroMassAndArea(CurrentProcessInfo);
 			break;
 		}
-		case 10: 
+		case 10:
 		{
 			SetToZeroVariablesInPresureProjection(CurrentProcessInfo);
 			break;
 		}
-		
+
 
 
 		default:
@@ -240,51 +240,51 @@ void InitializeSolutionStep()
 	KRATOS_CATCH("")
 }
 
-void FinalizeSolutionStep()
+void FinalizeSolutionStep() override
 {
 	KRATOS_TRY
-	
+
 	ModelPart& r_model_part  = BaseType::GetModelPart();
 	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-	
+
 	switch ( CurrentProcessInfo[FRACTIONAL_STEP] )
 	{
-		case 0: 
+		case 0:
 		{
 			UpdateLoopForViscousIterationsWithNormalization(CurrentProcessInfo);
 			break;
 		}
-		case 3: 
+		case 3:
 		{
 			UpdateLoopForPressureIterationsWithNormalization(CurrentProcessInfo);
 			break;
 		}
-		case 4: 
+		case 4:
 		{
 			UpdateLoopForVolumetricStrain(CurrentProcessInfo);
 			break;
 		}
-		case 5: 
+		case 5:
 		{
 			UpdateLoopForPressure(CurrentProcessInfo);
 			break;
 		}
-		case 6: 
+		case 6:
 		{
 			UpdateLoopForPressureViscousCorrection(CurrentProcessInfo);
 			break;
 		}
-		case 7: 
+		case 7:
 		{
 			UpdateLoopForMassAndArea(CurrentProcessInfo);
 			break;
 		}
-		case 10: 
+		case 10:
 		{
 			NormalizePressureProjection(CurrentProcessInfo);
 			break;
 		}
-		
+
 		default:
 		{
 			KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ", CurrentProcessInfo[FRACTIONAL_STEP]);
@@ -292,8 +292,8 @@ void FinalizeSolutionStep()
 	}
 	KRATOS_CATCH("")
 }
-  
-  
+
+
 
 
 //VISCOUS ITERATIONS
@@ -301,11 +301,11 @@ void FinalizeSolutionStep()
 void SetToZeroVariablesInViscousIterations(ProcessInfo& CurrentProcessInfo)
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
-      
-      //const double delta_t = CurrentProcessInfo[DELTA_TIME];	
+      NodesArrayType& pNodes   = r_model_part.Nodes();
+
+      //const double delta_t = CurrentProcessInfo[DELTA_TIME];
 	  //const int iteration_number = CurrentProcessInfo[NL_ITERATION_NUMBER];
 
       #ifdef _OPENMP
@@ -317,28 +317,28 @@ void SetToZeroVariablesInViscousIterations(ProcessInfo& CurrentProcessInfo)
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	  {
 		typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 		typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-		for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+		for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 		{
 			noalias(i->FastGetSolutionStepValue(RHS)) = ZeroVector(3);
 			i->FastGetSolutionStepValue(NODAL_MASS)=0.0;
 		}
 	  }
-	  
+
 	  KRATOS_CATCH("")
 }
 
 void UpdateLoopForViscousIterationsWithNormalization(ProcessInfo& CurrentProcessInfo)
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
+      NodesArrayType& pNodes   = r_model_part.Nodes();
 	  //const double delta_t = CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
 	  //const double factor = delta_t;
 
@@ -351,24 +351,24 @@ void UpdateLoopForViscousIterationsWithNormalization(ProcessInfo& CurrentProcess
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	{
 	  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 	  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 	  {
 		   array_1d<double,3>& rhs = (i->FastGetSolutionStepValue(RHS));
 		   array_1d<double,3>& node_update_variable = (i->FastGetSolutionStepValue(VELOCITY));
 		   //noalias(node_update_variable) += factor* acceleration  ;
 		   noalias(node_update_variable) = rhs /(i->FastGetSolutionStepValue(NODAL_MASS))  ;
-		   
+
 	  }
 	}
-                             
+
      KRATOS_CATCH("")
-} 
+}
 
 
 //PRESSURE ITERATIONS
@@ -376,11 +376,11 @@ void UpdateLoopForViscousIterationsWithNormalization(ProcessInfo& CurrentProcess
 void SetToZeroVariablesInPresureIterations(ProcessInfo& CurrentProcessInfo)
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
-      
-      //const double delta_t = CurrentProcessInfo[DELTA_TIME];	
+      NodesArrayType& pNodes   = r_model_part.Nodes();
+
+      //const double delta_t = CurrentProcessInfo[DELTA_TIME];
 	  const int iteration_number = CurrentProcessInfo[NL_ITERATION_NUMBER];
 
       #ifdef _OPENMP
@@ -392,15 +392,15 @@ void SetToZeroVariablesInPresureIterations(ProcessInfo& CurrentProcessInfo)
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	  {
 		typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 		typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-		for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+		for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 		{
-  
+
   			if (iteration_number == 1)
 				noalias(i->FastGetSolutionStepValue(ACCELERATION)) = ZeroVector(3);
 			else// if (iteration_number==2)
@@ -411,20 +411,20 @@ void SetToZeroVariablesInPresureIterations(ProcessInfo& CurrentProcessInfo)
 
 			noalias(i->FastGetSolutionStepValue(PRESS_PROJ)) = ZeroVector(3);
 			noalias(i->FastGetSolutionStepValue(PRESS_PROJ_NO_RO)) = ZeroVector(3);
-			
-			
+
+
 			//noalias(in->GetSolutionStepValue(PRESSURE,1))=in->FastGetSolutionStepValue(PRESSURE);
 			//noalias(in->FastGetSolutionStepValue(PRESSURE)) = 0.0;
 			i->FastGetSolutionStepValue(NODAL_AREA)=0.0;
 			i->FastGetSolutionStepValue(NODAL_MASS)=0.0;
 			//i->FastGetSolutionStepValue(MASS)=ZeroVector(3);
-			
+
 			//i->FastGetSolutionStepValue(PRESSURE)=0.0;
 			i->FastGetSolutionStepValue(VOLUMETRIC_STRAIN)=0.0;
 
 		}
 	  }
-	  
+
 	  KRATOS_CATCH("")
 }
 
@@ -432,11 +432,11 @@ void SetToZeroVariablesInPresureIterations(ProcessInfo& CurrentProcessInfo)
 void SetToZeroVariablesForVolumetricStrain(ProcessInfo& CurrentProcessInfo)
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
-      
-      //const double delta_t = CurrentProcessInfo[DELTA_TIME];	
+      NodesArrayType& pNodes   = r_model_part.Nodes();
+
+      //const double delta_t = CurrentProcessInfo[DELTA_TIME];
 	  //const int iteration_number = CurrentProcessInfo[NL_ITERATION_NUMBER];
 
       #ifdef _OPENMP
@@ -448,30 +448,30 @@ void SetToZeroVariablesForVolumetricStrain(ProcessInfo& CurrentProcessInfo)
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	  {
 		typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 		typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-		for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+		for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 		{
 			i->FastGetSolutionStepValue(NODAL_AREA)=0.0;
 			i->FastGetSolutionStepValue(VOLUMETRIC_STRAIN)=0.0;
 		}
 	  }
-	  
+
 	  KRATOS_CATCH("")
 }
 
 void SetToZeroVariablesForPressure(ProcessInfo& CurrentProcessInfo)
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
-      
-      //const double delta_t = CurrentProcessInfo[DELTA_TIME];	
+      NodesArrayType& pNodes   = r_model_part.Nodes();
+
+      //const double delta_t = CurrentProcessInfo[DELTA_TIME];
 	  //const int iteration_number = CurrentProcessInfo[NL_ITERATION_NUMBER];
 
       #ifdef _OPENMP
@@ -483,28 +483,28 @@ void SetToZeroVariablesForPressure(ProcessInfo& CurrentProcessInfo)
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	  {
 		typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 		typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-		for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+		for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 		{
 			i->FastGetSolutionStepValue(NODAL_AREA)=0.0;
 			i->FastGetSolutionStepValue(PRESSURE)=0.0;
 		}
 	  }
-	  
+
 	  KRATOS_CATCH("")
 }
 
 void UpdateLoopForPressureIterationsWithNormalization(ProcessInfo& CurrentProcessInfo)
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
+      NodesArrayType& pNodes   = r_model_part.Nodes();
 	  //const double factor =  CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
@@ -515,35 +515,35 @@ void UpdateLoopForPressureIterationsWithNormalization(ProcessInfo& CurrentProces
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	{
 	  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 	  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 	  {
 		   //normalizing variables:
 		   array_1d<double,3>& press_proj_no_ro = (i->FastGetSolutionStepValue(PRESS_PROJ_NO_RO));
 		   array_1d<double,3>& press_proj_stabilization = (i->FastGetSolutionStepValue(PRESS_PROJ));
 		   double& mass = (i->FastGetSolutionStepValue(NODAL_MASS)); //this already includes 1/delta_t
-		   double& area = (i->FastGetSolutionStepValue(NODAL_AREA)); 
+		   double& area = (i->FastGetSolutionStepValue(NODAL_AREA));
 		   press_proj_no_ro /= mass; //so this is already (pres_proj / mass) * delta_t;
 		   press_proj_stabilization /= area;
-		   
 
-		   
+
+
 		   //updating acceleration
 		   array_1d<double,3>& acceleration = (i->FastGetSolutionStepValue(ACCELERATION));
 		   noalias(acceleration) -= (press_proj_no_ro);
 		   //updating variable
 		   array_1d<double,3>& velocity = (i->FastGetSolutionStepValue(VELOCITY));
 		   noalias(velocity) += (acceleration)  ; //the nodal mass includes the delta_time, so this is actually acceleration*delta_t
-		   
+
 		   i->FastGetSolutionStepValue(PREVIOUS_ITERATION_PRESSURE)=i->FastGetSolutionStepValue(PRESSURE);
 	  }
 	}
-                             
+
      KRATOS_CATCH("")
 }
 
@@ -553,11 +553,11 @@ void UpdateLoopForPressureIterationsWithNormalization(ProcessInfo& CurrentProces
 void SetToZeroVariablesInPresureProjection(ProcessInfo& CurrentProcessInfo)
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
-      
-      //const double delta_t = CurrentProcessInfo[DELTA_TIME];	
+      NodesArrayType& pNodes   = r_model_part.Nodes();
+
+      //const double delta_t = CurrentProcessInfo[DELTA_TIME];
 	  //const int iteration_number = CurrentProcessInfo[NL_ITERATION_NUMBER];
 
       #ifdef _OPENMP
@@ -569,22 +569,22 @@ void SetToZeroVariablesInPresureProjection(ProcessInfo& CurrentProcessInfo)
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	  {
 		typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 		typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-		for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+		for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 		{
-  
+
 			noalias(i->FastGetSolutionStepValue(PRESS_PROJ)) = ZeroVector(3);
-	
+
 			i->FastGetSolutionStepValue(NODAL_AREA)=0.0;
 
 		}
 	  }
-	  
+
 	  KRATOS_CATCH("")
 }
 
@@ -592,9 +592,9 @@ void SetToZeroVariablesInPresureProjection(ProcessInfo& CurrentProcessInfo)
 void NormalizePressureProjection(ProcessInfo& CurrentProcessInfo)
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
+      NodesArrayType& pNodes   = r_model_part.Nodes();
 	  //const double factor =  CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
@@ -605,13 +605,13 @@ void NormalizePressureProjection(ProcessInfo& CurrentProcessInfo)
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	{
 	  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 	  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 	  {
 		   //normalizing variables:
 		   //array_1d<double,3>& press_proj_no_ro = (i->FastGetSolutionStepValue(PRESS_PROJ_NO_RO));
@@ -624,23 +624,23 @@ void NormalizePressureProjection(ProcessInfo& CurrentProcessInfo)
 		   //press_proj_no_ro(1) /= vectorial_mass(1);
 		   //press_proj_no_ro(2) /= vectorial_mass(2)+1e-20;
 		   press_proj_stabilization /= area;
-		   
+
 		   //(i->FastGetSolutionStepValue(VOLUMETRIC_STRAIN))=i->FastGetSolutionStepValue(VOLUMETRIC_STRAIN)/area;
 		   //(i->FastGetSolutionStepValue(PRESSURE))=i->FastGetSolutionStepValue(PRESSURE)/area;
 		   //(i->FastGetSolutionStepValue(ELASTIC_PRESSURE))=i->FastGetSolutionStepValue(ELASTIC_PRESSURE)/area;
 
 	  }
 	}
-                             
+
      KRATOS_CATCH("")
 }
 
 void UpdateLoopForVolumetricStrain(ProcessInfo& CurrentProcessInfo)
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
+      NodesArrayType& pNodes   = r_model_part.Nodes();
 	  //const double factor =  CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
@@ -651,28 +651,28 @@ void UpdateLoopForVolumetricStrain(ProcessInfo& CurrentProcessInfo)
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	{
 	  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 	  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 	  {
 		   double& area = (i->FastGetSolutionStepValue(NODAL_AREA));
 		   (i->FastGetSolutionStepValue(VOLUMETRIC_STRAIN))=i->FastGetSolutionStepValue(VOLUMETRIC_STRAIN)/area;
 	  }
 	}
-                             
+
      KRATOS_CATCH("")
 }
 
 void UpdateLoopForPressure(ProcessInfo& CurrentProcessInfo)
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
+      NodesArrayType& pNodes   = r_model_part.Nodes();
 	  //const double factor =  CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
@@ -683,19 +683,19 @@ void UpdateLoopForPressure(ProcessInfo& CurrentProcessInfo)
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	{
 	  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 	  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 	  {
 		   double& area = (i->FastGetSolutionStepValue(NODAL_AREA));
 		   (i->FastGetSolutionStepValue(PRESSURE))=i->FastGetSolutionStepValue(PRESSURE)/area;
 	  }
 	}
-                             
+
      KRATOS_CATCH("")
 }
 
@@ -707,11 +707,11 @@ void UpdateLoopForPressure(ProcessInfo& CurrentProcessInfo)
 void SetToZeroVariablesInPresureViscousCorrection(ProcessInfo& CurrentProcessInfo)
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
-      
-      //const double delta_t = CurrentProcessInfo[DELTA_TIME];	
+      NodesArrayType& pNodes   = r_model_part.Nodes();
+
+      //const double delta_t = CurrentProcessInfo[DELTA_TIME];
 	  //const int iteration_number = CurrentProcessInfo[NL_ITERATION_NUMBER];
 
       #ifdef _OPENMP
@@ -723,28 +723,28 @@ void SetToZeroVariablesInPresureViscousCorrection(ProcessInfo& CurrentProcessInf
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	  {
 		typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 		typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-		for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+		for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 		{
 			i->FastGetSolutionStepValue(NODAL_AREA)=0.0;
 			i->FastGetSolutionStepValue(NODAL_MASS)=0.0;
 		}
 	  }
-	  
+
 	  KRATOS_CATCH("")
 }
 
 void UpdateLoopForPressureViscousCorrection(ProcessInfo& CurrentProcessInfo)
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
+      NodesArrayType& pNodes   = r_model_part.Nodes();
 	  //const double factor =  CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
@@ -755,19 +755,19 @@ void UpdateLoopForPressureViscousCorrection(ProcessInfo& CurrentProcessInfo)
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	{
 	  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 	  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 	  {
 			i->FastGetSolutionStepValue(PRESSUREAUX) = i->FastGetSolutionStepValue(NODAL_AREA)/i->FastGetSolutionStepValue(NODAL_MASS);
 			i->FastGetSolutionStepValue(EXTERNAL_PRESSURE) = i->FastGetSolutionStepValue(PRESSUREAUX) + i->FastGetSolutionStepValue(PRESSURE);
 	  }
 	}
-                             
+
      KRATOS_CATCH("")
 }
 
@@ -775,9 +775,9 @@ void UpdateLoopForPressureViscousCorrection(ProcessInfo& CurrentProcessInfo)
 void SetToZeroMassAndArea(ProcessInfo& CurrentProcessInfo)
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
+      NodesArrayType& pNodes   = r_model_part.Nodes();
 	  //const double factor =  CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
@@ -788,19 +788,19 @@ void SetToZeroMassAndArea(ProcessInfo& CurrentProcessInfo)
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	{
 	  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 	  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 	  {
 			i->FastGetSolutionStepValue(NODAL_MASS) = 0.0;
 			i->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
 	  }
 	}
-                             
+
      KRATOS_CATCH("")
 }
 
@@ -816,8 +816,8 @@ void UpdateLoopForMassAndArea(ProcessInfo& CurrentProcessInfo)
 
  template<
  class TSparseSpace,
- class TDenseSpace, 
- class TLinearSolver> 
+ class TDenseSpace,
+ class TLinearSolver>
  class Fluid_Phase_PFEM2_Explicit_Strategy : public ExplicitStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
      {
 
@@ -828,11 +828,11 @@ void UpdateLoopForMassAndArea(ProcessInfo& CurrentProcessInfo)
 	  typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
 	  typedef typename BaseType::TDataType TDataType;
-	  
+
 	  typedef TSparseSpace SparseSpaceType;
 
 	  typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
-	  
+
 	  typedef typename BaseType::TSchemeType TSchemeType;
 
 	  typedef typename BaseType::DofsArrayType DofsArrayType;
@@ -852,9 +852,9 @@ void UpdateLoopForMassAndArea(ProcessInfo& CurrentProcessInfo)
 	  typedef ModelPart::ElementsContainerType ElementsArrayType;
 
 	  typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-	  
+
 	  typedef ModelPart::ConditionsContainerType::ContainerType ConditionsContainerType;
-      
+
 	  typedef ConditionsContainerType::iterator                 ConditionsContainerIterator;
 
 	  typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
@@ -870,12 +870,12 @@ void UpdateLoopForMassAndArea(ProcessInfo& CurrentProcessInfo)
 
           //typedef WeakPointerVector<Element > ParticleWeakVector;
           //typedef WeakPointerVector<Element >::iterator ParticleWeakIterator;
-	  
+
 
 
 
 	  Fluid_Phase_PFEM2_Explicit_Strategy(
-	                ModelPart& model_part, 
+	                ModelPart& model_part,
 			const int        dimension,
            //             const int        damp_type,
 			//const double     damping_ratio,
@@ -889,14 +889,14 @@ void UpdateLoopForMassAndArea(ProcessInfo& CurrentProcessInfo)
 			//typename         TSchemeType::Pointer pScheme,
 			//typename         TBuilderAndSolverType::Pointer pNewBuilderAndSolver
 			)
-			
+
 	  : ExplicitStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, dimension ,MoveMeshFlag)
 	      {
-     
+
 	      }
 
 	  virtual ~Fluid_Phase_PFEM2_Explicit_Strategy () {}
-	           
+
 
 
   //********************************************
@@ -910,28 +910,28 @@ void UpdateLoopForMassAndArea(ProcessInfo& CurrentProcessInfo)
       for(unsigned int i = 1; i<number_of_threads; i++)
       partitions[i] = partitions[i-1] + partition_size ;
   }
-  
+
   //SPECIFIC FUNCTIONS FOR MY APPLICATION
-void InitializeSolutionStep()
+void InitializeSolutionStep() override
 {
 	KRATOS_TRY
-	
+
 	ModelPart& r_model_part  = BaseType::GetModelPart();
 	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-	
+
 	switch ( CurrentProcessInfo[FRACTIONAL_STEP] )
 	{
-		case 0: 
+		case 0:
 		{
 			SetToZeroVariablesInViscousIterations();
 			break;
 		}
-		case 3: 
+		case 3:
 		{
 			SetToZeroVariablesInPresureIterations();
 			break;
 		}
-		
+
 		default:
 		{
 			KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ", CurrentProcessInfo[FRACTIONAL_STEP]);
@@ -940,26 +940,26 @@ void InitializeSolutionStep()
 	KRATOS_CATCH("")
 }
 
-void FinalizeSolutionStep()
+void FinalizeSolutionStep() override
 {
 	KRATOS_TRY
-	
+
 	ModelPart& r_model_part  = BaseType::GetModelPart();
 	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-	
+
 	switch ( CurrentProcessInfo[FRACTIONAL_STEP] )
 	{
-		case 0: 
+		case 0:
 		{
 			UpdateLoopForViscousIterationsWithNormalization();
 			break;
 		}
-		case 3: 
+		case 3:
 		{
 			UpdateLoopForPressureIterationsWithNormalization();
 			break;
 		}
-		
+
 		default:
 		{
 			KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ", CurrentProcessInfo[FRACTIONAL_STEP]);
@@ -967,8 +967,8 @@ void FinalizeSolutionStep()
 	}
 	KRATOS_CATCH("")
 }
-  
-  
+
+
 
 
 //VISCOUS ITERATIONS
@@ -976,12 +976,12 @@ void FinalizeSolutionStep()
 void SetToZeroVariablesInViscousIterations()
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
 	  //ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
-      
-      //const double delta_t = CurrentProcessInfo[DELTA_TIME];	
+      NodesArrayType& pNodes   = r_model_part.Nodes();
+
+      //const double delta_t = CurrentProcessInfo[DELTA_TIME];
 	  //const int iteration_number = CurrentProcessInfo[NL_ITERATION_NUMBER];
 
       #ifdef _OPENMP
@@ -993,29 +993,29 @@ void SetToZeroVariablesInViscousIterations()
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	  {
 		typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 		typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-		for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+		for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 		{
 			noalias(i->FastGetSolutionStepValue(RHS)) = ZeroVector(3);
 			i->FastGetSolutionStepValue(NODAL_MASS)=0.0;
 		}
 	  }
-	  
+
 	  KRATOS_CATCH("")
 }
 
 void UpdateLoopForViscousIterationsWithNormalization()
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
 	  //ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
+      NodesArrayType& pNodes   = r_model_part.Nodes();
 
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
@@ -1026,25 +1026,25 @@ void UpdateLoopForViscousIterationsWithNormalization()
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	{
 	  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 	  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 	  {
 		   array_1d<double,3>& rhs = (i->FastGetSolutionStepValue(RHS));
 		   array_1d<double,3>& node_update_variable = (i->FastGetSolutionStepValue(WATER_VELOCITY));
 		   noalias(node_update_variable) = rhs/(i->FastGetSolutionStepValue(NODAL_MASS)) ;
 		   if (i->IsFixed(WATER_VELOCITY_X)==true)
 				noalias(node_update_variable) = (i->FastGetSolutionStepValue(WATER_VELOCITY,1));
-		   
+
 	  }
 	}
-                             
+
      KRATOS_CATCH("")
-} 
+}
 
 
 //PRESSURE ITERATIONS
@@ -1052,12 +1052,12 @@ void UpdateLoopForViscousIterationsWithNormalization()
 void SetToZeroVariablesInPresureIterations()
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
 	  ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
-      
-      //const double delta_t = CurrentProcessInfo[DELTA_TIME];	
+      NodesArrayType& pNodes   = r_model_part.Nodes();
+
+      //const double delta_t = CurrentProcessInfo[DELTA_TIME];
 	  const int iteration_number = CurrentProcessInfo[NL_ITERATION_NUMBER];
 
       #ifdef _OPENMP
@@ -1069,26 +1069,26 @@ void SetToZeroVariablesInPresureIterations()
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	  {
 		typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 		typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-		for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+		for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 		{
-			
+
   			if (iteration_number == 1)
 				noalias(i->FastGetSolutionStepValue(ACCELERATION)) = ZeroVector(3);
 			else// if (iteration_number==2)
 				noalias(i->FastGetSolutionStepValue(ACCELERATION)) =   i->FastGetSolutionStepValue(PRESS_PROJ_NO_RO); //second order cos we are in the second (or higher) iteration.
 			//else if (iteration_number==3)
 			//	noalias(inode->FastGetSolutionStepValue(ACCELERATION)) = - inode->FastGetSolutionStepValue(ACCELERATION) + inode->FastGetSolutionStepValue(PRESS_PROJ_NO_RO);
-			
+
 			//noalias(i->FastGetSolutionStepValue(PRESS_PROJ)) = ZeroVector(3);
 			noalias(i->FastGetSolutionStepValue(PRESS_PROJ_NO_RO)) = ZeroVector(3);
-			
-			
+
+
 			//noalias(in->GetSolutionStepValue(PRESSURE,1))=in->FastGetSolutionStepValue(PRESSURE);
 			//noalias(in->FastGetSolutionStepValue(PRESSURE)) = 0.0;
 			//i->FastGetSolutionStepValue(NODAL_AREA)=0.0;
@@ -1096,17 +1096,17 @@ void SetToZeroVariablesInPresureIterations()
 			//i->FastGetSolutionStepValue(MASS)=ZeroVector(3);
 		}
 	  }
-	  
+
 	  KRATOS_CATCH("")
 }
 
 void UpdateLoopForPressureIterationsWithNormalization()
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
 	  //ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
+      NodesArrayType& pNodes   = r_model_part.Nodes();
 	  //const double factor =  CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
@@ -1117,13 +1117,13 @@ void UpdateLoopForPressureIterationsWithNormalization()
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	{
 	  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 	  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 	  {
 		   //normalizing variables:
 		   array_1d<double,3>& press_proj_no_ro = (i->FastGetSolutionStepValue(PRESS_PROJ_NO_RO));
@@ -1136,21 +1136,21 @@ void UpdateLoopForPressureIterationsWithNormalization()
 		   //press_proj_no_ro(1) /= vectorial_mass(1);
 		   //press_proj_no_ro(2) /= vectorial_mass(2)+1e-20;
 		   //press_proj_stabilization /= area;
-		   
+
 		   //updating acceleration
 		   array_1d<double,3>& acceleration = (i->FastGetSolutionStepValue(ACCELERATION));
 		   noalias(acceleration) -= (press_proj_no_ro);
 		   //updating variable
 		   array_1d<double,3>& velocity = (i->FastGetSolutionStepValue(WATER_VELOCITY));
 		   noalias(velocity) += (acceleration)  ;
-		   
+
 		   i->FastGetSolutionStepValue(PREVIOUS_ITERATION_PRESSURE)=i->FastGetSolutionStepValue(WATER_PRESSURE);
 		   //i->FastGetSolutionStepValue(FRACT_VEL)=i->FastGetSolutionStepValue(VELOCITY);
 		   if (i->IsFixed(WATER_VELOCITY_X)==true)
 				noalias(velocity) = (i->FastGetSolutionStepValue(WATER_VELOCITY,1));
 	  }
 	}
-                             
+
      KRATOS_CATCH("")
 }
 
@@ -1159,4 +1159,3 @@ void UpdateLoopForPressureIterationsWithNormalization()
 
 } /* namespace Kratos.*/
 #endif /* KRATOS_RESIDUALBASED_CENTRAL_DIFERENCES_STRATEGY */
-
