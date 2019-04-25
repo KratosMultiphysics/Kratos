@@ -206,23 +206,23 @@ class GiDOutputProcess(KM.Process):
 
         if self.multifile_flag == MultiFileFlag.SingleFile:
             mesh_name = 0.0
-            self.__write_mesh(mesh_name)
-            self.__initialize_results(mesh_name)
+            self._write_mesh(mesh_name)
+            self._initialize_results(mesh_name)
 
             if self.post_mode == GiDPostMode.GiD_PostBinary:
-                self.__write_step_to_list()
+                self._write_step_to_list()
             else:
-                self.__write_step_to_list(0)
+                self._write_step_to_list(0)
 
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
             label = 0.0
-            self.__write_mesh(label)
-            self.__initialize_results(label)
-            self.__write_nodal_results(label)
-            self.__write_nonhistorical_nodal_results(label)
-            self.__write_nodal_flags(label)
-            self.__write_elemental_conditional_flags(label)
-            self.__finalize_results()
+            self._write_mesh(label)
+            self._initialize_results(label)
+            self._write_nodal_results(label)
+            self._write_nonhistorical_nodal_results(label)
+            self._write_nodal_flags(label)
+            self._write_elemental_conditional_flags(label)
+            self._finalize_results()
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeSolutionLoop()
@@ -259,14 +259,14 @@ class GiDOutputProcess(KM.Process):
             label = self.printed_step_count
 
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
-            self.__write_mesh(label)
-            self.__initialize_results(label)
+            self._write_mesh(label)
+            self._initialize_results(label)
 
-        self.__write_nodal_results(time)
-        self.__write_gp_results(time)
-        self.__write_nonhistorical_nodal_results(time)
-        self.__write_nodal_flags(time)
-        self.__write_elemental_conditional_flags(time)
+        self._write_nodal_results(time)
+        self._write_gp_results(time)
+        self._write_nonhistorical_nodal_results(time)
+        self._write_nodal_flags(time)
+        self._write_elemental_conditional_flags(time)
 
         if self.flush_after_output and self.multifile_flag != MultiFileFlag.MultipleFiles:
             if self.body_io is not None:
@@ -275,8 +275,8 @@ class GiDOutputProcess(KM.Process):
                 self.cut_io.Flush()
 
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
-            self.__finalize_results()
-            self.__write_step_to_list(label)
+            self._finalize_results()
+            self._write_step_to_list(label)
 
         # Schedule next output
         if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
@@ -294,7 +294,7 @@ class GiDOutputProcess(KM.Process):
         '''Finalize files and free resources.'''
 
         if self.multifile_flag == MultiFileFlag.SingleFile:
-            self.__finalize_results()
+            self._finalize_results()
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteFinalize()
@@ -480,7 +480,7 @@ class GiDOutputProcess(KM.Process):
         # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
         return [ globals()[ param[i].GetString() ] for i in range( 0,param.size() ) ]
 
-    def __write_mesh(self, label):
+    def _write_mesh(self, label):
         if self.body_io is not None:
             self.body_io.InitializeMesh(label)
             if self.body_output:
@@ -494,14 +494,14 @@ class GiDOutputProcess(KM.Process):
             self.cut_io.WriteMesh(self.cut_model_part.GetMesh())
             self.cut_io.FinalizeMesh()
 
-    def __initialize_results(self, label):
+    def _initialize_results(self, label):
         if self.body_io is not None:
             self.body_io.InitializeResults(label, self.model_part.GetMesh())
 
         if self.cut_io is not None:
             self.cut_io.InitializeResults(label,self.cut_model_part.GetMesh())
 
-    def __write_nodal_results(self, label):
+    def _write_nodal_results(self, label):
         if self.body_io is not None:
             for variable in self.nodal_variables:
                 self.body_io.WriteNodalResults(variable, self.model_part.GetCommunicator().LocalMesh().Nodes, label, 0)
@@ -511,7 +511,7 @@ class GiDOutputProcess(KM.Process):
             for variable in self.nodal_variables:
                 self.cut_io.WriteNodalResults(variable, self.cut_model_part.GetCommunicator().LocalMesh().Nodes, label, 0)
 
-    def __write_gp_results(self, label):
+    def _write_gp_results(self, label):
         #if self.body_io is not None:
         if self.body_output: # Note: if we only print nodes, there are no GaussPoints
             for variable in self.gauss_point_variables:
@@ -520,7 +520,7 @@ class GiDOutputProcess(KM.Process):
         # Gauss point results depend on the type of element!
         # they are not implemented for cuts (which are generic Condition3D)
 
-    def __write_nonhistorical_nodal_results(self, label):
+    def _write_nonhistorical_nodal_results(self, label):
         if self.body_io is not None:
             for variable in self.nodal_nonhistorical_variables:
                 self.body_io.WriteNodalResultsNonHistorical(variable, self.model_part.Nodes, label)
@@ -530,7 +530,7 @@ class GiDOutputProcess(KM.Process):
             for variable in self.nodal_nonhistorical_variables:
                 self.cut_io.WriteNodalResultsNonHistorical(variable, self.cut_model_part.Nodes, label)
 
-    def __write_nodal_flags(self, label):
+    def _write_nodal_flags(self, label):
         if self.body_io is not None:
             for flag in range(len(self.nodal_flags)):
                 self.body_io.WriteNodalFlags(self.nodal_flags[flag], self.nodal_flags_names[flag], self.model_part.Nodes, label)
@@ -540,7 +540,7 @@ class GiDOutputProcess(KM.Process):
             for flag in range(len(self.nodal_flags)):
                 self.cut_io.WriteNodalFlags(self.nodal_flags[flag], self.nodal_flags_names[flag], self.cut_model_part.Nodes, label)
 
-    def __write_elemental_conditional_flags(self, label):
+    def _write_elemental_conditional_flags(self, label):
         if self.body_io is not None:
             for flag in range(len(self.elemental_conditional_flags)):
                 self.body_io.PrintFlagsOnGaussPoints(self.elemental_conditional_flags[flag], self.elemental_conditional_flags_names[flag], self.model_part, label)
@@ -550,14 +550,14 @@ class GiDOutputProcess(KM.Process):
             for flag in range(len(self.elemental_conditional_flags)):
                 self.cut_io.PrintFlagsOnGaussPoints(self.elemental_conditional_flags[flag], self.elemental_conditional_flags_names[flag], self.cut_model_part, label)
 
-    def __finalize_results(self):
+    def _finalize_results(self):
         if self.body_io is not None:
             self.body_io.FinalizeResults()
 
         if self.cut_io is not None:
             self.cut_io.FinalizeResults()
 
-    def __write_step_to_list(self,step_label=None):
+    def _write_step_to_list(self,step_label=None):
         if self.post_mode == GiDPostMode.GiD_PostBinary:
             ext = ".post.bin"
         elif self.post_mode == GiDPostMode.GiD_PostAscii:
