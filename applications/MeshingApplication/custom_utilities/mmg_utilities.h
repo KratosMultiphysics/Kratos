@@ -176,28 +176,28 @@ public:
         );
 
     /**
-     * @brief It checks if the conditions are repeated and remove the repeated ones
+     * @brief It checks if the conditions are repeated and returns a list of indices of the nodes
      * @param EchoLevel The level of verbosity
      */
-    IndexVectorType CheckConditions0(const IndexType EchoLevel = 0);
+    IndexVectorType CheckFirstTypeConditions(const IndexType EchoLevel = 0);
 
     /**
      * @brief It checks if the conditions are repeated and remove the repeated ones
      * @param EchoLevel The level of verbosity
      */
-    IndexVectorType CheckConditions1(const IndexType EchoLevel = 0);
+    IndexVectorType CheckSecondTypeConditions(const IndexType EchoLevel = 0);
 
     /**
      * @brief It checks if the elemenst are removed and remove the repeated ones
      * @param EchoLevel The level of verbosity
      */
-    IndexVectorType CheckElements0(const IndexType EchoLevel = 0);
+    IndexVectorType CheckFirstTypeElements(const IndexType EchoLevel = 0);
 
     /**
      * @brief It checks if the elemenst are removed and remove the repeated ones
      * @param EchoLevel The level of verbosity
      */
-    IndexVectorType CheckElements1(const IndexType EchoLevel = 0);
+    IndexVectorType CheckSecondTypeElements(const IndexType EchoLevel = 0);
 
     /**
      * @brief It blocks certain nodes before remesh the model
@@ -235,7 +235,7 @@ public:
         );
 
     /**
-     * @brief It creates the new condition
+     * @brief It creates the new condition (first type, depends if the library work in 2D/3D/Surfaces)
      * @param rModelPart The model part of interest to study
      * @param rMapPointersRefCondition The pointer to the condition of reference
      * @param CondId The id of the condition
@@ -246,7 +246,7 @@ public:
      * @param EchoLevel The level of verbosity
      * @return pCondition The pointer to the new condition created
      */
-    Condition::Pointer CreateCondition0(
+    Condition::Pointer CreateFirstTypeCondition(
         ModelPart& rModelPart,
         std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
         const IndexType CondId,
@@ -259,7 +259,7 @@ public:
         );
 
     /**
-     * @brief It creates the new condition
+     * @brief It creates the new condition (second type, depends if the library work in 2D/3D/Surfaces)
      * @param rModelPart The model part of interest to study
      * @param rMapPointersRefCondition The pointer to the condition of reference
      * @param CondId The id of the condition
@@ -270,7 +270,7 @@ public:
      * @param EchoLevel The level of verbosity
      * @return pCondition The pointer to the new condition created
      */
-    Condition::Pointer CreateCondition1(
+    Condition::Pointer CreateSecondTypeCondition(
         ModelPart& rModelPart,
         std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
         const IndexType CondId,
@@ -283,7 +283,7 @@ public:
         );
 
     /**
-     * @brief It creates the new element
+     * @brief It creates the new element (first type, depends if the library work in 2D/3D/Surfaces)
      * @param rModelPart The model part of interest to study
      * @param rMapPointersRefElement The pointer to the element of reference
      * @param ElemId The id of the element
@@ -294,7 +294,7 @@ public:
      * @param EchoLevel The level of verbosity
      * @return pElement The pointer to the new condition created
      */
-    Element::Pointer CreateElement0(
+    Element::Pointer CreateFirstTypeElement(
         ModelPart& rModelPart,
         std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
         const IndexType ElemId,
@@ -307,7 +307,7 @@ public:
         );
 
     /**
-     * @brief It creates the new element
+     * @brief It creates the new element (second type, depends if the library work in 2D/3D/Surfaces)
      * @param rModelPart The model part of interest to study
      * @param rMapPointersRefElement The pointer to the element of reference
      * @param ElemId The id of the element
@@ -318,7 +318,7 @@ public:
      * @param EchoLevel The level of verbosity
      * @return pElement The pointer to the new condition created
      */
-    Element::Pointer CreateElement1(
+    Element::Pointer CreateSecondTypeElement(
         ModelPart& rModelPart,
         std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
         const IndexType ElemId,

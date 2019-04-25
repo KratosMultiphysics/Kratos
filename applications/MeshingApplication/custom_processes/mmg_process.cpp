@@ -595,7 +595,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
     // Create a new model part // TODO: Use a different kind of element for each submodelpart (in order to be able of remeshing more than one kind o element or condition)
-    std::unordered_map<IndexType, IndexVectorType> color_nodes, color_cond_0, color_cond_1, color_elem_0, color_elem_1;
+    std::unordered_map<IndexType, IndexVectorType> color_nodes, first_color_cond, second_color_cond, first_color_elem, second_color_elem;
 
     // The tempotal store of
     ConditionsArrayType created_conditions_vector;
@@ -619,43 +619,43 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     if (mpRefCondition.size() > 0) {
         IndexType cond_id = 1;
 
-        IndexType counter_cond_0 = 0;
-        const IndexVectorType condition_to_remove_0 = mMmmgUtilities.CheckConditions0(mEchoLevel);
+        IndexType counter_first_cond = 0;
+        const IndexVectorType first_condition_to_remove = mMmmgUtilities.CheckFirstTypeConditions(mEchoLevel);
         for (IndexType i_cond = 1; i_cond <= n_conditions[0]; ++i_cond) {
             bool skip_creation = false;
-            if (counter_cond_0 < condition_to_remove_0.size()) {
-                if (condition_to_remove_0[counter_cond_0] == i_cond) {
+            if (counter_first_cond < first_condition_to_remove.size()) {
+                if (first_condition_to_remove[counter_first_cond] == i_cond) {
                     skip_creation = true;
-                    counter_cond_0 += 1;
+                    counter_first_cond += 1;
                 }
             }
 
-            Condition::Pointer p_condition = mMmmgUtilities.CreateCondition0(mrThisModelPart, mpRefCondition, cond_id, ref, is_required, skip_creation, mRemoveRegions, mDiscretization, mEchoLevel);
+            Condition::Pointer p_condition = mMmmgUtilities.CreateFirstTypeCondition(mrThisModelPart, mpRefCondition, cond_id, ref, is_required, skip_creation, mRemoveRegions, mDiscretization, mEchoLevel);
 
             if (p_condition != nullptr) {
                 created_conditions_vector.push_back(p_condition);
 //                 mrThisModelPart.AddCondition(p_condition);
-                if (ref != 0) color_cond_0[static_cast<IndexType>(ref)].push_back(cond_id);// NOTE: ref == 0 is the MainModelPart
+                if (ref != 0) first_color_cond[static_cast<IndexType>(ref)].push_back(cond_id);// NOTE: ref == 0 is the MainModelPart
                 cond_id += 1;
             }
         }
 
-        IndexType counter_cond_1 = 0;
-        const IndexVectorType condition_to_remove_1 = mMmmgUtilities.CheckConditions1(mEchoLevel);
+        IndexType counter_second_cond = 0;
+        const IndexVectorType second_condition_to_remove = mMmmgUtilities.CheckSecondTypeConditions(mEchoLevel);
         for (IndexType i_cond = 1; i_cond <= n_conditions[1]; ++i_cond) {
             bool skip_creation = false;
-            if (counter_cond_1 < condition_to_remove_1.size()) {
-                if (condition_to_remove_1[counter_cond_1] == i_cond) {
+            if (counter_second_cond < second_condition_to_remove.size()) {
+                if (second_condition_to_remove[counter_second_cond] == i_cond) {
                     skip_creation = true;
-                    counter_cond_1 += 1;
+                    counter_second_cond += 1;
                 }
             }
-            Condition::Pointer p_condition = mMmmgUtilities.CreateCondition1(mrThisModelPart, mpRefCondition, cond_id, ref, is_required, skip_creation, mRemoveRegions, mDiscretization, mEchoLevel);
+            Condition::Pointer p_condition = mMmmgUtilities.CreateSecondTypeCondition(mrThisModelPart, mpRefCondition, cond_id, ref, is_required, skip_creation, mRemoveRegions, mDiscretization, mEchoLevel);
 
             if (p_condition != nullptr) {
                 created_conditions_vector.push_back(p_condition);
 //                 mrThisModelPart.AddCondition(p_condition);
-                if (ref != 0) color_cond_1[static_cast<IndexType>(ref)].push_back(cond_id);// NOTE: ref == 0 is the MainModelPart
+                if (ref != 0) second_color_cond[static_cast<IndexType>(ref)].push_back(cond_id);// NOTE: ref == 0 is the MainModelPart
                 cond_id += 1;
             }
         }
@@ -665,44 +665,44 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     if (mpRefElement.size() > 0) {
         IndexType elem_id = 1;
 
-        IndexType counter_elem_0 = 0;
-        const IndexVectorType elements_to_remove_0 = mMmmgUtilities.CheckElements0(mEchoLevel);
+        IndexType counter_first_elem = 0;
+        const IndexVectorType first_elements_to_remove = mMmmgUtilities.CheckFirstTypeElements(mEchoLevel);
         for (IndexType i_elem = 1; i_elem <= n_elements[0]; ++i_elem) {
             bool skip_creation = false;
-            if (counter_elem_0 < elements_to_remove_0.size()) {
-                if (elements_to_remove_0[counter_elem_0] == i_elem) {
+            if (counter_first_elem < first_elements_to_remove.size()) {
+                if (first_elements_to_remove[counter_first_elem] == i_elem) {
                     skip_creation = true;
-                    counter_elem_0 += 1;
+                    counter_first_elem += 1;
                 }
             }
 
-            Element::Pointer p_element = mMmmgUtilities.CreateElement0(mrThisModelPart, mpRefElement, elem_id, ref, is_required, skip_creation, mRemoveRegions, mDiscretization, mEchoLevel);
+            Element::Pointer p_element = mMmmgUtilities.CreateFirstTypeElement(mrThisModelPart, mpRefElement, elem_id, ref, is_required, skip_creation, mRemoveRegions, mDiscretization, mEchoLevel);
 
             if (p_element != nullptr) {
                 created_elements_vector.push_back(p_element);
 //                 mrThisModelPart.AddElement(p_element);
-                if (ref != 0) color_elem_0[static_cast<IndexType>(ref)].push_back(elem_id);// NOTE: ref == 0 is the MainModelPart
+                if (ref != 0) first_color_elem[static_cast<IndexType>(ref)].push_back(elem_id);// NOTE: ref == 0 is the MainModelPart
                 elem_id += 1;
             }
         }
 
-        IndexType counter_elem_1 = 0;
-        const IndexVectorType elements_to_remove_1 = mMmmgUtilities.CheckElements1(mEchoLevel);
+        IndexType counter_second_elem = 0;
+        const IndexVectorType second_elements_to_remove = mMmmgUtilities.CheckSecondTypeElements(mEchoLevel);
         for (IndexType i_elem = 1; i_elem <= n_elements[1]; ++i_elem) {
             bool skip_creation = false;
-            if (counter_elem_1 < elements_to_remove_1.size()) {
-                if (elements_to_remove_1[counter_elem_1] == i_elem) {
+            if (counter_second_elem < second_elements_to_remove.size()) {
+                if (second_elements_to_remove[counter_second_elem] == i_elem) {
                     skip_creation = true;
-                    counter_elem_1 += 1;
+                    counter_second_elem += 1;
                 }
             }
 
-            Element::Pointer p_element = mMmmgUtilities.CreateElement1(mrThisModelPart, mpRefElement, elem_id, ref, is_required,skip_creation, mRemoveRegions, mDiscretization, mEchoLevel);
+            Element::Pointer p_element = mMmmgUtilities.CreateSecondTypeElement(mrThisModelPart, mpRefElement, elem_id, ref, is_required,skip_creation, mRemoveRegions, mDiscretization, mEchoLevel);
 
             if (p_element != nullptr) {
                 created_elements_vector.push_back(p_element);
 //                 mrThisModelPart.AddElement(p_element);
-                if (ref != 0) color_elem_1[static_cast<IndexType>(ref)].push_back(elem_id);// NOTE: ref == 0 is the MainModelPart
+                if (ref != 0) second_color_elem[static_cast<IndexType>(ref)].push_back(elem_id);// NOTE: ref == 0 is the MainModelPart
                 elem_id += 1;
             }
         }
@@ -721,10 +721,10 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
                 ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
 
                 if (color_nodes.find(key) != color_nodes.end()) r_sub_model_part.AddNodes(color_nodes[key]);
-                if (color_cond_0.find(key) != color_cond_0.end()) r_sub_model_part.AddConditions(color_cond_0[key]);
-                if (color_cond_1.find(key) != color_cond_1.end()) r_sub_model_part.AddConditions(color_cond_1[key]);
-                if (color_elem_0.find(key) != color_elem_0.end()) r_sub_model_part.AddElements(color_elem_0[key]);
-                if (color_elem_1.find(key) != color_elem_1.end()) r_sub_model_part.AddElements(color_elem_1[key]);
+                if (first_color_cond.find(key) != first_color_cond.end()) r_sub_model_part.AddConditions(first_color_cond[key]);
+                if (second_color_cond.find(key) != second_color_cond.end()) r_sub_model_part.AddConditions(second_color_cond[key]);
+                if (first_color_elem.find(key) != first_color_elem.end()) r_sub_model_part.AddElements(first_color_elem[key]);
+                if (second_color_elem.find(key) != second_color_elem.end()) r_sub_model_part.AddElements(second_color_elem[key]);
             }
         }
     }

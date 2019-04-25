@@ -144,7 +144,7 @@ IndexVectorType MmgUtilities<TMMGLibrary>::CheckNodes(
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckConditions0(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckFirstTypeConditions(const IndexType EchoLevel)
 {
     IndexVectorMapType edge_map;
 
@@ -178,7 +178,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckConditions0(const IndexTyp
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckConditions0(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckFirstTypeConditions(const IndexType EchoLevel)
 {
     IndexVectorMapType triangle_map;
 
@@ -212,7 +212,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckConditions0(const IndexTyp
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckConditions0(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckFirstTypeConditions(const IndexType EchoLevel)
 {
     IndexVectorMapType edge_map;
 
@@ -246,7 +246,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckConditions0(const IndexType
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckConditions1(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckSecondTypeConditions(const IndexType EchoLevel)
 {
     IndexVectorType conditions_to_remove(0);
 
@@ -257,7 +257,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckConditions1(const IndexTyp
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckConditions1(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckSecondTypeConditions(const IndexType EchoLevel)
 {
     IndexVectorMapType quadrilateral_map;
 
@@ -292,7 +292,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckConditions1(const IndexTyp
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckConditions1(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckSecondTypeConditions(const IndexType EchoLevel)
 {
     IndexVectorType conditions_to_remove(0);
 
@@ -303,7 +303,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckConditions1(const IndexType
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckElements0(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckFirstTypeElements(const IndexType EchoLevel)
 {
     IndexVectorMapType triangle_map;
 
@@ -338,7 +338,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckElements0(const IndexType 
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckElements0(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckFirstTypeElements(const IndexType EchoLevel)
 {
     IndexVectorMapType triangle_map;
 
@@ -373,7 +373,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckElements0(const IndexType 
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckElements0(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckFirstTypeElements(const IndexType EchoLevel)
 {
     IndexVectorMapType triangle_map;
 
@@ -408,7 +408,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckElements0(const IndexType E
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckElements1(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckSecondTypeElements(const IndexType EchoLevel)
 {
     IndexVectorType elements_to_remove(0);
     return elements_to_remove;
@@ -418,7 +418,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckElements1(const IndexType 
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckElements1(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckSecondTypeElements(const IndexType EchoLevel)
 {
     IndexVectorMapType prism_map;
 
@@ -455,7 +455,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckElements1(const IndexType 
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckElements1(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckSecondTypeElements(const IndexType EchoLevel)
 {
     IndexVectorType elements_to_remove(0);
     return elements_to_remove;
@@ -626,7 +626,7 @@ NodeType::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateNode(
 /***********************************************************************************/
 
 template<>
-Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateCondition0(
+Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     const IndexType CondId,
@@ -684,7 +684,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateCondition0(
 /***********************************************************************************/
 
 template<>
-Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateCondition0(
+Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     const IndexType CondId,
@@ -745,7 +745,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateCondition0(
 /***********************************************************************************/
 
 template<>
-Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateCondition0(
+Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeCondition(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     const IndexType CondId,
@@ -792,7 +792,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateCondition0(
 /***********************************************************************************/
 
 template<>
-Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateCondition1(
+Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateSecondTypeCondition(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     const IndexType CondId,
@@ -811,7 +811,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateCondition1(
 /***********************************************************************************/
 
 template<>
-Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateCondition1(
+Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeCondition(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     const IndexType CondId,
@@ -861,7 +861,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateCondition1(
 /***********************************************************************************/
 
 template<>
-Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateCondition1(
+Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateSecondTypeCondition(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     const IndexType CondId,
@@ -880,7 +880,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateCondition1(
 /***********************************************************************************/
 
 template<>
-Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateElement0(
+Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
     const IndexType ElemId,
@@ -961,7 +961,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateElement0(
 /***********************************************************************************/
 
 template<>
-Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateElement0(
+Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
     const IndexType ElemId,
@@ -1044,7 +1044,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateElement0(
 /***********************************************************************************/
 
 template<>
-Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateElement0(
+Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeElement(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
     const IndexType ElemId,
@@ -1091,7 +1091,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateElement0(
 /***********************************************************************************/
 
 template<>
-Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateElement1(
+Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateSecondTypeElement(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
     const IndexType ElemId,
@@ -1110,7 +1110,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateElement1(
 /***********************************************************************************/
 
 template<>
-Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateElement1(
+Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeElement(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
     const IndexType ElemId,
@@ -1164,7 +1164,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateElement1(
 /***********************************************************************************/
 
 template<>
-Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateElement1(
+Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateSecondTypeElement(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
     const IndexType ElemId,
