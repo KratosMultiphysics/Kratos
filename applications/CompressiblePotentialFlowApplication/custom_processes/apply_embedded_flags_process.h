@@ -13,13 +13,9 @@
 #ifndef KRATOS_APPLY_EMBEDDED_FLAGS_PROCESS_H
 #define KRATOS_APPLY_EMBEDDED_FLAGS_PROCESS_H
 
-
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/kratos_flags.h"
 #include "compressible_potential_flow_application_variables.h"
-
-
 
 namespace Kratos
 {
@@ -53,7 +49,6 @@ public:
     {
         KRATOS_TRY;
 
-        PointerVector<Element> kutta_elements;
         for(auto it=mrModelPart.ElementsBegin(); it!=mrModelPart.ElementsEnd(); ++it)
         {
             it->Set(BOUNDARY,false);
