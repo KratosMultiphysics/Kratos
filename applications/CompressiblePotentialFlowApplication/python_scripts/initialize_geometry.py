@@ -207,7 +207,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         ''' This process finds the elements that are cut and the elements that lie inside the geometry.
         '''
         ini_time = time.time()
-        KratosMultiphysics.CompressiblePotentialFlowApplication.ApplyFlagsProcess(self.main_model_part).Execute()
+        KratosMultiphysics.CompressiblePotentialFlowApplication.ApplyEmbeddedFlagsProcess(self.main_model_part).Execute()
         KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Apply flags time: ',time.time()-ini_time)
 
     def PrintOutput(self,filename):
