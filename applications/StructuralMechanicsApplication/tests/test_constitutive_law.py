@@ -103,7 +103,6 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         print("C      = ", cl_params.GetConstitutiveMatrix())
 
         cl.FinalizeMaterialResponsePK2(cl_params)
-        cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
 
         print("\nThe Material Response Kirchhoff")
         cl.CalculateMaterialResponseKirchhoff(cl_params)
@@ -112,7 +111,6 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         print("C      = ", cl_params.GetConstitutiveMatrix())
 
         cl.FinalizeMaterialResponseKirchhoff(cl_params)
-        cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
 
         print("\nThe Material Response Cauchy")
         cl.CalculateMaterialResponseCauchy(cl_params)
@@ -121,7 +119,6 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         print("C      = ", cl_params.GetConstitutiveMatrix())
 
         cl.FinalizeMaterialResponseCauchy(cl_params)
-        cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
 
     def _generic_constitutive_law_test(self, model_part, deformation_test):
         # Define geometry
@@ -167,7 +164,6 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
             # Chauchy
             cl.CalculateMaterialResponseCauchy(cl_params)
             cl.FinalizeMaterialResponseCauchy(cl_params)
-            cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
             reference_stress = deformation_test.get_reference_stress(i)
 
             stress = cl_params.GetStressVector()
@@ -314,7 +310,6 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
                 # Chauchy
                 cl.CalculateMaterialResponseCauchy(cl_params)
                 cl.FinalizeMaterialResponseCauchy(cl_params)
-                cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
                 reference_stress = deformation_test.get_reference_stress(i)
 
                 stress = cl_params.GetStressVector()
@@ -375,7 +370,6 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
                 # Chauchy
                 cl.CalculateMaterialResponseCauchy(cl_params)
                 cl.FinalizeMaterialResponseCauchy(cl_params)
-                cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
                 reference_stress = deformation_test.get_reference_stress(i)
 
                 stress = cl_params.GetStressVector()
@@ -435,7 +429,6 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
                 # Chauchy
                 cl.CalculateMaterialResponseCauchy(cl_params)
                 cl.FinalizeMaterialResponseCauchy(cl_params)
-                cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
                 reference_stress = deformation_test.get_reference_stress(i)
 
                 stress = cl_params.GetStressVector()
@@ -1013,7 +1006,10 @@ class SmallStrainIsotropicDamagePlaneStrain2D():
         properties.SetValue(KratosMultiphysics.POISSON_RATIO, self.poisson_ratio)
         properties.SetValue(KratosMultiphysics.YIELD_STRESS, self.yield_stress)
         properties.SetValue(StructuralMechanicsApplication.INFINITY_YIELD_STRESS, self.infinity_yield_stress)
-        properties.SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, self.isotropic_hardening_modulus)
+        hardening_modulus = KratosMultiphysics.Vector(2)
+        hardening_modulus[0] = 0.3
+        hardening_modulus[1] = 0.
+        properties.SetValue(StructuralMechanicsApplication.HARDENING_MODULI_VECTOR, hardening_modulus)
         return properties
 
     @staticmethod
