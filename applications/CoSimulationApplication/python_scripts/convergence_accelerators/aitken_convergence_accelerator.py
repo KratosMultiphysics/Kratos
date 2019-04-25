@@ -11,9 +11,10 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_
 import numpy as np
 from copy import deepcopy
 from collections import deque
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import red, classprint
+import  KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 def Create(settings, solver):
+    cs_tools.SettingsTypeCheck(settings)
     return Aitken(settings, solver)
 
 ## Class Aitken.
@@ -26,15 +27,9 @@ class Aitken(CoSimulationBaseConvergenceAccelerator):
     def __init__( self, settings, solver):
         super(Aitken, self).__init__(settings, solver)
         self.R = deque( maxlen = 2 )
-        if "init_alpha" in self.settings:
-            self.alpha_old = self.settings["init_alpha"]
-        else:
-            self.alpha_old = 0.1
-        if "init_alpha_max" in self.settings:
-            self.init_alpha_max = self.settings["init_alpha_max"]
-        else:
-            self.init_alpha_max = 0.45
 
+        self.alpha_old = self.settings["init_alpha"].GetDouble()
+        self.init_alpha_max = self.settings["init_alpha_max"].GetDouble()
 
     ## ComputeUpdate(r, x)
     # @param r residual r_k
@@ -47,7 +42,7 @@ class Aitken(CoSimulationBaseConvergenceAccelerator):
         if k == 0:
             alpha = min( self.alpha_old, self.init_alpha_max )
             if self.echo_level > 3:
-                classprint(self._Name(), ": Doing relaxation in the first iteration with initial factor = " + "{0:.1g}".format(alpha))
+                cs_tools.classprint(self._Name(), ": Doing relaxation in the first iteration with initial factor = " + "{0:.1g}".format(alpha))
             return alpha * r
         else:
             r_diff = self.R[0] - self.R[1]
@@ -55,15 +50,15 @@ class Aitken(CoSimulationBaseConvergenceAccelerator):
             denominator = np.inner( r_diff, r_diff )
             alpha = -self.alpha_old * numerator/denominator
             if self.echo_level > 3:
-                classprint(self._Name(), ": Doing relaxation with factor = " + "{0:.1g}".format(alpha))
+                cs_tools.classprint(self._Name(), ": Doing relaxation with factor = " + "{0:.1g}".format(alpha))
             if alpha > 20:
                 alpha = 20
                 if self.echo_level > 0:
-                    classprint(self._Name(), ": "+ red("WARNING: dynamic relaxation factor reaches upper bound: 20"))
+                    cs_tools.classprint(self._Name(), ": "+ red("WARNING: dynamic relaxation factor reaches upper bound: 20"))
             elif alpha < -2:
                 alpha = -2
                 if self.echo_level > 0:
-                    classprint(self._Name(), ": " + red("WARNING: dynamic relaxation factor reaches lower bound: -2"))
+                    cs_tools.classprint(self._Name(), ": " + red("WARNING: dynamic relaxation factor reaches lower bound: -2"))
             delta_x = alpha * self.R[0]
         self.alpha_old = alpha
 
@@ -71,3 +66,12 @@ class Aitken(CoSimulationBaseConvergenceAccelerator):
 
     def _Name(self):
         return self.__class__.__name__
+
+    @classmethod
+    def _GetDefaultSettings(cls):
+        aitken_defaults = cs_tools.cs_data_structure.Parameters("""{
+            "init_alpha"     : 0.1,
+            "init_alpha_max" : 0.45
+        }""")
+        aitken_defaults.AddMissingParameters(super(Aitken, cls)._GetDefaultSettings())
+        return aitken_defaults

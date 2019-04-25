@@ -7,9 +7,12 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 class CoSimulationBaseConvergenceAccelerator(object):
     def __init__(self, settings, solver):
         self.settings = settings
+        self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
+
         self.solver = solver
         self.interface_data = self.solver.GetInterfaceData(self.settings["data_name"].GetString())
-        self.echo_level = 0
+
+        self.echo_level = self.settings["echo_level"].GetInt()
 
     def Initialize(self):
         pass
@@ -54,3 +57,12 @@ class CoSimulationBaseConvergenceAccelerator(object):
 
     def _ComputeUpdate( self, residual, previous_data ):
         raise Exception('"_ComputeUpdate" has to be implemented in the derived class!')
+
+    @classmethod
+    def _GetDefaultSettings(cls):
+        return cs_tools.cs_data_structure.Parameters("""{
+            "type"       : "UNSPECIFIED",
+            "solver"     : "UNSPECIFIED",
+            "data_name"  : "UNSPECIFIED",
+            "echo_level" : 0
+        }""")

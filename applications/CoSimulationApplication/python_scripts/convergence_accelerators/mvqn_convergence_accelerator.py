@@ -11,9 +11,10 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_base_
 import numpy as np
 from copy import deepcopy
 from collections import deque
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 def Create(settings, solver):
+    cs_tools.SettingsTypeCheck(settings)
     return MVQN(settings, solver)
 
 ## Class MVQN.
@@ -25,14 +26,10 @@ class MVQN(CoSimulationBaseConvergenceAccelerator):
     # @param alpha Relaxation factor for computing the update, when no vectors available.
     def __init__( self, settings, solver):
         super(MVQN, self).__init__(settings, solver)
-        if "horizon" in self.settings:
-            horizon = self.settings["horizon"]
-        else:
-            horizon = 15
-        if "alpha" in self.settings:
-            self.alpha = self.settings["alpha"]
-        else:
-            self.alpha = 0.125
+
+        horizon = self.settings["horizon"].GetInt()
+        self.alpha = self.settings["alpha"].GetDouble()
+
         self.R = deque( maxlen = horizon )
         self.X = deque( maxlen = horizon )
         self.J = [] # size will be determined when first time get the input vector
@@ -49,7 +46,7 @@ class MVQN(CoSimulationBaseConvergenceAccelerator):
         row = len(r)
         k = col
         if self.echo_level > 3:
-            classprint(self._Name(), "Number of new modes: ", col )
+            cs_tools.classprint(self._Name(), "Number of new modes: ", col )
 
         ## For the first iteration
         if k == 0:
@@ -98,7 +95,7 @@ class MVQN(CoSimulationBaseConvergenceAccelerator):
             for j in range(0, col):
                 self.J[i][j] = self.J_hat[i][j]
         if self.echo_level > 3:
-            classprint(self._Name(), "Jacobian matrix updated!")
+            cs_tools.classprint(self._Name(), "Jacobian matrix updated!")
         ## Clear the buffer
         if self.R and self.X:
             self.R.clear()
@@ -106,3 +103,12 @@ class MVQN(CoSimulationBaseConvergenceAccelerator):
 
     def _Name(self):
         return self.__class__.__name__
+
+    @classmethod
+    def _GetDefaultSettings(cls):
+        mvqn_defaults = cs_tools.cs_data_structure.Parameters("""{
+            "horizon" : 15,
+            "alpha"   : 0.125
+        }""")
+        mvqn_defaults.AddMissingParameters(super(MVQN, cls)._GetDefaultSettings())
+        return mvqn_defaults
