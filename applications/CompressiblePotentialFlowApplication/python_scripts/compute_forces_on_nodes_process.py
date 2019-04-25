@@ -36,7 +36,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
 
     def Execute(self):
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess', 'Computing reactions on nodes')
-        KratosMultiphysics.Logger.PrintInfo('Model taken here', self.body_model_part)
+
 
         KratosMultiphysics.VariableUtils().SetToZero_VectorVar(KratosMultiphysics.REACTION, self.body_model_part.Nodes)
 
@@ -51,6 +51,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
             pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE)
 
             for node in cond.GetNodes():
+<<<<<<< HEAD
                 # KratosMultiphysics.Logger.PrintInfo("Printing Condition and Nodal Values")
                 # KratosMultiphysics.Logger.PrintInfo("condition_normal   ",condition_normal)
                 # KratosMultiphysics.Logger.PrintInfo("pressure_coefficient   ",pressure_coefficient)
@@ -59,6 +60,11 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
                 nodal_force = node.GetValue(KratosMultiphysics.REACTION) + added_force
                 node.SetValue(KratosMultiphysics.REACTION, nodal_force)
                 # KratosMultiphysics.Logger.PrintInfo("REACTION   ",node.GetValue(KratosMultiphysics.REACTION))
+=======
+                added_force = condition_normal*(pressure_coefficient/2.0)*dynamic_pressure
+                nodal_force = node.GetValue(KratosMultiphysics.REACTION) + added_force
+                node.SetValue(KratosMultiphysics.REACTION, nodal_force)
+>>>>>>> master
 
         total_force = KratosMultiphysics.VariableUtils().SumNonHistoricalNodeVectorVariable(KratosMultiphysics.REACTION, self.body_model_part)
         # KratosMultiphysics.Logger.PrintInfo("total_force   ",total_force)
@@ -67,7 +73,13 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Drag Force = ', total_force[0])
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Side Force = ', total_force[2])
 
+<<<<<<< HEAD
         # if self.create_output_file:
         #     with open("cl_points_with_lift.dat", 'w') as cl_file:
         #         cl_file.write('{0:15.12f}'.format(total_force[1]/dynamic_pressure))
+=======
+        if self.create_output_file:
+            with open("cl_points_with_lift.dat", 'w') as cl_file:
+                cl_file.write('{0:15.12f}'.format(total_force[1]/dynamic_pressure))
+>>>>>>> master
 
