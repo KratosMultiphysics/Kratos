@@ -887,7 +887,7 @@ public:
         // We check if we are on the plane
         if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
             if (std::abs(distance) > 1.0e-6 * Length()) {
-                KRATOS_WARNING("Triangle3D3") << "The point of coordinates X: " << rPoint[0] << "\tY: " << rPoint[1] << "\tZ: " << rPoint[2] << " it is in a distance: " << std::abs(distance) << std::endl;
+                KRATOS_WARNING_FIRST_N("Triangle3D3", 10) << "The point of coordinates X: " << rPoint[0] << "\tY: " << rPoint[1] << "\tZ: " << rPoint[2] << " it is in a distance: " << std::abs(distance) << std::endl;
                 return false;
             }
 
