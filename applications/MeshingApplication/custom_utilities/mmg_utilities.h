@@ -158,7 +158,7 @@ public:
      * @param rNumberOfElements The number of elements
      * @param EchoLevel The level of verbosity
      */
-    void PrintMmgMeshInfo(
+    void PrintAndGetMmgMeshInfo(
         SizeType& rNumberOfNodes,
         array_1d<SizeType, 2>& rNumberOfConditions,
         array_1d<SizeType, 2>& rNumberOfElements,

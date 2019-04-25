@@ -58,7 +58,7 @@ MMG5_pSol  mMmgSol;  /// The metric variable for MMG
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
-void MmgUtilities<TMMGLibrary>::PrintMmgMeshInfo(
+void MmgUtilities<TMMGLibrary>::PrintAndGetMmgMeshInfo(
     SizeType& rNumberOfNodes,
     array_1d<SizeType, 2>& rNumberOfConditions,
     array_1d<SizeType, 2>& rNumberOfElements,

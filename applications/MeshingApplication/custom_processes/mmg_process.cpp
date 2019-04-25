@@ -563,7 +563,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     // Some information
     SizeType number_of_nodes;
     array_1d<SizeType, 2> n_conditions, n_elements;
-    mMmmgUtilities.PrintMmgMeshInfo(number_of_nodes, n_conditions, n_elements, mEchoLevel);
+    mMmmgUtilities.PrintAndGetMmgMeshInfo(number_of_nodes, n_conditions, n_elements, mEchoLevel);
 
     ////////* EMPTY AND BACKUP THE MODEL PART *////////
     Model& owner_model = mrThisModelPart.GetModel();
