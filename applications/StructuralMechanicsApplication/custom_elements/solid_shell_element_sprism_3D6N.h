@@ -20,6 +20,7 @@
 #include "custom_elements/base_solid_element.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
+#include "containers/global_pointers_vector.h"
 
 namespace Kratos
 {
@@ -950,14 +951,14 @@ protected:
      * @param pNeighbourNodes The neighbours nodes
      * @return An integer with the number of neighbours of the node
      */
-    std::size_t NumberOfActiveNeighbours(const WeakPointerVector< NodeType >& pNeighbourNodes) const;
+    std::size_t NumberOfActiveNeighbours(const GlobalPointersVector< NodeType >& pNeighbourNodes) const;
 
     /**
      * @brief  It gets the nodal coordinates, according to the configutaion
      */
     void GetNodalCoordinates(
         BoundedMatrix<double, 12, 3 >& NodesCoord,
-        const WeakPointerVector< NodeType >& pNeighbourNodes,
+        const GlobalPointersVector<Node<3>>& pNeighbourNodes,
         const Configuration ThisConfiguration
         ) const;
 

@@ -16,6 +16,7 @@
 // Project includes
 #include "custom_processes/prism_neighbours_process.h"
 #include "structural_mechanics_application_variables.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -116,15 +117,15 @@ void PrismNeighboursProcess::Execute()
         auto it_elem = mrModelPart.Elements().begin() + i;
 
         GeometryType& r_geometry = it_elem->GetGeometry();
-        NodePointerVector& neighb_nodes = it_elem->GetValue(NEIGHBOUR_NODES);
+        auto& neighb_nodes = it_elem->GetValue(NEIGHBOUR_NODES);
         neighb_nodes.resize(6);
 
         for (IndexType fill = 0; fill < 6; ++fill) {
-            neighb_nodes(fill) = NodeType::WeakPointer(r_geometry(fill));
+            neighb_nodes[fill] = GlobalPointer<NodeType>(r_geometry(fill));
         }
 
         // Just upper nodes, the others are +3 IDs
-        ElementPointerVector& r_neighbour_elements = it_elem->GetValue(NEIGHBOUR_ELEMENTS);
+        auto& r_neighbour_elements = it_elem->GetValue(NEIGHBOUR_ELEMENTS);
         for (IndexType j = 0; j < r_neighbour_elements.size(); ++j) {
 
             auto it_neigh_elem = r_neighbour_elements.begin() + j;
@@ -166,14 +167,14 @@ void PrismNeighboursProcess::Execute()
             HashMapVectorIntIntIteratorType it_3 = node_map.find(aux_3);
 
             if(it_1 != node_map.end() ) {
-                neighb_nodes(0) = NodeType::WeakPointer(geom_neig(it_1->second));
-                neighb_nodes(3) = NodeType::WeakPointer(geom_neig(it_1->second + 3));
+                neighb_nodes[0] = GlobalPointer<NodeType>(geom_neig(it_1->second));
+                neighb_nodes[3] = GlobalPointer<NodeType>(geom_neig(it_1->second + 3));
             } else if(it_2 != node_map.end() ) {
-                neighb_nodes(1) = NodeType::WeakPointer(geom_neig(it_2->second));
-                neighb_nodes(4) = NodeType::WeakPointer(geom_neig(it_2->second + 3));
+                neighb_nodes[1] = GlobalPointer<NodeType>(geom_neig(it_2->second));
+                neighb_nodes[4] = GlobalPointer<NodeType>(geom_neig(it_2->second + 3));
             } else if(it_3 != node_map.end() ) {
-                neighb_nodes(2) = NodeType::WeakPointer(geom_neig(it_3->second));
-                neighb_nodes(5) = NodeType::WeakPointer(geom_neig(it_3->second + 3));
+                neighb_nodes[2] = GlobalPointer<NodeType>(geom_neig(it_3->second));
+                neighb_nodes[5] = GlobalPointer<NodeType>(geom_neig(it_3->second + 3));
             }
         }
     }
@@ -196,10 +197,10 @@ void PrismNeighboursProcess::Execute()
 
             GeometryType& r_geometry = it_elem->GetGeometry();
 
-            NodePointerVector& neighb_nodes = it_elem->GetValue(NEIGHBOUR_NODES);
+            auto& neighb_nodes = it_elem->GetValue(NEIGHBOUR_NODES);
 
             for (IndexType j = 0; j < 3; ++j) {
-                NodeType::WeakPointer temp;
+                GlobalPointer<NodeType> temp;
 
                 // Adding nodes from the element
                 IndexType aux_index1, aux_index2;
@@ -216,33 +217,42 @@ void PrismNeighboursProcess::Execute()
                 }
 
                 // Lower face
-                temp = r_geometry(aux_index1);
-                AddUniqueWeakPointer<NodeType>(r_geometry[j].GetValue(NEIGHBOUR_NODES), temp);
-                temp = r_geometry(aux_index2);
-                AddUniqueWeakPointer<NodeType>(r_geometry[j].GetValue(NEIGHBOUR_NODES), temp);
+                AddUniqueWeakPointer<NodeType>(r_geometry[j].GetValue(NEIGHBOUR_NODES), 
+                                               GlobalPointer<NodeType>(r_geometry(aux_index1)) 
+                                               );
+                AddUniqueWeakPointer<NodeType>(r_geometry[j].GetValue(NEIGHBOUR_NODES), 
+                                            GlobalPointer<NodeType>(r_geometry(aux_index2))
+                                            );
 
                 // Upper face
-                temp = r_geometry(aux_index1 + 3);
-                AddUniqueWeakPointer<NodeType>(r_geometry[j + 3].GetValue(NEIGHBOUR_NODES), temp);
-                temp = r_geometry(aux_index2 + 3);
-                AddUniqueWeakPointer<NodeType>(r_geometry[j + 3].GetValue(NEIGHBOUR_NODES), temp);
+                AddUniqueWeakPointer<NodeType>(r_geometry[j + 3].GetValue(NEIGHBOUR_NODES), 
+                                               GlobalPointer<NodeType>(r_geometry(aux_index1+3)) 
+                );
+                
+                AddUniqueWeakPointer<NodeType>(r_geometry[j + 3].GetValue(NEIGHBOUR_NODES), 
+                                               GlobalPointer<NodeType>(r_geometry(aux_index2+3)) 
+                );
 
                 // Adding neighbour elements
-                if (neighb_nodes[aux_index1].Id() != r_geometry[j].Id()) {
+                if (neighb_nodes[aux_index1]->Id() != r_geometry[j].Id()) {
                     // Lower face
-                    temp = neighb_nodes(aux_index1);
-                    AddUniqueWeakPointer<NodeType>(r_geometry[j].GetValue(NEIGHBOUR_NODES), temp);
+                    AddUniqueWeakPointer<NodeType>(r_geometry[j].GetValue(NEIGHBOUR_NODES), 
+                                        neighb_nodes[aux_index1]
+                         );
                     // Upper face
-                    temp = neighb_nodes(aux_index1 + 3);
-                    AddUniqueWeakPointer<NodeType>(r_geometry[j + 3].GetValue(NEIGHBOUR_NODES), temp);
+                    AddUniqueWeakPointer<NodeType>(r_geometry[j + 3].GetValue(NEIGHBOUR_NODES), 
+                                                   neighb_nodes[aux_index1+3] 
+                    );
                 }
-                if (neighb_nodes[aux_index2].Id() != r_geometry[j].Id()) {
+                if (neighb_nodes[aux_index2]->Id() != r_geometry[j].Id()) {
                     // Lower face
-                    temp = neighb_nodes(aux_index2);
-                    AddUniqueWeakPointer<NodeType>(r_geometry[j].GetValue(NEIGHBOUR_NODES), temp);
+                    AddUniqueWeakPointer<NodeType>(r_geometry[j].GetValue(NEIGHBOUR_NODES), 
+                                            neighb_nodes[aux_index2]
+                    );
                     // Upper face
-                    temp = neighb_nodes(aux_index2 + 3);
-                    AddUniqueWeakPointer<NodeType>(r_geometry[j + 3].GetValue(NEIGHBOUR_NODES), temp);
+                    AddUniqueWeakPointer<NodeType>(r_geometry[j + 3].GetValue(NEIGHBOUR_NODES), 
+                                    neighb_nodes[aux_index2 + 3] 
+                    );
                 }
             }
         }
@@ -261,11 +271,11 @@ void PrismNeighboursProcess::ExecuteInitialize()
     for(int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); ++i) {
         auto it_elem = it_elem_begin + i;
         if (it_elem->Has(NEIGHBOUR_NODES)) {
-            NodePointerVector& r_neighbour_nodes = it_elem->GetValue(NEIGHBOUR_NODES);
+            auto& r_neighbour_nodes = it_elem->GetValue(NEIGHBOUR_NODES);
             r_neighbour_nodes.reserve(6); // Just in-plane neighbours
             r_neighbour_nodes.erase(r_neighbour_nodes.begin(),r_neighbour_nodes.end() );
         } else {
-            NodePointerVector empty_vector;
+            GlobalPointersVector<Node<3>> empty_vector;
             empty_vector.reserve(6); // Just it_node-plane neighbours
             it_elem->SetValue(NEIGHBOUR_NODES, empty_vector);
         }
@@ -287,11 +297,11 @@ void PrismNeighboursProcess::ExecuteInitialize()
         for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
             auto it_node = it_node_begin + i;
             if (it_node->Has(NEIGHBOUR_NODES)) {
-                NodePointerVector& r_neighbour_nodes = it_node->GetValue(NEIGHBOUR_NODES);
+                auto& r_neighbour_nodes = it_node->GetValue(NEIGHBOUR_NODES);
                 r_neighbour_nodes.reserve(6); // Just it_node-plane neighbours
                 r_neighbour_nodes.erase(r_neighbour_nodes.begin(),r_neighbour_nodes.end() );
             } else {
-                NodePointerVector empty_vector;
+                GlobalPointersVector<Node<3>> empty_vector;
                 empty_vector.reserve(6); // Just it_node-plane neighbours
                 it_node->SetValue(NEIGHBOUR_NODES, empty_vector);
             }
@@ -335,7 +345,7 @@ void PrismNeighboursProcess::ClearNeighbours()
         #pragma omp parallel for schedule(guided, 512)
         for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
             auto it_node = it_node_begin + i;
-            NodePointerVector& r_neighbour_nodes = it_node->GetValue(NEIGHBOUR_NODES);
+            auto& r_neighbour_nodes = it_node->GetValue(NEIGHBOUR_NODES);
             r_neighbour_nodes.erase(r_neighbour_nodes.begin(),r_neighbour_nodes.end() );
 
             ElementPointerVector& r_neighbour_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);

@@ -105,8 +105,9 @@ void SPRErrorProcess<TDim>::CalculateSuperconvergentStresses()
         } else {
             KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(NEIGHBOUR_NODES)) << "SPRErrorProcess:: Search didn't work with nodes" << std::endl;
             auto& neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
-            for(auto it_neighbour_nodes = neigh_nodes.begin(); it_neighbour_nodes != neigh_nodes.end(); it_neighbour_nodes++) {
-
+            for(auto it_neighbour_nodes : neigh_nodes)
+            {
+            
                 Vector sigma_recovered_i(SigmaSize,0);
 
                 IndexType count_i = 0;

@@ -21,6 +21,8 @@
 #include "processes/process.h"
 #include "includes/key_hash.h"
 #include "includes/model_part.h"
+#include "includes/global_pointer.h"
+#include "containers/global_pointers_vector.h"
 
 namespace Kratos
 {
@@ -251,13 +253,13 @@ private:
      */
     template< class TDataType >
     void  AddUniqueWeakPointer(
-        WeakPointerVector< TDataType >& rPointerVector,
-        const typename TDataType::WeakPointer Candidate
+        GlobalPointersVector< TDataType >& rPointerVector,
+        const GlobalPointer<TDataType>& Candidate
         )
     {
-        typename WeakPointerVector< TDataType >::iterator beginit = rPointerVector.begin();
-        typename WeakPointerVector< TDataType >::iterator endit   = rPointerVector.end();
-        while ( beginit != endit && beginit->Id() != (Candidate.lock())->Id()) {
+        auto beginit = rPointerVector.begin();
+        auto endit   = rPointerVector.end();
+        while ( beginit != endit && (*beginit)->Id() != Candidate->Id()) {
             beginit++;
         }
         if( beginit == endit ) {
