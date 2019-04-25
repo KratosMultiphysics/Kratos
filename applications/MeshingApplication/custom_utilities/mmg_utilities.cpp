@@ -49,6 +49,122 @@
 
 namespace Kratos
 {
+
+template<>
+SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeConditions()
+{
+    return NumberOfLines;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeConditions()
+{
+    return NumberOfTriangles;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeConditions()
+{
+    return NumberOfLines;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeConditions()
+{
+    return 0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeConditions()
+{
+    return NumberOfQuadrilaterals;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberSecondTypeConditions()
+{
+    return 0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberFirstTypeElements()
+{
+    return NumberOfTriangles;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberFirstTypeElements()
+{
+    return NumberOfTetrahedra;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberFirstTypeElements()
+{
+    return NumberOfTriangles;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+SizeType MMGMeshInfo<MMGLibrary::MMG2D>::NumberSecondTypeElements()
+{
+    return 0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+SizeType MMGMeshInfo<MMGLibrary::MMG3D>::NumberSecondTypeElements()
+{
+    return NumberOfPrism;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+SizeType MMGMeshInfo<MMGLibrary::MMGS>::NumberSecondTypeElements()
+{
+    return 0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template struct MMGMeshInfo<MMGLibrary::MMG2D>;
+template struct MMGMeshInfo<MMGLibrary::MMG3D>;
+template struct MMGMeshInfo<MMGLibrary::MMGS>;
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 // The member variables related with the MMG library
 MMG5_pMesh mMmgMesh; /// The mesh data from MMG
 MMG5_pSol  mMmgSol;  /// The metric variable for MMG
@@ -59,47 +175,41 @@ MMG5_pSol  mMmgSol;  /// The metric variable for MMG
 
 template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::PrintAndGetMmgMeshInfo(
-    SizeType& rNumberOfNodes,
-    array_1d<SizeType, 2>& rNumberOfConditions,
-    array_1d<SizeType, 2>& rNumberOfElements,
+    MMGMeshInfo<TMMGLibrary>& rMMGMeshInfo,
     const IndexType EchoLevel
     )
 {
-    rNumberOfNodes = mMmgMesh->np;
+    rMMGMeshInfo.NumberOfNodes = mMmgMesh->np;
     if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
-        rNumberOfConditions[0] = mMmgMesh->na;
-        rNumberOfConditions[1] = 0;
+        rMMGMeshInfo.NumberOfLines = mMmgMesh->na;
     } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
-        rNumberOfConditions[0] = mMmgMesh->nt;
-        rNumberOfConditions[1] = mMmgMesh->nquad;
+        rMMGMeshInfo.NumberOfTriangles = mMmgMesh->nt;
+        rMMGMeshInfo.NumberOfQuadrilaterals = mMmgMesh->nquad;
     } else { // Surfaces
-        rNumberOfConditions[0] = mMmgMesh->na;
-        rNumberOfConditions[1] = 0;
+        rMMGMeshInfo.NumberOfLines = mMmgMesh->na;
     }
     if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
-        rNumberOfElements[0] = mMmgMesh->nt;
-        rNumberOfElements[1] = 0;
+        rMMGMeshInfo.NumberOfTriangles = mMmgMesh->nt;
     } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
-        rNumberOfElements[0] = mMmgMesh->ne;
-        rNumberOfElements[1] = mMmgMesh->nprism;
+        rMMGMeshInfo.NumberOfTetrahedra = mMmgMesh->ne;
+        rMMGMeshInfo.NumberOfPrism = mMmgMesh->nprism;
     } else { // Surfaces
-        rNumberOfElements[0] = mMmgMesh->nt;
-        rNumberOfElements[1] = 0;
+        rMMGMeshInfo.NumberOfTriangles = mMmgMesh->nt;
     }
 
-    KRATOS_INFO_IF("MmgUtilities", EchoLevel > 0) << "\tNodes created: " << rNumberOfNodes << std::endl;
+    KRATOS_INFO_IF("MmgUtilities", EchoLevel > 0) << "\tNodes created: " << rMMGMeshInfo.NumberOfNodes << std::endl;
     if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
         KRATOS_INFO_IF("MmgUtilities", EchoLevel > 0) <<
-        "Conditions created: " << rNumberOfConditions[0] << "\n" <<
-        "Elements created: " << rNumberOfElements[0] << std::endl;
+        "Conditions created: " << rMMGMeshInfo.NumberOfLines << "\n" <<
+        "Elements created: " << rMMGMeshInfo.NumberOfTriangles << std::endl;
     } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
         KRATOS_INFO_IF("MmgUtilities", EchoLevel > 0) <<
-        "Conditions created: " << rNumberOfConditions[0] + rNumberOfConditions[1] << "\n\tTriangles: " << rNumberOfConditions[0] << "\tQuadrilaterals: " << rNumberOfConditions[1] << "\n" <<
-        "Elements created: " << rNumberOfElements[0] + rNumberOfElements[1] << "\n\tTetrahedron: " << rNumberOfElements[0] << "\tPrisms: " << rNumberOfElements[1] << std::endl;
+        "Conditions created: " << rMMGMeshInfo.NumberOfTriangles + rMMGMeshInfo.NumberOfQuadrilaterals << "\n\tTriangles: " << rMMGMeshInfo.NumberOfTriangles << "\tQuadrilaterals: " << rMMGMeshInfo.NumberOfQuadrilaterals << "\n" <<
+        "Elements created: " << rMMGMeshInfo.NumberOfTetrahedra + rMMGMeshInfo.NumberOfPrism << "\n\tTetrahedron: " << rMMGMeshInfo.NumberOfTetrahedra << "\tPrisms: " << rMMGMeshInfo.NumberOfPrism << std::endl;
     } else { // Surfaces
         KRATOS_INFO_IF("MmgUtilities", EchoLevel > 0) <<
-        "Conditions created: " << rNumberOfConditions[0] << "\n" <<
-        "Elements created: " << rNumberOfElements[0] << std::endl;
+        "Conditions created: " << rMMGMeshInfo.NumberOfLines << "\n" <<
+        "Elements created: " << rMMGMeshInfo.NumberOfTriangles << std::endl;
     }
 }
 
@@ -1312,14 +1422,10 @@ void MmgUtilities<MMGLibrary::MMGS>::InitVerbosityParameter(const IndexType Verb
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMG2D>::SetMeshSize(
-    const SizeType NumNodes,
-    const array_1d<SizeType, ElementsArraySize>& NumArrayElements,
-    const array_1d<SizeType, ConditionsArraySize>& NumArrayConditions
-    )
+void MmgUtilities<MMGLibrary::MMG2D>::SetMeshSize(MMGMeshInfo<MMGLibrary::MMG2D>& rMMGMeshInfo)
 {
     //Give the size of the mesh: NumNodes vertices, num_elements triangles, num_conditions edges (2D)
-    if ( MMG2D_Set_meshSize(mMmgMesh, NumNodes, NumArrayElements[0], NumArrayConditions[0]) != 1 )
+    if ( MMG2D_Set_meshSize(mMmgMesh, rMMGMeshInfo.NumberOfNodes, rMMGMeshInfo.NumberOfTriangles, rMMGMeshInfo.NumberOfLines) != 1 )
         exit(EXIT_FAILURE);
 }
 
@@ -1327,14 +1433,10 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetMeshSize(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMG3D>::SetMeshSize(
-    const SizeType NumNodes,
-    const array_1d<SizeType, ElementsArraySize>& NumArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
-    const array_1d<SizeType, ConditionsArraySize>& NumArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
-    )
+void MmgUtilities<MMGLibrary::MMG3D>::SetMeshSize(MMGMeshInfo<MMGLibrary::MMG3D>& rMMGMeshInfo)
 {
     //Give the size of the mesh: NumNodes Vertex, num_elements tetra and prism, NumArrayConditions triangles and quadrilaterals, 0 edges (3D)
-    if ( MMG3D_Set_meshSize(mMmgMesh, NumNodes, NumArrayElements[0], NumArrayElements[1], NumArrayConditions[0], NumArrayConditions[1], 0) != 1 )
+    if ( MMG3D_Set_meshSize(mMmgMesh, rMMGMeshInfo.NumberOfNodes, rMMGMeshInfo.NumberOfTetrahedra, rMMGMeshInfo.NumberOfPrism, rMMGMeshInfo.NumberOfTriangles, rMMGMeshInfo.NumberOfQuadrilaterals, 0) != 1 )
         exit(EXIT_FAILURE);
 }
 
@@ -1342,14 +1444,10 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetMeshSize(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMGS>::SetMeshSize(
-    const SizeType NumNodes,
-    const array_1d<SizeType, ElementsArraySize>& NumArrayElements,
-    const array_1d<SizeType, ConditionsArraySize>& NumArrayConditions
-    )
+void MmgUtilities<MMGLibrary::MMGS>::SetMeshSize(MMGMeshInfo<MMGLibrary::MMGS>& rMMGMeshInfo)
 {
-    //Give the size of the mesh: NumNodes vertices, num_elements triangles, num_conditions edges (2D)
-    if ( MMGS_Set_meshSize(mMmgMesh, NumNodes, NumArrayElements[0], NumArrayConditions[0]) != 1 )
+    //Give the size of the mesh: NumNodes vertices, num_elements triangles, num_conditions edges (3D)
+    if ( MMGS_Set_meshSize(mMmgMesh, rMMGMeshInfo.NumberOfNodes, rMMGMeshInfo.NumberOfTriangles, rMMGMeshInfo.NumberOfLines) != 1 )
         exit(EXIT_FAILURE);
 }
 

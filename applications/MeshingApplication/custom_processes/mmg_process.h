@@ -91,7 +91,7 @@ namespace Kratos
  * The remesher keeps the previous submodelparts and interpolates the nodal values between the old and new mesh
  * @author Vicente Mataix Ferrandiz
  */
-template<MMGLibrary TMMGLibray>
+template<MMGLibrary TMMGLibrary>
 class KRATOS_API(MESHING_APPLICATION) MmgProcess
     : public Process
 {
@@ -116,13 +116,7 @@ public:
     typedef Geometry<NodeType>                                     GeometryType;
 
     /// Conditions array size
-    static constexpr SizeType Dimension = (TMMGLibray == MMGLibrary::MMG2D) ? 2 : 3;
-
-    /// Conditions array size
-    static constexpr SizeType ConditionsArraySize = (Dimension == 2) ? 1 : 2;
-
-    /// Elements array size
-    static constexpr SizeType ElementsArraySize = (Dimension == 2) ? 1 : 2;
+    static constexpr SizeType Dimension = (TMMGLibrary == MMGLibrary::MMG2D) ? 2 : 3;
 
     /// The type of array considered for the tensor
     typedef typename std::conditional<Dimension == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
@@ -308,7 +302,7 @@ private:
     Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
     NodeType::DofsContainerType  mDofs;                              /// Storage for the dof of the node
 
-    MmgUtilities<TMMGLibray> mMmmgUtilities;                         /// The MMG utilities class
+    MmgUtilities<TMMGLibrary> mMmmgUtilities;                         /// The MMG utilities class
 
     char* mFilename;                                                 /// I/O file name
     std::string mStdStringFilename;                                  /// I/O file name (string)
@@ -524,14 +518,14 @@ private:
 ///@{
 
 /// input stream function
-template<MMGLibrary TMMGLibray>
+template<MMGLibrary TMMGLibrary>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  MmgProcess<TMMGLibray>& rThis);
+                                  MmgProcess<TMMGLibrary>& rThis);
 
 /// output stream function
-template<MMGLibrary TMMGLibray>
+template<MMGLibrary TMMGLibrary>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const MmgProcess<TMMGLibray>& rThis)
+                                  const MmgProcess<TMMGLibrary>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

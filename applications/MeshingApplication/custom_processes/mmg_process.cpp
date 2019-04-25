@@ -287,32 +287,11 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
     ElementsArrayType& r_elements_array = mrThisModelPart.Elements();
 
     /* Manually set of the mesh */
-    array_1d<SizeType, ConditionsArraySize> num_array_conditions;
-    array_1d<SizeType, ElementsArraySize> num_array_elements;
+    MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
     if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
-        num_array_conditions[0] = r_conditions_array.size();
-        num_array_elements[0]   = r_elements_array.size();
+        mmg_mesh_info.NumberOfLines = r_conditions_array.size();
+        mmg_mesh_info.NumberOfTriangles = r_elements_array.size();
     } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
-        /* Elements */
-        std::size_t num_tetra = 0, num_prisms = 0;
-        #pragma omp parallel for reduction(+:num_tetra,num_prisms)
-        for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
-            auto it_elem = r_elements_array.begin() + i;
-
-            if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) { // Tetrahedron
-                num_tetra += 1;
-            } else if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) { // Prisms
-                num_prisms += 1;
-            } else
-                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
-        }
-
-        num_array_elements[0] = num_tetra;  // Tetrahedron
-        num_array_elements[1] = num_prisms; // Prisms
-
-        KRATOS_INFO_IF("MmgProcess", ((num_tetra + num_prisms) < r_elements_array.size()) && mEchoLevel > 0) <<
-        "Number of Elements: " << r_elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_prisms << std::endl;
-
         /* Conditions */
         std::size_t num_tri = 0, num_quad = 0;
         #pragma omp parallel for reduction(+:num_tri,num_quad)
@@ -327,17 +306,38 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
                 KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
         }
 
-        num_array_conditions[0] = num_tri;  // Triangles
-        num_array_conditions[1] = num_quad; // Quadrilaterals
+        mmg_mesh_info.NumberOfTriangles = num_tri;
+        mmg_mesh_info.NumberOfQuadrilaterals = num_quad;
 
         KRATOS_INFO_IF("MmgProcess", ((num_tri + num_quad) < r_conditions_array.size()) && mEchoLevel > 0) <<
         "Number of Conditions: " << r_conditions_array.size() << " Number of Triangles: " << num_tri << " Number of Quadrilaterals: " << num_quad << std::endl;
+
+        /* Elements */
+        std::size_t num_tetra = 0, num_prisms = 0;
+        #pragma omp parallel for reduction(+:num_tetra,num_prisms)
+        for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+            auto it_elem = r_elements_array.begin() + i;
+
+            if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) { // Tetrahedron
+                num_tetra += 1;
+            } else if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) { // Prisms
+                num_prisms += 1;
+            } else
+                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
+        }
+
+        mmg_mesh_info.NumberOfTetrahedra = num_tetra;
+        mmg_mesh_info.NumberOfPrism = num_prisms;
+
+        KRATOS_INFO_IF("MmgProcess", ((num_tetra + num_prisms) < r_elements_array.size()) && mEchoLevel > 0) <<
+        "Number of Elements: " << r_elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_prisms << std::endl;
     } else { // Surfaces
-        num_array_conditions[0] = r_conditions_array.size();
-        num_array_elements[0]   = r_elements_array.size();
+        mmg_mesh_info.NumberOfLines = r_conditions_array.size();
+        mmg_mesh_info.NumberOfTriangles = r_elements_array.size();
     }
 
-    mMmmgUtilities.SetMeshSize(r_nodes_array.size(), num_array_elements, num_array_conditions);
+    mmg_mesh_info.NumberOfNodes = r_nodes_array.size();
+    mMmmgUtilities.SetMeshSize(mmg_mesh_info);
 
     /* Nodes */
     // We copy the DOF from the first node (after we release, to avoid problem with previous conditions)
@@ -561,9 +561,8 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     if (save_to_file) SaveSolutionToFile(true);
 
     // Some information
-    SizeType number_of_nodes;
-    array_1d<SizeType, 2> n_conditions, n_elements;
-    mMmmgUtilities.PrintAndGetMmgMeshInfo(number_of_nodes, n_conditions, n_elements, mEchoLevel);
+    MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
+    mMmmgUtilities.PrintAndGetMmgMeshInfo(mmg_mesh_info, mEchoLevel);
 
     ////////* EMPTY AND BACKUP THE MODEL PART *////////
     Model& owner_model = mrThisModelPart.GetModel();
@@ -605,7 +604,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     int ref, is_required;
 
     /* NODES */ // TODO: ADD OMP
-    for (IndexType i_node = 1; i_node <= number_of_nodes; ++i_node) {
+    for (IndexType i_node = 1; i_node <= mmg_mesh_info.NumberOfNodes; ++i_node) {
         NodeType::Pointer p_node = mMmmgUtilities.CreateNode(mrThisModelPart, i_node, ref, is_required);
 
         // Set the DOFs in the nodes
@@ -621,7 +620,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
         IndexType counter_first_cond = 0;
         const IndexVectorType first_condition_to_remove = mMmmgUtilities.CheckFirstTypeConditions(mEchoLevel);
-        for (IndexType i_cond = 1; i_cond <= n_conditions[0]; ++i_cond) {
+        for (IndexType i_cond = 1; i_cond <= mmg_mesh_info.NumberFirstTypeConditions(); ++i_cond) {
             bool skip_creation = false;
             if (counter_first_cond < first_condition_to_remove.size()) {
                 if (first_condition_to_remove[counter_first_cond] == i_cond) {
@@ -642,7 +641,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
         IndexType counter_second_cond = 0;
         const IndexVectorType second_condition_to_remove = mMmmgUtilities.CheckSecondTypeConditions(mEchoLevel);
-        for (IndexType i_cond = 1; i_cond <= n_conditions[1]; ++i_cond) {
+        for (IndexType i_cond = 1; i_cond <= mmg_mesh_info.NumberSecondTypeConditions(); ++i_cond) {
             bool skip_creation = false;
             if (counter_second_cond < second_condition_to_remove.size()) {
                 if (second_condition_to_remove[counter_second_cond] == i_cond) {
@@ -667,7 +666,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
         IndexType counter_first_elem = 0;
         const IndexVectorType first_elements_to_remove = mMmmgUtilities.CheckFirstTypeElements(mEchoLevel);
-        for (IndexType i_elem = 1; i_elem <= n_elements[0]; ++i_elem) {
+        for (IndexType i_elem = 1; i_elem <= mmg_mesh_info.NumberFirstTypeElements(); ++i_elem) {
             bool skip_creation = false;
             if (counter_first_elem < first_elements_to_remove.size()) {
                 if (first_elements_to_remove[counter_first_elem] == i_elem) {
@@ -688,7 +687,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
         IndexType counter_second_elem = 0;
         const IndexVectorType second_elements_to_remove = mMmmgUtilities.CheckSecondTypeElements(mEchoLevel);
-        for (IndexType i_elem = 1; i_elem <= n_elements[1]; ++i_elem) {
+        for (IndexType i_elem = 1; i_elem <= mmg_mesh_info.NumberSecondTypeElements(); ++i_elem) {
             bool skip_creation = false;
             if (counter_second_elem < second_elements_to_remove.size()) {
                 if (second_elements_to_remove[counter_second_elem] == i_elem) {

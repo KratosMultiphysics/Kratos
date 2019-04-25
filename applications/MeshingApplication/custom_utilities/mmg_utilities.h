@@ -76,13 +76,51 @@ namespace Kratos
 ///@{
 
 /**
+ * @struct MMGMeshInfo
+ * @ingroup MeshingApplication
+ * @brief This struct stores the Mmg mesh information
+ * @author Vicente Mataix Ferrandiz
+ */
+template<MMGLibrary TMMGLibrary>
+struct MMGMeshInfo
+{
+    // Info stored
+    SizeType NumberOfNodes;
+    SizeType NumberOfLines;
+    SizeType NumberOfTriangles;
+    SizeType NumberOfQuadrilaterals;
+    SizeType NumberOfPrism;
+    SizeType NumberOfTetrahedra;
+
+    /**
+     * @brief It returns the number of the first type of conditions
+     */
+    SizeType NumberFirstTypeConditions();
+
+    /**
+     * @brief It returns the number of the second type of conditions
+     */
+    SizeType NumberSecondTypeConditions();
+
+    /**
+     * @brief It returns the number of the first type of elements
+     */
+    SizeType NumberFirstTypeElements();
+
+    /**
+     * @brief It returns the number of the second type of elements
+     */
+    SizeType NumberSecondTypeElements();
+};
+
+/**
  * @class MmgUtilities
  * @ingroup MeshingApplication
  * @brief This class are different utilities that uses the MMG library
  * @details This class are different utilities that uses the MMG library
  * @author Vicente Mataix Ferrandiz
  */
-template<MMGLibrary TMMGLibray>
+template<MMGLibrary TMMGLibrary>
 class KRATOS_API(MESHING_APPLICATION) MmgUtilities
 {
 public:
@@ -99,13 +137,7 @@ public:
     typedef Geometry<NodeType>                                     GeometryType;
 
     /// Conditions array size
-    static constexpr SizeType Dimension = (TMMGLibray == MMGLibrary::MMG2D) ? 2 : 3;
-
-    /// Conditions array size
-    static constexpr SizeType ConditionsArraySize = (Dimension == 2) ? 1 : 2;
-
-    /// Elements array size
-    static constexpr SizeType ElementsArraySize = (Dimension == 2) ? 1 : 2;
+    static constexpr SizeType Dimension = (TMMGLibrary == MMGLibrary::MMG2D) ? 2 : 3;
 
     /// The type of array considered for the tensor
     typedef typename std::conditional<Dimension == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
@@ -153,15 +185,11 @@ public:
 
     /**
      * @brief It prints info about the current mesh
-     * @param rNumberOfNodes The number of nodes
-     * @param rNumberOfConditions The number of conditions
-     * @param rNumberOfElements The number of elements
+     * @param rMMGMeshInfo The number of nodes, conditions and elements
      * @param EchoLevel The level of verbosity
      */
     void PrintAndGetMmgMeshInfo(
-        SizeType& rNumberOfNodes,
-        array_1d<SizeType, 2>& rNumberOfConditions,
-        array_1d<SizeType, 2>& rNumberOfElements,
+        MMGMeshInfo<TMMGLibrary>& rMMGMeshInfo,
         const IndexType EchoLevel = 0
         );
 
@@ -358,14 +386,9 @@ public:
 
     /**
      * @brief This sets the size of the mesh
-     * @param NumArrayElements Number of Elements
-     * @param NumArrayConditions Number of Conditions
+     * @param rMMGMeshInfo The number of nodes, conditions and elements
      */
-    void SetMeshSize(
-        const SizeType NumNodes,
-        const array_1d<SizeType, ElementsArraySize>& NumArrayElements,
-        const array_1d<SizeType, ConditionsArraySize>& NumArrayConditions
-        );
+    void SetMeshSize(MMGMeshInfo<TMMGLibrary>& rMMGMeshInfo);
 
     /**
      * @brief This sets the size of the solution for the scalar case
@@ -625,14 +648,14 @@ private:
 ///@{
 
 /// input stream function
-template<MMGLibrary TMMGLibray>
+template<MMGLibrary TMMGLibrary>
 extern inline std::istream& operator >> (std::istream& rIStream,
-                                  MmgUtilities<TMMGLibray>& rThis);
+                                  MmgUtilities<TMMGLibrary>& rThis);
 
 /// output stream function
-template<MMGLibrary TMMGLibray>
+template<MMGLibrary TMMGLibrary>
 extern inline std::ostream& operator << (std::ostream& rOStream,
-                                  const MmgUtilities<TMMGLibray>& rThis)
+                                  const MmgUtilities<TMMGLibrary>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
