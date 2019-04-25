@@ -781,13 +781,13 @@ public:
             typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
 
             const int i = (dof_iterator)->EquationId();
-            std::cout << "!!Equation ID is: !!" << i << std::endl;
-            std::cout << "!!dof_iterator is !!" << *dof_iterator << std::endl;
-            std::cout << "!!b is equal to!!" << b[i] << std::endl;
+            // std::cout << "!!Equation ID is: !!" << i << std::endl;
+            // std::cout << "!!dof_iterator is !!" << *dof_iterator << std::endl;
+            // std::cout << "!!b is equal to!!" << b[i] << std::endl;
             (dof_iterator)->GetSolutionStepReactionValue() = -b[i];
-            std::cout << "!!GetSolutionStepReactionsValues!!" << std::endl;
+            // std::cout << "!!GetSolutionStepReactionsValues!!" << std::endl;
         }
-        std::cout << "!!CalculateReactions Exit!!" << std::endl;
+        // std::cout << "!!CalculateReactions Exit!!" << std::endl;
     }
 
     /**

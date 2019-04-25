@@ -628,11 +628,11 @@ public:
 
         // Calculate reactions if required
         if (mCalculateReactionsFlag == true) {
-            std::cout << "p_scheme =" << p_scheme << std::endl;
-            std::cout << "ModelPart =" << BaseType::GetModelPart() << std::endl;
-            std::cout << "rA =" << rA << std::endl;
-            std::cout << "rDx =" << rDx << std::endl;
-            std::cout << "rb =" << rb << std::endl;
+            // std::cout << "p_scheme =" << p_scheme << std::endl;
+            // std::cout << "ModelPart =" << BaseType::GetModelPart() << std::endl;
+            // std::cout << "rA =" << rA << std::endl;
+            // std::cout << "rDx =" << rDx << std::endl;
+            // std::cout << "rb =" << rb << std::endl;
             p_builder_and_solver->CalculateReactions(p_scheme,
                                                      BaseType::GetModelPart(),
                                                      rA, rDx, rb);
