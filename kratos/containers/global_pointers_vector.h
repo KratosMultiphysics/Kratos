@@ -87,6 +87,19 @@ public:
         }
     }
 
+    void Sort()
+    {
+        std::sort(this->begin(), this->end(), GlobalPointerComparor<TDataType>());
+    }
+
+    void Unique()
+    {
+        Sort();
+        auto end_it = this->end();
+        auto new_end_it = std::unique(this->begin(), this->end(), GlobalPointerComparor<TDataType>());
+        this->erase(new_end_it, end_it);
+    }
+
     ///@}
     ///@name Operators
     ///@{
