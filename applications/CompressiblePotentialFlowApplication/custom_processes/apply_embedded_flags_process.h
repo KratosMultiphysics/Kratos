@@ -61,7 +61,7 @@ public:
             bool IsNegative = false;
             for(unsigned int i=0; i<geom.size(); ++i)
             {
-                double distance = geom[i].FastGetSolutionStepValue(LEVEL_SET);
+                double distance = geom[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE);
                 if (distance > 0.0)
                     IsPositive = true;
                 else

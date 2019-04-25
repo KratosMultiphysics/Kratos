@@ -106,7 +106,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
 
         KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Elapsed time: ',time.time()-ini_time)
 
-        KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.LEVEL_SET, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.GEOMETRY_DISTANCE, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DISTANCE, 0.0, self.main_model_part.Nodes)
         self.ApplyFlags()
 

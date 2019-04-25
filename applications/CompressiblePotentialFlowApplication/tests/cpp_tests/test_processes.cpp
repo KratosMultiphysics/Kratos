@@ -27,7 +27,7 @@ namespace Kratos {
     void GenerateElements(ModelPart& rModelPart)
     {
       // Variables addition
-      rModelPart.AddNodalSolutionStepVariable(LEVEL_SET);
+      rModelPart.AddNodalSolutionStepVariable(GEOMETRY_DISTANCE);
 
       // Set the element properties
       rModelPart.CreateNewProperties(0);
@@ -69,7 +69,7 @@ namespace Kratos {
       for(auto it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
       {
         double x_value = it->X();
-        it->FastGetSolutionStepValue(LEVEL_SET)= vertical_x-x_value;
+        it->FastGetSolutionStepValue(GEOMETRY_DISTANCE)= vertical_x-x_value;
       }
       ApplyEmbeddedFlagsProcess apply_embedded_flags_processes(model_part);
       apply_embedded_flags_processes.Execute();
