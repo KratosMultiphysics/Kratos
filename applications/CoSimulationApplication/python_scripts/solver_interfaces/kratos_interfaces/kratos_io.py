@@ -20,10 +20,6 @@ class KratosIo(CoSimulationBaseIO):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.mappers = {}
-        self.mapper_flags = {
-            "add_values" : MappingApp.Mapper.ADD_VALUES,
-            "swap_sign" : MappingApp.Mapper.SWAP_SIGN
-        }
 
         super(KratosIo, self).__init__(model, self.settings)
         ### Constructing the IO for this solver
@@ -45,20 +41,15 @@ class KratosIo(CoSimulationBaseIO):
                 dest_geo_name = data_object.geometry_name
                 dest_var_name = data_object.name
 
-                flags = data_object.mapper_settings["flags"]
                 origin_var = KratosMultiphysics.KratosGlobals.GetVariable(origin_var_name)
                 dest_var = KratosMultiphysics.KratosGlobals.GetVariable(dest_var_name)
 
-                mapper_flags = KratosMultiphysics.Flags()
-                if data_object.mapper_settings.Has("flags"):
-                    for i in range(flags.size()):
-                        flag_name = flags[i].GetString()
-                        mapper_flags |= self.mapper_flags[flag_name]
+                mapper_flags = GetMapperFlags(data_object)
 
-                if(self.__HasMapper((origin_geo_name,dest_geo_name))):
+                if self.__HasMapper((origin_geo_name,dest_geo_name)):
                     mapper = self.__GetMapper((origin_geo_name,dest_geo_name))
                     mapper.Map(origin_var, dest_var, mapper_flags)
-                elif(self.__HasMapper((dest_geo_name,origin_geo_name))):
+                elif self.__HasMapper((dest_geo_name,origin_geo_name)):
                     mapper = self.__GetMapper((dest_geo_name,origin_geo_name))
                     mapper.InverseMap(dest_var, origin_var, mapper_flags)
                 else: # Create the mapper
@@ -93,20 +84,15 @@ class KratosIo(CoSimulationBaseIO):
                 origin_geo_name = data_object.geometry_name
                 origin_var_name = data_object.name
 
-                flags = data_object.mapper_settings["flags"]
                 origin_var = KratosMultiphysics.KratosGlobals.GetVariable(origin_var_name)
                 dest_var = KratosMultiphysics.KratosGlobals.GetVariable(dest_var_name)
 
-                mapper_flags = KratosMultiphysics.Flags()
-                if data_object.mapper_settings.Has("flags"):
-                    for i in range(flags.size()):
-                        flag_name = flags[i].GetString()
-                        mapper_flags |= self.mapper_flags[flag_name]
+                mapper_flags = GetMapperFlags(data_object)
 
-                if(self.__HasMapper((origin_geo_name,dest_geo_name))):
+                if self.__HasMapper((origin_geo_name,dest_geo_name)):
                     mapper = self.__GetMapper((origin_geo_name,dest_geo_name))
                     mapper.Map(origin_var, dest_var, mapper_flags)
-                elif(self.__HasMapper((dest_geo_name,origin_geo_name))):
+                elif self.__HasMapper((dest_geo_name,origin_geo_name)):
                     mapper = self.__GetMapper((dest_geo_name,origin_geo_name))
                     mapper.InverseMap(dest_var, origin_var, mapper_flags)
                 else: # Create the mapper
@@ -132,6 +118,22 @@ class KratosIo(CoSimulationBaseIO):
 
     def __GetMapper(self, mapper_tuple):
         return self.mappers[mapper_tuple]
+
+def GetMapperFlags(data_object):
+    mapper_flags_dict = {
+        "add_values"    : MappingApp.Mapper.ADD_VALUES,
+        "swap_sign"     : MappingApp.Mapper.SWAP_SIGN,
+        "use_transpose" : MappingApp.Mapper.USE_TRANSPOSE
+    }
+
+    mapper_flags = KratosMultiphysics.Flags()
+    if data_object.mapper_settings.Has("flags"):
+        flags = data_object.mapper_settings["flags"]
+        for i in range(flags.size()):
+            flag_name = flags[i].GetString()
+            mapper_flags |= mapper_flags_dict[flag_name]
+
+    return mapper_flags
 
 def SetupMapper(geo_origin, geo_destination, mapper_settings):
     mapper = MappingApp.MapperFactory.CreateMapper(geo_origin, geo_destination, mapper_settings)
