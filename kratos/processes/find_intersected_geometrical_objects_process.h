@@ -655,30 +655,6 @@ private:
         );
 
     /**
-     * @brief Returns the corresponding array of entities
-     * @return The array of entities
-     */
-    IntersectedEntityContainerType& GetIntersectedEntities();
-
-    /**
-     * @brief Returns the corresponding array of entities array
-     * @return The array of entities
-     */
-    typename IntersectedEntityContainerType::ContainerType& GetIntersectedEntitiesArray();
-
-    /**
-     * @brief Returns the corresponding array of entities
-     * @return The array of entities
-     */
-    IntersectingEntityContainerType& GetIntersectingEntities();
-
-    /**
-     * @brief Returns the corresponding array of entities array
-     * @return The array of entities
-     */
-    typename IntersectingEntityContainerType::ContainerType& GetIntersectingEntitiesArray();
-
-    /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
     Parameters GetDefaultParameters();

@@ -111,7 +111,7 @@ void FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingE
 template<class TIntersectedEntity, class TIntersectingEntity>
 void FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults)
 {
-    auto& r_entities_array = this->GetIntersectedEntitiesArray();
+    auto& r_entities_array = EntitiesUtilities<TIntersectedEntity>::GetEntitiesArray(mrModelPartIntersected);
     const SizeType number_of_entities = r_entities_array.size();
     OtreeCellVectorType leaves;
 
@@ -189,7 +189,7 @@ void FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingE
     ExecuteInitialize();
 
     OtreeCellVectorType leaves;
-    auto& r_entities_array = this->GetIntersectedEntities();
+    auto& r_entities_array = EntitiesUtilities<TIntersectedEntity>::GetEntities(mrModelPartIntersected);
     const SizeType number_of_entities = r_entities_array.size();
 
     const auto it_entities_begin = r_entities_array.begin();
@@ -217,7 +217,7 @@ void FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingE
 template<class TIntersectedEntity, class TIntersectingEntity>
 std::size_t FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::WorkingSpaceDimension()
 {
-    auto& r_entities_array = this->GetIntersectedEntities();
+    auto& r_entities_array = EntitiesUtilities<TIntersectedEntity>::GetEntities(mrModelPartIntersected);
     const auto it_entities_begin = r_entities_array.begin();
     const auto& r_geometry = it_entities_begin->GetGeometry();
     return r_geometry.WorkingSpaceDimension();
@@ -242,7 +242,7 @@ void FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingE
     }
 
     // Additional
-    auto& r_entities_array = this->GetIntersectingEntities();
+    auto& r_entities_array = EntitiesUtilities<TIntersectingEntity>::GetEntities(mrModelPartIntersecting);
     const auto it_entities_begin = r_entities_array.begin();
     const SizeType number_of_entities = r_entities_array.size();
 
@@ -428,150 +428,6 @@ void FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingE
             }
         }
     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Element, IndexedObject>& FindIntersectedGeometricalObjectsProcess<Element>::GetIntersectedEntities()
-{
-    return mrModelPartIntersected.Elements();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Condition, IndexedObject>& FindIntersectedGeometricalObjectsProcess<Condition>::GetIntersectedEntities()
-{
-    return mrModelPartIntersected.Conditions();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Element, IndexedObject>& FindIntersectedGeometricalObjectsProcess<Element, Condition>::GetIntersectedEntities()
-{
-    return mrModelPartIntersected.Elements();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Condition, IndexedObject>& FindIntersectedGeometricalObjectsProcess<Condition, Element>::GetIntersectedEntities()
-{
-    return mrModelPartIntersected.Conditions();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Element, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Element>::GetIntersectedEntitiesArray()
-{
-    return mrModelPartIntersected.ElementsArray();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Condition, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Condition>::GetIntersectedEntitiesArray()
-{
-    return mrModelPartIntersected.ConditionsArray();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Element, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Element, Condition>::GetIntersectedEntitiesArray()
-{
-    return mrModelPartIntersected.ElementsArray();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Condition, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Condition, Element>::GetIntersectedEntitiesArray()
-{
-    return mrModelPartIntersected.ConditionsArray();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Element, IndexedObject>& FindIntersectedGeometricalObjectsProcess<Element>::GetIntersectingEntities()
-{
-    return mrModelPartIntersecting.Elements();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Condition, IndexedObject>& FindIntersectedGeometricalObjectsProcess<Condition>::GetIntersectingEntities()
-{
-    return mrModelPartIntersecting.Conditions();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Condition, IndexedObject>& FindIntersectedGeometricalObjectsProcess<Element, Condition>::GetIntersectingEntities()
-{
-    return mrModelPartIntersecting.Conditions();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Element, IndexedObject>& FindIntersectedGeometricalObjectsProcess<Condition, Element>::GetIntersectingEntities()
-{
-    return mrModelPartIntersecting.Elements();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Element, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Element>::GetIntersectingEntitiesArray()
-{
-    return mrModelPartIntersecting.ElementsArray();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Condition, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Condition>::GetIntersectingEntitiesArray()
-{
-    return mrModelPartIntersecting.ConditionsArray();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Condition, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Element, Condition>::GetIntersectingEntitiesArray()
-{
-    return mrModelPartIntersecting.ConditionsArray();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Element, IndexedObject>::ContainerType& FindIntersectedGeometricalObjectsProcess<Condition,Element>::GetIntersectingEntitiesArray()
-{
-    return mrModelPartIntersecting.ElementsArray();
 }
 
 /***********************************************************************************/
