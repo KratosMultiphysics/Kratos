@@ -20,7 +20,6 @@
 #include "spaces/ublas_space.h"
 
 // Strategies
-#include "custom_strategies/custom_strategies/residual_based_arc_length_strategy.hpp"
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
 #include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/formfinding_updated_reference_strategy.hpp"
@@ -65,7 +64,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
 
     // Custom strategy types
-    // typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
     typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
     typedef HarmonicAnalysisStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HarmonicAnalysisStrategyType;
     typedef FormfindingUpdatedReferenceStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FormfindingUpdatedReferenceStrategyType;
@@ -88,13 +86,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
     //*************************STRATEGY CLASSES***************************
     //********************************************************************
-
-    // Residual Based Arc Length Strategy
-    // Currently not woking
-    // class_< ResidualBasedArcLengthStrategyType,typename ResidualBasedArcLengthStrategyType::Pointer, BaseSolvingStrategyType >(m,"ResidualBasedArcLengthStrategy")
-    // .def(init<ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer,
-    //                                                             unsigned int, unsigned int, unsigned int,long double,bool, bool, bool>() )
-    //        ;
 
     // Eigensolver Strategy
     py::class_< EigensolverStrategyType, typename EigensolverStrategyType::Pointer,BaseSolvingStrategyType >(m,"EigensolverStrategy")
