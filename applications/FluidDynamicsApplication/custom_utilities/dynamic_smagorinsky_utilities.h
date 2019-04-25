@@ -15,7 +15,6 @@
 #include <map>
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -27,6 +26,7 @@
 
 #include "includes/cfd_variables.h"
 #include "fluid_dynamics_application_variables.h"
+#include "includes/global_pointer_variables.h"
 
 #ifndef KRATOS_DYNAMIC_SMAGORINSKY_UTILITIES_H_INCLUDED
 #define	KRATOS_DYNAMIC_SMAGORINSKY_UTILITIES_H_INCLUDED
@@ -321,8 +321,8 @@ public:
             {
                 if( itNode->GetValue(FATHER_NODES).size() == 2 ) // If the node is refined
                 {
-                    Value0 = itNode->GetValue(FATHER_NODES)[0].FastGetSolutionStepValue(rThisVariable);
-                    Value1 = itNode->GetValue(FATHER_NODES)[1].FastGetSolutionStepValue(rThisVariable);
+                    Value0 = itNode->GetValue(FATHER_NODES)[0]->FastGetSolutionStepValue(rThisVariable);
+                    Value1 = itNode->GetValue(FATHER_NODES)[1]->FastGetSolutionStepValue(rThisVariable);
 
                     if( Value0 != Value1 ) // If this node is problematic
                     {
@@ -390,8 +390,8 @@ private:
         {
             if( itNode->GetValue(FATHER_NODES).size() == 2 )
             {
-                Node<3>& rParent1 = itNode->GetValue(FATHER_NODES)[0];
-                Node<3>& rParent2 = itNode->GetValue(FATHER_NODES)[1];
+                Node<3>& rParent1 = *itNode->GetValue(FATHER_NODES)[0];
+                Node<3>& rParent2 = *itNode->GetValue(FATHER_NODES)[1];
 
                 itNode->GetValue(COARSE_VELOCITY) = 0.5 * ( rParent1.FastGetSolutionStepValue(VELOCITY) + rParent2.FastGetSolutionStepValue(VELOCITY) );
             }
