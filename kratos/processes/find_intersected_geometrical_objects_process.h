@@ -324,14 +324,42 @@ namespace Internals {
 ///@{
 
 /**
+ * @class EntitiesUtilities
+ * @ingroup KratosCore
+ * @brief These are a simple entities utilities
+ * @tparam TEntity The type of geometrical entity considered (if conditions or elements)
+ * @author Pooyan Dadvand
+ * @author Ruben Zorrilla Martinez
+ * @author Vicente Mataix Ferrandiz
+ */
+template<class TEntity>
+class KRATOS_API(KRATOS_CORE) EntitiesUtilities
+{
+public:
+    /**
+     * @brief Returns the corresponding array of entities
+     * @return The array of entities
+     */
+    static PointerVectorSet<TEntity, IndexedObject>& GetEntities(ModelPart& rModelPart);
+
+    /**
+     * @brief Returns the corresponding array of entities array
+     * @return The array of entities
+     */
+    static typename PointerVectorSet<TEntity, IndexedObject>::ContainerType& GetEntitiesArray(ModelPart& rModelPart);
+
+};  // Class EntitiesUtilities
+
+/**
  * @class FindIntersectedGeometricalObjectsProcess
  * @ingroup KratosCore
  * @brief This class takes two modelparts and marks the intersected ones with SELECTED flag.
  * @details It creates a spatial datastructure and search for interaction. It also provides some helper methods for derived classes to check individual element or condition interesections.
  * @tparam TIntersectedEntity The type of geometrical (intersected) entity considered (if conditions or elements)
  * @tparam TIntersectingEntity The type of geometrical (intersecting) entity considered (if conditions or elements)
- * @todo Add possibility to use conditions with elements and vice versa (add second template argument)
  * @author Pooyan Dadvand
+ * @author Ruben Zorrilla Martinez
+ * @author Vicente Mataix Ferrandiz
 */
 template<class TIntersectedEntity = Element, class TIntersectingEntity = TIntersectedEntity>
 class KRATOS_API(KRATOS_CORE) FindIntersectedGeometricalObjectsProcess

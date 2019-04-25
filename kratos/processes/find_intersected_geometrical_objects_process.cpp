@@ -24,6 +24,48 @@
 namespace Kratos
 {
 
+template<>
+PointerVectorSet<Element, IndexedObject>& EntitiesUtilities<Element>::GetEntities(ModelPart& rModelPart)
+{
+    return rModelPart.Elements();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Condition, IndexedObject>& EntitiesUtilities<Condition>::GetEntities(ModelPart& rModelPart)
+{
+    return rModelPart.Conditions();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Element, IndexedObject>::ContainerType& EntitiesUtilities<Element>::GetEntitiesArray(ModelPart& rModelPart)
+{
+    return rModelPart.ElementsArray();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Condition, IndexedObject>::ContainerType& EntitiesUtilities<Condition>::GetEntitiesArray(ModelPart& rModelPart)
+{
+    return rModelPart.ConditionsArray();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class EntitiesUtilities<Condition>;
+template class EntitiesUtilities<Element>;
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<class TIntersectedEntity, class TIntersectingEntity>
 FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>::FindIntersectedGeometricalObjectsProcess(
     ModelPart& rModelPartIntersected,
