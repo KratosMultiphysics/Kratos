@@ -101,9 +101,6 @@ class MVQN(CoSimulationBaseConvergenceAccelerator):
             self.R.clear()
             self.X.clear()
 
-    def _Name(self):
-        return self.__class__.__name__
-
     @classmethod
     def _GetDefaultSettings(cls):
         mvqn_defaults = cs_tools.cs_data_structure.Parameters("""{

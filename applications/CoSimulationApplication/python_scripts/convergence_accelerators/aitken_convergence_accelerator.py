@@ -64,9 +64,6 @@ class Aitken(CoSimulationBaseConvergenceAccelerator):
 
         return delta_x
 
-    def _Name(self):
-        return self.__class__.__name__
-
     @classmethod
     def _GetDefaultSettings(cls):
         aitken_defaults = cs_tools.cs_data_structure.Parameters("""{

@@ -50,7 +50,7 @@ class CoSimulationBaseConvergenceAccelerator(object):
         self.echo_level = level
 
     def _Name(self):
-        raise Exception('"_Name" has to be implemented in the derived class!')
+        return self.__class__.__name__
 
     def Check(self):
         print("ConvAcc does not yet implement Check")

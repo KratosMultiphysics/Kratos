@@ -14,6 +14,7 @@ from collections import deque
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint
 
 def Create(settings, solver):
+    FIXME_needs_some_minor_updates_see_aitken_and_MVQN
     return IQNILS(settings, solver)
 
 ## Class IQNILS.
@@ -159,6 +160,3 @@ class IQNILS(CoSimulationBaseConvergenceAccelerator):
             self.X.clear()
         self.V_new = []
         self.W_new = []
-
-    def _Name(self):
-        return self.__class__.__name__
