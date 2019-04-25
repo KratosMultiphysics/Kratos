@@ -31,7 +31,7 @@
 #include "containers/global_pointers_vector.h"
 #include "containers/global_pointers_unordered_map.h"
 
-#include "mpi/utilities/mpi_coloring_utilities.h"
+#include "utilities/mpi_coloring_utilities.h"
 
 namespace Kratos
 {
@@ -109,7 +109,7 @@ public:
     ///@{
 
     /// Default constructor.
-    GlobalPointerCommunicator(DataCommunicator& rComm, GlobalPointersVector< TPointerDataType >& gp_list ):
+    GlobalPointerCommunicator(const DataCommunicator& rComm, GlobalPointersVector< TPointerDataType >& gp_list ):
         mrDataCommunicator(rComm)
     {
         AddPointers(gp_list.begin(),gp_list.end());
@@ -128,7 +128,7 @@ public:
     }
 
     template< class TIteratorType >
-    GlobalPointerCommunicator(DataCommunicator& rComm, TIteratorType begin, TIteratorType end):
+    GlobalPointerCommunicator(const DataCommunicator& rComm, TIteratorType begin, TIteratorType end):
         mrDataCommunicator(rComm)
     {
         AddPointers(begin,end);
