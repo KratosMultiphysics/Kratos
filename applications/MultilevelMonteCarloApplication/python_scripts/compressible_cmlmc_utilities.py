@@ -280,6 +280,8 @@ class MultilevelMonteCarlo(object):
 
         # default settings of the Continuation Multilevel Monte Carlo (CMLMC) algorithm
         # run_multilevel_monte_carlo: flag to run or not the algorithm
+        # adaptive_refinement: if True refine from mesh level 0 each time a different random variable is used
+        # store_lower_levels_samples: if True, store also lower level values of QoI to compute statistics, if avaiable from adaptive refinement --> produces a BIAS in the results
         # initial_tolerance: tolerance iter 0
         # tolerance: tolerance final
         # confidence: confidence on tolerance
@@ -300,6 +302,8 @@ class MultilevelMonteCarlo(object):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "run_multilevel_monte_carlo" : "True",
+            "adaptive_refinement"        : "True",
+            "store_lower_levels_samples" : "False",
             "k0" : 0.1,
             "k1" : 0.1,
             "r1" : 1.25,
