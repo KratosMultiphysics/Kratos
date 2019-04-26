@@ -21,6 +21,7 @@
 
 #include "processes/process.h"
 #include "python/add_processes_to_python.h"
+#include "processes/calculate_embedded_nodal_variable_from_skin_process.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 #include "processes/find_nodal_h_process.h"
 #include "processes/find_nodal_neighbours_process.h"
@@ -46,8 +47,8 @@
 #include "processes/check_skin_process.h"
 #include "processes/replace_elements_and_condition_process.h"
 #include "processes/compute_nodal_gradient_process.h"
-#include "processes/assign_scalar_variable_to_conditions_process.h"
-#include "processes/assign_scalar_field_to_conditions_process.h"
+#include "processes/assign_scalar_variable_to_entities_process.h"
+#include "processes/assign_scalar_field_to_entities_process.h"
 #include "processes/reorder_and_optimize_modelpart_process.h"
 #include "processes/calculate_distance_to_skin_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
@@ -69,6 +70,7 @@ namespace Kratos
 
 namespace Python
 {
+typedef Node<3> NodeType;
 typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
 
 // Discontinuous distance computation auxiliar functions
@@ -334,19 +336,46 @@ void  AddProcessesToPython(pybind11::module& m)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
 
+    // Calculate embedded variable from skin processes
+    py::class_<CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>, CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(
+        m, "CalculateEmbeddedNodalVariableFromSkinProcessDouble")
+        .def(py::init<ModelPart&, ModelPart&, const Variable<double>&, const Variable<double>&, const std::string, const std::string>());
+
+    py::class_<CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>, CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double,3>, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(
+        m, "CalculateEmbeddedNodalVariableFromSkinProcessArray")
+        .def(py::init<ModelPart&, ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const std::string, const std::string>());
+
     py::class_<ReorderAndOptimizeModelPartProcess, ReorderAndOptimizeModelPartProcess::Pointer, Process>(m,"ReorderAndOptimizeModelPartProcess")
             .def(py::init<ModelPart&, Parameters>())
             ;
 
-
-    py::class_<AssignScalarVariableToConditionsProcess, AssignScalarVariableToConditionsProcess::Pointer, Process>(m,"AssignScalarVariableToConditionsProcess")
-            .def(py::init<ModelPart&, Parameters >())
+    py::class_<AssignScalarVariableToEntitiesProcess<NodeType>, AssignScalarVariableToEntitiesProcess<NodeType>::Pointer, Process>(m,"AssignScalarVariableToNodesProcess")
+    .def(py::init<ModelPart&, Parameters >())
     ;
 
-    py::class_<AssignScalarFieldToConditionsProcess, AssignScalarFieldToConditionsProcess::Pointer, Process>(m,"AssignScalarFieldToConditionsProcess")
-            .def(py::init<ModelPart&, Parameters >())
+    py::class_<AssignScalarVariableToEntitiesProcess<Condition>, AssignScalarVariableToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarVariableToConditionsProcess")
+    .def(py::init<ModelPart&, Parameters >())
     ;
 
+    py::class_<AssignScalarVariableToEntitiesProcess<Element>, AssignScalarVariableToEntitiesProcess<Element>::Pointer, Process>(m,"AssignScalarVariableToElementsProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
+
+    py::class_<AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>, AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::Pointer, Process>(m,"AssignScalarVariableToMasterSlaveConstraintsProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
+
+    py::class_<AssignScalarFieldToEntitiesProcess<NodeType>, AssignScalarFieldToEntitiesProcess<NodeType>::Pointer, Process>(m,"AssignScalarFieldToNodesProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
+
+    py::class_<AssignScalarFieldToEntitiesProcess<Condition>, AssignScalarFieldToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarFieldToConditionsProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
+
+    py::class_<AssignScalarFieldToEntitiesProcess<Element>, AssignScalarFieldToEntitiesProcess<Element>::Pointer, Process>(m,"AssignScalarFieldToElementsProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
 
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
     //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
