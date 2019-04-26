@@ -561,10 +561,10 @@ double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize
     if(rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE])
     {
         const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
-        delta = this->GetValue(PERTURBATION_SIZE) * correction_factor;
+        delta = rCurrentProcessInfo[PERTURBATION_SIZE] * correction_factor;
     }
     else
-        delta = this->GetValue(PERTURBATION_SIZE);
+        delta = rCurrentProcessInfo[PERTURBATION_SIZE];
 
     KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
     return delta;
@@ -577,10 +577,10 @@ double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize
     if(rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE])
     {
         const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
-        delta = this->GetValue(PERTURBATION_SIZE) * correction_factor;
+        delta = rCurrentProcessInfo[PERTURBATION_SIZE] * correction_factor;
     }
     else
-        delta = this->GetValue(PERTURBATION_SIZE);
+        delta = rCurrentProcessInfo[PERTURBATION_SIZE];
 
     KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
     return delta;

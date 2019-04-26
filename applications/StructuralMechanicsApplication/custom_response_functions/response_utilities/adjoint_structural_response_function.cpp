@@ -50,14 +50,11 @@ namespace Kratos
         if(mGradientMode == 1)
         {
             double delta = mResponseSettings["step_size"].GetDouble();
-
-            VariableUtils().SetNonHistoricalVariable(PERTURBATION_SIZE, delta, mrModelPart.Elements());
-            VariableUtils().SetNonHistoricalVariable(PERTURBATION_SIZE, delta, mrModelPart.Conditions());
+            mrModelPart.GetProcessInfo()[PERTURBATION_SIZE] = delta;
 
             bool adapt_perturbation_size = false;
             if(mResponseSettings.Has("adapt_step_size"))
                 adapt_perturbation_size = mResponseSettings["adapt_step_size"].GetBool();
-
             mrModelPart.GetProcessInfo()[ADAPT_PERTURBATION_SIZE] = adapt_perturbation_size;
         }
 
