@@ -18,16 +18,20 @@ class TrilinosMechanicalSolver(MechanicalSolver):
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, model, custom_settings):
-        if not custom_settings.Has("linear_solver_settings"): # Override defaults in the base class.
-            linear_solver_settings = KratosMultiphysics.Parameters("""{
-                "solver_type" : "amesos",
-                "amesos_solver_type" : "Amesos_Klu"
-            }""")
-            custom_settings.AddValue("linear_solver_settings", linear_solver_settings)
-
         # Construct the base solver.
         super(TrilinosMechanicalSolver, self).__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Construction finished")
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "linear_solver_settings" : {
+                "solver_type" : "amesos",
+                "amesos_solver_type" : "Amesos_Klu"
+            }
+        }""")
+        this_defaults.AddMissingParameters(super(TrilinosMechanicalSolver, cls).GetDefaultSettings())
+        return this_defaults
 
     def AddVariables(self):
         super(TrilinosMechanicalSolver, self).AddVariables()
