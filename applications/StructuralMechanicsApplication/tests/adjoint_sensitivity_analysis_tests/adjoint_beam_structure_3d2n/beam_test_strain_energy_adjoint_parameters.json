@@ -20,7 +20,8 @@
                 "response_type"     : "adjoint_linear_strain_energy",
                 "use_kratos"        : true,
                 "gradient_mode"     : "semi_analytic",
-                "step_size"         : 1e-6
+                "step_size"         : 1e-6,
+                "adapt_step_size"   : true
             },
         "sensitivity_settings" : {
                 "sensitivity_model_part_name" : "Parts_Beam",
