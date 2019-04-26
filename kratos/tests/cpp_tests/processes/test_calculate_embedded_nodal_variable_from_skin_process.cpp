@@ -74,13 +74,16 @@ namespace Testing {
         CalculateDistanceToSkinProcess<2>(surface_part, skin_part).Execute();
 
         // Compute the embedded nodal variable values
-        EmbeddedNodalVariableProcessDouble emb_nod_var_from_skin_proc(
-            surface_part,
-            skin_part,
-            TEMPERATURE,
-            TEMPERATURE,
-            "continuous");
-
+        Parameters settings(R"(
+        {
+            "base_model_part_name": "Volume",
+            "skin_model_part_name": "Skin",
+            "skin_variable_name": "TEMPERATURE",
+            "embedded_nodal_variable_name": "TEMPERATURE",
+            "level_set_type": "continuous"
+        }
+        )");
+        EmbeddedNodalVariableProcessDouble emb_nod_var_from_skin_proc(current_model, settings);
         emb_nod_var_from_skin_proc.Execute();
         emb_nod_var_from_skin_proc.Clear();
 
@@ -135,13 +138,16 @@ namespace Testing {
         CalculateDiscontinuousDistanceToSkinProcess<2>(surface_part, skin_part).Execute();
 
         // Compute the embedded nodal variable values
-        EmbeddedNodalVariableProcessArray emb_nod_var_from_skin_proc(
-            surface_part,
-            skin_part,
-            DISPLACEMENT,
-            DISPLACEMENT,
-            "discontinuous");
-
+        Parameters settings(R"(
+        {
+            "base_model_part_name": "Volume",
+            "skin_model_part_name": "Skin",
+            "skin_variable_name": "TEMPERATURE",
+            "embedded_nodal_variable_name": "TEMPERATURE",
+            "level_set_type": "continuous"
+        }
+        )");
+        EmbeddedNodalVariableProcessDouble emb_nod_var_from_skin_proc(current_model, settings);
         emb_nod_var_from_skin_proc.Execute();
         emb_nod_var_from_skin_proc.Clear();
 
