@@ -25,7 +25,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
         self.settings["pfem2_settings"].AddEmptyValue("convection_vector_variable").SetString("VELOCITY")
         self.settings["pfem2_settings"].AddEmptyValue("maximum_number_of_particles").SetInt(8*domain_size)
 
-        self.print_particles = True # By default we don't print the particles, it is expensive
+        self.print_particles = False # By default we don't print the particles, it is expensive
         if self.print_particles:
             self.lagrangian_model_part = model.CreateModelPart("pfem2_particles")
             self.filter_factor = 1
