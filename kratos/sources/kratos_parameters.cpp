@@ -726,7 +726,7 @@ Parameters::const_iterator Parameters::end() const
 
 Parameters::SizeType Parameters::size() const
 {
-    KRATOS_ERROR_IF_NOT(mpValue->is_array())  << "Size can only be queried if the value if of Array type" << std::endl;
+    KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "Size can only be queried if the value is of Array type" << std::endl;
     return mpValue->size();
 }
 
