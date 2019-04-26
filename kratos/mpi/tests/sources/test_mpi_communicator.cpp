@@ -615,5 +615,51 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchronize, Krato
     }
 }
 
+
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeDofIds, KratosMPICoreFastSuite)
+{
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+    r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+    r_model_part.AddNodalSolutionStepVariable(REACTION);
+
+    MPIDataCommunicator comm_world(MPI_COMM_WORLD);
+    Internals::ModelPartForMPICommunicatorTests(r_model_part, comm_world);
+
+    for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
+    {
+        i_node->AddDof(VELOCITY_X, REACTION_X);
+        i_node->AddDof(VELOCITY_Y, REACTION_Y);
+        i_node->AddDof(VELOCITY_Z, REACTION_Z);
+    }
+
+    Communicator& r_comm = r_model_part.GetCommunicator();
+    ModelPart::NodesContainerType& r_local_nodes = r_comm.LocalMesh().Nodes();
+
+    int num_local_nodes = r_local_nodes.size();
+    const int id_offset = 3*(r_comm.GetDataCommunicator().ScanSum(num_local_nodes) - num_local_nodes);
+
+    int i = 1; // Dof Ids starting from one (to make sure that no dof with id 0 exists while error checking later)
+    for (auto i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
+    {
+        auto& r_dofs = i_node->GetDofs();
+        for (auto i_dof = r_dofs.begin(); i_dof != r_dofs.end(); ++i_dof)
+        {
+            i_dof->SetEquationId(id_offset + i);
+            ++i;
+        }
+    }
+
+    r_comm.SynchronizeDofs();
+    for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
+    {
+        auto& r_dofs = i_node->GetDofs();
+        for (auto i_dof = r_dofs.begin(); i_dof != r_dofs.end(); ++i_dof)
+        {
+            KRATOS_CHECK_NOT_EQUAL(i_dof->EquationId(), 0);
+        }
+    }
+}
 }
 }
