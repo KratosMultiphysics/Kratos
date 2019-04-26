@@ -699,61 +699,6 @@ public:
     ///@name Operations
     ///@{
 
-    bool SynchronizeElementalIds() override
-    {
-        int rank = mrDataCommunicator.Rank();
-
-        int destination = 0;
-
-        NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
-
-        for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
-            if ((destination = neighbours_indices[i_color]) >= 0)
-            {
-                ElementsContainerType& r_local_elements = LocalMesh(i_color).Elements();
-                ElementsContainerType& r_ghost_elements = GhostMesh(i_color).Elements();
-
-                unsigned int elemental_data_size = sizeof (std::size_t) / sizeof (int);
-                unsigned int local_elements_size = r_local_elements.size();
-                unsigned int ghost_elements_size = r_ghost_elements.size();
-                unsigned int send_buffer_size = local_elements_size * elemental_data_size;
-                unsigned int receive_buffer_size = ghost_elements_size * elemental_data_size;
-
-                if ((local_elements_size == 0) && (ghost_elements_size == 0))
-                    continue; // nothing to transfer!
-
-                unsigned int position = 0;
-                std::vector<int> send_data(send_buffer_size);
-                std::vector<int> receive_data(receive_buffer_size);
-                int* send_buffer = send_data.data();
-                int* receive_buffer = receive_data.data();
-
-                // Filling the send buffer
-                for (ModelPart::ElementIterator i_element = r_local_elements.begin(); i_element != r_local_elements.end(); ++i_element)
-                {
-                    *(send_buffer + position) = i_element->Id();
-                    position += elemental_data_size;
-                }
-
-                int send_tag = i_color;
-                int receive_tag = i_color;
-
-                mrDataCommunicator.SendRecv(send_data, destination, send_tag, receive_data, destination, receive_tag);
-
-                position = 0;
-                for (ModelPart::ElementIterator i_element = r_ghost_elements.begin(); i_element != r_ghost_elements.end(); ++i_element)
-                {
-                    i_element->SetId(*(receive_buffer + position));
-                    position += elemental_data_size;
-                }
-
-                if (position > receive_buffer_size)
-                    std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
-            }
-
-        return true;
-    }
-
     bool SynchronizeNodalSolutionStepsData() override
     {
         constexpr MeshAccess<DistributedType::Local> local_meshes;
