@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.PoromechanicsApplication as KratosPoro
+import KratosMultiphysics.FemToDemApplication as KratosFemDem
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -7,7 +7,6 @@ def Factory(settings, Model):
     return ApplyNormalLoadTableProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-
 class ApplyNormalLoadTableProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
@@ -49,11 +48,9 @@ class ApplyNormalLoadTableProcess(KratosMultiphysics.Process):
                 self.components_process_list.append(KratosPoro.ApplyDoubleTableProcess(model_part, tangential_params))
                 
     def ExecuteInitialize(self):
-
         for component in self.components_process_list:
             component.ExecuteInitialize()
 
     def ExecuteInitializeSolutionStep(self):
-
         for component in self.components_process_list:
             component.ExecuteInitializeSolutionStep()
