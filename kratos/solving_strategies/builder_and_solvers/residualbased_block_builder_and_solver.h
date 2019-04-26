@@ -779,7 +779,6 @@ public:
         #pragma omp parallel for firstprivate(ndofs)
         for (int k = 0; k<ndofs; k++) {
             typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
-
             const int i = (dof_iterator)->EquationId();
             std::cout << "!!Equation ID is: !!" << i << std::endl;
             std::cout << "!!dof_iterator is !!" << *dof_iterator << std::endl;

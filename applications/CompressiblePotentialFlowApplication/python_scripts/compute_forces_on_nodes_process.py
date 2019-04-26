@@ -23,6 +23,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
 
         self.body_model_part = Model[settings["model_part_name"].GetString()]
         self.create_output_file = settings["create_output_file"].GetBool()
+        self.output_variables = settings["output_variables"]
 
     # def __init__(self, body_model_part):
     #     KratosMultiphysics.Process.__init__(self)
@@ -36,7 +37,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
 
     def Execute(self):
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess', 'Computing reactions on nodes')
-
+        KratosMultiphysics.Logger.PrintInfo(self.output_variables)
 
         KratosMultiphysics.VariableUtils().SetToZero_VectorVar(KratosMultiphysics.REACTION, self.body_model_part.Nodes)
 
@@ -53,7 +54,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
             for node in cond.GetNodes():
                 # KratosMultiphysics.Logger.PrintInfo("Printing Condition and Nodal Values")
                 # KratosMultiphysics.Logger.PrintInfo("condition_normal   ",condition_normal)
-                # KratosMultiphysics.Logger.PrintInfo("pressure_coefficient   ",pressure_coefficient)
+                KratosMultiphysics.Logger.PrintInfo("pressure_coefficient   ",pressure_coefficient)
                 # KratosMultiphysics.Logger.PrintInfo("dynamic_pressure   ",dynamic_pressure)
                 added_force = condition_normal*(pressure_coefficient/2.0)*dynamic_pressure
                 nodal_force = node.GetValue(KratosMultiphysics.REACTION) + added_force
@@ -62,6 +63,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
 
         total_force = KratosMultiphysics.VariableUtils().SumNonHistoricalNodeVectorVariable(KratosMultiphysics.REACTION, self.body_model_part)
         # KratosMultiphysics.Logger.PrintInfo("total_force   ",total_force)
+
 
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Lift Force = ', total_force[1])
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Drag Force = ', total_force[0])
