@@ -56,6 +56,7 @@ class MechanicalSolver(PythonSolver):
             warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
             KratosMultiphysics.Logger.PrintWarning("Time integration method", warning)
 
+        self._validate_settings_in_baseclass=True # To be removed eventually
         super(MechanicalSolver, self).__init__(model, custom_settings)
 
         model_part_name = self.settings["model_part_name"].GetString()
