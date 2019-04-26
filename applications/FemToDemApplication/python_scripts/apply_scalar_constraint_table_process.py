@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.PoromechanicsApplication as KratosPoro
+import KratosMultiphysics.FemToDemApplication as KratosFemDem
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -7,7 +7,6 @@ def Factory(settings, Model):
     return ApplyScalarConstraintTableProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-
 class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
@@ -20,35 +19,15 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
         if settings.Has("is_fixed"):
             params.AddValue("is_fixed",settings["is_fixed"])
         
-        if settings.Has("hydrostatic"):
-            if settings["hydrostatic"].GetBool() == False:
-                params.AddValue("value",settings["value"])
-                if settings["table"].GetInt() == 0:
-                    self.process = KratosMultiphysics.ApplyConstantScalarValueProcess(model_part, params)
-                else:
-                    params.AddValue("table",settings["table"])
-                    self.process = KratosPoro.ApplyDoubleTableProcess(model_part, params)
-            else:
-                params.AddValue("gravity_direction",settings["gravity_direction"])
-                params.AddValue("reference_coordinate",settings["reference_coordinate"])
-                params.AddValue("specific_weight",settings["specific_weight"])
-                if settings["table"].GetInt() == 0:
-                    self.process = KratosPoro.ApplyConstantHydrostaticPressureProcess(model_part, params)
-                else:
-                    params.AddValue("table",settings["table"])
-                    self.process = KratosPoro.ApplyHydrostaticPressureTableProcess(model_part, params)
+        params.AddValue("value",settings["value"])
+        if settings["table"].GetInt() == 0:
+            self.process = KratosMultiphysics.ApplyConstantScalarValueProcess(model_part, params)
         else:
-            params.AddValue("value",settings["value"])
-            if settings["table"].GetInt() == 0:
-                self.process = KratosMultiphysics.ApplyConstantScalarValueProcess(model_part, params)
-            else:
-                params.AddValue("table",settings["table"])
-                self.process = KratosPoro.ApplyDoubleTableProcess(model_part, params)
+            params.AddValue("table",settings["table"])
+            self.process = KratosFemDem.ApplyDoubleTableProcess(model_part, params)
 
     def ExecuteInitialize(self):
-        
         self.process.ExecuteInitialize()
 
     def ExecuteInitializeSolutionStep(self):
-        
         self.process.ExecuteInitializeSolutionStep()
