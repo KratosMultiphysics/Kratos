@@ -72,6 +72,15 @@ class PotentialFlowTests(UnitTest.TestCase):
 
             kratos_utilities.DeleteTimeFiles(".")
 
+    def test_EmbeddedCircleNoWake(self):
+        settings_file_name = "embedded_circle_no_wake_parameters.json"
+        work_folder = "embedded_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+
+            kratos_utilities.DeleteTimeFiles(".")
+
     def _runTest(self,settings_file_name):
         model = KratosMultiphysics.Model()
         with open(settings_file_name,'r') as settings_file:
@@ -86,7 +95,7 @@ class PotentialFlowTests(UnitTest.TestCase):
                     "help"          : "This process writes postprocessing files for GiD",
                     "Parameters"    : {
                         "model_part_name"        : "MainModelPart",
-                        "output_name"            : "naca0012",
+                        "output_name"            : "output",
                         "postprocess_parameters" : {
                             "result_file_configuration" : {
                                 "gidpost_flags"       : {
