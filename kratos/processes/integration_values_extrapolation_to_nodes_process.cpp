@@ -237,7 +237,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
         auto it_node = it_node_begin + i;
 
         const double average_variable_value = it_node->GetValue(*mpAverageVariable);
-        const double coeff_coincident_node = average_variable_value > std::numeric_limits<double>::epsilon() ? 1.0/average_variable_value : 1.0;
+        const double coeff_coincident_node = std::abs(average_variable_value) > std::numeric_limits<double>::epsilon() ? 1.0/average_variable_value : 1.0;
 
         // We initialize the doubles values
         for ( const auto p_var : mDoubleVariable) {
