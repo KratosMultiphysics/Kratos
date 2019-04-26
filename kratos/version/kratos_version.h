@@ -1,13 +1,12 @@
 #pragma once
 
-#include <string>
+namespace Kratos {
 
-class KratosVersion {
-    KratosVersion() = delete;
-    static constexpr int GetMajor();
-    static constexpr int GetMinor();
-    static constexpr int GetPatch();
-    static constexpr const char * GetCommit();
-    static constexpr const char * GetBuildType();
-    static constexpr const char * GetVersionString();
-};
+int GetMajorVersion();
+int GetMinorVersion();
+int GetPatchVersion();
+const char * GetCommit();
+const char * GetBuildType();
+const char * GetVersionString();
+
+} // namespace Kratos

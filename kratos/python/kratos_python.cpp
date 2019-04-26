@@ -23,7 +23,7 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "includes/kratos_version.h"
+#include "version/kratos_version.h"
 #include "add_vector_to_python.h"
 #include "add_model_part_to_python.h"
 #include "add_kernel_to_python.h"
@@ -76,7 +76,7 @@ namespace Python
 char const* greet()
 {
 	std::stringstream header;
-	header << "Hello, I am Kratos Multi-Physics " << KRATOS_VERSION <<" ;-)";
+	header << "Hello, I am Kratos Multi-Physics " << GetVersionString() <<" ;-)";
     return header.str().c_str();
 }
 

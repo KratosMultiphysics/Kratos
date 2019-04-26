@@ -19,7 +19,7 @@
 
 // Project includes
 #include "input_output/logger_output.h"
-#include "includes/kratos_version.h"
+#include "version/kratos_version.h"
 
 
 namespace Kratos
@@ -35,7 +35,7 @@ namespace Kratos
         mrStream << " ' /   __| _` | __|  _ \\   __|" << std::endl;
         mrStream << " . \\  |   (   | |   (   |\\__ \\ " << std::endl;
         mrStream << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/" << std::endl;
-        mrStream << "           Multi-Physics "<< KRATOS_VERSION << std::endl;
+        mrStream << "           Multi-Physics "<< GetVersionString() << std::endl;
     }
 
     void LoggerOutput::WriteMessage(LoggerMessage const& TheMessage)

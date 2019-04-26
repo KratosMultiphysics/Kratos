@@ -1,5 +1,7 @@
 #include "version/kratos_version.h"
 
+namespace Kratos {
+
 // Kratos Minor, major and patch
 #ifndef KRATOS_MAJOR_VERSION
 #define KRATOS_MAJOR_VERSION 7
@@ -32,26 +34,28 @@ KRATOS_TO_STRING(KRATOS_PATCH_VERSION) "-" \
 KRATOS_SHA1_NUMBER "-" \
 KRATOS_BUILD_TYPE
 
-constexpr int KratosVersion::GetMajor() {
+int GetMajorVersion() {
     return KRATOS_MAJOR_VERSION;
 }
 
-constexpr int GetMinor() {
+int GetMinorVersion() {
     return KRATOS_MINOR_VERSION;
 }
 
-constexpr int GetPatch() {
+int GetPatchVersion() {
     return KRATOS_PATCH_VERSION;
 }
 
-constexpr const char * GetCommit() {
+const char * GetCommitVersion() {
     return KRATOS_SHA1_NUMBER;
 }
 
-constexpr const char * GetBuildType() {
+const char * GetBuildType() {
     return KRATOS_BUILD_TYPE;
 }
 
-constexpr const char * GetVersionString() {
+const char * GetVersionString() {
     return KRATOS_VERSION;
 }
+
+} // namespace Kratos
