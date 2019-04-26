@@ -714,78 +714,12 @@ public:
 
     bool SynchronizeNodalSolutionStepsData() override
     {
-        int rank = mrDataCommunicator.Rank();
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+        MPIInternals::NodalSolutionStepDataAccess nodal_solution_step_access;
 
-        int destination = 0;
-
-        NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
-
-        for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
-            if ((destination = neighbours_indices[i_color]) >= 0)
-            {
-                NodesContainerType& r_local_nodes = LocalMesh(i_color).Nodes();
-                NodesContainerType& r_ghost_nodes = GhostMesh(i_color).Nodes();
-
-                // Calculating send and received buffer size
-                // NOTE: This part works ONLY when all nodes have the same variables list size!
-                unsigned int nodal_data_size = 0;
-                unsigned int local_nodes_size = r_local_nodes.size();
-                unsigned int ghost_nodes_size = r_ghost_nodes.size();
-                unsigned int send_buffer_size = 0;
-                unsigned int receive_buffer_size = 0;
-
-                if (local_nodes_size == 0)
-                {
-                    if (ghost_nodes_size == 0)
-                        continue; // nothing to transfer!
-                    else
-                    {
-                        nodal_data_size = r_ghost_nodes.begin()->SolutionStepData().TotalSize();
-                        receive_buffer_size = ghost_nodes_size * nodal_data_size;
-                    }
-                }
-                else
-                {
-                    nodal_data_size = r_local_nodes.begin()->SolutionStepData().TotalSize();
-                    send_buffer_size = local_nodes_size * nodal_data_size;
-                    if (ghost_nodes_size != 0)
-                        receive_buffer_size = ghost_nodes_size * nodal_data_size;
-                }
-
-                unsigned int position = 0;
-                std::vector<double> send_data(send_buffer_size);
-                std::vector<double> receive_data(receive_buffer_size);
-                double* send_buffer = send_data.data();
-                double* receive_buffer = receive_data.data();
-
-                // Filling the buffer
-                for (ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
-                {
-                    std::memcpy(send_buffer + position, i_node->SolutionStepData().Data(), nodal_data_size * sizeof (double));
-                    position += nodal_data_size;
-                }
-
-                if (position > send_buffer_size)
-                    std::cout << rank << " Error in estimating send buffer size...." << std::endl;
-
-
-                int send_tag = i_color;
-                int receive_tag = i_color;
-
-                mrDataCommunicator.SendRecv(send_data, destination, send_tag, receive_data, destination, receive_tag);
-
-                // Updating nodes
-                position = 0;
-                for (ModelPart::NodeIterator i_node = GhostMesh(i_color).NodesBegin();
-                        i_node != GhostMesh(i_color).NodesEnd(); i_node++)
-                {
-                    std::memcpy(i_node->SolutionStepData().Data(), receive_buffer + position, nodal_data_size * sizeof (double));
-                    position += nodal_data_size;
-                }
-
-                if (position > receive_buffer_size)
-                    std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
-            }
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_solution_step_access, replace);
 
         return true;
     }
