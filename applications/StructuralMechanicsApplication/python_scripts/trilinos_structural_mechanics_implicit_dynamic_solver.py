@@ -33,7 +33,7 @@ class TrilinosImplicitMechanicalSolver(TrilinosMechanicalSolver):
             "rayleigh_alpha": 0.0,
             "rayleigh_beta" : 0.0
         }""")
-        this_defaults.AddMissingParameters(super(TrilinosMechanicalSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(TrilinosImplicitMechanicalSolver, cls).GetDefaultSettings())
         return this_defaults
 
     def AddVariables(self):
