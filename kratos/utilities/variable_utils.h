@@ -311,6 +311,8 @@ public:
     {
         KRATOS_TRY
 
+        KRATOS_TO_BE_REMOVED_IN_VERSION(7, 1, 0)
+
         #pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
             NodesContainerType::iterator it_node = rNodes.begin() + k;
