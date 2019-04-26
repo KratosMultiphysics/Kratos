@@ -62,15 +62,15 @@ void ComputeHessianSolMetricProcess::Execute()
     CalculateAuxiliarHessian();
 
     // Some checks
-    NodesArrayType& nodes_array = mThisModelPart.Nodes();
+    NodesArrayType& r_nodes_array = mThisModelPart.Nodes();
     if (mrOriginVariableDoubleList.size() > 0) {
-        VariableUtils().CheckVariableExists(*mrOriginVariableDoubleList[0], nodes_array);
+        VariableUtils().CheckVariableExists(*mrOriginVariableDoubleList[0], r_nodes_array);
     } else {
-        VariableUtils().CheckVariableExists(*mrOriginVariableComponentsList[0], nodes_array);
+        VariableUtils().CheckVariableExists(*mrOriginVariableComponentsList[0], r_nodes_array);
     }
 
     // Checking NODAL_H
-    for (const auto& i_node : nodes_array)
+    for (const auto& i_node : r_nodes_array)
         KRATOS_ERROR_IF_NOT(i_node.Has(NODAL_H)) << "NODAL_H must be computed" << std::endl;
 
     // Getting dimension
@@ -164,9 +164,9 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
     MathUtils<double>::BDBtProductOperation(metric_matrix, eigen_values_matrix, eigen_vector_matrix);
 
     // Finally we transform to a vector
-    const TensorArrayType& metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
+    const TensorArrayType& r_metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
 
-    return metric;
+    return r_metric;
 }
 
 /***********************************************************************************/
@@ -175,9 +175,9 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
 void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
 {
     // Iterate in the elements
-    ElementsArrayType& elements_array = mThisModelPart.Elements();
-    const int num_elements = static_cast<int>(elements_array.size());
-    const auto& it_element_begin = elements_array.begin();
+    ElementsArrayType& r_elements_array = mThisModelPart.Elements();
+    const int num_elements = static_cast<int>(r_elements_array.size());
+    const auto it_element_begin = r_elements_array.begin();
 
     // Geometry information
     const std::size_t dimension = mThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -187,11 +187,11 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
     const array_1d<double, 3> aux_zero_vector = ZeroVector(3);
 
     // Iterate in the nodes
-    NodesArrayType& nodes_array = mThisModelPart.Nodes();
-    const int num_nodes = static_cast<int>(nodes_array.size());
+    NodesArrayType& r_nodes_array = mThisModelPart.Nodes();
+    const int num_nodes = static_cast<int>(r_nodes_array.size());
 
     // Initialize auxiliar variables
-    const auto& it_nodes_begin = nodes_array.begin();
+    const auto& it_nodes_begin = r_nodes_array.begin();
     #pragma omp parallel for
     for(int i_node = 0; i_node < num_nodes; ++i_node) {
         auto it_node = it_nodes_begin + i_node;
@@ -311,7 +311,7 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
 
     #pragma omp parallel for
     for(int i_node = 0; i_node < num_nodes; ++i_node) {
-        auto it_node = nodes_array.begin() + i_node;
+        auto it_node = r_nodes_array.begin() + i_node;
         const double nodal_area = it_node->GetValue(NODAL_AREA);
         if (nodal_area > std::numeric_limits<double>::epsilon()) {
             it_node->GetValue(AUXILIAR_HESSIAN) /= nodal_area;
@@ -357,42 +357,40 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
     typedef typename std::conditional<TDim == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
 
     // Iterate in the nodes
-    NodesArrayType& nodes_array = mThisModelPart.Nodes();
-    const int num_nodes = static_cast<int>(nodes_array.size());
+    NodesArrayType& r_nodes_array = mThisModelPart.Nodes();
+    const int num_nodes = static_cast<int>(r_nodes_array.size());
 
     // Tensor variable definition
-    const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
+    const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
 
     // Setting metric in case not defined
-    const auto it_node_begin = nodes_array.begin();
-    if (!it_node_begin->Has(tensor_variable)) {
+    const auto it_node_begin = r_nodes_array.begin();
+    if (!it_node_begin->Has(r_tensor_variable)) {
         // Declaring auxiliar vector
         const TensorArrayType aux_zero_vector = ZeroVector(3 * (TDim - 1));
-        VariableUtils().SetNonHistoricalVariable(tensor_variable, aux_zero_vector, nodes_array);
+        VariableUtils().SetNonHistoricalVariable(r_tensor_variable, aux_zero_vector, r_nodes_array);
     }
 
     // Ratio reference variable
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mRatioReferenceVariable)) << "Variable " << mRatioReferenceVariable << " is not a double variable" << std::endl;
-    const auto& reference_var = KratosComponents<Variable<double>>::Get(mRatioReferenceVariable);
+    const auto& r_reference_var = KratosComponents<Variable<double>>::Get(mRatioReferenceVariable);
 
     #pragma omp parallel for
     for(int i = 0; i < num_nodes; ++i) {
         auto it_node = it_node_begin + i;
 
-        const Vector& hessian = it_node->GetValue(AUXILIAR_HESSIAN);
+        const Vector& r_hessian = it_node->GetValue(AUXILIAR_HESSIAN);
 
         const double nodal_h = it_node->GetValue(NODAL_H);
 
-        double element_min_size = mMinSize;
-        if ((element_min_size > nodal_h) && mEnforceCurrent) element_min_size = nodal_h;
-        double element_max_size = mMaxSize;
-        if ((element_max_size > nodal_h) && mEnforceCurrent) element_max_size = nodal_h;
+        const double element_min_size = ((mMinSize < nodal_h) && mEnforceCurrent) ? nodal_h : mMinSize;
+        const double element_max_size = ((mMaxSize > nodal_h) && mEnforceCurrent) ? nodal_h : mMaxSize;
 
         // Isotropic by default
         double ratio = 1.0;
 
-        if (it_node->SolutionStepsDataHas(reference_var)) {
-            const double ratio_reference = it_node->FastGetSolutionStepValue(reference_var);
+        if (it_node->SolutionStepsDataHas(r_reference_var)) {
+            const double ratio_reference = it_node->FastGetSolutionStepValue(r_reference_var);
             ratio = CalculateAnisotropicRatio(ratio_reference, mAnisotropicRatio, mBoundLayer, mInterpolation);
         }
 
@@ -400,17 +398,17 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
         it_node->SetValue(ANISOTROPIC_RATIO, ratio);
 
         // We compute the metric
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(tensor_variable)) << "METRIC_TENSOR_" + std::to_string(TDim) + "D  not defined for node " << it_node->Id() << std::endl;
-        TensorArrayType& metric = it_node->GetValue(tensor_variable);
+        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(TDim) + "D  not defined for node " << it_node->Id() << std::endl;
+        TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
 
-        const double norm_metric = norm_2(metric);
-        if (norm_metric > 0.0) {// NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
-            const TensorArrayType& old_metric = it_node->GetValue(tensor_variable);
-            const TensorArrayType& new_metric = ComputeHessianMetricTensor<TDim>(hessian, ratio, element_min_size, element_max_size, nodal_h);
+        const double norm_metric = norm_2(r_metric);
+        if (norm_metric > 0.0) { // NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
+            const TensorArrayType& r_old_metric = it_node->GetValue(r_tensor_variable);
+            const TensorArrayType new_metric = ComputeHessianMetricTensor<TDim>(r_hessian, ratio, element_min_size, element_max_size, nodal_h);
 
-            metric = MetricsMathUtils<TDim>::IntersectMetrics(old_metric, new_metric);
+            noalias(r_metric) = MetricsMathUtils<TDim>::IntersectMetrics(r_old_metric, new_metric);
         } else {
-            metric = ComputeHessianMetricTensor<TDim>(hessian, ratio, element_min_size, element_max_size, nodal_h);
+            noalias(r_metric) = ComputeHessianMetricTensor<TDim>(r_hessian, ratio, element_min_size, element_max_size, nodal_h);
         }
     }
 }
@@ -424,7 +422,13 @@ Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
     {
         "minimal_size"                        : 0.1,
         "maximal_size"                        : 10.0,
-        "enforce_current"                     : true,
+        "sizing_parameters":
+        {
+            "reference_variable_name"          : "DISTANCE",
+            "boundary_layer_max_distance"      : 1.0,
+            "interpolation"                    : "constant"
+        },
+        "enforce_current"                     : false,
         "hessian_strategy_parameters":
         {
             "metric_variable"                  : ["DISTANCE"],
@@ -438,8 +442,9 @@ Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
             "reference_variable_name"              : "DISTANCE",
             "hmin_over_hmax_anisotropic_ratio"     : 1.0,
             "boundary_layer_max_distance"          : 1.0,
-            "interpolation"                        : "Linear"
-        }
+            "interpolation"                        : "linear"
+        },
+        "ponderation_value"                   : 1.0
     })" );
 
     // Identify the dimension first

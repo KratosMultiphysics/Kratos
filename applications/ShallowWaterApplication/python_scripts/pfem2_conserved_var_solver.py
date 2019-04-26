@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 
 ## Import base class file
-from pfem2_primitive_var_solver import Pfem2PrimitiveVarSolver
+from KratosMultiphysics.ShallowWaterApplication.pfem2_primitive_var_solver import Pfem2PrimitiveVarSolver
 
 def CreateSolver(model, custom_settings):
     return Pfem2ConservedVarSolver(model, custom_settings)
@@ -30,7 +30,7 @@ class Pfem2ConservedVarSolver(Pfem2PrimitiveVarSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Y, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(Shallow.HEIGHT, self.main_model_part)
 
-        self.print_on_rank_zero("::[Pfem2ConservedVarSolver]::", "Shallow water solver DOFs added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("::[Pfem2ConservedVarSolver]::", "Shallow water solver DOFs added correctly.")
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():

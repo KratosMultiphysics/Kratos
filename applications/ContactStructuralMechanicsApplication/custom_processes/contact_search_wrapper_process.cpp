@@ -117,8 +117,6 @@ Parameters ContactSearchWrapperProcess::GetDefaultParameters()
         "predict_correct_lagrange_multiplier"  : false,
         "debug_mode"                           : false,
         "octree_search_parameters" : {
-            "scale_factor"           : [1.0, 1.0, 1.0],
-            "offset"                 : [0.0, 0.0, 0.0],
             "bounding_box_factor"    : 0.1,
             "debug_obb"              : false
             }

@@ -140,6 +140,14 @@ Element::Pointer AdjointSolidElement<TPrimalElement>::Create(IndexType NewId,
 }
 
 template <class TPrimalElement>
+Element::Pointer AdjointSolidElement<TPrimalElement>::Create(IndexType NewId,
+                                                             GeometryType::Pointer pGeom,
+                                                             PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_shared<AdjointSolidElement<TPrimalElement>>(NewId, pGeom, pProperties);
+}
+
+template <class TPrimalElement>
 void AdjointSolidElement<TPrimalElement>::Initialize()
 {
     KRATOS_TRY;
@@ -312,7 +320,7 @@ int AdjointSolidElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProces
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
     }
-    return mPrimalElement.Check(rCurrentProcessInfo);
+    return 0;
     KRATOS_CATCH("");
 }
 

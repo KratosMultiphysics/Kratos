@@ -9,15 +9,15 @@
 //  Main authors:    Marcelo Raschi
 //  Collaborator:
 
-#if !defined(KRATOS_LINEAR_ISOTROPIC_DAMAGE_3D_LAW_H_INCLUDED)
-#define KRATOS_LINEAR_ISOTROPIC_DAMAGE_3D_LAW_H_INCLUDED
+#if !defined(KRATOS_SMALL_STRAIN_ISOTROPIC_DAMAGE_3D_LAW_H_INCLUDED)
+#define KRATOS_SMALL_STRAIN_ISOTROPIC_DAMAGE_3D_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
+#include "elastic_isotropic_3d.h"
 
 namespace Kratos
 {
@@ -41,7 +41,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class LinearIsotropicDamage3D
+ * @class SmallStrainIsotropicDamage3D
  * @ingroup StructuralMechanicsApplication
  * @brief Defines a damage with hardening/softening constitutive law in 3D
  * @details This material law is defined by the parameters:
@@ -49,13 +49,13 @@ namespace Kratos
  * - POISSON_RATIO
  * - YIELD_STRESS
  * - INFINITY_YIELD_STRESS
- * - ISOTROPIC_HARDENING_MODULUS
+ * - HARDENING_MODULI_VECTOR: List of hardening modules (only two branches considered)
  * @warning Valid for small strains
  * @note
  * @author Marcelo Raschi
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicDamage3D
-    : public ConstitutiveLaw
+    : public ElasticIsotropic3D
 
 {
 public:
@@ -109,22 +109,6 @@ public:
     void GetLawFeatures(Features& rFeatures) override;
 
     /**
-     * @brief Dimension of the law:
-     */
-    SizeType WorkingSpaceDimension() override
-    {
-        return 3;
-    };
-
-    /**
-     * @brief Voigt tensor size:
-     */
-    SizeType GetStrainSize() override
-    {
-        return 6;
-    };
-
-    /**
      * @brief Returns whether this constitutive Law has specified variable (bool)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
@@ -161,13 +145,6 @@ public:
                             const Vector& rShapeFunctionsValues) override;
 
     /**
-     * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void CalculateMaterialResponsePK1(Parameters& rValues) override;
-
-    /**
      * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
@@ -175,67 +152,11 @@ public:
     void CalculateMaterialResponsePK2(Parameters& rValues) override;
 
     /**
-     * @brief Computes the material response in terms of Kirchhoff stresses and constitutive tensor
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void CalculateMaterialResponseKirchhoff(Parameters& rValues) override;
-
-    /**
-     * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void CalculateMaterialResponseCauchy(Parameters& rValues) override;
-
-    /**
-     * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Initialize the material response in terms of Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
      * @brief Initialize the material response in terms of Cauchy stresses
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
      */
     void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void FinalizeMaterialResponsePK1(Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void FinalizeMaterialResponsePK2(Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void FinalizeMaterialResponseKirchhoff(Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of Cauchy stresses
@@ -278,7 +199,7 @@ public:
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {
-        rOStream << "Linear Isotropic Damage 3D constitutive law\n";
+        rOStream << "Small Strain Isotropic Damage 3D constitutive law\n";
     };
 
 protected:
@@ -306,17 +227,36 @@ protected:
      * @param rStrainVariable
      */
     virtual void CalculateStressResponse(
-            ConstitutiveLaw::Parameters& rValues,
-            double& rStrainVariable);
-
-    double EvaluateHardeningLaw(double StrainVariable, const Properties &rMaterialProperties);
+            ConstitutiveLaw::Parameters &rValues,
+            double &rStrainVariable);
 
     /**
-     * @brief This method computes the constitutive tensor
-     * @param rMaterialProperties The properties of the material
-     * @param rElasticMatrix The elastic tensor/matrix to be computed
+     * @brief This method computes the positive stress vector, which in the traction-only model, is different from the stress vector.
+     * @param rStressVectorPos
+     * @param rStressVector
      */
-    virtual void CalculateElasticMatrix(const Properties &rMaterialProperties, Matrix &rElasticMatrix);
+    virtual void ComputePositiveStressVector(
+            Vector& rStressVectorPos,
+            Vector& rStressVector);
+
+    /**
+     * @brief Computes H(r), the hardening module value as a function of the strain variable
+     * @param StrainVariable The properties of the material
+     * @param rMaterialProperties The elastic tensor/matrix to be computed
+     */
+    double EvaluateHardeningModulus(
+            double StrainVariable,
+            const Properties &rMaterialProperties);
+
+    /**
+     * @brief Computes q(r), the hardening law value as a function of the strain variable
+     * @param StrainVariable The properties of the material
+     * @param rMaterialProperties The elastic tensor/matrix to be computed
+     */
+    double EvaluateHardeningLaw(
+            double StrainVariable,
+            const Properties &rMaterialProperties);
+
     ///@}
 
 private:
