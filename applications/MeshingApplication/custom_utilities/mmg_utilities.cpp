@@ -242,9 +242,10 @@ IndexVectorType MmgUtilities<TMMGLibrary>::FindDuplicateNodeIds(ModelPart& rMode
         for(IndexType i_coord = 0; i_coord < Dimension; i_coord++)
             coords[i_coord] = r_coordinates[i_coord];
 
-        node_map[coords] += 1;
+        auto& r_count = node_map[coords];
+        r_count += 1;
 
-        if (node_map[coords] > 1) {
+        if (r_count > 1) {
             nodes_to_remove_ids.push_back(it_node->Id());
             KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 0) << "The mode " << it_node->Id() <<  " is repeated"<< std::endl;
         }
@@ -278,9 +279,10 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckFirstTypeConditions()
         //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
         std::sort(ids.begin(), ids.end());
 
-        edge_map[ids] += 1;
+        auto& r_count = edge_map[ids];
+        r_count += 1;
 
-        if (edge_map[ids] > 1)
+        if (r_count > 1)
             conditions_to_remove.push_back(i + 1);
     }
 
@@ -312,9 +314,10 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckFirstTypeConditions()
         //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
         std::sort(ids_triangles.begin(), ids_triangles.end());
 
-        triangle_map[ids_triangles] += 1;
+        auto& r_count = triangle_map[ids_triangles];
+        r_count += 1;
 
-        if (triangle_map[ids_triangles] > 1)
+        if (r_count > 1)
             conditions_to_remove.push_back(i + 1);
     }
 
@@ -346,9 +349,10 @@ IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckFirstTypeConditions()
         //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
         std::sort(ids.begin(), ids.end());
 
-        edge_map[ids] += 1;
+        auto& r_count = edge_map[ids];
+        r_count += 1;
 
-        if (edge_map[ids] > 1)
+        if (r_count > 1)
             conditions_to_remove.push_back(i + 1);
     }
 
@@ -392,9 +396,10 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckSecondTypeConditions()
         //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
         std::sort(ids_quadrialteral.begin(), ids_quadrialteral.end());
 
-        quadrilateral_map[ids_quadrialteral] += 1;
+        auto& r_count = quadrilateral_map[ids_quadrialteral];
+        r_count += 1;
 
-        if (quadrilateral_map[ids_quadrialteral] > 1)
+        if (r_count > 1)
             conditions_to_remove.push_back(i + 1);
     }
 
@@ -438,9 +443,10 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckFirstTypeElements()
         //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
         std::sort(ids_triangles.begin(), ids_triangles.end());
 
-        triangle_map[ids_triangles] += 1;
+        auto& r_count = triangle_map[ids_triangles];
+        r_count += 1;
 
-        if (triangle_map[ids_triangles] > 1)
+        if (r_count > 1)
             elements_to_remove.push_back(i + 1);
     }
 
@@ -473,9 +479,10 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckFirstTypeElements()
         //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
         std::sort(ids_tetrahedron.begin(), ids_tetrahedron.end());
 
-        triangle_map[ids_tetrahedron] += 1;
+        auto& r_count = triangle_map[ids_tetrahedron];
+        r_count += 1;
 
-        if (triangle_map[ids_tetrahedron] > 1)
+        if (r_count > 1)
             elements_to_remove.push_back(i + 1);
     }
 
@@ -508,9 +515,10 @@ IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckFirstTypeElements()
         //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
         std::sort(ids_triangles.begin(), ids_triangles.end());
 
-        triangle_map[ids_triangles] += 1;
+        auto& r_count = triangle_map[ids_triangles];
+        r_count += 1;
 
-        if (triangle_map[ids_triangles] > 1)
+        if (r_count > 1)
             elements_to_remove.push_back(i + 1);
     }
 
@@ -555,9 +563,10 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckSecondTypeElements()
         //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
         std::sort(ids_prisms.begin(), ids_prisms.end());
 
-        prism_map[ids_prisms] += 1;
+        auto& r_count = prism_map[ids_prisms];
+        r_count += 1;
 
-        if (prism_map[ids_prisms] > 1)
+        if (r_count > 1)
             elements_to_remove.push_back(i + 1);
     }
 
