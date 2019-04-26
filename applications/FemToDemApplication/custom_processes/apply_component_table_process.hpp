@@ -120,10 +120,13 @@ public:
         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
         component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
         
-        // const double Time = mr_model_part.GetProcessInfo()[TIME] / mTimeUnitConverter;
-        const double Time = mr_model_part.GetProcessInfo()[TIME];
-        double value = mpTable->GetValue(Time);
-        KRATOS_WATCH(mTimeUnitConverter)
+        double time;
+        if (mTimeUnitConverter != 0) {
+            time = mr_model_part.GetProcessInfo()[TIME] / mTimeUnitConverter;
+        } else {
+            time = mr_model_part.GetProcessInfo()[TIME];
+        }
+        double value = mpTable->GetValue(time);
         
         const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
 

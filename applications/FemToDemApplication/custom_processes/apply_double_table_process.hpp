@@ -72,8 +72,13 @@ public:
         
         Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
         
-        const double Time = mr_model_part.GetProcessInfo()[TIME]/mTimeUnitConverter;
-        double value = mpTable->GetValue(Time);
+        double time;
+        if (mTimeUnitConverter != 0) {
+            time = mr_model_part.GetProcessInfo()[TIME] / mTimeUnitConverter;
+        } else {
+            time = mr_model_part.GetProcessInfo()[TIME];
+        }
+        double value = mpTable->GetValue(time);
         
         const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
 
