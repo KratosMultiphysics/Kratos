@@ -242,6 +242,37 @@ template<> struct SendTools< Kratos::VariablesListDataValueContainer >
     }
 };
 
+template<> struct SendTools< Node<3>::DofsContainerType >
+{
+    typedef int SendType;
+    constexpr static bool IsFixedSize = false;
+
+    static inline std::size_t GetSendSize(const Node<3>::DofsContainerType& rValue)
+    {
+        return rValue.size();
+    }
+
+    static inline void WriteBuffer(const Node<3>::DofsContainerType& rValue, SendType* pBuffer)
+    {
+        unsigned int i = 0;
+        for (auto i_dof = rValue.begin(); i_dof != rValue.end(); ++i_dof)
+        {
+            *(pBuffer + i) = i_dof->EquationId();
+            ++i;
+        }
+    }
+
+    static inline void ReadBuffer(const SendType* pBuffer, Node<3>::DofsContainerType& rValue)
+    {
+        unsigned int i = 0;
+        for (auto i_dof = rValue.begin(); i_dof != rValue.end(); ++i_dof)
+        {
+            i_dof->SetEquationId(*(pBuffer + i));
+            ++i;
+        }
+    }
+};
+
 template<
     class TAccess,
     bool IsFixedSize = SendTools<typename TAccess::ValueType>::IsFixedSize >
@@ -432,6 +463,38 @@ ValueType& GetValue(IteratorType& iter)
 const ValueType& GetValue(const ConstIteratorType& iter)
 {
     return iter->SolutionStepData();
+}
+
+};
+
+class DofIdAccess
+{
+public:
+
+using ValueType = Node<3>::DofsContainerType;
+using SendType = typename SendTools<ValueType>::SendType;
+using ContainerType = Communicator::MeshType::NodesContainerType;
+using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
+using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
+
+ContainerType& GetContainer(Communicator::MeshType& rMesh)
+{
+    return rMesh.Nodes();
+}
+
+const ContainerType& GetContainer(const Communicator::MeshType& rMesh)
+{
+    return rMesh.Nodes();
+}
+
+ValueType& GetValue(IteratorType& iter)
+{
+    return iter->GetDofs();
+}
+
+const ValueType& GetValue(const ConstIteratorType& iter)
+{
+    return iter->GetDofs();
 }
 
 };
@@ -705,67 +768,12 @@ public:
 
     bool SynchronizeDofs() override
     {
-        int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+        MPIInternals::DofIdAccess dof_id_access;
 
-        int destination = 0;
-
-        NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
-
-        for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
-            if ((destination = neighbours_indices[i_color]) >= 0)
-            {
-                NodesContainerType& r_local_nodes = LocalMesh(i_color).Nodes();
-                NodesContainerType& r_ghost_nodes = GhostMesh(i_color).Nodes();
-
-                // Calculating send and received buffer size
-                unsigned int send_buffer_size = 0;
-                unsigned int receive_buffer_size = 0;
-
-                for (NodesContainerType::iterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
-                    send_buffer_size += i_node->GetDofs().size();
-
-                for (NodesContainerType::iterator i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
-                    receive_buffer_size += i_node->GetDofs().size();
-
-                unsigned int position = 0;
-                int* send_buffer = new int[send_buffer_size];
-                int* receive_buffer = new int[receive_buffer_size];
-
-
-                // Filling the buffer
-                for (ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
-                    for (ModelPart::NodeType::DofsContainerType::iterator i_dof = i_node->GetDofs().begin(); i_dof != i_node->GetDofs().end(); i_dof++)
-                    {
-                        send_buffer[position++] = i_dof->EquationId();
-                    }
-
-
-                MPI_Status status;
-
-                if (position > send_buffer_size)
-                    std::cout << rank << " Error in estimating send buffer size...." << std::endl;
-
-
-                int send_tag = i_color;
-                int receive_tag = i_color;
-
-                MPI_Sendrecv(send_buffer, send_buffer_size, MPI_INT, destination, send_tag, receive_buffer, receive_buffer_size, MPI_INT, destination, receive_tag,
-                             MPI_COMM_WORLD, &status);
-
-                // Updating nodes
-                position = 0;
-                for (ModelPart::NodeIterator i_node = GhostMesh(i_color).NodesBegin();
-                        i_node != GhostMesh(i_color).NodesEnd(); i_node++)
-                    for (ModelPart::NodeType::DofsContainerType::iterator i_dof = i_node->GetDofs().begin(); i_dof != i_node->GetDofs().end(); i_dof++)
-                        i_dof->SetEquationId(receive_buffer[position++]);
-
-                if (position > receive_buffer_size)
-                    std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
-
-                delete [] send_buffer;
-                delete [] receive_buffer;
-            }
+        TransferDistributedValues(local_meshes, ghost_meshes, dof_id_access, replace);
 
         return true;
     }
