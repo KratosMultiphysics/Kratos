@@ -29,9 +29,8 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/stream_serializer.h"
+#include "mpi/mpi_environment.h"
 #include "mpi/includes/mpi_data_communicator.h"
-
-#include "utilities/openmp_utils.h"
 
 #define CUSTOMTIMER 1
 
@@ -1526,11 +1525,10 @@ private:
     template<class TObjectType>
     bool AsyncSendAndReceiveObjects(std::vector<TObjectType>& SendObjects, std::vector<TObjectType>& RecvObjects, Kratos::Serializer& externParticleSerializer)
     {
-        int mpi_rank;
-        int mpi_size;
+        int mpi_rank = mrDataCommunicator.Rank();
+        int mpi_size = mrDataCommunicator.Size();
 
-        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+        MPI_Comm comm = MPIEnvironment::GetMPICommunicator(mrDataCommunicator);
 
         int * msgSendSize = new int[mpi_size];
         int * msgRecvSize = new int[mpi_size];
@@ -1563,7 +1561,7 @@ private:
             }
         }
 
-        MPI_Alltoall(msgSendSize,1,MPI_INT,msgRecvSize,1,MPI_INT,MPI_COMM_WORLD);
+        MPI_Alltoall(msgSendSize,1,MPI_INT,msgRecvSize,1,MPI_INT,comm);
 
         int NumberOfCommunicationEvents      = 0;
         int NumberOfCommunicationEventsIndex = 0;
@@ -1584,22 +1582,21 @@ private:
             {
                 message[i] = (char *)malloc(sizeof(char) * msgRecvSize[i]);
 
-                MPI_Irecv(message[i],msgRecvSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                MPI_Irecv(message[i],msgRecvSize[i],MPI_CHAR,i,0,comm,&reqs[NumberOfCommunicationEventsIndex++]);
             }
 
             if(i != mpi_rank && msgSendSize[i])
             {
-                MPI_Isend(mpi_send_buffer[i],msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                MPI_Isend(mpi_send_buffer[i],msgSendSize[i],MPI_CHAR,i,0,comm,&reqs[NumberOfCommunicationEventsIndex++]);
             }
         }
 
         //wait untill all communications finish
         int err = MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
 
-        if(err != MPI_SUCCESS)
-            KRATOS_THROW_ERROR(std::runtime_error,"Error in mpi_communicator","")
+        KRATOS_ERROR_IF(err != MPI_SUCCESS) << "Error in MPICommunicator asynchronous data transfer" << std::endl;
 
-        MPI_Barrier(MPI_COMM_WORLD);
+        mrDataCommunicator.Barrier();
 
         for(int i = 0; i < mpi_size; i++)
         {
@@ -1622,7 +1619,7 @@ private:
                 particleSerializer.load("ObjectList",RecvObjects[i].GetContainer());
             }
 
-            MPI_Barrier(MPI_COMM_WORLD);
+            mrDataCommunicator.Barrier();
         }
 
         // Free buffers
