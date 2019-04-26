@@ -149,7 +149,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
                 if (integration_points_number == number_of_nodes) {
                     MathUtils<double>::InvertMatrix(shape_function_matrix, node_coefficient, det);
                 } else { // TODO: Try to use the QR utility
-                    KRATOS_WARNING_IF("IntegrationValuesExtrapolationToNodesProcess", mEchoLevel > 0) << "Number of integration points higher than the number of nodes in element: " << it_elem->Id() << ". This is costly and could lose accuracy" << std::endl;
+                    KRATOS_WARNING_IF("IntegrationValuesExtrapolationToNodesProcess", mEchoLevel > 0) << "Number of integration points higher or lower than the number of nodes in element: " << it_elem->Id() << ". This is costly and could lose accuracy" << std::endl;
                     MathUtils<double>::GeneralizedInvertMatrix(shape_function_matrix, node_coefficient, det);
                 }
             }
@@ -237,7 +237,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
         auto it_node = it_node_begin + i;
 
         const double average_variable_value = it_node->GetValue(*mpAverageVariable);
-        const double coeff_coincident_node = average_variable_value > std::numeric_limits<double>::epsilon() ? 1.0/it_node->GetValue(*mpAverageVariable) : 1.0;
+        const double coeff_coincident_node = average_variable_value > std::numeric_limits<double>::epsilon() ? 1.0/average_variable_value : 1.0;
 
         // We initialize the doubles values
         for ( const auto p_var : mDoubleVariable) {
