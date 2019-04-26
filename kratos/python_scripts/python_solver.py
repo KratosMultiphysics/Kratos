@@ -214,6 +214,9 @@ class PythonSolver(object):
         KratosMultiphysics.Logger.PrintWarning(" ".join(map(str,args)))
 
     def validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
+        from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+        IssueDeprecationWarning('PythonSolver', '"validate_and_transfer_matching_settings" is deprecated, please use the functionalities provided by "GetDefaultSettings"')
+
         """Transfer matching settings from origin to destination.
 
         If a name in origin matches a name in destination, then the setting is
