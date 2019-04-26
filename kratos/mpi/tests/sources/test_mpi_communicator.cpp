@@ -178,7 +178,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeAnd, KratosMPICoreFastSuite)
     KRATOS_CHECK_EQUAL(r_center.Is(PERIODIC), rank_is_even); // This one should be left untouched
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataAssembly, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableAssembly, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -281,7 +281,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataAssembly, KratosMP
     KRATOS_CHECK_EQUAL(r_assembled_ghost_matrix(2,0), 1.0*expected_int);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchronize, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSynchronize, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -519,7 +519,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataSynchronize, KratosMPICoreFast
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSyncToMin, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSyncToMin, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
@@ -553,6 +553,66 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSyncToMin, KratosM
     KRATOS_CHECK_EQUAL(r_center.FastGetSolutionStepValue(TEMPERATURE,0), 0.0);
     KRATOS_CHECK_EQUAL( r_local.FastGetSolutionStepValue(TEMPERATURE,0), expected_local);
     KRATOS_CHECK_EQUAL( r_ghost.FastGetSolutionStepValue(TEMPERATURE,0), expected_ghost);
+}
+
+
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchronize, KratosMPICoreFastSuite)
+{
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+    r_model_part.AddNodalSolutionStepVariable(DOMAIN_SIZE);           // Variable<int>
+    r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);           // Variable<double>
+    r_model_part.AddNodalSolutionStepVariable(VELOCITY);              // Variable< array_1d<double,3> >
+    r_model_part.AddNodalSolutionStepVariable(CAUCHY_STRESS_VECTOR);  // Variable<Vector>
+    r_model_part.AddNodalSolutionStepVariable(DEFORMATION_GRADIENT);  // Variable<Matrix>
+
+    MPIDataCommunicator comm_world(MPI_COMM_WORLD);
+    Internals::ModelPartForMPICommunicatorTests(r_model_part, comm_world);
+
+    Communicator& r_comm = r_model_part.GetCommunicator();
+    ModelPart::NodesContainerType& r_local_nodes = r_comm.LocalMesh().Nodes();
+    for (auto i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
+    {
+        i_node->FastGetSolutionStepValue(DOMAIN_SIZE, 0) = 1;
+        i_node->FastGetSolutionStepValue(TEMPERATURE, 0) = 2.0;
+        i_node->FastGetSolutionStepValue(VELOCITY_X, 0) = 1.0;
+        i_node->FastGetSolutionStepValue(VELOCITY_Y, 0) = 2.0;
+        /*Vector& r_cauchy_stress = i_node->FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR, 0);
+        r_cauchy_stress.resize(2, false);
+        r_cauchy_stress = ZeroVector(2);
+        r_cauchy_stress[1] = 1.0;
+        Matrix& r_deformation_gradient = i_node->FastGetSolutionStepValue(DEFORMATION_GRADIENT, 0);
+        r_deformation_gradient.resize(3,2,false);
+        r_deformation_gradient = ZeroMatrix(3,2);
+        r_deformation_gradient(2,1) = 1.0;*/
+    }
+
+    // NodalSolutionStepData synchronization should also update old time steps.
+    r_model_part.CloneTimeStep(1.0);
+
+    r_comm.SynchronizeNodalSolutionStepsData();
+
+    for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
+    {
+        for (unsigned int step = 0; step < 2; step++)
+        {
+            KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(DOMAIN_SIZE,step), 1);
+            KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(TEMPERATURE,step), 2.0);
+            KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(VELOCITY_X,step), 1.0);
+            KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(VELOCITY_Y,step), 2.0);
+            KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(VELOCITY_Z,step), 0.0);
+            /*const auto& r_vector = i_node->FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR,step);
+            KRATOS_CHECK_EQUAL(r_vector.size(), 2);
+            KRATOS_CHECK_EQUAL(r_vector[0], 0.0);
+            KRATOS_CHECK_EQUAL(r_vector[1], 1.0);
+            const auto& r_matrix = i_node->FastGetSolutionStepValue(DEFORMATION_GRADIENT,step);
+            KRATOS_CHECK_EQUAL(r_matrix.size1(), 3);
+            KRATOS_CHECK_EQUAL(r_matrix.size2(), 2);
+            KRATOS_CHECK_EQUAL(r_matrix(0,0), 0.0);
+            KRATOS_CHECK_EQUAL(r_matrix(2,1), 1.0);*/
+        }
+    }
 }
 
 }
