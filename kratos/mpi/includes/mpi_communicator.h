@@ -449,11 +449,10 @@ const ValueType& GetValue(const ConstIteratorType& iter)
     return iter->SolutionStepData();
 }
 
-void SetValue(IteratorType& iter, const ValueType& rValue)
+void SetValue(IteratorType& iter, const ValueType* pBuffer)
 {
-
-    //                std::memcpy(i_node->SolutionStepData().Data(), receive_buffer + position, nodal_data_size * sizeof (double));
-    //iter->AssignFlags(rValue);
+    auto& nodal_data = iter->SolutionStepData();
+    std::memcpy(nodal_data.Data(), pBuffer, nodal_data.TotalSize()*sizeof(double));
 }
 
 };
@@ -1891,66 +1890,100 @@ private:
         return GhostMesh(Color);
     }
 
-    template<typename TValue, class TDatabaseAccess>
-    void ReduceValues(
-        const TValue& rRecvValue,
+    template<class TDatabaseAccess>
+    std::size_t ReduceValues(
+        const typename TDatabaseAccess::SendType* pBuffer,
         TDatabaseAccess Access,
         typename TDatabaseAccess::IteratorType ContainerIterator,
         Operation<OperationType::Replace>)
     {
-        Access.SetValue(ContainerIterator, rRecvValue);
+        // Replace the value by reading the sent buffer in place.
+        // Note that dynamic types are assumed to already have the
+        // correct size (communicated in advance, if necessary).
+        using ValueType = typename TDatabaseAccess::ValueType;
+        auto& r_destination = Access.GetValue(ContainerIterator);
+        MPIInternals::SendTools<ValueType>::ReadBuffer(pBuffer, r_destination);
+
+        return MPIInternals::BufferAllocation<TDatabaseAccess>::GetSize(r_destination);
     }
 
-    template<typename TValue, class TDatabaseAccess>
-    void ReduceValues(
-        const TValue& rRecvValue,
+    template<class TDatabaseAccess>
+    std::size_t ReduceValues(
+        const typename TDatabaseAccess::SendType* pBuffer,
         TDatabaseAccess Access,
         typename TDatabaseAccess::IteratorType ContainerIterator,
         Operation<OperationType::SumValues>)
     {
-        Access.GetValue(ContainerIterator) += rRecvValue;
+        using ValueType = typename TDatabaseAccess::ValueType;
+        ValueType& r_current = Access.GetValue(ContainerIterator);
+        ValueType recv_value(r_current); // creating by copy to have the correct size in dynamic types
+        MPIInternals::SendTools<ValueType>::ReadBuffer(pBuffer, recv_value);
+        r_current += recv_value;
+
+        return MPIInternals::BufferAllocation<TDatabaseAccess>::GetSize(recv_value);
     }
 
-    template<typename TValue, class TDatabaseAccess>
-    void ReduceValues(
-        const TValue& rRecvValue,
+    template<class TDatabaseAccess>
+    std::size_t ReduceValues(
+        const typename TDatabaseAccess::SendType* pBuffer,
         TDatabaseAccess Access,
         typename TDatabaseAccess::IteratorType ContainerIterator,
         Operation<OperationType::MinValues>)
     {
-        TValue& r_current = Access.GetValue(ContainerIterator);
-        if (rRecvValue < r_current) r_current = rRecvValue;
+        using ValueType = typename TDatabaseAccess::ValueType;
+        ValueType& r_current = Access.GetValue(ContainerIterator);
+        ValueType recv_value(r_current); // creating by copy to have the correct size in dynamic types
+        MPIInternals::SendTools<ValueType>::ReadBuffer(pBuffer, recv_value);
+        if (recv_value < r_current) r_current = recv_value;
+
+        return MPIInternals::BufferAllocation<TDatabaseAccess>::GetSize(recv_value);
     }
 
-    template<typename TValue, class TDatabaseAccess>
-    void ReduceValues(
-        const TValue& rRecvValue,
+    template<class TDatabaseAccess>
+    std::size_t ReduceValues(
+        const typename TDatabaseAccess::SendType* pBuffer,
         TDatabaseAccess Access,
         typename TDatabaseAccess::IteratorType ContainerIterator,
         Operation<OperationType::AndMaskedFlags>)
     {
-        Access.GetValue(ContainerIterator) &= rRecvValue | ~Access.mrMask;
+        using ValueType = typename TDatabaseAccess::ValueType;
+        ValueType recv_value;
+        MPIInternals::SendTools<ValueType>::ReadBuffer(pBuffer, recv_value);
+        Access.GetValue(ContainerIterator) &= recv_value | ~Access.mrMask;
+
+        return MPIInternals::BufferAllocation<TDatabaseAccess>::GetSize(recv_value);
     }
 
-    template<typename TValue, class TDatabaseAccess>
-    void ReduceValues(
-        const TValue& rRecvValue,
+    template<class TDatabaseAccess>
+    std::size_t ReduceValues(
+        const typename TDatabaseAccess::SendType* pBuffer,
         TDatabaseAccess Access,
         typename TDatabaseAccess::IteratorType ContainerIterator,
         Operation<OperationType::OrMaskedFlags>)
     {
-        Access.GetValue(ContainerIterator) |= rRecvValue & Access.mrMask;
+        using ValueType = typename TDatabaseAccess::ValueType;
+        ValueType recv_value;
+        MPIInternals::SendTools<ValueType>::ReadBuffer(pBuffer, recv_value);
+        Access.GetValue(ContainerIterator) |= recv_value & Access.mrMask;
+
+        return MPIInternals::BufferAllocation<TDatabaseAccess>::GetSize(recv_value);
     }
 
-    template<typename TValue, class TDatabaseAccess>
-    void ReduceValues(
-        const TValue& rRecvValue,
+    template<class TDatabaseAccess>
+    std::size_t ReduceValues(
+        const typename TDatabaseAccess::SendType* pBuffer,
         TDatabaseAccess Access,
         typename TDatabaseAccess::IteratorType ContainerIterator,
         Operation<OperationType::ReplaceMaskedFlags>)
     {
-        TValue& r_current = Access.GetValue(ContainerIterator);
-        r_current.AssignFlags( (rRecvValue & Access.mrMask) | (r_current & ~Access.mrMask) );
+        using ValueType = typename TDatabaseAccess::ValueType;
+        ValueType recv_value;
+        MPIInternals::SendTools<ValueType>::ReadBuffer(pBuffer, recv_value);
+
+        ValueType& r_current = Access.GetValue(ContainerIterator);
+        r_current.AssignFlags( (recv_value & Access.mrMask) | (r_current & ~Access.mrMask) );
+
+        return MPIInternals::BufferAllocation<TDatabaseAccess>::GetSize(recv_value);
     }
 
     template<
@@ -2047,10 +2080,7 @@ private:
 
         for (auto iter = r_container.begin(); iter != r_container.end(); ++iter)
         {
-            TValue recv_data = Access.GetValue(iter); // copying: dynamic types need correct size here
-            MPIInternals::SendTools<TValue>::ReadBuffer(p_buffer + position, recv_data);
-            ReduceValues(recv_data, Access, iter, Operation);
-            position += MPIInternals::BufferAllocation<TDatabaseAccess>::GetSize(recv_data);
+            position += ReduceValues(p_buffer + position, Access, iter, Operation);
         }
 
         KRATOS_WARNING_IF_ALL_RANKS("MPICommunicator", position > rBuffer.size())
