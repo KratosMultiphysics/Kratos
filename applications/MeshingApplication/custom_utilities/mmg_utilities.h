@@ -587,7 +587,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    SizeType mEchoLevel = 0;
+    SizeType mEchoLevel = 0; /// The echo level of the utilities
 
     ///@}
     ///@name Private Operators
