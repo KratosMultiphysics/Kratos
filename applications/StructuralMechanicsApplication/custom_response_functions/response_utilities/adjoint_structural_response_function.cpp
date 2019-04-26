@@ -49,8 +49,8 @@ namespace Kratos
 
         if(mGradientMode == 1)
         {
-            double delta = mResponseSettings["step_size"].GetDouble();
-            mrModelPart.GetProcessInfo()[PERTURBATION_SIZE] = delta;
+            double perturbation_size = mResponseSettings["step_size"].GetDouble();
+            mrModelPart.GetProcessInfo()[PERTURBATION_SIZE] = perturbation_size;
 
             bool adapt_perturbation_size = false;
             if(mResponseSettings.Has("adapt_step_size"))
