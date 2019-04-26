@@ -113,6 +113,7 @@ class KratosIO(CoSimulationBaseIO):
                 if not data_array.size == required_size:
                     # data_array = np.resize(data_array, (1,required_size))
                     data_array.resize(required_size, refcheck=False)
+                KratosMultiphysics.Logger.PrintInfo("Extracting Variables from::: ", model_part)
                 ExtractData(model_part, kratos_var, data_array, buffer_index)
             elif type(kratos_var) == KratosMultiphysics.Array1DVariable3:
                 domain_size = model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]

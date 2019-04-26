@@ -69,8 +69,8 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Drag Force = ', total_force[0])
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess','Side Force = ', total_force[2])
 
-        # if self.create_output_file:
-        #     with open("cl_points_with_lift.dat", 'w') as cl_file:
-        #         cl_file.write('{0:15.12f}'.format(total_force[1]/dynamic_pressure))
+        if self.create_output_file:
+            with open("cl_points_with_lift.dat", 'w') as cl_file:
+                cl_file.write('{0:15.12f}'.format(total_force[1]/dynamic_pressure))
 
 
