@@ -194,28 +194,28 @@ template<> struct SendTools< Matrix >
     }
 };
 
-template<std::size_t TDim> struct SendTools< DenseVector<array_1d<double,TDim> > >
+template<typename TVectorValue> struct SendTools< DenseVector<TVectorValue> >
 {
     typedef double SendType;
     constexpr static bool IsFixedSize = false;
 
-    static inline std::size_t GetSendSize(const DenseVector<array_1d<double,TDim>>& rValue)
+    static inline std::size_t GetSendSize(const DenseVector<TVectorValue>& rValue)
     {
-        return rValue.size()*sizeof(array_1d<double,TDim>)/sizeof(double);
+        return rValue.size()*sizeof(TVectorValue)/sizeof(double);
     }
 
-    static inline void WriteBuffer(const DenseVector<array_1d<double,TDim> >& rValue, SendType* pBuffer)
+    static inline void WriteBuffer(const DenseVector<TVectorValue>& rValue, SendType* pBuffer)
     {
-        std::memcpy(pBuffer, &(rValue.data()[0]), rValue.size()*sizeof(array_1d<double,TDim>));
+        std::memcpy(pBuffer, &(rValue.data()[0]), rValue.size()*sizeof(TVectorValue));
     }
 
-    static inline void ReadBuffer(const SendType* pBuffer, DenseVector<array_1d<double,TDim> >& rValue)
+    static inline void ReadBuffer(const SendType* pBuffer, DenseVector<TVectorValue>& rValue)
     {
         std::size_t position = 0;
         for (unsigned int i = 0; i < rValue.size(); i++)
         {
-            rValue[i] = *(reinterpret_cast<const array_1d<double,TDim>*>(pBuffer + position));
-            position += sizeof(array_1d<double,TDim>) / sizeof(double);
+            rValue[i] = *(reinterpret_cast<const TVectorValue*>(pBuffer + position));
+            position += sizeof(TVectorValue) / sizeof(double);
         }
     }
 };
@@ -494,6 +494,83 @@ ValueType& GetValue(IteratorType& iter)
 const ValueType& GetValue(const ConstIteratorType& iter)
 {
     return iter->GetDofs();
+}
+
+};
+
+template<class TValue> class ElementalDataAccess
+{
+
+const Variable<TValue>& mrVariable;
+
+public:
+
+using ValueType = TValue;
+using SendType = typename SendTools<TValue>::SendType;
+using ContainerType = Communicator::MeshType::ElementsContainerType;
+using IteratorType = Communicator::MeshType::ElementsContainerType::iterator;
+using ConstIteratorType = Communicator::MeshType::ElementsContainerType::const_iterator;
+
+ElementalDataAccess(const Variable<TValue>& mrVariable):
+    mrVariable(mrVariable)
+{}
+
+ContainerType& GetContainer(Communicator::MeshType& rMesh)
+{
+    return rMesh.Elements();
+}
+
+const ContainerType& GetContainer(const Communicator::MeshType& rMesh)
+{
+    return rMesh.Elements();
+}
+
+TValue& GetValue(IteratorType& iter)
+{
+    return iter->GetValue(mrVariable);
+}
+
+const TValue& GetValue(const ConstIteratorType& iter)
+{
+    return iter->GetValue(mrVariable);
+}
+
+};
+
+class ElementalFlagsAccess
+{
+public:
+
+const Kratos::Flags& mrMask;
+
+using ValueType = Kratos::Flags;
+using SendType = typename SendTools<ValueType>::SendType;
+using ContainerType = Communicator::MeshType::ElementsContainerType;
+using IteratorType = Communicator::MeshType::ElementsContainerType::iterator;
+using ConstIteratorType = Communicator::MeshType::ElementsContainerType::const_iterator;
+
+ElementalFlagsAccess(const Kratos::Flags& rMask):
+    mrMask(rMask)
+{}
+
+ContainerType& GetContainer(Communicator::MeshType& rMesh)
+{
+    return rMesh.Elements();
+}
+
+const ContainerType& GetContainer(const Communicator::MeshType& rMesh)
+{
+    return rMesh.Elements();
+}
+
+Kratos::Flags& GetValue(IteratorType& iter)
+{
+    return *iter;
+}
+
+const Kratos::Flags& GetValue(const ConstIteratorType& iter)
+{
+    return *iter;
 }
 
 };
@@ -933,43 +1010,50 @@ public:
 
     bool SynchronizeElementalNonHistoricalVariable(Variable<int> const& ThisVariable) override
     {
-        SynchronizeElementalNonHistoricalVariable<int,int>(ThisVariable);
+        MPIInternals::ElementalDataAccess<int> elemental_data_access(ThisVariable);
+        SynchronizeFixedSizeValues(elemental_data_access);
         return true;
     }
 
     bool SynchronizeElementalNonHistoricalVariable(Variable<double> const& ThisVariable) override
     {
-        SynchronizeElementalNonHistoricalVariable<double,double>(ThisVariable);
+        MPIInternals::ElementalDataAccess<double> elemental_data_access(ThisVariable);
+        SynchronizeFixedSizeValues(elemental_data_access);
         return true;
     }
 
     bool SynchronizeElementalNonHistoricalVariable(Variable<array_1d<double, 3 > > const& ThisVariable) override
     {
-        SynchronizeElementalNonHistoricalVariable<array_1d<double,3>,double>(ThisVariable);
+        MPIInternals::ElementalDataAccess<array_1d<double,3>> elemental_data_access(ThisVariable);
+        SynchronizeFixedSizeValues(elemental_data_access);
         return true;
     }
 
     bool SynchronizeElementalNonHistoricalVariable(Variable<DenseVector<array_1d<double,3> > > const& ThisVariable) override
     {
-        SynchronizeHeterogeneousElementalNonHistoricalVariable<array_1d<double,3>,double>(ThisVariable);
+        MPIInternals::ElementalDataAccess<DenseVector<array_1d<double,3>>> elemental_data_access(ThisVariable);
+        AssembleDynamicVectorValues(elemental_data_access);
         return true;
     }
 
     bool SynchronizeElementalNonHistoricalVariable(Variable<DenseVector<int> > const& ThisVariable) override
     {
-        SynchronizeHeterogeneousElementalNonHistoricalVariable<int,int>(ThisVariable);
+        MPIInternals::ElementalDataAccess<DenseVector<int>> elemental_data_access(ThisVariable);
+        AssembleDynamicVectorValues(elemental_data_access);
         return true;
     }
 
     bool SynchronizeElementalNonHistoricalVariable(Variable<Vector> const& ThisVariable) override
     {
-        SynchronizeHeterogeneousElementalNonHistoricalVariable<double,double>(ThisVariable);
+        MPIInternals::ElementalDataAccess<Vector> elemental_data_access(ThisVariable);
+        SynchronizeDynamicVectorValues(elemental_data_access);
         return true;
     }
 
     bool SynchronizeElementalNonHistoricalVariable(Variable<Matrix> const& ThisVariable) override
     {
-        SynchronizeElementalNonHistoricalVariable<Matrix,double>(ThisVariable);
+        MPIInternals::ElementalDataAccess<Matrix> elemental_data_access(ThisVariable);
+        SynchronizeDynamicMatrixValues(elemental_data_access);
         return true;
     }
 
@@ -1254,206 +1338,6 @@ private:
             std::cout << i_node->Id() << ", ";
 
         std::cout << std::endl;
-    }
-
-    template< class TDataType, class TSendType >
-    bool SynchronizeElementalNonHistoricalVariable(Variable<TDataType> const& ThisVariable)
-    {
-        int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-        int destination = 0;
-
-        NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
-
-        TSendType Value = TSendType();
-        MPI_Datatype ThisMPI_Datatype = MPIInternals::DataType(Value);
-
-        for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
-            if ((destination = neighbours_indices[i_color]) >= 0)
-            {
-
-                ElementsContainerType& r_local_elements = LocalMesh(i_color).Elements();
-                ElementsContainerType& r_ghost_elements = GhostMesh(i_color).Elements();
-
-                unsigned int elemental_data_size = sizeof (TDataType) / sizeof (TSendType);
-                unsigned int local_elements_size = r_local_elements.size();
-                unsigned int ghost_elements_size = r_ghost_elements.size();
-                unsigned int send_buffer_size = local_elements_size * elemental_data_size;
-                unsigned int receive_buffer_size = ghost_elements_size * elemental_data_size;
-
-                if ((local_elements_size == 0) && (ghost_elements_size == 0))
-                    continue; // nothing to transfer!
-
-                unsigned int position = 0;
-                TSendType* send_buffer = new TSendType[send_buffer_size];
-                TSendType* receive_buffer = new TSendType[receive_buffer_size];
-
-                // Filling the send buffer
-                for (ModelPart::ElementIterator i_element = r_local_elements.begin(); i_element != r_local_elements.end(); ++i_element)
-                {
-                    *(TDataType*) (send_buffer + position) = i_element->GetValue(ThisVariable);
-                    position += elemental_data_size;
-                }
-
-                MPI_Status status;
-
-                int send_tag = i_color;
-                int receive_tag = i_color;
-
-                MPI_Sendrecv(send_buffer, send_buffer_size, ThisMPI_Datatype, destination, send_tag, receive_buffer, receive_buffer_size, ThisMPI_Datatype, destination, receive_tag,
-                             MPI_COMM_WORLD, &status);
-
-                position = 0;
-                for (ModelPart::ElementIterator i_element = r_ghost_elements.begin(); i_element != r_ghost_elements.end(); ++i_element)
-                {
-                    //i_element->GetValue(ThisVariable) = *reinterpret_cast<TDataType*> (receive_buffer + position);
-                    i_element->SetValue(ThisVariable, *reinterpret_cast<TDataType*> (receive_buffer + position) );
-                    position += elemental_data_size;
-                }
-
-                if (position > receive_buffer_size)
-                    std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
-
-                delete [] send_buffer;
-                delete [] receive_buffer;
-            }
-
-        return true;
-    }
-
-
-    template< class TDataType, class TSendType >
-    bool SynchronizeHeterogeneousElementalNonHistoricalVariable(Variable<DenseVector<TDataType> > const& ThisVariable)
-    {
-        int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-        int destination = 0;
-
-        NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
-
-        for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++) {
-            if ((destination = neighbours_indices[i_color]) >= 0) {
-
-                ElementsContainerType& r_local_elements = LocalMesh(i_color).Elements();
-                ElementsContainerType& r_ghost_elements = GhostMesh(i_color).Elements();
-                unsigned int local_elements_size = r_local_elements.size();
-                unsigned int ghost_elements_size = r_ghost_elements.size();
-
-                if ((local_elements_size == 0) && (ghost_elements_size == 0))
-                    continue; // nothing to transfer!
-
-                ////////////STEP 1 : SEND SIZES OF VARIABLE OF ALL ELEMENTS
-
-                unsigned int send_buffer_size = local_elements_size;
-                unsigned int receive_buffer_size = ghost_elements_size;
-
-                int* send_buffer_1 = new int[send_buffer_size];
-                int* receive_buffer_1 = new int[receive_buffer_size];
-
-                int dummy_int_variable = 0;
-                MPI_Datatype ThisMPI_Datatype = MPIInternals::DataType(dummy_int_variable);
-
-                unsigned int size_of_variable = 0;
-
-                // Filling the send buffer of sizes
-                std::vector<int> sent_vector_of_sizes(send_buffer_size, 0);
-                unsigned int position = 0;
-                for (ModelPart::ElementIterator i_element = r_local_elements.begin(); i_element != r_local_elements.end(); ++i_element) {
-                    DenseVector<TDataType>& variable = i_element->GetValue(ThisVariable);
-                    size_of_variable = variable.size();
-                    sent_vector_of_sizes[position] = size_of_variable;
-                    send_buffer_1[position] = size_of_variable;
-                    position ++;
-                }
-
-                MPI_Status status1;
-
-                int send_tag = i_color;
-                int receive_tag = i_color;
-
-                MPI_Sendrecv(send_buffer_1, send_buffer_size, ThisMPI_Datatype, destination, send_tag, receive_buffer_1, receive_buffer_size, ThisMPI_Datatype, destination, receive_tag,
-                             MPI_COMM_WORLD, &status1);
-
-                position = 0;
-                std::vector<int> received_vector_of_sizes(receive_buffer_size, 0);
-
-                for (ModelPart::ElementIterator i_element = r_ghost_elements.begin(); i_element != r_ghost_elements.end(); ++i_element) {
-                    received_vector_of_sizes[position] = receive_buffer_1[position];
-                    position ++;
-                }
-
-                if (position > receive_buffer_size)
-                    std::cout << rank << " First step Error in estimating receive buffer size...." << std::endl;
-
-                delete [] send_buffer_1;
-                delete [] receive_buffer_1;
-
-                ////////////////////////////////////////
-                ////////////STEP 2 : SEND ACTUAL VECTORS
-                ////////////////////////////////////////
-                int size_of_each_component_of_the_vector = sizeof (TDataType) / sizeof (TSendType);
-
-                int sent_total_size = 0;
-                for (int i=0; i< (int) sent_vector_of_sizes.size(); i++) {
-                    sent_total_size += sent_vector_of_sizes[i];
-                }
-                sent_total_size *= size_of_each_component_of_the_vector;
-
-                unsigned int received_total_size = 0;
-                for (int i=0; i< (int) received_vector_of_sizes.size(); i++) {
-                    received_total_size += received_vector_of_sizes[i];
-                }
-                received_total_size *= size_of_each_component_of_the_vector;
-
-                TSendType* send_buffer_2 = new TSendType[sent_total_size];
-                TSendType* receive_buffer_2 = new TSendType[received_total_size];
-
-                // Filling the send buffer
-                int i=0;
-                position = 0;
-                for (ModelPart::ElementIterator i_element = r_local_elements.begin(); i_element != r_local_elements.end(); ++i_element) {
-
-                    int size_of_this_one = sent_vector_of_sizes[i];
-                    DenseVector<TDataType>& variable_to_add = i_element->GetValue(ThisVariable);
-
-                    for (int j=0; j<size_of_this_one; j++){
-                        *(TDataType*) (send_buffer_2 + position + size_of_each_component_of_the_vector*j) = variable_to_add[j];
-                    }
-
-                    position += size_of_each_component_of_the_vector * sent_vector_of_sizes[i];
-                    i++;
-                }
-
-                TSendType Value = TSendType();
-                ThisMPI_Datatype = MPIInternals::DataType(Value);
-
-                MPI_Status status2;
-                send_tag = i_color;
-                receive_tag = i_color;
-                MPI_Sendrecv(send_buffer_2, sent_total_size, ThisMPI_Datatype, destination, send_tag, receive_buffer_2, received_total_size, ThisMPI_Datatype, destination, receive_tag, MPI_COMM_WORLD, &status2);
-
-                position = 0, i=0;
-                for (ModelPart::ElementIterator i_element = r_ghost_elements.begin(); i_element != r_ghost_elements.end(); ++i_element) {
-                    int size_of_this_vector = received_vector_of_sizes[i];
-                    DenseVector<TDataType>& variable_to_fill = i_element->GetValue(ThisVariable);
-                    variable_to_fill.resize(size_of_this_vector);
-                    for (int j=0; j<size_of_this_vector; j++){
-                        variable_to_fill[j] = *reinterpret_cast<TDataType*> (receive_buffer_2 + position + size_of_each_component_of_the_vector*j);
-                    }
-                    position += size_of_each_component_of_the_vector * size_of_this_vector;
-                    i++;
-                }
-
-                if (position > received_total_size)
-                    std::cout << rank << " Second Step Error in estimating receive buffer size...." << std::endl;
-
-                delete [] send_buffer_2;
-                delete [] receive_buffer_2;
-            }
-        }
-        return true;
     }
 
     bool SynchronizeElementalFlags() override
