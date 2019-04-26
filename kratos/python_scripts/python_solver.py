@@ -31,7 +31,15 @@ class PythonSolver(object):
         self.model = model
         self.settings = settings
 
+        self.settings.ValidateAndAssignDefaults(self.GetDefaultSettings())
+
         self.echo_level = self.settings["echo_level"].GetInt()
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        return KratosMultiphysics.Parameters("""{
+            "echo_level" : 0
+        }""")
 
     def AddVariables(self):
         """This function add the Variables needed by this PythonSolver to the the ModelPart
