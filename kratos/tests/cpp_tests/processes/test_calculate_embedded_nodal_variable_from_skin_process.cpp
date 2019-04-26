@@ -142,12 +142,12 @@ namespace Testing {
         {
             "base_model_part_name": "Volume",
             "skin_model_part_name": "Skin",
-            "skin_variable_name": "TEMPERATURE",
-            "embedded_nodal_variable_name": "TEMPERATURE",
+            "skin_variable_name": "DISPLACEMENT",
+            "embedded_nodal_variable_name": "DISPLACEMENT",
             "level_set_type": "continuous"
         }
         )");
-        EmbeddedNodalVariableProcessDouble emb_nod_var_from_skin_proc(current_model, settings);
+        EmbeddedNodalVariableProcessArray emb_nod_var_from_skin_proc(current_model, settings);
         emb_nod_var_from_skin_proc.Execute();
         emb_nod_var_from_skin_proc.Clear();
 
