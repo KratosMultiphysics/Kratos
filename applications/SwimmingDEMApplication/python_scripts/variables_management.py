@@ -167,7 +167,7 @@ class VariablesManager:
 
             if (parameters["material_acceleration_calculation_type"].GetInt() == 5
                 or parameters["material_acceleration_calculation_type"].GetInt() == 6):
-                if parameters["store_full_gradient_option"].GetBool():
+                if parameters["store_full_gradient_option"].GetBool() or True:
                     self.fluid_vars += [Kratos.VELOCITY_X_GRADIENT]
                     self.fluid_vars += [Kratos.VELOCITY_Y_GRADIENT]
                     self.fluid_vars += [Kratos.VELOCITY_Z_GRADIENT]
@@ -421,7 +421,7 @@ class VariablesManager:
         fluid_list = self.project_parameters["fluid_nodal_results"]
         self.nodal_results.extend(key for key in fluid_list.keys() if fluid_list[key].GetBool())
 
-        if parameters["store_full_gradient_option"].GetBool() and 'VELOCITY_GRADIENT' in self.nodal_results:
+        if parameters["store_full_gradient_option"].GetBool() and 'VELOCITY_GRADIENT' in self.nodal_results or True:
             self.nodal_results += ["VELOCITY_X_GRADIENT"]
             self.nodal_results += ["VELOCITY_Y_GRADIENT"]
             self.nodal_results += ["VELOCITY_Z_GRADIENT"]

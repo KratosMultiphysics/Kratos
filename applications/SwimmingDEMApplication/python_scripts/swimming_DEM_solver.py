@@ -126,6 +126,11 @@ class SwimmingDEMSolver(PythonSolver):
 
     def ConstructDerivativeRecoverer(self):
         self.derivative_recovery_counter = self.GetRecoveryCounter()
+        self.variables_container = SDEM.RecoveryVariablesContainer()
+        self.variables_container.AddRecoveryPair('material_derivative', 'VELOCITY', 'MATERIAL_ACCELERATION')
+        self.derivative_recoverer = SDEM.StandardRecoveryUtility(self.fluid_solver.main_model_part,
+                                                                 Parameters("{}"),
+                                                                 self.variables_container)
 
         self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
             self.project_parameters,

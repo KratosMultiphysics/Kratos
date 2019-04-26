@@ -50,7 +50,6 @@ void DerivativeRecoveryUtility::Recover()
 {
 
     KRATOS_TRY;
-    std::string variable_type;
     // for (auto pair : mrVariablesContainer.GetVariables("gradient")){
     //     this->CalculateGradient(pair.first, pair.second);
     // }

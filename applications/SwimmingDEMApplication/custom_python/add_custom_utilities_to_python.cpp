@@ -342,6 +342,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     py::class_<DerivativeRecoveryUtility, DerivativeRecoveryUtility::Pointer>
         (m, "DerivativeRecoveryUtility")
         .def(py::init<ModelPart&, Parameters, RecoveryVariablesContainer&>())
+        .def("Recover", &DerivativeRecoveryUtility::Recover)
         ;
 
     py::class_<StandardRecoveryUtility, StandardRecoveryUtility::Pointer, DerivativeRecoveryUtility>
