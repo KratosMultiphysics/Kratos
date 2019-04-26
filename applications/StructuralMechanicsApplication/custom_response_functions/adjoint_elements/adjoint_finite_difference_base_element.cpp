@@ -278,7 +278,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
     KRATOS_TRY;
 
     // Get perturbation size
-    const double delta = this->GetPerturbationSize(rDesignVariable);
+    const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
     ProcessInfo process_info = rCurrentProcessInfo;
 
     Vector RHS;
@@ -305,7 +305,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
 {
     KRATOS_TRY;
 
-    const double delta = this->GetPerturbationSize(rDesignVariable);
+    const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
     ProcessInfo process_info = rCurrentProcessInfo;
 
     const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
@@ -448,7 +448,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
         StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
 
     // Get perturbation size
-    const double delta = this->GetPerturbationSize(rDesignVariable);
+    const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
 
     const SizeType stress_vector_size = stress_vector_undist.size();
     rOutput.resize(1, stress_vector_size, false);
@@ -498,7 +498,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
     Vector stress_vector_dist;
 
     // Get perturbation size
-    const double delta = this->GetPerturbationSize(rDesignVariable);
+    const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
 
     if(rDesignVariable == SHAPE_SENSITIVITY)
     {
@@ -555,10 +555,10 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
 
 // private
 template <class TPrimalElement>
-double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<double>& rDesignVariable)
+double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<double>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo)
 {
     double delta = 0.0;
-    if(this->GetValue(APPLY_ADAPTIVE_PERTURBATION))
+    if(rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE])
     {
         const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
         delta = this->GetValue(PERTURBATION_SIZE) * correction_factor;
@@ -571,10 +571,10 @@ double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize
 }
 
 template <class TPrimalElement>
-double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable)
+double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo)
 {
     double delta = 0.0;
-    if(this->GetValue(APPLY_ADAPTIVE_PERTURBATION))
+    if(rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE])
     {
         const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
         delta = this->GetValue(PERTURBATION_SIZE) * correction_factor;

@@ -458,12 +458,12 @@ private:
     /**
      * Get the perturbation size for a scalar variable
      */
-    double GetPerturbationSize(const Variable<double>& rDesignVariable);
+    double GetPerturbationSize(const Variable<double>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Get the perturbation size for a vector variable
      */
-    double GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable);
+    double GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Get the perturbation size modification factor for a scalar variable.
