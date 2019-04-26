@@ -24,6 +24,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/define_deprecated.h"
 #include "includes/node.h"
 
 #include "spatial_containers/spatial_containers.h"

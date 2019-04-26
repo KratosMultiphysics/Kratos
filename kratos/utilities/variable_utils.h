@@ -22,6 +22,7 @@
 
 /* Project includes */
 #include "includes/define.h"
+#include "includes/define_deprecated.h"
 #include "includes/model_part.h"
 #include "includes/checks.h"
 

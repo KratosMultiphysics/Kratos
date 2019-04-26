@@ -24,6 +24,7 @@
 /* External includes */
 
 /* External includes */
+#include "includes/define_deprecated.h"
 #include "input_output/logger.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
@@ -1602,7 +1603,7 @@ public:
 
         // Direct multiplication
         // noalias(rA) = prod( trans( rB ), MatrixType(prod(rD, rB)));
-        
+
         // Manual multiplication
         rA.clear();
         for(IndexType k = 0; k< rD.size1(); ++k) {
@@ -1647,7 +1648,7 @@ public:
 
         // Direct multiplication
         // noalias(rA) = prod(rB, MatrixType(prod(rD, trans(rB))));
-        
+
         // Manual multiplication
         rA.clear();
         for(IndexType k = 0; k< rD.size1(); ++k) {

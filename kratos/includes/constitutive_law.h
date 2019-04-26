@@ -23,6 +23,7 @@
 
 /* Project includes */
 #include "includes/define.h"
+#include "includes/define_deprecated.h"
 #include "includes/serializer.h"
 #include "includes/variables.h"
 #include "includes/node.h"

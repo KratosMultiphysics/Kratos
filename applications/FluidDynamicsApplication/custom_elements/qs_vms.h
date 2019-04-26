@@ -14,6 +14,7 @@
 #define KRATOS_QS_VMS_H
 
 #include "includes/define.h"
+#include "includes/define_deprecated.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "geometries/geometry.h"
