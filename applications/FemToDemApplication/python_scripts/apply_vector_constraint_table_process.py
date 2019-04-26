@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.PoromechanicsApplication as KratosPoro
+import KratosMultiphysics.FemToDemApplication as KratosFemDem
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -7,7 +7,6 @@ def Factory(settings, Model):
     return ApplyVectorConstraintTableProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-
 class ApplyVectorConstraintTableProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
@@ -28,7 +27,7 @@ class ApplyVectorConstraintTableProcess(KratosMultiphysics.Process):
                 self.components_process_list.append(KratosMultiphysics.ApplyConstantScalarValueProcess(model_part, x_params))
             else:
                 x_params.AddValue("table",settings["table"][0])
-                self.components_process_list.append(KratosPoro.ApplyComponentTableProcess(model_part, x_params))
+                self.components_process_list.append(KratosFemDem.ApplyComponentTableProcess(model_part, x_params))
 
         if settings["active"][1].GetBool() == True:
             y_params = KratosMultiphysics.Parameters("{}")
@@ -41,7 +40,7 @@ class ApplyVectorConstraintTableProcess(KratosMultiphysics.Process):
                 self.components_process_list.append(KratosMultiphysics.ApplyConstantScalarValueProcess(model_part, y_params))
             else:
                 y_params.AddValue("table",settings["table"][1])
-                self.components_process_list.append(KratosPoro.ApplyComponentTableProcess(model_part, y_params))
+                self.components_process_list.append(KratosFemDem.ApplyComponentTableProcess(model_part, y_params))
 
         if settings["active"][2].GetBool() == True:
             z_params = KratosMultiphysics.Parameters("{}")
@@ -54,14 +53,12 @@ class ApplyVectorConstraintTableProcess(KratosMultiphysics.Process):
                 self.components_process_list.append(KratosMultiphysics.ApplyConstantScalarValueProcess(model_part, z_params))
             else:
                 z_params.AddValue("table",settings["table"][2])
-                self.components_process_list.append(KratosPoro.ApplyComponentTableProcess(model_part, z_params))
+                self.components_process_list.append(KratosFemDem.ApplyComponentTableProcess(model_part, z_params))
 
     def ExecuteInitialize(self):
-
         for component in self.components_process_list:
             component.ExecuteInitialize()
 
     def ExecuteInitializeSolutionStep(self):
-
         for component in self.components_process_list:
             component.ExecuteInitializeSolutionStep()
