@@ -37,6 +37,8 @@ class PythonSolver(object):
 
     @classmethod
     def GetDefaultSettings(cls):
+        """This function returns the default-settings used by this class
+        """
         return KratosMultiphysics.Parameters("""{
             "echo_level" : 0
         }""")
