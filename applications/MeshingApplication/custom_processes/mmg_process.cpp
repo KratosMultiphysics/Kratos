@@ -122,7 +122,8 @@ void MmgProcess<TMMGLibrary>::ExecuteInitialize()
     }
 
     /* We restart the MMG mesh and solution */
-    mMmmgUtilities.InitMesh(mDiscretization, mEchoLevel);
+    mMmmgUtilities.SetEchoLevel(mEchoLevel);
+    mMmmgUtilities.InitMesh(mDiscretization);
 
     KRATOS_CATCH("");
 }
@@ -562,7 +563,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
     // Some information
     MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
-    mMmmgUtilities.PrintAndGetMmgMeshInfo(mmg_mesh_info, mEchoLevel);
+    mMmmgUtilities.PrintAndGetMmgMeshInfo(mmg_mesh_info);
 
     ////////* EMPTY AND BACKUP THE MODEL PART *////////
     Model& owner_model = mrThisModelPart.GetModel();
@@ -619,7 +620,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
         IndexType cond_id = 1;
 
         IndexType counter_first_cond = 0;
-        const IndexVectorType first_condition_to_remove = mMmmgUtilities.CheckFirstTypeConditions(mEchoLevel);
+        const IndexVectorType first_condition_to_remove = mMmmgUtilities.CheckFirstTypeConditions();
         for (IndexType i_cond = 1; i_cond <= mmg_mesh_info.NumberFirstTypeConditions(); ++i_cond) {
             bool skip_creation = false;
             if (counter_first_cond < first_condition_to_remove.size()) {
@@ -629,7 +630,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
                 }
             }
 
-            Condition::Pointer p_condition = mMmmgUtilities.CreateFirstTypeCondition(mrThisModelPart, mpRefCondition, cond_id, ref, is_required, skip_creation, mRemoveRegions, mDiscretization, mEchoLevel);
+            Condition::Pointer p_condition = mMmmgUtilities.CreateFirstTypeCondition(mrThisModelPart, mpRefCondition, cond_id, ref, is_required, skip_creation, mRemoveRegions, mDiscretization);
 
             if (p_condition != nullptr) {
                 created_conditions_vector.push_back(p_condition);
@@ -640,7 +641,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
         }
 
         IndexType counter_second_cond = 0;
-        const IndexVectorType second_condition_to_remove = mMmmgUtilities.CheckSecondTypeConditions(mEchoLevel);
+        const IndexVectorType second_condition_to_remove = mMmmgUtilities.CheckSecondTypeConditions();
         for (IndexType i_cond = 1; i_cond <= mmg_mesh_info.NumberSecondTypeConditions(); ++i_cond) {
             bool skip_creation = false;
             if (counter_second_cond < second_condition_to_remove.size()) {
@@ -649,7 +650,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
                     counter_second_cond += 1;
                 }
             }
-            Condition::Pointer p_condition = mMmmgUtilities.CreateSecondTypeCondition(mrThisModelPart, mpRefCondition, cond_id, ref, is_required, skip_creation, mRemoveRegions, mDiscretization, mEchoLevel);
+            Condition::Pointer p_condition = mMmmgUtilities.CreateSecondTypeCondition(mrThisModelPart, mpRefCondition, cond_id, ref, is_required, skip_creation, mRemoveRegions, mDiscretization);
 
             if (p_condition != nullptr) {
                 created_conditions_vector.push_back(p_condition);
@@ -665,7 +666,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
         IndexType elem_id = 1;
 
         IndexType counter_first_elem = 0;
-        const IndexVectorType first_elements_to_remove = mMmmgUtilities.CheckFirstTypeElements(mEchoLevel);
+        const IndexVectorType first_elements_to_remove = mMmmgUtilities.CheckFirstTypeElements();
         for (IndexType i_elem = 1; i_elem <= mmg_mesh_info.NumberFirstTypeElements(); ++i_elem) {
             bool skip_creation = false;
             if (counter_first_elem < first_elements_to_remove.size()) {
@@ -675,7 +676,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
                 }
             }
 
-            Element::Pointer p_element = mMmmgUtilities.CreateFirstTypeElement(mrThisModelPart, mpRefElement, elem_id, ref, is_required, skip_creation, mRemoveRegions, mDiscretization, mEchoLevel);
+            Element::Pointer p_element = mMmmgUtilities.CreateFirstTypeElement(mrThisModelPart, mpRefElement, elem_id, ref, is_required, skip_creation, mRemoveRegions, mDiscretization);
 
             if (p_element != nullptr) {
                 created_elements_vector.push_back(p_element);
@@ -686,7 +687,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
         }
 
         IndexType counter_second_elem = 0;
-        const IndexVectorType second_elements_to_remove = mMmmgUtilities.CheckSecondTypeElements(mEchoLevel);
+        const IndexVectorType second_elements_to_remove = mMmmgUtilities.CheckSecondTypeElements();
         for (IndexType i_elem = 1; i_elem <= mmg_mesh_info.NumberSecondTypeElements(); ++i_elem) {
             bool skip_creation = false;
             if (counter_second_elem < second_elements_to_remove.size()) {
@@ -696,7 +697,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
                 }
             }
 
-            Element::Pointer p_element = mMmmgUtilities.CreateSecondTypeElement(mrThisModelPart, mpRefElement, elem_id, ref, is_required,skip_creation, mRemoveRegions, mDiscretization, mEchoLevel);
+            Element::Pointer p_element = mMmmgUtilities.CreateSecondTypeElement(mrThisModelPart, mpRefElement, elem_id, ref, is_required,skip_creation, mRemoveRegions, mDiscretization);
 
             if (p_element != nullptr) {
                 created_elements_vector.push_back(p_element);

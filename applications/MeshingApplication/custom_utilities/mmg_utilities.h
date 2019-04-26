@@ -184,48 +184,42 @@ public:
     ///@{
 
     /**
+     * @brief This method sets the echo level
+     * @param EchoLevel Sets the echo level
+     */
+    void SetEchoLevel(const SizeType EchoLevel);
+
+    /**
      * @brief It prints info about the current mesh
      * @param rMMGMeshInfo The number of nodes, conditions and elements
-     * @param EchoLevel The level of verbosity
      */
-    void PrintAndGetMmgMeshInfo(
-        MMGMeshInfo<TMMGLibrary>& rMMGMeshInfo,
-        const IndexType EchoLevel = 0
-        );
+    void PrintAndGetMmgMeshInfo(MMGMeshInfo<TMMGLibrary>& rMMGMeshInfo);
 
     /**
      * @brief It checks if the nodes are repeated and remove the repeated ones
      * @param rModelPart The model part of interest to study
-     * @param EchoLevel The level of verbosity
      */
-    IndexVectorType CheckNodes(
-        ModelPart& rModelPart,
-        const IndexType EchoLevel = 0
-        );
+    IndexVectorType FindDuplicateNodeIds(ModelPart& rModelPart);
 
     /**
      * @brief It checks if the conditions are repeated and returns a list of indices of the nodes
-     * @param EchoLevel The level of verbosity
      */
-    IndexVectorType CheckFirstTypeConditions(const IndexType EchoLevel = 0);
+    IndexVectorType CheckFirstTypeConditions();
 
     /**
      * @brief It checks if the conditions are repeated and remove the repeated ones
-     * @param EchoLevel The level of verbosity
      */
-    IndexVectorType CheckSecondTypeConditions(const IndexType EchoLevel = 0);
+    IndexVectorType CheckSecondTypeConditions();
 
     /**
      * @brief It checks if the elemenst are removed and remove the repeated ones
-     * @param EchoLevel The level of verbosity
      */
-    IndexVectorType CheckFirstTypeElements(const IndexType EchoLevel = 0);
+    IndexVectorType CheckFirstTypeElements();
 
     /**
      * @brief It checks if the elemenst are removed and remove the repeated ones
-     * @param EchoLevel The level of verbosity
      */
-    IndexVectorType CheckSecondTypeElements(const IndexType EchoLevel = 0);
+    IndexVectorType CheckSecondTypeElements();
 
     /**
      * @brief It blocks certain nodes before remesh the model
@@ -251,15 +245,13 @@ public:
      * @param iNode The index of the new noode
      * @param Ref The submodelpart id
      * @param IsRequired MMG value (I don't know that it does)
-     * @param EchoLevel The level of verbosity
      * @return pNode The pointer to the new node created
      */
     NodeType::Pointer CreateNode(
         ModelPart& rModelPart,
         IndexType iNode,
         int& Ref,
-        int& IsRequired,
-        const IndexType EchoLevel = 0
+        int& IsRequired
         );
 
     /**
@@ -271,7 +263,6 @@ public:
      * @param IsRequired MMG value (I don't know that it does)
      * @param RemoveRegions Cuttig-out specified regions during surface remeshing
      * @param Discretization The discretization option
-     * @param EchoLevel The level of verbosity
      * @return pCondition The pointer to the new condition created
      */
     Condition::Pointer CreateFirstTypeCondition(
@@ -282,8 +273,7 @@ public:
         int& IsRequired,
         bool SkipCreation,
         const bool RemoveRegions = false,
-        const DiscretizationOption Discretization = DiscretizationOption::STANDARD,
-        const IndexType EchoLevel = 0
+        const DiscretizationOption Discretization = DiscretizationOption::STANDARD
         );
 
     /**
@@ -295,7 +285,6 @@ public:
      * @param IsRequired MMG value (I don't know that it does)
      * @param RemoveRegions Cuttig-out specified regions during surface remeshing
      * @param Discretization The discretization option
-     * @param EchoLevel The level of verbosity
      * @return pCondition The pointer to the new condition created
      */
     Condition::Pointer CreateSecondTypeCondition(
@@ -306,8 +295,7 @@ public:
         int& IsRequired,
         bool SkipCreation,
         const bool RemoveRegions = false,
-        const DiscretizationOption Discretization = DiscretizationOption::STANDARD,
-        const IndexType EchoLevel = 0
+        const DiscretizationOption Discretization = DiscretizationOption::STANDARD
         );
 
     /**
@@ -319,7 +307,6 @@ public:
      * @param IsRequired MMG value (I don't know that it does)
      * @param RemoveRegions Cuttig-out specified regions during surface remeshing
      * @param Discretization The discretization option
-     * @param EchoLevel The level of verbosity
      * @return pElement The pointer to the new condition created
      */
     Element::Pointer CreateFirstTypeElement(
@@ -330,8 +317,7 @@ public:
         int& IsRequired,
         bool SkipCreation,
         const bool RemoveRegions = false,
-        const DiscretizationOption Discretization = DiscretizationOption::STANDARD,
-        const IndexType EchoLevel = 0
+        const DiscretizationOption Discretization = DiscretizationOption::STANDARD
         );
 
     /**
@@ -343,7 +329,6 @@ public:
      * @param IsRequired MMG value (I don't know that it does)
      * @param RemoveRegions Cuttig-out specified regions during surface remeshing
      * @param Discretization The discretization option
-     * @param EchoLevel The level of verbosity
      * @return pElement The pointer to the new condition created
      */
     Element::Pointer CreateSecondTypeElement(
@@ -354,8 +339,7 @@ public:
         int& IsRequired,
         bool SkipCreation,
         const bool RemoveRegions = false,
-        const DiscretizationOption Discretization = DiscretizationOption::STANDARD,
-        const IndexType EchoLevel = 0
+        const DiscretizationOption Discretization = DiscretizationOption::STANDARD
         );
 
     /**
@@ -368,15 +352,12 @@ public:
      * -# &mmgSol pointer toward your MMG5_pSol (that store your metric)
      * @param Discretization The discretization type
      */
-    void InitMesh(
-        DiscretizationOption Discretization = DiscretizationOption::STANDARD,
-        const IndexType EchoLevel = 0
-        );
+    void InitMesh(DiscretizationOption Discretization = DiscretizationOption::STANDARD);
 
     /**
      * @brief Here the verbosity is set
      */
-    void InitVerbosity(IndexType EchoLevel);
+    void InitVerbosity();
 
     /**
      * @brief Here the verbosity is set using the API
@@ -606,6 +587,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    SizeType mEchoLevel = 0;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -649,12 +632,12 @@ private:
 
 /// input stream function
 template<MMGLibrary TMMGLibrary>
-extern inline std::istream& operator >> (std::istream& rIStream,
+inline std::istream& operator >> (std::istream& rIStream,
                                   MmgUtilities<TMMGLibrary>& rThis);
 
 /// output stream function
 template<MMGLibrary TMMGLibrary>
-extern inline std::ostream& operator << (std::ostream& rOStream,
+inline std::ostream& operator << (std::ostream& rOStream,
                                   const MmgUtilities<TMMGLibrary>& rThis)
 {
     rThis.PrintInfo(rOStream);

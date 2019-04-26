@@ -174,10 +174,16 @@ MMG5_pSol  mMmgSol;  /// The metric variable for MMG
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
-void MmgUtilities<TMMGLibrary>::PrintAndGetMmgMeshInfo(
-    MMGMeshInfo<TMMGLibrary>& rMMGMeshInfo,
-    const IndexType EchoLevel
-    )
+void MmgUtilities<TMMGLibrary>::SetEchoLevel(const SizeType EchoLevel)
+{
+    mEchoLevel = EchoLevel;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::PrintAndGetMmgMeshInfo(MMGMeshInfo<TMMGLibrary>& rMMGMeshInfo)
 {
     rMMGMeshInfo.NumberOfNodes = mMmgMesh->np;
     if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
@@ -197,17 +203,17 @@ void MmgUtilities<TMMGLibrary>::PrintAndGetMmgMeshInfo(
         rMMGMeshInfo.NumberOfTriangles = mMmgMesh->nt;
     }
 
-    KRATOS_INFO_IF("MmgUtilities", EchoLevel > 0) << "\tNodes created: " << rMMGMeshInfo.NumberOfNodes << std::endl;
+    KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 0) << "\tNodes created: " << rMMGMeshInfo.NumberOfNodes << std::endl;
     if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
-        KRATOS_INFO_IF("MmgUtilities", EchoLevel > 0) <<
+        KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 0) <<
         "Conditions created: " << rMMGMeshInfo.NumberOfLines << "\n" <<
         "Elements created: " << rMMGMeshInfo.NumberOfTriangles << std::endl;
     } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
-        KRATOS_INFO_IF("MmgUtilities", EchoLevel > 0) <<
+        KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 0) <<
         "Conditions created: " << rMMGMeshInfo.NumberOfTriangles + rMMGMeshInfo.NumberOfQuadrilaterals << "\n\tTriangles: " << rMMGMeshInfo.NumberOfTriangles << "\tQuadrilaterals: " << rMMGMeshInfo.NumberOfQuadrilaterals << "\n" <<
         "Elements created: " << rMMGMeshInfo.NumberOfTetrahedra + rMMGMeshInfo.NumberOfPrism << "\n\tTetrahedron: " << rMMGMeshInfo.NumberOfTetrahedra << "\tPrisms: " << rMMGMeshInfo.NumberOfPrism << std::endl;
     } else { // Surfaces
-        KRATOS_INFO_IF("MmgUtilities", EchoLevel > 0) <<
+        KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 0) <<
         "Conditions created: " << rMMGMeshInfo.NumberOfLines << "\n" <<
         "Elements created: " << rMMGMeshInfo.NumberOfTriangles << std::endl;
     }
@@ -217,10 +223,7 @@ void MmgUtilities<TMMGLibrary>::PrintAndGetMmgMeshInfo(
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
-IndexVectorType MmgUtilities<TMMGLibrary>::CheckNodes(
-    ModelPart& rModelPart,
-    const IndexType EchoLevel
-    )
+IndexVectorType MmgUtilities<TMMGLibrary>::FindDuplicateNodeIds(ModelPart& rModelPart)
 {
     DoubleVectorMapType node_map;
 
@@ -243,7 +246,7 @@ IndexVectorType MmgUtilities<TMMGLibrary>::CheckNodes(
 
         if (node_map[coords] > 1) {
             nodes_to_remove_ids.push_back(it_node->Id());
-            KRATOS_WARNING_IF("MmgUtilities", EchoLevel > 0) << "The mode " << it_node->Id() <<  " is repeated"<< std::endl;
+            KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 0) << "The mode " << it_node->Id() <<  " is repeated"<< std::endl;
         }
     }
 
@@ -254,7 +257,7 @@ IndexVectorType MmgUtilities<TMMGLibrary>::CheckNodes(
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckFirstTypeConditions(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckFirstTypeConditions()
 {
     IndexVectorMapType edge_map;
 
@@ -288,7 +291,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckFirstTypeConditions(const 
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckFirstTypeConditions(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckFirstTypeConditions()
 {
     IndexVectorMapType triangle_map;
 
@@ -322,7 +325,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckFirstTypeConditions(const 
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckFirstTypeConditions(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckFirstTypeConditions()
 {
     IndexVectorMapType edge_map;
 
@@ -356,7 +359,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckFirstTypeConditions(const I
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckSecondTypeConditions(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckSecondTypeConditions()
 {
     IndexVectorType conditions_to_remove(0);
 
@@ -367,7 +370,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckSecondTypeConditions(const
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckSecondTypeConditions(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckSecondTypeConditions()
 {
     IndexVectorMapType quadrilateral_map;
 
@@ -402,7 +405,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckSecondTypeConditions(const
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckSecondTypeConditions(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckSecondTypeConditions()
 {
     IndexVectorType conditions_to_remove(0);
 
@@ -413,7 +416,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckSecondTypeConditions(const 
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckFirstTypeElements(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckFirstTypeElements()
 {
     IndexVectorMapType triangle_map;
 
@@ -448,7 +451,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckFirstTypeElements(const In
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckFirstTypeElements(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckFirstTypeElements()
 {
     IndexVectorMapType triangle_map;
 
@@ -483,7 +486,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckFirstTypeElements(const In
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckFirstTypeElements(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckFirstTypeElements()
 {
     IndexVectorMapType triangle_map;
 
@@ -518,7 +521,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckFirstTypeElements(const Ind
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckSecondTypeElements(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckSecondTypeElements()
 {
     IndexVectorType elements_to_remove(0);
     return elements_to_remove;
@@ -528,7 +531,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG2D>::CheckSecondTypeElements(const I
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckSecondTypeElements(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckSecondTypeElements()
 {
     IndexVectorMapType prism_map;
 
@@ -565,7 +568,7 @@ IndexVectorType MmgUtilities<MMGLibrary::MMG3D>::CheckSecondTypeElements(const I
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckSecondTypeElements(const IndexType EchoLevel)
+IndexVectorType MmgUtilities<MMGLibrary::MMGS>::CheckSecondTypeElements()
 {
     IndexVectorType elements_to_remove(0);
     return elements_to_remove;
@@ -671,8 +674,7 @@ NodeType::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
-    int& IsRequired,
-    const IndexType EchoLevel
+    int& IsRequired
     )
 {
     double coord_0, coord_1;
@@ -694,8 +696,7 @@ NodeType::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
-    int& IsRequired,
-    const IndexType EchoLevel
+    int& IsRequired
     )
 {
     double coord_0, coord_1, coord_2;
@@ -717,8 +718,7 @@ NodeType::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
-    int& IsRequired,
-    const IndexType EchoLevel
+    int& IsRequired
     )
 {
     double coord_0, coord_1, coord_2;
@@ -744,8 +744,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
     int& IsRequired,
     bool SkipCreation,
     const bool RemoveRegions,
-    const DiscretizationOption Discretization,
-    const IndexType EchoLevel
+    const DiscretizationOption Discretization
     )
 {
     // We create the default one
@@ -784,7 +783,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
         condition_nodes[1] = rModelPart.pGetNode(edge_1);
 
         p_condition = p_base_condition->Create(CondId, PointerVector<NodeType>{condition_nodes}, p_prop);
-    } else if (EchoLevel > 2)
+    } else if (mEchoLevel > 2)
         KRATOS_INFO("MmgUtilities") << "Condition creation avoided" << std::endl;
 
     return p_condition;
@@ -802,8 +801,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
     int& IsRequired,
     bool SkipCreation,
     const bool RemoveRegions,
-    const DiscretizationOption Discretization,
-    const IndexType EchoLevel
+    const DiscretizationOption Discretization
     )
 {
     // We create the default one
@@ -845,7 +843,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
         condition_nodes[2] = rModelPart.pGetNode(vertex_2);
 
         p_condition = p_base_condition->Create(CondId, PointerVector<NodeType>{condition_nodes}, p_prop);
-    } else if (EchoLevel > 2)
+    } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgUtilities") << "Condition creation avoided" << std::endl;
 
     return p_condition;
@@ -863,8 +861,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeCondition(
     int& IsRequired,
     bool SkipCreation,
     const bool RemoveRegions,
-    const DiscretizationOption Discretization,
-    const IndexType EchoLevel
+    const DiscretizationOption Discretization
     )
 {
     // We create the default one
@@ -892,7 +889,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeCondition(
         condition_nodes[1] = rModelPart.pGetNode(edge_1);
 
         p_condition = rMapPointersRefCondition[PropId]->Create(CondId, PointerVector<NodeType>{condition_nodes}, rMapPointersRefCondition[PropId]->pGetProperties());
-    } else if (EchoLevel > 2)
+    } else if (mEchoLevel > 2)
         KRATOS_INFO("MmgUtilities") << "Condition creation avoided" << std::endl;
 
     return p_condition;
@@ -910,8 +907,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateSecondTypeCondition(
     int& IsRequired,
     bool SkipCreation,
     const bool RemoveRegions,
-    const DiscretizationOption Discretization,
-    const IndexType EchoLevel
+    const DiscretizationOption Discretization
     )
 {
     return nullptr;
@@ -929,8 +925,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeCondition(
     int& IsRequired,
     bool SkipCreation,
     const bool RemoveRegions,
-    const DiscretizationOption Discretization,
-    const IndexType EchoLevel
+    const DiscretizationOption Discretization
     )
 {
     Condition::Pointer p_condition = nullptr;
@@ -961,7 +956,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeCondition(
         condition_nodes[3] = rModelPart.pGetNode(vertex_3);
 
         p_condition = rMapPointersRefCondition[PropId]->Create(CondId, PointerVector<NodeType>{condition_nodes}, rMapPointersRefCondition[PropId]->pGetProperties());
-    } else if (EchoLevel > 2)
+    } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgUtilities") << "Condition creation avoided" << std::endl;
 
     return p_condition;
@@ -979,8 +974,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateSecondTypeCondition(
     int& IsRequired,
     bool SkipCreation,
     const bool RemoveRegions,
-    const DiscretizationOption Discretization,
-    const IndexType EchoLevel
+    const DiscretizationOption Discretization
     )
 {
     return nullptr;
@@ -998,8 +992,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
     int& IsRequired,
     bool SkipCreation,
     const bool RemoveRegions,
-    const DiscretizationOption Discretization,
-    const IndexType EchoLevel
+    const DiscretizationOption Discretization
     )
 {
     Element::Pointer p_element = nullptr;
@@ -1060,7 +1053,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
             element_nodes[2] = rModelPart.pGetNode(vertex_2);
 
             p_element = p_base_element->Create(ElemId, PointerVector<NodeType>{element_nodes}, p_prop);
-        } else if (EchoLevel > 2)
+        } else if (mEchoLevel > 2)
             KRATOS_WARNING("MmgUtilities") << "Element creation avoided" << std::endl;
     }
 
@@ -1079,8 +1072,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
     int& IsRequired,
     bool SkipCreation,
     const bool RemoveRegions,
-    const DiscretizationOption Discretization,
-    const IndexType EchoLevel
+    const DiscretizationOption Discretization
     )
 {
     Element::Pointer p_element = nullptr;
@@ -1143,7 +1135,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
             element_nodes[3] = rModelPart.pGetNode(vertex_3);
 
             p_element = p_base_element->Create(ElemId, PointerVector<NodeType>{element_nodes}, p_prop);
-        } else if (EchoLevel > 2)
+        } else if (mEchoLevel > 2)
             KRATOS_WARNING("MmgUtilities") << "Element creation avoided" << std::endl;
     }
 
@@ -1162,8 +1154,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeElement(
     int& IsRequired,
     bool SkipCreation,
     const bool RemoveRegions,
-    const DiscretizationOption Discretization,
-    const IndexType EchoLevel
+    const DiscretizationOption Discretization
     )
 {
     Element::Pointer p_element = nullptr;
@@ -1191,7 +1182,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeElement(
         element_nodes[2] = rModelPart.pGetNode(vertex_2);
 
         p_element = rMapPointersRefElement[PropId]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[PropId]->pGetProperties());
-    } else if (EchoLevel > 2)
+    } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgUtilities") << "Element creation avoided" << std::endl;
 
     return p_element;
@@ -1209,8 +1200,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateSecondTypeElement(
     int& IsRequired,
     bool SkipCreation,
     const bool RemoveRegions,
-    const DiscretizationOption Discretization,
-    const IndexType EchoLevel
+    const DiscretizationOption Discretization
     )
 {
     return nullptr;
@@ -1228,8 +1218,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeElement(
     int& IsRequired,
     bool SkipCreation,
     const bool RemoveRegions,
-    const DiscretizationOption Discretization,
-    const IndexType EchoLevel
+    const DiscretizationOption Discretization
     )
 {
     Element::Pointer p_element = nullptr;
@@ -1264,7 +1253,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeElement(
         element_nodes[5] = rModelPart.pGetNode(vertex_5);
 
         p_element = rMapPointersRefElement[PropId]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[PropId]->pGetProperties());
-    } else if (EchoLevel > 2)
+    } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgUtilities") << "Element creation avoided" << std::endl;
 
     return p_element;
@@ -1282,8 +1271,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateSecondTypeElement(
     int& IsRequired,
     bool SkipCreation,
     const bool RemoveRegions,
-    const DiscretizationOption Discretization,
-    const IndexType EchoLevel
+    const DiscretizationOption Discretization
     )
 {
     return nullptr;
@@ -1293,10 +1281,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateSecondTypeElement(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMG2D>::InitMesh(
-    DiscretizationOption Discretization,
-    const IndexType EchoLevel
-    )
+void MmgUtilities<MMGLibrary::MMG2D>::InitMesh(DiscretizationOption Discretization)
 {
     mMmgMesh = nullptr;
     mMmgSol = nullptr;
@@ -1311,17 +1296,14 @@ void MmgUtilities<MMGLibrary::MMG2D>::InitMesh(
         KRATOS_ERROR << "Discretization type: " << static_cast<int>(Discretization) << " not fully implemented" << std::endl;
     }
 
-    InitVerbosity(EchoLevel);
+    InitVerbosity();
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMG3D>::InitMesh(
-    DiscretizationOption Discretization,
-    const IndexType EchoLevel
-    )
+void MmgUtilities<MMGLibrary::MMG3D>::InitMesh(DiscretizationOption Discretization)
 {
     mMmgMesh = nullptr;
     mMmgSol = nullptr;
@@ -1338,17 +1320,14 @@ void MmgUtilities<MMGLibrary::MMG3D>::InitMesh(
         KRATOS_ERROR << "Discretization type: " << static_cast<int>(Discretization) << " not fully implemented" << std::endl;
     }
 
-    InitVerbosity(EchoLevel);
+    InitVerbosity();
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMGS>::InitMesh(
-    DiscretizationOption Discretization,
-    const IndexType EchoLevel
-    )
+void MmgUtilities<MMGLibrary::MMGS>::InitMesh(DiscretizationOption Discretization)
 {
     mMmgMesh = nullptr;
     mMmgSol = nullptr;
@@ -1363,24 +1342,24 @@ void MmgUtilities<MMGLibrary::MMGS>::InitMesh(
         KRATOS_ERROR << "Discretization type: " << static_cast<int>(Discretization) << " not fully implemented" << std::endl;
     }
 
-    InitVerbosity(EchoLevel);
+    InitVerbosity();
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
-void MmgUtilities<TMMGLibrary>::InitVerbosity(IndexType EchoLevel)
+void MmgUtilities<TMMGLibrary>::InitVerbosity()
 {
     /* We set the MMG verbosity */
     int verbosity_mmg;
-    if (EchoLevel == 0)
+    if (mEchoLevel == 0)
         verbosity_mmg = -1;
-    else if (EchoLevel == 1)
+    else if (mEchoLevel == 1)
         verbosity_mmg = 0; // NOTE: This way just the essential info from MMG will be printed, but the custom message will appear
-    else if (EchoLevel == 2)
+    else if (mEchoLevel == 2)
         verbosity_mmg = 3;
-    else if (EchoLevel == 3)
+    else if (mEchoLevel == 3)
         verbosity_mmg = 5;
     else
         verbosity_mmg = 10;
