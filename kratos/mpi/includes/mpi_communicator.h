@@ -115,7 +115,7 @@ template<> struct SendTools<double>
 
     static inline void ReadBuffer(const SendType* pBuffer, double& rValue)
     {
-        rValue = *pBuffer;    
+        rValue = *pBuffer;
     }
 };
 
@@ -157,7 +157,7 @@ template<> struct SendTools< Vector >
 {
     typedef double SendType;
     constexpr static bool IsFixedSize = false;
-    
+
     static inline std::size_t GetSendSize(const Vector& rValue)
     {
         return rValue.size();
@@ -178,7 +178,7 @@ template<> struct SendTools< Matrix >
 {
     typedef double SendType;
     constexpr static bool IsFixedSize = false;
-    
+
     static inline std::size_t GetSendSize(const Matrix& rValue)
     {
         return rValue.data().size();
@@ -199,7 +199,7 @@ template<std::size_t TDim> struct SendTools< DenseVector<array_1d<double,TDim> >
 {
     typedef double SendType;
     constexpr static bool IsFixedSize = false;
-    
+
     static inline std::size_t GetSendSize(const DenseVector<array_1d<double,TDim>>& rValue)
     {
         return rValue.size()*sizeof(array_1d<double,TDim>)/sizeof(double);
@@ -218,6 +218,27 @@ template<std::size_t TDim> struct SendTools< DenseVector<array_1d<double,TDim> >
             rValue[i] = *(reinterpret_cast<const array_1d<double,TDim>*>(pBuffer + position));
             position += sizeof(array_1d<double,TDim>) / sizeof(double);
         }
+    }
+};
+
+template<> struct SendTools< Kratos::VariablesListDataValueContainer >
+{
+    typedef double SendType;
+    constexpr static bool IsFixedSize = false;
+
+    static inline std::size_t GetSendSize(const Kratos::VariablesListDataValueContainer& rValue)
+    {
+        return rValue.TotalSize();
+    }
+
+    static inline void WriteBuffer(const Kratos::VariablesListDataValueContainer& rValue, SendType* pBuffer)
+    {
+        std::memcpy(pBuffer, rValue.Data(), rValue.TotalSize() * sizeof(double));
+    }
+
+    static inline void ReadBuffer(const SendType* pBuffer, Kratos::VariablesListDataValueContainer& rValue)
+    {
+        std::memcpy(rValue.Data(), pBuffer, rValue.TotalSize() * sizeof(double));
     }
 };
 
@@ -275,7 +296,7 @@ const Variable<TValue>& mrVariable;
 public:
 
 using ValueType = TValue;
-using SendType = typename SendTools<TValue>::SendType; 
+using SendType = typename SendTools<TValue>::SendType;
 using ContainerType = Communicator::MeshType::NodesContainerType;
 using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
 using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
@@ -319,7 +340,7 @@ const Variable<TValue>& mrVariable;
 public:
 
 using ValueType = TValue;
-using SendType = typename SendTools<TValue>::SendType; 
+using SendType = typename SendTools<TValue>::SendType;
 using ContainerType = Communicator::MeshType::NodesContainerType;
 using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
 using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
@@ -362,7 +383,7 @@ public:
 const Kratos::Flags& mrMask;
 
 using ValueType = Kratos::Flags;
-using SendType = typename SendTools<ValueType>::SendType; 
+using SendType = typename SendTools<ValueType>::SendType;
 using ContainerType = Communicator::MeshType::NodesContainerType;
 using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
 using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
@@ -394,6 +415,45 @@ const Kratos::Flags& GetValue(const ConstIteratorType& iter)
 void SetValue(IteratorType& iter, const Kratos::Flags& rValue)
 {
     iter->AssignFlags(rValue);
+}
+
+};
+
+class NodalSolutionStepDataAccess
+{
+public:
+
+using ValueType = Kratos::VariablesListDataValueContainer;
+using SendType = typename SendTools<ValueType>::SendType;
+using ContainerType = Communicator::MeshType::NodesContainerType;
+using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
+using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
+
+ContainerType& GetContainer(Communicator::MeshType& rMesh)
+{
+    return rMesh.Nodes();
+}
+
+const ContainerType& GetContainer(const Communicator::MeshType& rMesh)
+{
+    return rMesh.Nodes();
+}
+
+ValueType& GetValue(IteratorType& iter)
+{
+    return iter->SolutionStepData();
+}
+
+const ValueType& GetValue(const ConstIteratorType& iter)
+{
+    return iter->SolutionStepData();
+}
+
+void SetValue(IteratorType& iter, const ValueType& rValue)
+{
+
+    //                std::memcpy(i_node->SolutionStepData().Data(), receive_buffer + position, nodal_data_size * sizeof (double));
+    //iter->AssignFlags(rValue);
 }
 
 };
@@ -924,7 +984,7 @@ public:
 
         // Synchronize result on ghost copies
         TransferDistributedValues(local_meshes, ghost_meshes, nodal_solution_step_access, replace);
-        
+
         return true;
     }
 
@@ -1927,7 +1987,7 @@ private:
                 {
                     continue; // nothing to transfer, skip communication step
                 }
-                
+
                 FillBuffer(send_values, r_source_mesh, DataBase);
 
                 mrDataCommunicator.SendRecv(
@@ -1938,7 +1998,7 @@ private:
             }
         }
     }
-    
+
     template<
         class TAccess,
         typename TValue = typename TAccess::ValueType,
@@ -1984,7 +2044,7 @@ private:
         auto& r_container = Access.GetContainer(rSourceMesh);
         const TSendType* p_buffer = rBuffer.data();
         std::size_t position = 0;
-                
+
         for (auto iter = r_container.begin(); iter != r_container.end(); ++iter)
         {
             TValue recv_data = Access.GetValue(iter); // copying: dynamic types need correct size here
@@ -2038,7 +2098,7 @@ private:
                 {
                     send_sizes.resize(num_values_to_send);
                 }
-                
+
                 if (recv_sizes.size() != num_values_to_recv)
                 {
                     recv_sizes.resize(num_values_to_recv);
@@ -2073,7 +2133,7 @@ private:
                         else
                         {
                             resize_error = true;
-                            error_detail 
+                            error_detail
                             << "On rank " << mrDataCommunicator.Rank() << ": "
                             << "local size: " << r_value.size() << " "
                             << "source size: " << source_size << "." << std::endl;
@@ -2129,7 +2189,7 @@ private:
                 {
                     send_sizes.resize(num_values_to_send);
                 }
-                
+
                 if (recv_sizes.size() != num_values_to_recv)
                 {
                     recv_sizes.resize(num_values_to_recv);
@@ -2166,7 +2226,7 @@ private:
                         else
                         {
                             resize_error = true;
-                            error_detail 
+                            error_detail
                             << "On rank " << mrDataCommunicator.Rank() << ": "
                             << "local size: (" << r_value.size1() << "," << r_value.size2() << ") "
                             << "source size: (" << source_size_1 << "," << source_size_2 << ")." << std::endl;
