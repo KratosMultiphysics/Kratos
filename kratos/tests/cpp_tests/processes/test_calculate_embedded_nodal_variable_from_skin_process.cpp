@@ -82,6 +82,7 @@ namespace Testing {
             "continuous");
 
         emb_nod_var_from_skin_proc.Execute();
+        emb_nod_var_from_skin_proc.Clear();
 
         // Check values
         std::vector<std::size_t> check_nodes_ids = {19, 20, 28, 45, 46, 54};
@@ -142,6 +143,7 @@ namespace Testing {
             "discontinuous");
 
         emb_nod_var_from_skin_proc.Execute();
+        emb_nod_var_from_skin_proc.Clear();
 
         // Check values
         const std::vector<std::size_t> check_nodes_ids = {19, 20, 28, 45, 46, 54};

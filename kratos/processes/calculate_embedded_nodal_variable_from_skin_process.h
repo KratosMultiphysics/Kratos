@@ -25,6 +25,7 @@
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
 #include "elements/embedded_nodal_variable_calculation_element_simplex.h"
+#include "linear_solvers/amgcl_solver.h"
 #include "linear_solvers/cg_solver.h"
 #include "processes/process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
@@ -33,6 +34,8 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "utilities/intersection_utilities.h"
 #include "utilities/variable_utils.h"
+
+#include "includes/gid_io.h"
 
 namespace Kratos
 {
@@ -204,8 +207,10 @@ public:
         const Variable<TVarType> &rSkinVariable,
         const Variable<TVarType> &rEmbeddedNodalVariable,
         const std::string LevelSetType = "continuous",
+        const unsigned int BufferPosition = 0,
         const std::string AuxPartName = "IntersectedElementsModelPart")
         : mLevelSetType(LevelSetType),
+          mBufferPosition(BufferPosition),
           mAuxModelPartName(AuxPartName),
           mrBaseModelPart(rBaseModelPart),
           mrSkinModelPart(rSkinModelPart),
@@ -258,6 +263,12 @@ public:
     ///@name Operations
     ///@{
 
+    ModelPart &GetIntersectedEdgesModelPart() const
+    {
+        Model &current_model = mrBaseModelPart.GetModel();
+        return current_model.GetModelPart(mAuxModelPartName);
+    }
+
     void Execute() override
     {
         KRATOS_TRY;
@@ -269,13 +280,21 @@ public:
         this->SetLinearStrategy();
 
         // Solve the regression problem
+        mpSolvingStrategy->SetEchoLevel(2);
         mpSolvingStrategy->Solve();
+
+        // Model &current_model = mrBaseModelPart.GetModel();
+        // ModelPart &r_intersected_edges_model_part = current_model.GetModelPart(mAuxModelPartName);
+        // GidIO<> gid_io_fluid("/home/rzorrilla/Desktop/baiges_cylinder_test/moving_cylinder/embedded_nodal_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        // gid_io_fluid.InitializeMesh(0.0);
+        // gid_io_fluid.WriteMesh(r_intersected_edges_model_part.GetMesh());
+        // gid_io_fluid.FinalizeMesh();
+        // gid_io_fluid.InitializeResults(0, r_intersected_edges_model_part.GetMesh());
+        // gid_io_fluid.WriteNodalResults(NODAL_VAUX, r_intersected_edges_model_part.Nodes(), 0, 0);
+        // gid_io_fluid.FinalizeResults();
 
         // Move the obtained values to the user-defined variable
         this->SetObtainedEmbeddedNodalValues();
-
-        // Free the memory
-        this->Clear();
 
         KRATOS_CATCH("")
     }
@@ -283,10 +302,10 @@ public:
     virtual void Clear()
     {
         Model& current_model = mrBaseModelPart.GetModel();
-        ModelPart& r_distance_model_part = current_model.GetModelPart( mAuxModelPartName );
-        r_distance_model_part.Nodes().clear();
-        r_distance_model_part.Elements().clear();
-        r_distance_model_part.Conditions().clear();
+        ModelPart& r_intersected_edges_model_part = current_model.GetModelPart( mAuxModelPartName );
+        r_intersected_edges_model_part.Nodes().clear();
+        r_intersected_edges_model_part.Elements().clear();
+        r_intersected_edges_model_part.Conditions().clear();
 
         mpSolvingStrategy->Clear();
     }
@@ -335,6 +354,7 @@ protected:
     ///@{
 
     const std::string mLevelSetType;
+    const unsigned int mBufferPosition;
     const std::string mAuxModelPartName;
 
     ModelPart& mrBaseModelPart;
@@ -398,7 +418,7 @@ protected:
         #pragma omp parallel for
         for (int i_node = 0; i_node < static_cast<int>(r_int_elems_model_part.NumberOfNodes()); ++i_node) {
             const auto it_node = r_int_elems_model_part.NodesBegin() + i_node;
-            auto &r_emb_nod_val = (mrBaseModelPart.GetNode(it_node->Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable);
+            auto &r_emb_nod_val = (mrBaseModelPart.GetNode(it_node->Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable, mBufferPosition);
             r_emb_nod_val = it_node->FastGetSolutionStepValue(rUnknownVariable);
         }
     }
@@ -469,9 +489,9 @@ protected:
                                     r_int_obj.GetGeometry().PointLocalCoordinates(local_coords, intersection_point);
                                     r_int_obj.GetGeometry().ShapeFunctionsValues(int_obj_N, local_coords);
                                     for (unsigned int i_node = 0; i_node < r_int_obj.GetGeometry().PointsNumber(); ++i_node) {
-                                        i_edge_val += r_int_obj.GetGeometry()[i_node].FastGetSolutionStepValue(mrSkinVariable) * int_obj_N[i_node];
+                                        i_edge_val += r_int_obj.GetGeometry()[i_node].FastGetSolutionStepValue(mrSkinVariable, mBufferPosition) * int_obj_N[i_node];
                                     }
-                                    i_edge_d = norm_2(intersection_point - r_i_edge_geom[0]) / r_i_edge_geom.Length();
+                                    i_edge_d += norm_2(intersection_point - r_i_edge_geom[0]) / r_i_edge_geom.Length();
                                 }
                             }
 
@@ -515,13 +535,22 @@ protected:
     {
         // Create the CG linear solver (take advantage of the symmetry of the problem)
         Parameters linear_solver_parameters(R"({
-            "solver_type": "cg_solver",
-            "tolerance": 1.0e-8,
-            "max_iteration": 200,
-            "preconditioner_type": "none",
-            "scaling": false
+            "preconditioner_type"            : "amg",
+            "solver_type"                    : "AMGCL",
+            "smoother_type"                  : "ilu0",
+            "krylov_type"                    : "cg",
+            "coarsening_type"                : "aggregation",
+            "max_iteration"                  : 1000,
+            "provide_coordinates"            : false,
+            "gmres_krylov_space_dimension"   : 100,
+            "verbosity"                      : 2,
+            "tolerance"                      : 1e-8,
+            "scaling"                        : false,
+            "block_size"                     : 1,
+            "use_block_matrices_if_possible" : true
         })");
-        auto p_linear_solver = Kratos::make_shared<CGSolver<TSparseSpace, TDenseSpace>>(linear_solver_parameters);
+        auto p_linear_solver = Kratos::make_shared<AMGCLSolver<TSparseSpace, TDenseSpace>>(linear_solver_parameters);
+        // auto p_linear_solver = Kratos::make_shared<CGSolver<TSparseSpace, TDenseSpace>>(linear_solver_parameters);
 
         // Create the linear strategy
         SchemePointerType p_scheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>>();
