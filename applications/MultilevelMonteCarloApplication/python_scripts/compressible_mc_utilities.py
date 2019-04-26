@@ -342,11 +342,10 @@ class MonteCarlo(object):
         elif (self.iteration_counter > 1):
             # add new batches in case convergence = False
             if (self.convergence is not True):
-                # set here number of batches to append
-                self.batches_launched.append(False)
+                # estimate batches to append and batch size
+                self.UpdateBatches()
             for batch in range (len(self.batches_launched)):
                 if (self.batches_launched[batch] is False):
-                    self.UpdateBatchSize()
                     self.batches_number_samples.append(self.batch_size)
                     # append execution, analysis and convergence False booleans
                     self.batches_execution_finished.append(False)
@@ -361,6 +360,18 @@ class MonteCarlo(object):
                     self.QoI.batches_number_samples.append([0 for _ in range (self.current_number_levels+1)])
         else:
             pass
+
+    """
+    function updating number of batches
+    input:  self: an instance of the class
+    """
+    def UpdateBatches(self):
+        # set here number of batches to append
+        new_number_batches = 1
+        # update batch size
+        self.UpdateBatchSize()
+        for new_batch in range (new_number_batches):
+            self.batches_launched.append(False)
 
     """
     function updating batch size
