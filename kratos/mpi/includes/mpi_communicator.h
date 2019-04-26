@@ -325,11 +325,6 @@ const TValue& GetValue(const ConstIteratorType& iter)
     return iter->FastGetSolutionStepValue(mrVariable);
 }
 
-void SetValue(IteratorType& iter, const TValue& rValue)
-{
-    iter->FastGetSolutionStepValue(mrVariable) = rValue;
-}
-
 };
 
 template<class TValue> class NodalDataAccess
@@ -367,11 +362,6 @@ TValue& GetValue(IteratorType& iter)
 const TValue& GetValue(const ConstIteratorType& iter)
 {
     return iter->GetValue(mrVariable);
-}
-
-void SetValue(IteratorType& iter, const TValue& rValue)
-{
-    iter->SetValue(mrVariable, rValue);
 }
 
 };
@@ -412,11 +402,6 @@ const Kratos::Flags& GetValue(const ConstIteratorType& iter)
     return *iter;
 }
 
-void SetValue(IteratorType& iter, const Kratos::Flags& rValue)
-{
-    iter->AssignFlags(rValue);
-}
-
 };
 
 class NodalSolutionStepDataAccess
@@ -447,12 +432,6 @@ ValueType& GetValue(IteratorType& iter)
 const ValueType& GetValue(const ConstIteratorType& iter)
 {
     return iter->SolutionStepData();
-}
-
-void SetValue(IteratorType& iter, const ValueType* pBuffer)
-{
-    auto& nodal_data = iter->SolutionStepData();
-    std::memcpy(nodal_data.Data(), pBuffer, nodal_data.TotalSize()*sizeof(double));
 }
 
 };
