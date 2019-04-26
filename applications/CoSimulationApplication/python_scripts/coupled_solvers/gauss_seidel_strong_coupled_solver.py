@@ -108,6 +108,8 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
         for conv_crit in self.convergence_criteria_list:
             conv_crit.Check()
 
+            # TODO check if at least one conv-crit was specified?
+
     @classmethod
     def _GetDefaultSettings(cls):
         this_defaults = cs_tools.cs_data_structure.Parameters("""{
