@@ -801,7 +801,7 @@ public:
 	      this->SetNodalPosition(*(i_cond.base()), rCurrentProcessInfo, xc, yc, zc);
 
 	      //create a new node
-	      pNode = std::make_intrusive<Node<3>>( id, xc, yc, zc );
+	      pNode = Kratos::make_intrusive<Node<3>>( id, xc, yc, zc );
 
 	      //giving model part variables list to the node
 	      pNode->SetSolutionStepVariablesList(&VariablesList);
