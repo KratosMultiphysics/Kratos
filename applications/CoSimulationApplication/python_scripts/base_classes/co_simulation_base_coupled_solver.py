@@ -13,7 +13,6 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
 
         self.participating_solvers = self.__CreateSolvers()
         self.coupling_sequence = self.__GetSolverCoSimulationDetails()
-        self.__CreateOutputSynchronizers()
 
         ### Creating the predictors
         self.predictors_list = cs_tools.CreatePredictors(
@@ -174,38 +173,6 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
             solver_cosim_details[solver_name] = solver_settings
         return solver_cosim_details
 
-    def __CreateOutputSynchronizers(self):
-        self.output_synchronizers = dict()
-
-        for i_solver_settings in range(self.settings["coupling_sequence"].size()):
-            solver_settings = self.settings["coupling_sequence"][i_solver_settings]
-            solver_name = solver_settings["name"].GetString()
-            solver = self.participating_solvers[solver_name]
-            self.output_synchronizers[solver_name] = [] # TODO check if this exists already!
-
-            for i_output_data_list in range(solver_settings["output_data_list"].size()):
-                output_data = solver_settings["output_data_list"][i_output_data_list]
-                to_solver = self.participating_solvers[output_data["to_solver"].GetString()]
-
-                out_synchronizer = OutputSynchronizer(solver, to_solver, output_data)
-                self.output_synchronizers[solver_name].append(out_synchronizer)
-
-        # solver = self.participating_solvers[solver_name]
-        # output_data_list = self.coupling_sequence[solver_name]["output_data_list"]
-
-        # for i in range(output_data_list.size()):
-        #     output_data = output_data_list[i]
-        #     data_name = output_data["data_name"].GetString()
-        #     to_solver_data = to_solver.GetInterfaceData(data_name)
-        #     solver_data = solver.GetInterfaceData(output_data["origin_data"].GetString())
-
-        #     if output_data.Has("mapper_settings"):
-        #         solver_data.destination_data = to_solver_data
-        #         solver_data.mapper_settings = output_data["mapper_settings"]
-
-        #     solver.ExportCouplingInterfaceData(solver_data, to_solver)
-
-
     @classmethod
     def _GetDefaultSettings(cls):
         this_defaults = cs_tools.cs_data_structure.Parameters("""{
@@ -216,30 +183,3 @@ class CoSimulationBaseCouplingSolver(co_simulation_base_solver.CoSimulationBaseS
         this_defaults.AddMissingParameters(super(CoSimulationBaseCouplingSolver, cls)._GetDefaultSettings())
 
         return this_defaults
-
-class DataSynchronizer(object):
-    pass # should construct the operations
-
-
-class OutputSynchronizer(object):
-    def __init__(self, solver, to_solver, output_data):
-        self.solver = solver
-        self.to_solver = to_solver
-        self.output_data = output_data
-
-        print(self.output_data.PrettyPrintJsonString())
-        errrrr
-
-    def Synchronize(self):
-        solver_data = self.solver.GetInterfaceData(self.output_data["origin_data"].GetString())
-        if self.output_data.Has("mapper_settings"):
-            # needs to be overridden
-            solver_data.destination_data = self.to_solver.GetInterfaceData(self.output_data["data_name"].GetString())
-            solver_data.mapper_settings = self.output_data["mapper_settings"]
-
-        Perform_Operations()
-
-        self.solver.ExportCouplingInterfaceData(solver_data, to_solver)
-
-        # TODO reset the members
-

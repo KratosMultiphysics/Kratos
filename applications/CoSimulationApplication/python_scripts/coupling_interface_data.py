@@ -19,7 +19,7 @@ class CouplingInterfaceData(object):
         custom_config.ValidateAndAssignDefaults(default_config)
 
         self.name = custom_config["name"].GetString()
-        # self.operations = []
+        self.filters = []
         self.solver = solver
         self.dimension = custom_config["dimension"].GetInt()
         self.location = custom_config["location"].GetString()
@@ -29,9 +29,9 @@ class CouplingInterfaceData(object):
         self.mapper_settings  = None
         # TODO check DOMAIN_SIZE against the dimension
 
-    # def ExecuteOperations(self):
-    #     for op in self.operations:
-    #         op.Execute()
+    def ApplyFilters(self):
+        for filter in self.filters:
+            filter.Apply()
 
     def GetPythonList(self, solution_step_index=0):
         data_mesh = self.solver.model[self.geometry_name]
