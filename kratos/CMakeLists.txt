@@ -149,6 +149,11 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_parallel_environment_to_python.cpp
 )
 
+## Kratos Version
+set( KRATOS_VERSION_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/version/kratos_version.cpp
+)
+
 ## Kratos testing engine soruces
 file(GLOB_RECURSE KRATOS_CORE_TESTING_ENGINE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/testing/*.cpp)
 
@@ -160,9 +165,19 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
+## Define KratosVersion object
+add_library(KratosVersion OBJECT ${KRATOS_CORE_SOURCES})
+target_compile_definitions(KratosVersion PRIVATE 
+    KRATOS_MAJOR_VERSION=${KratosMultiphysics_MAJOR_VERSION}
+    KRATOS_MINOR_VERSION=${KratosMultiphysics_MINOR_VERSION}
+    KRATOS_PATCH_VERSION=${KratosMultiphysics_PATCH_VERSION}
+    KRATOS_SHA1_NUMBER=${KratosMultiphysics_SHA1_NUMBER}
+    KRATOS_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+)
+
 ## Define library KratosCore to be included in all of the others
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_TEST_SOURCES})
-target_link_libraries(KratosCore PUBLIC gidpost) #${Boost_LIBRARIES} ${PYTHON_LIBRARIES} gidpost )
+target_link_libraries(KratosCore PUBLIC KratosVersion gidpost) #${Boost_LIBRARIES} ${PYTHON_LIBRARIES} gidpost )
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 
 if (${AMGCL_GPGPU} MATCHES ON)

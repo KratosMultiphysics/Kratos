@@ -80,11 +80,6 @@ else( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
   set (KratosMultiphysics_BUILD_SUFFIX "-${CMAKE_BUILD_TYPE}" )
 endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
-  "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_version.h"
-)
-
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++11")
