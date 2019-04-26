@@ -902,6 +902,10 @@ public:
     ///@name Access
     ///@{
 
+    virtual const DataCommunicator& GetDataCommunicator() const
+    {
+        return mrDataCommunicator;
+    }
 
     ///@}
     ///@name Inquiry
