@@ -205,9 +205,9 @@ public:
     */
     void Calculate(
         const Variable<double>& rVariable,
-        double& rOutput,
+        double& rOutput,//std::vector<double>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
-    ) override;
+        ) override;
 
     /**
     * Calculate a Vector Variable on the Element
@@ -215,11 +215,19 @@ public:
     * @param rOutput: The values obtained int the integration points
     * @param rCurrentProcessInfo: the current process info instance
     */
-    void Calculateplus(
-       const Variable<double>& rVariable,// const Variable<Vector>& rVariable,
-        double& rOutput,//Vector& rValues,
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+       array_1d<double, 3>& rOutput,
+       //std::vector<std::array<double, 3>>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
-    ); //override;
+        ) override;
+
+    void IgaMembraneElement::Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput,
+        //std::vector<std::array<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        );// override;
 
     void CalculateStresses(
         Vector& rStresses,

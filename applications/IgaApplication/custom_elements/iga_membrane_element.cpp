@@ -669,11 +669,11 @@ void IgaMembraneElement::CalculateSecondVariationStrain(
 //POSTPROCESSING
 void IgaMembraneElement::Calculate(
         const Variable<double>& rVariable,
-        double& rOutput,
+        double& rOutput, //std::vector<double>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
-    )
+        )// override;
     {
-        if (rVariable == VON_MISES_STRESS)
+        /*if (rVariable == VON_MISES_STRESS)
         {
             Vector stresses = ZeroVector(3);
             CalculateStresses(stresses, rCurrentProcessInfo);
@@ -687,20 +687,30 @@ void IgaMembraneElement::Calculate(
             double vMises = sqrt(pow(principal_forces[0], 2) + pow(principal_forces[1], 2) - principal_forces[0] * principal_forces[1] + 3 * pow(principal_forces[2], 2));
 
             rOutput = vMises;
-        }
-        if (rVariable == PRINCIPAL_STRESSES)//else if (rVariable == PRINCIPAL_STRESSES)
+        }*/
+        if (rVariable == PRINCIPAL_STRESS_1)//else if (rVariable == PRINCIPAL_STRESSES)
         {
             Vector stresses = ZeroVector(3);
             CalculateStresses(stresses, rCurrentProcessInfo);
 
             //Vector principal_stresses = ZeroVector(3);
             // Principal normal forces
-            double principal_stresses = 0.5*(stresses[0] + stresses[1]) + sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
+            double principal_stresses = 0.5*(stresses[0] + stresses[1] + sqrt(pow(stresses[0] - stresses[1], 2)+4*pow(stresses[2], 2))) ;
+            //double principal_stresses = 0.5*(stresses[0] + stresses[1]) + sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
             //double principal_stresses[1] = 0.5*(stresses[0] + stresses[1]) - sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
             //double principal_stresses[2] = sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
 
             rOutput = principal_stresses;
         }   
+        if(rVariable == PRINCIPAL_STRESS_2)
+        {
+            Vector stresses = ZeroVector(3);
+            CalculateStresses(stresses, rCurrentProcessInfo); 
+            double principal_stresses = 0.5*(stresses[0] + stresses[1] - sqrt(pow(stresses[0] - stresses[1], 2)+4*pow(stresses[2], 2))) ;
+            //double principal_stresses = 0.5*(stresses[0] + stresses[1]) - sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
+       
+            rOutput = principal_stresses;
+        }
         /*if (rVariable == PRINCIPAL_FORCES)
         {
             Vector stresses = ZeroVector(3);
@@ -722,12 +732,12 @@ void IgaMembraneElement::Calculate(
             //SurfaceBaseDiscreteElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
         }
     }
-
-    void IgaMembraneElement::Calculateplus(
-        const Variable<double>& rVariable,// const Variable<Vector>& rVariable,
-        double& rOutput,//Vector& rValues,
+    void IgaMembraneElement::Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput,
+        //std::vector<std::array<double, 3>>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
-    )
+        )// override;
     {
         if (rVariable == STRESSES)
         {
@@ -735,42 +745,59 @@ void IgaMembraneElement::Calculate(
 
             CalculateStresses(stresses, rCurrentProcessInfo);
 
-           rOutput = stresses[1];// rValues = stresses;
-        }
-        else if (rVariable == PRINCIPAL_STRESSES)//else if (rVariable == PRINCIPAL_STRESSES)
+            /*for (int i=0; i<3; i++)
+            {
+                rOutput[i]=stresses[i];
+            }*/
+           // rOutput[3] = {stresses[0], stresses[1], stresses[2]};
+            rOutput = stresses;// rValues = stresses;
+      }
+
+   }
+    void IgaMembraneElement::Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput,
+        //std::vector<std::array<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        )// override;
+    {
+        if (rVariable == PRINCIPAL_STRESSES)//else if (rVariable == PRINCIPAL_STRESSES)
         {
             Vector stresses = ZeroVector(3);
             CalculateStresses(stresses, rCurrentProcessInfo);
 
-            //Vector principal_stresses = ZeroVector(3);
+            Vector principal_stresses = ZeroVector(3);
             // Principal normal forces
-            double principal_stresses = 0.5*(stresses[0] + stresses[1]) + sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
-            //double principal_stresses[1] = 0.5*(stresses[0] + stresses[1]) - sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
-            //double principal_stresses[2] = sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
+            principal_stresses[0] = 0.5*(stresses[0] + stresses[1]) + sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
+            principal_stresses[1] = 0.5*(stresses[0] + stresses[1]) - sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
+            principal_stresses[2] = sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
 
             rOutput = principal_stresses;
+            //rOutput[3] = {principal_stresses[0], principal_stresses[1], principal_stresses[2]};
         }
         else if (rVariable == PRINCIPAL_FORCES)
         {
             Vector stresses = ZeroVector(3);
             CalculateStresses(stresses, rCurrentProcessInfo);
 
-            //Vector principal_stresses = ZeroVector(3);
+            Vector principal_stresses = ZeroVector(3);
             // Principal normal forces
-            double principal_stresses = 0.5*(stresses[0] + stresses[1]) + sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
-            //principal_stresses[1] = 0.5*(stresses[0] + stresses[1]) - sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
-            //principal_stresses[2] = sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
+            principal_stresses[0] = 0.5*(stresses[0] + stresses[1]) + sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
+            principal_stresses[1] = 0.5*(stresses[0] + stresses[1]) - sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
+            principal_stresses[2] = sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
 
             const double thickness = GetValue(THICKNESS);
-
-            //rValues = principal_stresses * thickness;
+            //Vector principal_stresses_thickness = ZeroVector(3);
+           // principal_stresses_thickness =  principal_stresses*thickness;
+         
             rOutput = principal_stresses*thickness;
+            //rOutput[3] ={principal_stresses_thickness[0],  principal_stresses_thickness[1],  principal_stresses_thickness[2]};
         }
         /*else
         {
             SurfaceBaseDiscreteElement::Calculate(rVariable, rValues, rCurrentProcessInfo);
         }*/
-    }
+   } 
 
     void IgaMembraneElement::CalculateStresses(
         Vector& rStresses,
