@@ -157,18 +157,35 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection(
     GeometryType& rSecondGeometry
     )
 {
-    const std::size_t work_dim = rFirstGeometry.WorkingSpaceDimension(); // TODO: DOMAIN_SIZE should be considered for consistency with other implementations
+    const IndexType working_space_dimension = rFirstGeometry.WorkingSpaceDimension(); // TODO: DOMAIN_SIZE should be considered for consistency with other implementations
+    const IndexType local_space_dimension = rFirstGeometry.LocalSpaceDimension();
     if (this->Is(BOUNDARY)) {
-        if (work_dim == 2) {
-            return this->HasIntersection2D(rFirstGeometry, rSecondGeometry);
+        if (working_space_dimension == 2) {
+            if (local_space_dimension == 2) {
+                return this->HasIntersection2D(rFirstGeometry, rSecondGeometry);
+            } else {
+                return this->HasDirectIntersection2D(rFirstGeometry, rSecondGeometry);
+            }
         } else {
-            return this->HasIntersection3D(rFirstGeometry, rSecondGeometry);
+            if (local_space_dimension == 3) {
+                return this->HasIntersection3D(rFirstGeometry, rSecondGeometry);
+            } else {
+                return this->HasDirectIntersection3D(rFirstGeometry, rSecondGeometry);
+            }
         }
     } else {
-        if (work_dim == 2) {
-            return BaseType::HasIntersection2D(rFirstGeometry, rSecondGeometry);
+        if (working_space_dimension == 2) {
+            if (local_space_dimension == 2) {
+                return BaseType::HasIntersection2D(rFirstGeometry, rSecondGeometry);
+            } else {
+                return BaseType::HasDirectIntersection2D(rFirstGeometry, rSecondGeometry);
+            }
         } else {
-            return BaseType::HasIntersection3D(rFirstGeometry, rSecondGeometry);
+            if (local_space_dimension == 3) {
+                return BaseType::HasIntersection3D(rFirstGeometry, rSecondGeometry);
+            } else {
+                return BaseType::HasDirectIntersection3D(rFirstGeometry, rSecondGeometry);
+            }
         }
     }
 }
@@ -181,15 +198,11 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection2D(
     GeometryType& rSecondGeometry
     )
 {
-    // The local dimensions
-    const std::size_t local_dimension_1 = rFirstGeometry.LocalSpaceDimension();
-    const std::size_t local_dimension_2 = rSecondGeometry.LocalSpaceDimension();
-
     // The edges
     PointerVector<GeometryType> r_edges_1 = rFirstGeometry.Edges();
-    const std::size_t number_of_edges_1 = (local_dimension_1 < 2) ? 1 : r_edges_1.size();
+    const std::size_t number_of_edges_1 = r_edges_1.size();
     PointerVector<GeometryType> r_edges_2 = rSecondGeometry.Edges();
-    const std::size_t number_of_edges_2 = (local_dimension_2 < 2) ? 1 : r_edges_2.size();
+    const std::size_t number_of_edges_2 = r_edges_2.size();
 
     // First geometry
     for (std::size_t i_1 = 0; i_1 < number_of_edges_1; ++i_1) {
@@ -228,21 +241,51 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection2D(
 /***********************************************************************************/
 /***********************************************************************************/
 
+bool FindIntersectedGeometricalObjectsWithOBBProcess::HasDirectIntersection2D(
+    GeometryType& rFirstGeometry,
+    GeometryType& rSecondGeometry
+    )
+{
+    // First geometry
+    OrientedBoundingBox<2> first_obb(rFirstGeometry, mBoundingBoxFactor);
+
+    // We create new elements for debugging
+    if (mDebugOBB) {
+        auto p_prop = this->GetModelPart1().pGetProperties(1001);
+        CreateDebugOBB2D(this->GetModelPart1(), p_prop, first_obb);
+    }
+
+    // Second geometry
+    OrientedBoundingBox<2> second_obb(rSecondGeometry, mBoundingBoxFactor);
+
+    // We create new elements for debugging
+    if (mDebugOBB) {
+        auto p_prop = this->GetModelPart2().pGetProperties(1002);
+        CreateDebugOBB2D(this->GetModelPart2(), p_prop, second_obb);
+    }
+
+    // Computing intersection OBB
+    if (first_obb.HasIntersection(second_obb, mIntersectionType)){
+        return true;
+    }
+
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection3D(
     GeometryType& rFirstGeometry,
     GeometryType& rSecondGeometry
     )
 {
-    // The local dimensions
-    const std::size_t local_dimension_1 = rFirstGeometry.LocalSpaceDimension();
-    const std::size_t local_dimension_2 = rSecondGeometry.LocalSpaceDimension();
-
     // The faces
     PointerVector<GeometryType> r_faces_1 = rFirstGeometry.Faces();
-    const std::size_t number_of_faces_1 = (local_dimension_1 < 3) ? 1 : r_faces_1.size();
+    const std::size_t number_of_faces_1 = r_faces_1.size();
 
     PointerVector<GeometryType> r_faces_2 = rSecondGeometry.Faces();
-    const std::size_t number_of_faces_2 = (local_dimension_2 < 3) ? 1 : r_faces_2.size();
+    const std::size_t number_of_faces_2 = r_faces_2.size();
 
     // First geometry
     for (std::size_t i_1 = 0; i_1 < number_of_faces_1; ++i_1) {
@@ -274,6 +317,40 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection3D(
                 return true;
             }
         }
+    }
+
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool FindIntersectedGeometricalObjectsWithOBBProcess::HasDirectIntersection3D(
+    GeometryType& rFirstGeometry,
+    GeometryType& rSecondGeometry
+    )
+{
+    // First geometry
+    OrientedBoundingBox<3> first_obb(rFirstGeometry, mBoundingBoxFactor);
+
+    // We create new elements for debugging
+    if (mDebugOBB) {
+        auto p_prop = this->GetModelPart1().pGetProperties(1001);
+        CreateDebugOBB3D(this->GetModelPart1(), p_prop, first_obb);
+    }
+
+    // Second geometry
+    OrientedBoundingBox<3> second_obb(rSecondGeometry, mBoundingBoxFactor);
+
+    // We create new elements for debugging
+    if (mDebugOBB) {
+        auto p_prop = this->GetModelPart2().pGetProperties(1002);
+        CreateDebugOBB3D(this->GetModelPart2(), p_prop, second_obb);
+    }
+
+    // Computing intersection OBB
+    if (first_obb.HasIntersection(second_obb, mIntersectionType)){
+        return true;
     }
 
     return false;

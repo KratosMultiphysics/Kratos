@@ -197,11 +197,31 @@ protected:
         ) override;
 
     /**
+     * @brief This method check if there is an intersection between two geometries in 2D
+     * @param rFirstGeometry The first geometry
+     * @param rSecondGeometry The second geometry
+     */
+    bool HasDirectIntersection2D(
+        GeometryType& rFirstGeometry,
+        GeometryType& rSecondGeometry
+        ) override;
+
+    /**
      * @brief This method check if there is an intersection between two geometries in 3D
      * @param rFirstGeometry The first geometry
      * @param rSecondGeometry The second geometry
      */
     bool HasIntersection3D(
+        GeometryType& rFirstGeometry,
+        GeometryType& rSecondGeometry
+        ) override;
+
+    /**
+     * @brief This method check if there is an intersection between two geometries in 3D
+     * @param rFirstGeometry The first geometry
+     * @param rSecondGeometry The second geometry
+     */
+    bool HasDirectIntersection3D(
         GeometryType& rFirstGeometry,
         GeometryType& rSecondGeometry
         ) override;
