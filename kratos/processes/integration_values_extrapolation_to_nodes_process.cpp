@@ -24,9 +24,9 @@
 namespace Kratos
 {
 IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNodesProcess(
-        ModelPart& rMainModelPart,
-        Parameters ThisParameters
-        ) : mrModelPart(rMainModelPart)
+    ModelPart& rMainModelPart,
+    Parameters ThisParameters
+    ) : mrModelPart(rMainModelPart)
 {
     Parameters default_parameters = Parameters(R"(
     {
