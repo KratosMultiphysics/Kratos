@@ -1,4 +1,3 @@
-
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
@@ -75,12 +74,6 @@ public:
 
     /// Pointer definition of Line3D2
     KRATOS_CLASS_POINTER_DEFINITION( Line3D2 );
-
-    /// Type of edge geometry
-    typedef Line3D2<TPointType> EdgeType;
-
-    /// Type of face geometry
-    typedef Line3D2<TPointType> FaceType;
 
     /** Integration methods implemented in geometry.
     */
@@ -643,27 +636,12 @@ public:
     }
 
     /**
-     * @brief This method gives you all edges of this geometry.
-     * @details This method will gives you all the edges with one dimension less than this geometry.
-     * @return GeometriesArrayType containes this geometry edges.
-     * @see EdgesNumber()
-     * @see Edge()
-     */
-    GeometriesArrayType Edges( void ) override
-    {
-        GeometriesArrayType edges = GeometriesArrayType();
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 0 ) ) );
-        return edges;
-    }
-
-    /**
      * FacesNumber
      * @return SizeType containes number of this geometry edges/faces.
      */
     SizeType FacesNumber() const override
     {
-        return 0;
+      return EdgesNumber();
     }
 
     ///@}

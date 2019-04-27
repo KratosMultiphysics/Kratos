@@ -89,11 +89,6 @@ public:
     typedef Line3D2<TPointType> EdgeType;
 
     /**
-     * Type of face geometry
-     */
-    typedef Triangle3D3<TPointType> FaceType;
-
-    /**
      * Pointer definition of Triangle3D3
      */
     KRATOS_CLASS_POINTER_DEFINITION( Triangle3D3 );
@@ -1268,6 +1263,15 @@ public:
         return 3;
     }
 
+
+    /** FacesNumber
+    @return SizeType containes number of this geometry edges/faces.
+    */
+    SizeType FacesNumber() const override
+    {
+      return EdgesNumber();
+    }
+
     /** This method gives you all edges of this geometry. This
     method will gives you all the edges with one dimension less
     than this geometry. for example a triangle would return
@@ -1289,29 +1293,6 @@ public:
         return edges;
     }
 
-    /**
-     * @brief FacesNumber
-     * @return SizeType containes number of this geometry edges/faces.
-     */
-    SizeType FacesNumber() const override
-    {
-        return 2;
-    }
-
-    /**
-     * @brief Returns all faces of the current geometry
-     * @see EdgesNumber
-     * @see Edges
-     * @see FacesNumber
-     */
-    GeometriesArrayType Faces( void ) override
-    {
-        GeometriesArrayType faces = GeometriesArrayType();
-
-        faces.push_back( Kratos::make_shared<FaceType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 2 )) );
-        faces.push_back( Kratos::make_shared<FaceType>( this->pGetPoint( 2 ), this->pGetPoint( 1 ), this->pGetPoint( 0 )) );
-        return faces;
-    }
 
     //Connectivities of faces required
     void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
@@ -1345,6 +1326,21 @@ public:
         NodesInFaces(2,2)=1;
 
     }
+
+
+    /**
+     * Returns all faces of the current geometry.
+     * This is only implemented for 3D geometries, since 2D geometries
+     * only have edges but no faces
+     * @see EdgesNumber
+     * @see Edges
+     * @see FacesNumber
+    */
+    GeometriesArrayType Faces( void ) override
+    {
+        return GeometriesArrayType();
+    }
+
 
     ///@}
     ///@name Shape Function
