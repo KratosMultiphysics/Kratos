@@ -144,25 +144,105 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
         start_node_id = end_node_id;
     }
 
-    // in_data.numberofholes = rInnerPolygon.size(); 
-    // in_data.holelist = (REAL*) malloc(in_data.numberofholes * 2 * sizeof(REAL));
+    in_data.numberofholes = rInnerPolygon.size(); 
+    in_data.holelist = (REAL*) malloc(in_data.numberofholes * 2 * sizeof(REAL));
 
-    // for (unsigned int poly_i = 0; poly_i < rInnerPolygon.size(); ++poly_i)
-    // {
-    //     mapbox::geometry::polygon<double> polygon; 
-    //     mapbox::geometry::linear_ring<double> linear_ring; 
-    //     for (unsigned int node_i = 0; node_i < rInnerPolygon[poly_i].size(); ++node_i)
-    //     {
-    //         linear_ring.push_back(mapbox::geometry::point<double> (rInnerPolygon[poly_i][node_i][0], rInnerPolygon[poly_i][node_i][1])); 
-    //     }
-    //     polygon.push_back(linear_ring); 
+    for (unsigned int poly_i = 0; poly_i < rInnerPolygon.size(); ++poly_i)
+    {
+        mapbox::geometry::polygon<double> polygon; 
+        mapbox::geometry::linear_ring<double> linear_ring; 
+        for (unsigned int node_i = 0; node_i < rInnerPolygon[poly_i].size(); ++node_i)
+        {
+            linear_ring.push_back(mapbox::geometry::point<double> (rInnerPolygon[poly_i][node_i][0], rInnerPolygon[poly_i][node_i][1])); 
+        }
+        polygon.push_back(linear_ring); 
 
-    //     mapbox::geometry::point<double> inner_coord = mapbox::polylabel(polygon, 1e-6);
-    //     in_data.holelist[poly_i * 2] = inner_coord.x; 
-    //     in_data.holelist[poly_i * 2 + 1] = inner_coord.y; 
-    // }
+        mapbox::geometry::point<double> inner_coord = mapbox::polylabel(polygon, 1e-6);
+        in_data.holelist[poly_i * 2] = inner_coord.x; 
+        in_data.holelist[poly_i * 2 + 1] = inner_coord.y; 
+        KRATOS_WATCH(inner_coord.x)
+        KRATOS_WATCH(inner_coord.y)
+    }
 
-  
+    
+    CleanTriangulationDataStructure(in_data); 
+    InitTriangulationDataStructure(in_data); 
+    
+
+
+    in_data.numberofpoints = 8; 
+    in_data.pointlist = (REAL*) malloc(in_data.numberofpoints * 2 * sizeof(REAL));
+    in_data.pointmarkerlist = (int*) malloc(in_data.numberofpoints * sizeof(int));
+
+    in_data.pointlist[0] = 0; 
+    in_data.pointlist[1] = 0; 
+    in_data.pointlist[2] = 10; 
+    in_data.pointlist[3] = 0; 
+    in_data.pointlist[4] = 10; 
+    in_data.pointlist[5] = 10; 
+    in_data.pointlist[6] = 0; 
+    in_data.pointlist[7] = 10; 
+    
+    in_data.pointlist[8] = 2; 
+    in_data.pointlist[9] = 2; 
+    in_data.pointlist[10] = 2; 
+    in_data.pointlist[11] = 8; 
+    in_data.pointlist[12] = 8; 
+    in_data.pointlist[13] = 8; 
+    in_data.pointlist[14] = 8; 
+    in_data.pointlist[15] = 2; 
+
+    in_data.pointmarkerlist[0] = 0; 
+    in_data.pointmarkerlist[1] = 0; 
+    in_data.pointmarkerlist[2] = 0; 
+    in_data.pointmarkerlist[3] = 0; 
+    
+
+    in_data.pointmarkerlist[4] = 1; 
+    in_data.pointmarkerlist[5] = 1; 
+    in_data.pointmarkerlist[6] = 1; 
+    in_data.pointmarkerlist[7] = 1; 
+
+    in_data.numberofsegments = 8; 
+    in_data.segmentlist = (int*) malloc(in_data.numberofsegments * 2 * sizeof(int));
+    in_data.segmentmarkerlist = (int*) malloc(in_data.numberofsegments * sizeof(int));
+
+
+    in_data.segmentlist[0] = 0; 
+    in_data.segmentlist[1] = 1; 
+    in_data.segmentlist[2] = 1; 
+    in_data.segmentlist[3] = 2; 
+    in_data.segmentlist[4] = 2; 
+    in_data.segmentlist[5] = 3; 
+    in_data.segmentlist[6] = 3; 
+    in_data.segmentlist[7] = 0;
+
+    in_data.segmentlist[8] = 4; 
+    in_data.segmentlist[9] = 5; 
+    in_data.segmentlist[10] = 5; 
+    in_data.segmentlist[11] = 6; 
+    in_data.segmentlist[12] = 6; 
+    in_data.segmentlist[13] = 7; 
+    in_data.segmentlist[14] = 7; 
+    in_data.segmentlist[15] = 4;
+
+    in_data.segmentmarkerlist[0] = 0; 
+    in_data.segmentmarkerlist[1] = 0; 
+    in_data.segmentmarkerlist[2] = 0; 
+    in_data.segmentmarkerlist[3] = 0; 
+    in_data.segmentmarkerlist[4] = 1; 
+    in_data.segmentmarkerlist[5] = 1; 
+    in_data.segmentmarkerlist[6] = 1; 
+    in_data.segmentmarkerlist[7] = 1; 
+
+
+    in_data.numberofholes = 1; 
+    in_data.holelist = (REAL*) malloc(in_data.numberofholes * 2 * sizeof(REAL));
+    
+    in_data.holelist[0] = 5; 
+    in_data.holelist[1] = 5; 
+
+
 
 
     
@@ -192,7 +272,6 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
         strcat(trigenOpts, char_array); 
         
         triangulate(trigenOpts, &in_data, &out_data, &vor_out_data);
-
         triangulation_uv.resize(out_data.numberoftriangles, ZeroMatrix(3,2));
 
         unsigned int tri_id = 0; 
