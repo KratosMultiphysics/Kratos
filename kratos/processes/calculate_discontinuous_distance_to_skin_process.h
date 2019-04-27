@@ -74,7 +74,7 @@ public:
     /// Assignment operator.
     CalculateDiscontinuousDistanceToSkinProcess& operator=(CalculateDiscontinuousDistanceToSkinProcess const& rOther) = delete;
 
-    FindIntersectedGeometricalObjectsProcess<Element> mFindIntersectedObjectsProcess;
+    FindIntersectedGeometricalObjectsProcess mFindIntersectedObjectsProcess;
 
     ///@}
     ///@name Operations

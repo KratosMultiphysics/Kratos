@@ -46,7 +46,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(CalculateDistanceToSkinProcess);
 
     //TODO: These using statements have been included to make the old functions able to compile. It is still pending to update them.
-    using ConfigurationType = Internals::DistanceSpatialContainersConfigure<Element>;
+    using ConfigurationType = Internals::DistanceSpatialContainersConfigure;
     using CellType = OctreeBinaryCell<ConfigurationType>;
     using OctreeType = OctreeBinary<CellType>;
     using CellNodeDataType = ConfigurationType::cell_node_data_type;

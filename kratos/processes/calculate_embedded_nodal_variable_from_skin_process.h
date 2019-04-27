@@ -166,7 +166,7 @@ public:
     typedef typename Scheme<TSparseSpace,TDenseSpace>::Pointer SchemePointerType;
     typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverPointerType;
     typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::UniquePointer SolvingStrategyPointerType;
-    typedef typename FindIntersectedGeometricalObjectsProcess<Element>::Pointer FindIntersectedGeometricalObjectsProcessPointerType;
+    typedef typename FindIntersectedGeometricalObjectsProcess::Pointer FindIntersectedGeometricalObjectsProcessPointerType;
 
     struct Hash
     {
@@ -583,7 +583,7 @@ private:
 
     void CalculateIntersections()
     {
-        mpFindIntersectedGeometricalObjectsProcess = Kratos::make_shared<FindIntersectedGeometricalObjectsProcess<Element>>(mrBaseModelPart, mrSkinModelPart);
+        mpFindIntersectedGeometricalObjectsProcess = Kratos::make_shared<FindIntersectedGeometricalObjectsProcess>(mrBaseModelPart, mrSkinModelPart);
         mpFindIntersectedGeometricalObjectsProcess->Initialize();
         mpFindIntersectedGeometricalObjectsProcess->FindIntersections();
     }
