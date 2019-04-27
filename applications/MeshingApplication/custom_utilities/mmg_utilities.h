@@ -78,7 +78,7 @@ namespace Kratos
 /**
  * @struct MMGMeshInfo
  * @ingroup MeshingApplication
- * @brief This struct stores the Mmg mesh information
+ * @brief Stores the Mmg mesh information
  * @author Vicente Mataix Ferrandiz
  */
 template<MMGLibrary TMMGLibrary>
@@ -116,8 +116,7 @@ struct MMGMeshInfo
 /**
  * @class MmgUtilities
  * @ingroup MeshingApplication
- * @brief This class are different utilities that uses the MMG library
- * @details This class are different utilities that uses the MMG library
+ * @brief Provides the Kratos interface to the MMG library API
  * @author Vicente Mataix Ferrandiz
  */
 template<MMGLibrary TMMGLibrary>
@@ -136,7 +135,7 @@ public:
     // Geometry definition
     typedef Geometry<NodeType>                                     GeometryType;
 
-    /// Conditions array size
+    /// Spatial dimension
     static constexpr SizeType Dimension = (TMMGLibrary == MMGLibrary::MMG2D) ? 2 : 3;
 
     /// The type of array considered for the tensor
@@ -196,28 +195,38 @@ public:
     void PrintAndGetMmgMeshInfo(MMGMeshInfo<TMMGLibrary>& rMMGMeshInfo);
 
     /**
-     * @brief It checks if the nodes are repeated and remove the repeated ones
-     * @param rModelPart The model part of interest to study
+     * @brief Returns a vector of ids of spatially repeated nodes
+     * @param rModelPart The model part whose nodes are checked
      */
     IndexVectorType FindDuplicateNodeIds(ModelPart& rModelPart);
 
     /**
-     * @brief It checks if the conditions are repeated and returns a list of indices of the nodes
+     * @brief Returns a vector of ids of repeated conditions
+     * @details For 2D and surface meshes it returns the ids of repeated edges
+     * found in the MMG mesh data structure. In 3D it returns ids of triangles. 
      */
     IndexVectorType CheckFirstTypeConditions();
 
     /**
-     * @brief It checks if the conditions are repeated and remove the repeated ones
+     * @brief Returns a vector of ids of repeated conditions
+     * @details For 3D meshes it returns the ids of repeated quadrilaterals
+     * found in the MMG mesh data structure. Otherwise, it returns an empty
+     * vector. 
      */
     IndexVectorType CheckSecondTypeConditions();
 
     /**
-     * @brief It checks if the elemenst are removed and remove the repeated ones
+     * @brief Returns a vector of ids of repeated elements
+     * @details For 2D and surface meshes it returns the ids of repeated
+     * triangles found in the MMG mesh data structure. In 3D it returns
+     * ids of tetrahedra.
      */
     IndexVectorType CheckFirstTypeElements();
 
     /**
-     * @brief It checks if the elemenst are removed and remove the repeated ones
+     * @brief Returns a vector of ids of repeated elements
+     * @details For 3D meshes it returns the ids of repeated prisms found in
+     * the MMG mesh data structure. Otherwise, it returns an empty vector. 
      */
     IndexVectorType CheckSecondTypeElements();
 
@@ -241,11 +250,14 @@ public:
 
     /**
      * @brief It creates the new node
-     * @param rModelPart The model part of interest to study
-     * @param iNode The index of the new noode
-     * @param Ref The submodelpart id
-     * @param IsRequired MMG value (I don't know that it does)
+     * @param[in,out] rModelPart The model part which owns the new node
+     * @param[in] iNode The index of the new node
+     * @param[out] Ref MMG point reference
+     * @param[out] IsRequired MMG required entity (0 or 1)
      * @return pNode The pointer to the new node created
+     * @details Each call to this function increments the internal counter of
+     * the MMG mesh data structure, extracts the coordinates of the current
+     * vertex and creates the new node with the extracted coordinates.
      */
     NodeType::Pointer CreateNode(
         ModelPart& rModelPart,
@@ -256,23 +268,25 @@ public:
 
     /**
      * @brief It creates the new condition (first type, depends if the library work in 2D/3D/Surfaces)
-     * @param rModelPart The model part of interest to study
-     * @param rMapPointersRefCondition The pointer to the condition of reference
-     * @param CondId The id of the condition
-     * @param PropId The submodelpart id
-     * @param IsRequired MMG value (I don't know that it does)
-     * @param RemoveRegions Cuttig-out specified regions during surface remeshing
-     * @param Discretization The discretization option
+     * @param[in,out] rModelPart The model part of interest to study
+     * @param[in,out] rMapPointersRefCondition The pointer to the condition of reference
+     * @param[in] CondId The id of the new condition
+     * @param[out] Ref MMG edge reference
+     * @param[out] IsRequired MMG required entity (0 or 1)
+     * @param[in] SkipCreation Skips the creation of the new condition
      * @return pCondition The pointer to the new condition created
+     * @details Each call to this function increments the internal counter of
+     * the MMG mesh data structure and extracts the vertices of the current
+     * edge. 
      */
     Condition::Pointer CreateFirstTypeCondition(
         ModelPart& rModelPart,
         std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
         const IndexType CondId,
-        int& PropId,
+        int& Ref,
         int& IsRequired,
         bool SkipCreation,
-        const bool RemoveRegions = false,
+        const bool,
         const DiscretizationOption Discretization = DiscretizationOption::STANDARD
         );
 

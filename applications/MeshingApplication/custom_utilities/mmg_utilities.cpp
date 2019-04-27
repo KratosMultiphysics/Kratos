@@ -749,10 +749,10 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     const IndexType CondId,
-    int& PropId,
+    int& Ref,
     int& IsRequired,
     bool SkipCreation,
-    const bool RemoveRegions,
+    const bool,
     const DiscretizationOption Discretization
     )
 {
@@ -761,14 +761,14 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
 
     int edge_0, edge_1, is_ridge;
 
-    if (MMG2D_Get_edge(mMmgMesh, &edge_0, &edge_1, &PropId, &is_ridge, &IsRequired) != 1 ) {
+    if (MMG2D_Get_edge(mMmgMesh, &edge_0, &edge_1, &Ref, &is_ridge, &IsRequired) != 1 ) {
         exit(EXIT_FAILURE);
     }
 
     // Sometimes MMG creates conditions where there are not, then we skip
     Properties::Pointer p_prop = nullptr;
     Condition::Pointer p_base_condition = nullptr;
-    if (rMapPointersRefCondition[PropId] == nullptr) {
+    if (rMapPointersRefCondition[Ref] == nullptr) {
         if (Discretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
             KRATOS_WARNING("MmgUtilities") << "Condition. Null pointer returned" << std::endl;
             return p_condition;
@@ -778,7 +778,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
             p_base_condition = KratosComponents<Condition>::Get("LineCondition2D2N").Create(0, dummy_nodes, p_prop);
         }
     } else {
-        p_base_condition = rMapPointersRefCondition[PropId];
+        p_base_condition = rMapPointersRefCondition[Ref];
         p_prop = p_base_condition->pGetProperties();
     }
 
