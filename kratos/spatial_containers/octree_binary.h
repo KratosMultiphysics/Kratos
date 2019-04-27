@@ -1132,9 +1132,8 @@ namespace Kratos {
     * @param rLeaves Leaves to be filled for search
     * @param ToleranceCoefficient The proportion of the minimal size to compute the tolerance (0.1% of the min size by default)
     */
-    template<class TpObjectType>
     void GetIntersectedLeaves(
-        TpObjectType pObject,
+        typename cell_type::pointer_type pObject,
         std::vector<cell_type*>& rLeaves,
         const double ToleranceCoefficient = 0.001  // 0.1% of the min size
         )
@@ -1224,14 +1223,13 @@ namespace Kratos {
 
     //////////////////////////////////////////////////////////
 
-    template<class TpObjectType>
-    inline bool  IsIntersected(TpObjectType pObject, double Tolerance, const double* rLowPoint, const double* rHighPoint)
+    inline bool  IsIntersected(typename cell_type::pointer_type rObject, double Tolerance, const double* rLowPoint, const double* rHighPoint)
     {
         Point low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
         Point high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
 
 
-        return HasIntersection(pObject->GetGeometry(), low_point, high_point);
+        return HasIntersection(rObject->GetGeometry(), low_point, high_point);
     }
 
     /**
