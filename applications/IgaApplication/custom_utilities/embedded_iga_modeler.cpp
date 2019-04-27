@@ -96,7 +96,7 @@ void EmbeddedIgaModeler::CreateElements3D(ModelPart& rSkinModelPart)
 
             std::vector<Matrix> triangulation_xyz;
             embedded_triangulation.CreateTriangulation(
-                mTriangulationError, mInitialTriangleArea, mMaxTriangulationIterations,
+                mTriangulationError, mInitialTriangleArea, mMaxTriangulationIterations, mEchoLevel,
                 face, outer_polygon_uv, inner_polygon_uv, triangulation_xyz);
 
             #pragma omp critical 
@@ -153,7 +153,7 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::TestCreateElements3D()
             EmbeddedIgaTriangulation embedded_triangulation; 
             std::vector<Matrix> triangulation_xyz;
             embedded_triangulation.CreateTriangulation(
-                mTriangulationError, mInitialTriangleArea, mMaxTriangulationIterations,
+                mTriangulationError, mInitialTriangleArea, mMaxTriangulationIterations, mEchoLevel,
                 face, outer_polygon_uv, inner_polygon_uv, triangulation_xyz);
 
             #pragma omp critical
@@ -233,7 +233,7 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::PrintParametricTriangulatio
 
     EmbeddedIgaTriangulation embedded_triangulation; 
     embedded_triangulation.CreateTriangulation(
-        mTriangulationError, mInitialTriangleArea, mMaxTriangulationIterations,
+        mTriangulationError, mInitialTriangleArea, mMaxTriangulationIterations, mEchoLevel,
         face, outer_polygon, inner_polygon, triangulation);
 
     std::vector<std::vector<double>> coords(triangulation.size() * 3, std::vector<double>(2,0)); 
@@ -263,7 +263,7 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::PrintMappedPoints()
     EmbeddedIgaTriangulation embedded_triangulation; 
     std::vector<Matrix> triangulation_uv;
     embedded_triangulation.CreateTriangulation(
-        mTriangulationError, mInitialTriangleArea, mMaxTriangulationIterations,
+        mTriangulationError, mInitialTriangleArea, mMaxTriangulationIterations, mEchoLevel,
         face, outer_polygon_uv, inner_polygon_uv, triangulation_uv);
         
     std::vector<Matrix> triangulation_xyz;

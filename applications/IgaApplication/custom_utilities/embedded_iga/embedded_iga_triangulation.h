@@ -42,6 +42,7 @@ public:
         const double mTriangulationTolerance,
         const double mInitialTriangleArea,
         const int mMaxTriangulationIterations,
+        const int mEchoLevel,
         const BrepFace& rFaceGeometry,
         const std::vector<std::vector<array_1d<double,2>>>& rOuterPolygon,
         const std::vector<std::vector<array_1d<double,2>>>& rInnerPolygon,

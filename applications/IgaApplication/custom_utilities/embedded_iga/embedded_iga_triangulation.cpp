@@ -23,6 +23,7 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
     const double mTriangulationError,
     const double mInitialTriangleArea,
     const int mMaxTriangulationIterations,
+    const int mEchoLevel,
     const BrepFace& rFaceGeometry,
     const std::vector<std::vector<array_1d<double,2>>>& rOuterPolygon,
     const std::vector<std::vector<array_1d<double,2>>>& rInnerPolygon,
@@ -169,6 +170,7 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
         InitTriangulationDataStructure(out_data); 
         InitTriangulationDataStructure(vor_out_data); 
         
+        
         std::ostringstream stream_obj;
         stream_obj << std::fixed;
         stream_obj << std::setprecision(16);
@@ -176,10 +178,10 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
         std::string area_str = stream_obj.str();  
         int n = area_str.length(); 
         char char_array[n + 1];      
-        strcpy(char_array, area_str.c_str());       
-        char trigenOpts[25] = "Qqpza";      
+        strcpy(char_array, area_str.c_str());
+        char trigenOpts[25] = "Qqpza";
         strcat(trigenOpts, char_array); 
-             
+        
         triangulate(trigenOpts, &in_data, &out_data, &vor_out_data);
 
         triangulation_uv.resize(out_data.numberoftriangles, ZeroMatrix(3,2));
@@ -218,6 +220,8 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
                 break; 
             }
         }
+        KRATOS_INFO_IF("EMBEDDED_IGA", mEchoLevel >= 1) << "Iteration " << it << std::endl;
+        KRATOS_INFO_IF("EMBEDDED_IGA", mEchoLevel >= 1) << "Area: " << max_area << " - max_error: " << max_error << std::endl;
         
         CleanTriangulationDataStructure(out_data); 
         CleanTriangulationDataStructure(vor_out_data); 
