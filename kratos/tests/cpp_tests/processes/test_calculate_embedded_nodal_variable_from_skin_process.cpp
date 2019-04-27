@@ -144,7 +144,7 @@ namespace Testing {
             "skin_model_part_name": "Skin",
             "skin_variable_name": "DISPLACEMENT",
             "embedded_nodal_variable_name": "DISPLACEMENT",
-            "level_set_type": "continuous"
+            "level_set_type": "discontinuous"
         }
         )");
         EmbeddedNodalVariableProcessArray emb_nod_var_from_skin_proc(current_model, settings);
