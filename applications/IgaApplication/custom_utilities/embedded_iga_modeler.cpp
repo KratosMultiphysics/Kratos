@@ -40,7 +40,7 @@ void EmbeddedIgaModeler::CreateElements2D(ModelPart& rSkinModelPart)
             
             std::vector<array_1d<double,3>> polygon;
             EmbeddedIgaTessellation::CreateTessellation1D(
-                mTessellationTolerance, edge, polygon); 
+                mTessellationError, edge, polygon); 
 
             // Create Nodes in Skin Modelpart from the Points generated in the tessellation of the curve
             #pragma omp critical
@@ -90,13 +90,13 @@ void EmbeddedIgaModeler::CreateElements3D(ModelPart& rSkinModelPart)
             std::vector<std::vector<array_1d<double, 2>>> outer_polygon_uv;
             std::vector<std::vector<array_1d<double, 2>>> inner_polygon_uv;
             EmbeddedIgaTessellation::CreateTessellation2D(
-                mTessellationTolerance,face, outer_polygon_uv, inner_polygon_uv); 
+                mTessellationError,face, outer_polygon_uv, inner_polygon_uv); 
 
             EmbeddedIgaTriangulation embedded_triangulation; 
 
             std::vector<Matrix> triangulation_xyz;
             embedded_triangulation.CreateTriangulation(
-                mTriangulationTolerance, mInitialTriangleArea, mMaxTriangulationIterations,
+                mTriangulationError, mInitialTriangleArea, mMaxTriangulationIterations,
                 face, outer_polygon_uv, inner_polygon_uv, triangulation_xyz);
 
             #pragma omp critical 
@@ -147,13 +147,13 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::TestCreateElements3D()
             std::vector<std::vector<array_1d<double, 2>>> inner_polygon_uv;
             
             EmbeddedIgaTessellation::CreateTessellation2D(
-                mTessellationTolerance, face, outer_polygon_uv, inner_polygon_uv); 
+                mTessellationError, face, outer_polygon_uv, inner_polygon_uv); 
             
 
             EmbeddedIgaTriangulation embedded_triangulation; 
             std::vector<Matrix> triangulation_xyz;
             embedded_triangulation.CreateTriangulation(
-                mTriangulationTolerance, mInitialTriangleArea, mMaxTriangulationIterations,
+                mTriangulationError, mInitialTriangleArea, mMaxTriangulationIterations,
                 face, outer_polygon_uv, inner_polygon_uv, triangulation_xyz);
 
             #pragma omp critical
@@ -186,7 +186,7 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::PrintParametricTessellation
     std::vector<std::vector<array_1d<double, 2>>> inner_polygon;
     
     EmbeddedIgaTessellation::CreateTessellation2D(
-        mTessellationTolerance, face, outer_polygon, inner_polygon); 
+        mTessellationError, face, outer_polygon, inner_polygon); 
 
     unsigned int number_points = 0; 
     for (unsigned int i = 0; i < outer_polygon.size(); ++i)
@@ -227,13 +227,13 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::PrintParametricTriangulatio
     std::vector<std::vector<array_1d<double, 2>>> inner_polygon;
     
     EmbeddedIgaTessellation::CreateTessellation2D(
-        mTessellationTolerance, face, outer_polygon, inner_polygon); 
+        mTessellationError, face, outer_polygon, inner_polygon); 
 
     std::vector<Matrix> triangulation;
 
     EmbeddedIgaTriangulation embedded_triangulation; 
     embedded_triangulation.CreateTriangulation(
-        mTriangulationTolerance, mInitialTriangleArea, mMaxTriangulationIterations,
+        mTriangulationError, mInitialTriangleArea, mMaxTriangulationIterations,
         face, outer_polygon, inner_polygon, triangulation);
 
     std::vector<std::vector<double>> coords(triangulation.size() * 3, std::vector<double>(2,0)); 
@@ -258,12 +258,12 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::PrintMappedPoints()
     std::vector<std::vector<array_1d<double, 2>>> inner_polygon_uv;
     
     EmbeddedIgaTessellation::CreateTessellation2D(
-        mTessellationTolerance, face, outer_polygon_uv, inner_polygon_uv); 
+        mTessellationError, face, outer_polygon_uv, inner_polygon_uv); 
 
     EmbeddedIgaTriangulation embedded_triangulation; 
     std::vector<Matrix> triangulation_uv;
     embedded_triangulation.CreateTriangulation(
-        mTriangulationTolerance, mInitialTriangleArea, mMaxTriangulationIterations,
+        mTriangulationError, mInitialTriangleArea, mMaxTriangulationIterations,
         face, outer_polygon_uv, inner_polygon_uv, triangulation_uv);
         
     std::vector<Matrix> triangulation_xyz;
@@ -289,7 +289,7 @@ std::vector<std::vector<double>> EmbeddedIgaModeler::PrintCurveTessellationPoint
     std::vector<array_1d<double,3>> polygon;
     const auto curve = m_brep_model_vector[0].GetEdgeVector()[0]; 
     EmbeddedIgaTessellation::CreateTessellation1D(
-        mTessellationTolerance, curve, polygon);
+        mTessellationError, curve, polygon);
     
     std::vector<std::vector<double>> coords(polygon.size(), std::vector<double>(3,0));
     for (unsigned int i = 0; i < polygon.size(); ++i)
@@ -307,20 +307,22 @@ EmbeddedIgaModeler::EmbeddedIgaModeler(ModelPart &rModelPart)
     : NurbsBrepModeler::NurbsBrepModeler(rModelPart),
     m_model_part(rModelPart) 
 {
-    mTessellationTolerance = 1e-3; 
-    mTriangulationTolerance = 1.0; 
+    mTessellationError = 1e-3; 
+    mTriangulationError = 1.0; 
     mInitialTriangleArea = 10.0; 
-    mMaxTriangulationIterations = 10; 
+    mMaxTriangulationIterations = 10;
+    mEchoLevel = 0; 
 }; 
 
 EmbeddedIgaModeler::EmbeddedIgaModeler(ModelPart &rModelPart, const Parameters& rEmbeddedIgaSettings)
     : NurbsBrepModeler::NurbsBrepModeler(rModelPart),
     m_model_part(rModelPart)
 {
-    mTessellationTolerance = rEmbeddedIgaSettings["absolute_tessellation_tolerance"].GetDouble();   
-    mTriangulationTolerance = rEmbeddedIgaSettings["absolute_triangulation_tolerance"].GetDouble(); 
+    mTessellationError = rEmbeddedIgaSettings["absolute_tessellation_error"].GetDouble();   
+    mTriangulationError = rEmbeddedIgaSettings["absolute_triangulation_error"].GetDouble(); 
     mInitialTriangleArea = rEmbeddedIgaSettings["initial_triangle_area"].GetDouble(); 
     mMaxTriangulationIterations = rEmbeddedIgaSettings["max_triangulation_iteration"].GetInt();
+    mEchoLevel = rEmbeddedIgaSettings["echo_level"].GetInt();
 }
 
 

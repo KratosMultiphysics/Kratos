@@ -51,7 +51,6 @@ void EmbeddedIgaErrorEstimation::InsertGaussPointsExactSurface(
 
     EmbeddedIgaMapper::MapCartesianSpace(
         rFaceGeometry, gauss_points_uv, rGaussPoints_xyz); 
-
 }
 
 void EmbeddedIgaErrorEstimation::InsertGaussPointsApproxSurface(
@@ -116,9 +115,6 @@ void EmbeddedIgaErrorEstimation::GetError(
         rError[tri_i] = ele_error; 
     }
 }
-
-
-
 
     EmbeddedIgaErrorEstimation::EmbeddedIgaErrorEstimation()
     {}

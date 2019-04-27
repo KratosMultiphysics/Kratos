@@ -19,9 +19,8 @@
 
 namespace Kratos
 {
-
 void EmbeddedIgaTessellation::CreateTessellation1D(
-    const double mTessellationTolerance,
+    const double mTessellationError,
     const BrepEdge& rCurveGeometry,
     std::vector<array_1d<double, 3>>& rPolygon)
 {
@@ -51,7 +50,7 @@ void EmbeddedIgaTessellation::CreateTessellation1D(
 
     // Perform the tessellation of the curve with flatness factor
     ANurbs::Pointer<ANurbs::CurveTessellation3D> tessellation = ANurbs::New<ANurbs::CurveTessellation3D>();
-    tessellation->Compute(curve, mTessellationTolerance);
+    tessellation->Compute(curve, mTessellationError);
 
     rPolygon.resize(tessellation->NbPoints()); 
 
@@ -63,17 +62,16 @@ void EmbeddedIgaTessellation::CreateTessellation1D(
     }
 }
 
-
 void EmbeddedIgaTessellation::CreateTessellation2D(
-    const double mTessellationTolerance,
+    const double mTessellationError,
     const BrepFace& rFaceGeometry, 
     std::vector<std::vector<array_1d<double, 2>>>& rOuterPolygon,
     std::vector<std::vector<array_1d<double, 2>>>& rInnerPolygon)
 {   
-    std::vector<array_1d<double, 2>> loop;
     const auto surface_geometry = rFaceGeometry.GetSurface();
     for (unsigned int b_loop_i = 0; b_loop_i < rFaceGeometry.GetBoundaryLoop().size(); ++b_loop_i)
     {
+        std::vector<array_1d<double, 2>> loop;
         unsigned int point_index = 0;
         auto boundary_loop = rFaceGeometry.GetBoundaryLoop()[b_loop_i];
 
@@ -91,8 +89,7 @@ void EmbeddedIgaTessellation::CreateTessellation2D(
 
             const auto tessellation = Kratos::make_shared<ANurbs::CurveTessellation<array_1d<double, 3>>>();
 
-            tessellation->Compute(curve_on_surface, mTessellationTolerance);
-
+            tessellation->Compute(curve_on_surface, mTessellationError);
 
             // polygon vector needs to be resized to the current number of points + the new points
             // generated in the tessellation. However, the first point of one trimming curve
@@ -100,8 +97,7 @@ void EmbeddedIgaTessellation::CreateTessellation2D(
             // we subtract - 1.
 
             loop.resize(loop.size() + tessellation->NbPoints() - 1, ZeroVector(2));
-            
-            
+                        
             for (unsigned int i = 0; i < tessellation->NbPoints() - 1; ++i)
             {
                 for (unsigned int j = 0; j < 2; ++j)
@@ -113,7 +109,7 @@ void EmbeddedIgaTessellation::CreateTessellation2D(
             }
             
         }
-
+        
         if (boundary_loop.IsOuterLoop())
         {
             rOuterPolygon.push_back(loop);

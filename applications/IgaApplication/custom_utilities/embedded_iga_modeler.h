@@ -63,10 +63,11 @@ namespace Kratos
     private:
         ///@name Member Variables
         ///@{
-        double              mTessellationTolerance;
-        double              mTriangulationTolerance;
+        double              mTessellationError;
+        double              mTriangulationError;
         double              mInitialTriangleArea; 
         int                 mMaxTriangulationIterations;
+        int                 mEchoLevel;
 
         ModelPart&          m_model_part;
 

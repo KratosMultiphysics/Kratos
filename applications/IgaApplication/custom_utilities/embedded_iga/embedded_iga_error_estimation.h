@@ -10,7 +10,6 @@
 #include "iga_application_variables.h"
 #include "custom_utilities/embedded_iga/embedded_iga_mapper.h"
 
-
 namespace Kratos
 {
 

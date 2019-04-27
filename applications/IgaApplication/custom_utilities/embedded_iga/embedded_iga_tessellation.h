@@ -1,7 +1,6 @@
 #if !defined(KRATOS_EMBEDDED_IGA_TESSELLATION_H_INCLUDED )
 #define  KRATOS_EMBEDDED_IGA_TESSELLATION_H_INCLUDED
 
-
 extern "C" 
 {
     #ifdef SINGLE
@@ -46,11 +45,6 @@ public:
         const BrepFace& rFaceGeometry,
         std::vector<std::vector<array_1d<double, 2>>>& rOuterPolygon,
         std::vector<std::vector<array_1d<double, 2>>>& rInnerPolygon);
-    
-
-
-    
-    
     
     ///@}
     ///@name Life Cycle
