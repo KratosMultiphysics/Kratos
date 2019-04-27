@@ -19,8 +19,7 @@
 
 namespace Kratos
 {
-template<class TIntersectedEntity, class TIntersectingEntity>
-FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity, TIntersectingEntity>::FindIntersectedGeometricalObjectsWithOBBProcess(
+FindIntersectedGeometricalObjectsWithOBBProcess::FindIntersectedGeometricalObjectsWithOBBProcess(
     ModelPart& rModelPartIntersected,
     ModelPart& rModelPartIntersecting,
     const double BoundingBoxFactor,
@@ -49,8 +48,7 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity, TIntersectin
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TIntersectedEntity, class TIntersectingEntity>
-FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity, TIntersectingEntity>::FindIntersectedGeometricalObjectsWithOBBProcess(
+FindIntersectedGeometricalObjectsWithOBBProcess::FindIntersectedGeometricalObjectsWithOBBProcess(
     Model& rModel,
     Parameters ThisParameters
     ) : BaseType(rModel.GetModelPart(ThisParameters["intersected_model_part_name"].GetString()),
@@ -94,8 +92,7 @@ FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity, TIntersectin
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TIntersectedEntity, class TIntersectingEntity>
-void FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity, TIntersectingEntity>::SetOctreeBoundingBox()
+void FindIntersectedGeometricalObjectsWithOBBProcess::SetOctreeBoundingBox()
 {
     // Getting first iterators
     const auto it_node_begin_1 = BaseType::mrModelPartIntersected.NodesBegin();
@@ -155,8 +152,7 @@ void FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity, TInters
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TIntersectedEntity, class TIntersectingEntity>
-bool FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity, TIntersectingEntity>::HasIntersection(
+bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection(
     GeometryType& rFirstGeometry,
     GeometryType& rSecondGeometry
     )
@@ -180,8 +176,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity, TInters
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TIntersectedEntity, class TIntersectingEntity>
-bool FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity, TIntersectingEntity>::HasIntersection2D(
+bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection2D(
     GeometryType& rFirstGeometry,
     GeometryType& rSecondGeometry
     )
@@ -233,8 +228,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity, TInters
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TIntersectedEntity, class TIntersectingEntity>
-bool FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity, TIntersectingEntity>::HasIntersection3D(
+bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection3D(
     GeometryType& rFirstGeometry,
     GeometryType& rSecondGeometry
     )
@@ -288,8 +282,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity, TInters
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TIntersectedEntity, class TIntersectingEntity>
-void FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity, TIntersectingEntity>::CreateDebugOBB2D(
+void FindIntersectedGeometricalObjectsWithOBBProcess::CreateDebugOBB2D(
     ModelPart& rModelPart,
     Properties::Pointer pProperties,
     OrientedBoundingBox<2>& rOrientedBoundingBox
@@ -320,8 +313,7 @@ void FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity, TInters
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TIntersectedEntity, class TIntersectingEntity>
-void FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity, TIntersectingEntity>::CreateDebugOBB3D(
+void FindIntersectedGeometricalObjectsWithOBBProcess::CreateDebugOBB3D(
     ModelPart& rModelPart,
     Properties::Pointer pProperties,
     OrientedBoundingBox<3>& rOrientedBoundingBox
@@ -353,8 +345,7 @@ void FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity, TInters
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TIntersectedEntity, class TIntersectingEntity>
-Parameters FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity, TIntersectingEntity>::GetDefaultParameters()
+Parameters FindIntersectedGeometricalObjectsWithOBBProcess::GetDefaultParameters()
 {
     Parameters default_parameters = Parameters(R"(
     {
@@ -367,13 +358,5 @@ Parameters FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity, T
 
     return default_parameters;
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template class FindIntersectedGeometricalObjectsWithOBBProcess<Condition>;
-template class FindIntersectedGeometricalObjectsWithOBBProcess<Element>;
-template class FindIntersectedGeometricalObjectsWithOBBProcess<Condition, Element>;
-template class FindIntersectedGeometricalObjectsWithOBBProcess<Element, Condition>;
 
 }  // namespace Kratos.
