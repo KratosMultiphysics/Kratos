@@ -523,7 +523,7 @@ public:
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) override
+        ) const override
     {
         PointLocalCoordinatesImplementation( rResult, rPoint, true );
 

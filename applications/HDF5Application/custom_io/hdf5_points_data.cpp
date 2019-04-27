@@ -60,7 +60,7 @@ void PointsData::SetData(NodesContainerType const& rNodes)
         {
             const auto& r_node = *it;
             mIds[i] = r_node.Id();
-            mCoords[i] = r_node.Coordinates();
+            mCoords[i] = r_node.GetInitialPosition().Coordinates();
             ++it;
         }
     }
