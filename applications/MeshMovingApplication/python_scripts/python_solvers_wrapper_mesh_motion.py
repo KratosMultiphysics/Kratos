@@ -44,8 +44,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         err_msg += 'Available options are: "OpenMP", "MPI"'
         raise Exception(err_msg)
 
-    solver_module = __import__(solver_module_name)
-    solver = solver_module.CreateSolver(model, solver_settings)
+    module_full = 'KratosMultiphysics.MeshMovingApplication.' + solver_module_name
+    solver = __import__(module_full, fromlist=[solver_module_name]).CreateSolver(model, solver_settings)
 
     return solver
 
