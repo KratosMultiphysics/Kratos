@@ -19,13 +19,30 @@
 namespace Kratos
 {
 FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersectedGeometricalObjectsWithOBBForSearchProcess(
-    ModelPart& rPart1,
-    ModelPart& rPart2,
+    ModelPart& rModelPartIntersected,
+    ModelPart& rModelPartIntersecting,
     const double BoundingBoxFactor,
     const bool DebugOBB,
     const OBBHasIntersectionType IntersectionType
-    ) : BaseType(rPart1, rPart2, BoundingBoxFactor, DebugOBB, IntersectionType)
+    ) : mrModelPartIntersected(rModelPartIntersected),
+        mrModelPartIntersecting(rModelPartIntersecting),
+        mBoundingBoxFactor(BoundingBoxFactor),
+        mDebugOBB(DebugOBB),
+        mIntersectionType(IntersectionType)
 {
+    // In case we consider the bounding box we set the BOUNDARY flag
+    if (mBoundingBoxFactor > 0.0)
+        this->Set(BOUNDARY, true);
+    else
+        this->Set(BOUNDARY, false);
+
+    // We create new properties for debugging
+    if (mDebugOBB) {
+        rModelPartIntersected.CreateNewProperties(10001);
+        rModelPartIntersected.CreateSubModelPart(rModelPartIntersected.Name() + "_AUXILIAR_DEBUG_OBB");
+        rModelPartIntersecting.CreateNewProperties(10002);
+        rModelPartIntersecting.CreateSubModelPart(rModelPartIntersecting.Name() + "_AUXILIAR_DEBUG_OBB");
+    }
 }
 
 /***********************************************************************************/
@@ -34,22 +51,22 @@ FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersectedGeometr
 FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersectedGeometricalObjectsWithOBBForSearchProcess(
     Model& rModel,
     Parameters ThisParameters
-    ) : BaseType(rModel.GetModelPart(ThisParameters["intersected_model_part_name"].GetString()),
-        rModel.GetModelPart(ThisParameters["intersecting_model_part_name"].GetString()))
+    ) : mrModelPartIntersected(rModel.GetModelPart(ThisParameters["intersected_model_part_name"].GetString())),
+        mrModelPartIntersecting(rModel.GetModelPart(ThisParameters["intersecting_model_part_name"].GetString()))
 {
     const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-    BaseType::mThisParameters = ThisParameters;
+    mThisParameters = ThisParameters;
 
     // Checking that the names of the model parts are not empty (this is supposed to be already declared)
-    const std::string& r_intersected_model_part_name = BaseType::mThisParameters["intersected_model_part_name"].GetString();
-    const std::string& r_intersecting_model_part_name = BaseType::mThisParameters["intersecting_model_part_name"].GetString();
+    const std::string& r_intersected_model_part_name = mThisParameters["intersected_model_part_name"].GetString();
+    const std::string& r_intersecting_model_part_name = mThisParameters["intersecting_model_part_name"].GetString();
 
     KRATOS_ERROR_IF(r_intersected_model_part_name == "") << "intersected_model_part_name must be defined on parameters" << std::endl;
     KRATOS_ERROR_IF(r_intersecting_model_part_name == "") << "intersecting_model_part_name must be defined on parameters" << std::endl;
 
     // Setting the bounding box factor
-    mBoundingBoxFactor = BaseType::mThisParameters["bounding_box_factor"].GetDouble();
+    mBoundingBoxFactor = mThisParameters["bounding_box_factor"].GetDouble();
 
     // In case we consider the bounding box we set the BOUNDARY flag
     if (mBoundingBoxFactor > 0.0)
@@ -58,13 +75,13 @@ FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersectedGeometr
         this->Set(BOUNDARY, false);
 
     // If we debug OBB
-    mDebugOBB = BaseType::mThisParameters["debug_obb"].GetBool();
+    mDebugOBB = mThisParameters["debug_obb"].GetBool();
 
     // The intersection type
-    mIntersectionType = BaseType::ConvertInter(BaseType::mThisParameters["OBB_intersection_type"].GetString());
+    mIntersectionType = ConvertInter(mThisParameters["OBB_intersection_type"].GetString());
 
     // We create new properties for debugging
-    if (BaseType::mDebugOBB) {
+    if (mDebugOBB) {
         this->GetModelPart1().CreateNewProperties(1001);
         this->GetModelPart1().CreateSubModelPart(this->GetModelPart1().Name() + "_AUXILIAR_DEBUG_OBB");
         this->GetModelPart2().CreateNewProperties(1002);
@@ -78,18 +95,137 @@ FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersectedGeometr
 /***********************************************************************************/
 /***********************************************************************************/
 
+void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::Initialize()
+{
+    GenerateOctree();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults)
+{
+    auto& r_conditions_array = mrModelPartIntersected.ConditionsArray();
+    const SizeType number_of_conditions = r_conditions_array.size();
+    OtreeCellVectorType leaves;
+
+    IndexType counter = 0;
+    rResults.resize(number_of_conditions);
+    for (auto& r_condition : r_conditions_array) {
+        leaves.clear();
+        mOctree.GetIntersectedLeaves(r_condition, leaves);
+        FindIntersectedSkinObjects(*r_condition, leaves, rResults[counter]);
+        ++counter;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersections()
+{
+    this->FindIntersectedSkinObjects(mIntersectedObjects);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::vector<PointerVector<GeometricalObject>>& FindIntersectedGeometricalObjectsWithOBBForSearchProcess::GetIntersections()
+{
+    return mIntersectedObjects;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+ModelPart& FindIntersectedGeometricalObjectsWithOBBForSearchProcess::GetModelPart1()
+{
+    return mrModelPartIntersected;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+ModelPart& FindIntersectedGeometricalObjectsWithOBBForSearchProcess::GetModelPart2()
+{
+    return mrModelPartIntersecting;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+OctreeBinary<OctreeBinaryCell<typename FindIntersectedGeometricalObjectsWithOBBForSearchProcess::ConfigurationType>>* FindIntersectedGeometricalObjectsWithOBBForSearchProcess::GetOctreePointer()
+{
+    return& mOctree;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::Clear()
+{
+    mIntersectedObjects.clear();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::Execute()
+{
+    // Calling initialize first (initialize Octree)
+    ExecuteInitialize();
+
+    OtreeCellVectorType leaves;
+
+    // Iterate over conditions
+    auto& r_conditions_array = mrModelPartIntersected.Conditions();
+    const SizeType number_of_conditions = r_conditions_array.size();
+
+    const auto it_conditions_begin = r_conditions_array.begin();
+
+    #pragma omp parallel for private(leaves)
+    for (int i = 0; i < static_cast<int>(number_of_conditions); i++) {
+        auto it_cond = it_conditions_begin + i;
+        leaves.clear();
+        IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), leaves);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::ExecuteInitialize()
+{
+    GenerateOctree();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void  FindIntersectedGeometricalObjectsWithOBBForSearchProcess::IdentifyNearEntitiesAndCheckEntityForIntersection(
+    Condition::Pointer pCondition,
+    OtreeCellVectorType& rLeaves
+    )
+{
+    mOctree.GetIntersectedLeaves(pCondition, rLeaves);
+    MarkIfIntersected(*pCondition, rLeaves);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::SetOctreeBoundingBox()
 {
     // Getting first iterators
-    const auto it_node_begin_1 = BaseType::mrModelPartIntersected.NodesBegin();
-    const auto it_node_begin_2 = BaseType::mrModelPartIntersecting.NodesBegin();
+    const auto it_node_begin_1 = mrModelPartIntersected.NodesBegin();
+    const auto it_node_begin_2 = mrModelPartIntersecting.NodesBegin();
 
     // Setting initial guess
     PointType low(it_node_begin_1->Coordinates());
     PointType high(it_node_begin_1->Coordinates());
 
     // Loop over all nodes in first modelpart
-    for (IndexType i_node = 0 ; i_node < BaseType::mrModelPartIntersected.NumberOfNodes(); ++i_node) {
+    for (IndexType i_node = 0 ; i_node < mrModelPartIntersected.NumberOfNodes(); ++i_node) {
         auto it_node = it_node_begin_1 + i_node;
         const array_1d<double,3>& r_coordinates = it_node->Coordinates();
         for (IndexType i = 0; i < 3; i++) {
@@ -99,7 +235,7 @@ void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::SetOctreeBounding
     }
 
     // Loop over all skin nodes
-    for (IndexType i_node = 0 ; i_node < BaseType::mrModelPartIntersecting.NumberOfNodes(); ++i_node) {
+    for (IndexType i_node = 0 ; i_node < mrModelPartIntersecting.NumberOfNodes(); ++i_node) {
         auto it_node = it_node_begin_2 + i_node;
         const array_1d<double,3>& r_coordinates = it_node->Coordinates();
         for (IndexType i = 0; i < 3; i++) {
@@ -118,7 +254,7 @@ void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::SetOctreeBounding
 
     // In case we consider the bounding box we extend box
     if (mBoundingBoxFactor > 0.0) {
-        const std::size_t dimension = BaseType::mrModelPartIntersected.GetProcessInfo()[DOMAIN_SIZE];
+        const std::size_t dimension = mrModelPartIntersected.GetProcessInfo()[DOMAIN_SIZE];
         for(IndexType i = 0 ; i < dimension; i++) {
             if (std::abs(high[i] - low[i]) < mBoundingBoxFactor) {
                 low[i] -= mLowerBBCoefficient * mBoundingBoxFactor;
@@ -129,9 +265,9 @@ void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::SetOctreeBounding
 
     // TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-    BaseType::mOctree.SetBoundingBox(low.data(), high.data());
+    mOctree.SetBoundingBox(low.data(), high.data());
 #else
-    BaseType::mOctree.SetBoundingBox(low.data().data(), high.data().data());
+    mOctree.SetBoundingBox(low.data().data(), high.data().data());
 #endif // ifdef KRATOS_USE_AMATRIX
 }
 
@@ -175,6 +311,300 @@ void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::MarkIfIntersected
                 p_condition_2->Reset(VISITED);
             }
         }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool FindIntersectedGeometricalObjectsWithOBBForSearchProcess::HasIntersection(
+    GeometryType& rFirstGeometry,
+    GeometryType& rSecondGeometry
+    )
+{
+    const std::size_t work_dim = rFirstGeometry.WorkingSpaceDimension(); // TODO: DOMAIN_SIZE should be considered for consistency with other implementations
+    if (this->Is(BOUNDARY)) {
+        if (work_dim == 2) {
+            return HasIntersection2DWithOBB(rFirstGeometry, rSecondGeometry);
+        } else {
+            return HasIntersection3DWithOBB(rFirstGeometry, rSecondGeometry);
+        }
+    } else {
+        if (work_dim == 2) {
+            return HasIntersection2D(rFirstGeometry, rSecondGeometry);
+        } else {
+            return HasIntersection3D(rFirstGeometry, rSecondGeometry);
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool FindIntersectedGeometricalObjectsWithOBBForSearchProcess::HasIntersection2D(
+    GeometryType& rFirstGeometry,
+    GeometryType& rSecondGeometry
+    )
+{
+    // Check the intersection of each edge against the intersecting object
+    const array_1d<double, 3>& r_coordinates_second_geometry_1 = rSecondGeometry[0].Coordinates();
+    const array_1d<double, 3>& r_coordinates_second_geometry_2 = rSecondGeometry[1].Coordinates();
+    auto r_edges = rFirstGeometry.Edges();
+    PointType int_pt(0.0,0.0,0.0);
+    for (auto& edge : r_edges) {
+        const int int_id = IntersectionUtilities::ComputeLineLineIntersection<Line2D2<NodeType>>(
+            Line2D2<NodeType>{edge},
+            r_coordinates_second_geometry_1,
+            r_coordinates_second_geometry_2,
+            int_pt.Coordinates());
+
+        if (int_id != 0){
+            return true;
+        }
+    }
+
+    // Let check second geometry is inside the first one.
+    // Considering that there are no intersection, if one point is inside all of it is inside.
+    array_1d<double, 3> local_point;
+    if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
+        return true;
+    }
+
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool FindIntersectedGeometricalObjectsWithOBBForSearchProcess::HasIntersection3D(
+    GeometryType& rFirstGeometry,
+    GeometryType& rSecondGeometry
+    )
+{
+    // Check the intersection of each face against the intersecting object
+    auto faces = rFirstGeometry.Faces();
+    for (auto& face : faces) {
+        if (face.HasIntersection(rSecondGeometry)){
+            return true;
+        }
+    }
+
+    // Let check second geometry is inside the first one.
+    // Considering that there are no intersection, if one point is inside all of it is inside.
+    array_1d<double, 3> local_point;
+    if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
+        return true;
+    }
+
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool FindIntersectedGeometricalObjectsWithOBBForSearchProcess::HasIntersection2DWithOBB(
+    GeometryType& rFirstGeometry,
+    GeometryType& rSecondGeometry
+    )
+{
+    // The local dimensions
+    const std::size_t local_dimension_1 = rFirstGeometry.LocalSpaceDimension();
+    const std::size_t local_dimension_2 = rSecondGeometry.LocalSpaceDimension();
+
+    // The edges
+    PointerVector<GeometryType> r_edges_1 = rFirstGeometry.Edges();
+    const std::size_t number_of_edges_1 = (local_dimension_1 < 2) ? 1 : r_edges_1.size();
+    PointerVector<GeometryType> r_edges_2 = rSecondGeometry.Edges();
+    const std::size_t number_of_edges_2 = (local_dimension_2 < 2) ? 1 : r_edges_2.size();
+
+    // First geometry
+    for (std::size_t i_1 = 0; i_1 < number_of_edges_1; ++i_1) {
+        auto& r_edge_1 = *(r_edges_1.begin() + i_1);
+
+        OrientedBoundingBox<2> first_obb(r_edge_1, mBoundingBoxFactor);
+
+        // We create new elements for debugging
+        if (mDebugOBB) {
+            auto p_prop = this->GetModelPart1().pGetProperties(1001);
+            CreateDebugOBB2D(this->GetModelPart1(), p_prop, first_obb);
+        }
+
+        // Second geometry
+        for (std::size_t i_2 = 0; i_2 < number_of_edges_2; ++i_2) {
+            auto& r_edge_2 = *(r_edges_2.begin() + i_2);
+
+            OrientedBoundingBox<2> second_obb(r_edge_2, mBoundingBoxFactor);
+
+            // We create new elements for debugging
+            if (mDebugOBB) {
+                auto p_prop = this->GetModelPart2().pGetProperties(1002);
+                CreateDebugOBB2D(this->GetModelPart2(), p_prop, second_obb);
+            }
+
+            // Computing intersection OBB
+            if (first_obb.HasIntersection(second_obb, mIntersectionType)){
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool FindIntersectedGeometricalObjectsWithOBBForSearchProcess::HasIntersection3DWithOBB(
+    GeometryType& rFirstGeometry,
+    GeometryType& rSecondGeometry
+    )
+{
+    // The local dimensions
+    const std::size_t local_dimension_1 = rFirstGeometry.LocalSpaceDimension();
+    const std::size_t local_dimension_2 = rSecondGeometry.LocalSpaceDimension();
+
+    // The faces
+    PointerVector<GeometryType> r_faces_1 = rFirstGeometry.Faces();
+    const std::size_t number_of_faces_1 = (local_dimension_1 < 3) ? 1 : r_faces_1.size();
+
+    PointerVector<GeometryType> r_faces_2 = rSecondGeometry.Faces();
+    const std::size_t number_of_faces_2 = (local_dimension_2 < 3) ? 1 : r_faces_2.size();
+
+    // First geometry
+    for (std::size_t i_1 = 0; i_1 < number_of_faces_1; ++i_1) {
+        auto& r_face_1 = *(r_faces_1.begin() + i_1);
+
+        // Creating OBB
+        OrientedBoundingBox<3> first_obb(r_face_1, mBoundingBoxFactor);
+
+        // We create new elements for debugging
+        if (mDebugOBB) {
+            auto p_prop = this->GetModelPart1().pGetProperties(1001);
+            CreateDebugOBB3D(this->GetModelPart1(), p_prop, first_obb);
+        }
+
+        // Second geometry
+        for (std::size_t i_2 = 0; i_2 < number_of_faces_2; ++i_2) {
+            auto& r_face_2 = *(r_faces_2.begin() + i_2);
+
+            OrientedBoundingBox<3> second_obb(r_face_2, mBoundingBoxFactor);
+
+            // We create new elements for debugging
+            if (mDebugOBB) {
+                auto p_prop = this->GetModelPart2().pGetProperties(1002);
+                CreateDebugOBB3D(this->GetModelPart2(), p_prop, second_obb);
+            }
+
+            // Computing intersection OBB
+            if (first_obb.HasIntersection(second_obb, mIntersectionType)){
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::CreateDebugOBB2D(
+    ModelPart& rModelPart,
+    Properties::Pointer pProperties,
+    OrientedBoundingBox<2>& rOrientedBoundingBox
+    )
+{
+    ModelPart& r_sub_model_part = rModelPart.GetSubModelPart(rModelPart.Name() + "_AUXILIAR_DEBUG_OBB");
+
+    const std::size_t initial_node_id = rModelPart.GetRootModelPart().NumberOfNodes();// NOTE: We assume ordered nodes
+    const auto quad = rOrientedBoundingBox.GetEquivalentGeometry();
+    const array_1d<double, 3>& r_center = rOrientedBoundingBox.GetCenter();
+    const array_1d<array_1d<double, 3>, 2>& r_orientation_vectors = rOrientedBoundingBox.GetOrientationVectors();
+    std::vector<NodeType::Pointer> element_nodes (4);
+    for (int i = 0; i < 4; ++i) {
+        element_nodes[i] = r_sub_model_part.CreateNewNode(initial_node_id + i + 1, quad[i].X(), quad[i].Y(), quad[i].Z());
+    }
+    auto p_node_center = r_sub_model_part.CreateNewNode(initial_node_id + 4 + 1, r_center[0], r_center[1], r_center[2]);
+    p_node_center->SetValue(NORMAL, r_orientation_vectors[0]);
+    p_node_center->SetValue(TANGENT_XI, r_orientation_vectors[1]);
+
+    const std::size_t initial_element_id = rModelPart.GetRootModelPart().NumberOfElements();// NOTE: We assume ordered elements
+    r_sub_model_part.CreateNewElement("Element2D4N", initial_element_id + 1, PointerVector<NodeType>{element_nodes}, pProperties);
+
+//     // More debug
+//     const array_1d<double, 2>& r_half_lenghts = rOrientedBoundingBox.GetHalfLength();
+//     std::cout << "array_1d<double, 3> center;\ncenter[0] = " << r_center[0] << ";\ncenter[1] = " << r_center[1] << ";\ncenter[2] = " << r_center[2] << ";\n\narray_1d<array_1d<double, 3>, 2> directions;\ndirections[0][0] = " << r_orientation_vectors[0][0] << ";\ndirections[0][1] = " << r_orientation_vectors[0][1] << ";\ndirections[0][2] = " << r_orientation_vectors[0][2] << ";\ndirections[1][0] = " << r_orientation_vectors[1][0] << ";\ndirections[1][1] = " << r_orientation_vectors[1][1] << ";\ndirections[1][2] = " << r_orientation_vectors[1][2] << ";\n\narray_1d<double, 2> half_lenghts;\nhalf_lenghts[0] = " << r_half_lenghts[0] << ";\nhalf_lenghts[1] = " << r_half_lenghts[1] << ";\nOrientedBoundingBox<2> obb(center, directions, half_lenghts);" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::CreateDebugOBB3D(
+    ModelPart& rModelPart,
+    Properties::Pointer pProperties,
+    OrientedBoundingBox<3>& rOrientedBoundingBox
+    )
+{
+    ModelPart& r_sub_model_part = rModelPart.GetSubModelPart(rModelPart.Name() + "_AUXILIAR_DEBUG_OBB");
+
+    const std::size_t initial_node_id = rModelPart.GetRootModelPart().NumberOfNodes();// NOTE: We assume ordered nodes
+    const auto hexa = rOrientedBoundingBox.GetEquivalentGeometry();
+    const array_1d<double, 3>& r_center = rOrientedBoundingBox.GetCenter();
+    const array_1d<array_1d<double, 3>, 3>& r_orientation_vectors = rOrientedBoundingBox.GetOrientationVectors();
+    std::vector<NodeType::Pointer> element_nodes (8);
+    for (int i = 0; i < 8; ++i) {
+        element_nodes[i] = r_sub_model_part.CreateNewNode(initial_node_id + i + 1, hexa[i].X(), hexa[i].Y(), hexa[i].Z());
+    }
+    auto p_node_center = r_sub_model_part.CreateNewNode(initial_node_id + 8 + 1, r_center[0], r_center[1], r_center[2]);
+    p_node_center->SetValue(NORMAL, r_orientation_vectors[0]);
+    p_node_center->SetValue(TANGENT_XI, r_orientation_vectors[1]);
+    p_node_center->SetValue(TANGENT_ETA, r_orientation_vectors[2]);
+
+    const std::size_t initial_element_id = rModelPart.GetRootModelPart().NumberOfElements();// NOTE: We assume ordered elements
+    r_sub_model_part.CreateNewElement("Element3D8N", initial_element_id + 1, PointerVector<NodeType>{element_nodes}, pProperties);
+
+//     // More debug
+//     const array_1d<double, 3>& r_half_lenghts = rOrientedBoundingBox.GetHalfLength();
+//     std::cout << "array_1d<double, 3> center;\ncenter[0] = " << r_center[0] << ";\ncenter[1] = " << r_center[1] << ";\ncenter[2] = " << r_center[2] << ";\n\narray_1d<array_1d<double, 3>, 3> directions;\ndirections[0][0] = " << r_orientation_vectors[0][0] << ";\ndirections[0][1] = " << r_orientation_vectors[0][1] << ";\ndirections[0][2] = " << r_orientation_vectors[0][2] << ";\ndirections[1][0] = " << r_orientation_vectors[1][0] << ";\ndirections[1][1] = " << r_orientation_vectors[1][1] << ";\ndirections[1][2] = " << r_orientation_vectors[1][2] << ";\ndirections[2][0] = " << r_orientation_vectors[2][0] << ";\ndirections[2][1] = " << r_orientation_vectors[2][1] << ";\ndirections[2][2] = " << r_orientation_vectors[2][2] << ";\n\narray_1d<double, 3> half_lenghts;\nhalf_lenghts[0] = " << r_half_lenghts[0] << ";\nhalf_lenghts[1] = " << r_half_lenghts[1] << ";\nhalf_lenghts[2] = " << r_half_lenghts[2] <<  ";\nOrientedBoundingBox<3> obb(center, directions, half_lenghts);" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::size_t FindIntersectedGeometricalObjectsWithOBBForSearchProcess::WorkingSpaceDimension()
+{
+    auto& r_conditions_array = mrModelPartIntersected.Conditions();
+    const auto it_conditions_begin = r_conditions_array.begin();
+    const auto& r_geometry = it_conditions_begin->GetGeometry();
+    return r_geometry.WorkingSpaceDimension();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::GenerateOctree()
+{
+    this->SetOctreeBoundingBox();
+
+    // Adding mrModelPart2 to the octree
+    for (auto it_node = mrModelPartIntersecting.NodesBegin(); it_node != mrModelPartIntersecting.NodesEnd(); it_node++) {
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        mOctree.Insert(it_node->Coordinates().data());
+
+#else
+        mOctree.Insert(it_node->Coordinates().data().data());
+#endif // ifdef KRATOS_USE_AMATRIX
+    }
+
+    // Add entities
+    auto& r_conditions_array = mrModelPartIntersecting.Conditions();
+    const auto it_conditions_begin = r_conditions_array.begin();
+    const SizeType number_of_conditions = r_conditions_array.size();
+
+    // Iterate over the conditions
+    for (int i = 0; i < static_cast<int>(number_of_conditions); i++) {
+        auto it_conditions = it_conditions_begin + i;
+        mOctree.Insert(*(it_conditions).base());
     }
 }
 
