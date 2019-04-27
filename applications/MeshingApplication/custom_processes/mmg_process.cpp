@@ -123,7 +123,9 @@ void MmgProcess<TMMGLibrary>::ExecuteInitialize()
 
     /* We restart the MMG mesh and solution */
     mMmmgUtilities.SetEchoLevel(mEchoLevel);
-    mMmmgUtilities.InitMesh(mDiscretization);
+    mMmmgUtilities.SetDiscretization(mDiscretization);
+    mMmmgUtilities.SetRemoveRegions(mRemoveRegions);
+    mMmmgUtilities.InitMesh();
 
     KRATOS_CATCH("");
 }
@@ -630,7 +632,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
                 }
             }
 
-            Condition::Pointer p_condition = mMmmgUtilities.CreateFirstTypeCondition(mrThisModelPart, mpRefCondition, cond_id, ref, is_required, skip_creation, mRemoveRegions, mDiscretization);
+            Condition::Pointer p_condition = mMmmgUtilities.CreateFirstTypeCondition(mrThisModelPart, mpRefCondition, cond_id, ref, is_required, skip_creation);
 
             if (p_condition != nullptr) {
                 created_conditions_vector.push_back(p_condition);
@@ -650,7 +652,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
                     counter_second_cond += 1;
                 }
             }
-            Condition::Pointer p_condition = mMmmgUtilities.CreateSecondTypeCondition(mrThisModelPart, mpRefCondition, cond_id, ref, is_required, skip_creation, mRemoveRegions, mDiscretization);
+            Condition::Pointer p_condition = mMmmgUtilities.CreateSecondTypeCondition(mrThisModelPart, mpRefCondition, cond_id, ref, is_required, skip_creation);
 
             if (p_condition != nullptr) {
                 created_conditions_vector.push_back(p_condition);
@@ -676,7 +678,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
                 }
             }
 
-            Element::Pointer p_element = mMmmgUtilities.CreateFirstTypeElement(mrThisModelPart, mpRefElement, elem_id, ref, is_required, skip_creation, mRemoveRegions, mDiscretization);
+            Element::Pointer p_element = mMmmgUtilities.CreateFirstTypeElement(mrThisModelPart, mpRefElement, elem_id, ref, is_required, skip_creation);
 
             if (p_element != nullptr) {
                 created_elements_vector.push_back(p_element);
@@ -697,7 +699,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
                 }
             }
 
-            Element::Pointer p_element = mMmmgUtilities.CreateSecondTypeElement(mrThisModelPart, mpRefElement, elem_id, ref, is_required,skip_creation, mRemoveRegions, mDiscretization);
+            Element::Pointer p_element = mMmmgUtilities.CreateSecondTypeElement(mrThisModelPart, mpRefElement, elem_id, ref, is_required,skip_creation);
 
             if (p_element != nullptr) {
                 created_elements_vector.push_back(p_element);

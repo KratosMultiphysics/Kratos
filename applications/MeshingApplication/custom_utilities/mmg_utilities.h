@@ -184,80 +184,102 @@ public:
 
     /**
      * @brief This method sets the echo level
-     * @param EchoLevel Sets the echo level
+     * @param[in] EchoLevel Sets the echo level
      */
     void SetEchoLevel(const SizeType EchoLevel);
 
     /**
+     * @brief This method gets the echo level
+     * @return mEchoLevel Gets the echo level
+     */
+    SizeType GetEchoLevel();
+
+    /**
+     * @brief This method sets the echo level
+     * @param[in] Discretization Sets the echo level
+     */
+    void SetDiscretization(const DiscretizationOption Discretization);
+
+    /**
+     * @brief This method gets the echo level
+     * @return mDiscretization Gets the echo level
+     */
+    DiscretizationOption GetDiscretization();
+
+    /**
+     * @brief This method sets if the regions must be removed
+     * @param[in] RemoveRegions Sets if the regions must be removed
+     */
+    void SetRemoveRegions(const SizeType RemoveRegions);
+
+    /**
+     * @brief This method gets if the regions must be removed
+     * @return mRemoveRegions Gets if the regions must be removed
+     */
+    SizeType GetRemoveRegions();
+
+    /**
      * @brief It prints info about the current mesh
-     * @param rMMGMeshInfo The number of nodes, conditions and elements
+     * @param[in,out] rMMGMeshInfo The number of nodes, conditions and elements
      */
     void PrintAndGetMmgMeshInfo(MMGMeshInfo<TMMGLibrary>& rMMGMeshInfo);
 
     /**
      * @brief Returns a vector of ids of spatially repeated nodes
-     * @param rModelPart The model part whose nodes are checked
+     * @param[in,out] rModelPart The model part whose nodes are checked
      */
     IndexVectorType FindDuplicateNodeIds(ModelPart& rModelPart);
 
     /**
      * @brief Returns a vector of ids of repeated conditions
-     * @details For 2D and surface meshes it returns the ids of repeated edges
-     * found in the MMG mesh data structure. In 3D it returns ids of triangles. 
+     * @details For 2D and surface meshes it returns the ids of repeated edges found in the MMG mesh data structure. In 3D it returns ids of triangles.
      */
     IndexVectorType CheckFirstTypeConditions();
 
     /**
      * @brief Returns a vector of ids of repeated conditions
-     * @details For 3D meshes it returns the ids of repeated quadrilaterals
-     * found in the MMG mesh data structure. Otherwise, it returns an empty
-     * vector. 
+     * @details For 3D meshes it returns the ids of repeated quadrilaterals found in the MMG mesh data structure. Otherwise, it returns an empty vector.
      */
     IndexVectorType CheckSecondTypeConditions();
 
     /**
      * @brief Returns a vector of ids of repeated elements
-     * @details For 2D and surface meshes it returns the ids of repeated
-     * triangles found in the MMG mesh data structure. In 3D it returns
-     * ids of tetrahedra.
+     * @details For 2D and surface meshes it returns the ids of repeated triangles found in the MMG mesh data structure. In 3D it returns ids of tetrahedra.
      */
     IndexVectorType CheckFirstTypeElements();
 
     /**
      * @brief Returns a vector of ids of repeated elements
-     * @details For 3D meshes it returns the ids of repeated prisms found in
-     * the MMG mesh data structure. Otherwise, it returns an empty vector. 
+     * @details For 3D meshes it returns the ids of repeated prisms found in the MMG mesh data structure. Otherwise, it returns an empty vector.
      */
     IndexVectorType CheckSecondTypeElements();
 
     /**
      * @brief It blocks certain nodes before remesh the model
-     * @param iNode The index of the node
+     * @param[in] iNode The index of the node
      */
     void BlockNode(const IndexType iNode);
 
     /**
      * @brief It blocks certain conditions before remesh the model
-     * @param iCondition The index of the condition
+     * @param[in] iCondition The index of the condition
      */
     void BlockCondition(const IndexType iCondition);
 
     /**
      * @brief It blocks certain elements before remesh the model
-     * @param iElement The index of the element
+     * @param[in] iElement The index of the element
      */
     void BlockElement(const IndexType iElement);
 
     /**
      * @brief It creates the new node
+     * @details Each call to this function increments the internal counter of the MMG mesh data structure, extracts the coordinates of the current vertex and creates the new node with the extracted coordinates.
      * @param[in,out] rModelPart The model part which owns the new node
      * @param[in] iNode The index of the new node
      * @param[out] Ref MMG point reference
      * @param[out] IsRequired MMG required entity (0 or 1)
      * @return pNode The pointer to the new node created
-     * @details Each call to this function increments the internal counter of
-     * the MMG mesh data structure, extracts the coordinates of the current
-     * vertex and creates the new node with the extracted coordinates.
      */
     NodeType::Pointer CreateNode(
         ModelPart& rModelPart,
@@ -268,6 +290,7 @@ public:
 
     /**
      * @brief It creates the new condition (first type, depends if the library work in 2D/3D/Surfaces)
+     * @details Each call to this function increments the internal counter of the MMG mesh data structure and extracts the vertices of the current  edge.
      * @param[in,out] rModelPart The model part of interest to study
      * @param[in,out] rMapPointersRefCondition The pointer to the condition of reference
      * @param[in] CondId The id of the new condition
@@ -275,9 +298,6 @@ public:
      * @param[out] IsRequired MMG required entity (0 or 1)
      * @param[in] SkipCreation Skips the creation of the new condition
      * @return pCondition The pointer to the new condition created
-     * @details Each call to this function increments the internal counter of
-     * the MMG mesh data structure and extracts the vertices of the current
-     * edge. 
      */
     Condition::Pointer CreateFirstTypeCondition(
         ModelPart& rModelPart,
@@ -285,75 +305,61 @@ public:
         const IndexType CondId,
         int& Ref,
         int& IsRequired,
-        bool SkipCreation,
-        const bool,
-        const DiscretizationOption Discretization = DiscretizationOption::STANDARD
+        bool SkipCreation
         );
 
     /**
      * @brief It creates the new condition (second type, depends if the library work in 2D/3D/Surfaces)
-     * @param rModelPart The model part of interest to study
-     * @param rMapPointersRefCondition The pointer to the condition of reference
-     * @param CondId The id of the condition
-     * @param PropId The submodelpart id
-     * @param IsRequired MMG value (I don't know that it does)
-     * @param RemoveRegions Cuttig-out specified regions during surface remeshing
-     * @param Discretization The discretization option
+     * @param[in,out] rModelPart The model part of interest to study
+     * @param[in,out] rMapPointersRefCondition The pointer to the condition of reference
+     * @param[in] CondId The id of the condition
+     * @param[out] Ref MMG edge reference
+     * @param[out] IsRequired MMG required entity (0 or 1)
      * @return pCondition The pointer to the new condition created
      */
     Condition::Pointer CreateSecondTypeCondition(
         ModelPart& rModelPart,
         std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
         const IndexType CondId,
-        int& PropId,
+        int& Ref,
         int& IsRequired,
-        bool SkipCreation,
-        const bool RemoveRegions = false,
-        const DiscretizationOption Discretization = DiscretizationOption::STANDARD
+        bool SkipCreation
         );
 
     /**
      * @brief It creates the new element (first type, depends if the library work in 2D/3D/Surfaces)
-     * @param rModelPart The model part of interest to study
-     * @param rMapPointersRefElement The pointer to the element of reference
-     * @param ElemId The id of the element
-     * @param PropId The submodelpart id
-     * @param IsRequired MMG value (I don't know that it does)
-     * @param RemoveRegions Cuttig-out specified regions during surface remeshing
-     * @param Discretization The discretization option
+     * @param[in,out] rModelPart The model part of interest to study
+     * @param[in,out] rMapPointersRefElement The pointer to the element of reference
+     * @param[in] ElemId The id of the element
+     * @param[out] Ref MMG edge reference
+     * @param[out] IsRequired MMG required entity (0 or 1)
      * @return pElement The pointer to the new condition created
      */
     Element::Pointer CreateFirstTypeElement(
         ModelPart& rModelPart,
         std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
         const IndexType ElemId,
-        int& PropId,
+        int& Ref,
         int& IsRequired,
-        bool SkipCreation,
-        const bool RemoveRegions = false,
-        const DiscretizationOption Discretization = DiscretizationOption::STANDARD
+        bool SkipCreation
         );
 
     /**
      * @brief It creates the new element (second type, depends if the library work in 2D/3D/Surfaces)
-     * @param rModelPart The model part of interest to study
-     * @param rMapPointersRefElement The pointer to the element of reference
-     * @param ElemId The id of the element
-     * @param PropId The submodelpart id
-     * @param IsRequired MMG value (I don't know that it does)
-     * @param RemoveRegions Cuttig-out specified regions during surface remeshing
-     * @param Discretization The discretization option
+     * @param[in,out] rModelPart The model part of interest to study
+     * @param[in,out] rMapPointersRefElement The pointer to the element of reference
+     * @param[in] ElemId The id of the element
+     * @param[out] Ref MMG edge reference
+     * @param[out] IsRequired MMG required entity (0 or 1)
      * @return pElement The pointer to the new condition created
      */
     Element::Pointer CreateSecondTypeElement(
         ModelPart& rModelPart,
         std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
         const IndexType ElemId,
-        int& PropId,
+        int& Ref,
         int& IsRequired,
-        bool SkipCreation,
-        const bool RemoveRegions = false,
-        const DiscretizationOption Discretization = DiscretizationOption::STANDARD
+        bool SkipCreation
         );
 
     /**
@@ -364,9 +370,8 @@ public:
      * -# &mmgMesh pointer toward your MMG5_pMesh (that store your mesh)
      * -# MMG5_ARG_ppMet next arg will be a pointer over a MMG5_pSol storing a metric
      * -# &mmgSol pointer toward your MMG5_pSol (that store your metric)
-     * @param Discretization The discretization type
      */
-    void InitMesh(DiscretizationOption Discretization = DiscretizationOption::STANDARD);
+    void InitMesh();
 
     /**
      * @brief Here the verbosity is set
@@ -375,31 +380,31 @@ public:
 
     /**
      * @brief Here the verbosity is set using the API
-     * @param VerbosityMMG The equivalent verbosity level in the MMG API
+     * @param[in] VerbosityMMG The equivalent verbosity level in the MMG API
      */
     void InitVerbosityParameter(const IndexType VerbosityMMG);
 
     /**
      * @brief This sets the size of the mesh
-     * @param rMMGMeshInfo The number of nodes, conditions and elements
+     * @param[in,out] rMMGMeshInfo The number of nodes, conditions and elements
      */
     void SetMeshSize(MMGMeshInfo<TMMGLibrary>& rMMGMeshInfo);
 
     /**
      * @brief This sets the size of the solution for the scalar case
-     * @param NumNodes Number of nodes
+     * @param[in] NumNodes Number of nodes
      */
     void SetSolSizeScalar(const SizeType NumNodes);
 
     /**
      * @brief This sets the size of the solution for the vector case
-     * @param NumNodes Number of nodes
+     * @param[in] NumNodes Number of nodes
      */
     void SetSolSizeVector(const SizeType NumNodes);
 
     /**
      * @brief This sets the size of the solution for the tensor case
-     * @param NumNodes Number of nodes
+     * @param[in] NumNodes Number of nodes
      */
     void SetSolSizeTensor(const SizeType NumNodes);
 
@@ -410,23 +415,21 @@ public:
 
     /**
      * @brief This sets the output mesh
-     * @param rInputName The input name
-     * @param PostOutput If the ouput file is the solution after take into account the metric or not
-     * @param Step The step to postprocess
+     * @param[in] rInputName The input name
      */
     void InputMesh(const std::string& rInputName);
 
     /**
      * @brief This sets the output sol
-     * @param rInputName The input name
+     * @param[in] rInputName The input name
      */
     void InputSol(const std::string& rInputName);
 
     /**
      * @brief This sets the output mesh
-     * @param rOutputName The output name
-     * @param PostOutput If the ouput file is the solution after take into account the metric or not
-     * @param Step The step to postprocess
+     * @param[in] rOutputName The output name
+     * @param[in] PostOutput If the ouput file is the solution after take into account the metric or not
+     * @param[in] Step The step to postprocess
      */
     void OutputMesh(
         const std::string& rOutputName,
@@ -436,9 +439,9 @@ public:
 
     /**
      * @brief This sets the output sol
-     * @param rOutputName The output name
-     * @param PostOutput If the ouput file is the solution after take into account the metric or not
-     * @param Step The step to postprocess
+     * @param[in] rOutputName The output name
+     * @param[in] PostOutput If the ouput file is the solution after take into account the metric or not
+     * @param[in] Step The step to postprocess
      */
     void OutputSol(
         const std::string& rOutputName,
@@ -463,11 +466,11 @@ public:
 
     /**
      * @brief This sets the nodes of the mesh
-     * @param X Coordinate X
-     * @param Y Coordinate Y
-     * @param Z Coordinate Z
-     * @param Color Reference of the node(submodelpart)
-     * @param Index The index number of the node
+     * @param[in] X Coordinate X
+     * @param[in] Y Coordinate Y
+     * @param[in] Z Coordinate Z
+     * @param[in] Color Reference of the node(submodelpart)
+     * @param[in] Index The index number of the node
      */
     void SetNodes(
         const double X,
@@ -479,9 +482,9 @@ public:
 
     /**
      * @brief This sets the conditions of the mesh
-     * @param rGeometry The geometry of the condition
-     * @param Color Reference of the node(submodelpart)
-     * @param Index The index number of the node
+     * @param[in,out] rGeometry The geometry of the condition
+     * @param[in] Color Reference of the node(submodelpart)
+     * @param[in] Index The index number of the node
      */
     void SetConditions(
         GeometryType& rGeometry,
@@ -491,9 +494,9 @@ public:
 
     /**
      * @brief This sets elements of the mesh
-     * @param rGeometry The geometry of the element
-     * @param Color Reference of the node(submodelpart)
-     * @param Index The index number of the node
+     * @param[in,out] rGeometry The geometry of the element
+     * @param[in] Color Reference of the node(submodelpart)
+     * @param[in] Index The index number of the node
      */
     void SetElements(
         GeometryType& rGeometry,
@@ -503,8 +506,8 @@ public:
 
     /**
      * @brief This function is used to compute the metric scalar
-     * @param Metric The inverse of the size node
-     * @param NodeId The id of the node
+     * @param[in] Metric The inverse of the size node
+     * @param[in] NodeId The id of the node
      */
     void SetMetricScalar(
         const double Metric,
@@ -513,8 +516,8 @@ public:
 
     /**
      * @brief This function is used to compute the metric vector (x, y, z)
-     * @param Metric This array contains the components of the metric vector
-     * @param NodeId The id of the node
+     * @param[in] Metric This array contains the components of the metric vector
+     * @param[in] NodeId The id of the node
      */
     void SetMetricVector(
         const array_1d<double, Dimension>& Metric,
@@ -523,8 +526,8 @@ public:
 
     /**
      * @brief This function is used to compute the Hessian metric tensor, note that when using the Hessian, more than one metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
-     * @param Metric This array contains the components of the metric tensor in the MMG defined order
-     * @param NodeId The id of the node
+     * @param[in] Metric This array contains the components of the metric tensor in the MMG defined order
+     * @param[in] NodeId The id of the node
      */
     void SetMetricTensor(
         const TensorArrayType& Metric,
@@ -602,6 +605,8 @@ private:
     ///@{
 
     SizeType mEchoLevel = 0; /// The echo level of the utilities
+    bool mRemoveRegions = false; /// Cuttig-out specified regions during surface remeshing
+    DiscretizationOption mDiscretization = DiscretizationOption::STANDARD; /// Discretization The discretization type
 
     ///@}
     ///@name Private Operators

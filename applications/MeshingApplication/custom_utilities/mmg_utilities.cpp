@@ -183,6 +183,51 @@ void MmgUtilities<TMMGLibrary>::SetEchoLevel(const SizeType EchoLevel)
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
+SizeType MmgUtilities<TMMGLibrary>::GetEchoLevel()
+{
+    return mEchoLevel;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::SetDiscretization(const DiscretizationOption Discretization)
+{
+    mDiscretization = Discretization;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+DiscretizationOption MmgUtilities<TMMGLibrary>::GetDiscretization()
+{
+    return mDiscretization;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::SetRemoveRegions(const SizeType RemoveRegions)
+{
+    mRemoveRegions = RemoveRegions;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+SizeType MmgUtilities<TMMGLibrary>::GetRemoveRegions()
+{
+    return mRemoveRegions;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::PrintAndGetMmgMeshInfo(MMGMeshInfo<TMMGLibrary>& rMMGMeshInfo)
 {
     rMMGMeshInfo.NumberOfNodes = mMmgMesh->np;
@@ -751,9 +796,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
     const IndexType CondId,
     int& Ref,
     int& IsRequired,
-    bool SkipCreation,
-    const bool,
-    const DiscretizationOption Discretization
+    bool SkipCreation
     )
 {
     // We create the default one
@@ -769,7 +812,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
     Properties::Pointer p_prop = nullptr;
     Condition::Pointer p_base_condition = nullptr;
     if (rMapPointersRefCondition[Ref] == nullptr) {
-        if (Discretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
+        if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
             KRATOS_WARNING("MmgUtilities") << "Condition. Null pointer returned" << std::endl;
             return p_condition;
         } else {
@@ -808,9 +851,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
     const IndexType CondId,
     int& PropId,
     int& IsRequired,
-    bool SkipCreation,
-    const bool RemoveRegions,
-    const DiscretizationOption Discretization
+    bool SkipCreation
     )
 {
     // We create the default one
@@ -827,7 +868,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
     Condition::Pointer p_base_condition = nullptr;
 
     if (rMapPointersRefCondition[PropId] == nullptr) {
-        if (Discretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
+        if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
             KRATOS_WARNING("MmgUtilities") << "Condition. Null pointer returned" << std::endl;
             return p_condition;
         } else {
@@ -868,9 +909,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeCondition(
     const IndexType CondId,
     int& PropId,
     int& IsRequired,
-    bool SkipCreation,
-    const bool RemoveRegions,
-    const DiscretizationOption Discretization
+    bool SkipCreation
     )
 {
     // We create the default one
@@ -914,9 +953,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateSecondTypeCondition(
     const IndexType CondId,
     int& PropId,
     int& IsRequired,
-    bool SkipCreation,
-    const bool RemoveRegions,
-    const DiscretizationOption Discretization
+    bool SkipCreation
     )
 {
     return nullptr;
@@ -932,9 +969,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeCondition(
     const IndexType CondId,
     int& PropId,
     int& IsRequired,
-    bool SkipCreation,
-    const bool RemoveRegions,
-    const DiscretizationOption Discretization
+    bool SkipCreation
     )
 {
     Condition::Pointer p_condition = nullptr;
@@ -981,9 +1016,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateSecondTypeCondition(
     const IndexType CondId,
     int& PropId,
     int& IsRequired,
-    bool SkipCreation,
-    const bool RemoveRegions,
-    const DiscretizationOption Discretization
+    bool SkipCreation
     )
 {
     return nullptr;
@@ -999,9 +1032,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
     const IndexType ElemId,
     int& PropId,
     int& IsRequired,
-    bool SkipCreation,
-    const bool RemoveRegions,
-    const DiscretizationOption Discretization
+    bool SkipCreation
     )
 {
     Element::Pointer p_element = nullptr;
@@ -1012,7 +1043,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
         exit(EXIT_FAILURE);
     }
 
-    if( RemoveRegions && Discretization == DiscretizationOption::ISOSURFACE ){
+    if( mRemoveRegions && mDiscretization == DiscretizationOption::ISOSURFACE ){
         // The existence of a _nullptr_ indicates an element that was removed. This is not an alarming indicator.
         if (rMapPointersRefElement[PropId] == nullptr) {
             // KRATOS_INFO("MmgUtilities") << "Element has been removed from domain. Ok." << std::endl;
@@ -1037,7 +1068,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
 
         // Sometimes MMG creates elements where there are not, then we skip
         if (rMapPointersRefElement[PropId] == nullptr) {
-            if (Discretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
+            if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
                 KRATOS_WARNING("MmgUtilities") << "Element. Null pointer returned" << std::endl;
                 return p_element;
             } else {
@@ -1079,9 +1110,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
     const IndexType ElemId,
     int& PropId,
     int& IsRequired,
-    bool SkipCreation,
-    const bool RemoveRegions,
-    const DiscretizationOption Discretization
+    bool SkipCreation
     )
 {
     Element::Pointer p_element = nullptr;
@@ -1091,7 +1120,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
     if (MMG3D_Get_tetrahedron(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &PropId, &IsRequired) != 1 )
         exit(EXIT_FAILURE);
 
-    if( RemoveRegions && Discretization == DiscretizationOption::ISOSURFACE ){
+    if( mRemoveRegions && mDiscretization == DiscretizationOption::ISOSURFACE ){
         // The existence of a _nullptr_ indicates an element that was removed. This is not an alarming indicator.
         if (rMapPointersRefElement[PropId] == nullptr) {
             // KRATOS_INFO("MmgUtilities") << "Element has been removed from domain. Ok." << std::endl;
@@ -1117,7 +1146,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
 
         // Sometimes MMG creates elements where there are not, then we skip
         if (rMapPointersRefElement[PropId] == nullptr) {
-            if (Discretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
+            if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
                 KRATOS_WARNING("MmgUtilities") << "Element. Null pointer returned" << std::endl;
                 return p_element;
             } else {
@@ -1161,9 +1190,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeElement(
     const IndexType ElemId,
     int& PropId,
     int& IsRequired,
-    bool SkipCreation,
-    const bool RemoveRegions,
-    const DiscretizationOption Discretization
+    bool SkipCreation
     )
 {
     Element::Pointer p_element = nullptr;
@@ -1207,9 +1234,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateSecondTypeElement(
     const IndexType ElemId,
     int& PropId,
     int& IsRequired,
-    bool SkipCreation,
-    const bool RemoveRegions,
-    const DiscretizationOption Discretization
+    bool SkipCreation
     )
 {
     return nullptr;
@@ -1225,9 +1250,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeElement(
     const IndexType ElemId,
     int& PropId,
     int& IsRequired,
-    bool SkipCreation,
-    const bool RemoveRegions,
-    const DiscretizationOption Discretization
+    bool SkipCreation
     )
 {
     Element::Pointer p_element = nullptr;
@@ -1278,9 +1301,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateSecondTypeElement(
     const IndexType ElemId,
     int& PropId,
     int& IsRequired,
-    bool SkipCreation,
-    const bool RemoveRegions,
-    const DiscretizationOption Discretization
+    bool SkipCreation
     )
 {
     return nullptr;
@@ -1290,19 +1311,19 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateSecondTypeElement(
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMG2D>::InitMesh(DiscretizationOption Discretization)
+void MmgUtilities<MMGLibrary::MMG2D>::InitMesh()
 {
     mMmgMesh = nullptr;
     mMmgSol = nullptr;
 //     MmgDisp = nullptr;
 
     // We init the MMG mesh and sol
-    if (Discretization == DiscretizationOption::STANDARD) {
+    if (mDiscretization == DiscretizationOption::STANDARD) {
         MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgSol, MMG5_ARG_end);
-    } else if (Discretization == DiscretizationOption::ISOSURFACE) {
+    } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgSol, MMG5_ARG_end);
     } else {
-        KRATOS_ERROR << "Discretization type: " << static_cast<int>(Discretization) << " not fully implemented" << std::endl;
+        KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
     }
 
     InitVerbosity();
@@ -1312,21 +1333,21 @@ void MmgUtilities<MMGLibrary::MMG2D>::InitMesh(DiscretizationOption Discretizati
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMG3D>::InitMesh(DiscretizationOption Discretization)
+void MmgUtilities<MMGLibrary::MMG3D>::InitMesh()
 {
     mMmgMesh = nullptr;
     mMmgSol = nullptr;
 //     MmgDisp = nullptr;
 
     // We init the MMG mesh and sol
-    if (Discretization == DiscretizationOption::STANDARD) {
+    if (mDiscretization == DiscretizationOption::STANDARD) {
         MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgSol, MMG5_ARG_end);
 //     } else if (Discretization == DiscretizationOption::LAGRANGIAN) {
 //         MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgSol, MMG5_ARG_ppDisp, &MmgDisp, MMG5_ARG_end);
-    } else if (Discretization == DiscretizationOption::ISOSURFACE) {
+    } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgSol, MMG5_ARG_end);
     } else {
-        KRATOS_ERROR << "Discretization type: " << static_cast<int>(Discretization) << " not fully implemented" << std::endl;
+        KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
     }
 
     InitVerbosity();
@@ -1336,19 +1357,19 @@ void MmgUtilities<MMGLibrary::MMG3D>::InitMesh(DiscretizationOption Discretizati
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMGS>::InitMesh(DiscretizationOption Discretization)
+void MmgUtilities<MMGLibrary::MMGS>::InitMesh()
 {
     mMmgMesh = nullptr;
     mMmgSol = nullptr;
 //     MmgDisp = nullptr;
 
     // We init the MMG mesh and sol
-    if (Discretization == DiscretizationOption::STANDARD) {
+    if (mDiscretization == DiscretizationOption::STANDARD) {
         MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgSol, MMG5_ARG_end);
-    } else if (Discretization == DiscretizationOption::ISOSURFACE) {
+    } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgSol, MMG5_ARG_end);
     } else {
-        KRATOS_ERROR << "Discretization type: " << static_cast<int>(Discretization) << " not fully implemented" << std::endl;
+        KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
     }
 
     InitVerbosity();
