@@ -49,14 +49,11 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief This class takes two modelparts and marks the intersected ones with SELECTED flag. Does the check considering an OBB for the intersection
  * @details It creates a spatial datastructure and search for interaction. It also provides some helper methods for derived classes to check individual element or condition interesections.
- * @tparam TIntersectedEntity The type of geometrical (intersected) entity considered (if conditions or elements)
- * @tparam TIntersectingEntity The type of geometrical (intersecting) entity considered (if conditions or elements)
  * @todo Add possibility to use conditions with elements and vice versa (add second template argument)
  * @author Vicente Mataix Ferrandiz
 */
-template<class TIntersectedEntity = Element, class TIntersectingEntity = TIntersectedEntity>
 class KRATOS_API(KRATOS_CORE) FindIntersectedGeometricalObjectsWithOBBProcess
-    : public FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity>
+    : public FindIntersectedGeometricalObjectsProcess
 {
 public:
     ///@name Type Definitions
@@ -75,7 +72,7 @@ public:
     typedef Point PointType;
 
     /// Definition of the base type
-    typedef FindIntersectedGeometricalObjectsProcess<TIntersectedEntity, TIntersectingEntity> BaseType;
+    typedef FindIntersectedGeometricalObjectsProcess BaseType;
 
     /// Octree type definition
     typedef typename BaseType::OctreeType OctreeType;
@@ -85,10 +82,6 @@ public:
 
     /// Definition of the geometry type
     using GeometryType = Geometry<NodeType>;
-
-    /// Definition of the entity container type
-    typedef PointerVectorSet<TIntersectingEntity, IndexedObject> IntersectingEntityContainerType;
-    typedef PointerVectorSet<TIntersectedEntity, IndexedObject> IntersectedEntityContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -308,14 +301,12 @@ private:
 
 
 /// input stream function
-template<class TIntersectedEntity = Element, class TIntersectingEntity = TIntersectedEntity>
 inline std::istream& operator >> (std::istream& rIStream,
-                FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity>& rThis);
+                FindIntersectedGeometricalObjectsWithOBBProcess& rThis);
 
 /// output stream function
-template<class TIntersectedEntity = Element, class TIntersectingEntity = TIntersectedEntity>
 inline std::ostream& operator << (std::ostream& rOStream,
-                const FindIntersectedGeometricalObjectsWithOBBProcess<TIntersectedEntity>& rThis)
+                const FindIntersectedGeometricalObjectsWithOBBProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
