@@ -183,7 +183,7 @@ void FindIntersectedGeometricalObjectsProcess::ExecuteInitialize()
 
 std::size_t FindIntersectedGeometricalObjectsProcess::WorkingSpaceDimension()
 {
-    auto& r_elements_array = mrModelPartIntersected.Elements();
+    const auto& r_elements_array = mrModelPartIntersected.Elements();
     if (r_elements_array.size() > 0) {
         const auto it_elements_begin = r_elements_array.begin();
         const auto& r_geometry = it_elements_begin->GetGeometry();
