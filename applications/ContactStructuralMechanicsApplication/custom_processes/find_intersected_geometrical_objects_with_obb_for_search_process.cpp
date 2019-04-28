@@ -360,6 +360,13 @@ bool FindIntersectedGeometricalObjectsWithOBBForSearchProcess::HasIntersection2D
         return true;
     }
 
+    // Let check second geometry is inside the first one.
+    // Considering that there are no intersection, if one point is inside all of it is inside.
+    array_1d<double, 3> local_point;
+    if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
+        return true;
+    }
+
     return false;
 }
 
@@ -373,6 +380,13 @@ bool FindIntersectedGeometricalObjectsWithOBBForSearchProcess::HasIntersection3D
 {
     // Check the intersection of each face against the intersecting object
     if (rFirstGeometry.HasIntersection(rSecondGeometry)){
+        return true;
+    }
+
+    // Let check second geometry is inside the first one.
+    // Considering that there are no intersection, if one point is inside all of it is inside.
+    array_1d<double, 3> local_point;
+    if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
         return true;
     }
 
