@@ -312,7 +312,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetValue(VOLUME_ACCELERATION_Z), node.GetValue(VELOCITY_Z))
             self.assertEqual(node.GetValue(DISTANCE), node.GetValue(DENSITY))
 
-    def test_set_variable_to_zero(self):
+    def test_set_nodal_historical_variable_to_zero(self):
         ## Set the model part
         current_model = Model()
         model_part = current_model.CreateModelPart("Main")
@@ -327,8 +327,8 @@ class TestVariableUtils(KratosUnittest.TestCase):
             node.SetSolutionStepValue(DISPLACEMENT, [node.Id, 2 * node.Id, 3.0 * node.Id])
 
         ## Set the variable values to zero
-        VariableUtils().SetVariableToZero(VISCOSITY, model_part.Nodes)
-        VariableUtils().SetVariableToZero(DISPLACEMENT, model_part.Nodes)
+        VariableUtils().SetNodalHistoricalVariableToZero(VISCOSITY, model_part.Nodes)
+        VariableUtils().SetNodalHistoricalVariableToZero(DISPLACEMENT, model_part.Nodes)
 
         ## Verify the result
         for node in model_part.Nodes:
