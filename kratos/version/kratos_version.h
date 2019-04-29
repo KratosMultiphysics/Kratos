@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <string>
 
 // External includes
 #include "includes/kratos_export_api.h"
@@ -46,8 +47,8 @@ constexpr int GetPatchVersion() {
     return KRATOS_PATCH_VERSION;
 }
 
-const char * KRATOS_API(KRATOS_VERSION) GetCommit();
-const char * KRATOS_API(KRATOS_VERSION) GetBuildType();
-const char * KRATOS_API(KRATOS_VERSION) GetVersionString();
+KRATOS_API(KRATOS_VERSION) std::string GetCommit();
+KRATOS_API(KRATOS_VERSION) std::string GetBuildType();
+KRATOS_API(KRATOS_VERSION) std::string GetVersionString();
 
 } // namespace Kratos

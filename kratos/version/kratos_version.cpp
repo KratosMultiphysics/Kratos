@@ -38,15 +38,15 @@ KRATOS_TO_STRING(KRATOS_PATCH_VERSION) "-" \
 KRATOS_SHA1_NUMBER "-" \
 KRATOS_BUILD_TYPE
 
-const char * GetCommitVersion() {
+std::string GetCommitVersion() {
     return KRATOS_SHA1_NUMBER;
 }
 
-const char * GetBuildType() {
+std::string GetBuildType() {
     return KRATOS_BUILD_TYPE;
 }
 
-const char * GetVersionString() {
+std::string GetVersionString() {
     return KRATOS_VERSION_STRING;
 }
 
