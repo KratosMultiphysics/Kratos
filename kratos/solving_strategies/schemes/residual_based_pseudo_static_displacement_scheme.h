@@ -89,8 +89,8 @@ public:
      * @param ThisParameters Parameters with the Rayleigh variable
      */
     explicit ResidualBasedPseudoStaticDisplacementScheme(Parameters ThisParameters)
-      :DerivedBaseType(0.0),
-       mRayleighBeta(NODAL_MAUX)
+        : DerivedBaseType(0.0),
+          mRayleighBeta(NODAL_MAUX)
     {
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
@@ -107,16 +107,16 @@ public:
      * @brief Default constructor. The pseudo static scheme
      */
     explicit ResidualBasedPseudoStaticDisplacementScheme(const Variable<double> RayleighBetaVariable)
-      :DerivedBaseType(0.0),
-       mRayleighBeta(RayleighBetaVariable)
+        :DerivedBaseType(0.0),
+        mRayleighBeta(RayleighBetaVariable)
     {
     }
 
     /** Copy Constructor.
      */
     explicit ResidualBasedPseudoStaticDisplacementScheme(ResidualBasedPseudoStaticDisplacementScheme& rOther)
-      :DerivedBaseType(rOther),
-       mRayleighBeta(rOther.mRayleighBeta)
+        :DerivedBaseType(rOther),
+        mRayleighBeta(rOther.mRayleighBeta)
     {
     }
 
@@ -125,13 +125,14 @@ public:
      */
     BaseTypePointer Clone() override
     {
-      return BaseTypePointer( new ResidualBasedPseudoStaticDisplacementScheme(*this) );
+        return BaseTypePointer( new ResidualBasedPseudoStaticDisplacementScheme(*this) );
     }
 
     /** Destructor.
      */
-    ~ResidualBasedPseudoStaticDisplacementScheme
-    () override {}
+    ~ResidualBasedPseudoStaticDisplacementScheme() override
+    {
+    }
 
     ///@}
     ///@name Operators
@@ -142,63 +143,148 @@ public:
     ///@{
 
     /**
-     * @brief Performing the prediction of the solution
-     * @details It predicts the solution for the current step x = xold + vold * Dt
+     * @brief Performing the update of the solution
+     * @details Incremental update within newton iteration. It updates the state variables at the end of the time step u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
      * @param rModelPart The model of the problem to solve
-     * @param rDofSet set of all primary variables
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @param rDofSet Set of all primary variables
+     * @param rA LHS matrix
+     * @param rDx incremental update of primary variables
+     * @param rb RHS Vector
      */
-    void Predict(
+    void Update(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
         ) override
     {
         KRATOS_TRY;
 
-        const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
+        DerivedBaseType::mpDofUpdater->UpdateDofs(rDofSet, rDx);
 
         // Updating time derivatives (nodally for efficiency)
+        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
+        const auto it_node_begin = rModelPart.Nodes().begin();
+
+        array_1d<double, 3 > delta_displacement;
+
+        #pragma omp parallel for private(delta_displacement)
+        for(int i = 0;  i < num_nodes; ++i) {
+            auto it_node = it_node_begin + i;
+
+            noalias(delta_displacement) = it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
+
+            array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3>& r_previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
+
+            noalias(r_current_velocity) = (DerivedBaseType::mBossak.c1 * delta_displacement - DerivedBaseType::mBossak.c4 * r_previous_velocity);
+        }
+
+        KRATOS_CATCH( "" );
+    }
+
+    /**
+     * @brief Performing the prediction of the solution
+     * @details It predicts the solution for the current step x = xold + vold * Dt
+     * @param rModelPart The model of the problem to solve
+     * @param rDofSet set of all primary variables
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
+     */
+    void Predict(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY;
+
+        // Process info
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // Delta time
+        const double delta_time = r_current_process_info[DELTA_TIME];
+
+        // Updating time derivatives (nodally for efficiency)
+        const auto it_node_begin = rModelPart.Nodes().begin();
         const int num_nodes = static_cast<int>(rModelPart.NumberOfNodes());
 
-        array_1d<double, 3> zero_array(3, 0.0);
-        array_1d<double, 3> delta_displacement;
+        // Auxiliar variables
+        const array_1d<double, 3> zero_array = ZeroVector(3);
+        array_1d<double, 3 > delta_displacement = zero_array;
+        bool predicted_x, predicted_y, predicted_z;
 
-        #pragma omp parallel for private(zero_array, delta_displacement)
+        // Getting position
+        const int disppos_x = it_node_begin->HasDofFor(DISPLACEMENT_X) ? it_node_begin->GetDofPosition(DISPLACEMENT_X) : -1;
+        const int velpos_x = it_node_begin->HasDofFor(VELOCITY_X) ? it_node_begin->GetDofPosition(VELOCITY_X) : -1;
+        const int disppos_y = it_node_begin->HasDofFor(DISPLACEMENT_Y) ? it_node_begin->GetDofPosition(DISPLACEMENT_Y) : -1;
+        const int velpos_y = it_node_begin->HasDofFor(VELOCITY_Y) ? it_node_begin->GetDofPosition(VELOCITY_Y) : -1;
+        const int disppos_z = it_node_begin->HasDofFor(DISPLACEMENT_Z) ? it_node_begin->GetDofPosition(DISPLACEMENT_Z) : -1;
+        const int velpos_z = it_node_begin->HasDofFor(VELOCITY_Z) ? it_node_begin->GetDofPosition(VELOCITY_Z) : -1;
+
+        #pragma omp parallel for private(delta_displacement, predicted_x, predicted_y, predicted_z)
         for(int i = 0;  i < num_nodes; ++i) {
-            auto it_node = rModelPart.Nodes().begin() + i;
+            auto it_node = it_node_begin + i;
 
-            //Predicting: NewDisplacement = previous_displacement + previous_velocity * delta_time;
+            predicted_x = false;
+            predicted_y = false;
+            predicted_z = false;
+
+            //Predicting: r_current_displacement = r_previous_displacement + r_previous_velocity * delta_time;
             //ATTENTION::: the prediction is performed only on free nodes
 
-            const array_1d<double, 3>& previous_velocity     = (it_node)->FastGetSolutionStepValue(VELOCITY,     1);
-            const array_1d<double, 3>& previous_displacement = (it_node)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            array_1d<double, 3>& current_acceleration        = (it_node)->FastGetSolutionStepValue(ACCELERATION);
-            array_1d<double, 3>& current_velocity            = (it_node)->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3>& current_displacement        = (it_node)->FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3>& r_previous_velocity     = it_node->FastGetSolutionStepValue(VELOCITY,     1);
+            const array_1d<double, 3>& r_previous_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
+            array_1d<double, 3>& r_current_acceleration        = it_node->FastGetSolutionStepValue(ACCELERATION);
+            array_1d<double, 3>& r_current_velocity            = it_node->FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3>& r_current_displacement        = it_node->FastGetSolutionStepValue(DISPLACEMENT);
 
-            if (it_node -> IsFixed(DISPLACEMENT_X) == false)
-                current_displacement[0] = previous_displacement[0] + delta_time * previous_velocity[0];
-
-            if (it_node -> IsFixed(DISPLACEMENT_Y) == false)
-                current_displacement[1] = previous_displacement[1] + delta_time * previous_velocity[1];
-
-            // For 3D cases
-            if (it_node -> HasDofFor(DISPLACEMENT_Z)) {
-                if (it_node -> IsFixed(DISPLACEMENT_Z) == false)
-                    current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2];
+            if (velpos_x > -1) {
+                if (it_node->GetDof(VELOCITY_X, velpos_x).IsFixed()) {
+                    delta_displacement[0] = (r_current_velocity[0] + DerivedBaseType::mBossak.c4 * r_previous_velocity[0])/DerivedBaseType::mBossak.c1;
+                    r_current_displacement[0] =  r_previous_displacement[0] + delta_displacement[0];
+                    predicted_x = true;
+                }
+            }
+            if (disppos_x > -1 && !predicted_x) {
+                if (!it_node->GetDof(DISPLACEMENT_X, disppos_x).IsFixed() && !predicted_x) {
+                    r_current_displacement[0] = r_previous_displacement[0] + delta_time * r_previous_velocity[0];
+                }
             }
 
-            // Updating time derivatives ::: Please note that displacements and its time derivatives can not be consistently fixed separately
-            noalias(delta_displacement) = current_displacement - previous_displacement;
+            if (velpos_y > -1) {
+                if (it_node->GetDof(VELOCITY_Y, velpos_y).IsFixed()) {
+                    delta_displacement[1] = (r_current_velocity[1] + DerivedBaseType::mBossak.c4 * r_previous_velocity[1])/DerivedBaseType::mBossak.c1;
+                    r_current_displacement[1] =  r_previous_displacement[1] + delta_displacement[1];
+                    predicted_y = true;
+                }
+            }
+            if (disppos_y > -1 && !predicted_y) {
+                if (!it_node->GetDof(DISPLACEMENT_Y, disppos_y).IsFixed() && !predicted_y) {
+                    r_current_displacement[1] = r_previous_displacement[1] + delta_time * r_previous_velocity[1];
+                }
+            }
 
-            current_velocity = previous_velocity;
+            if (velpos_z > -1) {
+                if (it_node->GetDof(VELOCITY_Z, velpos_z).IsFixed()) {
+                    delta_displacement[2] = (r_current_velocity[2] + DerivedBaseType::mBossak.c4 * r_previous_velocity[2])/DerivedBaseType::mBossak.c1;
+                    r_current_displacement[2] =  r_previous_displacement[2] + delta_displacement[2];
+                    predicted_z = true;
+                }
+            }
+            if (disppos_z > -1 && !predicted_z) {
+                if (!it_node->GetDof(DISPLACEMENT_Z, disppos_z).IsFixed() && !predicted_z) {
+                    r_current_displacement[2] = r_previous_displacement[2] + delta_time * r_previous_velocity[2];
+                }
+            }
 
-            current_acceleration = zero_array;
+            // Updating time derivatives
+            noalias(r_current_acceleration) = zero_array;
+            noalias(r_current_velocity) = r_previous_velocity;
         }
 
         KRATOS_CATCH( "" );
@@ -215,6 +301,7 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
     /// Turn back information as a string.
     std::string Info() const override
     {
@@ -230,7 +317,7 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        rOStream << Info();
+        rOStream << Info() << ". Considering the following damping variable " << mRayleighBeta;
     }
 
     ///@}
