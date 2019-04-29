@@ -340,13 +340,11 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>, CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(
         m, "CalculateEmbeddedNodalVariableFromSkinProcessDouble")
         .def(py::init<Model &, Parameters>())
-        .def(py::init<ModelPart &, ModelPart &, Parameters>())
         .def("Clear", &CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>::Clear);
 
     py::class_<CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>, CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(
         m, "CalculateEmbeddedNodalVariableFromSkinProcessArray")
         .def(py::init<Model &, Parameters>())
-        .def(py::init<ModelPart &, ModelPart &, Parameters>())
         .def("Clear", &CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>::Clear);
 
     py::class_<ReorderAndOptimizeModelPartProcess, ReorderAndOptimizeModelPartProcess::Pointer, Process>(m,"ReorderAndOptimizeModelPartProcess")

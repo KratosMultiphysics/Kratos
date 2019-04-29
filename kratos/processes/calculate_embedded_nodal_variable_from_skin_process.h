@@ -252,29 +252,6 @@ public:
 
     /**
      * @brief Construct a new Calculate Embedded Nodal Variable From Skin Process object
-     * Constructor with background and skin model parts as well as json settings.
-     * @param rBaseModelPart Background mesh model part reference
-     * @param rSkinModelPart Embedded skin model part reference
-     * @param rSettings Settings json string
-     */
-    CalculateEmbeddedNodalVariableFromSkinProcess(
-        ModelPart &rBaseModelPart,
-        ModelPart &rSkinModelPart,
-        Parameters rSettings)
-        : CalculateEmbeddedNodalVariableFromSkinProcess(
-            rBaseModelPart,
-            rSkinModelPart,
-            rSettings["linear_solver_settings"],
-            KratosComponents<Variable<TVarType>>::Get(rSettings["skin_variable_name"].GetString()),
-            KratosComponents<Variable<TVarType>>::Get(rSettings["embedded_nodal_variable_name"].GetString()),
-            rSettings["level_set_type"].GetString(),
-            rSettings["buffer_position"].GetInt(),
-            rSettings["aux_model_part_name"].GetString())
-    {
-    }
-
-    /**
-     * @brief Construct a new Calculate Embedded Nodal Variable From Skin Process object
      *
      * @param rBaseModelPart Background mesh model part reference
      * @param rSkinModelPart Embedded skin model part reference
@@ -658,6 +635,28 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
+    /**
+     * @brief Construct a new Calculate Embedded Nodal Variable From Skin Process object
+     * Constructor with background and skin model parts as well as json settings.
+     * @param rBaseModelPart Background mesh model part reference
+     * @param rSkinModelPart Embedded skin model part reference
+     * @param rSettings Settings json string
+     */
+    CalculateEmbeddedNodalVariableFromSkinProcess(
+        ModelPart &rBaseModelPart,
+        ModelPart &rSkinModelPart,
+        Parameters rSettings)
+        : CalculateEmbeddedNodalVariableFromSkinProcess(
+            rBaseModelPart,
+            rSkinModelPart,
+            rSettings["linear_solver_settings"],
+            KratosComponents<Variable<TVarType>>::Get(rSettings["skin_variable_name"].GetString()),
+            KratosComponents<Variable<TVarType>>::Get(rSettings["embedded_nodal_variable_name"].GetString()),
+            rSettings["level_set_type"].GetString(),
+            rSettings["buffer_position"].GetInt(),
+            rSettings["aux_model_part_name"].GetString())
+    {
+    }
 
     ///@}
 private:
