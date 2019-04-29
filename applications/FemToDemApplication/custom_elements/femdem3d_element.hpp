@@ -158,6 +158,9 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 		std::vector<Vector> &rValues,
 		const ProcessInfo &rCurrentProcessInfo) override;
 
+	void CalculateElementalSystem(LocalSystemComponents& rLocalSystem, ProcessInfo& rCurrentProcessInfo);
+
+
 	// methods to compute numerical tangent tensor
 	void CalculateTangentTensor(
 		Matrix& TangentTensor,

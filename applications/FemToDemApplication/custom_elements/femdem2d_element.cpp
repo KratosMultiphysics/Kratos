@@ -291,7 +291,7 @@ void FemDem2DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 	if (rRightHandSideVector.size() != mat_size )
 	rRightHandSideVector.resize(mat_size, false);
 
-	noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting LHS
+	noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
 
 	//create and initialize element variables:
 	ElementDataType Variables;
