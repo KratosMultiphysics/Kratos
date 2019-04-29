@@ -14,7 +14,7 @@ namespace Kratos {
 
 // Full version
 #define KRATOS_TO_STRING(X) #X
-#define KRATOS_VERSION \
+#define KRATOS_VERSION_STRING \
 KRATOS_TO_STRING(KRATOS_MAJOR_VERSION) "." \
 KRATOS_TO_STRING(KRATOS_MINOR_VERSION) "." \
 KRATOS_TO_STRING(KRATOS_PATCH_VERSION) "-" \
@@ -30,7 +30,7 @@ const char * GetBuildType() {
 }
 
 const char * GetVersionString() {
-    return KRATOS_VERSION;
+    return KRATOS_VERSION_STRING;
 }
 
 } // namespace Kratos

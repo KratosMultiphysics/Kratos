@@ -27,8 +27,8 @@ constexpr int GetPatchVersion() {
     return KRATOS_PATCH_VERSION;
 }
 
-const char * GetCommit();
-const char * GetBuildType();
-const char * GetVersionString();
+const char * KRATOS_API(KRATOS_VERSION) GetCommit();
+const char * KRATOS_API(KRATOS_VERSION) GetBuildType();
+const char * KRATOS_API(KRATOS_VERSION) GetVersionString();
 
 } // namespace Kratos
