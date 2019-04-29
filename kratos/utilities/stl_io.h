@@ -69,16 +69,15 @@ std::ostream& operator <<(std::ostream& rOStream, const std::weak_ptr<T>& rData)
 }
 
 template<class T>
-std::ostream& operator <<(std::ostream& rOStream, const Kratos::intrusive_weak_ptr<T>& rData) {
+std::ostream& operator <<(std::ostream& rOStream, const Kratos::intrusive_ptr<T>& rData) {
 
-  if(!rData.expired())
-    rOStream << *rData.lock().get();
+  if(rData.weak_count() != 0)
+    rOStream << *rData.get();
   else
-    rOStream <<" expired weak_ptr ";
+    rOStream <<" Zero counter intrusive_ptr ";
 
   return rOStream;
 }
-
 
 } //namespace Kratos
 
