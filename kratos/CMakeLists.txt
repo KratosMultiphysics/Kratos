@@ -167,7 +167,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Define KratosVersion object
 add_library(KratosVersion OBJECT ${KRATOS_VERSION_SOURCES})
-target_compile_definitions(KratosVersion PRIVATE 
+target_compile_definitions(KratosVersion PRIVATE
     KRATOS_MAJOR_VERSION=${KratosMultiphysics_MAJOR_VERSION}
     KRATOS_MINOR_VERSION=${KratosMultiphysics_MINOR_VERSION}
     KRATOS_PATCH_VERSION=${KratosMultiphysics_PATCH_VERSION}
@@ -179,6 +179,11 @@ target_compile_definitions(KratosVersion PRIVATE
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_TEST_SOURCES})
 target_link_libraries(KratosCore PUBLIC KratosVersion gidpost) #${Boost_LIBRARIES} ${PYTHON_LIBRARIES} gidpost )
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
+target_compile_definitions(KratosCore PRIVATE 
+    KRATOS_MAJOR_VERSION=${KratosMultiphysics_MAJOR_VERSION}
+    KRATOS_MINOR_VERSION=${KratosMultiphysics_MINOR_VERSION}
+    KRATOS_PATCH_VERSION=${KratosMultiphysics_PATCH_VERSION}
+)
 
 if (${AMGCL_GPGPU} MATCHES ON)
     add_subdirectory(
