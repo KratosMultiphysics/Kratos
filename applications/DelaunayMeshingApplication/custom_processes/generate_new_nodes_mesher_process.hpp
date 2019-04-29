@@ -243,7 +243,7 @@ private:
 		zc=OutPointList[base+2];
 
 	      //create a new node
-	      pNode = Kratos::make_shared< NodeType >( id, xc, yc, zc );
+	      pNode = std::make_intrusive<Node<3>>( id, xc, yc, zc );
 
 	      //set new id
 	      if(mrRemesh.InputInitializedFlag){

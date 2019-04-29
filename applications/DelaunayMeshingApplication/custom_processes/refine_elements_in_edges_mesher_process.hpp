@@ -357,7 +357,7 @@ class RefineElementsInEdgesMesherProcess
 
 
       //create a new node
-      pNode = Kratos::make_shared< Node<3> >( id, xc, yc, zc );
+      pNode = Kratos::make_intrusive< Node<3> >( id, xc, yc, zc );
 
       //giving model part variables list to the node
       pNode->SetSolutionStepVariablesList(&VariablesList);
