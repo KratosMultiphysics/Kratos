@@ -312,26 +312,78 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetValue(VOLUME_ACCELERATION_Z), node.GetValue(VELOCITY_Z))
             self.assertEqual(node.GetValue(DISTANCE), node.GetValue(DENSITY))
 
-    def test_set_to_zero(self):
+    def test_set_variable_to_zero(self):
+        ## Set the model part
         current_model = Model()
-
-        ##set the model part
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part_io = ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
-        ##save the variable values
-        VariableUtils().SetToZero_ScalarVar(VISCOSITY, model_part.Nodes)
-        VariableUtils().SetToZero_VectorVar(DISPLACEMENT, model_part.Nodes)
+        ## Initialize the variable values
+        for node in model_part.Elements:
+            node.SetValue(VISCOSITY, node.Id)
+            node.SetValue(DISPLACEMENT, [node.Id, 2 * node.Id, 3.0 * node.Id])
+        for elem in model_part.Elements:
+            elem.SetValue(VISCOSITY, elem.Id)
+            elem.SetValue(DISPLACEMENT, [elem.Id, 2 * elem.Id, 3.0 * elem.Id])
+        for cond in model_part.Conditions:
+            cond.SetValue(VISCOSITY, cond.Id)
+            cond.SetValue(DISPLACEMENT, [cond.Id, 2 * cond.Id, 3.0 * cond.Id])
 
-        ##verify the result
+        ## Set the variable values to zero
+        VariableUtils().SetNonHistoricalVariableToZero(VISCOSITY, model_part.Nodes)
+        VariableUtils().SetNonHistoricalVariableToZero(VISCOSITY, model_part.Elements)
+        VariableUtils().SetNonHistoricalVariableToZero(VISCOSITY, model_part.Conditions)
+        VariableUtils().SetNonHistoricalVariableToZero(DISPLACEMENT, model_part.Nodes)
+        VariableUtils().SetNonHistoricalVariableToZero(DISPLACEMENT, model_part.Elements)
+        VariableUtils().SetNonHistoricalVariableToZero(DISPLACEMENT, model_part.Conditions)
+
+        ## Verify the results
         for node in model_part.Nodes:
+            self.assertEqual(node.GetValue(VISCOSITY), 0.0)
+            aux = node.GetValue(DISPLACEMENT)
+            self.assertEqual(aux[0], 0.0)
+            self.assertEqual(aux[1], 0.0)
+            self.assertEqual(aux[2], 0.0)
+        for elem in model_part.Elements:
+            self.assertEqual(elem.GetValue(VISCOSITY), 0.0)
+            aux = elem.GetValue(DISPLACEMENT)
+            self.assertEqual(aux[0], 0.0)
+            self.assertEqual(aux[1], 0.0)
+            self.assertEqual(aux[2], 0.0)
+        for cond in model_part.Conditions:
+            self.assertEqual(cond.GetValue(VISCOSITY), 0.0)
+            aux = cond.GetValue(DISPLACEMENT)
+            self.assertEqual(aux[0], 0.0)
+            self.assertEqual(aux[1], 0.0)
+            self.assertEqual(aux[2], 0.0)
+
+    def test_set_nodal_historical_variable_to_zero(self):
+        ## Set the model part
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        ## Initialize the variable values
+        for node in model_part.Nodes:
+            node.SetSolutionStepValue(VISCOSITY, node.Id)
+            node.SetSolutionStepValue(DISPLACEMENT, [node.Id, 2 * node.Id, 3.0 * node.Id])
+
+        ## Set the variable values to zero
+        VariableUtils().SetHistoricalVariableToZero(VISCOSITY, model_part.Nodes)
+        VariableUtils().SetHistoricalVariableToZero(DISPLACEMENT, model_part.Nodes)
+
+        ## Verify the result
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(VISCOSITY), 0.0)
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 0.0)
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 0.0)
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)
-            self.assertEqual(node.GetSolutionStepValue(VISCOSITY), 0.0)
 
     def test_select_node_list(self):
         current_model = Model()

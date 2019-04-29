@@ -546,7 +546,7 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(const Variable<double> & rO
     const double sign = (sign_pos == false) ? -1.0 : 1.0;
 
     // Initialize destination variable
-    VariableUtils().SetToZero_VectorVar(rDestVar, mrDestinationModelPart.Nodes());
+    VariableUtils().SetHistoricalVariableToZero(rDestVar, mrDestinationModelPart.Nodes());
 
     // Compute nodal lengths/areas (NODAL_MAUX) in both origin and destination modelparts
     ComputeNodalLengthArea();
@@ -855,7 +855,7 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap(const Variable<array_1d<dou
     const double sign = (sign_pos == false) ? -1.0 : 1.0;
 
     // Initialize destination variable
-    VariableUtils().SetToZero_ScalarVar(rDestVar, mrDestinationModelPart.Nodes());
+    VariableUtils().SetHistoricalVariableToZero(rDestVar, mrDestinationModelPart.Nodes());
 
     // Compute nodal lengths/areas (NODAL_MAUX) in both origin and destination modelparts
     ComputeNodalLengthArea();
@@ -1214,7 +1214,7 @@ void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar,
     const double sign = (sign_pos == false) ? -1.0 : 1.0;
 
     // Initialize destination variable
-    VariableUtils().SetToZero_ScalarVar(rDestVar, mrDestinationModelPart.Nodes());
+    VariableUtils().SetHistoricalVariableToZero(rDestVar, mrDestinationModelPart.Nodes());
 
     // Compute nodal lengths/areas (NODAL_MAUX) in both origin and destination modelparts
     ComputeNodalLengthArea();
@@ -1488,7 +1488,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
     const double sign = (sign_pos == false) ? -1.0 : 1.0;
 
     // Initialize destination variable
-    VariableUtils().SetToZero_VectorVar(rDestVar, mrDestinationModelPart.Nodes());
+    VariableUtils().SetHistoricalVariableToZero(rDestVar, mrDestinationModelPart.Nodes());
 
     // Compute nodal lengths/areas (NODAL_MAUX) in both origin and destination modelparts
     ComputeNodalLengthArea();
