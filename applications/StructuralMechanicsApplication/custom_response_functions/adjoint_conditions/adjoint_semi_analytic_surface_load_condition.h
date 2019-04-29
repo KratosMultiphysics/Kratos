@@ -52,6 +52,7 @@ public:
 
     // redefine the typedefs because of templated base class
     typedef AdjointSemiAnalyticBaseCondition<TPrimalCondition> BaseType;
+    typedef Node<3>  NodeType;
     typedef typename BaseType::SizeType SizeType;
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::GeometryType GeometryType;

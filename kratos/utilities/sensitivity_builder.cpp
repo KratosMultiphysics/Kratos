@@ -136,7 +136,8 @@ struct LocalSensitivityBuilder
 
         noalias(LocalSensitivity) = prod(SensitivityMatrix, AdjointVector) + PartialSensitivity;
 
-        if(rProcessInfo(IS_NONLINEAR) == true && rProcessInfo(STEP) > 1)
+        const int first_step = 1;
+        if(rProcessInfo(IS_NONLINEAR) == true && rProcessInfo(STEP) > first_step)
         {
             Vector AdjointVector_1;
             Matrix SensitivityMatrix_1;

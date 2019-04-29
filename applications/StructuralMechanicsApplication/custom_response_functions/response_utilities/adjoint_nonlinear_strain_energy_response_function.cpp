@@ -153,56 +153,56 @@ namespace Kratos
 
         // //calculation of partial f_{ext}_i}{\partial u}
         // //TODO Mahmoud: pertubing the displacement has no effect on the RHS
-        // Matrix partial_derivative_matrix = ZeroMatrix(vec_size, vec_size);
-        // int i_2 = 0;
-        // for (auto& node_i : rAdjointCondition.GetGeometry())
-        // {
-        //     Vector perturbed_RHS = Vector(0);
+        Matrix partial_derivative_matrix = ZeroMatrix(vec_size, vec_size);
+        int i_2 = 0;
+        for (auto& node_i : rAdjointCondition.GetGeometry())
+        {
+            Vector perturbed_RHS = Vector(0);
 
-        //     // Pertubation, gradient analysis and recovery of x
-        //     node_i.X() += delta;
-        //     node_i.FastGetSolutionStepValue(DISPLACEMENT_X) += delta;
-        //     mConditions[rAdjointCondition.Id()]->CalculateRightHandSide(perturbed_RHS, process_info);
-        //     row(partial_derivative_matrix, i_2) = (perturbed_RHS - RHS) / delta;
-        //     node_i.X() -= delta;
-        //     node_i.FastGetSolutionStepValue(DISPLACEMENT_X) -= delta;
+            // Pertubation, gradient analysis and recovery of x
+            node_i.X() += delta;
+            node_i.FastGetSolutionStepValue(DISPLACEMENT_X) += delta;
+            mConditions[rAdjointCondition.Id()]->CalculateRightHandSide(perturbed_RHS, process_info);
+            row(partial_derivative_matrix, i_2) = (perturbed_RHS - RHS) / delta;
+            node_i.X() -= delta;
+            node_i.FastGetSolutionStepValue(DISPLACEMENT_X) -= delta;
 
-        //     // Reset the pertubed vector
-        //     perturbed_RHS = Vector(0);
+            // Reset the pertubed vector
+            perturbed_RHS = Vector(0);
 
-        //     // Pertubation, gradient analysis and recovery of y
-        //     node_i.Y() += delta;
-        //     node_i.FastGetSolutionStepValue(DISPLACEMENT_Y) += delta;
-        //     mConditions[rAdjointCondition.Id()]->CalculateRightHandSide(perturbed_RHS, process_info);
-        //     row(partial_derivative_matrix, i_2 + 1) = (perturbed_RHS - RHS) / delta;
-        //     node_i.Y() -= delta;
-        //     node_i.FastGetSolutionStepValue(DISPLACEMENT_Y) -= delta;
+            // Pertubation, gradient analysis and recovery of y
+            node_i.Y() += delta;
+            node_i.FastGetSolutionStepValue(DISPLACEMENT_Y) += delta;
+            mConditions[rAdjointCondition.Id()]->CalculateRightHandSide(perturbed_RHS, process_info);
+            row(partial_derivative_matrix, i_2 + 1) = (perturbed_RHS - RHS) / delta;
+            node_i.Y() -= delta;
+            node_i.FastGetSolutionStepValue(DISPLACEMENT_Y) -= delta;
 
-        //     // Reset the pertubed vector
-        //     perturbed_RHS = Vector(0);
+            // Reset the pertubed vector
+            perturbed_RHS = Vector(0);
 
-        //     // Pertubation, gradient analysis and recovery of z
-        //     node_i.Z() += delta;
-        //     node_i.FastGetSolutionStepValue(DISPLACEMENT_Z) += delta;
-        //     mConditions[rAdjointCondition.Id()]->CalculateRightHandSide(perturbed_RHS, process_info);
-        //     row(partial_derivative_matrix, i_2 + 2) = (perturbed_RHS - RHS) / delta;
-        //     node_i.Z() -= delta;
-        //     node_i.FastGetSolutionStepValue(DISPLACEMENT_Z) -= delta;
+            // Pertubation, gradient analysis and recovery of z
+            node_i.Z() += delta;
+            node_i.FastGetSolutionStepValue(DISPLACEMENT_Z) += delta;
+            mConditions[rAdjointCondition.Id()]->CalculateRightHandSide(perturbed_RHS, process_info);
+            row(partial_derivative_matrix, i_2 + 2) = (perturbed_RHS - RHS) / delta;
+            node_i.Z() -= delta;
+            node_i.FastGetSolutionStepValue(DISPLACEMENT_Z) -= delta;
 
-        //     i_2 += 3;
-        // }
+            i_2 += 3;
+        }
 
-        // if(mExternalForceDisplacementDerivative[rAdjointCondition.Id()].size1() == 0)
-        //     mExternalForceDisplacementDerivative[rAdjointCondition.Id()] = ZeroMatrix(vec_size, vec_size);
+        if(mExternalForceDisplacementDerivative[rAdjointCondition.Id()].size1() == 0)
+            mExternalForceDisplacementDerivative[rAdjointCondition.Id()] = ZeroMatrix(vec_size, vec_size);
 
-        // // Summing up the partial derivative terms
-        // rResponseGradient = 0.50 * (RHS + mConditionsRHS[rAdjointCondition.Id()]
-        //                   + prod(displacement - displacement_previous_step,  mExternalForceDisplacementDerivative[rAdjointCondition.Id()] + partial_derivative_matrix ) );
+        // Summing up the partial derivative terms
+        rResponseGradient = 0.50 * (RHS + mConditionsRHS[rAdjointCondition.Id()]
+                          + prod(displacement - displacement_previous_step,  mExternalForceDisplacementDerivative[rAdjointCondition.Id()] + partial_derivative_matrix ) );
 
-        rResponseGradient = 0.50 * (RHS + mConditionsRHS[rAdjointCondition.Id()]);
+        //rResponseGradient = 0.50 * (RHS + mConditionsRHS[rAdjointCondition.Id()]);
 
 
-        // storing the RHS for each condition
+        // Storing the RHS for each condition
         mConditionsRHS[rAdjointCondition.Id()] = RHS;
 
         // storing the partial derivative partial f_{ext}_i}{\partial u}
@@ -389,6 +389,8 @@ namespace Kratos
 
     void AdjointNonlinearStrainEnergyResponseFunction::CheckForBodyForces(ModelPart& rModelPart)
     {
+        KRATOS_TRY;
+
         const double numerical_limit = std::numeric_limits<double>::epsilon();
 
         for (auto& elem_i : rModelPart.Elements())
@@ -403,6 +405,8 @@ namespace Kratos
         KRATOS_ERROR_IF( norm_2(acc)>numerical_limit )
             << "Calculation of nonlinear strain energy response is untested for self weight!" << std::endl;
         }
+
+        KRATOS_CATCH("");
     }
 
 } // namespace Kratos

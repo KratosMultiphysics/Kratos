@@ -66,14 +66,17 @@ namespace Kratos
             rElementalDofList[index + 1] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
             rElementalDofList[index + 2] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z);
         }
-
         KRATOS_CATCH("")
     }
 
+    // TODO Mahmoud: Segmentation fault occasionally happens here, the reason is not clear
     template <class TPrimalCondition>
     void AdjointSemiAnalyticSurfaceLoadCondition<TPrimalCondition>::GetValuesVector(Vector& rValues, int Step)
     {
-        const SizeType number_of_nodes = this->GetGeometry().size();
+        KRATOS_TRY
+
+        const GeometryType & geom = this->GetGeometry();
+        const SizeType number_of_nodes = geom.PointsNumber();
         const SizeType num_dofs = number_of_nodes * 3;
 
         if (rValues.size() != num_dofs)
@@ -81,11 +84,16 @@ namespace Kratos
 
         for (IndexType i = 0; i < number_of_nodes; ++i)
         {
-            const array_1d<double, 3 > & Displacement = this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
-            IndexType index = i * 3;
-            for(IndexType k = 0; k < 3; ++k)
-                rValues[index + k] = Displacement[k];
+            const NodeType & iNode = geom[i];
+            const array_1d<double,3>& Displacement = iNode.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
+
+            const IndexType index = i * 3;
+            rValues[index]     = Displacement[0];
+            rValues[index + 1] = Displacement[1];
+            rValues[index + 2] = Displacement[2];
         }
+
+         KRATOS_CATCH("")
     }
 
     template <class TPrimalCondition>
@@ -142,11 +150,6 @@ namespace Kratos
 
             i_2 += 3;
         }
-        // -ve not needed, because it is (df_ext/ds) - (df_int/ds), and df_int RHS is already negative
-        //rOutput = -rOutput;
-
-
-        //KRATOS_WATCH(rOutput)
 
         KRATOS_CATCH( "" )
     }

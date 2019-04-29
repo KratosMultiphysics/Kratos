@@ -123,7 +123,6 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         self.response_function.FinalizeSolutionStep()
         self.sensitivity_builder.UpdateSensitivities()
 
-        #print("Shape sensitivity node 9", self.main_model_part.GetNode(9).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY))
 
     def SolveSolutionStep(self):
         if self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
