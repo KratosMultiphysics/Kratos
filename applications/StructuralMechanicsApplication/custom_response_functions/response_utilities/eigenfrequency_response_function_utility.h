@@ -136,7 +136,7 @@ public:
     void CalculateGradient()
     {
         CheckIfAllNecessaryEigenvaluesAreComputed();
-        VariableUtils().SetToZero_VectorVar(SHAPE_SENSITIVITY, mrModelPart.Nodes());
+        VariableUtils().SetHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
         PerformSemiAnalyticSensitivityAnalysis();
     }
 
