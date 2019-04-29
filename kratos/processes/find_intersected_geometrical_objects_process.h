@@ -32,15 +32,13 @@ namespace Kratos
 namespace Internals {
 
     /**
-     * @class ImplementationDistanceSpatialContainersConfigure
+     * @class DistanceSpatialContainersConfigure
      * @ingroup KratosCore
      * @brief This class contains the tools related with the distance spatial container cell data
      * @details The CellNodeData is defined as an internal class
-     * @tparam TObjectType The object type considered for the tree
      * @author Pooyan Dadvand
      */
-    template<class TObjectType>
-    class ImplementationDistanceSpatialContainersConfigure
+    class DistanceSpatialContainersConfigure
     {
     public:
         /**
@@ -88,7 +86,7 @@ namespace Internals {
         typedef std::vector<double>::iterator DistanceIteratorType;
 
         /// Definition of the entity container type
-        typedef PointerVectorSet<TObjectType, IndexedObject> EntityContainerType;
+        typedef PointerVectorSet<GeometricalObject, IndexedObject> EntityContainerType;
 
         /// Definition of the container type
         typedef typename EntityContainerType::ContainerType ContainerType;
@@ -105,18 +103,18 @@ namespace Internals {
         /// The definition of the pointer type
         typedef PointerType pointer_type;
 
-        /// Pointer definition of ImplementationDistanceSpatialContainersConfigure
-        KRATOS_CLASS_POINTER_DEFINITION(ImplementationDistanceSpatialContainersConfigure);
+        /// Pointer definition of DistanceSpatialContainersConfigure
+        KRATOS_CLASS_POINTER_DEFINITION(DistanceSpatialContainersConfigure);
 
         ///@}
         ///@name Life Cycle
         ///@{
 
         /// Default constructor.
-        ImplementationDistanceSpatialContainersConfigure() {}
+        DistanceSpatialContainersConfigure() {}
 
         /// Destructor.
-        virtual ~ImplementationDistanceSpatialContainersConfigure() {}
+        virtual ~DistanceSpatialContainersConfigure() {}
 
 
         ///@}
@@ -192,7 +190,7 @@ namespace Internals {
          * @param rHighPoint The highest point of the box
          */
         static inline void GetBoundingBox(
-            const typename TObjectType::Pointer pObject,
+            const typename GeometricalObject::Pointer pObject,
             double* rLowPoint,
             double* rHighPoint
             )
@@ -223,8 +221,8 @@ namespace Internals {
          * @return True if there is an intersection
          */
         static inline bool Intersection(
-            const typename TObjectType::Pointer pObj1,
-            const typename TObjectType::Pointer pObj2
+            const typename GeometricalObject::Pointer pObj1,
+            const typename GeometricalObject::Pointer pObj2
             )
         {
             auto& r_geom_1 = pObj1->GetGeometry();
@@ -240,7 +238,7 @@ namespace Internals {
          * @return True if there is an intersection
          */
         static inline bool IntersectionBox(
-            const typename TObjectType::Pointer pObject,
+            const typename GeometricalObject::Pointer pObject,
             const PointType& rLowPoint,
             const PointType& rHighPoint
             )
@@ -256,7 +254,7 @@ namespace Internals {
          * @param rHighPoint The highest point of the box
          */
         static inline bool IsIntersected(
-            const typename TObjectType::Pointer pObject,
+            const typename GeometricalObject::Pointer pObject,
             double Tolerance,
             const double* rLowPoint,
             const double* rHighPoint
@@ -292,78 +290,13 @@ namespace Internals {
     private:
 
         /// Assignment operator.
-        ImplementationDistanceSpatialContainersConfigure& operator=(ImplementationDistanceSpatialContainersConfigure const& rOther) = delete;
-
-        /// Copy constructor.
-        ImplementationDistanceSpatialContainersConfigure(ImplementationDistanceSpatialContainersConfigure const& rOther) = delete;
-
-
-    }; // Class ImplementationDistanceSpatialContainersConfigure
-
-    /**
-     * @class DistanceSpatialContainersConfigure
-     * @ingroup KratosCore
-     * @brief This class contains the tools related with the distance spatial container cell data
-     * @details The CellNodeData is defined as an internal class
-     * @author Pooyan Dadvand
-     */
-    class DistanceSpatialContainersConfigure
-        : public ImplementationDistanceSpatialContainersConfigure<GeometricalObject>
-    {
-    public:
-        ///@name Type Definitions
-        ///@{
-
-        /// Pointer definition of DistanceSpatialContainersConfigure
-        KRATOS_CLASS_POINTER_DEFINITION(DistanceSpatialContainersConfigure);
-
-        ///@}
-        ///@name Life Cycle
-        ///@{
-
-        /// Default constructor.
-        DistanceSpatialContainersConfigure() {}
-
-        /// Destructor.
-        virtual ~DistanceSpatialContainersConfigure() {}
-
-        ///@}
-        ///@name Operators
-        ///@{
-
-        ///@}
-        ///@name Operations
-        ///@{
-
-        ///@}
-        ///@name Input and output
-        ///@{
-
-        /// Turn back information as a string.
-        std::string Info() const override
-        {
-            return " Spatial Containers Configure";
-        }
-
-        /// Print information about this object.
-        void PrintInfo(std::ostream& rOStream) const override {}
-
-        /// Print object's data.
-        void PrintData(std::ostream& rOStream) const override {}
-
-        ///@}
-
-    protected:
-
-    private:
-
-        /// Assignment operator.
         DistanceSpatialContainersConfigure& operator=(DistanceSpatialContainersConfigure const& rOther) = delete;
 
         /// Copy constructor.
         DistanceSpatialContainersConfigure(DistanceSpatialContainersConfigure const& rOther) = delete;
 
-    };
+
+    }; // Class DistanceSpatialContainersConfigure
 
 
 } // manespace Internals
@@ -518,22 +451,12 @@ public:
     void ExecuteInitialize() override;
 
     /**
-     * @brief This method indetifies near entities and marks if intersected (Element)
-     * @param pElement The pointer to the entity of interest
+     * @brief This method indetifies near entities and marks if intersected
+     * @param pGeometricalObject The pointer to the entity of interest
      * @param rLeaves The Octree cells vectors
      */
     virtual void IdentifyNearEntitiesAndCheckEntityForIntersection(
-        Element::Pointer pElement,
-        OtreeCellVectorType& rLeaves
-        );
-
-    /**
-     * @brief This method indetifies near entities and marks if intersected (Condition)
-     * @param pCondition The pointer to the condition of interest
-     * @param rLeaves The Octree cells vectors
-     */
-    virtual void IdentifyNearEntitiesAndCheckEntityForIntersection(
-        Condition::Pointer pCondition,
+        GeometricalObject::Pointer pGeometricalObject,
         OtreeCellVectorType& rLeaves
         );
 
@@ -583,22 +506,12 @@ protected:
     virtual void SetOctreeBoundingBox();
 
     /**
-     * @brief This method marks if intersected (Element)
-     * @param rIntersectedElement The element of interest
+     * @brief This method marks if intersected
+     * @param rIntersectedGeometricalObject The element of interest
      * @param rLeaves The Octree cells vectors
      */
     virtual void MarkIfIntersected(
-        Element& rIntersectedElement,
-        OtreeCellVectorType& rLeaves
-        );
-
-    /**
-     * @brief This method marks if intersected (Condition)
-     * @param rIntersectedCondition The condition of interest
-     * @param rLeaves The Octree cells vectors
-     */
-    virtual void MarkIfIntersected(
-        Condition& rIntersectedCondition,
+        GeometricalObject& rIntersectedGeometricalObject,
         OtreeCellVectorType& rLeaves
         );
 
@@ -695,23 +608,11 @@ private:
      * @param rLeaves The Octree cells vectors
      * @param rResults The expected results
      */
-    template<class TEntity>
-    void FindIntersectedSkinObjects(
-        TEntity& rIntersectedEntity,
+    virtual void FindIntersectedSkinObjects(
+        GeometricalObject& rIntersectedEntity,
         OtreeCellVectorType& rLeaves,
         PointerVector<GeometricalObject>& rResults
-        )
-    {
-        for (auto p_leaf : rLeaves) {
-            for (auto p_intersecting_entity : *(p_leaf->pGetObjects())) {
-                if (HasIntersection(rIntersectedEntity.GetGeometry(), p_intersecting_entity->GetGeometry())) {
-                    rIntersectedEntity.Set(SELECTED);
-                    if(std::find(rResults.ptr_begin(), rResults.ptr_end(), p_intersecting_entity) == rResults.ptr_end())
-                        rResults.push_back(p_intersecting_entity);
-                }
-            }
-        }
-    }
+        );
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors

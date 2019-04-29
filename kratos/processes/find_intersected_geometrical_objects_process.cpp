@@ -281,31 +281,19 @@ void  FindIntersectedGeometricalObjectsProcess::SetOctreeBoundingBox()
 /***********************************************************************************/
 
 void  FindIntersectedGeometricalObjectsProcess::IdentifyNearEntitiesAndCheckEntityForIntersection(
-    Element::Pointer pElement,
+    GeometricalObject::Pointer pGeometricalObject,
     OtreeCellVectorType& rLeaves
     )
 {
-    mOctree.GetIntersectedLeaves(pElement, rLeaves);
-    MarkIfIntersected(*pElement, rLeaves);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void  FindIntersectedGeometricalObjectsProcess::IdentifyNearEntitiesAndCheckEntityForIntersection(
-    Condition::Pointer pCondition,
-    OtreeCellVectorType& rLeaves
-    )
-{
-    mOctree.GetIntersectedLeaves(pCondition, rLeaves);
-    MarkIfIntersected(*pCondition, rLeaves);
+    mOctree.GetIntersectedLeaves(pGeometricalObject, rLeaves);
+    MarkIfIntersected(*pGeometricalObject, rLeaves);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 void  FindIntersectedGeometricalObjectsProcess::MarkIfIntersected(
-    Element& rIntersectedElement,
+    GeometricalObject& rIntersectedElement,
     OtreeCellVectorType& rLeaves
     )
 {
@@ -314,25 +302,6 @@ void  FindIntersectedGeometricalObjectsProcess::MarkIfIntersected(
         for (auto p_intersecting_entity : r_leaf) {
             if (HasIntersection(rIntersectedElement.GetGeometry(),p_intersecting_entity->GetGeometry())) {
                 rIntersectedElement.Set(SELECTED);
-                return;
-            }
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void  FindIntersectedGeometricalObjectsProcess::MarkIfIntersected(
-    Condition& rIntersectedCondition,
-    OtreeCellVectorType& rLeaves
-    )
-{
-    for (auto p_leaf : rLeaves) {
-        auto& r_leaf = *(p_leaf->pGetObjects());
-        for (auto p_intersecting_entity : r_leaf) {
-            if (HasIntersection(rIntersectedCondition.GetGeometry(),p_intersecting_entity->GetGeometry())) {
-                rIntersectedCondition.Set(SELECTED);
                 return;
             }
         }
@@ -478,6 +447,27 @@ bool FindIntersectedGeometricalObjectsProcess::HasDirectIntersection3D(
     }
 
     return false;
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(
+    GeometricalObject& rIntersectedEntity,
+    OtreeCellVectorType& rLeaves,
+    PointerVector<GeometricalObject>& rResults
+    )
+{
+    for (auto p_leaf : rLeaves) {
+        for (auto p_intersecting_entity : *(p_leaf->pGetObjects())) {
+            if (HasIntersection(rIntersectedEntity.GetGeometry(), p_intersecting_entity->GetGeometry())) {
+                rIntersectedEntity.Set(SELECTED);
+                if(std::find(rResults.ptr_begin(), rResults.ptr_end(), p_intersecting_entity) == rResults.ptr_end())
+                    rResults.push_back(p_intersecting_entity);
+            }
+        }
+    }
 }
 
 /***********************************************************************************/
