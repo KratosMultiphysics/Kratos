@@ -19,7 +19,7 @@
 
 // Project includes
 #include "utilities/openmp_utils.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"

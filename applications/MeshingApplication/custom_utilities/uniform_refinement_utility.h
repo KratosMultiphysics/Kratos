@@ -35,7 +35,7 @@
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/hexahedra_3d_8.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 
 
 namespace Kratos

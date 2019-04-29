@@ -64,7 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 #include "includes/define.h"
 #include "processes/process.h"
 #include "includes/node.h"
@@ -566,6 +566,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_EMBEDDED_LOCATOR_PROCESS_INCLUDED  defined 
+#endif // KRATOS_EMBEDDED_LOCATOR_PROCESS_INCLUDED  defined
 
 

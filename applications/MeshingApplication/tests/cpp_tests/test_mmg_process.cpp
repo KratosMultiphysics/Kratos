@@ -19,7 +19,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/gid_io.h"
 #include "containers/model.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 
 /* Processes */
 #include "custom_processes/mmg_process.h"

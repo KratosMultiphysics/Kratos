@@ -21,7 +21,7 @@
 #include "containers/model.h"
 #include "includes/kratos_flags.h"
 // #include "includes/gid_io.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 
 /* Processes */
 #include "processes/find_nodal_h_process.h"
