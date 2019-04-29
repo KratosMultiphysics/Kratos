@@ -22,6 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/node.h"
+#include "containers/flags.h"
 #include "geometries/geometry.h"
 
 
@@ -50,7 +51,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class GeometricalObject : public IndexedObject
+class GeometricalObject : public IndexedObject, public Flags
 {
 public:
     ///@name Type Definitions
@@ -74,21 +75,27 @@ public:
     ///@{
 
     /// Default constructor.
-    explicit GeometricalObject(IndexType NewId = 0) : BaseType(NewId),
-        mpGeometry()
+    explicit GeometricalObject(IndexType NewId = 0)
+        : BaseType(NewId),
+          Flags(),
+          mpGeometry()
     {}
 
     /// Default constructor.
-    GeometricalObject(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId),
-        mpGeometry(pGeometry)
+    GeometricalObject(IndexType NewId, GeometryType::Pointer pGeometry)
+        : BaseType(NewId),
+          Flags(),
+          mpGeometry(pGeometry)
     {}
 
     /// Destructor.
     ~GeometricalObject() override {}
 
     /// Copy constructor.
-    GeometricalObject(GeometricalObject const& rOther) : BaseType(rOther.Id()),
-        mpGeometry(rOther.mpGeometry)
+    GeometricalObject(GeometricalObject const& rOther)
+        : BaseType(rOther.Id()),
+          Flags(rOther),
+          mpGeometry(rOther.mpGeometry)
     {}
 
 
@@ -100,6 +107,7 @@ public:
     GeometricalObject& operator=(GeometricalObject const& rOther)
     {
         BaseType::operator=(rOther);
+        Flags::operator =(rOther);
         return *this;
     }
 
@@ -130,6 +138,25 @@ public:
     GeometryType const& GetGeometry() const
     {
         return *mpGeometry;
+    }
+
+    ///@}
+    ///@name Flags
+    ///@{
+
+    Flags& GetFlags()
+    {
+        return *this;
+    }
+
+    Flags const& GetFlags() const
+    {
+        return *this;
+    }
+
+    void SetFlags(Flags const& rThisFlags)
+    {
+        Flags::operator=(rThisFlags);
     }
 
     ///@}
