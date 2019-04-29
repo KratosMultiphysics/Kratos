@@ -280,8 +280,8 @@ class MultilevelMonteCarlo(object):
 
         # default settings of the Continuation Multilevel Monte Carlo (CMLMC) algorithm
         # run_multilevel_monte_carlo: flag to run or not the algorithm
-        # adaptive_refinement: if True refine from mesh level 0 each time a different random variable is used
-        # store_lower_levels_samples: if True, store also lower level values of QoI to compute statistics, if avaiable from adaptive refinement --> produces a BIAS in the results
+        # adaptive_refinement: flag to refine from mesh level 0 each time a different random variable is used
+        # store_lower_levels_samples: flag to store also lower level values of QoI to compute statistics, if avaiable from adaptive refinement --> produces a BIAS in the results
         # initial_tolerance: tolerance iter 0
         # tolerance: tolerance final
         # confidence: confidence on tolerance
@@ -291,7 +291,7 @@ class MultilevelMonteCarlo(object):
         # maximum_number_levels: maximum number of levels
         # mesh_refinement_coefficient: coefficient of mesh refinement
         # initial_mesh_size: size of coarsest/initial mesh
-        # recursive_maximal_size : set as maximal mesh size the minimal mesh size of the previous coarser level, otherwise maximal mesh size default equal to 10.0 (directly set into ExecuteInstanceAux_Task)
+        # recursive_maximal_size : flag to set as maximal mesh size the minimal mesh size of the previous coarser level, otherwise maximal mesh size default equal to 10.0 (directly set into ExecuteInstanceAux_Task)
         # minimum_samples_add: minimum number of samples to add if at least one is going to be added
         # k0: certainty Parameter 0 rates (confidence in the variance models)
         # k1: certainty Parameter 1 rates (confidence in the weak convergence model)
