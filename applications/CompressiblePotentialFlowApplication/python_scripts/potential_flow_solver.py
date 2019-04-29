@@ -79,6 +79,17 @@ class PotentialFlowSolver(FluidSolver):
 
     def Initialize(self):
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+
+        # Call the nodal normal calculation util
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
+            self.main_model_part, self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+
+        # Find nodal neighbours util call
+        avg_elem_num = 10
+        avg_node_num = 10
+        KratosMultiphysics.FindNodalNeighboursProcess(
+            self.main_model_part, avg_elem_num, avg_node_num).Execute()
+
         # TODO: Rename to self.strategy once we upgrade the base FluidDynamicsApplication solvers
         self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
             self.GetComputingModelPart(),

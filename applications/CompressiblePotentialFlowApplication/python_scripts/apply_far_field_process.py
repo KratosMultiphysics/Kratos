@@ -7,6 +7,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyFarFieldProcess(Model, settings["Parameters"])
 
+
 ## All the processes python should be derived from "Process"
 class ApplyFarFieldProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
@@ -29,17 +30,6 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         #self.density_infinity = settings["density_infinity"].GetDouble() #TODO: must read this from the properties
         self.inlet_phi = settings["inlet_phi"].GetDouble()
         self.model_part.ProcessInfo.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY,self.velocity_infinity)
-
-        # Call the nodal normal calculation util
-        self.fluid_model_part = self.model_part.GetRootModelPart()
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
-            self.fluid_model_part, self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-
-        # Find nodal neigbours util call
-        avg_elem_num = 10
-        avg_node_num = 10
-        KratosMultiphysics.FindNodalNeighboursProcess(
-            self.fluid_model_part, avg_elem_num, avg_node_num).Execute()
 
     def Execute(self):
         #KratosMultiphysics.VariableUtils().SetVectorVar(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity, self.model_part.Conditions)
