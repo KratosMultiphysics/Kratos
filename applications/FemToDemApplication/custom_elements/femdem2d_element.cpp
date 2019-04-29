@@ -219,44 +219,26 @@ void FemDem2DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessI
 
 void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
 {
-    KRATOS_TRY
+	KRATOS_TRY
 
-    //create local system components
-    LocalSystemComponents LocalSystem;
+	//create local system components
+	LocalSystemComponents LocalSystem;
 
-    //calculation flags
-    LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_LHS_MATRIX);
-    LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_RHS_VECTOR);
+	//calculation flags
+	LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_LHS_MATRIX);
+	LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_RHS_VECTOR);
 
-    //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
+	//Initialize sizes for the system components:
+	this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
 
-    //Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
-    LocalSystem.SetRightHandSideVector(rRightHandSideVector);
+	//Set Variables to Local system components
+	LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
+	LocalSystem.SetRightHandSideVector(rRightHandSideVector);
 
-    //Calculate elemental system
-    this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+	//Calculate elemental system
+	this->CalculateElementalSystem(LocalSystem, rCurrentProcessInfo);
 
-    bool test_tangent = false;
-    if( test_tangent ){
-
-      //std::cout<<" ["<<this->Id()<<"] MATRIX "<<rLeftHandSideMatrix<<std::endl;
-
-      MatrixType PerturbedLeftHandSideMatrix( rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2() );
-      noalias(PerturbedLeftHandSideMatrix) = ZeroMatrix( rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2() );
-
-      this->CalculatePerturbedLeftHandSide( PerturbedLeftHandSideMatrix, rCurrentProcessInfo );
-
-      //std::cout<<" ["<<this->Id()<<"] PERTURBED MATRIX "<<PerturbedLeftHandSideMatrix<<std::endl;
-
-      //std::cout<<" ["<<this->Id()<<"] DIFFERENCES "<<PerturbedLeftHandSideMatrix-rLeftHandSideMatrix<<std::endl;
-
-      //rLeftHandSideMatrix = PerturbedLeftHandSideMatrix;
-
-    }
-
-    KRATOS_CATCH("")
+	KRATOS_CATCH("")
 }
 
 void FemDem2DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
@@ -308,6 +290,75 @@ void FemDem2DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 
 	KRATOS_CATCH("")
 }
+
+void FemDem2DElement::CalculateElementalSystem(LocalSystemComponents& rLocalSystem, ProcessInfo& rCurrentProcessInfo)
+{
+	KRATOS_TRY
+
+	//create and initialize element variables:
+	ElementDataType Variables;
+	this->InitializeElementData(Variables, rCurrentProcessInfo);
+
+	//create constitutive law parameters:
+	ConstitutiveLaw::Parameters Values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+
+	//set constitutive law flags:
+	Flags& ConstitutiveLawOptions=Values.GetOptions();
+
+	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+	//reading integration points
+	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+	//auxiliary terms
+	const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
+	Vector VolumeForce(dimension);
+	noalias(VolumeForce) = ZeroVector(dimension);
+
+	for (SizeType PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ ) {
+	//compute element kinematic variables B, F, DN_DX ...
+	this->CalculateKinematics(Variables, PointNumber);
+
+	//calculate material response
+	this->CalculateMaterialResponse(Variables,Values,PointNumber); // FEMDEM
+
+	//some transformation of the configuration can be needed (UL element specially)
+	//this->TransformElementData(Variables,PointNumber);
+
+	//calculating weights for integration on the "reference configuration"
+	Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+	Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
+
+
+	if( !IsSliver() ){
+
+		if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+		{
+		//contributions to stiffness matrix calculated on the reference config
+	this->CalculateAndAddLHS ( rLocalSystem, Variables, Variables.IntegrationWeight );
+		}
+
+		if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+		{
+		//contribution to external forces
+		VolumeForce = this->CalculateVolumeForce(VolumeForce, Variables.N);
+
+	this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce, Variables.IntegrationWeight );
+		}
+
+	}
+
+	//for debugging purposes
+	//this->PrintElementCalculation(rLocalSystem,Variables);
+
+	}
+
+
+	KRATOS_CATCH("")
+}
+
+
 
 double FemDem2DElement::CalculateElementalDamage(const Vector& rEdgeDamages)
 {
