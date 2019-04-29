@@ -189,65 +189,28 @@ template<typename ValueType> struct DynamicArrayTypeTransfer
 
 template<class TValue> struct SendTools;
 
-template<> struct SendTools<int> : public DirectCopyTransfer<int>
+template<>
+struct SendTools<int> : public DirectCopyTransfer<int> {};
+
+template<>
+struct SendTools<double>: public DirectCopyTransfer<double> {};
+
+template<std::size_t TDim>
+struct SendTools< array_1d<double,TDim> >: public DirectCopyTransfer<array_1d<double,TDim>> {};
+
+template<>
+struct SendTools< Kratos::Flags >: public DirectCopyTransfer<Kratos::Flags> {};
+
+template<>
+struct SendTools< Vector >: public DynamicArrayTypeTransfer<Vector> {};
+
+template<>
+struct SendTools< Matrix >: public DynamicArrayTypeTransfer<Matrix> {};
+
+template<typename TVectorValue>
+struct SendTools< DenseVector<TVectorValue> >
 {
-    typedef int SendType;
-    constexpr static bool IsFixedSize = true;
-    constexpr static std::size_t MessageSize = 1;
-};
-
-template<> struct SendTools<double>: public DirectCopyTransfer<double>
-{
-    typedef double SendType;
-    constexpr static bool IsFixedSize = true;
-    constexpr static std::size_t MessageSize = 1;
-};
-
-template<std::size_t TDim> struct SendTools< array_1d<double,TDim> >: public DirectCopyTransfer<array_1d<double,TDim>>
-{
-    typedef double SendType;
-    constexpr static bool IsFixedSize = true;
-    constexpr static std::size_t MessageSize = TDim;
-};
-
-template<> struct SendTools< Kratos::Flags >: public DirectCopyTransfer<Kratos::Flags>
-{
-    typedef double SendType;
-    constexpr static bool IsFixedSize = true;
-    constexpr static std::size_t MessageSize = sizeof(Kratos::Flags)/sizeof(double);
-};
-
-template<> struct SendTools< Vector >: public DynamicArrayTypeTransfer<Vector>
-{
-    typedef double SendType;
-    constexpr static bool IsFixedSize = false;
-
-    static inline std::size_t GetMessageSize(const Vector& rValue)
-    {
-        return rValue.size();
-    }
-};
-
-template<> struct SendTools< Matrix >: public DynamicArrayTypeTransfer<Matrix>
-{
-    typedef double SendType;
-    constexpr static bool IsFixedSize = false;
-
-    static inline std::size_t GetMessageSize(const Matrix& rValue)
-    {
-        return rValue.data().size();
-    }
-};
-
-template<typename TVectorValue> struct SendTools< DenseVector<TVectorValue> >
-{
-    typedef double SendType;
-    constexpr static bool IsFixedSize = false;
-
-    static inline std::size_t GetMessageSize(const DenseVector<TVectorValue>& rValue)
-    {
-        return rValue.size()*sizeof(TVectorValue)/sizeof(double);
-    }
+    using SendType = typename SendTraits< DenseVector<TVectorValue> >::SendType;
 
     static inline void WriteBuffer(const DenseVector<TVectorValue>& rValue, SendType* pBuffer)
     {
@@ -267,13 +230,7 @@ template<typename TVectorValue> struct SendTools< DenseVector<TVectorValue> >
 
 template<> struct SendTools< Kratos::VariablesListDataValueContainer >
 {
-    typedef double SendType;
-    constexpr static bool IsFixedSize = false;
-
-    static inline std::size_t GetMessageSize(const Kratos::VariablesListDataValueContainer& rValue)
-    {
-        return rValue.TotalSize();
-    }
+    using SendType = typename SendTraits< Kratos::VariablesListDataValueContainer >::SendType;
 
     static inline void WriteBuffer(const Kratos::VariablesListDataValueContainer& rValue, SendType* pBuffer)
     {
@@ -288,13 +245,7 @@ template<> struct SendTools< Kratos::VariablesListDataValueContainer >
 
 template<> struct SendTools< Node<3>::DofsContainerType >
 {
-    typedef int SendType;
-    constexpr static bool IsFixedSize = false;
-
-    static inline std::size_t GetMessageSize(const Node<3>::DofsContainerType& rValue)
-    {
-        return rValue.size();
-    }
+    using SendType = SendTraits< Node<3>::DofsContainerType >::SendType;
 
     static inline void WriteBuffer(const Node<3>::DofsContainerType& rValue, SendType* pBuffer)
     {
@@ -363,261 +314,201 @@ struct BufferAllocation<TDatabaseAccess, false> {
     }
 };
 
-template<class TValue> class NodalSolutionStepValueAccess
-{
-
-const Variable<TValue>& mrVariable;
-
+class NodalContainerAccess {
 public:
 
-using ValueType = TValue;
-using SendType = typename SendTraits<TValue>::SendType;
-using ContainerType = Communicator::MeshType::NodesContainerType;
-using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
-using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
+    using ContainerType = Communicator::MeshType::NodesContainerType;
+    using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
+    using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
 
-NodalSolutionStepValueAccess(const Variable<TValue>& mrVariable):
-    mrVariable(mrVariable)
-{}
+    ContainerType& GetContainer(Communicator::MeshType& rMesh)
+    {
+        return rMesh.Nodes();
+    }
 
-ContainerType& GetContainer(Communicator::MeshType& rMesh)
-{
-    return rMesh.Nodes();
-}
-
-const ContainerType& GetContainer(const Communicator::MeshType& rMesh)
-{
-    return rMesh.Nodes();
-}
-
-TValue& GetValue(IteratorType& iter)
-{
-    return iter->FastGetSolutionStepValue(mrVariable);
-}
-
-const TValue& GetValue(const ConstIteratorType& iter)
-{
-    return iter->FastGetSolutionStepValue(mrVariable);
-}
-
+    const ContainerType& GetContainer(const Communicator::MeshType& rMesh)
+    {
+        return rMesh.Nodes();
+    }
 };
 
-template<class TValue> class NodalDataAccess
-{
-
-const Variable<TValue>& mrVariable;
-
+class ElementalContainerAccess {
 public:
 
-using ValueType = TValue;
-using SendType = typename SendTraits<TValue>::SendType;
-using ContainerType = Communicator::MeshType::NodesContainerType;
-using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
-using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
+    using ContainerType = Communicator::MeshType::ElementsContainerType;
+    using IteratorType = Communicator::MeshType::ElementsContainerType::iterator;
+    using ConstIteratorType = Communicator::MeshType::ElementsContainerType::const_iterator;
 
-NodalDataAccess(const Variable<TValue>& mrVariable):
-    mrVariable(mrVariable)
-{}
+    ContainerType& GetContainer(Communicator::MeshType& rMesh)
+    {
+        return rMesh.Elements();
+    }
 
-ContainerType& GetContainer(Communicator::MeshType& rMesh)
-{
-    return rMesh.Nodes();
-}
-
-const ContainerType& GetContainer(const Communicator::MeshType& rMesh)
-{
-    return rMesh.Nodes();
-}
-
-TValue& GetValue(IteratorType& iter)
-{
-    return iter->GetValue(mrVariable);
-}
-
-const TValue& GetValue(const ConstIteratorType& iter)
-{
-    return iter->GetValue(mrVariable);
-}
-
+    const ContainerType& GetContainer(const Communicator::MeshType& rMesh)
+    {
+        return rMesh.Elements();
+    }
 };
 
-class NodalFlagsAccess
+template<class TValue> class NodalSolutionStepValueAccess: public NodalContainerAccess
 {
+    const Variable<TValue>& mrVariable;
+
 public:
 
-const Kratos::Flags& mrMask;
+    using ValueType = TValue;
+    using SendType = typename SendTraits<TValue>::SendType;
 
-using ValueType = Kratos::Flags;
-using SendType = typename SendTraits<ValueType>::SendType;
-using ContainerType = Communicator::MeshType::NodesContainerType;
-using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
-using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
+    NodalSolutionStepValueAccess(const Variable<TValue>& mrVariable):
+        NodalContainerAccess(),
+        mrVariable(mrVariable)
+    {}
 
-NodalFlagsAccess(const Kratos::Flags& rMask):
-    mrMask(rMask)
-{}
+    TValue& GetValue(IteratorType& iter)
+    {
+        return iter->FastGetSolutionStepValue(mrVariable);
+    }
 
-ContainerType& GetContainer(Communicator::MeshType& rMesh)
-{
-    return rMesh.Nodes();
-}
-
-const ContainerType& GetContainer(const Communicator::MeshType& rMesh)
-{
-    return rMesh.Nodes();
-}
-
-Kratos::Flags& GetValue(IteratorType& iter)
-{
-    return *iter;
-}
-
-const Kratos::Flags& GetValue(const ConstIteratorType& iter)
-{
-    return *iter;
-}
-
+    const TValue& GetValue(const ConstIteratorType& iter)
+    {
+        return iter->FastGetSolutionStepValue(mrVariable);
+    }
 };
 
-class NodalSolutionStepDataAccess
+template<class TValue> class NodalDataAccess: public NodalContainerAccess
 {
+    const Variable<TValue>& mrVariable;
+
 public:
 
-using ValueType = Kratos::VariablesListDataValueContainer;
-using SendType = typename SendTraits<ValueType>::SendType;
-using ContainerType = Communicator::MeshType::NodesContainerType;
-using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
-using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
+    using ValueType = TValue;
+    using SendType = typename SendTraits<TValue>::SendType;
 
-ContainerType& GetContainer(Communicator::MeshType& rMesh)
-{
-    return rMesh.Nodes();
-}
+    NodalDataAccess(const Variable<TValue>& mrVariable):
+        NodalContainerAccess(),
+        mrVariable(mrVariable)
+    {}
 
-const ContainerType& GetContainer(const Communicator::MeshType& rMesh)
-{
-    return rMesh.Nodes();
-}
+    TValue& GetValue(IteratorType& iter)
+    {
+        return iter->GetValue(mrVariable);
+    }
 
-ValueType& GetValue(IteratorType& iter)
-{
-    return iter->SolutionStepData();
-}
-
-const ValueType& GetValue(const ConstIteratorType& iter)
-{
-    return iter->SolutionStepData();
-}
-
+    const TValue& GetValue(const ConstIteratorType& iter)
+    {
+        return iter->GetValue(mrVariable);
+    }
 };
 
-class DofIdAccess
+class NodalFlagsAccess: public NodalContainerAccess
 {
 public:
 
-using ValueType = Node<3>::DofsContainerType;
-using SendType = typename SendTraits<ValueType>::SendType;
-using ContainerType = Communicator::MeshType::NodesContainerType;
-using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
-using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
+    const Kratos::Flags& mrMask;
 
-ContainerType& GetContainer(Communicator::MeshType& rMesh)
-{
-    return rMesh.Nodes();
-}
+    using ValueType = Kratos::Flags;
+    using SendType = typename SendTraits<ValueType>::SendType;
 
-const ContainerType& GetContainer(const Communicator::MeshType& rMesh)
-{
-    return rMesh.Nodes();
-}
+    NodalFlagsAccess(const Kratos::Flags& rMask):
+        NodalContainerAccess(),
+        mrMask(rMask)
+    {}
 
-ValueType& GetValue(IteratorType& iter)
-{
-    return iter->GetDofs();
-}
+    Kratos::Flags& GetValue(IteratorType& iter)
+    {
+        return *iter;
+    }
 
-const ValueType& GetValue(const ConstIteratorType& iter)
-{
-    return iter->GetDofs();
-}
-
+    const Kratos::Flags& GetValue(const ConstIteratorType& iter)
+    {
+        return *iter;
+    }
 };
 
-template<class TValue> class ElementalDataAccess
+class NodalSolutionStepDataAccess: public NodalContainerAccess
 {
-
-const Variable<TValue>& mrVariable;
-
 public:
 
-using ValueType = TValue;
-using SendType = typename SendTraits<TValue>::SendType;
-using ContainerType = Communicator::MeshType::ElementsContainerType;
-using IteratorType = Communicator::MeshType::ElementsContainerType::iterator;
-using ConstIteratorType = Communicator::MeshType::ElementsContainerType::const_iterator;
+    using ValueType = Kratos::VariablesListDataValueContainer;
+    using SendType = typename SendTraits<ValueType>::SendType;
 
-ElementalDataAccess(const Variable<TValue>& mrVariable):
-    mrVariable(mrVariable)
-{}
+    ValueType& GetValue(IteratorType& iter)
+    {
+        return iter->SolutionStepData();
+    }
 
-ContainerType& GetContainer(Communicator::MeshType& rMesh)
-{
-    return rMesh.Elements();
-}
-
-const ContainerType& GetContainer(const Communicator::MeshType& rMesh)
-{
-    return rMesh.Elements();
-}
-
-TValue& GetValue(IteratorType& iter)
-{
-    return iter->GetValue(mrVariable);
-}
-
-const TValue& GetValue(const ConstIteratorType& iter)
-{
-    return iter->GetValue(mrVariable);
-}
-
+    const ValueType& GetValue(const ConstIteratorType& iter)
+    {
+        return iter->SolutionStepData();
+    }
 };
 
-class ElementalFlagsAccess
+class DofIdAccess: public NodalContainerAccess
 {
 public:
 
-const Kratos::Flags& mrMask;
+    using ValueType = Node<3>::DofsContainerType;
+    using SendType = typename SendTraits<ValueType>::SendType;
 
-using ValueType = Kratos::Flags;
-using SendType = typename SendTraits<ValueType>::SendType;
-using ContainerType = Communicator::MeshType::ElementsContainerType;
-using IteratorType = Communicator::MeshType::ElementsContainerType::iterator;
-using ConstIteratorType = Communicator::MeshType::ElementsContainerType::const_iterator;
+    ValueType& GetValue(IteratorType& iter)
+    {
+        return iter->GetDofs();
+    }
 
-ElementalFlagsAccess(const Kratos::Flags& rMask):
-    mrMask(rMask)
-{}
+    const ValueType& GetValue(const ConstIteratorType& iter)
+    {
+        return iter->GetDofs();
+    }
+};
 
-ContainerType& GetContainer(Communicator::MeshType& rMesh)
+template<class TValue> class ElementalDataAccess: public ElementalContainerAccess
 {
-    return rMesh.Elements();
-}
+    const Variable<TValue>& mrVariable;
 
-const ContainerType& GetContainer(const Communicator::MeshType& rMesh)
+public:
+
+    using ValueType = TValue;
+    using SendType = typename SendTraits<TValue>::SendType;
+
+    ElementalDataAccess(const Variable<TValue>& mrVariable):
+        ElementalContainerAccess(),
+        mrVariable(mrVariable)
+    {}
+
+    TValue& GetValue(IteratorType& iter)
+    {
+        return iter->GetValue(mrVariable);
+    }
+
+    const TValue& GetValue(const ConstIteratorType& iter)
+    {
+        return iter->GetValue(mrVariable);
+    }
+};
+
+class ElementalFlagsAccess: public ElementalContainerAccess
 {
-    return rMesh.Elements();
-}
+public:
 
-Kratos::Flags& GetValue(IteratorType& iter)
-{
-    return *iter;
-}
+    const Kratos::Flags& mrMask;
 
-const Kratos::Flags& GetValue(const ConstIteratorType& iter)
-{
-    return *iter;
-}
+    using ValueType = Kratos::Flags;
+    using SendType = typename SendTraits<ValueType>::SendType;
 
+    ElementalFlagsAccess(const Kratos::Flags& rMask):
+        ElementalContainerAccess(),
+        mrMask(rMask)
+    {}
+
+    Kratos::Flags& GetValue(IteratorType& iter)
+    {
+        return *iter;
+    }
+
+    const Kratos::Flags& GetValue(const ConstIteratorType& iter)
+    {
+        return *iter;
+    }
 };
 
 }
