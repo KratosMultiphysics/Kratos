@@ -568,13 +568,13 @@ intrusive_ptr<_T> make_intrusive(_Args &&... __args){
 
 template<typename _U, typename _T>
 intrusive_ptr<_U> static_pointer_cast(intrusive_ptr<_T> __r) noexcept {
-	const auto __u = static_cast<_U>(__r.get());
+	const auto __u = static_cast<_U*>(__r.get());
 	__r.release();
 	return intrusive_ptr<_U>(__u);
 }
 template<typename _U, typename _T>
 intrusive_ptr<_U> dynamic_pointer_cast(intrusive_ptr<_T> __r) noexcept {
-	const auto __u = dynamic_cast<_U>(__r.get());
+	const auto __u = dynamic_cast<_U*>(__r.get());
 	if(__u){
 		__r.release();
 	}
@@ -582,7 +582,7 @@ intrusive_ptr<_U> dynamic_pointer_cast(intrusive_ptr<_T> __r) noexcept {
 }
 template<typename _U, typename _T>
 intrusive_ptr<_U> const_pointer_cast(intrusive_ptr<_T> __r) noexcept {
-	const auto __u = const_cast<_U>(__r.get());
+	const auto __u = const_cast<_U*>(__r.get());
 	__r.release();
 	return intrusive_ptr<_U>(__u);
 }
