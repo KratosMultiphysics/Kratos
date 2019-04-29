@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -36,28 +36,51 @@ DistanceModificationProcess::DistanceModificationProcess(
     const bool CheckAtEachStep,
     const bool NegElemDeactivation,
     const bool RecoverOriginalDistance)
-    : Process(), mrModelPart(rModelPart) {
-
+    : Process(),
+      mrModelPart(rModelPart)
+{
+    // Member variables initialization
     mDistanceThreshold = DistanceThreshold;
     mCheckAtEachStep = CheckAtEachStep;
     mNegElemDeactivation = NegElemDeactivation;
     mRecoverOriginalDistance = RecoverOriginalDistance;
+
+    // Initialize the EMBEDDED_IS_ACTIVE variable flag to 0
+    this->InitializeEmbeddedIsActive();
 }
 
 DistanceModificationProcess::DistanceModificationProcess(
     ModelPart& rModelPart,
     Parameters& rParameters)
-    : Process(), mrModelPart(rModelPart)
+    : Process(),
+      mrModelPart(rModelPart)
 {
+    // Check default settings
     this->CheckDefaultsAndProcessSettings(rParameters);
+
+    // Initialize the EMBEDDED_IS_ACTIVE variable flag to 0
+    this->InitializeEmbeddedIsActive();
 }
 
 DistanceModificationProcess::DistanceModificationProcess(
     Model &rModel,
     Parameters &rParameters)
-    : Process(), mrModelPart(rModel.GetModelPart(rParameters["model_part_name"].GetString()))
+    : Process(),
+      mrModelPart(rModel.GetModelPart(rParameters["model_part_name"].GetString()))
 {
+    // Check default settings
     this->CheckDefaultsAndProcessSettings(rParameters);
+
+    // Initialize the EMBEDDED_IS_ACTIVE variable flag to 0
+    this->InitializeEmbeddedIsActive();
+}
+
+void DistanceModificationProcess::InitializeEmbeddedIsActive()
+{
+    for (int i_node = 0; i_node < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node) {
+        auto it_node = mrModelPart.NodesBegin() + i_node;
+        it_node->SetValue(EMBEDDED_IS_ACTIVE, 0);
+    }
 }
 
 void DistanceModificationProcess::CheckDefaultsAndProcessSettings(Parameters &rParameters)
