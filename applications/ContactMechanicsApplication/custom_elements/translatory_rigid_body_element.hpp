@@ -69,7 +69,7 @@ public:
 
 
     /// Counted pointer of TranslatoryRigidBodyElement
-    KRATOS_CLASS_POINTER_DEFINITION( TranslatoryRigidBodyElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( TranslatoryRigidBodyElement );
 
     ///@}
 

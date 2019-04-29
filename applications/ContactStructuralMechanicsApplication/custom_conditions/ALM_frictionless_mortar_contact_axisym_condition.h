@@ -64,7 +64,7 @@ public:
     ///@{
 
     /// Counted pointer of AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition
-    KRATOS_CLASS_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition );
 
     typedef MortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONLESS, TNormalVariation> MortarBaseType;
 

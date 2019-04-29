@@ -41,7 +41,7 @@ public:
     ///@{
 
     // Pointer types for HerschelBulkleyFluid
-    KRATOS_CLASS_POINTER_DEFINITION(HerschelBulkleyFluid);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(HerschelBulkleyFluid);
 
     /// Node type (default is: Node<3>)
     typedef Node <3> NodeType;
@@ -145,7 +145,7 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<HerschelBulkleyFluid<TBaseElement> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<HerschelBulkleyFluid<TBaseElement> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
     /// Create a new element of this type.
@@ -159,7 +159,7 @@ public:
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< HerschelBulkleyFluid<TBaseElement> >(NewId,pGeom,pProperties);
+        return Kratos::make_intrusive< HerschelBulkleyFluid<TBaseElement> >(NewId,pGeom,pProperties);
     }
 
 

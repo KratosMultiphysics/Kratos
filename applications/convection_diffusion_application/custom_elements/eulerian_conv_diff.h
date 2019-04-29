@@ -41,7 +41,7 @@ class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) EulerianConvectionDiffusionEl
 {
 public:
     /// Counted pointer of
-    KRATOS_CLASS_POINTER_DEFINITION(EulerianConvectionDiffusionElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EulerianConvectionDiffusionElement);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@ public:
         PropertiesType::Pointer pProperties
         ) const override
     {
-        return Kratos::make_shared<EulerianConvectionDiffusionElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<EulerianConvectionDiffusionElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
     
     Element::Pointer Create(
@@ -79,7 +79,7 @@ public:
         PropertiesType::Pointer pProperties
         ) const override
     {
-        return Kratos::make_shared<EulerianConvectionDiffusionElement>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<EulerianConvectionDiffusionElement>(NewId, pGeom, pProperties);
     }
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;

@@ -853,7 +853,7 @@ private:
 
 	    pFace = Kratos::make_shared<Triangle3DType>(FaceNodes1);
 
-	    pSkinCondition = Kratos::make_shared<ConditionType>(condition_id, pFace, pProperties);
+	    pSkinCondition = Kratos::make_intrusive<Condition>(condition_id, pFace, pProperties);
 
 	    pSkinCondition->Set(ACTIVE,false);
 
@@ -880,7 +880,7 @@ private:
 
 	    pFace = Kratos::make_shared<Triangle3DType>(FaceNodes2);
 
-	    pSkinCondition = Kratos::make_shared<ConditionType>(condition_id, pFace, pProperties);
+	    pSkinCondition = Kratos::make_intrusive<Condition>(condition_id, pFace, pProperties);
 
 	    pSkinCondition->Set(ACTIVE,false);
 
@@ -905,7 +905,7 @@ private:
 
 	    pFace = Kratos::make_shared<Triangle3DType>(FaceNodes1);
 
-	    pSkinCondition = Kratos::make_shared<ConditionType>(condition_id, pFace, pProperties);
+	    pSkinCondition = Kratos::make_intrusive<Condition>(condition_id, pFace, pProperties);
 
 	    pSkinCondition->Set(ACTIVE,false);
 
@@ -927,7 +927,7 @@ private:
 
 	    pFace = Kratos::make_shared<Triangle3DType>(FaceNodes2);
 
-	    pSkinCondition = Kratos::make_shared<ConditionType>(condition_id, pFace, pProperties);
+	    pSkinCondition = Kratos::make_intrusive<Condition>(condition_id, pFace, pProperties);
 
 	    pSkinCondition->Set(ACTIVE,false);
 
@@ -1005,7 +1005,7 @@ private:
 
 	    pFace = Kratos::make_shared<Quadrilateral3DType>(FaceNodes);
 
-	    pSkinCondition = Kratos::make_shared<ConditionType>(condition_id, pFace, pProperties);
+	    pSkinCondition = Kratos::make_intrusive<Condition>(condition_id, pFace, pProperties);
 
 	    pSkinCondition->Set(ACTIVE,false);
 
@@ -1030,7 +1030,7 @@ private:
 
 	    pFace = Kratos::make_shared<Quadrilateral3DType>(FaceNodes);
 
-	    pSkinCondition = Kratos::make_shared<ConditionType>(condition_id, pFace, pProperties);
+	    pSkinCondition = Kratos::make_intrusive<Condition>(condition_id, pFace, pProperties);
 
 	    pSkinCondition->Set(ACTIVE,false);
 

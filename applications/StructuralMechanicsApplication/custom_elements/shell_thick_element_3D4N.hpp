@@ -65,7 +65,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(ShellThickElement3D4N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThickElement3D4N);
 
     typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
 

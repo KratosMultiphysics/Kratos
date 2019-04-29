@@ -443,7 +443,7 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
                 Properties::Pointer p_cond_prop = (i_int_geom < n_pos_interface_geom)? p_pos_prop : p_neg_prop;
 
                 // Create the new condition
-                Condition::Pointer p_new_cond = Kratos::make_shared<Condition>(temp_cond_id, p_new_geom, p_cond_prop);
+                Condition::Pointer p_new_cond = Kratos::make_intrusive<Condition>(temp_cond_id, p_new_geom, p_cond_prop);
                 new_conds_vect.push_back(p_new_cond);
                 mrVisualizationModelPart.AddCondition(p_new_cond);
 

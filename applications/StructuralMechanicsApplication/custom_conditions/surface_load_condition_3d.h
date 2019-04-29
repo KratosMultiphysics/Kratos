@@ -58,7 +58,7 @@ public:
     ///@{
 
     // Counted pointer of SurfaceLoadCondition3D
-    KRATOS_CLASS_POINTER_DEFINITION( SurfaceLoadCondition3D );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SurfaceLoadCondition3D );
 
     ///@}
     ///@name Life Cycle

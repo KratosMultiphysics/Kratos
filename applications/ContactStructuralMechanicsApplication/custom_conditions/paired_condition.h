@@ -60,7 +60,7 @@ public:
     ///@{
 
     /// Counted pointer of PairedCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PairedCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PairedCondition );
 
     typedef Condition                                                           BaseType;
 

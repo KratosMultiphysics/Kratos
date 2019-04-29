@@ -48,7 +48,7 @@ Element::Pointer PrestressMembraneElement::Create(
     PropertiesType::Pointer pProperties) const
 
 {
-    return Kratos::make_shared< PrestressMembraneElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+    return Kratos::make_intrusive< PrestressMembraneElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 //***********************************************************************************
@@ -60,7 +60,7 @@ Element::Pointer PrestressMembraneElement::Create(
     PropertiesType::Pointer pProperties) const
 
 {
-    return Kratos::make_shared< PrestressMembraneElement >(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive< PrestressMembraneElement >(NewId, pGeom, pProperties);
 }
 
 //***********************************************************************************

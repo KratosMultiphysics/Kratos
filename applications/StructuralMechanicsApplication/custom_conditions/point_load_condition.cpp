@@ -44,7 +44,7 @@ PointLoadCondition::PointLoadCondition( IndexType NewId, GeometryType::Pointer p
 
 Condition::Pointer PointLoadCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<PointLoadCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<PointLoadCondition>(NewId, pGeom, pProperties);
 }
 
 //************************************************************************************
@@ -52,7 +52,7 @@ Condition::Pointer PointLoadCondition::Create(IndexType NewId,GeometryType::Poin
 
 Condition::Pointer PointLoadCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared<PointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<PointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -65,7 +65,7 @@ Condition::Pointer PointLoadCondition::Clone (
 {
     KRATOS_TRY
 
-    Condition::Pointer p_new_cond = Kratos::make_shared<PointLoadCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    Condition::Pointer p_new_cond = Kratos::make_intrusive<PointLoadCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     p_new_cond->SetData(this->GetData());
     p_new_cond->Set(Flags(*this));
     return p_new_cond;

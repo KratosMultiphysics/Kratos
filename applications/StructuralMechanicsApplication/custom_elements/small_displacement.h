@@ -75,7 +75,7 @@ public:
     typedef std::size_t SizeType;
 
     /// Counted pointer of SmallDisplacement
-    KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallDisplacement);
 
     ///@}
     ///@name Life Cycle

@@ -39,9 +39,9 @@ namespace Kratos
   ///@{
   typedef PointerVectorSet<Condition, IndexedObject> ConditionContainerType;
 
-  typedef Kratos::weak_ptr<Node<3> > NodeWeakPtrType;
-  typedef Kratos::weak_ptr<Element> ElementWeakPtrType;
-  typedef Kratos::weak_ptr<Condition> ConditionWeakPtrType;
+  typedef Node<3>::WeakPointer NodeWeakPtrType;
+  typedef Element::WeakPointer ElementWeakPtrType;
+  typedef Condition::WeakPointer ConditionWeakPtrType;
 
   typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
   typedef WeakPointerVector<Element> ElementWeakPtrVectorType;

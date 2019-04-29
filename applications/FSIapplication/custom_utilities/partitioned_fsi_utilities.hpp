@@ -125,7 +125,7 @@ public:
         // Create new elements emulating the condition based interface
         for (int i_cond = 0; i_cond < rOriginInterfaceModelPart.NumberOfConditions(); ++i_cond) {
             const auto &it_cond = rOriginInterfaceModelPart.ConditionsBegin() + i_cond;
-            auto p_elem = Kratos::make_shared<Element>(it_cond->Id(), it_cond->pGetGeometry());
+            auto p_elem = Kratos::make_intrusive<Element>(it_cond->Id(), it_cond->pGetGeometry());
             rDestinationInterfaceModelPart.AddElement(p_elem);
         }
     }

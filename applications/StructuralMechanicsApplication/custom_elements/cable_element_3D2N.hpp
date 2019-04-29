@@ -36,7 +36,7 @@ class CableElement3D2N : public TrussElement3D2N
 {
 
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(CableElement3D2N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CableElement3D2N);
 
 
 

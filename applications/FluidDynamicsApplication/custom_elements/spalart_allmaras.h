@@ -62,7 +62,7 @@ public:
     ///@{
 
     /// Pointer definition of SpalartAllmaras
-    KRATOS_CLASS_POINTER_DEFINITION(SpalartAllmaras);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SpalartAllmaras);
 
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;

@@ -21,7 +21,7 @@ namespace Kratos
     {
     public:
 
-      KRATOS_CLASS_POINTER_DEFINITION(CylinderContinuumParticle);
+      KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CylinderContinuumParticle);
 
       typedef WeakPointerVector<Element> ParticleWeakVectorType;  //M: l'he afegit jo.. esta be aquesta?
       typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;

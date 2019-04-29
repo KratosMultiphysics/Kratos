@@ -102,7 +102,7 @@ public:
     typedef WeakPointerVector<NodeType> WeakPointerVectorNodesType;
 
     /// Counted pointer of SolidShellElementSprism3D6N
-    KRATOS_CLASS_POINTER_DEFINITION(SolidShellElementSprism3D6N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SolidShellElementSprism3D6N);
 
     ///@}
     ///@name Enums

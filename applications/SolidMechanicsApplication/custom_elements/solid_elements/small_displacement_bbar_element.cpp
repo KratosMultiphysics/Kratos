@@ -74,7 +74,7 @@ Element::Pointer SmallDisplacementBbarElement::Create(IndexType NewId,
                                                       NodesArrayType const& rThisNodes,
                                                       PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared< SmallDisplacementBbarElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+    return Kratos::make_intrusive< SmallDisplacementBbarElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 //************************************CLONE*******************************************
@@ -107,7 +107,7 @@ Element::Pointer SmallDisplacementBbarElement::Clone(IndexType NewId,
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared< SmallDisplacementBbarElement >(NewElement);
+    return Kratos::make_intrusive< SmallDisplacementBbarElement >(NewElement);
 }
 
 //*******************************DESTRUCTOR*******************************************

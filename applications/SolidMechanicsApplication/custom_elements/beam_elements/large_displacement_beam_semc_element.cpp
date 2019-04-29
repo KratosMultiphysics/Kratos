@@ -51,7 +51,7 @@ namespace Kratos
 
   Element::Pointer LargeDisplacementBeamSEMCElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<LargeDisplacementBeamSEMCElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<LargeDisplacementBeamSEMCElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
   //*******************************DESTRUCTOR*******************************************

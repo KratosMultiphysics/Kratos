@@ -47,7 +47,7 @@ Condition::Pointer FluxCondition<TNodeNumber>::Create(
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<FluxCondition<TNodeNumber>>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<FluxCondition<TNodeNumber>>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 template< unsigned int TNodeNumber >
@@ -56,7 +56,7 @@ Condition::Pointer FluxCondition<TNodeNumber>::Create(
     GeometryType::Pointer pGeom,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<FluxCondition<TNodeNumber>>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<FluxCondition<TNodeNumber>>(NewId, pGeom, pProperties);
 }
 
 template< unsigned int TNodeNumber >

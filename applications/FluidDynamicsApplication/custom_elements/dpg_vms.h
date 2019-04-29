@@ -53,7 +53,7 @@ public:
     ///@name Type Definitions
     ///@{
     /// Pointer definition of DPGVMS
-    KRATOS_CLASS_POINTER_DEFINITION(DPGVMS);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(DPGVMS);
     ///base type: an IndexedObject that automatically has a unique number
     typedef IndexedObject BaseType;
     ///Element from which it is derived
@@ -137,7 +137,7 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<DPGVMS>(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<DPGVMS>(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties);
     }
 
     /// Create a new element of this type.
@@ -151,7 +151,7 @@ public:
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< DPGVMS >(NewId,pGeom,pProperties);
+        return Kratos::make_intrusive< DPGVMS >(NewId,pGeom,pProperties);
     }
 
     /// Call at teh begining of each step, ita decides if element is cutted or no!

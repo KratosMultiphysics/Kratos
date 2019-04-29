@@ -44,7 +44,7 @@ protected:
     static constexpr unsigned int msElementSize = msLocalSize * 2;
 
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(CrBeamElement2D2N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CrBeamElement2D2N);
 
 
     typedef Element BaseType;

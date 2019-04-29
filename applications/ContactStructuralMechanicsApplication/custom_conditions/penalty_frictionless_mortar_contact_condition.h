@@ -66,7 +66,7 @@ public:
     ///@{
 
     /// Counted pointer of PenaltyMethodFrictionlessMortarContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PenaltyMethodFrictionlessMortarContactCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PenaltyMethodFrictionlessMortarContactCondition );
 
     typedef MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS_PENALTY, TNormalVariation, TNumNodesMaster> BaseType;
 

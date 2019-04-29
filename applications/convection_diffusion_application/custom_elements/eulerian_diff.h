@@ -65,7 +65,7 @@ public:
     ///@{
 
     /// Counted pointer of
-    KRATOS_CLASS_POINTER_DEFINITION(EulerianDiffusionElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EulerianDiffusionElement);
 
     ///@}
     ///@name Life Cycle
@@ -96,12 +96,12 @@ public:
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<EulerianDiffusionElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<EulerianDiffusionElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
     
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<EulerianDiffusionElement>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<EulerianDiffusionElement>(NewId, pGeom, pProperties);
     }
 
 

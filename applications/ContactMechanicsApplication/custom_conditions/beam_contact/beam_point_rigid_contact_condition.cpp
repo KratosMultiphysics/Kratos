@@ -79,7 +79,7 @@ Condition::Pointer BeamPointRigidContactCondition::Create(
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-  return Kratos::make_shared<BeamPointRigidContactCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+  return Kratos::make_intrusive<BeamPointRigidContactCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 

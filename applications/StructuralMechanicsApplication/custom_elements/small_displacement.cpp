@@ -44,7 +44,7 @@ SmallDisplacement::SmallDisplacement( IndexType NewId, GeometryType::Pointer pGe
 
 Element::Pointer SmallDisplacement::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared<SmallDisplacement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<SmallDisplacement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -52,7 +52,7 @@ Element::Pointer SmallDisplacement::Create( IndexType NewId, NodesArrayType cons
 
 Element::Pointer SmallDisplacement::Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared<SmallDisplacement>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<SmallDisplacement>( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
@@ -72,7 +72,7 @@ Element::Pointer SmallDisplacement::Clone (
 {
     KRATOS_TRY
 
-    SmallDisplacement::Pointer p_new_elem = Kratos::make_shared<SmallDisplacement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    SmallDisplacement::Pointer p_new_elem = Kratos::make_intrusive<SmallDisplacement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
 

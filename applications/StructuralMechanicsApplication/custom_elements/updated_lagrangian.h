@@ -79,7 +79,7 @@ public:
     typedef std::size_t SizeType;
 
     /// Counted pointer of UpdatedLagrangian
-    KRATOS_CLASS_POINTER_DEFINITION(UpdatedLagrangian);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UpdatedLagrangian);
 
     ///@}
     ///@name Life Cycle

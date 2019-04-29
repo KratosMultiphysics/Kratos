@@ -65,14 +65,14 @@ DVMS<TElementData>::~DVMS()
 template< class TElementData >
 Element::Pointer DVMS<TElementData>::Create(IndexType NewId,NodesArrayType const& ThisNodes,Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<DVMS>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<DVMS>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
 template< class TElementData >
 Element::Pointer DVMS<TElementData>::Create(IndexType NewId,GeometryType::Pointer pGeom,Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<DVMS>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<DVMS>(NewId, pGeom, pProperties);
 }
 
 template <class TElementData>

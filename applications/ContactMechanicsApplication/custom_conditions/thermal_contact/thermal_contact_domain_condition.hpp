@@ -162,7 +162,7 @@ protected:
 public:
 
     /// Counted pointer of ThermalContactDomainCondition
-    KRATOS_CLASS_POINTER_DEFINITION(ThermalContactDomainCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ThermalContactDomainCondition);
 
     ///@}
     ///@name Life Cycle

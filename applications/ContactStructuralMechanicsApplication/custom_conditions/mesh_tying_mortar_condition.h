@@ -71,7 +71,7 @@ public:
     ///@{
 
     /// Counted pointer of MeshTyingMortarCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MeshTyingMortarCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MeshTyingMortarCondition );
 
     /// Base class definitions
     typedef PairedCondition                                                               BaseType;

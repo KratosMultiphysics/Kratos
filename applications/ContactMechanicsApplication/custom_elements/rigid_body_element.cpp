@@ -75,7 +75,7 @@ RigidBodyElement::RigidBodyElement(RigidBodyElement const& rOther)
 
 Element::Pointer RigidBodyElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-  return Kratos::make_shared<RigidBodyElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+  return Kratos::make_intrusive<RigidBodyElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
@@ -90,7 +90,7 @@ Element::Pointer RigidBodyElement::Clone(IndexType NewId, NodesArrayType const& 
   NewElement.SetData(this->GetData());
   NewElement.SetFlags(this->GetFlags());
 
-  return Kratos::make_shared<RigidBodyElement>(NewElement);
+  return Kratos::make_intrusive<RigidBodyElement>(NewElement);
 }
 
 //*******************************DESTRUCTOR*******************************************

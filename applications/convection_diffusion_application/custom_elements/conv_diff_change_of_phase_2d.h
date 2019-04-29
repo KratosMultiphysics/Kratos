@@ -56,7 +56,7 @@ public:
     ///@{
 
     /// Counted pointer of ConvDiffChangeOfPhase2D
-    KRATOS_CLASS_POINTER_DEFINITION(ConvDiffChangeOfPhase2D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ConvDiffChangeOfPhase2D);
 
     ///@}
     ///@name Life Cycle

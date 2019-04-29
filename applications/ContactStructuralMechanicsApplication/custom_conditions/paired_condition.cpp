@@ -27,7 +27,7 @@ Condition::Pointer PairedCondition::Create(
     NodesArrayType const& rThisNodes,
     PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared< PairedCondition >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties);
+    return Kratos::make_intrusive< PairedCondition >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties);
 }
 
 /***********************************************************************************/
@@ -38,7 +38,7 @@ Condition::Pointer PairedCondition::Create(
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared< PairedCondition >( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive< PairedCondition >( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
@@ -50,7 +50,7 @@ Condition::Pointer PairedCondition::Create(
     PropertiesType::Pointer pProperties,
     GeometryType::Pointer pPairedGeom) const
 {
-    return Kratos::make_shared< PairedCondition >( NewId, pGeom, pProperties, pPairedGeom);
+    return Kratos::make_intrusive< PairedCondition >( NewId, pGeom, pProperties, pPairedGeom);
 }
 
 /************************************* DESTRUCTOR **********************************/

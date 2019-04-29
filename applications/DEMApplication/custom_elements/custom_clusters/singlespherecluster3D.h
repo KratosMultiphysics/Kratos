@@ -38,7 +38,7 @@ namespace Kratos
     {
     public:
 
-        KRATOS_CLASS_POINTER_DEFINITION(SingleSphereCluster3D);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SingleSphereCluster3D);
 
         SingleSphereCluster3D( );
         SingleSphereCluster3D( IndexType NewId, GeometryType::Pointer pGeometry );

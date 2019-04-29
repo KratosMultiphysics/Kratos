@@ -70,7 +70,7 @@ ThermalElement&  ThermalElement::operator=(ThermalElement const& rOther)
 
 Element::Pointer ThermalElement::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared<ThermalElement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+  return Kratos::make_intrusive<ThermalElement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 //*******************************DESTRUCTOR*******************************************

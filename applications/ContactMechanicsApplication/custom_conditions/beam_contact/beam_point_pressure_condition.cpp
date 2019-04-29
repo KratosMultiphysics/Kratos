@@ -49,7 +49,7 @@ namespace Kratos
   Condition::Pointer BeamPointPressureCondition::Create(IndexType NewId, NodesArrayType
 								 const& ThisNodes,  PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<BeamPointPressureCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<BeamPointPressureCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
   }
 
 

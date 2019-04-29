@@ -72,7 +72,7 @@ public:
 
 
     /// Counted pointer of AxisymContactDomainLM2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION( AxisymContactDomainLM2DCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AxisymContactDomainLM2DCondition );
 
     ///@}
     ///@name Life Cycle

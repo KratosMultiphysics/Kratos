@@ -79,7 +79,7 @@ public:
     typedef BaseType::NodesArrayType NodesArrayType;
 
     // Counted pointer of BaseLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( BaseLoadCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BaseLoadCondition );
 
     ///@}
     ///@name Life Cycle

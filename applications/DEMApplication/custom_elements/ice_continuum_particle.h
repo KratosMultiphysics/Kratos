@@ -20,7 +20,7 @@ namespace Kratos {
         public:
 
         /// Pointer definition of IceContinuumParticle
-        KRATOS_CLASS_POINTER_DEFINITION(IceContinuumParticle);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(IceContinuumParticle);
 
         IceContinuumParticle() : SphericContinuumParticle() {}
         IceContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry) : SphericContinuumParticle(NewId, pGeometry) {}

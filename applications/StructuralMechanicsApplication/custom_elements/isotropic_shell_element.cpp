@@ -41,7 +41,7 @@ IsotropicShellElement::IsotropicShellElement(IndexType NewId, GeometryType::Poin
 
 Element::Pointer IsotropicShellElement::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared< IsotropicShellElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive< IsotropicShellElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 //************************************************************************************
@@ -49,7 +49,7 @@ Element::Pointer IsotropicShellElement::Create(IndexType NewId, NodesArrayType c
 
 Element::Pointer IsotropicShellElement::Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared< IsotropicShellElement >(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive< IsotropicShellElement >(NewId, pGeom, pProperties);
 }
 
 IsotropicShellElement::~IsotropicShellElement()

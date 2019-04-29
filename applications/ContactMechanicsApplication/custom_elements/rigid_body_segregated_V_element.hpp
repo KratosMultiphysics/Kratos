@@ -60,7 +60,7 @@ public:
     typedef GeometryData::SizeType                              SizeType;
 
     /// Counted pointer of RigidBodySegregatedVElement
-    KRATOS_CLASS_POINTER_DEFINITION( RigidBodySegregatedVElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( RigidBodySegregatedVElement );
 
     enum StepType{VELOCITY_STEP = 0, PRESSURE_STEP = 1};
 

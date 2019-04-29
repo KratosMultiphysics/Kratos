@@ -147,7 +147,7 @@ public:
     typedef Element BaseType;
 
     // Counted pointer of BaseSolidElement
-    KRATOS_CLASS_POINTER_DEFINITION( BaseSolidElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BaseSolidElement );
 
     ///@}
     ///@name Life Cycle

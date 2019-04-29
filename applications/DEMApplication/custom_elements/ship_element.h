@@ -23,7 +23,7 @@ namespace Kratos
 
     public:
         /// Pointer definition of ShipElement3D
-        KRATOS_CLASS_POINTER_DEFINITION(ShipElement3D);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShipElement3D);
 
         ShipElement3D();
         ShipElement3D(IndexType NewId, GeometryType::Pointer pGeometry);

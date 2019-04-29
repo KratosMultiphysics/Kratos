@@ -20,7 +20,7 @@ class KRATOS_API(DEM_APPLICATION) NanoParticle : public SphericParticle
 public:
 
     /// Pointer definition of NanoParticle
-    KRATOS_CLASS_POINTER_DEFINITION(NanoParticle);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(NanoParticle);
 
     using SphericParticle::GetGeometry;
     using SphericParticle::GetDensity;

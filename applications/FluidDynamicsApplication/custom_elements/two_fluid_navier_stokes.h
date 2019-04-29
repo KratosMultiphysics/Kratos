@@ -66,7 +66,7 @@ class TwoFluidNavierStokes : public FluidElement<TElementData>
 public:
 
     /// Counted pointer of
-    KRATOS_CLASS_POINTER_DEFINITION(TwoFluidNavierStokes);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoFluidNavierStokes);
 
     ///@name Type Definitions
     ///@{

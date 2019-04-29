@@ -43,7 +43,7 @@ namespace Kratos
         ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
     public:
-        KRATOS_CLASS_POINTER_DEFINITION(TrussElement3D2N);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TrussElement3D2N);
 
 
         typedef Element BaseType;

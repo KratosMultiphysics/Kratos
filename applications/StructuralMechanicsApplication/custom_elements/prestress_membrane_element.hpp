@@ -35,7 +35,7 @@ namespace Kratos
   public:
 
     // Counted pointer of MembraneElement
-    KRATOS_CLASS_POINTER_DEFINITION(PrestressMembraneElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(PrestressMembraneElement);
 
     // Constructor using an array of nodes
     PrestressMembraneElement(IndexType NewId, GeometryType::Pointer pGeometry);

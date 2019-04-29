@@ -49,14 +49,14 @@ EmbeddedFluidElement<TBaseElement>::~EmbeddedFluidElement()
 template< class TBaseElement >
 Element::Pointer EmbeddedFluidElement<TBaseElement>::Create(IndexType NewId,NodesArrayType const& ThisNodes,Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<EmbeddedFluidElement>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<EmbeddedFluidElement>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
 template< class TBaseElement >
 Element::Pointer EmbeddedFluidElement<TBaseElement>::Create(IndexType NewId,Geometry<NodeType>::Pointer pGeom,Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<EmbeddedFluidElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<EmbeddedFluidElement>(NewId, pGeom, pProperties);
 }
 
 template <class TBaseElement>
