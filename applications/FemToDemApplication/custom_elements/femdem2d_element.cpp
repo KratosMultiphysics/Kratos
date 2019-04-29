@@ -288,8 +288,13 @@ void FemDem2DElement::CalculateElementalSystem(LocalSystemComponents& rLocalSyst
 			const double length = this->CalculateCharacteristicLength(this, elem_neigb[edge], edge);
 			this->IntegrateStressDamageMechanics(threshold, damage, average_strain_edge,
 													average_stress_edge, edge, length, is_damaging);
-			mNonConvergedDamages[edge] = damage;
-			mNonConvergedThresholds[edge] = threshold;
+
+			if (rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) && 
+			    rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_RHS_VECTOR)) {
+				mNonConvergedDamages[edge] = damage;
+				mNonConvergedThresholds[edge] = threshold;
+			}
+
 		} // Loop over edges
 
 		// Calculate the elemental Damage...
