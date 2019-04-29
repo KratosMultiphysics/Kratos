@@ -10,6 +10,12 @@
 //  Main authors:    Carlos Roig
 //
 
+// System includes
+
+// External includes
+
+// Project includes
+
 #pragma once
 
 namespace Kratos {
