@@ -299,6 +299,7 @@ void FemDem2DElement::CalculateElementalSystem(LocalSystemComponents& rLocalSyst
 
 		if (rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX)) {
 			//contributions to stiffness matrix calculated on the reference config
+
 			const Matrix& C =  Values.GetConstitutiveMatrix();
 			MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 			Matrix tangent_tensor;
@@ -310,10 +311,10 @@ void FemDem2DElement::CalculateElementalSystem(LocalSystemComponents& rLocalSyst
 					noalias(rLeftHandSideMatrix) += prod(trans(Variables.B), Variables.IntegrationWeight * Matrix(prod(tangent_tensor, Variables.B)));
 				} else {
 					this->CalculateTangentTensor(tangent_tensor, rstrain_vector, integrated_stress_vector, C);
-					noalias(rLeftHandSideMatrix) += prod(trans(Variables.B), Variables.IntegrationWeight * Matrix(prod(tangent_tensor, Variables.B)));
+					noalias(rLeftHandSideMatrix) += Variables.IntegrationWeight * prod(trans(Variables.B), Matrix(prod(tangent_tensor, Variables.B)));
 				}
 			} else {
-				noalias(rLeftHandSideMatrix) += prod(trans(Variables.B), Variables.IntegrationWeight * (1.0 - damage_element) * Matrix(prod(C, Variables.B)));
+				noalias(rLeftHandSideMatrix) += Variables.IntegrationWeight * (1.0 - damage_element) * prod(trans(Variables.B), Matrix(prod(C, Variables.B)));
 			}
 		}
 
