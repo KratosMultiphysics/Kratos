@@ -32,22 +32,22 @@ namespace Kratos
  * @class Prism3D15
  * @ingroup KratosCore
  * @brief A fifteen node prism geometry with quadratic shape functions
- * @details The node ordering corresponds with: 
- *                 3                          
- *               ,/|`\                    
- *             12  |  14               
- *           ,/    |    `\          
- *          4------13-----5       
- *          |      9      |        
- *          |      |      |        
- *          |      |      |       
- *          |      |      |       
- *          10     |      11       
- *          |      0      |        
- *          |    ,/ `\    |       
- *          |  ,6     `8  |        
- *          |,/         `\|       
- *          1------7------2          
+ * @details The node ordering corresponds with:
+ *                 3
+ *               ,/|`\
+ *             12  |  14
+ *           ,/    |    `\
+ *          4------13-----5
+ *          |      9      |
+ *          |      |      |
+ *          |      |      |
+ *          |      |      |
+ *          10     |      11
+ *          |      0      |
+ *          |    ,/ `\    |
+ *          |  ,6     `8  |
+ *          |,/         `\|
+ *          1------7------2
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -519,7 +519,7 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
@@ -527,10 +527,10 @@ public:
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
-        ) override
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -632,7 +632,7 @@ public:
      * integration point index of given integration method.
      *
      * @param DeltaPosition Matrix with the nodes position increment which describes
-     * the configuration where the jacobian has to be calculated.     
+     * the configuration where the jacobian has to be calculated.
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
@@ -1612,4 +1612,4 @@ GeometryData Prism3D15<TPointType>::msGeometryData(
 
 }// namespace Kratos.
 
-#endif // KRATOS_PRISM_3D_15_H_INCLUDED  defined 
+#endif // KRATOS_PRISM_3D_15_H_INCLUDED  defined
