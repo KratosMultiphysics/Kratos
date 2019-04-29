@@ -178,8 +178,8 @@ def ExecuteInstanceAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coar
             maximal_mesh_size_level = 10.0
         time_3 = time.time()
         # refine the model Kratos object
-        adaptive_refinement_manager = AdaptiveRefinement(current_model,current_project_parameters,current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters,minimal_mesh_size_level,maximal_mesh_size_level)
-        refined_model,refined_project_parameters = adaptive_refinement_manager.ComputeAdaptiveRefinement()
+        refined_model,refined_project_parameters = \
+            hessian_metric_refinement.ComputeRefinementHessianMetric(current_model,current_project_parameters,minimal_mesh_size_level,maximal_mesh_size_level,current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters)
         time_4 = time.time()
         # initialize the model Kratos object
         simulation = current_analysis_stage(refined_model,refined_project_parameters,sample)
@@ -314,6 +314,7 @@ class MultilevelMonteCarlo(object):
             "cphi_confidence" : 1.28155156554,
             "number_samples_screening" : 25,
             "levels_screening" : 2,
+            "initial_number_batches" : 1,
             "maximum_number_levels" : 4,
             "mesh_refinement_coefficient" : 2,
             "recursive_maximal_size" : "False",
@@ -348,12 +349,40 @@ class MultilevelMonteCarlo(object):
         self.previous_number_levels = None
         # current_level: current level of work
         self.current_level = 0
-        # number_samples: total number of samples of current iteration
-        self.number_samples = [self.settings["number_samples_screening"].GetInt() for _ in range (self.settings["levels_screening"].GetInt()+1)]
+
+        # batches_number_samples: total number of samples, organized in level and batches
+        # batches_number_samples = [ [ [level0_batch1] [level1_batch1] .. ] [ [level0_batch2] [level1_batch2] ..] .. ]
+        # for MLMC: batches_number_samples = [ [ level0_batch1 level1_batch1 .. ] [ level0_batch2 level1_batch2 .. ] [ level0_batch3 level1_batch3 .. ] .. ]
+        self.batches_number_samples = []
+        # number_samples: total number of samples used for the computation of global power sums
+        # number_samples = [total_level0 total_level1 ..]
+        self.number_samples = []
+        # running_number_samples: total number of samples running
+        self.running_number_samples = []
+        # batches_launched: boolean true or false if batch launched or not
+        self.batches_launched = []
+        # batches_execution_finished: boolean true or false if batch finished or not
+        self.batches_execution_finished = []
+        # batches_analysis_finished: boolean true or false if statistical analysis of batch is finished or not
+        self.batches_analysis_finished = []
+        # batches_convergence_finished: boolean true or false if convergence computation of batch is finished or not
+        self.batches_convergence_finished = []
+        # # batch_size: number of iterations of each epoch
+        # self.batch_size = []
+        # current_convergence_batch: current batch for which convergence is computed
+        self.current_convergence_batch = 0
+
+        # # number_samples: total number of samples of current iteration
+        # self.number_samples = [self.settings["number_samples_screening"].GetInt() for _ in range (self.settings["levels_screening"].GetInt()+1)]
+
+
         # difference_number_samples: difference between number of samples of current and previous iterations
-        self.difference_number_samples = [self.settings["number_samples_screening"].GetInt() for _ in range (self.settings["levels_screening"].GetInt()+1)]
+        self.difference_number_samples = []
+        # self.difference_number_samples = [self.settings["number_samples_screening"].GetInt() for _ in range (self.settings["levels_screening"].GetInt()+1)]
+
         # previous_number_samples: total number of samples of previous iteration
         self.previous_number_samples = None
+
         # rates_error: dictionary containing the values of the parameters
         # calpha: coefficient of the function maximizing bias
         # alpha: exponent of the function maximizing bias
@@ -373,7 +402,7 @@ class MultilevelMonteCarlo(object):
         # convergence: boolean variable defining if MLMC algorithm is converged
         self.convergence = False
         # current_iteration: current iteration of MLMC algorithm
-        self.current_iteration = 0
+        self.iteration_counter = 0
         # tolerance_i: tolerance of i^th-iteration of MLMC algorithm
         self.tolerance_i = None
         # theta_i: splitting parameter \in (0,1), this affects bias and statistical error in the computation of the total error
@@ -389,11 +418,11 @@ class MultilevelMonteCarlo(object):
         # difference_QoI: Quantity of Interest of the considered problem organized per levels
         #                 difference_QoI.values := Y_l = QoI_M_l - Q_M_l-1
         self.difference_QoI = StatisticalVariable(self.current_number_levels)
-        self.difference_QoI.values = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)] # list containing Y_{l}^{i} = Q_{m_l} - Q_{m_{l-1}}
+        self.difference_QoI.values = [[[] for _ in range (self.settings["levels_screening"].GetInt()+1)] for _ in range (self.settings["initial_number_batches"].GetInt())] # list containing Y_{l}^{i} = Q_{m_l} - Q_{m_{l-1}}
         self.difference_QoI.type = "scalar"
         # time_ML: time to perform a single MLMC simulation (i.e. one value of difference_QoI.values) organized per levels
         self.time_ML = StatisticalVariable(self.current_number_levels)
-        self.time_ML.values = [[] for _ in range (self.settings["levels_screening"].GetInt()+1)] # list containing the time to compute the level=l simulations
+        self.time_ML.values = [[] for _ in range (self.settings["levels_screening"].GetInt()+1) for _ in range (self.settings["initial_number_batches"].GetInt())] # list containing the time to compute the level=l simulations
 
         ########################################################################
         # observation: levels start from level 0                               #
@@ -415,7 +444,7 @@ class MultilevelMonteCarlo(object):
         # construct the pickled model and pickled project parameters of the problem
         self.is_project_parameters_pickled = False
         self.is_model_pickled = False
-        self.SerializeModelParameters()
+        # self.SerializeModelParameters()
         # construct the pickled custom settings metric refinement and the picled custom settings remesh of the problem
         self.is_custom_settings_metric_refinement_pickled = False
         self.is_custom_settings_remesh_refinement_pickled = False
@@ -423,7 +452,7 @@ class MultilevelMonteCarlo(object):
         # construct the pickled custom settings metric refinement and the picled custom settings remesh of the problem
         self.is_custom_settings_metric_refinement_pickled = False
         self.is_custom_settings_remesh_refinement_pickled = False
-        self.SerializeRefinementParameters()
+        # self.SerializeRefinementParameters()
 
     """
     function executing the CMLMC algorithm
@@ -431,21 +460,25 @@ class MultilevelMonteCarlo(object):
     """
     def Run(self):
         if (self.settings["run_multilevel_monte_carlo"].GetString() == "True"):
+            self.SerializeModelParameters()
+            self.SerializeRefinementParameters()
             # start screening phase
+            self.InitializeScreeningPhase()
+            self.ScreeningInfoInitializeMLMCPhase()
             self.LaunchEpoch()
             # finalize screening phase
-            self.FinalizeScreeningPhase()
-            self.ScreeningInfoScreeningPhase()
-            # start MLMC phase
-            while self.convergence is not True:
-                # initialize MLMC phase
-                self.InitializeMLMCPhase()
-                self.ScreeningInfoInitializeMLMCPhase()
-                # MLMC execution phase
-                self.LaunchEpoch()
-                # finalize MLMC phase
-                self.FinalizeMLMCPhase()
-                self.ScreeningInfoFinalizeMLMCPhase()
+            # self.FinalizeScreeningPhase()
+            # self.ScreeningInfoScreeningPhase()
+            # # start MLMC phase
+            # while self.convergence is not True:
+            #     # initialize MLMC phase
+            #     self.InitializeMLMCPhase()
+            #     self.ScreeningInfoInitializeMLMCPhase()
+            #     # MLMC execution phase
+            #     self.LaunchEpoch()
+            #     # finalize MLMC phase
+            #     self.FinalizeMLMCPhase()
+            #     self.ScreeningInfoFinalizeMLMCPhase()
         else:
             print("\n","#"*50,"Not running Multilevel Monte Carlo algorithm","#"*50)
             pass
@@ -455,9 +488,17 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def LaunchEpoch(self):
-        for level in range(self.current_number_levels+1):
-            for _ in range (self.difference_number_samples[level]):
-                self.AddResults(self.ExecuteInstance(level))
+        for batch in range (len(self.batches_number_samples)):
+            if (self.batches_launched[batch] is not True):
+                self.batches_launched[batch] = True
+                batch_results = []
+                for level in range(self.current_number_levels+1):
+                    for instance in range (self.difference_number_samples[level]):
+                        self.running_number_samples[level] = self.running_number_samples[level] + 1
+                        batch_results.append(self.ExecuteInstance(level))
+                        self.running_number_samples[level] = self.running_number_samples[level] + 1
+                self.AddResults(batch_results,batch)
+                self.batches_execution_finished[batch] = True
 
     """
     function executing an instance of the CMLMC algorithm, i.e. a single MC simulation and eventually the refinement (that occurs before the simulation run)
@@ -491,6 +532,23 @@ class MultilevelMonteCarlo(object):
                 pickled_coarse_project_parameters = pickled_current_project_parameters
                 del(pickled_current_model,pickled_current_project_parameters)
         return mlmc_results,current_MLMC_level
+
+    def InitializeScreeningPhase(self):
+        # update iteration counter
+        # self.iteration_counter = self.iteration_counter + 1
+        # update number of samples (MultilevelMonteCarlo.batches_number_samples) and batch size
+        if (self.iteration_counter == 0):
+            self.difference_number_samples = [self.settings["number_samples_screening"].GetInt() for _ in range (self.settings["levels_screening"].GetInt()+1)]
+            # self.batch_size = [self.settings["number_samples_screening"].GetInt() for _ in range (self.current_number_levels+1)]
+            self.batches_number_samples = [[self.settings["number_samples_screening"].GetInt() for _ in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
+            self.number_samples = [0 for _ in range (self.current_number_levels+1)]
+            self.running_number_samples = [0 for _ in range (self.current_number_levels+1)]
+            self.batches_launched = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
+            self.batches_execution_finished = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
+            self.batches_analysis_finished = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
+            self.batches_convergence_finished = [False for _ in range (self.settings["initial_number_batches"].GetInt())]
+
+
 
     """
     function serializing and pickling the model and the project parameters of the problem
@@ -633,7 +691,7 @@ class MultilevelMonteCarlo(object):
         self.total_error,self.number_samples\
         = FinalizePhaseAux_Task(MultilevelMonteCarlo,
         serial_settings,self.mesh_parameters,self.current_number_levels,\
-        self.current_iteration,self.number_samples,*synchro_elements)
+        self.iteration_counter,self.number_samples,*synchro_elements)
         # synchronization point needed to compute the other functions of MLMC algorithm
         # put as in the end as possible the synchronization point
         self.difference_QoI.raw_moment_1 = get_value_from_remote(self.difference_QoI.raw_moment_1)
@@ -645,7 +703,7 @@ class MultilevelMonteCarlo(object):
         self.mean_mlmc_QoI = get_value_from_remote(self.mean_mlmc_QoI)
         self.number_samples = get_value_from_remote(self.number_samples)
         # start first iteration, we enter in the MLMC algorithm
-        self.current_iteration = 1
+        self.iteration_counter = 1
 
     """
     function performing all the required operations BEFORE the MLMC solution step
@@ -715,7 +773,7 @@ class MultilevelMonteCarlo(object):
         self.total_error,self.number_samples\
         = FinalizePhaseAux_Task(MultilevelMonteCarlo,
         serial_settings,self.mesh_parameters,self.current_number_levels,\
-        self.current_iteration,self.number_samples,*synchro_elements)
+        self.iteration_counter,self.number_samples,*synchro_elements)
         # synchronization point needed to compute the other functions of MLMC algorithm
         # put as in the end as possible the synchronization point
         self.difference_QoI.raw_moment_1 = get_value_from_remote(self.difference_QoI.raw_moment_1)
@@ -730,10 +788,10 @@ class MultilevelMonteCarlo(object):
         # convergence reached if: i) current_iteration >= number_iterations_iE
         #                        ii) total_error < tolerance_i
         # if not update current_iteration
-        if (self.current_iteration >= self.number_iterations_iE) and (self.total_error < self.tolerance_i):
+        if (self.iteration_counter >= self.number_iterations_iE) and (self.total_error < self.tolerance_i):
             self.convergence = True
         else:
-            self.current_iteration = self.current_iteration + 1
+            self.iteration_counter = self.iteration_counter + 1
 
     """
     function printing informations about screening phase
@@ -754,7 +812,7 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def ScreeningInfoInitializeMLMCPhase(self):
-        print("\n","#"*50," MLMC iter =  ",self.current_iteration,"#"*50,"\n")
+        print("\n","#"*50," MLMC iter =  ",self.iteration_counter,"#"*50,"\n")
         print("current tolerance = ",self.tolerance_i)
         print("updated estimated Bayesian Variance initialize phase = ",self.bayesian_variance)
         print("current number of levels = ",self.current_number_levels)
@@ -782,8 +840,17 @@ class MultilevelMonteCarlo(object):
     function adding QoI and MLMC time values to the corresponding level
     input:  self:               an instance of the class
             simulation_results: tuple=(instance of MultilevelMonteCarloResults class, working level)
+            batch_number      : number of working batch
+            batch_size        : compute add result for with this size
     """
-    def AddResults(self,simulation_results):
+    def AddResults(self,simulation_results,batch_number,mini_batch_size=4):
+        simulation_levels = list(map(lambda x: x[1], simulation_results))
+        print("simulation levels",simulation_levels)
+        simulation_results = list(map(lambda x: x[0], simulation_results))
+        print("simulation levels",simulation_results)
+
+
+
         simulation_results_class = simulation_results[0]
         level = simulation_results[1]
         if (self.settings["store_lower_levels_samples"].GetString() == "True"):
@@ -911,7 +978,7 @@ class MultilevelMonteCarlo(object):
     def ComputeTolerancei(self):
         tol0 = self.settings["initial_tolerance"].GetDouble()
         r1 = self.settings["r1"].GetDouble()
-        current_iter = self.current_iteration
+        current_iter = self.iteration_counter
         tol = tol0 / (r1**(current_iter))
         self.tolerance_i = tol
 
