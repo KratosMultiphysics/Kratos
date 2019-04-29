@@ -781,7 +781,7 @@ void MultiscaleRefiningProcess::UpdateRefinedInterface()
         }
 
         if (is_refined_interface)
-            mRefinedInterfaceContainer.push_back(NodeType::SharedPointer(*node.base()));
+            mRefinedInterfaceContainer.push_back(Kratos::make_intrusive<NodeType>(*node.base()));
     }
 }
 
