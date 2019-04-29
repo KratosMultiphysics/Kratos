@@ -70,77 +70,37 @@ namespace Kratos
 namespace MPIInternals
 {
 
-template<class TValue> struct SendTools;
+template<class ValueType> struct SendTraits;
 
-template<> struct SendTools<int>
+template<> struct SendTraits<int>
 {
     typedef int SendType;
     constexpr static bool IsFixedSize = true;
-    constexpr static std::size_t MessageSize = 1;
-
-    static inline void WriteBuffer(const int& rValue, SendType* pBuffer)
-    {
-        *pBuffer = rValue;
-    }
-
-    static inline void ReadBuffer(const SendType* pBuffer, int& rValue)
-    {
-        rValue = *pBuffer;
-    }
+    constexpr static std::size_t BlockSize = 1;
 };
 
-template<> struct SendTools<double>
+template<> struct SendTraits<double>
 {
     typedef double SendType;
     constexpr static bool IsFixedSize = true;
-    constexpr static std::size_t MessageSize = 1;
-
-    static inline void WriteBuffer(const double& rValue, SendType* pBuffer)
-    {
-        *pBuffer = rValue;
-    }
-
-    static inline void ReadBuffer(const SendType* pBuffer, double& rValue)
-    {
-        rValue = *pBuffer;
-    }
+    constexpr static std::size_t BlockSize = 1;
 };
 
-template<std::size_t TDim> struct SendTools< array_1d<double,TDim> >
+template<std::size_t TDim> struct SendTraits< array_1d<double,TDim> >
 {
     typedef double SendType;
     constexpr static bool IsFixedSize = true;
-    constexpr static std::size_t MessageSize = TDim;
-
-    static inline void WriteBuffer(const array_1d<double,TDim>& rValue, SendType* pBuffer)
-    {
-        *(array_1d<double,TDim>*) (pBuffer) = rValue;
-    }
-
-    static inline void ReadBuffer(const SendType* pBuffer, array_1d<double,TDim>& rValue)
-    {
-        rValue = *(reinterpret_cast<const array_1d<double,TDim>*>(pBuffer));
-    }
+    constexpr static std::size_t BlockSize = TDim;
 };
 
-template<> struct SendTools< Kratos::Flags >
+template<> struct SendTraits< Kratos::Flags >
 {
     typedef double SendType;
     constexpr static bool IsFixedSize = true;
-    constexpr static std::size_t MessageSize = sizeof(Kratos::Flags)/sizeof(double);
-
-    static inline void WriteBuffer(const Kratos::Flags& rValue, SendType* pBuffer)
-    {
-        *(Kratos::Flags*) (pBuffer) = rValue;
-    }
-
-    static inline void ReadBuffer(const SendType* pBuffer, Kratos::Flags& rValue)
-    {
-        rValue = *(reinterpret_cast<const Kratos::Flags*>(pBuffer));
-    }
+    constexpr static std::size_t BlockSize = sizeof(Kratos::Flags)/sizeof(double);
 };
 
-template<> struct SendTools< Vector >
+template<> struct SendTraits< Vector >
 {
     typedef double SendType;
     constexpr static bool IsFixedSize = false;
@@ -149,19 +109,9 @@ template<> struct SendTools< Vector >
     {
         return rValue.size();
     }
-
-    static inline void WriteBuffer(const Vector& rValue, SendType* pBuffer)
-    {
-        std::memcpy(pBuffer, &(rValue.data()[0]), rValue.size()*sizeof(double));
-    }
-
-    static inline void ReadBuffer(const SendType* pBuffer, Vector& rValue)
-    {
-        std::memcpy(&(rValue.data()[0]), pBuffer, rValue.size()*sizeof(double));
-    }
 };
 
-template<> struct SendTools< Matrix >
+template<> struct SendTraits< Matrix >
 {
     typedef double SendType;
     constexpr static bool IsFixedSize = false;
@@ -170,15 +120,122 @@ template<> struct SendTools< Matrix >
     {
         return rValue.data().size();
     }
+};
 
-    static inline void WriteBuffer(const Matrix& rValue, SendType* pBuffer)
+
+template<typename TVectorValue> struct SendTraits< DenseVector<TVectorValue> >
+{
+    typedef double SendType;
+    constexpr static bool IsFixedSize = false;
+
+    static inline std::size_t GetMessageSize(const DenseVector<TVectorValue>& rValue)
+    {
+        return rValue.size()*sizeof(TVectorValue)/sizeof(double);
+    }
+};
+
+
+template<> struct SendTraits< Kratos::VariablesListDataValueContainer >
+{
+    typedef double SendType;
+    constexpr static bool IsFixedSize = false;
+
+    static inline std::size_t GetMessageSize(const Kratos::VariablesListDataValueContainer& rValue)
+    {
+        return rValue.TotalSize();
+    }
+};
+
+template<> struct SendTraits< Node<3>::DofsContainerType >
+{
+    typedef int SendType;
+    constexpr static bool IsFixedSize = false;
+
+    static inline std::size_t GetMessageSize(const Node<3>::DofsContainerType& rValue)
+    {
+        return rValue.size();
+    }
+};
+
+template<typename ValueType> struct DirectCopyTransfer
+{
+    using SendType = typename SendTraits<ValueType>::SendType;
+
+    static inline void WriteBuffer(const ValueType& rValue, SendType* pBuffer)
+    {
+        *(ValueType*)(pBuffer) = rValue;
+    }
+
+    static inline void ReadBuffer(const SendType* pBuffer, ValueType& rValue)
+    {
+        rValue = *(reinterpret_cast<const ValueType*>(pBuffer));
+    }
+};
+
+template<typename ValueType> struct DynamicArrayTypeTransfer
+{
+    using SendType = typename SendTraits<ValueType>::SendType;
+
+    static inline void WriteBuffer(const ValueType& rValue, SendType* pBuffer)
     {
         std::memcpy(pBuffer, &(rValue.data()[0]), rValue.data().size()*sizeof(double));
     }
 
-    static inline void ReadBuffer(const SendType* pBuffer, Matrix& rValue)
+    static inline void ReadBuffer(const SendType* pBuffer, ValueType& rValue)
     {
         std::memcpy(&(rValue.data()[0]), pBuffer, rValue.data().size()*sizeof(double));
+    }
+};
+
+template<class TValue> struct SendTools;
+
+template<> struct SendTools<int> : public DirectCopyTransfer<int>
+{
+    typedef int SendType;
+    constexpr static bool IsFixedSize = true;
+    constexpr static std::size_t MessageSize = 1;
+};
+
+template<> struct SendTools<double>: public DirectCopyTransfer<double>
+{
+    typedef double SendType;
+    constexpr static bool IsFixedSize = true;
+    constexpr static std::size_t MessageSize = 1;
+};
+
+template<std::size_t TDim> struct SendTools< array_1d<double,TDim> >: public DirectCopyTransfer<array_1d<double,TDim>>
+{
+    typedef double SendType;
+    constexpr static bool IsFixedSize = true;
+    constexpr static std::size_t MessageSize = TDim;
+};
+
+template<> struct SendTools< Kratos::Flags >: public DirectCopyTransfer<Kratos::Flags>
+{
+    typedef double SendType;
+    constexpr static bool IsFixedSize = true;
+    constexpr static std::size_t MessageSize = sizeof(Kratos::Flags)/sizeof(double);
+};
+
+template<> struct SendTools< Vector >: public DynamicArrayTypeTransfer<Vector>
+{
+    typedef double SendType;
+    constexpr static bool IsFixedSize = false;
+
+    static inline std::size_t GetMessageSize(const Vector& rValue)
+    {
+        return rValue.size();
+    }
+};
+
+template<> struct SendTools< Matrix >: public DynamicArrayTypeTransfer<Matrix>
+{
+    typedef double SendType;
+    constexpr static bool IsFixedSize = false;
+
+    static inline std::size_t GetMessageSize(const Matrix& rValue)
+    {
+        return rValue.data().size();
     }
 };
 
@@ -262,26 +319,26 @@ template<> struct SendTools< Node<3>::DofsContainerType >
 
 template<
     class TDatabaseAccess,
-    bool IsFixedSize = SendTools<typename TDatabaseAccess::ValueType>::IsFixedSize >
+    bool IsFixedSize = SendTraits<typename TDatabaseAccess::ValueType>::IsFixedSize >
 struct BufferAllocation {
     using ValueType = typename TDatabaseAccess::ValueType;
-    static inline std::size_t GetSendSize(TDatabaseAccess Access, const Communicator::MeshType& rSourceMesh);
+    static inline std::size_t GetSendSize(TDatabaseAccess& rAccess, const Communicator::MeshType& rSourceMesh);
     static inline std::size_t GetSendSize(const ValueType& rValue);
 };
 
 template<class TDatabaseAccess>
 struct BufferAllocation<TDatabaseAccess, true> {
     using ValueType = typename TDatabaseAccess::ValueType;
-    static inline std::size_t GetSendSize(TDatabaseAccess Access, const Communicator::MeshType& rSourceMesh)
+    static inline std::size_t GetSendSize(TDatabaseAccess& rAccess, const Communicator::MeshType& rSourceMesh)
     {
-        const auto& r_container = Access.GetContainer(rSourceMesh);
+        const auto& r_container = rAccess.GetContainer(rSourceMesh);
         std::size_t num_objects = r_container.size();
-        return num_objects * SendTools<ValueType>::MessageSize;
+        return num_objects * SendTraits<ValueType>::BlockSize;
     }
 
     static inline std::size_t GetSendSize(const ValueType&)
     {
-        return SendTools<ValueType>::MessageSize;
+        return SendTraits<ValueType>::BlockSize;
     }
 };
 
@@ -294,7 +351,7 @@ struct BufferAllocation<TDatabaseAccess, false> {
         std::size_t buffer_size = 0;
         for (auto iter = r_container.begin(); iter != r_container.end(); ++iter)
         {
-            buffer_size += MPIInternals::SendTools<ValueType>::GetMessageSize(rAccess.GetValue(iter));
+            buffer_size += MPIInternals::SendTraits<ValueType>::GetMessageSize(rAccess.GetValue(iter));
         }
 
         return buffer_size;
@@ -302,7 +359,7 @@ struct BufferAllocation<TDatabaseAccess, false> {
 
     static inline std::size_t GetSendSize(const ValueType& rValue)
     {
-        return MPIInternals::SendTools<ValueType>::GetMessageSize(rValue);
+        return MPIInternals::SendTraits<ValueType>::GetMessageSize(rValue);
     }
 };
 
@@ -314,7 +371,7 @@ const Variable<TValue>& mrVariable;
 public:
 
 using ValueType = TValue;
-using SendType = typename SendTools<TValue>::SendType;
+using SendType = typename SendTraits<TValue>::SendType;
 using ContainerType = Communicator::MeshType::NodesContainerType;
 using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
 using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
@@ -353,7 +410,7 @@ const Variable<TValue>& mrVariable;
 public:
 
 using ValueType = TValue;
-using SendType = typename SendTools<TValue>::SendType;
+using SendType = typename SendTraits<TValue>::SendType;
 using ContainerType = Communicator::MeshType::NodesContainerType;
 using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
 using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
@@ -391,7 +448,7 @@ public:
 const Kratos::Flags& mrMask;
 
 using ValueType = Kratos::Flags;
-using SendType = typename SendTools<ValueType>::SendType;
+using SendType = typename SendTraits<ValueType>::SendType;
 using ContainerType = Communicator::MeshType::NodesContainerType;
 using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
 using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
@@ -427,7 +484,7 @@ class NodalSolutionStepDataAccess
 public:
 
 using ValueType = Kratos::VariablesListDataValueContainer;
-using SendType = typename SendTools<ValueType>::SendType;
+using SendType = typename SendTraits<ValueType>::SendType;
 using ContainerType = Communicator::MeshType::NodesContainerType;
 using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
 using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
@@ -459,7 +516,7 @@ class DofIdAccess
 public:
 
 using ValueType = Node<3>::DofsContainerType;
-using SendType = typename SendTools<ValueType>::SendType;
+using SendType = typename SendTraits<ValueType>::SendType;
 using ContainerType = Communicator::MeshType::NodesContainerType;
 using IteratorType = Communicator::MeshType::NodesContainerType::iterator;
 using ConstIteratorType = Communicator::MeshType::NodesContainerType::const_iterator;
@@ -494,7 +551,7 @@ const Variable<TValue>& mrVariable;
 public:
 
 using ValueType = TValue;
-using SendType = typename SendTools<TValue>::SendType;
+using SendType = typename SendTraits<TValue>::SendType;
 using ContainerType = Communicator::MeshType::ElementsContainerType;
 using IteratorType = Communicator::MeshType::ElementsContainerType::iterator;
 using ConstIteratorType = Communicator::MeshType::ElementsContainerType::const_iterator;
@@ -532,7 +589,7 @@ public:
 const Kratos::Flags& mrMask;
 
 using ValueType = Kratos::Flags;
-using SendType = typename SendTools<ValueType>::SendType;
+using SendType = typename SendTraits<ValueType>::SendType;
 using ContainerType = Communicator::MeshType::ElementsContainerType;
 using IteratorType = Communicator::MeshType::ElementsContainerType::iterator;
 using ConstIteratorType = Communicator::MeshType::ElementsContainerType::const_iterator;
@@ -1653,7 +1710,7 @@ private:
         TReductionOperation Reduction)
     {
         using TDataType = typename TDatabaseAccess::ValueType;
-        using TSendType = typename MPIInternals::SendTools<TDataType>::SendType;
+        using TSendType = typename MPIInternals::SendTraits<TDataType>::SendType;
         int destination = 0;
 
         NeighbourIndicesContainerType& neighbour_indices = NeighbourIndices();
@@ -1690,7 +1747,7 @@ private:
     template<
         class TDatabaseAccess,
         typename TValue = typename TDatabaseAccess::ValueType,
-        typename TSendType = typename MPIInternals::SendTools<TValue>::SendType>
+        typename TSendType = typename MPIInternals::SendTraits<TValue>::SendType>
     void AllocateBuffer(std::vector<TSendType>& rBuffer, const MeshType& rSourceMesh, TDatabaseAccess& rAccess)
     {
         const std::size_t buffer_size = MPIInternals::BufferAllocation<TDatabaseAccess>::GetSendSize(rAccess, rSourceMesh);
@@ -1704,7 +1761,7 @@ private:
     template<
         class TDatabaseAccess,
         typename TValue = typename TDatabaseAccess::ValueType,
-        typename TSendType = typename MPIInternals::SendTools<TValue>::SendType>
+        typename TSendType = typename MPIInternals::SendTraits<TValue>::SendType>
     void FillBuffer(std::vector<TSendType>& rBuffer, MeshType& rSourceMesh, TDatabaseAccess& rAccess)
     {
         auto& r_container = rAccess.GetContainer(rSourceMesh);
@@ -1722,7 +1779,7 @@ private:
         class TDatabaseAccess,
         typename TReductionOperation,
         typename TValue = typename TDatabaseAccess::ValueType,
-        typename TSendType = typename MPIInternals::SendTools<TValue>::SendType>
+        typename TSendType = typename MPIInternals::SendTraits<TValue>::SendType>
     void UpdateValues(
         const std::vector<TSendType>& rBuffer,
         MeshType& rSourceMesh,
