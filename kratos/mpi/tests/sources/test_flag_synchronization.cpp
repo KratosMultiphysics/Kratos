@@ -107,6 +107,32 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllUnset, KratosMPICoreFastS
     KRATOS_CHECK_EQUAL(synchronized_flag.IsDefined(PERIODIC), false);
 }
 
+// Synchronization using ALL_DEFINED as mask //////////////////////////////////
+
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsReduceWithAllDefinedAsMask, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int rank = mpi_world_communicator.Rank();
+    const int size = mpi_world_communicator.Size();
+
+    Kratos::Flags test_flag;
+    test_flag.Set(STRUCTURE, rank == 0);
+    test_flag.Set(INLET, rank == 0);
+
+    // Using ALL_DEFINED as argument should synchronize all defined flags
+    Kratos::Flags synchronized_and_flag = mpi_world_communicator.AndReduceAll(test_flag, ALL_DEFINED);
+
+    KRATOS_CHECK_EQUAL(synchronized_and_flag.Is(STRUCTURE), (size == 1)); // true for single-rank runs, false for multiple ranks.
+    KRATOS_CHECK_EQUAL(synchronized_and_flag.Is(INLET), (size == 1));
+    KRATOS_CHECK_EQUAL(synchronized_and_flag.IsDefined(PERIODIC), false);
+
+    Kratos::Flags synchronized_or_flag = mpi_world_communicator.OrReduceAll(test_flag, ALL_DEFINED);
+
+    KRATOS_CHECK_EQUAL(synchronized_or_flag.Is(STRUCTURE), true);
+    KRATOS_CHECK_EQUAL(synchronized_or_flag.Is(INLET), true);
+    KRATOS_CHECK_EQUAL(synchronized_or_flag.IsDefined(PERIODIC), false);
+}
+
 // Flags And //////////////////////////////////////////////////////////////////
 
 KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndOperations, KratosMPICoreFastSuite)
