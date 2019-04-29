@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "custom_processes/apply_component_table_process.hpp"
+#include "apply_component_table_process.hpp"
 // #include "fem_to_dem_application_variables.h"
 
 namespace Kratos
@@ -66,9 +66,9 @@ public:
             ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
 
             #pragma omp parallel for
-            for(int i = 0; i < nnodes; i++) {
+            for (int i = 0; i < nnodes; i++) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-                if(mis_fixed) {
+                if (mis_fixed) {
                     it->Fix(var);
                 }
                 it->FastGetSolutionStepValue(var) = minitial_value;
@@ -84,21 +84,16 @@ public:
         
         Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
         
-        double time;
-        if (mTimeUnitConverter != 0) {
-            time = mr_model_part.GetProcessInfo()[TIME] / mTimeUnitConverter;
-        } else {
-            time = mr_model_part.GetProcessInfo()[TIME];
-        }
+        const double time = mr_model_part.GetProcessInfo()[TIME];
         double value = mpTable->GetValue(time);
         
         const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
 
-        if(nnodes != 0) {
+        if (nnodes != 0) {
             ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
 
             #pragma omp parallel for
-            for(int i = 0; i < nnodes; i++) {
+            for (int i = 0; i < nnodes; i++) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 it->FastGetSolutionStepValue(var) = value;
             }
