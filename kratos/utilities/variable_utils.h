@@ -274,7 +274,7 @@ public:
      * @param rNodes reference to the objective node set
      */
     template< class TType >
-    void SetVariableToZero(
+    void SetNodalHistoricalVariableToZero(
         const Variable< TType >& rVariable,
         NodesContainerType& rNodes)
     {

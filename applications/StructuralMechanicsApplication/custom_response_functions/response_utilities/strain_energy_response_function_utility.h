@@ -158,7 +158,7 @@ public:
 		//                 + \frac{1}{2} u^T \cdot ( \frac{\partial f_{ext}}{\partial x} - \frac{\partial K}{\partial x} )
 
 		// First gradients are initialized
-		VariableUtils().SetVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
+		VariableUtils().SetNodalHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
 
 
 		// Gradient calculation
