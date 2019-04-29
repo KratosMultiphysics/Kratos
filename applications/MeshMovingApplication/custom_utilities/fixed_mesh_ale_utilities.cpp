@@ -17,7 +17,6 @@
 
 // Application includes
 #include "custom_elements/structural_meshmoving_element.h"
-// #include "custom_elements/laplacian_meshmoving_element.h"
 #include "custom_utilities/fixed_mesh_ale_utilities.h"
 #include "custom_utilities/mesh_velocity_calculation.h"
 #include "custom_utilities/move_mesh_utilities.h"
@@ -99,8 +98,6 @@ namespace Kratos
         this->SetMeshMovingStrategy();
     }
 
-    //TODO: Create an initialize solution step to copy the values from the origin to the virtual model part
-
     void FixedMeshALEUtilities::FillVirtualModelPart(ModelPart &rOriginModelPart)
     {
         // Check that the origin model part has nodes and elements to be copied
@@ -119,7 +116,6 @@ namespace Kratos
         mrVirtualModelPart.SetProcessInfo(rOriginModelPart.GetProcessInfo());
 
         // Add the required varibles to the virtual model part
-        mrVirtualModelPart.AddNodalSolutionStepVariable(DISTANCE); // TODO: REMOVE AFTER DEBUGGING
         mrVirtualModelPart.AddNodalSolutionStepVariable(VELOCITY);
         mrVirtualModelPart.AddNodalSolutionStepVariable(PRESSURE);
         mrVirtualModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -151,14 +147,6 @@ namespace Kratos
 
     void FixedMeshALEUtilities::ComputeMeshMovement(const double DeltaTime)
     {
-        // TODO: REMOVE AFTER DEBUGGING
-        for (unsigned int i_node = 0; i_node < mpOriginModelPart->NumberOfNodes(); ++i_node)
-        {
-            const auto it_node = mpOriginModelPart->NodesBegin() + i_node;
-            const double d = it_node->FastGetSolutionStepValue(DISTANCE);
-            (mrVirtualModelPart.GetNode(it_node->Id())).FastGetSolutionStepValue(DISTANCE) = d;
-        }
-
         // Initialize the PRESSURE and VELOCITY virtual mesh values
         this->InitializeVirtualMeshValues();
 
@@ -379,9 +367,8 @@ namespace Kratos
         }
 
         // Initialize the DISPLACEMENT, MESH_DISPLACMENT and MESH_VELOCITY values
-        p_var_utils->SetToZero_VectorVar(DISPLACEMENT, mrVirtualModelPart.Nodes()); //TODO: REMOVE AFTER DEBUGGING
-        p_var_utils->SetToZero_VectorVar(MESH_VELOCITY, mrVirtualModelPart.Nodes());
-        p_var_utils->SetToZero_VectorVar(MESH_DISPLACEMENT, mrVirtualModelPart.Nodes());
+        p_var_utils->SetHistoricalVariableToZero(MESH_VELOCITY, mrVirtualModelPart.Nodes());
+        p_var_utils->SetHistoricalVariableToZero(MESH_DISPLACEMENT, mrVirtualModelPart.Nodes());
     }
 
     void FixedMeshALEUtilities::InitializeMeshDisplacementFixity()
@@ -423,17 +410,26 @@ namespace Kratos
             auto it_node = mpOriginModelPart->NodesBegin() + i_node;
             it_node->FastGetSolutionStepValue(DISPLACEMENT, 0) = ZeroVector(3);
             it_node->FastGetSolutionStepValue(DISPLACEMENT, 1) = ZeroVector(3);
-            // TODO: REMOVE AFTER DEBUGGING
-            auto p_virt_node = mrVirtualModelPart.pGetNode(it_node->Id());
-            p_virt_node->FastGetSolutionStepValue(DISPLACEMENT, 0) = ZeroVector(3);
-            p_virt_node->FastGetSolutionStepValue(DISPLACEMENT, 1) = ZeroVector(3);
         }
 
         // Compute the DISPLACEMENT increment from the structure model part and save it in the origin mesh MESH_DISPLACEMENT
+        Parameters linear_solver_settings(R"({
+            "preconditioner_type": "amg",
+            "solver_type": "amgcl",
+            "smoother_type": "ilu0",
+            "krylov_type": "cg",
+            "max_iteration": 1000,
+            "verbosity": 0,
+            "tolerance": 1e-8,
+            "scaling": false,
+            "block_size": 1,
+            "use_block_matrices_if_possible": true
+        })");
         const unsigned int buff_pos_0 = 0;
         FixedMeshALEUtilities::EmbeddedNodalVariableProcessArrayType emb_nod_var_from_skin_proc_array_0(
             *mpOriginModelPart,
             mrStructureModelPart,
+            linear_solver_settings,
             DISPLACEMENT,
             DISPLACEMENT,
             mLevelSetType,
@@ -444,49 +440,28 @@ namespace Kratos
         FixedMeshALEUtilities::EmbeddedNodalVariableProcessArrayType emb_nod_var_from_skin_proc_array_1(
             *mpOriginModelPart,
             mrStructureModelPart,
+            linear_solver_settings,
             DISPLACEMENT,
             DISPLACEMENT,
             mLevelSetType,
             buff_pos_1);
         emb_nod_var_from_skin_proc_array_1.Execute();
 
-        // TODO: ADD OpenMP PARALLELIZATION
         // In the intersected elements, set the MESH_DISPLACEMENT as the increment of displacement and fix it
-        // Note that we take advantage of the fact that the virtual mesh nodes and the origin mesh nodes
-        // have the same ids.
         for (int i_elem = 0; i_elem < static_cast<int>(mpOriginModelPart->NumberOfElements()); ++i_elem) {
             auto it_elem = mpOriginModelPart->ElementsBegin() + i_elem;
             if (this->IsSplit(this->SetDistancesVector(it_elem))) {
                 const auto &r_geom = it_elem->GetGeometry();
-                for (auto &r_node : r_geom) {
-                    const auto d_0 = r_node.FastGetSolutionStepValue(DISPLACEMENT, 0);
-                    const auto d_1 = r_node.FastGetSolutionStepValue(DISPLACEMENT, 1);
-                    auto p_virt_node = mrVirtualModelPart.pGetNode(r_node.Id());
-                    // TODO: REMOVE AFTER DEBUGGING
-                    p_virt_node->FastGetSolutionStepValue(DISPLACEMENT,0) = d_0;
-                    // TODO: REMOVE AFTER DEBUGGING
-                    p_virt_node->FastGetSolutionStepValue(DISPLACEMENT,1) = d_1;
-                    noalias(p_virt_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 0)) = d_0 - d_1;
-                    // p_virt_node->Fix(MESH_DISPLACEMENT_X);
-                    // p_virt_node->Fix(MESH_DISPLACEMENT_Y);
-                    // p_virt_node->Fix(MESH_DISPLACEMENT_Z);
+                auto &r_virt_geom = (mrVirtualModelPart.ElementsBegin() + i_elem)->GetGeometry();
+                for (unsigned int i_node = 0; i_node < r_virt_geom.PointsNumber(); ++i_node) {
+                    const auto &r_d_0 = r_geom[i_node].FastGetSolutionStepValue(DISPLACEMENT, 0);
+                    const auto &r_d_1 = r_geom[i_node].FastGetSolutionStepValue(DISPLACEMENT, 1);
+                    noalias(r_virt_geom[i_node].FastGetSolutionStepValue(MESH_DISPLACEMENT, 0)) = r_d_0 - r_d_1;
+                    r_virt_geom[i_node].Fix(MESH_DISPLACEMENT_X);
+                    r_virt_geom[i_node].Fix(MESH_DISPLACEMENT_Y);
+                    r_virt_geom[i_node].Fix(MESH_DISPLACEMENT_Z);
                 }
             }
-        }
-
-        // TODO: ADD OpenMP PARALLELIZATION
-        // TODO: CHECK IF THIS IS BETTER THAN FIXING ALL THE SPLIT ELEMENT NODES
-        // Fix the MESH_DISPLACEMENT intersected edge node which is closer to the intersection
-        // This avoids to fix spurious values coming from the least squares resolution problem
-        const auto &r_int_edges_model_part_0 = emb_nod_var_from_skin_proc_array_0.GetIntersectedEdgesModelPart();
-        for (int i_elem = 0; i_elem < static_cast<int>(r_int_edges_model_part_0.NumberOfElements()); ++i_elem) {
-            const auto it_elem = r_int_edges_model_part_0.ElementsBegin() + i_elem;
-            const double elem_dist = it_elem->GetValue(DISTANCE);
-            const unsigned int node_loc_id = elem_dist < 0.5 ? 0 : 1;
-            auto p_virt_node = mrVirtualModelPart.pGetNode((it_elem->GetGeometry())[node_loc_id].Id());
-            p_virt_node->Fix(MESH_DISPLACEMENT_X);
-            p_virt_node->Fix(MESH_DISPLACEMENT_Y);
-            p_virt_node->Fix(MESH_DISPLACEMENT_Z);
         }
 
         // Free the memory
