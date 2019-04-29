@@ -557,14 +557,10 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
 template <class TPrimalElement>
 double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<double>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const
 {
-    double delta = 0.0;
-    if(rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE])
-    {
-        const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
-        delta = rCurrentProcessInfo[PERTURBATION_SIZE] * correction_factor;
+    double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
+    if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE]) {
+            delta *= this->GetPerturbationSizeModificationFactor(rDesignVariable);
     }
-    else
-        delta = rCurrentProcessInfo[PERTURBATION_SIZE];
 
     KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
     return delta;
@@ -573,14 +569,10 @@ double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize
 template <class TPrimalElement>
 double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const
 {
-    double delta = 0.0;
-    if(rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE])
-    {
-        const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
-        delta = rCurrentProcessInfo[PERTURBATION_SIZE] * correction_factor;
+    double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
+    if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE]) {
+            delta *= this->GetPerturbationSizeModificationFactor(rDesignVariable);
     }
-    else
-        delta = rCurrentProcessInfo[PERTURBATION_SIZE];
 
     KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
     return delta;
