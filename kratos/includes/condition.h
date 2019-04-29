@@ -21,7 +21,6 @@
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "includes/geometrical_object.h"
-#include "containers/flags.h"
 #include "containers/weak_pointer_vector.h"
 
 
@@ -56,7 +55,7 @@ namespace Kratos
  * not all of them have to be implemented if they are not needed for
  * the actual problem
  */
-class Condition : public GeometricalObject, public Flags
+class Condition : public GeometricalObject
 {
 public:
     ///@name Type Definitions
@@ -121,7 +120,6 @@ public:
      */
     explicit Condition(IndexType NewId = 0)
         : BaseType(NewId)
-        , Flags()
         , mpProperties(nullptr)
     {
     }
@@ -131,7 +129,6 @@ public:
      */
     Condition(IndexType NewId, const NodesArrayType& ThisNodes)
         : BaseType(NewId,GeometryType::Pointer(new GeometryType(ThisNodes)))
-        , Flags()
         , mpProperties(nullptr)
     {
     }
@@ -141,7 +138,6 @@ public:
      */
     Condition(IndexType NewId, GeometryType::Pointer pGeometry)
         : BaseType(NewId,pGeometry)
-        , Flags()
         , mpProperties(nullptr)
     {
     }
@@ -151,7 +147,6 @@ public:
      */
     Condition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseType(NewId,pGeometry)
-        , Flags()
         , mpProperties(pProperties)
     {
     }
@@ -160,7 +155,6 @@ public:
 
     Condition(Condition const& rOther)
         : BaseType(rOther)
-        , Flags(rOther)
         , mData(rOther.mData)
         , mpProperties(rOther.mpProperties)
     {
@@ -187,7 +181,6 @@ public:
     Condition & operator=(Condition const& rOther)
     {
         BaseType::operator=(rOther);
-        Flags::operator =(rOther);
         mpProperties = rOther.mpProperties;
 
         return *this;
