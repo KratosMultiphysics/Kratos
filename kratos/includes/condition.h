@@ -1089,24 +1089,6 @@ public:
     {
         return mData.GetValue(rThisVariable);
     }
-    ///@}
-    ///@name Flags
-    ///@{
-
-    Flags& GetFlags()
-      {
-    return *this;
-      }
-
-    Flags const& GetFlags() const
-    {
-      return *this;
-    }
-
-    void SetFlags(Flags const& rThisFlags)
-    {
-      Flags::operator=(rThisFlags);
-    }
 
     ///@}
     ///@name Inquiry
@@ -1205,7 +1187,6 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeometricalObject );
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
         rSerializer.save("Data", mData);
         rSerializer.save("Properties", mpProperties);
     }
@@ -1213,7 +1194,6 @@ private:
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeometricalObject );
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
         rSerializer.load("Data", mData);
         rSerializer.load("Properties", mpProperties);
     }
