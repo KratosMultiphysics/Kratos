@@ -218,15 +218,15 @@ class BuildModelPartBoundaryProcess
   }
 
 
-  void CheckMasterNode(int Id, const NodeWeakPtrType& old_nnode, const NodeWeakPtrType& new_nnode)
+  void CheckMasterNode(int Id, const Node<3>::WeakPointer& old_nnode, const Node<3>::Pointer& new_nnode)
   {
     if( mEchoLevel >= 1 ){
       if(!old_nnode.expired()){
-        if(old_nnode.lock().get()->Id() != new_nnode.lock().get()->Id())
-          std::cout<<"Condition "<<Id<<" WARNING: master nodes ("<<old_nnode.lock().get()->Id()<<" != "<<new_nnode.lock().get()->Id()<<")"<<std::endl;
+        if(old_nnode.lock().get()->Id() != new_nnode->Id())
+          std::cout<<"Condition "<<Id<<" WARNING: master nodes ("<<old_nnode.lock().get()->Id()<<" != "<<new_nnode->Id()<<")"<<std::endl;
       }
       else{
-        std::cout<<"Condition "<<Id<<" WARNING: master nodes (expired != "<<new_nnode.lock().get()->Id()<<")"<<std::endl;
+        std::cout<<"Condition "<<Id<<" WARNING: master nodes (expired != "<<new_nnode->Id()<<")"<<std::endl;
       }
     }
 
@@ -345,7 +345,9 @@ class BuildModelPartBoundaryProcess
                       NodeWeakPtrVectorType& rMasterNodes = i_cond.GetValue(MASTER_NODES);
 
                       if(rMasterNodes.size()){
-                        this->CheckMasterNode(i_cond.Id(),rMasterNodes(0),eGeometry(lpofa(0,node)));
+                        const auto& pMaster = rMasterNodes(0);
+                        const auto& pother = eGeometry(lpofa(0,node));
+                        this->CheckMasterNode(i_cond.Id(),pMaster,pother);
                         rMasterNodes.clear();
                       }
                       else{

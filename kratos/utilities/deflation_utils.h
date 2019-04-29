@@ -129,14 +129,14 @@ public:
                 in!=rNodes.end(); in++)
         {
             index_i = (in)->Id()-1;
-            WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+            auto& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
             std::vector<int>& indices = index_list[index_i];
             indices.reserve(neighb_nodes.size()+1);
 
             //filling the first neighbours list
             indices.push_back(index_i);
-            for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+            for( auto i =	neighb_nodes.begin();
                     i != neighb_nodes.end(); i++)
             {
 
