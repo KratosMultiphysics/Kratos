@@ -63,24 +63,24 @@ namespace Kratos
     {
         bool success = false;
 
-        for (int i = 0; i < mBrepFaces.size(); ++i)
-        {
-            if (mBrepFaces[i].Id() == brep_id)
-            {
-                mBrepFaces[i].GetGeometryIntegrationTrimmed(
-                    rModelPart, rType, rName,
-                    rShapeFunctionDerivativesOrder, rVariables);
-                return true;
-            }
-        }
+        //for (int i = 0; i < mBrepFaces.size(); ++i)
+        //{
+        //    if (mBrepFaces[i].Id() == brep_id)
+        //    {
+        //        mBrepFaces[i].GetGeometryIntegrationTrimmed(
+        //            rModelPart, rType, rName,
+        //            rShapeFunctionDerivativesOrder, rVariables);
+        //        return true;
+        //    }
+        //}
 
         for (int i = 0; i < mBrepEdges.size(); ++i)
         {
             if (mBrepEdges[i].Id() == brep_id)
             {
-                mBrepFaces[i].GetGeometryIntegration(
-                    rModelPart, rType, rName, 
-                    rShapeFunctionDerivativesOrder, rVariables);
+                //mBrepFaces[i].GetGeometryIntegration(
+                //    rModelPart, rType, rName, 
+                //    rShapeFunctionDerivativesOrder, rVariables);
                 return true;
             }
         }

@@ -92,117 +92,119 @@ namespace Kratos
         }
     }
 
-    void BrepFace::GetGeometryIntegration(ModelPart& rModelPart,
-        const std::string& rType,
-        const std::string& rName,
-        const int rShapeFunctionDerivativesOrder,
-        std::vector<std::string> rVariables)
-    {
-        auto spans_u = mNodeSurfaceGeometry3D->SpansU();
-        auto spans_v = mNodeSurfaceGeometry3D->SpansV();
+    //void BrepFace::GetGeometryIntegration(ModelPart& rModelPart,
+    //    const std::string& rType,
+    //    const std::string& rName,
+    //    const int rShapeFunctionDerivativesOrder,
+    //    std::vector<std::string> rVariables)
+    //{
+    //    auto spans_u = mNodeSurfaceGeometry3D->SpansU();
+    //    auto spans_v = mNodeSurfaceGeometry3D->SpansV();
 
-        ANurbs::SurfaceShapeEvaluator<double> shape(
-            mNodeSurfaceGeometry3D->DegreeU(),
-            mNodeSurfaceGeometry3D->DegreeV(),
-            rShapeFunctionDerivativesOrder);
+    //    ANurbs::SurfaceShapeEvaluator<double> shape(
+    //        mNodeSurfaceGeometry3D->DegreeU(),
+    //        mNodeSurfaceGeometry3D->DegreeV(),
+    //        rShapeFunctionDerivativesOrder);
 
 
-        for (int i = 0; i < spans_u.size(); ++i)
-        {
-            for (int j = 0; j < spans_v.size(); ++j)
-            {
-                ANurbs::Interval<double> domain_u(spans_u[i].T0(), spans_u[i].T1());
-                ANurbs::Interval<double> domain_v(spans_v[j].T0(), spans_v[j].T1());
+    //    for (int i = 0; i < spans_u.size(); ++i)
+    //    {
+    //        for (int j = 0; j < spans_v.size(); ++j)
+    //        {
+    //            ANurbs::Interval<double> domain_u(spans_u[i].T0(), spans_u[i].T1());
+    //            ANurbs::Interval<double> domain_v(spans_v[j].T0(), spans_v[j].T1());
 
-                auto integration_points = ANurbs::IntegrationPoints<double>::Points2(
-                    mNodeSurfaceGeometry3D->DegreeU() + 1,
-                    mNodeSurfaceGeometry3D->DegreeV() + 1,
-                    domain_u,
-                    domain_v);
+    //            auto integration_points = ANurbs::IntegrationPoints<double>::Points2(
+    //                mNodeSurfaceGeometry3D->DegreeU() + 1,
+    //                mNodeSurfaceGeometry3D->DegreeV() + 1,
+    //                domain_u,
+    //                domain_v);
 
-                for (int k = 0; k < integration_points.size(); ++k)
-                {
-                    array_1d<double, 2> local_coordinates;
-                    local_coordinates[0] = integration_points[k].u;
-                    local_coordinates[1] = integration_points[k].v;
+    //            for (int k = 0; k < integration_points.size(); ++k)
+    //            {
+    //                array_1d<double, 2> local_coordinates;
+    //                local_coordinates[0] = integration_points[k].u;
+    //                local_coordinates[1] = integration_points[k].v;
 
-                    shape.Compute(
-                        mNodeSurfaceGeometry3D->KnotsU(),
-                        mNodeSurfaceGeometry3D->KnotsV(),
-                        //mNodeSurfaceGeometry3D->Weights(),
-                        integration_points[k].u,
-                        integration_points[k].v);
+    //                shape.Compute(
+    //                    mNodeSurfaceGeometry3D->KnotsU(),
+    //                    mNodeSurfaceGeometry3D->KnotsV(),
+    //                    //mNodeSurfaceGeometry3D->Weights(),
+    //                    integration_points[k].u,
+    //                    integration_points[k].v);
 
-                    Element::GeometryType::PointsArrayType non_zero_control_points;
+    //                Element::GeometryType::PointsArrayType non_zero_control_points;
 
-                    Vector N_0 = ZeroVector(shape.NbNonzeroPoles());
-                    Matrix N_1 = ZeroMatrix(shape.NbNonzeroPoles(), 2);
-                    Matrix N_2 = ZeroMatrix(shape.NbNonzeroPoles(), 3);
+    //                Vector N_0 = ZeroVector(shape.NbNonzeroPoles());
+    //                Matrix N_1 = ZeroMatrix(shape.NbNonzeroPoles(), 2);
+    //                Matrix N_2 = ZeroMatrix(shape.NbNonzeroPoles(), 3);
 
-                    Vector coords = ZeroVector(3);
-                    for (int n = 0; n < shape.NonzeroPoleIndices().size(); ++n)
-                    {
-                        int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
-                        int indexV = shape.NonzeroPoleIndices()[n].second - shape.FirstNonzeroPoleV();
+    //                Vector coords = ZeroVector(3);
+    //                for (int n = 0; n < shape.NonzeroPoleIndices().size(); ++n)
+    //                {
+    //                    int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
+    //                    int indexV = shape.NonzeroPoleIndices()[n].second - shape.FirstNonzeroPoleV();
 
-                        non_zero_control_points.push_back(mNodeSurfaceGeometry3D->GetNode(
-                            shape.NonzeroPoleIndices()[n].first, shape.NonzeroPoleIndices()[n].second));
+    //                    non_zero_control_points.push_back(mNodeSurfaceGeometry3D->GetNode(
+    //                        shape.NonzeroPoleIndices()[n].first, shape.NonzeroPoleIndices()[n].second));
 
-                        N_0[n] = shape(0, indexU, indexV);
-                        N_1(n, 0) = shape(1, indexU, indexV);
-                        N_1(n, 1) = shape(2, indexU, indexV);
-                        N_2(n, 0) = shape(3, indexU, indexV);
-                        N_2(n, 1) = shape(5, indexU, indexV);
-                        N_2(n, 2) = shape(4, indexU, indexV);
-                    }
+    //                    N_0[n] = shape(0, indexU, indexV);
+    //                    N_1(n, 0) = shape(1, indexU, indexV);
+    //                    N_1(n, 1) = shape(2, indexU, indexV);
+    //                    N_2(n, 0) = shape(3, indexU, indexV);
+    //                    N_2(n, 1) = shape(5, indexU, indexV);
+    //                    N_2(n, 2) = shape(4, indexU, indexV);
+    //                }
 
-                    if (rType == "element")
-                    {
-                        int id = 1;
-                        if (rModelPart.GetRootModelPart().Elements().size() > 0)
-                            id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
+    //                if (rType == "element")
+    //                {
+    //                    int id = 1;
+    //                    if (rModelPart.GetRootModelPart().Elements().size() > 0)
+    //                        id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
 
-                        rModelPart.AddNodes(non_zero_control_points.begin(), non_zero_control_points.end());
+    //                    rModelPart.AddNodes(non_zero_control_points.begin(), non_zero_control_points.end());
 
-                        auto element = rModelPart.CreateNewElement(rName, id, non_zero_control_points, 0);
+    //                    auto element = rModelPart.CreateNewElement(rName, id, non_zero_control_points, 0);
 
-                        element->SetValue(SHAPE_FUNCTION_VALUES, N_0);
-                        element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
-                        element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, N_2);
-                        element->SetValue(INTEGRATION_WEIGHT, integration_points[k].weight);
+    //                    element->SetValue(SHAPE_FUNCTION_VALUES, N_0);
+    //                    element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
+    //                    element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, N_2);
+    //                    element->SetValue(INTEGRATION_WEIGHT, integration_points[k].weight);
 
-                        element->SetValue(LOCAL_COORDINATES, local_coordinates);
-                        element->SetValue(BREP_ID, this->Id());
-                    }
+    //                    element->SetValue(LOCAL_COORDINATES, local_coordinates);
+    //                    element->SetValue(BREP_ID, this->Id());
+    //                }
 
-                    if (rType == "condition")
-                    {
-                        int id = 1;
-                        if (rModelPart.GetRootModelPart().Conditions().size() > 0)
-                            id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
+    //                if (rType == "condition")
+    //                {
+    //                    int id = 1;
+    //                    if (rModelPart.GetRootModelPart().Conditions().size() > 0)
+    //                        id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
 
-                        rModelPart.AddNodes(non_zero_control_points.begin(), non_zero_control_points.end());
+    //                    rModelPart.AddNodes(non_zero_control_points.begin(), non_zero_control_points.end());
 
-                        auto condition = rModelPart.CreateNewCondition(rName, id, non_zero_control_points, 0);
+    //                    auto condition = rModelPart.CreateNewCondition(rName, id, non_zero_control_points, 0);
 
-                        condition->SetValue(SHAPE_FUNCTION_VALUES, N_0);
-                        condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
-                        condition->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, N_2);
-                        condition->SetValue(INTEGRATION_WEIGHT, integration_points[k].weight);
+    //                    condition->SetValue(SHAPE_FUNCTION_VALUES, N_0);
+    //                    condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
+    //                    condition->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, N_2);
+    //                    condition->SetValue(INTEGRATION_WEIGHT, integration_points[k].weight);
 
-                        condition->SetValue(LOCAL_COORDINATES, local_coordinates);
-                        condition->SetValue(BREP_ID, this->Id());
-                    }
-                }
-            }
-        }
-    }
+    //                    condition->SetValue(LOCAL_COORDINATES, local_coordinates);
+    //                    condition->SetValue(BREP_ID, this->Id());
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
 
     TrimmedSurfaceClipping BrepFace::GetSurfaceClipper(
         const double& rAccuracy,
-        const double& unit)
+        const double& rUnit)
     {
-        auto clipper = TrimmedSurfaceClipping(0.01, 0.0001);
+        KRATOS_WATCH("check here")
+
+        auto clipper = TrimmedSurfaceClipping(rAccuracy, rUnit);
 
         clipper.Clear();
 
@@ -211,99 +213,136 @@ namespace Kratos
             clipper.BeginLoop();
 
             auto trimming_curves = mTrimmingLoops[l].GetTrimmingCurves();
-            for (int t = 0; t < trimming_curves.size(); ++t)
+            //check directions of trimming curves
+            if (trimming_curves.size() > 1)
             {
-                auto crv = (trimming_curves[t].GetCurve2D());
-                clipper.AddCurve(*crv);
-            }
+                array_1d<double, 2> end_point_0 = trimming_curves[0].GetCurve2D()->PointAt(
+                    trimming_curves[0].GetCurve2D()->Domain().T1());
+                array_1d<double, 2> start_point_1 = trimming_curves[1].GetCurve2D()->PointAt(
+                    trimming_curves[1].GetCurve2D()->Domain().T0());
 
+                double distance_0_1 = norm_2(end_point_0 - start_point_1);
+
+                array_1d<double, 2> start_point_last = trimming_curves[1].GetCurve2D()->PointAt(
+                    trimming_curves[trimming_curves.size() - 1].GetCurve2D()->Domain().T0());
+
+                double distance_0_end = norm_2(end_point_0 - start_point_last);
+
+                if (distance_0_1 < rAccuracy)
+                {
+                    for (int t = 0; t < trimming_curves.size(); ++t)
+                    {
+                        auto crv = (trimming_curves[t].GetCurve2D());
+
+                        clipper.AddCurve(*crv);
+                    }
+                }
+                else if (distance_0_end < rAccuracy)
+                {
+                    for (int t = trimming_curves.size() - 1; t >= 0; --t)
+                    {
+                        auto crv = (trimming_curves[t].GetCurve2D());
+
+                        clipper.AddCurve(*crv);
+                    }
+                }
+                else
+                {
+                    KRATOS_ERROR << "Trimming loops of Brep Face " << Id() << " are not defined correctly!" << std::endl;
+                }
+            }
+            else
+            {
+                for (int t = 0; t < trimming_curves.size(); ++t)
+                {
+                    auto crv = (trimming_curves[t].GetCurve2D());
+
+                    clipper.AddCurve(*crv);
+                }
+            }
             clipper.EndLoop();
         }
 
         clipper.Compute(mNodeSurfaceGeometry3D->SpansU(), mNodeSurfaceGeometry3D->SpansV());
 
-        std::cout << "asdas" << clipper.NbSpansU() << std::endl;
         return clipper;
     }
 
-    void BrepFace::GetGeometryIntegrationTrimmed(
-        ModelPart& rModelPart,
-        const std::string& rType,
-        const std::string& rName,
-        const int rShapeFunctionDerivativesOrder,
-        std::vector<std::string> rVariables) const
-    {
-        auto clipper = TrimmedSurfaceClipping(0.01, 0.0001);
+    //void BrepFace::GetGeometryIntegrationTrimmed(
+    //    ModelPart& rModelPart,
+    //    const std::string& rType,
+    //    const std::string& rName,
+    //    const int rShapeFunctionDerivativesOrder,
+    //    std::vector<std::string> rVariables) const
+    //{
+    //    auto clipper = TrimmedSurfaceClipping(0.01, 0.0001);
 
-        clipper.Clear();
+    //    clipper.Clear();
 
-        for (int l = 0; l < mTrimmingLoops.size(); ++l)
-        {
-            clipper.BeginLoop();
+    //    for (int l = 0; l < mTrimmingLoops.size(); ++l)
+    //    {
+    //        clipper.BeginLoop();
 
-            auto trimming_curves = mTrimmingLoops[l].GetTrimmingCurves();
-            for (int t = 0; t < trimming_curves.size(); ++t)
-            {
-                auto crv = (trimming_curves[t].GetCurve2D());
-                clipper.AddCurve(*crv);
-            }
+    //        auto trimming_curves = mTrimmingLoops[l].GetTrimmingCurves();
+    //        for (int t = 0; t < trimming_curves.size(); ++t)
+    //        {
+    //            auto crv = (trimming_curves[t].GetCurve2D());
+    //            clipper.AddCurve(*crv);
+    //        }
 
-            clipper.EndLoop();
-        }
+    //        clipper.EndLoop();
+    //    }
 
-        clipper.Compute(mNodeSurfaceGeometry3D->SpansU(), mNodeSurfaceGeometry3D->SpansV());
+    //    clipper.Compute(mNodeSurfaceGeometry3D->SpansU(), mNodeSurfaceGeometry3D->SpansV());
 
-        int degree_u = mNodeSurfaceGeometry3D->DegreeU();
-        int degree_v = mNodeSurfaceGeometry3D->DegreeV();
+    //    int degree_u = mNodeSurfaceGeometry3D->DegreeU();
+    //    int degree_v = mNodeSurfaceGeometry3D->DegreeV();
 
-        int degree = std::max(degree_u, degree_v) + 1;
+    //    int degree = std::max(degree_u, degree_v) + 1;
 
-        std::cout << "clipper.NbSpansU(): " << clipper.NbSpansU() << std::endl;
-        std::cout << "clipper.NbSpansV(): " << clipper.NbSpansV() << std::endl;
-        for (int i = 0; i < clipper.NbSpansU(); ++i)
-        {
-            for (int j = 0; j < clipper.NbSpansU(); ++j)
-            {
-                if (clipper.SpanTrimType(i, j) == ANurbs::Empty)
-                {
-                    continue;
-                }
-                if (clipper.SpanTrimType(i, j) == ANurbs::Full)
-                {
-                    auto integration_points = ANurbs::IntegrationPoints<double>::Points2(
-                        degree_u + 1,
-                        degree_v + 1,
-                        clipper.SpanU(i),
-                        clipper.SpanV(j));
+    //    for (int i = 0; i < clipper.NbSpansU(); ++i)
+    //    {
+    //        for (int j = 0; j < clipper.NbSpansU(); ++j)
+    //        {
+    //            if (clipper.SpanTrimType(i, j) == ANurbs::Empty)
+    //            {
+    //                continue;
+    //            }
+    //            if (clipper.SpanTrimType(i, j) == ANurbs::Full)
+    //            {
+    //                auto integration_points = ANurbs::IntegrationPoints<double>::Points2(
+    //                    degree_u + 1,
+    //                    degree_v + 1,
+    //                    clipper.SpanU(i),
+    //                    clipper.SpanV(j));
 
-                    CreateIntegrationElementsConditions(
-                        integration_points, rModelPart, rType, rName,
-                        rShapeFunctionDerivativesOrder, rVariables);
+    //                CreateIntegrationElementsConditions(
+    //                    integration_points, rModelPart, rType, rName,
+    //                    rShapeFunctionDerivativesOrder, rVariables);
 
-                    continue;
-                }
-                if (clipper.SpanTrimType(i, j) == ANurbs::Trimmed)
-                {
-                    std::cout << "timmed part" << std::endl;
-                    auto polygons = clipper.SpanPolygons(i, j);
+    //                continue;
+    //            }
+    //            if (clipper.SpanTrimType(i, j) == ANurbs::Trimmed)
+    //            {
+    //                auto polygons = clipper.SpanPolygons(i, j);
 
-                    for (int p = 0; p < polygons.size(); ++p)
-                    {
-                        auto integration_point_polygon = ANurbs::PolygonIntegrationPoints<Kratos::array_1d<double, 2>>();
+    //                for (int p = 0; p < polygons.size(); ++p)
+    //                {
+    //                    auto integration_point_polygon = ANurbs::PolygonIntegrationPoints<Kratos::array_1d<double, 2>>();
 
-                        integration_point_polygon.Compute(degree, polygons[p]);
-                        std::vector<ANurbs::IntegrationPoint2<double>> integration_points(integration_point_polygon.NbIntegrationPoints());
-                        for (int integration_point = 0; integration_point < integration_point_polygon.NbIntegrationPoints(); ++integration_point)
-                        {
-                            integration_points[integration_point] = integration_point_polygon.IntegrationPoint(integration_point);
-                        }
-                        CreateIntegrationElementsConditions(integration_points, rModelPart, rType, rName,
-                            rShapeFunctionDerivativesOrder, rVariables);
-                    }
-                }
-            }
-        }
-    }
+    //                    integration_point_polygon.Compute(degree, polygons[p]);
+    //                    std::vector<ANurbs::IntegrationPoint2<double>> integration_points(integration_point_polygon.NbIntegrationPoints());
+    //                    for (int integration_point = 0; integration_point < integration_point_polygon.NbIntegrationPoints(); ++integration_point)
+    //                    {
+    //                        integration_points[integration_point] = integration_point_polygon.IntegrationPoint(integration_point);
+    //                    }
+    //                    CreateIntegrationElementsConditions(integration_points, rModelPart, rType, rName,
+    //                        rShapeFunctionDerivativesOrder, rVariables);
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
 
     void BrepFace::GetIntegrationBrepEdge(
         ModelPart& rModelPart,
@@ -413,106 +452,106 @@ namespace Kratos
         }
     }
 
-    void BrepFace::CreateIntegrationElementsConditions(
-        std::vector<ANurbs::IntegrationPoint2<double>> rIntegrationPoints,
-        ModelPart& rModelPart,
-        const std::string& rType,
-        const std::string& rName,
-        const int rShapeFunctionDerivativesOrder,
-        std::vector<std::string> rVariables) const
-    {
-        ANurbs::SurfaceShapeEvaluator<double> shape(
-            mNodeSurfaceGeometry3D->DegreeU(),
-            mNodeSurfaceGeometry3D->DegreeV(),
-            rShapeFunctionDerivativesOrder);
+    //void BrepFace::CreateIntegrationElementsConditions(
+    //    std::vector<ANurbs::IntegrationPoint2<double>> rIntegrationPoints,
+    //    ModelPart& rModelPart,
+    //    const std::string& rType,
+    //    const std::string& rName,
+    //    const int rShapeFunctionDerivativesOrder,
+    //    std::vector<std::string> rVariables) const
+    //{
+    //    ANurbs::SurfaceShapeEvaluator<double> shape(
+    //        mNodeSurfaceGeometry3D->DegreeU(),
+    //        mNodeSurfaceGeometry3D->DegreeV(),
+    //        rShapeFunctionDerivativesOrder);
 
-        for (int k = 0; k < rIntegrationPoints.size(); ++k)
-        {
-            array_1d<double, 2> local_coordinates;
-            local_coordinates[0] = rIntegrationPoints[k].u;
-            local_coordinates[1] = rIntegrationPoints[k].v;
+    //    for (int k = 0; k < rIntegrationPoints.size(); ++k)
+    //    {
+    //        array_1d<double, 2> local_coordinates;
+    //        local_coordinates[0] = rIntegrationPoints[k].u;
+    //        local_coordinates[1] = rIntegrationPoints[k].v;
 
-            shape.Compute(
-                mNodeSurfaceGeometry3D->KnotsU(),
-                mNodeSurfaceGeometry3D->KnotsV(),
-                mNodeSurfaceGeometry3D->Weights(),
-                rIntegrationPoints[k].u,
-                rIntegrationPoints[k].v);
+    //        shape.Compute(
+    //            mNodeSurfaceGeometry3D->KnotsU(),
+    //            mNodeSurfaceGeometry3D->KnotsV(),
+    //            mNodeSurfaceGeometry3D->Weights(),
+    //            rIntegrationPoints[k].u,
+    //            rIntegrationPoints[k].v);
 
-            Element::GeometryType::PointsArrayType non_zero_control_points;
+    //        Element::GeometryType::PointsArrayType non_zero_control_points;
 
-            Vector N_0 = ZeroVector(shape.NbNonzeroPoles());
-            Matrix N_1 = ZeroMatrix(shape.NbNonzeroPoles(), 2);
-            Matrix N_2 = ZeroMatrix(shape.NbNonzeroPoles(), 3);
+    //        Vector N_0 = ZeroVector(shape.NbNonzeroPoles());
+    //        Matrix N_1 = ZeroMatrix(shape.NbNonzeroPoles(), 2);
+    //        Matrix N_2 = ZeroMatrix(shape.NbNonzeroPoles(), 3);
 
-            for (int n = 0; n < shape.NonzeroPoleIndices().size(); ++n)
-            {
-                int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
-                int indexV = shape.NonzeroPoleIndices()[n].second - shape.FirstNonzeroPoleV();
+    //        for (int n = 0; n < shape.NonzeroPoleIndices().size(); ++n)
+    //        {
+    //            int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
+    //            int indexV = shape.NonzeroPoleIndices()[n].second - shape.FirstNonzeroPoleV();
 
-                non_zero_control_points.push_back(mNodeSurfaceGeometry3D->GetNode(
-                    shape.NonzeroPoleIndices()[n].first, shape.NonzeroPoleIndices()[n].second));
+    //            non_zero_control_points.push_back(mNodeSurfaceGeometry3D->GetNode(
+    //                shape.NonzeroPoleIndices()[n].first, shape.NonzeroPoleIndices()[n].second));
 
-                N_0[n] = shape(0, indexU, indexV);
-                N_1(n, 0) = shape(1, indexU, indexV);
-                N_1(n, 1) = shape(2, indexU, indexV);
-                N_2(n, 0) = shape(3, indexU, indexV);
-                N_2(n, 1) = shape(5, indexU, indexV);
-                N_2(n, 2) = shape(4, indexU, indexV);
-            }
+    //            N_0[n] = shape(0, indexU, indexV);
+    //            N_1(n, 0) = shape(1, indexU, indexV);
+    //            N_1(n, 1) = shape(2, indexU, indexV);
+    //            N_2(n, 0) = shape(3, indexU, indexV);
+    //            N_2(n, 1) = shape(5, indexU, indexV);
+    //            N_2(n, 2) = shape(4, indexU, indexV);
+    //        }
 
 
-            if (rType == "element")
-            {
-                int id = 0;
-                if (rModelPart.GetRootModelPart().Elements().size() > 0)
-                    id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
+    //        if (rType == "element")
+    //        {
+    //            int id = 0;
+    //            if (rModelPart.GetRootModelPart().Elements().size() > 0)
+    //                id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
 
-                rModelPart.AddNodes(non_zero_control_points.begin(), non_zero_control_points.end());
+    //            rModelPart.AddNodes(non_zero_control_points.begin(), non_zero_control_points.end());
 
-                auto element = rModelPart.CreateNewElement(rName, id, non_zero_control_points, 0);
+    //            auto element = rModelPart.CreateNewElement(rName, id, non_zero_control_points, 0);
 
-                element->SetValue(SHAPE_FUNCTION_VALUES, N_0);
-                element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
-                element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, N_2);
-                element->SetValue(INTEGRATION_WEIGHT, rIntegrationPoints[k].weight);
+    //            element->SetValue(SHAPE_FUNCTION_VALUES, N_0);
+    //            element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
+    //            element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, N_2);
+    //            element->SetValue(INTEGRATION_WEIGHT, rIntegrationPoints[k].weight);
 
-                element->SetValue(LOCAL_COORDINATES, local_coordinates);
-                element->SetValue(BREP_ID, this->Id());
-            }
+    //            element->SetValue(LOCAL_COORDINATES, local_coordinates);
+    //            element->SetValue(BREP_ID, this->Id());
+    //        }
 
-            if (rType == "condition")
-            {
-                int id = 0;
-                if (rModelPart.GetRootModelPart().Conditions().size() > 0)
-                    id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
+    //        if (rType == "condition")
+    //        {
+    //            int id = 0;
+    //            if (rModelPart.GetRootModelPart().Conditions().size() > 0)
+    //                id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
 
-                rModelPart.AddNodes(non_zero_control_points.begin(), non_zero_control_points.end());
+    //            rModelPart.AddNodes(non_zero_control_points.begin(), non_zero_control_points.end());
 
-                auto condition = rModelPart.CreateNewCondition(rName, id, non_zero_control_points, 0);
+    //            auto condition = rModelPart.CreateNewCondition(rName, id, non_zero_control_points, 0);
 
-                condition->SetValue(SHAPE_FUNCTION_VALUES, N_0);
-                condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
-                condition->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, N_2);
-                condition->SetValue(INTEGRATION_WEIGHT, rIntegrationPoints[k].weight);
+    //            condition->SetValue(SHAPE_FUNCTION_VALUES, N_0);
+    //            condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
+    //            condition->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, N_2);
+    //            condition->SetValue(INTEGRATION_WEIGHT, rIntegrationPoints[k].weight);
 
-                condition->SetValue(LOCAL_COORDINATES, local_coordinates);
-                condition->SetValue(BREP_ID, this->Id());
-            }
+    //            condition->SetValue(LOCAL_COORDINATES, local_coordinates);
+    //            condition->SetValue(BREP_ID, this->Id());
+    //        }
 
-            // for strong application of properties on control point nodes
-            if (rType == "node")
-            {
-                for (int sh_nonzero = 0; sh_nonzero < N_0.size(); ++sh_nonzero)
-                {
-                    if (N_0(sh_nonzero) > 1e-5)
-                    {
-                        rModelPart.AddNode(non_zero_control_points(sh_nonzero));
-                    }
-                }
-            }
-        }
-    }
+    //        // for strong application of properties on control point nodes
+    //        if (rType == "node")
+    //        {
+    //            for (int sh_nonzero = 0; sh_nonzero < N_0.size(); ++sh_nonzero)
+    //            {
+    //                if (N_0(sh_nonzero) > 1e-5)
+    //                {
+    //                    rModelPart.AddNode(non_zero_control_points(sh_nonzero));
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
 
     void BrepFace::EvaluatePoint(
         const double rU,
@@ -589,7 +628,7 @@ namespace Kratos
             if (mEmbeddedEdges[i].GetTrimIndex() == trim_index)
                 return mEmbeddedEdges[i].GetCurve2D();
         }
-        KRATOS_ERROR << "Trimming curve of index: " << trim_index << " does not exist." << std::endl;
+        KRATOS_ERROR << "Trimming curve of index: " << trim_index << " does not exist in BrepFace " << Id() << std::endl;
     }
 
     const Kratos::shared_ptr<NodeSurfaceGeometry3D> BrepFace::GetSurface() const

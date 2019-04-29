@@ -134,7 +134,6 @@ namespace Kratos
     {
         if (rVariable == COORDINATES)
         {
-            std::cout << "we are here" << std::endl;
             const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
             if (rOutput.size() != 3)
                 rOutput.resize(3);

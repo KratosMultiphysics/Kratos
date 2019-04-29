@@ -97,19 +97,19 @@ namespace Kratos
             const int& rU,
             const int& rV) const;
 
-        void GetGeometryIntegration(
-            ModelPart& rModelPart,
-            const std::string& rType,
-            const std::string& rName,
-            const int rShapeFunctionDerivativesOrder,
-            std::vector<std::string> rVariables);
+        //void GetGeometryIntegration(
+        //    ModelPart& rModelPart,
+        //    const std::string& rType,
+        //    const std::string& rName,
+        //    const int rShapeFunctionDerivativesOrder,
+        //    std::vector<std::string> rVariables);
 
-        void GetGeometryIntegrationTrimmed(
-            ModelPart& rModelPart,
-            const std::string& rType,
-            const std::string& rName,
-            const int rShapeFunctionDerivativesOrder,
-            std::vector<std::string> rVariables) const;
+        //void GetGeometryIntegrationTrimmed(
+        //    ModelPart& rModelPart,
+        //    const std::string& rType,
+        //    const std::string& rName,
+        //    const int rShapeFunctionDerivativesOrder,
+        //    std::vector<std::string> rVariables) const;
 
         void CreateIntegrationElementsConditions(
             std::vector<ANurbs::IntegrationPoint2<double>> rIntegrationPoints,

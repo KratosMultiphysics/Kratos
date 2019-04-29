@@ -8,24 +8,27 @@ import KratosMultiphysics.IgaApplication as IgaApplication
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import base class file
-import structural_mechanics_static_solver
+import structural_mechanics_implicit_dynamic_solver
+
 
 def CreateSolver(model, custom_settings):
-    return IgaStaticSolver(model, custom_settings)
+    return IgaImplicitDynamicSolver(model, custom_settings)
 
 
-class IgaStaticSolver(structural_mechanics_static_solver.StaticMechanicalSolver):
-    """The iga static solver.
+class IgaImplicitDynamicSolver(structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver):
+    """The iga implicit dynamic solver derived from the ImplicitMechanicalSolver.
 
-    This class is derived from the StaticMechanicalSolver but enhanced with 
-    the import modifications that Iga needs.
+    This class creates the mechanical solvers for implicit dynamic analysis.
+    It currently supports Newmark, Bossak and dynamic relaxation schemes.
+
+    Public member variables:
+    dynamic_settings -- settings for the implicit dynamic solvers.
+
+    See structural_mechanics_implicit_dynamic_solver.py for more information.
     """
-
     def __init__(self, model, custom_settings):
-        # Set defaults and validate custom settings in the base class.
-        # Construct the base solver.
-        super(IgaStaticSolver, self).__init__(model, custom_settings)
-        KratosMultiphysics.Logger.PrintInfo("::[IgaStaticSolver]:: ", "Construction finished")
+        super(IgaImplicitDynamicSolver, self).__init__(model, custom_settings)
+        KratosMultiphysics.Logger.PrintInfo("::[IgaImplicitDynamicSolver]:: ", "Construction finished")
 
     def ImportModelPart(self):
         """This function imports the ModelPart"""

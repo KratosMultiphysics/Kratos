@@ -60,6 +60,47 @@ namespace Kratos
             }
         }
 
+        if (this->Has(MOMENT))
+        {
+            const array_1d<double, 3> moment = GetValue(MOMENT);
+
+            array_1d<double, 2> Phi = ZeroVector(2);
+            Vector Phi_r = ZeroVector(mat_size);
+            Matrix Phi_rs = ZeroMatrix(mat_size, mat_size);
+
+            array_1d<double, 3> g1, g2, g3;
+            IgaSurfaceUtilities::CalculateBaseVectors(
+                GetGeometry(),
+                DN_De,
+                g1, g2, g3);
+
+            array_1d<double, 3> mG10, mG20, mG30;
+            IgaSurfaceUtilities::CalculateInitialBaseVectors(
+                GetGeometry(),
+                DN_De,
+                mG10, mG20, mG30);
+
+            IgaCurveOnSurfaceUtilities::CalculateVariationRotation(
+                GetGeometry(), DN_De, GetValue(TANGENTS),
+                mG10, mG20, mG30,
+                g1, g2, g3,
+                Phi, Phi_r, Phi_rs);
+
+            //KRATOS_WATCH(Phi_r)
+
+            for (unsigned int n = 0; n < mat_size; n++)
+            {
+                //for (unsigned int m = 0; m < mat_size; m++)
+                //{
+                    //rLeftHandSideMatrix(n, m) += (Phi_r(n)*Phi_r(m);// +Phi(0)*Phi_rs(n, m));
+                //}
+                rRightHandSideVector(n) += Phi_r(n) * moment[0];
+                //rRightHandSideVector(n) -= Phi_r(n) * moment[1];
+            }
+        }
+
+        //KRATOS_WATCH(rRightHandSideVector)
+
         noalias(rRightHandSideVector) += f_loads;
     }
 

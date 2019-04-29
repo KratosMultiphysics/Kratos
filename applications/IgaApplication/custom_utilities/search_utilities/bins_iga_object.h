@@ -26,8 +26,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "nurbs_brep_application.h"
-#include "nurbs_brep_application_variables.h"
+#include "iga_application.h"
+#include "iga_application_variables.h"
 
 
 namespace Kratos
@@ -86,7 +86,7 @@ public:
 
     BinsIgaObject(ElementPointerType pElement) : mpElement(pElement)
     {
-        Vector coords = ZeroVector(3);
+        array_1d<double, 3> coords = ZeroVector(3);
         const Kratos::ProcessInfo process_info;
         pElement->Calculate(COORDINATES, coords, process_info);
         noalias(Coordinates()) = coords;

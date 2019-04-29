@@ -23,7 +23,7 @@ namespace Kratos
 {
     void SupportPenaltyCurveDiscreteCondition::Initialize()
     {
-        IgaSurfaceUtilties::CalculateBaseVectors(
+        IgaSurfaceUtilities::CalculateBaseVectors(
             GetGeometry(), GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES),
             mG10, mG20, mG30);
     }
@@ -56,7 +56,7 @@ namespace Kratos
             Matrix Phi_rs = ZeroMatrix(mat_size, mat_size);
 
             array_1d<double, 3> g1, g2, g3;
-            IgaSurfaceUtilties::CalculateBaseVectors(
+            IgaSurfaceUtilities::CalculateBaseVectors(
                 GetGeometry(), DN_De,
                 g1, g2, g3);
 

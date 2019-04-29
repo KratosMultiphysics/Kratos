@@ -24,6 +24,7 @@
 #include "custom_conditions/base_discrete_condition.h"
 
 #include "custom_utilities/geometry_utilities/iga_curve_on_surface_utilities.h"
+#include "custom_utilities/geometry_utilities/iga_surface_utilities.h"
 
 #include "includes/define.h"
 #include "includes/condition.h"

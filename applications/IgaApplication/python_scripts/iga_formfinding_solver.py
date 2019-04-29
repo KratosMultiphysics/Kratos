@@ -8,24 +8,24 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import KratosMultiphysics.IgaApplication as IgaApplication
 
 # Import base class file
-from KratosMultiphysics.IgaApplication.iga_solver import IgaSolver
+import structural_mechanics_solver
 
 
-def CreateSolver(model, custom_settings):
-    return IgaFormfindingSolver(model, custom_settings)
+def CreateSolver(main_model_part, custom_settings):
+    return FormfindingMechanicalSolver(main_model_part, custom_settings)
 
 
-class IgaFormfindingSolver(IgaSolver):
-    """The iga formfinding solver.
+class FormfindingMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
+    """The structural mechanics formfinding solver.
 
-    This class creates the iga solver for formdinding.
+    This class creates the mechanical solver for formdinding.
 
     Public member variables:
     formfinding_settings -- settings for the formfinding solver.
 
     See structural_mechanics_solver.py for more information.
     """
-    def __init__(self, model, custom_settings):
+    def __init__(self, main_model_part, custom_settings):
         # Set defaults and validate custom settings.
         self.formfinding_settings = KratosMultiphysics.Parameters("""
         {
@@ -36,14 +36,38 @@ class IgaFormfindingSolver(IgaSolver):
         # Validate the remaining settings in the base class.
 
         # Construct the base solver.
-        super(IgaFormfindingSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[IgaFormfindingSolver]:: ", "Construction finished")
+        super(FormfindingMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        self.print_on_rank_zero("::[FormfindingMechanicalSolver]:: ", "Construction finished")
+
+    def ImportModelPart(self):
+        """This function imports the ModelPart"""
+        self._set_nurbs_brep_modeler()
+
+        with open(self.settings["model_import_settings"]["physics_filename"].GetString(),'r') as physics_file:
+                physics_parameters = KratosMultiphysics.Parameters( physics_file.read())
+
+        physics_file = open(self.settings["model_import_settings"]["physics_filename"].GetString(),'r')
+        physics_parameters = KratosMultiphysics.Parameters( physics_file.read())
+        self.nurbs_brep_modeler.ImportModelPart(self.main_model_part, physics_parameters)
+
+    def _set_nurbs_brep_modeler(self):
+        """Prepare the nurbs brep modeler and read in the necessary data. """
+        # This function prepares the nurbs brep modeler and reads in the rough geometry data,
+        # which can be used for surface descriptions and integration domains.
+
+        self.nurbs_brep_modeler = IgaApplication.NurbsBrepModeler(self.main_model_part)
+
+        if self.settings["model_import_settings"]["input_type"].GetString() == "json":
+            with open(self.settings["model_import_settings"]["input_filename"].GetString() + ".json",'r') as geometry_file:
+                geometry_parameters = KratosMultiphysics.Parameters( geometry_file.read())
+            self.geometry_reader = IgaApplication.BrepJsonIO()
+
+            self.nurbs_brep_modeler.ImportGeometry(self.geometry_reader, geometry_parameters)
 
     def _create_solution_scheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
     def _create_mechanical_solution_strategy(self):
-        self.print_on_rank_zero("::[IgaFormfindingSolver]:: ", "_create_mechanical_solution_strategy")
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self.get_solution_scheme()
         linear_solver = self.get_linear_solver()
