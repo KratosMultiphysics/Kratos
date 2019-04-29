@@ -111,15 +111,6 @@ class KRATOS_API(DEM_APPLICATION) DEM_FEM_Search : public SpatialSearch
       }
 
 
-  template<typename _U, typename _T>
-  intrusive_ptr<_U> my_dynamic_pointer_cast(intrusive_ptr<_T> __r) noexcept {
-    const auto __u = dynamic_cast<_U*>(__r.get());
-    if(__u){
-      __r.release();
-    }
-    return intrusive_ptr<_U>(__u);
-  }
-
   void SearchRigidFaceForDEMInRadiusExclusiveImplementation (
       ElementsContainerType   const& rElements,
       ConditionsContainerType const& rConditions,
@@ -345,7 +336,7 @@ class KRATOS_API(DEM_APPLICATION) DEM_FEM_Search : public SpatialSearch
 
               for(auto c_it = localResults.begin(); c_it != localResults.begin() + NumberOfResults; c_it++) {
                   auto presult = *c_it;
-                  Condition::Pointer condition = my_dynamic_pointer_cast<Condition>(presult);
+                  Condition::Pointer condition = dynamic_pointer_cast<Condition>(presult);
                   //Condition::Pointer condition = Kratos::dynamic_pointer_cast<Condition>(*c_it);
                   rResults[p].push_back(condition);
               }
