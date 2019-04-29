@@ -208,7 +208,9 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_VELOCITY)          # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
 
         if (self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt() != 0):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
+            self._get_fm_ale_virtual_model_part().AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
             self._get_fm_ale_virtual_model_part().AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
             self._get_fm_ale_virtual_model_part().AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
             self._get_fm_ale_virtual_model_part().AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
@@ -284,6 +286,19 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             self._get_mesh_moving_util().Initialize(self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Solver initialization finished.")
+
+    # TODO: REMOVE AFTER DEBUGGING. THIS IS JUST TO UPDATE THE COUNTERS IN THE VIRTUAL MODEL PART TO PRINT IT
+    def AdvanceInTime(self, current_time):
+        dt = self._ComputeDeltaTime()
+        new_time = current_time + dt
+
+        self.main_model_part.CloneTimeStep(new_time)
+        # self._get_fm_ale_virtual_model_part().CloneTimeStep(new_time)
+        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+        self._get_fm_ale_virtual_model_part().ProcessInfo[KratosMultiphysics.STEP] += 1
+        self._get_fm_ale_virtual_model_part().ProcessInfo[KratosMultiphysics.TIME] = new_time
+
+        return new_time
 
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
@@ -394,9 +409,11 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
     def _create_mesh_moving_util(self):
         if have_mesh_moving:
             mesh_moving_util = KratosMeshMoving.ExplicitFixedMeshALEUtilities(
+            # mesh_moving_util = KratosMeshMoving.FixedMeshALEUtilities(
                 self._get_fm_ale_virtual_model_part(),
                 self._get_fm_ale_structure_model_part(),
                 self.settings["fm_ale_settings"]["search_radius"].GetDouble())
+                # "continuous")
             return mesh_moving_util
         else:
             raise Exception("MeshMovingApplication is required to construct the FM-ALE utility (ExplicitFixedMeshALEUtilities)")
