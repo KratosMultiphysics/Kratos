@@ -24,8 +24,8 @@
 #include "containers/model.h"
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
+#include "includes/linear_solver_factory.h"
 #include "elements/embedded_nodal_variable_calculation_element_simplex.h"
-#include "linear_solvers/cg_solver.h"
 #include "processes/process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -162,11 +162,11 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef typename Element::NodeType::Pointer NodePointerType;
+    typedef typename TLinearSolver::Pointer LinearSolverPointerType;
     typedef typename Scheme<TSparseSpace,TDenseSpace>::Pointer SchemePointerType;
     typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverPointerType;
     typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::UniquePointer SolvingStrategyPointerType;
-    typedef typename FindIntersectedGeometricalObjectsProcess::Pointer FindIntersectedGeometricalObjectsProcessPointerType;
+    typedef typename FindIntersectedGeometricalObjectsProcess::UniquePointer FindIntersectedGeometricalObjectsProcessPointerType;
 
     struct Hash
     {
@@ -198,14 +198,82 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /**
+     * @brief Get the Default Settings object
+     * This method returns the default parameters for this proces.
+     * Note that it is required to be static since it is called during
+     * the construction of the object so no instantation exists yet.
+     * @return Parameters Default parameters json string
+     */
+    static Parameters GetDefaultSettings()
+    {
+        Parameters default_settings(R"(
+        {
+            "base_model_part_name": "",
+            "skin_model_part_name": "",
+            "skin_variable_name": "",
+            "embedded_nodal_variable_name": "",
+            "level_set_type": "",
+            "buffer_position": 0,
+            "aux_model_part_name": "IntersectedElementsModelPart",
+            "linear_solver_settings": {
+                "preconditioner_type": "amg",
+                "solver_type": "amgcl",
+                "smoother_type": "ilu0",
+                "krylov_type": "cg",
+                "max_iteration": 1000,
+                "verbosity": 0,
+                "tolerance": 1e-8,
+                "scaling": false,
+                "block_size": 1,
+                "use_block_matrices_if_possible": true
+            }
+        }
+        )");
+
+        return default_settings;
+    }
+
+    /**
+     * @brief Construct a new Calculate Embedded Nodal Variable From Skin Process object
+     * Constructor with model and json settings
+     * @param rModel Model container
+     * @param rSettings Settings json string
+     */
+    CalculateEmbeddedNodalVariableFromSkinProcess(
+        Model &rModel,
+        Parameters rSettings)
+        : CalculateEmbeddedNodalVariableFromSkinProcess(
+            rModel.GetModelPart(rSettings["base_model_part_name"].GetString()),
+            rModel.GetModelPart(rSettings["skin_model_part_name"].GetString()),
+            [] (Parameters x) -> Parameters {x.ValidateAndAssignDefaults(GetDefaultSettings()); return x;} (rSettings))
+    {
+    }
+
+    /**
+     * @brief Construct a new Calculate Embedded Nodal Variable From Skin Process object
+     *
+     * @param rBaseModelPart Background mesh model part reference
+     * @param rSkinModelPart Embedded skin model part reference
+     * @param LinearSolverSettings Linear solver json settings
+     * @param rSkinVariable Skin variable to take the values from
+     * @param rEmbeddedNodalVariable Background mesh destination variable
+     * @param LevelSetType Level set type (continuous or discontinuous)
+     * @param BufferPosition Position in the buffer to take and save the values
+     * @param AuxPartName Auxiliary intersections model part name
+     */
     CalculateEmbeddedNodalVariableFromSkinProcess(
         ModelPart &rBaseModelPart,
         ModelPart &rSkinModelPart,
+        Parameters LinearSolverSettings,
         const Variable<TVarType> &rSkinVariable,
         const Variable<TVarType> &rEmbeddedNodalVariable,
         const std::string LevelSetType = "continuous",
+        const unsigned int BufferPosition = 0,
         const std::string AuxPartName = "IntersectedElementsModelPart")
-        : mLevelSetType(LevelSetType),
+        : Process(),
+          mLevelSetType(LevelSetType),
+          mBufferPosition(BufferPosition),
           mAuxModelPartName(AuxPartName),
           mrBaseModelPart(rBaseModelPart),
           mrSkinModelPart(rSkinModelPart),
@@ -213,6 +281,14 @@ public:
           mrEmbeddedNodalVariable(rEmbeddedNodalVariable)
     {
         KRATOS_TRY
+
+        // Check the process settings
+        KRATOS_ERROR_IF(mLevelSetType != "continuous" && mLevelSetType != "discontinuous") <<
+            "Provided level set type " << mLevelSetType << ". Options are \'continuous\' or \'discontinuous\'." << std::endl;
+        KRATOS_ERROR_IF(!(mBufferPosition < rBaseModelPart.GetBufferSize())) <<
+            "Asked for buffer position " << mBufferPosition << " buf base model part buffer size is " << rBaseModelPart.GetBufferSize() << std::endl;
+        KRATOS_ERROR_IF(!(mBufferPosition < rSkinModelPart.GetBufferSize())) <<
+            "Asked for buffer position " << mBufferPosition << " buf skin model part buffer size is " << rSkinModelPart.GetBufferSize() << std::endl;
 
         // Check that there is at least one element and node in the model
         int n_loc_mesh_nodes = mrBaseModelPart.GetCommunicator().pLocalMesh()->NumberOfNodes();
@@ -232,6 +308,10 @@ public:
         } else {
             KRATOS_ERROR << "Wrong geometry Dimension(). Expected 2 or 3 and obtained: " << dim;
         }
+
+        // Construct the linear solver pointer
+        LinearSolverFactory<TSparseSpace, TDenseSpace> linear_solver_factory;
+        mpLinearSolver = linear_solver_factory.Create(LinearSolverSettings);
 
         KRATOS_CATCH("")
     }
@@ -258,6 +338,12 @@ public:
     ///@name Operations
     ///@{
 
+    ModelPart &GetIntersectedEdgesModelPart() const
+    {
+        Model &current_model = mrBaseModelPart.GetModel();
+        return current_model.GetModelPart(mAuxModelPartName);
+    }
+
     void Execute() override
     {
         KRATOS_TRY;
@@ -271,11 +357,8 @@ public:
         // Solve the regression problem
         mpSolvingStrategy->Solve();
 
-        // Move the obtained values to the user-defined variable
+        // Copy the obtained values from the unknown variable to the user-defined variable
         this->SetObtainedEmbeddedNodalValues();
-
-        // Free the memory
-        this->Clear();
 
         KRATOS_CATCH("")
     }
@@ -283,10 +366,10 @@ public:
     virtual void Clear()
     {
         Model& current_model = mrBaseModelPart.GetModel();
-        ModelPart& r_distance_model_part = current_model.GetModelPart( mAuxModelPartName );
-        r_distance_model_part.Nodes().clear();
-        r_distance_model_part.Elements().clear();
-        r_distance_model_part.Conditions().clear();
+        ModelPart& r_intersected_edges_model_part = current_model.GetModelPart( mAuxModelPartName );
+        r_intersected_edges_model_part.Nodes().clear();
+        r_intersected_edges_model_part.Elements().clear();
+        r_intersected_edges_model_part.Conditions().clear();
 
         mpSolvingStrategy->Clear();
     }
@@ -335,6 +418,7 @@ protected:
     ///@{
 
     const std::string mLevelSetType;
+    const unsigned int mBufferPosition;
     const std::string mAuxModelPartName;
 
     ModelPart& mrBaseModelPart;
@@ -343,7 +427,8 @@ protected:
     const Variable<TVarType> &mrSkinVariable;
     const Variable<TVarType> &mrEmbeddedNodalVariable;
 
-    SolvingStrategyPointerType mpSolvingStrategy;
+    LinearSolverPointerType mpLinearSolver = nullptr;
+    SolvingStrategyPointerType mpSolvingStrategy = nullptr;
 
     FindIntersectedGeometricalObjectsProcessPointerType mpFindIntersectedGeometricalObjectsProcess;
 
@@ -398,7 +483,7 @@ protected:
         #pragma omp parallel for
         for (int i_node = 0; i_node < static_cast<int>(r_int_elems_model_part.NumberOfNodes()); ++i_node) {
             const auto it_node = r_int_elems_model_part.NodesBegin() + i_node;
-            auto &r_emb_nod_val = (mrBaseModelPart.GetNode(it_node->Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable);
+            auto &r_emb_nod_val = (mrBaseModelPart.GetNode(it_node->Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable, mBufferPosition);
             r_emb_nod_val = it_node->FastGetSolutionStepValue(rUnknownVariable);
         }
     }
@@ -469,9 +554,9 @@ protected:
                                     r_int_obj.GetGeometry().PointLocalCoordinates(local_coords, intersection_point);
                                     r_int_obj.GetGeometry().ShapeFunctionsValues(int_obj_N, local_coords);
                                     for (unsigned int i_node = 0; i_node < r_int_obj.GetGeometry().PointsNumber(); ++i_node) {
-                                        i_edge_val += r_int_obj.GetGeometry()[i_node].FastGetSolutionStepValue(mrSkinVariable) * int_obj_N[i_node];
+                                        i_edge_val += r_int_obj.GetGeometry()[i_node].FastGetSolutionStepValue(mrSkinVariable, mBufferPosition) * int_obj_N[i_node];
                                     }
-                                    i_edge_d = norm_2(intersection_point - r_i_edge_geom[0]) / r_i_edge_geom.Length();
+                                    i_edge_d += norm_2(intersection_point - r_i_edge_geom[0]) / r_i_edge_geom.Length();
                                 }
                             }
 
@@ -513,23 +598,13 @@ protected:
 
     void SetLinearStrategy()
     {
-        // Create the CG linear solver (take advantage of the symmetry of the problem)
-        Parameters linear_solver_parameters(R"({
-            "solver_type": "cg_solver",
-            "tolerance": 1.0e-8,
-            "max_iteration": 200,
-            "preconditioner_type": "none",
-            "scaling": false
-        })");
-        auto p_linear_solver = Kratos::make_shared<CGSolver<TSparseSpace, TDenseSpace>>(linear_solver_parameters);
-
         // Create the linear strategy
         SchemePointerType p_scheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>>();
 
         bool calculate_norm_dx = false;
         bool calculate_reactions = false;
         bool reform_dof_at_each_iteration = false;
-        BuilderSolverPointerType p_builder_and_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>>(p_linear_solver);
+        BuilderSolverPointerType p_builder_and_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>>(mpLinearSolver);
 
         Model &current_model = mrBaseModelPart.GetModel();
         ModelPart &r_aux_model_part = current_model.GetModelPart(mAuxModelPartName);
@@ -537,7 +612,7 @@ protected:
         mpSolvingStrategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>(
             r_aux_model_part,
             p_scheme,
-            p_linear_solver,
+            mpLinearSolver,
             p_builder_and_solver,
             calculate_reactions,
             reform_dof_at_each_iteration,
@@ -560,6 +635,33 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
+    /**
+     * @brief Construct a new Calculate Embedded Nodal Variable From Skin Process object
+     * Constructor with background and skin model parts as well as json settings. This
+     * constructor is intentionally protected to avoid exposing it to the user since it
+     * is intended to serve as an auxiliar constructor to bridge from the model and
+     * parameters one, which checks the provided settings with the defaults, to the "old
+     * fashioned" one. This allows keeping the member variables as const as well as to
+     * have a unique implementation of the constructor required checks and operations.
+     * @param rBaseModelPart Background mesh model part reference
+     * @param rSkinModelPart Embedded skin model part reference
+     * @param rSettings Settings json string
+     */
+    CalculateEmbeddedNodalVariableFromSkinProcess(
+        ModelPart &rBaseModelPart,
+        ModelPart &rSkinModelPart,
+        Parameters rSettings)
+        : CalculateEmbeddedNodalVariableFromSkinProcess(
+            rBaseModelPart,
+            rSkinModelPart,
+            rSettings["linear_solver_settings"],
+            KratosComponents<Variable<TVarType>>::Get(rSettings["skin_variable_name"].GetString()),
+            KratosComponents<Variable<TVarType>>::Get(rSettings["embedded_nodal_variable_name"].GetString()),
+            rSettings["level_set_type"].GetString(),
+            rSettings["buffer_position"].GetInt(),
+            rSettings["aux_model_part_name"].GetString())
+    {
+    }
 
     ///@}
 private:
@@ -583,7 +685,7 @@ private:
 
     void CalculateIntersections()
     {
-        mpFindIntersectedGeometricalObjectsProcess = Kratos::make_shared<FindIntersectedGeometricalObjectsProcess>(mrBaseModelPart, mrSkinModelPart);
+        mpFindIntersectedGeometricalObjectsProcess = Kratos::make_unique<FindIntersectedGeometricalObjectsProcess>(mrBaseModelPart, mrSkinModelPart);
         mpFindIntersectedGeometricalObjectsProcess->Initialize();
         mpFindIntersectedGeometricalObjectsProcess->FindIntersections();
     }
