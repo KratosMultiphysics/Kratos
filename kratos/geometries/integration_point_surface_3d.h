@@ -178,61 +178,19 @@ public:
         const PointsArrayType& ThisPoints,
         const CoordinatesArrayType& rLocalCoordinates,
         const double& rIntegrationWeight,
-        Matrix& rShapeFunctions)
+        ShapeFunctionsDerivativesVectorType& rShapeFunctionsDerivativesVector)
         : BaseType( ThisPoints, nullptr )
     {
+        msGeometryData = GeometryData(3, 3, 2);
+
+        mpGeometryData = &msGeometryData;
+
         IntegrationPoint(rLocalCoordinates[0], rLocalCoordinates[1], rIntegrationWeight);
 
-        IntegrationPoints = IntegrationPointsContainerType(1);
+        IntegrationPointsContainerType IntegrationPoints = IntegrationPointsContainerType(1);
         IntegrationPoints[0] = IntegrationPoint;
 
-        msGeometryData.IntegrationPoints(IntegrationPoints);
-
-        KRATOS_ERROR_IF(rShapeFunctions.size2() != ThisPoints.size()) <<
-            "Length of shape function array in matrix does not fit to number of points. Length of point vector: " << ThisPoints.size()
-            << " Length of corresponding shape function vector: " << rShapeFunctions.size2() << std::endl;
-
-        // shape functions
-        if (rShapeFunctions.size1() > 0)
-        {
-            Matrix ShapeFunctionsValues = ZeroMatrix(1, PointsNumber());
-            for (IndexType i = 0; i < PointsNumber(); ++i)
-            {
-                ShapeFunctionsValues(0, i) = rShapeFunctions(0, i);
-            }
-            msGeometryData.ShapeFunctionsValues(ShapeFunctionsValues);
-        }
-
-        // first derivatives/ gradients
-        if (rShapeFunctions.size1() > 2)
-        {
-            ShapeFunctionsGradientsType ShapeFunctionsLocalGradients(1);
-            Matrix ShapeFunctionsLocalGradientsIntegrationPoint = ZeroMatrix(2, PointsNumber());
-            for (IndexType i = 0; i < PointsNumber(); ++i)
-            {
-                ShapeFunctionsLocalGradientsIntegrationPoint(i, 0) = rShapeFunctions(1, i);
-                ShapeFunctionsLocalGradientsIntegrationPoint(i, 1) = rShapeFunctions(2, i);
-            }
-            ShapeFunctionsLocalGradients.push_back(ShapeFunctionsLocalGradientsIntegrationPoint);
-            msGeometryData.ShapeFunctionsLocalGradients(ShapeFunctionsLocalGradients);
-        }
-
-        // for higher order shape functions
-        if (rShapeFunctions.size1() > 3)
-        {
-            Matrix ShapeFunctionsDerivatives = ZeroMatrix(rShapeFunctions.size1() - 3, PointsNumber());
-            for (IndexType i = 0; i < PointsNumber(); ++i)
-            {
-                for (IndexType j = 0; j < rShapeFunctions.size1() - 3; ++j)
-                {
-                    ShapeFunctionsLocalGradientsIntegrationPoint(i, j) = rShapeFunctions(1, j + 3 );
-                }
-            }
-            ShapeFunctionsLocalGradients.push_back(ShapeFunctionsLocalGradientsIntegrationPoint);
-            msGeometryData.ShapeFunctionsLocalGradients(ShapeFunctionsLocalGradients);
-
-            mShapeFunctions = rShapeFunctions;
-        }
+        msGeometryData.SetGeometryData(IntegrationPoints, rShapeFunctionsDerivativesVector);
     }
 
     /**
@@ -401,7 +359,7 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    static const GeometryData msGeometryData;
+    const GeometryData msGeometryData;
 
     /** This member holds the higher order shape function derivatives */
     Matrix mShapeFunctions;
@@ -459,14 +417,14 @@ template<class TPointType> inline std::ostream& operator << (
     return rOStream;
 }
 
-template<class TPointType>
-const GeometryData IntegrationPointSurface3d<TPointType>::msGeometryData(3,
-    3,
-    2,
-    GeometryData::GI_GAUSS_1,
-    {},
-    {},
-    {});
+//template<class TPointType>
+//const GeometryData IntegrationPointSurface3d<TPointType>::msGeometryData(3,
+//    3,
+//    2,
+//    GeometryData::GI_GAUSS_1,
+//    {},
+//    {},
+//    {});
 
 }  // namespace Kratos.
 

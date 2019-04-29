@@ -179,6 +179,39 @@ public:
      */
     typedef DenseVector<DenseVector<Matrix> > ShapeFunctionsThirdDerivativesType;
 
+    /**
+    * Derivative type of any order of derivative. Also for shape functions.
+    * The matrix is (derivative direction, corresponding)
+    */
+    typedef Matrix ShapeFunctionsDerivativesType;
+
+    /**
+    * Derivative type of any order of derivative. Also for shape functions.
+    * DenseVector: each respective integration point is accessed.
+    *  Matrix: (derivative direction, corresponding)
+    */
+    typedef DenseVector<ShapeFunctionsDerivativesType> ShapeFunctionsDerivativesIntegrationPointsType;
+
+    /**
+    * Vector of derivatives until any order of derivative, including for shape functions.
+    * In the first DenseVector the order of derivative is adressed.
+    * Within the second DenseVector each respective integration point is accessed.
+    * The matrix is (derivative direction, corresponding)
+    */
+    typedef DenseVector<ShapeFunctionsDerivativesIntegrationPointsType> ShapeFunctionsDerivativesVectorType;
+
+    /**
+    * This container holds all derivatives including shape functions of
+    * each integration point.
+    * Array: the integration method is accessed.
+    *  @see ShapeFunctionsDerivativesVectorType:
+    *  DenseVector: the order of derivative is adressed.
+    *   @see ShapeFunctionsDerivativesType:
+    *   DenseVector: each respective integration point.
+    *    Matrix: (derivative direction, corresponding)
+    */
+    typedef std::array<ShapeFunctionsDerivativesVectorType, NumberOfIntegrationMethods> ShapeFunctionsDerivativesContainerType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -263,6 +296,11 @@ public:
     {
     }
 
+    /** Constructor.
+    Construct with only dimensional data (Dimension, WorkingSpaceDimension
+    and LocalSpaceDimension. If needed, integration points and 
+    shape functions will have to be added separately.
+    */
     GeometryData(SizeType ThisDimension,
         SizeType ThisWorkingSpaceDimension,
         SizeType ThisLocalSpaceDimension)
@@ -317,6 +355,25 @@ public:
         mShapeFunctionsLocalGradients = rOther.mShapeFunctionsLocalGradients;
 
         return *this;
+    }
+
+    ///@}
+    ///@name set functions
+    ///@{
+
+    void SetGeometryData(
+        const IntegrationPointsContainerType& ThisIntegrationPoints,
+        const ShapeFunctionsDerivativesVectorType& ThisShapeFunctionsDerivativesVector)
+    {
+        for (SizeType i = 0; i < ThisShapeFunctionsDerivativesVector[mDefaultMethod].size(); ++i)
+        {
+            KRATOS_ERROR_IF(ThisIntegrationPoints[mDefaultMethod].size() != ThisShapeFunctionsDerivativesVector[i].size())
+                << "Number of integration points does not coincide with number of passed shape functions. Number of integration points: "
+                << ThisIntegrationPoints[mDefaultMethod].size() << ", Number of integration points in "
+                << i << "th derivation of evaluated shape functions: " << ThisShapeFunctionsDerivativesVector[i].size();
+        }
+        mIntegrationPoints = ThisIntegrationPoints;
+        mShapeFunctionsDerivativesContainer[mDefaultMethod] = ThisShapeFunctionsDerivativesVector;
     }
 
     ///@}
@@ -416,15 +473,6 @@ public:
         return mIntegrationPoints[ThisMethod].size();
     }
 
-    /** Set integration points by predefined integration points.
-
-    IntegrationPointsArrayType which is Vector of integration points
-    for default integrating method.
-    */
-    void IntegrationPoints(IntegrationPointsArrayType& IntegrationPoints)
-    {
-        mIntegrationPoints[mDefaultMethod] = IntegrationPoints;
-    }
 
     /** Integtation points for default integration
     method. This method just call IntegrationPoints(enum
@@ -456,19 +504,15 @@ public:
     ///@name Shape Function
     ///@{
 
-    /** This method sets the shape function values for all
-    integration points.
 
-    @param Matrix ShapeFunctionsValues of values of 
-    shape functions \f$ F_{ij} \f$ where i is the integration point
-    index and j is the shape function index. In other word component
-    \f$ f_{ij} \f$ is value of the shape function corresponding to 
-    node j evaluated in integration point i of default integration method.
-
-    */
-    void ShapeFunctionsValues(Matrix& ShapeFunctionsValues)
+    const ShapeFunctionsDerivativesIntegrationPointsType& ShapeFunctionsDerivativesIntegrationPoints(IndexType DerivativeOrder) const
     {
-        mShapeFunctionsValues[mDefaultMethod] = ShapeFunctionsValues;
+        return mShapeFunctionsDerivativesContainer[mDefaultMethod][DerivativeOrder];
+    }
+
+    const ShapeFunctionsDerivativesType& ShapeFunctionsDerivatives(IndexType DerivativeOrder, IndexType IntegrationPointIndex) const
+    {
+        return mShapeFunctionsDerivativesContainer[mDefaultMethod][DerivativeOrder][IntegrationPointIndex];
     }
 
     /** This method gives all shape functions values evaluated in all
@@ -583,21 +627,6 @@ public:
             KRATOS_ERROR << "No existing shape function value" << std::endl;
 
         return mShapeFunctionsValues[ThisMethod]( IntegrationPointIndex, ShapeFunctionIndex );
-    }
-
-    /** This method sets all shape functions gradients evaluated in all
-    integration points of default integration method.
-
-    @param shape functions' gradients \f$ F_{ijk} \f$ where i
-    is the integration point index and j is the shape function
-    index and k is local coordinate index. In other word
-    component \f$ f_{ijk} \f$ is k'th component of gradient of
-    the shape function corresponding to node j evaluated in
-    integration point i of default integration method.
-    */
-    void ShapeFunctionsLocalGradients(ShapeFunctionsGradientsType& ShapeFunctionsLocalGradients)
-    {
-        mShapeFunctionsLocalGradients[mDefaultMethod] = ShapeFunctionsLocalGradients;
     }
 
     /** This method gives all shape functions gradients evaluated in all
@@ -830,6 +859,8 @@ private:
     ShapeFunctionsValuesContainerType mShapeFunctionsValues;
 
     ShapeFunctionsLocalGradientsContainerType mShapeFunctionsLocalGradients;
+
+    ShapeFunctionsDerivativesContainerType mShapeFunctionsDerivativesContainer;
 
     ///@}
     ///@name Serialization
