@@ -70,7 +70,7 @@ public:
     ///@{
 
     /// Pointer definition of DistanceCalculationElementSimplex
-    KRATOS_CLASS_POINTER_DEFINITION(DistanceCalculationElementSimplex);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(DistanceCalculationElementSimplex);
 
     /// Node type (default is: Node<3>)
     typedef Node <3> NodeType;

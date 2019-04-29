@@ -102,7 +102,7 @@ namespace Kratos
             std::vector<NodeType::Pointer> geom(1);
             geom[0] = pnode;
             GeometryType::Pointer pgeom = Kratos::make_shared<GeometryType>(PointerVector<NodeType>{geom});
-            Element::Pointer pelem = Kratos::make_shared<TestElement>(1, pgeom, ThisResidualType);
+            Element::Pointer pelem = Kratos::make_intrusive<TestElement>(1, pgeom, ThisResidualType);
             ModelPart.AddElement(pelem);
             
             pnode->AddDof(DISPLACEMENT_X, REACTION_X);

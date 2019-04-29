@@ -63,7 +63,7 @@ PeriodicCondition& PeriodicCondition::operator =(PeriodicCondition const& rOther
 
 Condition::Pointer PeriodicCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return PeriodicCondition::Pointer(new PeriodicCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_intrusive< PeriodicCondition >(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 int PeriodicCondition::Check(const ProcessInfo& rCurrentProcessInfo)
