@@ -1587,9 +1587,7 @@ template<>
 void MmgUtilities<MMGLibrary::MMG2D>::InputMesh(const std::string& rOutputName)
 {
     const std::string mesh_name = rOutputName + ".mesh";
-
-    auto mesh_file = new char [mesh_name.length() + 1];
-    std::strcpy (mesh_file, mesh_name.c_str());
+    const char* mesh_file = mesh_name.c_str();
 
     // a)  Give the ouptut mesh name using MMG2D_Set_inputMeshName
     MMG2D_Set_inputMeshName(mMmgMesh,mesh_file);
@@ -1605,9 +1603,7 @@ template<>
 void MmgUtilities<MMGLibrary::MMG3D>::InputMesh(const std::string& rOutputName)
 {
     const std::string mesh_name = rOutputName + ".mesh";
-
-    auto mesh_file = new char [mesh_name.length() + 1];
-    std::strcpy (mesh_file, mesh_name.c_str());
+    const char* mesh_file = mesh_name.c_str();
 
     // a)  Give the ouptut mesh name using MMG3D_Set_inputMeshName
     MMG3D_Set_inputMeshName(mMmgMesh,mesh_file);
@@ -1623,9 +1619,7 @@ template<>
 void MmgUtilities<MMGLibrary::MMGS>::InputMesh(const std::string& rOutputName)
 {
     const std::string mesh_name = rOutputName + ".mesh";
-
-    auto mesh_file = new char [mesh_name.length() + 1];
-    std::strcpy (mesh_file, mesh_name.c_str());
+    const char* mesh_file = mesh_name.c_str();
 
     // a)  Give the ouptut mesh name using MMGS_Set_inputMeshName
     MMGS_Set_inputMeshName(mMmgMesh,mesh_file);
@@ -1641,9 +1635,7 @@ template<>
 void MmgUtilities<MMGLibrary::MMG2D>::InputSol(const std::string& rInputName)
 {
     const std::string sol_name = rInputName + ".sol";
-
-    auto sol_file = new char [sol_name.length() + 1];
-    std::strcpy (sol_file, sol_name.c_str());
+    const char* sol_file = sol_name.c_str();
 
     // a)  Give the ouptut mesh name using MMG2D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
     MMG2D_Set_inputSolName(mMmgMesh, mMmgSol, sol_file);
@@ -1659,9 +1651,7 @@ template<>
 void MmgUtilities<MMGLibrary::MMG3D>::InputSol(const std::string& rInputName)
 {
     const std::string sol_name = rInputName + ".sol";
-
-    auto sol_file = new char [sol_name.length() + 1];
-    std::strcpy (sol_file, sol_name.c_str());
+    const char* sol_file = sol_name.c_str();
 
     // a)  Give the ouptut mesh name using MMG3D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
     MMG3D_Set_inputSolName(mMmgMesh, mMmgSol, sol_file);
@@ -1677,9 +1667,7 @@ template<>
 void MmgUtilities<MMGLibrary::MMGS>::InputSol(const std::string& rInputName)
 {
     const std::string sol_name = rInputName + ".sol";
-
-    auto sol_file = new char [sol_name.length() + 1];
-    std::strcpy (sol_file, sol_name.c_str());
+    const char* sol_file = sol_name.c_str();
 
     // a)  Give the ouptut mesh name using MMGS_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
     MMGS_Set_inputSolName(mMmgMesh, mMmgSol, sol_file);
@@ -1699,9 +1687,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputMesh(
     )
 {
     const std::string mesh_name = rOutputName + "_step=" + std::to_string(Step) + (PostOutput ? ".o" : "") + ".mesh";
-
-    auto  mesh_file = new char [mesh_name.length() + 1];
-    std::strcpy (mesh_file, mesh_name.c_str());
+    const char* mesh_file = mesh_name.c_str();
 
     // a)  Give the ouptut mesh name using MMG2D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
     MMG2D_Set_outputMeshName(mMmgMesh,mesh_file);
@@ -1721,9 +1707,7 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputMesh(
     )
 {
     const std::string mesh_name = rOutputName + "_step=" + std::to_string(Step) + (PostOutput ? ".o" : "") + ".mesh";
-
-    auto  mesh_file = new char [mesh_name.length() + 1];
-    std::strcpy (mesh_file, mesh_name.c_str());
+    const char* mesh_file = mesh_name.c_str();
 
     // a)  Give the ouptut mesh name using MMG3D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
     MMG3D_Set_outputMeshName(mMmgMesh,mesh_file);
@@ -1743,9 +1727,7 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputMesh(
     )
 {
     const std::string mesh_name = rOutputName + "_step=" + std::to_string(Step) + (PostOutput ? ".o" : "") + ".mesh";
-
-    auto  mesh_file = new char [mesh_name.length() + 1];
-    std::strcpy (mesh_file, mesh_name.c_str());
+    const char* mesh_file = mesh_name.c_str();
 
     // a)  Give the ouptut mesh name using MMGS_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
     MMGS_Set_outputMeshName(mMmgMesh,mesh_file);
@@ -1765,9 +1747,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::OutputSol(
     )
 {
     const std::string sol_name = rOutputName + "_step=" + std::to_string(Step) + (PostOutput ? ".o" : "") + ".sol";
-
-    auto  sol_file = new char [sol_name.length() + 1];
-    std::strcpy (sol_file, sol_name.c_str());
+    const char* sol_file = sol_name.c_str();
 
     // a)  Give the ouptut sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
     MMG2D_Set_outputSolName(mMmgMesh, mMmgSol, sol_file);
@@ -1787,9 +1767,7 @@ void MmgUtilities<MMGLibrary::MMG3D>::OutputSol(
     )
 {
     const std::string sol_name = rOutputName + "_step=" + std::to_string(Step) + (PostOutput ? ".o" : "") + ".sol";
-
-    auto  sol_file = new char [sol_name.length() + 1];
-    std::strcpy (sol_file, sol_name.c_str());
+    const char* sol_file = sol_name.c_str();
 
     // a)  Give the ouptut sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
     MMG3D_Set_outputSolName(mMmgMesh, mMmgSol, sol_file);
@@ -1809,9 +1787,7 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputSol(
     )
 {
     const std::string sol_name = rOutputName + "_step=" + std::to_string(Step) + (PostOutput ? ".o" : "") + ".sol";
-
-    auto  sol_file = new char [sol_name.length() + 1];
-    std::strcpy (sol_file, sol_name.c_str());
+    const char* sol_file = sol_name.c_str();
 
     // a)  Give the ouptut sol name using MMGS_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
     MMGS_Set_outputSolName(mMmgMesh, mMmgSol, sol_file);
