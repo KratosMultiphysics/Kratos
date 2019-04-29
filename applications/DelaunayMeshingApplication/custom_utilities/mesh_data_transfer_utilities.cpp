@@ -1071,7 +1071,7 @@ void MeshDataTransferUtilities::TransferElementalValuesToElements(ModelPart& rMo
     }
 
     unsigned int id= i_elem.Id();
-    PointPointerType p_center =  Kratos::make_shared<PointType>(id,xc,yc,zc);
+    PointPointerType p_center =  Kratos::make_intrusive<PointType>(id,xc,yc,zc);
 
     // if ((*i_elem.base())->GetOptions().Is(Element::THERMAL))
     //   std::cout<<" is thermal "<<std::endl;
