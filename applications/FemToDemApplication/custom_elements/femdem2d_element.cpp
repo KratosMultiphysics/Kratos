@@ -303,8 +303,8 @@ void FemDem2DElement::CalculateElementalSystem(LocalSystemComponents& rLocalSyst
 		const Vector& integrated_stress_vector = (1.0 - damage_element) * predictive_stress_vector;
 
 		if (rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX)) {
-			//contributions to stiffness matrix calculated on the reference config
 
+			//contributions to stiffness matrix calculated on the reference config
 			const Matrix& C =  Values.GetConstitutiveMatrix();
 			MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 			Matrix tangent_tensor;
