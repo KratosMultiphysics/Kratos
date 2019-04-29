@@ -96,7 +96,7 @@ public:
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
     /// Definition of the output type
-    typedef typename std::conditional<TDim == 2, Quadrilateral2D4<Point>, Hexahedra3D8<Point> >::type  OutpuType;
+    typedef typename std::conditional<TDim == 2, Quadrilateral2D4<Point>, Hexahedra3D8<Point> >::type  OutputType;
 
     /// Counted pointer of OrientedBoundingBox
     KRATOS_CLASS_POINTER_DEFINITION( OrientedBoundingBox );
@@ -213,13 +213,13 @@ public:
      * @brief This method egnerates an equiavelent geometry (debugging)
      * @return Getting the OrientedBoundingBox geometry
      */
-    OutpuType GetEquivalentGeometry() const;
+    OutputType GetEquivalentGeometry() const;
 
     /**
      * @brief This method egnerates an equiavelent geometry (debugging)
      * @param rGeometry Geometry to rotate
      */
-    void GetEquivalentRotatedGeometry(OutpuType& rGeometry);
+    void GetEquivalentRotatedGeometry(OutputType& rGeometry);
 
     ///@}
     ///@name Access

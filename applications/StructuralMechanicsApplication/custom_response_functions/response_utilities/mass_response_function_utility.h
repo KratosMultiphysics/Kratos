@@ -137,7 +137,7 @@ public:
 		// \frac{dm_{total}}{dx}
 
 		// First gradients are initialized
-		VariableUtils().SetToZero_VectorVar(SHAPE_SENSITIVITY, mrModelPart.Nodes());
+		VariableUtils().SetHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
 
 		const std::size_t domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
