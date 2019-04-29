@@ -171,7 +171,7 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 	LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_RHS_VECTOR);
 
 	//Initialize sizes for the system components:
-	this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
+	this->InitializeSystemMatrices(rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags);
 
 	//Set Variables to Local system components
 	LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
@@ -288,7 +288,7 @@ void FemDem2DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 	//resizing as needed the LHS
 	unsigned int mat_size = number_of_nodes * (dimension) ; // water pressure
 
-	if ( rRightHandSideVector.size() != mat_size )
+	if (rRightHandSideVector.size() != mat_size )
 	rRightHandSideVector.resize(mat_size, false);
 
 	noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting LHS
