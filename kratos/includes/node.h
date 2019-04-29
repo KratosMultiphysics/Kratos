@@ -33,7 +33,7 @@
 #include "containers/variables_list_data_value_container.h"
 #include "utilities/indexed_object.h"
 #include "containers/flags.h"
-
+#include "intrusive_ptr/intrusive_ptr.hpp"
 #include "containers/weak_pointer_vector.h"
 
 #ifdef _OPENMP
@@ -69,7 +69,7 @@ class Element;
 /** The node class from Kratos is defined in this class
 */
 template<std::size_t TDimension, class TDofType = Dof<double> >
-class Node : public Point,  public IndexedObject, public Flags
+class Node : public Point,  public IndexedObject, public Flags, public std::intrusive_base<Node<TDimension,TDofType> >
 {
     class GetDofKey : public std::unary_function<TDofType, VariableData::KeyType>
     {
@@ -84,10 +84,13 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of Node
-    KRATOS_CLASS_POINTER_DEFINITION(Node);
+    //KRATOS_CLASS_POINTER_DEFINITION(Node);
 
     typedef Node<TDimension, TDofType> NodeType;
+
+    /// Pointer definition of Node
+    typedef Kratos::intrusive_ptr<NodeType> Pointer;
+    typedef Kratos::intrusive_weak_ptr<NodeType> WeakPointer;
 
     typedef Point BaseType;
 
@@ -106,6 +109,9 @@ public:
     typedef VariablesListDataValueContainer::BlockType BlockType;
 
     typedef Variable<double> DoubleVariableType;
+
+    typedef WeakPointerVector<NodeType > WeakPointerVectorType;
+
 
     ///@}
     ///@name Life Cycle
@@ -321,7 +327,7 @@ public:
 
     typename Node<TDimension>::Pointer Clone()
     {
-        Node<3>::Pointer p_new_node = Kratos::make_shared<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
+        Node<3>::Pointer p_new_node = Kratos::make_intrusive<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
         p_new_node->mSolutionStepsNodalData = this->mSolutionStepsNodalData;
 
         Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();
@@ -1200,8 +1206,8 @@ inline std::ostream& operator << (std::ostream& rOStream,
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
 
-KRATOS_DEFINE_VARIABLE(WeakPointerVector<Node<3> >, NEIGHBOUR_NODES)
-KRATOS_DEFINE_VARIABLE(WeakPointerVector<Node<3> >, FATHER_NODES)
+KRATOS_DEFINE_VARIABLE(Node<3>::WeakPointerVectorType, NEIGHBOUR_NODES)
+KRATOS_DEFINE_VARIABLE(Node<3>::WeakPointerVectorType, FATHER_NODES)
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT

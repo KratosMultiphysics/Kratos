@@ -24,9 +24,9 @@
 namespace Kratos
 {
 IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNodesProcess(
-        ModelPart& rMainModelPart,
-        Parameters ThisParameters
-        ) : mrModelPart(rMainModelPart)
+    ModelPart& rMainModelPart,
+    Parameters ThisParameters
+    ) : mrModelPart(rMainModelPart)
 {
     Parameters default_parameters = Parameters(R"(
     {
@@ -108,10 +108,9 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
     const auto it_elem_begin = r_elements_array.begin();
 
     // Auxiliar value
-    double det;
     Vector vector_J;
 
-    #pragma omp parallel for private(det, vector_J)
+    #pragma omp parallel for private( vector_J)
     for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
         auto it_elem = it_elem_begin + i;
 
@@ -129,28 +128,12 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
 
             // Definition of node coefficient
             Matrix node_coefficient(number_of_nodes, integration_points_number);
-            if (integration_points_number == 1) { // In case of just one GP the extrapolation it is just one
-                const array_1d<double, 3>& local_coordinates = integration_points[0].Coordinates();
-                Vector N( number_of_nodes );
+            Vector N( number_of_nodes );
+            for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
+                const array_1d<double, 3>& local_coordinates = integration_points[i_gauss_point].Coordinates();
                 r_this_geometry.ShapeFunctionsValues( N, local_coordinates );
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    node_coefficient(i_node, 0) = N[i_node];
-                }
-            } else { // Otherwise we need to build a matrix to invert or approximate the inverse
-                Matrix shape_function_matrix(integration_points_number, number_of_nodes);
-                for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                    const array_1d<double, 3>& local_coordinates = integration_points[i_gauss_point].Coordinates();
-                    Vector N( number_of_nodes );
-                    r_this_geometry.ShapeFunctionsValues( N, local_coordinates );
-                    for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                        shape_function_matrix(i_gauss_point, i_node) = N[i_node];
-                    }
-                }
-                if (integration_points_number == number_of_nodes) {
-                    MathUtils<double>::InvertMatrix(shape_function_matrix, node_coefficient, det);
-                } else { // TODO: Try to use the QR utility
-                    KRATOS_WARNING_IF("IntegrationValuesExtrapolationToNodesProcess", mEchoLevel > 0) << "Number of integration points higher than the number of nodes in element: " << it_elem->Id() << ". This is costly and could lose accuracy" << std::endl;
-                    MathUtils<double>::GeneralizedInvertMatrix(shape_function_matrix, node_coefficient, det);
+                    node_coefficient(i_node, i_gauss_point) = N[i_node];
                 }
             }
 
@@ -237,7 +220,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
         auto it_node = it_node_begin + i;
 
         const double average_variable_value = it_node->GetValue(*mpAverageVariable);
-        const double coeff_coincident_node = average_variable_value > std::numeric_limits<double>::epsilon() ? 1.0/it_node->GetValue(*mpAverageVariable) : 1.0;
+        const double coeff_coincident_node = std::abs(average_variable_value) > std::numeric_limits<double>::epsilon() ? 1.0/average_variable_value : 1.0;
 
         // We initialize the doubles values
         for ( const auto p_var : mDoubleVariable) {
