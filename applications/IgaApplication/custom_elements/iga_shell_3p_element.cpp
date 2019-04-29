@@ -28,7 +28,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        KRATOS_WATCH("start: Initialize")
+        // KRATOS_WATCH("start: Initialize")
         //Constitutive Law initialisation
         BaseDiscreteElement::Initialize();
 
@@ -49,14 +49,12 @@ namespace Kratos
     {
         KRATOS_TRY
         
-        // if (m_phi1 == 1)
-        // KRATOS_WATCH("here: CalculateAllStart");
-
+        // KRATOS_WATCH("here: CalculateAllStart")
         
         // definition of problem size
         const unsigned int number_of_nodes = GetGeometry().size();
         unsigned int mat_size = number_of_nodes * 3;
-
+        
         //set up properties for Constitutive Law
         ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
@@ -67,7 +65,7 @@ namespace Kratos
         //resizing as needed the LHS
         if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
         {
-            if (rLeftHandSideMatrix.size1() != mat_size)
+            if (rLeftHandSideMatrix.size1() != mat_size || rLeftHandSideMatrix.size2() != mat_size)
                 rLeftHandSideMatrix.resize(mat_size, mat_size);
             noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
         }
@@ -114,7 +112,7 @@ namespace Kratos
             
             //adding membrane contributions to the stiffness matrix
             CalculateAndAddKm(rLeftHandSideMatrix, BMembrane, constitutive_variables_membrane.D, integration_weight);
-            
+            // KRATOS_WATCH(BMembrane)
             // KRATOS_WATCH(rLeftHandSideMatrix)
 
             //adding curvature contributions to the stiffness matrix
@@ -134,7 +132,6 @@ namespace Kratos
         // RIGHT HAND SIDE VECTOR
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
-            // KRATOS_WATCH(BMembrane)
             // KRATOS_WATCH(constitutive_variables_membrane.S)
             
             // operation performed: rRightHandSideVector -= Weight*IntForce
@@ -144,7 +141,8 @@ namespace Kratos
             // KRATOS_WATCH(rRightHandSideVector)
         }
 
-        //KRATOS_WATCH(rLeftHandSideMatrix)
+        // KRATOS_WATCH(rLeftHandSideMatrix)
+        // KRATOS_WATCH("end: CalculateAll")
 
         KRATOS_CATCH("");
     }
@@ -272,9 +270,6 @@ namespace Kratos
         Vector strain_vector = ZeroVector(3);
         Vector curvature_vector = ZeroVector(3);
         
-        // if (m_phi1 == 1)
-        //    KRATOS_WATCH(mInitialMetric.Q);
-
         CalculateStrain(strain_vector, rActualMetric.gab);
         rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.Q, strain_vector);
         CalculateCurvature(curvature_vector, rActualMetric.curvature);
@@ -537,11 +532,11 @@ namespace Kratos
                         + rMetric.H(0, 2)*ddn[0] + rMetric.H(1, 2)*ddn[1] + rMetric.H(2, 2)*ddn[2];
 
                     rSecondVariationsCurvature.B11(r, s) = mInitialMetric.Q(0, 0)*ddK_cu[0] + mInitialMetric.Q(0, 1)*ddK_cu[1] + mInitialMetric.Q(0, 2)*ddK_cu[2];
-                    rSecondVariationsCurvature.B11(s, r) = rSecondVariationsCurvature.B11(r, s);
+                    // rSecondVariationsCurvature.B11(s, r) = rSecondVariationsCurvature.B11(r, s);
                     rSecondVariationsCurvature.B22(r, s) = mInitialMetric.Q(1, 0)*ddK_cu[0] + mInitialMetric.Q(1, 1)*ddK_cu[1] + mInitialMetric.Q(1, 2)*ddK_cu[2];
-                    rSecondVariationsCurvature.B22(s, r) = rSecondVariationsCurvature.B22(r, s);
+                    // rSecondVariationsCurvature.B22(s, r) = rSecondVariationsCurvature.B22(r, s);
                     rSecondVariationsCurvature.B12(r, s) = mInitialMetric.Q(2, 0)*ddK_cu[0] + mInitialMetric.Q(2, 1)*ddK_cu[1] + mInitialMetric.Q(2, 2)*ddK_cu[2];
-                    rSecondVariationsCurvature.B12(s, r) = rSecondVariationsCurvature.B12(r, s);
+                    // rSecondVariationsCurvature.B12(s, r) = rSecondVariationsCurvature.B12(r, s);
                 }
             }
         }

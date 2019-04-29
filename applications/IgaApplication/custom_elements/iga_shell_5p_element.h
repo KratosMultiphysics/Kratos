@@ -184,10 +184,10 @@ private:
         */
         MetricVariables(const unsigned int& rWorkingSpaceDimension = 3, const unsigned int& rStrainSize = 6)
         {
-            gab = ZeroVector(rStrainSize);
-            gab_con = ZeroVector(rStrainSize);
+            gab = ZeroVector(rWorkingSpaceDimension);
+            gab_con = ZeroVector(rWorkingSpaceDimension);
 
-            curvature = ZeroVector(rStrainSize);
+            curvature = ZeroVector(rWorkingSpaceDimension);
 
             J = ZeroMatrix(rWorkingSpaceDimension, rWorkingSpaceDimension);
             detJ = 1.0;
@@ -319,14 +319,14 @@ private:
         Matrix& rDw_alpha_Dbeta,
         const MetricVariables& rActualMetric);
 
-    void CalculateStrainHR(
-        Vector& rHRStrainVector,
+    void CalculateStrainRM(
+        Vector& rStrainVectorRM,
         const Vector& rShearDifferenceVector,
         const Vector& rg1,
         const Vector& rg2);
 
-    void CalculateCurvatureHR(
-        Vector& rHRCurvatureVector,
+    void CalculateCurvatureRM(
+        Vector& rCurvatureVectorRM,
         const Vector& rDw_D1,
         const Vector& rDw_D2,
         const Vector& rg1,
@@ -345,14 +345,14 @@ private:
         SecondVariations& rSecondVariationsCurvature,
         const MetricVariables& rMetric);
     
-    void CalculateBMembraneHR(
+    void CalculateBMembraneRM(
         Matrix& rB,
         const Vector& rShearDifferenceVector,
         const Vector& rw_alpha,
         const Vector& rg1,
         const Vector& rg2);    
     
-    void CalculateBCurvatureHR(
+    void CalculateBCurvatureRM(
         Matrix& rB,
         const Vector& rw_alpha,
         const Matrix& rDw_alpha_Dbeta,
@@ -360,18 +360,18 @@ private:
         const Vector& rDw_D2,
         const MetricVariables& rActualMetric);    
         
-    void CalculateSecondVariationStrainCurvatureHR(
-        SecondVariations& rSecondVariationsHRMembrane,
-        SecondVariations& rSecondVariationsHRCurvature,
+    void CalculateSecondVariationStrainCurvatureRM(
+        SecondVariations& rSecondVariationsMembraneRM,
+        SecondVariations& rSecondVariationsCurvatureRM,
         const Vector& rw_alpha,
         const Matrix& rDw_alpha_Dbeta,
         const MetricVariables& rActualMetric);
 
-    void CalculateVariationsHR(        
-        Matrix& rBHRMembrane,
-        Matrix& rBHRCurvature,
-        SecondVariations& rSecondVariationsHRMembrane,
-        SecondVariations& rSecondVariationsHRCurvature,
+    void CalculateVariationsRM(        
+        Matrix& rBMembraneRM,
+        Matrix& rBCurvatureRM,
+        SecondVariations& rSecondVariationsMembraneRM,
+        SecondVariations& rSecondVariationsCurvatureRM,
         const Vector& rShearDifferenceVector,
         const Vector& rDw_D1,
         const Vector& rDw_D2,

@@ -40,10 +40,10 @@ class OuputReactionProcess(KratosMultiphysics.Process):
         self.y_data_length_reactions = []
         self.y_data_length_reactions.append(0.0)
 
-        self.line1, = self.axarr[0].plot(self.x_data, self.y_data_x_reactions, 'b-')
+        self.line1, = self.axarr[0].plot(self.x_data, self.y_data_x_reactions, 'g')
         self.line2, = self.axarr[0].plot(self.x_data, self.y_data_y_reactions, 'b-')
         self.line3, = self.axarr[0].plot(self.x_data, self.y_data_z_reactions, 'b-')
-        self.line4, = self.axarr[0].plot(self.x_data, self.y_data_length_reactions, 'b-')
+        self.line4, = self.axarr[0].plot(self.x_data, self.y_data_length_reactions, 'r')
 
 
 
