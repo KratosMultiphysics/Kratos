@@ -19,6 +19,11 @@
 
 namespace Kratos {
 
+// Kratos patch
+#ifndef KRATOS_PATCH_VERSION
+#define KRATOS_PATCH_VERSION "0"
+#endif
+
 // GiT revision at configure
 #ifndef KRATOS_SHA1_NUMBER
 #define KRATOS_SHA1_NUMBER "0"
@@ -37,6 +42,10 @@ KRATOS_TO_STRING(KRATOS_MINOR_VERSION) "." \
 KRATOS_TO_STRING(KRATOS_PATCH_VERSION) "-" \
 KRATOS_SHA1_NUMBER "-" \
 KRATOS_BUILD_TYPE
+
+std::string GetPatchVersion() {
+    return KRATOS_PATCH_VERSION;
+}
 
 std::string GetCommitVersion() {
     return KRATOS_SHA1_NUMBER;

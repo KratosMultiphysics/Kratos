@@ -183,7 +183,6 @@ set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMP
 target_compile_definitions(KratosCore PRIVATE 
     KRATOS_MAJOR_VERSION=${KratosMultiphysics_MAJOR_VERSION}
     KRATOS_MINOR_VERSION=${KratosMultiphysics_MINOR_VERSION}
-    KRATOS_PATCH_VERSION=${KratosMultiphysics_PATCH_VERSION}
 )
 
 if (${AMGCL_GPGPU} MATCHES ON)

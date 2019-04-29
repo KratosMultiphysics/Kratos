@@ -22,17 +22,13 @@
 
 namespace Kratos {
 
-// Kratos Minor, major and patch
+// Kratos Minor and Major
 #ifndef KRATOS_MAJOR_VERSION
 #define KRATOS_MAJOR_VERSION 7
 #endif
 
 #ifndef KRATOS_MINOR_VERSION
 #define KRATOS_MINOR_VERSION 0
-#endif
-
-#ifndef KRATOS_PATCH_VERSION
-#define KRATOS_PATCH_VERSION 0
 #endif
 
 constexpr int GetMajorVersion() {
@@ -43,10 +39,7 @@ constexpr int GetMinorVersion() {
     return KRATOS_MINOR_VERSION;
 }
 
-constexpr int GetPatchVersion() {
-    return KRATOS_PATCH_VERSION;
-}
-
+KRATOS_API(KRATOS_VERSION) std::string GetPatchVersion();
 KRATOS_API(KRATOS_VERSION) std::string GetCommit();
 KRATOS_API(KRATOS_VERSION) std::string GetBuildType();
 KRATOS_API(KRATOS_VERSION) std::string GetVersionString();
