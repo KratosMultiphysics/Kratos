@@ -273,8 +273,23 @@ public:
      * @param rVariable reference to the scalar variable to be set
      * @param rNodes reference to the objective node set
      */
+    template< class TType , class TContainerType>
+    void SetNonHistoricalVariableToZero(
+        const Variable< TType >& rVariable,
+        TContainerType& rContainer)
+    {
+        KRATOS_TRY
+        this->SetNonHistoricalVariable(rVariable, rVariable.Zero(), rContainer);
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Sets the nodal value of any variable to zero
+     * @param rVariable reference to the scalar variable to be set
+     * @param rNodes reference to the objective node set
+     */
     template< class TType >
-    void SetNodalHistoricalVariableToZero(
+    void SetHistoricalVariableToZero(
         const Variable< TType >& rVariable,
         NodesContainerType& rNodes)
     {

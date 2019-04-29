@@ -130,9 +130,9 @@ public:
     void SetDeformationVariablesToZero()
     {
         if(mrModelPart.GetNodalSolutionStepVariablesList().Has(DISPLACEMENT))
-            VariableUtils().SetNodalHistoricalVariableToZero(DISPLACEMENT,mrModelPart.Nodes());
+            VariableUtils().SetHistoricalVariableToZero(DISPLACEMENT,mrModelPart.Nodes());
         if(mrModelPart.GetNodalSolutionStepVariablesList().Has(ROTATION))
-            VariableUtils().SetNodalHistoricalVariableToZero(ROTATION,mrModelPart.Nodes());
+            VariableUtils().SetHistoricalVariableToZero(ROTATION,mrModelPart.Nodes());
     }
 
     // --------------------------------------------------------------------------
