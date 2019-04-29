@@ -432,10 +432,10 @@ class ResidualBasedNewtonRaphsonStrategy
             #pragma omp parallel for firstprivate(it_begin)
             for(int i=0; i<static_cast<int>(BaseType::GetModelPart().MasterSlaveConstraints().size()); ++i)
                  (it_begin+i)->Apply(rProcessInfo);
-            
 
-            
-            //the following is needed since we need to eventually compute time derivatives after applying 
+
+
+            //the following is needed since we need to eventually compute time derivatives after applying
             //Master slave relations
             TSparseSpace::SetToZero(rDx);
             this->GetScheme()->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
@@ -557,13 +557,11 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         KRATOS_TRY;
 
-        if (mSolutionStepIsInitialized == false)
-        {
-            //pointers needed in the solution
+        if (!mSolutionStepIsInitialized) {
+            // Pointers needed in the solution
             typename TSchemeType::Pointer p_scheme = GetScheme();
             typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
-
-            const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+            ModelPart& r_model_part = BaseType::GetModelPart();
 
             //set up the system, operation performed just once unless it is required
             //to reform the dof set at each iteration
@@ -573,36 +571,48 @@ class ResidualBasedNewtonRaphsonStrategy
             {
                 //setting up the list of the DOFs to be solved
                 BuiltinTimer setup_dofs_time;
-                p_builder_and_solver->SetUpDofSet(p_scheme, BaseType::GetModelPart());
-                KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
+                KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0)
                     << setup_dofs_time.ElapsedSeconds() << std::endl;
 
                 //shaping correctly the system
                 BuiltinTimer setup_system_time;
-                p_builder_and_solver->SetUpSystem(BaseType::GetModelPart());
-                KRATOS_INFO_IF("Setup System Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                p_builder_and_solver->SetUpSystem(r_model_part);
+                KRATOS_INFO_IF("Setup System Time", BaseType::GetEchoLevel() > 0)
                     << setup_system_time.ElapsedSeconds() << std::endl;
 
                 //setting up the Vectors involved to the correct size
                 BuiltinTimer system_matrix_resize_time;
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
-                                                                 BaseType::GetModelPart());
-                KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+                                                                 r_model_part);
+                KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0)
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
             }
 
-            KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 && rank == 0)
+            KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0)
                 << system_construction_time.ElapsedSeconds() << std::endl;
 
             TSystemMatrixType& rA  = *mpA;
             TSystemVectorType& rDx = *mpDx;
             TSystemVectorType& rb  = *mpb;
 
-            //initial operations ... things that are constant over the Solution Step
-            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
+            // Initial operations ... things that are constant over the Solution Step
+            p_builder_and_solver->InitializeSolutionStep(r_model_part, rA, rDx, rb);
 
-            //initial operations ... things that are constant over the Solution Step
-            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rA, rDx, rb);
+            // Initial operations ... things that are constant over the Solution Step
+            p_scheme->InitializeSolutionStep(r_model_part, rA, rDx, rb);
+
+            // Initialisation of the convergence criteria
+            if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
+            {
+                TSparseSpace::SetToZero(rb);
+                p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+            }
+
+            mpConvergenceCriteria->InitializeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
+
+            if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
+                TSparseSpace::SetToZero(rb);
 
             mSolutionStepIsInitialized = true;
         }
@@ -667,23 +677,19 @@ class ResidualBasedNewtonRaphsonStrategy
         //initializing the parameters of the Newton-Raphson cycle
         unsigned int iteration_number = 1;
         BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
-        //			BaseType::GetModelPart().GetProcessInfo().SetNonLinearIterationNumber(iteration_number);
         bool is_converged = false;
         bool residual_is_updated = false;
         p_scheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
         is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), p_builder_and_solver->GetDofSet(), rA, rDx, rb);
 
-        //function to perform the building and the solving phase.
-        if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false)
-        {
+        // Function to perform the building and the solving phase.
+        if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false) {
             TSparseSpace::SetToZero(rA);
             TSparseSpace::SetToZero(rDx);
             TSparseSpace::SetToZero(rb);
 
             p_builder_and_solver->BuildAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
-        }
-        else
-        {
+        } else {
             TSparseSpace::SetToZero(rDx); //Dx=0.00;
             TSparseSpace::SetToZero(rb);
 
@@ -698,13 +704,8 @@ class ResidualBasedNewtonRaphsonStrategy
 
         p_scheme->FinalizeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 
-        if (is_converged == true)
-        {
-            //initialisation of the convergence criteria
-            mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), p_builder_and_solver->GetDofSet(), rA, rDx, rb);
-
-            if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
-            {
+        if (is_converged) {
+            if (mpConvergenceCriteria->GetActualizeRHSflag()) {
                 TSparseSpace::SetToZero(rb);
 
                 p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), rb);
@@ -785,8 +786,13 @@ class ResidualBasedNewtonRaphsonStrategy
         }
 
         //plots a warning if the maximum number of iterations is exceeded
-        if (iteration_number >= mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+        if (iteration_number >= mMaxIterationNumber) {
             MaxIterationsExceeded();
+        } else {
+            KRATOS_INFO_IF("NR-Strategy", this->GetEchoLevel() > 0)
+                << "Convergence achieved after " << iteration_number << " / "
+                << mMaxIterationNumber << " iterations" << std::endl;
+        }
 
         //recalculate residual if needed
         //(note that some convergence criteria need it to be recalculated)
@@ -1061,17 +1067,13 @@ class ResidualBasedNewtonRaphsonStrategy
 
     /**
      * @brief This method prints information after reach the max number of iterations
-     * @todo Replace by logger
      */
 
     virtual void MaxIterationsExceeded()
     {
-        if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
-        {
-            std::cout << "***************************************************" << std::endl;
-            std::cout << "******* ATTENTION: max iterations exceeded ********" << std::endl;
-            std::cout << "***************************************************" << std::endl;
-        }
+        KRATOS_INFO_IF("NR-Strategy", this->GetEchoLevel() > 0)
+            << "ATTENTION: max iterations ( " << mMaxIterationNumber
+            << " ) exceeded!" << std::endl;
     }
 
     ///@}

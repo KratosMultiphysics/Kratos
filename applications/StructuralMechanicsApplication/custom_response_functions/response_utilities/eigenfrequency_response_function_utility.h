@@ -136,7 +136,7 @@ public:
     void CalculateGradient()
     {
         CheckIfAllNecessaryEigenvaluesAreComputed();
-        VariableUtils().SetToZero_VectorVar(SHAPE_SENSITIVITY, mrModelPart.Nodes());
+        VariableUtils().SetHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
         PerformSemiAnalyticSensitivityAnalysis();
     }
 
@@ -293,7 +293,7 @@ protected:
             for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
                 DetermineEigenvectorOfElement(elem_i, mTracedEigenfrequencyIds[i], eigenvectors_of_element[i], CurrentProcessInfo);
 
-            const std::vector<ElementFiniteDifferenceUtility::array_1d_component_type> coord_directions = {SHAPE_X, SHAPE_Y, SHAPE_Z};
+            const std::vector<ElementFiniteDifferenceUtility::array_1d_component_type> coord_directions = {SHAPE_SENSITIVITY_X, SHAPE_SENSITIVITY_Y, SHAPE_SENSITIVITY_Z};
 
             // Computation of derivative of state equation w.r.t. node coordinates
             for(auto& node_i : elem_i.GetGeometry())

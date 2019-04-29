@@ -22,7 +22,6 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/hexahedra_3d_8.h"
-#include "geometries/line_2d.h"
 #include "includes/variables.h"
 
 #include "topology_optimization_application.h"

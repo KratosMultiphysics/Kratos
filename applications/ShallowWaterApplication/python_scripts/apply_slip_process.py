@@ -1,5 +1,4 @@
 import KratosMultiphysics
-import KratosMultiphysics.ShallowWaterApplication as KratosShallow
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -33,3 +32,7 @@ class ApplySlipProcess(KratosMultiphysics.Process):
             node.SetValue(KratosMultiphysics.IS_STRUCTURE,1.0)
             node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0,1.0)
             node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,0,[0.0, 0.0, 0.0])
+
+    def ExecuteInitializeSolutionStep(self):
+        KratosMultiphysics.VariableUtils().SetVectorVar(KratosMultiphysics.IS_STRUCTURE, 0.0, self.model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVectorVar(KratosMultiphysics.MESH_VELOCITY, [0.0, 0.0, 0.0], self.model_part.Nodes)

@@ -73,17 +73,17 @@ public:
 
     /**
      * @brief It computes the intersection between two metrics
-     * @param Metric1 The first metric
-     * @param Metric2 The second metric
+     * @param rMetric1 The first metric
+     * @param rMetric2 The second metric
      * @return The intersected metric
      */
     static inline TensorArrayType IntersectMetrics(
-        const TensorArrayType& Metric1,
-        const TensorArrayType& Metric2
+        const TensorArrayType& rMetric1,
+        const TensorArrayType& rMetric2
         )
     {
-        const MatrixType& metric1_matrix = MathUtils<double>::VectorToSymmetricTensor<TensorArrayType, MatrixType>(Metric1);
-        const MatrixType& metric2_matrix = MathUtils<double>::VectorToSymmetricTensor<TensorArrayType, MatrixType>(Metric2);
+        const MatrixType metric1_matrix = MathUtils<double>::VectorToSymmetricTensor<TensorArrayType, MatrixType>(rMetric1);
+        const MatrixType metric2_matrix = MathUtils<double>::VectorToSymmetricTensor<TensorArrayType, MatrixType>(rMetric2);
 
         MatrixType auxmat, emat;
 
@@ -92,23 +92,26 @@ public:
         MathUtils<double>::InvertMatrix(metric1_matrix, inv_metric1_matrix, auxdet);
         const MatrixType n_matrix = prod(inv_metric1_matrix, metric2_matrix);
 
-        MathUtils<double>::EigenSystem<TDim>(n_matrix, emat, auxmat, 1e-18, 20);
+        MathUtils<double>::GaussSeidelEigenSystem(n_matrix, emat, auxmat, 1e-18, 20);
 
-        typedef MatrixType temp_type;
-        const MatrixType lambdamat =  prod(trans(emat), prod<temp_type>(metric1_matrix, emat));
-        const MatrixType mumat =  prod(trans(emat), prod<temp_type>(metric2_matrix, emat));
+        MatrixType lambdamat;
+        MathUtils<double>::BDBtProductOperation(lambdamat, metric1_matrix, emat);
+        MatrixType mumat;
+        MathUtils<double>::BDBtProductOperation(mumat, metric2_matrix, emat);
 
-        for (std::size_t i = 0; i < TDim; ++i)
+        for (std::size_t i = 0; i < TDim; ++i) {
             auxmat(i, i) = MathUtils<double>::Max(lambdamat(i, i), mumat(i, i));
+        }
 
         MatrixType invemat;
         MathUtils<double>::InvertMatrix(emat, invemat, auxdet);
 
-        MatrixType IntersectionMatrix =  prod(trans(invemat), prod<temp_type>(auxmat, invemat));
+        MatrixType intersection_matrix;
+        MathUtils<double>::BDBtProductOperation(intersection_matrix, auxmat, invemat);
 
-        const TensorArrayType& Intersection = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(IntersectionMatrix);
+        const TensorArrayType intersection = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(intersection_matrix);
 
-        return Intersection;
+        return intersection;
     }
 
     ///@}
