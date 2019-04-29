@@ -55,11 +55,11 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_ValidProjectionExists, Kra
 
     NearestElementInterfaceInfo nearest_element_info(coords, source_local_sys_idx, 0);
 
-    auto node_1(Kratos::make_shared<NodeType>(1, 0.0, 0.0, 0.0));
-    auto node_2(Kratos::make_shared<NodeType>(2, 1.0, 0.0, 0.0));
-    auto node_3(Kratos::make_shared<NodeType>(3, 1.0, 1.0, 0.0));
-    auto node_4(Kratos::make_shared<NodeType>(4, 0.0, -1.0, 0.0));
-    auto node_5(Kratos::make_shared<NodeType>(5, 2.0, -1.0, 0.0));
+    auto node_1(Kratos::make_intrusive<NodeType>(1, 0.0, 0.0, 0.0));
+    auto node_2(Kratos::make_intrusive<NodeType>(2, 1.0, 0.0, 0.0));
+    auto node_3(Kratos::make_intrusive<NodeType>(3, 1.0, 1.0, 0.0));
+    auto node_4(Kratos::make_intrusive<NodeType>(4, 0.0, -1.0, 0.0));
+    auto node_5(Kratos::make_intrusive<NodeType>(5, 2.0, -1.0, 0.0));
 
     const Geometry<NodeType>::Pointer tria_1(Kratos::make_shared<Triangle3D3<NodeType>>(node_1, node_2, node_3));
     const Geometry<NodeType>::Pointer tria_2(Kratos::make_shared<Triangle3D3<NodeType>>(node_4, node_2, node_1));
@@ -112,9 +112,9 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Approximation, KratosMappi
 
     NearestElementInterfaceInfo nearest_element_info(coords, source_local_sys_idx, 0);
 
-    auto node_1(Kratos::make_shared<NodeType>(1, 0.0, 0.0, 0.0));
-    auto node_2(Kratos::make_shared<NodeType>(2, 1.0, 0.0, 0.0));
-    auto node_3(Kratos::make_shared<NodeType>(3, 1.0, 1.0, 0.0));
+    auto node_1(Kratos::make_intrusive<NodeType>(1, 0.0, 0.0, 0.0));
+    auto node_2(Kratos::make_intrusive<NodeType>(2, 1.0, 0.0, 0.0));
+    auto node_3(Kratos::make_intrusive<NodeType>(3, 1.0, 1.0, 0.0));
 
     const Geometry<NodeType>::Pointer tria_1(Kratos::make_shared<Triangle3D3<NodeType>>(node_1, node_2, node_3));
 
@@ -181,9 +181,9 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Serialization, KratosMappi
 
     NearestElementInterfaceInfo nearest_element_info(coords, source_local_sys_idx, 0);
 
-    auto node_1(Kratos::make_shared<NodeType>(1, 0.0, 0.0, 0.0));
-    auto node_2(Kratos::make_shared<NodeType>(2, 1.0, 0.0, 0.0));
-    auto node_4(Kratos::make_shared<NodeType>(4, 0.0, -1.0, 0.0));
+    auto node_1(Kratos::make_intrusive<NodeType>(1, 0.0, 0.0, 0.0));
+    auto node_2(Kratos::make_intrusive<NodeType>(2, 1.0, 0.0, 0.0));
+    auto node_4(Kratos::make_intrusive<NodeType>(4, 0.0, -1.0, 0.0));
 
     const Geometry<NodeType>::Pointer tria_2(Kratos::make_shared<Triangle3D3<NodeType>>(node_4, node_2, node_1));
 
