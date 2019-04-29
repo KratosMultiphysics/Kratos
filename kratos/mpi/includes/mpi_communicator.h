@@ -1164,6 +1164,17 @@ public:
         return true;
     }
 
+    bool SynchronizeElementalFlags() override
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        MPIInternals::ElementalFlagsAccess elemental_flags_access(Flags::AllDefined());
+        constexpr Operation<OperationType::Replace> replace;
+
+        TransferDistributedValues(local_meshes, ghost_meshes, elemental_flags_access, replace);
+        return true;
+    }
+
     /////////////////////////////////////////////////////////////////////////////
 
     ///@}
@@ -1339,72 +1350,6 @@ private:
 
         std::cout << std::endl;
     }
-
-    bool SynchronizeElementalFlags() override
-    {
-        int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-        int destination = 0;
-
-        NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
-
-        int size_of_flags = sizeof (Flags) / sizeof (double);
-
-        for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++) {
-            if ((destination = neighbours_indices[i_color]) >= 0) {
-
-                ElementsContainerType& r_local_elements = LocalMesh(i_color).Elements();
-                ElementsContainerType& r_ghost_elements = GhostMesh(i_color).Elements();
-                unsigned int local_elements_size = r_local_elements.size();
-                unsigned int ghost_elements_size = r_ghost_elements.size();
-
-                if ((local_elements_size == 0) && (ghost_elements_size == 0))
-                    continue; // nothing to transfer!
-
-                unsigned int send_buffer_size = size_of_flags * local_elements_size;
-                unsigned int receive_buffer_size = size_of_flags * ghost_elements_size;
-
-                double* send_buffer = new double[send_buffer_size];
-                double* receive_buffer = new double[receive_buffer_size];
-
-                // Filling the send buffer
-                unsigned int position = 0;
-                for (ModelPart::ElementIterator i_element = r_local_elements.begin(); i_element != r_local_elements.end(); ++i_element) {
-                    Flags aux_flags = *i_element;
-                    *(Flags*) (send_buffer + position) = aux_flags;
-                    position += size_of_flags;
-                }
-
-                double dummy_double_value = 0.0;
-                MPI_Datatype ThisMPI_Datatype = MPIInternals::DataType(dummy_double_value);
-
-                MPI_Status status1;
-
-                int send_tag = i_color;
-                int receive_tag = i_color;
-
-                MPI_Sendrecv(send_buffer, send_buffer_size, ThisMPI_Datatype, destination, send_tag, receive_buffer, receive_buffer_size, ThisMPI_Datatype, destination, receive_tag, MPI_COMM_WORLD, &status1);
-
-                position = 0;
-
-                for (ModelPart::ElementIterator i_element = r_ghost_elements.begin(); i_element != r_ghost_elements.end(); ++i_element) {
-                    Flags aux_flags = *reinterpret_cast<Flags*> (receive_buffer + position);
-                    i_element->AssignFlags(aux_flags);
-                    position += size_of_flags;
-
-                }
-
-                if (position > receive_buffer_size) { std::cout << rank << " Error in estimating receive buffer size when synchronizing Element Flags..." << std::endl; }
-
-                delete [] send_buffer;
-                delete [] receive_buffer;
-            }
-        }
-        return true;
-
-    }
-
 
     template<class TObjectType>
     bool AsyncSendAndReceiveObjects(std::vector<TObjectType>& SendObjects, std::vector<TObjectType>& RecvObjects, Kratos::Serializer& externParticleSerializer)
