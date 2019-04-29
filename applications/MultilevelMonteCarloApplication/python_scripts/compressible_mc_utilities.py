@@ -198,7 +198,7 @@ class MonteCarlo(object):
             "run_monte_carlo" : "True",
             "tolerance"  : 1e-1,
             "confidence" : 9e-1,
-            "batch_size" : 50,
+            "batch_size" : 25,
             "initial_number_batches" : 1,
             "convergence_criteria" : "MC_sample_variance_sequential_stopping_rule"
         }
