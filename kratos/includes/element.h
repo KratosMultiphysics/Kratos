@@ -63,7 +63,8 @@ public:
     ///@name Type Definitions
     ///@{
     /// Pointer definition of Element
-    KRATOS_CLASS_POINTER_DEFINITION(Element);
+    typedef Kratos::intrusive_ptr<Element> Pointer;
+    typedef Kratos::intrusive_weak_ptr<Element> WeakPointer;
 
     ///definition of element type
     typedef Element ElementType;
@@ -223,7 +224,7 @@ public:
     {
         KRATOS_TRY
         KRATOS_ERROR << "Please implement the First Create method in your derived Element" << Info() << std::endl;
-        return Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<Element>(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -240,7 +241,7 @@ public:
     {
         KRATOS_TRY
         KRATOS_ERROR << "Please implement the Second Create method in your derived Element" << Info() << std::endl;
-        return Kratos::make_shared<Element>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<Element>(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
@@ -255,7 +256,7 @@ public:
     {
         KRATOS_TRY
         KRATOS_WARNING("Element") << " Call base class element Clone " << std::endl;
-        Element::Pointer p_new_elem = Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+        Element::Pointer p_new_elem = Kratos::make_intrusive<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
         p_new_elem->SetData(this->GetData());
         p_new_elem->Set(Flags(*this));
         return p_new_elem;
