@@ -388,6 +388,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(ACCUMULATED_PLASTIC_STRAIN)
     KRATOS_REGISTER_VARIABLE(BACK_STRESS_VECTOR)
     KRATOS_REGISTER_VARIABLE(BACK_STRESS_TENSOR)
+    KRATOS_REGISTER_VARIABLE(HARDENING_MODULI_VECTOR)
 
     // D+D- Damage Constitutive laws variables
     KRATOS_REGISTER_VARIABLE(DAMAGE_TENSION)
@@ -417,6 +418,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_DISPLACEMENT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_ROTATION)
     KRATOS_REGISTER_VARIABLE(PERTURBATION_SIZE)
+    KRATOS_REGISTER_VARIABLE(ADAPT_PERTURBATION_SIZE)
 
     // Variables for output of sensitivities
     KRATOS_REGISTER_VARIABLE( CROSS_AREA_SENSITIVITY );
@@ -553,7 +555,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement2D6N", mTotalLagrangianAdjoint2D6N)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement3D4N", mTotalLagrangianAdjoint3D4N)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement3D8N", mTotalLagrangianAdjoint3D8N)
-    
+
     // Register the conditions
     // Point loads
     KRATOS_REGISTER_CONDITION("PointLoadCondition2D1N", mPointLoadCondition2D1N)

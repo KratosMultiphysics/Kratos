@@ -150,7 +150,7 @@ private:
     void CheckProperties(const ProcessInfo& rCurrentProcessInfo) const;
     void CheckSpecificProperties() const;
 
-    double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
+    double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) const override;
 
     ///@}
     ///@}
