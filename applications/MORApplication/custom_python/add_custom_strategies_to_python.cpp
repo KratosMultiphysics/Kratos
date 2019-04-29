@@ -30,8 +30,10 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/custom_strategies/linear_mor_matrix_output_strategy.hpp"
 #include "custom_strategies/custom_strategies/mor_offline_strategy.hpp"
+#include "custom_strategies/custom_strategies/mor_offline_second_order_strategy.hpp"
 #include "custom_strategies/custom_strategies/mor_online_strategy.hpp"
 #include "custom_strategies/custom_strategies/frequency_response_analysis_strategy.hpp"
+#include "custom_strategies/custom_strategies/mor_second_order_krylov_strategy.hpp"
 
 // Builders and solvers
 #include "custom_strategies/custom_builder_and_solvers/system_matrix_builder_and_solver.hpp"
@@ -55,13 +57,17 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-    typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
 
     // Custom strategy types
     typedef LinearMorMatrixOutputStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > LinearMorMatrixOutputStrategyType;
     typedef MorOnlineStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType > MorOnlineStrategyType;
 	typedef MorOfflineStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOfflineStrategyType;
     typedef FrequencyResponseAnalysisStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType > FrequencyResponseAnalysisStrategyType;
+    typedef MorOnlineStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOnlineStrategyType;
+    typedef MorOfflineSecondOrderStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOfflineSecondOrderStrategyType;
+
+    typedef MorOfflineStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOfflineStrategyType;
+    typedef MorSecondOrderKrylovStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorSecondOrderKrylovStrategyType;
 
     // Custom builder and solver types
     typedef SystemMatrixBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > SystemMatrixBuilderAndSolverType;
@@ -76,10 +82,18 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_< MorOnlineStrategyType, typename MorOnlineStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorOnlineStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, BuilderAndSolverPointer, BaseSolvingStrategyType::Pointer, vector<double>, bool >())
+        .def(py::init < ModelPart&, LinearSolverPointer, MorOfflineSecondOrderStrategyType::Pointer >())
         ;
 
-    py::class_< MorOfflineStrategyType, typename MorOfflineStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorOfflineStrategy")
+    py::class_< MorOfflineSecondOrderStrategyType, typename MorOfflineSecondOrderStrategyType::Pointer, BaseSolvingStrategyType >(m,"MorOfflineSecondOrderStrategy")
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, bool >())
+        ;
+
+    py::class_< MorSecondOrderKrylovStrategyType, typename MorSecondOrderKrylovStrategyType::Pointer, MorOfflineSecondOrderStrategyType >(m,"MorSecondOrderKrylovStrategy")
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, vector<double>, bool >())
+        ;
+
+    py::class_< MorOfflineStrategyType, typename MorOfflineStrategyType::Pointer, MorOfflineSecondOrderStrategyType >(m,"MorOfflineStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, vector<double>, bool >())
         ;
     
