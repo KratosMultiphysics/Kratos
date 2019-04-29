@@ -28,8 +28,7 @@ if mpi.rank == 0:
     partitioner.Execute()
 mpi.world.barrier()
 
-MPICommSetup = SetMPICommunicatorProcess(model_part)
-MPICommSetup.Execute()
+ModelPartCommunicatorUtilities.SetMPICommunicator(model_part)
 my_input_filename = input_filename + "_" + str(mpi.rank)
 model_part_io = ModelPartIO(my_input_filename)
 model_part_io.ReadModelPart(model_part)
