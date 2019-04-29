@@ -57,6 +57,8 @@
 #include "processes/skin_detection_process.h"
 #include "processes/apply_periodic_boundary_condition_process.h"
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
+#include "processes/apply_component_table_process.hpp"
+#include "processes/apply_constant_scalarvalue_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -544,9 +546,17 @@ void  AddProcessesToPython(pybind11::module& m)
 
     // The process to recover internal variables
     py::class_<IntegrationValuesExtrapolationToNodesProcess, IntegrationValuesExtrapolationToNodesProcess::Pointer, Process>(m, "IntegrationValuesExtrapolationToNodesProcess")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    ;
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, Parameters>())
+        ;
+
+    py::class_<ApplyComponentTableProcess, ApplyComponentTableProcess::Pointer, Process> (m, "ApplyComponentTableProcess")
+        .def( py::init< ModelPart&, Parameters>())
+        ;
+
+    py::class_<ApplyDoubleTableProcess, ApplyDoubleTableProcess::Pointer, Process> (m, "ApplyDoubleTableProcess")
+        .def( py::init< ModelPart&, Parameters>())
+        ;
 }
 
 }  // namespace Python.
