@@ -93,7 +93,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
         entity_type = self.params["entity_type"].GetString()
 
         if entity_type == "node":
-            tol = 1e-12
+            tol = 1e-6
             found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindNode(point, tol)
             if found_id > -1:
                 self.entity.append(self.model_part.Nodes[found_id]) # note that this is a find!

@@ -48,10 +48,6 @@ class FEM_Solution(MainSolidFEM.Solution):
 		print("::[KSM Simulation]:: [OMP USING",num_threads,"THREADS ]")
 		#parallel.PrintOMPInfo()
 
-
-		print(" ")
-		print("::[KSM Simulation]:: [Time Step:", self.ProjectParameters["problem_data"]["time_step"].GetDouble()," echo:", self.echo_level,"]")
-
 		#### Model_part settings start ####
 
 		# Defining the model_part
@@ -64,7 +60,7 @@ class FEM_Solution(MainSolidFEM.Solution):
 		else:
 			self.main_model_part.ProcessInfo.SetValue(KratosFemDem.IS_DYNAMIC, 0)
 
-		self.time_step  = self.ProjectParameters["problem_data"]["time_step" ].GetDouble()
+		self.time_step  = self.ComputeDeltaTime()
 		self.start_time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
 		self.end_time   = self.ProjectParameters["problem_data"]["end_time"  ].GetDouble()
 
@@ -309,5 +305,25 @@ class FEM_Solution(MainSolidFEM.Solution):
 if __name__ == "__main__": 
 	Solution().Run()
 
+#============================================================================================================================
+
+	def ComputeDeltaTime(self):
+
+		if self.ProjectParameters["problem_data"].Has("time_step"):
+			return self.ProjectParameters["problem_data"]["time_step"].GetDouble()
+
+		elif self.ProjectParameters["problem_data"].Has("variable_time_steps"):
+
+			current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+			for key in self.ProjectParameters["problem_data"]["variable_time_steps"].keys():
+				interval_settings = self.ProjectParameters["problem_data"]["variable_time_steps"][key]
+				interval = KratosMultiphysics.IntervalUtility(interval_settings)			
+				# Getting the time step of the interval
+				if interval.IsInInterval(current_time):
+					return interval_settings["time_step"].GetDouble()
+				# If we arrive here we raise an error because the intervals are not well defined
+				raise Exception("::[MechanicalSolver]:: Time stepping not well defined!")
+		else:
+			raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
 
 

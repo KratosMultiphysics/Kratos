@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:		     BSD License
+//					         Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -25,6 +25,8 @@
 #include "custom_elements/incompressible_potential_flow_element.h"
 #include "custom_conditions/potential_wall_condition.h"
 
+#include "custom_elements/adjoint_potential_flow_element.h"
+#include "custom_conditions/adjoint_potential_wall_condition.h"
 namespace Kratos {
 
 ///@name Kratos Classes
@@ -33,7 +35,7 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosCompressiblePotentialFlowApplication : public KratosApplication {
+class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) KratosCompressiblePotentialFlowApplication : public KratosApplication {
 public:
 	///@name Type Definitions
 	///@{
@@ -96,13 +98,12 @@ private:
     ///@name Member Variables
     ///@{
 
-    const CompressiblePotentialFlowElement<2,3> mCompressiblePotentialFlowElement2D3N;
-    const CompressiblePotentialFlowElement<3,4> mCompressiblePotentialFlowElement3D4N;
-
     const IncompressiblePotentialFlowElement<2,3> mIncompressiblePotentialFlowElement2D3N;
+    const AdjointPotentialFlowElement<IncompressiblePotentialFlowElement<2,3>> mAdjointPotentialFlowElement2D3N;
 
     const PotentialWallCondition<2,2> mPotentialWallCondition2D2N;
     const PotentialWallCondition<3,3> mPotentialWallCondition3D3N;
+    const AdjointPotentialWallCondition<PotentialWallCondition<2,2>> mAdjointPotentialWallCondition2D2N;
 
     ///@}
     ///@name Un accessible methods

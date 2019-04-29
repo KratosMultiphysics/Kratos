@@ -40,7 +40,7 @@ class TestDynamicSearch(KratosUnittest.TestCase):
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Z, KM.REACTION_Z,self.main_model_part)
         KM.VariableUtils().AddDof(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, CSMA.WEIGHTED_GAP, self.main_model_part)
 
-        if (self.main_model_part.HasSubModelPart("Contact")):
+        if self.main_model_part.HasSubModelPart("Contact"):
             interface_model_part = self.main_model_part.GetSubModelPart("Contact")
         else:
             interface_model_part = self.main_model_part.CreateSubModelPart("Contact")
@@ -59,7 +59,6 @@ class TestDynamicSearch(KratosUnittest.TestCase):
             #node.X -= 9.81 / 32.0
             #node.SetSolutionStepValue(KM.DISPLACEMENT_X, -9.81 / 32.0)
             node.SetSolutionStepValue(KM.ACCELERATION_X, 1, -9.81)
-        del(node)
 
         self.main_model_part.ProcessInfo[KM.STEP] = 1
         self.main_model_part.ProcessInfo[KM.DELTA_TIME] = 0.5
@@ -79,10 +78,8 @@ class TestDynamicSearch(KratosUnittest.TestCase):
         # We copy the conditions to the ContactSubModelPart
         for cond in self.contact_model_part.Conditions:
             interface_model_part.AddCondition(cond)
-        del(cond)
         for node in self.contact_model_part.Nodes:
             interface_model_part.AddNode(node, 0)
-        del(node)
 
         # We compute NODAL_H that can be used in the search and some values computation
         self.find_nodal_h = KM.FindNodalHProcess(self.contact_model_part)

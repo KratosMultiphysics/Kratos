@@ -22,7 +22,7 @@ namespace Kratos {
                                        double particle_radius,
                                        double fluid_density,
                                        double fluid_kinematic_viscosity,
-                                       array_1d<double, 3>& slip_velocity,
+                                       array_1d<double, 3>& minus_slip_velocity,
                                        array_1d<double, 3>& drag_force,
                                        const ProcessInfo& r_current_process_info)
     {
@@ -33,7 +33,7 @@ namespace Kratos {
                                                particle_radius,
                                                fluid_density,
                                                fluid_kinematic_viscosity,
-                                               slip_velocity,
+                                               minus_slip_velocity,
                                                drag_force,
                                                r_current_process_info);
         }
@@ -53,6 +53,6 @@ namespace Kratos {
         double B = 0.31 * (1.0 / eps + 3 * eps_s * eps + 8.4 * std::pow(mod_reynolds_number, - 0.343)) / (1.0 + std::pow(10.0, 3 * eps_s) * std::pow(mod_reynolds_number, 2 * eps - 2.5));
         drag_coeff = Globals::Pi / 3.0 * fluid_kinematic_viscosity * fluid_density * particle_radius * (A * eps_s / eps + B * mod_reynolds_number);
 
-        noalias(drag_force) = drag_coeff * slip_velocity;
+        noalias(drag_force) = drag_coeff * minus_slip_velocity;
     }
 } // namespace Kratos

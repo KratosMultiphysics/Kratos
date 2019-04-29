@@ -137,7 +137,7 @@ public:
         "solver_type": "IterativeSolver",
         "tolerance" : 1.0e-6,
         "max_iteration" : 200,
-        "preconditioner_type" : "None",
+        "preconditioner_type": "none",
         "scaling":false
         }  )" );
 

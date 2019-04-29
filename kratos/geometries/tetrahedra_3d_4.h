@@ -33,25 +33,25 @@ namespace Kratos
  * @class Tetrahedra3D4
  * @ingroup KratosCore
  * @brief A four node tetrahedra geometry with linear shape functions
- * @details The node ordering corresponds with:       
+ * @details The node ordering corresponds with:
  *                             v
  *                            .
  *                          ,/
  *                         /
- *                      2                                                            
- *                    ,/|`\                                                       
- *                  ,/  |  `\                         
- *                ,/    '.   `\                      
- *              ,/       |     `\                 
- *            ,/         |       `\                
- *           0-----------'.--------1 --> u        
- *            `\.         |      ,/               
- *               `\.      |    ,/                     
- *                  `\.   '. ,/                      
- *                     `\. |/                                
- *                        `3                                   
+ *                      2
+ *                    ,/|`\
+ *                  ,/  |  `\
+ *                ,/    '.   `\
+ *              ,/       |     `\
+ *            ,/         |       `\
+ *           0-----------'.--------1 --> u
+ *            `\.         |      ,/
+ *               `\.      |    ,/
+ *                  `\.   '. ,/
+ *                     `\. |/
+ *                        `3
  *                           `\.
- *                              ` w       
+ *                              ` w
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -1030,7 +1030,7 @@ public:
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) override
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
