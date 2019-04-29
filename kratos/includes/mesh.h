@@ -99,7 +99,13 @@ public:
     typedef Mesh<TNodeType, TPropertiesType, TElementType, TConditionType> MeshType;
 
     /// Nodes container. Which is a vector set of nodes with their Id's as key.
-    typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
+    typedef PointerVectorSet<NodeType, 
+                            IndexedObject,
+                            std::less<typename IndexedObject::result_type>,
+                            std::equal_to<typename IndexedObject::result_type>,
+                            typename NodeType::Pointer,
+                            std::vector< typename NodeType::Pointer >                         
+                            > NodesContainerType;
 
     /** Iterator over the nodes. This iterator is an indirect
     iterator over Node::Pointer which turn back a reference to
