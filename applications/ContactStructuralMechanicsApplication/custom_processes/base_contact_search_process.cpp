@@ -622,7 +622,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
                     const double active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
                     const bool frictional_problem = mrMainModelPart.Is(SLIP);
 
-                    // Slave geometry
+                    // Slave geometry and data
+                    Properties::Pointer p_prop = it_cond->pGetProperties();
                     const array_1d<double, 3>& r_normal_slave = it_cond->GetValue(NORMAL);
 
                     for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
@@ -637,7 +638,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
                             }
                         }
 
-                        AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), r_normal_slave, p_cond_master, p_indexes_pairs, active_check_factor, frictional_problem);
+                        AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), r_normal_slave, p_cond_master, p_cond_master->GetValue(NORMAL), p_indexes_pairs, p_prop, active_check_factor, frictional_problem);
                     }
                 }
             }
@@ -684,6 +685,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
     FindIntersectedGeometricalObjectsWithOBBForSearchProcess::OtreeCellVectorType leaves;
 
     // Auxiliar model parts and components
+    const array_1d<double, 3> zero_array = ZeroVector(3);
     ConditionsArrayType& r_conditions_array = rSubContactModelPart.Conditions();
     const int num_conditions = static_cast<int>(r_conditions_array.size());
     const auto it_cond_begin = r_conditions_array.begin();
@@ -705,7 +707,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
                 for (auto p_leaf : leaves) {
                     for (auto p_cond_master : *(p_leaf->pGetObjects())) {
                         if (p_cond_master->Is(SELECTED)) {
-                            const CheckResult condition_checked_right = CheckCondition(p_indexes_pairs, (*it_cond.base()), p_cond_master, mInvertedSearch);
+                            const CheckResult condition_checked_right = CheckGeometricalObject(p_indexes_pairs, (*it_cond.base()), p_cond_master, mInvertedSearch);
 
                             if (condition_checked_right == CheckResult::OK)
                                 p_indexes_pairs->AddId(p_cond_master->Id());
@@ -717,13 +719,15 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
                 const double active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
                 const bool frictional_problem = mrMainModelPart.Is(SLIP);
 
-                // Slave geometry
+                // Slave geometry and data
+                Properties::Pointer p_prop = it_cond->pGetProperties();
                 const array_1d<double, 3>& r_normal_slave = it_cond->GetValue(NORMAL);
 
                 for (auto p_leaf : leaves) {
                     for (auto p_cond_master : *(p_leaf->pGetObjects())) {
                         if (p_cond_master->Is(SELECTED)) {
-                            AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), r_normal_slave, p_cond_master, p_indexes_pairs, active_check_factor, frictional_problem);
+                            const array_1d<double, 3>& r_normal_master = (p_cond_master->GetGeometry()).UnitNormal(zero_array);
+                            AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), r_normal_slave, p_cond_master, r_normal_master, p_indexes_pairs, p_prop, active_check_factor, frictional_problem);
                         }
                     }
                 }
@@ -739,41 +743,29 @@ template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId,
-    Condition::Pointer pCondSlave,
-    Condition::Pointer pCondMaster
+    GeometricalObject::Pointer pCondSlave,
+    const array_1d<double, 3>& rSlaveNormal,
+    GeometricalObject::Pointer pCondMaster,
+    const array_1d<double, 3>& rMasterNormal,
+    IndexMap::Pointer pIndexesPairs,
+    Properties::Pointer pProperties
     )
 {
+    pIndexesPairs->AddId(pCondMaster->Id());
+
     if (mCreateAuxiliarConditions) { // We add the ID and we create a new auxiliar condition
         ++rConditionId;
-        Condition::Pointer p_auxiliar_condition = rComputingModelPart.CreateNewCondition(mConditionName, rConditionId, pCondSlave->GetGeometry(), pCondSlave->pGetProperties());
+        Condition::Pointer p_auxiliar_condition = rComputingModelPart.CreateNewCondition(mConditionName, rConditionId, pCondSlave->GetGeometry(), pProperties);
         // We set the geometrical values
-        IndexMap::Pointer ids_destination = pCondSlave->GetValue(INDEX_MAP);
-        ids_destination->SetNewEntityId(pCondMaster->Id(), rConditionId);
+        pIndexesPairs->SetNewEntityId(pCondMaster->Id(), rConditionId);
         p_auxiliar_condition->SetValue(PAIRED_GEOMETRY, pCondMaster->pGetGeometry());
-        p_auxiliar_condition->SetValue(NORMAL, pCondSlave->GetValue(NORMAL));
-        p_auxiliar_condition->SetValue(PAIRED_NORMAL, pCondMaster->GetValue(NORMAL));
+        p_auxiliar_condition->SetValue(NORMAL, rSlaveNormal);
+        p_auxiliar_condition->SetValue(PAIRED_NORMAL, rMasterNormal);
         // We activate the condition and initialize it
         p_auxiliar_condition->Set(ACTIVE, true);
         p_auxiliar_condition->Initialize();
         // TODO: Check this!!
     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
-    ModelPart& rComputingModelPart,
-    IndexType& rConditionId,
-    Condition::Pointer pCondSlave,
-    Condition::Pointer pCondMaster,
-    IndexMap::Pointer IndexesPairs
-    )
-{
-    IndexesPairs->AddId(pCondMaster->Id());
-
-    AddPairing(rComputingModelPart, rConditionId, pCondSlave, pCondMaster);
 }
 
 /***********************************************************************************/
@@ -851,6 +843,30 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearALMFrictio
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+inline typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckResult BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckGeometricalObject(
+    IndexMap::Pointer pIndexesPairs,
+    const GeometricalObject::Pointer pGeometricalObject1,
+    const GeometricalObject::Pointer pGeometricalObject2,
+    const bool InvertedSearch
+    )
+{
+    const IndexType index_1 = pGeometricalObject1->Id();
+    const IndexType index_2 = pGeometricalObject2->Id();
+
+    if (index_1 == index_2) // Avoiding "auto self-contact"
+        return CheckResult::Fail;
+
+    // To avoid to repeat twice the same condition
+    if (pIndexesPairs->find(index_2) != pIndexesPairs->end())
+        return CheckResult::AlreadyInTheMap;
+
+    return CheckResult::OK;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 inline typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckResult BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckCondition(
     IndexMap::Pointer pIndexesPairs,
     const Condition::Pointer pCond1,
@@ -858,27 +874,20 @@ inline typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Chec
     const bool InvertedSearch
     )
 {
-    const IndexType index_1 = pCond1->Id();
-    const IndexType index_2 = pCond2->Id();
-
-    if (index_1 == index_2) // Avoiding "auto self-contact"
-        return CheckResult::Fail;
-
-    // Avoid conditions oriented in the same direction
-    const double tolerance = 1.0e-16;
-    if (norm_2(pCond1->GetValue(NORMAL) - pCond2->GetValue(NORMAL)) < tolerance)
+    if (CheckGeometricalObject(pIndexesPairs, pCond1, pCond2, InvertedSearch) == CheckResult::Fail)
         return CheckResult::Fail;
 
     // Otherwise will not be necessary to check
     if (!mPredefinedMasterSlave || pCond2->Is(SLAVE) == !InvertedSearch) {
         auto p_indexes_pairs_2 = pCond2->GetValue(INDEX_MAP);
-        if (p_indexes_pairs_2->find(index_1) != p_indexes_pairs_2->end())
+        if (p_indexes_pairs_2->find(pCond1->Id()) != p_indexes_pairs_2->end())
             return CheckResult::Fail;
     }
 
-    // To avoid to repeat twice the same condition
-    if (pIndexesPairs->find(index_2) != pIndexesPairs->end())
-        return CheckResult::AlreadyInTheMap;
+    // Avoid conditions oriented in the same direction
+    const double tolerance = 1.0e-16;
+    if (norm_2(pCond1->GetValue(NORMAL) - pCond2->GetValue(NORMAL)) < tolerance)
+        return CheckResult::Fail;
 
     return CheckResult::OK;
 }
@@ -986,10 +995,12 @@ template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPotentialPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId,
-    Condition::Pointer pCondSlave,
+    GeometricalObject::Pointer pCondSlave,
     const array_1d<double, 3>& rSlaveNormal,
-    Condition::Pointer pCondMaster,
-    IndexMap::Pointer IndexesPairs,
+    GeometricalObject::Pointer pCondMaster,
+    const array_1d<double, 3>& rMasterNormal,
+    IndexMap::Pointer pIndexesPairs,
+    Properties::Pointer pProperties,
     const double ActiveCheckFactor,
     const bool FrictionalProblem
     )
@@ -1002,7 +1013,6 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
 
     if (mCheckGap == CheckGap::DirectCheck) {
         // Master geometry
-        const array_1d<double, 3>& normal_master = pCondMaster->GetValue(NORMAL);
         GeometryType& r_geom_master = pCondMaster->GetGeometry();
 
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -1011,9 +1021,9 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                 double aux_distance = 0.0;
                 const array_1d<double, 3> normal = r_slave_geometry[i_node].GetValue(NORMAL);
                 if (norm_2(normal) < ZeroTolerance)
-                    aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_slave_geometry[i_node], projected_point, normal_master, rSlaveNormal);
+                    aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_slave_geometry[i_node], projected_point, rMasterNormal, rSlaveNormal);
                 else
-                    aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_slave_geometry[i_node], projected_point, normal_master, normal);
+                    aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_slave_geometry[i_node], projected_point, rMasterNormal, normal);
 
                 array_1d<double, 3> result;
                 if (aux_distance <= r_slave_geometry[i_node].FastGetSolutionStepValue(NODAL_H) * ActiveCheckFactor &&  r_geom_master.IsInside(projected_point, result, ZeroTolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
@@ -1038,7 +1048,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                     }
                 }
 
-                aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_slave_geometry[i_node], projected_point, normal_master, -normal_master);
+                aux_distance = GeometricalProjectionUtilities::FastProjectDirection(r_geom_master, r_slave_geometry[i_node], projected_point, rMasterNormal, -rMasterNormal);
                 if (aux_distance <= r_slave_geometry[i_node].FastGetSolutionStepValue(NODAL_H) * ActiveCheckFactor &&  r_geom_master.IsInside(projected_point, result, ZeroTolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
                     at_least_one_node_potential_contact = true;
                     r_slave_geometry[i_node].Set(ACTIVE, true);
@@ -1088,7 +1098,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
     }
 
     if (at_least_one_node_potential_contact)
-        AddPairing(rComputingModelPart, rConditionId, pCondSlave, pCondMaster, IndexesPairs);
+        AddPairing(rComputingModelPart, rConditionId, pCondSlave, rSlaveNormal, pCondMaster, rMasterNormal, pIndexesPairs, pProperties);
 }
 
 /***********************************************************************************/
@@ -1396,7 +1406,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreateAu
             for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                 if (it_pair->second == 0) { // If different than 0 it is an existing condition
                     Condition::Pointer p_cond_master = mrMainModelPart.pGetCondition(it_pair->first); // MASTER
-                    AddPairing(rComputingModelPart, rConditionId, (*it_cond.base()), p_cond_master);
+                    AddPairing(rComputingModelPart, rConditionId, (*it_cond.base()), it_cond->GetValue(NORMAL), p_cond_master, p_cond_master->GetValue(NORMAL), p_indexes_pairs, it_cond->pGetProperties());
                 }
             }
         }

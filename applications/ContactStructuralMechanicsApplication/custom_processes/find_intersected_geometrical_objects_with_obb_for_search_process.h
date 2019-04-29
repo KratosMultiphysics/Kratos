@@ -48,7 +48,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
 */
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) FindIntersectedGeometricalObjectsWithOBBForSearchProcess
-    : public FindIntersectedGeometricalObjectsWithOBBProcess<Condition>
+    : public FindIntersectedGeometricalObjectsWithOBBProcess
 {
 public:
     ///@name Type Definitions
@@ -67,10 +67,10 @@ public:
     typedef Point PointType;
 
     /// Definition of the base type
-    typedef FindIntersectedGeometricalObjectsProcess<Condition> BaseProcessType;
+    typedef FindIntersectedGeometricalObjectsProcess BaseProcessType;
 
     /// Definition of the base type
-    typedef FindIntersectedGeometricalObjectsWithOBBProcess<Condition> BaseType;
+    typedef FindIntersectedGeometricalObjectsWithOBBProcess BaseType;
 
     /// Octree type definition
     typedef typename BaseType::OctreeType OctreeType;
@@ -174,11 +174,11 @@ protected:
 
     /**
      * @brief This method marks if intersected
-     * @param rCondition1 The entity of interest
+     * @param rIntersectedGeometricalObject The entity of interest
      * @param rLeaves The Octree cells vectors
      */
     void MarkIfIntersected(
-        Condition& rCondition1,
+        GeometricalObject& rIntersectedGeometricalObject,
         OtreeCellVectorType& rLeaves
         ) override;
 

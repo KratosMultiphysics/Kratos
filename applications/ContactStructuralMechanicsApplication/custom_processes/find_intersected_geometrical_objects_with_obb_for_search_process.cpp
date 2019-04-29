@@ -139,13 +139,13 @@ void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::SetOctreeBounding
 /***********************************************************************************/
 
 void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::MarkIfIntersected(
-    Condition& rCondition1,
+    GeometricalObject& rIntersectedGeometricalObject,
     OtreeCellVectorType& rLeaves
     )
 {
-    if (rCondition1.Is(SLAVE)) {
+    if (rIntersectedGeometricalObject.Is(SLAVE)) {
         // We clear previously assign flag
-        rCondition1.Reset(SELECTED);
+        rIntersectedGeometricalObject.Reset(SELECTED);
 
         // The difference with the normal one is that we assign the flag to all "paired" conditions
         for (auto p_leaf : rLeaves) {
@@ -160,8 +160,8 @@ void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::MarkIfIntersected
             // We iterate again and check intersection
             for (auto p_condition_2 : r_leaf) {
                 if (p_condition_2->IsNot(VISITED)) {
-                    if (HasIntersection(rCondition1.GetGeometry(), p_condition_2->GetGeometry())) {
-                        rCondition1.Set(SELECTED);
+                    if (HasIntersection(rIntersectedGeometricalObject.GetGeometry(), p_condition_2->GetGeometry())) {
+                        rIntersectedGeometricalObject.Set(SELECTED);
                         p_condition_2->Set(SELECTED);
                     }
                     p_condition_2->Set(VISITED);
