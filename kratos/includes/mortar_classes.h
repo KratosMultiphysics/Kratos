@@ -1627,19 +1627,7 @@ public:
                 noalias(Ae) = (1.0/norm_me) * prod(De, normalized_inv_Me);
                 return true;
             }
-        #ifdef KRATOS_DEBUG
-            else {
-                KRATOS_WARNING("Matrix cannot be inverted") << "WARNING:: Me matrix can not be inverted. Determinant: " << aux_det << std::endl;
-                KRATOS_WATCH(normalized_Me);
-            }
-        #endif
         }
-    #ifdef KRATOS_DEBUG
-        else {
-            KRATOS_WARNING("Matrix cannot be inverted") << "WARNING:: Me matrix can not be inverted. Norm: " << norm_me << std::endl;
-            KRATOS_WATCH(Me);
-        }
-    #endif
 
         noalias(Ae) = IdentityMatrix(TNumNodes);
         return false;
