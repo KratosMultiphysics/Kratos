@@ -70,18 +70,6 @@ namespace Kratos
 namespace MPIInternals
 {
 
-template<class TValueType> MPI_Datatype DataType(const TValueType&);
-
-template<> inline MPI_Datatype DataType(const int&)
-{
-    return MPI_INT;
-}
-
-template<> inline MPI_Datatype DataType(const double&)
-{
-    return MPI_DOUBLE;
-}
-
 template<class TValue> struct SendTools;
 
 template<> struct SendTools<int>
