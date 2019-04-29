@@ -23,7 +23,6 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
 
         self.body_model_part = Model[settings["model_part_name"].GetString()]
         self.create_output_file = settings["create_output_file"].GetBool()
-        self.output_variables = settings["output_variables"]
 
     # def __init__(self, body_model_part):
     #     KratosMultiphysics.Process.__init__(self)
@@ -37,7 +36,6 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
 
     def Execute(self):
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess', 'Computing reactions on nodes')
-        KratosMultiphysics.Logger.PrintInfo(self.output_variables)
 
         KratosMultiphysics.VariableUtils().SetToZero_VectorVar(KratosMultiphysics.REACTION, self.body_model_part.Nodes)
 
@@ -50,7 +48,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
         for cond in self.body_model_part.Conditions:
             condition_normal = cond.GetValue(KratosMultiphysics.NORMAL)
             pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE)
-
+            print(pressure_coefficient)
             for node in cond.GetNodes():
                 # KratosMultiphysics.Logger.PrintInfo("Printing Condition and Nodal Values")
                 # KratosMultiphysics.Logger.PrintInfo("condition_normal   ",condition_normal)
