@@ -13,6 +13,7 @@
 // System includes
 
 // External includes
+#include "includes/kratos_export_api.h"
 
 // Project includes
 
