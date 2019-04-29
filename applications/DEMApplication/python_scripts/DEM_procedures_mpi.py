@@ -182,6 +182,7 @@ class ParallelUtils(DEM_procedures.ParallelUtils):
 
     def SetCommunicator(self, spheres_model_part, model_part_io_spheres, spheres_mp_filename):
 
+        # ModelPartCommunicatorUtilities.SetMPICommunicator(spheres_model_part) # TODO use new syntax
         MPICommSetup = SetMPICommunicatorProcess(spheres_model_part)
         MPICommSetup.Execute()
 
