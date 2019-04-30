@@ -24,12 +24,23 @@
 namespace Kratos
 {
 IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNodesProcess(
+    Model& rModel,
+    Parameters ThisParameters
+    ) : IntegrationValuesExtrapolationToNodesProcess(rModel.GetModelPart(ThisParameters["model_part_name"].GetString()), ThisParameters)
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNodesProcess(
     ModelPart& rMainModelPart,
     Parameters ThisParameters
     ) : mrModelPart(rMainModelPart)
 {
     Parameters default_parameters = Parameters(R"(
     {
+        "model_part_name"            : "",
         "echo_level"                 : 0,
         "area_average"               : true,
         "average_variable"           : "NODAL_AREA",
@@ -104,13 +115,13 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
     const ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
 
     // The list of elements
-    ElementsArrayType& r_elements_array = mrModelPart.Elements();
+    auto& r_elements_array = mrModelPart.Elements();
     const auto it_elem_begin = r_elements_array.begin();
 
     // Auxiliar value
     Vector vector_J;
 
-    #pragma omp parallel for private( vector_J)
+    #pragma omp parallel for private(vector_J)
     for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
         auto it_elem = it_elem_begin + i;
 
@@ -211,7 +222,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
     }
 
     // The list of nodes
-    NodesArrayType& r_nodes_array = mrModelPart.Nodes();
+    auto& r_nodes_array = mrModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
 
     // We ponderate the values
@@ -254,7 +265,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
 void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
 {
     // The list of nodes
-    NodesArrayType& r_nodes_array = mrModelPart.Nodes();
+    auto& r_nodes_array = mrModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
 
     // Remove average variable
@@ -292,7 +303,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
 void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
 {
     // The list of elements
-    ElementsArrayType& r_elements_array = mrModelPart.Elements();
+    auto& r_elements_array = mrModelPart.Elements();
     auto it_elem_begin = r_elements_array.begin();
 
     // Fill the average value
@@ -367,7 +378,7 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeVariables()
     array_1d<double, 3> zero_array = ZeroVector(3);
 
     // The list of nodes
-    NodesArrayType& r_nodes_array = mrModelPart.Nodes();
+    auto& r_nodes_array = mrModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
 
     // Initialize values
