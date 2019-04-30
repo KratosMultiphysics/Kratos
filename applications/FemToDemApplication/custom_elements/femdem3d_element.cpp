@@ -323,34 +323,83 @@ void FemDem3DElement::CalculateElementalSystem(LocalSystemComponents& rLocalSyst
 
     for ( SizeType PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
+		const Vector& r_characteristic_lengths = this->CalculateCharacteristicLengths();
         //compute element kinematic variables B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
 
         //calculate material response
         this->CalculateMaterialResponse(Variables,Values,PointNumber);
 
-	//some transformation of the configuration can be needed (UL element specially)
-        this->TransformElementData(Variables,PointNumber);
-
         //calculating weights for integration on the "reference configuration"
         Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
         Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
-		this->SetValue(STRESS_VECTOR, Values.GetStressVector());
+		// Loop over edges of the element...
+		Vector average_stress_edge = ZeroVector(6);
+		Vector average_strain_edge = ZeroVector(6);
+		bool is_damaging = false;
 
+		for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
+			std::vector<Element*> p_edge_neighbours = this->GetEdgeNeighbourElements(edge);
+			Vector average_stress_edge, average_strain_edge;
 
-		if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-		{
+			this->CalculateAverageStressOnEdge(average_stress_edge, p_edge_neighbours);
+			this->CalculateAverageStrainOnEdge(average_strain_edge, p_edge_neighbours);
+
+			double damage_edge = mDamages[edge];
+			double threshold = mThresholds[edge];
+			
+			this->IntegrateStressDamageMechanics(threshold, 
+												 damage_edge,
+												 average_strain_edge, 
+												 average_stress_edge, 
+												 edge, 
+												 r_characteristic_lengths[edge],
+												 is_damaging);
+
+			if (rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) && 
+			    rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_RHS_VECTOR)) {
+				mNonConvergedDamages[edge] = damage_edge;
+				mNonConvergedThresholds[edge] = threshold;
+			}
+		} // Loop over edges
+
+		// Calculate the elemental Damage...
+		const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
+		const Vector& predictive_stress_vector = Values.GetStressVector();
+		const Vector& integrated_stress_vector = (1.0 - damage_element) * predictive_stress_vector;
+
+		if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) )  {
 			//contributions to stiffness matrix calculated on the reference config
-			this->CalculateAndAddLHS ( rLocalSystem, Variables, Variables.IntegrationWeight );
+			// this->CalculateAndAddLHS ( rLocalSystem, Variables, Variables.IntegrationWeight );
+
+			// //contributions to stiffness matrix calculated on the reference config
+			const Matrix& C =  Values.GetConstitutiveMatrix();
+			MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
+			Matrix tangent_tensor;
+			const Vector& r_strain_vector = Values.GetStrainVector();
+			if (is_damaging == true && std::abs(r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2]
+				+ r_strain_vector[3] + r_strain_vector[4] + r_strain_vector[5]) > tolerance) {
+
+				this->CalculateTangentTensor(tangent_tensor, r_strain_vector, integrated_stress_vector, C);
+				noalias(rLeftHandSideMatrix) += Variables.IntegrationWeight * (1.0 - damage_element) * prod( trans( Variables.B ), Matrix( prod(tangent_tensor, Variables.B ) ) );
+			} else {
+				noalias(rLeftHandSideMatrix) += Variables.IntegrationWeight * (1.0 - damage_element) * prod( trans( Variables.B ), Matrix( prod(C, Variables.B ) ) );
+			}
 		}
 
-		if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
-		{
+		if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_RHS_VECTOR) )  {
 			//contribution to external forces
 			VolumeForce = this->CalculateVolumeForce(VolumeForce, Variables.N);
 
-			this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce, Variables.IntegrationWeight );
+			//contribution of the internal and external forces
+			VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+
+			// operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+			this->CalculateAndAddExternalForces(rRightHandSideVector, Variables, VolumeForce, Variables.IntegrationWeight );
+
+			// operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
+			rRightHandSideVector -= Variables.IntegrationWeight * prod(trans(Variables.B), integrated_stress_vector);
 		}
 
     }
@@ -361,27 +410,27 @@ void FemDem3DElement::CalculateElementalSystem(LocalSystemComponents& rLocalSyst
 
 void FemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
+	KRATOS_TRY
 
-    //create local system components
-    LocalSystemComponents LocalSystem;
+	//create local system components
+	LocalSystemComponents LocalSystem;
 
-    //calculation flags
-    LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_LHS_MATRIX);
+	//calculation flags
+	LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_LHS_MATRIX);
 
-    VectorType RightHandSideVector = Vector();
+	VectorType RightHandSideVector = Vector();
 
-    //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector, LocalSystem.CalculationFlags );
+	//Initialize sizes for the system components:
+	this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector, LocalSystem.CalculationFlags );
 
-    //Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
-    LocalSystem.SetRightHandSideVector(RightHandSideVector);
+	//Set Variables to Local system components
+	LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
+	LocalSystem.SetRightHandSideVector(RightHandSideVector);
 
-    //Calculate elemental system
-    this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+	//Calculate elemental system
+	this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 
-    KRATOS_CATCH("")
+	KRATOS_CATCH("")
 }
 
 
