@@ -147,7 +147,7 @@ public:
                 {
                     if(pGeom[i].Id() != in->Id() )
                     {
-                        auto temp = pGeom(i);
+                        auto temp = GlobalPointer<Node<3>>(pGeom(i));
                         AddUniqueGlobalPointer< Node<3> >(in->GetValue(NEIGHBOUR_NODES), temp);
                     }
                 }
