@@ -946,6 +946,7 @@ class FEMDEM_Solution:
             elem.SetValue(KratosFemDem.SMOOTHING, 0)
             elem.SetValue(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0])
             elem.SetValue(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0])
+            elem.SetValue(KratosFemDem.STRESS_VECTOR_INTEGRATED, [0.0,0.0,0.0])
 
 #============================================================================================================================
 
