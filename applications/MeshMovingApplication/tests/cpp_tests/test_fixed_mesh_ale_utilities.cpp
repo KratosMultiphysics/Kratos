@@ -194,8 +194,8 @@ namespace Testing {
         const auto v_53 = origin_model_part.pGetNode(54)->FastGetSolutionStepValue(VELOCITY);
         const auto p_29 = origin_model_part.pGetNode(29)->FastGetSolutionStepValue(PRESSURE);
         const auto p_53 = origin_model_part.pGetNode(54)->FastGetSolutionStepValue(PRESSURE);
-        const std::array<double,6> expected_projected_values{{0.890947,0,0, 0.2,1.72478,0,0,0.2}};
-        const std::array<double,6> obtained_projected_values{{v_29[0], v_29[1], v_29[2], p_29, v_53[0], v_53[1], v_53[2], p_53}};
+        const std::array<double,8> expected_projected_values{{0.890947,0,0, 0.2,1.72478,0,0,0.2}};
+        const std::array<double,8> obtained_projected_values{{v_29[0], v_29[1], v_29[2], p_29, v_53[0], v_53[1], v_53[2], p_53}};
         for (std::size_t i = 0; i < 8; ++i) {
             KRATOS_CHECK_NEAR(obtained_projected_values[i], expected_projected_values[i], tol);
         }
