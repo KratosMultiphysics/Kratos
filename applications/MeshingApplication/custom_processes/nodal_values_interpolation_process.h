@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 #include "processes/process.h"
 
 /* Several includes */

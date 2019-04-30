@@ -14,7 +14,7 @@
 #define KRATOS_HESSIAN_METRICS_PROCESS
 
 // Project includes
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
