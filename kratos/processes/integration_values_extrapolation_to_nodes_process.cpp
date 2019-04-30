@@ -147,7 +147,9 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
                 const array_1d<double, 3>& r_local_coordinates = integration_points[i_gauss_point].Coordinates();
                 r_this_geometry.ShapeFunctionsValues( N, r_local_coordinates );
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    node_coefficient(i_node, i_gauss_point) = area_coeff  * N[i_node];
+                    const double average_variable_value = r_this_geometry[i_node].GetValue(*mpAverageVariable);
+                    const double coeff_coincident_node = std::abs(average_variable_value) > std::numeric_limits<double>::epsilon() ? area_coeff/average_variable_value : area_coeff;
+                    node_coefficient(i_node, i_gauss_point) = coeff_coincident_node * N[i_node];
                 }
             }
 
@@ -213,43 +215,6 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
                     }
                 }
             }
-        }
-    }
-
-    // The list of nodes
-    auto& r_nodes_array = mrModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
-
-    // We ponderate the values
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
-
-        const double average_variable_value = it_node->GetValue(*mpAverageVariable);
-        const double coeff_coincident_node = std::abs(average_variable_value) > std::numeric_limits<double>::epsilon() ? 1.0/average_variable_value : 1.0;
-
-        // We initialize the doubles values
-        for ( const auto p_var : mDoubleVariable) {
-            if (mExtrapolateNonHistorical) it_node->GetValue(*p_var) *= coeff_coincident_node;
-            else it_node->FastGetSolutionStepValue(*p_var) *= coeff_coincident_node;
-        }
-
-        // We initialize the arrays values
-        for ( const auto p_var : mArrayVariable) {
-            if (mExtrapolateNonHistorical) it_node->GetValue(*p_var) *= coeff_coincident_node;
-            else it_node->FastGetSolutionStepValue(*p_var) *= coeff_coincident_node;
-        }
-
-        // We initialize the vectors values
-        for ( const auto p_var : mVectorVariable) {
-            if (mExtrapolateNonHistorical) it_node->GetValue(*p_var) *= coeff_coincident_node;
-            else it_node->FastGetSolutionStepValue(*p_var) *= coeff_coincident_node;
-        }
-
-        // We initialize the matrix values
-        for ( const auto p_var : mMatrixVariable) {
-            if (mExtrapolateNonHistorical) it_node->GetValue(*p_var) *= coeff_coincident_node;
-            else it_node->FastGetSolutionStepValue(*p_var) *= coeff_coincident_node;
         }
     }
 }
