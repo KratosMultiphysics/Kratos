@@ -27,54 +27,6 @@ namespace Kratos {
 typedef std::size_t IndexType;
 typedef std::size_t SizeType;
 
-typedef Node<3> NodeType;
-typedef Geometry<NodeType> GeometryType;
-typedef GeometryType* GeometryPointerType;
-typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
-
-namespace {
-bool ProjectTo1D2D(const GeometryPointerType pGeometry,
-                   const Point& rPointToProject,
-                   CoordinatesArrayType& rLocalCoords,
-                   double& rDistance)
-{
-    CoordinatesArrayType local_coords_init;
-
-    Point projected_point;
-
-    // using the center as trial for the projection
-    pGeometry->PointLocalCoordinates(local_coords_init, pGeometry->Center());
-
-    // trying to project to the geometry
-    rDistance = std::abs(GeometricalProjectionUtilities::FastProjectDirection(
-        *pGeometry,
-        rPointToProject,
-        projected_point,
-        pGeometry->UnitNormal(local_coords_init),
-        pGeometry->UnitNormal(local_coords_init)));
-
-    bool is_inside = pGeometry->IsInside(projected_point, rLocalCoords, 1E-14);
-
-    return is_inside;
-}
-
-bool ProjectIntoVolume(const GeometryPointerType pGeometry,
-                       const Point& rPointToProject,
-                       CoordinatesArrayType& rLocalCoords,
-                       double& rDistance)
-{
-    bool is_inside = pGeometry->IsInside(rPointToProject, rLocalCoords);
-
-    if (is_inside) {
-        // Calculate Distance
-        rDistance = MapperUtilities::ComputeDistance(rPointToProject, pGeometry->Center());
-        rDistance /= pGeometry->Volume(); // Normalize Distance by Volume
-    }
-
-    return is_inside;
-}
-}
-
 void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject,
                                                       const double NeighborDistance)
 {
@@ -85,7 +37,7 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rIn
 
     bool is_inside;
     double proj_dist;
-    CoordinatesArrayType local_coords;
+    array_1d<double, 3> local_coords;
 
     const Point point_to_proj(this->Coordinates());
 
@@ -93,12 +45,14 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rIn
     if ((geom_family == GeometryData::Kratos_Linear        && num_nodes == 2) || // linear line
         (geom_family == GeometryData::Kratos_Triangle      && num_nodes == 3) || // linear triangle
         (geom_family == GeometryData::Kratos_Quadrilateral && num_nodes == 4)) { // linear quad
-        is_inside = ProjectTo1D2D(p_geom, point_to_proj, local_coords, proj_dist);
+        Point projected_point;
+        proj_dist = GeometricalProjectionUtilities::FastProjectOnGeometry(*p_geom, point_to_proj, projected_point);
+        is_inside = p_geom->IsInside(projected_point, local_coords, 1e-14);
     }
     else if (geom_family == GeometryData::Kratos_Tetrahedra ||
              geom_family == GeometryData::Kratos_Prism ||
              geom_family == GeometryData::Kratos_Hexahedra) { // Volume projection
-        is_inside = ProjectIntoVolume(p_geom, point_to_proj, local_coords, proj_dist);
+        is_inside = MapperUtilities::ProjectIntoVolume(*p_geom, point_to_proj, local_coords, proj_dist);
     }
     else {
         is_inside = false;
@@ -220,8 +174,14 @@ std::string NearestElementLocalSystem::PairingInfo(const int EchoLevel, const in
 
     std::stringstream buffer;
     buffer << "NearestElementLocalSystem based on " << mpNode->Info();
-    if (EchoLevel > 1) // TODO leave here?
+    if (EchoLevel > 1) {// TODO leave here?
         buffer << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
+        if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
+            mpNode->SetValue(PAIRING_STATUS, 0);
+        } else {
+            mpNode->SetValue(PAIRING_STATUS, -1);
+        }
+    }
     buffer << " in rank " << CommRank;
     return buffer.str();
 }

@@ -82,8 +82,32 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                                                     ProcessInfo& rCurrentProcessInfo)
 {
-    VectorType RHS;
-    this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
+    if (rLeftHandSideMatrix.size1() != TNumNodes)
+        rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
+    rLeftHandSideMatrix.clear();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void PotentialWallCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                                                    ProcessInfo& rCurrentProcessInfo)
+{
+    if (rRightHandSideVector.size() != TNumNodes)
+        rRightHandSideVector.resize(TNumNodes, false);
+
+    array_1d<double, 3> An;
+    if (TDim == 2)
+        CalculateNormal2D(An);
+    else
+        CalculateNormal3D(An);
+
+    const double density_infinity = 1.0; //TODO: Read from rCurrentProcessInfo[DENSITY_INFINITY] once available
+
+    const PotentialWallCondition& r_this = *this;
+    const array_1d<double, 3>& v = r_this.GetValue(VELOCITY_INFINITY);
+    const double value = density_infinity*inner_prod(v, An) / static_cast<double>(TNumNodes);
+
+    for (unsigned int i = 0; i < TNumNodes; ++i)
+        rRightHandSideVector[i] = value;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -92,22 +116,8 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateLocalSystem(
 {
     if (rLeftHandSideMatrix.size1() != TNumNodes)
         rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
-    if (rRightHandSideVector.size() != TNumNodes)
-        rRightHandSideVector.resize(TNumNodes, false);
     rLeftHandSideMatrix.clear();
-
-    array_1d<double, 3> An;
-    if (TDim == 2)
-        CalculateNormal2D(An);
-    else
-        CalculateNormal3D(An);
-
-    const PotentialWallCondition& r_this = *this;
-    const array_1d<double, 3>& v = r_this.GetValue(VELOCITY_INFINITY);
-    const double value = inner_prod(v, An) / static_cast<double>(TNumNodes);
-
-    for (unsigned int i = 0; i < TNumNodes; ++i)
-        rRightHandSideVector[i] = value;
+    this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
