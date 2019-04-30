@@ -74,35 +74,40 @@ template<class ValueType> struct SendTraits;
 
 template<> struct SendTraits<int>
 {
-    typedef int SendType;
+    using SendType = int;
+    using BufferType = std::vector<SendType>;
     constexpr static bool IsFixedSize = true;
     constexpr static std::size_t BlockSize = 1;
 };
 
 template<> struct SendTraits<double>
 {
-    typedef double SendType;
+    using SendType = double;
+    using BufferType = std::vector<SendType>;
     constexpr static bool IsFixedSize = true;
     constexpr static std::size_t BlockSize = 1;
 };
 
 template<std::size_t TDim> struct SendTraits< array_1d<double,TDim> >
 {
-    typedef double SendType;
+    using SendType = double;
+    using BufferType = std::vector<SendType>;
     constexpr static bool IsFixedSize = true;
     constexpr static std::size_t BlockSize = TDim;
 };
 
 template<> struct SendTraits< Kratos::Flags >
 {
-    typedef double SendType;
+    using SendType = double;
+    using BufferType = std::vector<SendType>;
     constexpr static bool IsFixedSize = true;
     constexpr static std::size_t BlockSize = sizeof(Kratos::Flags)/sizeof(double);
 };
 
 template<> struct SendTraits< Vector >
 {
-    typedef double SendType;
+    using SendType = double;
+    using BufferType = std::vector<SendType>;
     constexpr static bool IsFixedSize = false;
 
     static inline std::size_t GetMessageSize(const Vector& rValue)
@@ -113,7 +118,8 @@ template<> struct SendTraits< Vector >
 
 template<> struct SendTraits< Matrix >
 {
-    typedef double SendType;
+    using SendType = double;
+    using BufferType = std::vector<SendType>;
     constexpr static bool IsFixedSize = false;
 
     static inline std::size_t GetMessageSize(const Matrix& rValue)
@@ -125,7 +131,8 @@ template<> struct SendTraits< Matrix >
 
 template<typename TVectorValue> struct SendTraits< DenseVector<TVectorValue> >
 {
-    typedef double SendType;
+    using SendType = double;
+    using BufferType = std::vector<SendType>;
     constexpr static bool IsFixedSize = false;
 
     static inline std::size_t GetMessageSize(const DenseVector<TVectorValue>& rValue)
@@ -137,18 +144,20 @@ template<typename TVectorValue> struct SendTraits< DenseVector<TVectorValue> >
 
 template<> struct SendTraits< Kratos::VariablesListDataValueContainer >
 {
-    typedef double SendType;
+    using SendType = double;
+    using BufferType = std::string;
     constexpr static bool IsFixedSize = false;
 
     static inline std::size_t GetMessageSize(const Kratos::VariablesListDataValueContainer& rValue)
     {
-        return rValue.TotalSize();
+        return (rValue.TotalSize()+1)*sizeof(char);
     }
 };
 
 template<> struct SendTraits< Node<3>::DofsContainerType >
 {
-    typedef int SendType;
+    using SendType = int;
+    using BufferType = std::vector<SendType>;
     constexpr static bool IsFixedSize = false;
 
     static inline std::size_t GetMessageSize(const Node<3>::DofsContainerType& rValue)
@@ -715,7 +724,7 @@ public:
         constexpr Operation<OperationType::Replace> replace;
         MPIInternals::NodalSolutionStepDataAccess nodal_solution_step_access;
 
-        TransferDistributedValues(local_meshes, ghost_meshes, nodal_solution_step_access, replace);
+        TransferDistributedValuesUnknownSize(local_meshes, ghost_meshes, nodal_solution_step_access, replace);
 
         return true;
     }
@@ -1600,14 +1609,14 @@ private:
         TDatabaseAccess& rAccess,
         TReductionOperation Reduction)
     {
-        using TDataType = typename TDatabaseAccess::ValueType;
-        using TSendType = typename MPIInternals::SendTraits<TDataType>::SendType;
+        using DataType = typename TDatabaseAccess::ValueType;
+        using BufferType = typename MPIInternals::SendTraits<DataType>::BufferType;
         int destination = 0;
 
         NeighbourIndicesContainerType& neighbour_indices = NeighbourIndices();
 
-        std::vector<TSendType> send_values;
-        std::vector<TSendType> recv_values;
+        BufferType send_values;
+        BufferType recv_values;
 
         for (unsigned int i_color = 0; i_color < neighbour_indices.size(); i_color++)
         {
@@ -1625,6 +1634,58 @@ private:
                 }
 
                 FillBuffer(send_values, r_source_mesh, rAccess);
+
+                mrDataCommunicator.SendRecv(
+                    send_values, destination, i_color,
+                    recv_values, destination, i_color);
+
+                UpdateValues(recv_values, r_destination_mesh, rAccess, Reduction);
+            }
+        }
+    }
+
+    template<
+        typename TSourceAccess,
+        typename TDestinationAccess,
+        class TDatabaseAccess,
+        typename TReductionOperation>
+    void TransferDistributedValuesUnknownSize(
+        TSourceAccess SourceType,
+        TDestinationAccess DestinationType,
+        TDatabaseAccess& rAccess,
+        TReductionOperation Reduction)
+    {
+        using DataType = typename TDatabaseAccess::ValueType;
+        using BufferType = typename MPIInternals::SendTraits<DataType>::BufferType;
+        int destination = 0;
+
+        NeighbourIndicesContainerType& neighbour_indices = NeighbourIndices();
+
+        BufferType send_values;
+        BufferType recv_values;
+
+        for (unsigned int i_color = 0; i_color < neighbour_indices.size(); i_color++)
+        {
+            if ( (destination = neighbour_indices[i_color]) >= 0)
+            {
+                MeshType& r_source_mesh = GetMesh(i_color, SourceType);
+                MeshType& r_destination_mesh = GetMesh(i_color, DestinationType);
+
+                FillBuffer(send_values, r_source_mesh, rAccess);
+
+                std::vector<int> send_size{(int)send_values.size()};
+                std::vector<int> recv_size{0};
+
+                mrDataCommunicator.SendRecv(
+                    send_size, destination, i_color,
+                    recv_size, destination, i_color);
+
+                recv_values.resize(recv_size[0]);
+
+                if ( (send_values.size() == 0) && (recv_values.size() == 0) )
+                {
+                    continue; // nothing to transfer, skip communication step
+                }
 
                 mrDataCommunicator.SendRecv(
                     send_values, destination, i_color,
@@ -1668,6 +1729,23 @@ private:
 
     template<
         class TDatabaseAccess,
+        typename TValue = typename TDatabaseAccess::ValueType>
+    void FillBuffer(std::string& rBuffer, MeshType& rSourceMesh, TDatabaseAccess& rAccess)
+    {
+        StreamSerializer serializer;
+        auto& r_container = rAccess.GetContainer(rSourceMesh);
+
+        for (auto iter = r_container.begin(); iter != r_container.end(); ++iter)
+        {
+            TValue& r_value = rAccess.GetValue(iter);
+            serializer.save("Value", r_value);
+        }
+
+        rBuffer = serializer.GetStringRepresentation();
+    }
+
+    template<
+        class TDatabaseAccess,
         typename TReductionOperation,
         typename TValue = typename TDatabaseAccess::ValueType,
         typename TSendType = typename MPIInternals::SendTraits<TValue>::SendType>
@@ -1688,6 +1766,26 @@ private:
 
         KRATOS_WARNING_IF_ALL_RANKS("MPICommunicator", position > rBuffer.size())
         << "Error in estimating receive buffer size." << std::endl;
+    }
+
+    template<
+        class TDatabaseAccess,
+        typename TValue = typename TDatabaseAccess::ValueType>
+    void UpdateValues(
+        const std::string& rBuffer,
+        MeshType& rSourceMesh,
+        TDatabaseAccess& rAccess,
+        Operation<OperationType::Replace>)
+    {
+        StreamSerializer serializer;
+        std::stringstream* serializer_buffer = (std::stringstream *)serializer.pGetBuffer();
+        serializer_buffer->write(rBuffer.data(), rBuffer.size());
+
+        auto& r_container = rAccess.GetContainer(rSourceMesh);
+        for (auto iter = r_container.begin(); iter != r_container.end(); ++iter)
+        {
+            serializer.load("Value", rAccess.GetValue(iter));
+        }
     }
 
     template<
