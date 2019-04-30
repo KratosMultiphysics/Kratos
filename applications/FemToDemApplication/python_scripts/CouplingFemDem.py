@@ -899,7 +899,7 @@ class FEMDEM_Solution:
             # We need to check if the model part has been modified recently
             if self.RemeshingProcessMMG.step_frequency > 0:
                 if step >= self.RemeshingProcessMMG.step_frequency:
-                        if self.RemeshingProcessMMG.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.RemeshingProcessMMG.initial_step:
+                        if self.RemeshingProcessMMG.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.RemeshingProcessMMG.initial_step:
                             # Has remeshed
                             is_remeshed = True
         return is_remeshed

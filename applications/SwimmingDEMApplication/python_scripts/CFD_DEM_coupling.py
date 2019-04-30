@@ -1,10 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import math
-from KratosMultiphysics import *
-#from KratosMultiphysics.IncompressibleFluidApplication import *
-#from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysics as Kratos
+from KratosMultiphysics import Parameters
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import sys
 
 class ProjectionModule:
@@ -44,19 +41,19 @@ class ProjectionModule:
         if self.dimension == 3:
 
             if project_parameters["ElementType"].GetString() == "SwimmingNanoParticle":
-                self.projector = BinBasedNanoDEMFluidCoupledMapping3D(self.projector_parameters)
+                self.projector = SDEM.BinBasedNanoDEMFluidCoupledMapping3D(self.projector_parameters)
 
             else:
-                self.projector = BinBasedDEMFluidCoupledMapping3D(self.projector_parameters)
-            self.bin_of_objects_fluid = BinBasedFastPointLocator3D(fluid_model_part)
+                self.projector = SDEM.BinBasedDEMFluidCoupledMapping3D(self.projector_parameters)
+            self.bin_of_objects_fluid = Kratos.BinBasedFastPointLocator3D(fluid_model_part)
 
         else:
             if project_parameters["ElementType"].GetString() == "SwimmingNanoParticle":
-                self.projector = BinBasedNanoDEMFluidCoupledMapping2D(self.projector_parameters)
+                self.projector = SDEM.BinBasedNanoDEMFluidCoupledMapping2D(self.projector_parameters)
 
             else:
-                self.projector = BinBasedDEMFluidCoupledMapping2D(self.projector_parameters)
-            self.bin_of_objects_fluid = BinBasedFastPointLocator2D(fluid_model_part)
+                self.projector = SDEM.BinBasedDEMFluidCoupledMapping2D(self.projector_parameters)
+            self.bin_of_objects_fluid = Kratos.BinBasedFastPointLocator2D(fluid_model_part)
 
         # telling the projector which variables we are interested in modifying
 
@@ -67,10 +64,10 @@ class ProjectionModule:
             self.projector.AddFluidCouplingVariable(var)
 
         for var in coupling_dem_vars:
-            if var in {FLUID_VEL_PROJECTED, FLUID_ACCEL_PROJECTED, FLUID_VEL_LAPL_PROJECTED, FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED}:
+            if var in {Kratos.FLUID_VEL_PROJECTED, Kratos.FLUID_ACCEL_PROJECTED, Kratos.FLUID_VEL_LAPL_PROJECTED, Kratos.FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED}:
                 self.projector.AddDEMVariablesToImpose(var)
                 coupling_dem_vars.remove(var)
-            self.projector.AddDEMVariablesToImpose(AUX_VEL)
+            self.projector.AddDEMVariablesToImpose(Kratos.AUX_VEL)
 
         for var in time_filtered_vars:
             self.projector.AddFluidVariableToBeTimeFiltered(var, 0.004)

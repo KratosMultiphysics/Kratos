@@ -218,7 +218,7 @@
                     <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
                     <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     <Property id="BinghamSmoother" pid="Bingham smoother" value="500.0" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
-                    <Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/> 
+                    <Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/>
                     <Property id="PowerLawN" pid="Power law N" value="1.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law n value"/>
                     <Property id="PowerLawK" pid="Power law K" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law K value"/>
                     <Property id="GelStrength" pid="Gel strength" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the gel strength"/>
@@ -588,12 +588,12 @@
                 <Property id="Color" pid="Color" value="1" unit=" " icon="prop.gif" state="normal" help="Color" open="0"/>
                 <Property id="DEM_ContactLaw" pid="Discontinuous Contact Law" class="DEMContactLaw" value="Hertz" ivalues="Linear,Hertz,LinearCustomized,ConicalDamage" values="Linear,Hertz,LinearCustomized,ConicalDamage" delvalues="" unit="" icon="prop.gif" help="Contact Laws based on Thornton, Cummins, Cleary, 2013: LSD and HMD" open="0"/>
                 <Property id="KNormal" pid="KNormal" DEMContactLaw="LinearCustomized" value="1e5" unit="" icon="prop.gif" state="normal" help="KNormal" open="0"/>
-                <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>                
+                <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>
                 <Property id="DEM_CohesionLaw" pid="Cohesion Law" class="DEMCohesionLaw" value="None" ivalues="None,JKR,DMT" values="None,JKR,DMT" delvalues="" unit="" icon="prop.gif" help="JKR: larger, flexible spheres. DMT: smaller, rigid ones." open="0"/>
-                <Property id="ContactRadius" pid="Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Contact Radius" open="0"/>
-                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>                
-                <Property id="Alpha" pid="Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Alpha" open="0"/>
-                <Property id="Gamma" pid="Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Gamma" open="0"/>
+                <Property id="ConicalDamageContactRadius" pid="Conical Damage Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Conical Damage contact law Contact Radius" open="0"/>
+                <Property id="ConicalDamageMaxStress" pid="Conical Damage Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Conical Damage contact law Maximum Stress" open="0"/>
+                <Property id="ConicalDamageAlpha" pid="Conical Damage Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Conical Damage contact law Alpha" open="0"/>
+                <Property id="ConicalDamageGamma" pid="Conical Damage Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Conical Damage contact law Gamma" open="0"/>
             </Material>
             <Material id="DEM-SoyBean" pid="DEM-SoyBean" icon="grey.gif" help="Material name" open="0">
                 <Property id="Density" pid="Density" value="1250.0" unit=" " icon="prop.gif" state="normal" help="Density" open="0"/>
@@ -609,12 +609,12 @@
                 <Property id="Color" pid="Color" value="2" unit=" " icon="prop.gif" state="normal" help="Color" open="0"/>
                 <Property id="DEM_ContactLaw" pid="Discontinuous Contact Law" class="DEMContactLaw" value="Hertz" ivalues="Linear,Hertz,LinearCustomized,ConicalDamage" values="Linear,Hertz,LinearCustomized,ConicalDamage" delvalues="" unit="" icon="prop.gif" help="Contact Laws based on Thornton, Cummins, Cleary, 2013: LSD and HMD" open="0"/>
                 <Property id="KNormal" pid="KNormal" DEMContactLaw="LinearCustomized" value="1e5" unit="" icon="prop.gif" state="normal" help="KNormal" open="0"/>
-                <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>                
+                <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>
                 <Property id="DEM_CohesionLaw" pid="Cohesion Law" class="DEMCohesionLaw" value="None" ivalues="None,JKR,DMT" values="None,JKR,DMT" delvalues="" unit="" icon="prop.gif" help="JKR: larger, flexible spheres. DMT: smaller, rigid ones." open="0"/>
-                <Property id="ContactRadius" pid="Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Contact Radius" open="0"/>
-                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>                
-                <Property id="Alpha" pid="Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Alpha" open="0"/>
-                <Property id="Gamma" pid="Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Gamma" open="0"/>
+                <Property id="ConicalDamageContactRadius" pid="Conical Damage Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Conical Damage contact law Contact Radius" open="0"/>
+                <Property id="ConicalDamageMaxStress" pid="Conical Damage Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Conical Damage contact law Maximum Stress" open="0"/>
+                <Property id="ConicalDamageAlpha" pid="Conical Damage Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Conical Damage contact law Alpha" open="0"/>
+                <Property id="ConicalDamageGamma" pid="Conical Damage Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Conical Damage contact law Gamma" open="0"/>
             </Material>
             <Material id="DEM-CornKernel" pid="DEM-CornKernel" icon="grey.gif" help="Material name" open="0">
                 <Property id="Density" pid="Density" value="1309.0" unit=" " icon="prop.gif" state="normal" help="Density" open="0"/>
@@ -632,10 +632,10 @@
                 <Property id="KNormal" pid="KNormal" DEMContactLaw="LinearCustomized" value="1e5" unit="" icon="prop.gif" state="normal" help="KNormal" open="0"/>
                 <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>
                 <Property id="DEM_CohesionLaw" pid="Cohesion Law" class="DEMCohesionLaw" value="None" ivalues="None,JKR,DMT" values="None,JKR,DMT" delvalues="" unit="" icon="prop.gif" help="JKR: larger, flexible spheres. DMT: smaller, rigid ones." open="0"/>
-                <Property id="ContactRadius" pid="Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Contact Radius" open="0"/>
-                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>                
-                <Property id="Alpha" pid="Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Alpha" open="0"/>
-                <Property id="Gamma" pid="Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Gamma" open="0"/>
+                <Property id="ConicalDamageContactRadius" pid="Conical Damage Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Conical Damage contact law Contact Radius" open="0"/>
+                <Property id="ConicalDamageMaxStress" pid="Conical Damage Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Conical Damage contact law Maximum Stress" open="0"/>
+                <Property id="ConicalDamageAlpha" pid="Conical Damage Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Conical Damage contact law Alpha" open="0"/>
+                <Property id="ConicalDamageGamma" pid="Conical Damage Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Conical Damage contact law Gamma" open="0"/>
             </Material>
             <Material id="DEM-Wheat5" pid="DEM-Wheat5" icon="grey.gif" help="Material name" open="0">
                 <Property id="Density" pid="Density" value="1300.0" unit=" " icon="prop.gif" state="normal" help="Density" open="0"/>
@@ -653,10 +653,10 @@
                 <Property id="KNormal" pid="KNormal" DEMContactLaw="LinearCustomized" value="1e5" unit="" icon="prop.gif" state="normal" help="KNormal" open="0"/>
                 <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>
                 <Property id="DEM_CohesionLaw" pid="Cohesion Law" class="DEMCohesionLaw" value="None" ivalues="None,JKR,DMT" values="None,JKR,DMT" delvalues="" unit="" icon="prop.gif" help="JKR: larger, flexible spheres. DMT: smaller, rigid ones." open="0"/>
-                <Property id="ContactRadius" pid="Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Contact Radius" open="0"/>
-                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>                
-                <Property id="Alpha" pid="Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Alpha" open="0"/>
-                <Property id="Gamma" pid="Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Gamma" open="0"/>
+                <Property id="ConicalDamageContactRadius" pid="Conical Damage Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Conical Damage contact law Contact Radius" open="0"/>
+                <Property id="ConicalDamageMaxStress" pid="Conical Damage Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Conical Damage contact law Maximum Stress" open="0"/>
+                <Property id="ConicalDamageAlpha" pid="Conical Damage Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Conical Damage contact law Alpha" open="0"/>
+                <Property id="ConicalDamageGamma" pid="Conical Damage Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Conical Damage contact law Gamma" open="0"/>
             </Material>
             <Material id="DEM-Rock1" pid="DEM-Rock1" icon="grey.gif" help="Material name" open="0">
                 <Property id="Density" pid="Density" value="2500.0" unit=" " icon="prop.gif" state="normal" help="Density" open="0"/>
@@ -674,10 +674,10 @@
                 <Property id="KNormal" pid="KNormal" DEMContactLaw="LinearCustomized" value="1e5" unit="" icon="prop.gif" state="normal" help="KNormal" open="0"/>
                 <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>
                 <Property id="DEM_CohesionLaw" pid="Cohesion Law" class="DEMCohesionLaw" value="None" ivalues="None,JKR,DMT" values="None,JKR,DMT" delvalues="" unit="" icon="prop.gif" help="JKR: larger, flexible spheres. DMT: smaller, rigid ones." open="0"/>
-                <Property id="ContactRadius" pid="Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Contact Radius" open="0"/>
-                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>                
-                <Property id="Alpha" pid="Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Alpha" open="0"/>
-                <Property id="Gamma" pid="Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Gamma" open="0"/>
+                <Property id="ConicalDamageContactRadius" pid="Conical Damage Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Conical Damage contact law Contact Radius" open="0"/>
+                <Property id="ConicalDamageMaxStress" pid="Conical Damage Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Conical Damage contact law Maximum Stress" open="0"/>
+                <Property id="ConicalDamageAlpha" pid="Conical Damage Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Conical Damage contact law Alpha" open="0"/>
+                <Property id="ConicalDamageGamma" pid="Conical Damage Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Conical Damage contact law Gamma" open="0"/>
             </Material>
             <Material id="DEM-Rock2" pid="DEM-Rock2" icon="grey.gif" help="Material name" open="0">
                 <Property id="Density" pid="Density" value="2500.0" unit=" " icon="prop.gif" state="normal" help="Density" open="0"/>
@@ -693,12 +693,12 @@
                 <Property id="Color" pid="Color" value="6" unit=" " icon="prop.gif" state="normal" help="Color" open="0"/>
                 <Property id="DEM_ContactLaw" pid="Discontinuous Contact Law" class="DEMContactLaw" value="Hertz" ivalues="Linear,Hertz,LinearCustomized,ConicalDamage" values="Linear,Hertz,LinearCustomized,ConicalDamage" delvalues="" unit="" icon="prop.gif" help="Contact Laws based on Thornton, Cummins, Cleary, 2013: LSD and HMD" open="0"/>
                 <Property id="KNormal" pid="KNormal" DEMContactLaw="LinearCustomized" value="1e5" unit="" icon="prop.gif" state="normal" help="KNormal" open="0"/>
-                <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>                
+                <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>
                 <Property id="DEM_CohesionLaw" pid="Cohesion Law" class="DEMCohesionLaw" value="None" ivalues="None,JKR,DMT" values="None,JKR,DMT" delvalues="" unit="" icon="prop.gif" help="JKR: larger, flexible spheres. DMT: smaller, rigid ones." open="0"/>
-                <Property id="ContactRadius" pid="Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Contact Radius" open="0"/>
-                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>                
-                <Property id="Alpha" pid="Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Alpha" open="0"/>
-                <Property id="Gamma" pid="Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Gamma" open="0"/>
+                <Property id="ConicalDamageContactRadius" pid="Conical Damage Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Conical Damage contact law Contact Radius" open="0"/>
+                <Property id="ConicalDamageMaxStress" pid="Conical Damage Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Conical Damage contact law Maximum Stress" open="0"/>
+                <Property id="ConicalDamageAlpha" pid="Conical Damage Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Conical Damage contact law Alpha" open="0"/>
+                <Property id="ConicalDamageGamma" pid="Conical Damage Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Conical Damage contact law Gamma" open="0"/>
             </Material>
             <Material id="DEM-Ballast" pid="DEM-Ballast" icon="grey.gif" help="Material name" open="0">
                 <Property id="Density" pid="Density" value="2700.0" unit=" " icon="prop.gif" state="normal" help="Density" open="0"/>
@@ -716,10 +716,10 @@
                 <Property id="KNormal" pid="KNormal" DEMContactLaw="LinearCustomized" value="1e5" unit="" icon="prop.gif" state="normal" help="KNormal" open="0"/>
                 <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>
                 <Property id="DEM_CohesionLaw" pid="Cohesion Law" class="DEMCohesionLaw" value="None" ivalues="None,JKR,DMT" values="None,JKR,DMT" delvalues="" unit="" icon="prop.gif" help="JKR: larger, flexible spheres. DMT: smaller, rigid ones." open="0"/>
-                <Property id="ContactRadius" pid="Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Contact Radius" open="0"/>
-                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>                
-                <Property id="Alpha" pid="Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Alpha" open="0"/>
-                <Property id="Gamma" pid="Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Gamma" open="0"/>
+                <Property id="ConicalDamageContactRadius" pid="Conical Damage Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Conical Damage contact law Contact Radius" open="0"/>
+                <Property id="ConicalDamageMaxStress" pid="Conical Damage Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Conical Damage contact law Maximum Stress" open="0"/>
+                <Property id="ConicalDamageAlpha" pid="Conical Damage Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Conical Damage contact law Alpha" open="0"/>
+                <Property id="ConicalDamageGamma" pid="Conical Damage Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Conical Damage contact law Gamma" open="0"/>
             </Material>
         </MaterialGroup>
         <ClassConfiguration>

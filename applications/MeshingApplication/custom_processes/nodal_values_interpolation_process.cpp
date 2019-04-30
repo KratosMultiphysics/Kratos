@@ -116,10 +116,12 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
     }
 
     // In case interpolate fails we extrapolate values
-    if (extrapolate_values) {
+    if (extrapolate_values && to_extrapolate_nodes.size() > 0) {
         const std::string name_auxiliar_model_part = "SKIN_MODEL_PART_TO_LATER_REMOVE";
         GenerateBoundary(name_auxiliar_model_part);
+        mrDestinationMainModelPart.RemoveSubModelPart(name_auxiliar_model_part);
         ExtrapolateValues(name_auxiliar_model_part, to_extrapolate_nodes);
+        mrOriginMainModelPart.RemoveSubModelPart(name_auxiliar_model_part);
     }
 }
 
@@ -197,26 +199,25 @@ void NodalValuesInterpolationProcess<TDim>::GenerateBoundary(const std::string& 
 
     /* Destination skin */
     if (mThisParameters["surface_elements"].GetBool() == false) {
-        auto boundary_process_origin = SkinDetectionProcess<TDim>(mrOriginMainModelPart, skin_parameters);
-        boundary_process_origin.Execute();
+        SkinDetectionProcess<TDim>(mrOriginMainModelPart, skin_parameters).Execute();
     } else {
         GenerateBoundaryFromElements(mrOriginMainModelPart, rAuxiliarNameModelPart);
     }
+
     // Compute normal in the skin
     ModelPart& r_model_part_origin = mrOriginMainModelPart.GetSubModelPart(rAuxiliarNameModelPart);
     ComputeNormalSkin(r_model_part_origin);
 
     /* Destination skin */
     if (mThisParameters["surface_elements"].GetBool() == false) {
-        auto boundary_process_destination = SkinDetectionProcess<TDim>(mrDestinationMainModelPart, skin_parameters);
-        boundary_process_destination.Execute();
+        SkinDetectionProcess<TDim>(mrDestinationMainModelPart, skin_parameters).Execute();
     } else {
         GenerateBoundaryFromElements(mrDestinationMainModelPart, rAuxiliarNameModelPart);
     }
+
     // Compute normal in the skin
     ModelPart& r_model_part_destination = mrDestinationMainModelPart.GetSubModelPart(rAuxiliarNameModelPart);
     ComputeNormalSkin(r_model_part_destination);
-    mrDestinationMainModelPart.RemoveSubModelPart(rAuxiliarNameModelPart);
 }
 
 /***********************************************************************************/

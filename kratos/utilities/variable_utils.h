@@ -688,13 +688,19 @@ public:
 
         double sum_value = 0.0;
 
+        // Getting info
+        const auto& r_communicator = rModelPart.GetCommunicator();
+        const auto& r_local_mesh = r_communicator.LocalMesh();
+        const auto& r_nodes_array = r_local_mesh.Nodes();
+        const auto it_node_begin = r_nodes_array.begin();
+
         #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(rModelPart.GetCommunicator().LocalMesh().NumberOfNodes()); ++k) {
-            const auto it_node = rModelPart.GetCommunicator().LocalMesh().NodesBegin() + k;
+        for (int k = 0; k < static_cast<int>(r_nodes_array.size()); ++k) {
+            const auto it_node = it_node_begin + k;
             sum_value += it_node->GetValue(rVar);
         }
 
-        rModelPart.GetCommunicator().SumAll(sum_value);
+        r_communicator.SumAll(sum_value);
 
         return sum_value;
 
@@ -730,13 +736,19 @@ public:
 
         double sum_value = 0.0;
 
+        // Getting info
+        const auto& r_communicator = rModelPart.GetCommunicator();
+        const auto& r_local_mesh = r_communicator.LocalMesh();
+        const auto& r_nodes_array = r_local_mesh.Nodes();
+        const auto it_node_begin = r_nodes_array.begin();
+
         #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(rModelPart.GetCommunicator().LocalMesh().NumberOfNodes()); ++k) {
-            const auto it_node = rModelPart.GetCommunicator().LocalMesh().NodesBegin() + k;
+        for (int k = 0; k < static_cast<int>(r_nodes_array.size()); ++k) {
+            const auto it_node = it_node_begin + k;
             sum_value += it_node->GetSolutionStepValue(rVar, rBuffStep);
         }
 
-        rModelPart.GetCommunicator().SumAll(sum_value);
+        r_communicator.SumAll(sum_value);
 
         return sum_value;
 
@@ -770,13 +782,19 @@ public:
 
         double sum_value = 0.0;
 
+        // Getting info
+        const auto& r_communicator = rModelPart.GetCommunicator();
+        const auto& r_local_mesh = r_communicator.LocalMesh();
+        const auto& r_conditions_array = r_local_mesh.Conditions();
+        const auto it_cond_begin = r_conditions_array.begin();
+
         #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(rModelPart.GetCommunicator().LocalMesh().NumberOfConditions()); ++k) {
-            const auto it_cond = rModelPart.GetCommunicator().LocalMesh().ConditionsBegin() + k;
+        for (int k = 0; k < static_cast<int>(r_conditions_array.size()); ++k) {
+            const auto it_cond = it_cond_begin + k;
             sum_value += it_cond->GetValue(rVar);
         }
 
-        rModelPart.GetCommunicator().SumAll(sum_value);
+        r_communicator.SumAll(sum_value);
 
         return sum_value;
 
@@ -810,13 +828,19 @@ public:
 
         double sum_value = 0.0;
 
+        // Getting info
+        const auto& r_communicator = rModelPart.GetCommunicator();
+        const auto& r_local_mesh = r_communicator.LocalMesh();
+        const auto& r_elements_array = r_local_mesh.Elements();
+        const auto it_elem_begin = r_elements_array.begin();
+
         #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(rModelPart.GetCommunicator().LocalMesh().NumberOfElements()); ++k) {
-            const auto it_elem = rModelPart.GetCommunicator().LocalMesh().ElementsBegin() + k;
+        for (int k = 0; k < static_cast<int>(r_elements_array.size()); ++k) {
+            const auto it_elem = it_elem_begin + k;
             sum_value += it_elem->GetValue(rVar);
         }
 
-        rModelPart.GetCommunicator().SumAll(sum_value);
+        r_communicator.SumAll(sum_value);
 
         return sum_value;
 

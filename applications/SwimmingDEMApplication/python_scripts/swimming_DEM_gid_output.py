@@ -1,8 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+from KratosMultiphysics import MultiFileFlag
+from KratosMultiphysics import GiDPostMode
 import gid_output
 
 
@@ -27,7 +26,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
 
         self.outerlistfilename = os.path.join("..", self.listfilename)
 
-
+    # TODO: redo
     def initialize_swimming_DEM_results(self, DEM_model_part, clusters_model_part, rigid_faces_model_part, mixed_model_part):
 
         if self.multi_file == MultiFileFlag.SingleFile:
@@ -53,7 +52,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
         if self.multi_file == MultiFileFlag.SingleFile:
 
             if self.post_mode == GiDPostMode.GiD_PostBinary:
-                self.write_step_to_list()
+                self.write_step_to_list(0)
 
             else:
                 self.write_step_to_list(0)
@@ -144,8 +143,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
         if self.multi_file == MultiFileFlag.MultipleFiles:
             self._finalize_results()
 
-            with open(self.listfilename, "a") as listfile:
-                self.write_step_to_list(label)
+            self.write_step_to_list(label)
 
             self.write_step_to_outer_list(label)
 

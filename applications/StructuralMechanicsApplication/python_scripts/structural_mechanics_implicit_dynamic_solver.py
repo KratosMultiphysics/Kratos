@@ -7,14 +7,12 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import base class file
-import structural_mechanics_solver
-
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return ImplicitMechanicalSolver(model, custom_settings)
 
-
-class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
+class ImplicitMechanicalSolver(MechanicalSolver):
     """The structural mechanics implicit dynamic solver.
 
     This class creates the mechanical solvers for implicit dynamic analysis.
@@ -41,7 +39,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
         # Construct the base solver.
         super(ImplicitMechanicalSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[ImplicitMechanicalSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[ImplicitMechanicalSolver]:: ", "Construction finished")
 
         # Setting minimum buffer
         scheme_type = self.dynamic_settings["scheme_type"].GetString()
@@ -52,12 +50,12 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def AddVariables(self):
         super(ImplicitMechanicalSolver, self).AddVariables()
         self._add_dynamic_variables()
-        self.print_on_rank_zero("::[ImplicitMechanicalSolver]:: ", "Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[ImplicitMechanicalSolver]:: ", "Variables ADDED")
 
     def AddDofs(self):
         super(ImplicitMechanicalSolver, self).AddDofs()
         self._add_dynamic_dofs()
-        self.print_on_rank_zero("::[ImplicitMechanicalSolver]:: ", "DOF's ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[ImplicitMechanicalSolver]:: ", "DOF's ADDED")
 
     def InitializeSolutionStep(self):
         # Using the base InitializeSolutionStep

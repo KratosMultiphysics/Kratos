@@ -7,7 +7,7 @@ import tracemalloc
 import objgraph
 objgraph.show_growth(limit=10)
 tracemalloc.start(10)
-from KratosMultiphysics import *
+from KratosMultiphysics import Parameters
 import KratosSwimmingDEM as script
 # import t_junction_analysis
 import pre_calculated_fluid_analysis

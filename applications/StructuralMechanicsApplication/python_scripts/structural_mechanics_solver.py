@@ -7,12 +7,7 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Importing the base class
-from python_solver import PythonSolver
-
-
-def CreateSolver(model, custom_settings):
-    return MechanicalSolver(model, custom_settings)
-
+from KratosMultiphysics.python_solver import PythonSolver
 
 class MechanicalSolver(PythonSolver):
     """The base class for structural mechanics solvers.
@@ -87,19 +82,19 @@ class MechanicalSolver(PythonSolver):
             custom_settings.RemoveValue("bodies_list")
             warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "bodies_list", '
             warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-            self.print_warning_on_rank_zero("Bodies list", warning)
+            KratosMultiphysics.Logger.PrintWarning("Bodies list", warning)
         if custom_settings.Has("solver_type"):
             custom_settings.RemoveValue("solver_type")
             warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "solver_type", '
             warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
             warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
-            self.print_warning_on_rank_zero("Solver type", warning)
+            KratosMultiphysics.Logger.PrintWarning("Solver type", warning)
         if custom_settings.Has("time_integration_method"):
             custom_settings.RemoveValue("time_integration_method")
             warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "time_integration_method", '
             warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
             warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
-            self.print_warning_on_rank_zero("Time integration method", warning)
+            KratosMultiphysics.Logger.PrintWarning("Time integration method", warning)
 
         # Overwrite the default settings with user-provided parameters.
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -118,7 +113,7 @@ class MechanicalSolver(PythonSolver):
                 raise Exception('Please specify a "domain_size" >= 0!')
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
-        self.print_on_rank_zero("::[MechanicalSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Construction finished")
 
         # Set if the analysis is restarted
         if self.settings["model_import_settings"]["input_type"].GetString() == "rest":
@@ -148,7 +143,7 @@ class MechanicalSolver(PythonSolver):
             variable_name = self.settings["auxiliary_variables_list"][i].GetString()
             variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
             self.main_model_part.AddNodalSolutionStepVariable(variable)
-        self.print_on_rank_zero("::[MechanicalSolver]:: ", "Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Variables ADDED")
 
     def GetMinimumBufferSize(self):
         return 2
@@ -184,8 +179,8 @@ class MechanicalSolver(PythonSolver):
                 reaction_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_Z")
                 KratosMultiphysics.VariableUtils().AddDof(dof_variable_z, reaction_variable_z, self.main_model_part)
             else:
-                self.print_warning_on_rank_zero("auxiliary_reaction_list list", "The variable " + dof_variable_name + "is not a compatible type")
-        self.print_on_rank_zero("::[MechanicalSolver]:: ", "DOF's ADDED")
+                KratosMultiphysics.Logger.PrintWarning("auxiliary_reaction_list list", "The variable " + dof_variable_name + "is not a compatible type")
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "DOF's ADDED")
 
     def ImportModelPart(self):
         """This function imports the ModelPart
@@ -202,7 +197,7 @@ class MechanicalSolver(PythonSolver):
 
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
-        self.print_on_rank_zero("::[MechanicalSolver]:: ", "Initializing ...")
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Initializing ...")
         # The mechanical solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
@@ -217,7 +212,7 @@ class MechanicalSolver(PythonSolver):
                 mechanical_solution_strategy.SetInitializePerformedFlag(True)
             except AttributeError:
                 pass
-        self.print_on_rank_zero("::[MechanicalSolver]:: ", "Finished initialization.")
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished initialization.")
 
     def InitializeSolutionStep(self):
         if self.settings["clear_storage"].GetBool():
@@ -233,7 +228,7 @@ class MechanicalSolver(PythonSolver):
         if not is_converged:
             msg  = "Solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
             msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
-            self.print_warning_on_rank_zero("::[MechanicalSolver]:: ",msg)
+            KratosMultiphysics.Logger.PrintWarning("::[MechanicalSolver]:: ",msg)
         return is_converged
 
     def FinalizeSolutionStep(self):
@@ -338,9 +333,9 @@ class MechanicalSolver(PythonSolver):
         # Import constitutive laws.
         materials_imported = self.import_constitutive_laws()
         if materials_imported:
-            self.print_on_rank_zero("::[MechanicalSolver]:: ", "Constitutive law was successfully imported.")
+            KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Constitutive law was successfully imported.")
         else:
-            self.print_on_rank_zero("::[MechanicalSolver]:: ", "Constitutive law was not imported.")
+            KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Constitutive law was not imported.")
 
     def _set_and_fill_buffer(self):
         """Prepare nodal solution step data containers and time step information. """
@@ -431,7 +426,7 @@ class MechanicalSolver(PythonSolver):
             for solver_name in linear_solvers_by_speed:
                 if KratosMultiphysics.LinearSolverFactory().Has(solver_name):
                     linear_solver_configuration.AddEmptyValue("solver_type").SetString(solver_name)
-                    self.print_on_rank_zero('::[MechanicalSolver]:: ',\
+                    KratosMultiphysics.Logger.PrintInfo('::[MechanicalSolver]:: ',\
                         'Using "' + solver_name + '" as default linear solver')
                     return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
 

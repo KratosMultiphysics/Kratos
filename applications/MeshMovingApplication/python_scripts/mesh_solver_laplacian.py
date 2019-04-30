@@ -10,19 +10,19 @@ import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 from KratosMultiphysics.MeshMovingApplication.mesh_solver_base import MeshSolverBase
 
 
-def CreateSolver(mesh_model_part, custom_settings):
-    return MeshSolverLaplacian(mesh_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return MeshSolverLaplacian(model, custom_settings)
 
 
 class MeshSolverLaplacian(MeshSolverBase):
-    def __init__(self, mesh_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
         if custom_settings.Has("buffer_size"):
             buffer_size = custom_settings["buffer_size"].GetInt()
             if buffer_size < 2:
                 raise Exception("A buffer_size of at least 2 is required!")
         else: # overwritting baseclass-default
             custom_settings.AddEmptyValue("buffer_size").SetInt(2)
-        super(MeshSolverLaplacian, self).__init__(mesh_model_part, custom_settings)
+        super(MeshSolverLaplacian, self).__init__(model, custom_settings)
         KM.Logger.PrintInfo("::[MeshSolverLaplacian]:: Construction finished")
 
     def _create_mesh_motion_solving_strategy(self):

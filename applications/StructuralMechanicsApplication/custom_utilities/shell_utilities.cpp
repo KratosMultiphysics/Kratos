@@ -18,30 +18,27 @@
 #include "shell_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
-namespace Kratos
-{
-namespace ShellUtilities
-{
+namespace Kratos {
+namespace ShellUtilities {
 using SizeType = std::size_t;
 using IndexType = std::size_t;
 
 double dN_seren_dxi(const int nNode, const double Xi, const double Eta)
 {
     // Natural derivatives of 8-node serendipity shape functions
-    switch (nNode)
-    {
+    switch (nNode) {
     case 1:
         return -(-Eta + 1.0)*(-0.25*Xi + 0.25) -
-            0.25*(-Eta + 1.0)*(-Eta - Xi - 1.0);
+               0.25*(-Eta + 1.0)*(-Eta - Xi - 1.0);
     case 2:
         return (-Eta + 1.0)*(0.25*Xi + 0.25) +
-            0.25*(-Eta + 1.0)*(-Eta + Xi - 1.0);
+               0.25*(-Eta + 1.0)*(-Eta + Xi - 1.0);
     case 3:
         return (Eta + 1.0)*(0.25*Xi + 0.25) +
-            0.25*(Eta + 1.0)*(Eta + Xi - 1.0);
+               0.25*(Eta + 1.0)*(Eta + Xi - 1.0);
     case 4:
         return -(Eta + 1.0)*(-0.25*Xi + 0.25) -
-            0.25*(Eta + 1.0)*(Eta - Xi - 1.0);
+               0.25*(Eta + 1.0)*(Eta - Xi - 1.0);
     case 5:
         return -1.0*Xi*(-Eta + 1.0);
     case 6:
@@ -52,28 +49,27 @@ double dN_seren_dxi(const int nNode, const double Xi, const double Eta)
         return 0.5*Eta*Eta - 0.5;
     default:
         KRATOS_ERROR <<
-            "Error: ELEMENT ShellThinElement3D4N, METHOD dN_seren_dxi"
-            << std::endl;
+                     "Error: ELEMENT ShellThinElement3D4N, METHOD dN_seren_dxi"
+                     << std::endl;
     }
 }
 
 double dN_seren_deta(const int nNode, const double Xi, const double Eta)
 {
     // Natural derivatives of 8-node serendipity shape functions
-    switch (nNode)
-    {
+    switch (nNode) {
     case 1:
         return -(-Eta + 1.0)*(-0.25*Xi + 0.25) -
-            (-0.25*Xi + 0.25)*(-Eta - Xi - 1.0);
+               (-0.25*Xi + 0.25)*(-Eta - Xi - 1.0);
     case 2:
         return -(-Eta + 1.0)*(0.25*Xi + 0.25) -
-            (0.25*Xi + 0.25)*(-Eta + Xi - 1.0);
+               (0.25*Xi + 0.25)*(-Eta + Xi - 1.0);
     case 3:
         return (Eta + 1.0)*(0.25*Xi + 0.25) +
-            (0.25*Xi + 0.25)*(Eta + Xi - 1.0);
+               (0.25*Xi + 0.25)*(Eta + Xi - 1.0);
     case 4:
         return (Eta + 1.0)*(-0.25*Xi + 0.25) +
-            (-0.25*Xi + 0.25)*(Eta - Xi - 1.0);
+               (-0.25*Xi + 0.25)*(Eta - Xi - 1.0);
     case 5:
         return 0.5*Xi*Xi - 0.5;
     case 6:
@@ -84,8 +80,8 @@ double dN_seren_deta(const int nNode, const double Xi, const double Eta)
         return -1.0*Eta*(-Xi + 1.0);
     default:
         KRATOS_ERROR <<
-            "Error: ELEMENT ShellThinElement3D4N, METHOD dN_seren_dxi"
-            << std::endl;
+                     "Error: ELEMENT ShellThinElement3D4N, METHOD dN_seren_dxi"
+                     << std::endl;
     }
 }
 
@@ -107,43 +103,58 @@ void InterpToStandardGaussPoints(double& rV1, double& rV2, double& rV3)
 
 void InterpToStandardGaussPoints(std::vector< double >& rV)
 {
-    if (rV.size() != 3) return;
+    if (rV.size() != 3) {
+        return;
+    }
     InterpToStandardGaussPoints(rV[0], rV[1], rV[2]);
 }
 
 void InterpToStandardGaussPoints(std::vector< array_1d<double, 3> >& rV)
 {
-    if (rV.size() != 3) return;
-    for (IndexType i = 0; i < 3; ++i)
+    if (rV.size() != 3) {
+        return;
+    }
+    for (IndexType i = 0; i < 3; ++i) {
         InterpToStandardGaussPoints(rV[0][i], rV[1][i], rV[2][i]);
+    }
 }
 
 void InterpToStandardGaussPoints(std::vector< array_1d<double, 6> >& rV)
 {
-    if (rV.size() != 3) return;
-    for (IndexType i = 0; i < 6; ++i)
+    if (rV.size() != 3) {
+        return;
+    }
+    for (IndexType i = 0; i < 6; ++i) {
         InterpToStandardGaussPoints(rV[0][i], rV[1][i], rV[2][i]);
+    }
 }
 
 void InterpToStandardGaussPoints(std::vector< Vector >& rV)
 {
-    if (rV.size() != 3) return;
+    if (rV.size() != 3) {
+        return;
+    }
     SizeType ncomp = rV[0].size();
     for (int i = 1; i < 3; ++i)
-        if (rV[i].size() != ncomp)
+        if (rV[i].size() != ncomp) {
             return;
-    for (IndexType i = 0; i < ncomp; ++i)
+        }
+    for (IndexType i = 0; i < ncomp; ++i) {
         InterpToStandardGaussPoints(rV[0][i], rV[1][i], rV[2][i]);
+    }
 }
 
 void InterpToStandardGaussPoints(std::vector< Matrix >& rV)
 {
-    if (rV.size() != 3) return;
+    if (rV.size() != 3) {
+        return;
+    }
     SizeType nrows = rV[0].size1();
     SizeType ncols = rV[0].size2();
     for (int i = 1; i < 3; ++i)
-        if (rV[i].size1() != nrows || rV[i].size2() != ncols)
+        if (rV[i].size1() != nrows || rV[i].size2() != ncols) {
             return;
+        }
     for (IndexType i = 0; i < nrows; ++i)
         for (IndexType j = 0; j < ncols; ++j)
             InterpToStandardGaussPoints
@@ -157,16 +168,14 @@ bool IsOrthotropic(const Properties& rProps)
 
 double GetThickness(const Properties& rProps)
 {
-    if (IsOrthotropic(rProps))
-    {
+    if (IsOrthotropic(rProps)) {
         double thickness = 0.0;
         const auto& orthotropic_layers = rProps.GetValue(SHELL_ORTHOTROPIC_LAYERS);
-        for (IndexType i=0; i<orthotropic_layers.size1(); ++i)
+        for (IndexType i=0; i<orthotropic_layers.size1(); ++i) {
             thickness += orthotropic_layers(i,0);
+        }
         return thickness;
-    }
-    else
-    {
+    } else {
         KRATOS_DEBUG_ERROR_IF_NOT(rProps.Has(THICKNESS));
         return rProps.GetValue(THICKNESS);
     }
@@ -174,13 +183,10 @@ double GetThickness(const Properties& rProps)
 
 double GetThickness(const Properties& rProps, const IndexType Index)
 {
-    if (IsOrthotropic(rProps))
-    {
+    if (IsOrthotropic(rProps)) {
         const auto& orthotropic_layers = rProps.GetValue(SHELL_ORTHOTROPIC_LAYERS);
         return orthotropic_layers(Index,0);
-    }
-    else
-    {
+    } else {
         KRATOS_DEBUG_ERROR_IF_NOT(rProps.Has(THICKNESS));
         return rProps.GetValue(THICKNESS);
     }
@@ -188,13 +194,10 @@ double GetThickness(const Properties& rProps, const IndexType Index)
 
 double GetDensity(const Properties& rProps, const IndexType Index)
 {
-    if (IsOrthotropic(rProps))
-    {
+    if (IsOrthotropic(rProps)) {
         const auto& orthotropic_layers = rProps.GetValue(SHELL_ORTHOTROPIC_LAYERS);
         return orthotropic_layers(Index,2);
-    }
-    else
-    {
+    } else {
         KRATOS_DEBUG_ERROR_IF_NOT(rProps.Has(DENSITY));
         return rProps.GetValue(DENSITY);
     }
@@ -202,27 +205,28 @@ double GetDensity(const Properties& rProps, const IndexType Index)
 
 double GetOrientationAngle(const Properties& rProps, const IndexType Index)
 {
-    if (IsOrthotropic(rProps))
-    {
+    if (IsOrthotropic(rProps)) {
         const auto& orthotropic_layers = rProps.GetValue(SHELL_ORTHOTROPIC_LAYERS);
         double orientation_angle = orthotropic_layers(Index,1);
 
         orientation_angle = std::fmod(orientation_angle, 360.0);
-        if(orientation_angle < 0.0)
+        if (orientation_angle < 0.0) {
             orientation_angle += 360.0;
+        }
         return orientation_angle;
-    }
-    else
+    } else {
         return 0.0;
+    }
 }
 
 
 double GetOffset(const Properties& rProps)
 {
-if (rProps.Has(SHELL_OFFSET))
-    return rProps.GetValue(SHELL_OFFSET);
-else
-    return 0.0;
+    if (rProps.Has(SHELL_OFFSET)) {
+        return rProps.GetValue(SHELL_OFFSET);
+    } else {
+        return 0.0;
+    }
 }
 
 } // namespace ShellUtilities

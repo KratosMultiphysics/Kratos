@@ -1,6 +1,5 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+from KratosMultiphysics import Parameters
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import pre_calculated_fluid_analysis
 BaseAnalysis = pre_calculated_fluid_analysis.PreCalculatedFluidAnalysis
 
@@ -10,10 +9,10 @@ class TJunctionAnalysis(BaseAnalysis):
         final_time = self.project_parameters.AddEmptyValue("FinalTime").GetDouble()
         L = 0.0048 # the channel width
         center_x = 0.0044
-        self.bbox_watcher = BoundingBoxRule(0.0, 2 * final_time,
-                                            center_x - L, center_x + L,
-                                            -0.007, -0.002,
-                                            -0.005, 0.001)
+        self.bbox_watcher = SDEM.BoundingBoxRule(0.0, 2 * final_time,
+                                                 center_x - L, center_x + L,
+                                                 -0.007, -0.002,
+                                                 -0.005, 0.001)
 
     def PerformFinalOperations(self, time = None):
         self.particles_loader.RecordParticlesInBox(self.bbox_watcher)
