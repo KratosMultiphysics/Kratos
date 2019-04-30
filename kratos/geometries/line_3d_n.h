@@ -365,7 +365,7 @@ public:
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) override
+        )
     {
         KRATOS_ERROR << "'IsInside' not available for arbitrarty noded line" << std::endl;
         return false;
