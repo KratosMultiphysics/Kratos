@@ -587,11 +587,11 @@ class RemoveNodesMesherProcess
     for(auto& i_node : rModelPart.Nodes())
     {
 
-      NodeWeakPtrVectorType& nNodes = i_node.GetValue(NEIGHBOUR_NODES);
+      auto& nNodes = i_node.GetValue(NEIGHBOUR_NODES);
       int erased_nodes =0;
       for(auto& i_nnode : nNodes)
       {
-        if(i_nnode.Is(TO_ERASE))
+        if(i_nnode->Is(TO_ERASE))
           erased_nodes += 1;
       }
 

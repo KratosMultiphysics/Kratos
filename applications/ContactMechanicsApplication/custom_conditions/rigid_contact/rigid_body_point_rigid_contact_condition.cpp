@@ -13,7 +13,7 @@
 
 // Project includes
 #include "custom_conditions/rigid_contact/rigid_body_point_rigid_contact_condition.hpp"
-
+#include "includes/global_pointer_variables.h"
 #include "contact_mechanics_application_variables.h"
 
 namespace Kratos
@@ -296,7 +296,7 @@ void RigidBodyPointRigidContactCondition::CalculateKinematics(ConditionVariables
 
     KRATOS_TRY
 
-    NodeWeakPtrVectorType& nNodes = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
+    auto& nNodes = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
 
     array_1d<double,3> Contact_Point = GetGeometry()[0].Coordinates();
     array_1d<double,3> Neighb_Point;
@@ -306,9 +306,9 @@ void RigidBodyPointRigidContactCondition::CalculateKinematics(ConditionVariables
 
     for(auto& i_nnode : nNodes)
     {
-      if(i_nnode.Is(BOUNDARY)){
+      if(i_nnode->Is(BOUNDARY)){
 
-        Neighb_Point = i_nnode.Coordinates();
+        Neighb_Point = i_nnode->Coordinates();
 
         distance += norm_2(Contact_Point-Neighb_Point);
 

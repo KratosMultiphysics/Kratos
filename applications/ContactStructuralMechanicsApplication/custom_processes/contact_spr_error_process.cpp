@@ -206,12 +206,12 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
 
     // Neighboring nodes:
     for( auto& i_neighbour_node : itPatchNode->GetValue(NEIGHBOUR_NODES)) {
-        if (i_neighbour_node.Has(CONTACT_PRESSURE)){
-            const array_1d<double, 3>& normal_neigh_node = i_neighbour_node.GetValue(NORMAL);
+        if (i_neighbour_node->Has(CONTACT_PRESSURE)){
+            const array_1d<double, 3>& normal_neigh_node = i_neighbour_node->GetValue(NORMAL);
             const double x_patch = itPatchNode->X();
             const double y_patch = itPatchNode->Y();
-            const double x_neigh = i_neighbour_node.X();
-            const double y_neigh = i_neighbour_node.Y();
+            const double x_neigh = i_neighbour_node->X();
+            const double y_neigh = i_neighbour_node->Y();
             p_k(0,1)= x_neigh-x_patch;
             p_k(0,2)= y_neigh-y_patch;
             p_k(1,4)= x_neigh-x_patch;
@@ -234,7 +234,7 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
 
             // Finally we add the contributiosn to our local system (A, b)
             noalias(A) += mPenaltyTangent*prod(A1, A2);
-            noalias(b) += mPenaltyNormal*prod(trans(p_k),trans(N_k))*i_neighbour_node.GetValue(CONTACT_PRESSURE);
+            noalias(b) += mPenaltyNormal*prod(trans(p_k),trans(N_k))*i_neighbour_node->GetValue(CONTACT_PRESSURE);
         }
     }
 

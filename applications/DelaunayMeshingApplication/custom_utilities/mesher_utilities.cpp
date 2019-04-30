@@ -13,6 +13,7 @@
 
 // Project includes
 #include "custom_utilities/mesher_utilities.hpp"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -648,13 +649,13 @@ namespace Kratos
 	  if( rGeometry[i].Is(NEW_ENTITY) )
 	    return MesherUtilities::Undefined;
 
-	  NodeWeakPtrVectorType& nNodes = rGeometry[i].GetValue(NEIGHBOUR_NODES);
+	  auto& nNodes = rGeometry[i].GetValue(NEIGHBOUR_NODES);
 
 	  for(auto& i_nnode : nNodes)
           {
             for(unsigned int j=i+1; j<size; ++j)
             {
-              if( i_nnode.Id() == rGeometry[j].Id() )
+              if( i_nnode->Id() == rGeometry[j].Id() )
               {
                 NeighbourVertices[i] +=1;
                 NeighbourVertices[j] +=1;
@@ -982,13 +983,13 @@ namespace Kratos
 	double h_nodes = 0;
 	double h = 1000.0;
 
-        NodeWeakPtrVectorType& nNodes = BoundaryPoint.GetValue(NEIGHBOUR_NODES);
+        auto& nNodes = BoundaryPoint.GetValue(NEIGHBOUR_NODES);
         for(auto& i_nnode : nNodes)
 	  {
-	    if( i_nnode.Is(BOUNDARY) ){
-	      double x = i_nnode.X();
-	      double y = i_nnode.Y();
-	      double z = i_nnode.Z();
+	    if( i_nnode->Is(BOUNDARY) ){
+	      double x = i_nnode->X();
+	      double y = i_nnode->Y();
+	      double z = i_nnode->Z();
 	      double l = (x-xc)*(x-xc);
 	      l += (y-yc)*(y-yc);
 	      l += (z-zc)*(z-zc);

@@ -226,7 +226,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDeriv(ModelPart& r_model
     polynomial_coefficients.resize(n_relevant_terms);
 
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
-        WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+        auto& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
 
         if (!n_neigh){ // then we keep the defualt value
@@ -241,7 +241,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDeriv(ModelPart& r_model
 
         for (unsigned int k = 0; k < TDim; ++k){
             for (unsigned int i_neigh = 0; i_neigh < n_neigh; ++i_neigh){
-                const array_1d<double, 3>& neigh_nodal_value = neigh_nodes[i_neigh].FastGetSolutionStepValue(vector_container);
+                const array_1d<double, 3>& neigh_nodal_value = neigh_nodes[i_neigh]->FastGetSolutionStepValue(vector_container);
                 for (unsigned int d = 0; d < n_relevant_terms; ++d){
                     polynomial_coefficients[d][k] += nodal_weights[n_relevant_terms * i_neigh + d] * neigh_nodal_value[k];
                 }
@@ -420,7 +420,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model
     // Solving least squares problem (Zhang, 2006)
 
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
-        WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+        auto& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
 
         if (!n_neigh){ // we keep the defualt value
@@ -432,7 +432,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model
         const Vector& nodal_weights = inode->FastGetSolutionStepValue(NODAL_WEIGHTS);
 
         for (unsigned int i_neigh = 0; i_neigh < n_neigh; ++i_neigh){
-            const double& neigh_nodal_value = neigh_nodes[i_neigh].FastGetSolutionStepValue(scalar_container);
+            const double& neigh_nodal_value = neigh_nodes[i_neigh]->FastGetSolutionStepValue(scalar_container);
 
             for (unsigned int d = 0; d < TDim; ++d){
                 recovered_gradient[d] += nodal_weights[3 * i_neigh + d] * neigh_nodal_value;
@@ -463,7 +463,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model
 //    // Solving least squares problem (Zhang, 2006)
 
 //    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
-//        WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+//        auto& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
 //        unsigned int n_neigh = neigh_nodes.size();
 
 //        if (!n_neigh){ // we keep the defualt value
@@ -510,7 +510,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentLaplacian(ModelPart& r_mode
     polynomial_coefficients.resize(n_relevant_terms);
 
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
-        WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+        auto& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
 
         if (!n_neigh){ // then we keep the defualt value
@@ -527,7 +527,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentLaplacian(ModelPart& r_mode
 
         for (unsigned int k = 0; k < TDim; ++k){
            for (unsigned int i_neigh = 0; i_neigh < n_neigh; ++i_neigh){
-                const array_1d<double, 3>& neigh_nodal_value = neigh_nodes[i_neigh].FastGetSolutionStepValue(vector_container);
+                const array_1d<double, 3>& neigh_nodal_value = neigh_nodes[i_neigh]->FastGetSolutionStepValue(vector_container);
                 for (unsigned int d = 0; d < n_relevant_terms; ++d){
                     polynomial_coefficients[d][k] += nodal_weights[n_relevant_terms * i_neigh + d] * neigh_nodal_value[k];
                 }
@@ -570,7 +570,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentVelocityLaplacianFromGradie
     array_1d< array_1d<double, 3>, 3> gradient;
 
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
-        WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+        auto& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
 
         if (!n_neigh){ // then we keep the defualt value
@@ -586,9 +586,9 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentVelocityLaplacianFromGradie
         recovered_laplacian =  ZeroVector(3);
 
         for (unsigned int i_neigh = 0; i_neigh < n_neigh; ++i_neigh){
-            noalias(gradient[0]) = neigh_nodes[i_neigh].FastGetSolutionStepValue(VELOCITY_X_GRADIENT);
-            noalias(gradient[1]) = neigh_nodes[i_neigh].FastGetSolutionStepValue(VELOCITY_Y_GRADIENT);
-            noalias(gradient[2]) = neigh_nodes[i_neigh].FastGetSolutionStepValue(VELOCITY_Z_GRADIENT);
+            noalias(gradient[0]) = neigh_nodes[i_neigh]->FastGetSolutionStepValue(VELOCITY_X_GRADIENT);
+            noalias(gradient[1]) = neigh_nodes[i_neigh]->FastGetSolutionStepValue(VELOCITY_Y_GRADIENT);
+            noalias(gradient[2]) = neigh_nodes[i_neigh]->FastGetSolutionStepValue(VELOCITY_Z_GRADIENT);
             recovered_laplacian[0] += nodal_weights[n_relevant_terms * i_neigh] * gradient[0][0];
             recovered_laplacian[0] += nodal_weights[n_relevant_terms * i_neigh + 1] * gradient[0][1];
             recovered_laplacian[0] += nodal_weights[n_relevant_terms * i_neigh + 2] * gradient[0][2];
@@ -631,7 +631,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDerivAndLaplacian(ModelP
     polynomial_coefficients.resize(n_relevant_terms);
 
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
-        WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+        auto& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
 
         if (!n_neigh){ // then we keep the defualt value
@@ -646,7 +646,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDerivAndLaplacian(ModelP
 
         for (unsigned int k = 0; k < TDim; ++k){
             for (unsigned int i_neigh = 0; i_neigh < n_neigh; ++i_neigh){
-                const array_1d<double, 3>& neigh_nodal_value = neigh_nodes[i_neigh].FastGetSolutionStepValue(vector_container);
+                const array_1d<double, 3>& neigh_nodal_value = neigh_nodes[i_neigh]->FastGetSolutionStepValue(vector_container);
                 for (unsigned int d = 0; d < n_relevant_terms; ++d){
                     polynomial_coefficients[d][k] += nodal_weights[n_relevant_terms * i_neigh + d] * neigh_nodal_value[k];
                 }
@@ -817,7 +817,7 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part)
     unsigned int i = 0;
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         bool the_cloud_of_neighbours_is_successful = SetInitialNeighboursAndWeights(r_model_part, *(inode.base()));
-        WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+        auto& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
 
         unsigned int iteration = 0;
         while (!the_cloud_of_neighbours_is_successful && iteration < n_max_iterations){
@@ -849,7 +849,7 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeightsForTheLaplacian(ModelPart&
     unsigned int i = 0;
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         bool the_cloud_of_neighbours_is_successful = SetInitialNeighboursAndWeights(r_model_part, *(inode.base()));
-        WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+        auto& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
 
         unsigned int iteration = 0;
         while (!the_cloud_of_neighbours_is_successful && iteration < n_max_iterations){
@@ -871,7 +871,7 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeightsForTheLaplacian(ModelPart&
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::OrderByDistance(Node<3>::Pointer &p_node, WeakPointerVector<Node<3> >& neigh_nodes)
+void DerivativeRecovery<TDim>::OrderByDistance(Node<3>::Pointer &p_node, GlobalPointersVector<Node<3> >& neigh_nodes)
 {
     const unsigned int n_nodes = neigh_nodes.size();
     std::vector<double> distances_squared;
@@ -879,7 +879,7 @@ void DerivativeRecovery<TDim>::OrderByDistance(Node<3>::Pointer &p_node, WeakPoi
     const array_1d <double, 3>& origin = p_node->Coordinates();
 
     for (unsigned int i = 0; i < n_nodes; ++i){
-        const array_1d <double, 3> rel_coordinates = (neigh_nodes[i] - origin);
+        const array_1d <double, 3> rel_coordinates = (neigh_nodes[i]->Coordinates() - origin);
         distances_squared[i] = DEM_INNER_PRODUCT_3(rel_coordinates, rel_coordinates);
     }
     std::vector <std::pair<unsigned int, double> > ordering;
@@ -889,10 +889,10 @@ void DerivativeRecovery<TDim>::OrderByDistance(Node<3>::Pointer &p_node, WeakPoi
         ordering[i] = std::make_pair(i, distances_squared[i]);
     }
     std::sort(ordering.begin(), ordering.end(), IsCloser());
-    WeakPointerVector<Node<3> > ordered_neighbours;
+    GlobalPointersVector<Node<3> > ordered_neighbours;
 
     for (unsigned int i = 0; i < n_nodes; ++i){
-        Node<3>::WeakPointer& p_neigh = neigh_nodes(ordering[i].first);
+        auto& p_neigh = neigh_nodes[ordering[i].first];
         ordered_neighbours.push_back(p_neigh);
     }
 
@@ -903,8 +903,8 @@ void DerivativeRecovery<TDim>::OrderByDistance(Node<3>::Pointer &p_node, WeakPoi
 template <std::size_t TDim>
 bool DerivativeRecovery<TDim>::SetInitialNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer &p_node)
 {
-    WeakPointerVector<Element>& neigh_elems = p_node->GetValue(NEIGHBOUR_ELEMENTS);
-    WeakPointerVector<Node<3> >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
+    auto& neigh_elems = p_node->GetValue(NEIGHBOUR_ELEMENTS);
+    auto& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
     std::map<std::size_t, std::size_t> ids; // map to keep track of all different ids corresponding to already added neighbours to avoid repetition
     ids[p_node->Id()] = p_node->Id();
 
@@ -945,25 +945,25 @@ bool DerivativeRecovery<TDim>::SetInitialNeighboursAndWeights(ModelPart& r_model
 template <std::size_t TDim>
 bool DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer& p_node)
 {
-    WeakPointerVector<Node<3> >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
+    auto& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
     const unsigned int node_increase_per_neighbour = 1;
     const unsigned int node_increase_overall = 1;
     std::map<std::size_t, std::size_t> ids;
     ids[p_node->Id()] = p_node->Id();
 
     for (unsigned int i = 0; i < (unsigned int)neigh_nodes.size(); ++i){
-        Node<3>::Pointer p_neigh = neigh_nodes(i).lock();
+        auto p_neigh = neigh_nodes[i];
         ids[p_neigh->Id()] = p_neigh->Id();
     }
 
     const unsigned int n_neigh = neigh_nodes.size();
 
     for (unsigned int i = 0; i < n_neigh; ++i){
-        Node<3>::Pointer p_neigh = neigh_nodes(i).lock();
-        WeakPointerVector<Node<3> >& neigh_neigh_nodes = p_neigh->GetValue(NEIGHBOUR_NODES);
+        auto p_neigh = neigh_nodes[i];
+        auto& neigh_neigh_nodes = p_neigh->GetValue(NEIGHBOUR_NODES);
         unsigned int n_new_nodes = 0;
         for (unsigned int j = 0; j < (unsigned int)neigh_neigh_nodes.size(); ++j){
-            Node<3>::Pointer p_neigh_neigh = neigh_neigh_nodes(j).lock();
+            auto p_neigh_neigh = neigh_neigh_nodes[j];
             if (ids.find(p_neigh_neigh->Id()) == ids.end()){
                 neigh_nodes.push_back(p_neigh_neigh);
                 ids[p_neigh_neigh->Id()] = p_neigh_neigh->Id();
@@ -1036,7 +1036,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
         KRATOS_THROW_ERROR(std::runtime_error, "Gradient recovery not implemented yet in 2D!)","");
     }
 
-    WeakPointerVector<Node<3> >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
+    auto& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
     unsigned int n_nodal_neighs = (unsigned int)neigh_nodes.size();
     const double h_inv = 1.0 / CalculateTheMaximumDistanceToNeighbours(p_node); // we use it as a scaling parameter to improve stability
     const array_1d <double, 3> origin = p_node->Coordinates();
@@ -1047,7 +1047,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
         A(i, 0) = 1.0;
 
         if (TDim == 3){
-            Node<3>& neigh = neigh_nodes[i];
+            Node<3>& neigh = *neigh_nodes[i];
             const array_1d <double, 3> rel_coordinates = (neigh.Coordinates() - origin) * h_inv;
             TestNodalValues(i, 0) = SecondDegreeTestPolynomial(rel_coordinates);
 
@@ -1157,7 +1157,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
         double abs_difference = 0.0;
 
         for (unsigned int i = 0; i < n_nodal_neighs; ++i){
-            const array_1d <double, 3>& rel_coordinates = (neigh_nodes[i].Coordinates() - origin) * h_inv;
+            const array_1d <double, 3>& rel_coordinates = (neigh_nodes[i]->Coordinates() - origin) * h_inv;
             abs_difference += std::abs(SecondDegreeGenericPolynomial(C, rel_coordinates) - SecondDegreeTestPolynomial(rel_coordinates));
         }
 //        abs_difference = abs(C(7, 0) - 1.0) + abs(C(8, 0) - 1.0) + abs(C(8, 0) - 1.0);
@@ -1196,10 +1196,10 @@ double DerivativeRecovery<TDim>::CalculateTheMaximumDistanceToNeighbours(Node<3>
 {
     double max_distance_yet = 0.0;
     const array_1d <double, 3>& coors = p_node->Coordinates();
-    WeakPointerVector<Node<3> >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
+    auto& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
 
     for (unsigned int i = 0; i < (unsigned int)neigh_nodes.size(); ++i){
-        array_1d <double, 3> delta = neigh_nodes[i].Coordinates() - coors;
+        array_1d <double, 3> delta = neigh_nodes[i]->Coordinates() - coors;
         double distance_2 = DEM_INNER_PRODUCT_3(delta, delta);
         max_distance_yet = max_distance_yet > distance_2 ? max_distance_yet : distance_2;
     }

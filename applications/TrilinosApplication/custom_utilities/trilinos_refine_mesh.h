@@ -631,8 +631,8 @@ public:
             it_node2 = this_model_part.NodesBegin() + pos2;
 
             pnode->GetValue(FATHER_NODES).resize(0);
-            pnode->GetValue(FATHER_NODES).push_back(Node < 3 > ::WeakPointer(*it_node1.base()));
-            pnode->GetValue(FATHER_NODES).push_back(Node < 3 > ::WeakPointer(*it_node2.base()));
+            pnode->GetValue(FATHER_NODES).push_back( GlobalPointer<Node<3>>(*it_node1.base(), it_node1->FastGetSolutionStepValue(PARTITION_INDEX)));
+            pnode->GetValue(FATHER_NODES).push_back( GlobalPointer<Node<3>>(*it_node2.base(), it_node2->FastGetSolutionStepValue(PARTITION_INDEX)));
 
             pnode->X0() = 0.5 * (it_node1->X0() + it_node2->X0());
             pnode->Y0() = 0.5 * (it_node1->Y0() + it_node2->Y0());

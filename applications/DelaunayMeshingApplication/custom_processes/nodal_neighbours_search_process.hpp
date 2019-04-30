@@ -22,6 +22,7 @@
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
+#include "includes/global_pointer_variables.h"
 #include "utilities/openmp_utils.h"
 #include "custom_processes/mesher_process.hpp"
 
@@ -232,11 +233,11 @@ class NodalNeighboursSearchProcess
   ///@name Private Operators
   ///@{
   template<class TDataType> void  AddUniquePointer
-  (WeakPointerVector<TDataType>& v, const typename TDataType::WeakPointer candidate)
+  (GlobalPointersVector<TDataType>& v, const GlobalPointer<TDataType>& candidate)
   {
-    typename WeakPointerVector< TDataType >::iterator i = v.begin();
-    typename WeakPointerVector< TDataType >::iterator endit = v.end();
-    while ( i != endit && (i)->Id() != (candidate.lock())->Id())
+    auto i = v.begin();
+    auto endit = v.end();
+    while ( i != endit && (*i)->Id() != (candidate)->Id())
     {
       i++;
     }
@@ -252,11 +253,11 @@ class NodalNeighboursSearchProcess
     //*************  Erase old node neighbours  *************//
     for(auto& i_node : mrModelPart.Nodes())
     {
-      NodeWeakPtrVectorType& nNodes = i_node.GetValue(NEIGHBOUR_NODES);
+      auto& nNodes = i_node.GetValue(NEIGHBOUR_NODES);
       nNodes.clear();
       nNodes.reserve(mAverageNodes);
 
-      ElementWeakPtrVectorType& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
+      auto& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
       nElements.clear();
       nElements.reserve(mAverageElements);
 
@@ -299,10 +300,10 @@ class NodalNeighboursSearchProcess
     {
       std::cout<<"["<<i_node.Id()<<"]:"<<std::endl;
       std::cout<<"( ";
-      NodeWeakPtrVectorType& nNodes = i_node.GetValue(NEIGHBOUR_NODES);
+      auto& nNodes = i_node.GetValue(NEIGHBOUR_NODES);
       for(auto& i_nnode : nNodes)
       {
-        std::cout<< i_nnode.Id()<<", ";
+        std::cout<< i_nnode->Id()<<", ";
       }
       std::cout<<" )"<<std::endl;
     }
@@ -345,7 +346,7 @@ class NodalNeighboursSearchProcess
         {
           if( rGeometry[i].Id() != i_node.Id() )
           {
-            NodeWeakPtrVectorType& nNodes = i_node.GetValue(NEIGHBOUR_NODES);
+            auto& nNodes = i_node.GetValue(NEIGHBOUR_NODES);
             AddUniquePointer<Node<3> >(nNodes, rGeometry(i));
           }
         }
@@ -477,7 +478,7 @@ class NodalNeighboursSearchProcess
       }
 
       //Set everything on particles
-      NodeWeakPtrVectorType& nNodes = i_node.GetValue(NEIGHBOUR_NODES);
+      auto& nNodes = i_node.GetValue(NEIGHBOUR_NODES);
 
       for(unsigned int spn=0; spn<PSharedN[rpn]; ++spn)
       {

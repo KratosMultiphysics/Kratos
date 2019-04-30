@@ -25,6 +25,7 @@
 #include "includes/define.h"
 #include "includes/mesh_moving_variables.h"
 #include "includes/model_part.h"
+#include "includes/global_pointer_variables.h"
 #include "utilities/geometry_utilities.h"
 
 namespace Kratos {
@@ -94,14 +95,12 @@ public:
       // if(index_i < mEquationSystemSize &&
       // (it->GetValue(NEIGHBOUR_NODES)).size() != 0)
       if (index_i < mEquationSystemSize && index_j < mEquationSystemSize) {
-        WeakPointerVector<Node<3>> &neighb_nodes =
-            it->GetValue(NEIGHBOUR_NODES);
+        auto& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
 
         // filling the first neighbours list
         work_array.push_back(index_i);
         work_array.push_back(index_j);
-        for (WeakPointerVector<Node<3>>::iterator i = neighb_nodes.begin();
-             i != neighb_nodes.end(); ++i) {
+        for(auto& i : neighb_nodes){
           unsigned int index_l = i->GetDof(DISPLACEMENT_X).EquationId();
           unsigned int index_r = i->GetDof(DISPLACEMENT_Y).EquationId();
           if (index_l < mEquationSystemSize && index_r < mEquationSystemSize) {

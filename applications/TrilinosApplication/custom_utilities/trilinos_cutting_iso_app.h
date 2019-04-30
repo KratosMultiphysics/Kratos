@@ -282,8 +282,8 @@ public:
 
                 pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
                 pnode->GetValue(FATHER_NODES).resize(0);
-                pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node.base() ) );       // we keep the same size despite we only need one. to have everyhing with the same size
-                pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node.base() ) );
+                pnode->GetValue(FATHER_NODES).push_back( GlobalPointer<Node<3>>(*it_node.base(), it_node->FastGetSolutionStepValue(PARTITION_INDEX)));
+                pnode->GetValue(FATHER_NODES).push_back( GlobalPointer<Node<3>>(*it_node.base(), it_node->FastGetSolutionStepValue(PARTITION_INDEX)));
                 pnode-> GetValue(WEIGHT_FATHER_NODES) = 1.0;  //
                 pnode->X0() = it_node->X0();
                 pnode->Y0() = it_node->Y0();
@@ -917,8 +917,8 @@ public:
                     pnode->SetSolutionStepVariablesList(&(new_model_part.GetNodalSolutionStepVariablesList()));
                     pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
                     pnode->GetValue(FATHER_NODES).resize(0);
-                    pnode->GetValue(FATHER_NODES).push_back(Node < 3 > ::WeakPointer(*it_node1.base()));
-                    pnode->GetValue(FATHER_NODES).push_back(Node < 3 > ::WeakPointer(*it_node2.base()));
+                    pnode->GetValue(FATHER_NODES).push_back( GlobalPointer<Node<3>>(*it_node1.base(), it_node1->FastGetSolutionStepValue(PARTITION_INDEX)));
+                    pnode->GetValue(FATHER_NODES).push_back( GlobalPointer<Node<3>>(*it_node2.base(), it_node2->FastGetSolutionStepValue(PARTITION_INDEX)));
                     pnode-> GetValue(WEIGHT_FATHER_NODES) = weight;
 
                     pnode->X0() = weight * (it_node2->X0()) + (1.0 - weight) * it_node1->X0();

@@ -17,6 +17,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "includes/global_pointer_variables.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 #include "geometries/point_3d.h"
@@ -301,7 +302,7 @@ private:
       Node<3>::Pointer Starter;
       for(auto i_node(mrModelPart.NodesBegin()); i_node != mrModelPart.NodesEnd(); ++i_node)
       {
-        NodeWeakPtrVectorType& nNodes = i_node->GetValue(NEIGHBOUR_NODES);
+        auto& nNodes = i_node->GetValue(NEIGHBOUR_NODES);
         if( nNodes.size() <= 1 )
           Starter = *i_node.base();
       }
@@ -1184,7 +1185,7 @@ private:
       //*************  Erase old node neighbours  *************//
       for(auto& i_node : rNodes)
       {
-        NodeWeakPtrVectorType& nNodes = i_node.GetValue(NEIGHBOUR_NODES);
+        auto& nNodes = i_node.GetValue(NEIGHBOUR_NODES);
         nNodes.clear();
         nNodes.resize(AverageNodes);
 
@@ -1211,11 +1212,11 @@ private:
     //************************************************************************************
     //************************************************************************************
     template<class TDataType> void  AddUniquePointer
-    (WeakPointerVector<TDataType>& v, const typename TDataType::WeakPointer candidate)
+    (GlobalPointersVector<TDataType>& v, const GlobalPointer<TDataType>& candidate)
     {
-      typename WeakPointerVector< TDataType >::iterator i = v.begin();
-      typename WeakPointerVector< TDataType >::iterator endit = v.end();
-      while ( i != endit && (i)->Id() != (candidate.lock())->Id())
+      auto i = v.begin();
+      auto endit = v.end();
+      while ( i != endit && (*i)->Id() != (candidate)->Id())
       {
         i++;
       }
@@ -1291,7 +1292,7 @@ private:
           {
             if( rGeometry[i].Id() != i_node.Id() )
             {
-              NodeWeakPtrVectorType& nNodes = i_nelem.GetValue(NEIGHBOUR_NODES);
+              auto& nNodes = i_nelem.GetValue(NEIGHBOUR_NODES);
               AddUniquePointer< Node<3> >(nNodes, rGeometry(i));
             }
 

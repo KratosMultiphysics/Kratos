@@ -13,6 +13,7 @@
 
 // Project includes
 #include "includes/mat_variables.h"
+#include "includes/global_pointer_variables.h"
 #include "custom_friction/friction_law.hpp"
 #include "custom_conditions/hydraulic_contact/hydraulic_rigid_contact_penalty_3D_condition.hpp"
 
@@ -263,7 +264,7 @@ namespace Kratos
       KRATOS_TRY
 
       //Compute the neighbour distance, then a stress-"like" may be computed.
-      NodeWeakPtrVectorType& nNodes = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
+      auto& nNodes = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
       array_1d<double,3> Contact_Point = GetGeometry()[0].Coordinates();
       array_1d<double,3> Neighb_Point;
 
@@ -272,9 +273,9 @@ namespace Kratos
 
       for(auto& i_nnode : nNodes)
       {
-         if(i_nnode.Is(BOUNDARY)){
+         if(i_nnode->Is(BOUNDARY)){
 
-           Neighb_Point = i_nnode.Coordinates();
+           Neighb_Point = i_nnode->Coordinates();
 
            distance += norm_2(Contact_Point-Neighb_Point);
 

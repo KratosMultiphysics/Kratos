@@ -654,7 +654,7 @@ void KratosSolidMechanicsApplication::Register() {
 
     //boundary definition
     KRATOS_REGISTER_VARIABLE(MASTER_ELEMENT)
-    KRATOS_REGISTER_VARIABLE(NEIGHBOUR_NODES)
+    //KRATOS_REGISTER_VARIABLE(NEIGHBOUR_NODES)
     KRATOS_REGISTER_VARIABLE(NEIGHBOUR_ELEMENTS)
 
     //thermal properties

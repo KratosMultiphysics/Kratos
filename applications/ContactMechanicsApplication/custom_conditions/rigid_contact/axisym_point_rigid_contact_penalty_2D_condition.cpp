@@ -13,7 +13,7 @@
 
 // Project includes
 #include "custom_conditions/rigid_contact/axisym_point_rigid_contact_penalty_2D_condition.hpp"
-
+#include "includes/global_pointer_variables.h"
 #include "contact_mechanics_application_variables.h"
 
 namespace Kratos
@@ -103,7 +103,7 @@ namespace Kratos
 
     KRATOS_TRY
 
-    NodeWeakPtrVectorType& nNodes = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
+    auto& nNodes = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
 
     array_1d<double,3> Contact_Point = GetGeometry()[0].Coordinates();
     array_1d<double,3> Neighb_Point;
@@ -116,9 +116,9 @@ namespace Kratos
 
     for(auto& i_nnode : nNodes)
     {
-      if(i_nnode.Is(BOUNDARY)){
+      if(i_nnode->Is(BOUNDARY)){
 
-        Neighb_Point = i_nnode.Coordinates();
+        Neighb_Point = i_nnode->Coordinates();
 
         // radius = fabs(Contact_Point[0] + rN[i].X()) * 0.5;
         // meanradius += radius;
@@ -235,13 +235,13 @@ namespace Kratos
 
     if( rCurrentRadius == 0 ){
 
-      NodeWeakPtrVectorType& nNodes = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
+      auto& nNodes = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
 
       double counter = 0;
 
       for(auto& i_nnode : nNodes)
       {
-        array_1d<double, 3 > & NodePosition = i_nnode.Coordinates();
+        array_1d<double, 3 > & NodePosition = i_nnode->Coordinates();
         if( NodePosition[0] != 0 ){
           rCurrentRadius += NodePosition[0] * 0.225;
           counter ++;

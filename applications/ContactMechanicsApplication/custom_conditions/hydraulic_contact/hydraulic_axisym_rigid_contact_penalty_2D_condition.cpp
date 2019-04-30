@@ -13,6 +13,7 @@
 
 // Project includes
 #include "includes/mat_variables.h"
+#include "includes/global_pointer_variables.h"
 #include "custom_friction/friction_law.hpp"
 
 #include "custom_conditions/hydraulic_contact/hydraulic_axisym_rigid_contact_penalty_2D_condition.hpp"
@@ -124,13 +125,13 @@ namespace Kratos
 
       if( rCurrentRadius == 0 ){
 
-         NodeWeakPtrVectorType& nNodes = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
+         auto& nNodes = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
 
          double counter = 0;
 
          for(auto& i_nnode : nNodes)
          {
-            array_1d<double, 3 > & NodePosition = i_nnode.Coordinates();
+            array_1d<double, 3 > & NodePosition = i_nnode->Coordinates();
             if( NodePosition[0] != 0 ){
                rCurrentRadius += NodePosition[0] * 0.225;
                counter ++;
