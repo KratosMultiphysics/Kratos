@@ -31,7 +31,7 @@
 #include "includes/dof.h"
 #include "containers/pointer_vector_set.h"
 #include "containers/variables_list_data_value_container.h"
-#include "utilities/indexed_objecweak_pointer_vectort.h"
+#include "utilities/indexed_object.h"
 #include "containers/flags.h"
 #include "intrusive_ptr/intrusive_ptr.hpp"
 
