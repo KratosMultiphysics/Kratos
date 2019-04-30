@@ -60,6 +60,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
 
     def AddDofs(self):
         raise Exception("Calling the base class instead of the derived one")
@@ -115,11 +116,9 @@ class ShallowWaterBaseSolver(PythonSolver):
         return self.main_model_part
 
     def Initialize(self):
-        self.computing_model_part = self.GetComputingModelPart()
-
-        # If needed, create the estimate time step utility
-        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            raise Exception("Estimation Dt utility not yet implemented")
+        # The time step utility needs the NODAL_H
+        KratosMultiphysics.FindNodalHProcess(self.GetComputingModelPart()).Execute()
+        self.EstimateDeltaTimeUtility = Shallow.EstimateDtShallow(self.GetComputingModelPart(), self.settings["time_stepping"])
 
         # Initialize shallow water variables utility
         self.ShallowVariableUtils = Shallow.ShallowWaterVariablesUtility(self.main_model_part, self.settings["dry_height"].GetDouble())
@@ -197,12 +196,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
 
     def _ComputeDeltaTime(self):
-        # Automatic time step computation according to user defined CFL number
-        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            delta_time = self.EstimateDeltaTimeUtility.EstimateDt()
-        # User-defined delta time
-        else:
-            delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
+        delta_time = self.EstimateDeltaTimeUtility.EstimateDt()
 
         # Move particles utility needs to read delta_time
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, delta_time)

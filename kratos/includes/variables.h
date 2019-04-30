@@ -13,14 +13,11 @@
 #if !defined(KRATOS_VARIABLES_H_INCLUDED )
 #define  KRATOS_VARIABLES_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -121,6 +118,8 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, THERMAL_EXPANSION_COEFFICIENT )
     KRATOS_DEFINE_VARIABLE( double, STABILIZATION_FACTOR )
     KRATOS_DEFINE_VARIABLE( double, DETERMINANT_F )
+
+    KRATOS_DEFINE_VARIABLE( double, GRADIENT_PENALTY_COEFFICIENT )
 
     //sheme info :: pass to elements
     KRATOS_DEFINE_VARIABLE( double, NEWMARK_BETA )

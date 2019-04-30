@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -32,17 +32,17 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief A twenty node hexahedra geometry with serendipity shape functions
  * @details The node ordering corresponds with:
- *      3----10----2     
- *      |\         |\          
- *      | 15       | 14         
- *      9  \       11 \     
- *      |   7----18+---6      
- *      |   |      |   |      
- *      0---+-8----1   | 
- *       \  17      \  19   
- *       12 |        13|  
+ *      3----10----2
+ *      |\         |\
+ *      | 15       | 14
+ *      9  \       11 \
+ *      |   7----18+---6
+ *      |   |      |   |
+ *      0---+-8----1   |
+ *       \  17      \  19
+ *       12 |        13|
  *         \|         \|
- *          4----16----5 
+ *          4----16----5
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -414,8 +414,8 @@ public:
      */
     double Area() const override
     {
-         return Volume(); 
-         
+         return Volume();
+
     }
 
 
@@ -455,9 +455,9 @@ public:
      */
     double DomainSize() const override
     {
-        return Volume(); 
+        return Volume();
     }
-   
+
     /**
      * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
@@ -467,10 +467,10 @@ public:
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
-        ) override
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -665,7 +665,7 @@ public:
         case 1 :
             return -(( 1.0 + rPoint[0] )
                      *( 1.0 + rPoint[1] )*( 2.0
-                                            - rPoint[0] - rPoint[1] - rPoint[2] )*( 1.0 + rPoint[2] ) ) / 8.0;	
+                                            - rPoint[0] - rPoint[1] - rPoint[2] )*( 1.0 + rPoint[2] ) ) / 8.0;
         case 2 :
             return -(( 1.0 + rPoint[0] )
                      *( 1.0 + rPoint[1] )*( 1.0 - rPoint[2] )*( 2.0
@@ -673,7 +673,7 @@ public:
         case 3:
             return -(( 1.0 + rPoint[0] )
                      *( 1.0 - rPoint[1] )*( 1.0 - rPoint[2] )*( 2.0
-                             - rPoint[0] + rPoint[1] + rPoint[2] ) ) / 8.0;    
+                             - rPoint[0] + rPoint[1] + rPoint[2] ) ) / 8.0;
         case 4 :
             return -(( 1.0 - rPoint[0] )
                      *( 1.0 - rPoint[1] )*( 2.0
@@ -681,7 +681,7 @@ public:
         case 5 :
             return -(( 1.0 - rPoint[0] )
                      *( 1.0 + rPoint[1] )*( 2.0
-                                            + rPoint[0] - rPoint[1] - rPoint[2] )*( 1.0 + rPoint[2] ) ) / 8.0;    
+                                            + rPoint[0] - rPoint[1] - rPoint[2] )*( 1.0 + rPoint[2] ) ) / 8.0;
         case 6 :
             return -(( 1.0 - rPoint[0] )*( 1.0
                                            + rPoint[1] )*( 1.0 - rPoint[2] )*( 2.0
@@ -710,7 +710,7 @@ public:
                       *rPoint[0] )*( 1.0 + rPoint[1] )*( 1.0 + rPoint[2] ) ) / 4.0 ;
         case 14 :
             return (( 1.0 -rPoint[0]
-                      *rPoint[0] )*( 1.0 + rPoint[1] )*( 1.0 - rPoint[2] ) ) / 4.0 ;    
+                      *rPoint[0] )*( 1.0 + rPoint[1] )*( 1.0 - rPoint[2] ) ) / 4.0 ;
         case 15 :
             return (( 1.0 -rPoint[0]*rPoint[0] )
                     *( 1.0 - rPoint[1] )*( 1.0 - rPoint[2] ) ) / 4.0;
@@ -722,11 +722,11 @@ public:
                     *( 1.0 - rPoint[2]*rPoint[2] ) ) / 4.0 ;
         case 18 :
             return (( 1.0 -rPoint[0] )
-                    *( 1.0 - rPoint[1]*rPoint[1] )*( 1.0 - rPoint[2] ) ) / 4.0 ;      
+                    *( 1.0 - rPoint[1]*rPoint[1] )*( 1.0 - rPoint[2] ) ) / 4.0 ;
         case 19 :
             return (( 1.0 -rPoint[0] )
                     *( 1.0 - rPoint[1] )*( 1.0 - rPoint[2]*rPoint[2] ) ) / 4.0 ;
-         
+
         default:
             KRATOS_ERROR << "Wrong index of shape function!" << *this  << std::endl;
         }
@@ -752,19 +752,19 @@ public:
                                             - rCoordinates[0] + rCoordinates[1] - rCoordinates[2] )*( 1.0 + rCoordinates[2] ) ) / 8.0;
         rResult[1] = -(( 1.0 + rCoordinates[0] )
                      *( 1.0 + rCoordinates[1] )*( 2.0
-                                            - rCoordinates[0] - rCoordinates[1] - rCoordinates[2] )*( 1.0 + rCoordinates[2] ) ) / 8.0;  
+                                            - rCoordinates[0] - rCoordinates[1] - rCoordinates[2] )*( 1.0 + rCoordinates[2] ) ) / 8.0;
         rResult[2] = -(( 1.0 + rCoordinates[0] )
                      *( 1.0 + rCoordinates[1] )*( 1.0 - rCoordinates[2] )*( 2.0
                              - rCoordinates[0] - rCoordinates[1] + rCoordinates[2] ) ) / 8.0;
         rResult[3] = -(( 1.0 + rCoordinates[0] )
                      *( 1.0 - rCoordinates[1] )*( 1.0 - rCoordinates[2] )*( 2.0
-                             - rCoordinates[0] + rCoordinates[1] + rCoordinates[2] ) ) / 8.0;    
+                             - rCoordinates[0] + rCoordinates[1] + rCoordinates[2] ) ) / 8.0;
         rResult[4] = -(( 1.0 - rCoordinates[0] )
                      *( 1.0 - rCoordinates[1] )*( 2.0
                                             + rCoordinates[0] + rCoordinates[1] - rCoordinates[2] )*( 1.0 + rCoordinates[2] ) ) / 8.0;
         rResult[5] = -(( 1.0 - rCoordinates[0] )
                      *( 1.0 + rCoordinates[1] )*( 2.0
-                                            + rCoordinates[0] - rCoordinates[1] - rCoordinates[2] )*( 1.0 + rCoordinates[2] ) ) / 8.0;    
+                                            + rCoordinates[0] - rCoordinates[1] - rCoordinates[2] )*( 1.0 + rCoordinates[2] ) ) / 8.0;
         rResult[6] = -(( 1.0 - rCoordinates[0] )*( 1.0
                                            + rCoordinates[1] )*( 1.0 - rCoordinates[2] )*( 2.0
                                                    + rCoordinates[0] - rCoordinates[1] + rCoordinates[2] ) ) / 8.0;
@@ -784,7 +784,7 @@ public:
         rResult[13] = (( 1.0 -rCoordinates[0]
                       *rCoordinates[0] )*( 1.0 + rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ) / 4.0 ;
         rResult[14] = (( 1.0 -rCoordinates[0]
-                      *rCoordinates[0] )*( 1.0 + rCoordinates[1] )*( 1.0 - rCoordinates[2] ) ) / 4.0 ;    
+                      *rCoordinates[0] )*( 1.0 + rCoordinates[1] )*( 1.0 - rCoordinates[2] ) ) / 4.0 ;
         rResult[15] = (( 1.0 -rCoordinates[0]*rCoordinates[0] )
                     *( 1.0 - rCoordinates[1] )*( 1.0 - rCoordinates[2] ) ) / 4.0;
         rResult[16] = (( 1.0 -rCoordinates[0] )
@@ -792,9 +792,9 @@ public:
         rResult[17] = (( 1.0 -rCoordinates[0] )*( 1.0 + rCoordinates[1] )
                     *( 1.0 - rCoordinates[2]*rCoordinates[2] ) ) / 4.0 ;
         rResult[18] = (( 1.0 -rCoordinates[0] )
-                    *( 1.0 - rCoordinates[1]*rCoordinates[1] )*( 1.0 - rCoordinates[2] ) ) / 4.0 ;      
+                    *( 1.0 - rCoordinates[1]*rCoordinates[1] )*( 1.0 - rCoordinates[2] ) ) / 4.0 ;
         rResult[19] = (( 1.0 -rCoordinates[0] )
-                    *( 1.0 - rCoordinates[1] )*( 1.0 - rCoordinates[2]*rCoordinates[2] ) ) / 4.0 ;      
+                    *( 1.0 - rCoordinates[1] )*( 1.0 - rCoordinates[2]*rCoordinates[2] ) ) / 4.0 ;
         return rResult;
     }
 
@@ -1154,7 +1154,7 @@ private:
                  * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0 ;
             shape_function_values(pnt, 17 ) =
                 (( 1.0 - integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
-                 * ( 1.0 - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;            
+                 * ( 1.0 - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;
             shape_function_values(pnt, 18 ) =
                 (( 1.0 - integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
@@ -1162,7 +1162,7 @@ private:
             shape_function_values(pnt, 19 ) =
                 (( 1.0 - integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() ) * ( 1.0
-                         - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;            
+                         - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;
         }
 
         return shape_function_values;
@@ -1441,7 +1441,7 @@ private:
             result( 19, 2 ) = -(( -1.0 + integration_points[pnt].X() )
                                 * ( -1.0 + integration_points[pnt].Y() )
                                 * integration_points[pnt].Z() ) / 2.0;
-            
+
             d_shape_f_values[pnt] = result;
         }
 
@@ -1566,4 +1566,4 @@ GeometryData Hexahedra3D20<TPointType>::msGeometryData(
 
 }// namespace Kratos.
 
-#endif // KRATOS_HEXAHEDRA_3D_20_H_INCLUDED  defined 
+#endif // KRATOS_HEXAHEDRA_3D_20_H_INCLUDED  defined

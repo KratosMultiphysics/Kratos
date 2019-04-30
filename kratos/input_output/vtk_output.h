@@ -67,13 +67,25 @@ public:
     void PrintOutput();
 
     ///@}
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return " VtkOutput object ";
+    }
+
     /**
      * @brief Prints information about the class
      * @param rOStream ostream object where output is printed
      */
-    void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << " VtkOutput object " << std::endl;
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
     }
 
     enum class FileFormat {

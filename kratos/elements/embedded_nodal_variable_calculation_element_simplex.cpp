@@ -91,10 +91,12 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateLeftHandSi
     // Get the element shape function values from the normalized distance to node 0
     const auto &rN = this->GetDistanceBasedShapeFunctionValues();
 
-    // Compute the Gramm matrix
+    // Compute the Gramm matrix and gradient penalty term
+    const double penalty = rCurrentProcessInfo[GRADIENT_PENALTY_COEFFICIENT];
+    std::array<double, 2> aux_penalty{{penalty, -penalty}};
     for (unsigned int i = 0; i < 2; ++i) {
         for (unsigned int j = 0; j < 2; ++j) {
-            rLeftHandSideMatrix(i, j) = rN[i] * rN[j];
+            rLeftHandSideMatrix(i, j) = rN[i] * rN[j] + aux_penalty[i] * aux_penalty[j];
         }
     }
 }
@@ -104,20 +106,25 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double,3>>::Calcula
     MatrixType &rLeftHandSideMatrix,
     ProcessInfo &rCurrentProcessInfo)
 {
-    // Check size and initialize
+    // Check size
     if (rLeftHandSideMatrix.size1() != 6 || rLeftHandSideMatrix.size2() != 6) {
         rLeftHandSideMatrix.resize(6, 6, false);
     }
     rLeftHandSideMatrix = ZeroMatrix(6,6);
 
+    // Initialize LHS. This is required since not all the entries of the matrix are iterated
+    rLeftHandSideMatrix = ZeroMatrix(6,6);
+
     // Get the element shape function values from the normalized distance to node 0
     const auto &rN = this->GetDistanceBasedShapeFunctionValues();
 
-    // Compute the Gramm matrix
+    // Compute the Gramm matrix and gradient penalty term
+    const double penalty = rCurrentProcessInfo[GRADIENT_PENALTY_COEFFICIENT];
+    std::array<double, 2> aux_penalty{{penalty, -penalty}};
     for (unsigned int i = 0; i < 2; ++i) {
         for (unsigned int j = 0; j < 2; ++j) {
             for (unsigned int k = 0; k < 3; ++k) {
-                rLeftHandSideMatrix(i * 3 + k, j * 3 + k) = rN[i] * rN[j];
+                rLeftHandSideMatrix(i * 3 + k, j * 3 + k) = rN[i] * rN[j] + aux_penalty[i] * aux_penalty[j];
             }
         }
     }
@@ -135,12 +142,18 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateRightHandS
     rRigthHandSideVector = ZeroVector(2);
 
     // Get the element shape function values from the normalized distance to node 0
+    const auto &r_geom = this->GetGeometry();
     const double &rData = this->GetValue(NODAL_MAUX);
     const auto &rN = this->GetDistanceBasedShapeFunctionValues();
 
-    // Compute the Gramm matrix
+    // Compute the data and penalty Right Hand Side contributions
+    const double penalty = rCurrentProcessInfo[GRADIENT_PENALTY_COEFFICIENT];
+    std::array<double, 2> aux_penalty{{penalty, -penalty}};
     for (unsigned int i = 0; i < 2; ++i) {
         rRigthHandSideVector(i) = rN[i] * rData;
+        for (unsigned int j = 0; j < 2; ++j) {
+            rRigthHandSideVector(i) -=  (rN[i] * rN[j] + aux_penalty[i] * aux_penalty[j]) * r_geom[j].FastGetSolutionStepValue(NODAL_MAUX);
+        }
     }
 }
 
@@ -156,13 +169,20 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::Calcul
     rRigthHandSideVector = ZeroVector(6);
 
     // Get the element shape function values from the normalized distance to node 0
+    const auto &r_geom = this->GetGeometry();
     const array_1d<double,3> &rData = this->GetValue(NODAL_VAUX);
     const auto &rN = this->GetDistanceBasedShapeFunctionValues();
 
-    // Compute the Gramm matrix
+    // Compute the data and penalty Right Hand Side contributions
+    const double penalty = rCurrentProcessInfo[GRADIENT_PENALTY_COEFFICIENT];
+    std::array<double, 2> aux_penalty{{penalty, -penalty}};
     for (unsigned int i = 0; i < 2; ++i) {
+        const auto &r_aux = r_geom[i].FastGetSolutionStepValue(NODAL_VAUX);
         for (unsigned int k = 0; k < 3; ++k) {
             rRigthHandSideVector(i * 3 + k) = rN[i] * rData(k);
+            for (unsigned int j = 0; j < 2; ++j) {
+                rRigthHandSideVector(i * 3 + k) -= (rN[i] * rN[j] + aux_penalty[i] * aux_penalty[j]) * r_aux[k];
+            }
         }
     }
 }
