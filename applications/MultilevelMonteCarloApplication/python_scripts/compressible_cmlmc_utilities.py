@@ -57,14 +57,16 @@ output: difference_QoI_value:              difference QoIvalue to be added
         simulation_results.time_ML[level]: time value to be added
 """
 @ExaquteTask(returns=2)
-def AddResultsAux_Task(simulation_results,level):
+def AddResultsAux_Task(level,*simulation_results):
+    aux = simulation_results[0]
     if (level == 0):
         # each value is inside the relative level list, and only one value per level is computed
         # i.e. results = [[value_level_0],[value_level_1],...]
-        difference_QoI_value = simulation_results.QoI[level][0]
+        difference_QoI_values = list(map(lambda x: x.QoI[level][0], simulation_results))
     else:
-        difference_QoI_value = simulation_results.QoI[level][0] - simulation_results.QoI[level-1][0]
-    return difference_QoI_value,simulation_results.time_ML[level]
+        difference_QoI_values = list(map(lambda x: x.QoI[level][0] - x.QoI[level-1][0], simulation_results))
+    time_ML_list = list(map(lambda x: x.time_ML[level][0], simulation_results))
+    return difference_QoI_values,time_ML_list
 
 
 """
@@ -219,21 +221,21 @@ def ExecuteInstanceAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coar
     serialization_time = time_8 - time_7
     total_task_time = time_8 - time_0
     print("[LEVEL] current level:",current_level)
-    print("[TIMER] total task time:", total_task_time)
-    print("[TIMER] Kratos Run time:",Kratos_run_time)
-    print("[TIMER] Deserialization time:",deserialization_time)
-    print("[TIMER] Serialization time:",serialization_time)
-    print("[TIMER] Refinement time:",refinement_time)
-    if (current_level > 0):
-        print("[TIMER] mmg refinement time",mmg_refinement_time)
-    print("RATIOs: time of interest / total task time")
-    print("[RATIO] Relative deserialization time:",(deserialization_time)/total_task_time)
-    print("[RATIO] Relative serialization time:",(serialization_time)/total_task_time)
-    print("[RATIO] Relative Kratos run time:",Kratos_run_time/total_task_time)
-    print("[RATIO] Relative refinement time (deserialization + mmg refinement + initialization Kratos)",refinement_time/total_task_time)
-    if (current_level > 0):
-        print("[RATIO] Relative ONLY mmg refinement time:",mmg_refinement_time/total_task_time)
-    print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
+    # print("[TIMER] total task time:", total_task_time)
+    # print("[TIMER] Kratos Run time:",Kratos_run_time)
+    # print("[TIMER] Deserialization time:",deserialization_time)
+    # print("[TIMER] Serialization time:",serialization_time)
+    # print("[TIMER] Refinement time:",refinement_time)
+    # if (current_level > 0):
+    #     print("[TIMER] mmg refinement time",mmg_refinement_time)
+    # print("RATIOs: time of interest / total task time")
+    # print("[RATIO] Relative deserialization time:",(deserialization_time)/total_task_time)
+    # print("[RATIO] Relative serialization time:",(serialization_time)/total_task_time)
+    # print("[RATIO] Relative Kratos run time:",Kratos_run_time/total_task_time)
+    # print("[RATIO] Relative refinement time (deserialization + mmg refinement + initialization Kratos)",refinement_time/total_task_time)
+    # if (current_level > 0):
+    #     print("[RATIO] Relative ONLY mmg refinement time:",mmg_refinement_time/total_task_time)
+    # print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
 
     return mlmc_results,pickled_finer_model,pickled_finer_project_parameters
 
@@ -422,7 +424,7 @@ class MultilevelMonteCarlo(object):
         self.difference_QoI.type = "scalar"
         # time_ML: time to perform a single MLMC simulation (i.e. one value of difference_QoI.values) organized per levels
         self.time_ML = StatisticalVariable(self.current_number_levels)
-        self.time_ML.values = [[] for _ in range (self.settings["levels_screening"].GetInt()+1) for _ in range (self.settings["initial_number_batches"].GetInt())] # list containing the time to compute the level=l simulations
+        self.time_ML.values = [[[] for _ in range (self.settings["levels_screening"].GetInt()+1)] for _ in range (self.settings["initial_number_batches"].GetInt())] # list containing the time to compute the level=l simulations
 
         ########################################################################
         # observation: levels start from level 0                               #
@@ -466,6 +468,10 @@ class MultilevelMonteCarlo(object):
             self.InitializeScreeningPhase()
             self.ScreeningInfoInitializeMLMCPhase()
             self.LaunchEpoch()
+
+            print("difference qoi",self.difference_QoI.values)
+            print("batches number samples",self.batches_number_samples)
+
             # finalize screening phase
             # self.FinalizeScreeningPhase()
             # self.ScreeningInfoScreeningPhase()
@@ -491,13 +497,14 @@ class MultilevelMonteCarlo(object):
         for batch in range (len(self.batches_number_samples)):
             if (self.batches_launched[batch] is not True):
                 self.batches_launched[batch] = True
-                batch_results = []
+                # batch_results = []
                 for level in range(self.current_number_levels+1):
+                    batch_results = []
                     for instance in range (self.difference_number_samples[level]):
                         self.running_number_samples[level] = self.running_number_samples[level] + 1
                         batch_results.append(self.ExecuteInstance(level))
                         self.running_number_samples[level] = self.running_number_samples[level] + 1
-                self.AddResults(batch_results,batch)
+                    self.AddResults(batch_results,batch)
                 self.batches_execution_finished[batch] = True
 
     """
@@ -843,28 +850,34 @@ class MultilevelMonteCarlo(object):
             batch_number      : number of working batch
             batch_size        : compute add result for with this size
     """
-    def AddResults(self,simulation_results,batch_number,mini_batch_size=4):
+    def AddResults(self,simulation_results,batch_number,mini_batch_size=2):
+        # store MLMC level of working batch in a list
         simulation_levels = list(map(lambda x: x[1], simulation_results))
-        print("simulation levels",simulation_levels)
+        # check all the levels are equal (we are adding results level by level)
+        if (all(lev==simulation_levels[0] for lev in simulation_levels)):
+            current_level = simulation_levels[0]
+        else:
+            raise Exception ("All levels should be the same, since the hierarchy is: values > big batch > levels > small batch")
+        # store MultilevelMonteCarloResult class of working branch in a list
         simulation_results = list(map(lambda x: x[0], simulation_results))
-        print("simulation levels",simulation_results)
-
-
-
-        simulation_results_class = simulation_results[0]
-        level = simulation_results[1]
+        # check if storing lower levels samples or not and prepare for loop
         if (self.settings["store_lower_levels_samples"].GetString() == "True"):
             start_level = 0
         else:
-            start_level = np.maximum(0,level)
-        for lev in range (start_level,level+1):
-            difference_QoI_value, time_ML_value = AddResultsAux_Task(simulation_results_class,lev)
-            # update values of difference QoI and time ML per each level
-            self.difference_QoI.values[lev] = np.append(self.difference_QoI.values[lev], difference_QoI_value)
-            self.time_ML.values[lev] = np.append(self.time_ML.values[lev],time_ML_value)
-            # update number of samples
-            if (lev != level):
-                self.number_samples[lev] = self.number_samples[lev] + 1
+            start_level = np.maximum(0,current_level)
+        while (len(simulation_results) >= 1):
+            new_simulations_results = simulation_results[mini_batch_size:]
+            current_simulations = simulation_results[:mini_batch_size]
+            for lev in range (start_level,current_level+1):
+                # call to add results task
+                difference_QoI_list,time_ML_list = AddResultsAux_Task(lev,*current_simulations)
+                self.difference_QoI.values[batch_number][lev].append(difference_QoI_list)
+                self.time_ML.values[batch_number][lev].append(time_ML_list)
+                # update number of samples of the batch if needed
+                if (lev != current_level):
+                    self.batches_number_samples[batch_number][lev] = self.batches_number_samples[batch_number][lev] + len(current_simulations)
+            # prepare new list
+            simulation_results = new_simulations_results
 
     """
     function giving as output the mesh discretization parameter
