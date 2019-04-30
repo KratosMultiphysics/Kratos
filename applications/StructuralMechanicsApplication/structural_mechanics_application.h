@@ -417,7 +417,9 @@ private:
     const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint2D6N;
     const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint3D4N;
     const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint3D8N;
-    const AdjointFiniteDifferenceSmallDisplacementElement mAdjointFiniteDifferenceSmallDisplacementElement;
+    const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D4N;
+    const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D6N;
+    const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D8N;
 
     /* CONDITIONS*/
     // Point load
