@@ -349,8 +349,6 @@ class MultilevelMonteCarlo(object):
         self.current_number_levels = self.settings["levels_screening"].GetInt()
         # previous_number_levels: number of levels of previous iteration
         self.previous_number_levels = None
-        # current_level: current level of work
-        self.current_level = 0
 
         # batches_number_samples: total number of samples, organized in level and batches
         # batches_number_samples = [ [ [level0_batch1] [level1_batch1] .. ] [ [level0_batch2] [level1_batch2] ..] .. ]
@@ -370,20 +368,9 @@ class MultilevelMonteCarlo(object):
         # batches_convergence_finished: boolean true or false if convergence computation of batch is finished or not
         self.batches_convergence_finished = []
         # # batch_size: number of iterations of each epoch
-        # self.batch_size = []
+        self.batch_size = []
         # current_convergence_batch: current batch for which convergence is computed
-        self.current_convergence_batch = 0
-
-        # # number_samples: total number of samples of current iteration
-        # self.number_samples = [self.settings["number_samples_screening"].GetInt() for _ in range (self.settings["levels_screening"].GetInt()+1)]
-
-
-        # difference_number_samples: difference between number of samples of current and previous iterations
-        self.difference_number_samples = []
-        # self.difference_number_samples = [self.settings["number_samples_screening"].GetInt() for _ in range (self.settings["levels_screening"].GetInt()+1)]
-
-        # previous_number_samples: total number of samples of previous iteration
-        self.previous_number_samples = None
+        self.current_convergence_batch = None
 
         # rates_error: dictionary containing the values of the parameters
         # calpha: coefficient of the function maximizing bias
@@ -465,21 +452,20 @@ class MultilevelMonteCarlo(object):
             self.SerializeModelParameters()
             self.SerializeRefinementParameters()
             self.InitializeScreeningPhase()
-            self.ScreeningInfoInitializeMLMCPhase()
             self.LaunchEpoch()
-            # finalize screening phase
             self.FinalizeScreeningPhase()
             self.ScreeningInfoScreeningPhase()
-            # # start MLMC phase
-            # while self.convergence is not True:
-            #     # initialize MLMC phase
-            #     self.InitializeMLMCPhase()
-            #     self.ScreeningInfoInitializeMLMCPhase()
+            # start MLMC phase
+            while self.convergence is not True:
+                # initialize MLMC phase
+                self.InitializeMLMCPhase()
+                # self.ScreeningInfoInitializeMLMCPhase()
             #     # MLMC execution phase
             #     self.LaunchEpoch()
             #     # finalize MLMC phase
             #     self.FinalizeMLMCPhase()
             #     self.ScreeningInfoFinalizeMLMCPhase()
+                self.convergence = True
         else:
             print("\n","#"*50,"Not running Multilevel Monte Carlo algorithm","#"*50)
             pass
@@ -495,7 +481,7 @@ class MultilevelMonteCarlo(object):
                 # batch_results = []
                 for level in range(self.current_number_levels+1):
                     batch_results = []
-                    for instance in range (self.difference_number_samples[level]):
+                    for instance in range (self.batches_number_samples[batch][level]):
                         self.running_number_samples[level] = self.running_number_samples[level] + 1
                         batch_results.append(self.ExecuteInstance(level))
                         self.running_number_samples[level] = self.running_number_samples[level] + 1
@@ -536,12 +522,8 @@ class MultilevelMonteCarlo(object):
         return mlmc_results,current_MLMC_level
 
     def InitializeScreeningPhase(self):
-        # update iteration counter
-        # self.iteration_counter = self.iteration_counter + 1
-        # update number of samples (MultilevelMonteCarlo.batches_number_samples) and batch size
         if (self.iteration_counter == 0):
-            self.difference_number_samples = [self.settings["number_samples_screening"].GetInt() for _ in range (self.settings["levels_screening"].GetInt()+1)]
-            # self.batch_size = [self.settings["number_samples_screening"].GetInt() for _ in range (self.current_number_levels+1)]
+            self.batch_size = [self.settings["number_samples_screening"].GetInt() for _ in range (self.current_number_levels+1)]
             self.batches_number_samples = [[self.settings["number_samples_screening"].GetInt() for _ in range (self.current_number_levels+1)] for _ in range (self.settings["initial_number_batches"].GetInt())]
             self.number_samples = [0 for _ in range (self.current_number_levels+1)]
             self.running_number_samples = [0 for _ in range (self.current_number_levels+1)]
@@ -696,6 +678,7 @@ class MultilevelMonteCarlo(object):
                 = FinalizePhaseAux_Task(MultilevelMonteCarlo,
                 serial_settings,self.mesh_parameters,self.current_number_levels,\
                 self.iteration_counter,self.number_samples,*synchro_elements)
+                self.batches_convergence_finished[batch] = True
                 # synchronization point needed to compute the other functions of MLMC algorithm
                 # put as in the end as possible the synchronization point
                 self.difference_QoI.h_statistics_1 = get_value_from_remote(self.difference_QoI.h_statistics_1)
@@ -706,8 +689,8 @@ class MultilevelMonteCarlo(object):
                 self.bayesian_variance = get_value_from_remote(self.bayesian_variance)
                 self.mean_mlmc_QoI = get_value_from_remote(self.mean_mlmc_QoI)
                 self.number_samples = get_value_from_remote(self.number_samples)
-                # start first iteration, we enter in the MLMC algorithm
-                self.iteration_counter = 1
+                # update iteration counter
+                self.iteration_counter = self.iteration_counter + 1
                 break
 
     """
@@ -715,18 +698,36 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def InitializeMLMCPhase(self):
-        # compute tolerance
-        self.ComputeTolerancei()
+        # add new batches in case convergence = False
+        if (self.convergence is not True):
+            # compute tolerance
+            self.ComputeTolerancei()
+            # estimate batches to append and batch size
+            self.UpdateBatches()
+
+        # ARRIVED AT THE STOP, HERE ABOVE
+        # prepare lists
+        for _ in range (self.current_number_levels - self.previous_number_levels): # append a list for the new level
+            self.difference_QoI.values.append([])
+            self.time_ML.values.append([])
+
+    """
+    function updating number of batches and batch size
+    input:  self: an instance of the class
+    """
+    def UpdateBatches(self):
+        # set here number of batches to append
+        new_number_batches = 1
         # compute optimal number of levels
         self.ComputeLevels()
         # compute theta splitting parameter according to the current_number_levels and tolerance_i
         self.ComputeTheta(self.current_number_levels)
         # compute number of samples according to bayesian_variance and theta_i parameters
+        # TODO: rename UpdateBatchSize this function
         self.ComputeNumberSamples()
-        # prepare lists
-        for _ in range (self.current_number_levels - self.previous_number_levels): # append a list for the new level
-            self.difference_QoI.values.append([])
-            self.time_ML.values.append([])
+        stop
+        for new_batch in range (new_number_batches):
+            self.batches_launched.append(False)
 
     """
     function performing all the required operations AFTER the MLMC solution step
@@ -826,8 +827,8 @@ class MultilevelMonteCarlo(object):
         print("current number of levels = ",self.current_number_levels)
         print("previous number of levels = ",self.previous_number_levels)
         print("current splitting parameter = ",self.theta_i)
-        print("difference number of samples = ",self.difference_number_samples)
-        print("previous number of samples = ",self.previous_number_samples)
+        print("batch size = ",self.batch_size)
+        # print("previous number of samples = ",self.previous_number_samples)
 
     """
     function printing informations about finalizing MLMC phase
@@ -946,8 +947,9 @@ class MultilevelMonteCarlo(object):
         beta  = self.rates_error["beta"]
         mesh_param = self.mesh_parameters
         # use local variables, in order to not modify the global variables
-        mean_local = copy.copy(self.difference_QoI.h_statistics_1)
-        variance_local = copy.copy(self.difference_QoI.h_statistics_2)
+        current_number_levels = self.difference_QoI.h_statistics_1.index([])
+        mean_local = copy.copy(self.difference_QoI.h_statistics_1[:current_number_levels])
+        variance_local = copy.copy(self.difference_QoI.h_statistics_2[:current_number_levels])
         nsam_local = copy.copy(self.number_samples)
         # append null values to evaluate the Bayesian variance for all levels
         if len(mean_local) < (levels+1):
@@ -1076,6 +1078,8 @@ class MultilevelMonteCarlo(object):
         mesh_parameters_current_levels = self.mesh_parameters[0:current_number_levels+1]
         theta = self.theta_i
         tol = self.tolerance_i
+        # TODO: now considering self.number_samples, i.e. only the samples used up to this moment for the statistics
+        # in future may be that we consider here all the samples, even if not analysed yet
         nsam = self.number_samples
         # compute optimal number of samples and store previous number of samples
         coeff1 = (cphi/(theta*tol))**2.0
@@ -1114,8 +1118,7 @@ class MultilevelMonteCarlo(object):
             diff_nsam[lev] = int(diff_nsam[lev])
             nsam[lev] = int(nsam[lev])
         # update variables and delete local variables
-        self.number_samples = nsam
-        self.difference_number_samples = diff_nsam
+        self.batch_size = diff_nsam
         self.previous_number_samples = previous_number_samples
         del(current_number_levels,bayesian_variance,min_samples_add,cgamma,gamma,cphi,mesh_parameters_current_levels,\
         theta,tol,nsam,opt_number_samples,previous_number_samples,diff_nsam)
