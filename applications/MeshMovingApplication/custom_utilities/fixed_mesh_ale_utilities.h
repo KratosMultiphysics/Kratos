@@ -26,11 +26,13 @@
 #include "includes/linear_solver_factory.h"
 #include "linear_solvers/linear_solver.h"
 #include "processes/calculate_embedded_nodal_variable_from_skin_process.h"
-#include "spaces/ublas_space.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "spaces/ublas_space.h"
 
 // Application includes
-#include "custom_strategies/strategies/laplacian_meshmoving_strategy.h"
 
 
 namespace Kratos
@@ -84,8 +86,14 @@ public:
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
     typedef LinearSolverFactory<SparseSpaceType, LocalSpaceType> LinearSolverFactoryType;
-    typedef LaplacianMeshMovingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> LaplacianMeshMovingStrategyType;
+    typedef ResidualBasedIncrementalUpdateStaticScheme<SparseSpaceType, LocalSpaceType> SchemeType;
+    typedef ResidualBasedLinearStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> StrategyType;
+    typedef ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
     typedef CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType> EmbeddedNodalVariableProcessArrayType;
+
+    typedef typename SchemeType::Pointer SchemePointerType;
+    typedef typename StrategyType::Pointer StrategyPointerType;
+    typedef typename BuilderAndSolverType::Pointer BuilderAndSolverPointerType;
 
     /// Pointer definition of FixedMeshALEUtilities
     KRATOS_CLASS_POINTER_DEFINITION(FixedMeshALEUtilities);
@@ -208,6 +216,8 @@ protected:
     ModelPart &mrStructureModelPart;
     ModelPart *mpOriginModelPart = nullptr;
 
+    Parameters mEmbeddedNodalVariableSettings;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -259,7 +269,7 @@ private:
 
     const std::string mLevelSetType;
     LinearSolverType::Pointer mpLinearSolver = nullptr;
-    LaplacianMeshMovingStrategyType::Pointer mpMeshMovingStrategy = nullptr;
+    StrategyPointerType mpMeshMovingStrategy = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -269,6 +279,13 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Get the Default Settings object
+     * Return the default FM-ALE settings
+     * @return Parameters json string encapsulation the default settings
+     */
+    Parameters GetDefaultSettings();
 
     /**
      * @brief Set the Linear Solver Pointer object
@@ -302,6 +319,21 @@ private:
      * @return false If the element is not intersected
      */
     bool IsSplit(const Vector &rDistances);
+
+    /**
+     * @brief Copy the origin model part data to the virtual one
+     * This methods copies the PRESSURE and VELOCITY values from the nodes
+     * of the origin model part to the virtual model part ones. In needs to
+     * be called before the mesh moving and projection is done.
+     */
+    void InitializeVirtualMeshValues();
+
+    /**
+     * @brief Initialize the mesh displacement fixity
+     * This methods frees all the mesh displacement DOFs. It has
+     * to be called before the current problem iteration fixity check.
+     */
+    void InitializeMeshDisplacementFixity();
 
     /**
      * @brief Set the virtual mesh origin model part based fixity

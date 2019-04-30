@@ -32,10 +32,10 @@ namespace Testing {
         Model current_model;
 
         // Generate the origin model part (done with the StructuredMeshGeneratorProcess)
-        Node<3>::Pointer p_point_1 = Kratos::make_shared<Node<3>>(1, 0.0, 0.0, 0.0);
-        Node<3>::Pointer p_point_2 = Kratos::make_shared<Node<3>>(2, 0.0, 1.0, 0.0);
-        Node<3>::Pointer p_point_3 = Kratos::make_shared<Node<3>>(3, 1.0, 1.0, 0.0);
-        Node<3>::Pointer p_point_4 = Kratos::make_shared<Node<3>>(4, 1.0, 0.0, 0.0);
+        Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
+        Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.0, 1.0, 0.0);
+        Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.0, 1.0, 0.0);
+        Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 1.0, 0.0, 0.0);
 
         Quadrilateral2D4<Node<3> > geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
@@ -174,8 +174,8 @@ namespace Testing {
         // Check the obtained displacement values in the virtual mesh
         const auto u_mesh_29 = virtual_model_part.pGetNode(29)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
         const auto u_mesh_53 = virtual_model_part.pGetNode(54)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
-        const std::vector<double> expected_values_u_mesh({-0.0442253, 0.0476199, 0, -0.0300558, 0.0567045, 0});
-        const std::vector<double> obtained_values_u_mesh({u_mesh_29[0], u_mesh_29[1], u_mesh_29[2], u_mesh_53[0], u_mesh_53[1], u_mesh_53[2]});
+        const std::array<double,6> expected_values_u_mesh{{-0.0160363,0.0136955,0,-0.00456771,0.0164203,0}};
+        const std::array<double,6> obtained_values_u_mesh{{u_mesh_29[0], u_mesh_29[1], u_mesh_29[2], u_mesh_53[0], u_mesh_53[1], u_mesh_53[2]}};
         for (std::size_t i = 0; i < 6; ++i) {
             KRATOS_CHECK_NEAR(obtained_values_u_mesh[i], expected_values_u_mesh[i], tol);
         }
@@ -183,8 +183,8 @@ namespace Testing {
         // Check the projected mesh velocity in the origin mesh
         const auto v_mesh_29 = origin_model_part.pGetNode(29)->FastGetSolutionStepValue(MESH_VELOCITY);
         const auto v_mesh_53 = origin_model_part.pGetNode(54)->FastGetSolutionStepValue(MESH_VELOCITY);
-        const std::vector<double> expected_values_v_mesh({-0.534329, 0.579078, 0, -0.37101, 0.740126, 0});
-        const std::vector<double> obtained_values_v_mesh({v_mesh_29[0], v_mesh_29[1], v_mesh_29[2], v_mesh_53[0], v_mesh_53[1], v_mesh_53[2]});
+        const std::array<double,6> expected_values_v_mesh{{-0.169019,0.148022,0,-0.052488,0.175589,0}};
+        const std::array<double,6> obtained_values_v_mesh{{v_mesh_29[0], v_mesh_29[1], v_mesh_29[2], v_mesh_53[0], v_mesh_53[1], v_mesh_53[2]}};
         for (std::size_t i = 0; i < 6; ++i) {
             KRATOS_CHECK_NEAR(obtained_values_v_mesh[i], expected_values_v_mesh[i], tol);
         }
@@ -194,8 +194,8 @@ namespace Testing {
         const auto v_53 = origin_model_part.pGetNode(54)->FastGetSolutionStepValue(VELOCITY);
         const auto p_29 = origin_model_part.pGetNode(29)->FastGetSolutionStepValue(PRESSURE);
         const auto p_53 = origin_model_part.pGetNode(54)->FastGetSolutionStepValue(PRESSURE);
-        const std::vector<double> expected_projected_values({0.964009, 0, 0, 0.2, 1.78849, 0, 0, 0.2});
-        const std::vector<double> obtained_projected_values({v_29[0], v_29[1], v_29[2], p_29, v_53[0], v_53[1], v_53[2], p_53});
+        const std::array<double,8> expected_projected_values{{0.890947,0,0, 0.2,1.72478,0,0,0.2}};
+        const std::array<double,8> obtained_projected_values{{v_29[0], v_29[1], v_29[2], p_29, v_53[0], v_53[1], v_53[2], p_53}};
         for (std::size_t i = 0; i < 8; ++i) {
             KRATOS_CHECK_NEAR(obtained_projected_values[i], expected_projected_values[i], tol);
         }

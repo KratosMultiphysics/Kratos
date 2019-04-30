@@ -48,6 +48,7 @@ namespace Testing {
         origin_model_part.SetBufferSize(3);
         origin_model_part.AddNodalSolutionStepVariable(VELOCITY);
         origin_model_part.AddNodalSolutionStepVariable(PRESSURE);
+        origin_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         origin_model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
         origin_model_part.AddNodalSolutionStepVariable(MESH_DISPLACEMENT);
         StructuredMeshGeneratorProcess(geometry, origin_model_part, mesher_parameters).Execute();
