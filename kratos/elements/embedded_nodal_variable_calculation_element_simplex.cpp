@@ -90,7 +90,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateLeftHandSi
     const auto &rN = this->GetDistanceBasedShapeFunctionValues();
 
     // Compute the Gramm matrix and gradient penalty term
-    const double penalty = 1.0e-5;
+    const double penalty = rCurrentProcessInfo[GRADIENT_PENALTY_COEFFICIENT];
     std::vector<double> aux_penalty({penalty, -penalty});
     for (unsigned int i = 0; i < 2; ++i) {
         for (unsigned int j = 0; j < 2; ++j) {
@@ -116,7 +116,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double,3>>::Calcula
     const auto &rN = this->GetDistanceBasedShapeFunctionValues();
 
     // Compute the Gramm matrix and gradient penalty term
-    const double penalty = 1.0e-5;
+    const double penalty = rCurrentProcessInfo[GRADIENT_PENALTY_COEFFICIENT];
     std::vector<double> aux_penalty({penalty, -penalty});
     for (unsigned int i = 0; i < 2; ++i) {
         for (unsigned int j = 0; j < 2; ++j) {
@@ -143,7 +143,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateRightHandS
     const auto &rN = this->GetDistanceBasedShapeFunctionValues();
 
     // Compute the data and penalty Right Hand Side contributions
-    const double penalty = 1.0e-5;
+    const double penalty = rCurrentProcessInfo[GRADIENT_PENALTY_COEFFICIENT];
     std::vector<double> aux_penalty({penalty, -penalty});
     for (unsigned int i = 0; i < 2; ++i) {
         rRigthHandSideVector(i) = rN[i] * rData;
@@ -169,7 +169,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::Calcul
     const auto &rN = this->GetDistanceBasedShapeFunctionValues();
 
     // Compute the data and penalty Right Hand Side contributions
-    const double penalty = 1.0e-5;
+    const double penalty = rCurrentProcessInfo[GRADIENT_PENALTY_COEFFICIENT];
     std::vector<double> aux_penalty({penalty, -penalty});
     for (unsigned int i = 0; i < 2; ++i) {
         const auto &r_aux = r_geom[i].FastGetSolutionStepValue(NODAL_VAUX);
