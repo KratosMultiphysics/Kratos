@@ -362,7 +362,7 @@ class MonteCarlo(object):
             pass
 
     """
-    function updating number of batches
+    function updating number of batches and batch size
     input:  self: an instance of the class
     """
     def UpdateBatches(self):
