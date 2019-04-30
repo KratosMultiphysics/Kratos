@@ -30,7 +30,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 20,
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","PointLoad2D_Load_on_points_Auto1"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","ParticlePointLoad2D_Load_on_points_Auto1"],
         "grid_model_import_settings"         : {
             "input_type"     : "mdpa",
             "input_filename" : "beam_tests/cantilever_beam/particle_point_load_2D_tri_test_Grid"
@@ -68,19 +68,33 @@
                 "variable_name"   : "POINT_LOAD",
                 "modulus"         : 800.0,
                 "direction"       : [0.0,-1.0,0.0]
-		    }
-        }],
-        "print_output_process" : [{
-            "python_module"   : "mpm_json_output_process",
+            }},
+            {
+            "python_module"   : "mpm_from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
             "help"                  : "",
-            "process_name"          : "ParticleMPMJsonOutputProcess",
+            "process_name"          : "ParticleMPMFromJsonCheckResultProcess",
             "Parameters"            : {
-                "output_variables"  : ["MP_DISPLACEMENT"],
-                "output_file_name"  : "beam_tests/cantilever_beam/particle_point_load_2D_tri_test_results.json",
-                "model_part_name"   : "MPM_Material",
-                "time_frequency"    : 1.0
+                "check_variables"  : ["MP_DISPLACEMENT"],
+                "input_file_name"  : "beam_tests/cantilever_beam/particle_point_load_2D_tri_test_results.json",
+                "model_part_name"  : "MPM_Material",
+                "time_frequency"   : 1.0
             }
         }]
-    }
+
+    },
+
+    "print_output_process" : [{
+        "python_module"   : "mpm_json_output_process",
+        "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
+        "help"                  : "",
+        "process_name"          : "ParticleMPMJsonOutputProcess",
+        "Parameters"            : {
+            "gauss_points_output_variables"  : ["MP_DISPLACEMENT"],
+            "output_file_name"  : "beam_tests/cantilever_beam/particle_point_load_2D_tri_test_results.json",
+            "model_part_name"   : "MPM_Material",
+            "time_frequency"    : 1.0
+        }
+    }]
+
 }
