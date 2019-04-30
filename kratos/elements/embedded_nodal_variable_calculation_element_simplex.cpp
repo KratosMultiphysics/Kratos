@@ -91,7 +91,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateLeftHandSi
 
     // Compute the Gramm matrix and gradient penalty term
     const double penalty = rCurrentProcessInfo[GRADIENT_PENALTY_COEFFICIENT];
-    std::array<double, 2> aux_penalty({penalty, -penalty});
+    std::array<double, 2> aux_penalty({{penalty, -penalty}});
     for (unsigned int i = 0; i < 2; ++i) {
         for (unsigned int j = 0; j < 2; ++j) {
             rLeftHandSideMatrix(i, j) = rN[i] * rN[j] + aux_penalty[i] * aux_penalty[j];
@@ -117,7 +117,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double,3>>::Calcula
 
     // Compute the Gramm matrix and gradient penalty term
     const double penalty = rCurrentProcessInfo[GRADIENT_PENALTY_COEFFICIENT];
-    std::array<double, 2> aux_penalty({penalty, -penalty});
+    std::array<double, 2> aux_penalty({{penalty, -penalty}});
     for (unsigned int i = 0; i < 2; ++i) {
         for (unsigned int j = 0; j < 2; ++j) {
             for (unsigned int k = 0; k < 3; ++k) {
@@ -144,7 +144,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<double>::CalculateRightHandS
 
     // Compute the data and penalty Right Hand Side contributions
     const double penalty = rCurrentProcessInfo[GRADIENT_PENALTY_COEFFICIENT];
-    std::array<double, 2> aux_penalty({penalty, -penalty});
+    std::array<double, 2> aux_penalty({{penalty, -penalty}});
     for (unsigned int i = 0; i < 2; ++i) {
         rRigthHandSideVector(i) = rN[i] * rData;
         for (unsigned int j = 0; j < 2; ++j) {
@@ -170,7 +170,7 @@ void EmbeddedNodalVariableCalculationElementSimplex<array_1d<double, 3>>::Calcul
 
     // Compute the data and penalty Right Hand Side contributions
     const double penalty = rCurrentProcessInfo[GRADIENT_PENALTY_COEFFICIENT];
-    std::array<double, 2> aux_penalty({penalty, -penalty});
+    std::array<double, 2> aux_penalty({{penalty, -penalty}});
     for (unsigned int i = 0; i < 2; ++i) {
         const auto &r_aux = r_geom[i].FastGetSolutionStepValue(NODAL_VAUX);
         for (unsigned int k = 0; k < 3; ++k) {
