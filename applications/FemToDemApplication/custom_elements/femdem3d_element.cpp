@@ -348,13 +348,13 @@ void FemDem3DElement::CalculateElementalSystem(LocalSystemComponents& rLocalSyst
 			double damage_edge = mDamages[edge];
 			double threshold = mThresholds[edge];
 			
-			this->IntegrateStressDamageMechanics(threshold,
-				damage_edge,
-				average_strain_edge,
-				average_stress_edge,
-				edge,
-				r_characteristic_lengths[edge],
-				is_damaging);
+			this->IntegrateStressDamageMechanics(threshold, 
+												 damage_edge,
+												 average_strain_edge, 
+												 average_stress_edge, 
+												 edge, 
+												 r_characteristic_lengths[edge],
+												 is_damaging);
 
 			if (rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) && 
 			    rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_RHS_VECTOR)) {
@@ -410,10 +410,10 @@ void FemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 	const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
 	//resizing as needed the LHS
-	unsigned int mat_size = number_of_nodes * (dimension) ; // water pressure
+	unsigned int mat_size = number_of_nodes * (dimension); 
 
-	if ( rLeftHandSideMatrix.size1() != mat_size )
-	rLeftHandSideMatrix.resize( mat_size, mat_size, false );
+	if (rLeftHandSideMatrix.size1() != mat_size)
+	rLeftHandSideMatrix.resize(mat_size, mat_size, false);
 
 	noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
 	
@@ -427,15 +427,8 @@ void FemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 	//set constitutive law flags:
 	Flags& ConstitutiveLawOptions=Values.GetOptions();
 
-	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
 	//reading integration points
 	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod );
-
-	//auxiliary terms
-	Vector VolumeForce(dimension);
-	noalias(VolumeForce) = ZeroVector(dimension);
 
 
 	for (SizeType PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ ) {
@@ -506,7 +499,7 @@ void FemDem3DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 	const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
 	//resizing as needed the LHS
-	unsigned int mat_size = number_of_nodes * (dimension) ; 
+	unsigned int mat_size = number_of_nodes * (dimension); 
 
 	if (rRightHandSideVector.size() != mat_size )
 	rRightHandSideVector.resize(mat_size, false);
@@ -522,9 +515,6 @@ void FemDem3DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 
 	//set constitutive law flags:
 	Flags& ConstitutiveLawOptions=Values.GetOptions();
-
-	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
 	//reading integration points
 	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod );
