@@ -63,8 +63,7 @@ public:
     ///@name Type Definitions
     ///@{
     /// Pointer definition of Element
-    typedef Kratos::intrusive_ptr<Element> Pointer;
-    typedef Kratos::intrusive_weak_ptr<Element> WeakPointer;
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Element)
 
     ///definition of element type
     typedef Element ElementType;

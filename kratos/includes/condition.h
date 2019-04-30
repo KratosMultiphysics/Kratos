@@ -63,9 +63,7 @@ public:
     ///@{
 
     /// Pointer definition of Condition
-    typedef Kratos::intrusive_ptr<Condition> Pointer;
-    typedef Kratos::intrusive_weak_ptr<Condition> WeakPointer;
-    typedef Kratos::unique_ptr<Condition> UniquePointer;
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Condition)
 
     ///definition of condition type
     typedef Condition ConditionType;
