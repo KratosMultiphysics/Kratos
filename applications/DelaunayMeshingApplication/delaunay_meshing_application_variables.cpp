@@ -8,6 +8,7 @@
 //
 
 #include "delaunay_meshing_application_variables.h"
+#include "utilities/stl_io.h"
 
 namespace Kratos
 {
