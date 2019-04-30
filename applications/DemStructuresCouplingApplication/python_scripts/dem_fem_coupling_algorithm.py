@@ -68,7 +68,7 @@ class Algorithm(object):
 
         self.sandwich_simulation = False
 
-        if not self.sandwich_simulation:
+        if False: #not self.sandwich_simulation:
             import control_module_fem_dem_utility
             self.control_module_fem_dem_utility = control_module_fem_dem_utility.ControlModuleFemDemUtility(self.model,self.dem_solution.spheres_model_part)
             self.control_module_fem_dem_utility.ExecuteInitialize()
@@ -162,7 +162,7 @@ class Algorithm(object):
             self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
 
             self.structural_solution.InitializeSolutionStep()
-            if not self.sandwich_simulation:
+            if False: #not self.sandwich_simulation:
                 self.control_module_fem_dem_utility.ExecuteInitializeSolutionStep()
             self.structural_solution._GetSolver().Predict()
             self.structural_solution._GetSolver().SolveSolutionStep()
@@ -177,13 +177,13 @@ class Algorithm(object):
 
             DemFem.ComputeDEMFaceLoadUtility().ClearDEMFaceLoads(self.skin_mp)
 
-            #self.outer_walls_model_part = self.model["Structure.SurfacePressure3D_lateral_pressure"]
-            #DemFem.DemStructuresCouplingUtilities().ComputeSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
+            self.outer_walls_model_part = self.model["Structure.SurfacePressure3D_lateral_pressure"]
+            DemFem.DemStructuresCouplingUtilities().ComputeSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
 
-            self.outer_walls_model_part_1 = self.model["Structure.SurfacePressure3D_sigmaXpos"]
+            '''self.outer_walls_model_part_1 = self.model["Structure.SurfacePressure3D_sigmaXpos"]
             self.outer_walls_model_part_2 = self.model["Structure.SurfacePressure3D_sigmaYpos"]
             DemFem.DemStructuresCouplingUtilities().ComputeTriaxialSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part_1, self.outer_walls_model_part_2, self.structural_solution.time)
-
+            '''
             for self.dem_solution.time_dem in self.yield_DEM_time(self.dem_solution.time, time_final_DEM_substepping, self.Dt_DEM):
                 self.dem_solution.InitializeTimeStep()
                 self.dem_solution.time = self.dem_solution.time + self.dem_solution.solver.dt
@@ -242,7 +242,7 @@ class Algorithm(object):
 
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
             # TODO: Should control_module_fem_dem_utility.ExecuteFinalizeSolutionStep be done before or after RestoreStructuralSolution ?
-            if not self.sandwich_simulation:
+            if False: #not self.sandwich_simulation:
                 self.control_module_fem_dem_utility.ExecuteFinalizeSolutionStep()
 
     def ReadDemModelParts(self,

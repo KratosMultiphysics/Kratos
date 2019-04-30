@@ -681,7 +681,7 @@ namespace Kratos {
     void SphericContinuumParticle::RemoveSpheresInsideInnerHole() {
 
         const bool sand_production_simulation = true;
-        const bool blind_simulation = true;
+        const bool blind_simulation = false;
 
         if (!sand_production_simulation) return;
 
