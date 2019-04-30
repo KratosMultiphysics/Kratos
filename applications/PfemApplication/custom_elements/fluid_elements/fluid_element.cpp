@@ -93,7 +93,7 @@ FluidElement&  FluidElement::operator=(FluidElement const& rOther)
 Element::Pointer FluidElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
     KRATOS_ERROR << " calling the default method Create for a fluid element " << std::endl;
-    return Kratos::make_shared< FluidElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+    return Kratos::make_intrusive< FluidElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 //************************************CLONE*******************************************
@@ -127,7 +127,7 @@ Element::Pointer FluidElement::Clone( IndexType NewId, NodesArrayType const& rTh
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared< FluidElement >(NewElement);
+    return Kratos::make_intrusive< FluidElement >(NewElement);
 }
 
 //*******************************DESTRUCTOR*******************************************
