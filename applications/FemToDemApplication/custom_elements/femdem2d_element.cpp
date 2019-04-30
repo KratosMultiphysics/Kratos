@@ -1383,6 +1383,7 @@ void FemDem2DElement::CalculatePerturbation(
 	const double max_strain_component = this->GetMaxAbsValue(rStrainVectorGP);
 	perturbation_2 = 1.0e-10 * max_strain_component;
 	rPerturbation = std::max(perturbation_1, perturbation_2);
+	if (rPerturbation < 1e-8) rPerturbation = 1e-8;
 }
 
 void FemDem2DElement::PerturbateStrainVector(
