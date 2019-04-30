@@ -398,7 +398,7 @@ void FemDem2DElement::CalculateElementalSystem(LocalSystemComponents& rLocalSyst
 		this->CalculateKinematics(Variables, PointNumber);
 
 		//calculate material response
-		this->CalculateMaterialResponse(Variables, Values, PointNumber); // FEMDEM
+		this->CalculateMaterialResponse(Variables, Values, PointNumber); 
 
 		//calculating weights for integration on the "reference configuration"
 		Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
