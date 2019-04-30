@@ -65,7 +65,7 @@ namespace Kratos
         rParameters.ValidateAndAssignDefaults(this->GetDefaultSettings());
 
         // Check the input level set type
-        if (mLevelSetType != "continuous" || mLevelSetType != "discontinuous") {
+        if (mLevelSetType != "continuous" && mLevelSetType != "discontinuous") {
             KRATOS_ERROR << "Provided level set type is: " << mLevelSetType << ". Only \"continuous\" and \"discontinuous\" types are supported.";
         }
 
