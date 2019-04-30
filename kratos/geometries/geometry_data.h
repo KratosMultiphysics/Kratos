@@ -307,6 +307,7 @@ public:
         : mDimension(ThisDimension)
         , mWorkingSpaceDimension(ThisWorkingSpaceDimension)
         , mLocalSpaceDimension(ThisLocalSpaceDimension)
+        , mDefaultMethod()
     {
     }
 

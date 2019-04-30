@@ -37,138 +37,12 @@ template<class TPointType> class IntegrationPointSurface3d
     : public Geometry<TPointType>
 {
 public:
-    /**
-     * Type Definitions
-     */
-    /**
-     * Base Type: Geometry
-     */
-    typedef Geometry<TPointType> BaseType;
-
-    /**
-     * Type of edge geometry
-     */
-    typedef Line3D3<TPointType> EdgeType;
 
     /**
      * Pointer definition of IntegrationPointSurface3d
      */
     KRATOS_CLASS_POINTER_DEFINITION( IntegrationPointSurface3d );
 
-    /**
-     * Integration methods implemented in geometry.
-     */
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-
-    /**
-     * A Vector of counted pointers to Geometries.
-     * Used for returning edges of the geometry.
-     */
-    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
-
-    /**
-     * Redefinition of template parameter TPointType.
-     */
-    typedef TPointType PointType;
-
-    /**
-     * Array of coordinates. Can be Nodes, Points or IntegrationPointSurface3ds
-     */
-    typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
-
-
-    /**
-     * Type used for indexing in geometry class.
-     * std::size_t used for indexing
-     * point or integration point access methods and also all other
-     * methods which need point or integration point index.
-     */
-    typedef typename BaseType::IndexType IndexType;
-
-    /**
-     * This typed used to return size or dimension in
-     * geometry. Dimension, WorkingDimension, PointsNumber and
-     * ... return this type as their results.
-     */
-    typedef typename BaseType::SizeType SizeType;
-
-    /**
-     * Array of counted pointers to point.
-     * This type used to hold geometry's points.
-     */
-    typedef  typename BaseType::PointsArrayType PointsArrayType;
-
-    /**
-     * This type used for representing an integration point in
-     * geometry. This integration point is a point with an
-     * additional weight component.
-     */
-    typedef typename BaseType::IntegrationPointType IntegrationPointType;
-
-    /**
-     * A Vector of IntegrationPointType which used to hold
-     * integration points related to an integration
-     * method. IntegrationPointSurface3ds functions used this type to return
-     * their results.
-     */
-    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
-
-    /**
-     * A Vector of IntegrationPointsArrayType which used to hold
-     * integration points related to different integration method
-     * implemented in geometry.
-     */
-    typedef typename BaseType::IntegrationPointsContainerType IntegrationPointsContainerType;
-
-    /**
-     * A third order tensor used as shape functions' values
-     * container.
-     */
-    typedef typename BaseType::ShapeFunctionsValuesContainerType
-    ShapeFunctionsValuesContainerType;
-
-    /**
-             * A fourth order tensor used as shape functions' local
-             * gradients container in geometry.
-     */
-    typedef typename BaseType::ShapeFunctionsLocalGradientsContainerType
-    ShapeFunctionsLocalGradientsContainerType;
-
-    /**
-             * A third order tensor to hold jacobian matrices evaluated at
-             * integration points. Jacobian and InverseOfJacobian functions
-             * return this type as their result.
-     */
-    typedef typename BaseType::JacobiansType JacobiansType;
-
-    /**
-     * A third order tensor to hold shape functions' local
-     * gradients. ShapefunctionsLocalGradients function return this
-     * type as its result.
-     */
-    typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
-
-    /**
-     * A third order tensor to hold shape functions' local second derivatives.
-     * ShapefunctionsLocalGradients function return this
-     * type as its result.
-     */
-    typedef typename BaseType::ShapeFunctionsSecondDerivativesType
-        ShapeFunctionsSecondDerivativesType;
-
-
-    /**
-    * A fourth order tensor to hold shape functions' local third derivatives.
-    * ShapefunctionsLocalGradients function return this
-    * type as its result.
-     */
-    typedef typename BaseType::ShapeFunctionsThirdDerivativesType
-        ShapeFunctionsThirdDerivativesType;
-
-    /**
-    * Type of the normal vector used for normal to edges in geomety.
-     */
-    typedef typename BaseType::NormalType NormalType;
 
     ///@}
     ///@name Life Cycle
@@ -359,10 +233,7 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    const GeometryData msGeometryData;
-
-    /** This member holds the higher order shape function derivatives */
-    Matrix mShapeFunctions;
+    GeometryData msGeometryData;
 
     ///@}
     ///@name Serialization
