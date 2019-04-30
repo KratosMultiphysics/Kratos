@@ -48,7 +48,6 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	// *************** Methods Alejandro Cornejo ***************
 	//**********************************************************
 	void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
-	void CalculateElementalSystem(LocalSystemComponents& rLocalSystem, ProcessInfo& rCurrentProcessInfo);
 	void FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
 	void InitializeNonLinearIteration(ProcessInfo &CurrentProcessInfo) override;
 	void CalculateConstitutiveMatrix(Matrix &rConstitutiveMatrix, const double &rYoungModulus,
