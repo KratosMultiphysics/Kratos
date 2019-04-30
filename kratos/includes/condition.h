@@ -63,7 +63,7 @@ public:
     ///@{
 
     /// Pointer definition of Condition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Condition)
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Condition);
 
     ///definition of condition type
     typedef Condition ConditionType;

@@ -63,7 +63,7 @@ public:
     ///@name Type Definitions
     ///@{
     /// Pointer definition of Element
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Element)
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Element);
 
     ///definition of element type
     typedef Element ElementType;
