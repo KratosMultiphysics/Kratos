@@ -1588,8 +1588,8 @@ void FemDem3DElement::IntegratePerturbedStrain(
 			average_strain_vector += p_edge_neighbours[elem]->GetValue(STRAIN_VECTOR);
 			counter++;
 		}
-		average_stress_vector /= (counter + 1);
-		average_strain_vector /= (counter + 1);
+		average_stress_vector /= (counter + 1.0);
+		average_strain_vector /= (counter + 1.0);
 
 		bool dummy = false; 
 
