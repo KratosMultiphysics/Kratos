@@ -149,7 +149,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     const double average_variable_value = r_this_geometry[i_node].GetValue(*mpAverageVariable);
                     const double coeff_coincident_node = std::abs(average_variable_value) > std::numeric_limits<double>::epsilon() ? area_coeff/average_variable_value : area_coeff;
-                    node_coefficient(i_node, i_gauss_point) = coeff_coincident_node * N[i_node];
+                    node_coefficient(i_node, i_gauss_point) = coeff_coincident_node * std::abs(N[i_node]);
                 }
             }
 
@@ -296,7 +296,7 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
                 const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * vector_J[i_gauss_point] : 1.0;
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     #pragma omp atomic
-                    r_this_geometry[i_node].GetValue(*mpAverageVariable) += N[i_node] * area_coeff;
+                    r_this_geometry[i_node].GetValue(*mpAverageVariable) += std::abs(N[i_node]) * area_coeff;
                 }
             }
         }
