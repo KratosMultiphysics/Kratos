@@ -48,12 +48,11 @@ class PotentialFlowSolver(FluidSolver):
         return settings
 
     def __init__(self, model, custom_settings):
-
         super(PotentialFlowSolver, self).__init__(model, custom_settings)
 
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True
-
+        KratosMultiphysics.Logger.PrintInfo("POTENTIAL FLOW SOLVER is called      HERE")
         # Set the element and condition names for the replace settings
         # TODO: Create a formulation class helper as soon as there is more than one element is present
         self.element_name = "IncompressiblePotentialFlowElement"
@@ -83,11 +82,12 @@ class PotentialFlowSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
-        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE,self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Fluid solver DOFs added correctly.")
 
     def Initialize(self):
+        KratosMultiphysics.Logger.PrintInfo("INITIALZE for the POTENTIALFLOWSOLVER starts HERE")
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         # TODO: Rename to self.strategy once we upgrade the base FluidDynamicsApplication solvers
         self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
