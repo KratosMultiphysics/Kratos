@@ -2,6 +2,10 @@
 // Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
+//NOTE: those two includes should go first in the include list of this file
+#include "includes/define.h"
+#include "includes/define_python.h"
+
 // External includes
 #include <pybind11/pybind11.h>
 

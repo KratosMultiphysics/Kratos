@@ -6,11 +6,13 @@
 
 #if defined(KRATOS_PYTHON)
 
+#include "includes/define.h"
+#include "includes/define_python.h"
+
 // External includes
 #include <pybind11/pybind11.h>
 
 // Project includes
-#include "includes/define_python.h"
 #include "DEM_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
