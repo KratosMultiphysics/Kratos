@@ -216,7 +216,6 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		Vector average_stress_edge = ZeroVector(3);
 		Vector average_strain_edge = ZeroVector(3);
 		bool is_damaging = false;
-		Vector damages = ZeroVector(mNumberOfEdges);
 
 		for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
 			this->CalculateAverageStressOnEdge(&elem_neigb[edge], this, average_stress_edge);
