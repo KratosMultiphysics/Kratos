@@ -249,7 +249,7 @@ class MonteCarlo(object):
         # batch_size: number of iterations of each epoch
         self.batch_size = []
         # current_convergence_batch: current batch for which convergence is computed
-        self.current_convergence_batch = 0
+        self.current_convergence_batch = None
         # iteration counter
         self.iteration_counter = 0
         # set convergence criteria
