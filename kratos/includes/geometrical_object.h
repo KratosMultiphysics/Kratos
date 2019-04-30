@@ -50,14 +50,16 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class GeometricalObject : public IndexedObject
+class GeometricalObject : public IndexedObject, public std::intrusive_base<GeometricalObject>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of GeometricalObject
-    KRATOS_CLASS_POINTER_DEFINITION(GeometricalObject);
+    typedef Kratos::intrusive_ptr<GeometricalObject> Pointer;
+    typedef Kratos::intrusive_weak_ptr<GeometricalObject> WeakPointer;
+    typedef Kratos::unique_ptr<GeometricalObject> UniquePointer;
 
     typedef IndexedObject BaseType;
 

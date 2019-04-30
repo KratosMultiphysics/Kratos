@@ -112,7 +112,7 @@ Element::Pointer SolidShellElementSprism3D6N::Create(
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<SolidShellElementSprism3D6N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<SolidShellElementSprism3D6N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 //************************************************************************************
@@ -123,7 +123,7 @@ Element::Pointer SolidShellElementSprism3D6N::Create(
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<SolidShellElementSprism3D6N>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<SolidShellElementSprism3D6N>(NewId, pGeom, pProperties);
 }
 
 /*********************************** CLONE ******************************************/
@@ -153,7 +153,7 @@ Element::Pointer SolidShellElementSprism3D6N::Clone(
     for(IndexType i = 0; i < mAuxContainer.size(); ++i)
         new_element.mAuxContainer[i] = mAuxContainer[i];
 
-    return Kratos::make_shared<SolidShellElementSprism3D6N>(new_element);
+    return Kratos::make_intrusive<SolidShellElementSprism3D6N>(new_element);
 }
 
 //******************************* GETTING METHODS *********************************//

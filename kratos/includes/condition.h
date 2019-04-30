@@ -63,7 +63,7 @@ public:
     ///@{
 
     /// Pointer definition of Condition
-    KRATOS_CLASS_POINTER_DEFINITION(Condition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Condition);
 
     ///definition of condition type
     typedef Condition ConditionType;
@@ -229,7 +229,7 @@ public:
     {
         KRATOS_TRY
         KRATOS_ERROR << "Please implement the First Create method in your derived Condition" << Info() << std::endl;
-        return Kratos::make_shared<Condition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<Condition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -246,7 +246,7 @@ public:
     {
         KRATOS_TRY
         KRATOS_ERROR << "Please implement the Second Create method in your derived Condition" << Info() << std::endl;
-        return Kratos::make_shared<Condition>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<Condition>(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
@@ -261,7 +261,7 @@ public:
     {
         KRATOS_TRY
         KRATOS_WARNING("Condition") << " Call base class condition Clone " << std::endl;
-        Condition::Pointer p_new_cond = Kratos::make_shared<Condition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+        Condition::Pointer p_new_cond = Kratos::make_intrusive<Condition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
         p_new_cond->SetData(this->GetData());
         p_new_cond->Set(Flags(*this));
         return p_new_cond;

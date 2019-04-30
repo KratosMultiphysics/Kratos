@@ -81,7 +81,7 @@ public:
     ///@{
 
     /// Counted pointer of MortarContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MortarContactCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MortarContactCondition );
 
     /// Base class definitions
     typedef PairedCondition                                                               BaseType;

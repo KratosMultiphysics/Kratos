@@ -40,7 +40,7 @@ Condition::Pointer MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVar
 {
     KRATOS_ERROR << "You are calling to the base class method Create, check your condition declaration" << std::endl;
 
-    return Kratos::make_shared< MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive< MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -54,7 +54,7 @@ Condition::Pointer MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVar
 {
     KRATOS_ERROR << "You are calling to the base class method Create, check your condition declaration" << std::endl;
 
-    return Kratos::make_shared< MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster> >( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive< MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster> >( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
@@ -69,7 +69,7 @@ Condition::Pointer MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVar
 {
     KRATOS_ERROR << "You are calling to the base class method Create, check your condition declaration" << std::endl;
 
-    return Kratos::make_shared< MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster> >( NewId, pGeom, pProperties, pMasterGeom );
+    return Kratos::make_intrusive< MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster> >( NewId, pGeom, pProperties, pMasterGeom );
 }
 
 /************************************* DESTRUCTOR **********************************/

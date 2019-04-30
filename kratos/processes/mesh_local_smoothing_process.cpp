@@ -139,7 +139,7 @@ namespace Kratos
 	void MeshLocalSmoothingProcess::FindOptimumPositionsAndWeights(NodeType& rNode, 
 	PointsVectorType& rOptimumPoints, Vector& rWeights)
 	{
-		auto const& r_neighbours = rNode.GetValue(NEIGHBOUR_NODES);
+		const auto& r_neighbours = rNode.GetValue(NEIGHBOUR_NODES);
 		// A laplacian smoothing is provided by this base class
 		const std::size_t size = r_neighbours.size();
 		rOptimumPoints.resize(size, Point{ZeroVector(3)});

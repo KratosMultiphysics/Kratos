@@ -119,7 +119,7 @@ public:
             rN.erase(rN.begin(),rN.end() );
 
             (in->GetValue(NEIGHBOUR_ELEMENTS)).reserve(mavg_elems);
-            WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
+            auto& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
             rE.erase(rE.begin(),rE.end() );
         }
 

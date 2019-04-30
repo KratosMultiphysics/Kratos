@@ -337,14 +337,16 @@ void  AddProcessesToPython(pybind11::module& m)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
 
-    // Calculate embedded variable from skin processes
+//     // Calculate embedded variable from skin processes
     py::class_<CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>, CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(
         m, "CalculateEmbeddedNodalVariableFromSkinProcessDouble")
-        .def(py::init<ModelPart&, ModelPart&, const Variable<double>&, const Variable<double>&, const std::string, const std::string>());
+        .def(py::init<Model &, Parameters>())
+        .def("Clear", &CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>::Clear);
 
-    py::class_<CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>, CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double,3>, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(
+    py::class_<CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>, CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(
         m, "CalculateEmbeddedNodalVariableFromSkinProcessArray")
-        .def(py::init<ModelPart&, ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const std::string, const std::string>());
+        .def(py::init<Model &, Parameters>())
+        .def("Clear", &CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>::Clear);
 
     py::class_<ReorderAndOptimizeModelPartProcess, ReorderAndOptimizeModelPartProcess::Pointer, Process>(m,"ReorderAndOptimizeModelPartProcess")
             .def(py::init<ModelPart&, Parameters>())
