@@ -16,7 +16,7 @@ class KRATOS_API(DEM_APPLICATION) AnalyticRigidFace3D : public RigidFace3D
 public:
 
     // Counted pointer of AnalyticRigidFace3D
-    KRATOS_CLASS_POINTER_DEFINITION( AnalyticRigidFace3D );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AnalyticRigidFace3D );
 
     typedef RigidFace3D BaseType;
     typedef WeakPointerVector<Element> ParticleWeakVectorType;
