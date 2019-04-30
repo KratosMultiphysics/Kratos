@@ -354,7 +354,7 @@ void FemDem3DElement::CalculateLocalSystem(
 			+ r_strain_vector[3] + r_strain_vector[4] + r_strain_vector[5]) > tolerance) {
 
 			this->CalculateTangentTensor(tangent_tensor, r_strain_vector, integrated_stress_vector, C);
-			noalias(rLeftHandSideMatrix) += Variables.IntegrationWeight * (1.0 - damage_element) * prod(trans(Variables.B), Matrix(prod(tangent_tensor, Variables.B)));
+			noalias(rLeftHandSideMatrix) += Variables.IntegrationWeight * prod(trans(Variables.B), Matrix(prod(tangent_tensor, Variables.B)));
 		} else {
 			noalias(rLeftHandSideMatrix) += Variables.IntegrationWeight * (1.0 - damage_element) * prod(trans(Variables.B), Matrix(prod(C, Variables.B)));
 		}
@@ -445,7 +445,7 @@ void FemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 			+ r_strain_vector[3] + r_strain_vector[4] + r_strain_vector[5]) > tolerance) {
 
 			this->CalculateTangentTensor(tangent_tensor, r_strain_vector, integrated_stress_vector, C);
-			noalias(rLeftHandSideMatrix) += Variables.IntegrationWeight * (1.0 - damage_element) * prod(trans(Variables.B), Matrix(prod(tangent_tensor, Variables.B)));
+			noalias(rLeftHandSideMatrix) += Variables.IntegrationWeight * prod(trans(Variables.B), Matrix(prod(tangent_tensor, Variables.B)));
 		} else {
 			noalias(rLeftHandSideMatrix) += Variables.IntegrationWeight * (1.0 - damage_element) * prod(trans(Variables.B), Matrix(prod(C, Variables.B)));
 		}
@@ -1202,6 +1202,7 @@ void FemDem3DElement::ModifiedMohrCoulombCriterion(
 	const double K3 = 0.5 * (1.0 + alpha_r) * sinphi - 0.5 * (1.0 - alpha_r);
 	const double n = sigma_c / sigma_t;
 	const double A = 1.00 / (n * n * Gt * E / (Length * std::pow(sigma_c, 2)) - 0.5);
+	KRATOS_ERROR_IF(A < tolerance) << " 'A' damage parameter lower than zero --> Increase FRAC_ENERGY_T" << std::endl;
 
 	// Check Modified Mohr-Coulomb criterion
 	double uniaxial_stress;
@@ -1553,6 +1554,7 @@ void FemDem3DElement::CalculatePerturbation(
 	const double max_strain_component = this->GetMaxAbsValue(rStrainVectorGP);
 	perturbation_2 = 1.0e-10 * max_strain_component;
 	rPerturbation = std::max(perturbation_1, perturbation_2);
+	if (rPerturbation < 1e-8) rPerturbation = 1e-8;
 }
 
 void FemDem3DElement::PerturbateStrainVector(
