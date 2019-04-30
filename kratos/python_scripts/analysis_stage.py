@@ -48,11 +48,17 @@ class AnalysisStage(object):
         self.RunSolutionLoop()
         self.Finalize()
 
+    def KeepAdvancingSolutionLoop(self):
+        """This function specifies the stopping criteria for breaking the solution loop
+        It can be overridden by derived classes
+        """
+        return self.time < self.end_time
+
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
-        while self.time < self.end_time:
+        while self.KeepAdvancingSolutionLoop():
             self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
             self._GetSolver().Predict()

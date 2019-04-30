@@ -40,7 +40,7 @@ namespace adapter {
 
 template <class Matrix, class BlockType>
 struct block_matrix_adapter {
-    typedef BlockType val_type;
+    typedef BlockType value_type;
     static const int BlockSize = math::static_rows<BlockType>::value;
 
     const Matrix &A;
@@ -170,57 +170,6 @@ block_matrix_adapter<Matrix, BlockType> block_matrix(const Matrix &A) {
 } // namespace adapter
 
 namespace backend {
-
-//---------------------------------------------------------------------------
-// Specialization of matrix interface
-//---------------------------------------------------------------------------
-template <class Matrix, class BlockType>
-struct value_type< adapter::block_matrix_adapter<Matrix, BlockType> >
-{
-    typedef BlockType type;
-};
-
-template <class Matrix, class BlockType>
-struct rows_impl< adapter::block_matrix_adapter<Matrix, BlockType> >
-{
-    static size_t get(const adapter::block_matrix_adapter<Matrix, BlockType> &A) {
-        return A.rows();
-    }
-};
-
-template <class Matrix, class BlockType>
-struct cols_impl< adapter::block_matrix_adapter<Matrix, BlockType> >
-{
-    static size_t get(const adapter::block_matrix_adapter<Matrix, BlockType> &A) {
-        return A.cols();
-    }
-};
-
-template <class Matrix, class BlockType>
-struct nonzeros_impl< adapter::block_matrix_adapter<Matrix, BlockType> >
-{
-    static size_t get(const adapter::block_matrix_adapter<Matrix, BlockType> &A) {
-        return A.nonzeros();
-    }
-};
-
-template <class Matrix, class BlockType>
-struct row_iterator< adapter::block_matrix_adapter<Matrix, BlockType> >
-{
-    typedef
-        typename adapter::block_matrix_adapter<Matrix, BlockType>::row_iterator
-        type;
-};
-
-template <class Matrix, class BlockType>
-struct row_begin_impl< adapter::block_matrix_adapter<Matrix, BlockType> >
-{
-    typedef adapter::block_matrix_adapter<Matrix, BlockType> BM;
-    static typename row_iterator<BM>::type
-    get(const BM &matrix, size_t row) {
-        return matrix.row_begin(row);
-    }
-};
 
 namespace detail {
 

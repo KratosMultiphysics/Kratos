@@ -226,44 +226,6 @@ void VariableUtils::CopyScalarVar(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void VariableUtils::SetToZero_VectorVar(
-    const ArrayVarType& Variable,
-    NodesContainerType& rNodes
-    )
-{
-    KRATOS_TRY
-
-    #pragma omp parallel for
-    for (int k = 0; k < static_cast<int> (rNodes.size()); ++k) {
-        NodesContainerType::iterator i = rNodes.begin() + k;
-        noalias(i->FastGetSolutionStepValue(Variable)) = ZeroVector(3);
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void VariableUtils::SetToZero_ScalarVar(
-    const DoubleVarType& Variable,
-    NodesContainerType& rNodes
-    )
-{
-    KRATOS_TRY
-
-    #pragma omp parallel for
-    for (int k = 0; k < static_cast<int> (rNodes.size()); ++k) {
-        NodesContainerType::iterator i = rNodes.begin() + k;
-        i->FastGetSolutionStepValue(Variable) = 0.0;
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 ModelPart::NodesContainerType VariableUtils::SelectNodeList(
     const DoubleVarType& Variable,
     const double Value,
@@ -503,7 +465,7 @@ void VariableUtils::UpdateInitialToCurrentConfiguration(const ModelPart::NodesCo
     #pragma omp parallel for
     for (int i=0; i<num_nodes; i++) {
         const auto it_node  = nodes_begin + i;
-        noalias(it_node->GetInitialPosition()) = it_node->Coordinates();
+        noalias(it_node->GetInitialPosition().Coordinates()) = it_node->Coordinates();
     }
 
     KRATOS_CATCH("");

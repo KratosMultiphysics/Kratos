@@ -7,14 +7,12 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import base class file
-import structural_mechanics_solver
-
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return HarmonicAnalysisSolver(model, custom_settings)
 
-
-class HarmonicAnalysisSolver(structural_mechanics_solver.MechanicalSolver):
+class HarmonicAnalysisSolver(MechanicalSolver):
     """The structural mechanics harmonic analysis solver.
 
     This class creates the mechanical solvers for the harmonic analysis.
@@ -40,7 +38,7 @@ class HarmonicAnalysisSolver(structural_mechanics_solver.MechanicalSolver):
 
         # Construct the base solver.
         super(HarmonicAnalysisSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[HarmonicAnalysisSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[HarmonicAnalysisSolver]:: ", "Construction finished")
 
     #### Private functions ####
 

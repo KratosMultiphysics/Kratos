@@ -105,21 +105,13 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
 
     // If the element is cut, add the interface contributions
     if ( data.IsCut() ) {
-
-        // Add the boundary term together with the interface equilibrium imposition. Note that the interface
-        // equilibrium imposition and boundary term addition yields minus the base element boundary term.
-        // Therefore, two auxiliar arrays are used (aux_LHS and aux_RHS) to store the base element boundary
-        // term contribution. Finally, the opposite of these arrays is added to the local system.
-        const size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
-        VectorType aux_RHS = ZeroVector(LocalSize);
-        MatrixType aux_LHS = ZeroMatrix(LocalSize, LocalSize);
-
         // Add the base element boundary contribution on the positive interface
+        const size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
         const unsigned int number_of_positive_interface_gauss_points = data.PositiveInterfaceWeights.size();
         for (unsigned int g = 0; g < number_of_positive_interface_gauss_points; ++g){
             const size_t gauss_pt_index = g + volume_gauss_points;
             this->UpdateIntegrationPointData(data, gauss_pt_index, data.PositiveInterfaceWeights[g], row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
-            this-> AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g], aux_LHS, aux_RHS);
+            this->AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
         }
 
         // Add the base element boundary contribution on the negative interface
@@ -127,12 +119,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
         for (unsigned int g = 0; g < number_of_negative_interface_gauss_points; ++g){
             const size_t gauss_pt_index = g + volume_gauss_points + number_of_positive_interface_gauss_points;
             this->UpdateIntegrationPointData(data, gauss_pt_index, data.NegativeInterfaceWeights[g], row(data.NegativeInterfaceN, g), data.NegativeInterfaceDNDX[g]);
-            this-> AddBoundaryTraction(data, data.NegativeInterfaceUnitNormals[g], aux_LHS, aux_RHS);
+            this->AddBoundaryTraction(data, data.NegativeInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
         }
-
-        // Recall to swap the boundary term signs because of the interface equilibrium (Neumann) imposition
-        rLeftHandSideMatrix -= aux_LHS;
-        rRightHandSideVector -= aux_RHS;
 
         // Add the Nitsche Navier boundary condition implementation (Winter, 2018)
         data.InitializeBoundaryConditionData(rCurrentProcessInfo);

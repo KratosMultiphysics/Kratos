@@ -53,17 +53,17 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief A three node 2D triangle geometry with linear shape functions
  * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
- * The node ordering corresponds with: 
- *      v                                                              
- *      ^                                                               
- *      |                                                              
- *      2                                   
- *      |`\                   
- *      |  `\                   
- *      |    `\                 
- *      |      `\                
- *      |        `\                 
- *      0----------1 --> u  
+ * The node ordering corresponds with:
+ *      v
+ *      ^
+ *      |
+ *      2
+ *      |`\
+ *      |  `\
+ *      |    `\
+ *      |      `\
+ *      |        `\
+ *      0----------1 --> u
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -226,7 +226,7 @@ public:
         this->Points().push_back( pThirdPoint );
     }
 
-    Triangle2D3( const PointsArrayType& ThisPoints )
+    explicit Triangle2D3( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 3 )
@@ -259,7 +259,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Triangle2D3( Triangle2D3<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Triangle2D3( Triangle2D3<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -445,8 +445,7 @@ public:
     bool HasIntersection( const BaseType& rThisGeometry ) override {
         const BaseType& geom_1 = *this;
         const BaseType& geom_2 = rThisGeometry;
-        return  NoDivTriTriIsect(geom_1[0].Coordinates(), geom_1[1].Coordinates() , geom_1[2].Coordinates(),
-                                 geom_2[0].Coordinates(), geom_2[1].Coordinates(),  geom_2[2].Coordinates());
+        return  NoDivTriTriIsect(geom_1[0], geom_1[1], geom_1[2], geom_2[0], geom_2[1], geom_2[2]);
     }
 
     /**
@@ -703,7 +702,7 @@ public:
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) override
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 

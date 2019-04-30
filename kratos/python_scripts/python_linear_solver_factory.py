@@ -41,7 +41,7 @@ def __DeprecatedApplicationImport(solver_type):
             KM.Logger.PrintWarning('Linear-Solver-Factory', depr_msg)
 
             from KratosMultiphysics import kratos_utilities as kratos_utils
-            if not kratos_utils.IsApplicationAvailable(app_name):
+            if not kratos_utils.CheckIfApplicationsAvailable(app_name):
                 err_msg  = 'Trying to use the linear-solver "' + solver_type
                 err_msg += '"\nThis solver is defined in the "' + app_name
                 err_msg += '" which is not compiled'
@@ -150,10 +150,11 @@ def ConstructSolver(configuration):
     if "Application." in solver_type: # the module in which the solver is implemented was specified
         splitted_name = solver_type.split(".")
         if len(splitted_name) != 2:
-            raise NameError('The "solver_type" has to consist in "ApplicationName.SolverType"')
+            raise NameError('The "solver_type" has to consist in "ApplicationName.solver_type"')
         app_name = splitted_name[0]
+        # the following is only needed for the check in the ComplexLinearSolverFactory
+        # note that the solver-configuration is NOT modified
         solver_type = splitted_name[1]
-        configuration["solver_type"].SetString(solver_type)
         __import__("KratosMultiphysics." + app_name)
     else:
         __DeprecatedApplicationImport(solver_type)

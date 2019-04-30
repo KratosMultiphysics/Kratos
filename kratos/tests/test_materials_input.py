@@ -1,28 +1,23 @@
 ﻿from __future__ import print_function, absolute_import, division
 
+import os
+import sys
+
 # Importing the Kratos Library
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
-try:
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as KratosUtils
+
+dependencies_are_available = KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication", "FluidDynamicsApplication")
+if dependencies_are_available:
     import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
     import KratosMultiphysics.StructuralMechanicsApplication
-    missing_external_dependencies = False
-    missing_application = ''
-except ImportError as e:
-    missing_external_dependencies = True
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
-                                    '{0}'.format(e)).group(1)
 
-# Other imports
-import os
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestMaterialsInput(KratosUnittest.TestCase):
-
     def _prepare_test(self):
         # Define a Model
         self.current_model = KratosMultiphysics.Model()
@@ -30,7 +25,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         self.model_part = self.current_model.CreateModelPart("Main")
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        self.model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_read")) #reusing the file that is already in the directory
+        self.model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_read")) #reusing the file that is already in the directory
         self.model_part_io.ReadModelPart(self.model_part)
 
         self.test_settings = KratosMultiphysics.Parameters("""
@@ -42,7 +37,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         """)
 
         #assign the real path
-        self.test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("materials.json"))
+        self.test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("auxiliar_files_for_python_unnitest/materials_files/materials.json"))
 
     def _check_results(self):
         #test if the element properties are assigned correctly to the elements and conditions
@@ -86,19 +81,15 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         self.assertAlmostEqual(table.GetNearestValue(1.1),10.0)
         self.assertAlmostEqual(table.GetDerivative(1.2),2.0)
 
+    @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication or FluidDynamicsApplication are not available")
     def test_input_python(self):
-
-        if (missing_external_dependencies is True):
-            self.skipTest("{} is not available".format(missing_application))
         self._prepare_test()
         import read_materials_process
         read_materials_process.Factory(self.test_settings,self.current_model)
         self._check_results()
 
+    @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication or FluidDynamicsApplication are not available")
     def test_input_cpp(self):
-
-        if (missing_external_dependencies is True):
-            self.skipTest("{} is not available".format(missing_application))
         self._prepare_test()
 
         KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
@@ -111,7 +102,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
 
         test_settings["Parameters"]["materials_filename"].SetString(
-            GetFilePath(os.path.join("wrong_materials_input","wrong_materials_1.json")))
+            GetFilePath(os.path.join("auxiliar_files_for_python_unnitest","materials_files","wrong_materials_input","wrong_materials_1.json")))
         expected_error_msg = "Error: Materials for ModelPart \"Main\" are specified multiple times!"
 
         with self.assertRaisesRegex(RuntimeError, expected_error_msg):
@@ -121,7 +112,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
 
         test_settings["Parameters"]["materials_filename"].SetString(
-            GetFilePath(os.path.join("wrong_materials_input","wrong_materials_2.json")))
+            GetFilePath(os.path.join("auxiliar_files_for_python_unnitest","materials_files","wrong_materials_input","wrong_materials_2.json")))
         expected_error_msg = "Error: Materials for ModelPart \"Main.sub\" are specified multiple times!"
 
         with self.assertRaisesRegex(RuntimeError, expected_error_msg):
@@ -131,7 +122,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
 
         test_settings["Parameters"]["materials_filename"].SetString(
-            GetFilePath(os.path.join("wrong_materials_input","wrong_materials_3.json")))
+            GetFilePath(os.path.join("auxiliar_files_for_python_unnitest","materials_files","wrong_materials_input","wrong_materials_3.json")))
         expected_error_msg =  "Error: Materials for ModelPart \"Main.sub\" are specified multiple times!\n"
         expected_error_msg += "Overdefined due to also specifying the materials for Parent-ModelPart \"Main\"!"
 
@@ -142,7 +133,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
 
         test_settings["Parameters"]["materials_filename"].SetString(
-            GetFilePath(os.path.join("wrong_materials_input","wrong_materials_4.json")))
+            GetFilePath(os.path.join("auxiliar_files_for_python_unnitest","materials_files","wrong_materials_input","wrong_materials_4.json")))
         expected_error_msg =  "Error: Materials for ModelPart \"Main.sub1.subsub\" are specified multiple times!\n"
         expected_error_msg += "Overdefined due to also specifying the materials for Parent-ModelPart \"Main.sub1\"!"
 

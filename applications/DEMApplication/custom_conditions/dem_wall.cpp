@@ -85,10 +85,10 @@ void DEMWall::InitializeSolutionStep(ProcessInfo& r_process_info){
 
 
 void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
-    
+
    KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMWall::CalculateNormal) shouldn't be accessed, use derived class instead", "");
 }
-  
+
  void DEMWall::AddExplicitContribution(const VectorType& rRHS,
                          const Variable<VectorType>& rRHSVariable,
                          Variable<array_1d<double,3> >& rDestinationVariable,
@@ -140,20 +140,15 @@ void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
     KRATOS_CATCH( "" )
 }
 
- 
+
 double DEMWall::GetYoung()                                                      { return GetProperties()[YOUNG_MODULUS]; }
 double DEMWall::GetTgOfFrictionAngle()                                          { return GetProperties()[FRICTION]; }
 double DEMWall::GetPoisson()                                                    { return GetProperties()[POISSON_RATIO]; }
- 
 
-void DEMWall::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info)
+
+void DEMWall::FinalizeSolutionStep(ProcessInfo& r_process_info)
 {
-    
-}
 
-void DEMWall::FinalizeSolutionStep(ProcessInfo& r_process_info)   
-{  
-  
 }
 
 void DEMWall::GetRightHadSideVector(std::vector<array_1d <double, 3> >& rRightHandSideVector)
@@ -166,7 +161,7 @@ void DEMWall::GetRightHadSideVector(std::vector<array_1d <double, 3> >& rRightHa
       rRightHandSideVector[a][b] = mRightHandSideVector[a][b];
     }
   }
-  
+
 }
 
 void DEMWall::SetRightHadSideVector(const std::vector<array_1d <double, 3> >& rRightHandSideVector)
@@ -178,7 +173,7 @@ void DEMWall::SetRightHadSideVector(const std::vector<array_1d <double, 3> >& rR
       mRightHandSideVector[a][b] = rRightHandSideVector[a][b];
     }
   }
-  
+
 }
 
 void DEMWall::AddToRightHadSideVector(const std::vector<array_1d <double, 3> >& rRightHandSideVector)
@@ -190,7 +185,7 @@ void DEMWall::AddToRightHadSideVector(const std::vector<array_1d <double, 3> >& 
       mRightHandSideVector[a][b] += rRightHandSideVector[a][b];
     }
   }
-  
+
 }
 
 //***********************************************************************************

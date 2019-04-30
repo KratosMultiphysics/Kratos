@@ -6,7 +6,6 @@ import KratosMultiphysics
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
-
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
@@ -43,22 +42,6 @@ class FormfindingIO(KratosMultiphysics.Process):
         if (self.read_prestress):
             self.formfinding_io.ReadPrestressData()
             KratosMultiphysics.Logger.PrintInfo("FormfindingIO", "Read prestress")
-
-    def ExecuteBeforeSolutionLoop(self):
-        pass
-
-    def ExecuteInitializeSolutionStep(self):
-        pass
-
-    def ExecuteFinalizeSolutionStep(self):
-        pass
-
-    def ExecuteBeforeOutputStep(self):
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        pass
-
 
     def ExecuteFinalize(self):
         if (self.print_mdpa):

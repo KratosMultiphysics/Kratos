@@ -241,12 +241,15 @@ public:
     {
         KRATOS_TRY;
 
-        ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         ImplicitBaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
 
-        const double delta_time = current_process_info[DELTA_TIME];
-        const double previous_delta_time = current_process_info.GetPreviousTimeStepInfo(1)[DELTA_TIME];
+        const double delta_time = r_current_process_info[DELTA_TIME];
+        const double previous_delta_time = r_current_process_info.GetPreviousTimeStepInfo(1)[DELTA_TIME];
+
+        KRATOS_ERROR_IF(delta_time < 1.0e-24) << "Detected delta_time equal to zero or negative in the Solution Scheme DELTA_TIME. PLEASE : check if the time step is created correctly for the current time step" << std::endl;
+        KRATOS_ERROR_IF(previous_delta_time < 1.0e-24) << "Detected previous_delta_time equal to zero or negative in the Solution Scheme DELTA_TIME. PLEASE : check if the time step is created correctly for the current time step" << std::endl;
 
         // Calculate the BDF coefficients
         const double rho = previous_delta_time / delta_time;
@@ -294,27 +297,23 @@ public:
         }
 
         const double tolerance = 1.0e-24;
-        if (mOrder > 2 && std::abs(delta_time - previous_delta_time) > tolerance)
-            std::cout << "For higher orders than 2 the time step is assumed to be constant. Sorry for the inconveniences" << std::endl;
+        KRATOS_WARNING_IF("ResidualBasedBDFScheme", mOrder > 2 && std::abs(delta_time - previous_delta_time) > tolerance) << "For higher orders than 2 the time step is assumed to be constant. Sorry for the inconveniences" << std::endl;
 
         // Adding to the process info
         Vector bdf_vector(mOrder + 1);
         for (std::size_t i_order = 0; i_order < mOrder + 1; ++i_order)
             bdf_vector[i_order] = mBDF[i_order];
-        current_process_info(BDF_COEFFICIENTS) = bdf_vector;
+        r_current_process_info.SetValue(BDF_COEFFICIENTS, bdf_vector);
 
         KRATOS_CATCH( "" );
     }
 
     /**
-     * @brief This function is designed to be called once to perform all the checks needed
-     * on the input provided.
-     * @details Checks can be "expensive" as the function is designed
-     * to catch user's errors.
+     * @brief This function is designed to be called once to perform all the checks needed on the input provided.
+     * @details Checks can be "expensive" as the function is designed to catch user's errors.
      * @param rModelPart The model of the problem to solve
      * @return Zero means  all ok
      */
-
     int Check(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
@@ -387,8 +386,8 @@ protected:
     };
 
     const std::size_t mOrder; /// The integration order
-    Vector mBDF; /// The BDF coefficients
-    GeneralVectors mVector; /// The structure containing the  derivatives
+    Vector mBDF;              /// The BDF coefficients
+    GeneralVectors mVector;   /// The structure containing the  derivatives
 
     ///@}
     ///@name Protected Operators
@@ -417,9 +416,12 @@ protected:
         // Updating time derivatives (nodally for efficiency)
         const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
 
+        // Getting first node iterator
+        const auto it_node_begin = rModelPart.Nodes().begin();
+
         #pragma omp parallel for
         for(int i = 0;  i< num_nodes; ++i) {
-            auto it_node = rModelPart.Nodes().begin() + i;
+            auto it_node = it_node_begin + i;
 
             UpdateFirstDerivative(it_node);
             UpdateSecondDerivative(it_node);

@@ -155,7 +155,7 @@ namespace Kratos {
       //hexahedron not intersects the box
       KRATOS_CHECK_IS_FALSE(hexahedron->HasIntersection(Point(.51,.51,.51), Point(1.1,1.1,1.1)));
     }
-    
+
     /** Checks the inside test for a given point respect to the hexahedra
     * Checks the inside test for a given point respect to the hexahedra
     * It performs 4 tests:
@@ -173,7 +173,7 @@ namespace Kratos {
         Point PointInEdge(0.5, 0.5, 0.0);
 
         Point LocalCoords;
-        
+
         KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
         KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
         KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
@@ -189,7 +189,7 @@ namespace Kratos {
 
         // Compute the global coordinates of the baricentre
         auto points = geom->Points();
-        Point baricentre = points[0] + points[1] + points[2] + points[3] + points[4] + points[5] + points[6] + points[7];
+        auto baricentre = Point{points[0] + points[1] + points[2] + points[3] + points[4] + points[5] + points[6] + points[7]};
         baricentre /= 8.0;
 
         // Compute the baricentre local coordinates
@@ -199,7 +199,7 @@ namespace Kratos {
         KRATOS_CHECK_NEAR(baricentre_local_coords(0), 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(baricentre_local_coords(1), 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(baricentre_local_coords(2), 0.0, TOLERANCE);
-        
+
         Point baricentre_face_1;
         baricentre_face_1.Coordinates()[0] = 1.0;
         baricentre_face_1.Coordinates()[1] = 0.0;
@@ -208,11 +208,11 @@ namespace Kratos {
         // Compute the baricentre local coordinates
         array_1d<double, 3> baricentre_local_coords_face_1;
         geom->PointLocalCoordinates(baricentre_local_coords_face_1, baricentre_face_1);
-        
+
         KRATOS_CHECK_NEAR(baricentre_local_coords_face_1(0), 1.0, TOLERANCE);
         KRATOS_CHECK_NEAR(baricentre_local_coords_face_1(1), 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(baricentre_local_coords_face_1(2), 0.0, TOLERANCE);
-        
+
         Point baricentre_face_2;
         baricentre_face_2.Coordinates()[0] =  0.0;
         baricentre_face_2.Coordinates()[1] = -1.0;
@@ -221,11 +221,11 @@ namespace Kratos {
         // Compute the baricentre local coordinates
         array_1d<double, 3> baricentre_local_coords_face_2;
         geom->PointLocalCoordinates(baricentre_local_coords_face_2, baricentre_face_2);
-        
+
         KRATOS_CHECK_NEAR(baricentre_local_coords_face_2(0), 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(baricentre_local_coords_face_2(1),-1.0, TOLERANCE);
         KRATOS_CHECK_NEAR(baricentre_local_coords_face_2(2), 0.0, TOLERANCE);
-        
+
         Point baricentre_face_3;
         baricentre_face_3.Coordinates()[0] = 0.0;
         baricentre_face_3.Coordinates()[1] = 0.3;

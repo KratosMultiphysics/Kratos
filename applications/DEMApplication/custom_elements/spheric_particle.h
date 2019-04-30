@@ -145,7 +145,7 @@ virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_proc
 virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info) override;
 virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info) override;
 virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& r_process_info ) override;
-virtual void ComputeNewNeighboursHistoricalData(DenseVector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces);
+virtual void ComputeNewNeighboursHistoricalData(DenseVector<int>& temp_neighbours_ids, std::vector<array_1d<double, 3> >& temp_neighbour_elastic_contact_forces);
 virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
 virtual void SymmetrizeStressTensor();
@@ -162,7 +162,7 @@ virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_
 
 virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
 virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme);
-virtual void SwapIntegrationSchemeToGluedToWall(Condition* p_wall);
+virtual bool SwapIntegrationSchemeToGluedToWall(Condition* p_wall);
 virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { return *mpTranslationalIntegrationScheme; }
 virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
 
@@ -218,14 +218,6 @@ virtual double GetParticleKNormal();
 void   SetParticleKNormalFromProperties(double* particle_k_normal);
 virtual double GetParticleKTangential();
 void   SetParticleKTangentialFromProperties(double* particle_k_tangential);
-
-//Dependent Friction
-virtual double GetParticleContactRadius();
-void   SetParticleContactRadiusFromProperties(double* particle_contact_radius);
-virtual double GetParticleMaxStress();
-void   SetParticleMaxStressFromProperties(double* particle_max_stress);
-virtual double GetParticleGamma();
-void   SetParticleGammaFromProperties(double* particle_gamma);
 
 array_1d<double, 3>& GetForce();
 
@@ -287,8 +279,8 @@ virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalCo
 
 array_1d<double, 3> mContactMoment; //SLS
 
-Matrix* mStressTensor;
-Matrix* mSymmStressTensor;
+BoundedMatrix<double, 3, 3>* mStressTensor;
+BoundedMatrix<double, 3, 3>* mSymmStressTensor;
 double mPartialRepresentativeVolume;
 
 std::vector<int> mFemOldNeighbourIds;
@@ -480,9 +472,9 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("HasStressTensor", aux_int);
     if(aux_int) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
-        mStressTensor  = new Matrix(3,3);
+        mStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mStressTensor = ZeroMatrix(3,3);
-        mSymmStressTensor  = new Matrix(3,3);
+        mSymmStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mSymmStressTensor = ZeroMatrix(3,3);
         rSerializer.load("mSymmStressTensor", mSymmStressTensor);
     }

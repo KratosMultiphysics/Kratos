@@ -105,7 +105,7 @@ void ResizeAndInitializeLocalMatrices(MatrixType& rMatrix, VectorType& rVector,
         }
         rVector(m) = 0.0;
     }
-    KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::ResizeAndInitializeLocalMatrices failed ..");
+    KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise::ResizeAndInitializeLocalMatrices failed ..");
 }
 
 ///@}
@@ -499,7 +499,7 @@ public:
                 }
             }
         }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::ApplyConstraints failed ..");
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise::ApplyConstraints failed ..");
     }
 
     /**
@@ -540,7 +540,7 @@ public:
         // Calculating the K = T' * K *T which is local to this container
         ModifyLHSForConstraints(rLHSContribution, rRHSContribution, rEquationIds);
 
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints:: Applying Multipoint constraints failed ..");
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise:: Applying Multipoint constraints failed ..");
     }
     ///@}
 private:
@@ -736,7 +736,7 @@ private:
 
             index++;
         }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::CalculateLocalSlaveIndices failed ..");
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise::CalculateLocalSlaveIndices failed ..");
     }
 
     /**
@@ -758,7 +758,7 @@ private:
                             rLocalIndexStructure.slave_index_vector.begin(), rLocalIndexStructure.slave_index_vector.end(),
                             std::back_inserter(rLocalIndexStructure.internal_index_vector));
 
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::CalculateLocalInternalIndices failed ..");
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise::CalculateLocalInternalIndices failed ..");
     }
 
     /**

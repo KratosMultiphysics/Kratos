@@ -229,6 +229,7 @@ protected:
         const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
+
     /**
      * @brief This functions updates the data structure passed to the CL
      * @param rThisKinematicVariables The kinematic variables to be calculated
@@ -278,11 +279,14 @@ protected:
         ) const;
 
     /**
-     * Calculation of the equivalent deformation gradient
+     * @brief Calculation of the equivalent deformation gradient
+     * @param rF The deformation gradient F
      * @param StrainVector The strain tensor (Voigt notation)
-     * @return The deformation gradient F
      */
-    virtual Matrix ComputeEquivalentF(const Vector& StrainVector) const;
+    virtual void ComputeEquivalentF(
+        Matrix& rF,
+        const Vector& StrainVector
+        ) const;
 
     ///@}
     ///@name Protected Operations

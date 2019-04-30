@@ -1238,7 +1238,7 @@ Begin Elements Element3D4N// GUI group identifier: Structure
        976          1         36         64         59         92
 End Elements
 
-Begin Conditions Condition3D3N// GUI group identifier: Solid_interface
+Begin Conditions SurfaceCondition3D3N// GUI group identifier: Solid_interface
 1 0 208 210 225
 2 0 210 227 225
 3 0 184 188 208

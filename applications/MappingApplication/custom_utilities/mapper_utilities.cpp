@@ -44,7 +44,6 @@ void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
 
     #pragma omp parallel for
     for (int i=0; i<num_nodes_local; ++i) {
-        // TODO this should be working in omp, not usre though (could allocate data in parallel...)
         ( nodes_begin + i )->SetValue(INTERFACE_EQUATION_ID, start_equation_id + i);
     }
 
@@ -189,11 +188,11 @@ std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox)
 }
 
 bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
-                              const Point& rPoint)
+                              const array_1d<double, 3>& rCoords)
 {   // The Bounding Box should have some tolerance already!
-    if (rPoint.X() < rBoundingBox[0] && rPoint.X() > rBoundingBox[1])   // check x-direction
-        if (rPoint.Y() < rBoundingBox[2] && rPoint.Y() > rBoundingBox[3])   // check y-direction
-            if (rPoint.Z() < rBoundingBox[4] && rPoint.Z() > rBoundingBox[5])   // check z-direction
+    if (rCoords[0] < rBoundingBox[0] && rCoords[0] > rBoundingBox[1])   // check x-direction
+        if (rCoords[1] < rBoundingBox[2] && rCoords[1] > rBoundingBox[3])   // check y-direction
+            if (rCoords[2] < rBoundingBox[4] && rCoords[2] > rBoundingBox[5])   // check z-direction
                 return true;
     return false;
 }

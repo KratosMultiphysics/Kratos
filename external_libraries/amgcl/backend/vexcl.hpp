@@ -262,27 +262,6 @@ struct vexcl {
 // Backend interface implementation
 //---------------------------------------------------------------------------
 template < typename V, typename C, typename P >
-struct rows_impl< vex::sparse::distributed<vex::sparse::matrix<V, C, P>>> {
-    static size_t get(const vex::sparse::distributed<vex::sparse::matrix<V, C, P>> &A) {
-        return A.rows();
-    }
-};
-
-template < typename V, typename C, typename P >
-struct cols_impl< vex::sparse::distributed<vex::sparse::matrix<V,C,P>> > {
-    static size_t get(const vex::sparse::distributed<vex::sparse::matrix<V,C,P>> &A) {
-        return A.cols();
-    }
-};
-
-template < typename V, typename C, typename P >
-struct nonzeros_impl< vex::sparse::distributed<vex::sparse::matrix<V,C,P>> > {
-    static size_t get(const vex::sparse::distributed<vex::sparse::matrix<V,C,P>> &A) {
-        return A.nonzeros();
-    }
-};
-
-template < typename V, typename C, typename P >
 struct bytes_impl< vex::sparse::distributed<vex::sparse::matrix<V,C,P> > > {
     static size_t get(const vex::sparse::distributed<vex::sparse::matrix<V,C,P> > &A) {
         return

@@ -225,7 +225,10 @@ protected:
                 }
             }
             if(IsInside == false)
-                std::cout << "ERROR!!, NONE OF THE OLD ELEMENTS CONTAINS NODE: " << itNodeNew->Id() << std::endl;
+            {
+                std::cout << "None of the old elements contains node " << itNodeNew->Id() << std::endl;
+                continue;
+            }
 
             PointsNumber = pElementOld->GetGeometry().PointsNumber();
             Vector ShapeFunctionsValuesVector(PointsNumber);
@@ -370,15 +373,28 @@ protected:
             }
             if(IsInside==false)
             {
-                for(unsigned int m = 0; m < (ElementOldCellMatrix[Row][Column]).size(); m++)
+
+                for(int i = 0; i < 12; i++)
                 {
-                    pElementOld = ElementOldCellMatrix[Row][Column][m];
-                    IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates,1.0e-5);
+                    for(unsigned int m = 0; m < (ElementOldCellMatrix[Row][Column]).size(); m++)
+                    {
+                        pElementOld = ElementOldCellMatrix[Row][Column][m];
+                        double tol = pow (10.0, -(12-i));
+                        IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates,tol);
+                        if(IsInside) break;
+                    }
                     if(IsInside) break;
                 }
             }
             if(IsInside == false)
-                std::cout << "ERROR!!, NONE OF THE OLD ELEMENTS CONTAINS NODE: " << itNodeNew->Id() << std::endl;
+            {
+                std::cout << "None of the old elements contains node " << itNodeNew->Id() << std::endl;
+                if (add_stress)
+                {
+                    itNodeNew->FastGetSolutionStepValue(INITIAL_NODAL_CAUCHY_STRESS_TENSOR) = ZeroMatrix(2,2);
+                }
+                continue;
+            }
 
             PointsNumber = pElementOld->GetGeometry().PointsNumber();
             Vector ShapeFunctionsValuesVector(PointsNumber);

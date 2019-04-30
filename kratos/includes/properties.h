@@ -97,7 +97,7 @@ public:
     ///@{
 
     /// Default constructor.
-    Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables() {}
+    explicit Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables() {}
 
     /// Copy constructor.
     Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables) {}

@@ -146,7 +146,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initiali
                 // Integrating the mortar operators
                 for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
                     // We compute the local coordinates
-                    const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
+                    const auto local_point_decomp = PointType{integration_points_slave[point_number].Coordinates()};
                     PointType local_point_parent;
                     PointType gp_global;
                     decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
@@ -435,7 +435,7 @@ bool MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
             // Integrating the mortar operators
             for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
                 // We compute the local coordinates
-                const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
+                const auto local_point_decomp = PointType{integration_points_slave[point_number].Coordinates()};
                 PointType local_point_parent;
                 PointType gp_global;
                 decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
@@ -505,7 +505,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::MasterSh
 
     GeometryType::CoordinatesArrayType slave_gp_global;
     this->GetGeometry( ).GlobalCoordinates( slave_gp_global, rLocalPoint );
-    GeometricalProjectionUtilities::FastProjectDirection( r_master_geometry, slave_gp_global, projected_gp_global, rNormalMaster, -gp_normal ); // The opposite direction
+    GeometricalProjectionUtilities::FastProjectDirection( r_master_geometry, PointType{slave_gp_global}, projected_gp_global, rNormalMaster, -gp_normal ); // The opposite direction
 
     GeometryType::CoordinatesArrayType projected_gp_local;
 

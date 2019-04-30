@@ -33,6 +33,7 @@
 #include "containers/array_1d.h"
 #include "containers/weak_pointer_vector.h"
 #include "input_output/logger.h"
+
 //#include "containers/model.h"
 // #include "containers/variable.h"
 
@@ -122,7 +123,7 @@ template <class TDataType> class Variable;
  *
  * @author Pooyan Dadvand
  */
-class KRATOS_API(KRATOS_CORE) Serializer : public Flags
+class KRATOS_API(KRATOS_CORE) Serializer
 {
 public:
     ///@name  Enum's
@@ -160,7 +161,7 @@ public:
     ///@{
 
     /// Default constructor.
-    Serializer(BufferType* pBuffer, TraceType const& rTrace=SERIALIZER_NO_TRACE) : 
+    explicit Serializer(BufferType* pBuffer, TraceType const& rTrace=SERIALIZER_NO_TRACE) : 
         mpBuffer(pBuffer), mTrace(rTrace), mNumberOfLines(0)
     {
     }
@@ -180,7 +181,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    ///This function returns the "trace type" used in initializing the serializer. 
+    ///This function returns the "trace type" used in initializing the serializer.
     ///Trace type is one of SERIALIZER_NO_TRACE,SERIALIZER_TRACE_ERROR,SERIALIZER_TRACE_ALL
     TraceType GetTraceType() const {return mTrace;}
 
@@ -188,7 +189,7 @@ public:
     {
         mpBuffer = pBuffer;
     }
-    
+
     template<class TDataType>
     static void* Create()
     {
@@ -252,6 +253,49 @@ public:
                 pValue = *static_cast<Kratos::shared_ptr<TDataType>*>((i_pointer->second));
         }
     }
+
+    template<class TDataType>
+    void load(std::string const & rTag, Kratos::intrusive_ptr<TDataType>& pValue)
+    {
+        PointerType pointer_type = SP_INVALID_POINTER;
+        void* p_pointer;
+        read(pointer_type);
+
+        if(pointer_type != SP_INVALID_POINTER)
+        {
+            read(p_pointer);
+            LoadedPointersContainerType::iterator i_pointer = mLoadedPointers.find(p_pointer);
+            if(i_pointer == mLoadedPointers.end())
+            {
+                if(pointer_type == SP_BASE_CLASS_POINTER)
+                {
+                    if(!pValue)
+                        pValue = Kratos::intrusive_ptr<TDataType>(new TDataType);
+                    load(rTag, *pValue);
+                }
+                else if(pointer_type == SP_DERIVED_CLASS_POINTER)
+                {
+                    std::string object_name;
+                    read(object_name);
+                    typename RegisteredObjectsContainerType::iterator i_prototype =  msRegisteredObjects.find(object_name);
+
+                    KRATOS_ERROR_IF(i_prototype == msRegisteredObjects.end())
+                        << "There is no object registered in Kratos with name : "
+                        << object_name << std::endl;
+
+                    if(!pValue)
+                        pValue = Kratos::intrusive_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
+
+                    load(rTag, *pValue);
+
+                }
+                mLoadedPointers[p_pointer]=&pValue;
+            }
+            else
+                pValue = *static_cast<Kratos::intrusive_ptr<TDataType>*>((i_pointer->second));
+        }
+    }
+
 
     template<class TDataType>
     void load(std::string const & rTag, Kratos::unique_ptr<TDataType>& pValue)
@@ -564,6 +608,12 @@ public:
     }
 
     template<class TDataType>
+    void save(std::string const & rTag, Kratos::intrusive_ptr<TDataType> pValue)
+    {
+        save(rTag, pValue.get());
+    }
+
+    template<class TDataType>
     void save(std::string const & rTag, Kratos::unique_ptr<TDataType> pValue)
     {
         save(rTag, pValue.get());
@@ -822,7 +872,7 @@ public:
     }
 
     /**
-     * This function let's one introduce "pValue"  between the objects 
+     * This function let's one introduce "pValue"  between the objects
      * which are considered to be already serialized
      * TODO: verify if this should be a void* or if it is correct that it is taken as TDataType
      */
@@ -830,7 +880,7 @@ public:
     void AddToSavedPointers(const TDataType& pValue) {
         mSavedPointers.insert(pValue);
     }
-    
+
     /**
      * This function is to be used to inform the serializer that the object
      * initially stored in "pStoredPosition" is after loading located at pAllocatedPosition
@@ -850,28 +900,36 @@ public:
         return msRegisteredObjectsName;
     }
 
+    void Set(Flags ThisFlag)
+    {
+        mFlags.Set(ThisFlag);
+    }
 
     ///@}
     ///@name Inquiry
     ///@{
 
+    bool Is(Flags const & rOtherFlag) const
+    {
+        return mFlags.Is(rOtherFlag);
+    }
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    virtual std::string Info() const
     {
         return "Serializer";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {}
 
 
@@ -929,6 +987,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    Flags mFlags;
 
     BufferType* mpBuffer;
     TraceType mTrace;
@@ -1347,7 +1407,6 @@ private:
 
     /// Copy constructor.
     Serializer(Serializer const& rOther);
-
 
     ///@}
 

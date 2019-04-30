@@ -522,7 +522,7 @@ void HyperElasticIsotropicKirchhoff3D::CalculatePK2Stress(
       E_trace += E_tensor (i,i);
     }
     const SizeType dimension = WorkingSpaceDimension();
-    Matrix stress_matrix = lame_lambda*E_trace*IdentityMatrix(dimension, dimension) + 2.0 * lame_mu * E_tensor;
+    Matrix stress_matrix = lame_lambda*E_trace*IdentityMatrix(dimension) + 2.0 * lame_mu * E_tensor;
     rStressVector = MathUtils<double>::StressTensorToVector( stress_matrix, rStressVector.size() );
 
 //     // Other possibility

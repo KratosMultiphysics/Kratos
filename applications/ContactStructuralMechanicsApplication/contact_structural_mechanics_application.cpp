@@ -97,7 +97,22 @@ KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApp
     mPenaltyFrictionlessMortarContactCondition3D3N4N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     mPenaltyNVFrictionlessMortarContactCondition3D3N4N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     mPenaltyFrictionlessMortarContactCondition3D4N3N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
-    mPenaltyNVFrictionlessMortarContactCondition3D4N3N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) )
+    mPenaltyNVFrictionlessMortarContactCondition3D4N3N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+    // Frictional
+    // 2D
+    mPenaltyFrictionalMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mPenaltyNVFrictionalMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mPenaltyFrictionalAxisymMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mPenaltyNVFrictionalAxisymMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    // 3D
+    mPenaltyFrictionalMortarContactCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mPenaltyNVFrictionalMortarContactCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mPenaltyFrictionalMortarContactCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mPenaltyNVFrictionalMortarContactCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mPenaltyFrictionalMortarContactCondition3D3N4N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mPenaltyNVFrictionalMortarContactCondition3D3N4N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mPenaltyFrictionalMortarContactCondition3D4N3N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mPenaltyNVFrictionalMortarContactCondition3D4N3N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) )
     {}
 
 void KratosContactStructuralMechanicsApplication::Register()
@@ -123,6 +138,7 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( WEIGHTED_SCALAR_RESIDUAL )                              // The integrated scalar residual
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL )           // The integrated vector residual
     KRATOS_REGISTER_VARIABLE( NORMAL_GAP )                                            // The normal gap employed in contact formulation
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( TANGENT_SLIP )                       // The tangent slip employed in contact formulation
 
     /* For ALM mortar condition */
     KRATOS_REGISTER_VARIABLE( ACTIVE_SET_CONVERGED )                                  // To know if the active set has converged
@@ -196,6 +212,19 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "PenaltyNVFrictionlessMortarContactCondition3D3N4N", mPenaltyNVFrictionlessMortarContactCondition3D3N4N );
     KRATOS_REGISTER_CONDITION( "PenaltyFrictionlessMortarContactCondition3D4N3N", mPenaltyFrictionlessMortarContactCondition3D4N3N );
     KRATOS_REGISTER_CONDITION( "PenaltyNVFrictionlessMortarContactCondition3D4N3N", mPenaltyNVFrictionlessMortarContactCondition3D4N3N );
+    // Frictional penalty cases
+    KRATOS_REGISTER_CONDITION( "PenaltyFrictionalMortarContactCondition2D2N", mPenaltyFrictionalMortarContactCondition2D2N );
+    KRATOS_REGISTER_CONDITION( "PenaltyNVFrictionalMortarContactCondition2D2N", mPenaltyNVFrictionalMortarContactCondition2D2N );
+    KRATOS_REGISTER_CONDITION( "PenaltyFrictionalAxisymMortarContactCondition2D2N", mPenaltyFrictionalAxisymMortarContactCondition2D2N );
+    KRATOS_REGISTER_CONDITION( "PenaltyNVFrictionalAxisymMortarContactCondition2D2N", mPenaltyNVFrictionalAxisymMortarContactCondition2D2N );
+    KRATOS_REGISTER_CONDITION( "PenaltyFrictionalMortarContactCondition3D3N", mPenaltyFrictionalMortarContactCondition3D3N );
+    KRATOS_REGISTER_CONDITION( "PenaltyNVFrictionalMortarContactCondition3D3N", mPenaltyNVFrictionalMortarContactCondition3D3N );
+    KRATOS_REGISTER_CONDITION( "PenaltyFrictionalMortarContactCondition3D4N", mPenaltyFrictionalMortarContactCondition3D4N );
+    KRATOS_REGISTER_CONDITION( "PenaltyNVFrictionalMortarContactCondition3D4N", mPenaltyNVFrictionalMortarContactCondition3D4N );
+    KRATOS_REGISTER_CONDITION( "PenaltyFrictionalMortarContactCondition3D3N4N", mPenaltyFrictionalMortarContactCondition3D3N4N );
+    KRATOS_REGISTER_CONDITION( "PenaltyNVFrictionalMortarContactCondition3D3N4N", mPenaltyNVFrictionalMortarContactCondition3D3N4N );
+    KRATOS_REGISTER_CONDITION( "PenaltyFrictionalMortarContactCondition3D4N3N", mPenaltyFrictionalMortarContactCondition3D4N3N );
+    KRATOS_REGISTER_CONDITION( "PenaltyNVFrictionalMortarContactCondition3D4N3N", mPenaltyNVFrictionalMortarContactCondition3D4N3N );
 }
 
 }  // namespace Kratos.

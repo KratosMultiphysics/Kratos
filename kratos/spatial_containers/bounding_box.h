@@ -73,7 +73,7 @@ public:
         std::cout<< "Calling empty constructor" <<std::endl;
     }
 
-    BoundingBox(const TPointType& Point) :  mLowPoint(Point), mHighPoint(Point)
+    explicit BoundingBox(const TPointType& Point) :  mLowPoint(Point), mHighPoint(Point)
     {
     }
 

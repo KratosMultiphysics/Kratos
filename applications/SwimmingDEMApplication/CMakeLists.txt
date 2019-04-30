@@ -33,6 +33,51 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/symplectic_euler_old_velocity_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/strategies/adams_bashforth_strategy.cpp
 
+    ## Constitutive Laws
+    # Hydrodynamic Interaction Laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hydrodynamic_interaction_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/power_law_hydrodynamic_interaction_law.cpp
+
+    # Buoyancy laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/buoyancy_laws/buoyancy_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/buoyancy_laws/archimedes_buoyancy_law.cpp
+
+    # Drag Laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/drag_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/stokes_drag_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/beetstra_drag_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/schiller_and_naumann_drag_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/haider_and_levenspiel_drag_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/ganser_drag_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/shah_drag_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/newton_drag_law.cpp
+
+    # Inviscid Force Laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/inviscid_force_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/auton_hunt_prudhomme_inviscid_force_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/zuber_inviscid_force_law.cpp
+
+    # History Force Laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/history_force_laws/history_force_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/history_force_laws/boussinesq_basset_history_force_law.cpp
+
+    # Vorticity-Induced Lift Laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/vorticity_induced_lift_laws/vorticity_induced_lift_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/vorticity_induced_lift_laws/saffman_lift_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/vorticity_induced_lift_laws/mei_lift_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/vorticity_induced_lift_laws/el_samni_lift_law.cpp
+
+    # Rotation-Induced Lift Laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rotation_induced_lift_laws/rotation_induced_lift_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rotation_induced_lift_laws/rubinow_and_keller_lift_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rotation_induced_lift_laws/oesterle_dinh_lift_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rotation_induced_lift_laws/loth_rotation_induced_lift_law.cpp
+
+    # Steady Viscous torque laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/steady_viscous_torque_laws/steady_viscous_torque_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/steady_viscous_torque_laws/rubinow_and_keller_torque_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/steady_viscous_torque_laws/loth_steady_viscous_torque_law.cpp
+
     ## Elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_dem_coupled.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_dem_coupled_weak.cpp
@@ -44,7 +89,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_velocity_laplacian_component.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_velocity_laplacian.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_rigid.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spheric_swimming_particle.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/swimming_particle.cpp
 
     ## Conditions
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/monolithic_dem_coupled_wall_condition.cpp
@@ -75,6 +120,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_PYTHON_INTERFACE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/swimming_DEM_python_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
 )
 
 ###############################################################

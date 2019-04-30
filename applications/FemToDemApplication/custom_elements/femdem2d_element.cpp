@@ -1279,14 +1279,8 @@ void FemDem2DElement::RankineFragileLaw(
 	this->CalculatePrincipalStress(PrincipalStressVector, rStressVector);
 	const auto& properties = this->GetProperties();
 
-	const double sigma_c = properties[YIELD_STRESS_C];
 	const double sigma_t = properties[YIELD_STRESS_T];
-	const double E = properties[YOUNG_MODULUS];
-	const double Gt = properties[FRAC_ENERGY_T];
 	const double c_max = std::abs(sigma_t);
-
-	const double A = 1.00 / (Gt * E / (Length * std::pow(sigma_c, 2)) - 0.5);
-	KRATOS_ERROR_IF(A < tolerance) << "'A' damage parameter lower than zero --> Increase FRAC_ENERGY_T" << std::endl;
 
 	const double uniaxial_stress = GetMaxValue(PrincipalStressVector);
 
