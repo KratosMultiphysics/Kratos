@@ -274,8 +274,8 @@ public:
 					Node < 3 > ::Pointer pnode = new_model_part.CreateNewNode(number_of_nodes+number_of_previous_nodes, it_node->X(), it_node->Y(), it_node->Z());  //recordar que es el nueevo model part!!
 					pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
 					pnode->GetValue(FATHER_NODES).resize(0);
-					pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node.base() ) );       // we keep the same size despite we only need one. to have everyhing with the same size
-					pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node.base() ) );
+					pnode->GetValue(FATHER_NODES).push_back( GlobalPointer<Node<3>>( *it_node.base(), 0 ) );       // we keep the same size despite we only need one. to have everyhing with the same size
+					pnode->GetValue(FATHER_NODES).push_back( GlobalPointer<Node<3>>( *it_node.base(), 0 ) );
 					pnode-> GetValue(WEIGHT_FATHER_NODES) = 1.0;  //since both father node 1 and 2 are the same, any value between 0 and one would be ok.
 
 					pnode->X0() = it_node->X0();
@@ -650,8 +650,8 @@ public:
             //it_node2 = this_model_part.NodesBegin() + pos2;
 
             pnode->GetValue(FATHER_NODES).resize(0);
-            pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node1.base() ) );       //saving data about fathers in the model part
-            pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node2.base() ) );
+            pnode->GetValue(FATHER_NODES).push_back( GlobalPointer<Node<3>>( *it_node1.base() ) );       //saving data about fathers in the model part
+            pnode->GetValue(FATHER_NODES).push_back( GlobalPointer<Node<3>>( *it_node2.base() ) );
             pnode-> GetValue(WEIGHT_FATHER_NODES) = weight;
 
             pnode->X0() = weight * (it_node1->X0())  +  (1.0 - weight) * it_node2->X0();
