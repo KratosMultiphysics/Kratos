@@ -29,7 +29,7 @@
 "debug_tool_cycle_comment" : " number of 'ticks' per debug computations cycle",
 "drag_modifier_type" : 2,
 "drag_modifier_type_comment" : " Hayder (2), Chien (3) # problemtype option",
-
+"store_full_gradient_option" : true,
 
 "output_interval" : 0.1,
 

@@ -330,9 +330,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def(py::init<SpaceTimeSet&, VelocityField&, const double, const double >())
         ;
 
-    typedef Variable<double> ScalarVariableType;
-    typedef Variable<array_1d<double, 3> > VectorVariableType;
-
     py::class_<RecoveryVariablesContainer, RecoveryVariablesContainer::Pointer>
     (m, "RecoveryVariablesContainer")
         .def(py::init<>())
@@ -341,13 +338,13 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 
     py::class_<DerivativeRecoveryUtility, DerivativeRecoveryUtility::Pointer>
         (m, "DerivativeRecoveryUtility")
-        .def(py::init<ModelPart&, Parameters, RecoveryVariablesContainer&>())
+        .def(py::init<ModelPart&, Parameters>())
         .def("Recover", &DerivativeRecoveryUtility::Recover)
         ;
 
     py::class_<StandardRecoveryUtility, StandardRecoveryUtility::Pointer, DerivativeRecoveryUtility>
         (m, "StandardRecoveryUtility")
-        .def(py::init<ModelPart&, Parameters, RecoveryVariablesContainer&>())
+        .def(py::init<ModelPart&, Parameters>())
         ;
 
     typedef void (CustomFunctionsCalculator<3>::*CopyValuesScalar)(ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&);

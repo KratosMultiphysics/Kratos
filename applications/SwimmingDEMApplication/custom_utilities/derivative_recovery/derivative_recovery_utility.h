@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/variable_utils.h"
 
 // Application includes
 
@@ -130,25 +131,21 @@ class KRATOS_API(SWIMMING_DEM_APPLICATION) RecoveryVariablesContainer
 
     public:
     typedef array_1d<double, 3> Vector3;
-    typedef Variable<double> ScalarVariableType;
-    typedef Variable<Vector3> VectorVariableType;
-    typedef Variable<double> DoubleVarType;
-    typedef Variable<Vector3> ArrayVarType;
     typedef Variable<Matrix> MatrixVarType;
-    typedef VariableComponent<VectorComponentAdaptor<Vector3> > ComponentVariableType;
+    typedef VariableComponent<VectorComponentAdaptor<Vector3> > ComponentVarType;
     typedef std::pair<std::string, std::string> PairOfVariablesType;
     typedef std::vector<PairOfVariablesType> VariablePairsVectorType;
     typedef std::map<std::string, VariablePairsVectorType> VariablesMapType;
 
-    template <typename T>
-    struct TypeName
-    {
-        static const char* Get()
-        {
-            const std::string name = typeid(T).name();
-            return name;
-        }
-    };
+    // template <typename T>
+    // struct TypeName
+    // {
+    //     static const char* Get()
+    //     {
+    //         const std::string name = typeid(T).name();
+    //         return name;
+    //     }
+    // };
 
     //RecoveryVariablesContainer
     //RecoveryVariablesContainer
@@ -177,42 +174,42 @@ class KRATOS_API(SWIMMING_DEM_APPLICATION) RecoveryVariablesContainer
     //     CheckThatVariableIsNotAlreadyInUse(OperatorName, rOriginVariable, rRecoveredDerivativeVariable);
     // }
 
-    // void AddGradientRecoveryPair(const ScalarVariableType& rOriginVariable, const ScalarVariableType& rRecoveredDerivativeVariable)
+    // void AddGradientRecoveryPair(const DoubleVarType& rOriginVariable, const DoubleVarType& rRecoveredDerivativeVariable)
     // {
     //     this->AddRecoveryPair<double, double>("gradient", rOriginVariable, rRecoveredDerivativeVariable);
     // }
 
-    // // void AddGradientRecoveryPair(const VectorVariableType& rOriginVariable, const VectorVariableType& rRecoveredDerivativeVariable)
+    // // void AddGradientRecoveryPair(const ArrayVarType& rOriginVariable, const ArrayVarType& rRecoveredDerivativeVariable)
     // // {
-    // //     this->AddRecoveryPair<VectorVariableType, ScalarVariableType>("gradient", rOriginVariable, rRecoveredDerivativeVariable);
+    // //     this->AddRecoveryPair<ArrayVarType, DoubleVarType>("gradient", rOriginVariable, rRecoveredDerivativeVariable);
     // // }
 
-    // void AddDivergenceRecoveryPair(const VectorVariableType& rOriginVariable, const ScalarVariableType& rRecoveredDerivativeVariable)
+    // void AddDivergenceRecoveryPair(const ArrayVarType& rOriginVariable, const DoubleVarType& rRecoveredDerivativeVariable)
     // {
     //     this->AddRecoveryPair<Vector3, double>("divergence", rOriginVariable, rRecoveredDerivativeVariable);
     // }
 
-    // void AddLaplacianRecoveryPair(const ScalarVariableType& rOriginVariable, const ScalarVariableType& rRecoveredDerivativeVariable)
+    // void AddLaplacianRecoveryPair(const DoubleVarType& rOriginVariable, const DoubleVarType& rRecoveredDerivativeVariable)
     // {
     //     this->AddRecoveryPair<double, double>("laplacian", rOriginVariable, rRecoveredDerivativeVariable);
     // }
 
-    // void AddLaplacianRecoveryPair(const VectorVariableType& rOriginVariable, const VectorVariableType& rRecoveredDerivativeVariable)
+    // void AddLaplacianRecoveryPair(const ArrayVarType& rOriginVariable, const ArrayVarType& rRecoveredDerivativeVariable)
     // {
     //     this->AddRecoveryPair<Vector3, Vector3>("laplacian", rOriginVariable, rRecoveredDerivativeVariable);
     // }
 
-    // void AddRotationalRecoveryPair(const VectorVariableType& rOriginVariable, const VectorVariableType& rRecoveredDerivativeVariable)
+    // void AddRotationalRecoveryPair(const ArrayVarType& rOriginVariable, const ArrayVarType& rRecoveredDerivativeVariable)
     // {
     //     this->AddRecoveryPair<Vector3, Vector3>("rotational", rOriginVariable, rRecoveredDerivativeVariable);
     // }
 
-    // void AddMaterialDerivativeRecoveryPair(const ScalarVariableType& rOriginVariable, const ScalarVariableType& rRecoveredDerivativeVariable)
+    // void AddMaterialDerivativeRecoveryPair(const DoubleVarType& rOriginVariable, const DoubleVarType& rRecoveredDerivativeVariable)
     // {
     //     this->AddRecoveryPair<double, double>("material_derivative", rOriginVariable, rRecoveredDerivativeVariable);
     // }
 
-    // void AddMaterialDerivativeRecoveryPair(const VectorVariableType& rOriginVariable, const VectorVariableType& rRecoveredDerivativeVariable)
+    // void AddMaterialDerivativeRecoveryPair(const ArrayVarType& rOriginVariable, const ArrayVarType& rRecoveredDerivativeVariable)
     // {
     //     this->AddRecoveryPair<Vector3, Vector3>("material_derivative", rOriginVariable, rRecoveredDerivativeVariable);
     // }
@@ -239,9 +236,9 @@ class KRATOS_API(SWIMMING_DEM_APPLICATION) RecoveryVariablesContainer
     void CheckThatVariableIsNotAlreadyInUse(std::string MyOperator, const VariableData& rOriginVariable, const VariableData& rRecoveredDerivativeVariable)
     {
         KRATOS_TRY
-        bool already_used = false;
-        std::string in_use_operator;
-        std::string variable_using_it;
+        // bool already_used = false;
+        // std::string in_use_operator;
+        // std::string variable_using_it;
 
         // loop over all operators
         // for (auto& operator_entry : mVariables) {
@@ -270,47 +267,49 @@ class KRATOS_API(SWIMMING_DEM_APPLICATION) RecoveryVariablesContainer
     }
 };
 
-template <>
-struct RecoveryVariablesContainer::TypeName<RecoveryVariablesContainer::ScalarVariableType>
-{
-    static const std::string Get()
-    {
-        const std::string name = "scalar";
-        return name;
-    }
-};
+// template <>
+// struct RecoveryVariablesContainer::TypeName<RecoveryVariablesContainer::DoubleVarType>
+// {
+//     static const std::string Get()
+//     {
+//         const std::string name = "scalar";
+//         return name;
+//     }
+// };
 
-template <>
-struct RecoveryVariablesContainer::TypeName<RecoveryVariablesContainer::ComponentVariableType>
-{
-    static const std::string Get()
-    {
-        const std::string name = "scalar_component";
-        return name;
-    }
-};
+// template <>
+// struct RecoveryVariablesContainer::TypeName<RecoveryVariablesContainer::ComponentVarType>
+// {
+//     static const std::string Get()
+//     {
+//         const std::string name = "scalar_component";
+//         return name;
+//     }
+// };
 
-template <>
-struct RecoveryVariablesContainer::TypeName<RecoveryVariablesContainer::VectorVariableType>
-{
-    static const std::string Get()
-    {
-        const std::string name = "vector";
-        return name;
-    }
-};
+// template <>
+// struct RecoveryVariablesContainer::TypeName<RecoveryVariablesContainer::ArrayVarType>
+// {
+//     static const std::string Get()
+//     {
+//         const std::string name = "vector";
+//         return name;
+//     }
+// };
 
 class KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecoveryUtility
 {
 public:
     ///@name Type Definitions
     ///@{
-    using DoubleVarType = RecoveryVariablesContainer::DoubleVarType;
-    using ArrayVarType = RecoveryVariablesContainer::ArrayVarType;
-    using MatrixVarType = RecoveryVariablesContainer::MatrixVarType;
-    using ScalarVariableType = RecoveryVariablesContainer::ScalarVariableType;
-    using ComponentVariableType = RecoveryVariablesContainer::ComponentVariableType;
-    using VectorVariableType = RecoveryVariablesContainer::VectorVariableType;
+    // using DoubleVarType = DoubleVarType;
+    // using ArrayVarType = ArrayVarType;
+    // using MatrixVarType = RecoveryVariablesContainer::MatrixVarType;
+    typedef array_1d<double, 3> Vector3;
+    typedef Variable<double> DoubleVarType;
+    typedef VariableComponent<VectorComponentAdaptor<Vector3> > ComponentVarType;
+    typedef Variable<array_1d<double, 3>> ArrayVarType;
+    typedef Variable<Vector> VectorVarType;
 
     /// Pointer definition of DerivativeRecoveryUtility
     KRATOS_CLASS_POINTER_DEFINITION(DerivativeRecoveryUtility);
@@ -322,14 +321,12 @@ public:
     /// Constructor with Kratos parameters.
     DerivativeRecoveryUtility(
         ModelPart& rModelPart,
-        Parameters rParameters,
-        RecoveryVariablesContainer& rVariablesContainer);
+        Parameters rParameters);
 
     /// Constructor with Kratos model
     DerivativeRecoveryUtility(
         Model& rModel,
-        Parameters rParameters,
-        RecoveryVariablesContainer& rVariablesContainer);
+        Parameters rParameters);
 
     /// Destructor.
     virtual ~DerivativeRecoveryUtility() = default;
@@ -382,51 +379,44 @@ protected:
 
 bool mStoreFullGradient;
 ModelPart& mrModelPart;
-RecoveryVariablesContainer& mrVariablesContainer;
+RecoveryVariablesContainer mVariablesContainer;
 
-virtual void AddPartialTimeDerivative(const ScalarVariableType& rVariable, const ScalarVariableType& rTimeDerivativeVariable){}
+virtual void AddPartialTimeDerivative(const DoubleVarType& rVariable, const DoubleVarType& rTimeDerivativeVariable){}
 
-// virtual void AddPartialTimeDerivative(const ScalarVariableType& rScalarVariable, const ScalarVariableType& rTimeDerivativeVariable){}
+// virtual void AddPartialTimeDerivative(const DoubleVarType& rScalarVariable, const DoubleVarType& rTimeDerivativeVariable){}
 
-// virtual void AddPartialTimeDerivative(const ComponentVariableType& rScalarComponent, const ScalarVariableType& rTimeDerivativeVariable){}
+// virtual void AddPartialTimeDerivative(const ComponentVarType& rScalarComponent, const DoubleVarType& rTimeDerivativeVariable){}
 
-virtual void AddPartialTimeDerivative(const VectorVariableType& rVectorVariable, const VectorVariableType& rTimeDerivativeVariable){}
+virtual void AddPartialTimeDerivative(const ArrayVarType& rVectorVariable, const ArrayVarType& rTimeDerivativeVariable){}
 
-// virtual void CalculateGradient(const VariableData& rVariable, const VariableData& rGradientVariable){}
+virtual void CalculateGradient(const DoubleVarType& rScalarVariable, const ArrayVarType& rGradientVariable){}
 
-// // virtual void CalculateGradient(const ScalarVariableType& rScalarVariable, const VectorVariableType& rGradientVariable){}
+virtual void CalculateGradient(const ComponentVarType& rScalarComponent, const ArrayVarType& rGradientVariable){}
 
-// // virtual void CalculateGradient(const ComponentVariableType& rScalarComponent, const VectorVariableType& rGradientVariable){}
-
-// // virtual void CalculateGradient(const VectorVariableType& rVectorVariable,
-// //                                const VectorVariableType& rComponent0GradientVariable,
-// //                                const VectorVariableType& rComponent1GradientVariable,
-// //                                const VectorVariableType& rComponent2GradientVariable){}
+// // virtual void CalculateGradient(const ArrayVarType& rVectorVariable,
+// //                                const ArrayVarType& rComponent0GradientVariable,
+// //                                const ArrayVarType& rComponent1GradientVariable,
+// //                                const ArrayVarType& rComponent2GradientVariable){}
 
 // virtual void CalculateDivergence(const VariableData& rVectorVariable, const VariableData& rDivergenceVariable){}
 
-// // virtual void CalculateDivergence(const VectorVariableType& rVectorVariable, const ScalarVariableType& rDivergenceVariable){}
+virtual void CalculateDivergence(const ArrayVarType& rVectorVariable, const DoubleVarType& rDivergenceVariable){}
 
-// virtual void CalculateLaplacian(const VariableData& rVariable, const VariableData& rLaplacianVariable){}
+virtual void CalculateDivergence(const ArrayVarType& rVectorVariable, const ComponentVarType& rDivergenceVariable){}
 
-// // virtual void CalculateLaplacian(const ScalarVariableType& rScalarVariable, const ScalarVariableType& rLaplacianVariable){}
+virtual void CalculateLaplacian(const DoubleVarType& rScalarVariable, const DoubleVarType& rLaplacianVariable){}
 
-// // virtual void CalculateLaplacian(const ComponentVariableType& rScalarComponent, const ScalarVariableType& rLaplacianVariable){}
+virtual void CalculateLaplacian(const ComponentVarType& rScalarComponent, const DoubleVarType& rLaplacianVariable){}
 
-// // virtual void CalculateLaplacian(const VectorVariableType& rVectorVariable, const VectorVariableType& rLaplacianVariable){}
+virtual void CalculateLaplacian(const ArrayVarType& rVectorVariable, const ArrayVarType& rLaplacianVariable){}
 
+virtual void CalculateMaterialDerivative(const DoubleVarType& rVariable, const DoubleVarType& rMaterialDerivativeVariable){}
 
-virtual void CalculateMaterialDerivative(const ScalarVariableType& rVariable, const ScalarVariableType& rMaterialDerivativeVariable){}
+virtual void CalculateMaterialDerivative(const ComponentVarType& rScalarComponent, const DoubleVarType& rMaterialDerivativeVariable){}
 
-// // virtual void CalculateMaterialDerivative(const ScalarVariableType& rScalarVariable, const ScalarVariableType& rMaterialDerivativeVariable){}
+virtual void CalculateMaterialDerivative(const ArrayVarType& rVectorVariable, const ArrayVarType& rMaterialDerivativeVariable){}
 
-// // virtual void CalculateMaterialDerivative(const ComponentVariableType& rScalarComponent, const ScalarVariableType& rMaterialDerivativeVariable){}
-
-virtual void CalculateMaterialDerivative(const VectorVariableType& rScalarComponent, const VectorVariableType& rMaterialDerivativeVariable){}
-
-// virtual void CalculateRotational(const VariableData rVectorVariable, const VariableData& rRotationalVariable){}
-
-// virtual void CalculateRotational(const VectorVariableType rVectorVariable, const VectorVariableType& rRotationalVariable){}
+virtual void CalculateRotational(const ArrayVarType rVectorVariable, const ArrayVarType& rRotationalVariable){}
 
 virtual void CheckDefaultsAndSettings(Parameters rParameters){};
 
@@ -446,8 +436,21 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    void CheckDefaultVariablesAreInSettings(Parameters rParameters);
+
+    void ReadAllVariablePairs(Parameters rVariablesForRecovery);
+
+    void ReadVariablePairs(std::string OperatorName, Parameters rVariablesForRecovery);
+
+    void CalculateGradient(const std::string VariableName, const std::string DerivativeVariableName);
+
+    void CalculateDivergence(const std::string VariableName, const std::string DerivativeVariableName);
+
+    void CalculateRotational(const std::string VariableName, const std::string DerivativeVariableName);
 
     void CalculateMaterialDerivative(const std::string VariableName, const std::string DerivativeVariableName);
+
+    void CalculateLaplacian(const std::string VariableName, const std::string DerivativeVariableName);
 
 
     ///@}
@@ -464,16 +467,111 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    template <class TVariable, class TDerivedVariable>
-    void AddPartialTimeDerivative(const TVariable& rVariable, const TDerivedVariable& rTimeDerivativeVariable)
+    // template <class TVariable, class TDerivativeVariable>
+    // bool CalculateDerivativeIfPossible(const std::string OperatorName, const std::string VariableName, const std::string DerivativeVariableName)
+    // {
+    //     KRATOS_THROW_ERROR(std::invalid_argument, "No perator corresponds to the provided combination of types: ", VariableName + ", " + DerivativeVariableName);
+    //     return false;
+    // }
+
+    template <class TVariable, class TDerivativeVariable>
+    bool CalculateGradientIfPossible(const std::string VariableName, const std::string DerivativeVariableName)
     {
-        KRATOS_THROW_ERROR(std::invalid_argument, "Wrong combination.", "");
+        if (KratosComponents<TVariable>::Has(VariableName)){
+            const TVariable& variable = KratosComponents<TVariable>::Get(VariableName);
+            if (KratosComponents<TDerivativeVariable>::Has(DerivativeVariableName)){
+                const TDerivativeVariable& derivative_variable = KratosComponents<TDerivativeVariable>::Get(DerivativeVariableName);
+                this->CalculateGradient(variable, derivative_variable);
+            }
+
+            else {
+                KRATOS_THROW_ERROR(std::invalid_argument, "DerivativeRecoveryUtility: The derivative variable is not registered in Kratos with a type matching that of the variable to derivate: ", DerivativeVariableName);
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
-    template <class TVariable, class TDerivedVariable>
-    void CalculateMaterialDerivative(const TVariable& rVariable, const TDerivedVariable& rTimeDerivativeVariable)
+    template <class TVariable, class TDerivativeVariable>
+    bool CalculateDivergenceIfPossible(const std::string VariableName, const std::string DerivativeVariableName)
     {
-        KRATOS_THROW_ERROR(std::invalid_argument, "Wrong combination.", "");
+        if (KratosComponents<TVariable>::Has(VariableName)){
+            const TVariable& variable = KratosComponents<TVariable>::Get(VariableName);
+            if (KratosComponents<TDerivativeVariable>::Has(DerivativeVariableName)){
+                const TDerivativeVariable& derivative_variable = KratosComponents<TDerivativeVariable>::Get(DerivativeVariableName);
+                this->CalculateDivergence(variable, derivative_variable);
+            }
+
+            else {
+                KRATOS_THROW_ERROR(std::invalid_argument, "DerivativeRecoveryUtility: The derivative variable is not registered in Kratos with a type matching that of the variable to derivate: ", DerivativeVariableName);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    template <class TVariable, class TDerivativeVariable>
+    bool CalculateRotationalIfPossible(const std::string VariableName, const std::string DerivativeVariableName)
+    {
+        if (KratosComponents<TVariable>::Has(VariableName)){
+            const TVariable& variable = KratosComponents<TVariable>::Get(VariableName);
+            if (KratosComponents<TDerivativeVariable>::Has(DerivativeVariableName)){
+                const TDerivativeVariable& derivative_variable = KratosComponents<TDerivativeVariable>::Get(DerivativeVariableName);
+                this->CalculateRotational(variable, derivative_variable);
+            }
+
+            else {
+                KRATOS_THROW_ERROR(std::invalid_argument, "DerivativeRecoveryUtility: The derivative variable is not registered in Kratos with a type matching that of the variable to derivate: ", DerivativeVariableName);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    template <class TVariable, class TDerivativeVariable>
+    bool CalculateMaterialDerivativeIfPossible(const std::string VariableName, const std::string DerivativeVariableName)
+    {
+        if (KratosComponents<TVariable>::Has(VariableName)){
+            const TVariable& variable = KratosComponents<TVariable>::Get(VariableName);
+            if (KratosComponents<TDerivativeVariable>::Has(DerivativeVariableName)){
+                const TDerivativeVariable& derivative_variable = KratosComponents<TDerivativeVariable>::Get(DerivativeVariableName);
+                this->CalculateMaterialDerivative(variable, derivative_variable);
+            }
+
+            else {
+                KRATOS_THROW_ERROR(std::invalid_argument, "DerivativeRecoveryUtility: The derivative variable is not registered in Kratos with a type matching that of the variable to derivate: ", DerivativeVariableName);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    template <class TVariable, class TDerivativeVariable>
+    bool CalculateLaplacianIfPossible(const std::string VariableName, const std::string DerivativeVariableName)
+    {
+        if (KratosComponents<TVariable>::Has(VariableName)){
+            const TVariable& variable = KratosComponents<TVariable>::Get(VariableName);
+            if (KratosComponents<TDerivativeVariable>::Has(DerivativeVariableName)){
+                const TDerivativeVariable& derivative_variable = KratosComponents<TDerivativeVariable>::Get(DerivativeVariableName);
+                this->CalculateLaplacian(variable, derivative_variable);
+            }
+
+            else {
+                KRATOS_THROW_ERROR(std::invalid_argument, "DerivativeRecoveryUtility: The derivative variable is not registered in Kratos with a type matching that of the variable to derivate: ", DerivativeVariableName);
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /// Default constructor.

@@ -126,11 +126,17 @@ class SwimmingDEMSolver(PythonSolver):
 
     def ConstructDerivativeRecoverer(self):
         self.derivative_recovery_counter = self.GetRecoveryCounter()
-        self.variables_container = SDEM.RecoveryVariablesContainer()
-        self.variables_container.AddRecoveryPair('material_derivative', 'VELOCITY', 'MATERIAL_ACCELERATION')
-        self.derivative_recoverer = SDEM.StandardRecoveryUtility(self.fluid_solver.main_model_part,
-                                                                 Parameters("{}"),
-                                                                 self.variables_container)
+        self.recovery_parameters = Parameters("""{
+                                        "model_part_name" : "FluidModelPart",
+                                        "settings" : {},
+                                        "variables_for_recovery" : {
+                                            "material_derivative" : {
+                                                "VELOCITY" : "MATERIAL_ACCELERATION"
+                                            }
+                                        }
+                                   }""")
+        print(self.recovery_parameters)
+        self.derivative_recoverer = SDEM.StandardRecoveryUtility(self.fluid_solver.main_model_part, self.recovery_parameters)
 
         self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
             self.project_parameters,
@@ -234,6 +240,7 @@ class SwimmingDEMSolver(PythonSolver):
 
         if self.derivative_recovery_counter.Tick():
             self.recovery.Recover()
+            #self.derivative_recoverer.Recover()
 
         # Solving the disperse-phase component
         Say('Solving DEM... (', self.dem_solver.spheres_model_part.NumberOfElements(0), 'elements )')

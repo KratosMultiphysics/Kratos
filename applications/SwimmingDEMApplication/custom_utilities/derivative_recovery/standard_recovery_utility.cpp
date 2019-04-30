@@ -28,40 +28,24 @@
 namespace Kratos
 {
 
-using ScalarVariableType = StandardRecoveryUtility::ScalarVariableType;
-using ComponentVariableType = StandardRecoveryUtility::ComponentVariableType;
-using VectorVariableType = StandardRecoveryUtility::VectorVariableType;
+using DoubleVarType = StandardRecoveryUtility::DoubleVarType;
+using ComponentVarType = StandardRecoveryUtility::ComponentVarType;
+using ArrayVarType = StandardRecoveryUtility::ArrayVarType;
 
 StandardRecoveryUtility::StandardRecoveryUtility(
     ModelPart& rModelPart,
-    Parameters rParameters,
-    RecoveryVariablesContainer& rVariablesContainer)
-    : DerivativeRecoveryUtility(rModelPart, rParameters, rVariablesContainer)
+    Parameters rParameters): DerivativeRecoveryUtility(rModelPart, rParameters)
 {
-    this->CheckDefaultsAndSettings(rParameters);
-    mStoreFullGradient = rParameters["store_full_gradient_option"].GetBool();
 }
 
 StandardRecoveryUtility::StandardRecoveryUtility(
     Model& rModel,
-    Parameters rParameters,
-    RecoveryVariablesContainer& rVariablesContainer)
-    : DerivativeRecoveryUtility(rModel, rParameters, rVariablesContainer)
+    Parameters rParameters): DerivativeRecoveryUtility(rModel, rParameters)
 {
-    this->CheckDefaultsAndSettings(rParameters);
-    mStoreFullGradient = rParameters["store_full_gradient_option"].GetBool();
 }
 
 void StandardRecoveryUtility::CheckDefaultsAndSettings(Parameters rParameters)
 {
-    Parameters default_parameters( R"(
-    {
-        "model_part_name" : "FluidModelPart",
-        "recoverer_name" : "StandardRecoveryUtility",
-        "store_full_gradient_option" : true
-    }  )" );
-
-    rParameters.ValidateAndAssignDefaults(default_parameters);
 }
 
 void StandardRecoveryUtility::Initialize()
@@ -69,12 +53,12 @@ void StandardRecoveryUtility::Initialize()
 
 }
 
-void StandardRecoveryUtility::AddPartialTimeDerivative(const ScalarVariableType& rVariable, const ScalarVariableType& rTimeDerivativeVariable)
+void StandardRecoveryUtility::AddPartialTimeDerivative(const DoubleVarType& rVariable, const DoubleVarType& rTimeDerivativeVariable)
 {
     //this->AddPartialTimeDerivative<rVariable.StaticObject(), rTimeDerivativeVariable.StaticObject()>(rVariable, rTimeDerivativeVariable);
 }
 
-void StandardRecoveryUtility::AddPartialTimeDerivative(const VectorVariableType& rVariable, const VectorVariableType& rTimeDerivativeVariable)
+void StandardRecoveryUtility::AddPartialTimeDerivative(const ArrayVarType& rVariable, const ArrayVarType& rTimeDerivativeVariable)
 {
     const double delta_time_inv = 1.0 / mrModelPart.GetProcessInfo()[DELTA_TIME];
 
@@ -91,14 +75,14 @@ void StandardRecoveryUtility::AddPartialTimeDerivative(const VectorVariableType&
 //     //this->CalculateScalarGradient<rVariable.StaticObject(), rGradientVariable.StaticObject()>(rScalarVariable, rGradientVariable);
 // }
 
-// void StandardRecoveryUtility::CalculateGradient(const ComponentVariableType& rScalarComponent, const VectorVariableType& rGradientVariable)
+// void StandardRecoveryUtility::CalculateGradient(const ComponentVarType& rScalarComponent, const ArrayVarType& rGradientVariable)
 // {
-//     this->CalculateScalarGradient<ComponentVariableType>(rScalarComponent, rGradientVariable);
+//     this->CalculateScalarGradient<ComponentVarType>(rScalarComponent, rGradientVariable);
 // }
-// void StandardRecoveryUtility::CalculateGradient(const VectorVariableType& rVectorVariable,
-//                                                 const VectorVariableType& rComponent0GradientVariable,
-//                                                 const VectorVariableType& rComponent1GradientVariable,
-//                                                 const VectorVariableType& rComponent2GradientVariable)
+// void StandardRecoveryUtility::CalculateGradient(const ArrayVarType& rVectorVariable,
+//                                                 const ArrayVarType& rComponent0GradientVariable,
+//                                                 const ArrayVarType& rComponent1GradientVariable,
+//                                                 const ArrayVarType& rComponent2GradientVariable)
 // {
 
 // }
@@ -110,21 +94,21 @@ void StandardRecoveryUtility::AddPartialTimeDerivative(const VectorVariableType&
 // {
 //     // this->CalculateScalarLaplacian<rVariable.StaticObject(), rLaplacianVariable.StaticObject()>(rScalarVariable, rLaplacianVariable);
 // }
-// // void StandardRecoveryUtility::CalculateLaplacian(const ComponentVariableType& rScalarComponent, const ScalarVariableType& rLaplacianVariable)
+// // void StandardRecoveryUtility::CalculateLaplacian(const ComponentVarType& rScalarComponent, const DoubleVarType& rLaplacianVariable)
 // // {
 // //     this->CalculateScalarLaplacian<rVariable.StaticObject(), rLaplacianVariable.StaticObject()>(rScalarComponent, rLaplacianVariable);
 // // }
-// // void StandardRecoveryUtility::CalculateLaplacian(const VectorVariableType& rVectorComponent, const VectorVariableType& rLaplacianVariable)
+// // void StandardRecoveryUtility::CalculateLaplacian(const ArrayVarType& rVectorComponent, const ArrayVarType& rLaplacianVariable)
 // // {
 
 // // }
-void StandardRecoveryUtility::CalculateMaterialDerivative(const ScalarVariableType& rVariable, const ScalarVariableType& rMaterialDerivativeVariable)
+void StandardRecoveryUtility::CalculateMaterialDerivative(const DoubleVarType& rVariable, const DoubleVarType& rMaterialDerivativeVariable)
 {
     this->CalculateScalarMaterialDerivative<double>(rVariable, rMaterialDerivativeVariable);
 }
 
-void StandardRecoveryUtility::CalculateMaterialDerivative(const VectorVariableType& rVectorVariable,
-                                                          const VectorVariableType& rMaterialDerivativeVariable)
+void StandardRecoveryUtility::CalculateMaterialDerivative(const ArrayVarType& rVectorVariable,
+                                                          const ArrayVarType& rMaterialDerivativeVariable)
 {
     KRATOS_INFO("SwimmingDEM") << "Constructing the material derivative by derivating nodal averages..." << std::endl;
     std::map <std::size_t, unsigned int> id_to_position;
@@ -219,9 +203,9 @@ void StandardRecoveryUtility::CalculateMaterialDerivative(const VectorVariableTy
     KRATOS_INFO("SwimmingDEM") << "Finished constructing the material derivative by derivating nodal averages..." << std::endl;
 }
 
-// void StandardRecoveryUtility::CalculateMaterialDerivative(const ComponentVariableType& rScalarComponent, const ScalarVariableType& rMaterialDerivativeVariable)
+// void StandardRecoveryUtility::CalculateMaterialDerivative(const ComponentVarType& rScalarComponent, const DoubleVarType& rMaterialDerivativeVariable)
 // {
-//     this->CalculateScalarMaterialDerivative<ComponentVariableType>(rScalarComponent, rMaterialDerivativeVariable);
+//     this->CalculateScalarMaterialDerivative<ComponentVarType>(rScalarComponent, rMaterialDerivativeVariable);
 // }
 
 // void StandardRecoveryUtility::CalculateRotational(const VariableData rVectorVariable, const VariableData& rRotationalVariable)
@@ -238,21 +222,21 @@ void StandardRecoveryUtility::CalculateMaterialDerivative(const VectorVariableTy
 // }
 
 // template<>
-// void StandardRecoveryUtility::AddPartialTimeDerivative(const ScalarVariableType& rVariable, const ScalarVariableType& rTimeDerivativeVariable)
+// void StandardRecoveryUtility::AddPartialTimeDerivative(const DoubleVarType& rVariable, const DoubleVarType& rTimeDerivativeVariable)
 // {
-//     this->AddScalarPartialTimeDerivative<ScalarVariableType>(rVariable, rTimeDerivativeVariable);
+//     this->AddScalarPartialTimeDerivative<DoubleVarType>(rVariable, rTimeDerivativeVariable);
 // }
 
-// template<class ComponentVariableType, class ScalarVariableType>
-// void StandardRecoveryUtility::AddPartialTimeDerivative(const ComponentVariableType& rVariable, const ScalarVariableType& rTimeDerivativeVariable)
+// template<class ComponentVarType, class DoubleVarType>
+// void StandardRecoveryUtility::AddPartialTimeDerivative(const ComponentVarType& rVariable, const DoubleVarType& rTimeDerivativeVariable)
 // {
-//     this->AddScalarPartialTimeDerivative<ComponentVariableType>(rVariable, rTimeDerivativeVariable);
+//     this->AddScalarPartialTimeDerivative<ComponentVarType>(rVariable, rTimeDerivativeVariable);
 // }
 
 
 
 template<class TScalarVariable>
-void StandardRecoveryUtility::AddScalarPartialTimeDerivative(const TScalarVariable& rVariable, const ScalarVariableType& rTimeDerivativeVariable)
+void StandardRecoveryUtility::AddScalarPartialTimeDerivative(const TScalarVariable& rVariable, const DoubleVarType& rTimeDerivativeVariable)
 {
     const double delta_time_inv = 1.0 / mrModelPart.GetProcessInfo()[DELTA_TIME];
 
@@ -271,7 +255,7 @@ void StandardRecoveryUtility::AddScalarPartialTimeDerivative(const TScalarVariab
 // }
 
 // template<class TScalarVariable>
-// void StandardRecoveryUtility::CalculateScalarGradient(const TScalarVariable& rScalarVariable, const VectorVariableType& rGradientVariable)
+// void StandardRecoveryUtility::CalculateScalarGradient(const TScalarVariable& rScalarVariable, const ArrayVarType& rGradientVariable)
 // {
 // }
 
@@ -288,7 +272,7 @@ void StandardRecoveryUtility::AddScalarPartialTimeDerivative(const TScalarVariab
 // }
 
 template<class TScalarVariable>
-void StandardRecoveryUtility::CalculateScalarMaterialDerivative(const TScalarVariable& rScalarVariable, const ScalarVariableType& rMaterialDerivativeVariable)
+void StandardRecoveryUtility::CalculateScalarMaterialDerivative(const TScalarVariable& rScalarVariable, const DoubleVarType& rMaterialDerivativeVariable)
 {
 }
 
@@ -298,16 +282,16 @@ void StandardRecoveryUtility::CalculateScalarMaterialDerivative(const TScalarVar
 //     KRATOS_THROW_ERROR(std::invalid_argument, "Wrong combination.", "");
 // }
 
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::AddScalarPartialTimeDerivative<ScalarVariableType>(const ScalarVariableType&, const ScalarVariableType&);
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::AddScalarPartialTimeDerivative<ComponentVariableType>(const ComponentVariableType&, const ScalarVariableType&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::AddScalarPartialTimeDerivative<DoubleVarType>(const DoubleVarType&, const DoubleVarType&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::AddScalarPartialTimeDerivative<ComponentVarType>(const ComponentVarType&, const DoubleVarType&);
 
-// template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarGradient<ScalarVariableType>(const ScalarVariableType&, const VectorVariableType&);
-// template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarGradient<ComponentVariableType>(const ComponentVariableType&, const VectorVariableType&);
+// template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarGradient<DoubleVarType>(const DoubleVarType&, const ArrayVarType&);
+// template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarGradient<ComponentVarType>(const ComponentVarType&, const ArrayVarType&);
 
-// template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarLaplacian<ScalarVariableType>(const ScalarVariableType&, const ScalarVariableType&);
-// template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarLaplacian<ComponentVariableType>(const ComponentVariableType&, const ScalarVariableType&);
+// template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarLaplacian<DoubleVarType>(const DoubleVarType&, const DoubleVarType&);
+// template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarLaplacian<ComponentVarType>(const ComponentVarType&, const DoubleVarType&);
 
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarMaterialDerivative<ScalarVariableType>(const ScalarVariableType&, const ScalarVariableType&);
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarMaterialDerivative<ComponentVariableType>(const ComponentVariableType&, const ScalarVariableType&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarMaterialDerivative<DoubleVarType>(const DoubleVarType&, const DoubleVarType&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) StandardRecoveryUtility::CalculateScalarMaterialDerivative<ComponentVarType>(const ComponentVarType&, const DoubleVarType&);
 
 }  // namespace Kratos.
