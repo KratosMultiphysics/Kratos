@@ -119,9 +119,9 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
     const auto it_elem_begin = r_elements_array.begin();
 
     // Auxiliar value
-    Vector vector_J;
+    Vector vector_J, N;
 
-    #pragma omp parallel for private(vector_J)
+    #pragma omp parallel for private(vector_J, N)
     for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
         auto it_elem = it_elem_begin + i;
 
@@ -139,10 +139,11 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
 
             // Definition of node coefficient
             Matrix node_coefficient(number_of_nodes, integration_points_number);
-            Vector N( number_of_nodes );
+            if (N.size() != number_of_nodes )
+                N.resize(number_of_nodes);
             for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                const array_1d<double, 3>& local_coordinates = integration_points[i_gauss_point].Coordinates();
-                r_this_geometry.ShapeFunctionsValues( N, local_coordinates );
+                const array_1d<double, 3>& r_local_coordinates = integration_points[i_gauss_point].Coordinates();
+                r_this_geometry.ShapeFunctionsValues( N, r_local_coordinates );
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     node_coefficient(i_node, i_gauss_point) = N[i_node];
                 }
@@ -306,8 +307,11 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
     auto& r_elements_array = mrModelPart.Elements();
     auto it_elem_begin = r_elements_array.begin();
 
+    // Some definitions
+    Vector vector_J, N;
+
     // Fill the average value
-    #pragma omp parallel for
+    #pragma omp parallel for private(vector_J, N)
     for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
         auto it_elem = it_elem_begin + i;
         // Only active elements. Detect if the element is active or not. If the user did not make any choice the element
@@ -324,12 +328,12 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
             const SizeType number_of_nodes = r_this_geometry.size();
 
             // The jacobian of the geometry
-            Vector vector_J;
             vector_J = r_this_geometry.DeterminantOfJacobian(vector_J , this_integration_method );
             for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                const array_1d<double, 3>& local_coordinates = integration_points[i_gauss_point].Coordinates();
-                Vector N( number_of_nodes );
-                r_this_geometry.ShapeFunctionsValues( N, local_coordinates );
+                const array_1d<double, 3>& r_local_coordinates = integration_points[i_gauss_point].Coordinates();
+                if (N.size() != number_of_nodes )
+                    N.resize(number_of_nodes);
+                r_this_geometry.ShapeFunctionsValues( N, r_local_coordinates );
                 const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * vector_J[i_gauss_point] : 1.0;
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     #pragma omp atomic
