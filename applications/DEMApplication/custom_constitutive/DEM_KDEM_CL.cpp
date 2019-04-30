@@ -437,6 +437,8 @@ namespace Kratos {
 
         if (!r_process_info[POISSON_EFFECT_OPTION]) return;
         if (element1->mIniNeighbourFailureId[i_neighbor_count] > 0  &&  indentation < 0.0) return;
+        if (element1->IsSkin() || element2->IsSkin()) return;
+        if (element1->Is(DEMFlags::STICKY) || element2->Is(DEMFlags::STICKY)) return;
 
         double force[3];
         BoundedMatrix<double, 3, 3> average_stress_tensor = ZeroMatrix(3,3);
@@ -485,7 +487,8 @@ namespace Kratos {
                                                               SphericContinuumParticle* element2) {
 
         if (element1->mSymmStressTensor == NULL) return;
-        //if(element1->IsSkin() || element2->IsSkin()) return;
+        if (element1->IsSkin() || element2->IsSkin()) return;
+        if (element1->Is(DEMFlags::STICKY) || element2->Is(DEMFlags::STICKY)) return;
 
         double average_stress_tensor[3][3];
 

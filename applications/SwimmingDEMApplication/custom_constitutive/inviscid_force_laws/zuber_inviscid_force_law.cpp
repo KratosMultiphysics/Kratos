@@ -23,11 +23,11 @@ namespace Kratos {
     }
 
     double ZuberInviscidForceLaw::GetVirtualMassCoefficient(Geometry<Node<3> >& r_geometry,
-                                                            const array_1d<double, 3>& slip_acc)
+                                                            const array_1d<double, 3>& minus_slip_acc)
     {
         Node<3>& node = r_geometry[0];
         const double fluid_volume_fraction = node.FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
-        double standard_virtual_mass_coeff = AutonHuntPrudhommeInviscidForceLaw::GetVirtualMassCoefficient(r_geometry, slip_acc);
+        double standard_virtual_mass_coeff = AutonHuntPrudhommeInviscidForceLaw::GetVirtualMassCoefficient(r_geometry, minus_slip_acc);
         return standard_virtual_mass_coeff + 1.5 * (1 - fluid_volume_fraction);
     }
 

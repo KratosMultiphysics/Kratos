@@ -7,29 +7,10 @@ from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_anal
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Other imports
-import os
-
-# This utility will control the execution scope in case we need to access files or we depend
-# on specific relative locations of the files.
-
-# TODO: Should we move this to KratosUnittest?
-class controlledExecutionScope:
-    def __init__(self, scope):
-        self.currentPath = os.getcwd()
-        self.scope = scope
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
-
-
 class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
     def setUp(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
 
             # Reading the ProjectParameters
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
@@ -40,7 +21,7 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
             # the previous default linear-solver is set
             if not ProjectParameters["solver_settings"].Has("linear_solver_settings"):
                 default_lin_solver_settings = KratosMultiphysics.Parameters("""{
-                "solver_type": "ExternalSolversApplication.super_lu",
+                    "solver_type": "ExternalSolversApplication.super_lu",
                     "max_iteration": 500,
                     "tolerance": 1e-9,
                     "scaling": false,
@@ -52,8 +33,10 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
             self.modify_parameters(ProjectParameters)
 
             # To avoid many prints
-            if (ProjectParameters["problem_data"]["echo_level"].GetInt() == 0):
+            if ProjectParameters["problem_data"]["echo_level"].GetInt() == 0:
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+            else:
+                KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.INFO)
 
             # Creating the test
             model = KratosMultiphysics.Model()
@@ -68,12 +51,12 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
 
     def test_execution(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             self.test.RunSolutionLoop()
 
     def tearDown(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             self.test.Finalize()
 
 class SimpleMeshMovingTest(StructuralMechanicsTestFactory):

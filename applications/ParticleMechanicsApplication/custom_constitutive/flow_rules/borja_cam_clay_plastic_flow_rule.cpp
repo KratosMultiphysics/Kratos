@@ -261,7 +261,7 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
 
         // Compute Inverse LHS Matrix
         double det_lhs = MathUtils<double>::Det(lhs_matrix);
-        MathUtils<double>::InvertMatrix( lhs_matrix, inv_lhs_matrix, det_lhs);
+        MathUtils<double>::InvertMatrix( lhs_matrix, inv_lhs_matrix, det_lhs, -1.0);
 
         // Update delta_unknown_vector
         delta_unknown_vector = prod(inv_lhs_matrix, rhs_vector);

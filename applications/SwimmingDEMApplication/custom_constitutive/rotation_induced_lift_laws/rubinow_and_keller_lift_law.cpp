@@ -28,18 +28,18 @@ namespace Kratos {
                                                double particle_radius,
                                                double fluid_density,
                                                double fluid_kinematic_viscosity,
-                                               array_1d<double, 3>& slip_velocity,
+                                               array_1d<double, 3>& minus_slip_velocity,
                                                array_1d<double, 3>& rotation_induced_lift,
                                                const ProcessInfo& r_current_process_info)
     {
         Node<3>& node = r_geometry[0];
-        const array_1d<double, 3> slip_rot = (0.5 * node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED)
+        const array_1d<double, 3> minus_slip_rot = (0.5 * node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED)
                                               - node.FastGetSolutionStepValue(ANGULAR_VELOCITY));
-        array_1d<double, 3> slip_rot_cross_slip_vel;
-        SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(slip_rot, slip_velocity, slip_rot_cross_slip_vel)
+        array_1d<double, 3> minus_slip_rot_cross_slip_vel;
+        SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(minus_slip_rot, minus_slip_velocity, minus_slip_rot_cross_slip_vel)
 
-        // Rubinow and Keller, 1961 (Re_p < 0.1; nondimensional_slip_rot_vel < 0.1)
-        rotation_induced_lift = Globals::Pi * SWIMMING_POW_3(particle_radius) * fluid_density * slip_rot_cross_slip_vel;
+        // Rubinow and Keller, 1961 (Re_p < 0.1; nondimensional_minus_slip_rot_vel < 0.1)
+        rotation_induced_lift = Globals::Pi * SWIMMING_POW_3(particle_radius) * fluid_density * minus_slip_rot_cross_slip_vel;
     }
 
 } // namespace Kratos

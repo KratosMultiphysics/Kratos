@@ -143,6 +143,25 @@ public:
         const IndexType IntegrationOrder = 2,
         const bool AxisymmetricCase = false,
         const bool ComputeNodalArea = false
+
+        );
+    /**
+     * @brief This method computes the explicit contributions of the mortar contact conditions
+     * @details This method is created in order to avoid duplicated code
+     * @param pCondition The condition pointer to compute the explicit contribution
+     * @param rCurrentProcessInfo The current instance process info
+     * @param rPreviousMortarOperators The previous mortar operators
+     * @param IntegrationOrder The integration order of the utility
+     * @param AxisymmetricCase If consider the axisymmetric coefficient
+     * @param ComputeNodalArea If the contribution of the nodal are must be computed
+     */
+    static void AddExplicitContributionOfMortarFrictionalCondition(
+        PairedCondition* pCondition,
+        ProcessInfo& rCurrentProcessInfo,
+        MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
+        const IndexType IntegrationOrder = 2,
+        const bool AxisymmetricCase = false,
+        const bool ComputeNodalArea = false
         );
 
     /**

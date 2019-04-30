@@ -16,10 +16,12 @@ namespace Kratos
 {
     // Shallow water variables
     KRATOS_CREATE_VARIABLE( double, HEIGHT)                                 // Main variable
-    KRATOS_CREATE_VARIABLE( double, BATHYMETRY)                             // Geometric definition of the problem
+    KRATOS_CREATE_VARIABLE( double, BATHYMETRY)                             // Topographic definition of the marine domain
+    KRATOS_CREATE_VARIABLE( double, TOPOGRAPHY)                             // Topographic definition of the domain
     KRATOS_CREATE_VARIABLE( double, RAIN)                                   // Source term
     KRATOS_CREATE_VARIABLE( double, FREE_SURFACE_ELEVATION)                 // Free surface elevation from z=0 (HEIGHT = FREE_SURFACE - BATHYMETRY)
     KRATOS_CREATE_VARIABLE( double, MANNING)                                // Friction coefficient
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TOPOGRAPHY_GRADIENT)
 
     // Specific variableS for PFEM2
     KRATOS_CREATE_VARIABLE( double, MEAN_SIZE)

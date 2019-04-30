@@ -6,19 +6,6 @@ fluid_dynamics_is_available = kratos_utilities.CheckIfApplicationsAvailable("Flu
 if fluid_dynamics_is_available:
     from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
-import os
-
-class WorkFolderScope:
-    def __init__(self, work_folder):
-        self.currentPath = os.getcwd()
-        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        os.chdir(self.currentPath)
-
 @UnitTest.skipUnless(fluid_dynamics_is_available,"FluidDynamicsApplication is not available")
 class ALEFluidSolverTest(UnitTest.TestCase):
 
@@ -31,7 +18,7 @@ class ALEFluidSolverTest(UnitTest.TestCase):
         work_folder = "test_ale_fluid_solver"
         settings_file_name = "ProjectParameters_laplacian_fract_step.json"
 
-        with WorkFolderScope(work_folder):
+        with UnitTest.WorkFolderScope(work_folder, __file__):
             self._runTest(settings_file_name)
 
             kratos_utilities.DeleteFileIfExisting("test_ale_fluid_solver.post.lst")
@@ -40,7 +27,7 @@ class ALEFluidSolverTest(UnitTest.TestCase):
         work_folder = "test_ale_fluid_solver"
         settings_file_name = "ProjectParameters_ale_on_subdom_struct_sim_mono.json"
 
-        with WorkFolderScope(work_folder):
+        with UnitTest.WorkFolderScope(work_folder, __file__):
             self._runTest(settings_file_name)
 
             kratos_utilities.DeleteFileIfExisting("test_ale_fluid_solver.post.lst")

@@ -13,8 +13,7 @@
 #include "shell_cross_section.hpp"
 #include "structural_mechanics_application_variables.h"
 
-namespace Kratos
-{
+namespace Kratos {
 
 ShellCrossSection::ShellCrossSection()
     : mStack()
@@ -28,7 +27,7 @@ ShellCrossSection::ShellCrossSection()
 {
 }
 
-ShellCrossSection::ShellCrossSection(const ShellCrossSection & other)
+ShellCrossSection::ShellCrossSection(const ShellCrossSection& other)
 {
     PrivateCopy(other);
 }
@@ -37,7 +36,7 @@ ShellCrossSection::~ShellCrossSection()
 {
 }
 
-ShellCrossSection & ShellCrossSection::operator = (const ShellCrossSection & other)
+ShellCrossSection& ShellCrossSection::operator = (const ShellCrossSection& other)
 {
     PrivateCopy(other);
     return *this;
@@ -45,8 +44,7 @@ ShellCrossSection & ShellCrossSection::operator = (const ShellCrossSection & oth
 
 void ShellCrossSection::BeginStack()
 {
-    if(!mEditingStack)
-    {
+    if (!mEditingStack) {
         mEditingStack = true;
         mStack.clear();
     }
@@ -54,13 +52,16 @@ void ShellCrossSection::BeginStack()
 
 void ShellCrossSection::AddPly(const IndexType PlyIndex, int numPoints, const Properties& rProps)
 {
-    if(mEditingStack)
-        mStack.push_back( Ply( PlyIndex, numPoints, rProps ) );
+    if (mEditingStack) {
+        mStack.push_back(Ply(PlyIndex, numPoints, rProps));
+    }
 }
 
 void ShellCrossSection::EndStack()
 {
-    if(mEditingStack) mEditingStack = false;
+    if (mEditingStack) {
+        mEditingStack = false;
+    }
 }
 
 std::string ShellCrossSection::GetInfo(const Properties& rProps)
@@ -78,22 +79,17 @@ std::string ShellCrossSection::GetInfo(const Properties& rProps)
     ss << "===============================================================" << std::endl;
     ss << "=======================       STACK      ======================" << std::endl;
     ss << "===============================================================" << std::endl;
-    if(mStack.size() < 1)
-    {
+    if (mStack.size() < 1) {
         ss << " EMPTY STACK" << std::endl;
         ss << "===============================================================" << std::endl;
-    }
-    else
-    {
-        for (auto& r_ply : mStack)
-        {
+    } else {
+        for (auto& r_ply : mStack) {
             ss << " - Thickness :" << r_ply.GetThickness(rProps) << std::endl;
             ss << " - Location :" << r_ply.GetLocation(rProps) << std::endl;
             ss << " - Orientation Angle: " << r_ply.GetOrientationAngle(rProps) << " (degrees)" << std::endl;
             const auto& r_integration_points = r_ply.GetIntegrationPoints(rProps);
             ss << " - Through-The-Thickness Integration Points (" << r_integration_points.size() << "):" << std::endl;
-            for(IndexType i = 0; i < r_integration_points.size(); ++i)
-            {
+            for (IndexType i = 0; i < r_integration_points.size(); ++i) {
                 const IntegrationPoint& iPoint = r_integration_points[i];
                 ss << " - - [" << i << "] "
                    << "[ H: " << iPoint.GetWeight() << "; POS: " << iPoint.GetLocation() << "; C-LAW: " << iPoint.GetConstitutiveLaw() << "]"
@@ -108,7 +104,7 @@ std::string ShellCrossSection::GetInfo(const Properties& rProps)
 
 ShellCrossSection::Pointer ShellCrossSection::Clone()const
 {
-    ShellCrossSection::Pointer theClone( new ShellCrossSection(*this) );
+    ShellCrossSection::Pointer theClone(new ShellCrossSection(*this));
     theClone->EndStack();
     return theClone;
 }
@@ -143,21 +139,19 @@ double& ShellCrossSection::GetValue(const Variable<double>& rThisVariable, const
     double meanValue = 0.0;
     double iValue = 0.0;
     double accum = 0.0;
-    for (auto& r_ply : mStack)
-    {
-        for (const auto& r_int_point : r_ply.GetIntegrationPoints(rProps))
-        {
+    for (auto& r_ply : mStack) {
+        for (const auto& r_int_point : r_ply.GetIntegrationPoints(rProps)) {
             iValue = 0.0;
-            if (r_int_point.GetConstitutiveLaw()->Has(rThisVariable))
-            {
+            if (r_int_point.GetConstitutiveLaw()->Has(rThisVariable)) {
                 iValue = r_int_point.GetConstitutiveLaw()->GetValue(rThisVariable, iValue);
                 meanValue += iValue * r_int_point.GetWeight();
                 accum += r_int_point.GetWeight();
             }
         }
     }
-    if(accum != 0.0)
+    if (accum != 0.0) {
         rValue = meanValue / accum;
+    }
     return rValue;
 }
 
@@ -171,14 +165,14 @@ Matrix& ShellCrossSection::GetValue(const Variable<Matrix>& rThisVariable, Matri
     return rValue;
 }
 
-array_1d<double, 3 > & ShellCrossSection::GetValue(const Variable<array_1d<double, 3 > >& rVariable,
-        array_1d<double, 3 > & rValue)
+array_1d<double, 3 >& ShellCrossSection::GetValue(const Variable<array_1d<double, 3 > >& rVariable,
+        array_1d<double, 3 >& rValue)
 {
     return rValue;
 }
 
-array_1d<double, 6 > & ShellCrossSection::GetValue(const Variable<array_1d<double, 6 > >& rVariable,
-        array_1d<double, 6 > & rValue)
+array_1d<double, 6 >& ShellCrossSection::GetValue(const Variable<array_1d<double, 6 > >& rVariable,
+        array_1d<double, 6 >& rValue)
 {
     return rValue;
 }
@@ -202,13 +196,13 @@ void ShellCrossSection::SetValue(const Variable<Matrix >& rVariable,
 }
 
 void ShellCrossSection::SetValue(const Variable<array_1d<double, 3 > >& rVariable,
-                                 const array_1d<double, 3 > & rValue,
+                                 const array_1d<double, 3 >& rValue,
                                  const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
 void ShellCrossSection::SetValue(const Variable<array_1d<double, 6 > >& rVariable,
-                                 const array_1d<double, 6 > & rValue,
+                                 const array_1d<double, 6 >& rValue,
                                  const ProcessInfo& rCurrentProcessInfo)
 {
 }
@@ -222,33 +216,34 @@ void ShellCrossSection::InitializeCrossSection(const Properties& rMaterialProper
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues)
 {
-    if(!mInitialized)
-    {
-        if(mEditingStack) EndStack();
+    if (!mInitialized) {
+        if (mEditingStack) {
+            EndStack();
+        }
 
         mNeedsOOPCondensation = false;
 
-        for (auto& r_ply : mStack)
-        {
-            for (const auto& r_int_point : r_ply.GetIntegrationPoints(rMaterialProperties))
-            {
+        for (auto& r_ply : mStack) {
+            for (const auto& r_int_point : r_ply.GetIntegrationPoints(rMaterialProperties)) {
                 r_int_point.GetConstitutiveLaw()->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
-                if(!mNeedsOOPCondensation)
-                    if(r_int_point.GetConstitutiveLaw()->GetStrainSize() == 6)
+                if (!mNeedsOOPCondensation)
+                    if (r_int_point.GetConstitutiveLaw()->GetStrainSize() == 6) {
                         mNeedsOOPCondensation = true;
+                    }
             }
         }
 
-        if(mNeedsOOPCondensation)
-        {
+        if (mNeedsOOPCondensation) {
             SizeType condensed_strain_size = mBehavior == Thick ? 1 : 3;
 
-            if(mOOP_CondensedStrains.size() != condensed_strain_size)
+            if (mOOP_CondensedStrains.size() != condensed_strain_size) {
                 mOOP_CondensedStrains.resize(condensed_strain_size, false);
+            }
 
-            if(mOOP_CondensedStrains_converged.size() != condensed_strain_size)
+            if (mOOP_CondensedStrains_converged.size() != condensed_strain_size) {
                 mOOP_CondensedStrains_converged.resize(condensed_strain_size, false);
+            }
 
             noalias(mOOP_CondensedStrains) = ZeroVector(condensed_strain_size);
             noalias(mOOP_CondensedStrains_converged) = ZeroVector(condensed_strain_size);
@@ -263,13 +258,15 @@ void ShellCrossSection::InitializeSolutionStep(const Properties& rMaterialProper
         const Vector& rShapeFunctionsValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    for (auto& r_ply : mStack)
-    {
-        for (const auto& r_int_point : r_ply.GetIntegrationPoints(rMaterialProperties))
+    for (auto& r_ply : mStack) {
+        for (const auto& r_int_point : r_ply.GetIntegrationPoints(rMaterialProperties)) {
             r_int_point.GetConstitutiveLaw()->InitializeSolutionStep(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
+        }
     }
 
-    if(mNeedsOOPCondensation) mOOP_CondensedStrains = mOOP_CondensedStrains_converged;
+    if (mNeedsOOPCondensation) {
+        mOOP_CondensedStrains = mOOP_CondensedStrains_converged;
+    }
 }
 
 void ShellCrossSection::FinalizeSolutionStep(const Properties& rMaterialProperties,
@@ -277,13 +274,15 @@ void ShellCrossSection::FinalizeSolutionStep(const Properties& rMaterialProperti
         const Vector& rShapeFunctionsValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    for (auto& r_ply : mStack)
-    {
-        for (const auto& r_int_point : r_ply.GetIntegrationPoints(rMaterialProperties))
+    for (auto& r_ply : mStack) {
+        for (const auto& r_int_point : r_ply.GetIntegrationPoints(rMaterialProperties)) {
             r_int_point.GetConstitutiveLaw()->FinalizeSolutionStep(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
+        }
     }
 
-    if(mNeedsOOPCondensation) mOOP_CondensedStrains_converged = mOOP_CondensedStrains;
+    if (mNeedsOOPCondensation) {
+        mOOP_CondensedStrains_converged = mOOP_CondensedStrains;
+    }
 }
 
 void ShellCrossSection::InitializeNonLinearIteration(const Properties& rMaterialProperties,
@@ -314,8 +313,7 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
     bool compute_constitutive_tensor = Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     SizeType strain_size = GetStrainSize();
     SizeType condensed_strain_size = GetCondensedStrainSize();
-    if(!compute_constitutive_tensor && mNeedsOOPCondensation)
-    {
+    if (!compute_constitutive_tensor && mNeedsOOPCondensation) {
         compute_constitutive_tensor = true;
         Options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         materialValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -340,11 +338,9 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
     Matrix LRcT;
     Matrix LTRT;
     Matrix Hinv = ZeroMatrix(condensed_strain_size, condensed_strain_size);
-    if(mNeedsOOPCondensation)
-    {
+    if (mNeedsOOPCondensation) {
         Rc.resize(condensed_strain_size, condensed_strain_size, false);
-        if(compute_constitutive_tensor)
-        {
+        if (compute_constitutive_tensor) {
             HRcT.resize(condensed_strain_size, condensed_strain_size, false);
             LRcT.resize(strain_size, condensed_strain_size, false);
             LTRT.resize(condensed_strain_size, strain_size, false);
@@ -355,15 +351,14 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
 
     // compute the generalized strain vector in section coordinate system
     Vector generalizedStrainVector_element;
-    if(mOrientation != 0.0)
-    {
+    if (mOrientation != 0.0) {
         // make a copy of the one in element coordinate system. (original)
         generalizedStrainVector_element.resize(strain_size, false);
-        noalias( generalizedStrainVector_element ) = generalizedStrainVector;
+        noalias(generalizedStrainVector_element) = generalizedStrainVector;
 
         // rotate the original one to the section coordinate system
-        GetRotationMatrixForGeneralizedStrains( -mOrientation, R );
-        noalias( generalizedStrainVector ) = prod( R, generalizedStrainVector_element );
+        GetRotationMatrixForGeneralizedStrains(-mOrientation, R);
+        noalias(generalizedStrainVector) = prod(R, generalizedStrainVector_element);
     }
 
     // ************************************* NOW WE ARE IN THE CROSS SECTION COORDINATE SYSTEM *************************************
@@ -388,171 +383,160 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
     bool   converged = false;
 
     // BEGIN LOOP: Newthon iteration to solve for condensed strains
-    while(true)
-    {
-        noalias( generalizedStressVector ) = ZeroVector( strain_size );
-        noalias( condensedStressVector ) = ZeroVector( condensed_strain_size );
-        noalias( constitutiveMatrix ) = ZeroMatrix( strain_size, strain_size );
-        noalias( H ) = ZeroMatrix( condensed_strain_size, condensed_strain_size );
-        noalias( L ) = ZeroMatrix( strain_size, condensed_strain_size );
-        noalias( LT ) = ZeroMatrix( condensed_strain_size, strain_size );
+    while (true) {
+        noalias(generalizedStressVector) = ZeroVector(strain_size);
+        noalias(condensedStressVector) = ZeroVector(condensed_strain_size);
+        noalias(constitutiveMatrix) = ZeroMatrix(strain_size, strain_size);
+        noalias(H) = ZeroMatrix(condensed_strain_size, condensed_strain_size);
+        noalias(L) = ZeroMatrix(strain_size, condensed_strain_size);
+        noalias(LT) = ZeroMatrix(condensed_strain_size, strain_size);
 
         unsigned int ply_number = 0;
         // BEGIN LOOP: integrate the response of each ply in this cross section
-        for (auto& r_ply : mStack)
-        {
+        for (auto& r_ply : mStack) {
             Properties LaminaProps;
-            if(ShellUtilities::IsOrthotropic(r_props))
-            {
-				LaminaProps = Properties(r_props);
+            if (ShellUtilities::IsOrthotropic(r_props)) {
+                LaminaProps = Properties(r_props);
                 r_ply.RecoverOrthotropicProperties(ply_number, LaminaProps);
-				materialValues.SetMaterialProperties(LaminaProps);
+                materialValues.SetMaterialProperties(LaminaProps);
+            } else {
+                materialValues.SetMaterialProperties(r_props);
             }
-			else
-			{
-				materialValues.SetMaterialProperties(r_props);
-			}
 
             double iPlyAngle = r_ply.GetOrientationAngle(r_props);
 
-            if(iPlyAngle == 0.0)
-            {
+            if (iPlyAngle == 0.0) {
                 // BEGIN LOOP: integrate the response of each integration point in this ply
-                for (const auto& r_int_point : r_ply.GetIntegrationPoints(r_props))
-                {
+                for (const auto& r_int_point : r_ply.GetIntegrationPoints(r_props)) {
                     UpdateIntegrationPointParameters(r_int_point, materialValues, variables);
                     CalculateIntegrationPointResponse(r_int_point, materialValues, rValues, variables, rStressMeasure,ply_number);
                 } // END LOOP: integrate the response of each integration point in this ply
-            }
-            else
-            {
+            } else {
                 // get the angle in radians of this ply w.r.t the parent section
                 double alpha = Globals::Pi / 180.0 * iPlyAngle;
 
 
                 // make a copy of the generalized strain vector in section coordinate system
                 // and then rotate the (working) generalized strain vector in this ply coordinate system
-                if(generalizedStrainVector_section.size() != strain_size)
+                if (generalizedStrainVector_section.size() != strain_size) {
                     generalizedStrainVector_section.resize(strain_size, false);
-                noalias( generalizedStrainVector_section ) = generalizedStrainVector; // make a copy
-                GetRotationMatrixForGeneralizedStrains( -alpha, R );
-                noalias( generalizedStrainVector ) = prod( R, generalizedStrainVector_section ); // rotate
+                }
+                noalias(generalizedStrainVector_section) = generalizedStrainVector;   // make a copy
+                GetRotationMatrixForGeneralizedStrains(-alpha, R);
+                noalias(generalizedStrainVector) = prod(R, generalizedStrainVector_section);     // rotate
 
                 // make a copy of the condensed strain vector in section coordinate system
                 // and then rotate the (working) condensed strain vector in this ply coordinate system.
-                if(mNeedsOOPCondensation)
-                {
-                    if(condensedStrainVector_section.size() != condensed_strain_size)
+                if (mNeedsOOPCondensation) {
+                    if (condensedStrainVector_section.size() != condensed_strain_size) {
                         condensedStrainVector_section.resize(condensed_strain_size, false);
-                    noalias( condensedStrainVector_section ) = mOOP_CondensedStrains; // make a copy
-                    GetRotationMatrixForCondensedStrains( -alpha, Rc );
-                    noalias( mOOP_CondensedStrains ) = prod( Rc, condensedStrainVector_section ); // rotate
+                    }
+                    noalias(condensedStrainVector_section) = mOOP_CondensedStrains;   // make a copy
+                    GetRotationMatrixForCondensedStrains(-alpha, Rc);
+                    noalias(mOOP_CondensedStrains) = prod(Rc, condensedStrainVector_section);     // rotate
                 }
 
                 // make a copy of the generalized stress vector in section coordinate system (which is being integrated)
                 // and then set to zero the (working) generalized stress vector
-                if(compute_stress)
-                {
-                    if(generalizedStressVector_section.size() != strain_size)
+                if (compute_stress) {
+                    if (generalizedStressVector_section.size() != strain_size) {
                         generalizedStressVector_section.resize(strain_size, false);
-                    noalias( generalizedStressVector_section ) = generalizedStressVector; // make a copy
-                    noalias( generalizedStressVector ) = ZeroVector(strain_size); // set to zero
+                    }
+                    noalias(generalizedStressVector_section) = generalizedStressVector;   // make a copy
+                    noalias(generalizedStressVector) = ZeroVector(strain_size);   // set to zero
 
-                    if(mNeedsOOPCondensation)
-                    {
-                        if(condensedStressVector_section.size() != condensed_strain_size)
+                    if (mNeedsOOPCondensation) {
+                        if (condensedStressVector_section.size() != condensed_strain_size) {
                             condensedStressVector_section.resize(condensed_strain_size, false);
-                        noalias( condensedStressVector_section ) = condensedStressVector; // make a copy
-                        noalias( condensedStressVector ) = ZeroVector(condensed_strain_size); // set to zero
+                        }
+                        noalias(condensedStressVector_section) = condensedStressVector;   // make a copy
+                        noalias(condensedStressVector) = ZeroVector(condensed_strain_size);   // set to zero
                     }
                 }
 
                 // make a copy of the section constitutive matrix in section coordinate system (which is being integrated)
                 // and then set to zero the (working) section constitutive matrix
-                if(compute_constitutive_tensor)
-                {
-                    if(constitutiveMatrix_section.size1() != strain_size || constitutiveMatrix_section.size2() != strain_size)
+                if (compute_constitutive_tensor) {
+                    if (constitutiveMatrix_section.size1() != strain_size || constitutiveMatrix_section.size2() != strain_size) {
                         constitutiveMatrix_section.resize(strain_size, strain_size, false);
-                    noalias( constitutiveMatrix_section ) = constitutiveMatrix; // make a copy
-                    noalias( constitutiveMatrix ) = ZeroMatrix(strain_size, strain_size); // set to zero
+                    }
+                    noalias(constitutiveMatrix_section) = constitutiveMatrix;   // make a copy
+                    noalias(constitutiveMatrix) = ZeroMatrix(strain_size, strain_size);   // set to zero
 
-                    if(mNeedsOOPCondensation)
-                    {
-                        if(H_section.size1() != condensed_strain_size || H_section.size2() != condensed_strain_size)
+                    if (mNeedsOOPCondensation) {
+                        if (H_section.size1() != condensed_strain_size || H_section.size2() != condensed_strain_size) {
                             H_section.resize(condensed_strain_size, condensed_strain_size, false);
-                        noalias( H_section ) = H; // make a copy
-                        noalias( H ) = ZeroMatrix(condensed_strain_size, condensed_strain_size); // set to zero
+                        }
+                        noalias(H_section) = H;   // make a copy
+                        noalias(H) = ZeroMatrix(condensed_strain_size, condensed_strain_size);   // set to zero
 
-                        if(L_section.size1() != strain_size || L_section.size2() != condensed_strain_size)
+                        if (L_section.size1() != strain_size || L_section.size2() != condensed_strain_size) {
                             L_section.resize(strain_size, condensed_strain_size, false);
-                        noalias( L_section ) = L; // make a copy
-                        noalias( L ) = ZeroMatrix(strain_size, condensed_strain_size); // set to zero
+                        }
+                        noalias(L_section) = L;   // make a copy
+                        noalias(L) = ZeroMatrix(strain_size, condensed_strain_size);   // set to zero
 
-                        if(LT_section.size1() != condensed_strain_size || L_section.size2() != strain_size)
+                        if (LT_section.size1() != condensed_strain_size || L_section.size2() != strain_size) {
                             LT_section.resize(condensed_strain_size, strain_size, false);
-                        noalias( LT_section ) = LT; // make a copy
-                        noalias( LT ) = ZeroMatrix(condensed_strain_size, strain_size); // set to zero
+                        }
+                        noalias(LT_section) = LT;   // make a copy
+                        noalias(LT) = ZeroMatrix(condensed_strain_size, strain_size);   // set to zero
                     }
                 }
 
                 // BEGIN LOOP: integrate the response of each integration point in this ply
-                for (const auto& r_int_point : r_ply.GetIntegrationPoints(r_props))
-                {
+                for (const auto& r_int_point : r_ply.GetIntegrationPoints(r_props)) {
                     UpdateIntegrationPointParameters(r_int_point, materialValues, variables);
                     CalculateIntegrationPointResponse(r_int_point, materialValues, rValues, variables, rStressMeasure,ply_number);
                 } // END LOOP: integrate the response of each integration point in this ply
 
                 // restore the (working) generalized strain vector with the one in section coordinate system
-                noalias( generalizedStrainVector ) = generalizedStrainVector_section;
+                noalias(generalizedStrainVector) = generalizedStrainVector_section;
 
                 // restore the (working) condensed strain vector with the one in section coordinate system
-                if(mNeedsOOPCondensation)
-                    noalias( mOOP_CondensedStrains ) = condensedStrainVector_section;
+                if (mNeedsOOPCondensation) {
+                    noalias(mOOP_CondensedStrains) = condensedStrainVector_section;
+                }
 
                 // transform the output stress and constitutive matrix from this ply to the parent section
                 // coordinate system. then add them to the already integrated quantities.
-                if(compute_stress || compute_constitutive_tensor)
-                {
+                if (compute_stress || compute_constitutive_tensor) {
                     GetRotationMatrixForGeneralizedStresses(alpha, R);
-                    if(mNeedsOOPCondensation)
+                    if (mNeedsOOPCondensation) {
                         GetRotationMatrixForCondensedStresses(alpha, Rc);
+                    }
 
-                    if(compute_stress)
-                    {
-                        noalias( generalizedStressVector_section ) += prod( R, generalizedStressVector );
-                        noalias( generalizedStressVector ) = generalizedStressVector_section;
+                    if (compute_stress) {
+                        noalias(generalizedStressVector_section) += prod(R, generalizedStressVector);
+                        noalias(generalizedStressVector) = generalizedStressVector_section;
 
-                        if(mNeedsOOPCondensation)
-                        {
-                            noalias( condensedStressVector_section ) += prod( Rc, condensedStressVector );
-                            noalias( condensedStressVector ) = condensedStressVector_section;
+                        if (mNeedsOOPCondensation) {
+                            noalias(condensedStressVector_section) += prod(Rc, condensedStressVector);
+                            noalias(condensedStressVector) = condensedStressVector_section;
                         }
                     }
-                    if(compute_constitutive_tensor)
-                    {
-                        noalias( DRT ) = prod( constitutiveMatrix, trans( R ) );
-                        noalias( constitutiveMatrix_section ) += prod( R, DRT );
+                    if (compute_constitutive_tensor) {
+                        noalias(DRT) = prod(constitutiveMatrix, trans(R));
+                        noalias(constitutiveMatrix_section) += prod(R, DRT);
                         constitutiveMatrix.swap(constitutiveMatrix_section);
 
-                        if(mStorePlyConstitutiveMatrices)
-                        {
+                        if (mStorePlyConstitutiveMatrices) {
                             noalias(DRT) = prod(mPlyConstitutiveMatrices[ply_number], trans(R));
                             mPlyConstitutiveMatrices[ply_number] = prod(R, DRT);
                         }
 
-                        if(mNeedsOOPCondensation)
-                        {
-                            noalias( HRcT ) = prod( H, trans( Rc ) );
-                            noalias( H_section ) += prod( Rc, HRcT );
-                            noalias( H ) = H_section;
+                        if (mNeedsOOPCondensation) {
+                            noalias(HRcT) = prod(H, trans(Rc));
+                            noalias(H_section) += prod(Rc, HRcT);
+                            noalias(H) = H_section;
 
-                            noalias( LRcT ) = prod( L, trans( Rc ) );
-                            noalias( L_section ) += prod( R, LRcT );
-                            noalias( L ) = L_section;
+                            noalias(LRcT) = prod(L, trans(Rc));
+                            noalias(L_section) += prod(R, LRcT);
+                            noalias(L) = L_section;
 
-                            noalias( LTRT ) = prod( LT, trans( R ) );
-                            noalias( LT_section ) += prod( Rc, LTRT );
-                            noalias( LT ) = LT_section;
+                            noalias(LTRT) = prod(LT, trans(R));
+                            noalias(LT_section) += prod(Rc, LTRT);
+                            noalias(LT) = LT_section;
                         }
                     }
                 }
@@ -562,86 +546,75 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
         } // END LOOP: integrate the response of each ply in this cross section
 
         // quick return if no static condensation is required
-        if(!mNeedsOOPCondensation)
-        {
+        if (!mNeedsOOPCondensation) {
             converged = true;
             break;
         }
 
         // compute out-of-plane stress norm
-        if(mBehavior == Thick)
-            oop_stress_norm = std::abs( condensedStressVector(0) );
-        else
-            oop_stress_norm = norm_2( condensedStressVector );
+        if (mBehavior == Thick) {
+            oop_stress_norm = std::abs(condensedStressVector(0));
+        } else {
+            oop_stress_norm = norm_2(condensedStressVector);
+        }
 
         // initialize tolerance
-        if(iter == 0)
-        {
+        if (iter == 0) {
             tolerance = oop_stress_norm * relative_tolerance;
-            if(tolerance < always_converged_tolerance)
+            if (tolerance < always_converged_tolerance) {
                 tolerance = always_converged_tolerance;
+            }
         }
         // compute H^-1
-        if(mBehavior == Thick)
-        {
+        if (mBehavior == Thick) {
             Hinv(0, 0) = 1.0 / H(0, 0);
-        }
-        else
-        {
+        } else {
             double dummy_det;
             MathUtils<double>::InvertMatrix3(H, Hinv, dummy_det);
         }
 
         // check convergence
-        if(oop_stress_norm <= tolerance)
-        {
+        if (oop_stress_norm <= tolerance) {
             converged = true;
             break;
         }
 
         // update out-of-plane strains
-        noalias( mOOP_CondensedStrains ) -= prod( Hinv, condensedStressVector );
+        noalias(mOOP_CondensedStrains) -= prod(Hinv, condensedStressVector);
 
         iter++;
 
-        if(iter > max_iter) break;
+        if (iter > max_iter) {
+            break;
+        }
 
     } // END LOOP: Newthon iteration
 
-    if(!converged || compute_constitutive_tensor)
-    {
-        Matrix LHinv( prod( L, Hinv ) );
+    if (!converged || compute_constitutive_tensor) {
+        Matrix LHinv(prod(L, Hinv));
 
-        if(!converged && compute_stress)
-        {
-            noalias( generalizedStressVector ) += prod( LHinv, condensedStressVector );
+        if (!converged && compute_stress) {
+            noalias(generalizedStressVector) += prod(LHinv, condensedStressVector);
         }
-        if(compute_constitutive_tensor)
-        {
-            noalias( constitutiveMatrix ) -= prod( LHinv, LT );
+        if (compute_constitutive_tensor) {
+            noalias(constitutiveMatrix) -= prod(LHinv, LT);
         }
     }
     // *********************************** NOW WE MOVE TO THE PARENT ELEMENT COORDINATE SYSTEM ************************************
 
     // transform the outputs back to the element coordinate system (if necessary)
-    if(mOrientation != 0.0)
-    {
-        if(compute_stress || compute_constitutive_tensor)
-        {
-            GetRotationMatrixForGeneralizedStresses( mOrientation, R );
-            if(compute_stress)
-            {
-                generalizedStressVector = prod( R, generalizedStressVector );
+    if (mOrientation != 0.0) {
+        if (compute_stress || compute_constitutive_tensor) {
+            GetRotationMatrixForGeneralizedStresses(mOrientation, R);
+            if (compute_stress) {
+                generalizedStressVector = prod(R, generalizedStressVector);
             }
-            if(compute_constitutive_tensor)
-            {
+            if (compute_constitutive_tensor) {
                 noalias(DRT) = prod(constitutiveMatrix, trans(R));
                 noalias(constitutiveMatrix) = prod(R, DRT);
 
-                if(mStorePlyConstitutiveMatrices)
-                {
-                    for(SizeType ply = 0; ply < this->NumberOfPlies(); ply++)
-                    {
+                if (mStorePlyConstitutiveMatrices) {
+                    for (SizeType ply = 0; ply < this->NumberOfPlies(); ply++) {
                         noalias(DRT) = prod(mPlyConstitutiveMatrices[ply], trans(R));
                         mPlyConstitutiveMatrices[ply] = prod(R, DRT);
                     }
@@ -650,18 +623,17 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
         }
     }
 
-    if(mStorePlyConstitutiveMatrices)
-    {
+    if (mStorePlyConstitutiveMatrices) {
         mStorePlyConstitutiveMatrices = false;
     }
 
     // restore the original strain vector in element coordinate system
-    if(mOrientation != 0.0)
-        noalias( generalizedStrainVector ) = generalizedStrainVector_element;
+    if (mOrientation != 0.0) {
+        noalias(generalizedStrainVector) = generalizedStrainVector_element;
+    }
 
     // compute the drilling stiffness parameter
-    if(!mHasDrillingPenalty && compute_constitutive_tensor)
-    {
+    if (!mHasDrillingPenalty && compute_constitutive_tensor) {
         mDrillingPenalty = constitutiveMatrix(2, 2);
         mHasDrillingPenalty = true;
     }
@@ -674,10 +646,8 @@ void ShellCrossSection::FinalizeSectionResponse(SectionParameters& rValues, cons
     InitializeParameters(rValues, materialValues, variables);
     const Properties& r_props = rValues.GetMaterialProperties();
 
-    for (auto& r_ply : mStack)
-    {
-        for (const auto& r_int_point : r_ply.GetIntegrationPoints(r_props))
-        {
+    for (auto& r_ply : mStack) {
+        for (const auto& r_int_point : r_ply.GetIntegrationPoints(r_props)) {
             UpdateIntegrationPointParameters(r_int_point, materialValues, variables);
             r_int_point.GetConstitutiveLaw()->FinalizeMaterialResponse(materialValues, rStressMeasure);
         }
@@ -690,14 +660,13 @@ void ShellCrossSection::ResetCrossSection(const Properties& rMaterialProperties,
 {
     mInitialized = false;
 
-    for (auto& r_ply : mStack)
-    {
-        for (const auto& r_int_point : r_ply.GetIntegrationPoints(rMaterialProperties))
+    for (auto& r_ply : mStack) {
+        for (const auto& r_int_point : r_ply.GetIntegrationPoints(rMaterialProperties)) {
             r_int_point.GetConstitutiveLaw()->ResetMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
+        }
     }
 
-    if(mNeedsOOPCondensation)
-    {
+    if (mNeedsOOPCondensation) {
         int condensed_strain_size = mBehavior == Thick ? 1 : 3;
 
         noalias(mOOP_CondensedStrains) = ZeroVector(condensed_strain_size);
@@ -712,43 +681,41 @@ int ShellCrossSection::Check(const Properties& rMaterialProperties,
     KRATOS_TRY
 
     KRATOS_ERROR_IF(this->mEditingStack)
-        << "The Ply Stack of a ShellCrossSection is in Editing mode" << std::endl;
+            << "The Ply Stack of a ShellCrossSection is in Editing mode" << std::endl;
 
     KRATOS_ERROR_IF(this->mStack.size() < 1)
-        << "The Ply Stack of a ShellCrossSection cannot be empty" << std::endl;
+            << "The Ply Stack of a ShellCrossSection cannot be empty" << std::endl;
 
     KRATOS_ERROR_IF(this->GetThickness(rMaterialProperties) <= 0.0)
-        << "The Thickness of a ShellCrossSection should be a "
-        << "positive real number" << std::endl;
+            << "The Thickness of a ShellCrossSection should be a "
+            << "positive real number" << std::endl;
 
-    for (auto& r_ply : mStack)
-    {
+    for (auto& r_ply : mStack) {
         KRATOS_ERROR_IF(r_ply.NumberOfIntegrationPoints() < 1)
-            << "The number of integration points "
-            << "in a Ply is not set properly" << std::endl;
+                << "The number of integration points "
+                << "in a Ply is not set properly" << std::endl;
 
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(DENSITY))
-            << "DENSITY not provided for a Ply object" << std::endl;
+                << "DENSITY not provided for a Ply object" << std::endl;
 
-        for (const auto& r_int_point : r_ply.GetIntegrationPoints(rMaterialProperties))
-        {
+        for (const auto& r_int_point : r_ply.GetIntegrationPoints(rMaterialProperties)) {
             KRATOS_ERROR_IF(r_int_point.GetWeight() <= 0.0)
-                << "The Weight of a ShellCrossSection.IntegrationPoint "
-                << "should be a positive real number" << std::endl;
+                    << "The Weight of a ShellCrossSection.IntegrationPoint "
+                    << "should be a positive real number" << std::endl;
 
             const ConstitutiveLaw::Pointer& iPointLaw = r_int_point.GetConstitutiveLaw();
 
             KRATOS_ERROR_IF(iPointLaw == nullptr)
-                << "The Constitutive law of a ShellCrossSection.IntegrationPoint "
-                << "is nullptr" << std::endl;
+                    << "The Constitutive law of a ShellCrossSection.IntegrationPoint "
+                    << "is nullptr" << std::endl;
 
             ConstitutiveLaw::Features iPointLawFeatures;
             iPointLaw->GetLawFeatures(iPointLawFeatures);
 
             const int strain_size = iPointLawFeatures.mStrainSize;
             KRATOS_ERROR_IF(strain_size != 3 && strain_size != 6)
-                << "The Constitutive law of a ShellCrossSection.IntegrationPoint needs a "
-                << "ConstitutiveLaw with 3 or 6 components, instead of " << strain_size << std::endl;
+                    << "The Constitutive law of a ShellCrossSection.IntegrationPoint needs a "
+                    << "ConstitutiveLaw with 3 or 6 components, instead of " << strain_size << std::endl;
 
             //bool correct_strain_measure = false;
             //for(unsigned int i=0; i<iPointLawFeatures.mStrainMeasures.size(); i++)
@@ -780,8 +747,9 @@ void ShellCrossSection::ParseOrthotropicPropertyMatrix(const Properties& rProps)
     this->BeginStack();
 
     // add ply for each orthotropic layer defined
-    for (IndexType ply_idx = 0; ply_idx < num_plies; ++ply_idx)
+    for (IndexType ply_idx = 0; ply_idx < num_plies; ++ply_idx) {
         this->AddPly(ply_idx, 5, rProps);
+    }
 
     this->EndStack();
 }
@@ -789,13 +757,16 @@ void ShellCrossSection::ParseOrthotropicPropertyMatrix(const Properties& rProps)
 void ShellCrossSection::GetLaminaeOrientation(const Properties& rProps, Vector& rOrientation_Vector)
 {
     const SizeType num_plies = mStack.size();
-    if(rOrientation_Vector.size() != num_plies) rOrientation_Vector.resize(num_plies, false);
+    if (rOrientation_Vector.size() != num_plies) {
+        rOrientation_Vector.resize(num_plies, false);
+    }
 
-    for (IndexType i_ply=0; i_ply<num_plies; ++i_ply)
+    for (IndexType i_ply=0; i_ply<num_plies; ++i_ply) {
         rOrientation_Vector[i_ply] = mStack[i_ply].GetOrientationAngle(rProps) / 180.0 * Globals::Pi;
+    }
 }
 
-void ShellCrossSection::GetLaminaeStrengths(std::vector<Matrix> & rLaminae_Strengths, const Properties& rProps)
+void ShellCrossSection::GetLaminaeStrengths(std::vector<Matrix>& rLaminae_Strengths, const Properties& rProps)
 {
     // ascertain how many plies there are
     SizeType plies = (rProps)[SHELL_ORTHOTROPIC_LAYERS].size1();
@@ -803,25 +774,21 @@ void ShellCrossSection::GetLaminaeStrengths(std::vector<Matrix> & rLaminae_Stren
     // figure out the format of material properties based on it's width
     int my_format = (rProps)[SHELL_ORTHOTROPIC_LAYERS].size2();
     int offset = 0;
-    if(my_format == 16)
-    {
+    if (my_format == 16) {
         offset = 9;
+    } else {
+        KRATOS_ERROR <<
+                     "The laminate material data has not been properly defined!\n"
+                     << "Make sure you have included material strengths.\n"
+                     << "Material strengths consider (T)ension, (C)ompression and (S)hear "
+                     << "strengths along local (1,2,3) lamina material coordinates.\n\n"
+                     << "For each lamina, following material properties, they are ordered as:\n"
+                     << "T1, C1, T2, C2, S12, S13, S23"
+                     << std::endl;
     }
-	else
-	{
-		KRATOS_ERROR <<
-			"The laminate material data has not been properly defined!\n"
-			<< "Make sure you have included material strengths.\n"
-			<< "Material strengths consider (T)ension, (C)ompression and (S)hear "
-			<< "strengths along local (1,2,3) lamina material coordinates.\n\n"
-			<< "For each lamina, following material properties, they are ordered as:\n"
-			<< "T1, C1, T2, C2, S12, S13, S23"
-			<< std::endl;
-	}
 
     // Loop over all plies
-    for(unsigned int currentPly = 0; currentPly < plies; currentPly++)
-    {
+    for (unsigned int currentPly = 0; currentPly < plies; currentPly++) {
         // Parse orthotropic lamina strengths
         //
         // Considers (T)ension, (C)ompression and (S)hear strengths along
@@ -861,12 +828,10 @@ void ShellCrossSection::GetLaminaeStrengths(std::vector<Matrix> & rLaminae_Stren
             (rProps)[SHELL_ORTHOTROPIC_LAYERS](currentPly, offset + 6);
 
         // Check all values are positive
-        for(SizeType i=0; i<3; ++i)
-        {
-            for(SizeType j=0; j<3; ++j)
-            {
+        for (SizeType i=0; i<3; ++i) {
+            for (SizeType j=0; j<3; ++j) {
                 KRATOS_ERROR_IF(rLaminae_Strengths[currentPly](i, j) < 0.0) << "A negative lamina "
-                    << "strength has been defined. All lamina strengths must be positive" << std::endl;
+                        << "strength has been defined. All lamina strengths must be positive" << std::endl;
             }
         }
     }
@@ -879,12 +844,12 @@ void ShellCrossSection::InitializeParameters(SectionParameters& rValues, Constit
     rMaterialValues.SetOptions(rValues.GetOptions());
     rMaterialValues.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
 
-    rMaterialValues.SetShapeFunctionsValues( rValues.GetShapeFunctionsValues() );
-    rMaterialValues.SetShapeFunctionsDerivatives( rValues.GetShapeFunctionsDerivatives() );
+    rMaterialValues.SetShapeFunctionsValues(rValues.GetShapeFunctionsValues());
+    rMaterialValues.SetShapeFunctionsDerivatives(rValues.GetShapeFunctionsDerivatives());
 
-    rMaterialValues.SetProcessInfo( rValues.GetProcessInfo() );
-    rMaterialValues.SetElementGeometry( rValues.GetElementGeometry() );
-    rMaterialValues.SetMaterialProperties( rValues.GetMaterialProperties() );
+    rMaterialValues.SetProcessInfo(rValues.GetProcessInfo());
+    rMaterialValues.SetElementGeometry(rValues.GetElementGeometry());
+    rMaterialValues.SetMaterialProperties(rValues.GetMaterialProperties());
 
     // initialize the general variables container
 
@@ -895,8 +860,7 @@ void ShellCrossSection::InitializeParameters(SectionParameters& rValues, Constit
     rVariables.StressVector_2D.resize(3, false);
     rVariables.ConstitutiveMatrix_2D.resize(3,3, false);
 
-    if(mNeedsOOPCondensation) // avoid useless allocations
-    {
+    if (mNeedsOOPCondensation) { // avoid useless allocations
         rVariables.DeformationGradientF_3D = IdentityMatrix(3);
         rVariables.DeformationGradientF0_3D = IdentityMatrix(3);
         rVariables.StrainVector_3D.resize(6, false);
@@ -916,8 +880,8 @@ void ShellCrossSection::InitializeParameters(SectionParameters& rValues, Constit
     // they will be integrated
     int strain_size = GetStrainSize();
     int condensed_strain_size = GetCondensedStrainSize();
-    noalias( rValues.GetGeneralizedStressVector() ) = ZeroVector(strain_size);
-    noalias( rValues.GetConstitutiveMatrix() ) = ZeroMatrix(strain_size, strain_size);
+    noalias(rValues.GetGeneralizedStressVector()) = ZeroVector(strain_size);
+    noalias(rValues.GetConstitutiveMatrix()) = ZeroMatrix(strain_size, strain_size);
     rVariables.CondensedStressVector = ZeroVector(condensed_strain_size);
     rVariables.H = ZeroMatrix(condensed_strain_size, condensed_strain_size);
     rVariables.L = ZeroMatrix(strain_size, condensed_strain_size);
@@ -926,8 +890,7 @@ void ShellCrossSection::InitializeParameters(SectionParameters& rValues, Constit
 
 void ShellCrossSection::UpdateIntegrationPointParameters(const IntegrationPoint& rPoint, ConstitutiveLaw::Parameters& rMaterialValues, GeneralVariables& rVariables)
 {
-    if(rPoint.GetConstitutiveLaw()->GetStrainSize() == 3)
-    {
+    if (rPoint.GetConstitutiveLaw()->GetStrainSize() == 3) {
         // use 2D matrices and vectors
         rMaterialValues.SetStrainVector(rVariables.StrainVector_2D);
         rMaterialValues.SetStressVector(rVariables.StressVector_2D);
@@ -935,31 +898,23 @@ void ShellCrossSection::UpdateIntegrationPointParameters(const IntegrationPoint&
         rMaterialValues.SetDeterminantF(rVariables.DeterminantF);
         rMaterialValues.SetDeformationGradientF(rVariables.DeformationGradientF_2D);
 
-        if(mBehavior == Thick)
-        {
+        if (mBehavior == Thick) {
             // get elastic data for the trasverse shear part (treated elastically)
             const Properties& props = rMaterialValues.GetMaterialProperties();
-            if(props.Has(SHELL_ORTHOTROPIC_LAYERS))
-            {
+            if (props.Has(SHELL_ORTHOTROPIC_LAYERS)) {
                 rVariables.GXZ = props[SHELL_ORTHOTROPIC_LAYERS](0,5);
                 rVariables.GYZ = props[SHELL_ORTHOTROPIC_LAYERS](0,6);
-            }
-            else if(props.Has(YOUNG_MODULUS) && props.Has(POISSON_RATIO))
-            {
+            } else if (props.Has(YOUNG_MODULUS) && props.Has(POISSON_RATIO)) {
                 double giso = props[YOUNG_MODULUS] / (2.0 * (1.0 + props[POISSON_RATIO]));
                 rVariables.GYZ = giso;
                 rVariables.GXZ = giso;
-            }
-            else
-            {
+            } else {
                 KRATOS_ERROR << "This should NEVER happen, something went wrong!" << std::endl;
                 rVariables.GYZ = 0.0;
                 rVariables.GXZ = 0.0;
             }
         }
-    }
-    else // 6
-    {
+    } else { // 6
         // use 3D matrices and vectors
         rMaterialValues.SetStrainVector(rVariables.StrainVector_3D);
         rMaterialValues.SetStressVector(rVariables.StressVector_3D);
@@ -970,11 +925,11 @@ void ShellCrossSection::UpdateIntegrationPointParameters(const IntegrationPoint&
 }
 
 void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint& rPoint,
-    ConstitutiveLaw::Parameters& rMaterialValues,
-    SectionParameters& rValues,
-    GeneralVariables& rVariables,
-    const ConstitutiveLaw::StressMeasure& rStressMeasure,
-    const unsigned int& plyNumber)
+        ConstitutiveLaw::Parameters& rMaterialValues,
+        SectionParameters& rValues,
+        GeneralVariables& rVariables,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure,
+        const unsigned int& plyNumber)
 {
     // get some data/references...
 
@@ -989,7 +944,7 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
     Vector& generalizedStressVector       = rValues.GetGeneralizedStressVector();
     Matrix& sectionConstitutiveMatrix     = rValues.GetConstitutiveMatrix();
 
-	double stenbergShearStabilization = rValues.GetStenbergShearStabilization();
+    double stenbergShearStabilization = rValues.GetStenbergShearStabilization();
 
     Vector& materialStrainVector       = rMaterialValues.GetStrainVector();
     Vector& materialStressVector       = rMaterialValues.GetStressVector();
@@ -1015,25 +970,19 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
 
     // calculate the material strain vector.
 
-    if(material_strain_size == 3) // plane-stress case
-    {
+    if (material_strain_size == 3) { // plane-stress case
         materialStrainVector(0) = generalizedStrainVector(0) + z * generalizedStrainVector(3); //  e.xx
         materialStrainVector(1) = generalizedStrainVector(1) + z * generalizedStrainVector(4); //  e.yy
         materialStrainVector(2) = generalizedStrainVector(2) + z * generalizedStrainVector(5); //  e.xy
-    }
-    else // full 3D case
-    {
+    } else { // full 3D case
         materialStrainVector(0) = generalizedStrainVector(0) + z * generalizedStrainVector(3);	//  e.xx
         materialStrainVector(1) = generalizedStrainVector(1) + z * generalizedStrainVector(4);	//  e.yy
         materialStrainVector(2) = mOOP_CondensedStrains(0);										//  e.zz (condensed)
         materialStrainVector(3) = generalizedStrainVector(2) + z * generalizedStrainVector(5);	//  e.xy
-        if(mBehavior == Thick)
-        {
+        if (mBehavior == Thick) {
             materialStrainVector(4) = ce * generalizedStrainVector(6);							// 2e.yz
             materialStrainVector(5) = ce * generalizedStrainVector(7);							// 2e.xz
-        }
-        else // Thin
-        {
+        } else { // Thin
             materialStrainVector(4) = ce * mOOP_CondensedStrains(1);							// 2e.yz (condensed)
             materialStrainVector(5) = ce * mOOP_CondensedStrains(2);							// 2e.xz (condensed)
         }
@@ -1042,16 +991,13 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
     // calculate the deformation gradient
     // here we consider F* = R'*F = U -> approx -> I + eps
 
-    if(material_strain_size == 3)
-    {
+    if (material_strain_size == 3) {
         Matrix& F = rVariables.DeformationGradientF_2D;
         F(0, 0) = materialStrainVector(0) + 1.0;
         F(1, 1) = materialStrainVector(1) + 1.0;
         F(0, 1) = F(1, 0) = materialStrainVector(2) * 0.5;
         rVariables.DeterminantF = MathUtils<double>::Det2(F);
-    }
-    else // 6
-    {
+    } else { // 6
         Matrix& F = rVariables.DeformationGradientF_3D;
         F(0, 0) = materialStrainVector(0) + 1.0; // xx
         F(1, 1) = materialStrainVector(1) + 1.0; // yy
@@ -1068,25 +1014,20 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
 
     // compute stress resultants and stress couples
 
-    if(compute_stress)
-    {
-        if(material_strain_size == 3) // plane-stress case
-        {
+    if (compute_stress) {
+        if (material_strain_size == 3) { // plane-stress case
             generalizedStressVector(0) += h * materialStressVector(0);			// N.xx
             generalizedStressVector(1) += h * materialStressVector(1);			// N.yy
             generalizedStressVector(2) += h * materialStressVector(2);			// N.xy
             generalizedStressVector(3) += h * z * materialStressVector(0);		// M.xx
             generalizedStressVector(4) += h * z * materialStressVector(1);		// M.yy
             generalizedStressVector(5) += h * z * materialStressVector(2);		// M.xy
-            if(mBehavior == Thick)
-            {
+            if (mBehavior == Thick) {
                 // here the transverse shear is treated elastically
                 generalizedStressVector(6) += cs * h * rVariables.GYZ * ce * generalizedStrainVector(6) * stenbergShearStabilization;		// V.yz
                 generalizedStressVector(7) += cs * h * rVariables.GXZ * ce * generalizedStrainVector(7)* stenbergShearStabilization;		// V.xz
             }
-        }
-        else // full 3D case
-        {
+        } else { // full 3D case
             generalizedStressVector(0) += h * materialStressVector(0);			// N.xx
             generalizedStressVector(1) += h * materialStressVector(1);			// N.yy
             condensedStressVector(0)   += h * materialStressVector(2);			// N.zz (condensed - should be 0 after integration)
@@ -1094,13 +1035,10 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
             generalizedStressVector(3) += h * z * materialStressVector(0);		// M.xx
             generalizedStressVector(4) += h * z * materialStressVector(1);		// M.yy
             generalizedStressVector(5) += h * z * materialStressVector(3);		// M.xy
-            if(mBehavior == Thick)
-            {
+            if (mBehavior == Thick) {
                 generalizedStressVector(6) += cs * h * materialStressVector(4);		// V.yz
                 generalizedStressVector(7) += cs * h * materialStressVector(5);		// V.xz
-            }
-            else // Thin
-            {
+            } else { // Thin
                 condensedStressVector(1) += cs * h * materialStressVector(4);		// V.yz (condensed - should be 0 after integration)
                 condensedStressVector(2) += cs * h * materialStressVector(5);		// V.xz (condensed - should be 0 after integration)
             }
@@ -1109,13 +1047,11 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
 
     // compute the section tangent matrix
 
-    if(compute_constitutive_tensor)
-    {
-        Matrix & C = materialConstitutiveMatrix;
-        Matrix & D = sectionConstitutiveMatrix;
+    if (compute_constitutive_tensor) {
+        Matrix& C = materialConstitutiveMatrix;
+        Matrix& D = sectionConstitutiveMatrix;
 
-        if(material_strain_size == 3) // plane-stress case
-        {
+        if (material_strain_size == 3) { // plane-stress case
             // membrane part
             D(0,0) += h*C(0,0);
             D(0,1) += h*C(0,1);
@@ -1160,32 +1096,25 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
             D(5,1) += h*z*C(2,1);
             D(5,2) += h*z*C(2,2);
 
-            if(mBehavior == Thick)
-            {
+            if (mBehavior == Thick) {
                 // here the transverse shear is treated elastically
                 D(6, 6) += h * cs * ce * rVariables.GYZ*stenbergShearStabilization;
-				D(7, 7) += h * cs * ce * rVariables.GXZ*stenbergShearStabilization;
+                D(7, 7) += h * cs * ce * rVariables.GXZ*stenbergShearStabilization;
             }
 
-            if(mStorePlyConstitutiveMatrices)
-            {
-                for(unsigned int i = 0; i < 3; i++)
-                {
-                    for(unsigned int j = 0; j < 3; j++)
-                    {
+            if (mStorePlyConstitutiveMatrices) {
+                for (unsigned int i = 0; i < 3; i++) {
+                    for (unsigned int j = 0; j < 3; j++) {
                         mPlyConstitutiveMatrices[plyNumber](i, j) = 1.0*C(i, j);
                     }
                 }
-                if(mBehavior == Thick)
-                {
+                if (mBehavior == Thick) {
                     // include transverse moduli and add in shear stabilization
                     mPlyConstitutiveMatrices[plyNumber](6, 6) = cs * ce * rVariables.GYZ *stenbergShearStabilization;
                     mPlyConstitutiveMatrices[plyNumber](7, 7) = cs * ce * rVariables.GXZ *stenbergShearStabilization;
                 }
             }
-        }
-        else // full 3D case
-        {
+        } else { // full 3D case
             // membrane part
             D(0,0) += h*C(0,0);
             D(0,1) += h*C(0,1);
@@ -1230,8 +1159,7 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
             D(5,1) += h*z*C(3,1);
             D(5,2) += h*z*C(3,3);
 
-            if(mBehavior == Thick)
-            {
+            if (mBehavior == Thick) {
                 // membrane-shear part
                 D(0,6) += ce*h*C(0, 4);
                 D(0,7) += ce*h*C(0, 5);
@@ -1291,9 +1219,7 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
                 L(5,0) +=  h*z*C(3, 2);
                 L(6,0) += cs*h*C(4, 2);
                 L(7,0) += cs*h*C(5, 2);
-            }
-            else
-            {
+            } else {
                 // matrices for static condensation
 
                 H(0,0) +=    h*C(2, 2);
@@ -1348,10 +1274,9 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
     }
 }
 
-void ShellCrossSection::PrivateCopy(const ShellCrossSection & other)
+void ShellCrossSection::PrivateCopy(const ShellCrossSection& other)
 {
-    if(this != &other)
-    {
+    if (this != &other) {
         mStack = other.mStack;
         mEditingStack = other.mEditingStack;
         mHasDrillingPenalty = other.mHasDrillingPenalty;
@@ -1372,8 +1297,9 @@ void ShellCrossSection::Ply::RecoverOrthotropicProperties(const IndexType IdxCur
 
     Matrix current_ply_properties = ZeroMatrix(1,7);
 
-    for (IndexType i=0; i<7; ++i)
+    for (IndexType i=0; i<7; ++i) {
         current_ply_properties(0,i) = laminaProps[SHELL_ORTHOTROPIC_LAYERS](IdxCurrentPly, i+2);
+    }
 
     laminaProps[SHELL_ORTHOTROPIC_LAYERS] = current_ply_properties;
 }

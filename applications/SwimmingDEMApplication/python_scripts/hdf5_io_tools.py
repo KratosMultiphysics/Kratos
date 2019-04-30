@@ -1,10 +1,9 @@
 import bisect as bi
 import numpy as np
 import h5py
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
-from DEM_procedures import KratosPrint as Say
+import KratosMultiphysics as Kratos
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
+from DEM_procedures import KratosPrintInfo as Say
 import json
 
 def DeleteDataSet(file_or_group, dset_name):
@@ -44,21 +43,20 @@ def Index():
 
 class FluidHDF5Loader:
 
-    def __init__(self, fluid_model_part, particles_model_part, pp, main_path):
+    def __init__(self, project_parameters, fluid_model_part, particles_model_part, main_path):
         self.n_nodes = len(fluid_model_part.Nodes)
         self.shape = (self.n_nodes,)
-        self.store_pressure = pp.CFD_DEM["store_fluid_pressure_option"].GetBool()
-        self.store_gradient = pp.CFD_DEM["store_full_gradient_option"].GetBool()
-        self.load_derivatives = pp.CFD_DEM["load_derivatives"].GetBool()
+        self.store_pressure = project_parameters["store_fluid_pressure_option"].GetBool()
+        self.store_gradient = project_parameters["store_full_gradient_option"].GetBool()
+        self.load_derivatives = project_parameters["load_derivatives"].GetBool()
         self.there_are_more_steps_to_load = True
         self.main_path = main_path
-        self.pp = pp
         self.fluid_model_part = fluid_model_part
         self.disperse_phase_model_part = particles_model_part
 
         number_of_variables = 3
 
-        if pp.CFD_DEM["store_fluid_pressure_option"].GetBool():
+        if project_parameters["store_fluid_pressure_option"].GetBool():
             number_of_variables += 1
         if self.load_derivatives or self.store_gradient:
             number_of_variables += 9
@@ -67,7 +65,7 @@ class FluidHDF5Loader:
         self.file_name = self.GetFileName()
         self.file_path = main_path + self.file_name
 
-        if pp.CFD_DEM["fluid_already_calculated"].GetBool():
+        if project_parameters["custom_fluid"]["fluid_already_calculated"].GetBool():
 
             with h5py.File(self.file_path, 'r') as f:
                 nodes_ids = np.array([node_id for node_id in f['nodes'][:, 0]])
@@ -83,26 +81,27 @@ class FluidHDF5Loader:
             viscosity = 1e-6
             density = 1000. # BIG TODO: READ THIS FROM NODES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             for node in self.fluid_model_part.Nodes:
-                node.SetSolutionStepValue(VISCOSITY, viscosity)
-                node.SetSolutionStepValue(DENSITY, density)
+                node.SetSolutionStepValue(Kratos.VISCOSITY, viscosity)
+                node.SetSolutionStepValue(Kratos.DENSITY, density)
         else:
             self.dtype = np.float64
-            if pp.CFD_DEM["store_fluid_in_single_precision"].GetBool():
+            if project_parameters["store_fluid_in_single_precision"].GetBool():
                 self.dtype = np.float32
 
             self.compression_type = 'gzip'
             for node in self.fluid_model_part.Nodes:
-                viscosity = node.GetSolutionStepValue(VISCOSITY)
-                density = node.GetSolutionStepValue(DENSITY)
+                viscosity = node.GetSolutionStepValue(Kratos.VISCOSITY)
+                density = node.GetSolutionStepValue(Kratos.DENSITY)
                 break
 
             with h5py.File(self.file_path, 'w') as f:
                 f.attrs['kinematic viscosity'] = viscosity
-                f.attrs['time step'] = pp.Dt
+                f.attrs['time step'] = project_parameters.Dt
                 f.attrs['density'] = density
-                f.attrs['solver type'] = pp.FluidSolverConfiguration.solver_type
-                f.attrs['linear system solver type'] = pp.FluidSolverConfiguration.linear_solver_config.solver_type
-                f.attrs['use orthogonal subscales'] = bool(pp.FluidSolverConfiguration.oss_switch)
+                solver_settings = project_parameters["fluid_parameters"]["solver_settings"]
+                f.attrs['solver type'] = solver_settings["solver_type"].GetString()
+                f.attrs['linear system solver type'] = solver_settings["linear_solver_settings"]["solver_type"].GetString()
+                f.attrs['use orthogonal subscales'] = False
                 nodes = np.array([(node.Id, node.X, node.Y, node.Z) for node in fluid_model_part.Nodes])
                 f.create_dataset(name = 'nodes', compression = self.compression_type, data = nodes, dtype = np.float64)
 
@@ -111,7 +110,7 @@ class FluidHDF5Loader:
         self.current_data_array = np.zeros(self.extended_shape)
 
     def GetFileName(self):
-        return self.pp.CFD_DEM.AddEmptyValue("prerun_fluid_file_name").GetString()
+        return self.project_parameters.AddEmptyValue("prerun_fluid_file_name").GetString()
 
     def CheckTimes(self, hdf5_file):
         self.times_str = list([str(key) for key in hdf5_file.keys() if 'time' in hdf5_file['/' + key].attrs])
@@ -147,11 +146,11 @@ class FluidHDF5Loader:
         with h5py.File(self.file_path, 'r+') as f:
             f.create_dataset(name, compression = self.compression_type, shape = self.shape, dtype = self.dtype)
             for i_node, node in enumerate(self.fluid_model_part.Nodes):
-                self.current_data_array[i_node, variable_index_in_temp_array] = node.GetSolutionStepValue(variable)
+                self.current_data_array[i_node, variable_index_in_temp_array] = node.GetSolutionStepValue(Kratos.variable)
             f[name][:] = self.current_data_array[:, variable_index_in_temp_array]
 
     def FillFluidDataStep(self):
-        time = self.fluid_model_part.ProcessInfo[TIME]
+        time = self.fluid_model_part.ProcessInfo[Kratos.TIME]
         name = str(time)
         with h5py.File(self.file_path) as f:
             f.create_group(name = name)
@@ -159,23 +158,23 @@ class FluidHDF5Loader:
 
         index = Index()
         if not self.last_time == time:
-            self.FillUpSingleDataset(name + '/vx', VELOCITY_X, next(index))
-            self.FillUpSingleDataset(name + '/vy', VELOCITY_Y, next(index))
-            self.FillUpSingleDataset(name + '/vz', VELOCITY_Z, next(index))
+            self.FillUpSingleDataset(name + '/vx', Kratos.VELOCITY_X, next(index))
+            self.FillUpSingleDataset(name + '/vy', Kratos.VELOCITY_Y, next(index))
+            self.FillUpSingleDataset(name + '/vz', Kratos.VELOCITY_Z, next(index))
 
             if self.store_pressure:
-                self.FillUpSingleDataset(name + '/p', PRESSURE, next(index))
+                self.FillUpSingleDataset(name + '/p', Kratos.PRESSURE, next(index))
 
         if self.store_gradient:
-            self.FillUpSingleDataset(name + '/dvxx', VELOCITY_X_GRADIENT_X, next(index))
-            self.FillUpSingleDataset(name + '/dvxy', VELOCITY_X_GRADIENT_Y, next(index))
-            self.FillUpSingleDataset(name + '/dvxz', VELOCITY_X_GRADIENT_Z, next(index))
-            self.FillUpSingleDataset(name + '/dvyx', VELOCITY_Y_GRADIENT_X, next(index))
-            self.FillUpSingleDataset(name + '/dvyy', VELOCITY_Y_GRADIENT_Y, next(index))
-            self.FillUpSingleDataset(name + '/dvyz', VELOCITY_Y_GRADIENT_Z, next(index))
-            self.FillUpSingleDataset(name + '/dvzx', VELOCITY_Z_GRADIENT_X, next(index))
-            self.FillUpSingleDataset(name + '/dvzy', VELOCITY_Z_GRADIENT_Y, next(index))
-            self.FillUpSingleDataset(name + '/dvzz', VELOCITY_Z_GRADIENT_Z, next(index))
+            self.FillUpSingleDataset(name + '/dvxx', Kratos.VELOCITY_X_GRADIENT_X, next(index))
+            self.FillUpSingleDataset(name + '/dvxy', Kratos.VELOCITY_X_GRADIENT_Y, next(index))
+            self.FillUpSingleDataset(name + '/dvxz', Kratos.VELOCITY_X_GRADIENT_Z, next(index))
+            self.FillUpSingleDataset(name + '/dvyx', Kratos.VELOCITY_Y_GRADIENT_X, next(index))
+            self.FillUpSingleDataset(name + '/dvyy', Kratos.VELOCITY_Y_GRADIENT_Y, next(index))
+            self.FillUpSingleDataset(name + '/dvyz', Kratos.VELOCITY_Y_GRADIENT_Z, next(index))
+            self.FillUpSingleDataset(name + '/dvzx', Kratos.VELOCITY_Z_GRADIENT_X, next(index))
+            self.FillUpSingleDataset(name + '/dvzy', Kratos.VELOCITY_Z_GRADIENT_Y, next(index))
+            self.FillUpSingleDataset(name + '/dvzz', Kratos.VELOCITY_Z_GRADIENT_Z, next(index))
 
         self.last_time = time
 
@@ -207,7 +206,7 @@ class FluidHDF5Loader:
           + alpha_future * self.data_array_future[:, variable_index])
 
         for i, node in enumerate(self.fluid_model_part.Nodes):
-            node.SetSolutionStepValue(variable, self.current_data_array[i, variable_index])
+            node.SetSolutionStepValue(Kratos.variable, self.current_data_array[i, variable_index])
 
     def GetDatasetName(self, time_index_future):
         return self.times_str[time_index_future]
@@ -224,23 +223,23 @@ class FluidHDF5Loader:
             self.data_array_past, self.data_array_future = self.data_array_future, self.data_array_past
 
         index = Index()
-        self.UpdateFluidVariable(future_step_dataset_name + '/vx', VELOCITY_X, next(index), must_load_from_database, alpha_past, alpha_future)
-        self.UpdateFluidVariable(future_step_dataset_name + '/vy', VELOCITY_Y, next(index), must_load_from_database, alpha_past, alpha_future)
-        self.UpdateFluidVariable(future_step_dataset_name + '/vz', VELOCITY_Z, next(index), must_load_from_database, alpha_past, alpha_future)
+        self.UpdateFluidVariable(future_step_dataset_name + '/vx', Kratos.VELOCITY_X, next(index), must_load_from_database, alpha_past, alpha_future)
+        self.UpdateFluidVariable(future_step_dataset_name + '/vy', Kratos.VELOCITY_Y, next(index), must_load_from_database, alpha_past, alpha_future)
+        self.UpdateFluidVariable(future_step_dataset_name + '/vz', Kratos.VELOCITY_Z, next(index), must_load_from_database, alpha_past, alpha_future)
 
         if self.store_pressure:
-            self.UpdateFluidVariable(future_step_dataset_name + '/p', PRESSURE, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/p', Kratos.PRESSURE, next(index), must_load_from_database, alpha_past, alpha_future)
 
         if self.load_derivatives:
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvxx', VELOCITY_X_GRADIENT_X, next(index), must_load_from_database, alpha_past, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvxy', VELOCITY_X_GRADIENT_Y, next(index), must_load_from_database, alpha_past, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvxz', VELOCITY_X_GRADIENT_Z, next(index), must_load_from_database, alpha_past, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvyx', VELOCITY_Y_GRADIENT_X, next(index), must_load_from_database, alpha_past, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvyy', VELOCITY_Y_GRADIENT_Y, next(index), must_load_from_database, alpha_past, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvyz', VELOCITY_Y_GRADIENT_Z, next(index), must_load_from_database, alpha_past, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvzx', VELOCITY_Z_GRADIENT_X, next(index), must_load_from_database, alpha_past, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvzy', VELOCITY_Z_GRADIENT_Y, next(index), must_load_from_database, alpha_past, alpha_future)
-            self.UpdateFluidVariable(future_step_dataset_name + '/dvzz', VELOCITY_Z_GRADIENT_Z, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvxx', Kratos.VELOCITY_X_GRADIENT_X, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvxy', Kratos.VELOCITY_X_GRADIENT_Y, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvxz', Kratos.VELOCITY_X_GRADIENT_Z, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvyx', Kratos.VELOCITY_Y_GRADIENT_X, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvyy', Kratos.VELOCITY_Y_GRADIENT_Y, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvyz', Kratos.VELOCITY_Y_GRADIENT_Z, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvzx', Kratos.VELOCITY_Z_GRADIENT_X, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvzy', Kratos.VELOCITY_Z_GRADIENT_Y, next(index), must_load_from_database, alpha_past, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvzz', Kratos.VELOCITY_Z_GRADIENT_Z, next(index), must_load_from_database, alpha_past, alpha_future)
 
         if self.time_index_past == - 1: # it is the first upload
             self.data_array_past[:] = self.data_array_future[:]
@@ -251,25 +250,25 @@ class FluidHDF5Loader:
         Say('Finished loading fluid from hdf5 file.\n')
 
 class ParticleHistoryLoader:
-    def __init__(self, particles_model_part, particle_watcher, pp, main_path):
-        self.pp = pp
+    def __init__(self, parameters, particles_model_part, particle_watcher, main_path):
+        self.parameters = parameters
         self.model_part = particles_model_part
         self.particle_watcher = particle_watcher
         self.main_path = main_path
         self.particles_list_file_name = self.main_path + '/all_particles.hdf5'
-        self.prerun_fluid_file_name = pp.CFD_DEM.AddEmptyValue("prerun_fluid_file_name").GetString()
+        self.prerun_fluid_file_name = parameters.AddEmptyValue("prerun_fluid_file_name").GetString()
 
         self.CreateAllParticlesFileIfNecessary()
         self.run_code = None
 
     def CreateAllParticlesFileIfNecessary(self):
-        if not self.pp.CFD_DEM["full_particle_history_watcher"].GetString() == 'Empty':
-            nodes = [node for node in self.model_part.Nodes if node.IsNot(BLOCKED)]
+        if not self.parameters["full_particle_history_watcher"].GetString() == 'Empty':
+            nodes = [node for node in self.model_part.Nodes if node.IsNot(Kratos.BLOCKED)]
             Ids = np.array([node.Id for node in nodes], dtype = int)
             X0s = np.array([node.X0 for node in nodes])
             Y0s = np.array([node.Y0 for node in nodes])
             Z0s = np.array([node.Z0 for node in nodes])
-            radii = np.array([node.GetSolutionStepValue(RADIUS) for node in nodes])
+            radii = np.array([node.GetSolutionStepValue(Kratos.RADIUS) for node in nodes])
             times = np.array([0.0 for node in nodes])
 
             with h5py.File(self.particles_list_file_name, 'w') as f:
@@ -295,12 +294,12 @@ class ParticleHistoryLoader:
     # This function records the particles initial positions in an hdf5 file.
     # It records both the particles that fall within an input bounding box
     # and all the particles in the model part.
-    def RecordParticlesInBox(self, bounding_box = BoundingBoxRule()):
+    def RecordParticlesInBox(self, bounding_box = SDEM.BoundingBoxRule()):
         self.bounding_box = bounding_box
-        time = self.model_part.ProcessInfo[TIME]
+        time = self.model_part.ProcessInfo[Kratos.TIME]
 
         def IsInside(node):
-            is_a_particle = node.IsNot(BLOCKED)
+            is_a_particle = node.IsNot(Kratos.BLOCKED)
             is_inside = self.bounding_box.CheckIfRuleIsMet(time, node.X, node.Y, node.Z)
             return is_a_particle and is_inside
 
@@ -309,7 +308,7 @@ class ParticleHistoryLoader:
         X0s_inside = np.array([node.X0 for node in nodes_inside])
         Y0s_inside = np.array([node.Y0 for node in nodes_inside])
         Z0s_inside = np.array([node.Z0 for node in nodes_inside])
-        radii_inside = np.array([node.GetSolutionStepValue(RADIUS) for node in nodes_inside])
+        radii_inside = np.array([node.GetSolutionStepValue(Kratos.RADIUS) for node in nodes_inside])
 
         if len(radii_inside):
             mean_radius = sum(radii_inside) / len(radii_inside)
@@ -329,7 +328,7 @@ class ParticleHistoryLoader:
             snapshot.attrs['particles_nondimensional_radius'] = mean_radius
             # storing the input parameters for this run, the one corresponding
             # to the current pre-calculated fluid
-            for k, v in ((k, v) for k, v in json.loads(self.pp.CFD_DEM.WriteJsonString()).items() if 'comment' not in k):
+            for k, v in ((k, v) for k, v in json.loads(self.parameters.WriteJsonString()).items() if 'comment' not in k):
                 snapshot.attrs[k] = v
 
             names = ['Id', 'X0', 'Y0', 'Z0', 'RADIUS']

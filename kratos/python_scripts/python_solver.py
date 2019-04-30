@@ -121,7 +121,7 @@ class PythonSolver(object):
         warning_msg  = 'Using "Solve" is deprecated and will be removed in the future!\n'
         warning_msg += 'Use the separate calls to "Initialize", "InitializeSolutionStep", "Predict", '
         warning_msg += '"SolveSolutionStep" and "FinalizeSolutionStep"'
-        self.print_warning_on_rank_zero("::[PythonSolver]::", warning_msg)
+        KratosMultiphysics.Logger.PrintWarning("::[PythonSolver]::", warning_msg)
         self.Initialize()
         self.InitializeSolutionStep()
         self.Predict()
@@ -134,7 +134,7 @@ class PythonSolver(object):
     def _ImportModelPart(self, model_part, model_part_import_settings):
         """This function imports the ModelPart
         """
-        self.print_on_rank_zero("::[PythonSolver]::", "Reading model part.")
+        KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part.")
         input_type = model_part_import_settings["input_type"].GetString()
 
         if (input_type == "mdpa"):
@@ -153,7 +153,7 @@ class PythonSolver(object):
                 import_flags = KratosMultiphysics.ModelPartIO.SKIP_TIMER|import_flags
 
             # Import model part from mdpa file.
-            self.print_on_rank_zero("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
             if (model_part_import_settings.Has("reorder_consecutive") and model_part_import_settings["reorder_consecutive"].GetBool()):
                 KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename, import_flags).ReadModelPart(model_part)
             else:
@@ -162,13 +162,13 @@ class PythonSolver(object):
             if (model_part_import_settings.Has("reorder") and model_part_import_settings["reorder"].GetBool()):
                 tmp = KratosMultiphysics.Parameters("{}")
                 KratosMultiphysics.ReorderAndOptimizeModelPartProcess(model_part, tmp).Execute()
-            self.print_on_rank_zero("::[PythonSolver]::", "Finished reading model part from mdpa file.")
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading model part from mdpa file.")
 
         elif (input_type == "rest"):
-            self.print_on_rank_zero("::[PythonSolver]::", "Loading model part from restart file.")
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
             from restart_utility import RestartUtility
             RestartUtility(model_part, self._GetRestartSettings(model_part_import_settings)).LoadRestart()
-            self.print_on_rank_zero("::[PythonSolver]::", "Finished loading model part from restart file.")
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished loading model part from restart file.")
 
         elif(input_type == "use_input_model_part"):
             pass
@@ -176,8 +176,8 @@ class PythonSolver(object):
         else:
             raise Exception("Other model part input options are not yet implemented.")
 
-        self.print_on_rank_zero("ModelPart", model_part)
-        self.print_on_rank_zero("::[PythonSolver]:: ", "Finished reading model part.")
+        KratosMultiphysics.Logger.PrintInfo("ModelPart", model_part)
+        KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]:: ", "Finished reading model part.")
 
     def _GetRestartSettings(self, model_part_import_settings):
         restart_settings = model_part_import_settings.Clone()
@@ -192,10 +192,14 @@ class PythonSolver(object):
     #### Auxiliar functions ####
 
     def print_on_rank_zero(self, *args):
+        from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+        IssueDeprecationWarning('PythonSolver', '"print_on_rank_zero" is deprecated, please use the Logger directly')
         # This function will be overridden in the trilinos-solvers
         KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
 
     def print_warning_on_rank_zero(self, *args):
+        from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+        IssueDeprecationWarning('PythonSolver', '"print_warning_on_rank_zero" is deprecated, please use the Logger directly')
         # This function will be overridden in the trilinos-solvers
         KratosMultiphysics.Logger.PrintWarning(" ".join(map(str,args)))
 
