@@ -77,20 +77,76 @@ public:
 
     void CleanTriangulationDataStructure( triangulateio& tr )
     {
-        if(tr.pointlist != NULL) free(tr.pointlist);
-        if(tr.pointattributelist != NULL) free(tr.pointattributelist);
-        if(tr.pointmarkerlist != NULL) free(tr.pointmarkerlist);
-        if(tr.trianglelist != NULL) free(tr.trianglelist);
-        if(tr.triangleattributelist != NULL) free(tr.triangleattributelist);
-        if(tr.trianglearealist != NULL) free(tr.trianglearealist);
-        if(tr.neighborlist != NULL) free(tr.neighborlist);
-        if(tr.segmentlist != NULL) free(tr.segmentlist);
-        if(tr.segmentmarkerlist != NULL) free(tr.segmentmarkerlist);
-        //if(tr.holelist != NULL) free(tr.holelist);
-        if(tr.regionlist != NULL) free(tr.regionlist);
-        if(tr.edgelist != NULL) free(tr.edgelist);
-        if(tr.edgemarkerlist != NULL) free(tr.edgemarkerlist);
-        if(tr.normlist != NULL) free(tr.normlist);
+        if(tr.pointlist != NULL) 
+        {
+            free(tr.pointlist);
+            tr.pointlist = nullptr; 
+        }
+        if(tr.pointattributelist != NULL) 
+        {
+            free(tr.pointattributelist);
+            tr.pointattributelist = nullptr;
+        }
+        if(tr.pointmarkerlist != NULL) 
+        {
+            free(tr.pointmarkerlist);
+            tr.pointmarkerlist = nullptr; 
+        }
+        if(tr.trianglelist != NULL)
+        {
+            free(tr.trianglelist);
+            tr.trianglelist = nullptr; 
+        } 
+        if(tr.triangleattributelist != NULL) 
+        {
+            free(tr.triangleattributelist);
+            tr.triangleattributelist = nullptr; 
+        }
+        if(tr.trianglearealist != NULL) 
+        {
+            free(tr.trianglearealist);
+            tr.trianglearealist = nullptr; 
+        }
+        if(tr.neighborlist != NULL) 
+        {
+            free(tr.neighborlist);
+            tr.neighborlist = nullptr; 
+        }
+        if(tr.segmentlist != NULL) 
+        {
+            free(tr.segmentlist);
+            tr.segmentlist = nullptr; 
+        }
+        if(tr.segmentmarkerlist != NULL) 
+        {
+            free(tr.segmentmarkerlist);
+            tr.segmentmarkerlist = nullptr; 
+        }
+        if(tr.holelist != NULL) 
+        {
+            free(tr.holelist);
+            tr.holelist = nullptr; 
+        }
+        if(tr.regionlist != NULL) 
+        {
+            free(tr.regionlist);
+            tr.regionlist = nullptr; 
+        }
+        if(tr.edgelist != NULL)    
+        {
+            free(tr.edgelist);
+            tr.edgelist = nullptr; 
+        }
+        if(tr.edgemarkerlist != NULL) 
+        {
+            free(tr.edgemarkerlist);
+            tr.edgemarkerlist = nullptr; 
+        }
+        if(tr.normlist != NULL) 
+        {
+            free(tr.normlist);
+            tr.normlist = nullptr; 
+        }
     };
 
     ///@}

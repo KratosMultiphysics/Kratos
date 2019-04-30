@@ -223,6 +223,12 @@ void EmbeddedIgaTriangulation::CreateTriangulation(
         KRATOS_INFO_IF("EMBEDDED_IGA", mEchoLevel >= 1) << "Iteration " << it << std::endl;
         KRATOS_INFO_IF("EMBEDDED_IGA", mEchoLevel >= 1) << "Area: " << max_area << " - max_error: " << max_error << std::endl;
         
+
+        // Triangle copies the pointer for the holelist from the in_data to the out_data
+        // In order to avoid the freeing of memory twice, which leads to an error the points will
+        // be deleted from the out_data and in_data cleans the memory fully. 
+        out_data.holelist = nullptr;
+        
         CleanTriangulationDataStructure(out_data); 
         CleanTriangulationDataStructure(vor_out_data); 
         
