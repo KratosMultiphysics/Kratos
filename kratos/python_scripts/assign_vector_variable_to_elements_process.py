@@ -7,10 +7,18 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignVectorVariableToElementProcess(Model, settings["Parameters"])
 
-import assign_vector_variable_to_entities_process
+from KratosMultiphysics import assign_vector_variable_to_entities_process
 
 ## All the processes python should be derived from "Process"
 class AssignVectorVariableToElementProcess(assign_vector_variable_to_entities_process.AssignVectorVariableToEntitiesProcess):
+    """ The default constructor of the class
+
+    Keyword arguments:
+    self -- It signifies an instance of a class.
+    Model -- the container of the different model parts.
+    settings -- Kratos parameters containing solver settings.
+    """
+
     def __init__(self, Model, settings ):
         """This process assigns a given value (vector) to the elements belonging a certain submodelpart
 

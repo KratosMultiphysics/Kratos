@@ -9,7 +9,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignVectorByDirectionToConditionProcess(Model, settings["Parameters"])
 
-import assign_vector_by_direction_to_entity_process
+from KratosMultiphysics import assign_vector_by_direction_to_entity_process
 
 ## All the processes python should be derived from "Process"
 class AssignVectorByDirectionToConditionProcess(assign_vector_by_direction_to_entity_process.AssignVectorByDirectionToEntityProcess):
@@ -30,8 +30,6 @@ class AssignVectorByDirectionToConditionProcess(assign_vector_by_direction_to_en
         Model -- the container of the different model parts.
         settings -- Kratos parameters containing solver settings.
         """
-
-        KratosMultiphysics.Process.__init__(self)
 
         #The value can be a double or a string (function)
         default_settings = KratosMultiphysics.Parameters("""

@@ -7,16 +7,24 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignScalarVariableToElementsProcess(Model, settings["Parameters"])
 
-import assign_scalar_variable_to_entities_process
+from KratosMultiphysics import assign_scalar_variable_to_entities_process
 
 ## All the processes python should be derived from "Process"
 class AssignScalarVariableToElementsProcess(assign_scalar_variable_to_entities_process.AssignScalarVariableToEntitiesProcess):
+    """This process sets a variable a certain scalar value in a given direction, for all the entities belonging to a submodelpart. Uses assign_scalar_variable_to_elements_process for each component
+
+    Only the member variables listed below should be accessed directly.
+
+    Public member variables:
+    Model -- the container of the different model parts.
+    settings -- Kratos parameters containing solver settings.
+    """
+
     def __init__(self, Model, settings ):
-        """This process sets a variable a certain scalar value in a given direction, for all the entities belonging to a submodelpart. Uses assign_scalar_variable_to_elements_process for each component
+        """ The default constructor of the class
 
-        Only the member variables listed below should be accessed directly.
-
-        Public member variables:
+        Keyword arguments:
+        self -- It signifies an instance of a class.
         Model -- the container of the different model parts.
         settings -- Kratos parameters containing solver settings.
         """

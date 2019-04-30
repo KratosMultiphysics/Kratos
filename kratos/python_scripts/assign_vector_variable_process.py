@@ -32,18 +32,18 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
-            {
-                "help"                 : "This process assigns a given value (vector) to the nodes belonging a certain submodelpart",
-                "mesh_id"              : 0,
-                "model_part_name"      : "please_specify_model_part_name",
-                "variable_name"        : "SPECIFY_VARIABLE_NAME",
-                "interval"             : [0.0, 1e30],
-                "value"                : [10.0, "3*t", "x+y"],
-                "constrained"          : [true,true,true],
-                "local_axes"           : {}
-            }
-            """
-            )
+        {
+            "help"                 : "This process assigns a given value (vector) to the nodes belonging a certain submodelpart",
+            "mesh_id"              : 0,
+            "model_part_name"      : "please_specify_model_part_name",
+            "variable_name"        : "SPECIFY_VARIABLE_NAME",
+            "interval"             : [0.0, 1e30],
+            "value"                : [10.0, "3*t", "x+y"],
+            "constrained"          : [true,true,true],
+            "local_axes"           : {}
+        }
+        """
+        )
         #example of admissible values for "value" : [10.0, "3*t", "x+y"]
 
         ## Trick to ensure that if someone sets constrained as a single bool, it is transformed to a vector
