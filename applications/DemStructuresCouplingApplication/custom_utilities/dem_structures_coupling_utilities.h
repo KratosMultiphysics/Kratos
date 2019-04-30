@@ -29,7 +29,7 @@
 #include "../../DEMApplication/custom_conditions/RigidFace.h"
 #include "../../DEMApplication/DEM_application_variables.h"
 #include "dem_structures_coupling_application_variables.h"
-
+#include "../../DEMApplication/custom_elements/spheric_continuum_particle.h"
 
 namespace Kratos
 {
@@ -119,6 +119,7 @@ void ComputeSandProduction(ModelPart& dem_model_part, ModelPart& outer_walls_mod
         ModelPart::ElementsContainerType::iterator it = pElements.ptr_begin() + k;
         Element* raw_p_element = &(*it);
         SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(raw_p_element);
+        if (p_sphere->Is(ISOLATED)) continue;
         const double particle_radius = p_sphere->GetRadius();
         const double particle_density = p_sphere->GetDensity();
         current_total_mass_in_grams += (4.0/3.0) * Globals::Pi * particle_density * particle_radius * particle_radius * particle_radius * 1000.0;
@@ -132,6 +133,30 @@ void ComputeSandProduction(ModelPart& dem_model_part, ModelPart& outer_walls_mod
     static std::ofstream sand_prod_file("sand_production_graph.txt", std::ios_base::out | std::ios_base::app);
     sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
     sand_prod_file.flush();
+}
+
+void MarkBrokenSpheres(ModelPart& dem_model_part) {
+
+    ModelPart::ElementsContainerType& pElements = dem_model_part.GetCommunicator().LocalMesh().Elements();
+
+    for (unsigned int k = 0; k < pElements.size(); k++) {
+
+        ModelPart::ElementsContainerType::iterator it = pElements.ptr_begin() + k;
+        Element* raw_p_element = &(*it);
+        SphericContinuumParticle* p_sphere = dynamic_cast<SphericContinuumParticle*>(raw_p_element);
+        if (p_sphere->Is(ISOLATED)) continue;
+        bool go_to_next_particle = false;
+
+        for (unsigned int i = 0; i < p_sphere->mContinuumInitialNeighborsSize; i++) {
+
+            if (!p_sphere->mIniNeighbourFailureId[i]) {
+                go_to_next_particle = true;
+                break;
+            }
+        }
+        if (go_to_next_particle) continue;
+        else p_sphere->Set(ISOLATED, true);
+    }
 }
 
 void ComputeTriaxialSandProduction(ModelPart& dem_model_part, ModelPart& outer_walls_model_part_1, ModelPart& outer_walls_model_part_2, const double time) {

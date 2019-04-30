@@ -198,6 +198,8 @@ class Algorithm(object):
 
                 self.dem_solution.SolverSolve()
 
+                DemFem.DemStructuresCouplingUtilities().MarkBrokenSpheres(self.dem_solution.spheres_model_part)
+
                 self.dem_solution.AfterSolveOperations()
 
                 DemFem.ComputeDEMFaceLoadUtility().CalculateDEMFaceLoads(self.skin_mp, self.dem_solution.solver.dt, self.Dt_structural)
