@@ -216,6 +216,8 @@ protected:
     ModelPart &mrStructureModelPart;
     ModelPart *mpOriginModelPart = nullptr;
 
+    Parameters mEmbeddedNodalVariableSettings;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -277,6 +279,13 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Get the Default Settings object
+     * Return the default FM-ALE settings
+     * @return Parameters json string encapsulation the default settings
+     */
+    Parameters GetDefaultSettings();
 
     /**
      * @brief Set the Linear Solver Pointer object

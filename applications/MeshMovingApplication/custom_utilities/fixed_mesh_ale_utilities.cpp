@@ -38,13 +38,14 @@ namespace Kratos
         mrStructureModelPart(rStructureModelPart),
         mLevelSetType(LevelSetType)
     {
-        // Set the linear solver pointer
-        Parameters linear_solver_settings(R"({
-            "solver_type": "cg",
-            "tolerance": 1.0e-8,
-            "max_iteration": 1000
-        })");
-        this->SetLinearSolverPointer(linear_solver_settings);
+        // Get the default settings
+        auto default_parameters = this->GetDefaultSettings();
+
+        // Set default embedded nodal variable settings
+        mEmbeddedNodalVariableSettings = default_parameters["embedded_nodal_variable_settings"];
+
+        // Set default linear solver pointer
+        this->SetLinearSolverPointer(default_parameters["linear_solver_settings"]);
 
         // Check the structure model part
         if (mrStructureModelPart.GetBufferSize() < 2) {
@@ -61,23 +62,15 @@ namespace Kratos
         mLevelSetType(rParameters["level_set_type"].GetString())
     {
         // Validate with default parameters
-        Parameters default_parameters(R"(
-        {
-            "virtual_model_part_name": "",
-            "structure_model_part_name": "",
-            "level_set_type": "",
-            "linear_solver_settings": {
-                "solver_type": "cg",
-                "tolerance": 1.0e-8,
-                "max_iteration": 1000
-            }
-        }  )");
-        rParameters.ValidateAndAssignDefaults(default_parameters);
+        rParameters.ValidateAndAssignDefaults(this->GetDefaultSettings());
 
         // Check the input level set type
         if (mLevelSetType != "continuous" || mLevelSetType != "discontinuous") {
             KRATOS_ERROR << "Provided level set type is: " << mLevelSetType << ". Only \"continuous\" and \"discontinuous\" types are supported.";
         }
+
+        // Save the embedded nodal variable settings
+        mEmbeddedNodalVariableSettings = rParameters["embedded_nodal_variable_settings"];
 
         // Set the linear solver pointer
         this->SetLinearSolverPointer(rParameters["linear_solver_settings"]);
@@ -283,12 +276,42 @@ namespace Kratos
 
             // Create a Laplacian mesh moving element with the same Id() but the virtual mesh nodes
             auto p_elem = Kratos::make_shared<StructuralMeshMovingElement>(elem.Id(), p_new_geom, elem.pGetProperties());
-            // auto p_elem = Kratos::make_shared<LaplacianMeshMovingElement>(elem.Id(), p_new_geom, elem.pGetProperties());
             mrVirtualModelPart.AddElement(p_elem);
         }
     }
 
     /* Private functions *******************************************************/
+
+    Parameters FixedMeshALEUtilities::GetDefaultSettings()
+    {
+        Parameters default_parameters(R"(
+        {
+            "virtual_model_part_name": "",
+            "structure_model_part_name": "",
+            "level_set_type": "",
+            "linear_solver_settings": {
+                "solver_type": "cg",
+                "tolerance": 1.0e-8,
+                "max_iteration": 1000
+            },
+            "embedded_nodal_variable_settings": {
+                "gradient_penalty_coefficient": 0.0,
+                "linear_solver_settings": {
+                    "preconditioner_type": "amg",
+                    "solver_type": "amgcl",
+                    "smoother_type": "ilu0",
+                    "krylov_type": "cg",
+                    "max_iteration": 1000,
+                    "verbosity": 0,
+                    "tolerance": 1e-8,
+                    "scaling": false,
+                    "block_size": 1,
+                    "use_block_matrices_if_possible": true
+                }
+            }
+        })");
+        return default_parameters;
+    }
 
     void FixedMeshALEUtilities::SetLinearSolverPointer(const Parameters &rLinearSolverSettings)
     {
@@ -413,39 +436,31 @@ namespace Kratos
         }
 
         // Compute the DISPLACEMENT increment from the structure model part and save it in the origin mesh MESH_DISPLACEMENT
-        Parameters linear_solver_settings(R"({
-            "preconditioner_type": "amg",
-            "solver_type": "amgcl",
-            "smoother_type": "ilu0",
-            "krylov_type": "cg",
-            "max_iteration": 1000,
-            "verbosity": 0,
-            "tolerance": 1e-8,
-            "scaling": false,
-            "block_size": 1,
-            "use_block_matrices_if_possible": true
-        })");
         const unsigned int buff_pos_0 = 0;
         FixedMeshALEUtilities::EmbeddedNodalVariableProcessArrayType emb_nod_var_from_skin_proc_array_0(
             *mpOriginModelPart,
             mrStructureModelPart,
-            linear_solver_settings,
+            mEmbeddedNodalVariableSettings["linear_solver_settings"],
             DISPLACEMENT,
             DISPLACEMENT,
+            mEmbeddedNodalVariableSettings["gradient_penalty_coefficient"].GetDouble(),
             mLevelSetType,
             buff_pos_0);
         emb_nod_var_from_skin_proc_array_0.Execute();
+        emb_nod_var_from_skin_proc_array_0.Clear();
 
         const unsigned int buff_pos_1 = 1;
         FixedMeshALEUtilities::EmbeddedNodalVariableProcessArrayType emb_nod_var_from_skin_proc_array_1(
             *mpOriginModelPart,
             mrStructureModelPart,
-            linear_solver_settings,
+            mEmbeddedNodalVariableSettings["linear_solver_settings"],
             DISPLACEMENT,
             DISPLACEMENT,
+            mEmbeddedNodalVariableSettings["gradient_penalty_coefficient"].GetDouble(),
             mLevelSetType,
             buff_pos_1);
         emb_nod_var_from_skin_proc_array_1.Execute();
+        emb_nod_var_from_skin_proc_array_1.Clear();
 
         // In the intersected elements, set the MESH_DISPLACEMENT as the increment of displacement and fix it
         for (int i_elem = 0; i_elem < static_cast<int>(mpOriginModelPart->NumberOfElements()); ++i_elem) {
@@ -463,10 +478,6 @@ namespace Kratos
                 }
             }
         }
-
-        // Free the memory
-        emb_nod_var_from_skin_proc_array_0.Clear();
-        emb_nod_var_from_skin_proc_array_1.Clear();
     }
 
     void FixedMeshALEUtilities::SolveMeshMovementStrategy(const double DeltaTime)
