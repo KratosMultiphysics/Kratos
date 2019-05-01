@@ -58,6 +58,8 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef std::size_t IndexType;
+
     /// Pointer definition of ReplicateModelPartUtility
     KRATOS_CLASS_POINTER_DEFINITION(ReplicateModelPartUtility);
 
@@ -65,8 +67,8 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    ReplicateModelPartUtility(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart);
+    /// Constructor.
+    ReplicateModelPartUtility(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, bool ReplicateSubModelParts = false);
 
     /// Destructor.
     ~ReplicateModelPartUtility() = default;
@@ -81,6 +83,38 @@ public:
     ///@{
 
     void Replicate();
+
+    template<class TVarType>
+    void TransferVariable(TVarType& rVariable)
+    {
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
+        {
+            const auto it_node = mrOriginModelPart.NodesBegin() + i;
+            const auto dest_node = mReplicatedNodes[it_node->Id()];
+            dest_node->FastGetSolutionStepValue(rVariable) = it_node->FastGetSolutionStepValue(rVariable);
+        }
+    }
+
+    template<class TVarType>
+    void TransferNonHistoricalVariable(TVarType& rVariable)
+    {
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
+        {
+            const auto it_node = mrOriginModelPart.NodesBegin() + i;
+            const auto dest_node = mReplicatedNodes[it_node->Id()];
+            dest_node->SetValue(rVariable, it_node->GetValue(rVariable));
+        }
+    }
+
+    void SetOriginMeshPosition();
+
+    void SetOriginMeshPosition(Variable<double>& rVariable);
+
+    void SetDestinationMeshPosition();
+
+    void SetDestinationMeshPosition(Variable<double>& rVariable);
 
     ///@}
     ///@name Access
@@ -167,6 +201,8 @@ private:
 
     ModelPart& mrOriginModelPart;
     ModelPart& mrDestinationModelPart;
+    bool mReplicateSubModelParts;
+    std::unordered_map<IndexType, Node<3>::Pointer> mReplicatedNodes;
 
     ///@}
     ///@name Private Operators
@@ -177,6 +213,7 @@ private:
     ///@name Private Operations
     ///@{
 
+    void GetMaximumIds(IndexType& rUniqueNodeId, IndexType& rUniqueElemId, IndexType& rUniqueCondId);
 
     ///@}
     ///@name Private  Access

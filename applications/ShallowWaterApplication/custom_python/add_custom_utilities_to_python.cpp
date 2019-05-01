@@ -75,6 +75,13 @@ namespace Python
     py::class_< ReplicateModelPartUtility > (m, "ReplicateModelPartUtility")
         .def(py::init<ModelPart&, ModelPart&>())
         .def("Replicate", &ReplicateModelPartUtility::Replicate)
+        .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<Variable<double>>)
+        .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<Variable<array_1d<double, 3>>>)
+        .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SetOriginMeshPosition", py::overload_cast<>(&ReplicateModelPartUtility::SetOriginMeshPosition))
+        .def("SetOriginMeshPosition", py::overload_cast<Variable<double>&>(&ReplicateModelPartUtility::SetOriginMeshPosition))
+        .def("SetOriginMeshPosition", py::overload_cast<>(&ReplicateModelPartUtility::SetDestinationMeshPosition))
+        .def("SetOriginMeshPosition", py::overload_cast<Variable<double>&>(&ReplicateModelPartUtility::SetDestinationMeshPosition))
         ;
 
   }
