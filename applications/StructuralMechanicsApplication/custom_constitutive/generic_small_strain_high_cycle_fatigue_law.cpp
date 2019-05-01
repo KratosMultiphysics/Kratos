@@ -77,10 +77,10 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         double uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
 
-        double min_stress = 0.0, max_stress = 0.0, sign_factor;
+        double min_stress = 0.0, max_stress = 0.0;
         double previous_maximum_stress = this->GetPreviousMaxStress();
         double previous_minimum_stress = this->GetPreviousMinStress();
-        HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(predictive_stress_vector, sign_factor);
+        double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(predictive_stress_vector);
         uniaxial_stress *= sign_factor;
         unsigned int number_of_cycles = this->GetNumberOfCycles();
         bool cycle_counted = this->GetCycleCounter();
@@ -224,8 +224,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
             this->SetThreshold(uniaxial_stress);
         }
     }
-    double sign_factor;
-    HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(predictive_stress_vector, sign_factor);
+    double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(predictive_stress_vector);
     Vector previous_stresses = ZeroVector(2);
     const Vector& r_aux_stresses = this->GetPreviousStresses();
     previous_stresses[1] = this->GetValue(UNIAXIAL_STRESS, previous_stresses[1])*sign_factor;

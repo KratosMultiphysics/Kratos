@@ -141,11 +141,10 @@ public:
     }
 
     /**
-     * @brief This method checks if the global stress state is tension or compression 
+     * @brief This method checks if the global stress state is tension or compression; -1 for a generalized compression state and 1 for a generalized tensile state. 
      * @param StressVector Current predictive stress tensor.
-     * @param Factor Method's output; -1 for a generalized compression state and 1 for a generalized tensile state.
      */
-    static void CalculateTensionCompressionFactor(const Vector& rStressVector, double& rFactor) 
+    static double CalculateTensionCompressionFactor(const Vector& rStressVector) 
     {
         array_1d<double,3> principal_stresses;
         ConstitutiveLawUtilities<6>::CalculatePrincipalStresses(principal_stresses, rStressVector);
@@ -160,20 +159,20 @@ public:
         }
         const double pre_indicator = sum_average / sum_abs;
         if (pre_indicator < 0.5) {
-            rFactor = -1.0;
+            return -1.0;
         } else {
-            rFactor = 1.0;
+            return 1.0;
         }
     }
 
     /**
-     * @brief This method computes de reversion factor 
+     * @brief This method returns de reversion factor 
      * @param MaxStress Signed maximum equivalent stress in the current cycle.
      * @param MinStress Signed minimum equivalent stress in the current cycle. 
      */
-    static void CalculateReversionFactor(const double MaxStress, const double MinStress, double& rReversionFactor)
+    static double CalculateReversionFactor(const double MaxStress, const double MinStress)
     {
-        rReversionFactor = MinStress / MaxStress;
+        return MinStress / MaxStress;
     }
 
     /**
@@ -195,7 +194,7 @@ public:
                                                 double& rB0
                                                 )
 	{
-        CalculateReversionFactor(MaxStress, MinStress, rReversionFactor);
+        rReversionFactor = CalculateReversionFactor(MaxStress, MinStress);
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
         const double yield_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
 
