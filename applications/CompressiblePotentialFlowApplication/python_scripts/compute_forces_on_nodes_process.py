@@ -29,7 +29,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
     def Execute(self):
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess', 'Computing reactions on nodes')
 
-        KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.REACTION, self.body_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.REACTION, self.body_model_part.Nodes)
 
         free_stream_velocity = self.body_model_part.ProcessInfo.GetValue(CPFApp.VELOCITY_INFINITY)
         #TODO: Read density from ProcessInfo once available
