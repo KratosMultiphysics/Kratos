@@ -68,7 +68,7 @@ namespace Python
         ;
 
     py::class_< EstimateDtShallow > (m, "EstimateDtShallow")
-        .def(py::init<ModelPart&, Parameters&>())
+        .def(py::init<ModelPart&, Parameters>())
         .def("EstimateDt", &EstimateDtShallow::EstimateDt)
         ;
 

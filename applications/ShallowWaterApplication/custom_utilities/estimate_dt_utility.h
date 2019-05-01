@@ -67,7 +67,7 @@ public:
     ///@{
 
     /// Constructor.
-    EstimateDtShallow(ModelPart& rThisModelPart, Parameters& rThisParameters);
+    EstimateDtShallow(ModelPart& rThisModelPart, Parameters ThisParameters);
 
     /// Destructor.
     ~EstimateDtShallow(){}
@@ -81,7 +81,7 @@ public:
     ///@name Operations
     ///@{
 
-    double EstimateDt();
+    double EstimateDt() const;
 
     ///@}
     ///@name Access
@@ -160,16 +160,13 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    const ModelPart& mrModelPart;
     bool mEstimateDt;
     double mConstantDt;
     double mCourant;
     bool mConsiderFroude;
-    bool mComputeNodalH;
     double mMinDt;
     double mMaxDt;
-    double mGravity;
-    double mEpsilon;
 
     ///@}
     ///@name Private Operators
@@ -180,9 +177,9 @@ private:
     ///@name Private Operations
     ///@{
 
-    double EstimateTimeStep();
+    double EstimateTimeStep() const;
 
-    double NodalCharacteristicTime(Node<3>& rNode);
+    double NodalCharacteristicTime(const Node<3>& rNode, double gravity) const;
 
     ///@}
     ///@name Private  Access
