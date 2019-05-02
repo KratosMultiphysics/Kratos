@@ -344,7 +344,7 @@ namespace Kratos
         mpMeshMovingStrategy->SetEchoLevel(echo_level);
     }
 
-    const Vector FixedMeshALEUtilities::SetDistancesVector(ModelPart::ElementIterator ItElem)
+    const Vector FixedMeshALEUtilities::SetDistancesVector(ModelPart::ElementIterator ItElem) const
     {
         auto &r_geom = ItElem->GetGeometry();
         Vector nodal_distances(r_geom.PointsNumber());
