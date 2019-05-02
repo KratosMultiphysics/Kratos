@@ -37,6 +37,7 @@ namespace Testing {
     typedef std::size_t IndexType;
 
     constexpr double EPSILON = std::numeric_limits<double>::epsilon();
+    constexpr double ZERO_TOLERANCE = 1e-16;
     constexpr double TOLERANCE = 1e-6;
 
     /// Factory functions

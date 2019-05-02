@@ -69,12 +69,12 @@ namespace {
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D6Area, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle2D6();
-        KRATOS_CHECK_NEAR(geom->Area(), 0.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(geom->Area(), 0.5, ZERO_TOLERANCE);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D6Volume, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle2D6();
-        KRATOS_CHECK_NEAR(geom->Volume(), 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(geom->Volume(), 0.0, ZERO_TOLERANCE);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D6MinEdgeLength, KratosCoreGeometriesFastSuite) {
@@ -141,11 +141,11 @@ namespace {
         coord[1] = 1.0 / 8.0;
         coord[2] = 0.0;
         KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), -0.09375, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.0,      TOLERANCE);
         KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), -0.09375, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(3, coord), 0.75, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(4, coord), 0.25, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(5, coord), 0.1875, TOLERANCE);
+        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(3, coord), 0.75,     TOLERANCE);
+        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(4, coord), 0.25,     TOLERANCE);
+        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(5, coord), 0.1875,   TOLERANCE);
         CrossCheckShapeFunctionsValues(*geom);
     }
 
@@ -160,30 +160,30 @@ namespace {
         Vector lumping_factors(6);
         geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::ROW_SUM);
 
-        KRATOS_CHECK_NEAR(lumping_factors[0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[2], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[3], 1.0/3.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[4], 1.0/3.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[5], 1.0/3.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[0], 0.0,        TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[1], 0.0,        TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[2], 0.0,        TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[3], 1.0/3.0,    TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[4], 1.0/3.0,    TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[5], 1.0/3.0,    TOLERANCE);
 
         geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::DIAGONAL_SCALING);
 
-        KRATOS_CHECK_NEAR(lumping_factors[0], 0.0328638, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[1], 0.0328638, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[2], 0.0328638, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[3], 0.300469, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[4], 0.300469, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[5], 0.300469, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[0], 0.0328638,  TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[1], 0.0328638,  TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[2], 0.0328638,  TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[3], 0.300469,   TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[4], 0.300469,   TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[5], 0.300469,   TOLERANCE);
 
         geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::QUADRATURE_ON_NODES);
 
-        KRATOS_CHECK_NEAR(lumping_factors[0], 1.0/6.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[1], 1.0/6.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[2], 1.0/6.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[3], 1.0/6.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[4], 1.0/6.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(lumping_factors[5], 1.0/6.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[0], 1.0/6.0,   TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[1], 1.0/6.0,   TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[2], 1.0/6.0,   TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[3], 1.0/6.0,   TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[4], 1.0/6.0,   TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[5], 1.0/6.0,   TOLERANCE);
     }
 
 } // namespace Testing.

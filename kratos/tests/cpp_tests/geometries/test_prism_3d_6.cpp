@@ -91,7 +91,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(Prism3D6Area, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D6();
 
-        KRATOS_CHECK_NEAR(geomRegular->Area(),  0.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(geomRegular->Area(),  0.5, ZERO_TOLERANCE);
     }
 
     /** Checks if the volume of the prism is calculated correctly.
@@ -101,7 +101,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(Prism3D6Volume, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D6();
 
-        KRATOS_CHECK_NEAR(geomRegular->Volume(),  0.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(geomRegular->Volume(),  0.5, ZERO_TOLERANCE);
     }
 
     /** Checks the inside test for a given point respect to the prism
