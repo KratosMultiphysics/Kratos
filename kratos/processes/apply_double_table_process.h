@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "apply_component_table_process.hpp"
+#include "processes/apply_component_table_process.h"
 
 namespace Kratos
 {
@@ -39,8 +39,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyDoubleTableProcess);
 
     /// Constructor
-    ApplyDoubleTableProcess(ModelPart& model_part, Parameters rParameters) 
-        :ApplyComponentTableProcess(model_part, rParameters) {}
+    ApplyDoubleTableProcess(ModelPart& rModelPart, Parameters Parameters);
 
     
     /// Destructor
@@ -53,52 +52,10 @@ public:
     
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    void ExecuteInitialize() override
-    {
-        KRATOS_TRY;
-        
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
-        
-        const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
-
-        if (nnodes != 0) {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
-
-            #pragma omp parallel for
-            for (int i = 0; i < nnodes; i++) {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-                if (mIsFixed) {
-                    it->Fix(var);
-                }
-                it->FastGetSolutionStepValue(var) = mInitialValue;
-            }
-        }
-        KRATOS_CATCH("");
-    }
+    void ExecuteInitialize() override;
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    void ExecuteInitializeSolutionStep() override
-    {
-        KRATOS_TRY;
-        
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
-        
-        const double time = mrModelPart.GetProcessInfo()[TIME];
-        double value = mpTable->GetValue(time);
-        
-        const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
-
-        if (nnodes != 0) {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
-
-            #pragma omp parallel for
-            for (int i = 0; i < nnodes; i++) {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-                it->FastGetSolutionStepValue(var) = value;
-            }
-        }
-        KRATOS_CATCH("");
-    }
+    void ExecuteInitializeSolutionStep() override;
 
     /// Turn back information as a string.
     std::string Info() const override

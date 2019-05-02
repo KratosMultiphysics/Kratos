@@ -23,6 +23,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -35,7 +36,7 @@ namespace Kratos
 */
 class ApplyComponentTableProcess : public Process
 {
-    
+
 public:
     ///@name Type Definitions
     ///@{

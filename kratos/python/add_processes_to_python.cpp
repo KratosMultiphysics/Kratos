@@ -58,7 +58,7 @@
 #include "processes/apply_periodic_boundary_condition_process.h"
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
 #include "processes/apply_component_table_process.h"
-#include "processes/apply_double_table_process.hpp"
+#include "processes/apply_double_table_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"

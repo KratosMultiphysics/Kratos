@@ -30,7 +30,7 @@ ApplyComponentTableProcess::ApplyComponentTableProcess(
     ModelPart& rModelPart, 
     Parameters rParameters) 
     : Process(Flags()), 
-    mrModelPart(rModelPart)
+      mrModelPart(rModelPart)
 {
     KRATOS_TRY
 
@@ -69,7 +69,7 @@ ApplyComponentTableProcess::ApplyComponentTableProcess(
 /// right after reading the model and the groups
 void ApplyComponentTableProcess::ExecuteInitialize()
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     
     typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3>>> component_type;
     component_type var_component = KratosComponents<component_type >::Get(mVariableName);
