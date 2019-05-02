@@ -4,8 +4,8 @@ import KratosMultiphysics.StructuralMechanicsApplication as KCSM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Additional imports
-import structural_response_function_factory
-from custom_variable_utilities import WriteDictionaryDataOnNodalVariable
+from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory
+from KratosMultiphysics.ShapeOptimizationApplication.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 import time
 from decimal import Decimal
 from gid_output_process import GiDOutputProcess

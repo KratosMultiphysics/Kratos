@@ -3,7 +3,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as KCSM
 
 # Additional imports
-import structural_response_function_factory
+from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory
 import time
 from decimal import Decimal
 
