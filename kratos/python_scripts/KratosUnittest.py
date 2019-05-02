@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import Logger
 
 from unittest import *
+import unittest
 from contextlib import contextmanager
 
 import getopt
@@ -90,6 +91,10 @@ def Usage():
     for l in lines:
         Logger.PrintInfo(l) # using the logger to only print once in MPI
 
+def main():
+    if "--using-mpi" in sys.argv:
+        sys.argv.remove("--using-mpi") # has to be removed bcs unittest cannot parse it
+    unittest.main()
 
 def runTests(tests):
     verbose_values = [0, 1, 2]
