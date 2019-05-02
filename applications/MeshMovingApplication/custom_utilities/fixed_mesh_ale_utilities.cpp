@@ -364,7 +364,7 @@ namespace Kratos
         return nodal_distances;
     }
 
-    inline bool FixedMeshALEUtilities::IsSplit(const Vector &rDistances)
+    inline bool FixedMeshALEUtilities::IsSplit(const Vector &rDistances) const
     {
         unsigned int n_pos = 0, n_neg = 0;
         for (double dist : rDistances) {
