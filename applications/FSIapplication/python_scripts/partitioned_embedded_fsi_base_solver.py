@@ -120,6 +120,13 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Get the domain size
         self.domain_size = self._GetDomainSize()
 
+        # Initialize the distance field
+        update_distance_process = True
+        self._get_distance_to_skin_process(update_distance_process).Execute()
+
+        # Initialize the embedded intersections model part
+        self._get_embedded_skin_utility().GenerateSkin()
+
         # Python structure solver initialization
         self.structure_solver.Initialize()
 
@@ -135,13 +142,6 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Coupling utility initialization
         # The _get_convergence_accelerator is supposed to construct the convergence accelerator in here
         self._get_convergence_accelerator().Initialize()
-
-        # Initialize the distance field
-        update_distance_process = True
-        self._get_distance_to_skin_process(update_distance_process).Execute()
-
-        # Initialize the embedded intersections model part
-        self._get_embedded_skin_utility().GenerateSkin()
 
     def AdvanceInTime(self, current_time):
         fluid_new_time = self.fluid_solver.AdvanceInTime(current_time)
@@ -161,13 +161,13 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self.structure_solver.InitializeSolutionStep()
         self._get_convergence_accelerator().InitializeSolutionStep()
 
-    def Predict(self):
+    # def Predict(self):
         # Structure solver prediction. It is important to firstly perform the structure
         # prediction to update the current buffer position before the FM-ALE operations.
         # Otherwise position 0 and 1 of the buffer coincide since the advance in time
         # has been already performed but no update has been done yet. Besides, this will
         # give a better approximation of the level-set position at the end of step.
-        self.structure_solver.Predict()
+        # self.structure_solver.Predict()
 
         # # Update the level set position
         # self._update_level_set()
