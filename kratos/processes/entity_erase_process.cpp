@@ -136,6 +136,27 @@ void EntitiesEraseProcess<Condition>::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<>
+void EntitiesEraseProcess<MasterSlaveConstraint>::Execute()
+{
+    KRATOS_TRY;
+
+    // If we assign flags
+    if (mrOptions.Is(ERASE_ALL_ENTITIES)) VariableUtils().SetFlag(TO_ERASE, true, mrModelPart.MasterSlaveConstraints());
+
+    // Remove conditions
+    if (mrOptions.Is(REMOVE_FROM_ALL_LEVELS)) {
+        mrModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
+    } else {
+        mrModelPart.RemoveMasterSlaveConstraints(TO_ERASE);
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<class TEntity>
 Parameters EntitiesEraseProcess<TEntity>::GetDefaultParameters()
 {
@@ -154,7 +175,7 @@ Parameters EntitiesEraseProcess<TEntity>::GetDefaultParameters()
 template class EntitiesEraseProcess<Node<3>>;
 template class EntitiesEraseProcess<Element>;
 template class EntitiesEraseProcess<Condition>;
-
+template class EntitiesEraseProcess<MasterSlaveConstraint>;
 }
 
 

@@ -176,6 +176,10 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&>())
     ;
 
+    py::class_<EntitiesEraseProcess<MasterSlaveConstraint>, EntitiesEraseProcess<MasterSlaveConstraint>::Pointer, Process>(m,"MasterSlaveConstraintEraseProcess")
+    .def(py::init<ModelPart&>())
+    ;
+
     py::class_<EliminateIsolatedNodesProcess, EliminateIsolatedNodesProcess::Pointer, Process>(m,"EliminateIsolatedNodesProcess")
     .def(py::init<ModelPart&>())
     ;
