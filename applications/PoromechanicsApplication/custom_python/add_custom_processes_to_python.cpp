@@ -13,7 +13,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "includes/kratos_parameters.h"
 
-#include "custom_processes/apply_component_table_process.hpp"
+#include "custom_processes/apply_component_table_process.h"
 #include "custom_processes/apply_double_table_process.hpp"
 #include "custom_processes/apply_constant_hydrostatic_pressure_process.hpp"
 #include "custom_processes/apply_hydrostatic_pressure_table_process.hpp"
