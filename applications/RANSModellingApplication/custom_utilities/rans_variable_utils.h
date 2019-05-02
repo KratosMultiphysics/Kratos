@@ -75,10 +75,10 @@ public:
 
         const int number_of_nodes = rNodes.size();
 
-        rNumberOfNodesBelowMinimum = 0;
-        rNumberOfNodesAboveMaximum = 0;
+        unsigned int number_of_nodes_below_minimum = 0;
+        unsigned int number_of_nodes_above_maximum = 0;
 
-#pragma omp parallel for reduction( +: rNumberOfNodesBelowMinimum, rNumberOfNodesAboveMaximum)
+#pragma omp parallel for reduction( +: number_of_nodes_below_minimum, number_of_nodes_above_maximum)
         for (int i = 0; i < number_of_nodes; i++)
         {
             ModelPart::NodeType& r_node = *(rNodes.begin() + i);
@@ -86,15 +86,18 @@ public:
 
             if (r_value < MinimumValue)
             {
-                rNumberOfNodesBelowMinimum++;
+                number_of_nodes_below_minimum++;
                 r_value = MinimumValue;
             }
             else if (r_value > MaximumValue)
             {
-                rNumberOfNodesAboveMaximum++;
+                number_of_nodes_above_maximum++;
                 r_value = MaximumValue;
             }
         }
+
+        rNumberOfNodesBelowMinimum = number_of_nodes_below_minimum;
+        rNumberOfNodesAboveMaximum = number_of_nodes_above_maximum;
 
         KRATOS_CATCH("")
     }
