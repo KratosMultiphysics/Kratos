@@ -79,12 +79,13 @@ class VariablesManager:
         VariablesManager.AddFrameOfReferenceRelatedVariables(parameters, fluid_model_part)
 
         fluid_model_part.ProcessInfo.SetValue(Kratos.FRACTIONAL_STEP, 1)
-        gravity = Vector(3)
+
         if parameters["custom_fluid"]["body_force_on_fluid_option"].GetBool():
-            gravity[0] = parameters["GravityX"].GetDouble()
-            gravity[1] = parameters["GravityY"].GetDouble()
-            gravity[2] = parameters["GravityZ"].GetDouble()
-        fluid_model_part.ProcessInfo.SetValue(Kratos.GRAVITY, gravity)
+            gravity = self.project_parameters["gravity_parameters"]["direction"].GetVector()
+            gravity *= self.project_parameters["gravity_parameters"]["modulus"].GetDouble()
+            fluid_model_part.ProcessInfo.SetValue(Kratos.GRAVITY, gravity)
+        else:
+            fluid_model_part.ProcessInfo.SetValue(Kratos.GRAVITY, Vector([0.0] * 3))
 
         if parameters["laplacian_calculation_type"].GetInt() == 3: # recovery through solving a system
             fluid_model_part.ProcessInfo.SetValue(Kratos.COMPUTE_LUMPED_MASS_MATRIX, 1)

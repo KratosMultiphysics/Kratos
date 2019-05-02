@@ -106,7 +106,11 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         # First, read the parameters generated from the interface
         import swimming_dem_default_input_parameters as only_swimming_defaults
+        import KratosMultiphysics.DEMApplication.dem_default_input_parameters as dem_defaults
+
+
         self.project_parameters.ValidateAndAssignDefaults(only_swimming_defaults.GetDefaultInputParameters())
+        self.project_parameters["dem_parameters"].ValidateAndAssignDefaults(dem_defaults.GetDefaultInputParameters())
 
         # Second, set the default 'beta' parameters (candidates to be moved to the interface)
         self.SetBetaParameters()
@@ -181,15 +185,13 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def TransferBodyForceFromDisperseToFluid(self):
         # setting fluid's body force to the same as DEM's
         if self.project_parameters["custom_fluid"]["body_force_on_fluid_option"].GetBool():
-            body_force = [self.project_parameters["GravityX"].GetDouble(),
-                          self.project_parameters["GravityY"].GetDouble(),
-                          self.project_parameters["GravityZ"].GetDouble()]
-            modulus_of_body_force = math.sqrt(sum(b**2 for b in body_force))
+            gravity = self.project_parameters["gravity_parameters"]["direction"].GetVector()
+            gravity *= self.project_parameters["gravity_parameters"]["modulus"].GetDouble()
+            modulus_of_body_force = math.sqrt(sum(b**2 for b in gravity))
 
             gravity_parameters = self.fluid_parameters['processes']['gravity'][0]['Parameters']
             gravity_parameters['modulus'].SetDouble(modulus_of_body_force)
-            for i, b in enumerate(body_force):
-                gravity_parameters['direction'][i].SetDouble(b)
+            gravity_parameters['direction'].SetVector(gravity)
 
     def SetDoSolveDEMVariable(self):
         self.do_solve_dem = self.project_parameters["custom_dem"]["do_solve_dem"].GetBool()
@@ -224,7 +226,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         if self.do_print_results:
             [self.post_path, data_and_results, self.graphs_path, MPI_results] = \
             self.procedures.CreateDirectories(str(self.main_path),
-                                            str(self.project_parameters["problem_name"].GetString()),
+                                            str(self.project_parameters["problem_data"]["problem_name"].GetString()),
                                             self.run_code)
             SDP.CopyInputFilesIntoFolder(self.main_path, self.post_path)
             self.MPI_results = MPI_results
@@ -247,7 +249,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
             self.swimming_DEM_gid_io = \
             swimming_DEM_gid_output.SwimmingDEMGiDOutput(
-                file_name = self.project_parameters["problem_name"].GetString(),
+                file_name = self.project_parametersþ["problem_data"]["problem_name"].GetString(),
                 vol_output = result_file_configuration["body_output"].GetBool(),
                 post_mode = old_gid_output_post_options_dict[post_mode_key],
                 multifile = old_gid_output_multiple_file_option_dict[multiple_files_option_key],

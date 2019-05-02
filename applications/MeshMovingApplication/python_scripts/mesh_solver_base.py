@@ -124,7 +124,9 @@ class MeshSolverBase(PythonSolver):
         self.get_mesh_motion_solving_strategy().Predict()
 
     def SolveSolutionStep(self):
-        self.get_mesh_motion_solving_strategy().Solve() # Calling Solve bcs this is what is currently implemented in the MeshSolverStrategies
+        # Calling Solve bcs this is what is currently implemented in the MeshSolverStrategies
+        # explicit bool conversion is only needed bcs "Solve" returns a double
+        return bool(self.get_mesh_motion_solving_strategy().Solve())
 
     def SetEchoLevel(self, level):
         self.get_mesh_motion_solving_strategy().SetEchoLevel(level)

@@ -12,7 +12,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "please specify the model part that contains the surface nodes",
-            "velocity_infinity": [1.0,0.0,0],
+            "velocity_infinity": [1.0,0.0,0.0],
             "reference_area": 1.0,
             "create_output_file": false
         }''')
@@ -28,7 +28,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.create_output_file = settings["create_output_file"].GetBool()
 
     def ExecuteFinalizeSolutionStep(self):
-        print('COMPUTE LIFT')
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','COMPUTE LIFT')
 
         rx = 0.0
         ry = 0.0
@@ -49,10 +49,10 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         Cl = RY
         Cd = RX
 
-        print('Cl = ', Cl)
-        print('Cd = ', Cd)
-        print('RZ = ', RZ)
-        print('Mach = ', self.velocity_infinity[0]/340)
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Cl = ', Cl)
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Cd = ', Cd)
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','RZ = ', RZ)
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Mach = ', self.velocity_infinity[0]/340)
 
         if self.create_output_file:
             with open("cl.dat", 'w') as cl_file:

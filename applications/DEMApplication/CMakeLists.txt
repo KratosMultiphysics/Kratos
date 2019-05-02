@@ -26,6 +26,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ship_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/contact_info_spheric_particle.cpp
     #${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/analytic_rigid_body_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/RigidFace.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/analytic_RigidFace.cpp
@@ -65,10 +66,11 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Bentonite_Colloid_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_JKR_cohesive_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_DMT_cohesive_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Stress_dependent_cohesive_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_viscous_Coulomb_2D_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_viscous_Coulomb_2D_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/dem_d_linear_custom_constants_cl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_dependent_friction_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Conical_damage_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/dem_kdem_2d_cl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/dem_kdem_fabric_2d_cl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_viscous_Coulomb_Nestle_CL.cpp
