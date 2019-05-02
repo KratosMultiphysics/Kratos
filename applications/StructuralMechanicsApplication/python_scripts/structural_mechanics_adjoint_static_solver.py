@@ -87,16 +87,17 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
 
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
-        if self.settings["response_function_settings"]["response_type"].GetString() == "adjoint_local_stress":
+        response_type = self.settings["response_function_settings"]["response_type"].GetString()
+        if response_type == "adjoint_local_stress":
             self.response_function = StructuralMechanicsApplication.AdjointLocalStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
-        elif self.settings["response_function_settings"]["response_type"].GetString() == "adjoint_nodal_displacement":
+        elif response_type == "adjoint_nodal_displacement":
             self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.main_model_part, self.settings["response_function_settings"])
-        elif self.settings["response_function_settings"]["response_type"].GetString() == "adjoint_linear_strain_energy":
+        elif response_type == "adjoint_linear_strain_energy":
             self.response_function = StructuralMechanicsApplication.AdjointLinearStrainEnergyResponseFunction(self.main_model_part, self.settings["response_function_settings"])
-        elif self.settings["response_function_settings"]["response_type"].GetString() == "adjoint_nodal_reaction":
+        elif response_type == "adjoint_nodal_reaction":
             self.response_function = StructuralMechanicsApplication.AdjointNodalReactionResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         else:
-            raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())
+            raise Exception("invalid response_type: " + response_type)
 
         self.sensitivity_builder = KratosMultiphysics.SensitivityBuilder(self.settings["sensitivity_settings"], self.main_model_part, self.response_function)
         self.sensitivity_builder.Initialize()
