@@ -92,6 +92,9 @@ protected:
     bool mIsFixed;
     double mInitialValue;
     TableType::Pointer mpTable;
+
+    /// Copy constructor.
+    ApplyComponentTableProcess(ApplyComponentTableProcess const& rOther);
     
 private:
 

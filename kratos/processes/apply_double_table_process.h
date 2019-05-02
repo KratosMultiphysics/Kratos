@@ -76,6 +76,8 @@ public:
 
 protected:
 
+    /// Copy constructor.
+    ApplyDoubleTableProcess(ApplyDoubleTableProcess const& rOther);
 private:
 
     /// Assignment operator.
