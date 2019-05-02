@@ -457,15 +457,13 @@ class MultilevelMonteCarlo(object):
             self.ScreeningInfoScreeningPhase()
             # start MLMC phase
             while self.convergence is not True:
-                # initialize MLMC phase
                 self.InitializeMLMCPhase()
-                # self.ScreeningInfoInitializeMLMCPhase()
-            #     # MLMC execution phase
-            #     self.LaunchEpoch()
-            #     # finalize MLMC phase
-            #     self.FinalizeMLMCPhase()
-            #     self.ScreeningInfoFinalizeMLMCPhase()
-                self.convergence = True
+                self.ScreeningInfoInitializeMLMCPhase()
+                self.LaunchEpoch()
+                self.FinalizeMLMCPhase()
+                self.ScreeningInfoFinalizeMLMCPhase()
+                if self.iteration_counter > 2:
+                    self.convergence = True
         else:
             print("\n","#"*50,"Not running Multilevel Monte Carlo algorithm","#"*50)
             pass
@@ -645,8 +643,7 @@ class MultilevelMonteCarlo(object):
                     self.time_ML.UpdateBatchesPassPowerSum(level,batch)
                 self.batches_analysis_finished[batch] = True
         for batch in range (len(self.batches_number_samples)):
-            if (self.batches_execution_finished[batch] is True and self.batches_analysis_finished[batch] is True and self.batches_convergence_finished[batch] is not True): # consider batches completed, analysed and
-                                                                                                                                                                            # for which convergence has not been computed
+            if (self.batches_execution_finished[batch] is True and self.batches_analysis_finished[batch] is True and self.batches_convergence_finished[batch] is not True): # consider batches completed, analysed and for which convergence has not been computed
                 # update working convergence batch
                 self.current_convergence_batch = batch
                 for level in range (len(self.batches_number_samples[batch])):
@@ -704,12 +701,28 @@ class MultilevelMonteCarlo(object):
             self.ComputeTolerancei()
             # estimate batches to append and batch size
             self.UpdateBatches()
-
-        # ARRIVED AT THE STOP, HERE ABOVE
-        # prepare lists
-        for _ in range (self.current_number_levels - self.previous_number_levels): # append a list for the new level
-            self.difference_QoI.values.append([])
-            self.time_ML.values.append([])
+            self.batch_size = [7,5] # TODO: remove this line
+        for batch in range (len(self.batches_launched)):
+            if (self.batches_launched[batch] is False):
+                self.batches_number_samples.append(self.batch_size)
+                # append execution, analysis and convergence False booleans
+                self.batches_execution_finished.append(False)
+                self.batches_analysis_finished.append(False)
+                self.batches_convergence_finished.append(False)
+                # append new batch lists to self.QoI.values and self.QoI.power_sum_batches_*
+                maximum_number_levels = self.settings["maximum_number_levels"].GetInt()+1
+                self.difference_QoI.values.append([[] for _ in range (maximum_number_levels+1)])
+                self.difference_QoI.power_sum_batches_1.append([[] for _ in range (maximum_number_levels+1)])
+                self.difference_QoI.power_sum_batches_2.append([[] for _ in range (maximum_number_levels+1)])
+                self.difference_QoI.power_sum_batches_3.append([[] for _ in range (maximum_number_levels+1)])
+                self.difference_QoI.power_sum_batches_4.append([[] for _ in range (maximum_number_levels+1)])
+                self.difference_QoI.batches_number_samples.append([0 for _ in range (maximum_number_levels+1)])
+                self.time_ML.values.append([[] for _ in range (maximum_number_levels+1)])
+                self.time_ML.power_sum_batches_1.append([[] for _ in range (maximum_number_levels+1)])
+                self.time_ML.power_sum_batches_2.append([[] for _ in range (maximum_number_levels+1)])
+                self.time_ML.power_sum_batches_3.append([[] for _ in range (maximum_number_levels+1)])
+                self.time_ML.power_sum_batches_4.append([[] for _ in range (maximum_number_levels+1)])
+                self.time_ML.batches_number_samples.append([0 for _ in range (maximum_number_levels+1)])
 
     """
     function updating number of batches and batch size
@@ -717,7 +730,7 @@ class MultilevelMonteCarlo(object):
     """
     def UpdateBatches(self):
         # set here number of batches to append
-        new_number_batches = 1
+        new_number_batches = 2
         # compute optimal number of levels
         self.ComputeLevels()
         # compute theta splitting parameter according to the current_number_levels and tolerance_i
@@ -725,7 +738,6 @@ class MultilevelMonteCarlo(object):
         # compute number of samples according to bayesian_variance and theta_i parameters
         # TODO: rename UpdateBatchSize this function
         self.ComputeNumberSamples()
-        stop
         for new_batch in range (new_number_batches):
             self.batches_launched.append(False)
 
@@ -734,6 +746,7 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def FinalizeMLMCPhase(self):
+        """
         # prepare lists
         for _ in range (self.current_number_levels - self.previous_number_levels): # append a list for the new level
             self.difference_QoI.raw_moment_1.append([])
@@ -754,50 +767,72 @@ class MultilevelMonteCarlo(object):
         for level in range (self.current_number_levels+1):
             for i_sample in range(self.previous_number_samples[level],self.number_samples[level]):
                 self.difference_QoI.UpdateOnePassCentralMoments(level,i_sample)
-                self.time_ML.UpdateOnePassCentralMoments(level,i_sample)
-        # update number of levels
-        self.previous_number_levels = self.current_number_levels
-        """
-        the functions executed in FinalizePhaseAux_Task are the followings:
-        self.ComputeMeanMLMCQoI()
-        self.ComputeRatesLS()
-        self.EstimateBayesianVariance(self.current_number_levels)
-        self.ComputeTotalErrorMLMC()
-        """
-        # store lists in synchro_element to execute FinalizePhaseAux_Task
-        synchro_elements = [x for x in self.difference_QoI.raw_moment_1]
-        synchro_elements.extend(["%%%"])
-        synchro_elements.extend(self.difference_QoI.unbiased_central_moment_2)
-        synchro_elements.extend(["%%%"])
-        synchro_elements.extend(self.time_ML.raw_moment_1)
-        # create a StreamSerializer Kratos object containing the problem settings
-        serial_settings = KratosMultiphysics.StreamSerializer()
-        serial_settings.Save("ParametersSerialization", self.settings)
-        # compute remaining MLMC finalize process operations
-        # observation: we are passing self.settings and we will exploit it to construct the class
-        self.rates_error,self.bayesian_variance,self.mean_mlmc_QoI,\
-        self.total_error,self.number_samples\
-        = FinalizePhaseAux_Task(MultilevelMonteCarlo,
-        serial_settings,self.mesh_parameters,self.current_number_levels,\
-        self.iteration_counter,self.number_samples,*synchro_elements)
-        # synchronization point needed to compute the other functions of MLMC algorithm
-        # put as in the end as possible the synchronization point
-        self.difference_QoI.raw_moment_1 = get_value_from_remote(self.difference_QoI.raw_moment_1)
-        self.difference_QoI.unbiased_central_moment_2 = get_value_from_remote(self.difference_QoI.unbiased_central_moment_2)
-        self.time_ML.raw_moment_1 = get_value_from_remote(self.time_ML.raw_moment_1)
-        self.total_error = get_value_from_remote(self.total_error)
-        self.rates_error = get_value_from_remote(self.rates_error)
-        self.bayesian_variance = get_value_from_remote(self.bayesian_variance)
-        self.mean_mlmc_QoI = get_value_from_remote(self.mean_mlmc_QoI)
-        self.number_samples = get_value_from_remote(self.number_samples)
-        # check convergence
-        # convergence reached if: i) current_iteration >= number_iterations_iE
-        #                        ii) total_error < tolerance_i
-        # if not update current_iteration
-        if (self.iteration_counter >= self.number_iterations_iE) and (self.total_error < self.tolerance_i):
-            self.convergence = True
-        else:
-            self.iteration_counter = self.iteration_counter + 1
+                self.time_ML.UpdateOnePassCentralMoments(level,i_sample)"""
+
+        # update power sums batches
+        for batch in range (len(self.batches_number_samples)): # i.e. total number of batches
+            if (self.batches_execution_finished[batch] is True and self.batches_analysis_finished[batch] is not True): # consider batches completed and not already analysed
+                for level in range (len(self.batches_number_samples[batch])):
+                    self.difference_QoI.UpdateBatchesPassPowerSum(level,batch)
+                    self.time_ML.UpdateBatchesPassPowerSum(level,batch)
+                self.batches_analysis_finished[batch] = True
+        for batch in range (len(self.batches_number_samples)):
+            if (self.batches_execution_finished[batch] is True and self.batches_analysis_finished[batch] is True and self.batches_convergence_finished[batch] is not True): # consider batches completed, analysed and for which convergence has not been computed
+                # update working convergence batch
+                self.current_convergence_batch = batch
+                for level in range (len(self.batches_number_samples[batch])):
+                    # update global power sums from batches power sums
+                    self.difference_QoI.UpdateGlobalPowerSums(level,batch)
+                    self.time_ML.UpdateGlobalPowerSums(level,batch)
+                    # update number of samples used to compute global power sums
+                    self.number_samples[level] = self.number_samples[level] + self.batches_number_samples[batch][level]
+                    self.difference_QoI.ComputeHStatistics(level)
+                    self.time_ML.ComputeHStatistics(level)
+
+                # update number of levels
+                self.previous_number_levels = self.current_number_levels
+                """
+                the functions executed in FinalizePhaseAux_Task are the followings:
+                self.ComputeMeanMLMCQoI()
+                self.ComputeRatesLS()
+                self.EstimateBayesianVariance(self.current_number_levels)
+                self.ComputeTotalErrorMLMC()
+                """
+                # store lists in synchro_element to execute FinalizePhaseAux_Task
+                synchro_elements = [x for x in self.difference_QoI.h_statistics_1]
+                synchro_elements.extend(["%%%"])
+                synchro_elements.extend(self.difference_QoI.h_statistics_2)
+                synchro_elements.extend(["%%%"])
+                synchro_elements.extend(self.time_ML.h_statistics_1)
+                # create a StreamSerializer Kratos object containing the problem settings
+                serial_settings = KratosMultiphysics.StreamSerializer()
+                serial_settings.Save("ParametersSerialization", self.settings)
+                # compute remaining MLMC finalize process operations
+                # observation: we are passing self.settings and we will exploit it to construct the class
+                self.rates_error,self.bayesian_variance,self.mean_mlmc_QoI,\
+                self.total_error,self.number_samples\
+                = FinalizePhaseAux_Task(MultilevelMonteCarlo,
+                serial_settings,self.mesh_parameters,self.current_number_levels,\
+                self.iteration_counter,self.number_samples,*synchro_elements)
+                # synchronization point needed to compute the other functions of MLMC algorithm
+                # put as in the end as possible the synchronization point
+                self.difference_QoI.h_statistics_1 = get_value_from_remote(self.difference_QoI.h_statistics_1)
+                self.difference_QoI.h_statistics_2 = get_value_from_remote(self.difference_QoI.h_statistics_2)
+                self.time_ML.h_statistics_1 = get_value_from_remote(self.time_ML.h_statistics_1)
+                self.total_error = get_value_from_remote(self.total_error)
+                self.rates_error = get_value_from_remote(self.rates_error)
+                self.bayesian_variance = get_value_from_remote(self.bayesian_variance)
+                self.mean_mlmc_QoI = get_value_from_remote(self.mean_mlmc_QoI)
+                self.number_samples = get_value_from_remote(self.number_samples)
+                # check convergence
+                # convergence reached if: i) current_iteration >= number_iterations_iE
+                #                        ii) total_error < tolerance_i
+                # if not update current_iteration
+                if (self.iteration_counter >= self.number_iterations_iE) and (self.total_error < self.tolerance_i):
+                    self.convergence = True
+                else:
+                    self.iteration_counter = self.iteration_counter + 1
+                break
 
     """
     function printing informations about screening phase
@@ -828,7 +863,7 @@ class MultilevelMonteCarlo(object):
         print("previous number of levels = ",self.previous_number_levels)
         print("current splitting parameter = ",self.theta_i)
         print("batch size = ",self.batch_size)
-        # print("previous number of samples = ",self.previous_number_samples)
+        print("batches prepared = ",self.batches_number_samples)
 
     """
     function printing informations about finalizing MLMC phase
@@ -837,9 +872,11 @@ class MultilevelMonteCarlo(object):
     def ScreeningInfoFinalizeMLMCPhase(self):
         # print("values computed of QoI = ",self.difference_QoI.values)
         # print("values computed time_ML",self.time_ML.values)
+        print("current convergence batch =",self.current_convergence_batch)
+        print("current batches",self.batches_number_samples)
         print("current number of samples",self.number_samples)
-        print("mean and variance difference_QoI = ",self.difference_QoI.raw_moment_1,self.difference_QoI.unbiased_central_moment_2)
-        print("mean time_ML",self.time_ML.raw_moment_1)
+        print("mean and variance difference_QoI = ",self.difference_QoI.h_statistics_1,self.difference_QoI.h_statistics_2)
+        print("mean time_ML",self.time_ML.h_statistics_1)
         print("rates coefficient = ",self.rates_error)
         print("estimated Bayesian variance = ",self.bayesian_variance)
         print("multilevel monte carlo mean estimator = ",self.mean_mlmc_QoI)
@@ -1080,7 +1117,7 @@ class MultilevelMonteCarlo(object):
         tol = self.tolerance_i
         # TODO: now considering self.number_samples, i.e. only the samples used up to this moment for the statistics
         # in future may be that we consider here all the samples, even if not analysed yet
-        nsam = self.number_samples
+        nsam =  copy.copy(self.number_samples)
         # compute optimal number of samples and store previous number of samples
         coeff1 = (cphi/(theta*tol))**2.0
         model_cost = np.multiply(cgamma,np.power(mesh_parameters_current_levels,gamma))
@@ -1128,7 +1165,8 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def ComputeMeanMLMCQoI(self):
-        self.mean_mlmc_QoI = np.sum(self.difference_QoI.h_statistics_1)
+        current_number_levels = self.difference_QoI.h_statistics_1.index([])
+        self.mean_mlmc_QoI = np.sum(self.difference_QoI.h_statistics_1[:current_number_levels])
 
     """
     function computing the total error:
