@@ -89,7 +89,7 @@ void FemDem2DElement::InitializeInternalVariablesAfterMapping()
 {
 	// After the mapping, the thresholds of the edges (are equal to 0.0) are imposed equal to the IP threshold
 	const double element_threshold = mThreshold;
-	if (mThresholds[0] + mThresholds[1] + mThresholds[2] < std::numeric_limits<double>::epsilon()) {
+	if (mThresholds[0] + mThresholds[1] + mThresholds[2] < tolerance) {
 		mThresholds[0] = element_threshold;
 		mThresholds[1] = element_threshold;
 		mThresholds[2] = element_threshold;
@@ -97,7 +97,7 @@ void FemDem2DElement::InitializeInternalVariablesAfterMapping()
 
 	// IDEM with the edge damages
 	const double damage_element = mDamage;
-	if (mDamages[0] + mDamages[1] + mDamages[2] < std::numeric_limits<double>::epsilon()) {
+	if (mDamages[0] + mDamages[1] + mDamages[2] < tolerance) {
 		mDamages[0] = damage_element;
 		mDamages[1] = damage_element;
 		mDamages[2] = damage_element;
@@ -138,7 +138,7 @@ void FemDem2DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessI
 	ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
 	//set constitutive law flags:
-	Flags &ConstitutiveLawOptions = values.GetOptions();
+	Flags& ConstitutiveLawOptions = values.GetOptions();
 
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -146,12 +146,12 @@ void FemDem2DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessI
 	//reading integration points
 	const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-	for ( SizeType PointNumber = 0; PointNumber < r_integration_points.size(); PointNumber++ ) {
+	for (SizeType point_number = 0; point_number < r_integration_points.size(); point_number++) {
 		//compute element kinematic variables B, F, DN_DX ...
-		this->CalculateKinematics(variables,PointNumber);
+		this->CalculateKinematics(variables,point_number);
 
 		//calculate material response
-		this->CalculateMaterialResponse(variables, values, PointNumber);
+		this->CalculateMaterialResponse(variables, values, point_number);
 	}
 	this->SetValue(STRESS_VECTOR, values.GetStressVector());
 	this->SetValue(STRAIN_VECTOR, values.GetStrainVector());
@@ -197,18 +197,18 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 	//auxiliary terms
 	Vector VolumeForce(dimension);
 
-	auto &r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+	auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
 	KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
 
-	for (SizeType PointNumber = 0; PointNumber < r_integration_points.size(); PointNumber++ ) {
+	for (SizeType point_number = 0; point_number < r_integration_points.size(); point_number++ ) {
 		//compute element kinematic variables B, F, DN_DX ...
-		this->CalculateKinematics(variables, PointNumber);
+		this->CalculateKinematics(variables, point_number);
 
 		//calculate material response
-		this->CalculateMaterialResponse(variables, values, PointNumber); // FEMDEM
+		this->CalculateMaterialResponse(variables, values, point_number); // FEMDEM
 
 		//calculating weights for integration on the "reference configuration"
-		variables.IntegrationWeight = r_integration_points[PointNumber].Weight() * variables.detJ;
+		variables.IntegrationWeight = r_integration_points[point_number].Weight() * variables.detJ;
 		variables.IntegrationWeight = this->CalculateIntegrationWeight(variables.IntegrationWeight );
 
 		// Loop over edges of the element...
@@ -304,15 +304,15 @@ void FemDem2DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 	auto &r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
 	KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
 
-	for (SizeType PointNumber = 0; PointNumber < r_integration_points.size(); PointNumber++ ) {
+	for (SizeType point_number = 0; point_number < r_integration_points.size(); point_number++ ) {
 		//compute element kinematic variables B, F, DN_DX ...
-		this->CalculateKinematics(variables, PointNumber);
+		this->CalculateKinematics(variables, point_number);
 
 		//calculate material response
-		this->CalculateMaterialResponse(variables, values, PointNumber); // FEMDEM
+		this->CalculateMaterialResponse(variables, values, point_number);
 
 		//calculating weights for integration on the "reference configuration"
-		variables.IntegrationWeight = r_integration_points[PointNumber].Weight() * variables.detJ;
+		variables.IntegrationWeight = r_integration_points[point_number].Weight() * variables.detJ;
 		variables.IntegrationWeight = this->CalculateIntegrationWeight(variables.IntegrationWeight );
 
 		// Loop over edges of the element...
@@ -347,7 +347,7 @@ void FemDem2DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 		if (is_damaging == true && std::abs(r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2]) > tolerance) {
 			if (this->GetProperties()[TANGENT_CONSTITUTIVE_TENSOR] == true) {
 				// this->CalculateSecondOrderTangentTensor(tangent_tensor, strain_vector, integrated_stress_vector, C);
-				this->CalculateSecondOrderCentralDifferencesTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, C);;
+				this->CalculateSecondOrderCentralDifferencesTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, C);
 				noalias(rLeftHandSideMatrix) += prod(trans(variables.B), variables.IntegrationWeight * Matrix(prod(tangent_tensor, variables.B)));
 			} else {
 				this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, C);
@@ -368,7 +368,7 @@ void FemDem2DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 	const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
 	//resizing as needed the LHS
-	unsigned int mat_size = number_of_nodes * (dimension) ; // water pressure
+	unsigned int mat_size = number_of_nodes * (dimension);
 
 	if (rRightHandSideVector.size() != mat_size )
 	rRightHandSideVector.resize(mat_size, false);
@@ -383,29 +383,29 @@ void FemDem2DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 	ConstitutiveLaw::Parameters values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
 	//set constitutive law flags:
-	Flags& ConstitutiveLawOptions=values.GetOptions();
+	Flags& ConstitutiveLawOptions = values.GetOptions();
 
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
 	//reading integration points
-	const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod );
+	const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
 	//auxiliary terms
 	Vector VolumeForce(dimension);
 
-	auto &r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+	auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
 	KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
 
-	for (SizeType PointNumber = 0; PointNumber < r_integration_points.size(); PointNumber++ ) {
+	for (SizeType point_number = 0; point_number < r_integration_points.size(); point_number++ ) {
 		//compute element kinematic variables B, F, DN_DX ...
-		this->CalculateKinematics(variables, PointNumber);
+		this->CalculateKinematics(variables, point_number);
 
 		//calculate material response
-		this->CalculateMaterialResponse(variables, values, PointNumber); // FEMDEM
+		this->CalculateMaterialResponse(variables, values, point_number); // FEMDEM
 
 		//calculating weights for integration on the "reference configuration"
-		variables.IntegrationWeight = r_integration_points[PointNumber].Weight() * variables.detJ;
+		variables.IntegrationWeight = r_integration_points[point_number].Weight() * variables.detJ;
 		variables.IntegrationWeight = this->CalculateIntegrationWeight(variables.IntegrationWeight);
 
 		// Loop over edges of the element...
@@ -593,8 +593,8 @@ void FemDem2DElement::FinalizeNonLinearIteration(ProcessInfo &CurrentProcessInfo
 
 void FemDem2DElement::AverageVector(Vector &rAverageVector, const Vector &v, const Vector &w)
 {
-	int n = v.size();
-	int m = w.size();
+	const int n = v.size();
+	const int m = w.size();
 	KRATOS_ERROR_IF(n != m) << "The dimension of the vectors are different or null" << std::endl;
 	rAverageVector.resize(n);
 	for (unsigned int cont = 0; cont < n; cont++) {
@@ -637,8 +637,8 @@ void FemDem2DElement::GetValueOnIntegrationPoints(
 	} else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR || rVariable == ALMANSI_STRAIN_TENSOR) {
 		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 	} else {
-		for (unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++) {
-			rValues[PointNumber] = mConstitutiveLawVector[PointNumber]->GetValue(rVariable, rValues[PointNumber]);
+		for (unsigned int point_number = 0; point_number < integration_points_number; point_number++) {
+			rValues[point_number] = mConstitutiveLawVector[point_number]->GetValue(rVariable, rValues[point_number]);
 		}
 	}
 }
@@ -651,13 +651,13 @@ void FemDem2DElement::CalculateOnIntegrationPoints(
 {
 	if (rVariable == DAMAGE_ELEMENT) {
 		rOutput.resize(1);
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
-			rOutput[PointNumber] = mDamage;
+		for (unsigned int point_number = 0; point_number < 1; point_number++) {
+			rOutput[point_number] = mDamage;
 		}
 	} else if (rVariable == STRESS_THRESHOLD) {
 		rOutput.resize(1);
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
-			rOutput[PointNumber] = mThreshold;
+		for (unsigned int point_number = 0; point_number < 1; point_number++) {
+			rOutput[point_number] = mThreshold;
 		}
 	}
 }
@@ -684,11 +684,11 @@ void FemDem2DElement::CalculateOnIntegrationPoints(
           this->InitializeElementData(variables, rCurrentProcessInfo);
 
           // reading integration points
-        for (unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
-            this->CalculateKinematics(variables, PointNumber);
-            if (rOutput[PointNumber].size() != variables.StrainVector.size())
-              rOutput[PointNumber].resize(variables.StrainVector.size(), false);
-            rOutput[PointNumber] = variables.StrainVector;
+        for (unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++) {
+            this->CalculateKinematics(variables, point_number);
+            if (rOutput[point_number].size() != variables.StrainVector.size())
+              rOutput[point_number].resize(variables.StrainVector.size(), false);
+            rOutput[point_number] = variables.StrainVector;
         }
 	} else {
 		for (unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++) {
@@ -961,7 +961,7 @@ void FemDem2DElement::ModifiedMohrCoulombCriterion(
 	bool& rIsDamaging
 	)
 {
-	Vector PrincipalStressVector = ZeroVector(2);
+	Vector PrincipalStressVector(2);
 	this->CalculatePrincipalStress(PrincipalStressVector, rStressVector);
 
 	const auto& properties = this->GetProperties();
@@ -1230,12 +1230,12 @@ void FemDem2DElement::SetValueOnIntegrationPoints(
 	const ProcessInfo &rCurrentProcessInfo)
 {
 	if (rVariable == DAMAGE_ELEMENT) {
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
-			mDamage = rValues[PointNumber];
+		for (unsigned int point_number = 0; point_number < 1; point_number++) {
+			mDamage = rValues[point_number];
 		}
 	} else if (rVariable == STRESS_THRESHOLD) {
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
-			mThreshold = rValues[PointNumber];
+		for (unsigned int point_number = 0; point_number < 1; point_number++) {
+			mThreshold = rValues[point_number];
 		}
 	} else {
 		for (unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints().size(); ++point_number) {
