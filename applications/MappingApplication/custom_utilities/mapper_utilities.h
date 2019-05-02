@@ -223,6 +223,23 @@ inline double ComputeDistance(const array_1d<double, 3>& rCoords1,
                       std::pow(rCoords1[2] - rCoords2[2] , 2) );
 }
 
+template<class TGeometryType>
+bool ProjectIntoVolume(TGeometryType& rGeometry,
+                       const Point& rPointToProject,
+                       array_1d<double, 3>& rLocalCoords,
+                       double& rDistance)
+{
+    bool is_inside = rGeometry.IsInside(rPointToProject, rLocalCoords);
+
+    if (is_inside) {
+        // Calculate Distance
+        rDistance = ComputeDistance(rPointToProject, rGeometry.Center());
+        rDistance /= rGeometry.Volume(); // Normalize Distance by Volume
+    }
+
+    return is_inside;
+}
+
 template <typename T>
 inline double ComputeMaxEdgeLengthLocal(const T& rEntityContainer)
 {

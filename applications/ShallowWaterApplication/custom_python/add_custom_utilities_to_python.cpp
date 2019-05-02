@@ -69,13 +69,24 @@ namespace Python
         ;
 
     py::class_< EstimateDtShallow > (m, "EstimateDtShallow")
-        .def(py::init<ModelPart&, Parameters&>())
+        .def(py::init<ModelPart&, Parameters>())
         .def("EstimateDt", &EstimateDtShallow::EstimateDt)
         ;
 
     py::class_< ReplicateModelPartUtility > (m, "ReplicateModelPartUtility")
         .def(py::init<ModelPart&, ModelPart&>())
+        .def(py::init<ModelPart&, ModelPart&, bool>())
         .def("Replicate", &ReplicateModelPartUtility::Replicate)
+        .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<Variable<double>>)
+        .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<Variable<array_1d<double, 3>>>)
+        .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<double>>)
+        .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<array_1d<double, 3>>>)
+        .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SetOriginMeshPosition", py::overload_cast<>(&ReplicateModelPartUtility::SetOriginMeshPosition))
+        .def("SetOriginMeshPosition", py::overload_cast<Variable<double>&>(&ReplicateModelPartUtility::SetOriginMeshPosition))
+        .def("SetDestinationMeshPosition", py::overload_cast<>(&ReplicateModelPartUtility::SetDestinationMeshPosition))
+        .def("SetDestinationMeshPosition", py::overload_cast<Variable<double>&>(&ReplicateModelPartUtility::SetDestinationMeshPosition))
         ;
 
     py::class_< PostProcessUtilities > (m, "PostProcessUtilities")

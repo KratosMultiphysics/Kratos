@@ -69,11 +69,11 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
             {
                 "element_name_table" :
                 {
-                    "IncompressiblePotentialFlowElement2D3N" : "AdjointIncompressiblePotentialFlowElement2D3N"
+                    "IncompressiblePotentialFlowElement2D3N" : "AdjointPotentialFlowElement2D3N"
                 },
                 "condition_name_table" :
                 {
-                    "PotentialWallCondition2D2N"             : "AdjointIncompressiblePotentialWallCondition2D2N"
+                    "PotentialWallCondition2D2N"             : "AdjointPotentialWallCondition2D2N"
                 }
             }
         """)
