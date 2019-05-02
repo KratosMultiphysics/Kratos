@@ -8,34 +8,12 @@
 #if !defined(KRATOS_ZOLTAN_PARTITION_UTILITY)
 #define  KRATOS_ZOLTAN_PARTITION_UTILITY
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 // System includes
-#include <string>
-#include <iostream>
-#include <stdlib.h>
-#include <cmath>
-#include <algorithm>
 
 // Mpi
-#include "mpi.h"
 #include "zoltan_cpp.h"
 
 // Project includes
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "includes/node.h"
-#include "includes/dof.h"
-#include "includes/variables.h"
-
-#include "containers/data_value_container.h"
-#include "includes/mesh.h"
-#include "geometries/triangle_2d_3.h"
-#include "geometries/tetrahedra_3d_4.h"
-#include "geometries/triangle_3d_3.h"
-#include "processes/node_erase_process.h"
 #include "custom_utilities/parallel_fill_communicator.h"
 
 
@@ -59,7 +37,7 @@ public:
     typedef Node < 3 > ::Pointer PointPointerType;
     typedef std::vector<PointType::Pointer> PointVector;
     typedef PointVector::iterator PointIterator;
-    
+
     typedef struct{
       int           numGlobalPoints;
       int           numLocalPoints;
@@ -81,23 +59,23 @@ public:
     ~ZoltanPartitionUtility()
     {
     }
-    
-    static int get_number_of_objects(void *data, 
+
+    static int get_number_of_objects(void *data,
                                      int *ierr)
     {
         MESH_DATA *mesh= (MESH_DATA *)data;
         *ierr = ZOLTAN_OK;
-        
+
         return mesh->numLocalPoints;
     }
 
-    static void get_object_list(void *data, 
-                                int sizeGID, 
+    static void get_object_list(void *data,
+                                int sizeGID,
                                 int sizeLID,
-                                ZOLTAN_ID_PTR globalID, 
+                                ZOLTAN_ID_PTR globalID,
                                 ZOLTAN_ID_PTR localID,
-                                int wgt_dim, 
-                                float *obj_wgts, 
+                                int wgt_dim,
+                                float *obj_wgts,
                                 int *ierr)
     {
         int i;
@@ -115,22 +93,22 @@ public:
         }
     }
 
-    static int get_num_geometry(void *data, 
+    static int get_num_geometry(void *data,
                                 int *ierr)
     {
         *ierr = ZOLTAN_OK;
-        
+
         return 2;
     }
 
-    static void get_geometry_list(void *data, 
-                                  int sizeGID, 
+    static void get_geometry_list(void *data,
+                                  int sizeGID,
                                   int sizeLID,
                                   int num_obj,
-                                  ZOLTAN_ID_PTR globalID, 
+                                  ZOLTAN_ID_PTR globalID,
                                   ZOLTAN_ID_PTR localID,
-                                  int num_dim, 
-                                  double *geom_vec, 
+                                  int num_dim,
+                                  double *geom_vec,
                                   int *ierr)
     {
         MESH_DATA *mesh= (MESH_DATA *)data;
@@ -138,7 +116,7 @@ public:
         if ( (sizeGID != 1) || (sizeLID != 1) || (num_dim != 2))
         {
             *ierr = ZOLTAN_FATAL;
-            
+
             return;
         }
 
@@ -153,19 +131,19 @@ public:
 
         return;
     }
-    
+
     void read_model_part(ModelPart& rModelPart, MESH_DATA *myMesh)
     {
         myMesh->numGlobalPoints = rModelPart.GetCommunicator().LocalMesh().Nodes().size();
         myMesh->numLocalPoints  = rModelPart.GetCommunicator().LocalMesh().Nodes().size();
-        
+
         for(ModelPart::NodesContainerType::iterator i_node = rModelPart.GetCommunicator().LocalMesh().Nodes().begin();
             i_node != rModelPart.GetCommunicator().LocalMesh().Nodes().end();
             i_node++
            )
         {
             unsigned int index = i_node - rModelPart.GetCommunicator().LocalMesh().Nodes().begin();
-          
+
             myMesh->myGlobalIDs[index] = i_node->Id();
             myMesh->x[index] = i_node->X();
             myMesh->y[index] = i_node->Y();
@@ -176,42 +154,43 @@ public:
     void CalculatePartition(ModelPart& rModelPart)
     {
         KRATOS_TRY
-        
+
         int changes, numGidEntries, numLidEntries, numImport, numExport;
         ZOLTAN_ID_PTR importGlobalGids, importLocalGids, exportGlobalGids, exportLocalGids;
         int *importProcs, *importToPart, *exportProcs, *exportToPart;
-        
+
         float version;
         struct Zoltan_Struct *zz;
         MESH_DATA myMesh;
-                
+
         read_model_part(rModelPart, &myMesh);
-        
+
         Zoltan_Initialize(0, NULL, &version);    // argc & argv can be null as they are used for the MPI_init call.
-        
+
         // Dynamically create Zoltan object.
         zz = Zoltan_Create(MPI_COMM_WORLD);
-        
+
         // Set general parameters
         Zoltan_Set_Param(zz, "DEBUG_LEVEL", "0");
         Zoltan_Set_Param(zz, "LB_METHOD", "RCB");
         Zoltan_Set_Param(zz, "NUM_GID_ENTRIES", "1");
         Zoltan_Set_Param(zz, "NUM_LID_ENTRIES", "1");
         Zoltan_Set_Param(zz, "RETURN_LISTS", "ALL");
-        
+
         // Set RCB parameters
         Zoltan_Set_Param(zz, "KEEP_CUTS", "1");
         Zoltan_Set_Param(zz, "RCB_OUTPUT_LEVEL", "0");
         Zoltan_Set_Param(zz, "RCB_RECTILINEAR_BLOCKS", "1");
-        
+
         // Query functions, to provide geometry to Zoltan
         Zoltan_Set_Num_Obj_Fn(zz, get_number_of_objects, &myMesh);
         Zoltan_Set_Obj_List_Fn(zz, get_object_list, &myMesh);
         Zoltan_Set_Num_Geom_Fn(zz, get_num_geometry, &myMesh);
         Zoltan_Set_Geom_Multi_Fn(zz, get_geometry_list, &myMesh);
-        
-        // Perform partitioning 
-        Zoltan_LB_Partition(zz,// input (all remaining fields are output)
+
+        // Perform partitioning
+        Zoltan_LB_Partition(zz,
+// input (all remaining fields are output)
           &changes,             // 1 if partitioning was changed, 0 otherwise
           &numGidEntries,       // Number of integers used for a global ID
           &numLidEntries,       // Number of integers used for a local ID
@@ -248,6 +227,6 @@ public:
 
 } // namespace Kratos.
 
-#endif // KRATOS_ZOLTAN_PARTITION_UTILITY  defined 
+#endif // KRATOS_ZOLTAN_PARTITION_UTILITY  defined
 
 

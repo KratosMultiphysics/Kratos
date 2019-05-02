@@ -148,6 +148,43 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(disp[2], 3.0)
             self.assertEqual(cond.GetValue(VISCOSITY), viscosity)
 
+    def test_clear_nonhistorical_values(self):
+        current_model = Model()
+
+        ##set the model part
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        ##set the variable values
+        viscosity = 0.1
+        displacement = Vector(3)
+        displacement[0] = 1.0
+        displacement[1] = 2.0
+        displacement[2] = 3.0
+
+        # First for nodes
+        VariableUtils().SetNonHistoricalVariable(VISCOSITY, viscosity, model_part.Nodes)
+        VariableUtils().SetNonHistoricalVariable(DISPLACEMENT, displacement, model_part.Nodes)
+        VariableUtils().ClearNonHistoricalData(model_part.Nodes)
+
+        ##verify the result
+        for node in model_part.Nodes:
+            self.assertFalse(node.Has(DISPLACEMENT))
+            self.assertFalse(node.Has(VISCOSITY))
+
+        # Now for conditions (it will work for elements too)
+        VariableUtils().SetNonHistoricalVariable(VISCOSITY, viscosity, model_part.Conditions)
+        VariableUtils().SetNonHistoricalVariable(DISPLACEMENT, displacement, model_part.Conditions)
+        VariableUtils().ClearNonHistoricalData(model_part.Conditions)
+
+        ##verify the result
+        for cond in model_part.Conditions:
+            self.assertFalse(cond.Has(DISPLACEMENT))
+            self.assertFalse(cond.Has(VISCOSITY))
+
     def test_set_flag(self):
         current_model = Model()
 
@@ -181,6 +218,30 @@ class TestVariableUtils(KratosUnittest.TestCase):
         for condition in model_part.GetSubModelPart("Inlets").Conditions:
             self.assertTrue(condition.Is(INLET))
             self.assertTrue(condition.IsNot(OUTLET))
+
+        VariableUtils().FlipFlag(VISITED, model_part.Nodes)
+        VariableUtils().FlipFlag(VISITED, model_part.Conditions)
+        VariableUtils().FlipFlag(VISITED, model_part.Elements)
+
+        VariableUtils().FlipFlag(INLET, model_part.GetSubModelPart("Inlets").Nodes)
+        VariableUtils().FlipFlag(INLET, model_part.GetSubModelPart("Inlets").Conditions)
+        VariableUtils().FlipFlag(OUTLET, model_part.GetSubModelPart("Inlets").Nodes)
+        VariableUtils().FlipFlag(OUTLET, model_part.GetSubModelPart("Inlets").Conditions)
+
+        ##verify the main modelpart flags set
+        for node in model_part.Nodes:
+            self.assertFalse(node.Is(VISITED))
+        for condition in model_part.Conditions:
+            self.assertFalse(condition.Is(VISITED))
+        for element in model_part.Elements:
+            self.assertFalse(element.Is(VISITED))
+        ##verify the inlet submodelpart flag set
+        for node in model_part.GetSubModelPart("Inlets").Nodes:
+            self.assertFalse(node.Is(INLET))
+            self.assertFalse(node.IsNot(OUTLET))
+        for condition in model_part.GetSubModelPart("Inlets").Conditions:
+            self.assertFalse(condition.Is(INLET))
+            self.assertFalse(condition.IsNot(OUTLET))
 
     def test_copy_var(self):
         current_model = Model()

@@ -16,7 +16,6 @@
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 
 // Project includes
@@ -176,7 +175,7 @@ private:
     ///@name Private Operators
     ///@{
     void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-                      ProcessInfo& rCurrentProcessInfo,
+                      const ProcessInfo& rCurrentProcessInfo,
                       bool CalculateStiffnessMatrixFlag,
                       bool CalculateResidualVectorFlag);
 
@@ -240,6 +239,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_COUPLING_CouplingFace2D_H_INCLUDED  defined 
+#endif // KRATOS_COUPLING_CouplingFace2D_H_INCLUDED  defined
 
 

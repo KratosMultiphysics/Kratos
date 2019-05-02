@@ -253,6 +253,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -295,6 +296,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             nr_elements = nr_nodes-1
             current_model = KratosMultiphysics.Model()
             mp = current_model.CreateModelPart("solid_part")
+            mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
             self._add_variables(mp)
             self._apply_material_properties(mp,dim)
 
@@ -339,6 +341,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -388,6 +391,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,False)
@@ -447,6 +451,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.USE_CONSISTENT_MASS_MATRIX,True)
@@ -506,6 +511,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             nr_elements = nr_nodes-1
             current_model = KratosMultiphysics.Model()
             mp = current_model.CreateModelPart("solid_part")
+            mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
             self._add_variables(mp)
             _add_explicit_variables(mp)
             self._apply_material_properties(mp,dim)
@@ -564,6 +570,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -847,6 +854,7 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -891,6 +899,7 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -949,6 +958,7 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -999,6 +1009,7 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
+        mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -1057,6 +1068,7 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
             nr_elements = nr_nodes-1
             current_model = KratosMultiphysics.Model()
             mp = current_model.CreateModelPart("solid_part")
+            mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
             self._add_variables(mp)
             _add_explicit_variables(mp)
             self._apply_material_properties(mp,dim)

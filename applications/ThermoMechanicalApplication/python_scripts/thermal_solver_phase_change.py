@@ -6,11 +6,6 @@ from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 
-
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
-
 def AddVariables(model_part, settings):
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
@@ -28,10 +23,10 @@ def AddVariables(model_part, settings):
     model_part.AddNodalSolutionStepVariable(settings.GetTransferCoefficientVariable());
     # model_part.AddNodalSolutionStepVariable(HTC);
     model_part.AddNodalSolutionStepVariable(SOLIDFRACTION);
-    model_part.AddNodalSolutionStepVariable(DISTANCE);    
+    model_part.AddNodalSolutionStepVariable(DISTANCE);
     model_part.AddNodalSolutionStepVariable(SOLIDFRACTION_RATE);
-    model_part.AddNodalSolutionStepVariable(NODAL_PAUX);   
-    model_part.AddNodalSolutionStepVariable(IS_SLIP);        
+    model_part.AddNodalSolutionStepVariable(NODAL_PAUX);
+    model_part.AddNodalSolutionStepVariable(IS_SLIP);
 
     print("variables for the THERMAL_SOLVER added correctly")
 
@@ -63,11 +58,11 @@ class Solver:
 # pPrecond = ILU0Preconditioner()
         # self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
         #self.linear_solver = BICGSTABSolver(1e-6, 5000)
-        
+
         gmres_size = 50
         tol = 1e-6
         verbosity = 0
-        self.linear_solver = AMGCLSolver(AMGCLSmoother.ILU0, AMGCLIterativeSolverType.GMRES, tol, 200, verbosity, gmres_size)        
+        self.linear_solver = AMGCLSolver(AMGCLSmoother.ILU0, AMGCLIterativeSolverType.GMRES, tol, 200, verbosity, gmres_size)
 
         self.dynamic_tau = 1.0
 
@@ -93,8 +88,8 @@ class Solver:
         # calculate normals
         self.normal_tools = BodyNormalCalculationUtils()
         self.normal_util = NormalCalculationUtils()
-        
-        
+
+
          # linesearch solver
         # definition of parameters
         self.MaxLineSearchIterations = 20
@@ -105,7 +100,7 @@ class Solver:
         self.etmna = 0.1           # minimum allowed step length
         self.toler = 1.0E-9
         self.norm = 1.0E-6
-        self.ApplyLineSearches = False       
+        self.ApplyLineSearches = False
 
     #
     def Initialize(self):
@@ -152,8 +147,8 @@ class Solver:
 
         self.normal_tools.CalculateBodyNormals(self.model_part, 3);
         #(FindConditionsNeighboursProcess(self.model_part, 3, 20)).ClearNeighbours()
-        #(FindConditionsNeighboursProcess(self.model_part, 3, 20)).Execute()        
-        #self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE, 0, 35.0)         
+        #(FindConditionsNeighboursProcess(self.model_part, 3, 20)).Execute()
+        #self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE, 0, 35.0)
 
 # print "Initialization monolithic solver finished"
 

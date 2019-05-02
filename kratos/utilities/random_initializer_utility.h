@@ -15,9 +15,7 @@
 #define  KRATOS_RANDOM_UTILITY_INITIALIZER_H_INCLUDED
 
 // System includes
-
 #include <random>
-#include <boost/range/algorithm.hpp>
 
 // External includes
 

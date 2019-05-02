@@ -129,6 +129,7 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
 
     def _base_fall_test_dynamic_schemes(self, current_model, scheme_name = "bossak", buffer_size = 2, dt = 1.0e-2):
         mp = current_model.CreateModelPart("sdof")
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 2
         add_variables(mp, scheme_name)
 
         if (scheme_name == "explicit"):

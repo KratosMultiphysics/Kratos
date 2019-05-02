@@ -36,7 +36,7 @@
         "Restart_Step"     : 0
     },
     "solver_settings" : {
-        "solver_type" : "mesh_solver_laplacian",
+        "solver_type" : "laplacian",
         "model_import_settings" : {
             "input_type"     : "mdpa",
             "input_filename" : "test_mdpa_files/rectangle_3D8N_test"

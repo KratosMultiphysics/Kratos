@@ -4,7 +4,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
-CheckForPreviousImport()
 
 def WriteFluidMdpa( filename, model_part, element_name, condition_name):
         restart_file = open(filename + ".mdpa", 'w')
@@ -13,10 +12,10 @@ def WriteFluidMdpa( filename, model_part, element_name, condition_name):
         new_restart_utilities.PrintNodes(model_part.Nodes, restart_file)
         new_restart_utilities.PrintElements(element_name,model_part.Elements, restart_file)
         new_restart_utilities.PrintConditions(condition_name,model_part.Conditions, restart_file)
-        
+
         #printing info for slip BC
         new_restart_utilities.PrintRestart_Variable_On_Condition(IS_STRUCTURE, "IS_STRUCTURE", model_part.Conditions, restart_file)
-        
+
         new_restart_utilities.PrintRestart_ScalarVariable(
             VELOCITY_X,
             "VELOCITY_X",

@@ -56,7 +56,7 @@ class NearestNeighborMapperTestFactory(KratosUnittest.TestCase):
 
 
 class NearestElementMapperTest2DFactory(KratosUnittest.TestCase):
-  
+
     def setUp(self):
         self.execution_path = os.path.dirname(os.path.realpath(__file__))
         # Within this location context:
@@ -91,7 +91,7 @@ class MapperTestsFactory(KratosUnittest.TestCase):
             self.output_post = False # set to "True" if GiD output is wanted
             self.set_up_test_1 = False # set to "True" to print the coordinates and the prescribed values
             self.set_up_test_2 = False # set to "True" to print the mapped Values
-            self.test_object = ExecuteMapperTests.KratosExecuteMapperTests(self.output_post, 
+            self.test_object = ExecuteMapperTests.KratosExecuteMapperTests(self.output_post,
                                                                            self.set_up_test_1,
                                                                            self.set_up_test_2)
 
@@ -125,7 +125,7 @@ class MapperTestsFactory(KratosUnittest.TestCase):
             err # needed to get the output
         else:
             pass
-        
+
 class NearestNeighborTest_1(NearestNeighborMapperTestFactory):
     file_name = "Mapper_Test_1/Mapper_Test_1"
 
@@ -140,5 +140,6 @@ class MapperTests(MapperTestsFactory):
     file_name_4 = "NearestElement_line"
     file_name_5 = "NearestElement_surface"
     file_name_6 = "NearestElement_volume"
-    
+
     file_name_list = [file_name_1, file_name_2, file_name_3, file_name_4, file_name_5, file_name_6]
+    file_name_list = [file_name_1, file_name_2, file_name_3, file_name_4, file_name_5]

@@ -76,13 +76,13 @@ class Averager:
                  original_file_name,
                  original_file_path,
                  initial_time = 0.0,
-                 final_time = float('inf'),
+                 end_time = float('inf'),
                  steps_per_average_step = 1,
                  calculate_standard_deviations = True,
                  normalize_standard_deviation = True,
                  overwrite_previous=True):
         self.initial_time = initial_time
-        self.final_time = final_time
+        self.end_time = end_time
         self.steps_per_average_step = steps_per_average_step
         self.calculate_standard_deviations = calculate_standard_deviations
         self.dataset_name = dataset_name
@@ -137,7 +137,7 @@ class Averager:
             return False
         else:
             time = float(time_str)
-            return time >= self.initial_time and time < self.final_time
+            return time >= self.initial_time and time < self.end_time
 
     def GetFilePath(self):
         return self.averaged_field_file_path
@@ -190,7 +190,7 @@ class Averager:
 
             with h5py.File(self.averaged_field_file_path) as f:
                 f.attrs['initial_time'] = self.initial_time
-                f.attrs['final_time'] = float(time_str)
+                f.attrs['end_time'] = float(time_str)
                 f.attrs['number_of_samples'] = i_sample
                 Averager.CopyDataset(f, original_f['/nodes'], 'nodes')
                 stat_group = Averager.CreateGroup(file_or_group=f,

@@ -98,9 +98,9 @@ class TestDynamicSearch(KratosUnittest.TestCase):
         }
         """)
         if (num_nodes == 3):
-            contact_search = CSMA.TreeContactSearch3D3N(self.main_model_part, search_parameters)
+            contact_search = CSMA.AdvancedContactSearch3D3N(self.main_model_part, search_parameters)
         else:
-            contact_search = CSMA.TreeContactSearch3D4N(self.main_model_part, search_parameters)
+            contact_search = CSMA.AdvancedContactSearch3D4N(self.main_model_part, search_parameters)
 
         # We initialize the search utility
         contact_search.CreatePointListMortar()

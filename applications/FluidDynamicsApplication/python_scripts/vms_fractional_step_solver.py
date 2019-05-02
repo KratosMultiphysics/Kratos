@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
 
 def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(VELOCITY)
@@ -232,12 +229,12 @@ class IncompressibleFluidSolver:
 
         if self.periodic == True:
             self.solver = FSStrategy(self.model_part,
-                                     self.solver_settings, 
-                                     self.predictor_corrector, 
+                                     self.solver_settings,
+                                     self.predictor_corrector,
                                      PATCH_INDEX)
         else:
             self.solver = FSStrategy(self.model_part,
-                                     self.solver_settings, 
+                                     self.solver_settings,
                                      self.predictor_corrector)
 
         self.solver.Check()
@@ -401,7 +398,7 @@ def CreateSolver(model_part, config, periodic=False):
         fluid_solver.dynamic_tau = config.dynamic_tau
 
     # linear solver settings
-    import linear_solver_factory
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
     if(hasattr(config, "pressure_linear_solver_config")):
         fluid_solver.pressure_linear_solver = linear_solver_factory.ConstructSolver(
             config.pressure_linear_solver_config)

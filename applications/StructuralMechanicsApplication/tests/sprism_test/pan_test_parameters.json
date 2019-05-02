@@ -32,7 +32,7 @@
         "residual_absolute_tolerance"        : 1e-4,
         "max_iteration"                      : 10,
         "linear_solver_settings":{
-                "solver_type": "SkylineLUFactorizationSolver"
+                "solver_type": "skyline_lu_factorization"
         },
         "arc_length_settings": {
                 "Ide": 5,

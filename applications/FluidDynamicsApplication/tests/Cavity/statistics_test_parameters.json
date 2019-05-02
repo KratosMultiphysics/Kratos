@@ -23,17 +23,17 @@
         "echo_level"                  : 0,
         "compute_reactions"           : false,
         "maximum_iterations"          : 1000,
-        "stabilization"               : {
-            "formulation": "qsvms",
+        "formulation"               : {
+            "element_type"            : "qsvms",
             "use_orthogonal_subscales": false,
-            "dynamic_tau"                 : 0.0
+            "dynamic_tau"             : 0.0
         },
         "relative_velocity_tolerance" : 1e-6,
         "absolute_velocity_tolerance" : 1e-6,
         "relative_pressure_tolerance" : 1e-6,
         "absolute_pressure_tolerance" : 1e-6,
         "linear_solver_settings"      : {
-            "solver_type"         : "AMGCL",
+            "solver_type"         : "amgcl",
             "max_iteration"       : 200,
             "tolerance"           : 1e-9,
             "provide_coordinates" : false,
@@ -126,8 +126,8 @@
             "output_file_name"    : "statistics_test.csv",
             "reference_file_name" : "statistics_reference.csv",
             "comparison_type"     : "deterministic",
-            "remove_output_file"    : true,
-            "decimal_places"      : 5
+            "remove_output_file"  : true,
+            "tolerance"           : 1e-5
         }
     }]
 }

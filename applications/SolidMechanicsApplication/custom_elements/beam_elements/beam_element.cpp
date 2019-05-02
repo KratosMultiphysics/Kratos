@@ -607,7 +607,7 @@ namespace Kratos
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
     //Calculate Delta Position
-    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+    ElementUtilities::CalculateDeltaPosition(rVariables.DeltaPosition,this->GetGeometry());
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
@@ -628,64 +628,6 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
-  //*************************COMPUTE DELTA POSITION*************************************
-  //************************************************************************************
-
-
-  Matrix& BeamElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
-  {
-    KRATOS_TRY
-
-    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
-
-    rDeltaPosition.resize(number_of_nodes,dimension,false);
-    noalias(rDeltaPosition) = ZeroMatrix(number_of_nodes,dimension);
-
-    for ( SizeType i = 0; i < number_of_nodes; i++ )
-      {
-       array_1d<double, 3 > & CurrentStepDisplacement = GetGeometry()[i].FastGetSolutionStepValue(STEP_DISPLACEMENT,0);
-
-       for ( SizeType j = 0; j < dimension; j++ )
-	  {
-	    rDeltaPosition(i,j) = CurrentStepDisplacement[j];
-	  }
-
-      }
-
-    return rDeltaPosition;
-
-    KRATOS_CATCH( "" )
-  }
-
-  //*************************COMPUTE TOTAL DELTA POSITION*******************************
-  //************************************************************************************
-
-  Matrix& BeamElement::CalculateTotalDeltaPosition(Matrix & rDeltaPosition)
-  {
-    KRATOS_TRY
-
-    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
-
-    rDeltaPosition.resize(number_of_nodes,dimension,false);
-    noalias(rDeltaPosition) = ZeroMatrix(number_of_nodes,dimension);
-
-    for ( SizeType i = 0; i < number_of_nodes; i++ )
-      {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-
-        for ( SizeType j = 0; j < dimension; j++ )
-	  {
-            rDeltaPosition(i,j) = CurrentDisplacement[j];
-	  }
-
-      }
-
-    return rDeltaPosition;
-
-    KRATOS_CATCH( "" )
-  }
   //************************************************************************************
   //************************************************************************************
 
@@ -1717,5 +1659,3 @@ namespace Kratos
 
 
 } // Namespace Kratos
-
-

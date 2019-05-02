@@ -400,7 +400,11 @@ public:
             for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 const array_1d<double, 3> delta_disp = rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT) - rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT, 1);
                 for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
-                    const array_1d<double, TDim>& aux_delta_normal = subrange(delta_normal_node[i_node * TDim + i_dof], 0, TDim);
+                    array_1d<double, TDim> aux_delta_normal;
+                    const array_1d<double, 3>& delta_normal = delta_normal_node[i_node * TDim + i_dof];
+                    for (IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
+                        aux_delta_normal[i_dim] = delta_normal[i_dim];
+                    }
                     row(aux_delta_normal_geometry, i_geometry) += delta_disp[i_dof] * aux_delta_normal;
                 }
             }
@@ -433,7 +437,11 @@ public:
             const array_1d<array_1d<double, 3>, TDim * TNumNodes> delta_normal_node = GPDeltaNormalSlave(jacobian, gradient);
             for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
-                    array_1d<double, TDim> aux_delta_normal = subrange(delta_normal_node[i_node * TDim + i_dof], 0, TDim);
+                    array_1d<double, TDim> aux_delta_normal;
+                    const array_1d<double, 3>& delta_normal = delta_normal_node[i_node * TDim + i_dof];
+                    for (IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
+                        aux_delta_normal[i_dim] = delta_normal[i_dim];
+                    }
                     row(rDeltaNormal[i_node * TDim + i_dof], i_geometry) = prod(renormalizer_matrix, aux_delta_normal);
                 }
             }
@@ -468,7 +476,11 @@ public:
             for ( IndexType i_node = 0; i_node < TNumNodesMaster; ++i_node) {
                 const array_1d<double, 3> delta_disp = rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT) - rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT, 1);
                 for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
-                    const array_1d<double, TDim>& aux_delta_normal = subrange(delta_normal_node[i_node * TDim + i_dof], 0, TDim);
+                    array_1d<double, TDim> aux_delta_normal;
+                    const array_1d<double, 3>& delta_normal = delta_normal_node[i_node * TDim + i_dof];
+                    for (IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
+                        aux_delta_normal[i_dim] = delta_normal[i_dim];
+                    }
                     row(aux_delta_normal_geometry, i_geometry) += delta_disp[i_dof] * aux_delta_normal;
                 }
             }
@@ -501,7 +513,11 @@ public:
             const array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> delta_normal_node = GPDeltaNormalMaster(jacobian, gradient);
             for ( IndexType i_node = 0; i_node < TNumNodesMaster; ++i_node) {
                 for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
-                    array_1d<double, TDim> aux_delta_normal = subrange(delta_normal_node[i_node * TDim + i_dof], 0, TDim);
+                    array_1d<double, TDim> aux_delta_normal;
+                    const array_1d<double, 3>& delta_normal = delta_normal_node[i_node * TDim + i_dof];
+                    for (IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
+                        aux_delta_normal[i_dim] = delta_normal[i_dim];
+                    }
                     row(rDeltaNormal[i_node * TDim + i_dof], i_geometry) = prod(renormalizer_matrix, aux_delta_normal);
                 }
             }

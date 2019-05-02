@@ -1,4 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
+from __future__ import print_function, absolute_import, division
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import *
@@ -16,9 +16,13 @@ class TestModelPart(KratosUnittest.TestCase):
 
         model_part= current_model.CreateModelPart("Main")
 
-        self.assertEqual(model_part.NumberOfSubModelParts(), 0)
+        parent_model_part_0 = model_part.GetParentModelPart()
+        self.assertEqual(parent_model_part_0.Name, "Main") # Itself as it is the RootModelPart
 
-        model_part.CreateSubModelPart("Inlets")
+        inlet_model_part = model_part.CreateSubModelPart("Inlets")
+
+        parent_model_part_1 = inlet_model_part.GetParentModelPart()
+        self.assertEqual(parent_model_part_1.Name, "Main")
 
         self.assertTrue(model_part.HasSubModelPart("Inlets"))
         self.assertEqual(model_part.NumberOfSubModelParts(), 1)
@@ -233,6 +237,7 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.HasProperties(1), True)
         random_sub_model_part = model_part.CreateSubModelPart("RandomSubModelPart")
         self.assertEqual(random_sub_model_part.HasProperties(1), False)
+        self.assertEqual(random_sub_model_part.RecursivelyHasProperties(1), True)
 
         self.assertEqual(model_part.NumberOfProperties(), 1)
         self.assertEqual(model_part.GetProperties()[1].Id, 1)

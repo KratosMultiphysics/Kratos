@@ -9,18 +9,18 @@
 #if !defined(KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_IMPLICIT_FLUID_ELEMENT_H_INCLUDED )
 #define  KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_IMPLICIT_FLUID_ELEMENT_H_INCLUDED
 
-// System includes 
+// System includes
 #include <string>
 #include <iostream>
 
 // External includes
 
- 
+
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/define.h"
 /* #include "includes/element.h" */
-#include "includes/serializer.h" 
+#include "includes/serializer.h"
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
 
@@ -65,7 +65,7 @@ namespace Kratos
       /// Pointer definition of TwoStepUpdatedLagrangianVPImplicitFluidElement
       KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitFluidElement);
 
-      ///base type: 
+      ///base type:
       typedef TwoStepUpdatedLagrangianVPImplicitElement<TDim> BaseType;
 
       /// Node type (default is: Node<3>)
@@ -93,8 +93,6 @@ namespace Kratos
 
       typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
-      typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
-
       /// Type for shape function values container
       typedef Kratos::Vector ShapeFunctionsType;
 
@@ -110,7 +108,7 @@ namespace Kratos
 
       typedef typename BaseType::ElementalVariables ElementalVariables;
 
-
+      typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
       ///@}
       ///@name Life Cycle
       ///@{
@@ -159,7 +157,7 @@ namespace Kratos
     TwoStepUpdatedLagrangianVPImplicitFluidElement(TwoStepUpdatedLagrangianVPImplicitFluidElement const& rOther):
       BaseType(rOther)
       {}
- 
+
 
       /// Destructor.
       virtual ~TwoStepUpdatedLagrangianVPImplicitFluidElement()
@@ -223,7 +221,7 @@ namespace Kratos
        * @param rResult A vector containing the global Id of each row
        * @param rCurrentProcessInfo the current process info object (unused)
        */
- 
+
       /// Returns a list of the element's Dofs
       /**
        * @param ElementalDofList the list of DOFs
@@ -309,7 +307,7 @@ namespace Kratos
 				      ProcessInfo& rCurrentProcessInfo,
 				      ElementalVariables& rElementalVariables) override;
 
-   
+
 
       /**
        * A constistent mass matrix is used.
@@ -317,7 +315,7 @@ namespace Kratos
        * @param rN Elemental shape functions.
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
-   
+
       void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
 						 double& MeanValue,
 						 const ShapeFunctionDerivativesType& rShapeDeriv,
@@ -325,14 +323,14 @@ namespace Kratos
 						 double& bulkModulus,
 						 const double Weight,
 						 double& MeanValueMass,
-						 const double TimeStep);   
-	
+						 const double TimeStep);
+
       void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
 					   MatrixType StiffnessMatrix,
 					   double& meanValueStiff,
 					   double& bulkCoefficient,
 					   double timeStep) override;
-      
+
       double ComputeNonLinearViscosity(double & equivalentStrainRate);
 
       void ComputeMaterialParametersGranularGas(double& Density,
@@ -350,17 +348,17 @@ namespace Kratos
       double ComputeBarkerMuIrheologyViscosity(ElementalVariables & rElementalVariables);
 
       double ComputeBarkerBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables);
-   
+
       void ComputeBulkMatrixLump(MatrixType& BulkMatrix,
 				 const double Weight) override;
-      
+
       void ComputeBulkMatrixConsistent(MatrixType& BulkMatrix,
 				       const double Weight) override;
-       
+
       void ComputeBulkMatrix(MatrixType& BulkMatrix,
 			     const ShapeFunctionsType& rN,
 			     const double Weight) override;
-      
+
       void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
 				 const ShapeFunctionsType& rN,
 				 const double Weight) override;
@@ -370,13 +368,13 @@ namespace Kratos
 				 const double TimeStep,
 				 const double BoundRHSCoeffAcc,
 				 const double BoundRHSCoeffDev) override;
-      
-      void ComputeBoundRHSVectorComplete(VectorType& BoundRHSVector, 
-					 const double TimeStep, 
-					 const double BoundRHSCoeffAcc, 
-					 const double BoundRHSCoeffDev, 
-					 const VectorType SpatialDefRate); 
-      
+
+      void ComputeBoundRHSVectorComplete(VectorType& BoundRHSVector,
+					 const double TimeStep,
+					 const double BoundRHSCoeffAcc,
+					 const double BoundRHSCoeffDev,
+					 const VectorType SpatialDefRate);
+
 
       void ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
 				      const ShapeFunctionDerivativesType& rShapeDeriv,
@@ -390,7 +388,7 @@ namespace Kratos
       void GetPositions(Vector& rValues,
 			const ProcessInfo& rCurrentProcessInfo,
 			const double theta) override;
-	
+
       void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 					    double TimeStep,
 					    unsigned int g) override;
@@ -421,7 +419,7 @@ namespace Kratos
 
       void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
 						 VectorType& rRightHandSideVector,
-						 ProcessInfo& rCurrentProcessInfo) override; 
+						 ProcessInfo& rCurrentProcessInfo) override;
 
       void GetPressureVelocityValues(Vector& rValues,
 				     const int Step);
@@ -433,7 +431,7 @@ namespace Kratos
       double GetThetaMomentum () override{return 0.5;};
 
       double GetThetaContinuity () override{return 1.0;};
-      
+
 
 
       ///@}

@@ -192,7 +192,7 @@ private:
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const IndexType PointNumber,
         const double detJ
-        ) override;
+        ) const override;
 
     ///@}
     ///@name Private  Access

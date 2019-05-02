@@ -150,7 +150,7 @@ public:
         mLMRatioTolerance =  ThisParameters["contact_displacement_relative_tolerance"].GetDouble();
         mLMAbsTolerance =  ThisParameters["contact_displacement_absolute_tolerance"].GetDouble();
 
-        // Additional flags -> NOTE: Replace for a ral flag?¿
+        // Additional flags -> NOTE: Replace for a real flag?
         mEnsureContact = ThisParameters["ensure_contact"].GetBool();
         mPrintingOutput = ThisParameters["print_convergence_criterion"].GetBool();
     }
@@ -162,6 +162,7 @@ public:
       ,mDispAbsTolerance(rOther.mDispAbsTolerance)
       ,mLMRatioTolerance(rOther.mLMRatioTolerance)
       ,mLMAbsTolerance(rOther.mLMAbsTolerance)
+      ,mEnsureContact(rOther.mEnsureContact)
       ,mPrintingOutput(rOther.mPrintingOutput)
       ,mTableIsInitialized(rOther.mTableIsInitialized)
     {

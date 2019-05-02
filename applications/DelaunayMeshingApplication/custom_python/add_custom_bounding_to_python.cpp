@@ -39,14 +39,14 @@ void  AddCustomBoundingToPython(pybind11::module& m)
 
   //bounding box container
   py::class_<BoundingBoxContainer>(m, "BoundingBoxContainer")
-      .def( py::init<>() )
-      .def( "PushBack", Push_Back_Bounding_Box )
+      .def(py::init<>())
+      .def("PushBack", Push_Back_Bounding_Box)
       ;
 
   //spatial bounding box
   py::class_<SpatialBoundingBox, typename SpatialBoundingBox::Pointer>
       (m, "SpatialBoundingBox")
-      .def( py::init<Vector, Vector>() )
+      .def(py::init<Vector, Vector>())
       .def(py::init< Parameters >())
       .def(py::init< Parameters& >())
       .def("SetAxisymmetric",&SpatialBoundingBox::SetAxisymmetric)
@@ -62,4 +62,3 @@ void  AddCustomBoundingToPython(pybind11::module& m)
 }  // namespace Python.
 
 } // Namespace Kratos
-

@@ -30,10 +30,10 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_truss","Parts_membrane"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_supports","PointLoad3D_pointload"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_supports","PointLoad3D_pointload", "Structure"],
         "rotation_dofs"                      : false,
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
+            "solver_type" : "ExternalSolversApplication.super_lu",
             "scaling"     : false
         }
     },

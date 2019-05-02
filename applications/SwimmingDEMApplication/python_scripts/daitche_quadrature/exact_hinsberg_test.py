@@ -18,11 +18,11 @@ def CalculateErrors(points_set, pp, n_samples = 40):
         tis = [pp.t_w * ti for ti in points_set.AsTs[m][1]]
 
         for i in range(n_samples):
-            final_time = pp.final_time - 2 * math.pi * i / n_samples
-            final_time_minus_tw = final_time - pp.t_w
-            ExactIntegral = quad.ExactIntegrationOfSinus(final_time, a = pp.initial_time)
-            F_w = quad.ExactIntegrationOfSinus(final_time, final_time_minus_tw)
-            F_tail = quad.ExactIntegrationOfTail(final_time, final_time_minus_tw, pp.initial_time, points_set.AsTs[m][0], tis)
+            end_time = pp.end_time - 2 * math.pi * i / n_samples
+            end_time_minus_tw = end_time - pp.t_w
+            ExactIntegral = quad.ExactIntegrationOfSinus(end_time, a = pp.initial_time)
+            F_w = quad.ExactIntegrationOfSinus(end_time, end_time_minus_tw)
+            F_tail = quad.ExactIntegrationOfTail(end_time, end_time_minus_tw, pp.initial_time, points_set.AsTs[m][0], tis)
             ApproxIntegral = float(F_w) + float(F_tail)
             Error += abs((ExactIntegral - ApproxIntegral))
 
@@ -67,7 +67,7 @@ class HinsbergPointsSetGivenNorm:
         self.ErrorBounds = []
 
 pp = ProblemParameters()
-pp.final_time = 2 * math.pi
+pp.end_time = 2 * math.pi
 pp.initial_time = 'MinusInfinity'
 t_w_min = 2 * math.pi * 1e-5
 n_doublings = 6
@@ -82,7 +82,7 @@ for t_w in t_ws:
     print('t_w = ', t_w, '...')
     print()
     pp.t_w = t_w
-    pp.final_time_minus_tw = pp.final_time - pp.t_w
+    pp.end_time_minus_tw = pp.end_time - pp.t_w
 
     t_norm_set = HinsbergPointsSetGivenNorm('t_norm')
     abs_norm_set = HinsbergPointsSetGivenNorm('abs_norm')

@@ -1,0 +1,26 @@
+#pragma once
+
+#include "src/Pointer.h"
+
+#include "src/Point.h"
+
+#include "src/CurveShapeEvaluator.h"
+#include "src/CurveGeometryBase.h"
+#include "src/CurveGeometry.h"
+#include "src/CurveBase.h"
+#include "src/Curve.h"
+
+#include "src/SurfaceShapeEvaluator.h"
+#include "src/SurfaceGeometryBase.h"
+#include "src/SurfaceGeometry.h"
+#include "src/SurfaceBase.h"
+#include "src/Surface.h"
+
+#include "src/CurveOnSurface.h"
+
+#include "src/CurveSpanIntersection.h"
+
+#include "src/PointOnCurveProjection.h"
+#include "src/PointOnSurfaceProjection.h"
+
+#include "src/IntegrationPoints.h"

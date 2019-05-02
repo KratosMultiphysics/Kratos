@@ -230,7 +230,7 @@ int AdjointFiniteDifferencingBaseElement::Check(const ProcessInfo& rCurrentProce
 
     KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
-    GeometryType& r_geom = GetGeometry();
+    const GeometryType& r_geom = GetGeometry();
 
     // verify that the variables are correctly initialized
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
@@ -251,7 +251,7 @@ int AdjointFiniteDifferencingBaseElement::Check(const ProcessInfo& rCurrentProce
     // Check dofs
     for (IndexType i = 0; i < r_geom.size(); ++i)
     {
-        auto& r_node = r_geom[i];
+        const auto& r_node = r_geom[i];
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
@@ -285,8 +285,12 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
     // Get perturbation size
     const double delta = this->GetPerturbationSize(rDesignVariable);
     ProcessInfo process_info = rCurrentProcessInfo;
+
+    Vector RHS;
+    pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
+
     // Get pseudo-load from utility
-    ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), rDesignVariable, delta, rOutput, process_info);
+    ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, process_info);
 
     KRATOS_CATCH("")
 }
@@ -312,12 +316,15 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
             rOutput.resize(dimension * number_of_nodes, local_size);
 
         IndexType index = 0;
+
+        Vector RHS;
+        pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
         for(auto& node_i : mpPrimalElement->GetGeometry())
         {
             for(IndexType coord_dir_i = 0; coord_dir_i < dimension; ++coord_dir_i)
             {
                 // Get pseudo-load contribution from utility
-                ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), coord_directions[coord_dir_i],
+                ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, coord_directions[coord_dir_i],
                                                                             node_i, delta, derived_RHS, process_info);
 
                 KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;

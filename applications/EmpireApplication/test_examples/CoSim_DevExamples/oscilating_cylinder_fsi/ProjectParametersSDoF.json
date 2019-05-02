@@ -1,0 +1,26 @@
+{
+    "system_parameters":{
+        "mass": 35.75e-3,
+        "stiffness" : 69.48,
+        "damping": 0.0039
+    },
+    "time_integration_parameters":{
+        "alpha_m": 0.0,
+        "alpha_f":  0.0,
+        "time_step": 0.01
+    },
+     "initial_values":{
+        "displacement": 0.0,
+        "velocity": 0.0
+     },
+     "boundary_conditions":{
+        "external_load": 0.0
+     },
+     "solver_parameters": {
+         "buffer_size": 3
+     },
+     "output_parameters":{
+        "file_name": "results_sdof.dat"
+     }
+
+}

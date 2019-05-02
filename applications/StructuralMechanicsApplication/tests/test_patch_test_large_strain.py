@@ -467,6 +467,100 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
         #self.__post_process(mp)
 
+    def test_TL_3D_tetra(self):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1,0.0, 1.0, 0.0)
+        mp.CreateNewNode(2,0.0, 1.0, 0.1)
+        mp.CreateNewNode(3, 0.28739360416666665, 0.27808503701741405, 0.05672979583333333)
+        mp.CreateNewNode(4, 0.0, 0.1, 0.0)
+        mp.CreateNewNode(5, 0.1, 0.1, 0.1)
+        mp.CreateNewNode(6, 1.0, 0.0, 0.0)
+        mp.CreateNewNode(7, 1.2, 0.0, 0.1)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,2,4,5,6,7])
+
+        #create Element
+        mp.CreateNewElement("TotalLagrangianElement3D4N", 1,[5,3,1,2], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D4N", 2,[3,1,2,6], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D4N", 3,[6,4,7,3], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D4N", 4,[5,4,1,3], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D4N", 5,[4,1,3,6], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D4N", 6,[5,4,3,7], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D4N", 7,[3,5,7,2], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D4N", 8,[6,7,2,3], mp.GetProperties()[1])
+
+        A,b = self._define_movement(dim)
+
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+
+        #self.__post_process(mp)
+
+    def test_TL_3D_prism(self):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1,0.5,0.5,0.0)
+        mp.CreateNewNode(2,0.7,0.2,0.0)
+        mp.CreateNewNode(3,0.9,0.8,0.0)
+        mp.CreateNewNode(4,0.3,0.7,0.0)
+        mp.CreateNewNode(5,0.6,0.6,0.0)
+        mp.CreateNewNode(6,0.5,0.5,0.1)
+        mp.CreateNewNode(7,0.7,0.2,0.1)
+        mp.CreateNewNode(8,0.9,0.8,0.1)
+        mp.CreateNewNode(9,0.3,0.7,0.1)
+        mp.CreateNewNode(10,0.6,0.6,0.1)
+        mp.CreateNewNode(11,0.5,0.5,0.2)
+        mp.CreateNewNode(12,0.7,0.2,0.2)
+        mp.CreateNewNode(13,0.9,0.8,0.2)
+        mp.CreateNewNode(14,0.3,0.7,0.2)
+        mp.CreateNewNode(15,0.6,0.6,0.2)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,2,3,4,5,6,7,8,9,11,12,13,14,15])
+
+        #create Element
+        mp.CreateNewElement("TotalLagrangianElement3D6N", 1, [1,2,5,6,7,10], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D6N", 2, [2,3,5,7,8,10], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D6N", 3, [3,4,5,8,9,10], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D6N", 4, [4,1,5,9,6,10], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D6N", 5, [6,7,10,11,12,15], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D6N", 6, [7,8,10,12,13,15], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D6N", 7, [8,9,10,13,14,15], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D6N", 8, [9,6,10,14,11,15], mp.GetProperties()[1])
+
+        A,b = self._define_movement(dim)
+
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+
+        #self.__post_process(mp)
+
     def test_TL_3D_hexa(self):
         dim = 3
         current_model = KratosMultiphysics.Model()

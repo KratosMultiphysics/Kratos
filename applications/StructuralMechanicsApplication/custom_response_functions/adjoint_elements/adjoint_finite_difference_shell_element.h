@@ -102,10 +102,10 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CheckVariables();
-    void CheckDofs();
-    void CheckProperties(const ProcessInfo& rCurrentProcessInfo);
-    void CheckSpecificProperties();
+    void CheckVariables() const;
+    void CheckDofs() const;
+    void CheckProperties(const ProcessInfo& rCurrentProcessInfo) const;
+    void CheckSpecificProperties() const;
 
     double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
 

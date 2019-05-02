@@ -16,9 +16,8 @@
 
 // Project includes
 #include "custom_elements/isotropic_shell_element.hpp"
-// #include "custom_utilities/solid_mechanics_math_utilities.hpp"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
-
 
 namespace Kratos
 {
@@ -2017,9 +2016,9 @@ void IsotropicShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, Process
 
     CalculateLocalGlobalTransformation( x12, x23, x31, y12, y23, y31,v1,v2,v3,area);
 
-    double h = GetProperties()[THICKNESS];
-    double density = GetProperties()[DENSITY];
-    double node_mass = area * density * h / 3.00;
+    const double h = GetProperties()[THICKNESS];
+    const double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+    const double node_mass = area * density * h / 3.00;
 
     //lumped
     unsigned int MatSize = 18;

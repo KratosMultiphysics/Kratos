@@ -14,22 +14,13 @@
 #if !defined(KRATOS_INTEGRATION_POINT_H_INCLUDED )
 #define  KRATOS_INTEGRATION_POINT_H_INCLUDED
 
-
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
-
-#include <numeric>
-#include <vector>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "geometries/point.h"
-
 
 namespace Kratos
 {

@@ -67,6 +67,24 @@ Condition::Pointer AxisymLineLoadCondition2D::Create(
     return Kratos::make_shared<AxisymLineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+Condition::Pointer AxisymLineLoadCondition2D::Clone (
+    IndexType NewId,
+    NodesArrayType const& ThisNodes
+    ) const
+{
+    KRATOS_TRY
+
+    Condition::Pointer p_new_cond = Kratos::make_shared<AxisymLineLoadCondition2D>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    p_new_cond->SetData(this->GetData());
+    p_new_cond->Set(Flags(*this));
+    return p_new_cond;
+
+    KRATOS_CATCH("");
+}
+
 /******************************* DESTRUCTOR ****************************************/
 /***********************************************************************************/
 
@@ -82,7 +100,7 @@ double AxisymLineLoadCondition2D::GetIntegrationWeight(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const SizeType PointNumber,
     const double detJ
-    )
+    ) const
 {
     // We calculate the axisymmetric coefficient
     Vector N;
@@ -100,7 +118,6 @@ double AxisymLineLoadCondition2D::GetIntegrationWeight(
 
 void AxisymLineLoadCondition2D::save( Serializer& rSerializer ) const
 {
-    rSerializer.save( "Name", "AxisymLineLoadCondition2D" );
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoadCondition2D );
 }
 

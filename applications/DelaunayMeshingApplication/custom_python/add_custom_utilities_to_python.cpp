@@ -96,6 +96,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
   //***************DOMAIN SET**************//
   py::class_<MesherUtilities>(m,"MesherUtilities")
       .def(py::init<>())
+      .def("SetModelPartNameToElements",&MesherUtilities::SetModelPartNameToElements)
       .def("SetModelPartNameToConditions",&MesherUtilities::SetModelPartNameToConditions)
       .def("SetModelPartNameToNodes",&MesherUtilities::SetModelPartNameToNodes)
       .def("CheckCriticalRadius",&MesherUtilities::CheckCriticalRadius)
@@ -272,4 +273,3 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 }  // namespace Python.
 
 } // Namespace Kratos
-

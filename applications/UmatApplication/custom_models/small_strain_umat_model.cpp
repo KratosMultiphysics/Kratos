@@ -13,6 +13,7 @@
 
 // Project includes
 #include "custom_models/small_strain_umat_model.hpp"
+#include "custom_utilities/stress_invariants_utilities.hpp"
 
 /* WRAPPER */
 extern "C" void umat_wrapper_( double* STRESS, double* STATEV, double** DDSDDE, double* SSE, double* SPD, double* SCD,
@@ -98,7 +99,11 @@ namespace Kratos
          int number_state_variables = this->GetNumberOfStateVariables();
          mStateVariablesFinalized = ZeroVector(number_state_variables);
 
+         const Properties & rMaterialProperties = rValues.GetProperties();
+         this->InitializeStateVariables( mStateVariablesFinalized, rMaterialProperties);
+
          mStressVectorFinalized.clear();
+
          mStrainVectorFinalized.clear();
       }
       mInitializedModel = true;
@@ -322,6 +327,31 @@ namespace Kratos
       return 0;
 
       KRATOS_CATCH(" ")
+   }
+   //******************************************************************
+   // Get Value doubles
+   double& SmallStrainUmatModel::GetValue(const Variable<double> & rVariable, double& rValue)
+   {
+      KRATOS_TRY
+
+      if ( rVariable == STRESS_INV_P)
+      {
+         double J2;
+         StressInvariantsUtilities::CalculateStressInvariants(mStressVectorFinalized , rValue, J2);
+      }
+      else if ( rVariable == STRESS_INV_J2)
+      {
+         double p;
+         StressInvariantsUtilities::CalculateStressInvariants(mStressVectorFinalized , p, rValue);
+      }
+      else if ( rVariable == STRESS_INV_THETA)
+      {
+         double p, J2;
+         StressInvariantsUtilities::CalculateStressInvariants(mStressVectorFinalized , p, J2, rValue);
+      }
+
+      return rValue;
+      KRATOS_CATCH("")
    }
 
 } // Namespace Kratos

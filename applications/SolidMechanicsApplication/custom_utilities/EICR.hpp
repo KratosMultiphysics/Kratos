@@ -12,6 +12,7 @@
 #define  EICR_H_INCLUDED
 
 #include "utilities/quaternion.h"
+#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 namespace Kratos
 {
@@ -40,6 +41,8 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) EICR
   typedef Matrix MatrixType;
 
   typedef Quaternion<RealType> QuaternionType;
+
+  typedef SolidMechanicsMathUtilities<double> MathUtilsType;
 
  public:
 
@@ -240,6 +243,10 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) EICR
     return S;
   }
 
+
+
+
+
   /**
    * Computes the Axial Vector Jacobian.
    * The output is a square matrix of size displacements.size() (which is num_nodes * 6).
@@ -260,7 +267,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) EICR
     for(size_t i = 0; i < num_nodes; i++)
     {
       size_t index = i * 6;
-      Vector3Type rv = project( displacements, range(index + 3, index + 6) );
+      Vector3Type rv = MathUtilsType::project( displacements, MathUtilsType::range(index + 3, index + 6) );
 
       double angle = norm_2(rv);
 
@@ -284,8 +291,8 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) EICR
       noalias( Hi ) -= 0.5 * Omega;
       noalias( Hi ) += eta * prod( Omega, Omega );
 
-      range iRange(index + 3, index + 6);
-      project( H, iRange, iRange ) = Hi;
+      VectorType iRange = MathUtilsType::range(index + 3, index + 6);
+      MathUtilsType::project( H, iRange, iRange,  Hi);
     }
 
     return H;
@@ -318,9 +325,9 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) EICR
     for(size_t i = 0; i < num_nodes; i++)
     {
       size_t index = i * 6;
-      range iRange(index + 3, index + 6);
-      noalias( rotationVector ) = project( displacements, iRange );
-      noalias( momentVector ) = project( forces, iRange );
+      VectorType iRange = MathUtilsType::range(index + 3, index + 6);
+      noalias( rotationVector ) = MathUtilsType::project( displacements, iRange );
+      noalias( momentVector ) = MathUtilsType::project( forces, iRange );
 
       double angle = norm_2(rotationVector);
 
@@ -358,9 +365,9 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) EICR
 
       noalias( LiTemp1 ) += eta * Li;
 
-      noalias( Li ) = prod( LiTemp1, project( H, iRange, iRange ) );
+      noalias( Li ) = prod( LiTemp1, MathUtilsType::project( H, iRange, iRange ) );
 
-      project( L, iRange, iRange ) = Li;
+      MathUtilsType::project( L, iRange, iRange, Li);
     }
 
     return L;

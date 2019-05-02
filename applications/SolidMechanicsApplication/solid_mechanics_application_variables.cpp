@@ -68,7 +68,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, RESTART_STEP_TIME )
 
   //geometrical
-  KRATOS_CREATE_VARIABLE( Matrix ,GEOMETRIC_STIFFNESS )
+  KRATOS_CREATE_VARIABLE( Matrix, GEOMETRIC_STIFFNESS )
 
   //beam cross section
   //KRATOS_CREATE_VARIABLE( BeamCrossSection::Pointer, BEAM_CROSS_SECTION )
@@ -165,7 +165,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, SHEARxPOLAR_INERTIA )
 
   //boundary definition
-  KRATOS_CREATE_VARIABLE( WeakPointerVector< Element >, MASTER_ELEMENTS )
+  KRATOS_CREATE_VARIABLE( ElementWeakPtrType, MASTER_ELEMENT )
 
   //thermal properties
   KRATOS_CREATE_VARIABLE( double, HEAT_CAPACITY )

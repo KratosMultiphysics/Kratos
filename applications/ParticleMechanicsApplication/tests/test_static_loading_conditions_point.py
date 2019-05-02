@@ -26,9 +26,9 @@ class TestStaticLoadingConditionsPoint(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
         if Dimension == 2:
-            cond = mp.CreateNewCondition("MPMPointLoadCondition2D1N", 1, [1], mp.GetProperties()[1])
+            cond = mp.CreateNewCondition("MPMGridPointLoadCondition2D1N", 1, [1], mp.GetProperties()[1])
         elif Dimension == 3:
-            cond = mp.CreateNewCondition("MPMPointLoadCondition3D1N", 1, [1], mp.GetProperties()[1])
+            cond = mp.CreateNewCondition("MPMGridPointLoadCondition3D1N", 1, [1], mp.GetProperties()[1])
         else:
             raise RuntimeError("Wrong Dimension")
 
@@ -65,11 +65,11 @@ class TestStaticLoadingConditionsPoint(KratosUnittest.TestCase):
         if Dimension == 3:
             self.assertEqual(rhs[2], load_on_cond[2] + nodal_load[2])
 
-    def test_MPMPointLoadCondition2D1N(self):
+    def test_MPMGridPointLoadCondition2D1N(self):
         current_model = KratosMultiphysics.Model()
         self._execute_point_load_condition_test(current_model, Dimension=2)
 
-    def test_MPMPointLoadCondition3D1N(self):
+    def test_MPMGridPointLoadCondition3D1N(self):
         current_model = KratosMultiphysics.Model()
         self._execute_point_load_condition_test(current_model, Dimension=3)
 

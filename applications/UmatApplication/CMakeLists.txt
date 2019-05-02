@@ -19,11 +19,15 @@ set( KRATOS_UMAT_APPLICATION_CORE
 
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/mises_umat.f
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/hypoplastic_umat.f
+	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/NiceNames.f
+	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/TensorModule.f
+	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/CompLib_new.f
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/umat_fortran_wrapper.f
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/xit.f
-	
+
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/small_strain_umat_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/von_mises_umat_small_strain_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/fabric_umat_small_strain_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/hypoplastic_umat_small_strain_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/large_strain_umat_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/von_mises_umat_large_strain_model.cpp
@@ -82,4 +86,4 @@ install(TARGETS KratosUmatCore DESTINATION libs )
 install(TARGETS KratosUmatApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/UmatApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/UmatApplication.py" DESTINATION "KratosMultiphysics/UmatApplication" RENAME "__init__.py")

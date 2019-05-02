@@ -4,10 +4,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.ThermoMechanicalApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
-
 def AddVariables(model_part, settings):
     model_part.AddNodalSolutionStepVariable(NODAL_AREA)
     model_part.AddNodalSolutionStepVariable(settings.GetMeshVelocityVariable())

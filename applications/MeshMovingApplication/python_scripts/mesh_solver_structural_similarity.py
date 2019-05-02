@@ -3,21 +3,18 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("MeshMovingApplication")
-
 # Import applications
 import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 
-# Other imports
-import mesh_solver_base
+# Import baseclass
+from KratosMultiphysics.MeshMovingApplication.mesh_solver_base import MeshSolverBase
 
 
 def CreateSolver(mesh_model_part, custom_settings):
     return MeshSolverStructuralSimilarity(mesh_model_part, custom_settings)
 
 
-class MeshSolverStructuralSimilarity(mesh_solver_base.MeshSolverBase):
+class MeshSolverStructuralSimilarity(MeshSolverBase):
     def __init__(self, mesh_model_part, custom_settings):
         super(MeshSolverStructuralSimilarity, self).__init__(mesh_model_part, custom_settings)
         print("::[MeshSolverStructuralSimilarity]:: Construction finished")

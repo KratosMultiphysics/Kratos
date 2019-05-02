@@ -238,12 +238,14 @@ class RecoverVolumeLossesProcess : public Process
 
     FreeSurfaceVolume += VolumeIncrement;
 
+    double CurrentFreeSurfaceVolume = 0;
+
     while( ++iteration < NumberOfIterations && Error > Tolerance )
     {
 
       this->MoveFreeSurface(rModelPart,Offset);
 
-      double CurrentFreeSurfaceVolume = this->ComputeFreeSurfaceVolume(rModelPart);
+      CurrentFreeSurfaceVolume = this->ComputeFreeSurfaceVolume(rModelPart);
 
       VolumeIncrement = (FreeSurfaceVolume - CurrentFreeSurfaceVolume);
 
@@ -263,7 +265,7 @@ class RecoverVolumeLossesProcess : public Process
 
     return CurrentVolume;
 
-    KRATOS_CATCH(" ")
+    KRATOS_CATCH("")
   }
 
 
@@ -289,7 +291,7 @@ class RecoverVolumeLossesProcess : public Process
       }
     }
 
-    KRATOS_CATCH(" ")
+    KRATOS_CATCH("")
   }
 
 
@@ -311,7 +313,7 @@ class RecoverVolumeLossesProcess : public Process
       }
     }
 
-    KRATOS_CATCH(" ")
+    KRATOS_CATCH("")
   }
 
 
@@ -327,7 +329,7 @@ class RecoverVolumeLossesProcess : public Process
       i_elem->Set(FREE_SURFACE,false);
     }
 
-    KRATOS_CATCH(" ")
+    KRATOS_CATCH("")
   }
 
   //*******************************************************************************************
@@ -369,7 +371,7 @@ class RecoverVolumeLossesProcess : public Process
 
     return ModelPartVolume;
 
-    KRATOS_CATCH(" ")
+    KRATOS_CATCH("")
 
   }
 
@@ -412,7 +414,7 @@ class RecoverVolumeLossesProcess : public Process
 
     return ModelPartVolume;
 
-    KRATOS_CATCH(" ")
+    KRATOS_CATCH("")
 
   }
 
@@ -491,7 +493,7 @@ class RecoverVolumeLossesProcess : public Process
 
     return FreeSurfaceArea;
 
-    KRATOS_CATCH(" ")
+    KRATOS_CATCH("")
 
   }
 

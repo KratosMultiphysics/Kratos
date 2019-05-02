@@ -8,8 +8,6 @@ from KratosMultiphysics.TrilinosApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import EstimateDt3D
 from KratosMultiphysics.mpi import *
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
 
 import trilinos_pureconvection_solver
 import trilinos_thermal_solver
@@ -80,10 +78,10 @@ class TrilinosLevelSetSolver:
         # construct the model part for the t solver
         if(self.domain_size == 2):
             conv_elem = "SUPGConvDiff2D"
-            conv_cond = "ThermalFace2D"
+            conv_cond = "ThermalFace2D2N"
         else:
             conv_elem = "SUPGConvDiff3D"
-            conv_cond = "ThermalFace3D"
+            conv_cond = "ThermalFace3D3N"
         self.thermal_model_part = ModelPart("thermal_model_part")
         self.conv_generator = ConnectivityPreserveModeler()
         (self.conv_generator).GenerateModelPart(self.model_part, self.thermal_model_part, conv_elem, conv_cond)

@@ -82,8 +82,8 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
         return norm**0.5
 
     def ReadModelPart(self,filename):
-
-        model_part = KratosMultiphysics.ModelPart("Test ModelPart")
+        self.model = KratosMultiphysics.Model()
+        model_part = self.model.CreateModelPart("Test ModelPart")
 
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -142,12 +142,9 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
         top_part = self.model_part.GetSubModelPart("Top")
 
         coupling_utility.Initialize()
-
-        nl_it = 0
-        convergence = False
-
         coupling_utility.InitializeSolutionStep()
 
+        nl_it = 0
         x_guess = self.InitializeGuess(top_part)
         residual = self.ComputeResidual(top_part,x_guess,force1,force2)
         res_norm = self.ComputeResidualNorm(residual)
@@ -160,7 +157,6 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
                 coupling_utility.FinalizeNonLinearIteration()
             else:
                 coupling_utility.FinalizeSolutionStep()
-                convergence = True
                 break
 
             nl_it += 1

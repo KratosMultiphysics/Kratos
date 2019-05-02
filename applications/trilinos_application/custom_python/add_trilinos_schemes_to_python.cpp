@@ -13,39 +13,21 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <pybind11/pybind11.h>
 
 // Project includes
 #include "includes/define_python.h"
 
 #include "custom_python/add_trilinos_schemes_to_python.h"
 
-//Trilinos includes
-#include "mpi.h"
-#include "Epetra_MpiComm.h"
-#include "Epetra_Comm.h"
-#include "Epetra_Map.h"
-#include "Epetra_Vector.h"
-#include "Epetra_FECrsGraph.h"
-#include "Epetra_FECrsMatrix.h"
+// Trilinos includes
 #include "Epetra_FEVector.h"
-#include "Epetra_IntSerialDenseVector.h"
-#include "Epetra_SerialDenseMatrix.h"
 
 // Project includes
-#include "trilinos_application.h"
 #include "trilinos_space.h"
 #include "spaces/ublas_space.h"
-#include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 
-// Strategies
-// #include "solving_strategies/strategies/solving_strategy.h"
-// #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-// #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-
 // Schemes
-#include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
@@ -53,6 +35,9 @@
 #include "solving_strategies/schemes/residual_based_bdf_custom_scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_newmark_scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_variable_property_static_scheme.h"
+#include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
+#include "solving_strategies/schemes/residual_based_adjoint_steady_scheme.h"
+#include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
 
 // FluidDynamicsApplication schemes
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
@@ -64,13 +49,11 @@
 #include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_lagrangian_monolithic_scheme.h"
 #include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_dpg_enriched.h"
 
-// AdjointFluidApplication
-#include "../../AdjointFluidApplication/custom_utilities/response_function.h"
-#include "../../AdjointFluidApplication/custom_schemes/adjoint_steady_velocity_pressure_scheme.h"
-#include "../../AdjointFluidApplication/custom_schemes/adjoint_bossak_scheme.h"
+// Response function
+#include "response_functions/adjoint_response_function.h"
 
-//teuchos parameter list
-#include "Teuchos_ParameterList.hpp"
+// //teuchos parameter list
+// #include "Teuchos_ParameterList.hpp"
 
 namespace Kratos
 {
@@ -224,17 +207,24 @@ void  AddSchemes(pybind11::module& m)
             .def(py::init<const Variable<int>&>()) // constructor for periodic conditions
     ;
 
-    py::class_<
-        AdjointSteadyVelocityPressureScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
-        typename AdjointSteadyVelocityPressureScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>::Pointer,
-        TrilinosBaseSchemeType >( m,"TrilinosAdjointSteadyVelocityPressureScheme")
-        .def(py::init<Parameters&, ResponseFunction::Pointer>() );
+    typedef ResidualBasedAdjointStaticScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosResidualBasedAdjointStaticSchemeType;
+    py::class_<TrilinosResidualBasedAdjointStaticSchemeType, typename TrilinosResidualBasedAdjointStaticSchemeType::Pointer, TrilinosBaseSchemeType>
+        (m, "TrilinosResidualBasedAdjointStaticScheme")
+        .def(py::init<AdjointResponseFunction::Pointer>())
+    ;
 
-    py::class_<
-        AdjointBossakScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
-        typename AdjointBossakScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>::Pointer,
-        TrilinosBaseSchemeType >( m,"TrilinosAdjointBossakScheme")
-        .def(py::init<Parameters&, ResponseFunction::Pointer>() );
+    typedef ResidualBasedAdjointSteadyScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosResidualBasedAdjointSteadySchemeType;
+    py::class_<TrilinosResidualBasedAdjointSteadySchemeType, typename TrilinosResidualBasedAdjointSteadySchemeType::Pointer, TrilinosResidualBasedAdjointStaticSchemeType>
+        (m, "TrilinosResidualBasedAdjointSteadyScheme")
+        .def(py::init<AdjointResponseFunction::Pointer>())
+    ;
+
+    typedef ResidualBasedAdjointBossakScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosResidualBasedAdjointBossakSchemeType;
+    py::class_<TrilinosResidualBasedAdjointBossakSchemeType, typename TrilinosResidualBasedAdjointBossakSchemeType::Pointer, TrilinosBaseSchemeType>
+        (m, "TrilinosResidualBasedAdjointBossakScheme")
+        .def(py::init<Kratos::Parameters, AdjointResponseFunction::Pointer>())
+    ;
+
 }
 
 } // namespace Python.

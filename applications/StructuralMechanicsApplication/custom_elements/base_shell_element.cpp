@@ -18,6 +18,7 @@
 // Project includes
 #include "custom_elements/base_shell_element.h"
 #include "custom_utilities/shell_utilities.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "includes/checks.h"
 
 namespace Kratos
@@ -308,48 +309,13 @@ void BaseShellElement::CalculateDampingMatrix(
     ProcessInfo& rCurrentProcessInfo
     )
 {
-    KRATOS_TRY;
+    const std::size_t matrix_size = GetNumberOfDofs();
 
-    const SizeType num_dofs = GetNumberOfDofs();
-
-    if ( rDampingMatrix.size1() != num_dofs )
-        rDampingMatrix.resize( num_dofs, num_dofs, false );
-
-    noalias( rDampingMatrix ) = ZeroMatrix( num_dofs, num_dofs );
-
-    // 1.-Calculate StiffnessMatrix:
-
-    MatrixType StiffnessMatrix  = Matrix();
-    VectorType ResidualVector  = Vector();
-
-    CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
-
-    // 2.-Calculate MassMatrix:
-
-    MatrixType MassMatrix  = Matrix();
-
-    CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
-
-    // 3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
-    double alpha = 0.0;
-    if( GetProperties().Has(RAYLEIGH_ALPHA) )
-        alpha = GetProperties()[RAYLEIGH_ALPHA];
-    else if( rCurrentProcessInfo.Has(RAYLEIGH_ALPHA) )
-        alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
-
-    double beta  = 0.0;
-    if( GetProperties().Has(RAYLEIGH_BETA) )
-        beta = GetProperties()[RAYLEIGH_BETA];
-    else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) )
-        beta = rCurrentProcessInfo[RAYLEIGH_BETA];
-
-    // 4.-Compose the Damping Matrix:
-
-    // Rayleigh Damping Matrix: alpha*M + beta*K
-    noalias( rDampingMatrix ) += alpha * MassMatrix;
-    noalias( rDampingMatrix ) += beta  * StiffnessMatrix;
-
-    KRATOS_CATCH( "" )
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
+        *this,
+        rDampingMatrix,
+        rCurrentProcessInfo,
+        matrix_size);
 }
 
 int BaseShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
@@ -399,23 +365,20 @@ void BaseShellElement::PrintData(std::ostream& rOStream) const {
   pGetGeometry()->PrintData(rOStream);
 }
 
-SizeType BaseShellElement::GetNumberOfDofs()
+SizeType BaseShellElement::GetNumberOfDofs() const
 {
     return ( 6 * GetGeometry().PointsNumber() ); // 6 dofs per node
 }
 
-SizeType BaseShellElement::GetNumberOfGPs()
+SizeType BaseShellElement::GetNumberOfGPs() const
 {
-    const auto& integrationPoints =
-    GetGeometry().IntegrationPoints(mIntegrationMethod);
-
-    return integrationPoints.size();
+    return GetGeometry().IntegrationPoints(mIntegrationMethod).size();
 }
 
 void BaseShellElement::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const bool CalculateStiffnessMatrixFlag,
     const bool CalculateResidualVectorFlag
     )
@@ -423,7 +386,7 @@ void BaseShellElement::CalculateAll(
     KRATOS_ERROR << "You have called to the CalculateAll from the base class for shell elements" << std::endl;
 }
 
-ShellCrossSection::SectionBehaviorType BaseShellElement::GetSectionBehavior()
+ShellCrossSection::SectionBehaviorType BaseShellElement::GetSectionBehavior() const
 {
     KRATOS_ERROR << "You have called to the GetSectionBehavior from the base class for shell elements" << std::endl;
 }
@@ -433,7 +396,7 @@ void BaseShellElement::SetupOrientationAngles()
     KRATOS_ERROR << "You have called to the SetupOrientationAngles from the base class for shell elements" << std::endl;
 }
 
-void BaseShellElement::CheckVariables()
+void BaseShellElement::CheckVariables() const
 {
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
     KRATOS_CHECK_VARIABLE_KEY(ROTATION);
@@ -449,13 +412,11 @@ void BaseShellElement::CheckVariables()
     KRATOS_CHECK_VARIABLE_KEY(SHELL_CROSS_SECTION);
 }
 
-void BaseShellElement::CheckDofs()
+void BaseShellElement::CheckDofs() const
 {
-    auto& r_geom = GetGeometry();
     // verify that the dofs exist
-    for (IndexType i = 0; i < r_geom.size(); ++i)
+    for (const auto& r_node : GetGeometry().Points())
     {
-        auto& r_node = r_geom[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
 
@@ -472,7 +433,7 @@ void BaseShellElement::CheckDofs()
     }
 }
 
-void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo) const
 {
     // check properties
     if(pGetProperties() == nullptr)
@@ -540,7 +501,7 @@ void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo)
     }
 }
 
-void BaseShellElement::CheckSpecificProperties()
+void BaseShellElement::CheckSpecificProperties() const
 {
     const auto& r_props = GetProperties();
 

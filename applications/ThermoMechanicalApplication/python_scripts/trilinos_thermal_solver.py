@@ -5,10 +5,6 @@ from KratosMultiphysics.ThermoMechanicalApplication import *
 from KratosMultiphysics.TrilinosApplication import *
 from KratosMultiphysics.mpi import *
 
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
-
 def AddVariables(model_part, settings):
     model_part.AddNodalSolutionStepVariable(settings.GetConvectionVariable())
     model_part.AddNodalSolutionStepVariable(settings.GetMeshVelocityVariable())

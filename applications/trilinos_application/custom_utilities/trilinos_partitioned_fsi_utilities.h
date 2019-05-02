@@ -57,8 +57,8 @@ namespace Kratos
 
   /// Trilinos version of the partitioned FSI tools
   /** @see PartitionedFSIUtilities */
-  template< class TSpace, unsigned int TDim >
-  class TrilinosPartitionedFSIUtilities : public PartitionedFSIUtilities<TSpace,TDim>
+  template< class TSpace, class TValueType, unsigned int TDim >
+  class TrilinosPartitionedFSIUtilities : public PartitionedFSIUtilities<TSpace,TValueType,TDim>
   {
   public:
       ///@name Type Definitions

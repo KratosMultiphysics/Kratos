@@ -30,7 +30,6 @@
 #include "includes/kratos_flags.h"
 #include "utilities/math_utils.h"
 
-#include "particle_mechanics_application.h"
 
 namespace Kratos
 {

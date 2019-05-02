@@ -149,11 +149,11 @@ public:
 
         double CharacteristicSize;
 
-        Matrix TrialIsoStressMatrix {ZeroMatrix(3)};
+        Matrix TrialIsoStressMatrix = ZeroMatrix(3,3);
 
-        Matrix StrainMatrix {ZeroMatrix(3)};
+        Matrix StrainMatrix = ZeroMatrix(3,3);
 
-        Matrix MainDirections {IdentityMatrix(3)};
+        Matrix MainDirections = IdentityMatrix(3);
 
         ThermalVariables Thermal;
 

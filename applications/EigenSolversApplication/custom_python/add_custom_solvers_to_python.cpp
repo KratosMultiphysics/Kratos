@@ -113,12 +113,10 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
     static auto SparseQRFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,SparseQRType>();
     static auto ComplexSparseQRFactory= StandardLinearSolverFactory<ComplexSpaceType,ComplexLocalSpaceType,ComplexSparseQRType>();
 
-    KRATOS_REGISTER_LINEAR_SOLVER("SparseLUSolver", SparseLUFactory);
-    KRATOS_REGISTER_LINEAR_SOLVER("eigen_sparse_lu", SparseLUFactory);  // NOTE: Retrocompatibility name
-    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("ComplexSparseLUSolver", ComplexSparseLUFactory);
-    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("complex_eigen_sparse_lu", ComplexSparseLUFactory);  // NOTE: Retrocompatibility name
-    KRATOS_REGISTER_LINEAR_SOLVER("SparseQRSolver", SparseQRFactory);
-    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("ComplexSparseQRSolver", ComplexSparseQRFactory);
+    KRATOS_REGISTER_LINEAR_SOLVER("sparse_lu", SparseLUFactory);
+    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("sparse_lu_complex", ComplexSparseLUFactory);
+    KRATOS_REGISTER_LINEAR_SOLVER("sparse_qr", SparseQRFactory);
+    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("sparse_qr_complex", ComplexSparseQRFactory);
 
 #ifdef USE_EIGEN_MKL
     typedef EigenDirectSolver<PardisoLLT<double>> PardisoLLTSolver;
@@ -135,16 +133,12 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
     static auto PardisoLUFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,PardisoLUType>();
     static auto ComplexPardisoLUFactory= StandardLinearSolverFactory<ComplexSpaceType,ComplexLocalSpaceType,ComplexPardisoLUType>();
 
-    KRATOS_REGISTER_LINEAR_SOLVER("PardisoLLTSolver", PardisoLLTFactor);
-    KRATOS_REGISTER_LINEAR_SOLVER("eigen_pardiso_llt", PardisoLLTFactor); // NOTE: Retrocompatibility name
-//     KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("ComplexPardisoLLTSolver", ComplexPardisoLLTFactory);
-    KRATOS_REGISTER_LINEAR_SOLVER("PardisoLDLTSolver", PardisoLDLTFactory);
-    KRATOS_REGISTER_LINEAR_SOLVER("eigen_pardiso_ldlt", PardisoLDLTFactory); // NOTE: Retrocompatibility name
-//     KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("ComplexPardisoLDLTSolver", ComplexPardisoLDLTFactory);
-    KRATOS_REGISTER_LINEAR_SOLVER("PardisoLUSolver", PardisoLUFactory);
-    KRATOS_REGISTER_LINEAR_SOLVER("eigen_pardiso_lu", PardisoLUFactory); // NOTE: Retrocompatibility name
-    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("ComplexPardisoLUSolver", ComplexPardisoLUFactory);
-    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("complex_eigen_pardiso_lu", ComplexPardisoLUFactory); // NOTE: Retrocompatibility name
+    KRATOS_REGISTER_LINEAR_SOLVER("pardiso_llt", PardisoLLTFactor);
+//     KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_llt_complex", ComplexPardisoLLTFactory);
+    KRATOS_REGISTER_LINEAR_SOLVER("pardiso_ldlt", PardisoLDLTFactory);
+//     KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_ldlt_complex", ComplexPardisoLDLTFactory);
+    KRATOS_REGISTER_LINEAR_SOLVER("pardiso_lu", PardisoLUFactory);
+    KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("pardiso_lu_complex", ComplexPardisoLUFactory);
 #endif
 }
 

@@ -90,14 +90,16 @@ class DamNoorzaiHeatFluxProcess : public Process
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
 
-        double time = mrModelPart.GetProcessInfo()[TIME];
-        double value = mDensity * mSpecificHeat * mAlpha * mTMax * (exp(-mAlpha * time));
+        const double time = mrModelPart.GetProcessInfo()[TIME];
+        const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
+
+        double value = mDensity * mSpecificHeat * mAlpha * mTMax * (exp(-mAlpha * time + 0.5 * delta_time));
 
         if (nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
-#pragma omp parallel for
+            #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;

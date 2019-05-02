@@ -107,15 +107,16 @@ public:
      * @param rPointProjected The point pojected over the plane
      * @param rNormal The normal of the geometry
      * @param rVector The direction to project
+     * @param EchoLevel If we want debugging info we should consider greater than 0
      * @return Distance The distance between surfaces
      */
-
     static inline double FastProjectDirection(
         const GeometryType& rGeom,
         const PointType& rPointDestiny,
         PointType& rPointProjected,
         const array_1d<double,3>& rNormal,
-        const array_1d<double,3>& rVector
+        const array_1d<double,3>& rVector,
+        const SizeType EchoLevel = 0
         )
     {
         // Zero tolerance
@@ -129,13 +130,13 @@ public:
         if( norm_2( rVector ) < zero_tolerance && norm_2( rNormal ) > zero_tolerance ) {
             distance = inner_prod(vector_points, rNormal)/norm_2(rNormal);
             noalias(rPointProjected.Coordinates()) = rPointDestiny.Coordinates() + rVector * distance;
-            KRATOS_WARNING("Warning: Zero projection vector.") << " Projection using the condition vector instead." << std::endl;
+            KRATOS_WARNING_IF("GeometricalProjectionUtilities", EchoLevel > 0) << "WARNING:: Zero projection vector. Projection using the condition vector instead." << std::endl;
         } else if (std::abs(inner_prod(rVector, rNormal) ) > zero_tolerance) {
             distance = inner_prod(vector_points, rNormal)/inner_prod(rVector, rNormal);
             noalias(rPointProjected.Coordinates()) = rPointDestiny.Coordinates() + rVector * distance;
         } else {
             noalias(rPointProjected.Coordinates()) = rPointDestiny.Coordinates();
-            KRATOS_WARNING("Warning: The line and the plane are coplanar.")  << " Something wrong happened " << std::endl;
+            KRATOS_WARNING_IF("GeometricalProjectionUtilities", EchoLevel > 0) << "WARNING:: The line and the plane are coplanar. Something wrong happened " << std::endl;
         }
 
         return distance;

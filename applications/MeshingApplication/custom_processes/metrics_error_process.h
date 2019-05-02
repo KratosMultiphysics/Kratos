@@ -7,7 +7,8 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz 
+//                   Anna Rehr
 //
 
 #if !defined(KRATOS_ERROR_METRICS_PROCESS)
@@ -47,6 +48,7 @@ namespace Kratos
  * @ingroup MeshingApplication
  * @brief This class is can be used to compute the metrics of the model part with a error already computed
  * @author Vicente Mataix Ferrandiz
+ * @author Anna Rehr
  */
 template<SizeType TDim>
 class KRATOS_API(MESHING_APPLICATION) MetricErrorProcess
@@ -223,12 +225,6 @@ private:
      * @brief In this final step the metric is computed
      */
     void CalculateMetric();
-
-    /**
-     * @brief This computes the element size depending of the geometry and it assigns to the ELEMENT_H variable
-     * @param itElement The element iterator
-     */
-    void ComputeElementSize(ElementItType itElement);
 
     ///@}
     ///@name Private  Access

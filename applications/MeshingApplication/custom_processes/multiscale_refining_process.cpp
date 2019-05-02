@@ -77,7 +77,7 @@ MultiscaleRefiningProcess::MultiscaleRefiningProcess(
 }
 
 
-void MultiscaleRefiningProcess::Check()
+int MultiscaleRefiningProcess::Check()
 {
     KRATOS_TRY
 
@@ -87,6 +87,8 @@ void MultiscaleRefiningProcess::Check()
 
     KRATOS_CHECK_EQUAL(mStepDataSize, mrRefinedModelPart.GetNodalSolutionStepDataSize());
     KRATOS_CHECK_EQUAL(mStepDataSize, mrVisualizationModelPart.GetNodalSolutionStepDataSize());
+
+    return 0;
 
     KRATOS_CATCH("")
 }

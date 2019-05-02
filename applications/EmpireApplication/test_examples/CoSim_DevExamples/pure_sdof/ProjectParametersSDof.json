@@ -1,0 +1,20 @@
+{
+    "system_parameters":{
+        "mass": 1.0,
+        "stiffness" : 0.10,
+        "damping": 0.2
+    },
+    "time_integration_parameters":{
+        "alpha_m": -0.5,
+        "alpha_f":  -0.5,
+        "time_step": 0.10
+    },
+     "initial_values":{
+        "displacement": 0.0,
+        "velocity": 0.0
+     },
+     "boundary_conditions":{
+        "external_load": 1.0
+     }   
+
+}

@@ -3,10 +3,9 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 def ConstructSolver(configuration):
     import KratosMultiphysics
 
-    if(type(configuration) != KratosMultiphysics.Parameters):
-        raise Exception("input is expected to be provided as a Kratos Parameters object")
+    depr_msg  = '"kratos/python_scripts/new_linear_solver_factory.py" is deprecated and will be removed\n'
+    depr_msg += 'Please use "kratos/python_scripts/python_linear_solver_factory.py" instead!'
+    KratosMultiphysics.Logger.PrintWarning('DEPRECATION-WARNING', depr_msg)
 
-    if KratosMultiphysics.ComplexLinearSolverFactory().Has(configuration["solver_type"].GetString()):
-        return KratosMultiphysics.ComplexLinearSolverFactory().Create(configuration)
-    else:
-        return KratosMultiphysics.LinearSolverFactory().Create(configuration)
+    from KratosMultiphysics import python_linear_solver_factory
+    return python_linear_solver_factory.ConstructSolver(configuration)

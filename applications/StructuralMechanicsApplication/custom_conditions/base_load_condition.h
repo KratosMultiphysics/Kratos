@@ -16,8 +16,8 @@
 // System includes
 
 // External includes
+
 // Project includes
-#include "includes/define.h"
 #include "includes/condition.h"
 #include "structural_mechanics_application_variables.h"
 
@@ -145,43 +145,12 @@ public:
      * @brief Creates a new condition pointer and clones the previous condition data
      * @param NewId the ID of the new condition
      * @param ThisNodes the nodes of the new condition
-     * @param pProperties the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
     Condition::Pointer Clone (
         IndexType NewId,
         NodesArrayType const& ThisNodes
         ) const override;
-
-    /**
-     * Called to initialize the element.
-     * Must be called before any calculation is done
-     */
-    void Initialize() override;
-
-    /**
-     * Called at the beginning of each solution step
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * This is called for non-linear analysis at the beginning of the iteration process
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * This is called for non-linear analysis at the beginning of the iteration process
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Called at the end of eahc solution step
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
@@ -304,9 +273,12 @@ public:
     /**
      * Check if Rotational Dof existant
      */
-    virtual bool HasRotDof(){return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);};
+    virtual bool HasRotDof() const
+    {
+        return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);
+    }
 
-    unsigned int GetBlockSize()
+    unsigned int GetBlockSize() const
     {
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
         if( HasRotDof() ) { // if it has rotations
@@ -386,7 +358,7 @@ protected:
     virtual void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         );
@@ -401,7 +373,7 @@ protected:
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const SizeType PointNumber,
         const double detJ
-        );
+        ) const;
 
     ///@}
     ///@name Protected  Access

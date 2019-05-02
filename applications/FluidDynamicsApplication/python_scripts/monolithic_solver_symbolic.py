@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
 
 def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(VELOCITY)
@@ -37,7 +34,7 @@ def AddDofs(model_part, config=None):
 
 
 class MonolithicSolver:
-    
+
     def __init__(self, model_part, domain_size, periodic=False):
 
         self.model_part = model_part
@@ -68,14 +65,14 @@ class MonolithicSolver:
         self.use_slip_conditions = False
 
         self.divergence_clearance_steps = 0
-        
+
         self.bdf_process = ComputeBDFCoefficientsProcess(model_part,2)
 
         print("Construction monolithic solver finished")
 
     #
     def Initialize(self):
-        
+
         # check if slip conditions are defined
         if self.use_slip_conditions == False:
             for cond in self.model_part.Conditions:
@@ -97,13 +94,13 @@ class MonolithicSolver:
         # creating the solution strategy
         self.conv_criteria = VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol,
                                            self.rel_pres_tol, self.abs_pres_tol)
-        
+
         self.conv_criteria.SetEchoLevel(self.echo_level)
-            
-        self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme() 
-        
+
+        self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
+
         builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-        
+
         self.fluid_solver = ResidualBasedNewtonRaphsonStrategy(
             self.model_part, self.time_scheme, self.linear_solver, self.conv_criteria,
             builder_and_solver, self.max_iter, self.compute_reactions, self.ReformDofSetAtEachStep, self.MoveMeshFlag)
@@ -114,7 +111,7 @@ class MonolithicSolver:
 
 
         print ("Initialization monolithic solver finished")
-    
+
     def Solve(self):
 
         self.bdf_process.Execute()
@@ -140,7 +137,7 @@ class MonolithicSolver:
     #
     def Clear(self):
         self.fluid_solver.Clear()
-        
+
     def Check(self):
         self.fluid_solver.Check()
 
@@ -174,8 +171,8 @@ def CreateSolver(model_part, config, periodic=False):
         fluid_solver.ReformDofSetAtEachStep = config.ReformDofSetAtEachStep
     if(hasattr(config, "divergence_cleareance_step")):
         fluid_solver.divergence_clearance_steps = config.divergence_cleareance_step
-        
-    import linear_solver_factory
+
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
     if(hasattr(config, "linear_solver_config")):
         fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(
             config.linear_solver_config)

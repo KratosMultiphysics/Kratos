@@ -15,17 +15,10 @@
 #define KRATOS_TRILINOS_RESIDUALBASED_INCREMENTAL_AITKEN_STATIC_SCHEME_H
 
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
-
-// Application includes
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
 

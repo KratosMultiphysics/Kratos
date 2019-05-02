@@ -55,6 +55,8 @@ namespace Kratos
   typedef TimeIntegrationMethodsContainer<VariableComponentType, double> ComponentTimeIntegrationContainerType;
   typedef ComponentTimeIntegrationContainerType::Pointer          ComponentTimeIntegrationContainerPointerType;
 
+  typedef Kratos::weak_ptr<Element>                                                        ElementWeakPtrType;
+
   ///@}
 
   ///@name Kratos Globals
@@ -190,7 +192,7 @@ namespace Kratos
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double, SHEARxPOLAR_INERTIA )
 
   //boundary definition
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, WeakPointerVector< Element >, MASTER_ELEMENTS )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, ElementWeakPtrType, MASTER_ELEMENT )
 
   //thermal properties
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double, HEAT_CAPACITY )
@@ -205,6 +207,6 @@ namespace Kratos
 
   ///@}
 
-}
+} // Namespace Kratos
 
 #endif	// KRATOS_SOLID_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED

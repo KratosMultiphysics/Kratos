@@ -7,11 +7,6 @@ from KratosMultiphysics.mpi import *
 from KratosMultiphysics.TrilinosApplication import *
 from KratosMultiphysics.MetisApplication import *
 
-
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
-
 def AddVariables(model_part, settings):
     model_part.AddNodalSolutionStepVariable(NODAL_AREA)
     model_part.AddNodalSolutionStepVariable(settings.GetMeshVelocityVariable())

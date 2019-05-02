@@ -2,8 +2,6 @@ from __future__ import print_function, absolute_import, division
 
 from KratosMultiphysics import *
 from KratosMultiphysics.ConvectionDiffusionApplication import *
-CheckForPreviousImport()
-
 
 def AddVariables(model_part):
     ''' Add nodal solution step variables based on provided CONVECTION_DIFFUSION_SETTINGS
@@ -38,7 +36,7 @@ def AddDofs(model_part):
     '''
     if not model_part.ProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS):
         raise Exception("the provided model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
-    
+
     settings = model_part.ProcessInfo[CONVECTION_DIFFUSION_SETTINGS]
 
     if not settings.IsDefinedUnknownVariable():
@@ -50,7 +48,7 @@ def AddDofs(model_part):
         reaction_variable = settings.GetReactionVariable()
 
         for node in model_part.Nodes:
-            node.AddDof(unknown_variable,reaction_variable)    
+            node.AddDof(unknown_variable,reaction_variable)
     else:
         for node in model_part.Nodes:
             node.AddDof(unknown_variable)
@@ -69,7 +67,7 @@ class ConvectionDiffusionSolver(object):
         #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         self.theta = 0.5
         self.dynamic_tau = 0.0
-        
+
         if not self.model_part.ProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS):
             raise Exception("the provided model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
 

@@ -45,9 +45,6 @@ class Algorithm(BaseAlgorithm):
             if not self.stationarity:
                 self.fluid_loader.LoadFluid(time)
 
-    def PerformInitialDEMStepOperations(self, time = None):
-        pass
-
     def GetFluidLoaderCounter(self):
         return SDP.Counter(steps_in_cycle = self.pp.CFD_DEM["DEM_steps_per_fluid_load_step"].GetInt(),
                            beginning_step = 1,
@@ -62,7 +59,7 @@ class Algorithm(BaseAlgorithm):
             return code
 
     def TheSimulationMustGoOn(self):
-        it_must_go_on = self.time <= self.final_time
+        it_must_go_on = self.time <= self.end_time
 
         if self.pp.CFD_DEM["fluid_already_calculated"].GetBool():
             return it_must_go_on and self.fluid_loader.CanLoadMoreSteps()

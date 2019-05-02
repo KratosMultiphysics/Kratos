@@ -3,8 +3,6 @@
 
 
 // System includes
-#include "includes/define.h"
-#include "includes/element.h"
 #include "includes/variables.h"
 
 // External includes
@@ -62,9 +60,9 @@ protected:
 
             dA = 1.0;
 
-            Matrix H = ZeroMatrix(3, 3);
-            Matrix Q = ZeroMatrix(3, 3);
-            Matrix T = ZeroMatrix(3, 3);
+            H = ZeroMatrix(3, 3);
+            Q = ZeroMatrix(3, 3);
+            T = ZeroMatrix(3, 3);
         }
     };
 
@@ -192,7 +190,7 @@ protected:
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
-    );
+    ) override;
 
     /**
     * Calculation of the Material Stiffness Matrix. Km = B^T * D *B

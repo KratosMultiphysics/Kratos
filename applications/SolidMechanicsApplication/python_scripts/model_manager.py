@@ -5,9 +5,6 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 #Base class to develop other solvers
 class ModelManager(object):
     """The base class for solid mechanic model build process.
@@ -16,7 +13,7 @@ class ModelManager(object):
     adding nodal variables and dofs.
 
     """
-    def __init__(self, custom_settings):
+    def __init__(self, Model, custom_settings):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -48,7 +45,7 @@ class ModelManager(object):
         self.settings["input_file_settings"].ValidateAndAssignDefaults(default_settings["input_file_settings"])
 
         # Set void model
-        self.model = self._create_model()
+        self.model = Model
         self.main_model_part = self._create_main_model_part()
 
         # Process Info
@@ -189,14 +186,8 @@ class ModelManager(object):
 
     #### Model manager internal methods ####
 
-    def _create_model(self):
-        model = KratosMultiphysics.Model()
-        return model
-
     def _create_main_model_part(self):
         # Defining the model_part
-        if not hasattr(self, 'model'):
-            self.model = self._create_model()
         main_model_part = self.model.CreateModelPart(self.settings["model_name"].GetString())
         return main_model_part
 
@@ -212,11 +203,12 @@ class ModelManager(object):
         self.nodal_variables = [self.nodal_variables[i] for i in range(0,len(self.nodal_variables)) if self.nodal_variables[i] != 'NOT_DEFINED']
         self.nodal_variables.sort()
 
+        print(" Variables :",self.nodal_variables)
+
         for variable in self.nodal_variables:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
             #print(" Added variable ", KratosMultiphysics.KratosGlobals.GetVariable(variable),"(",variable,")")
 
-        print(self.nodal_variables)
         print(self._class_prefix()+" General Variables ADDED")
 
 
@@ -364,7 +356,7 @@ class ModelManager(object):
 
     #
     def _build_composite_solving_parts(self):
-
+        self.current_update_time = self.process_info[KratosMultiphysics.TIME]
         print(self._class_prefix()+" Composite Solving Parts")
         solving_parts = self.settings["composite_solving_parts"]
         for i in range(0,solving_parts.size()):
@@ -374,6 +366,7 @@ class ModelManager(object):
 
     #
     def _update_composite_solving_parts(self):
+        self.current_update_time = self.process_info[KratosMultiphysics.TIME]
         print(self._class_prefix()+" Update Solving Parts")
         for transfer in self.transfer_solving_parts:
             transfer.Execute()
@@ -397,13 +390,19 @@ class ModelManager(object):
         if not self._is_not_restarted():
             if self.process_info.Has(KratosSolid.RESTART_STEP_TIME):
                 update_time = self._check_current_time_step(self.process_info[KratosSolid.RESTART_STEP_TIME])
-                # print(" RESTART_STEP_TIME ",self.process_info[KratosSolid.RESTART_STEP_TIME], update_time)
+                #print(" RESTART_STEP_TIME ",self.process_info[KratosSolid.RESTART_STEP_TIME], update_time)
 
         if not update_time and self.process_info.Has(KratosSolid.MESHING_STEP_TIME):
             update_time = self._check_previous_time_step(self.process_info[KratosSolid.MESHING_STEP_TIME])
+            #print(" MESHING_STEP_TIME ",self.process_info[KratosSolid.MESHING_STEP_TIME], update_time)
+
 
         if not update_time and self.process_info.Has(KratosSolid.CONTACT_STEP_TIME):
             update_time = self._check_previous_time_step(self.process_info[KratosSolid.CONTACT_STEP_TIME])
+            #print(" CONTACT_STEP_TIME ",self.process_info[KratosSolid.CONTACT_STEP_TIME], update_time)
+
+        if update_time:
+            update_time  = not self._check_current_time_step(self.current_update_time)
 
         return update_time
     #

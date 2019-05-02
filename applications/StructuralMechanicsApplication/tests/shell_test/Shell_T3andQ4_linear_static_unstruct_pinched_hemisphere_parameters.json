@@ -30,7 +30,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_Surace_T3_thin","Parts_Surface_T3_thick","Parts_Surface_Q4_thick","Parts_Surface_Q4_thin"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_sym_XZ","DISPLACEMENT_sym_YZ","ROTATION_sym_XZ","ROTATION_sym_YZ","PointLoad3D_neumann_x","PointLoad3D_neumann_y"],
+        "processes_sub_model_part_list"      : ["GENERIC_ref_node","DISPLACEMENT_sym_XZ","DISPLACEMENT_sym_YZ","ROTATION_sym_XZ","ROTATION_sym_YZ","PointLoad3D_neumann_x","PointLoad3D_neumann_y"],
         "rotation_dofs"                      : true
     },
     "processes" : {

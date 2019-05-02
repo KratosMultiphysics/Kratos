@@ -6,7 +6,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestArray1DInterface(KratosUnittest.TestCase):
 
     def CreateModelPart(self):
-        model_part = KM.ModelPart("TestModelPart")
+        current_model = KM.Model()
+        model_part = current_model.CreateModelPart("TestModelPart")
         model_part.AddNodalSolutionStepVariable(KM.VORTICITY)
         model_part.CreateNewNode(1, 0.00,0.00,0.00)
         model_part.CreateNewNode(2, 1.00,0.00,0.00)

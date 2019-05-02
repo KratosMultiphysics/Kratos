@@ -7,7 +7,8 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix 
+//                   Anna Rehr
 //
 
 // System includes
@@ -17,6 +18,7 @@
 // Project includes
 #include "processes/find_nodal_neighbours_process.h"
 #include "custom_processes/metrics_error_process.h"
+#include "custom_utilities/meshing_utilities.h"
 
 namespace Kratos
 {
@@ -122,7 +124,7 @@ void MetricErrorProcess<TDim>::CalculateElementSize()
         auto it_elem = elements_array.begin() + i_elem;
 
         //Compute the current element size h
-        ComputeElementSize(it_elem);
+        MeshingUtilities::ComputeElementSize(it_elem);
 
         // Compute new element size
         const double element_error = it_elem->GetValue(ELEMENT_ERROR);
@@ -205,25 +207,6 @@ void MetricErrorProcess<TDim>::CalculateMetric()
         it_node->SetValue(tensor_variable, metric);
 
         KRATOS_INFO_IF("MetricErrorProcess", mEchoLevel > 2) << "Node " << it_node->Id() << " has metric: "<< metric << std::endl;
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SizeType TDim>
-void MetricErrorProcess<TDim>::ComputeElementSize(ElementItType itElement)
-{
-    auto& this_geometry = itElement->GetGeometry();
-
-    // Here we compute the element size. This process is designed for triangles and tetrahedra, so we only specify for this geometries. Otherwise we take the length (and we throw a warning)
-    if (this_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3){ // Triangular elements
-        itElement->SetValue(ELEMENT_H, 2.0 * this_geometry.Circumradius());
-    } else if(this_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4){ // Tetrahedral elements
-        itElement->SetValue(ELEMENT_H,std::pow(12.0 * this_geometry.Volume()/std::sqrt(2.0), 1.0/3.0));
-    } else { // In any othe case just considers the length of the element
-        KRATOS_WARNING("MetricErrorProcess") << "This process is designed for tetrahedra (3D) and triangles (2D). Error expected" << std::endl;
-        itElement->SetValue(ELEMENT_H, this_geometry.Length());
     }
 }
 

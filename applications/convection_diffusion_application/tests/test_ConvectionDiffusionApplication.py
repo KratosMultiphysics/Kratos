@@ -22,6 +22,7 @@ except ImportError as e:
 ##### SELF-CONTAINED TESTS #####
 from source_term_test import SourceTermTest
 from thermal_coupling_test import ThermalCouplingTest
+from test_apply_thermal_interface_process import ApplyThermalInterfaceProcessTest
 
 ##### SMALL TESTS #####
 from convection_diffusion_test_factory import BasicConvectionDiffusionStationaryTest as TBasicConvectionDiffusionStationaryTest
@@ -40,20 +41,21 @@ def AssembleTestSuites():
         The set of suites with its test_cases added.
     '''
     suites = KratosUnittest.KratosSuites
-    
+
     # Create a test suit with the selected tests (Small tests):
     # These tests are executed by the continuous integration tool, so they have to be very fast!
     # Execution time << 1 sec on a regular PC !!!
     # If the tests in the smallSuite take too long then merging to master will not be possible!
     smallSuite = suites['small'] # These tests are executed by the continuous integration tool
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
-    
+
     ### Adding the self-contained tests
     smallSuite.addTest(SourceTermTest('testPureDiffusion'))
     smallSuite.addTest(SourceTermTest('testDiffusionDominated'))
     smallSuite.addTest(SourceTermTest('testConvectionDominated'))
     smallSuite.addTest(SourceTermTest('testReaction'))
     smallSuite.addTest(ThermalCouplingTest('testDirichletNeumann'))
+    smallSuite.addTest(ApplyThermalInterfaceProcessTest('testThermalInterfaceProcess'))
 
     ### Adding Small Tests
     smallSuite.addTest(TBasicConvectionDiffusionStationaryTest('test_execution'))
@@ -77,7 +79,7 @@ if __name__ == '__main__':
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
     run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
-    
+
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

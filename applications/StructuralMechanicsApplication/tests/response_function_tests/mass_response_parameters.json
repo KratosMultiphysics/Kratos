@@ -21,7 +21,6 @@
             "input_filename"       : "rectangular_plate_structure"
         },
         "gradient_mode"            : "finite_differencing",
-        "step_size"                : 1e-5,
-        "consider_discretization"  : false
+        "step_size"                : 1e-5
     }
 }

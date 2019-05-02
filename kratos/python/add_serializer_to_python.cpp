@@ -20,6 +20,7 @@
 #include "includes/serializer.h"
 #include "includes/file_serializer.h"
 #include "includes/stream_serializer.h"
+#include "includes/mpi_serializer.h"
 #include "python/add_serializer_to_python.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
@@ -97,6 +98,13 @@ void  AddSerializerToPython(pybind11::module& m)
             }
         )
     )
+    ;
+
+    py::class_<MpiSerializer, MpiSerializer::Pointer, StreamSerializer >(m,"MpiSerializer")
+    .def(py::init<>())
+    .def(py::init<std::string const&>())
+    .def(py::init<Serializer::TraceType>())
+    .def(py::init<std::string const&, Serializer::TraceType>())
     ;
 
     py::enum_<Serializer::TraceType>(m,"SerializerTraceType")

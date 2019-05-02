@@ -8,7 +8,7 @@ include(pybind11Tools)
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/triangle )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication ) 
+include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
     add_definitions( -DTETGEN143 )
@@ -26,11 +26,12 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOp
 
 ## generate variables with the sources
 if(${INCLUDE_MMG} MATCHES ON)
-set( KRATOS_MESHING_APPLICATION_CORE  
+set( KRATOS_MESHING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/meshing_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/uniform_refinement_utility.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/meshing_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_includes/meshing_flags.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
@@ -43,11 +44,12 @@ set( KRATOS_MESHING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp
 )
 else(${INCLUDE_MMG} MATCHES ON)
-set( KRATOS_MESHING_APPLICATION_CORE  
+set( KRATOS_MESHING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/meshing_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/uniform_refinement_utility.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/meshing_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_includes/meshing_flags.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
@@ -67,9 +69,9 @@ set (KRATOS_MESHING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 )
 
-if(${KRATOS_BUILD_TESTING} MATCHES ON) 
-    file(GLOB_RECURSE KRATOS_MESHING_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp) 
-endif(${KRATOS_BUILD_TESTING} MATCHES ON) 
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_MESHING_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosMeshingCore SHARED ${KRATOS_MESHING_APPLICATION_CORE} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosMeshingCore PUBLIC KratosCore triangle tetMeshOpt)
@@ -96,12 +98,12 @@ pybind11_add_module(KratosMeshingApplication MODULE THIN_LTO ${KRATOS_MESHING_AP
 target_link_libraries(KratosMeshingApplication PRIVATE KratosMeshingCore)
 set_target_properties(KratosMeshingApplication PROPERTIES PREFIX "")
 
-# changing the .dll suffix to .pyd 
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosMeshingApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so 
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosMeshingApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -122,4 +124,4 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/MeshingApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/MeshingApplication.py" DESTINATION "KratosMultiphysics/MeshingApplication" RENAME "__init__.py")

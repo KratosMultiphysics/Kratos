@@ -56,6 +56,10 @@ kratos/includes/kratos_version.h
 *.post.bin
 *.post.lst
 
+# VTK post files
+*.vtk
+*.vtu
+
 # Output of tests of meshing application (MMG)
 *.sol
 *.mesh
@@ -64,7 +68,6 @@ kratos/includes/kratos_version.h
 
 *.bak
 
-*.h~
-*.cpp~
-
 applications/python_scripts/beam_profiles\.csv
+
+\.vs/slnx\.sqlite

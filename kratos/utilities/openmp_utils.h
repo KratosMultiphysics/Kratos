@@ -68,7 +68,7 @@ public:
         return 1;
 #endif
     }
-    
+
 
     /// Wrapper for omp_get_thread_num().
     /**
@@ -82,7 +82,7 @@ public:
         return 0;
 #endif
     }
-    
+
     /// Wrapper for omp_in_parallel().
     /**
      @return Maximum number of OpenMP threads that will be used in
@@ -128,18 +128,12 @@ public:
         const int NumThreads,
         PartitionVector& Partitions)
     {
-#ifdef _OPENMP
         Partitions.resize(NumThreads + 1);
         int PartitionSize = NumTerms / NumThreads;
         Partitions[0] = 0;
         Partitions[NumThreads] = NumTerms;
         for(int i = 1; i < NumThreads; i++)
             Partitions[i] = Partitions[i-1] + PartitionSize ;
-#else
-        Partitions.resize(2);
-        Partitions[0] = 0;
-        Partitions[1] = NumTerms;
-#endif
     }
 
     /// Generate a partition for an std::vector-like array, providing iterators to the begin and end positions for each thread.
@@ -182,16 +176,16 @@ public:
     static inline void SetNumThreads(int NumThreads = 1)
     {
 #ifdef _OPENMP
-      
+
       int procs    = omp_get_num_procs();
       if( procs < NumThreads ){
 	std::cout<<" WARNING: Maximimun number of threads is EXCEEDED "<<std::endl;
-	/* Set thread number */  
+	/* Set thread number */
 	omp_set_num_threads(procs);
 	std::cout<<" Number of Threads Set To : "<<procs<<std::endl;
       }
       else{
-	/* Set thread number */  
+	/* Set thread number */
 	omp_set_num_threads(NumThreads);
       }
 
@@ -206,19 +200,19 @@ public:
 #ifdef _OPENMP
 
       int nthreads,tid, procs, maxt, inpar, dynamic, nested;
-  
+
       /* Start parallel region */
-  
+
 #pragma omp parallel private(nthreads, tid)
       {
 	/* Obtain thread number */
 	tid = omp_get_thread_num();
-    
+
 	/* Only master thread does this */
 	if (tid == 0)
 	  {
 	    printf("  Thread %d getting environment info...\n", tid);
-	
+
 	    /* Get environment information */
 	    procs    = omp_get_num_procs();
 	    nthreads = omp_get_num_threads();
@@ -228,7 +222,7 @@ public:
 	    dynamic  = omp_get_dynamic();
 	    //omp_set_nested(true);
 	    nested   = omp_get_nested();
-	
+
 	    /* Print environment information */
 	    printf( "  | ------------ OMP IN USE --------- |\n");
 	    printf( "  | Machine number of processors  = %d |\n", procs);
@@ -238,15 +232,15 @@ public:
 	    printf( "  | Dynamic threads enabled?      = %d |\n", dynamic);
 	    printf( "  | Nested parallelism supported? = %d |\n", nested);
 	    printf( "  | --------------------------------- |\n");
-	
-	    
+
+
 	    if( procs < nthreads )
 	      std::cout<<" ( WARNING: Maximimun number of threads is EXCEEDED )"<<std::endl;
-	    	    
+
 	  }
-    
+
       }
-      
+
 #endif
     }
 

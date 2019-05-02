@@ -76,9 +76,13 @@ public:
   ///BaseLengths
   typedef ContactDomainUtilities::BaseLengths         BaseLengths;
 
+  typedef WeakPointerVector<Node<3> >       NodeWeakPtrVectorType;
+  typedef WeakPointerVector<Element>     ElementWeakPtrVectorType;
+  typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+
   ///For 3D contact surfaces definition
-  typedef ContactDomainUtilities::ScalarBaseType  ScalarBaseType;
-  typedef ContactDomainUtilities::SurfaceBase           SurfaceBase;
+  typedef ContactDomainUtilities::ScalarBaseType   ScalarBaseType;
+  typedef ContactDomainUtilities::SurfaceBase         SurfaceBase;
 
 protected:
 

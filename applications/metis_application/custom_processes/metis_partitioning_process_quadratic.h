@@ -16,26 +16,13 @@
 #if !defined(KRATOS_METIS_PARTITIONING_PROCESS_QUADRATIC_INCLUDED )
 #define  KRATOS_METIS_PARTITIONING_PROCESS_QUADRATIC_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
-#include <fstream>
 
 // External includes
 #include <parmetis.h>
 
 
 // Project includes
-#include "includes/define.h"
-#include "processes/process.h"
-#include "processes/graph_coloring_process.h"
-#include "includes/node.h"
-#include "includes/element.h"
-#include "includes/model_part.h"
-#include "includes/mpi_communicator.h"
 #include "custom_processes/metis_partitioning_process.h"
 
 extern "C" {
@@ -760,5 +747,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_METIS_PARTITIONING_PROCESS_QUADRATIC_INCLUDED defined
-
-

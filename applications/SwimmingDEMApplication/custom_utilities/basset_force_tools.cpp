@@ -10,7 +10,7 @@ namespace Kratos
 {
 void BassetForceTools::FillDaitcheVectors(const int N, const int order, const int n_steps_per_quad_step)
 {
-    std::cout << "\nFilling up vectors of coefficients for Daitche quadrature...\n";
+    KRATOS_INFO("SwimmingDEM") << "Filling up vectors of coefficients for Daitche quadrature..." << std::endl;
 
     if (!N){
         return;
@@ -154,8 +154,7 @@ void BassetForceTools::FillDaitcheVectors(const int N, const int order, const in
     Cns_analytic = Cns;
     Dns_analytic = Dns;
     Ens_analytic = Ens;
-
-    std::cout << "...Finished filling up vectors of coefficients.\n";
+    KRATOS_INFO("SwimmingDEM") << "...Finished filling up vectors of coefficients." << std::endl;
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -171,8 +170,7 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
     if (!m){
         return;
     }
-
-    std::cout << "\nFilling up vectors of coefficients for Hinsberg method with m = " << m << " ...\n";
+    KRATOS_INFO("SwimmingDEM") << "Filling up vectors of coefficients for Hinsberg method with m = " << m << " ..." << std::endl;
     double & t_win = SphericSwimmingParticle<SphericParticle>::mTimeWindow;
     std::vector<double>& As = SphericSwimmingParticle<SphericParticle>::mAs;
     std::vector<double>& Ts = SphericSwimmingParticle<SphericParticle>::mTs;
@@ -508,7 +506,7 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
         }
     }
 
-    std::cout << "...Finished filling up vectors of coefficients.\n";
+    KRATOS_INFO("SwimmingDEM") << "...Finished filling up vectors of coefficients." << m << " ..." << std::endl;
     KRATOS_CATCH("")
 }
 //**************************************************************************************************************************************************
@@ -516,7 +514,7 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
 void BassetForceTools::AppendIntegrands(ModelPart& r_model_part)
 {
     ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-    double time = r_process_info[TIME] + r_process_info[DELTA_TIME];
+    double time = r_process_info[TIME];
     r_process_info[LAST_TIME_APPENDING] = time;
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
@@ -587,7 +585,7 @@ void BassetForceTools::AppendIntegrandsImplicit(ModelPart& r_model_part)
 void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
 {
     ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-    double time = r_process_info[TIME] + r_process_info[DELTA_TIME];
+    double time = r_process_info[TIME];
     r_process_info[LAST_TIME_APPENDING] = time;
 
     if (r_process_info[BASSET_FORCE_TYPE] >= 3 && mNumberOfExponentials > 0){

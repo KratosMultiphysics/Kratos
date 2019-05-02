@@ -276,8 +276,18 @@ public:
     //     return p_clone;
     // }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors(Vector& rResult) const override
+    /**
+     * @brief Lumping factors for the calculation of the lumped mass matrix
+     * @param rResult Vector containing the lumping factors
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    Vector& LumpingFactors(
+        Vector& rResult,
+        const typename BaseType::LumpingMethods LumpingMethod = BaseType::LumpingMethods::ROW_SUM
+        )  const override
     {
 	if(rResult.size() != 2)
            rResult.resize(2, false);
@@ -769,13 +779,13 @@ private:
         const IntegrationPointsContainerType& all_integration_points = AllIntegrationPoints();
         const IntegrationPointsArrayType& IntegrationPoints = all_integration_points[ThisMethod];
         ShapeFunctionsGradientsType DN_De(IntegrationPoints.size());
-        std::fill(DN_De.begin(), DN_De.end(), Matrix(2,1));
 
         for(unsigned int it_gp = 0; it_gp < IntegrationPoints.size(); it_gp++)
         {
-            //	double e = IntegrationPoints[it_gp].X();
-            DN_De[it_gp](0,0) = -0.5;
-            DN_De[it_gp](1,0) =  0.5;
+            Matrix aux_mat = ZeroMatrix(2,1);
+            aux_mat(0,0) = -0.5;
+            aux_mat(1,0) =  0.5;
+            DN_De[it_gp] = aux_mat;
         }
         return DN_De;
 

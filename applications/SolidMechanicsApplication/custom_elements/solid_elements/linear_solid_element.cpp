@@ -329,17 +329,7 @@ void LinearSolidElement::Initialize()
 
 void LinearSolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
-    KRATOS_TRY
 
-    //call the constitutive law to initialize the solution step
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-        mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
-                GetGeometry(),
-                row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
-                rCurrentProcessInfo );
-
-
-    KRATOS_CATCH( "" )
 }
 
 
@@ -364,16 +354,6 @@ void LinearSolidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProces
 void LinearSolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-
-    //call the constitutive law to finalize the solution step
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-      mConstitutiveLawVector[i]->FinalizeSolutionStep( GetProperties(),
-	      GetGeometry(),
-              row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
-	      rCurrentProcessInfo );
-
-    //IF INTERNAL VARIABLES EXIST; THE MATERIAL RESPONSE MUST BE FINALIZED ALSO
-    //see constitutive_law.h and other solid elements
 
 
     //explicit case:
@@ -716,7 +696,7 @@ void LinearSolidElement::CalculateInfinitesimalStrain( Vector& rStrainVector, co
         for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
 
-            array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
             H ( 0 , 0 ) += Displacement[0]*rDN_DX ( i , 0 );
             H ( 0 , 1 ) += Displacement[0]*rDN_DX ( i , 1 );
@@ -738,7 +718,7 @@ void LinearSolidElement::CalculateInfinitesimalStrain( Vector& rStrainVector, co
 
         for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
-            array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
             H ( 0 , 0 ) += Displacement[0]*rDN_DX ( i , 0 );
             H ( 0 , 1 ) += Displacement[0]*rDN_DX ( i , 1 );

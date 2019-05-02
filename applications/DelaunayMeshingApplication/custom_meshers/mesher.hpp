@@ -73,6 +73,9 @@ public:
     typedef MesherUtilities::MeshingParameters   MeshingParametersType;
     typedef MesherUtilities::RefiningParameters   RefineParametersType;
 
+    typedef WeakPointerVector<Node<3> >          NodeWeakPtrVectorType;
+    typedef WeakPointerVector<Element>        ElementWeakPtrVectorType;
+    typedef WeakPointerVector<Condition>    ConditionWeakPtrVectorType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -397,5 +400,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_MESHER_H_INCLUDED  defined
-
-

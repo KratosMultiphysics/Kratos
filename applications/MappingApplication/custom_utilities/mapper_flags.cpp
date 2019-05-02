@@ -13,9 +13,6 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_MAPPER_FLAGS_CPP_INCLUDED )
-#define  KRATOS_MAPPER_FLAGS_CPP_INCLUDED
-
 // System includes
 
 // External includes
@@ -24,16 +21,15 @@
 #include "includes/define.h"
 #include "mapper_flags.h"
 
-
 namespace Kratos
 {
 KRATOS_CREATE_LOCAL_FLAG( MapperFlags, SWAP_SIGN,                0 );
 KRATOS_CREATE_LOCAL_FLAG( MapperFlags, ADD_VALUES,               1 );
-KRATOS_CREATE_LOCAL_FLAG( MapperFlags, CONSERVATIVE,             2 );
-KRATOS_CREATE_LOCAL_FLAG( MapperFlags, REMESHED,                 3 );
-KRATOS_CREATE_LOCAL_FLAG( MapperFlags, NON_CONFORMING_INTERFACE, 4 );
-KRATOS_CREATE_LOCAL_FLAG( MapperFlags, INTERPOLATE_VALUES,       5 );
-KRATOS_CREATE_LOCAL_FLAG( MapperFlags, NON_HISTORICAL_DATA,      6 );
+KRATOS_CREATE_LOCAL_FLAG( MapperFlags, REMESHED,                 2 );
+KRATOS_CREATE_LOCAL_FLAG( MapperFlags, USE_TRANSPOSE,            3 );
+KRATOS_CREATE_LOCAL_FLAG( MapperFlags, ORIGIN_ONLY,              4 );
+KRATOS_CREATE_LOCAL_FLAG( MapperFlags, DESTINATION_ONLY,         5 );
+KRATOS_CREATE_LOCAL_FLAG( MapperFlags, TO_NON_HISTORICAL,        6 );
+KRATOS_CREATE_LOCAL_FLAG( MapperFlags, FROM_NON_HISTORICAL,      7 );
+KRATOS_CREATE_LOCAL_FLAG( MapperFlags, INTERNAL_USE_TRANSPOSE,   8 );
 }  // namespace Kratos.
-
-#endif // KRATOS_MAPPER_FLAGS_CPP_INCLUDED  defined

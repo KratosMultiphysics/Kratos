@@ -46,18 +46,23 @@
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_axisym_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_axisym_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_UP_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plane_strain_UP_2D_law.hpp"
 #include "custom_constitutive/hencky_mc_3D_law.hpp"
 #include "custom_constitutive/hencky_mc_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_mc_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_mc_UP_3D_law.hpp"
 #include "custom_constitutive/hencky_mc_plane_strain_UP_2D_law.hpp"
 #include "custom_constitutive/hencky_mc_strain_softening_3D_law.hpp"
 #include "custom_constitutive/hencky_mc_strain_softening_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_mc_strain_softening_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_borja_cam_clay_3D_law.hpp"
 #include "custom_constitutive/hencky_borja_cam_clay_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_borja_cam_clay_axisym_2D_law.hpp"
 
 namespace Kratos{
 namespace Python{
@@ -97,6 +102,10 @@ namespace Python{
         (m, "LinearElasticPlaneStrain2DLaw").def(py::init<>() )
         ;
 
+        py::class_< LinearElasticAxisym2DLaw, typename LinearElasticAxisym2DLaw::Pointer, ConstitutiveLaw >
+        (m, "LinearElasticAxisym2DLaw").def(py::init<>() )
+        ;
+
         // Hyperelastic laws
         py::class_< HyperElastic3DLaw, typename HyperElastic3DLaw::Pointer, ConstitutiveLaw >
         (m, "HyperElastic3DLaw").def(py::init<>() )
@@ -104,6 +113,10 @@ namespace Python{
 
         py::class_< HyperElasticPlaneStrain2DLaw, typename HyperElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
         (m, "HyperElasticPlaneStrain2DLaw").def(py::init<>() )
+        ;
+
+        py::class_< HyperElasticAxisym2DLaw, typename HyperElasticAxisym2DLaw::Pointer, ConstitutiveLaw >
+        (m, "HyperElasticAxisym2DLaw").def(py::init<>() )
         ;
 
         py::class_< HyperElasticUP3DLaw, typename HyperElasticUP3DLaw::Pointer, ConstitutiveLaw >
@@ -115,14 +128,20 @@ namespace Python{
         ;
 
         // Hencky Mohr Coulomb
+        py::class_< HenckyMCPlastic3DLaw, typename HenckyMCPlastic3DLaw::Pointer, ConstitutiveLaw >
+        (m, "HenckyMCPlastic3DLaw")
+        .def(py::init<>() )
+        .def(py::init<MPMFlowRulePointer, MPMYieldCriterionPointer, MPMHardeningLawPointer>() )
+        ;
+
         py::class_< HenckyMCPlasticPlaneStrain2DLaw, typename HenckyMCPlasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
         (m, "HenckyMCPlasticPlaneStrain2DLaw")
         .def(py::init<>() )
         .def(py::init<MPMFlowRulePointer, MPMYieldCriterionPointer, MPMHardeningLawPointer>() )
         ;
 
-        py::class_< HenckyMCPlastic3DLaw, typename HenckyMCPlastic3DLaw::Pointer, ConstitutiveLaw >
-        (m, "HenckyMCPlastic3DLaw")
+        py::class_< HenckyMCPlasticAxisym2DLaw, typename HenckyMCPlasticAxisym2DLaw::Pointer, ConstitutiveLaw >
+        (m, "HenckyMCPlasticAxisym2DLaw")
         .def(py::init<>() )
         .def(py::init<MPMFlowRulePointer, MPMYieldCriterionPointer, MPMHardeningLawPointer>() )
         ;
@@ -140,30 +159,43 @@ namespace Python{
         ;
 
         // Hencky Mohr Coulomb Strain Softening
-        py::class_< HenckyMCStrainSofteningPlasticPlaneStrain2DLaw, typename HenckyMCStrainSofteningPlasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
-        (m, "HenckyMCStrainSofteningPlasticPlaneStrain2DLaw")
-        .def(py::init<>() )
-        .def(py::init<MPMFlowRulePointer, MPMYieldCriterionPointer, MPMHardeningLawPointer>() )
-        ;
-
         py::class_< HenckyMCStrainSofteningPlastic3DLaw, typename HenckyMCStrainSofteningPlastic3DLaw::Pointer, ConstitutiveLaw >
         (m, "HenckyMCStrainSofteningPlastic3DLaw")
         .def(py::init<>() )
         .def(py::init<MPMFlowRulePointer, MPMYieldCriterionPointer, MPMHardeningLawPointer>() )
         ;
 
+        py::class_< HenckyMCStrainSofteningPlasticPlaneStrain2DLaw, typename HenckyMCStrainSofteningPlasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+        (m, "HenckyMCStrainSofteningPlasticPlaneStrain2DLaw")
+        .def(py::init<>() )
+        .def(py::init<MPMFlowRulePointer, MPMYieldCriterionPointer, MPMHardeningLawPointer>() )
+        ;
+
+        py::class_< HenckyMCStrainSofteningPlasticAxisym2DLaw, typename HenckyMCStrainSofteningPlasticAxisym2DLaw::Pointer, ConstitutiveLaw >
+        (m, "HenckyMCStrainSofteningPlasticAxisym2DLaw")
+        .def(py::init<>() )
+        .def(py::init<MPMFlowRulePointer, MPMYieldCriterionPointer, MPMHardeningLawPointer>() )
+        ;
+
         // Hencky Borja Cam Clay
+        py::class_< HenckyBorjaCamClayPlastic3DLaw, typename HenckyBorjaCamClayPlastic3DLaw::Pointer, ConstitutiveLaw >
+        (m, "HenckyBorjaCamClayPlastic3DLaw")
+        .def(py::init<>() )
+        .def(py::init<MPMFlowRulePointer, MPMYieldCriterionPointer, MPMHardeningLawPointer>() )
+        ;
+
         py::class_< HenckyBorjaCamClayPlasticPlaneStrain2DLaw, typename HenckyBorjaCamClayPlasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
         (m, "HenckyBorjaCamClayPlasticPlaneStrain2DLaw")
         .def(py::init<>() )
         .def(py::init<MPMFlowRulePointer, MPMYieldCriterionPointer, MPMHardeningLawPointer>() )
         ;
 
-        py::class_< HenckyBorjaCamClayPlastic3DLaw, typename HenckyBorjaCamClayPlastic3DLaw::Pointer, ConstitutiveLaw >
-        (m, "HenckyBorjaCamClayPlastic3DLaw")
+        py::class_< HenckyBorjaCamClayPlasticAxisym2DLaw, typename HenckyBorjaCamClayPlasticAxisym2DLaw::Pointer, ConstitutiveLaw >
+        (m, "HenckyBorjaCamClayPlasticAxisym2DLaw")
         .def(py::init<>() )
         .def(py::init<MPMFlowRulePointer, MPMYieldCriterionPointer, MPMHardeningLawPointer>() )
         ;
+
     }
 
 

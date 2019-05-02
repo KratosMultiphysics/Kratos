@@ -2,9 +2,22 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosIgaApplication ****")
 
+################### PYBIND11
+include(pybind11Tools)
+
+if(NOT DEFINED ANURBS_ROOT)
+    message(FATAL_ERROR
+        "ANURBS_ROOT not defined!\n"
+        "  - Download ANurbs from https://github.com/oberbichler/ANurbs\n"
+        "  - Add '-DANURBS_ROOT=<path to ANurbs>' to your build script")
+else()
+    message(STATUS "ANURBS_ROOT = ${ANURBS_ROOT}")
+endif()
+
 include_directories(
     ${CMAKE_SOURCE_DIR}/kratos
     ${ANURBS_ROOT}/include
+    ${ANURBS_ROOT}/external_libraries
 )
 
 # generate variables with the sources
@@ -19,13 +32,46 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     # utilities
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/iga_flags.cpp
     # elements
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/iga_base_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/iga_shell_3p_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_discrete_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/surface_base_discrete_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_kl_discrete_element.cpp
+
+    # utilities
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/iga_flags.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_json_io.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/nurbs_brep_modeler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_edge.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_face.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_model.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_vertex.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_boundary_loop.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_trimming_curve.cpp
+
+    # conditions
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/iga_base_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/iga_check_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/base_discrete_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_base_discrete_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_point_discrete_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/support_penalty_point_discrete_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/support_penalty_curve_discrete_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_surface_discrete_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/coupling_base_discrete_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/coupling_penalty_discrete_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_curve_discrete_condition.cpp
+	
+    ${ANURBS_ROOT}/external_libraries/ClipperLib/clipper.cpp
 )
 
+## generate variables with the testing sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+  file(GLOB_RECURSE KRATOS_IGA_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
 # define library Kratos which defines the basic python interface
-pybind11_add_module(KratosIgaApplication MODULE THIN_LTO ${KRATOS_IGA_APPLICATION_SOURCES})
+pybind11_add_module(KratosIgaApplication MODULE THIN_LTO ${KRATOS_IGA_APPLICATION_SOURCES} ${KRATOS_IGA_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosIgaApplication PRIVATE KratosCore)
 set_target_properties(KratosIgaApplication PROPERTIES PREFIX "")
 
@@ -52,4 +98,4 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/IgaApplication.py" DESTINATION KratosMultiphysics)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/IgaApplication.py" DESTINATION "KratosMultiphysics/IgaApplication" RENAME "__init__.py")

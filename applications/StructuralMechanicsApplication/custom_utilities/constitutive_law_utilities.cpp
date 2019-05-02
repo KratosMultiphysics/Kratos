@@ -168,12 +168,23 @@ void ConstitutiveLawUtilities<3>::CalculateJ3Invariant(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(BoundedVectorType& rFirstVector)
+template<>
+void ConstitutiveLawUtilities<6>::CalculateFirstVector(BoundedVectorType& rFirstVector)
 {
     rFirstVector = ZeroVector(6);
     for (IndexType i = 0; i < Dimension; ++i)
         rFirstVector[i] = 1.0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void ConstitutiveLawUtilities<3>::CalculateFirstVector(BoundedVectorType& rFirstVector)
+{
+    rFirstVector = ZeroVector(3);
+	rFirstVector[0] = 1.0;
+	rFirstVector[1] = 1.0;
 }
 
 /***********************************************************************************/
@@ -189,12 +200,18 @@ void ConstitutiveLawUtilities<6>::CalculateSecondVector(
     if (rSecondVector.size() != 6)
         rSecondVector.resize(6);
     const double twosqrtJ2 = 2.0 * std::sqrt(J2);
-    for (IndexType i = 0; i < 6; ++i) {
-        rSecondVector[i] = rDeviator[i] / (twosqrtJ2);
+
+    if (twosqrtJ2 > tolerance) {
+        for (IndexType i = 0; i < 6; ++i) {
+            rSecondVector[i] = rDeviator[i] / (twosqrtJ2);
+        }
+
+        for (IndexType i = Dimension; i < 6; ++i)
+            rSecondVector[i] *= 2.0;
+    } else {
+        noalias(rSecondVector) = ZeroVector(VoigtSize);
     }
 
-    for (IndexType i = Dimension; i < 6; ++i)
-        rSecondVector[i] *= 2.0;
 }
 
 /***********************************************************************************/
@@ -207,13 +224,13 @@ void ConstitutiveLawUtilities<3>::CalculateSecondVector(
     BoundedVectorType& rSecondVector
     )
 {
-    if (rSecondVector.size() != 6)
-        rSecondVector.resize(6);
+    if (rSecondVector.size() != 3)
+        rSecondVector.resize(3);
     const double twosqrtJ2 = 2.0 * std::sqrt(J2);
-    for (IndexType i = 0; i < 6; ++i) {
+    for (IndexType i = 0; i < 3; ++i) {
         rSecondVector[i] = rDeviator[i] / (twosqrtJ2);
     }
-    rSecondVector[3] *= 2.0;
+    rSecondVector[2] *= 2.0;
 }
 
 /***********************************************************************************/
@@ -249,8 +266,8 @@ void ConstitutiveLawUtilities<3>::CalculateThirdVector(
     BoundedVectorType& rThirdVector
     )
 {
-    if (rThirdVector.size() != 6)
-        rThirdVector = ZeroVector(6);
+    if (rThirdVector.size() != 3)
+        rThirdVector = ZeroVector(3);
 
     const double J2thirds = J2 / 3.0;
 
@@ -270,7 +287,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(
     double& rLodeAngle
     )
 {
-    if (std::abs(J2) > tolerance) {
+    if (J2 > tolerance) {
         double sint3 = (-3.0 * std::sqrt(3.0) * J3) / (2.0 * J2 * std::sqrt(J2));
         if (sint3 < -0.95)
             sint3 = -1.0;
@@ -280,6 +297,53 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(
     } else {
         rLodeAngle = 0.0;
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+double ConstitutiveLawUtilities<TVoigtSize>::CalculateCharacteristicLength(const GeometryType& rGeometry)
+{
+    double radius = 0.0;
+    const Point& r_center = rGeometry.Center();
+
+    for(IndexType i_node = 0; i_node < rGeometry.PointsNumber(); ++i_node)  {
+        const array_1d<double, 3>& aux_vector = r_center.Coordinates() - rGeometry[i_node].Coordinates();
+        double aux_value = inner_prod(aux_vector, aux_vector);
+        if(aux_value > radius) radius = aux_value;
+    }
+
+    return std::sqrt(radius);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+Matrix ConstitutiveLawUtilities<TVoigtSize>::ComputeEquivalentSmallDeformationDeformationGradient(const Vector& rStrainVector)
+{
+    // We update the deformation gradient
+    Matrix equivalent_F(Dimension, Dimension);
+
+    if(Dimension == 2) {
+        equivalent_F(0,0) = 1.0 + rStrainVector[0];
+        equivalent_F(0,1) = 0.5 * rStrainVector[2];
+        equivalent_F(1,0) = 0.5 * rStrainVector[2];
+        equivalent_F(1,1) = 1.0 + rStrainVector[1];
+    } else {
+        equivalent_F(0,0) = 1.0 + rStrainVector[0];
+        equivalent_F(0,1) = 0.5 * rStrainVector[3];
+        equivalent_F(0,2) = 0.5 * rStrainVector[5];
+        equivalent_F(1,0) = 0.5 * rStrainVector[3];
+        equivalent_F(1,1) = 1.0 + rStrainVector[1];
+        equivalent_F(1,2) = 0.5 * rStrainVector[4];
+        equivalent_F(2,0) = 0.5 * rStrainVector[5];
+        equivalent_F(2,1) = 0.5 * rStrainVector[4];
+        equivalent_F(2,2) = 1.0 + rStrainVector[2];
+    }
+
+    return equivalent_F;
 }
 
 /***********************************************************************************/

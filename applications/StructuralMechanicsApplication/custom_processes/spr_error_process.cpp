@@ -154,7 +154,12 @@ void SPRErrorProcess<TDim>::CalculateErrorEstimation(
         const auto& process_info = mThisModelPart.GetProcessInfo();
         it_elem->GetValueOnIntegrationPoints(ERROR_INTEGRATION_POINT, error_integration_point, process_info);
 
-        KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 2) << "Error GP:" << error_integration_point << std::endl;
+        // The error_integration_point is printed
+        if (mEchoLevel > 2) {
+            std::stringstream ss_error_integration_point;
+            ss_error_integration_point << error_integration_point;
+            KRATOS_INFO("SPRErrorProcess") << "Error GP:" << ss_error_integration_point.str() << std::endl;
+        }
 
         // We compute the error overall
         double error_energy_norm = 0.0;

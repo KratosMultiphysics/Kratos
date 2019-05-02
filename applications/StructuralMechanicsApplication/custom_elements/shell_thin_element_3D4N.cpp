@@ -171,7 +171,7 @@ void ShellThinElement3D4N::Initialize()
 void ShellThinElement3D4N::InitializeNonLinearIteration
 (ProcessInfo& rCurrentProcessInfo)
 {
-    mpCoordinateTransformation->InitializeNonLinearIteration(rCurrentProcessInfo);
+    mpCoordinateTransformation->InitializeNonLinearIteration();
 
     BaseInitializeNonLinearIteration(rCurrentProcessInfo);
 }
@@ -179,7 +179,7 @@ void ShellThinElement3D4N::InitializeNonLinearIteration
 void ShellThinElement3D4N::FinalizeNonLinearIteration
 (ProcessInfo& rCurrentProcessInfo)
 {
-    mpCoordinateTransformation->FinalizeNonLinearIteration(rCurrentProcessInfo);
+    mpCoordinateTransformation->FinalizeNonLinearIteration();
 
     BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 }
@@ -189,7 +189,7 @@ void ShellThinElement3D4N::InitializeSolutionStep
 {
     BaseInitializeSolutionStep(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->InitializeSolutionStep(rCurrentProcessInfo);
+    mpCoordinateTransformation->InitializeSolutionStep();
 }
 
 void ShellThinElement3D4N::FinalizeSolutionStep
@@ -197,7 +197,7 @@ void ShellThinElement3D4N::FinalizeSolutionStep
 {
     BaseFinalizeSolutionStep(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->FinalizeSolutionStep(rCurrentProcessInfo);
+    mpCoordinateTransformation->FinalizeSolutionStep();
 }
 
 void ShellThinElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix,
@@ -1982,7 +1982,7 @@ void ShellThinElement3D4N::CalculateGaussPointContribution
 
 void ShellThinElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const bool CalculateStiffnessMatrixFlag,
     const bool CalculateResidualVectorFlag)
 {
@@ -2407,7 +2407,7 @@ ShellThinElement3D4N::CalculationData::CalculationData
 {
 }
 
-ShellCrossSection::SectionBehaviorType ShellThinElement3D4N::GetSectionBehavior()
+ShellCrossSection::SectionBehaviorType ShellThinElement3D4N::GetSectionBehavior() const
 {
     return ShellCrossSection::Thin;
 }

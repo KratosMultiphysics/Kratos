@@ -33,7 +33,7 @@ class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
         self.CreateAssignmentProcess(params)
 
         self.SetCurrentTime()
-        if( self.IsInsideInterval() and self.interval_string == "initial" ):
+        if( self.IsInsideInterval() and (self.interval_string == "initial" or self.interval_string == "start") ):
             self.AssignValueProcess.Execute()
 
 

@@ -3,17 +3,11 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
-# Check that applications were imported in the main script
-KM.CheckRegisteredApplications("StructuralMechanicsApplication")
-KM.CheckRegisteredApplications("ContactStructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 try:
-    # Check that applications were imported in the main script
-    KM.CheckRegisteredApplications("MeshingApplication")
     import KratosMultiphysics.MeshingApplication as MA
     missing_meshing_dependencies = False
     missing_application = ''

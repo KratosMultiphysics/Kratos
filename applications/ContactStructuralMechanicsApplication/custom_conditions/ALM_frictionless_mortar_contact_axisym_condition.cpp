@@ -57,6 +57,15 @@ AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes, TNo
 /***********************************************************************************/
 
 template< std::size_t TNumNodes, bool TNormalVariation >
+bool AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes,TNormalVariation>::IsAxisymmetric() const
+{
+    return true;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< std::size_t TNumNodes, bool TNormalVariation >
 double AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes,TNormalVariation>::GetAxisymmetricCoefficient(const GeneralVariables& rVariables) const
 {
     const double radius = CalculateRadius(rVariables);

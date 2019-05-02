@@ -5,11 +5,12 @@
         "end_time":             0.02,
         "echo_level":           0,
         "parallel_type":        "OpenMP",
-        "number_of_threads":    1
+        "number_of_threads":    1,
+        "fracture_utility":     false
     },
     "solver_settings": {
         "solver_type":                        "poromechanics_U_Pw_solver",
-        "model_part_name":                    "PorousDomain",
+        "model_part_name":                    "PorousModelPart",
         "domain_size":                        3,
         "start_time":                         0.0,
         "time_step":                          0.01,
@@ -46,7 +47,7 @@
         "nonlocal_damage":                    false,
         "characteristic_length":              0.05,
         "linear_solver_settings":             {
-            "solver_type":     "AMGCL",
+            "solver_type":     "amgcl",
             "smoother_type":   "ilu0",
             "krylov_type":     "gmres",
             "coarsening_type": "aggregation",
@@ -59,113 +60,106 @@
         "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Fluid_Pressure-auto-1","Fluid_Pressure-auto-2","Face_Load-auto-1","Normal_Fluid_Flux-auto-1","Body_Acceleration-auto-1"],
         "body_domain_sub_model_part_list":    ["Body_Part-auto-1"]
     },
-    "constraints_process_list": [{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "Solid_Displacement-auto-2",
-            "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,false],
-            "is_fixed":        [true,true,false],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    },{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "Solid_Displacement-auto-1",
-            "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,true],
-            "is_fixed":        [true,true,true],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    },{
-        "python_module": "apply_scalar_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":  "ApplyScalarConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name":      "Fluid_Pressure-auto-2",
-            "variable_name":        "WATER_PRESSURE",
-            "is_fixed":             false,
-            "value":                0.0,
-            "table":                0,
-            "hydrostatic":          true,
-            "gravity_direction":    2,
-            "reference_coordinate": 1.0,
-            "specific_weight":      10000.0
-        }
-    },{
-        "python_module": "apply_scalar_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":  "ApplyScalarConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name":      "Fluid_Pressure-auto-1",
-            "variable_name":        "WATER_PRESSURE",
-            "is_fixed":             true,
-            "value":                0.0,
-            "table":                0,
-            "hydrostatic":          false,
-            "gravity_direction":    2,
-            "reference_coordinate": 0.0,
-            "specific_weight":      10000.0
-        }
-    }],
-    "loads_process_list": [{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "Face_Load-auto-1",
-            "variable_name":   "FACE_LOAD",
-            "active":          [false,false,true],
-            "value":           [0.0,0.0,-10000.0],
-            "table":           [0,0,0]
-        }
-    },{
-        "python_module": "apply_scalar_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":  "ApplyScalarConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "Normal_Fluid_Flux-auto-1",
-            "variable_name":   "NORMAL_FLUID_FLUX",
-            "value":           0.0,
-            "table":           0
-        }
-    },{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "Body_Acceleration-auto-1",
-            "variable_name":   "VOLUME_ACCELERATION",
-            "active":          [false,false,true],
-            "value":           [0.0,0.0,-10.0],
-            "table":           [0,0,0]
-        }
-    }],
-    "auxiliar_process_list" : [{
+    "processes": {
+        "constraints_process_list": [{
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+            "Parameters":    {
+                "model_part_name": "PorousModelPart.Solid_Displacement-auto-2",
+                "variable_name":   "DISPLACEMENT",
+                "active":          [true,true,false],
+                "is_fixed":        [true,true,false],
+                "value":           [0.0,0.0,0.0],
+                "table":           [0,0,0]
+            }
+        },{
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+            "Parameters":    {
+                "model_part_name": "PorousModelPart.Solid_Displacement-auto-1",
+                "variable_name":   "DISPLACEMENT",
+                "active":          [true,true,true],
+                "is_fixed":        [true,true,true],
+                "value":           [0.0,0.0,0.0],
+                "table":           [0,0,0]
+            }
+        },{
+            "python_module": "apply_scalar_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+            "Parameters":    {
+                "model_part_name":      "PorousModelPart.Fluid_Pressure-auto-2",
+                "variable_name":        "WATER_PRESSURE",
+                "is_fixed":             false,
+                "value":                0.0,
+                "table":                0,
+                "hydrostatic":          true,
+                "gravity_direction":    2,
+                "reference_coordinate": 1.0,
+                "specific_weight":      10000.0
+            }
+        },{
+            "python_module": "apply_scalar_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+            "Parameters":    {
+                "model_part_name":      "PorousModelPart.Fluid_Pressure-auto-1",
+                "variable_name":        "WATER_PRESSURE",
+                "is_fixed":             true,
+                "value":                0.0,
+                "table":                0,
+                "hydrostatic":          false,
+                "gravity_direction":    2,
+                "reference_coordinate": 0.0,
+                "specific_weight":      10000.0
+            }
+        }],
+        "loads_process_list": [{
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+            "Parameters":    {
+                "model_part_name": "PorousModelPart.Face_Load-auto-1",
+                "variable_name":   "FACE_LOAD",
+                "active":          [false,false,true],
+                "value":           [0.0,0.0,-10000.0],
+                "table":           [0,0,0]
+            }
+        },{
+            "python_module": "apply_scalar_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+            "Parameters":    {
+                "model_part_name": "PorousModelPart.Normal_Fluid_Flux-auto-1",
+                "variable_name":   "NORMAL_FLUID_FLUX",
+                "value":           0.0,
+                "table":           0
+            }
+        },{
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+            "Parameters":    {
+                "model_part_name": "PorousModelPart.Body_Acceleration-auto-1",
+                "variable_name":   "VOLUME_ACCELERATION",
+                "active":          [false,false,true],
+                "value":           [0.0,0.0,-10.0],
+                "table":           [0,0,0]
+            }
+        }],
+        "auxiliar_process_list": [{
             "python_module"   : "from_json_check_result_process",
             "kratos_module"   : "KratosMultiphysics",
-            "process_name"    : "FromJsonCheckResultProcess",
             "Parameters"      : {
                 "check_variables"      : ["WATER_PRESSURE"],
                 "input_file_name"      : "element_tests/consolidation_interface_3D/consolidation_interface_3D_results.json",
-                "model_part_name"      : "Body_Part-auto-1",
+                "model_part_name"      : "PorousModelPart.Body_Part-auto-1",
                 "time_frequency"       : 0.01
             }
-    }],
+        }]
+    },
     "_json_output_process"  : [{
         "python_module" : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "JsonOutputProcess",
         "Parameters"    : {
             "output_variables"     : ["WATER_PRESSURE"],
             "output_file_name"     : "element_tests/consolidation_interface_3D/consolidation_interface_3D_results.json",
-            "model_part_name"      : "Body_Part-auto-1",
+            "model_part_name"      : "PorousModelPart.Body_Part-auto-1",
             "time_frequency"       : 0.01
         }
     }]

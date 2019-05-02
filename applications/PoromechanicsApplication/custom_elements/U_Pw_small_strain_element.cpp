@@ -266,30 +266,53 @@ void UPwSmallStrainElement<2,3>::ExtrapolateGPValues(const Matrix& StressContain
 {
     KRATOS_TRY
 
-    // Triangle_2d_3 with GI_GAUSS_1
+    // Triangle_2d_3 with GI_GAUSS_2
 
-    double DamageContainer = 0.0;
-    DamageContainer = mConstitutiveLawVector[0]->GetValue( DAMAGE_VARIABLE, DamageContainer );
+    array_1d<double,3> DamageContainer; // 3 GPoints
+
+    for ( unsigned int i = 0;  i < 3; i++ ) //NumGPoints
+    {
+        DamageContainer[i] = 0.0;
+        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue( DAMAGE_VARIABLE, DamageContainer[i] );
+    }
 
     GeometryType& rGeom = this->GetGeometry();
     const double& Area = rGeom.Area();
     array_1d<Vector,3> NodalStressVector; //List with stresses at each node
     array_1d<Matrix,3> NodalStressTensor;
 
-    for(unsigned int Node = 0; Node < 3; Node ++)
+    for(unsigned int Node = 0; Node < 3; Node++)
     {
         NodalStressVector[Node].resize(VoigtSize);
         NodalStressTensor[Node].resize(2,2);
     }
 
-    for(unsigned int i = 0; i < 3; i++) //NumNodes
+    BoundedMatrix<double,3,3> ExtrapolationMatrix;
+    PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
+
+    BoundedMatrix<double,3,3> AuxNodalStress;
+    noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
+
+    /* INFO:
+        *
+        *                  |S0-0 S1-0 S2-0|
+        * AuxNodalStress = |S0-1 S1-1 S2-1|
+        *                  |S0-2 S1-2 S2-2|
+        *
+        * S1-0 = S[1] at node 0
+    */
+
+    array_1d<double,3> NodalDamage;
+    noalias(NodalDamage) = prod(ExtrapolationMatrix,DamageContainer);
+
+    for(unsigned int i = 0; i < 3; i++) //TNumNodes
     {
-        noalias(NodalStressVector[i]) = row(StressContainer,0)*Area;
+        noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += DamageContainer*Area;
+        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -326,7 +349,7 @@ void UPwSmallStrainElement<2,4>::ExtrapolateGPValues(const Matrix& StressContain
     }
 
     BoundedMatrix<double,4,4> ExtrapolationMatrix;
-    PoroElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
+    PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
 
     BoundedMatrix<double,4,3> AuxNodalStress;
     noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
@@ -366,10 +389,15 @@ void UPwSmallStrainElement<3,4>::ExtrapolateGPValues(const Matrix& StressContain
 {
     KRATOS_TRY
 
-    // Tetrahedra_3d_4 with GI_GAUSS_1
+    // Tetrahedra_3d_4 with GI_GAUSS_2
 
-    double DamageContainer = 0.0;
-    DamageContainer = mConstitutiveLawVector[0]->GetValue( DAMAGE_VARIABLE, DamageContainer );
+    array_1d<double,4> DamageContainer; // 4 GPoints
+
+    for ( unsigned int i = 0;  i < 4; i++ ) //NumGPoints
+    {
+        DamageContainer[i] = 0.0;
+        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue( DAMAGE_VARIABLE, DamageContainer[i] );
+    }
 
     GeometryType& rGeom = this->GetGeometry();
     const double& Area = rGeom.Area(); // In 3D this is Volume
@@ -382,14 +410,23 @@ void UPwSmallStrainElement<3,4>::ExtrapolateGPValues(const Matrix& StressContain
         NodalStressTensor[Node].resize(3,3);
     }
 
-    for(unsigned int i = 0; i < 4; i++) //NumNodes
+    BoundedMatrix<double,4,4> ExtrapolationMatrix;
+    PoroElementUtilities::Calculate3DExtrapolationMatrix(ExtrapolationMatrix);
+
+    BoundedMatrix<double,4,6> AuxNodalStress;
+    noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
+
+    array_1d<double,4> NodalDamage;
+    noalias(NodalDamage) = prod(ExtrapolationMatrix,DamageContainer);
+
+    for(unsigned int i = 0; i < 4; i++) //TNumNodes
     {
-        noalias(NodalStressVector[i]) = row(StressContainer,0)*Area;
+        noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += DamageContainer*Area;
+        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -426,7 +463,7 @@ void UPwSmallStrainElement<3,8>::ExtrapolateGPValues(const Matrix& StressContain
     }
 
     BoundedMatrix<double,8,8> ExtrapolationMatrix;
-    PoroElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
+    PoroElementUtilities::Calculate3DExtrapolationMatrix(ExtrapolationMatrix);
 
     BoundedMatrix<double,8,6> AuxNodalStress;
     noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);

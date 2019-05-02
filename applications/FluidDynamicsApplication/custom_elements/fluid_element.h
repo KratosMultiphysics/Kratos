@@ -389,6 +389,19 @@ protected:
         const double Value,
         const typename TElementData::ShapeFunctionsType& rN) const;
 
+    /// Set up the element's data and constitutive law for the current integration point.
+    /** @param[in/out] rData Container for the current element's data.
+     *  @param[in] Weight Integration point weight.
+     *  @param[in] rN Values of nodal shape functions at the integration point.
+     *  @param[in] rDN_DX Values of nodal shape function gradients at the integration point.
+     */
+    virtual void UpdateIntegrationPointData(
+        TElementData& rData,
+        unsigned int IntegrationPointIndex,
+        double Weight,
+        const typename TElementData::MatrixRowType& rN,
+        const typename TElementData::ShapeDerivativesType& rDN_DX) const;
+
     virtual void CalculateMaterialResponse(TElementData& rData) const;
 
     /// Determine integration point weights and shape funcition derivatives from the element's geometry.

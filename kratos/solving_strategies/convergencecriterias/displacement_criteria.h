@@ -367,13 +367,13 @@ private:
             if (it_dof->IsFree()) {
                 dof_id = it_dof->EquationId();
                 variation_dof_value = Dx[dof_id];
-                final_correction_norm += variation_dof_value * variation_dof_value;
+                final_correction_norm += std::pow(variation_dof_value, 2);
                 dof_num++;
             }
         }
 
         rDofNum = dof_num;
-        return final_correction_norm;
+        return std::sqrt(final_correction_norm);
     }
 
     ///@}

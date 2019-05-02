@@ -6,9 +6,6 @@ import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 
 import pfem_fluid_solver as BaseSolver
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 def CreateSolver(main_model_part, custom_settings):
     return PfemFluidNodalIntegrationSolver(main_model_part, custom_settings)
 
@@ -90,7 +87,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         #construct the linear solver
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.pressure_linear_solver = linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
         self.velocity_linear_solver = linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
 

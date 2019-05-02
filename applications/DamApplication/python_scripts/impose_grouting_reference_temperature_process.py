@@ -19,4 +19,7 @@ class ImposeGroutingReferenceTemperatureProcess(Process):
         self.process.ExecuteInitialize()
 
     def ExecuteInitializeSolutionStep(self):
-        self.process.ExecuteInitializeSolutionStep()
+        pass
+
+    def ExecuteFinalizeSolutionStep(self):
+        self.process.ExecuteFinalizeSolutionStep()

@@ -62,7 +62,7 @@ namespace Kratos
  * @class AssignUniqueModelPartCollectionTagUtility
  * @ingroup KratosCore
  * @brief Get the collection of submodelparts each node, condition and element belongs to
- * @details This class compute a map of collections of submodelparts. A tag is assigned 
+ * @details This class compute a map of collections of submodelparts. A tag is assigned
  * to each node, condition and element in order to get the collections it belongs to
  * ModelPart tag is 0. Each submodelpart has 1, 2... tag. A combintation of submodelparts
  * has another tag
@@ -78,7 +78,7 @@ class KRATOS_API(KRATOS_CORE) AssignUniqueModelPartCollectionTagUtility
     /// Vector of strings
     typedef std::vector<std::string> StringVectorType;
 
-    /// The map containing the id for each component and the corresponding tag 
+    /// The map containing the id for each component and the corresponding tag
     typedef std::unordered_map<IndexType,IndexType> IndexIndexMapType;
 
     /// The map containing the tags and the names of the related submodelparts
@@ -103,7 +103,7 @@ class KRATOS_API(KRATOS_CORE) AssignUniqueModelPartCollectionTagUtility
     AssignUniqueModelPartCollectionTagUtility(ModelPart& rModelPart);
 
     /// Destructor.
-    ~AssignUniqueModelPartCollectionTagUtility();
+    virtual ~AssignUniqueModelPartCollectionTagUtility();
 
 
     ///@}
@@ -245,7 +245,7 @@ class KRATOS_API(KRATOS_CORE) AssignUniqueModelPartCollectionTagUtility
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     static ModelPart& AuxGetSubModelPart(ModelPart& rThisModelPart, std::istringstream& rFullName);
 
     ///@}

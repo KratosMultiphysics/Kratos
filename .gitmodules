@@ -1,3 +1,0 @@
-[submodule "applications/DelaunayMeshingApplication/external_modules/tetgen"]
-	path = applications/DelaunayMeshingApplication/external_modules/tetgen
-	url = https://github.com/PFEM/tetgen.git

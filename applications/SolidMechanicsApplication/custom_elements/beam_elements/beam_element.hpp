@@ -18,6 +18,7 @@
 #include "includes/checks.h"
 #include "includes/element.h"
 #include "utilities/beam_math_utilities.hpp"
+#include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
 {
@@ -715,18 +716,6 @@ protected:
     virtual void CalculateKinematics(ElementDataType& rVariables,
                                      const unsigned int& rPointNumber);
 
-
-    /**
-     * Calculation of the increment of position (step displacement)
-     */
-    Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
-
-    /**
-     * Calculation of the increment of position (step displacement)
-     */
-    Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
-
-
     /**
      * Calculate Element Constitutive Matrix
      */
@@ -884,4 +873,3 @@ private:
 
 } // namespace Kratos.
 #endif //  KRATOS_BEAM_ELEMENT_H_INCLUDED defined
-

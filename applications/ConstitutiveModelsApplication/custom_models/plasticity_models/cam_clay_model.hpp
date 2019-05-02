@@ -145,6 +145,21 @@ namespace Kratos
             return false;
          }
 
+         /**
+          * Set Values
+          */
+         void SetValue(const Variable<double>& rVariable,
+               const double& rValue,
+               const ProcessInfo& rCurrentProcessInfo) override 
+         {
+            KRATOS_TRY
+
+            if ( rVariable == NONLOCAL_PLASTIC_VOL_DEF) {
+               mInternal.Variables[4] = rValue;
+            }
+
+            KRATOS_CATCH("")
+         }
 
          /**
           * Get Values
@@ -158,14 +173,17 @@ namespace Kratos
             {
                rValue = this->mInternal.Variables[0];
             }
-
-
-            if (rThisVariable==DELTA_PLASTIC_STRAIN)
+            else if (rThisVariable==DELTA_PLASTIC_STRAIN)
             {
                rValue = this->mInternal.Variables[0]-mPreviousInternal.Variables[0];
             }
-
-
+            else if (rThisVariable==PRE_CONSOLIDATION_STRESS)
+            {
+               rValue = this->mInternal.Variables[3];
+            }
+            else {
+               rValue = NonAssociativePlasticityModel::GetValue( rThisVariable, rValue);
+            }
             return rValue;
          }
 
@@ -197,6 +215,7 @@ namespace Kratos
          {
             rOStream << "CamClayModel Data";
          }
+
 
          ///@}
          ///@name Friends

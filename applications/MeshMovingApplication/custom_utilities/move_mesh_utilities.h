@@ -21,22 +21,21 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/mesh_moving_variables.h"
 
 namespace Kratos {
 namespace MoveMeshUtilities {
 
-typedef Element BaseType;
 typedef Element::GeometryType GeometryType;
-typedef GeometryData::IntegrationMethod IntegrationMethod;
-typedef BaseType::VectorType VectorType;
+typedef Element::VectorType VectorType;
 
 void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
-                            VectorType &rDetJ0, GeometryType &rGeometry);
+                            VectorType &rDetJ0, const GeometryType &rGeometry);
 
+KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the functions from \"mesh_velocity_calculation.h\"")
 void CalculateMeshVelocities(ModelPart &rMeshModelPart,
                              const int TimeOrder, const double DeltaTime);
 
+KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the functions from \"mesh_velocity_calculation.h\"")
 void CalculateMeshVelocities(ModelPart* pMeshModelPart,
                              const int TimeOrder, const double DeltaTime);
 

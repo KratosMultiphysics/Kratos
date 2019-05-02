@@ -111,6 +111,8 @@ Element::Pointer LargeDisplacementSegregatedVPElement::Clone( IndexType NewId, N
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
+    NewElement.mStepVariable = mStepVariable;
+
     return Kratos::make_shared< LargeDisplacementSegregatedVPElement >(NewElement);
 }
 
@@ -215,26 +217,6 @@ void LargeDisplacementSegregatedVPElement::InitializeSolutionStep( ProcessInfo& 
     this->SetProcessInformation(rCurrentProcessInfo);
 
     SolidElement::InitializeExplicitContributions();
-
-    switch(mStepVariable)
-    {
-      case VELOCITY_STEP:
-        {
-
-          for ( SizeType i = 0; i < mConstitutiveLawVector.size(); i++ )
-            mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
-                                                               GetGeometry(),
-                                                               row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
-                                                               rCurrentProcessInfo );
-          break;
-        }
-      case PRESSURE_STEP:
-        {
-          break;
-        }
-      default:
-        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
-    }
 
     this->Set(SolidElement::FINALIZED_STEP,false);
 

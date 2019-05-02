@@ -52,23 +52,11 @@ public:
 
     ///@name Type Definitions
     ///@{
-    typedef Condition ConditionType;
-
-    /// Conditions container. A vector set of Conditions with their Id's as key.
+    typedef Condition                                                ConditionType;
     typedef PointerVectorSet<ConditionType, IndexedObject> ConditionsContainerType;
-
-    /** Iterator over the Conditions. This iterator is an indirect
-    iterator over Conditions::Pointer which turn back a reference to
-    Condition by * operator and not a pointer for more convenient
-    usage. */
-    typedef ConditionsContainerType::iterator ConditionIterator;
-
-    /** Const iterator over the Conditions. This iterator is an indirect
-    iterator over Conditions::Pointer which turn back a reference to
-    Condition by * operator and not a pointer for more convenient
-    usage. */
-    typedef ConditionsContainerType::const_iterator ConditionConstantIterator;
-
+    typedef ConditionsContainerType::iterator                    ConditionIterator;
+    typedef ConditionsContainerType::const_iterator      ConditionConstantIterator;
+    typedef GeometryData::SizeType                                        SizeType;
 
     /// Counted pointer of CompositeCondition
     KRATOS_CLASS_POINTER_DEFINITION( CompositeCondition );
@@ -77,7 +65,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-
     /// Default constructors.
     CompositeCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
@@ -85,7 +72,6 @@ public:
 
     ///Copy constructor
     CompositeCondition(CompositeCondition const& rOther);
-
 
     /// Destructor.
     virtual ~CompositeCondition();
@@ -96,7 +82,6 @@ public:
 
     /// Assignment operator.
     CompositeCondition& operator=(CompositeCondition const& rOther);
-
 
     ///@}
     ///@name Operations
@@ -172,12 +157,12 @@ public:
 
     ConditionsContainerType::Pointer pChildConditions()
     {
-      return ConditionsContainerType::Pointer(&mChildConditions);
+        return ConditionsContainerType::Pointer(&mChildConditions);
     }
 
     void SetChildConditions(ConditionsContainerType::Pointer pOtherChildConditions)
     {
-      mChildConditions = (*pOtherChildConditions);
+        mChildConditions = (*pOtherChildConditions);
     }
 
     ConditionsContainerType::ContainerType& ChildConditionsArray()
@@ -499,6 +484,12 @@ private:
 	}
 
     }
+
+    /**
+     * Get element size from the dofs
+     */
+    virtual SizeType GetDofsSize(ProcessInfo& rCurrentProcessInfo);
+
     ///@}
     ///@name Private  Access
     ///@{

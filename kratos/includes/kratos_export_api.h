@@ -40,4 +40,12 @@
   #define KRATOS_NO_EXPORT(...)
 #endif
 
+// Conditionally declare explicit template instances, since explicit instiation does not play nice with dllexport
+#undef KRATOS_API_EXTERN
+#ifdef _WIN32
+  #define KRATOS_API_EXTERN
+#else
+  #define KRATOS_API_EXTERN extern
+#endif
+
 #endif

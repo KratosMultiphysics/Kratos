@@ -144,9 +144,6 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Cons
     const double lame_lambda = (young_modulus * poisson_coefficient)/((1.0 + poisson_coefficient)*(1.0 - 2.0 * poisson_coefficient));
     const double lame_mu = young_modulus/(2.0 * (1.0 + poisson_coefficient));
 
-    // We compute the left Cauchy-Green tensor (B):
-    const Matrix B_tensor = prod(deformation_gradient_f, trans( deformation_gradient_f));
-
     if(r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         CalculateAlmansiStrain(rValues, strain_vector);
     }
@@ -157,6 +154,8 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Cons
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
+        // We compute the left Cauchy-Green tensor (B):
+        const Matrix B_tensor = prod(deformation_gradient_f, trans( deformation_gradient_f));
         CalculateKirchhoffStress( B_tensor, stress_vector, determinant_f, lame_lambda, lame_mu );
     }
 }
@@ -175,6 +174,46 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseCauchy (Constit
     // Set to Cauchy Stress:
     stress_vector       /= determinant_f;
     constitutive_matrix /= determinant_f;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void HyperElasticIsotropicNeoHookean3D::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+{
+//     rValues.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
+//     HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK1(rValues);
+//     rValues.Reset(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void HyperElasticIsotropicNeoHookean3D::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+{
+//     rValues.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
+//     HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(rValues);
+//     rValues.Reset(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void HyperElasticIsotropicNeoHookean3D::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+{
+//     rValues.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
+//     HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseCauchy(rValues);
+//     rValues.Reset(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void HyperElasticIsotropicNeoHookean3D::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+{
+//     rValues.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
+//     HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff(rValues);
+//     rValues.Reset(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
 }
 
 /***********************************************************************************/

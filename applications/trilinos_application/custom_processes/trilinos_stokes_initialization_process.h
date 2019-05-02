@@ -2,20 +2,15 @@
 #define KRATOS_TRILINOS_STOKES_INITIALIZATION_PROCESS_H
 
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 #include "Epetra_MpiComm.h"
 
 // Project includes
-#include "includes/mpi_communicator.h"
 
 // Application includes
 #include "containers/model.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-//#include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver_periodic.h"
 #include "custom_utilities/parallel_fill_communicator.h"
 

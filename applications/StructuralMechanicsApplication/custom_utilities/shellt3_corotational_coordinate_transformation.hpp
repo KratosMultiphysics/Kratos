@@ -110,7 +110,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override
+    void InitializeSolutionStep() override
     {
         for(int i = 0; i < 3; i++)
         {
@@ -119,7 +119,7 @@ public:
         }
     }
 
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override
+    void FinalizeSolutionStep() override
     {
         for(int i = 0; i < 3; i++)
         {
@@ -128,11 +128,7 @@ public:
         }
     }
 
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override
-    {
-    }
-
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override
+    void FinalizeNonLinearIteration() override
     {
         const GeometryType & geom = GetGeometry();
         Vector3Type incrementalRotation;

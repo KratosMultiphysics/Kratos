@@ -13,7 +13,7 @@ import os
 import math
 
 def Factory(settings, current_model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return CompareTwoFilesCheckProcess(settings["Parameters"])
 
@@ -72,28 +72,13 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                                     params.PrettyPrintJsonString()
                                 ])
 
-    def ExecuteInitialize(self):
-        pass
-
-    def ExecuteBeforeSolutionLoop(self):
-        pass
-
-    def ExecuteInitializeSolutionStep(self):
-        pass
-
-    def ExecuteFinalizeSolutionStep(self):
-        pass
-
-    def ExecuteBeforeOutputStep(self):
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        pass
-
     def ExecuteFinalize(self):
         """The files are compared in this function
         Please see the respective files for details on the format of the files
         """
+
+        KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().Barrier()
+
         if (self.comparison_type == "deterministic"):
             value = filecmp.cmp(self.reference_file_name, self.output_file_name)
             self.assertTrue(value, msg = self.info_msg)
@@ -105,10 +90,12 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             self.__ComparePostResFile()
         elif (self.comparison_type == "dat_file"):
             self.__CompareDatFile()
+        elif (self.comparison_type == "dat_file_variables_time_history"):
+            self.__CompareDatFileVariablesTimeHistory()
         else:
             raise NameError('Requested comparision type "' + self.comparison_type + '" not implemented yet')
 
-        if self.remove_output_file == True:
+        if self.remove_output_file:
             kratos_utils.DeleteFileIfExisting(self.output_file_name)
 
     def __GetFileLines(self):
@@ -233,6 +220,33 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         # assert values are equal up to given tolerance
         self.__CompareDatFileResults(lines_ref, lines_out)
 
+    def __CompareDatFileVariablesTimeHistory(self):
+        """This function compares files with tabular data.
+        => *.dat
+        Lines starting with "#" are comments and therefore compared for equality
+        Other lines are compared to be almost equal with the specified tolerance
+        If the comparison fails, it prints the location of failure with details
+        The expected format is the one written by the PointOutputProcess:
+
+        # some basic file information
+        # time var_name_1 var_name_2
+        0.1 1.2345 2.852
+        0.2 0.889 -89.444
+        .
+        .
+        .
+        """
+        lines_ref, lines_out = self.__GetFileLines()
+
+        # extracting the names of output variables eg: time, VELOCITY_X, VELOCITY_Y, VELOCITY_Z
+        variable_names = lines_ref[1].split()[2:]
+
+        # assert headers are the same
+        lines_ref, lines_out = self.__CompareDatFileComments(lines_ref, lines_out)
+
+        # assert values are equal up to given tolerance
+        self.__CompareDatFileResultsWithLocation(lines_ref, lines_out, variable_names)
+
     def __CompareDatFileComments(self, lines_ref, lines_out):
         """This function compares the comments of files with tabular data
         The lines starting with "#" are being compared
@@ -251,10 +265,25 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         """This function compares the data of files with tabular data
         The comment lines were removed beforehand
         """
-
         for line_ref, line_out in zip(lines_ref, lines_out):
             for v1, v2 in zip(line_ref.split(), line_out.split()):
                 self.__CheckCloseValues(float(v1), float(v2))
+
+    def __CompareDatFileResultsWithLocation(self, lines_ref, lines_out, variable_names):
+        """This function compares the data of files with tabular data
+        It also prints the exact location where data doesnt match each other
+        The comment lines were removed beforehand
+        """
+        for line_ref, line_out in zip(lines_ref, lines_out):
+            for i_var, (v1, v2) in enumerate(zip(line_ref.split(), line_out.split())):
+                if i_var == 0: # comparing time:
+                    additional_info = 'Different time found!'
+                    self.__CheckCloseValues(float(v1), float(v2), additional_info)
+                    current_time = v1
+                else: # comparing variables
+                    additional_info  = 'Failed for variable ' + variable_names[i_var-1]
+                    additional_info += ' at time: ' + current_time
+                    self.__CheckCloseValues(float(v1), float(v2), additional_info)
 
     def __CompareMeshVerticesFile(self):
         """This function compares the output of the MMG meshing library
@@ -320,10 +349,13 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             else:
                 tmp2 = ConvertStringToListFloat(lines_out[i], space, end_line)
 
-            if (self.dimension == 2):
-                error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2)
+            if len(tmp1) == 1:
+                error += tmp1[0] - tmp2[0]
             else:
-                error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2 + (tmp1[3] - tmp2[3])**2 + (tmp1[4] - tmp2[4])**2 + (tmp1[5] - tmp2[5])**2)
+                if (self.dimension == 2):
+                    error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2)
+                else:
+                    error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2 + (tmp1[3] - tmp2[3])**2 + (tmp1[4] - tmp2[4])**2 + (tmp1[5] - tmp2[5])**2)
 
         error /= nvertices
         self.assertTrue(error < self.tol, msg = self.info_msg)

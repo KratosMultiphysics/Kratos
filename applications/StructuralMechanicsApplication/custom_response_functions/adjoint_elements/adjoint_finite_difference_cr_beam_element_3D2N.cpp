@@ -50,10 +50,10 @@ int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProce
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
 
     // check dofs
-    GeometryType& r_geom = GetGeometry();
+    const GeometryType& r_geom = GetGeometry();
     for (IndexType i = 0; i < r_geom.size(); i++)
     {
-        auto& r_node = r_geom[i];
+        const auto& r_node = r_geom[i];
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);

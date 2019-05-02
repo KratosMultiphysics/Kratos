@@ -20,7 +20,7 @@
 #include <cmath>
 
 #include "mpi.h"
-#include "includes/mpi_communicator.h"
+#include "mpi/includes/mpi_communicator.h"
 #include "spatial_containers/configures/point_configure.h"
 
 namespace Kratos {

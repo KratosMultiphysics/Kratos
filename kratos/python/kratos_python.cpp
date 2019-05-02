@@ -64,6 +64,8 @@
 #include "add_memory_info_to_python.h"
 #include "add_constraint_to_python.h"
 #include "add_response_functions_to_python.h"
+#include "add_data_communicator_to_python.h"
+#include "add_parallel_environment_to_python.h"
 
 namespace Kratos
 {
@@ -133,6 +135,8 @@ PYBIND11_MODULE(Kratos, m)
      AddLoggerToPython(m); //TO BE SPOKEN WITH POOYAN
      AddConstraintToPython(m);
      AddResponseFunctionsToPython(m);
+     AddDataCommunicatorToPython(m);
+     AddParallelEnvironmentToPython(m);
 
      //     AddBandedMatrixToPython();
      //     AddTriangularMatrixToPython();

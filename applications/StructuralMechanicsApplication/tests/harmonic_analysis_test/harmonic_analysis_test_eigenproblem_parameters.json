@@ -38,11 +38,11 @@
             "lambda_max": 1.0e7,
             "search_dimension": 35,
             "linear_solver_settings":{
-                "solver_type": "SkylineLUComplexSolver"
+                "solver_type": "skyline_lu_complex"
             }
 	},
         "problem_domain_sub_model_part_list" : ["Parts_plate"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_support","PointLoad3D_load"],
+        "processes_sub_model_part_list"      : ["Structure", "DISPLACEMENT_support","PointLoad3D_load"],
         "rotation_dofs"                      : true
     },
     "processes" : {

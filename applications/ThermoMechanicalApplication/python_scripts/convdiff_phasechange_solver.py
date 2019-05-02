@@ -10,10 +10,6 @@ import KratosMultiphysics.ExternalSolversApplication as ExternalSolver
 #from KratosMultiphysics.SolidMechanicsApplication import *
 import KratosMultiphysics.SolidMechanicsApplication as SolidMechanics
 
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
-
 def AddVariables(model_part, settings):
     #my_settings.SetDensityVariable(DENSITY)
     #my_settings.SetDiffusionVariable(CONDUCTIVITY)

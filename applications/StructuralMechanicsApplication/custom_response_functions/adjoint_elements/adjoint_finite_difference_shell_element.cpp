@@ -51,7 +51,7 @@ int AdjointFiniteDifferencingShellElement::Check(const ProcessInfo& rCurrentProc
 
 // private
 
-void AdjointFiniteDifferencingShellElement::CheckVariables()
+void AdjointFiniteDifferencingShellElement::CheckVariables() const
 {
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
     KRATOS_CHECK_VARIABLE_KEY(ROTATION);
@@ -69,13 +69,13 @@ void AdjointFiniteDifferencingShellElement::CheckVariables()
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
 }
 
-void AdjointFiniteDifferencingShellElement::CheckDofs()
+void AdjointFiniteDifferencingShellElement::CheckDofs() const
 {
-    GeometryType& r_geom = GetGeometry();
+    const GeometryType& r_geom = GetGeometry();
     // verify that the dofs exist
     for (IndexType i = 0; i < r_geom.size(); ++i)
     {
-        auto& r_node = r_geom[i];
+        const auto& r_node = r_geom[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
@@ -94,7 +94,7 @@ void AdjointFiniteDifferencingShellElement::CheckDofs()
     }
 }
 
-void AdjointFiniteDifferencingShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo)
+void AdjointFiniteDifferencingShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo) const
 {
     // check properties
     if(pGetProperties() == nullptr)
@@ -133,7 +133,7 @@ void AdjointFiniteDifferencingShellElement::CheckProperties(const ProcessInfo& r
 
 }
 
-void AdjointFiniteDifferencingShellElement::CheckSpecificProperties()
+void AdjointFiniteDifferencingShellElement::CheckSpecificProperties() const
 {
     const PropertiesType & r_props = GetProperties();
 

@@ -171,6 +171,8 @@ class InletMesherProcess
 
     unsigned int NodeId = MesherUtilities::GetMaxNodeId( *(mrModelPart.GetParentModelPart()) ) + 1;
 
+    ModelPart::NodesContainerType InletNodes;
+
     for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; ++i_node)
     {
       if(i_node->Is(INLET) ){
@@ -180,19 +182,12 @@ class InletMesherProcess
           if( distance > critical_distance ){
 
             // add new inlet node
-            Node<3>::Pointer pnode = i_node->Clone();
+            NodeType::Pointer pnode = i_node->Clone();
 
             pnode->SetId(NodeId);
             pnode->Coordinates() = pnode->GetInitialPosition();
 
-            noalias(pnode->FastGetSolutionStepValue(DISPLACEMENT))   = ZeroVector(3);
-            noalias(pnode->FastGetSolutionStepValue(DISPLACEMENT,1)) = ZeroVector(3);
-
             pnode->Set(INLET,true);
-            pnode->Set(FLUID,true);
-
-            mrModelPart.AddNode(pnode);
-
             // release old inlet node
             i_node->Set(INLET,false);
 
@@ -203,18 +198,27 @@ class InletMesherProcess
               i_dof->FreeDof();
             }
 
+            noalias(pnode->FastGetSolutionStepValue(DISPLACEMENT))   = ZeroVector(3);
+            noalias(pnode->FastGetSolutionStepValue(DISPLACEMENT,1)) = ZeroVector(3);
+
             noalias(i_node->FastGetSolutionStepValue(VELOCITY,1)) = i_node->FastGetSolutionStepValue(VELOCITY);
             noalias(i_node->FastGetSolutionStepValue(ACCELERATION))   = ZeroVector(3);
             noalias(i_node->FastGetSolutionStepValue(ACCELERATION,1)) = ZeroVector(3);
 
+            InletNodes.push_back(pnode);
+
             ++NodeId;
+
           }
 
       }
 
     }
 
-    KRATOS_CATCH( "" )
+    if( InletNodes.size() !=0 )
+      mrModelPart.AddNodes(InletNodes.begin(), InletNodes.end());
+
+    KRATOS_CATCH("")
   }
 
   ///@}

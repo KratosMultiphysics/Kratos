@@ -59,10 +59,17 @@ namespace Kratos
     typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
     typedef std::vector<Node<3>::Pointer >                       PointPointerVector;
 
+    typedef Kratos::weak_ptr<Node<3> > NodeWeakPtrType;
+    typedef Kratos::weak_ptr<Element> ElementWeakPtrType;
+    typedef Kratos::weak_ptr<Condition> ConditionWeakPtrType;
+
+    typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+    typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+    typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+
     /**
      * Flags related to the meshing parameters
      */
-
     KRATOS_DEFINE_LOCAL_FLAG( NODE_TO_ELEMENT );
     KRATOS_DEFINE_LOCAL_FLAG( ELEMENT_TO_NODE );
     KRATOS_DEFINE_LOCAL_FLAG( ELEMENT_TO_ELEMENT );
@@ -221,7 +228,7 @@ namespace Kratos
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void InitializeBoundaryData(Condition::Pointer rCurrentCondition,
+    void InitializeBoundaryData(Condition* rCurrentCondition,
 				const TransferParameters& rTransferVariables,
 				const ProcessInfo& rCurrentProcessInfo);
 
@@ -230,15 +237,15 @@ namespace Kratos
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void TransferInitialBoundaryData(Condition::Pointer rCurrentCondition,
+    void TransferInitialBoundaryData(Condition* rCurrentCondition,
 				     const TransferParameters& rTransferVariables,
 				     BoundaryVariables& rVariables);
 
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void TransferCurrentBoundaryData(Element::Pointer rCurrentElement,
-				     Condition::Pointer rCurrentCondition,
+    void TransferCurrentBoundaryData(Element* rCurrentElement,
+				     Condition* rCurrentCondition,
 				     const TransferParameters& rTransferVariables,
 				     BoundaryVariables& rVariables,
 				     BoundaryVariableArrays& rVariableArrays,
@@ -256,8 +263,8 @@ namespace Kratos
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void TransferBoundaryData(Element::Pointer rCurrentElement,
-			      Condition::Pointer rCurrentCondition,
+    void TransferBoundaryData(Element* rCurrentElement,
+			      Condition* rCurrentCondition,
 			      const TransferParameters& rTransferVariables,
 			      const ProcessInfo& rCurrentProcessInfo);
 
@@ -434,37 +441,34 @@ namespace Kratos
 
 
     void FillVectorData( VariablesList& rVariablesList,
-			 Node<3>::Pointer pnode);
+			 Node<3>& rNode );
 
-    void Interpolate2Nodes( Geometry<Node<3> > &geom,
-			    const std::vector<double>& N,
-			    VariablesList& rVariablesList,
-			    Node<3>& pnode);
 
     void Interpolate( Geometry<Node<3> >& geom,
 		      const std::vector<double>& N,
 		      VariablesList& rVariablesList,
 		      Node<3>::Pointer pnode,
-		      double& alpha);
+		      double alpha = 1.0 );
+
 
     VariablesListDataValueContainer InterpolateVariables( Geometry<Node<3> >& geom,
 							  const std::vector<double>& N,
 							  VariablesList& rVariablesList,
 							  Node<3>::Pointer pnode,
-							  double& alpha);
-
+							  double alpha = 1.0 );
+    //doubles only
     void InterpolateData( Geometry<Node<3> >& geom,
 			  const std::vector<double>& N,
 			  unsigned int step_data_size,
 			  Node<3>::Pointer pnode,
-			  double& alpha);
+			  double alpha = 1.0 );
 
 
     VariablesListDataValueContainer InterpolateVariablesData( Geometry<Node<3> >& geom,
 							      const std::vector<double>& N,
 							      unsigned int step_data_size,
 							      Node<3>::Pointer pnode,
-							      double& alpha);
+							      double alpha = 1.0 );
 
 
     ///@}

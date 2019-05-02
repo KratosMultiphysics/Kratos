@@ -17,9 +17,9 @@
 #include <vector>
 
 // External includes
-extern "C" {
+//extern "C" {
 #include "hdf5.h"
-}
+//}
 #include "includes/ublas_interface.h"
 
 // Project includes

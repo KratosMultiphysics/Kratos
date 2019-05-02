@@ -1,0 +1,6 @@
+#pragma once
+
+#include "src/TrimmedSurfaceClipping.h"
+#include "src/PolygonTessellation.h"
+#include "src/Polygon.h"
+#include "src/PolygonIntegrationPoints.h"

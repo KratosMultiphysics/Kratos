@@ -121,7 +121,7 @@ public:
         mpLinearSolver = LinearSolverFactoryType().Create(ThisParameters);
 
         mSymmetricScaling = ThisParameters.Has("symmetric_scaling") ? ThisParameters["symmetric_scaling"].GetBool() : true;
-        
+
         KRATOS_CATCH("")
     }
 
@@ -364,9 +364,9 @@ private:
         {
             int thread_id = OpenMPUtils::ThisThread();
             int number_of_rows = partition[thread_id+1] - partition[thread_id];
-            typename compressed_matrix<typename TDenseSpaceType::DataType>::index_array_type::iterator row_iter_begin = A.index1_data().begin()+partition[thread_id];
-            typename compressed_matrix<typename TDenseSpaceType::DataType>::index_array_type::iterator index_2_begin = A.index2_data().begin()+*row_iter_begin;
-            typename compressed_matrix<typename TDenseSpaceType::DataType>::value_array_type::iterator value_begin = A.value_data().begin()+*row_iter_begin;
+            typename boost::numeric::ublas::compressed_matrix<typename TDenseSpaceType::DataType>::index_array_type::iterator row_iter_begin = A.index1_data().begin()+partition[thread_id];
+            typename boost::numeric::ublas::compressed_matrix<typename TDenseSpaceType::DataType>::index_array_type::iterator index_2_begin = A.index2_data().begin()+*row_iter_begin;
+            typename boost::numeric::ublas::compressed_matrix<typename TDenseSpaceType::DataType>::value_array_type::iterator value_begin = A.value_data().begin()+*row_iter_begin;
 
             perform_matrix_scaling(    number_of_rows,
                                        row_iter_begin,
@@ -383,9 +383,9 @@ private:
      */
     static void perform_matrix_scaling(
         int number_of_rows,
-        typename compressed_matrix<typename TDenseSpaceType::DataType>::index_array_type::iterator row_begin,
-        typename compressed_matrix<typename TDenseSpaceType::DataType>::index_array_type::iterator index2_begin,
-        typename compressed_matrix<typename TDenseSpaceType::DataType>::value_array_type::iterator value_begin,
+        typename boost::numeric::ublas::compressed_matrix<typename TDenseSpaceType::DataType>::index_array_type::iterator row_begin,
+        typename boost::numeric::ublas::compressed_matrix<typename TDenseSpaceType::DataType>::index_array_type::iterator index2_begin,
+        typename boost::numeric::ublas::compressed_matrix<typename TDenseSpaceType::DataType>::value_array_type::iterator value_begin,
         unsigned int output_begin_index,
         const VectorType& weights
     )
@@ -428,9 +428,9 @@ private:
         {
             int thread_id = OpenMPUtils::ThisThread();
             int number_of_rows = partition[thread_id+1] - partition[thread_id];
-            typename compressed_matrix<typename TDenseSpaceType::DataType>::index_array_type::const_iterator row_iter_begin = A.index1_data().begin()+partition[thread_id];
-            typename compressed_matrix<typename TDenseSpaceType::DataType>::index_array_type::const_iterator index_2_begin = A.index2_data().begin()+*row_iter_begin;
-            typename compressed_matrix<typename TDenseSpaceType::DataType>::value_array_type::const_iterator value_begin = A.value_data().begin()+*row_iter_begin;
+            typename boost::numeric::ublas::compressed_matrix<typename TDenseSpaceType::DataType>::index_array_type::const_iterator row_iter_begin = A.index1_data().begin()+partition[thread_id];
+            typename boost::numeric::ublas::compressed_matrix<typename TDenseSpaceType::DataType>::index_array_type::const_iterator index_2_begin = A.index2_data().begin()+*row_iter_begin;
+            typename boost::numeric::ublas::compressed_matrix<typename TDenseSpaceType::DataType>::value_array_type::const_iterator value_begin = A.value_data().begin()+*row_iter_begin;
 
             GS2weights(    number_of_rows,
                            row_iter_begin,
@@ -447,9 +447,9 @@ private:
      */
     static void GS2weights(
         int number_of_rows,
-        typename compressed_matrix<typename TDenseSpaceType::DataType>::index_array_type::const_iterator row_begin,
-        typename compressed_matrix<typename TDenseSpaceType::DataType>::index_array_type::const_iterator index2_begin,
-        typename compressed_matrix<typename TDenseSpaceType::DataType>::value_array_type::const_iterator value_begin,
+        typename boost::numeric::ublas::compressed_matrix<typename TDenseSpaceType::DataType>::index_array_type::const_iterator row_begin,
+        typename boost::numeric::ublas::compressed_matrix<typename TDenseSpaceType::DataType>::index_array_type::const_iterator index2_begin,
+        typename boost::numeric::ublas::compressed_matrix<typename TDenseSpaceType::DataType>::value_array_type::const_iterator value_begin,
         unsigned int output_begin_index,
         VectorType& weights
     )

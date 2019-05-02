@@ -13,23 +13,19 @@
 #if !defined(KRATOS_MODEL_PART_IO_H_INCLUDED )
 #define  KRATOS_MODEL_PART_IO_H_INCLUDED
 
-
 // System includes
 #include <string>
 #include <fstream>
 #include <set>
 #include <typeinfo>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/io.h"
 #include "utilities/timer.h"
 #include "containers/flags.h"
-
 
 namespace Kratos
 {
@@ -268,7 +264,7 @@ protected:
 
     ///@}
 
-protected:
+private:
     ///@name Static Member Variables
     ///@{
 
@@ -296,7 +292,6 @@ protected:
     ///@{
 
     std::string& ReadBlockName(std::string& rBlockName);
-
 
     void SkipBlock(std::string const& BlockName);
 
@@ -543,7 +538,6 @@ protected:
 
     ModelPartIO& ReadBlock(std::string& Block, std::string const& BlockName);
 
-
     char SkipWhiteSpaces();
 
     bool IsWhiteSpace(char C);
@@ -554,9 +548,7 @@ protected:
 
     void ResetInput();
 
-    inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, DenseVector<unsigned int>& partitions);
-
-
+    inline void CreatePartition(unsigned int NumberOfThreads,const int NumberOfRows, DenseVector<unsigned int>& partitions);
 
     ///@}
     ///@name Private  Access

@@ -8,7 +8,7 @@ import math
 
 class TestStaticLoadingConditionsLine(KratosUnittest.TestCase):
 
-    def test_MPMLineLoadCondition2D2N(self):
+    def test_MPMGridLineLoadCondition2D2N(self):
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -28,7 +28,7 @@ class TestStaticLoadingConditionsLine(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
-        cond = mp.CreateNewCondition("MPMLineLoadCondition2D2N", 1, [1,2], mp.GetProperties()[1])
+        cond = mp.CreateNewCondition("MPMGridLineLoadCondition2D2N", 1, [1,2], mp.GetProperties()[1])
 
         lhs = KratosMultiphysics.Matrix(0,0)
         rhs = KratosMultiphysics.Vector(0)
@@ -63,7 +63,7 @@ class TestStaticLoadingConditionsLine(KratosUnittest.TestCase):
         self.assertAlmostEqual(rhs[2],reference_res[2])
         self.assertAlmostEqual(rhs[3],reference_res[3])
 
-    def test_MPMLineLoadCondition2D2NAngle(self):
+    def test_MPMGridLineLoadCondition2D2NAngle(self):
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -84,8 +84,8 @@ class TestStaticLoadingConditionsLine(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
-        cond1 = mp.CreateNewCondition("MPMLineLoadCondition2D2N", 1, [1,2], mp.GetProperties()[1])
-        cond2 = mp.CreateNewCondition("MPMLineLoadCondition2D2N", 2, [2,3], mp.GetProperties()[1])
+        cond1 = mp.CreateNewCondition("MPMGridLineLoadCondition2D2N", 1, [1,2], mp.GetProperties()[1])
+        cond2 = mp.CreateNewCondition("MPMGridLineLoadCondition2D2N", 2, [2,3], mp.GetProperties()[1])
 
         rhs = KratosMultiphysics.Vector(6)
         rhs[0] = 0.0

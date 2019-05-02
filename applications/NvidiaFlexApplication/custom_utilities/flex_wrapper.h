@@ -5,7 +5,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
-#include "../../DEM_application/custom_utilities/create_and_destroy.h"
+#include "../../DEMApplication/custom_utilities/create_and_destroy.h"
 
 #include "NvFlex.h"
 #include "NvFlexExt.h"

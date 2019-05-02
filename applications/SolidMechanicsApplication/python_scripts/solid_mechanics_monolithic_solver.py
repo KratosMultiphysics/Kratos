@@ -5,9 +5,6 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 def CreateSolver(custom_settings, Model):
     return MonolithicSolver(Model, custom_settings)
 
@@ -192,9 +189,9 @@ class MonolithicSolver(object):
 
     def _domain_parts_updated(self):
         update_time = False
-        if not self._is_not_restarted():
+        if self._is_restarted():
             if self.process_info.Has(KratosSolid.RESTART_STEP_TIME):
-                update_time = self._check_current_time_step(self.process_info[KratosSolid.RESTART_STEP_TIME])
+                update_time = self._check_previous_time_step(self.process_info[KratosSolid.RESTART_STEP_TIME])
 
         if not update_time and self.process_info.Has(KratosSolid.MESHING_STEP_TIME):
             update_time = self._check_previous_time_step(self.process_info[KratosSolid.MESHING_STEP_TIME])
@@ -235,6 +232,10 @@ class MonolithicSolver(object):
                 mechanical_solver.SetInitializePerformedFlag(True)
             else:
                 mechanical_solver.Set(KratosSolid.SolverLocalFlags.INITIALIZED, True)
+
+    def _is_restarted(self):
+        not_restarted = self._is_not_restarted()
+        return (not not_restarted)
 
     def _is_not_restarted(self):
         if self.process_info.Has(KratosMultiphysics.IS_RESTARTED):
@@ -335,7 +336,7 @@ class MonolithicSolver(object):
         return convergence_criterion.GetConvergenceCriterion()
 
     def _create_linear_solver(self):
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         return linear_solver
 

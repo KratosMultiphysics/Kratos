@@ -21,6 +21,7 @@
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "containers/flags.h"
 #include "spaces/ublas_space.h"
+#include "boost/numeric/ublas/matrix.hpp"
 
 //---strategies
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -47,7 +48,7 @@ namespace Python{
 
     void AddCustomStrategiesToPython(pybind11::module& m)
     {
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+        typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
         //base types
@@ -74,7 +75,7 @@ namespace Python{
 
         // Strategy Type
         py::class_< MPMStrategyType2D,typename MPMStrategyType2D::Pointer, BaseSolvingStrategyType >(m,"MPM2D")
-            .def(py::init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, bool, std::string, std::string, int, bool, bool>() )
+            .def(py::init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, std::string, int, bool, bool, bool, bool>() )
             .def( "SearchElement", &MPMStrategyType2D::SearchElement)
             .def( "MP16ShapeFunctions", &MPMStrategyType2D::MP16ShapeFunctions)
             .def( "MP33ShapeFunctions", &MPMStrategyType2D::MP33ShapeFunctions)
@@ -82,7 +83,7 @@ namespace Python{
             ;
 
         py::class_< MPMStrategyType3D,typename MPMStrategyType3D::Pointer, BaseSolvingStrategyType >(m,"MPM3D")
-            .def(py::init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, bool, std::string, std::string, int, bool, bool>() )
+            .def(py::init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, std::string, int, bool, bool, bool, bool>() )
             .def( "SearchElement", &MPMStrategyType3D::SearchElement)
             .def( "MP16ShapeFunctions", &MPMStrategyType3D::MP16ShapeFunctions)
             .def( "MP33ShapeFunctions", &MPMStrategyType3D::MP33ShapeFunctions)

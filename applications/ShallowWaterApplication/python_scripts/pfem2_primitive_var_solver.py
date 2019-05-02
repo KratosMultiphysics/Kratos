@@ -19,7 +19,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
         # Set the element and condition names for the replace settings
         self.element_name = "ShallowElement"
         self.condition_name = "Condition"
-        self.min_buffer_size = 1
+        self.min_buffer_size = 2
 
         # Pfem2 settings
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]

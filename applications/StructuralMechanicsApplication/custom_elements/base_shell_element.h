@@ -277,11 +277,9 @@ protected:
     {
     }
 
-    SizeType GetNumberOfDofs();
+    SizeType GetNumberOfDofs() const;
 
-    SizeType GetNumberOfGPs();
-
-    void SetBaseMembers();
+    SizeType GetNumberOfGPs() const;
 
     /**
      * @brief This functions calculates both the RHS and the LHS
@@ -294,7 +292,7 @@ protected:
     virtual void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     );
@@ -309,10 +307,10 @@ protected:
 
     virtual void SetupOrientationAngles();
 
-    void CheckVariables();
-    void CheckDofs();
-    void CheckProperties(const ProcessInfo& rCurrentProcessInfo);
-    void CheckSpecificProperties();
+    void CheckVariables() const;
+    void CheckDofs() const;
+    void CheckProperties(const ProcessInfo& rCurrentProcessInfo) const;
+    void CheckSpecificProperties() const;
 
     /**
     * computes the local axis of the element (for visualization)
@@ -323,7 +321,7 @@ protected:
     template <typename T>
     void ComputeLocalAxis(const Variable<array_1d<double, 3> >& rVariable,
         std::vector<array_1d<double, 3> >& rOutput,
-        const T& rpCoordinateTransformation)
+        const T& rpCoordinateTransformation) const
     {
         const SizeType num_gps = GetNumberOfGPs();
         if (rOutput.size() != num_gps) rOutput.resize(num_gps);
@@ -356,7 +354,7 @@ protected:
     template <typename T>
     void ComputeLocalMaterialAxis(const Variable<array_1d<double, 3> >& rVariable,
         std::vector<array_1d<double, 3> >& rOutput,
-        const T& rpCoordinateTransformation)
+        const T& rpCoordinateTransformation) const
     {
         const double mat_angle = Has(MATERIAL_ORIENTATION_ANGLE) ? GetValue(MATERIAL_ORIENTATION_ANGLE) : 0.0;
 
@@ -392,7 +390,7 @@ protected:
     * Returns the behavior of this shell (thin/thick)
     * @return the shell behavior
     */
-    virtual ShellCrossSection::SectionBehaviorType GetSectionBehavior();
+    virtual ShellCrossSection::SectionBehaviorType GetSectionBehavior() const;
 
     ///@}
     ///@name Protected  Access

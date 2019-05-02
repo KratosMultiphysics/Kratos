@@ -140,8 +140,8 @@ class ModifiedMohrCoulombYieldSurface
         const double sin_phi = std::sin(friction_angle);
 
         double I1, J2, J3;
+        array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
         ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
-        array_1d<double, VoigtSize> deviator(6, 0.0);
         ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
         ConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(deviator, J3);
 
@@ -150,7 +150,7 @@ class ModifiedMohrCoulombYieldSurface
         const double K3 = 0.5 * (1.0 + alpha_r) * sin_phi - 0.5 * (1.0 - alpha_r);
 
         // Check Modified Mohr-Coulomb criterion
-        if (I1 == 0.0) {
+        if (std::abs(I1) < tolerance) {
             rEquivalentStress = 0.0;
         } else {
             ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, theta);
@@ -253,7 +253,14 @@ class ModifiedMohrCoulombYieldSurface
         const double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 
         double c1, c2, c3;
-        const double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0;
+        double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0;
+	    
+        // Check input variables
+        if (friction_angle < tolerance) {
+            friction_angle = 32.0 * Globals::Pi / 180.0;
+            KRATOS_WARNING("ModifiedMohrCoulombYieldSurface") << "Friction Angle not defined, assumed equal to 32 deg " << std::endl;
+        }
+	    
         const double sin_phi = std::sin(friction_angle);
         const double cons_phi = std::cos(friction_angle);
         const double sin_theta = std::sin(lode_angle);
@@ -284,8 +291,8 @@ class ModifiedMohrCoulombYieldSurface
         else
             c1 = 0.0; // check
 
-        if (checker < 29.0) {
-            c2 = cos_theta * CFL * (K1 * (1 + tan_theta * tan_3theta) + K2 * sin_phi * (tan_3theta - tan_theta) / Root3);
+        if (std::abs(checker) < 29.0) { // Lode angle not greater than pi/6
+            c2 = cos_theta * CFL * (K1 * (1.0 + tan_theta * tan_3theta) + K2 * sin_phi * (tan_3theta - tan_theta) / Root3);
             c3 = CFL * (K1 * Root3 * sin_theta + K2 * sin_phi * cos_theta) / (2.0 * J2 * cos_3theta);
         } else {
             c3 = 0.0;
@@ -308,7 +315,9 @@ class ModifiedMohrCoulombYieldSurface
         KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_COMPRESSION);
         KRATOS_CHECK_VARIABLE_KEY(FRACTURE_ENERGY);
         KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
+        KRATOS_CHECK_VARIABLE_KEY(FRICTION_ANGLE);
 
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRICTION_ANGLE)) << "FRICTION_ANGLE is not a defined value" << std::endl;
         if (!rMaterialProperties.Has(YIELD_STRESS)) {
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;

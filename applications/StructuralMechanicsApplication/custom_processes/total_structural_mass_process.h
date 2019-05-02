@@ -95,11 +95,6 @@ public:
     ///@name Operators
     ///@{
 
-    void operator()()
-    {
-        Execute();
-    }
-
     ///@}
     ///@name Operations
     ///@{

@@ -174,9 +174,8 @@ protected:
         int ierr = MotherType::Check();
         if(ierr != 0) return ierr;
         
-        if(IS_CONVERGED.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument,"IS_CONVERGED Key is 0. Check if all applications were correctly registered.", "" )
-        
+        KRATOS_CHECK_VARIABLE_KEY(IS_CONVERGED);
+
         return ierr;
 
         KRATOS_CATCH( "" )

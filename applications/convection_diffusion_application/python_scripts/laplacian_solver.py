@@ -1,15 +1,11 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
-#from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
 
 def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(TEMPERATURE)
- 
+
 
 
 def AddDofs(model_part, config=None):
@@ -34,10 +30,10 @@ class LaplacianSolver:
         self.solver = ResidualBasedLinearStrategy(
             self.model_part, time_scheme, self.linear_solver,
             self.compute_reactions, self.ReformDofSetAtEachStep, self.calculate_solution_norm, self.MoveMeshFlag)
-        
+
         (self.solver).SetEchoLevel(self.echo_level)
         self.solver.Check()
-        
+
 
 
     def Solve(self):
@@ -55,7 +51,7 @@ def CreateSolver(model_part, config):
     solver = LaplacianSolver(model_part, config.domain_size)
 
 
-    import linear_solver_factory
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
     if(hasattr(config, "linear_solver_config")):
         solver.linear_solver = linear_solver_factory.ConstructSolver(
             config.linear_solver_config)

@@ -49,7 +49,7 @@ public:
     // Constructor 2
     UPwCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : Condition(NewId, pGeometry, pProperties) 
     {
-        mThisIntegrationMethod = this->GetGeometry().GetDefaultIntegrationMethod();
+        mThisIntegrationMethod = this->GetIntegrationMethod();
     }
 
     // Destructor

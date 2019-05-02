@@ -3,14 +3,14 @@
 
 
 // System includes
-#include "includes/define.h"
-#include "includes/element.h"
-#include "includes/variables.h"
 
 // External includes
 
 // Project includes
 #include "custom_elements/surface_base_discrete_element.h"
+
+// Application includes
+#include "iga_application_variables.h"
 
 namespace Kratos
 {
@@ -47,9 +47,31 @@ public:
     virtual ~ShellKLDiscreteElement() override
     {};
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
+    /**
+    * @brief Creates a new element
+    * @param NewId The Id of the new created element
+    * @param pGeom The pointer to the geometry of the element
+    * @param pProperties The pointer to property
+    * @return The pointer to the created element
+    */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+    ) const override
     {
-        return Kratos::make_shared< ShellKLDiscreteElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_shared<ShellKLDiscreteElement>(
+            NewId, pGeom, pProperties);
+    };
+
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+    ) const override
+    {
+        return Kratos::make_shared< ShellKLDiscreteElement >(
+            NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
     ///@}
@@ -115,6 +137,10 @@ public:
     {
         std::stringstream buffer;
         buffer << "KLElement #" << Id();
+        KRATOS_WATCH(GetValue(SHAPE_FUNCTION_VALUES));
+        KRATOS_WATCH(GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES));
+        KRATOS_WATCH(GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES));
+        KRATOS_WATCH(GetValue(INTEGRATION_WEIGHT));
         return buffer.str();
     }
 
@@ -123,6 +149,7 @@ public:
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "KLElement #" << Id();
+
     }
 
     ///@}

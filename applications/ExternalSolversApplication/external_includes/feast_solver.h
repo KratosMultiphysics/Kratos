@@ -96,15 +96,16 @@ public:
             "number_of_eigenvalues": 0,
             "search_dimension": 10,
             "linear_solver_settings": {
-                "solver_type": "complex_skyline_lu_solver"
+                "solver_type": "skyline_lu_complex"
             }
         })");
 
         mParam.RecursivelyValidateAndAssignDefaults(default_params);
 
-        if (mParam.GetValue("linear_solver_settings")["solver_type"].GetString() != "skyline_lu")
-            KRATOS_ERROR << "built-in solver type must be used with this constructor" << std::endl;
-            
+        const std::string& solver_type = mParam.GetValue("linear_solver_settings")["solver_type"].GetString();
+        KRATOS_ERROR_IF(solver_type != "skyline_lu_complex" && solver_type != "skyline_lu")
+            << "Built-in solver type must be used with this constructor" << std::endl;
+
         mpLinearSolver = Kratos::make_shared<SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
     }
 
@@ -181,7 +182,7 @@ public:
             Calculate(M,K,EigenvalueRangeMin,EigenvalueRangeMax,SearchDimension,
                     NumEigenvalues,Eigenvalues,Eigenvectors,true);
 
-            std::cout << "Estimated number of eigenvalues = " << NumEigenvalues << std::endl;
+            KRATOS_INFO("FEASTSolver") << "Estimated number of eigenvalues = " << NumEigenvalues << std::endl;
 
             // recommended estimate of search dimension from FEAST documentation
             SearchDimension = NumEigenvalues + NumEigenvalues/2 + 1;

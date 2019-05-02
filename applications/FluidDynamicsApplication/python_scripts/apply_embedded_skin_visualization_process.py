@@ -46,8 +46,8 @@ class ApplyEmbeddedSkinVisualizationProcess(KratosMultiphysics.Process):
         self.origin_model_part = Model[settings["model_part_name"].GetString()]
 
         # Set up the visualization model part
-        self.visualization_model_part = KratosMultiphysics.ModelPart(settings["visualization_model_part_name"].GetString())
-        self.visualization_model_part.SetBufferSize(1)
+        visualization_buffer_size = 1
+        self.visualization_model_part = Model.CreateModelPart(settings["visualization_model_part_name"].GetString(), visualization_buffer_size)
         self.visualization_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.origin_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
         # Check that the nodal results array is empty

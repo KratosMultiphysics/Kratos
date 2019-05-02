@@ -23,14 +23,17 @@
         "echo_level"                  : 0,
         "compute_reactions"           : false,
         "maximum_iterations"          : 1000,
-        "dynamic_tau"                 : 0.0,
-        "oss_switch"                  : 0,
+        "formulation" : {
+            "element_type"                 : "vms",
+            "dynamic_tau"                  : 0.0,
+            "use_orthogonal_subscales"     : false
+        },
         "relative_velocity_tolerance" : 1e-6,
         "absolute_velocity_tolerance" : 1e-6,
         "relative_pressure_tolerance" : 1e-6,
         "absolute_pressure_tolerance" : 1e-6,
         "linear_solver_settings"      : {
-            "solver_type"         : "AMGCL",
+            "solver_type"         : "amgcl",
             "max_iteration"       : 200,
             "tolerance"           : 1e-9,
             "provide_coordinates" : false,
@@ -153,8 +156,8 @@
             "output_file_name"    : "steady_cavity5_probe_1.dat",
             "reference_file_name" : "steady_cavity5_probe_ref_1.dat",
             "comparison_type"     : "dat_file",
-            "remove_output_file"    : true,
-            "decimal_places"      : 5
+            "remove_output_file"  : true,
+            "tolerance"           : 1e-5
         }
     },{
         "python_module"   : "compare_two_files_check_process",
@@ -165,8 +168,8 @@
             "output_file_name"    : "steady_cavity5_probe_2.dat",
             "reference_file_name" : "steady_cavity5_probe_ref_2.dat",
             "comparison_type"     : "dat_file",
-            "remove_output_file"    : true,
-            "decimal_places"      : 5
+            "remove_output_file"  : true,
+            "tolerance"           : 1e-5
         }
     }]
 }

@@ -18,6 +18,7 @@
 
 /* Project includes */
 #include "contact_structural_mechanics_application_variables.h"
+#include "custom_utilities/contact_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/variable_utils.h"
 #include "custom_processes/aalm_adapt_penalty_value_process.h"
@@ -89,8 +90,12 @@ public:
     ///@{
 
     /// Default constructors
-    explicit BaseMortarConvergenceCriteria(const bool IODebug = false)
+    explicit BaseMortarConvergenceCriteria(
+        const bool ComputeDynamicFactor = false,
+        const bool IODebug = false
+        )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
+          mComputeDynamicFactor(ComputeDynamicFactor),
           mIODebug(IODebug),
           mpGidIO(nullptr)
     {
@@ -140,31 +145,26 @@ public:
             ComputeNodesMeanNormalModelPartWithPairedNormal(rModelPart); // Update normal of the conditions
 
         const bool adapt_penalty = process_info.Has(ADAPT_PENALTY) ? process_info.GetValue(ADAPT_PENALTY) : false;
-        const bool dynamic_case = rModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY_X);
+        const bool dynamic_case = rModelPart.HasNodalSolutionStepVariable(VELOCITY);
 
         /* Compute weighthed gap */
         if (adapt_penalty || dynamic_case) {
             // Set to zero the weighted gap
             ResetWeightedGap(rModelPart);
 
-            ConditionsArrayType& conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
-
-            KRATOS_TRACE_IF("Empty model part", conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
-
-            #pragma omp parallel for
-            for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
-                (conditions_array.begin() + i)->AddExplicitContribution(process_info);
+            // Compute the contribution
+            ContactUtilities::ComputeExplicitContributionConditions(rModelPart.GetSubModelPart("ComputingContact"));
         }
 
-//         // In dynamic case
-//         if ( dynamic_case ) {
-//             ComputeDynamicFactorProcess compute_dynamic_factor_process = ComputeDynamicFactorProcess( r_contact_model_part );
-//             compute_dynamic_factor_process.Execute();
-//         }
+        // In dynamic case
+        if ( dynamic_case && mComputeDynamicFactor) {
+            ComputeDynamicFactorProcess compute_dynamic_factor_process( r_contact_model_part );
+            compute_dynamic_factor_process.Execute();
+        }
 
         // We recalculate the penalty parameter
         if ( adapt_penalty ) {
-            AALMAdaptPenaltyValueProcess aalm_adaptation_of_penalty = AALMAdaptPenaltyValueProcess( r_contact_model_part );
+            AALMAdaptPenaltyValueProcess aalm_adaptation_of_penalty( r_contact_model_part );
             aalm_adaptation_of_penalty.Execute();
         }
 
@@ -189,27 +189,23 @@ public:
         ) override
     {
         // We save the current WEIGHTED_GAP in the buffer
-        NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        const auto it_node_begin = r_nodes_array.begin();
 
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
             it_node->FastGetSolutionStepValue(WEIGHTED_GAP, 1) = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
         }
 
         // Set to zero the weighted gap
         ResetWeightedGap(rModelPart);
 
-        ConditionsArrayType& conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
-
-        KRATOS_TRACE_IF("Empty model part", conditions_array.size() == 0) << "WARNING:: YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
-
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
-            (conditions_array.begin() + i)->AddExplicitContribution(rModelPart.GetProcessInfo());
+        // Compute the contribution
+        ContactUtilities::ComputeExplicitContributionConditions(rModelPart.GetSubModelPart("ComputingContact"));
 
         // GiD IO for debugging
-        if (mIODebug == true) {
+        if (mIODebug) {
             const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
             const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
             const double label = static_cast<double>(nl_iter);
@@ -229,11 +225,11 @@ public:
             mpGidIO->WriteNodalResultsNonHistorical(DYNAMIC_FACTOR, rModelPart.Nodes(), label);
             mpGidIO->WriteNodalResultsNonHistorical(AUGMENTED_NORMAL_CONTACT_PRESSURE, rModelPart.Nodes(), label);
             mpGidIO->WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
-            if (rModelPart.Nodes().begin()->SolutionStepsDataHas(VELOCITY_X) == true) {
+            if (rModelPart.Nodes().begin()->SolutionStepsDataHas(VELOCITY_X)) {
                 mpGidIO->WriteNodalResults(VELOCITY, rModelPart.Nodes(), label, 0);
                 mpGidIO->WriteNodalResults(ACCELERATION, rModelPart.Nodes(), label, 0);
             }
-            if (nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
+            if (r_nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
                 mpGidIO->WriteNodalResults(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, rModelPart.Nodes(), label, 0);
             else
                 mpGidIO->WriteNodalResults(VECTOR_LAGRANGE_MULTIPLIER, rModelPart.Nodes(), label, 0);
@@ -277,7 +273,7 @@ public:
         MortarUtilities::ComputeNodesMeanNormalModelPart(rModelPart.GetSubModelPart("Contact"));
 
         // GiD IO for debugging
-        if (mIODebug == true) {
+        if (mIODebug) {
             mpGidIO->CloseResultFile();
             std::ostringstream new_name ;
             new_name << "POST_LINEAR_ITER_STEP=""POST_LINEAR_ITER_STEP=" << rModelPart.GetProcessInfo()[STEP];
@@ -302,7 +298,7 @@ public:
         ) override
     {
         // GiD IO for debugging
-        if (mIODebug == true)
+        if (mIODebug)
             mpGidIO->FinalizeResults();
     }
 
@@ -345,8 +341,8 @@ protected:
      */
     virtual void ResetWeightedGap(ModelPart& rModelPart)
     {
-        NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
+        NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
     }
 
     ///@}
@@ -370,6 +366,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    bool mComputeDynamicFactor;     /// If we compute the dynamic factor
     bool mIODebug;                  /// If we generate an output gid file in order to debug
     GidIOBaseType::Pointer mpGidIO; /// The pointer to the debugging GidIO
 
@@ -389,11 +386,12 @@ private:
         MortarUtilities::ComputeNodesMeanNormalModelPart(rModelPart.GetSubModelPart("Contact"));
 
         // Iterate over the computing conditions
-        ConditionsArrayType& conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
+        ConditionsArrayType& r_conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
+        const auto it_cond_begin = r_conditions_array.begin();
 
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
-            auto it_cond = conditions_array.begin() + i;
+        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+            auto it_cond = it_cond_begin + i;
 
             // Aux coordinates
             Point::CoordinatesArrayType aux_coords;

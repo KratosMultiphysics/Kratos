@@ -5,9 +5,6 @@ from KratosMultiphysics.mpi import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.MetisApplication import *
 from KratosMultiphysics.TrilinosApplication import *
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
 
 def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(VELOCITY)

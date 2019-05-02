@@ -27,6 +27,7 @@
 #include "custom_processes/alm_fast_init_process.h"
 #include "custom_processes/alm_variables_calculation_process.h"
 #include "custom_processes/contact_spr_error_process.h"
+#include "custom_processes/compute_dynamic_factor_process.h"
 
 namespace Kratos
 {
@@ -45,6 +46,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<MasterSlaveProcess, MasterSlaveProcess::Pointer, ProcessBaseType >
     (m, "MasterSlaveProcess")
+    .def(py::init<ModelPart&>())
+    ;
+
+    py::class_<ComputeDynamicFactorProcess, ComputeDynamicFactorProcess::Pointer, ProcessBaseType >
+    (m, "ComputeDynamicFactorProcess")
     .def(py::init<ModelPart&>())
     ;
 

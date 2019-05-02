@@ -84,7 +84,7 @@ void AxisymSmallDisplacement::CalculateB(
     const Matrix& DN_DX,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const IndexType PointNumber
-    )
+    ) const
 {
     KRATOS_TRY;
 
@@ -114,7 +114,7 @@ void AxisymSmallDisplacement::CalculateB(
 //************************************************************************************
 //************************************************************************************
 
-Matrix AxisymSmallDisplacement::ComputeEquivalentF(const Vector& rStrainVector)
+Matrix AxisymSmallDisplacement::ComputeEquivalentF(const Vector& rStrainVector) const
 {
     Matrix F(3, 3);
 
@@ -138,7 +138,7 @@ double AxisymSmallDisplacement::GetIntegrationWeight(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const IndexType PointNumber,
     const double detJ
-    )
+    ) const
 {
     // We calculate the axisymmetric coefficient
     Vector N;
@@ -156,7 +156,6 @@ double AxisymSmallDisplacement::GetIntegrationWeight(
 
 void AxisymSmallDisplacement::save( Serializer& rSerializer ) const
 {
-    rSerializer.save( "Name", "AxisymSmallDisplacement" );
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallDisplacement );
 }
 
