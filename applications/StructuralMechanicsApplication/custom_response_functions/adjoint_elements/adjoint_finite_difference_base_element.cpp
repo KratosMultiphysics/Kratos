@@ -451,10 +451,11 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
     const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
 
     const SizeType stress_vector_size = stress_vector_undist.size();
-    rOutput.resize(1, stress_vector_size, false);
 
     if( mpPrimalElement->GetProperties().Has(rDesignVariable) )
     {
+        rOutput.resize(1, stress_vector_size, false);
+
         // Save property pointer
         Properties::Pointer p_global_properties = mpPrimalElement->pGetProperties();
 
@@ -481,7 +482,10 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
         mpPrimalElement->SetProperties(p_global_properties);
     }
     else
+    {
+        rOutput.resize(mpPrimalElement->GetGeometry().PointsNumber(), stress_vector_size, false);
         rOutput.clear();
+    }
 
     KRATOS_CATCH("")
 }
