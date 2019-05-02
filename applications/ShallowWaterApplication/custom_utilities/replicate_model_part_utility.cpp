@@ -42,14 +42,15 @@ ReplicateModelPartUtility::ReplicateModelPartUtility(
 
 void ReplicateModelPartUtility::Replicate()
 {
-    const int num_nodes = static_cast<int>(mrOriginModelPart.NumberOfNodes());
-    const int num_elements = static_cast<int>(mrOriginModelPart.NumberOfElements());
-    const int num_conditions = static_cast<int>(mrOriginModelPart.NumberOfConditions());
-
     IndexType unique_node_id;
     IndexType unique_elem_id;
     IndexType unique_cond_id;
-    GetMaximumIds(unique_node_id, unique_elem_id, unique_cond_id);
+    IndexType unique_prop_id;
+    GetMaximumIds(unique_node_id, unique_elem_id, unique_cond_id, unique_prop_id);
+
+    // Setting the nodal solution step variables
+    VariablesList& variables_list = mrOriginModelPart.GetNodalSolutionStepVariablesList();
+    mrDestinationModelPart.GetNodalSolutionStepVariablesList() = variables_list;
 
     // In case we need to replicate the sub model parts
     AssignUniqueModelPartCollectionTagUtility::IndexStringMapType collections;
@@ -70,14 +71,14 @@ void ReplicateModelPartUtility::Replicate()
             collections);
     }
 
-    // Note: we need to manually set the variables list to the new nodes
-    VariablesList& dest_variables_list = mrDestinationModelPart.GetNodalSolutionStepVariablesList();
-    for (int i = 0; i < num_nodes; i++)
+    // Clone the nodes
+    mReplicatedNodes.clear();
+    for (IndexType i = 0; i < mrOriginModelPart.NumberOfNodes(); ++i)
     {
         auto it_node = mrOriginModelPart.NodesBegin() + i;
         auto new_node = it_node->Clone();
         new_node->SetId(++unique_node_id);
-        new_node->SetSolutionStepVariablesList(&dest_variables_list);
+        new_node->SetSolutionStepVariablesList(&variables_list);
         mrDestinationModelPart.AddNode(new_node);
         mReplicatedNodes[it_node->Id()] = new_node;
         if (mReplicateSubModelParts)
@@ -87,8 +88,19 @@ void ReplicateModelPartUtility::Replicate()
         }
     }
 
+    // We also need to replicate the properties before creating the new elements
+    std::unordered_map<IndexType, Properties::Pointer> replicated_properties;
+    for (IndexType i = 0; i < mrOriginModelPart.NumberOfProperties(); ++i)
+    {
+        auto it_prop = mrOriginModelPart.PropertiesBegin() + i;
+        Properties::Pointer new_prop(new Properties(*it_prop));
+        new_prop->SetId(++unique_prop_id);
+        mrDestinationModelPart.AddProperties(new_prop);
+        replicated_properties[it_prop->Id()] = new_prop;
+    }
+
     // Note: we need to manually create the geometry with the cloned nodes
-    for (int i = 0; i < num_elements; i++)
+    for (IndexType i = 0; i < mrOriginModelPart.NumberOfElements(); ++i)
     {
         auto it_elem = mrOriginModelPart.ElementsBegin() + i;
         PointerVector<Node<3>> new_elem_nodes;
@@ -97,6 +109,7 @@ void ReplicateModelPartUtility::Replicate()
             new_elem_nodes.push_back(mReplicatedNodes[node.Id()]);
         }
         auto new_elem = it_elem->Clone(++unique_elem_id, new_elem_nodes);
+        new_elem->SetProperties(replicated_properties[it_elem->GetProperties().Id()]);
         mrDestinationModelPart.AddElement(new_elem);
         if (mReplicateSubModelParts)
         {
@@ -106,7 +119,7 @@ void ReplicateModelPartUtility::Replicate()
     }
 
     // Note: we need to manually create the geometry with the cloned nodes
-    for (int i = 0; i < num_conditions; i++)
+    for (IndexType i = 0; i < mrOriginModelPart.NumberOfConditions(); i++)
     {
         auto it_cond = mrOriginModelPart.ConditionsBegin() + i;
         PointerVector<Node<3>> new_cond_nodes;
@@ -115,6 +128,7 @@ void ReplicateModelPartUtility::Replicate()
             new_cond_nodes.push_back(mReplicatedNodes[node.Id()]);
         }
         auto new_cond = it_cond->Clone(++unique_cond_id, new_cond_nodes);
+        new_cond->SetProperties(replicated_properties[it_cond->GetProperties().Id()]);
         mrDestinationModelPart.AddCondition(new_cond);
         if (mReplicateSubModelParts)
         {
@@ -156,7 +170,7 @@ void ReplicateModelPartUtility::SetOriginMeshPosition()
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
     {
-        (mrOriginModelPart.NodesBegin() + i)->X() = 0.0;
+        (mrOriginModelPart.NodesBegin() + i)->Z() = 0.0;
     }
 }
 
@@ -167,7 +181,7 @@ void ReplicateModelPartUtility::SetOriginMeshPosition(Variable<double>& rVariabl
     for (int i = 0; i < static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
     {
         auto it_node = mrOriginModelPart.NodesBegin() + i;
-        it_node->X() = it_node->FastGetSolutionStepValue(rVariable);
+        it_node->Z() = it_node->FastGetSolutionStepValue(rVariable);
     }
 }
 
@@ -177,7 +191,7 @@ void ReplicateModelPartUtility::SetDestinationMeshPosition()
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); ++i)
     {
-        (mrDestinationModelPart.NodesBegin() + i)->X() = 0.0;
+        (mrDestinationModelPart.NodesBegin() + i)->Z() = 0.0;
     }
 }
 
@@ -188,13 +202,18 @@ void ReplicateModelPartUtility::SetDestinationMeshPosition(Variable<double>& rVa
     for (int i = 0; i < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); ++i)
     {
         auto it_node = mrDestinationModelPart.NodesBegin() + i;
-        it_node->X() = it_node->FastGetSolutionStepValue(rVariable);
+        it_node->Z() = it_node->FastGetSolutionStepValue(rVariable);
     }
 }
 
 
-void ReplicateModelPartUtility::GetMaximumIds(IndexType& rUniqueNodeId, IndexType& rUniqueElemId, IndexType& rUniqueCondId)
+void ReplicateModelPartUtility::GetMaximumIds(IndexType& rUniqueNodeId, IndexType& rUniqueElemId, IndexType& rUniqueCondId, IndexType& rUniquePropId)
 {
+    rUniqueNodeId = 0;
+    rUniqueElemId = 0;
+    rUniqueCondId = 0;
+    rUniquePropId = 0;
+
     for (int i = 0; i < static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
     {
         rUniqueNodeId = std::max(rUniqueNodeId, (mrOriginModelPart.NodesBegin() + i)->Id());
@@ -208,6 +227,11 @@ void ReplicateModelPartUtility::GetMaximumIds(IndexType& rUniqueNodeId, IndexTyp
     for (int i = 0; i < static_cast<int>(mrOriginModelPart.NumberOfConditions()); ++i)
     {
         rUniqueCondId = std::max(rUniqueNodeId, (mrOriginModelPart.ConditionsBegin() + i)->Id());
+    }
+
+    for (int i = 0; i < static_cast<int>(mrOriginModelPart.NumberOfProperties()); ++i)
+    {
+        rUniquePropId = std::max(rUniquePropId, (mrOriginModelPart.PropertiesBegin() + i)->Id());
     }
 }
 

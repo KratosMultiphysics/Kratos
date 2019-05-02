@@ -213,7 +213,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void GetMaximumIds(IndexType& rUniqueNodeId, IndexType& rUniqueElemId, IndexType& rUniqueCondId);
+    void GetMaximumIds(IndexType& rUniqueNodeId, IndexType& rUniqueElemId, IndexType& rUniqueCondId, IndexType& rUniquePropId);
 
     ///@}
     ///@name Private  Access
