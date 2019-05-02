@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 import co_simulation_tools as cs_tools
 from co_simulation_tools import csprint, bold, CheckCoSimulationSettingsAndAssignDefaults
-
+import KratosMultiphysics
 import sys
 
 class CoSimulationAnalysis(object):
@@ -18,7 +18,7 @@ class CoSimulationAnalysis(object):
 
         problem_data = cosim_settings["problem_data"]
         self.cosim_settings = cosim_settings
-
+        KratosMultiphysics.Logger.PrintInfo("PROBABLY Here")
         cs_tools.PRINT_COLORS = problem_data["print_colors"]
 
         parallel_type = problem_data["parallel_type"]
@@ -34,6 +34,7 @@ class CoSimulationAnalysis(object):
 
         self.flush_stdout = problem_data["flush_stdout"]
         self.echo_level = problem_data["echo_level"]
+        KratosMultiphysics.Logger.PrintInfo("INIT for the CoSimulationAnalysis is OVER")
 
     def Run(self):
         self.Initialize()
@@ -58,6 +59,7 @@ class CoSimulationAnalysis(object):
     def Initialize(self):
         self._GetSolver().Initialize()
         self._GetSolver().Check()
+        KratosMultiphysics.Logger.PrintInfo("SOLVER INITIALIZED:::::", self._GetSolver())
 
         if self.echo_level > 0:
             self._GetSolver().PrintInfo()
@@ -69,7 +71,7 @@ class CoSimulationAnalysis(object):
 
         if self.flush_stdout:
             sys.stdout.flush()
-
+        KratosMultiphysics.Logger.PrintInfo("SOLVER INITIALIZED DONE")
     def Finalize(self):
         self._GetSolver().Finalize()
 
@@ -87,6 +89,7 @@ class CoSimulationAnalysis(object):
     def _GetSolver(self):
         if not hasattr(self, '_solver'):
             self._solver = self._CreateSolver()
+        KratosMultiphysics.Logger.PrintInfo("CREATING THE SOLVER DONE")
         return self._solver
 
     def _CreateSolver(self):

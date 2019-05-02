@@ -137,6 +137,7 @@ int PotentialWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPr
         // Check that all required variables have been registered
         KRATOS_CHECK_VARIABLE_KEY(VELOCITY_POTENTIAL);
         KRATOS_CHECK_VARIABLE_KEY(AUXILIARY_VELOCITY_POTENTIAL);
+        KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
 
         // Checks on nodes
 
@@ -147,6 +148,8 @@ int PotentialWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPr
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_POTENTIAL,
                                                 this->GetGeometry()[i]);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(AUXILIARY_VELOCITY_POTENTIAL,
+                                                this->GetGeometry()[i]);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,
                                                 this->GetGeometry()[i]);
 
             return Check;
@@ -177,6 +180,11 @@ void PotentialWallCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& Conditi
 
     for (unsigned int i = 0; i < TNumNodes; i++)
         ConditionDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
+
+    std::vector<double> rValues;
+    ElementPointerType pElem = pGetElement();
+    pElem->GetValueOnIntegrationPoints(PRESSURE, rValues, CurrentProcessInfo);
+    this->SetValue(PRESSURE, rValues[0]);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

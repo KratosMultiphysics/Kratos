@@ -14,6 +14,7 @@ def CreateSolver(model, custom_settings):
 class FluidSolver(PythonSolver):
 
     def __init__(self, model, custom_settings):
+        KratosMultiphysics.Logger.PrintInfo("Fluid Solver SETTINGSS ARE READ HERE")
         settings = self._ValidateSettings(custom_settings)
 
         super(FluidSolver,self).__init__(model, settings)
@@ -100,7 +101,6 @@ class FluidSolver(PythonSolver):
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
             # print(self._TimeBufferIsInitialized, "\n")
-            # print(self.solver)
             is_converged = self.solver.SolveSolutionStep()
             if not is_converged:
                 msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
