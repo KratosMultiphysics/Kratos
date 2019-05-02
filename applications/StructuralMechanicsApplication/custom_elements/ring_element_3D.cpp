@@ -228,16 +228,37 @@ Vector RingElement3D::GetCurrentLengthArray() const
 
 Vector RingElement3D::GetCurrentDiagonalLengthArray() const
 {
-  const Vector centroid = this->GetCurrentCentroidCoords();
   const SizeType points_number = GetGeometry().PointsNumber();
-
   Vector diagonal_lengths = ZeroVector(points_number);
-  for (int i=0;i<points_number;++i)
+
+  if (points_number % 2 == 0)
   {
-    const double x = this->GetGeometry()[i].X0() + this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X) - centroid[0];
-    const double y = this->GetGeometry()[i].Y0() + this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Y) - centroid[1];
-    const double z = this->GetGeometry()[i].Z0() + this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Z) - centroid[2];
-    diagonal_lengths[i] = std::sqrt(x*x + y*y + z*z);
+    for (SizeType i=0; i<points_number/2; ++i)
+    {
+      SizeType opposite = i + points_number/2;
+      const double dx =
+        this->GetGeometry()[opposite].X0() + this->GetGeometry()[opposite].FastGetSolutionStepValue(DISPLACEMENT_X) -
+        ( this->GetGeometry()[i].X0() + this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X) );
+      const double dy =
+        this->GetGeometry()[opposite].Y0() + this->GetGeometry()[opposite].FastGetSolutionStepValue(DISPLACEMENT_Y) -
+        ( this->GetGeometry()[i].Y0() + this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Y) );
+      const double dz =
+        this->GetGeometry()[opposite].Z0() + this->GetGeometry()[opposite].FastGetSolutionStepValue(DISPLACEMENT_Z) -
+        ( this->GetGeometry()[i].Z0() + this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Z) );
+      diagonal_lengths[i] = std::sqrt(dx*dx + dy*dy + dz*dz);
+      diagonal_lengths[opposite] = diagonal_lengths[i];
+    }
+  }
+  else
+  {
+    const Vector centroid = this->GetCurrentCentroidCoords();
+    for (SizeType i=0;i<points_number;++i)
+    {
+      const double x = this->GetGeometry()[i].X0() + this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X) - centroid[0];
+      const double y = this->GetGeometry()[i].Y0() + this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Y) - centroid[1];
+      const double z = this->GetGeometry()[i].Z0() + this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Z) - centroid[2];
+      diagonal_lengths[i] = std::sqrt(x*x + y*y + z*z);
+    }
   }
   return diagonal_lengths;
 }
@@ -264,14 +285,29 @@ Vector RingElement3D::GetRefLengthArray() const
 Vector RingElement3D::GetRefDiagonalLengthArray() const
 {
   const SizeType points_number = GetGeometry().PointsNumber();
-  const Vector centroid = this->GetRefCentroidCoords();
   Vector diagonal_lengths = ZeroVector(points_number);
-  for (int i=0;i<points_number;++i)
+  if (points_number % 2 == 0)
   {
-    const double x = this->GetGeometry()[i].X0() - centroid[0];
-    const double y = this->GetGeometry()[i].Y0() - centroid[1];
-    const double z = this->GetGeometry()[i].Z0() - centroid[2];
-    diagonal_lengths[i] = std::sqrt(x*x + y*y + z*z);
+    for (SizeType i=0; i<points_number/2; ++i)
+    {
+      SizeType opposite = i + points_number/2;
+      const double dx = this->GetGeometry()[opposite].X0() - this->GetGeometry()[i].X0();
+      const double dy = this->GetGeometry()[opposite].Y0() - this->GetGeometry()[i].Y0();
+      const double dz = this->GetGeometry()[opposite].Z0() - this->GetGeometry()[i].Z0();
+      diagonal_lengths[i] = std::sqrt(dx*dx + dy*dy + dz*dz);
+      diagonal_lengths[opposite] = diagonal_lengths[i];
+    }
+  }
+  else
+  {
+    const Vector centroid = this->GetRefCentroidCoords();
+    for (SizeType i=0;i<points_number;++i)
+    {
+      const double x = this->GetGeometry()[i].X0() - centroid[0];
+      const double y = this->GetGeometry()[i].Y0() - centroid[1];
+      const double z = this->GetGeometry()[i].Z0() - centroid[2];
+      diagonal_lengths[i] = std::sqrt(x*x + y*y + z*z);
+    }
   }
   return diagonal_lengths;
 }
@@ -389,9 +425,13 @@ Vector RingElement3D::GetDirectionVectorNt() const
 Vector RingElement3D::TensileDiagonalInteralForces() const
 {
   // currently using k_0 as k_b
-  const Vector diagonal_displacements = this->GetCurrentDiagonalLengthArray() - this->GetRefDiagonalLengthArray();
-  const Vector normalized_direction_vector_nt = this->GetDirectionVectorNt() / norm_2(this->GetDirectionVectorNt());
   const double k_0 = this->LinearStiffness();
+  const Vector diagonal_displacements = this->GetCurrentDiagonalLengthArray() - this->GetRefDiagonalLengthArray();
+  Vector normalized_direction_vector_nt = this->GetDirectionVectorNt();
+  for (SizeType i=0; i!=normalized_direction_vector_nt.size(); i+=3)
+  {
+    subrange(normalized_direction_vector_nt, i, i+3) /= norm_2(subrange(normalized_direction_vector_nt, i, i+3));
+  }
 
   const SizeType dimension = 3;
   const SizeType points_number = GetGeometry().PointsNumber();
