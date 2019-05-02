@@ -124,7 +124,7 @@ void FemDem3DElement::InitializeInternalVariablesAfterMapping()
 
 void FemDem3DElement::ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo)
 {
-	std::vector<std::vector<Element*>> edge_neighboursContainer;
+	std::vector<std::vector<Element*>> edge_neighbours_container;
 	Geometry<Node<3>>& r_nodes_current_element = this->GetGeometry();
 
 	Node<3> &pNode0 = r_nodes_current_element[0];
@@ -155,40 +155,40 @@ void FemDem3DElement::ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo)
 		const int node_index_2 = nodes_indexes(edge, 1);
 
 		// Neigh elements of local node 1 and 2  //
-		WeakPointerVector<Element> &neigh_of_node_1 = nodal_neighbours[node_index_1];
-		WeakPointerVector<Element> &neigh_of_node_2 = nodal_neighbours[node_index_2];
+		auto& r_neigh_of_node_1 = nodal_neighbours[node_index_1];
+		auto& r_neigh_of_node_2 = nodal_neighbours[node_index_2];
 
 		const int node_id_1 = r_nodes_current_element[node_index_1].Id();
 		const int node_id_2 = r_nodes_current_element[node_index_2].Id();
 
-		std::vector<Element *> edge_shared_elements_node_1;
+		std::vector<Element*> edge_shared_elements_node_1;
 		// Loop over neigh elements of the node 1
-		for (unsigned int neigh_elem = 0; neigh_elem < neigh_of_node_1.size(); neigh_elem++) {
+		for (unsigned int neigh_elem = 0; neigh_elem < r_neigh_of_node_1.size(); neigh_elem++) {
 			// Nodes of the neigh element
-			Geometry<Node<3>> &r_nodes_neigh_elem = neigh_of_node_1[neigh_elem].GetGeometry();
+			Geometry<Node<3>>& r_nodes_neigh_elem = r_neigh_of_node_1[neigh_elem].GetGeometry();
 
 			// Loop over the nodes of the neigh element
 			for (unsigned int neigh_elem_node = 0; neigh_elem_node < 4; neigh_elem_node++) {
 				const int neigh_element_node_id = r_nodes_neigh_elem[neigh_elem_node].Id();
 
-				if (neigh_element_node_id == node_id_2 && this->Id() != neigh_of_node_1[neigh_elem].Id()) {
-					edge_shared_elements_node_1.push_back(&neigh_of_node_1[neigh_elem]); // ( [] returns an Element object!!)
+				if (neigh_element_node_id == node_id_2 && this->Id() != r_neigh_of_node_1[neigh_elem].Id()) {
+					edge_shared_elements_node_1.push_back(&r_neigh_of_node_1[neigh_elem]); // ( [] returns an Element object!!)
 				}
 			}
 		}
 
 		std::vector<Element *> edge_shared_elements_node_2;
 		// Loop over neigh elements of the node 2
-		for (unsigned int neigh_elem = 0; neigh_elem < neigh_of_node_2.size(); neigh_elem++) {
+		for (unsigned int neigh_elem = 0; neigh_elem < r_neigh_of_node_2.size(); neigh_elem++) {
 			// Nodes of the neigh element
-			Geometry<Node<3>> &r_nodes_neigh_elem = neigh_of_node_2[neigh_elem].GetGeometry();
+			Geometry<Node<3>> &r_nodes_neigh_elem = r_neigh_of_node_2[neigh_elem].GetGeometry();
 
 			// Loop over the nodes of the neigh element
 			for (unsigned int neigh_elem_node = 0; neigh_elem_node < 4; neigh_elem_node++) {
 				const int neigh_element_node_id = r_nodes_neigh_elem[neigh_elem_node].Id();
 
-				if (neigh_element_node_id == node_id_1 && this->Id() != neigh_of_node_2[neigh_elem].Id()) {
-					edge_shared_elements_node_2.push_back(&neigh_of_node_2[neigh_elem]);
+				if (neigh_element_node_id == node_id_1 && this->Id() != r_neigh_of_node_2[neigh_elem].Id()) {
+					edge_shared_elements_node_2.push_back(&r_neigh_of_node_2[neigh_elem]);
 				}
 			}
 		}
@@ -205,11 +205,11 @@ void FemDem3DElement::ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo)
 			if (aux == 0)
 				edge_shared_elements.push_back(edge_shared_elements_node_2[i]);
 		}
-		edge_neighboursContainer.push_back(edge_shared_elements);
+		edge_neighbours_container.push_back(edge_shared_elements);
 	} // End loop edges
 
 	// Storages the information inside the element
-	this->SaveEdgeNeighboursContainer(edge_neighboursContainer);
+	this->SaveEdgeNeighboursContainer(edge_neighbours_container);
 
 } // End finding edge neighbour elements
 
@@ -256,12 +256,12 @@ void FemDem3DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessI
 	//reading integration points
 	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-	for ( SizeType PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ ) {
+	for (SizeType point_number = 0; point_number < integration_points.size(); point_number++) {
 		//compute element kinematic variables B, F, DN_DX ...
-		this->CalculateKinematics(Variables,PointNumber);
+		this->CalculateKinematics(Variables,point_number);
 
 		//calculate material response
-		this->CalculateMaterialResponse(Variables, Values, PointNumber);
+		this->CalculateMaterialResponse(Variables, Values, point_number);
 	}
 	this->SetValue(STRESS_VECTOR, Values.GetStressVector());
 	this->SetValue(STRAIN_VECTOR, Values.GetStrainVector());
@@ -303,15 +303,15 @@ void FemDem3DElement::CalculateLocalSystem(
 	noalias(VolumeForce) = ZeroVector(dimension);
 	const Vector& r_characteristic_lengths = this->CalculateCharacteristicLengths();
 
-	for ( SizeType PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ ) {
+	for ( SizeType point_number = 0; point_number < integration_points.size(); point_number++ ) {
 		//compute element kinematic variables B, F, DN_DX ...
-		this->CalculateKinematics(Variables,PointNumber);
+		this->CalculateKinematics(Variables,point_number);
 
 		//calculate material response
-		this->CalculateMaterialResponse(Variables, Values, PointNumber);
+		this->CalculateMaterialResponse(Variables, Values, point_number);
 
 		//calculating weights for integration on the "reference configuration"
-		Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+		Variables.IntegrationWeight = integration_points[point_number].Weight() * Variables.detJ;
 		Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
 		// Loop over edges of the element...
@@ -394,16 +394,16 @@ void FemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 	const Vector& r_characteristic_lengths = this->CalculateCharacteristicLengths();
 
-	for (SizeType PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ ) {
+	for (SizeType point_number = 0; point_number < integration_points.size(); point_number++ ) {
 		
 		//compute element kinematic variables B, F, DN_DX ...
-		this->CalculateKinematics(Variables,PointNumber);
+		this->CalculateKinematics(Variables,point_number);
 
 		//calculate material response
-		this->CalculateMaterialResponse(Variables,Values,PointNumber);
+		this->CalculateMaterialResponse(Variables,Values,point_number);
 
 		//calculating weights for integration on the "reference configuration"
-		Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+		Variables.IntegrationWeight = integration_points[point_number].Weight() * Variables.detJ;
 		Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
 		// Loop over edges of the element...
@@ -484,16 +484,16 @@ void FemDem3DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 	noalias(VolumeForce) = ZeroVector(dimension);
 	const Vector& r_characteristic_lengths = this->CalculateCharacteristicLengths();
 
-	for ( SizeType PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ ) {
+	for ( SizeType point_number = 0; point_number < integration_points.size(); point_number++ ) {
 		
 		//compute element kinematic variables B, F, DN_DX ...
-		this->CalculateKinematics(Variables,PointNumber);
+		this->CalculateKinematics(Variables,point_number);
 
 		//calculate material response
-		this->CalculateMaterialResponse(Variables,Values,PointNumber);
+		this->CalculateMaterialResponse(Variables,Values,point_number);
 
 		//calculating weights for integration on the "reference configuration"
-		Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+		Variables.IntegrationWeight = integration_points[point_number].Weight() * Variables.detJ;
 		Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
 		// Loop over edges of the element...
