@@ -315,8 +315,8 @@ void FemDem3DElement::CalculateLocalSystem(
 		Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
 		// Loop over edges of the element...
-		Vector average_stress_edge = ZeroVector(6);
-		Vector average_strain_edge = ZeroVector(6);
+		Vector average_stress_edge(6);
+		Vector average_strain_edge(6);
 		bool is_damaging = false;
 
 		for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
@@ -343,8 +343,8 @@ void FemDem3DElement::CalculateLocalSystem(
 
 		// Calculate the elemental Damage...
 		const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
-		const Vector& predictive_stress_vector = Values.GetStressVector();
-		const Vector& integrated_stress_vector = (1.0 - damage_element) * predictive_stress_vector;
+		const Vector& r_predictive_stress_vector = Values.GetStressVector();
+		const Vector& r_integrated_stress_vector = (1.0 - damage_element) * r_predictive_stress_vector;
 		const Vector& r_strain_vector = Values.GetStrainVector();
 
 		//contributions to stiffness matrix calculated on the reference config
@@ -353,7 +353,7 @@ void FemDem3DElement::CalculateLocalSystem(
 		if (is_damaging == true && std::abs(r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2]
 			+ r_strain_vector[3] + r_strain_vector[4] + r_strain_vector[5]) > tolerance) {
 
-			this->CalculateTangentTensor(tangent_tensor, r_strain_vector, integrated_stress_vector, C);
+			this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, C);
 			noalias(rLeftHandSideMatrix) += Variables.IntegrationWeight * prod(trans(Variables.B), Matrix(prod(tangent_tensor, Variables.B)));
 		} else {
 			noalias(rLeftHandSideMatrix) += Variables.IntegrationWeight * (1.0 - damage_element) * prod(trans(Variables.B), Matrix(prod(C, Variables.B)));
@@ -366,7 +366,7 @@ void FemDem3DElement::CalculateLocalSystem(
 		this->CalculateAndAddExternalForces(rRightHandSideVector, Variables, VolumeForce, Variables.IntegrationWeight );
 
 		// operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-		rRightHandSideVector -= Variables.IntegrationWeight * prod(trans(Variables.B), integrated_stress_vector);
+		rRightHandSideVector -= Variables.IntegrationWeight * prod(trans(Variables.B), r_integrated_stress_vector);
 	}
 	KRATOS_CATCH("")
 }
@@ -407,8 +407,8 @@ void FemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 		Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
 		// Loop over edges of the element...
-		Vector average_stress_edge = ZeroVector(6);
-		Vector average_strain_edge = ZeroVector(6);
+		Vector average_stress_edge(6);
+		Vector average_strain_edge(6);
 		bool is_damaging = false;
 		Vector damages = ZeroVector(mNumberOfEdges);
 
@@ -434,8 +434,8 @@ void FemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 
 		// Calculate the elemental Damage...
 		const double damage_element = this->CalculateElementalDamage(damages);
-		const Vector& predictive_stress_vector = Values.GetStressVector();
-		const Vector& integrated_stress_vector = (1.0 - damage_element) * predictive_stress_vector;
+		const Vector& r_predictive_stress_vector = Values.GetStressVector();
+		const Vector& r_integrated_stress_vector = (1.0 - damage_element) * r_predictive_stress_vector;
 		const Vector& r_strain_vector = Values.GetStrainVector();
 
 		//contributions to stiffness matrix calculated on the reference config
@@ -444,7 +444,7 @@ void FemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 		if (is_damaging == true && std::abs(r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2]
 			+ r_strain_vector[3] + r_strain_vector[4] + r_strain_vector[5]) > tolerance) {
 
-			this->CalculateTangentTensor(tangent_tensor, r_strain_vector, integrated_stress_vector, C);
+			this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, C);
 			noalias(rLeftHandSideMatrix) += Variables.IntegrationWeight * prod(trans(Variables.B), Matrix(prod(tangent_tensor, Variables.B)));
 		} else {
 			noalias(rLeftHandSideMatrix) += Variables.IntegrationWeight * (1.0 - damage_element) * prod(trans(Variables.B), Matrix(prod(C, Variables.B)));
@@ -497,10 +497,10 @@ void FemDem3DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 		Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
 		// Loop over edges of the element...
-		Vector average_stress_edge = ZeroVector(6);
-		Vector average_strain_edge = ZeroVector(6);
+		Vector average_stress_edge(6);
+		Vector average_strain_edge(6);
 		bool is_damaging = false;
-		Vector damages = ZeroVector(mNumberOfEdges);
+		Vector damages(mNumberOfEdges);
 
 		for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
 			std::vector<Element*> p_edge_neighbours = this->GetEdgeNeighbourElements(edge);
@@ -524,12 +524,12 @@ void FemDem3DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 
 		// Calculate the elemental Damage...
 		const double damage_element = this->CalculateElementalDamage(damages);
-		const Vector& predictive_stress_vector = Values.GetStressVector();
-		const Vector& integrated_stress_vector = (1.0 - damage_element) * predictive_stress_vector;
+		const Vector& r_predictive_stress_vector = Values.GetStressVector();
+		const Vector& r_integrated_stress_vector = (1.0 - damage_element) * r_predictive_stress_vector;
 		const Vector& r_strain_vector = Values.GetStrainVector();
 
-		this->SetValue(STRESS_VECTOR, predictive_stress_vector);
-		this->SetValue(STRESS_VECTOR_INTEGRATED, integrated_stress_vector);
+		this->SetValue(STRESS_VECTOR, r_predictive_stress_vector);
+		this->SetValue(STRESS_VECTOR_INTEGRATED, r_integrated_stress_vector);
 		this->SetValue(STRAIN_VECTOR, r_strain_vector);
 		
 		//contribution to external forces
@@ -539,7 +539,7 @@ void FemDem3DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 		this->CalculateAndAddExternalForces(rRightHandSideVector, Variables, VolumeForce, Variables.IntegrationWeight );
 
 		// operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-		rRightHandSideVector -= Variables.IntegrationWeight * prod(trans(Variables.B), integrated_stress_vector);
+		rRightHandSideVector -= Variables.IntegrationWeight * prod(trans(Variables.B), r_integrated_stress_vector);
 	}
 	KRATOS_CATCH("")
 }
@@ -1193,7 +1193,7 @@ void FemDem3DElement::ModifiedMohrCoulombCriterion(
 	const double sinphi = std::sin(friction_angle);
 
 	const double I1 = this->CalculateI1Invariant(rStressVector);
-	Vector Deviator = ZeroVector(6);
+	Vector Deviator(6);
 	this->CalculateDeviatorVector(Deviator, rStressVector, I1);
 	const double J2 = this->CalculateJ2Invariant(Deviator);
 	const double J3 = this->CalculateJ3Invariant(Deviator);
@@ -1301,7 +1301,7 @@ void FemDem3DElement::DruckerPragerCriterion(
 	}
 	const double c_max = std::abs(sigma_t * (3.0 + std::sin(friction_angle)) / (3.0 * std::sin(friction_angle) - 3.0));
 	const double I1 = CalculateI1Invariant(rStressVector);
-	Vector Deviator = ZeroVector(6);
+	Vector Deviator(6);
 	this->CalculateDeviatorVector(Deviator, rStressVector, I1);
 	const double J2 = CalculateJ2Invariant(Deviator);
 	const double A = 1.00 / (Gt * E / (Length * std::pow(sigma_c, 2)) - 0.5);
