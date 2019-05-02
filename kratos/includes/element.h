@@ -309,8 +309,9 @@ public:
      */
     virtual void GetValuesVector(Vector& values, int Step = 0)
     {
-        if (values.size() != 0)
+        if (values.size() != 0) {
             values.resize(0, false);
+        }
     }
 
     /**
@@ -318,8 +319,9 @@ public:
      */
     virtual void GetFirstDerivativesVector(Vector& values, int Step = 0)
     {
-        if (values.size() != 0)
+        if (values.size() != 0) {
             values.resize(0, false);
+        }
     }
 
     /**
@@ -327,8 +329,9 @@ public:
      */
     virtual void GetSecondDerivativesVector(Vector& values, int Step = 0)
     {
-        if (values.size() != 0)
+        if (values.size() != 0) {
             values.resize(0, false);
+        }
     }
 
     /**
@@ -446,10 +449,12 @@ public:
                                       const std::vector< Variable< VectorType > >& rRHSVariables,
                                       ProcessInfo& rCurrentProcessInfo)
     {
-        if (rLeftHandSideMatrices.size() != 0)
+        if (rLeftHandSideMatrices.size() != 0) {
 	        rLeftHandSideMatrices.resize(0);
-        if (rRightHandSideVectors.size() != 0)
+        }
+        if (rRightHandSideVectors.size() != 0) {
 	        rRightHandSideVectors.resize(0);
+        }
     }
 
     /**
@@ -476,8 +481,9 @@ public:
                     const std::vector< Variable< MatrixType > >& rLHSVariables,
                     ProcessInfo& rCurrentProcessInfo)
     {
-        if (rLeftHandSideMatrices.size() != 0)
+        if (rLeftHandSideMatrices.size() != 0) {
 	        rLeftHandSideMatrices.resize(0);
+        }
     }
 
     /**
@@ -504,8 +510,9 @@ public:
                     const std::vector< Variable< VectorType > >& rRHSVariables,
                     ProcessInfo& rCurrentProcessInfo)
     {
-        if (rRightHandSideVectors.size() != 0)
+        if (rRightHandSideVectors.size() != 0) {
 	        rRightHandSideVectors.resize(0);
+        }
     }
 
 
