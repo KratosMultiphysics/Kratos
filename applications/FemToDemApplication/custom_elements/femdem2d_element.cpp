@@ -169,8 +169,8 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 	//resizing as needed the LHS
 	unsigned int mat_size = number_of_nodes * (dimension) ; // water pressure
 
-	if ( rLeftHandSideMatrix.size1() != mat_size )
-	rLeftHandSideMatrix.resize( mat_size, mat_size, false );
+	if ( rLeftHandSideMatrix.size1() != mat_size)
+	rLeftHandSideMatrix.resize(mat_size, mat_size, false);
 
 	noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
 	if (rRightHandSideVector.size() != mat_size )
@@ -196,10 +196,9 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 
 	//auxiliary terms
 	Vector VolumeForce(dimension);
-	noalias(VolumeForce) = ZeroVector(dimension);
 
-	WeakPointerVector<Element> &elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
-	KRATOS_ERROR_IF(elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
+	auto &r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+	KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
 
 	for (SizeType PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ ) {
 		//compute element kinematic variables B, F, DN_DX ...
@@ -213,19 +212,19 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		Variables.IntegrationWeight = this->CalculateIntegrationWeight(Variables.IntegrationWeight );
 
 		// Loop over edges of the element...
-		Vector average_stress_edge = ZeroVector(3);
-		Vector average_strain_edge = ZeroVector(3);
+		Vector average_stress_edge(3);
+		Vector average_strain_edge(3);
 		bool is_damaging = false;
 
 		for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
-			this->CalculateAverageStressOnEdge(&elem_neigb[edge], this, average_stress_edge);
-			this->CalculateAverageStrainOnEdge(&elem_neigb[edge], this, average_strain_edge);
+			this->CalculateAverageStressOnEdge(&r_elem_neigb[edge], this, average_stress_edge);
+			this->CalculateAverageStrainOnEdge(&r_elem_neigb[edge], this, average_strain_edge);
 
 			// We recover converged values
 			double threshold = mThresholds[edge];
 			double damage = mDamages[edge];
 			
-			const double length = this->CalculateCharacteristicLength(this, elem_neigb[edge], edge);
+			const double length = this->CalculateCharacteristicLength(this, r_elem_neigb[edge], edge);
 			this->IntegrateStressDamageMechanics(threshold, damage, average_strain_edge,
 													average_stress_edge, edge, length, is_damaging);
 
@@ -301,10 +300,9 @@ void FemDem2DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 
 	//auxiliary terms
 	Vector VolumeForce(dimension);
-	noalias(VolumeForce) = ZeroVector(dimension);
 
-	WeakPointerVector<Element> &elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
-	KRATOS_ERROR_IF(elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
+	auto &r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+	KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
 
 	for (SizeType PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ ) {
 		//compute element kinematic variables B, F, DN_DX ...
@@ -318,20 +316,20 @@ void FemDem2DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 		Variables.IntegrationWeight = this->CalculateIntegrationWeight(Variables.IntegrationWeight );
 
 		// Loop over edges of the element...
-		Vector average_stress_edge = ZeroVector(3);
-		Vector average_strain_edge = ZeroVector(3);
+		Vector average_stress_edge(3);
+		Vector average_strain_edge(3);
 		bool is_damaging = false;
 		Vector damages = ZeroVector(mNumberOfEdges);
 
 		for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
-			this->CalculateAverageStressOnEdge(&elem_neigb[edge], this, average_stress_edge);
-			this->CalculateAverageStrainOnEdge(&elem_neigb[edge], this, average_strain_edge);
+			this->CalculateAverageStressOnEdge(&r_elem_neigb[edge], this, average_stress_edge);
+			this->CalculateAverageStrainOnEdge(&r_elem_neigb[edge], this, average_strain_edge);
 
 			// We recover converged values
 			double threshold = mThresholds[edge];
 			double damage = mDamages[edge];
 			
-			const double length = this->CalculateCharacteristicLength(this, elem_neigb[edge], edge);
+			const double length = this->CalculateCharacteristicLength(this, r_elem_neigb[edge], edge);
 			this->IntegrateStressDamageMechanics(threshold, damage, average_strain_edge,
 													average_stress_edge, edge, length, is_damaging);
 
@@ -396,10 +394,9 @@ void FemDem2DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 
 	//auxiliary terms
 	Vector VolumeForce(dimension);
-	noalias(VolumeForce) = ZeroVector(dimension);
 
-	WeakPointerVector<Element> &elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
-	KRATOS_ERROR_IF(elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
+	auto &r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+	KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
 
 	for (SizeType PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ ) {
 		//compute element kinematic variables B, F, DN_DX ...
@@ -413,20 +410,20 @@ void FemDem2DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 		Variables.IntegrationWeight = this->CalculateIntegrationWeight(Variables.IntegrationWeight );
 
 		// Loop over edges of the element...
-		Vector average_stress_edge = ZeroVector(3);
-		Vector average_strain_edge = ZeroVector(3);
+		Vector average_stress_edge(3);
+		Vector average_strain_edge(3);
 		bool is_damaging = false;
 		Vector damages = ZeroVector(mNumberOfEdges);
 
 		for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
-			this->CalculateAverageStressOnEdge(&elem_neigb[edge], this, average_stress_edge);
-			this->CalculateAverageStrainOnEdge(&elem_neigb[edge], this, average_strain_edge);
+			this->CalculateAverageStressOnEdge(&r_elem_neigb[edge], this, average_stress_edge);
+			this->CalculateAverageStrainOnEdge(&r_elem_neigb[edge], this, average_strain_edge);
 
 			// We recover converged values
 			double threshold = mThresholds[edge];
 			double damage = mDamages[edge];
 			
-			const double length = this->CalculateCharacteristicLength(this, elem_neigb[edge], edge);
+			const double length = this->CalculateCharacteristicLength(this, r_elem_neigb[edge], edge);
 			this->IntegrateStressDamageMechanics(threshold, damage, average_strain_edge,
 													average_stress_edge, edge, length, is_damaging);
 			damages[edge] = damage;
@@ -705,9 +702,9 @@ double FemDem2DElement::CalculateCharacteristicLength(FemDem2DElement *pCurrentE
 {
 	Geometry<Node<3>>& r_nodes_current_element = pCurrentElement->GetGeometry(); // 3 nodes of the Element 1
 
-	Vector node_1_coordinates = ZeroVector(3);
-	Vector node_2_coordinates = ZeroVector(3);
-	Vector node_3_coordinates = ZeroVector(3);
+	Vector node_1_coordinates(3);
+	Vector node_2_coordinates(3);
+	Vector node_3_coordinates(3);
 	node_1_coordinates[0] = r_nodes_current_element[0].X0();
 	node_1_coordinates[1] = r_nodes_current_element[0].Y0();
 	node_1_coordinates[2] = r_nodes_current_element[0].Z0();
@@ -1030,7 +1027,7 @@ void FemDem2DElement::RankineCriterion(
 	bool& rIsDamaging
 	)
 {
-	Vector PrincipalStressVector = ZeroVector(3);
+	Vector PrincipalStressVector(3);
 	this->CalculatePrincipalStress(PrincipalStressVector, rStressVector);
 
 	const auto& properties = this->GetProperties();	
@@ -1067,7 +1064,7 @@ void FemDem2DElement::DruckerPragerCriterion(
 	bool& rIsDamaging
 	)
 {
-	Vector PrincipalStressVector = ZeroVector(3);
+	Vector PrincipalStressVector(3);
 	this->CalculatePrincipalStress(PrincipalStressVector, rStressVector);
 
 	const auto& properties = this->GetProperties();		
@@ -1128,7 +1125,7 @@ void FemDem2DElement::SimoJuCriterion(
 	bool& rIsDamaging
 	)
 {
-	Vector PrincipalStressVector = ZeroVector(3);
+	Vector PrincipalStressVector(3);
 	this->CalculatePrincipalStress(PrincipalStressVector, rStressVector);
 	const auto& properties = this->GetProperties();
 	const double sigma_t = properties[YIELD_STRESS_T];
@@ -1186,7 +1183,7 @@ void FemDem2DElement::RankineFragileLaw(
 	bool& rIsDamaging
 	)
 {
-	Vector PrincipalStressVector = ZeroVector(3);
+	Vector PrincipalStressVector(3);
 	this->CalculatePrincipalStress(PrincipalStressVector, rStressVector);
 	const auto& properties = this->GetProperties();
 
@@ -1406,17 +1403,17 @@ void FemDem2DElement::IntegratePerturbedStrain(
 	const Vector& perturbed_predictive_stress = prod(rElasticMatrix, rPerturbedStrainVector);
 	Vector damages_edges = ZeroVector(mNumberOfEdges);
 
-	WeakPointerVector<Element> &elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
-	KRATOS_ERROR_IF(elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
+	auto &r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+	KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
 
 	for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
-		const Vector& average_stress_edge = 0.5*(elem_neigb[edge].GetValue(STRESS_VECTOR) + perturbed_predictive_stress);
-		const Vector& average_strain_edge = 0.5*(elem_neigb[edge].GetValue(STRAIN_VECTOR) + rPerturbedStrainVector);
+		const Vector& average_stress_edge = 0.5*(r_elem_neigb[edge].GetValue(STRESS_VECTOR) + perturbed_predictive_stress);
+		const Vector& average_strain_edge = 0.5*(r_elem_neigb[edge].GetValue(STRAIN_VECTOR) + rPerturbedStrainVector);
 
 		double damage_edge = mDamages[edge];
 		double threshold = mThresholds[edge];
 
-		const double length = this->CalculateCharacteristicLength(this, elem_neigb[edge], edge);
+		const double length = this->CalculateCharacteristicLength(this, r_elem_neigb[edge], edge);
 		bool dummy = false;
 		this->IntegrateStressDamageMechanics(threshold,
 											 damage_edge,
