@@ -56,12 +56,6 @@ class TestFileIO(KratosUnittest.TestCase):
         obj = io.Get('kratos.h5')
         self.assertIsInstance(obj, KratosHDF5.HDF5FileSerial)
 
-    def test_HDF5ParallelFileIO_Creation(self):
-        io = file_io._HDF5ParallelFileIO()
-        self._BuildTestFileIOObject(io)
-        obj = io.Get('kratos.h5')
-        self.assertIsInstance(obj, KratosHDF5.HDF5FileParallel)
-
     def test_SetDefaults(self):
         settings = KratosMultiphysics.Parameters()
         file_io._SetDefaults(settings)
@@ -101,7 +95,7 @@ class TestFileIO(KratosUnittest.TestCase):
     def test_GetIO_ParallelIO(self):
         io = file_io._GetIO('parallel_hdf5_file_io')
         self.assertIsInstance(io, file_io._HDF5ParallelFileIO)
-    
+
     def test_GetIO_MockIO(self):
         io = file_io._GetIO('mock_hdf5_file_io')
         self.assertIsInstance(io, file_io._HDF5MockFileIO)
@@ -142,14 +136,14 @@ class TestFileIO(KratosUnittest.TestCase):
             file_name='<identifier>-<time>.h5', time_format='0.2f')
         obj = file_io._FilenameGetter(settings)
         self.assertEqual(obj.Get(_SurrogateModelPart()), 'model_part-1.23.h5')
-    
+
     def test_FilenameGetterWithDirectoryInitialization_WithoutDirectory(self):
         settings = self._FilenameGetterSettings()
         with patch('os.makedirs', autospec=True) as p:
             obj = file_io._FilenameGetterWithDirectoryInitialization(settings)
             obj.Get(_SurrogateModelPart())
             self.assertEqual(p.call_count, 0)
-    
+
     def test_FilenameGetterWithDirectoryInitialization_DirectoryExists(self):
         settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
         patcher1 = patch('os.path.exists', autospec=True)
@@ -163,7 +157,7 @@ class TestFileIO(KratosUnittest.TestCase):
         self.assertEqual(makedirs.call_count, 0)
         patcher1.stop()
         patcher2.stop()
-    
+
     def test_FilenameGetterWithDirectoryInitialization_DirectoryDoesNotExist(self):
         settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
         patcher1 = patch('os.path.exists', autospec=True)
@@ -289,38 +283,6 @@ class TestOperations(KratosUnittest.TestCase):
             model_part = _SurrogateModelPart()
             hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
             model_part_output(model_part, hdf5_file)
-            args, _ = p.call_args
-            self.assertEqual(args[1], '/ModelData/model_part/1.23')
-
-    def test_PartitionedModelPartOutput(self):
-        settings = KratosMultiphysics.Parameters()
-        settings.AddEmptyValue('operation_type').SetString(
-            'partitioned_model_part_output')
-        partitioned_model_part_output = operations.Create(settings)
-        self.assertTrue(settings.Has('operation_type'))
-        self.assertTrue(settings.Has('prefix'))
-        with patch('core.operations.KratosHDF5.HDF5PartitionedModelPartIO', autospec=True) as p:
-            partitioned_model_part_io = p.return_value
-            model_part = _SurrogateModelPart()
-            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
-            partitioned_model_part_output(model_part, hdf5_file)
-            p.assert_called_once_with(hdf5_file, '/ModelData')
-            partitioned_model_part_io.WriteModelPart.assert_called_once_with(
-                model_part)
-
-    def test_PartitionedModelPartOutput_NonTerminalPrefix(self):
-        settings = KratosMultiphysics.Parameters('''
-            {
-                "operation_type": "partitioned_model_part_output",
-                "prefix": "/ModelData/<identifier>/<time>",
-                "time_format": "0.2f"
-            }
-            ''')
-        partitioned_model_part_output = operations.Create(settings)
-        with patch('core.operations.KratosHDF5.HDF5PartitionedModelPartIO', autospec=True) as p:
-            model_part = _SurrogateModelPart()
-            hdf5_file = MagicMock(spec=KratosHDF5.HDF5FileSerial)
-            partitioned_model_part_output(model_part, hdf5_file)
             args, _ = p.call_args
             self.assertEqual(args[1], '/ModelData/model_part/1.23')
 
