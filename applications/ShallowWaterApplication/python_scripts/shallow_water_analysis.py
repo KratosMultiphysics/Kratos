@@ -24,16 +24,6 @@ class ShallowWaterAnalysis(AnalysisStage):
     def _GetSimulationName(self):
         return "Shallow Water Analysis"
 
-    def Initialize(self):
-        if self.project_parameters["problem_data"].Has("model_import_settings"):
-            from KratosMultiphysics.ShallowWaterApplication.model_import_utilities import ModelImportUtilities
-            import_utility = ModelImportUtilities(
-                self.model,
-                self.project_parameters["problem_data"]["model_import_settings"]
-            )
-            import_utility.ImportModelPart()
-        super(ShallowWaterAnalysis, self).Initialize()
-
 if __name__ == "__main__":
     from sys import argv
 
