@@ -77,7 +77,7 @@
                     "model_part_name" : "Structure.SelfWeight3D_Self_weight_Auto1",
                     "variable_name"   : "VELOCITY_Z",
                     "interval"        : [0.0, "End"],
-                    "value"           : "-9.81*t",
+                    "value"           : "-9.81*(t - 1.0e-4)",
                     "tolerance_rank"  : 8
             }
         }]

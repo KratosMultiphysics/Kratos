@@ -85,13 +85,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         pfem_variables.AddVariables(self.main_model_part)
 
 
-    def Run(self):
-
-        self.Initialize()
-
-        self.RunMainTemporalLoop()
-
-        self.Finalize()
 
 
     def Initialize(self):
@@ -205,31 +198,10 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.delta_time = self.project_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
 
 
-    def RunMainTemporalLoop(self):
-
-        # Solving the problem (time integration)
-        while(self.time < self.end_time):
-
-            self.InitializeSolutionStep()
-            self.SolveSolutionStep()
-            self.FinalizeSolutionStep()
-
-
     def InitializeSolutionStep(self):
 
         self.clock_time = self.StartTimeMeasuring()
 
-        # current time parameters
-        # self.main_model_part.ProcessInfo.GetPreviousSolutionStepInfo()[KratosMultiphysics.DELTA_TIME] = self.delta_time
-        self.delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-
-        self.time = self.time + self.delta_time
-        self.step = self.step + 1
-
-        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.step
-        self.main_model_part.CloneTimeStep(self.time)
-
-        #print(" [STEP:",self.step," TIME:",self.time,"]")
 
         # processes to be executed at the begining of the solution step
         self.model_processes.ExecuteInitializeSolutionStep()
@@ -244,21 +216,17 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
         self.StopTimeMeasuring(self.clock_time,"Initialize Step" , self.report)
 
-    def SolveSolutionStep(self):
 
-        self.clock_time = self.StartTimeMeasuring()
 
-        self._solver.Predict()
 
-        self._solver.SolveSolutionStep()
 
-        self._solver.FinalizeSolutionStep()
 
-        self.StopTimeMeasuring(self.clock_time,"Solve Step" , self.report)
 
     def FinalizeSolutionStep(self):
 
-        self.clock_time = self.StartTimeMeasuring()
+        self.clock_time = self.StartTimeMeasuring();
+
+        self._GetSolver().FinalizeSolutionStep()
 
         self.GraphicalOutputExecuteFinalizeSolutionStep()
 
@@ -285,6 +253,10 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
             process.ExecuteAfterOutputStep()
 
         self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report);
+
+    def OutputSolutionStep(self):
+
+        pass
 
     def Finalize(self):
 

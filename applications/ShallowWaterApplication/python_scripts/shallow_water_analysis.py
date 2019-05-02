@@ -2,16 +2,17 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 class ShallowWaterAnalysis(AnalysisStage):
     ''' Main script for shallow water simulations '''
 
     def _CreateSolver(self):
-        solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())
+        python_module_name = "KratosMultiphysics.ShallowWaterApplication"
+        full_module_name = python_module_name + "." + self.project_parameters["solver_settings"]["solver_type"].GetString()
+        solver_module = __import__(full_module_name, fromlist=[python_module_name])
         solver = solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
         return solver
 

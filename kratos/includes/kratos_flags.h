@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_KRATOS_FLAGS_H_INCLUDED )
@@ -110,13 +110,8 @@ KRATOS_CREATE_FLAG(PERIODIC,        34);
 //          KRATOS_DEFINE_FLAG(,31);
 //          KRATOS_DEFINE_FLAG(,30);
 
-
-
-
-
-
-
-
+const Flags ALL_DEFINED(Flags::AllDefined());
+const Flags ALL_TRUE(Flags::AllTrue());
 
   ///@}
   ///@name Type Definitions

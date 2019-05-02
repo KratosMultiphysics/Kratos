@@ -2,21 +2,18 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.mpi as KratosMPI
 
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
 # Import base class file
-import trilinos_structural_mechanics_solver
-
+from KratosMultiphysics.StructuralMechanicsApplication.trilinos_structural_mechanics_solver import TrilinosMechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return TrilinosImplicitMechanicalSolver(model, custom_settings)
 
-
-class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.TrilinosMechanicalSolver):
+class TrilinosImplicitMechanicalSolver(TrilinosMechanicalSolver):
     """The trilinos structural mechanics implicit dynamic solver.
 
     Public member variables:
@@ -45,12 +42,12 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
     def AddVariables(self):
         super(TrilinosImplicitMechanicalSolver, self).AddVariables()
         self._add_dynamic_variables()
-        self.print_on_rank_zero("::[TrilinosImplicitMechanicalSolver]:: Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosImplicitMechanicalSolver]:: Variables ADDED")
 
     def AddDofs(self):
         super(TrilinosImplicitMechanicalSolver, self).AddDofs()
         self._add_dynamic_dofs()
-        self.print_on_rank_zero("::[TrilinosImplicitMechanicalSolver]:: DOF's ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosImplicitMechanicalSolver]:: DOF's ADDED")
 
     #### Private functions ####
 

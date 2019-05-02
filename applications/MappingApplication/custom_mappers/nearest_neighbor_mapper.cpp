@@ -80,8 +80,14 @@ std::string NearestNeighborLocalSystem::PairingInfo(const int EchoLevel, const i
 
     std::stringstream buffer;
     buffer << "NearestNeighborLocalSystem based on " << mpNode->Info();
-    if (EchoLevel > 1) // TODO leave here?
+    if (EchoLevel > 1) { // TODO leave here?
         buffer << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
+        if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
+            mpNode->SetValue(PAIRING_STATUS, 0);
+        } else {
+            mpNode->SetValue(PAIRING_STATUS, -1);
+        }
+    }
     buffer << " in rank " << CommRank;
     return buffer.str();
 }

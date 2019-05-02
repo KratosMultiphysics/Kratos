@@ -74,6 +74,14 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     /**
      * @brief GetIntegrationMethod Return the integration order to be used.
      * @return Gauss Order
@@ -111,6 +119,7 @@ protected:
         double LambdaV;
         double XiV;
         double Residual;
+        double NormAux2;
         double Beta;
         double NormGradPhi;
         double absorption;
@@ -120,6 +129,7 @@ protected:
         double CosinusGradPhi;
         double LowTolerance;
         double HighTolerance;
+        double Courant;
 
         //Transient variables
         double TransientAbsorption;
@@ -147,8 +157,15 @@ protected:
 
         ///Nodal variables
         array_1d<double,TNumNodes> NodalPhi;
+        //Contains components of nodal derivatives
+        array_1d<array_1d<double,TNumNodes>,TDim> NodalPhiGradient;
+        array_1d<array_1d<double,TDim>,TDim> SecondGradPhi;
         array_1d<double,TNumNodes> NodalQSource;
         array_1d<array_1d<double,3>, TNumNodes> NodalVel;
+
+        // array_1d<double,TNumNodes> Aux1;
+        // array_1d<double,TNumNodes> Aux2;
+
 
         ///Variables computed at each GP
         double IntegrationCoefficient;
@@ -175,6 +192,11 @@ protected:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    void SaveGPGradPhi(Matrix& rGradPhiContainer, const array_1d<double,TDim>& GradPhi, const unsigned int& GPoint);
+
+    void ExtrapolateGPValues(const Matrix& GradPhiContainer);
+
+
     void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
 
     virtual void InitializeElementVariables(ElementVariables& rVariables, const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
@@ -189,6 +211,8 @@ protected:
 
     void CalculatePeclet(ElementVariables& rVariables, const Geometry<Node<3> >& rGeom, const double& NormVel, const ProcessInfo& CurrentProcessInfo,
                                                     const PropertiesType& Prop);
+
+    void CalculateDifTerm(ElementVariables& rVariables);
 
     void CalculateFICBeta(ElementVariables& rVariables);
 

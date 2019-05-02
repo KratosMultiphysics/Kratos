@@ -905,13 +905,20 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                     at_least_one_node_potential_contact = true;
                     r_slave_geometry[i_node].Set(ACTIVE, true);
                     if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && FrictionalProblem) {
-                        NodeType& node = r_slave_geometry[i_node];
-                        if (norm_2(node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-                            if (node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
-                                node.Set(SLIP, true);
+                        NodeType& r_node = r_slave_geometry[i_node];
+                        if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
+                            if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+                                r_node.Set(SLIP, true);
                             } else {
-                                node.Set(SLIP, false);
+                                r_node.Set(SLIP, false);
                             }
+                        }
+                    }  else if (mTypeSolution == TypeSolution::FrictionlessPenaltyMethod) {
+                        NodeType& r_node = r_slave_geometry[i_node];
+                        if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+                            r_node.Set(SLIP, true);
+                        } else {
+                            r_node.Set(SLIP, false);
                         }
                     }
                 }
@@ -921,13 +928,20 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                     at_least_one_node_potential_contact = true;
                     r_slave_geometry[i_node].Set(ACTIVE, true);
                     if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && FrictionalProblem) {
-                        NodeType& node = r_slave_geometry[i_node];
-                        if (norm_2(node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-                            if (node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
-                                node.Set(SLIP, true);
+                        NodeType& r_node = r_slave_geometry[i_node];
+                        if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
+                            if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+                                r_node.Set(SLIP, true);
                             } else {
-                                node.Set(SLIP, false);
+                                r_node.Set(SLIP, false);
                             }
+                        }
+                    } else if (mTypeSolution == TypeSolution::FrictionlessPenaltyMethod) {
+                        NodeType& r_node = r_slave_geometry[i_node];
+                        if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+                            r_node.Set(SLIP, true);
+                        } else {
+                            r_node.Set(SLIP, false);
                         }
                     }
                 }
@@ -940,14 +954,19 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
             r_slave_geometry[i_node].Set(ACTIVE, true);
             if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && FrictionalProblem) {
                 NodeType& r_node = r_slave_geometry[i_node];
-                if (norm_2(r_slave_geometry[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-                    if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-                        if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
-                            r_node.Set(SLIP, true);
-                        } else {
-                            r_node.Set(SLIP, false);
-                        }
+                if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
+                    if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+                        r_node.Set(SLIP, true);
+                    } else {
+                        r_node.Set(SLIP, false);
                     }
+                }
+            } else if (mTypeSolution == TypeSolution::FrictionlessPenaltyMethod) {
+                NodeType& r_node = r_slave_geometry[i_node];
+                if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+                    r_node.Set(SLIP, true);
+                } else {
+                    r_node.Set(SLIP, false);
                 }
             }
         }
@@ -978,11 +997,12 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckPairing(
 
     // We revert the nodes to the original position
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
     if (mThisParameters["dynamic_search"].GetBool()) {
         if (mrMainModelPart.HasNodalSolutionStepVariable(VELOCITY)) {
             #pragma omp parallel for
             for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-                auto it_node = r_nodes_array.begin() + i;
+                auto it_node = it_node_begin + i;
                 noalias(it_node->Coordinates()) -= it_node->GetValue(DELTA_COORDINATES);
             }
         }
@@ -1133,6 +1153,15 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
     // We activate
     ItNode->Set(ACTIVE, true);
     ItNode->Set(MARKER, true);
+
+    // Set SLIP flag
+    if (mrMainModelPart.Is(SLIP)) {
+        if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+            ItNode->Set(SLIP, true);
+        } else {
+            ItNode->Set(SLIP, false);
+        }
+    }
 }
 
 /***********************************************************************************/

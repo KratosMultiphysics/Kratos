@@ -12,6 +12,8 @@
 // System includes
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <cmath>
 
 // External includes
 
@@ -37,7 +39,7 @@ namespace Kratos
 {
 namespace
 {
-namespace smtsss
+namespace test_solid_static_sensitivity_cpp
 { // cotire unity guard
 using SparseSpaceType = TUblasSparseSpace<double>;
 using LocalSpaceType = TUblasDenseSpace<double>;
@@ -76,29 +78,32 @@ private:
     ModelPart* mpAdjointModelPart;
     unsigned mResponseNodeId;
 };
-} // namespace smtsss
+} // namespace test_solid_static_sensitivity_cpp
 } // namespace
 
 namespace Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_StaticSensitivity, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_SaintVenantPlaneStrain_StaticSensitivity, KratosStructuralMechanicsFastSuite)
 {
+    using test_solid_static_sensitivity_cpp::AdjointTestSolver;
+    using test_solid_static_sensitivity_cpp::PrimalTestSolver;
     Model this_model;
     ModelPart& primal_model_part = CreateStructuralMechanicsTestModelPart(
         &this_model, KratosComponents<Element>::Get("TotalLagrangianElement2D3N"),
-        KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw"),
+        KratosComponents<ConstitutiveLaw>::Get("KirchhoffSaintVenantPlaneStrain2DLaw"),
         [](ModelPart* pModelPart) {
-            pModelPart->GetNode(1).Fix(DISPLACEMENT_X);
-            pModelPart->GetNode(1).Fix(DISPLACEMENT_Y);
-            pModelPart->GetNode(3).Fix(DISPLACEMENT_X);
-            pModelPart->GetNode(3).Fix(DISPLACEMENT_Y);
+            for (unsigned i : {1, 3})
+            {
+                pModelPart->GetNode(i).Fix(DISPLACEMENT_X);
+                pModelPart->GetNode(i).Fix(DISPLACEMENT_Y);
+            }
         });
     const unsigned response_node_id = 2;
-    smtsss::PrimalTestSolver solver{&primal_model_part, response_node_id};
+    PrimalTestSolver solver{&primal_model_part, response_node_id};
     const double delta = 1e-7;
     const double response_value0 = solver.CalculateResponseValue();
     ModelPart& adjoint_model_part = CreateStructuralMechanicsAdjointTestModelPart(&primal_model_part);
-    smtsss::AdjointTestSolver adjoint_solver{&adjoint_model_part, response_node_id};
+    AdjointTestSolver adjoint_solver{&adjoint_model_part, response_node_id};
     for (unsigned i_node : {1, 2, 3})
     {
         for (char dir : {'x', 'y'})
@@ -109,15 +114,137 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_StaticSensitivity, KratosStructural
                 -(response_value1 - response_value0) / delta;
             const double adjoint_sensitivity =
                 adjoint_solver.CalculateSensitivityValue(i_node, dir);
-            KRATOS_CHECK_NEAR(finite_diff_sensitivity, adjoint_sensitivity, 1e-8);
+            const double tol = std::max(0.001 * std::abs(finite_diff_sensitivity), 1e-8);
+            KRATOS_CHECK_NEAR(finite_diff_sensitivity, adjoint_sensitivity, tol);
         }
     }
 }
+
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D6_SaintVenantPlaneStress_StaticSensitivity, KratosStructuralMechanicsFastSuite)
+{
+    using test_solid_static_sensitivity_cpp::AdjointTestSolver;
+    using test_solid_static_sensitivity_cpp::PrimalTestSolver;
+    Model this_model;
+    ModelPart& primal_model_part = CreateStructuralMechanicsTestModelPart(
+        &this_model, KratosComponents<Element>::Get("TotalLagrangianElement2D6N"),
+        KratosComponents<ConstitutiveLaw>::Get(
+            "KirchhoffSaintVenantPlaneStress2DLaw"),
+        [](ModelPart* pModelPart) {
+            for (unsigned i : {1, 3, 6})
+            {
+                pModelPart->GetNode(i).Fix(DISPLACEMENT_X);
+                pModelPart->GetNode(i).Fix(DISPLACEMENT_Y);
+            }
+        });
+    const unsigned response_node_id = 2;
+    PrimalTestSolver solver{&primal_model_part, response_node_id};
+    const double delta = 1e-7;
+    const double response_value0 = solver.CalculateResponseValue();
+    ModelPart& adjoint_model_part =
+        CreateStructuralMechanicsAdjointTestModelPart(&primal_model_part);
+    AdjointTestSolver adjoint_solver{&adjoint_model_part, response_node_id};
+    for (unsigned i_node : {1, 2, 3, 4, 5, 6})
+    {
+        for (char dir : {'x', 'y'})
+        {
+            const double response_value1 =
+                solver.CalculateResponseValue(i_node, dir, delta);
+            const double finite_diff_sensitivity =
+                -(response_value1 - response_value0) / delta;
+            const double adjoint_sensitivity =
+                adjoint_solver.CalculateSensitivityValue(i_node, dir);
+            const double tol = std::max(0.001 * std::abs(finite_diff_sensitivity), 1e-8);
+            KRATOS_CHECK_NEAR(finite_diff_sensitivity, adjoint_sensitivity, tol);
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SaintVenant_StaticSensitivity, KratosStructuralMechanicsFastSuite)
+{
+    using test_solid_static_sensitivity_cpp::AdjointTestSolver;
+    using test_solid_static_sensitivity_cpp::PrimalTestSolver;
+    Model this_model;
+    ModelPart& primal_model_part = CreateStructuralMechanicsTestModelPart(
+        &this_model, KratosComponents<Element>::Get("TotalLagrangianElement3D4N"),
+        KratosComponents<ConstitutiveLaw>::Get(
+            "KirchhoffSaintVenant3DLaw"),
+        [](ModelPart* pModelPart) {
+            for (unsigned i : {1, 2, 3})
+            {
+                pModelPart->GetNode(i).Fix(DISPLACEMENT_X);
+                pModelPart->GetNode(i).Fix(DISPLACEMENT_Y);
+                pModelPart->GetNode(i).Fix(DISPLACEMENT_Z);
+            }
+            pModelPart->GetProperties(1)[VOLUME_ACCELERATION](1) = 200.;
+        });
+    const unsigned response_node_id = 4;
+    PrimalTestSolver solver{&primal_model_part, response_node_id};
+    const double delta = 1e-7;
+    const double response_value0 = solver.CalculateResponseValue();
+    ModelPart& adjoint_model_part =
+        CreateStructuralMechanicsAdjointTestModelPart(&primal_model_part);
+    AdjointTestSolver adjoint_solver{&adjoint_model_part, response_node_id};
+    for (unsigned i_node : {1, 2, 3, 4})
+    {
+        for (char dir : {'x', 'y', 'z'})
+        {
+            const double response_value1 =
+                solver.CalculateResponseValue(i_node, dir, delta);
+            const double finite_diff_sensitivity =
+                -(response_value1 - response_value0) / delta;
+            const double adjoint_sensitivity =
+                adjoint_solver.CalculateSensitivityValue(i_node, dir);
+            const double tol = std::max(0.001 * std::abs(finite_diff_sensitivity), 1e-8);
+            KRATOS_CHECK_NEAR(finite_diff_sensitivity, adjoint_sensitivity, tol);
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D4_SaintVenantPlaneStress_StaticSensitivity, KratosStructuralMechanicsFastSuite)
+{
+    using test_solid_static_sensitivity_cpp::AdjointTestSolver;
+    using test_solid_static_sensitivity_cpp::PrimalTestSolver;
+    Model this_model;
+    ModelPart& primal_model_part = CreateStructuralMechanicsTestModelPart(
+        &this_model, KratosComponents<Element>::Get("TotalLagrangianElement2D4N"),
+        KratosComponents<ConstitutiveLaw>::Get(
+            "KirchhoffSaintVenantPlaneStress2DLaw"),
+        [](ModelPart* pModelPart) {
+            for (unsigned i : {1, 4})
+            {
+                pModelPart->GetNode(i).Fix(DISPLACEMENT_X);
+                pModelPart->GetNode(i).Fix(DISPLACEMENT_Y);
+                pModelPart->GetProperties(1)[VOLUME_ACCELERATION](1) = 50.;
+            }
+        });
+    const unsigned response_node_id = 2;
+    PrimalTestSolver solver{&primal_model_part, response_node_id};
+    const double delta = 1e-7;
+    const double response_value0 = solver.CalculateResponseValue();
+    ModelPart& adjoint_model_part =
+        CreateStructuralMechanicsAdjointTestModelPart(&primal_model_part);
+    AdjointTestSolver adjoint_solver{&adjoint_model_part, response_node_id};
+    for (unsigned i_node : {1, 2, 3, 4})
+    {
+        for (char dir : {'x', 'y'})
+        {
+            const double response_value1 =
+                solver.CalculateResponseValue(i_node, dir, delta);
+            const double finite_diff_sensitivity =
+                -(response_value1 - response_value0) / delta;
+            const double adjoint_sensitivity =
+                adjoint_solver.CalculateSensitivityValue(i_node, dir);
+            const double tol = std::max(0.001 * std::abs(finite_diff_sensitivity), 1e-8);
+            KRATOS_CHECK_NEAR(finite_diff_sensitivity, adjoint_sensitivity, tol);
+        }
+    }
+}
+
 } // namespace Testing
 
 namespace
 {
-namespace smtsss
+namespace test_solid_static_sensitivity_cpp
 { // cotire unity guard
 AdjointResponseFunction::Pointer ResponseFunctionFactory(ModelPart* pModelPart, unsigned ResponseNodeId)
 {
@@ -139,14 +266,25 @@ double PrimalTestSolver::CalculateResponseValue()
     return p_response_function->CalculateValue(*mpPrimalModelPart);
 }
 
+unsigned DirectionIndex(char Direction)
+{
+    KRATOS_ERROR_IF(Direction != 'x' && Direction != 'y' && Direction != 'z')
+        << "invalid direction: '" << Direction << "'";
+    if (Direction == 'x')
+        return 0;
+    else if (Direction == 'y')
+        return 1;
+    else
+        return 2;
+}
+
 double PrimalTestSolver::CalculateResponseValue(const unsigned NodeToPerturb,
                                                 const char Direction,
                                                 const double Perturbation)
 {
-    KRATOS_ERROR_IF(Direction != 'x' && Direction != 'y')
-        << "invalid direction: '" << Direction << "'";
+    
     KRATOS_ERROR_IF(Perturbation <= 0.) << "invalid perturbation: " << Perturbation;
-    const unsigned i_dir = (Direction == 'x') ? 0 : 1;
+    const unsigned i_dir = DirectionIndex(Direction);
     auto& r_node = mpPrimalModelPart->GetNode(NodeToPerturb);
     r_node.GetInitialPosition()[i_dir] += Perturbation;
     const double response_value = CalculateResponseValue();
@@ -161,9 +299,9 @@ SolvingStrategyType::Pointer PrimalTestSolver::CreateSolvingStrategy()
     SchemeType::Pointer p_scheme =
         Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<SparseSpaceType, LocalSpaceType>>();
     ConvergenceCriteriaType::Pointer p_conv_criteria =
-        Kratos::make_shared<ResidualCriteria<SparseSpaceType, LocalSpaceType>>(1e-12, 1e-14);
+        Kratos::make_shared<ResidualCriteria<SparseSpaceType, LocalSpaceType>>(1e-10, 1e-9);
     return Kratos::make_shared<ResidualBasedNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>>(
-        *mpPrimalModelPart, p_scheme, p_linear_solver, p_conv_criteria, 30,
+        *mpPrimalModelPart, p_scheme, p_linear_solver, p_conv_criteria, 5,
         true, false, true);
 }
 
@@ -184,9 +322,7 @@ AdjointTestSolver::AdjointTestSolver(ModelPart* pAdjointModelPart, unsigned Resp
 
 double AdjointTestSolver::CalculateSensitivityValue(unsigned Node, char Direction) const
 {
-    KRATOS_ERROR_IF(Direction != 'x' && Direction != 'y')
-        << "invalid direction: '" << Direction << "'";
-    const unsigned i_dir = (Direction == 'x') ? 0 : 1;
+    const unsigned i_dir = DirectionIndex(Direction);
     return mpAdjointModelPart->GetNode(Node).FastGetSolutionStepValue(SHAPE_SENSITIVITY)[i_dir];
 }
 
@@ -202,6 +338,6 @@ SolvingStrategyType::Pointer AdjointTestSolver::CreateAdjointSolvingStrategy(
         *mpAdjointModelPart, p_adjoint_scheme, p_linear_solver);
 }
 
-} // namespace smtsss
+} // namespace test_solid_static_sensitivity_cpp
 } // namespace
 } // namespace Kratos

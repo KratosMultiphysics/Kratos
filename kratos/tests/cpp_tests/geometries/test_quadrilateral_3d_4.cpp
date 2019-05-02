@@ -158,16 +158,16 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4CoplanarPointIntersection, KratosCoreGeometriesFastSuite) {
         Quadrilateral3D4<Point > quadrilateral_1(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.0),
-            GeneratePoint<NodeType >(10., 0.0, 2.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 0.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 2.0)
+            std::make_shared<Point>(0.0, 0.0, 0.0),
+            std::make_shared<Point>(10., 0.0, 2.0),
+            std::make_shared<Point>(0.0, 1.0, 0.0),
+            std::make_shared<Point>(0.0, 1.0, 2.0)
             );
         Quadrilateral3D4<Point > quadrilateral_2(
-            GeneratePoint<NodeType >(0.00, 0.00, 0.0),
-            GeneratePoint<NodeType >(-10., 0.0, -2.0),
-            GeneratePoint<NodeType >(0.0, -1.0, 0.00),
-            GeneratePoint<NodeType >(0.0, -1.0, -2.00)
+            std::make_shared<Point>(0.00, 0.00, 0.0),
+            std::make_shared<Point>(-10., 0.0, -2.0),
+            std::make_shared<Point>(0.0, -1.0, 0.00),
+            std::make_shared<Point>(0.0, -1.0, -2.00)
             );
 
         KRATOS_CHECK(quadrilateral_1.HasIntersection(quadrilateral_2));
@@ -175,16 +175,16 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4EdgeIntersection, KratosCoreGeometriesFastSuite) {
         Quadrilateral3D4<Point > quadrilateral_1(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.0),
-            GeneratePoint<NodeType >(10., 0.0, 2.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 0.0),
-            GeneratePoint<NodeType >(10.0, 1.0, 0.0)
+            std::make_shared<Point>(0.0, 0.0, 0.0),
+            std::make_shared<Point>(10., 0.0, 2.0),
+            std::make_shared<Point>(0.0, 1.0, 0.0),
+            std::make_shared<Point>(10.0, 1.0, 0.0)
             );
         Quadrilateral3D4<Point > quadrilateral_2(
-            GeneratePoint<NodeType >(0.00, 0.00, 0.0),
-            GeneratePoint<NodeType >(10., 0.0, 2.0),
-            GeneratePoint<NodeType >(0.0, -1.0, 0.00),
-            GeneratePoint<NodeType >(0.0, -1.0, 2.00)
+            std::make_shared<Point>(0.00, 0.00, 0.0),
+            std::make_shared<Point>(10., 0.0, 2.0),
+            std::make_shared<Point>(0.0, -1.0, 0.00),
+            std::make_shared<Point>(0.0, -1.0, 2.00)
             );
 
         KRATOS_CHECK(quadrilateral_1.HasIntersection(quadrilateral_2));
@@ -192,16 +192,16 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4InsideIntersection, KratosCoreGeometriesFastSuite) {
         Quadrilateral3D4<Point > quadrilateral_1(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.0),
-            GeneratePoint<NodeType >(0.0, 0.0, 4.0),
-            GeneratePoint<NodeType >(0.0, 4.0, 0.0),
-            GeneratePoint<NodeType >(0.0, 4.0, 4.0)
+            std::make_shared<Point>(0.0, 0.0, 0.0),
+            std::make_shared<Point>(0.0, 0.0, 4.0),
+            std::make_shared<Point>(0.0, 4.0, 0.0),
+            std::make_shared<Point>(0.0, 4.0, 4.0)
             );
         Quadrilateral3D4<Point > quadrilateral_2(
-            GeneratePoint<NodeType >(0.0, 1.0, 1.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 3.0),
-            GeneratePoint<NodeType >(0.0, 3.0, 1.0),
-            GeneratePoint<NodeType >(0.0, 3.0, 3.0)
+            std::make_shared<Point>(0.0, 1.0, 1.0),
+            std::make_shared<Point>(0.0, 1.0, 3.0),
+            std::make_shared<Point>(0.0, 3.0, 1.0),
+            std::make_shared<Point>(0.0, 3.0, 3.0)
             );
 
         KRATOS_CHECK(quadrilateral_1.HasIntersection(quadrilateral_2));
