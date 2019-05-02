@@ -25,9 +25,9 @@
 // Utility includes
 #include "utilities/geometry_utilities.h"
 
-namespace Kratos 
+namespace Kratos
 {
-namespace Testing 
+namespace Testing
 {
     /// Factory functions
 
@@ -86,6 +86,38 @@ namespace Testing
         KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 3);
     }
 
+    /** Checks if the edges are correct.
+    * Checks if the edges are correct.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Edges, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GenerateRightTriangle3D3<NodeType>();
+
+        const auto& r_edges = p_geom->GenerateEdges();
+        KRATOS_CHECK_NEAR((r_edges[0])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[0].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[0].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[0])[1].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[1].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[1].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[1])[0].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[1])[0].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[1])[0].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[1])[1].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[1])[1].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[1])[1].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[2])[0].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[2])[0].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[2])[0].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_edges[2])[1].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[2])[1].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[2])[1].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
+    }
+
     /** Checks if the number of faces is correct.
     * Checks if the number of faces is correct.
     */
@@ -94,7 +126,27 @@ namespace Testing
 
         // Charlie: I will let this to 3 but probably 'FacesNumber' needs to be documented to state
         // that for planar geometries it also return the number of edges.
-        KRATOS_CHECK_EQUAL(geom->FacesNumber(), 3);
+        KRATOS_CHECK_EQUAL(geom->FacesNumber(), 1);
+    }
+
+    /** Checks if the faces are correct.
+    * Checks if the faces are correct.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Faces, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GenerateRightTriangle3D3<NodeType>();
+
+        const auto& r_faces = p_geom->GenerateFaces();
+        KRATOS_CHECK_NEAR((r_faces[0])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[0].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[0].Z(), (p_geom->pGetPoint(0))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_faces[0])[1].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[1].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[1].Z(), (p_geom->pGetPoint(1))->Z(), TOLERANCE);
+
+        KRATOS_CHECK_NEAR((r_faces[0])[2].X(), (p_geom->pGetPoint(2))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[2].Y(), (p_geom->pGetPoint(2))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_faces[0])[2].Z(), (p_geom->pGetPoint(2))->Z(), TOLERANCE);
     }
 
     /** Checks if the area of the triangle is calculated correctly.
