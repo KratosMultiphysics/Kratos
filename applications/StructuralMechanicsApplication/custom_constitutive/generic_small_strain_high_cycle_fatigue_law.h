@@ -103,7 +103,16 @@ public:
     */
     GenericSmallStrainHighCycleFatigueLaw(const GenericSmallStrainHighCycleFatigueLaw &rOther)
         : GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>(rOther),
-            mFatigueReductionFactor(rOther.mFatigueReductionFactor)
+            mFatigueReductionFactor(rOther.mFatigueReductionFactor),
+            mPreviousStresses(rOther.mPreviousStresses), 
+            mMaxStress(rOther.mMaxStress), 
+            mMinStress(rOther.mMinStress), 
+            mPreviousMaxStress(rOther.mPreviousMaxStress), 
+            mPreviousMinStress(rOther.mPreviousMinStress), 
+            mNumberOfCycles(rOther.mNumberOfCycles), 
+            mFatigueReductionParameter(rOther.mFatigueReductionParameter), 
+            mStressVector(rOther.mStressVector), 
+            mHasCountedCycle(rOther.mHasCountedCycle)
     {
     }
 

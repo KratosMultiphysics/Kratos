@@ -111,8 +111,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         }
         
         if (std::abs(this->GetMinStress()) > tolerance && std::abs(this->GetMaxStress()) > tolerance) { // todo modify with N
-            double reversion_factor;
             double B0 = this->GetFatigueReductionParameter();
+            double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(this->GetMaxStress(), this->GetMinStress());
             HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactor(this->GetMaxStress(),
                                                                                 this->GetMinStress(),
                                                                                 reversion_factor,

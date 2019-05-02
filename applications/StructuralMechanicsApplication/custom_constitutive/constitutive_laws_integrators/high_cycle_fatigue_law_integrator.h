@@ -187,14 +187,13 @@ public:
      */
     static void CalculateFatigueReductionFactor(const double MaxStress,
                                                 const double MinStress,
-                                                double& rReversionFactor,
+                                                double ReversionFactor,
                                                 const Properties& rMaterialParameters,
                                                 const int NumberOfCycles,
                                                 double& rFatigueReductionFactor,
                                                 double& rB0
                                                 )
 	{
-        rReversionFactor = CalculateReversionFactor(MaxStress, MinStress);
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
         const double yield_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
 
@@ -208,12 +207,12 @@ public:
         const double AUXR2 = r_fatigue_coefficients[6];
 
         double Sth, alphat;
-        if (std::abs(rReversionFactor) < 1.0) {
-            Sth = Se + (yield_stress - Se) * std::pow((0.5 + 0.5 * rReversionFactor), STHR1);
-			alphat = ALFAF + (0.5 + 0.5 * rReversionFactor) * AUXR1;
+        if (std::abs(ReversionFactor) < 1.0) {
+            Sth = Se + (yield_stress - Se) * std::pow((0.5 + 0.5 * ReversionFactor), STHR1);
+			alphat = ALFAF + (0.5 + 0.5 * ReversionFactor) * AUXR1;
         } else {
-            Sth = Se + (yield_stress - Se) * std::pow((0.5 + 0.5 / rReversionFactor), STHR2);
-			alphat = ALFAF - (0.5 + 0.5 / rReversionFactor) * AUXR2;
+            Sth = Se + (yield_stress - Se) * std::pow((0.5 + 0.5 / ReversionFactor), STHR2);
+			alphat = ALFAF - (0.5 + 0.5 / ReversionFactor) * AUXR2;
         }
 
         const double square_betaf = std::pow(BETAF, 2.0);
