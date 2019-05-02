@@ -7,14 +7,12 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import base class file
-import structural_mechanics_solver
-
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(main_model_part, custom_settings):
     return EigenSolver(main_model_part, custom_settings)
 
-
-class EigenSolver(structural_mechanics_solver.MechanicalSolver):
+class EigenSolver(MechanicalSolver):
     """The structural mechanics eigen solver.
 
     This class creates the mechanical solvers for eigenvalue analysis.
@@ -32,8 +30,7 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         structural_settings = custom_settings.Clone()
         structural_settings.RemoveValue("eigensolver_settings")
 
-        self.structural_eigensolver_settings = KratosMultiphysics.Parameters("""
-        {
+        self.structural_eigensolver_settings = KratosMultiphysics.Parameters("""{
             "scheme_type"   : "dynamic"
         }
         """)
@@ -42,7 +39,7 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
 
         # Construct the base solver.
         super(EigenSolver, self).__init__(main_model_part, structural_settings)
-        self.print_on_rank_zero("::[EigenSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[EigenSolver]:: ", "Construction finished")
 
     #### Private functions ####
 

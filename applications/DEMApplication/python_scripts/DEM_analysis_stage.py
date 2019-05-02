@@ -263,7 +263,6 @@ class DEMAnalysisStage(AnalysisStage):
         #self.analytic_model_part.AddElements(analytic_particle_ids)
 
     def Initialize(self):
-        self.step = 0
         self.time = 0.0
         self.time_old_print = 0.0
 
@@ -467,7 +466,8 @@ class DEMAnalysisStage(AnalysisStage):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.
 
-        stepinfo = self.report.StepiReport(timer, self.time, self.step)
+        step = self.spheres_model_part.ProcessInfo[TIME_STEPS]
+        stepinfo = self.report.StepiReport(timer, self.time, step)
         if stepinfo:
             self.KratosPrintInfo(stepinfo)
 
@@ -592,7 +592,6 @@ class DEMAnalysisStage(AnalysisStage):
     #these functions are needed for coupling, so that single time loops can be done
 
     def InitializeTime(self):
-        self.step = 0
         self.time = 0.0
         self.time_old_print = 0.0
 
@@ -600,7 +599,6 @@ class DEMAnalysisStage(AnalysisStage):
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.
-        print(self.time,self.step)
         stepinfo = self.report.StepiReport(timer, self.time, self.step)
         if stepinfo:
             self.KratosPrintInfo(stepinfo)

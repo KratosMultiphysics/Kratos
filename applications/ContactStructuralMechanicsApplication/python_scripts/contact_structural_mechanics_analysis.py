@@ -2,14 +2,12 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics as KM
-import KratosMultiphysics.StructuralMechanicsApplication as SM
-import KratosMultiphysics.ContactStructuralMechanicsApplication as CSM
 
 # Other imports
 import sys
 
 # Import the base structural analysis
-from structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
 
 class ContactStructuralMechanicsAnalysis(BaseClass):
     """
@@ -17,10 +15,6 @@ class ContactStructuralMechanicsAnalysis(BaseClass):
 
     It can be imported and used as "black-box"
     """
-    def __init__(self, model, project_parameters):
-        # Construct the base analysis.
-        super(ContactStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
-
     def Initialize(self):
         """ Initializing the Analysis """
         super(ContactStructuralMechanicsAnalysis, self).Initialize()
@@ -52,7 +46,7 @@ class ContactStructuralMechanicsAnalysis(BaseClass):
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
-        import python_solvers_wrapper_contact_structural
+        from KratosMultiphysics.ContactStructuralMechanicsApplication import python_solvers_wrapper_contact_structural
         return python_solvers_wrapper_contact_structural.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):

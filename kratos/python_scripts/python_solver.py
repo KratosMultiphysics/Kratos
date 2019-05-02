@@ -104,8 +104,9 @@ class PythonSolver(object):
     def SolveSolutionStep(self):
         """This function solves the current step.
         It can be called multiple times within one solution step
+        Returns whether the problem is converged
         """
-        pass
+        return True
 
     def Check(self):
         """This function checks the PythonSolver. It usually calls the "Check" function of a solving strategy
@@ -192,10 +193,14 @@ class PythonSolver(object):
     #### Auxiliar functions ####
 
     def print_on_rank_zero(self, *args):
+        from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+        IssueDeprecationWarning('PythonSolver', '"print_on_rank_zero" is deprecated, please use the Logger directly')
         # This function will be overridden in the trilinos-solvers
         KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
 
     def print_warning_on_rank_zero(self, *args):
+        from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+        IssueDeprecationWarning('PythonSolver', '"print_warning_on_rank_zero" is deprecated, please use the Logger directly')
         # This function will be overridden in the trilinos-solvers
         KratosMultiphysics.Logger.PrintWarning(" ".join(map(str,args)))
 
