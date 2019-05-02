@@ -447,7 +447,6 @@ Vector RingElement3D::TensileDiagonalInteralForces() const
   }
   const Vector tensile_internal_forces = k_0 * element_prod(diagonals, normalized_direction_vector_nt);
 
-  KRATOS_WATCH(tensile_internal_forces)
   return tensile_internal_forces;
 }
 
