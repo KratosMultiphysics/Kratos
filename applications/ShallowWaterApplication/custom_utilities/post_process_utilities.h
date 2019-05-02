@@ -50,8 +50,11 @@ namespace Kratos
 ///@{
 
 /// Auxiliary utilities for post process purpose.
-/** Gid is able to representate different entities when they have different Id and diffrent properties.
-*/
+/** Gid is able to representate different entities when they have diffrent properties.
+ *  For each existing property, an auxiliary property is created, which means dry state.
+ *  Gid will print the wet domain (original property) with a property-color, and the dry
+ *  domain with another color.
+ */
 class PostProcessUtilities
 {
 public:
@@ -82,73 +85,20 @@ public:
     ///@name Operations
     ///@{
 
-    void ApplyIdOffsetOnNodes()
-    {
-        ApplyIdOffset(mrModelPart.Nodes());
-    }
-
-    void UndoIdOffsetOnNodes()
-    {
-        UndoIdOffset(mrModelPart.Nodes());
-    }
-
-    void ApplyIdOffsetOnElements()
-    {
-        ApplyIdOffset(mrModelPart.Elements());
-    }
-
-    void UndoIdOffsetOnElements()
-    {
-        UndoIdOffset(mrModelPart.Elements());
-    }
-
-    void ApplyIdOffsetOnConditions()
-    {
-        ApplyIdOffset(mrModelPart.Conditions());
-    }
-
-    void UndoIdOffsetOnConditions()
-    {
-        UndoIdOffset(mrModelPart.Conditions());
-    }
-
     void DefineAuxiliaryProperties()
     {
-        mFluidToSolidPropertiesMap.clear();
-        mSolidToFluidPropertiesMap.clear();
         mWetToDryPropertiesMap.clear();
         mDryToWetPropertiesMap.clear();
 
-        // Create a two copies for each property
-        const int nprop = static_cast<int>(mrModelPart.NumberOfProperties());
-        ModelPart::PropertiesContainerType::iterator prop_begin = mrModelPart.PropertiesBegin();
-
-        IndexType last_id = 0;
+        IndexType max_id = 0;
         IndexVectorType prop_ids;
 
         // Loop the original ids
-        for (int i = 0; i < nprop; ++i)
+        for (IndexType i = 0; i < mrModelPart.NumberOfProperties(); ++i)
         {
-            auto prop = prop_begin + i;
-
-            if (prop->Id() > last_id) {
-                last_id = prop->Id();
-            }
-            prop_ids.push_back(prop->Id());
-        }
-
-        // Creating the auxiliary ids for the solid domain
-        for (auto id : prop_ids)
-        {
-            // Get pointers to the properties and create the dry property
-            Properties::Pointer fluid_prop = mrModelPart.pGetProperties(id);
-            Properties::Pointer solid_prop(new Properties(*fluid_prop));
-            solid_prop->SetId(++last_id);
-
-            // Add the new property and add them to the maps
-            mrModelPart.AddProperties(solid_prop);
-            mFluidToSolidPropertiesMap[fluid_prop->Id()] = last_id;
-            mSolidToFluidPropertiesMap[solid_prop->Id()] = id;
+            auto prop_id = (mrModelPart.PropertiesBegin() + i)->Id();
+            max_id = std::max(max_id, prop_id);
+            prop_ids.push_back(prop_id);
         }
 
         // Creating the auxiliary ids for the dry domain
@@ -157,46 +107,23 @@ public:
             // Get pointers to the properties and create the dry property
             Properties::Pointer wet_prop = mrModelPart.pGetProperties(id);
             Properties::Pointer dry_prop(new Properties(*wet_prop));
-            dry_prop->SetId(++last_id);
+            dry_prop->SetId(++max_id);
 
-            // Add the new property and add them to the maps
+            // Add the new properties to the model part and add them to the maps
             mrModelPart.AddProperties(dry_prop);
-            mWetToDryPropertiesMap[wet_prop->Id()] = last_id;
+            mWetToDryPropertiesMap[wet_prop->Id()] = max_id;
             mDryToWetPropertiesMap[dry_prop->Id()] = id;
         }
-
     }
 
-    void AssignSolidFluidProperties()
-    {
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
-        {
-            auto it_elem = mrModelPart.ElementsBegin() + i;
-            IndexType solid_prop_id = mFluidToSolidPropertiesMap[it_elem->GetProperties().Id()];
-            it_elem->SetProperties(mrModelPart.pGetProperties(solid_prop_id));
-        }
-    }
-
-    void RestoreSolidFluidProperties()
-    {
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
-        {
-            auto it_elem = mrModelPart.ElementsBegin() + i;
-            IndexType fluid_prop_id = mSolidToFluidPropertiesMap[it_elem->GetProperties().Id()];
-            it_elem->SetProperties(mrModelPart.pGetProperties(fluid_prop_id));
-        }
-    }
-
-    void AssignDryWetProperties(Flags& rFlag)
+    void AssignDryWetProperties(Flags Flag)
     {
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
         {
             auto elem = mrModelPart.ElementsBegin() + i;
 
-            if (elem->Is(rFlag))
+            if (elem->Is(Flag))
             {
                 auto search = mDryToWetPropertiesMap.find(elem->GetProperties().Id());
                 if (search != mDryToWetPropertiesMap.end()) // The element was dry
@@ -230,46 +157,6 @@ public:
                 IndexType wet_prop_id = search->second;
                 elem->SetProperties(mrModelPart.pGetProperties(wet_prop_id));
             }
-        }
-    }
-
-    void SetBathymetryMeshPosition()
-    {
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
-        {
-            auto it_node = mrModelPart.NodesBegin() + i;
-            it_node->Z() = it_node->FastGetSolutionStepValue(BATHYMETRY);
-        }
-    }
-
-    void SetFreeSurfaceMeshPosition()
-    {
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
-        {
-            auto it_node = mrModelPart.NodesBegin() + i;
-            it_node->Z() = it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
-        }
-    }
-
-    void SetToZeroMeshPosition()
-    {
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
-        {
-            auto it_node = mrModelPart.NodesBegin() + i;
-            it_node->Z() = 0.0;
-        }
-    }
-
-    void ResetMeshPosition()
-    {
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
-        {
-            auto it_node = mrModelPart.NodesBegin() + i;
-            it_node->Z() = it_node->Z0();
         }
     }
 
@@ -352,9 +239,6 @@ private:
 
     ModelPart& mrModelPart;
 
-    std::map<IndexType, IndexType> mFluidToSolidPropertiesMap;
-    std::map<IndexType, IndexType> mSolidToFluidPropertiesMap;
-
     std::map<IndexType, IndexType> mWetToDryPropertiesMap;
     std::map<IndexType, IndexType> mDryToWetPropertiesMap;
 
@@ -367,29 +251,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    template<class TContainerType>
-    void ApplyIdOffset(TContainerType& rContainer)
-    {
-        IndexType offset = rContainer.size();
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int> (rContainer.size()); ++i)
-        {
-            auto it_cont = rContainer.begin() + i;
-            it_cont->SetId(it_cont->Id() + offset);
-        }
-    }
-
-    template<class TContainerType>
-    void UndoIdOffset(TContainerType& rContainer)
-    {
-        int offset = static_cast<int> (rContainer.size());
-        #pragma omp parallel for
-        for (int i = 0; i < offset; ++i)
-        {
-            auto it_cont = rContainer.begin() + i;
-            it_cont->SetId(it_cont->Id() - offset);
-        }
-    }
 
     ///@}
     ///@name Private  Access

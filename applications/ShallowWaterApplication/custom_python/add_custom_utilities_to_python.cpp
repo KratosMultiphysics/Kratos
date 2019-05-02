@@ -61,11 +61,6 @@ namespace Python
         .def("CheckDryPrimitiveVariables", &ShallowWaterVariablesUtility::CheckDryPrimitiveVariables)
         .def("SetDryWetState", &ShallowWaterVariablesUtility::SetDryWetState)
         .def("DeactivateDryElements", &ShallowWaterVariablesUtility::DeactivateDryElements)
-        .def("DefineDryProperties", &ShallowWaterVariablesUtility::DefineDryProperties)
-        .def("AssignDryWetProperties", &ShallowWaterVariablesUtility::AssignDryWetProperties)
-        .def("ResetMeshPosition", &ShallowWaterVariablesUtility::ResetMeshPosition)
-        .def("SetMeshPosition", &ShallowWaterVariablesUtility::SetMeshPosition)
-        .def("SetElementsActive", &ShallowWaterVariablesUtility::SetElementsActive)
         ;
 
     py::class_< EstimateDtShallow > (m, "EstimateDtShallow")
@@ -91,21 +86,9 @@ namespace Python
 
     py::class_< PostProcessUtilities > (m, "PostProcessUtilities")
         .def(py::init<ModelPart&>())
-        .def("ApplyIdOffsetOnNodes", &PostProcessUtilities::ApplyIdOffsetOnNodes)
-        .def("ApplyIdOffsetOnElements", &PostProcessUtilities::ApplyIdOffsetOnElements)
-        .def("ApplyIdOffsetOnConditions", &PostProcessUtilities::ApplyIdOffsetOnConditions)
-        .def("UndoIdOffsetOnNodes", &PostProcessUtilities::UndoIdOffsetOnNodes)
-        .def("UndoIdOffsetOnElements", &PostProcessUtilities::UndoIdOffsetOnElements)
-        .def("UndoIdOffsetOnConditions", &PostProcessUtilities::UndoIdOffsetOnConditions)
         .def("DefineAuxiliaryProperties", &PostProcessUtilities::DefineAuxiliaryProperties)
-        .def("AssignSolidFluidProperties", &PostProcessUtilities::AssignSolidFluidProperties)
-        .def("RestoreSolidFluidProperties", &PostProcessUtilities::RestoreSolidFluidProperties)
         .def("AssignDryWetProperties", &PostProcessUtilities::AssignDryWetProperties)
         .def("RestoreDryWetProperties", &PostProcessUtilities::RestoreDryWetProperties)
-        .def("SetBathymetryMeshPosition", &PostProcessUtilities::SetBathymetryMeshPosition)
-        .def("SetFreeSurfaceMeshPosition", &PostProcessUtilities::SetFreeSurfaceMeshPosition)
-        .def("SetToZeroMeshPosition", &PostProcessUtilities::SetToZeroMeshPosition)
-        .def("ResetMeshPosition", &PostProcessUtilities::ResetMeshPosition)
         ;
 
   }

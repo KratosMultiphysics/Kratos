@@ -42,11 +42,11 @@ class VisualizationMeshProcess(KM.Process):
             self.update_topography = settings["update_topography"].GetBool()
             self.update_free_surface = settings["update_free_surface"].GetBool()
 
-        # The DefineDryProperties method duplicates the current number of properties:
+        # The DefineAuxiliaryProperties method duplicates the current number of properties:
         # For each property, it creates another one, which means dry state.
         # It should be called only once, otherwise, the number of properties will increase without limits
-        self.properties_utility = SW.ShallowWaterVariablesUtility(self.computing_model_part)
-        self.properties_utility.DefineDryProperties()
+        self.properties_utility = SW.PostProcessUtilities(self.computing_model_part)
+        self.properties_utility.DefineAuxiliaryProperties()
 
     def ExecuteInitialize(self):
         if self.use_topographic_model_part:
@@ -73,8 +73,8 @@ class VisualizationMeshProcess(KM.Process):
 
     def ExecuteBeforeOutputStep(self):
         # The elements should be active to be included in the GidOutputProcess
-        self.properties_utility.SetElementsActive()
-        self.properties_utility.AssignDryWetProperties()
+        KM.VariableUtils().SetFlag(KM.ACTIVE, True, self.computing_model_part.Elements)
+        self.properties_utility.AssignDryWetProperties(KM.FLUID)
 
         if self.use_topographic_model_part:
             for variable in self.nodal_variables:
@@ -87,6 +87,7 @@ class VisualizationMeshProcess(KM.Process):
                 self.topography_utility.SetOriginMeshPosition(self.free_surface_variable)
 
     def ExecuteAfterOutputStep(self):
+        self.properties_utility.RestoreDryWetProperties()
         if self.use_topographic_model_part and self.update_free_surface:
             self.topography_utility.SetOriginMeshPosition()
 
