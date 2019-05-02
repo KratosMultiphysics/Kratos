@@ -151,7 +151,7 @@ set( KRATOS_PYTHON_SOURCES
 
 ## Kratos Version
 set( KRATOS_VERSION_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/version/kratos_version.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_version.cpp
 )
 
 ## Kratos testing engine soruces

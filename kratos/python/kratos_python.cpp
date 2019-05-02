@@ -23,7 +23,7 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "version/kratos_version.h"
+#include "includes/kratos_version.h"
 #include "add_vector_to_python.h"
 #include "add_model_part_to_python.h"
 #include "add_kernel_to_python.h"

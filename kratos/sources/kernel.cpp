@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/kernel.h"
-#include "version/kratos_version.h"
+#include "includes/kratos_version.h"
 #include "input_output/logger.h"
 
 namespace Kratos {
