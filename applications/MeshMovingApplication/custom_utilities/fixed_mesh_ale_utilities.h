@@ -308,7 +308,7 @@ private:
      * @param ItElem Iterator to the element to get the distances of
      * @return const Vector Vector containing the elemental nodal distances
      */
-    const Vector SetDistancesVector(ModelPart::ElementIterator ItElem);
+    const Vector SetDistancesVector(ModelPart::ElementIterator ItElem) const;
 
     /**
      * @brief Check if an element is split
@@ -318,7 +318,7 @@ private:
      * @return true If the element is intersected
      * @return false If the element is not intersected
      */
-    bool IsSplit(const Vector &rDistances);
+    bool IsSplit(const Vector &rDistances) const;
 
     /**
      * @brief Copy the origin model part data to the virtual one
