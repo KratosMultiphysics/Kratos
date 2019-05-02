@@ -51,6 +51,7 @@ namespace Testing
 {
 // We test the associated damage Constitutive laws...
 typedef Node<3> NodeType;
+typedef GenericSmallStrainHighCycleFatigueLaw<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> FatigueLawType;
 
 /**
     * Check the correct calculation of the integrated stress with the CL's
@@ -113,23 +114,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHighCycleFatigueExponential, KratosStru
     cl_parameters.SetConstitutiveMatrix(const_matrix);
 
     // Create the CL's
-    GenericSmallStrainHighCycleFatigueLaw<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> HCF_CL = GenericSmallStrainHighCycleFatigueLaw<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>();
-
-    HCF_CL.SetFatigueReductionFactor(8.8914e-01);
-    Vector previous_stresses=ZeroVector(2);
-    previous_stresses[0]=7.6380e+08;
-    previous_stresses[1]=6.9760e+08;
-    
-    HCF_CL.SetPreviousStresses(previous_stresses);
-    HCF_CL.SetMaxStress(0.0);
-    HCF_CL.SetMinStress(0.0);
-    HCF_CL.SetPreviousMaxStress(7.6380e+08);
-    HCF_CL.SetPreviousMinStress(-2.2914e+08);
-    HCF_CL.SetNumberOfCycles(984);
-    HCF_CL.SetCycleCounter(false);
-    HCF_CL.SetFatigueReductionParameter(5.3239E-07);
-
-
+    FatigueLawType HCF_CL = FatigueLawType(8.8914e-01, 7.6380e+08, 6.9760e+08, 0.0, 0.0, 7.6380e+08, -2.2914e+08, 984, 5.3239E-07, false);
 
     std::vector<double> expected_value;
     expected_value = {1.07636e+09,4.61299e+08,4.61299e+08,0,0,0};

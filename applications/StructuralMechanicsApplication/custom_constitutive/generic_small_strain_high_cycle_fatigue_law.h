@@ -90,6 +90,29 @@ public:
     {
     }
 
+    GenericSmallStrainHighCycleFatigueLaw(  const double FatigueReductionFactor, 
+                                            const double PreviousStress0,
+                                            const double PreviousStress1,
+                                            const double MaxStress,
+                                            const double MinStress,
+                                            const double PreviousMaxStress,
+                                            const double PreviousMinStress,
+                                            const unsigned int NumberOfCycles,
+                                            const double FatigueReductionParameter,
+                                            const bool HasCountedCycle)
+    {
+        mFatigueReductionFactor = FatigueReductionFactor;
+        Vector PreviousStresses = ZeroVector(2);
+        PreviousStresses[0] = PreviousStress0;
+        PreviousStresses[1] = PreviousStress1;
+        mPreviousStresses = PreviousStresses;
+        mMaxStress = MaxStress;
+        mMinStress = MinStress;
+        mPreviousMinStress = PreviousMinStress;
+        mNumberOfCycles = NumberOfCycles;
+        mFatigueReductionParameter = FatigueReductionParameter;
+        mHasCountedCycle = HasCountedCycle;
+    }
     /**
     * Clone.
     */
