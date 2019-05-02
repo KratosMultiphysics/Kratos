@@ -163,6 +163,40 @@ void RingElement3D::GetSecondDerivativesVector(Vector &rValues, int Step) {
   KRATOS_CATCH("")
 }
 
+Vector RingElement3D::GetRefCentroidCoords() const
+{
+  const SizeType points_number = GetGeometry().PointsNumber();
+  const SizeType dimension = 3;
+  Vector coords = ZeroVector(dimension);
+  for (SizeType i=0; i<points_number; ++i)
+  {
+    coords[0] += this->GetGeometry()[i].X0() / points_number;
+    coords[1] += this->GetGeometry()[i].Y0() / points_number;
+    coords[2] += this->GetGeometry()[i].Z0() / points_number;
+  }
+  return coords;
+}
+
+Vector RingElement3D::GetCurrentCentroidCoords() const
+{
+  const SizeType points_number = GetGeometry().PointsNumber();
+  const SizeType dimension = 3;
+  Vector coords = ZeroVector(dimension);
+  for (SizeType i=0; i<points_number; ++i)
+  {
+    coords[0] +=
+      ( this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X) +
+      this->GetGeometry()[i].X0() ) / points_number;
+    coords[1] +=
+      ( this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Y) +
+      this->GetGeometry()[i].Y0() ) / points_number;
+    coords[2] +=
+      ( this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Z) +
+      this->GetGeometry()[i].Z0() ) / points_number;
+  }
+  return coords;
+}
+
 Vector RingElement3D::GetCurrentLengthArray() const
 {
   const int points_number = GetGeometry().PointsNumber();
@@ -192,6 +226,22 @@ Vector RingElement3D::GetCurrentLengthArray() const
   return segment_lengths;
 }
 
+Vector RingElement3D::GetCurrentDiagonalLengthArray() const
+{
+  const Vector centroid = this->GetCurrentCentroidCoords();
+  const SizeType points_number = GetGeometry().PointsNumber();
+
+  Vector diagonal_lengths = ZeroVector(points_number);
+  for (int i=0;i<points_number;++i)
+  {
+    const double x = this->GetGeometry()[i].X0() + this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X) - centroid[0];
+    const double y = this->GetGeometry()[i].Y0() + this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Y) - centroid[1];
+    const double z = this->GetGeometry()[i].Z0() + this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Z) - centroid[2];
+    diagonal_lengths[i] = std::sqrt(x*x + y*y + z*z);
+  }
+  return diagonal_lengths;
+}
+
 Vector RingElement3D::GetRefLengthArray() const
 {
   const int points_number = GetGeometry().PointsNumber();
@@ -209,6 +259,21 @@ Vector RingElement3D::GetRefLengthArray() const
     segment_lengths[i] = std::sqrt((dx * dx) + (dy * dy) + (dz * dz));
   }
   return segment_lengths;
+}
+
+Vector RingElement3D::GetRefDiagonalLengthArray() const
+{
+  const SizeType points_number = GetGeometry().PointsNumber();
+  const Vector centroid = this->GetRefCentroidCoords();
+  Vector diagonal_lengths = ZeroVector(points_number);
+  for (int i=0;i<points_number;++i)
+  {
+    const double x = this->GetGeometry()[i].X0() - centroid[0];
+    const double y = this->GetGeometry()[i].Y0() - centroid[1];
+    const double z = this->GetGeometry()[i].Z0() - centroid[2];
+    diagonal_lengths[i] = std::sqrt(x*x + y*y + z*z);
+  }
+  return diagonal_lengths;
 }
 
 double RingElement3D::GetCurrentLength() const
@@ -321,6 +386,31 @@ Vector RingElement3D::GetDirectionVectorNt() const
   return n_t;
 }
 
+Vector RingElement3D::TensileDiagonalInteralForces() const
+{
+  // currently using k_0 as k_b
+  const Vector diagonal_displacements = this->GetCurrentDiagonalLengthArray() - this->GetRefDiagonalLengthArray();
+  const Vector normalized_direction_vector_nt = this->GetDirectionVectorNt() / norm_2(this->GetDirectionVectorNt());
+  const double k_0 = this->LinearStiffness();
+
+  const SizeType dimension = 3;
+  const SizeType points_number = GetGeometry().PointsNumber();
+  Vector diagonals = ZeroVector(dimension*points_number);
+  for (SizeType i=0; i!=diagonal_displacements.size(); ++i)
+  {
+    if (diagonal_displacements[i] > 0)
+    {
+      diagonals[3*i+0] = diagonal_displacements[i];
+      diagonals[3*i+1] = diagonal_displacements[i];
+      diagonals[3*i+2] = diagonal_displacements[i];
+    }
+  }
+  const Vector tensile_internal_forces = k_0 * element_prod(diagonals, normalized_direction_vector_nt);
+
+  KRATOS_WATCH(tensile_internal_forces)
+  return tensile_internal_forces;
+}
+
 Vector RingElement3D::GetInternalForces() const
 {
   const double k_0            = this->LinearStiffness();
@@ -328,8 +418,8 @@ Vector RingElement3D::GetInternalForces() const
   const double current_length = this->GetCurrentLength();
 
   const double total_internal_force = k_0 * strain_gl * current_length;
-  const Vector internal_foces = this->GetDirectionVectorNt() * total_internal_force;
-  return internal_foces;
+  const Vector internal_forces = this->GetDirectionVectorNt() * total_internal_force + this->TensileDiagonalInteralForces();
+  return internal_forces;
 }
 
 Matrix RingElement3D::ElasticStiffnessMatrix() const

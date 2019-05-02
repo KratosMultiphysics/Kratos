@@ -116,10 +116,15 @@ namespace Kratos
         void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
         void GetFirstDerivativesVector(Vector& rValues,int Step = 0) override;
 
+        Vector GetRefCentroidCoords() const;
+        Vector GetCurrentCentroidCoords() const;
         Vector GetCurrentLengthArray() const;
+        Vector GetCurrentDiagonalLengthArray() const;
         Vector GetRefLengthArray() const;
+        Vector GetRefDiagonalLengthArray() const;
         Vector GetDeltaPositions(const int& rDirection) const;
         Vector GetDirectionVectorNt() const;
+        Vector TensileDiagonalInteralForces() const;
         Vector GetInternalForces() const;
 
         Matrix ElasticStiffnessMatrix() const;
