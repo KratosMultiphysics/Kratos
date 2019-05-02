@@ -68,6 +68,8 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                 },
                 "ignore_conditions" : [
                     "Condition3D",
+                    "Condition3D3N",
+                    "Condition3D4N",
                     "SurfaceCondition3D3N",
                     "SurfaceCondition3D4N"
                 ]
