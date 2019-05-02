@@ -164,6 +164,11 @@ AuxiliaryMatrixWrapper ReadMatrixMarketMatrix(TrilinosSparseSpaceType& dummy, co
     return AuxiliaryMatrixWrapper(dummy.ReadMatrixMarket(FileName, Comm));
 }
 
+AuxiliaryVectorWrapper ReadMatrixMarketVector(TrilinosSparseSpaceType& dummy, const std::string& FileName,Epetra_MpiComm& Comm, const int n)
+{
+    return AuxiliaryVectorWrapper(dummy.ReadMatrixMarketVector(FileName, Comm, n));
+}
+
 Epetra_FECrsMatrix& GetMatRef(AuxiliaryMatrixWrapper& dummy)
 {
     return dummy.GetReference();
@@ -179,7 +184,15 @@ void SetValue(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorTyp
     dummy.SetValue(x,i,value);
 }
 
-
+Vector GatherValues(TrilinosSparseSpaceType& dummy, 
+                  TrilinosSparseSpaceType::VectorType& x, 
+                  const std::vector<int>& IndexArray
+                  )
+{
+    Vector values(IndexArray.size());
+    dummy.GatherValues(x,IndexArray, &values[0]);
+    return values;
+}
 
 //************************************************************************************************
 //************************************************************************************************
@@ -287,7 +300,10 @@ void  AddBasicOperations(pybind11::module& m)
     .def("CreateEmptyMatrixPointer", CreateEmptyMatrixPointer)
     .def("CreateEmptyVectorPointer", CreateEmptyVectorPointer)
     .def("ReadMatrixMarketMatrix", ReadMatrixMarketMatrix)
+    .def("ReadMatrixMarketVector", ReadMatrixMarketVector)
     .def("SetValue", SetValue)
+    //.def("GetValue", GetValue) //deliberately commented out. Only works for local Ids
+    .def("GatherValues", GatherValues)
     ;
 
     m.def("CreateCommunicator", CreateCommunicator);

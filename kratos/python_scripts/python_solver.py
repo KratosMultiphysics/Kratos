@@ -30,7 +30,6 @@ class PythonSolver(object):
 
         self.model = model
         self.settings = settings
-
         self.echo_level = self.settings["echo_level"].GetInt()
 
     def AddVariables(self):

@@ -73,8 +73,12 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             for node in cond.GetNodes():
                 node.Set(KratosMultiphysics.SOLID)
 
+        KratosMultiphysics.Logger.PrintInfo("Finished Initialization for Defining Wake Process")
+
     def ExecuteInitialize(self):
+        KratosMultiphysics.Logger.PrintInfo("EXECUTE INITIALIZE Starts Here DefineWakeProcess")
         self.FindWakeElements()
+        KratosMultiphysics.Logger.PrintInfo("and ENDS Here DefineWakeProcess")
 
     def FindWakeElements(self):
         # Save the trailing edge for further computations

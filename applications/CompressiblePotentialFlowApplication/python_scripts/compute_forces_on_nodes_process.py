@@ -37,7 +37,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
     def Execute(self):
         KratosMultiphysics.Logger.PrintInfo('ComputeForcesOnNodesProcess', 'Computing reactions on nodes')
 
-        KratosMultiphysics.VariableUtils().SetToZero_VectorVar(KratosMultiphysics.REACTION, self.body_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.REACTION, self.body_model_part.Nodes)
 
         free_stream_velocity = self.body_model_part.ProcessInfo.GetValue(CPFApp.VELOCITY_INFINITY)
         #TODO: Read density from ProcessInfo once available
@@ -70,5 +70,3 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
         if self.create_output_file:
             with open("cl_points_with_lift.dat", 'w') as cl_file:
                 cl_file.write('{0:15.12f}'.format(total_force[1]/dynamic_pressure))
-
-

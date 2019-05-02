@@ -20,7 +20,8 @@ class AleFluidSolver(PythonSolver):
             "mesh_motion_solver_settings" : { },
             "mesh_velocity_calculation"   : { }
         }""")
-
+        KM.Logger.PrintInfo("READING the AleFluidSolver First; After being used from AlePotentialFlowSolver \n",
+                            "which is called by PotentialFlowAnalysis, from KratosPotentialFlowSolver._Create... ")
         # cannot recursively validate because validation of fluid- and
         # mesh-motion-settings is done in corresponding solvers
         solver_settings.ValidateAndAssignDefaults(default_settings)
@@ -52,6 +53,7 @@ class AleFluidSolver(PythonSolver):
 
         ## Creating the fluid solver
         self.fluid_solver = self._CreateFluidSolver(fluid_solver_settings, parallelism)
+        KM.Logger.PrintInfo("!!FLUID SOLVER CREATED!!", self.fluid_solver)
 
         # Doing this after the Fluid-solver-settings have been validated to access the settings
         self._SelectMeshVelocityCalculationSettings()
@@ -120,6 +122,7 @@ class AleFluidSolver(PythonSolver):
         KM.Logger.PrintInfo("::[AleFluidSolver]::", "DOFs Added")
 
     def Initialize(self):
+        KM.Logger.PrintInfo("Initialization for the FLUID SOLVER Starts HERE")
         # Saving the ALE-interface-parts for later
         # this can only be done AFTER reading the ModelPart
         main_model_part_name = self.settings["fluid_solver_settings"]["model_part_name"].GetString()
