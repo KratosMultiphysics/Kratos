@@ -248,7 +248,7 @@ void FemDem3DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessI
 	ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
 	//set constitutive law flags:
-	Flags &ConstitutiveLawOptions = Values.GetOptions();
+	Flags &ConstitutiveLawOptions = values.GetOptions();
 
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -290,7 +290,7 @@ void FemDem3DElement::CalculateLocalSystem(
 	ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
 	//set constitutive law flags:
-	Flags &ConstitutiveLawOptions=Values.GetOptions();
+	Flags &ConstitutiveLawOptions = values.GetOptions();
 
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -388,7 +388,7 @@ void FemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 	ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
 	//set constitutive law flags:
-	Flags &ConstitutiveLawOptions=Values.GetOptions();
+	Flags &ConstitutiveLawOptions = values.GetOptions();
 
 	//reading integration points
 	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -471,7 +471,7 @@ void FemDem3DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 	ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
 	//set constitutive law flags:
-	Flags &ConstitutiveLawOptions=Values.GetOptions();
+	Flags &ConstitutiveLawOptions = values.GetOptions();
 
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
