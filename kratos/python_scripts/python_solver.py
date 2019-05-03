@@ -104,8 +104,9 @@ class PythonSolver(object):
     def SolveSolutionStep(self):
         """This function solves the current step.
         It can be called multiple times within one solution step
+        Returns whether the problem is converged
         """
-        pass
+        return True
 
     def Check(self):
         """This function checks the PythonSolver. It usually calls the "Check" function of a solving strategy

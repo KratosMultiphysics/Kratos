@@ -122,20 +122,10 @@ public:
     ///@{
 
     /// Assignment operator.
-    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement const& rOther)
-    {
-        BaseType::operator=(rOther);
-        Flags::operator=(rOther);
-        return *this;
-    }
+    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement const& rOther) = delete;
 
     /// Move operator.
-    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement&& rOther)
-    {
-        BaseType::operator=(rOther);
-        Flags::operator=(rOther);
-        return *this;
-    }
+    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement&& rOther) = delete;
 
     ///@}
     ///@name Operations
