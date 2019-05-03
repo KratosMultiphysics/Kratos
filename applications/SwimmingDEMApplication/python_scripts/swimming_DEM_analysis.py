@@ -249,7 +249,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
             self.swimming_DEM_gid_io = \
             swimming_DEM_gid_output.SwimmingDEMGiDOutput(
-                file_name = self.project_parametersþ["problem_data"]["problem_name"].GetString(),
+                file_name = self.project_parameters["problem_data"]["problem_name"].GetString(),
                 vol_output = result_file_configuration["body_output"].GetBool(),
                 post_mode = old_gid_output_post_options_dict[post_mode_key],
                 multifile = old_gid_output_multiple_file_option_dict[multiple_files_option_key],
@@ -333,7 +333,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         # setting up loop counters:
         self.DEM_to_fluid_counter = self.GetBackwardCouplingCounter()
-        self.derivative_recovery_counter = self.GetRecoveryCounter()
         self.stationarity_counter = self.GetStationarityCounter()
         self.print_counter = self.GetPrintCounter()
         self.debug_info_counter = self.GetDebugInfo()
