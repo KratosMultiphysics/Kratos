@@ -20,6 +20,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/model_part.h"
+#include "compressible_potential_flow_application_variables.h"
 #include "custom_elements/incompressible_potential_flow_element.h"
 
 namespace Kratos {
