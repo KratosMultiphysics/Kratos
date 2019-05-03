@@ -33,8 +33,8 @@ double CalculateDeltaTime(
     Parameters default_parameters = Parameters(R"(
     {
         "time_step_prediction_level" : 2.0,
-        "max_delta_time"             : 1.0e-3,
-        "safety_factor"              : 0.4,
+        "max_delta_time"             : 1.0e0,
+        "safety_factor"              : 0.80,
         "mass_factor"                : 1.0,
         "desired_delta_time"         : -1.0,
         "max_number_of_iterations"   : 10
@@ -121,7 +121,7 @@ double InnerCalculateDeltaTime(
 
         /* Get geometric and material properties */
         const Properties& r_properties = it_elem->GetProperties();
-        const auto& r_geometry = it_elem->GetGeometry();
+        auto& r_geometry = it_elem->GetGeometry();
 
         // Initialize
         check_has_all_variables = true;
@@ -151,7 +151,7 @@ double InnerCalculateDeltaTime(
         if (r_properties.Has(POISSON_RATIO)) {
             nu = r_properties[POISSON_RATIO];
         } else {
-            nu = 0.0;
+            nu = -1.0;
         }
 
         // Getting density
@@ -162,23 +162,28 @@ double InnerCalculateDeltaTime(
         }
 
         if (check_has_all_variables) {
-            // Computing length as the element radius
+            // Computing length as the smallest side of the geometry
 //             const double length = it_elem->GetGeometry().Length();
-            double length = 0.0;
-            const Point& r_center = r_geometry.Center();
+            double min_length = std::numeric_limits<double>::max();
+            for (IndexType i_edge = 0; i_edge < r_geometry.EdgesNumber(); ++i_edge) {
+                min_length = std::min(r_geometry.Edges()[i_edge].Length(), min_length);
+            }
 
-            array_1d<double, 3> aux_vector;
-            for(std::size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)  {
-                noalias(aux_vector) = r_center.Coordinates() - r_geometry[i_node].Coordinates();
-                const double aux_value = norm_2(aux_vector);
-                if(aux_value > length)
-                    length = aux_value;
+            // We compute the minimum height of the face too
+            for (IndexType i_face = 0; i_face < r_geometry.FacesNumber(); ++i_face) {
+                double max_length = 0.0;
+
+                for (IndexType i_edge = 0; i_edge < r_geometry.Faces()[i_face].EdgesNumber(); ++i_edge) {
+                    max_length = std::max(r_geometry.Faces()[i_face].Edges()[i_edge].Length(), max_length);
+                }
+
+                min_length = std::min(r_geometry.Faces()[i_face].Area()/max_length, min_length);
             }
 
             // Compute courant criterion
-            const double bulk_modulus = E / (3.0 * (1.0 - 2.0 * nu));
+            const double bulk_modulus = (nu < 0.0) ? E : E / (3.0 * (1.0 - 2.0 * nu));
             const double wavespeed = std::sqrt(bulk_modulus / rho);
-            const double w = 2.0 * wavespeed / length; // Frequency
+            const double w = 2.0 * wavespeed / min_length; // Frequency
 
             const double psi = 0.5 * (alpha / w + beta * w); // Critical ratio;
             stable_delta_time = (2.0 / w) * (std::sqrt(1.0 + psi * psi) - psi);

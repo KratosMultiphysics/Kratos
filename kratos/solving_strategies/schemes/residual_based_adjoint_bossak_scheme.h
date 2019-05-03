@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    
+//  Main authors:
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_ADJOINT_BOSSAK_SCHEME_H_INCLUDED)
@@ -40,7 +40,7 @@ namespace Kratos
 /**
  * It can be used for either first- or second-order time derivatives. Elements
  * and conditions must provide a specialization of AdjointExtensions via their
- * data value container, which allows the scheme to operate independently of 
+ * data value container, which allows the scheme to operate independently of
  * the variable arrangements in the element or condition.
  */
 template <class TSparseSpace, class TDenseSpace>
@@ -69,12 +69,15 @@ public:
     ///@{
 
     /// Constructor.
-    ResidualBasedAdjointBossakScheme(Parameters Settings, AdjointResponseFunction::Pointer pResponseFunction)
-        : mpResponseFunction(pResponseFunction)
+    ResidualBasedAdjointBossakScheme(
+        Parameters Settings,
+        AdjointResponseFunction::Pointer pResponseFunction
+        ) : mpResponseFunction(pResponseFunction)
     {
         Parameters default_parameters(R"({
-            "scheme_type": "bossak",
-            "alpha_bossak": -0.3
+            "name"         : "adjoint_bossak",
+            "scheme_type"  : "bossak",
+            "alpha_bossak" : -0.3
         })");
         Settings.ValidateAndAssignDefaults(default_parameters);
         mBossak.Alpha = Settings["alpha_bossak"].GetDouble();
@@ -748,13 +751,13 @@ private:
                 const auto& r_variable =
                     KratosComponents<Variable<array_1d<double, 3>>>::Get(
                         p_variable_data->Name());
-                VariableUtils().SetToZero_VectorVar(r_variable, rNodes);
+                VariableUtils().SetHistoricalVariableToZero(r_variable, rNodes);
             }
             else if (KratosComponents<Variable<double>>::Has(p_variable_data->Name()))
             {
                 const auto& r_variable =
                     KratosComponents<Variable<double>>::Get(p_variable_data->Name());
-                VariableUtils().SetToZero_ScalarVar(r_variable, rNodes);
+                VariableUtils().SetHistoricalVariableToZero(r_variable, rNodes);
             }
             else
             {

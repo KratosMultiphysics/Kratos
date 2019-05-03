@@ -5,7 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtils
 
-structural_mechanics_is_available = KratosUtils.IsApplicationAvailable("StructuralMechanicsApplication")
+structural_mechanics_is_available = KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication")
 if structural_mechanics_is_available:
     import KratosMultiphysics.StructuralMechanicsApplication
 

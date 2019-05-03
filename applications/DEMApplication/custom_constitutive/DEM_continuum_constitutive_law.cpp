@@ -24,6 +24,40 @@ namespace Kratos {
     void DEMContinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
         if(verbose) KRATOS_INFO("DEM") << "Assigning DEMContinuumConstitutiveLaw to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+        this->Check(pProp);
+    }
+
+    void DEMContinuumConstitutiveLaw::Check(Properties::Pointer pProp) const {
+        if(!pProp->Has(FRICTION)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable FRICTION should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(FRICTION) = 0.0;
+        }
+        if(!pProp->Has(YOUNG_MODULUS)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable YOUNG_MODULUS should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(YOUNG_MODULUS) = 0.0;
+        }
+        if(!pProp->Has(POISSON_RATIO)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable POISSON_RATIO should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(POISSON_RATIO) = 0.0;
+        }
+        if(!pProp->Has(DAMPING_GAMMA)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable DAMPING_GAMMA should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(DAMPING_GAMMA) = 0.0;
+        }
+        if(!pProp->Has(COEFFICIENT_OF_RESTITUTION)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable COEFFICIENT_OF_RESTITUTION should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(COEFFICIENT_OF_RESTITUTION) = 0.0;
+        }
     }
 
     DEMContinuumConstitutiveLaw::Pointer DEMContinuumConstitutiveLaw::Clone() const {
@@ -101,18 +135,8 @@ namespace Kratos {
         // calculation of elastic constants
         double kn_el = equiv_young * calculation_area / initial_dist;
 
-        //mDensity = element1_props[PARTICLE_DENSITY];
-        //other_density = element2_props[PARTICLE_DENSITY];
-        //double m1 = 4/3 * Globals::Pi * my_radius * my_radius * my_radius * mDensity;
-        //double m2 = 4/3 * Globals::Pi * other_radius * other_radius * other_radius * other_density;
-
         const double mRealMass = element1->GetMass();  // { mRealMass = real_mass;  GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = real_mass;}
         const double &other_real_mass = element2->GetMass();
-        //const double mCoefficientOfRestitution = element1->GetProperties()[COEFFICIENT_OF_RESTITUTION];
-        //const double mOtherCoefficientOfRestitution = element2->GetProperties()[COEFFICIENT_OF_RESTITUTION];
-        //const double equiv_coefficientOfRestitution = 0.5 * (mCoefficientOfRestitution + mOtherCoefficientOfRestitution);
-        // calculation of damping gamma
-
 
         // calculation of damping gamma
         const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
@@ -128,7 +152,6 @@ namespace Kratos {
         //double sqr_period = kn_el / equiv_mass - rescaled_damping*rescaled_damping;
         double sqr_period = sqrt(2.0) * kn_el / equiv_mass - rescaled_damping*rescaled_damping;   //esta es la correcta en continuu suponiendo un maximo de Kt= Kn
         return sqr_period;
-
     }
 
     bool DEMContinuumConstitutiveLaw::CheckRequirementsOfStressTensor() {

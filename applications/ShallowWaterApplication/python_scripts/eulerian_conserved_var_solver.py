@@ -3,11 +3,8 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 ## Import base class file
-from shallow_water_base_solver import ShallowWaterBaseSolver
+from KratosMultiphysics.ShallowWaterApplication.shallow_water_base_solver import ShallowWaterBaseSolver
 
 def CreateSolver(model, custom_settings):
     return EulerianConservedVarSolver(model, custom_settings)
@@ -30,7 +27,7 @@ class EulerianConservedVarSolver(ShallowWaterBaseSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Y, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(Shallow.HEIGHT, self.main_model_part)
 
-        self.print_on_rank_zero("::[EulerianConservedVarSolver]::", "Shallow water solver DOFs added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("::[EulerianConservedVarSolver]::", "Shallow water solver DOFs added correctly.")
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized:

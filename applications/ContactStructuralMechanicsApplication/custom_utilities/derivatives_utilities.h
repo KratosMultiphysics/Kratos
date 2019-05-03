@@ -1391,7 +1391,8 @@ private:
 
         const BoundedMatrix<double, 2, 2> J = prod(trans(DN),DN);
         double det_j;
-        BoundedMatrix<double, 2, 2> invJ = MathUtils<double>::InvertMatrix<2>(J, det_j, -1.0);
+        BoundedMatrix<double, 2, 2> invJ;
+        MathUtils<double>::InvertMatrix(J, invJ, det_j, -1.0);
         const bool good_condition_number = MathUtils<double>::CheckConditionNumber(J, invJ, std::numeric_limits<double>::epsilon(), false);
         if (!good_condition_number) // Reset in case of bad condition number
             noalias(invJ) = ZeroMatrix(2,2);
@@ -1411,7 +1412,8 @@ private:
 //         }
 //
 //         double det_L;
-//         BoundedMatrix<double, 3, 3> invL = MathUtils<double>::InvertMatrix<3>(L, det_L, -1.0);
+//         BoundedMatrix<double, 3, 3> invL;
+//         MathUtils<double>::InvertMatrix(L, invL, det_L, -1.0);
 //         const bool good_condition_number = MathUtils<double>::CheckConditionNumber(L, invL, std::numeric_limits<double>::epsilon(), false);
 //         if (!good_condition_number) // Reset in case of bad condition number
 //             noalias(invL) = ZeroMatrix(3,3);
@@ -1450,7 +1452,8 @@ private:
 
         const BoundedMatrix<double, 2, 2> J = prod(trans(DN),DN);
         double det_j;
-        BoundedMatrix<double, 2, 2> invJ = MathUtils<double>::InvertMatrix<2>(J, det_j, -1.0);
+        BoundedMatrix<double, 2, 2> invJ;
+        MathUtils<double>::InvertMatrix(J, invJ, det_j, -1.0);
         const bool good_condition_number = MathUtils<double>::CheckConditionNumber(J, invJ, std::numeric_limits<double>::epsilon(), false);
         if (!good_condition_number) // Reset in case of bad condition number
             noalias(invJ) = ZeroMatrix(2,2);

@@ -9,9 +9,6 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 # Import base class file
 from fluid_solver import FluidSolver
 
-# from KratosMultiphysics.FluidDynamicsApplication import *
-
-
 
 def CreateSolver(model, custom_settings):
     return NavierStokesTwoFluidsSolver(model, custom_settings)
@@ -74,8 +71,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self.min_buffer_size = 3
 
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
         self._bfecc_convection = self.settings["bfecc_convection"].GetBool()
 
         ## Set the distance reading filename

@@ -21,7 +21,10 @@
 #include "interpolative_mapper_base.h"
 #include "custom_utilities/mapper_typedefs.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
+#include "mapping_application_variables.h"
 #include "custom_utilities/mapper_utilities.h"
+#include "input_output/vtk_output.h"
+#include "utilities/variable_utils.h"
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
 #include "custom_searching/interface_communicator_mpi.h"
 #endif
@@ -192,12 +195,15 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::PrintPairingInfo(const 
     const int comm_rank = mrModelPartDestination.GetCommunicator().MyPID();
     std::stringstream warning_msg;
 
-    for (const auto& rp_local_sys : mMapperLocalSystems)
-    {
+    if (EchoLevel > 1) {
+        // Initialize the values for printing later
+        VariableUtils().SetNonHistoricalVariable(PAIRING_STATUS, 1, mrModelPartDestination.Nodes());
+    }
+
+    for (const auto& rp_local_sys : mMapperLocalSystems) {
         const auto pairing_status = rp_local_sys->GetPairingStatus();
 
-        if (pairing_status != MapperLocalSystem::PairingStatus::InterfaceInfoFound)
-        {
+        if (pairing_status != MapperLocalSystem::PairingStatus::InterfaceInfoFound) {
             warning_msg << rp_local_sys->PairingInfo(EchoLevel, comm_rank);
 
             if (pairing_status == MapperLocalSystem::PairingStatus::Approximation)
@@ -211,6 +217,28 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::PrintPairingInfo(const 
             warning_msg.str( std::string() );
             warning_msg.clear();
         }
+    }
+
+    if (EchoLevel > 1) {
+        // print a debug ModelPart to check the pairing
+
+        std::string prefix = Info() + "_PairingStatus_";
+
+        Parameters vtk_params( R"({
+            "file_format"                        : "binary",
+            "output_precision"                   : 7,
+            "output_control_type"                : "step",
+            "custom_name_prefix"                 : "",
+            "save_output_files_in_folder"        : false,
+            "nodal_solution_step_data_variables" : [],
+            "nodal_data_value_variables"         : ["PAIRING_STATUS"],
+            "element_data_value_variables"       : [],
+            "condition_data_value_variables"     : [],
+            "gauss_point_variables"              : []
+        })");
+
+        vtk_params["custom_name_prefix"].SetString(prefix);
+        VtkOutput(mrModelPartDestination, vtk_params).PrintOutput();
     }
 }
 

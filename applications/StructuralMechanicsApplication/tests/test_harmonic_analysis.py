@@ -215,7 +215,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
 
 class HarmonicAnalysisTestsWithHDF5(KratosUnittest.TestCase):
     def test_harmonic_mdpa_input(self):
-        if not kratos_utils.IsApplicationAvailable("HDF5Application"):
+        if not kratos_utils.CheckIfApplicationsAvailable("HDF5Application"):
             self.skipTest("HDF5Application not found: Skipping harmonic analysis mdpa test")
 
         import structural_mechanics_analysis

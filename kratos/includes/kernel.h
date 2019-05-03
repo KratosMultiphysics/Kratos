@@ -64,8 +64,8 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     ///@{
 
     /// Default constructor.
-    /** The default constructor creates a list of registerd variables in variables.cpp
-        by calling the RegisterVariables method of application class.
+    /** The default constructor creates a list of registered variables and classes in kratos_core.cpp
+        by calling the RegisterKratosCore method of application class.
 
         @see KratosApplication
 
@@ -147,7 +147,7 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     ///@name Private Operations
     ///@{
 
-    void RegisterVariables();
+    void RegisterKratosCore();
 
     ///@}
     ///@name Un accessible methods

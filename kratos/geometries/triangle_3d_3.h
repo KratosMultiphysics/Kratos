@@ -10,14 +10,16 @@
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
 //                   Felix Nagel
-//  contributors:    Hoang Giang Bui
+//  Contributors:    Hoang Giang Bui
 //                   Josep Maria Carbonell
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_TRIANGLE_3D_3_H_INCLUDED )
 #define  KRATOS_TRIANGLE_3D_3_H_INCLUDED
 
 // System includes
+#include <iomanip>
 
 // External includes
 
@@ -26,6 +28,7 @@
 #include "geometries/line_3d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
+#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
@@ -53,17 +56,17 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief A three node 3D triangle geometry with linear shape functions
  * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
- * The node ordering corresponds with: 
- *      v                                                              
- *      ^                                                               
- *      |                                                              
- *      2                                   
- *      |`\                   
- *      |  `\                   
- *      |    `\                 
- *      |      `\                
- *      |        `\                 
- *      0----------1 --> u  
+ * The node ordering corresponds with:
+ *      v
+ *      ^
+ *      |
+ *      2
+ *      |`\
+ *      |  `\
+ *      |    `\
+ *      |      `\
+ *      |        `\
+ *      0----------1 --> u
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -579,8 +582,14 @@ public:
         return (std::abs(V[index]) > std::abs(V[2])) ? index : 2;
 	}
 
-	bool HasIntersection(const GeometryType& ThisGeometry) override
-	{
+    /**
+     * @brief Test the intersection with another geometry
+     * @details decomposes in smaller triangles
+     * @param  ThisGeometry Geometry to intersect with
+     * @return True if the geometries intersect, False in any other case.
+     */
+    bool HasIntersection(const GeometryType& ThisGeometry) override
+    {
         // Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/opttritri.txt
         // and the article "A Fast Triangle-Triangle Intersection Test", Journal of Graphics Tools, 2(2), 1997:
         // http://web.stanford.edu/class/cs277/resources/papers/Moller1997b.pdf
@@ -651,7 +660,7 @@ public:
         if (isect1[1]<isect2[0] || isect2[1]<isect1[0]) return false;
         return true;
 
-	}
+    }
 
     /**
      * Check if an axis-aliged bounding box (AABB) intersects a triangle
@@ -859,9 +868,34 @@ public:
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) override
+        ) const override
     {
-        PointLocalCoordinates( rResult, rPoint );
+        // The center of the geometry
+        const auto& r_center = this->Center();
+
+        // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
+        const CoordinatesArrayType aux_point = ZeroVector(3);
+        const array_1d<double, 3> normal = this->UnitNormal(aux_point);
+
+        // We compute the distance, if it is not in the pane we
+        const Point point_to_project(rPoint);
+        Point point_projected;
+        const array_1d<double,3> vector_points = rPoint - r_center.Coordinates();
+
+        const double distance = GeometricalProjectionUtilities::FastProjectDirection(*this, point_to_project, point_projected, normal,  vector_points, 0);
+
+        // We check if we are on the plane
+        if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
+            if (std::abs(distance) > 1.0e-6 * Length()) {
+                KRATOS_WARNING_FIRST_N("Triangle3D3", 10) << "The point of coordinates X: " << rPoint[0] << "\tY: " << rPoint[1] << "\tZ: " << rPoint[2] << " it is in a distance: " << std::abs(distance) << std::endl;
+                return false;
+            }
+
+            // Not in the plane, but allowing certain distance, projecting
+            noalias(point_projected) = rPoint - normal * distance;
+        }
+
+        PointLocalCoordinates( rResult, point_projected );
 
         if ( (rResult[0] >= (0.0-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) ) {
             if ( (rResult[1] >= (0.0-Tolerance)) && (rResult[1] <= (1.0+Tolerance)) ) {
@@ -886,26 +920,16 @@ public:
         ) const override
     {
         // Initialize
-        rResult = ZeroVector(3);
+        noalias(rResult) = ZeroVector(3);
 
         // Tangent vectors
-        const array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
-        const array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
-
-        // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
-        array_1d<double, 3> normal;
-        MathUtils<double>::UnitCrossProduct(normal, tangent_xi, tangent_eta);
+        array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
+        tangent_xi /= norm_2(tangent_xi);
+        array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
+        tangent_eta /= norm_2(tangent_eta);
 
         // The center of the geometry
         const auto& r_center = this->Center();
-
-        // We compute the distance, if it is not in the pane we
-        CoordinatesArrayType point_projected = rPoint;
-        const array_1d<double,3> vector_points = rPoint - r_center.Coordinates();
-        const double distance = inner_prod(vector_points, normal);
-        if (std::abs(distance) > std::numeric_limits<double>::epsilon()) { // Not in the plane, projecting
-            noalias(point_projected) = rPoint - normal * distance;
-        }
 
         // Computation of the rotation matrix
         BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
@@ -916,7 +940,7 @@ public:
 
         // Destination point rotated
         CoordinatesArrayType aux_point_to_rotate, destination_point_rotated;
-        noalias(aux_point_to_rotate) = point_projected - r_center.Coordinates();
+        noalias(aux_point_to_rotate) = rPoint - r_center.Coordinates();
         noalias(destination_point_rotated) = prod(rotation_matrix, aux_point_to_rotate) + r_center.Coordinates();
 
         // Points of the geometry
@@ -942,7 +966,6 @@ public:
 
         rResult(0) = xi;
         rResult(1) = eta;
-        rResult(2) = 0.0;
 
         return rResult;
     }

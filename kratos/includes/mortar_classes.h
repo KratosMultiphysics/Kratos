@@ -1182,7 +1182,8 @@ public:
     {
         // We calculate the inverse of D operator
         double auxdet;
-        const GeometryMatrixSlaveType inv_D_operator = MathUtils<double>::InvertMatrix<TNumNodes>(DOperator, auxdet);
+        GeometryMatrixSlaveType inv_D_operator;
+        MathUtils<double>::InvertMatrix(DOperator, inv_D_operator, auxdet);
 
         // We calculate the P operator
         const GeometryMatrixMasterType POperator = prod(inv_D_operator, MOperator);
@@ -1619,25 +1620,14 @@ public:
 
             // We compute the normalized inverse
             double aux_det;
-            GeometryMatrixType normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, -1.0);
+            GeometryMatrixType normalized_inv_Me;
+            MathUtils<double>::InvertMatrix(normalized_Me, normalized_inv_Me, aux_det, -1.0);
             const bool good_condition_number = MathUtils<double>::CheckConditionNumber(normalized_Me, normalized_inv_Me, tolerance, false);
             if (good_condition_number) {
                 noalias(Ae) = (1.0/norm_me) * prod(De, normalized_inv_Me);
                 return true;
             }
-        #ifdef KRATOS_DEBUG
-            else {
-                KRATOS_WARNING("Matrix cannot be inverted") << "WARNING:: Me matrix can not be inverted. Determinant: " << aux_det << std::endl;
-                KRATOS_WATCH(normalized_Me);
-            }
-        #endif
         }
-    #ifdef KRATOS_DEBUG
-        else {
-            KRATOS_WARNING("Matrix cannot be inverted") << "WARNING:: Me matrix can not be inverted. Norm: " << norm_me << std::endl;
-            KRATOS_WATCH(Me);
-        }
-    #endif
 
         noalias(Ae) = IdentityMatrix(TNumNodes);
         return false;
@@ -1881,7 +1871,8 @@ public:
 
         // We compute the normalized inverse
         double aux_det;
-        GeometryMatrixType normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, -1.0);
+        GeometryMatrixType normalized_inv_Me;
+        MathUtils<double>::InvertMatrix(normalized_Me, normalized_inv_Me, aux_det, -1.0);
         const bool good_condition_number = MathUtils<double>::CheckConditionNumber(normalized_Me, normalized_inv_Me, tolerance, false);
         if (!good_condition_number) {
             return false;

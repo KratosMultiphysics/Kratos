@@ -31,10 +31,10 @@ namespace Testing {
         Model current_model;
 
         // Generate the origin model part (done with the StructuredMeshGeneratorProcess)
-        Node<3>::Pointer p_point_1 = Kratos::make_shared<Node<3>>(1, 0.0, 0.0, 0.0);
-        Node<3>::Pointer p_point_2 = Kratos::make_shared<Node<3>>(2, 0.0, 1.0, 0.0);
-        Node<3>::Pointer p_point_3 = Kratos::make_shared<Node<3>>(3, 1.0, 1.0, 0.0);
-        Node<3>::Pointer p_point_4 = Kratos::make_shared<Node<3>>(4, 1.0, 0.0, 0.0);
+        Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
+        Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.0, 1.0, 0.0);
+        Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.0, 1.0, 0.0);
+        Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 1.0, 0.0, 0.0);
 
         Quadrilateral2D4<Node<3> > geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
@@ -134,8 +134,7 @@ namespace Testing {
         const auto &r_mesh_vel = p_node_10->FastGetSolutionStepValue(MESH_VELOCITY);
 
         const double tol = 1e-6;
-        std::vector<double> expected_values = {0.070382, 0.0300401, -0.371536, 0.329322}; // Triangular kernel function
-        // std::vector<double> expected_values = {0.070382, 0.0294852, -0.439785, 0.384812}; // Epanechnikov (parabolic) kernel function
+        std::vector<double> expected_values = {0.0702503, 0.0286924, -0.358364, 0.464094}; // Triangular kernel function
         std::vector<double> obtained_values = {r_vel_n1(0), r_vel_n1(1), r_mesh_vel(0), r_mesh_vel(1)};
         for (unsigned int i = 0; i < expected_values.size(); ++i) {
             KRATOS_CHECK_NEAR(obtained_values[i], expected_values[i], tol);

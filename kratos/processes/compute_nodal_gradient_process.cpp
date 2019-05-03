@@ -60,9 +60,9 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
             J0.resize(dimension, local_space_dimension);
 
         // The integration points
-        const auto& integration_method = r_geometry.GetDefaultIntegrationMethod();
-        const auto& integration_points = r_geometry.IntegrationPoints(integration_method);
-        const std::size_t number_of_integration_points = integration_points.size();
+        const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
+        const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
+        const std::size_t number_of_integration_points = r_integration_points.size();
 
         Vector values(number_of_nodes);
         if (mrOriginVariableDoubleList.size() > 0) {
@@ -74,23 +74,23 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
         }
 
         // The containers of the shape functions and the local gradients
-        const auto& rNcontainer = r_geometry.ShapeFunctionsValues(integration_method);
-        const auto& rDN_DeContainer = r_geometry.ShapeFunctionsLocalGradients(integration_method);
+        const Matrix& rNcontainer = r_geometry.ShapeFunctionsValues(r_integration_method);
+        const auto& rDN_DeContainer = r_geometry.ShapeFunctionsLocalGradients(r_integration_method);
 
         for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
             // Getting the shape functions
             noalias(N) = row(rNcontainer, point_number);
 
             // Getting the jacobians and local gradients
-            GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], J0);
+            GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[point_number], J0);
             double detJ0;
             Matrix InvJ0;
-            MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
+            MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
             const Matrix& rDN_De = rDN_DeContainer[point_number];
             GeometryUtils::ShapeFunctionsGradients(rDN_De, InvJ0, DN_DX);
 
             const Vector grad = prod(trans(DN_DX), values);
-            const double gauss_point_volume = integration_points[point_number].Weight() * detJ0;
+            const double gauss_point_volume = r_integration_points[point_number].Weight() * detJ0;
 
             for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
                 array_1d<double, 3>& r_gradient = GetGradient(r_geometry, i_node);

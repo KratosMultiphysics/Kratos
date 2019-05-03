@@ -233,7 +233,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
         properties[PARTICLE_DENSITY] = 2650.0
         properties[Kratos.YOUNG_MODULUS] = 7.0e6
         properties[Kratos.POISSON_RATIO] = 0.30
-        properties[PARTICLE_FRICTION] = 0.0
+        properties[FRICTION] = 0.0
         properties[PARTICLE_COHESION] = 0.0
         properties[COEFFICIENT_OF_RESTITUTION] = 1.0
         properties[Kratos.PARTICLE_MATERIAL] = 1

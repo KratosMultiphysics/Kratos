@@ -238,7 +238,8 @@ void SPRErrorProcess<TDim>::CalculatePatch(
     }
 
     double det;
-    BoundedMatrix<double, TDim + 1, TDim + 1> invA = MathUtils<double>::InvertMatrix<TDim + 1>(A, det, -1.0); // We consider a negative tolerance in order to avoid error
+    BoundedMatrix<double, TDim + 1, TDim + 1> invA;
+    MathUtils<double>::InvertMatrix(A, invA, det, -1.0); // We consider a negative tolerance in order to avoid error
 
     KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 3) << A << std::endl << invA << std::endl << det<< std::endl;
 
@@ -250,7 +251,7 @@ void SPRErrorProcess<TDim>::CalculatePatch(
             for( IndexType j = 0; j < TDim + 1; j++)
                 A(i,j) += 0.001;
         }
-        invA = MathUtils<double>::InvertMatrix<TDim + 1>(A,det);
+        MathUtils<double>::InvertMatrix(A, invA, det);
         KRATOS_WARNING_IF("SPRErrorProcess", mEchoLevel > 0) << "det: " << det << std::endl;
     }
 
