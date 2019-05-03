@@ -24,7 +24,6 @@ def CreateSolver(cosim_solver_settings, level):
 class KratosPotentialFlowSolver(KratosBaseFieldSolver):
     def _CreateAnalysisStage(self):
         #print('debug: project_param. from KratosPotentialFlowSolver:\n',  self.project_parameters)
-        KratosMultiphysics.Logger.PrintInfo("Creation of Model for KratosPotentialFlowSolver is used")
         return PotentialFlowAnalysis(self.model, self.project_parameters)
 
     def InitializeSolutionStep(self):
@@ -43,7 +42,6 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
 
     def SolveSolutionStep(self):
         self.wake_process.FindWakeElements()
-        KratosMultiphysics.Logger.PrintInfo("IIIIIIIIIII", self.wake_process)
 
         super(KratosPotentialFlowSolver, self).SolveSolutionStep()
 

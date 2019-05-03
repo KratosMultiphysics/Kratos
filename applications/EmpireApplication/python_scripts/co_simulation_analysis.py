@@ -34,7 +34,6 @@ class CoSimulationAnalysis(object):
 
         self.flush_stdout = problem_data["flush_stdout"]
         self.echo_level = problem_data["echo_level"]
-        KratosMultiphysics.Logger.PrintInfo("INIT for the CoSimulationAnalysis is OVER")
 
     def Run(self):
         self.Initialize()
@@ -71,7 +70,6 @@ class CoSimulationAnalysis(object):
 
         if self.flush_stdout:
             sys.stdout.flush()
-        KratosMultiphysics.Logger.PrintInfo("SOLVER INITIALIZED DONE")
     def Finalize(self):
         self._GetSolver().Finalize()
 
@@ -89,7 +87,6 @@ class CoSimulationAnalysis(object):
     def _GetSolver(self):
         if not hasattr(self, '_solver'):
             self._solver = self._CreateSolver()
-        KratosMultiphysics.Logger.PrintInfo("CREATING THE SOLVER DONE")
         return self._solver
 
     def _CreateSolver(self):

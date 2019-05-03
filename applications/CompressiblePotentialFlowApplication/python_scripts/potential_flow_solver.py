@@ -52,7 +52,6 @@ class PotentialFlowSolver(FluidSolver):
 
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True
-        KratosMultiphysics.Logger.PrintInfo("POTENTIAL FLOW SOLVER is called      HERE")
         # Set the element and condition names for the replace settings
         # TODO: Create a formulation class helper as soon as there is more than one element is present
         self.element_name = "IncompressiblePotentialFlowElement"
@@ -76,15 +75,14 @@ class PotentialFlowSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, KratosMultiphysics.PRESSURE, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
 
         # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE,self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Fluid solver DOFs added correctly.")
 
     def Initialize(self):
-        KratosMultiphysics.Logger.PrintInfo("INITIALZE for the POTENTIALFLOWSOLVER starts HERE")
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         # TODO: Rename to self.strategy once we upgrade the base FluidDynamicsApplication solvers
         self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
@@ -111,7 +109,6 @@ class PotentialFlowSolver(FluidSolver):
 
     def SolveSolutionStep(self):
         # print(self._TimeBufferIsInitialized, "\n")
-        KratosMultiphysics.Logger.PrintInfo("OOOOOOOOOOOO", self.solver)
         is_converged = self.solver.SolveSolutionStep()
         if not is_converged:
             msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"

@@ -14,7 +14,6 @@ def CreateSolver(model, custom_settings):
 class FluidSolver(PythonSolver):
 
     def __init__(self, model, custom_settings):
-        KratosMultiphysics.Logger.PrintInfo("Fluid Solver SETTINGSS ARE READ HERE")
         settings = self._ValidateSettings(custom_settings)
 
         super(FluidSolver,self).__init__(model, settings)
