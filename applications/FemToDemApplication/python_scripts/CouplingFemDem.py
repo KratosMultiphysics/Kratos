@@ -899,7 +899,7 @@ class FEMDEM_Solution:
             # We need to check if the model part has been modified recently
             if self.RemeshingProcessMMG.step_frequency > 0:
                 if step >= self.RemeshingProcessMMG.step_frequency:
-                        if self.RemeshingProcessMMG.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.RemeshingProcessMMG.initial_step:
+                        if self.RemeshingProcessMMG.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.RemeshingProcessMMG.initial_step:
                             # Has remeshed
                             is_remeshed = True
         return is_remeshed
@@ -938,14 +938,15 @@ class FEMDEM_Solution:
 
     def InitializeIntegrationPointsVariables(self):
 
-        for elem in self.FEM_Solution.main_model_part.Elements:
-            elem.SetValue(KratosFemDem.STRESS_THRESHOLD, 0.0)
-            elem.SetValue(KratosFemDem.DAMAGE_ELEMENT, 0.0)
-            elem.SetValue(KratosFemDem.PRESSURE_EXPANDED, 0)
-            elem.SetValue(KratosFemDem.IS_SKIN, 0)
-            elem.SetValue(KratosFemDem.SMOOTHING, 0)
-            elem.SetValue(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0])
-            elem.SetValue(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0])
+        utils = KratosMultiphysics.VariableUtils()
+        utils.SetNonHistoricalVariable(KratosFemDem.STRESS_THRESHOLD, 0.0, self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.DAMAGE_ELEMENT, 0.0, self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_EXPANDED, 0, self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.IS_SKIN, 0, self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.SMOOTHING, 0, self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0], self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0], self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR_INTEGRATED, [0.0,0.0,0.0], self.FEM_Solution.main_model_part.Elements)
 
 #============================================================================================================================
 

@@ -21,6 +21,7 @@
 #include "testing/testing.h"
 #include "includes/model_part.h"
 #include "custom_elements/incompressible_potential_flow_element.h"
+#include "custom_elements/embedded_incompressible_potential_flow_element.h"
 
 namespace Kratos {
   namespace Testing {
@@ -35,6 +36,7 @@ namespace Kratos {
       rModelPart.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
 
       // Set the element properties
+      rModelPart.CreateNewProperties(0);
       Properties::Pointer pElemProp = rModelPart.pGetProperties(0);
 
       // Geometry creation
@@ -43,6 +45,26 @@ namespace Kratos {
       rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
       std::vector<ModelPart::IndexType> elemNodes{ 1, 2, 3 };
       rModelPart.CreateNewElement("IncompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
+    }
+
+    void GenerateEmbeddedElement(ModelPart& rModelPart)
+    {
+      // Variables addition
+      rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
+      rModelPart.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
+      rModelPart.AddNodalSolutionStepVariable(GEOMETRY_DISTANCE);
+
+
+      // Set the element properties
+      rModelPart.CreateNewProperties(0);
+      Properties::Pointer pElemProp = rModelPart.pGetProperties(0);
+
+      // Geometry creation
+      rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+      rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+      rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+      std::vector<ModelPart::IndexType> elemNodes{ 1, 2, 3 };
+      rModelPart.CreateNewElement("EmbeddedIncompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
     }
 
     /** Checks the IncompressiblePotentialFlowElement element.
@@ -73,9 +95,11 @@ namespace Kratos {
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      KRATOS_CHECK_NEAR(RHS(0), 0.5, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(1), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(2), -0.5, 1e-7);
+      std::vector<double> reference({0.5, 0.0, -0.5});
+
+      for (unsigned int i = 0; i < RHS.size(); i++) {
+        KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
+      }
     }
 
     KRATOS_TEST_CASE_IN_SUITE(IncompressiblePotentialFlowElementCalculateLocalSystemWake, CompressiblePotentialApplicationFastSuite)
@@ -94,8 +118,8 @@ namespace Kratos {
 
       Vector distances(3);
       distances(0) = 1.0;
-      distances(0) = -1.0;
-      distances(0) = -1.0;
+      distances(1) = -1.0;
+      distances(2) = -1.0;
 
       pElement->GetValue(ELEMENTAL_DISTANCES) = distances;
       pElement->GetValue(WAKE) = true;
@@ -107,7 +131,7 @@ namespace Kratos {
           pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i);
       }
       for (unsigned int i = 0; i < 3; i++){
-        if (distances(i) > 0.0)
+        if (distances(i) < 0.0)
           pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i)+5;
         else
           pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i)+5;
@@ -121,13 +145,55 @@ namespace Kratos {
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      KRATOS_CHECK_NEAR(RHS(0), 0.5, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(1), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(2), -0.5, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(3), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(4), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(5), 0.5, 1e-7);
+      std::vector<double> reference({0.5, 0.0, 0.0, 0.0, 0.0, -0.5});
+
+      for (unsigned int i = 0; i < RHS.size(); i++) {
+        KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
+      }
     }
+
+    KRATOS_TEST_CASE_IN_SUITE(EmbeddedIncompressiblePotentialFlowElementCalculateLocalSystem, CompressiblePotentialApplicationFastSuite)
+    {
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      GenerateEmbeddedElement(model_part);
+      Element::Pointer pElement = model_part.pGetElement(1);
+
+
+      // Define the nodal values
+      Vector potential(3);
+      potential(0) = 1.0;
+      potential(1) = 2.0;
+      potential(2) = 3.0;
+
+      // Define the distance values
+      Vector level_set(3);
+      level_set(0) = 1.0;
+      level_set(1) = -1.0;
+      level_set(2) = -1.0;
+
+      for (unsigned int i = 0; i < 3; i++){
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = level_set(i);
+      }
+
+      // Compute RHS and LHS
+      Vector RHS = ZeroVector(3);
+      Matrix LHS = ZeroMatrix(3, 3);
+
+      pElement->Set(BOUNDARY);
+      pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+
+      // Check the RHS values (the RHS is computed as the LHS x previous_solution,
+      // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
+      std::vector<double> reference({0.125, 0.0, -0.125});
+
+      for (unsigned int i = 0; i < RHS.size(); i++) {
+        KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
+      }
+    }
+
 
     /** Checks the IncompressiblePotentialFlowElement element.
  * Checks the EquationIdVector.
@@ -154,9 +220,9 @@ namespace Kratos {
       pElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
 
       // Check the EquationIdVector values
-      KRATOS_CHECK(EquationIdVector[0] == 0);
-      KRATOS_CHECK(EquationIdVector[1] == 1);
-      KRATOS_CHECK(EquationIdVector[2] == 2);
+      for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
+        KRATOS_CHECK(EquationIdVector[i] == i);
+      }
     }
 
     /** Checks the IncompressiblePotentialFlowElement element.
@@ -193,12 +259,9 @@ namespace Kratos {
       pElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
 
       //Check the EquationIdVector values
-      KRATOS_CHECK(EquationIdVector[0] == 0);
-      KRATOS_CHECK(EquationIdVector[1] == 1);
-      KRATOS_CHECK(EquationIdVector[2] == 2);
-      KRATOS_CHECK(EquationIdVector[3] == 3);
-      KRATOS_CHECK(EquationIdVector[4] == 4);
-      KRATOS_CHECK(EquationIdVector[5] == 5);
+      for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
+        KRATOS_CHECK(EquationIdVector[i] == i);
+      }
     }
   } // namespace Testing
 }  // namespace Kratos.

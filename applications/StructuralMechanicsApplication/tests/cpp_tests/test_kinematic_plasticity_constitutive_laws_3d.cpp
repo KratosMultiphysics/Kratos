@@ -102,7 +102,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrainKin
 
     // Create the CL
     VM VonMisesCL = VM();
-    std::vector<double> VMres = {-1.72469e+07,-1.72469e+07,-1.96943e+07,0,0,0};
+    std::vector<double> VMres = {-1.81882e+07,-1.81882e+07,-1.78117e+07,0,0,0};
 
     double plastic_dissipation;
     Vector TestMC, TestVM, TestDP, TestT;
@@ -112,6 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrainKin
     TestVM = cl_parameters.GetStressVector();
     VonMisesCL.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "VonMises:: This test is not in plastic range" << std::endl;
+	
 
     // Check the results
     const double tolerance = 1.0e-4;

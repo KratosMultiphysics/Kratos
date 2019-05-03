@@ -24,7 +24,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/timer.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 
 //Database includes
 #include "spatial_containers/spatial_containers.h"
