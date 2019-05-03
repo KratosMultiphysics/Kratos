@@ -55,22 +55,20 @@ public:
             it->Set(ACTIVE,true);
 
             auto geom = it->GetGeometry();
-            // const unsigned int NumNodes = geom.size();
-            // array_1d<double, NumNodes> distances;
-            bool IsPositive = false;
-            bool IsNegative = false;
+            bool has_positive_values = false;
+            bool has_negative_values = false;
             for(unsigned int i=0; i<geom.size(); ++i)
             {
                 double distance = geom[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE);
                 if (distance > 0.0)
-                    IsPositive = true;
+                    has_positive_values = true;
                 else
-                    IsNegative = true;
+                    has_negative_values = true;
             }
 
-            if (IsPositive && IsNegative)
+            if (has_positive_values && has_negative_values)
                 it->Set(BOUNDARY,true);
-            else if (IsNegative)
+            else if (has_negative_values)
                 it->Set(ACTIVE,false);
         }
 
