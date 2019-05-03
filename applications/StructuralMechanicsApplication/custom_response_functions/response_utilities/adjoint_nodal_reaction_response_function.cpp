@@ -100,7 +100,7 @@ namespace Kratos
 
         for(IndexType i = 0; i < mpNeighborElements.size(); ++i)
         {
-            Kratos::Element& ng_elem_i = mpNeighborElements[i];
+            Kratos::Element& ng_elem_i = *mpNeighborElements[i];
 
             if( rAdjointElement.Id() == ng_elem_i.Id() )
             {
@@ -248,7 +248,7 @@ namespace Kratos
 
         for(IndexType i = 0; i < mpNeighborElements.size(); ++i)
         {
-            Kratos::Element& ng_elem_i = mpNeighborElements[i];
+            Kratos::Element& ng_elem_i = *mpNeighborElements[i];
 
             if( rAdjointElement.Id() == ng_elem_i.Id() )
             {
@@ -270,7 +270,7 @@ namespace Kratos
 
         for(IndexType i = 0; i < mpNeighborConditions.size(); ++i)
         {
-            Kratos::Condition& ng_cond_i = mpNeighborConditions[i];
+            Kratos::Condition& ng_cond_i = *mpNeighborConditions[i];
 
             if( rAdjointCondition.Id() == ng_cond_i.Id() )
             {

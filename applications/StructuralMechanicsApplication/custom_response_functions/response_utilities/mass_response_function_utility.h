@@ -148,13 +148,13 @@ public:
 		for(auto& node_i : mrModelPart.Nodes())
 		{
 			// Get all neighbor elements of current node
-			WeakPointerVector<Element >& ng_elem = node_i.GetValue(NEIGHBOUR_ELEMENTS);
+			auto& ng_elem = node_i.GetValue(NEIGHBOUR_ELEMENTS);
 
 			// Compute total mass of all neighbor elements before finite differencing
 			double mass_before_fd = 0.0;
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
-				Element& ng_elem_i = ng_elem[i];
+				Element& ng_elem_i = *ng_elem[i];
 
 				// Compute mass according to element dimension
 				mass_before_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
@@ -169,7 +169,7 @@ public:
 			node_i.X0() += mDelta;
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
-				Element& ng_elem_i = ng_elem[i];
+				Element& ng_elem_i = *ng_elem[i];
 
 				// Compute mass according to element dimension
 				mass_after_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
@@ -184,7 +184,7 @@ public:
 			node_i.Y0() += mDelta;
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
-				Element& ng_elem_i = ng_elem[i];
+				Element& ng_elem_i = *ng_elem[i];
 
 				// Compute mass according to element dimension
 				mass_after_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
@@ -199,7 +199,7 @@ public:
 			node_i.Z0() += mDelta;
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
-				Element& ng_elem_i = ng_elem[i];
+				Element& ng_elem_i = *ng_elem[i];
 
 				// Compute mass according to element dimension
 				mass_after_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);

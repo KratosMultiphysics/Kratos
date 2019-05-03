@@ -19,7 +19,7 @@
 
 // Project includes
 #include "adjoint_structural_response_function.h"
-
+#include "containers/global_pointers_vector.h"
 
 namespace Kratos
 {
@@ -201,8 +201,8 @@ private:
     std::string mTracedDisplacementLabel;
     std::string mTracedReactionLabel;
     PointTypePointer  mpTracedNode;
-    WeakPointerVector<Element> mpNeighborElements;
-    WeakPointerVector<Condition> mpNeighborConditions;
+    GlobalPointersVector<Element> mpNeighborElements;
+    GlobalPointersVector<Condition> mpNeighborConditions;
     bool mAdjustAdjointDisplacement = false;
 
     ///@}

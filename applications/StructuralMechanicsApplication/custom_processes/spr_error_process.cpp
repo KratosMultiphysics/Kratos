@@ -215,7 +215,8 @@ void SPRErrorProcess<TDim>::CalculatePatch(
     BoundedMatrix<double, 1, TDim + 1> p_k;
 
     auto& neigh_elements = itPatchNode->GetValue(NEIGHBOUR_ELEMENTS);
-    for( WeakElementItType it_elem = neigh_elements.begin(); it_elem != neigh_elements.end(); ++it_elem) {
+    
+    for( auto it_elem : neigh_elements){
 
         it_elem->GetValueOnIntegrationPoints(mStressVariable,stress_vector,mThisModelPart.GetProcessInfo());
         it_elem->GetValueOnIntegrationPoints(INTEGRATION_COORDINATES,coordinates_vector,mThisModelPart.GetProcessInfo());

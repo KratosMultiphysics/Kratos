@@ -38,7 +38,7 @@ void PrismNeighboursProcess::Execute()
         GeometryType& r_geometry = it_elem->GetGeometry();
 
         // Insert a pointer to the element identified by the hash value ids if it doesn't exist
-        ElementPointerVector& r_neighbour_elements = it_elem->GetValue(NEIGHBOUR_ELEMENTS);
+        auto& r_neighbour_elements = it_elem->GetValue(NEIGHBOUR_ELEMENTS);
 
         /* IN-PLANE FACES */
         VectorIndexType ids_4(4);
@@ -57,7 +57,7 @@ void PrismNeighboursProcess::Execute()
         if(it_check != face_map.end() ) {
             // If it exists the node is added as a neighbour, reciprocally
             r_neighbour_elements.push_back(it_check->second);
-            ElementPointerVector& aux_3 = (it_check->second)->GetValue(NEIGHBOUR_ELEMENTS);
+            auto& aux_3 = (it_check->second)->GetValue(NEIGHBOUR_ELEMENTS);
             aux_3.push_back(*it_elem.base());
         } else {
             // If it doesn't exist it is added to the database
@@ -130,7 +130,7 @@ void PrismNeighboursProcess::Execute()
 
             auto it_neigh_elem = r_neighbour_elements.begin() + j;
             HashMapVectorIntIntType node_map;
-            GeometryType& geom_neig = it_neigh_elem->GetGeometry();
+            GeometryType& geom_neig = (*it_neigh_elem)->GetGeometry();
 
             // Edge 1
             ids[0] = geom_neig[0].Id();
@@ -187,7 +187,7 @@ void PrismNeighboursProcess::Execute()
 
             GeometryType& r_geometry = it_elem->GetGeometry();
             for(IndexType j = 0; j < r_geometry.size(); ++j) {
-                (r_geometry[j].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(it_elem.base()) ) );
+                (r_geometry[j].GetValue(NEIGHBOUR_ELEMENTS)).push_back( GlobalPointer<Element>( *(it_elem.base()) ) );
             }
         }
 

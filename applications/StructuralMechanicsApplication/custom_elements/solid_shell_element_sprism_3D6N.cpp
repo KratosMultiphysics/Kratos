@@ -1423,7 +1423,7 @@ int  SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo)
 
     /* Check the neighbours have been calculated */
     // Neighbour elements
-    const WeakPointerVector< Element >& p_neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);
+    const auto& p_neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);
     KRATOS_ERROR_IF(p_neighbour_elements.size() == 0) << "The neighbour elements are not calculated" << std::endl;
 
     // Neighbour nodes
