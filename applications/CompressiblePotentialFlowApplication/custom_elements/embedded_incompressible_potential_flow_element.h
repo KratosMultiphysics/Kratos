@@ -95,20 +95,10 @@ public:
     ///@{
 
     /// Assignment operator.
-    EmbeddedIncompressiblePotentialFlowElement& operator=(EmbeddedIncompressiblePotentialFlowElement const& rOther)
-    {
-        BaseType::operator=(rOther);
-        Flags::operator=(rOther);
-        return *this;
-    }
+    EmbeddedIncompressiblePotentialFlowElement& operator=(EmbeddedIncompressiblePotentialFlowElement const& rOther) = delete;
 
     /// Move operator.
-    EmbeddedIncompressiblePotentialFlowElement& operator=(EmbeddedIncompressiblePotentialFlowElement&& rOther)
-    {
-        BaseType::operator=(rOther);
-        Flags::operator=(rOther);
-        return *this;
-    }
+    EmbeddedIncompressiblePotentialFlowElement& operator=(EmbeddedIncompressiblePotentialFlowElement&& rOther) = delete;
 
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
