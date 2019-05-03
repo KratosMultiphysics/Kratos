@@ -628,7 +628,7 @@ public:
      * @see EdgesNumber()
      * @see Edge()
      */
-    GeometriesArrayType GenerateEdges( void ) override
+    GeometriesArrayType GenerateEdges() override
     {
         GeometriesArrayType edges = GeometriesArrayType();
 

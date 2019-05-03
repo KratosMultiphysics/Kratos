@@ -576,7 +576,7 @@ public:
      * @see GenerateEdges
      * @see FacesNumber
      */
-    GeometriesArrayType GenerateFaces( void ) override
+    GeometriesArrayType GenerateFaces() override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;

@@ -927,7 +927,7 @@ public:
      * @see EdgesNumber()
      * @see Edge()
      */
-    GeometriesArrayType GenerateEdges( void ) override
+    GeometriesArrayType GenerateEdges() override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 4 ), this->pGetPoint( 1 ) ) );

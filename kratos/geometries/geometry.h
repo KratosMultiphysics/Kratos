@@ -1191,8 +1191,6 @@ public:
     virtual SizeType EdgesNumber() const
     {
         KRATOS_ERROR << "Calling base class EdgesNumber method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-
-        return SizeType();
     }
 
     /**
@@ -1217,11 +1215,9 @@ public:
      * @see EdgesNumber()
      * @see Edge()
      */
-    virtual GeometriesArrayType GenerateEdges( void )
+    virtual GeometriesArrayType GenerateEdges()
     {
         KRATOS_ERROR << "Calling base class Edges method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-
-        return GeometriesArrayType();
     }
 
     /** This method gives you an edge of this geometry which holds
@@ -1255,8 +1251,6 @@ public:
     virtual SizeType FacesNumber() const
     {
         KRATOS_ERROR << "Calling base class FacesNumber method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-
-        return SizeType();
     }
 
     /**
@@ -1281,11 +1275,9 @@ public:
      * @see GenerateEdges
      * @see FacesNumber
      */
-    virtual GeometriesArrayType GenerateFaces( void )
+    virtual GeometriesArrayType GenerateFaces()
     {
         KRATOS_ERROR << "Calling base class GenerateFaces method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-
-        return GeometriesArrayType();
     }
 
     //Connectivities of faces required
