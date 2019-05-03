@@ -1141,11 +1141,9 @@ public:
             return this->GenerateFaces();
         } else if (dimension == 2) {
             return this->GenerateEdges();
-        } else if (dimension == 1) {
+        } else { // Let's assume is one
             return this->GeneratePoints();
         }
-
-        return GeometriesArrayType();
     }
 
     ///@}
