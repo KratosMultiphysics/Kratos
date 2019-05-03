@@ -2712,7 +2712,7 @@ namespace Kratos
 		}
 
 		//to begin with we check the neighbour elements; it is a bit more expensive
-		WeakPointerVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
+		auto& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
 		//the first we check is the one that has negative shape function, because it means it went outside in this direction:
 		//commented, it is not faster than simply checking all the neighbours (branching)
 		/*
@@ -2811,7 +2811,7 @@ namespace Kratos
 		}
 
 		//now we check the neighbour elements:
-		WeakPointerVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
+		auto& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
 		//the first we check is the one that has negative shape function, because it means it went outside in this direction:
 		//commented, it is not faster than simply checking all the neighbours (branching)
 		/*
@@ -2912,7 +2912,7 @@ namespace Kratos
 		}
 
 		//to begin with we check the neighbour elements:
-		WeakPointerVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
+		auto& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
 		for (unsigned int i=0;i!=(neighb_elems.size());i++)
 		{
 

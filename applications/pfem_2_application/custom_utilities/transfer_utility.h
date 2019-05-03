@@ -267,7 +267,7 @@ namespace Kratos
 		//KRATOS_WATCH(TDim)
 		
 		//to begin with we check the neighbour elements:
-		WeakPointerVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
+		auto& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
 		//the first we check is the one that has negative shape function, because it means it went outside in this direction:
 		/*
 		unsigned int checked_element=0;

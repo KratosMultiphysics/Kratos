@@ -294,7 +294,7 @@ private:
 
     inline ElementPointerType pGetElement() const;
 
-    void GetElementCandidates(WeakPointerVector<Element>& ElementCandidates,
+    void GetElementCandidates(auto& ElementCandidates,
                               const GeometryType& rGeom) const;
 
     void GetSortedIds(std::vector<IndexType>& Ids, const GeometryType& rGeom) const;

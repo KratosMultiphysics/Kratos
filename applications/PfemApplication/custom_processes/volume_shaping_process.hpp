@@ -634,7 +634,7 @@ class VolumeShapingProcess : public Process
 
         if( i_node->Is(VISITED) ){
           unsigned int id = rVariables.VisitedNodesIds[i_node->Id()];
-          WeakPointerVector<Element>& rE = Neighbours[id];
+          auto& rE = Neighbours[id];
           for(WeakPointerVector<Element >::iterator ie= rE.begin(); ie!=rE.end(); ++ie)
           {
             GeometryType& rGeometry = ie->GetGeometry();
@@ -675,7 +675,7 @@ class VolumeShapingProcess : public Process
 
         if( i_node->Is(VISITED) ){
           unsigned int id = rVariables.VisitedNodesIds[i_node->Id()];
-          WeakPointerVector<Element>& rE = Neighbours[id];
+          auto& rE = Neighbours[id];
           for(WeakPointerVector<Element >::iterator ie= rE.begin(); ie!=rE.end(); ++ie)
           {
             GeometryType& rGeometry = ie->GetGeometry();

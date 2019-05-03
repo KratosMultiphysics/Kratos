@@ -3326,7 +3326,7 @@ private:
             //slip condition
             if (cond_it->GetValue(IS_STRUCTURE) == 1.0) //this is a slip face --> now look for its neighbours
             {
-                const WeakPointerVector<Condition>& neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
+                const auto& neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
 
                 //check for neighbour zero
                 if (neighb[0].Id() != current_id) //check if the neighbour exists

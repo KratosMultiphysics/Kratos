@@ -164,7 +164,7 @@ namespace Kratos
 		double yc = 0.5*(y1 + y2);
 		int curv_pos = 0;
 		int struct_nodes = 0;
-		WeakPointerVector< Element >& neighb_els = im->GetValue(NEIGHBOUR_ELEMENTS);
+		auto& neighb_els = im->GetValue(NEIGHBOUR_ELEMENTS);
 		for (unsigned int i = 0; i < neighb_els.size(); i++)
 		{
 		  int intf_nodes = 0;
@@ -330,7 +330,7 @@ namespace Kratos
 		double Delta_xi = 0.0;
 		double Sp = 0.0;
 				 
-		WeakPointerVector< Condition >& neighb_faces = im->GetValue(NEIGHBOUR_CONDITIONS);
+		auto& neighb_faces = im->GetValue(NEIGHBOUR_CONDITIONS);
 		//Loop over faces -> 1-ring neighborhood
 		for (unsigned int i = 0; i < neighb_faces.size(); i++)
 		{

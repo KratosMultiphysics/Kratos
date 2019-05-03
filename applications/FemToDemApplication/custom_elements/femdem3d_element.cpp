@@ -133,10 +133,10 @@ void FemDem3DElement::ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo)
 	Node<3> &pNode3 = r_nodes_current_element[3];
 
 	// Neighbour elements of each node of the current element
-	WeakPointerVector<Element>& neigh_node_0 = pNode0.GetValue(NEIGHBOUR_ELEMENTS);
-	WeakPointerVector<Element>& neigh_node_1 = pNode1.GetValue(NEIGHBOUR_ELEMENTS);
-	WeakPointerVector<Element>& neigh_node_2 = pNode2.GetValue(NEIGHBOUR_ELEMENTS);
-	WeakPointerVector<Element>& neigh_node_3 = pNode3.GetValue(NEIGHBOUR_ELEMENTS);
+	auto& neigh_node_0 = pNode0.GetValue(NEIGHBOUR_ELEMENTS);
+	auto& neigh_node_1 = pNode1.GetValue(NEIGHBOUR_ELEMENTS);
+	auto& neigh_node_2 = pNode2.GetValue(NEIGHBOUR_ELEMENTS);
+	auto& neigh_node_3 = pNode3.GetValue(NEIGHBOUR_ELEMENTS);
 
 	// Nodal neighbours container
 	std::vector<WeakPointerVector<Element>> nodal_neighbours;

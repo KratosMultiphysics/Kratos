@@ -124,7 +124,7 @@ public:
             rN.erase(rN.begin(),rN.end() );
 	    
             (in->GetValue(NEIGHBOUR_CONDITIONS)).reserve(mavg_conds);
-            WeakPointerVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
+            auto& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
             rC.erase(rC.begin(),rC.end() );	    
         }
 
@@ -143,7 +143,7 @@ public:
         //adding the neighbouring nodes
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
         {
-            WeakPointerVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
+            auto& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
 
             for(unsigned int ic = 0; ic < rC.size(); ic++)
             {
@@ -167,7 +167,7 @@ public:
         NodesContainerType& rNodes = mr_model_part.Nodes();
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
         {
-            WeakPointerVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
+            auto& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
             rC.erase(rC.begin(),rC.end());
 
             WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);

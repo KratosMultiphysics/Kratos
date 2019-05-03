@@ -276,7 +276,7 @@ namespace Kratos
 		int neighnum_caf = 0; //caf == contact angle face
 		int visited = 0;
 		double num_faces = 0.0;
-		WeakPointerVector< Condition >& neighb_faces = im->GetValue(NEIGHBOUR_CONDITIONS);
+		auto& neighb_faces = im->GetValue(NEIGHBOUR_CONDITIONS);
 		//Loop over faces -> find faces that two IS_FREE_SURFACE nodes
 		for (unsigned int i = 0; i < neighb_faces.size(); i++)
 		{

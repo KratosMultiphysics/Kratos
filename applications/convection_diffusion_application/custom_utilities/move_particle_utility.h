@@ -1345,7 +1345,7 @@ namespace Kratos
 	///of Dt
 	void MoveParticle(  Convection_Particle & pparticle,
 						 Element::Pointer & pelement,
-						 WeakPointerVector< Element >& elements_in_trajectory,
+						 auto& elements_in_trajectory,
 						 unsigned int & number_of_elements_in_trajectory,
 						 ResultIteratorType result_begin,
 						 const unsigned int MaxNumberOfResults)
@@ -1580,7 +1580,7 @@ namespace Kratos
 		}
 
 		//to begin with we check the neighbour elements; it is a bit more expensive
-		WeakPointerVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
+		auto& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
 		//the first we check is the one that has negative shape function, because it means it went outside in this direction:
 		//commented, it is not faster than simply checking all the neighbours (branching)
 		/*
@@ -1606,11 +1606,11 @@ namespace Kratos
 		for (unsigned int i=0;i!=(neighb_elems.size());i++)
 		{
 
-				Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
+				Geometry<Node<3> >& geom = neighb_elems[i]->GetGeometry();
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
-					pelement=neighb_elems(i).lock();
+					pelement=Element::Pointer(&*neighb_elems(i));
 					return true;
 				}
 		}
@@ -1645,7 +1645,7 @@ namespace Kratos
 		bool FindNodeOnMesh( array_1d<double,3>& position,
 						 array_1d<double,TDim+1>& N,
 						 Element::Pointer & pelement,
-						 WeakPointerVector< Element >& elements_in_trajectory,
+						 auto& elements_in_trajectory,
 						 unsigned int & number_of_elements_in_trajectory,
 						 unsigned int & check_from_element_number,
 						 ResultIteratorType result_begin,
@@ -1705,11 +1705,11 @@ namespace Kratos
 		for (unsigned int i=0;i!=(neighb_elems.size());i++)
 		{
 
-				Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
+				Geometry<Node<3> >& geom = neighb_elems[i]->GetGeometry();
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
-					pelement=neighb_elems(i).lock();
+					pelement=Element::Pointer(&*neighb_elems(i));
 					if (number_of_elements_in_trajectory<20)
 					{
 						elements_in_trajectory(number_of_elements_in_trajectory)=pelement;

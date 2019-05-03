@@ -269,11 +269,11 @@ inline Element::Pointer PotentialWallCondition<TDim, TNumNodes>::pGetElement() c
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::GetElementCandidates(
-    WeakPointerVector<Element>& ElementCandidates, const GeometryType& rGeom) const
+    auto& ElementCandidates, const GeometryType& rGeom) const
 {
     for (SizeType i = 0; i < TDim; i++)
     {
-        const WeakPointerVector<Element>& rNodeElementCandidates =
+        const auto& rNodeElementCandidates =
             rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
         for (SizeType j = 0; j < rNodeElementCandidates.size(); j++)
             ElementCandidates.push_back(rNodeElementCandidates(j));

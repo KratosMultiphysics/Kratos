@@ -141,7 +141,7 @@ public:
                 nd != mr_model_part.NodesEnd() ; ++nd)
         {
 
-            WeakPointerVector< Element >& neighbor_els = nd->GetValue(NEIGHBOUR_ELEMENTS);
+            auto& neighbor_els = nd->GetValue(NEIGHBOUR_ELEMENTS);
             int num_material = 0;
 
             //loop to find # of different material
@@ -381,7 +381,7 @@ public:
 
 // 			for(ModelPart::ElementsContainerType::iterator Belem = mr_model_part.ElementsBegin(); Belem != mr_model_part.ElementsEnd(); ++Belem)
 // 			{
-// 		           WeakPointerVector< Element >& Belem_ngh = Belem->GetValue(NEIGHBOUR_ELEMENTS);
+// 		           auto& Belem_ngh = Belem->GetValue(NEIGHBOUR_ELEMENTS);
 // 		           int Belem_mat = (Belem->pGetProperties())->Id();
 // 			   Belem->GetValue(IS_VISITED) = 1.0;
 // 		           Geometry< Node<3> >& Belem_geom = Belem->GetGeometry();
