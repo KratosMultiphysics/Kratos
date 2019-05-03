@@ -289,12 +289,34 @@ public:
 
     static VariableData & Get(std::string const& Name)
     {
-        return *(msComponents.find(Name)->second);
+        auto it_comp =  msComponents.find(Name);
+        if (it_comp != msComponents.end()) {
+            return *(it_comp->second);
+        }
+
+        std::stringstream err_msg;
+        err_msg << "The variable \"" << Name << "\" is not registered!\n"
+                << "Maybe you need to import the application where it is defined?\n"
+                << "The following variables are registered:" << std::endl;
+        KratosComponents instance; // creating an instance for using "PrintData"
+        instance.PrintData(err_msg);
+        KRATOS_ERROR << err_msg.str() << std::endl;
     }
 
     static VariableData* pGet(std::string const& Name)
     {
-        return (msComponents.find(Name)->second);
+        auto it_comp =  msComponents.find(Name);
+        if (it_comp != msComponents.end()) {
+            return (it_comp->second);
+        }
+
+        std::stringstream err_msg;
+        err_msg << "The variable \"" << Name << "\" is not registered!\n"
+                << "Maybe you need to import the application where it is defined?\n"
+                << "The following variables are registered:" << std::endl;
+        KratosComponents instance; // creating an instance for using "PrintData"
+        instance.PrintData(err_msg);
+        KRATOS_ERROR << err_msg.str() << std::endl;
     }
 
     static ComponentsContainerType & GetComponents()
@@ -333,20 +355,20 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "Kratos components";
+        return "Kratos components <VariableData>";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "Kratos components";
+        rOStream << "Kratos components <VariableData>";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
         for (const auto& r_comp : msComponents) {
-            rOStream << "    " << r_comp.second << std::endl;
+            rOStream << "    " << r_comp.first << std::endl;
         }
     }
 
