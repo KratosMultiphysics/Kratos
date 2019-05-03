@@ -78,13 +78,13 @@ void AddCustomProcessesToPython(pybind11::module &m)
 		.def(init<ModelPart &, unsigned int>())
 		.def("Execute", &ComputeNormalizedFreeEnergyOnNodesProcess::Execute);
 
-    class_<ApplyComponentTableProcess, ApplyComponentTableProcess::Pointer, Process>
-    (m, "ApplyComponentTableProcess")
-    	.def( init< ModelPart&, Parameters>());
+	class_<ApplyComponentTableProcess, ApplyComponentTableProcess::Pointer, Process>
+	(m, "ApplyComponentTableProcess")
+		.def( init< ModelPart&, Parameters>());
 
-    class_<ApplyDoubleTableProcess, ApplyDoubleTableProcess::Pointer, Process>
-    (m, "ApplyDoubleTableProcess")
-    	.def( init< ModelPart&, Parameters>());
+	class_<ApplyDoubleTableProcess, ApplyDoubleTableProcess::Pointer, Process>
+	(m, "ApplyDoubleTableProcess")
+		.def( init< ModelPart&, Parameters>());
 
 }
 } // namespace Python.

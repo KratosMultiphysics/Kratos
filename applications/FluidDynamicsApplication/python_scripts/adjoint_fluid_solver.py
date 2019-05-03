@@ -94,7 +94,7 @@ class AdjointFluidSolver(PythonSolver):
         self.solver.Predict()
 
     def SolveSolutionStep(self):
-        self.solver.SolveSolutionStep()
+        return self.solver.SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
         (self.solver).FinalizeSolutionStep()
