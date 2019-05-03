@@ -24,7 +24,7 @@
 #include "containers/model.h"
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
-#include "includes/linear_solver_factory.h"
+#include "factories/linear_solver_factory.h"
 #include "elements/embedded_nodal_variable_calculation_element_simplex.h"
 #include "processes/process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
