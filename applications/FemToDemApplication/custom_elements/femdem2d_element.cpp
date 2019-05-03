@@ -346,9 +346,8 @@ void FemDem2DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 		const Vector& r_strain_vector = values.GetStrainVector();
 		if (is_damaging == true && std::abs(r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2]) > tolerance) {
 			if (this->GetProperties()[TANGENT_CONSTITUTIVE_TENSOR] == true) {
-				// this->CalculateSecondOrderTangentTensor(tangent_tensor, strain_vector, integrated_stress_vector, C);
-				this->CalculateSecondOrderCentralDifferencesTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, C);
-				noalias(rLeftHandSideMatrix) += prod(trans(variables.B), variables.IntegrationWeight * Matrix(prod(tangent_tensor, variables.B)));
+				const Vector& r_internal_forces = variables.IntegrationWeight * prod(trans(variables.B), r_integrated_stress_vector);
+				this->CalculateTangentTensorUPerturbed(tangent_tensor, r_strain_vector, r_integrated_stress_vector, r_internal_forces, C);
 			} else {
 				this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, C);
 				noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * prod(trans(variables.B), Matrix(prod(tangent_tensor, variables.B)));
@@ -1505,7 +1504,8 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 	// const double numerical_tolerance = std::sqrt(tolerance) * (1.0 + displ_norm / delta_displ_norm);
 	// const double numerical_tolerance = std::sqrt(tolerance) * (1.0 + displ_norm);
 	// const double numerical_tolerance = 1e-12 * displ_norm;
-	const double numerical_tolerance = std::sqrt(tolerance) * (1.0 + displ_norm);
+	// const double numerical_tolerance = std::sqrt(tolerance) * (1.0 + displ_norm);
+	const double numerical_tolerance = 1e-15;
 
 	// We impose a certain displ perturbation = numerical_tolerance*delta_u
 	Vector displacement_perturbation(mat_size);
@@ -1630,6 +1630,7 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 			}
 		}
 	}
+	rTangentTensor = (trans(rTangentTensor) + rTangentTensor)*0.5;
 	// KRATOS_WATCH(rTangentTensor)
 }
 } // namespace Kratos
