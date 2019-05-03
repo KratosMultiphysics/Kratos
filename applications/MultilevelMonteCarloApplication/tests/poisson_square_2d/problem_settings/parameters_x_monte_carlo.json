@@ -8,8 +8,8 @@
     },
     "multilevel_monte_carlo" : {
         "run_multilevel_monte_carlo"    : "True",
-        "initial_tolerance"             : 0.25,
-        "tolerance"                     : 0.1,
+        "initial_tolerance"             : 0.2,
+        "tolerance"                     : 0.05,
         "confidence"                    : 0.7,
         "number_samples_screening"      : 25,
         "levels_screening"              : 2,
