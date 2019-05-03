@@ -29,6 +29,7 @@ KratosCompressiblePotentialFlowApplication::KratosCompressiblePotentialFlowAppli
     KratosApplication("CompressiblePotentialFlowApplication"),
     mIncompressiblePotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mAdjointPotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mEmbeddedIncompressiblePotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mPotentialWallCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
     mPotentialWallCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mAdjointPotentialWallCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2))))
@@ -44,6 +45,9 @@ void KratosCompressiblePotentialFlowApplication::Register()
     // Degrees of freedom
     KRATOS_REGISTER_VARIABLE(VELOCITY_POTENTIAL);
     KRATOS_REGISTER_VARIABLE(AUXILIARY_VELOCITY_POTENTIAL);
+
+    //Embedded variables
+    KRATOS_REGISTER_VARIABLE(GEOMETRY_DISTANCE);
 
     // Adjoint variables
     KRATOS_REGISTER_VARIABLE(ADJOINT_VELOCITY_POTENTIAL);
@@ -77,6 +81,7 @@ void KratosCompressiblePotentialFlowApplication::Register()
     //Register elements
     KRATOS_REGISTER_ELEMENT("IncompressiblePotentialFlowElement2D3N", mIncompressiblePotentialFlowElement2D3N);
     KRATOS_REGISTER_ELEMENT("AdjointPotentialFlowElement2D3N", mAdjointPotentialFlowElement2D3N);
+    KRATOS_REGISTER_ELEMENT("EmbeddedIncompressiblePotentialFlowElement2D3N", mEmbeddedIncompressiblePotentialFlowElement2D3N);
 
     //Register conditions
     KRATOS_REGISTER_CONDITION("PotentialWallCondition2D2N", mPotentialWallCondition2D2N);
