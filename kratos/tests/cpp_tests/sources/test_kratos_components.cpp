@@ -26,6 +26,7 @@ namespace Testing {
 
 namespace {
 
+// dummy-conditions required for testing
 class DummyCondition1 : public Condition {};
 class DummyCondition2 : public Condition {};
 
@@ -57,7 +58,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosComponentsAddDifferentObjectsSameName, KratosCor
     KratosComponents<Condition>::Add("dummy_1", dummy_1_1);
 
     // registering the a different object with the name - NOT OK, this is UNDEFINED BEHAVIOR, we don't know what we get when we query the name
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(KratosComponents<Condition>::Add("dummy_1", dummy_2), "Error: An object of different type was already registered with name");
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(KratosComponents<Condition>::Add("dummy_1", dummy_2), "Error: An object of different type was already registered with name \"dummy_1\"");
 }
 
 }
