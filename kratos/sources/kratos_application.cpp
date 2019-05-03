@@ -55,8 +55,12 @@
 #include "geometries/hexahedra_3d_27.h"
 
 /* Factories */
-#include "includes/standard_linear_solver_factory.h"
-#include "includes/standard_preconditioner_factory.h"
+#include "factories/standard_linear_solver_factory.h"
+#include "factories/standard_preconditioner_factory.h"
+#include "factories/standard_scheme_factory.h"
+#include "factories/standard_strategy_factory.h"
+#include "factories/standard_convergence_criteria_factory.h"
+#include "factories/standard_builder_and_solver_factory.h"
 
 namespace Kratos {
 typedef Node<3> NodeType;
@@ -141,6 +145,12 @@ void KratosApplication::RegisterKratosCore() {
     // Register linear solvers and preconditioners
     RegisterLinearSolvers();
     RegisterPreconditioners();
+
+    // Register of solving strategies
+    RegisterBuilderAndSolvers();
+    RegisterConvergenceCriterias();
+    RegisterStrategies();
+    RegisterSchemes();
 
     //Register objects with general definition
     Serializer::Register("Node", NodeType());
