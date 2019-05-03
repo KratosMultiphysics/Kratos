@@ -28,6 +28,8 @@
 #include "includes/kratos_components.h"
 #include "containers/global_pointers_vector.h"
 #include "includes/node.h"
+#include "includes/element.h"
+#include "includes/condition.h"
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
@@ -37,6 +39,10 @@ namespace Kratos
 {
 KRATOS_DEFINE_VARIABLE(GlobalPointersVector<Node<3> >, NEIGHBOUR_NODES)
 KRATOS_DEFINE_VARIABLE(GlobalPointersVector<Node<3> >, FATHER_NODES)
+
+KRATOS_DEFINE_VARIABLE(GlobalPointersVector< Element >, NEIGHBOUR_ELEMENTS)
+KRATOS_DEFINE_VARIABLE(GlobalPointersVector< Condition >, NEIGHBOUR_CONDITIONS)
+
 }  // namespace Kratos.
 
 #undef  KRATOS_EXPORT_MACRO
