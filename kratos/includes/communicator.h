@@ -217,7 +217,7 @@ public:
 
     virtual Communicator::Pointer Create(const DataCommunicator& rDataCommunicator) const
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         return Kratos::make_shared<Communicator>(rDataCommunicator);
 
