@@ -23,11 +23,22 @@
 
 namespace Kratos
 {
+/// Local Flags
+KRATOS_CREATE_LOCAL_FLAG(FindIntersectedGeometricalObjectsProcess, INTERSECTING_CONDITIONS, 1);
+KRATOS_CREATE_LOCAL_FLAG(FindIntersectedGeometricalObjectsProcess, INTERSECTING_ELEMENTS,   2);
+KRATOS_CREATE_LOCAL_FLAG(FindIntersectedGeometricalObjectsProcess, INTERSECTED_CONDITIONS,  3);
+KRATOS_CREATE_LOCAL_FLAG(FindIntersectedGeometricalObjectsProcess, INTERSECTED_ELEMENTS,    4);
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 FindIntersectedGeometricalObjectsProcess::FindIntersectedGeometricalObjectsProcess(
     ModelPart& rModelPartIntersected,
-    ModelPart& rModelPartIntersecting
+    ModelPart& rModelPartIntersecting,
+    const Flags Options
     ) : mrModelPartIntersected(rModelPartIntersected),
-        mrModelPartIntersecting(rModelPartIntersecting)
+        mrModelPartIntersecting(rModelPartIntersecting),
+        mOptions(Options)
 {
 }
 
@@ -49,6 +60,17 @@ FindIntersectedGeometricalObjectsProcess::FindIntersectedGeometricalObjectsProce
 
     KRATOS_ERROR_IF(r_intersected_model_part_name == "") << "intersected_model_part_name must be defined on parameters" << std::endl;
     KRATOS_ERROR_IF(r_intersecting_model_part_name == "") << "intersecting_model_part_name must be defined on parameters" << std::endl;
+
+    // Setting flags
+    const bool intersecting_conditions = ThisParameters["intersecting_conditions"].GetBool();
+    const bool intersecting_elements = ThisParameters["intersecting_elements"].GetBool();
+    const bool intersected_conditions = ThisParameters["intersected_conditions"].GetBool();
+    const bool intersected_elements = ThisParameters["intersected_elements"].GetBool();
+
+    mOptions.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS, intersecting_conditions);
+    mOptions.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS, intersecting_elements);
+    mOptions.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS, intersected_conditions);
+    mOptions.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS, intersected_elements);
 }
 
 /***********************************************************************************/
@@ -66,22 +88,32 @@ void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(std::v
 {
     auto& r_elements_array = mrModelPartIntersected.ElementsArray();
     auto& r_conditions_array = mrModelPartIntersected.ConditionsArray();
-    const SizeType number_of_entities = r_elements_array.size() + r_conditions_array.size();
+    SizeType number_of_entities = 0;
+    if (mOptions.Is(FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS)) {
+        number_of_entities += r_elements_array.size();
+    }
+    if (mOptions.Is(FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS)) {
+        number_of_entities += r_conditions_array.size();
+    }
     OtreeCellVectorType leaves;
 
     IndexType counter = 0;
     rResults.resize(number_of_entities);
-    for (auto& r_element : r_elements_array) {
-        leaves.clear();
-        mOctree.GetIntersectedLeaves(r_element, leaves);
-        FindIntersectedSkinObjects(*r_element, leaves, rResults[counter]);
-        ++counter;
+    if (mOptions.Is(FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS)) {
+        for (auto& r_element : r_elements_array) {
+            leaves.clear();
+            mOctree.GetIntersectedLeaves(r_element, leaves);
+            FindIntersectedSkinObjects(*r_element, leaves, rResults[counter]);
+            ++counter;
+        }
     }
-    for (auto& r_condition : r_conditions_array) {
-        leaves.clear();
-        mOctree.GetIntersectedLeaves(r_condition, leaves);
-        FindIntersectedSkinObjects(*r_condition, leaves, rResults[counter]);
-        ++counter;
+    if (mOptions.Is(FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS)) {
+        for (auto& r_condition : r_conditions_array) {
+            leaves.clear();
+            mOctree.GetIntersectedLeaves(r_condition, leaves);
+            FindIntersectedSkinObjects(*r_condition, leaves, rResults[counter]);
+            ++counter;
+        }
     }
 }
 
@@ -144,29 +176,33 @@ void FindIntersectedGeometricalObjectsProcess::Execute()
     OtreeCellVectorType leaves;
 
     // Iterate over elements
-    auto& r_elements_array = mrModelPartIntersected.Elements();
-    const SizeType number_of_elements = r_elements_array.size();
+    if (mOptions.Is(FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS)) {
+        auto& r_elements_array = mrModelPartIntersected.Elements();
+        const SizeType number_of_elements = r_elements_array.size();
 
-    const auto it_elements_begin = r_elements_array.begin();
+        const auto it_elements_begin = r_elements_array.begin();
 
-    #pragma omp parallel for private(leaves)
-    for (int i = 0; i < static_cast<int>(number_of_elements); i++) {
-        auto it_elem = it_elements_begin + i;
-        leaves.clear();
-        IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_elem.base()), leaves);
+        #pragma omp parallel for private(leaves)
+        for (int i = 0; i < static_cast<int>(number_of_elements); i++) {
+            auto it_elem = it_elements_begin + i;
+            leaves.clear();
+            IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_elem.base()), leaves);
+        }
     }
 
     // Iterate over conditions
-    auto& r_conditions_array = mrModelPartIntersected.Conditions();
-    const SizeType number_of_conditions = r_conditions_array.size();
+    if (mOptions.Is(FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS)) {
+        auto& r_conditions_array = mrModelPartIntersected.Conditions();
+        const SizeType number_of_conditions = r_conditions_array.size();
 
-    const auto it_conditions_begin = r_conditions_array.begin();
+        const auto it_conditions_begin = r_conditions_array.begin();
 
-    #pragma omp parallel for private(leaves)
-    for (int i = 0; i < static_cast<int>(number_of_conditions); i++) {
-        auto it_cond = it_conditions_begin + i;
-        leaves.clear();
-        IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), leaves);
+        #pragma omp parallel for private(leaves)
+        for (int i = 0; i < static_cast<int>(number_of_conditions); i++) {
+            auto it_cond = it_conditions_begin + i;
+            leaves.clear();
+            IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), leaves);
+        }
     }
 }
 
@@ -214,24 +250,28 @@ void FindIntersectedGeometricalObjectsProcess::GenerateOctree()
     }
 
     // Add entities
-    auto& r_elements_array = mrModelPartIntersecting.Elements();
-    const auto it_elements_begin = r_elements_array.begin();
-    const SizeType number_of_elements = r_elements_array.size();
+    if (mOptions.Is(FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS)) {
+        auto& r_elements_array = mrModelPartIntersecting.Elements();
+        const auto it_elements_begin = r_elements_array.begin();
+        const SizeType number_of_elements = r_elements_array.size();
 
-    // Iterate over the elements
-    for (int i = 0; i < static_cast<int>(number_of_elements); i++) {
-        auto it_elements = it_elements_begin + i;
-        mOctree.Insert(*(it_elements).base());
+        // Iterate over the elements
+        for (int i = 0; i < static_cast<int>(number_of_elements); i++) {
+            auto it_elements = it_elements_begin + i;
+            mOctree.Insert(*(it_elements).base());
+        }
     }
 
-    auto& r_conditions_array = mrModelPartIntersecting.Conditions();
-    const auto it_conditions_begin = r_conditions_array.begin();
-    const SizeType number_of_conditions = r_conditions_array.size();
+    if (mOptions.Is(FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS)) {
+        auto& r_conditions_array = mrModelPartIntersecting.Conditions();
+        const auto it_conditions_begin = r_conditions_array.begin();
+        const SizeType number_of_conditions = r_conditions_array.size();
 
-    // Iterate over the conditions
-    for (int i = 0; i < static_cast<int>(number_of_conditions); i++) {
-        auto it_conditions = it_conditions_begin + i;
-        mOctree.Insert(*(it_conditions).base());
+        // Iterate over the conditions
+        for (int i = 0; i < static_cast<int>(number_of_conditions); i++) {
+            auto it_conditions = it_conditions_begin + i;
+            mOctree.Insert(*(it_conditions).base());
+        }
     }
 }
 
@@ -478,7 +518,11 @@ Parameters FindIntersectedGeometricalObjectsProcess::GetDefaultParameters()
     Parameters default_parameters = Parameters(R"(
     {
         "intersected_model_part_name"  : "",
-        "intersecting_model_part_name" : ""
+        "intersecting_model_part_name" : "",
+        "intersecting_conditions"      : true,
+        "intersecting_elements"        : true,
+        "intersected_conditions"       : true,
+        "intersected_elements"         : true
     })" );
 
     return default_parameters;
