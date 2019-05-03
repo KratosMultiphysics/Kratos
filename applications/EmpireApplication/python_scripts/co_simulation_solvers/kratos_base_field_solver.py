@@ -51,6 +51,7 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
         self._GetAnalysisStage().OutputSolutionStep()
 
     def SolveSolutionStep(self):
+        KratosMultiphysics.Logger.PrintInfo("AAAAAAAAAAAAAAAAAAAA", self._GetAnalysisStage()._GetSolver())
         self._GetAnalysisStage()._GetSolver().SolveSolutionStep()
 
     def GetBufferSize(self):

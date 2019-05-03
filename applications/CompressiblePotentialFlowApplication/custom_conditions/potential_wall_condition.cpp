@@ -190,11 +190,24 @@ void PotentialWallCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& Conditi
 template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
+    std::cout << "WHAT is the Current Process Info????\t" << rCurrentProcessInfo << std::endl;
     std::vector<double> rValues;
     ElementPointerType pElem = pGetElement();
     pElem->GetValueOnIntegrationPoints(PRESSURE, rValues, rCurrentProcessInfo);
     this->SetValue(PRESSURE, rValues[0]);
 }
+// void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+//             std::vector<double>& rValues,
+//             const ProcessInfo& rCurrentProcessInfo) override
+//     {
+//         if(rValues.size() != 1) rValues.resize(1);
+
+//         if (rVariable == PRESSURE)
+//         {
+//             double p = ComputePressure(rCurrentProcessInfo);
+//             rValues[0] = p;
+//         }
+//     }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Input and output
