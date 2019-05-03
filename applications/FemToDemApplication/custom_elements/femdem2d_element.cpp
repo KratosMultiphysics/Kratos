@@ -1046,7 +1046,7 @@ void FemDem2DElement::RankineCriterion(
 
 	const double F = uniaxial_stress - rThreshold;
 	if (F <= 0.0) { // Elastic region --> Damage is constant
-		rDamage = this->GetConvergedDamage();
+		rDamage = this->GetConvergedDamages(Edge);
 	} else {
 		this->CalculateExponentialDamage(rDamage, A, uniaxial_stress, c_max);
 		rThreshold = uniaxial_stress;
@@ -1106,7 +1106,7 @@ void FemDem2DElement::DruckerPragerCriterion(
 
 	const double F = uniaxial_stress - rThreshold;
 	if (F <= 0.0) {// Elastic region --> Damage is constant
-		rDamage = this->GetConvergedDamage();
+		rDamage = this->GetConvergedDamages(Edge);
 	} else {
 		this->CalculateExponentialDamage(rDamage, A, uniaxial_stress, c_max);
 		rThreshold = uniaxial_stress;
@@ -1165,7 +1165,7 @@ void FemDem2DElement::SimoJuCriterion(
 	KRATOS_ERROR_IF(A < tolerance) << "'A' damage parameter lower than zero --> Increase FRAC_ENERGY_T" << std::endl;
 
 	if (F <= 0) {// Elastic region --> Damage is constant
-		rDamage = this->GetConvergedDamage();
+		rDamage = this->GetConvergedDamages(Edge);
 	} else {
 		this->CalculateExponentialDamage(rDamage, A, uniaxial_stress, c_max);
 		rThreshold = uniaxial_stress;
