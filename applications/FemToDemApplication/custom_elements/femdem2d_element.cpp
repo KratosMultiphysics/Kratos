@@ -204,9 +204,6 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		//compute element kinematic variables B, F, DN_DX ...
 		this->CalculateKinematics(variables, point_number);
 
-		KRATOS_WATCH(variables.DN_DX)
-		KRATOS_WATCH(variables.H)
-
 		//calculate material response
 		this->CalculateMaterialResponse(variables, values, point_number); // FEMDEM
 
@@ -1499,20 +1496,30 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 		previous_displacements[2*i]     = displacement_old[0];
 		previous_displacements[2*i + 1] = displacement_old[1];
 	}
-	std::cout << "************************************************************" << std::endl;
-	KRATOS_WATCH(this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT))
-	KRATOS_WATCH(this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT))
-	KRATOS_WATCH(this->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT))
+	
+	// KRATOS_WATCH(this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT))
+	// KRATOS_WATCH(this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT))
+	// KRATOS_WATCH(this->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT))
 	// KRATOS_WATCH(this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT,1))
 	// const Vector& r_delta_displ = current_displacements - previous_displacements;
 	const double displ_norm = norm_2(current_displacements);
 	// const double delta_displ_norm = norm_2(r_delta_displ);
 	// const double numerical_tolerance = std::sqrt(tolerance) * (1.0 + displ_norm / delta_displ_norm);
-	const double numerical_tolerance = std::sqrt(tolerance) * (1.0 + displ_norm);
+	// const double numerical_tolerance = std::sqrt(tolerance) * (1.0 + displ_norm);
+	const double numerical_tolerance = 1e-10;
+	// const double numerical_tolerance = std::sqrt(tolerance) * (1.0 + displ_norm);
 
 	// We impose a certain displ perturbation = numerical_tolerance*delta_u
 	Vector displacement_perturbation(number_of_nodes*dimension);
-	for (unsigned int i = 0; i < number_of_nodes*dimension; i++) displacement_perturbation[i] = 1.0; // provisional TODO
+
+	// const double min = -1.0;
+	const double min = 0.0;
+	const double max = 1.0;
+	
+	for (unsigned int i = 0; i < number_of_nodes*dimension; i++) {
+		const double random_contr = ((double) rand()*(max - min) / (double)RAND_MAX + min);
+		displacement_perturbation[i] = random_contr; // provisional TODO
+	}
 
 	// We perturbate the displacement field and save the u field
 	noalias(displacements_copy) = current_displacements;
@@ -1526,16 +1533,7 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 		r_displacement[0] = current_displacements[2*i];
 		r_displacement[1] = current_displacements[2*i + 1];
 	}
-	std::cout << "**** despues de pert" << std::endl;
-	KRATOS_WATCH(this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT))
-	KRATOS_WATCH(this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT))
-	KRATOS_WATCH(this->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT))
 
-	// KRATOS_WATCH(numerical_tolerance)
-	// KRATOS_WATCH(displacement_perturbation)
-	// KRATOS_WATCH(displ_norm)
-	// KRATOS_WATCH(this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT))
-// ************************************************************************************************************************
 	//create and initialize element variables:
 	ElementDataType variables;
 	ProcessInfo dummy_process_info;
@@ -1558,6 +1556,8 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 
 	auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
 	KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
+	Vector perturbed_internal_foces(number_of_nodes*dimension);
+	perturbed_internal_foces = ZeroVector(number_of_nodes*dimension);
 
 	for (SizeType point_number = 0; point_number < r_integration_points.size(); point_number++ ) {
 		//compute element kinematic variables B, F, DN_DX ...
@@ -1596,13 +1596,25 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 		const Vector& r_predictive_stress_vector = values.GetStressVector();
 		const Vector& r_integrated_stress_vector = (1.0 - damage_element) * r_predictive_stress_vector;
 
-		KRATOS_WATCH(r_integrated_stress_vector)
-		KRATOS_WATCH(rStressVectorGP)
-		KRATOS_WATCH(rStrainVectorGP)
-		KRATOS_WATCH(values.GetStrainVector())
+		// KRATOS_WATCH(r_integrated_stress_vector)
+		// KRATOS_WATCH(rStressVectorGP)
+		// KRATOS_WATCH(rStrainVectorGP)
+		// KRATOS_WATCH(values.GetStrainVector())
+		// KRATOS_WATCH(displacement_perturbation)
+		// KRATOS_WATCH(numerical_tolerance)
 		// KRATOS_WATCH(displ_norm)
-		// KRATOS_WATCH(displ_norm)
-		KRATOS_WATCH(displ_norm)
+
+		// Now we Reset the displacement field
+		for (unsigned int i = 0; i < number_of_nodes; i++) {
+			array_1d<double,3>& r_displacement = this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+
+			// We substitute the perturbed displ
+			r_displacement[0] = displacements_copy[2*i];
+			r_displacement[1] = displacements_copy[2*i + 1];
+		}
+
+		// And compute the new Fint
+		perturbed_internal_foces -= variables.IntegrationWeight * prod(trans(variables.B), r_integrated_stress_vector);
 
 	}
 
