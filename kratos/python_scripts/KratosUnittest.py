@@ -1,8 +1,8 @@
 from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import Logger
 
-from unittest import *
 import unittest
+from unittest import * # needed to make all functions available to the tests using this file
 from contextlib import contextmanager
 
 import getopt
@@ -10,7 +10,7 @@ import sys
 import os
 
 
-class TestLoader(TestLoader):
+class TestLoader(unittest.TestLoader):
     def loadTestsFromTestCases(self, testCaseClasses):
         ''' Return a list of suites with all tests cases contained in every
         testCaseClass in testCaseClasses '''
@@ -24,7 +24,7 @@ class TestLoader(TestLoader):
         return allTests
 
 
-class TestCase(TestCase):
+class TestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -92,6 +92,8 @@ def Usage():
         Logger.PrintInfo(l) # using the logger to only print once in MPI
 
 def main():
+    # this deliberately overiddes the function "unittest.main",
+    # because it cannot parse extra command line arguments
     if "--using-mpi" in sys.argv:
         sys.argv.remove("--using-mpi") # has to be removed bcs unittest cannot parse it
     unittest.main()
@@ -155,14 +157,14 @@ def runTests(tests):
 
 
 KratosSuites = {
-    'small': TestSuite(),
-    'nightly': TestSuite(),
-    'all': TestSuite(),
-    'validation': TestSuite(),
-    'mpi_small': TestSuite(),
-    'mpi_nightly': TestSuite(),
-    'mpi_all': TestSuite(),
-    'mpi_validation': TestSuite(),
+    'small':          unittest.TestSuite(),
+    'nightly':        unittest.TestSuite(),
+    'all':            unittest.TestSuite(),
+    'validation':     unittest.TestSuite(),
+    'mpi_small':      unittest.TestSuite(),
+    'mpi_nightly':    unittest.TestSuite(),
+    'mpi_all':        unittest.TestSuite(),
+    'mpi_validation': unittest.TestSuite(),
 }
 
 
