@@ -175,6 +175,9 @@ public:
     void PrintData(std::ostream& rOStream) const override;
 
     ///@}
+protected:
+
+    void GetPotentialOnNormalElement(array_1d<double, NumNodes>& phis) const;
 
 private:
     ///@name Private Operators

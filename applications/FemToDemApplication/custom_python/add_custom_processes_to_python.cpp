@@ -25,6 +25,8 @@
 #include "custom_processes/extend_pressure_condition_process.h"
 #include "custom_processes/assign_pressure_id_process.h"
 #include "custom_processes/expand_wet_nodes_process.h"
+#include "custom_processes/apply_component_table_process.hpp"
+#include "custom_processes/apply_double_table_process.hpp"
 
 
 namespace Kratos
@@ -75,6 +77,14 @@ void AddCustomProcessesToPython(pybind11::module &m)
 	class_<ComputeNormalizedFreeEnergyOnNodesProcess, ComputeNormalizedFreeEnergyOnNodesProcess::Pointer, Process>(m, "ComputeNormalizedFreeEnergyOnNodesProcess")
 		.def(init<ModelPart &, unsigned int>())
 		.def("Execute", &ComputeNormalizedFreeEnergyOnNodesProcess::Execute);
+
+	class_<ApplyComponentTableProcess, ApplyComponentTableProcess::Pointer, Process>
+	(m, "ApplyComponentTableProcess")
+		.def( init< ModelPart&, Parameters>());
+
+	class_<ApplyDoubleTableProcess, ApplyDoubleTableProcess::Pointer, Process>
+	(m, "ApplyDoubleTableProcess")
+		.def( init< ModelPart&, Parameters>());
 
 }
 } // namespace Python.
