@@ -243,8 +243,8 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		const Vector& r_strain_vector = values.GetStrainVector();
 		if (is_damaging == true && std::abs(r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2]) > tolerance) {
 			if (this->GetProperties()[TANGENT_CONSTITUTIVE_TENSOR] == true) {
-				// this->CalculateSecondOrderTangentTensor(tangent_tensor, strain_vector, integrated_stress_vector, C);
-				this->CalculateSecondOrderCentralDifferencesTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, C);
+				const Vector& r_internal_forces = variables.IntegrationWeight * prod(trans(variables.B), r_integrated_stress_vector);
+				this->CalculateTangentTensorUPerturbed(tangent_tensor, r_strain_vector, r_integrated_stress_vector, r_internal_forces, C);
 				noalias(rLeftHandSideMatrix) += prod(trans(variables.B), variables.IntegrationWeight * Matrix(prod(tangent_tensor, variables.B)));
 			} else {
 				this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, C);
@@ -1475,15 +1475,15 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 	const Vector& rStrainVectorGP,
 	const Vector& rStressVectorGP,
 	const Vector& rInternalForcesVectorGP,
-	const Matrix& rElasticMatrix,
-	const Element* pCurrentElement
+	const Matrix& rElasticMatrix
 	)
 {
-	auto& rGeometry = pCurrentElement->GetGeometry();
+	auto& rGeometry = this->GetGeometry();
 	const unsigned int number_of_nodes = rGeometry.PointsNumber();
 	const unsigned int dimension       = rGeometry.WorkingSpaceDimension();
 	Vector current_displacements(number_of_nodes*dimension);
 	Vector previous_displacements(number_of_nodes*dimension);
+	Vector displacements_copy(number_of_nodes*dimension);
 
 	// we fill the Vectors
 	for (unsigned int i = 0; i < number_of_nodes; i++) {
@@ -1496,16 +1496,32 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 		previous_displacements[2*i]     = displacement_old[0];
 		previous_displacements[2*i + 1] = displacement_old[1];
 	}
+	const Vector& r_delta_displ = current_displacements - previous_displacements;
+	const double displ_norm = norm_2(current_displacements);
+	const double delta_displ_norm = norm_2(r_delta_displ);
+	const double numerical_tolerance = std::sqrt(tolerance) * (1.0 + displ_norm / delta_displ_norm);
+
+	// We impose a certain displ perturbation = numerical_tolerance*delta_u
+	Vector displacement_perturbation(number_of_nodes*dimension);
+	for (unsigned int i = 0; i < number_of_nodes*dimension; i++) displacement_perturbation[i] = 1.0; // provisional TODO
+
+	// We perturbate the displacement field and save the u field
+	noalias(displacements_copy) = current_displacements;
+	noalias(current_displacements) += numerical_tolerance * displacement_perturbation;
+
+	// Now we recompute everyting
+	for (unsigned int i = 0; i < number_of_nodes; i++) {
+		array_1d<double,3>& r_displacement = this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+
+		// We sibstitute the perturbed displ
+		r_displacement[0] = current_displacements[2*i];
+		r_displacement[1] = current_displacements[2*i + 1];
+	}
+
+
 
 }
 
-void FemDem2DElement::CalculateInternalForcesVector(
-	const Element* pCurrentElement, 
-	const double NumericalTolerance, 
-	const Vector& rDisplacementPerturbation)
-{
-
-}
 
 
 
