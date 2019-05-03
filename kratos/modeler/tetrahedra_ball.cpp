@@ -19,14 +19,14 @@
 // Project includes
 #include "modeler/tetrahedra_ball.h"
 #include "includes/element.h"
-
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
 
 	TetrahedraBall::TetrahedraBall(NodeType const& rThisNode) {
 		auto const& neighbour_elements = rThisNode.GetValue(NEIGHBOUR_ELEMENTS);
-		for (auto i_element = neighbour_elements.begin(); i_element != neighbour_elements.end(); i_element++) {
+		for (auto i_element : neighbour_elements){
 			mTetrahedra.push_back(i_element->pGetGeometry().get());
 		}
 
