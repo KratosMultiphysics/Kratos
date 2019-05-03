@@ -28,7 +28,7 @@ array_1d<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement)
     }
     else {
         for (unsigned int i = 0; i < NumNodes; i++) {
-            if (!Geometry[i].GetValue(TRAILING_EDGE)) {
+            if (!r_geometry[i].GetValue(TRAILING_EDGE)) {
                 potentials[i] = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
             }
             else {
