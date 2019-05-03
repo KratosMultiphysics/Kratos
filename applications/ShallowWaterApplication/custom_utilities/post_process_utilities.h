@@ -21,7 +21,7 @@
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/model_part.h"
 #include "shallow_water_application_variables.h"
 
 
@@ -49,19 +49,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Auxiliary utilities for post process purpose.
-/** Gid is able to representate different entities when they have diffrent properties.
- *  For each existing property, an auxiliary property is created, which means dry state.
- *  Gid will print the wet domain (original property) with a property-color, and the dry
- *  domain with another color.
+/** 
+ * @ingroup ShallowWaterApplication
+ * @class PostProcessUtilities
+ * @brief This utilities manage the properties in order to allow GiD to print the wet and the dry domains in different layers
  */
-class PostProcessUtilities
+class KRATOS_API(SHALLOW_WATER_APPLICATION) PostProcessUtilities
 {
 public:
     ///@name Type Definitions
     ///@{
 
     typedef std::size_t IndexType;
+    typedef std::vector<IndexType> IndexVectorType;
 
     /// Pointer definition of PostProcessUtilities
     KRATOS_CLASS_POINTER_DEFINITION(PostProcessUtilities);
@@ -85,80 +85,21 @@ public:
     ///@name Operations
     ///@{
 
-    void DefineAuxiliaryProperties()
-    {
-        mWetToDryPropertiesMap.clear();
-        mDryToWetPropertiesMap.clear();
+    /**
+     * @brief For each existing property, an auxiliary property is created. The original properties mean wet state and the auxiliary properties mean dry state.
+     */
+    void DefineAuxiliaryProperties();
 
-        IndexType max_id = 0;
-        IndexVectorType prop_ids;
+    /**
+     * @brief This method assigns a property according to the flag. Gid will print the dry domain in another layer with an specific color.
+     * @param The flag which means dry state
+     */
+    void AssignDryWetProperties(Flags DryStateFlag);
 
-        // Loop the original ids
-        for (IndexType i = 0; i < mrModelPart.NumberOfProperties(); ++i)
-        {
-            auto prop_id = (mrModelPart.PropertiesBegin() + i)->Id();
-            max_id = std::max(max_id, prop_id);
-            prop_ids.push_back(prop_id);
-        }
-
-        // Creating the auxiliary ids for the dry domain
-        for (auto id : prop_ids)
-        {
-            // Get pointers to the properties and create the dry property
-            Properties::Pointer wet_prop = mrModelPart.pGetProperties(id);
-            Properties::Pointer dry_prop(new Properties(*wet_prop));
-            dry_prop->SetId(++max_id);
-
-            // Add the new properties to the model part and add them to the maps
-            mrModelPart.AddProperties(dry_prop);
-            mWetToDryPropertiesMap[wet_prop->Id()] = max_id;
-            mDryToWetPropertiesMap[dry_prop->Id()] = id;
-        }
-    }
-
-    void AssignDryWetProperties(Flags Flag)
-    {
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
-        {
-            auto elem = mrModelPart.ElementsBegin() + i;
-
-            if (elem->Is(Flag))
-            {
-                auto search = mDryToWetPropertiesMap.find(elem->GetProperties().Id());
-                if (search != mDryToWetPropertiesMap.end()) // The element was dry
-                {
-                    IndexType wet_prop_id = search->second;
-                    elem->SetProperties(mrModelPart.pGetProperties(wet_prop_id));
-                }
-            }
-            else
-            {
-                auto search = mWetToDryPropertiesMap.find(elem->GetProperties().Id());
-                if (search != mWetToDryPropertiesMap.end()) // The element was wet
-                {
-                    IndexType dry_prop_id = search->second;
-                    elem->SetProperties(mrModelPart.pGetProperties(dry_prop_id));
-                }
-            }
-        }
-    }
-
-    void RestoreDryWetProperties()
-    {
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
-        {
-            auto elem = mrModelPart.ElementsBegin() + i;
-
-            auto search = mDryToWetPropertiesMap.find(elem->GetProperties().Id());
-            if (search != mDryToWetPropertiesMap.end()) // The element was dry
-            {
-                IndexType wet_prop_id = search->second;
-                elem->SetProperties(mrModelPart.pGetProperties(wet_prop_id));
-            }
-        }
-    }
+    /**
+     * @brief Restore the properties to the original state (wet state)
+     */
+    void RestoreDryWetProperties();
 
     ///@}
     ///@name Access
@@ -186,43 +127,6 @@ public:
 
     ///@}
     ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
     ///@{
 
 
@@ -267,10 +171,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    PostProcessUtilities& operator=(PostProcessUtilities const& rOther);
+    PostProcessUtilities& operator=(PostProcessUtilities const& rOther) = delete;
 
     /// Copy constructor.
-    PostProcessUtilities(PostProcessUtilities const& rOther);
+    PostProcessUtilities(PostProcessUtilities const& rOther) = delete;
 
 
     ///@}

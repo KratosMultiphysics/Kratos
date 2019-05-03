@@ -54,9 +54,11 @@ typedef std::vector<std::string> StringVectorType;
 ///@{
 
 /// This utility renumber all the nodes, elements and/or conditions inside a model.
-/** Gid needs a unique Id for all the entities. Duplicated Ids across several model
- *  parts won't be printed correctly.
-*/
+/** 
+ * @ingroup ShallowWaterApplication
+ * @class IdRenumberingProcess
+ * @brief Gid needs a unique Id for all the entities. Duplicated Ids across several model parts won't be printed correctly.
+ */
 class KRATOS_API(SHALLOW_WATER_APPLICATION) IdRenumberingProcess : public Process
 {
 public:
@@ -72,9 +74,18 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /**
+     * @brief Constructor with a Model. All ModelParts will be renumebered
+     * @param The Model
+     * @see GetRootModelPartNames
+     */
     IdRenumberingProcess(Model& rThisModel);
 
+    /**
+     * @brief Constructor with model part and vector of strings. All ModelParts specified by the vector of string will be renumbered
+     * @param The Model
+     * @param The Model and the vector of strings containing the ModelParts names
+     */
     IdRenumberingProcess(Model& rThisModel, const StringVectorType& rModelPartNames);
 
     /// Destructor.
@@ -89,16 +100,34 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * It assigns the unique id
+     */
     void RenumberNodes();
 
+    /**
+     * It assigns the unique id
+     */
     void RenumberElements();
 
+    /**
+     * It assigns the unique id
+     */
     void RenumberConditions();
 
+    /**
+     * It restores the original id
+     */
     void RestoreNodes();
 
+    /**
+     * It restores the original id
+     */
     void RestoreElements();
 
+    /**
+     * It restores the original id
+     */
     void RestoreConditions();
 
     ///@}
@@ -137,43 +166,6 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -185,9 +177,9 @@ private:
 
     Model& mrModel;
     StringVectorType mModelPartNames;
-    std::unordered_map<IndexType, IndexType> mOriginNodesIds;
-    std::unordered_map<IndexType, IndexType> mOriginElementsIds;
-    std::unordered_map<IndexType, IndexType> mOriginConditionsIds;
+    std::unordered_map<IndexType, IndexType> mOriginNodesIdsMap;
+    std::unordered_map<IndexType, IndexType> mOriginElementsIdsMap;
+    std::unordered_map<IndexType, IndexType> mOriginConditionsIdsMap;
 
     ///@}
     ///@name Private Operators
@@ -198,6 +190,10 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method returns the names of the root model parts inside the Model
+     * @return Vector of strings with the names of the root model parts inside the Model
+     */
     StringVectorType GetRootModelPartNames() const;
 
     ///@}

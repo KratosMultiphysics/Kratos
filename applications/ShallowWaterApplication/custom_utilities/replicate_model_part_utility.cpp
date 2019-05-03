@@ -31,8 +31,8 @@ ReplicateModelPartUtility::ReplicateModelPartUtility(
     bool ReplicateSubModelParts
 ) : mrOriginModelPart(rOriginModelPart)
   , mrDestinationModelPart(rDestinationModelPart)
+  , mReplicateSubModelParts(ReplicateSubModelParts)
 {
-    mReplicateSubModelParts = ReplicateSubModelParts;
     KRATOS_ERROR_IF(mrOriginModelPart.IsSubModelPart() & mReplicateSubModelParts) << "The origin model part is not a root model part" << std::endl;
     KRATOS_ERROR_IF(mrDestinationModelPart.IsSubModelPart()) << "The destination model part is not a root model part" << std::endl;
     KRATOS_ERROR_IF(mrDestinationModelPart.NumberOfNodes() != 0) << "The destination model part is not empty. There are " << mrDestinationModelPart.NumberOfNodes() << " nodes." << std::endl;
@@ -51,6 +51,9 @@ void ReplicateModelPartUtility::Replicate()
     // Setting the nodal solution step variables
     VariablesList& variables_list = mrOriginModelPart.GetNodalSolutionStepVariablesList();
     mrDestinationModelPart.GetNodalSolutionStepVariablesList() = variables_list;
+
+    // Both model parts should share the TIME and the STEP
+    mrDestinationModelPart.SetProcessInfo(mrOriginModelPart.pGetProcessInfo());
 
     // In case we need to replicate the sub model parts
     AssignUniqueModelPartCollectionTagUtility::IndexStringMapType collections;
@@ -72,70 +75,76 @@ void ReplicateModelPartUtility::Replicate()
     }
 
     // Clone the nodes
-    mReplicatedNodes.clear();
+    mReplicatedNodesMap.clear();
+    ModelPart::NodesContainerType aux_array_with_node_pointers;
     for (IndexType i = 0; i < mrOriginModelPart.NumberOfNodes(); ++i)
     {
         auto it_node = mrOriginModelPart.NodesBegin() + i;
         auto new_node = it_node->Clone();
         new_node->SetId(++unique_node_id);
         new_node->SetSolutionStepVariablesList(&variables_list);
-        mrDestinationModelPart.AddNode(new_node);
-        mReplicatedNodes[it_node->Id()] = new_node;
+        aux_array_with_node_pointers.push_back(new_node);
+        mReplicatedNodesMap[it_node->Id()] = new_node;
         if (mReplicateSubModelParts)
         {
             auto tag = origin_nodes_tags[unique_node_id];
             dest_nodes_of_collection[tag].push_back(unique_node_id);
         }
     }
+    mrDestinationModelPart.AddNodes(aux_array_with_node_pointers.begin(), aux_array_with_node_pointers.end());
 
     // We also need to replicate the properties before creating the new elements
-    std::unordered_map<IndexType, Properties::Pointer> replicated_properties;
+    std::unordered_map<IndexType, Properties::Pointer> replicated_properties_map;
     for (IndexType i = 0; i < mrOriginModelPart.NumberOfProperties(); ++i)
     {
         auto it_prop = mrOriginModelPart.PropertiesBegin() + i;
-        Properties::Pointer new_prop(new Properties(*it_prop));
+        auto new_prop = Kratos::make_shared<Properties>(*it_prop);
         new_prop->SetId(++unique_prop_id);
         mrDestinationModelPart.AddProperties(new_prop);
-        replicated_properties[it_prop->Id()] = new_prop;
+        replicated_properties_map[it_prop->Id()] = new_prop;
     }
 
     // Note: we need to manually create the geometry with the cloned nodes
+    ModelPart::ElementsContainerType aux_array_with_element_pointers;
     for (IndexType i = 0; i < mrOriginModelPart.NumberOfElements(); ++i)
     {
         auto it_elem = mrOriginModelPart.ElementsBegin() + i;
-        PointerVector<Node<3>> new_elem_nodes;
+        NodesArrayType new_elem_nodes;
         for (auto& node : it_elem->GetGeometry())
         {
-            new_elem_nodes.push_back(mReplicatedNodes[node.Id()]);
+            new_elem_nodes.push_back(mReplicatedNodesMap[node.Id()]);
         }
         auto new_elem = it_elem->Clone(++unique_elem_id, new_elem_nodes);
-        new_elem->SetProperties(replicated_properties[it_elem->GetProperties().Id()]);
-        mrDestinationModelPart.AddElement(new_elem);
+        new_elem->SetProperties(replicated_properties_map[it_elem->GetProperties().Id()]);
+        aux_array_with_element_pointers.push_back(new_elem);
         if (mReplicateSubModelParts)
         {
             auto tag = origin_elements_tags[unique_elem_id];
             dest_elems_of_collection[tag].push_back(unique_elem_id);
         }
     }
+    mrDestinationModelPart.AddElements(aux_array_with_element_pointers.begin(), aux_array_with_element_pointers.end());
 
     // Note: we need to manually create the geometry with the cloned nodes
+    ModelPart::ConditionsContainerType aux_array_with_condition_pointers;
     for (IndexType i = 0; i < mrOriginModelPart.NumberOfConditions(); i++)
     {
         auto it_cond = mrOriginModelPart.ConditionsBegin() + i;
-        PointerVector<Node<3>> new_cond_nodes;
+        NodesArrayType new_cond_nodes;
         for (auto& node : it_cond->GetGeometry())
         {
-            new_cond_nodes.push_back(mReplicatedNodes[node.Id()]);
+            new_cond_nodes.push_back(mReplicatedNodesMap[node.Id()]);
         }
         auto new_cond = it_cond->Clone(++unique_cond_id, new_cond_nodes);
-        new_cond->SetProperties(replicated_properties[it_cond->GetProperties().Id()]);
-        mrDestinationModelPart.AddCondition(new_cond);
+        new_cond->SetProperties(replicated_properties_map[it_cond->GetProperties().Id()]);
+        aux_array_with_condition_pointers.push_back(new_cond);
         if (mReplicateSubModelParts)
         {
             auto tag = origin_conditions_tags[unique_cond_id];
             dest_conds_of_collection[tag].push_back(unique_cond_id);
         }
     }
+    mrDestinationModelPart.AddConditions(aux_array_with_condition_pointers.begin(), aux_array_with_condition_pointers.end());
 
     // We need to replicate the sub model parts and then, populate them
     if (mReplicateSubModelParts)
@@ -165,43 +174,47 @@ void ReplicateModelPartUtility::Replicate()
 }
 
 
-void ReplicateModelPartUtility::SetOriginMeshPosition()
+void ReplicateModelPartUtility::SetOriginMeshZCoordinate()
+{
+    SetMeshZCoordinate(mrOriginModelPart);
+}
+
+
+void ReplicateModelPartUtility::SetOriginMeshZCoordinate(Variable<double>& rVariable)
+{
+    SetMeshZCoordinate(mrOriginModelPart, rVariable);
+}
+
+
+void ReplicateModelPartUtility::SetDestinationMeshZCoordinate()
+{
+    SetMeshZCoordinate(mrDestinationModelPart);
+}
+
+
+void ReplicateModelPartUtility::SetDestinationMeshZCoordinate(Variable<double>& rVariable)
+{
+    SetMeshZCoordinate(mrDestinationModelPart, rVariable);
+}
+
+
+void ReplicateModelPartUtility::SetMeshZCoordinate(ModelPart& rModelPart)
 {
     #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
     {
-        (mrOriginModelPart.NodesBegin() + i)->Z() = 0.0;
+        auto it_node = rModelPart.NodesBegin() + i;
+        it_node->Z() = 0.0;
     }
 }
 
 
-void ReplicateModelPartUtility::SetOriginMeshPosition(Variable<double>& rVariable)
+void ReplicateModelPartUtility::SetMeshZCoordinate(ModelPart& rModelPart, Variable<double>& rVariable)
 {
     #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
     {
-        auto it_node = mrOriginModelPart.NodesBegin() + i;
-        it_node->Z() = it_node->FastGetSolutionStepValue(rVariable);
-    }
-}
-
-
-void ReplicateModelPartUtility::SetDestinationMeshPosition()
-{
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); ++i)
-    {
-        (mrDestinationModelPart.NodesBegin() + i)->Z() = 0.0;
-    }
-}
-
-
-void ReplicateModelPartUtility::SetDestinationMeshPosition(Variable<double>& rVariable)
-{
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrDestinationModelPart.NumberOfNodes()); ++i)
-    {
-        auto it_node = mrDestinationModelPart.NodesBegin() + i;
+        auto it_node = rModelPart.NodesBegin() + i;
         it_node->Z() = it_node->FastGetSolutionStepValue(rVariable);
     }
 }

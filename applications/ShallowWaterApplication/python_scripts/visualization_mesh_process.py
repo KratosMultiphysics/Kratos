@@ -2,11 +2,11 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
 
 def Factory(settings, Model):
-    if(type(settings) != KM.Parameters):
+    if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return VisualizationMeshProcess(Model, settings["Parameters"])
 
-## This process sets the value of a scalar variable using the AssignScalarVariableProcess.
+## This process adds a topography model part and mark the wet and dry domain
 class VisualizationMeshProcess(KM.Process):
 
     def __init__(self, Model, settings):
@@ -39,6 +39,7 @@ class VisualizationMeshProcess(KM.Process):
             self.nodal_variables = self._GenerateVariableListFromInput(settings["nodal_variables_to_transfer"])
             self.nonhistorical_variables = self._GenerateVariableListFromInput(settings["nonhistorical_variables_to_transfer"])
             self.topography_variable = KM.KratosGlobals.GetVariable(settings["topography_variable"].GetString())
+            self.free_surface_variable = KM.KratosGlobals.GetVariable(settings["free_surface_variable"].GetString())
             self.update_topography = settings["update_topography"].GetBool()
             self.update_free_surface = settings["update_free_surface"].GetBool()
 
@@ -58,18 +59,11 @@ class VisualizationMeshProcess(KM.Process):
                 self.topography_utility.TransferVariable(variable)
             for variable in self.nonhistorical_variables:
                 self.topography_utility.TransferNonHistoricalVariable(variable)
-            self.topography_utility.SetDestinationMeshPosition(self.topography_variable)
+            self.topography_utility.SetDestinationMeshZCoordinate(self.topography_variable)
             if self.update_free_surface:
-                self.topography_utility.SetOriginMeshPosition(self.free_surface_variable)
+                self.topography_utility.SetOriginMeshZCoordinate(self.free_surface_variable)
             else:
-                self.topography_utility.SetOriginMeshPosition()
-
-    def ExecuteInitializeSolutionStep(self):
-        if self.use_topographic_model_part:
-            time = self.computing_model_part.ProcessInfo[KM.TIME]
-            step = self.computing_model_part.ProcessInfo[KM.STEP]
-            self.topographic_model_part.ProcessInfo[KM.TIME] = time
-            self.topographic_model_part.ProcessInfo[KM.STEP] = step
+                self.topography_utility.SetOriginMeshZCoordinate()
 
     def ExecuteBeforeOutputStep(self):
         # The elements should be active to be included in the GidOutputProcess
@@ -82,14 +76,14 @@ class VisualizationMeshProcess(KM.Process):
             for variable in self.nonhistorical_variables:
                 self.topography_utility.TransferNonHistoricalVariable(variable)
             if self.update_topography:
-                self.topography_utility.SetDestinationMeshPosition(self.topography_variable)
+                self.topography_utility.SetDestinationMeshZCoordinate(self.topography_variable)
             if self.update_free_surface:
-                self.topography_utility.SetOriginMeshPosition(self.free_surface_variable)
+                self.topography_utility.SetOriginMeshZCoordinate(self.free_surface_variable)
 
     def ExecuteAfterOutputStep(self):
         self.properties_utility.RestoreDryWetProperties()
         if self.use_topographic_model_part and self.update_free_surface:
-            self.topography_utility.SetOriginMeshPosition()
+            self.topography_utility.SetOriginMeshZCoordinate()
 
     def _GenerateVariableListFromInput(self, variables_array):
         '''Parse a list of variables from input.'''

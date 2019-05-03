@@ -39,16 +39,16 @@ void IdRenumberingProcess::RenumberNodes()
 {
     // The new absolute unique_id
     IndexType unique_id = 0;
-    mOriginNodesIds.clear();
+    mOriginNodesIdsMap.clear();
 
     // Loop the model parts
     for (const auto& name : mModelPartNames)
     {
         ModelPart& model_part = mrModel.GetModelPart(name);
-        for (int i = 0; i < static_cast<int>(model_part.NumberOfNodes()); ++i)
+        for (IndexType i = 0; i < model_part.NumberOfNodes(); ++i)
         {
             auto it_node = model_part.NodesBegin() + i;
-            mOriginNodesIds[++unique_id] = it_node->Id();
+            mOriginNodesIdsMap[++unique_id] = it_node->Id();
             it_node->SetId(unique_id);
         }
     }
@@ -58,16 +58,16 @@ void IdRenumberingProcess::RenumberElements()
 {
     // The new absolute unique_id
     IndexType unique_id = 0;
-    mOriginElementsIds.clear();
+    mOriginElementsIdsMap.clear();
 
     // Loop the model parts
     for (const auto& name : mModelPartNames)
     {
         ModelPart& model_part = mrModel.GetModelPart(name);
-        for (int i = 0; i < static_cast<int>(model_part.NumberOfElements()); ++i)
+        for (IndexType i = 0; i < model_part.NumberOfElements(); ++i)
         {
             auto it_elem = model_part.ElementsBegin() + i;
-            mOriginElementsIds[++unique_id] = it_elem->Id();
+            mOriginElementsIdsMap[++unique_id] = it_elem->Id();
             it_elem->SetId(unique_id);
         }
     }
@@ -77,16 +77,16 @@ void IdRenumberingProcess::RenumberConditions()
 {
     // The new absolute unique_id
     IndexType unique_id = 0;
-    mOriginConditionsIds.clear();
+    mOriginConditionsIdsMap.clear();
 
     // Loop the model parts
     for (const auto& name : mModelPartNames)
     {
         ModelPart& model_part = mrModel.GetModelPart(name);
-        for (int i = 0; i < static_cast<int>(model_part.NumberOfConditions()); ++i)
+        for (IndexType i = 0; i < model_part.NumberOfConditions(); ++i)
         {
             auto it_cond = model_part.ConditionsBegin() + i;
-            mOriginConditionsIds[++unique_id] = it_cond->Id();
+            mOriginConditionsIdsMap[++unique_id] = it_cond->Id();
             it_cond->SetId(unique_id);
         }
     }
@@ -94,59 +94,62 @@ void IdRenumberingProcess::RenumberConditions()
 
 void IdRenumberingProcess::RestoreNodes()
 {
-    if(mOriginNodesIds.size() != 0)
+    if(mOriginNodesIdsMap.size() != 0)
     {
         // Loop the model parts
         for (const auto& name : mModelPartNames)
         {
             ModelPart& model_part = mrModel.GetModelPart(name);
+            #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(model_part.NumberOfNodes()); ++i)
             {
                 auto it_node = model_part.NodesBegin() + i;
-                it_node->SetId(mOriginNodesIds[it_node->Id()]);
+                it_node->SetId(mOriginNodesIdsMap[it_node->Id()]);
             }
         }
     }
     // Avoiding the possibility to restore the ids twice
-    mOriginNodesIds.clear();
+    mOriginNodesIdsMap.clear();
 }
 
 void IdRenumberingProcess::RestoreElements()
 {
-    if (mOriginElementsIds.size() != 0)
+    if (mOriginElementsIdsMap.size() != 0)
     {
         // Loop the model parts
         for (const auto& name : mModelPartNames)
         {
             ModelPart& model_part = mrModel.GetModelPart(name);
+            #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(model_part.NumberOfElements()); ++i)
             {
                 auto it_elem = model_part.ElementsBegin() + i;
-                it_elem->SetId(mOriginElementsIds[it_elem->Id()]);
+                it_elem->SetId(mOriginElementsIdsMap[it_elem->Id()]);
             }
         }
     }
     // Avoiding the possibility to restore the ids twice
-    mOriginElementsIds.clear();
+    mOriginElementsIdsMap.clear();
 }
 
 void IdRenumberingProcess::RestoreConditions()
 {
-    if (mOriginConditionsIds.size() != 0)
+    if (mOriginConditionsIdsMap.size() != 0)
     {
         // Loop the model parts
         for (const auto& name : mModelPartNames)
         {
             ModelPart& model_part = mrModel.GetModelPart(name);
+            #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(model_part.NumberOfConditions()); ++i)
             {
                 auto it_cond = model_part.ConditionsBegin() + i;
-                it_cond->SetId(mOriginConditionsIds[it_cond->Id()]);
+                it_cond->SetId(mOriginConditionsIdsMap[it_cond->Id()]);
             }
         }
     }
     // Avoiding the possibility to restore the ids twice
-    mOriginConditionsIds.clear();
+    mOriginConditionsIdsMap.clear();
 }
 
 StringVectorType IdRenumberingProcess::GetRootModelPartNames() const
@@ -156,14 +159,7 @@ StringVectorType IdRenumberingProcess::GetRootModelPartNames() const
     for (const auto name : all_names)
     {
         // Get the root name of the model part.
-        std::string root_name;
-        std::string::size_type pos = name.find('.');
-        if (pos != std::string::npos) {
-            root_name = name.substr(0, pos);
-        }
-        else {
-            root_name = name;
-        }
+        std::string root_name = mrModel.GetModelPart(name).GetRootModelPart().Name();
 
         // Add the root name if it is not present in the vector.
         if (std::find(root_names.begin(), root_names.end(), root_name) == root_names.end())

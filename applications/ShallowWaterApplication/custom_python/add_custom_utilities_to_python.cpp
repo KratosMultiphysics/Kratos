@@ -78,10 +78,10 @@ namespace Python
         .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<double>>)
         .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<array_1d<double, 3>>>)
         .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
-        .def("SetOriginMeshPosition", py::overload_cast<>(&ReplicateModelPartUtility::SetOriginMeshPosition))
-        .def("SetOriginMeshPosition", py::overload_cast<Variable<double>&>(&ReplicateModelPartUtility::SetOriginMeshPosition))
-        .def("SetDestinationMeshPosition", py::overload_cast<>(&ReplicateModelPartUtility::SetDestinationMeshPosition))
-        .def("SetDestinationMeshPosition", py::overload_cast<Variable<double>&>(&ReplicateModelPartUtility::SetDestinationMeshPosition))
+        .def("SetOriginMeshZCoordinate", py::overload_cast<>(&ReplicateModelPartUtility::SetOriginMeshZCoordinate))
+        .def("SetOriginMeshZCoordinate", py::overload_cast<Variable<double>&>(&ReplicateModelPartUtility::SetOriginMeshZCoordinate))
+        .def("SetDestinationMeshZCoordinate", py::overload_cast<>(&ReplicateModelPartUtility::SetDestinationMeshZCoordinate))
+        .def("SetDestinationMeshZCoordinate", py::overload_cast<Variable<double>&>(&ReplicateModelPartUtility::SetDestinationMeshZCoordinate))
         ;
 
     py::class_< PostProcessUtilities > (m, "PostProcessUtilities")

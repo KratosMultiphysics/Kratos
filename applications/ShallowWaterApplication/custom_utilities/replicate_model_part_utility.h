@@ -49,9 +49,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/** 
+ * @ingroup ShallowWaterApplication
+ * @class ReplicateModelPartUtility
+ * @brief This utility replicates a model part to print the topography in the post-process
+ */
 class KRATOS_API(SHALLOW_WATER_APPLICATION) ReplicateModelPartUtility
 {
 public:
@@ -59,6 +61,7 @@ public:
     ///@{
 
     typedef std::size_t IndexType;
+    typedef Geometry<Node<3>>::PointsArrayType NodesArrayType;
 
     /// Pointer definition of ReplicateModelPartUtility
     KRATOS_CLASS_POINTER_DEFINITION(ReplicateModelPartUtility);
@@ -82,8 +85,14 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief It creates a copy of the origin model part and all the nodes, elements, conditions, properties, it also copies the ProcessInfo.
+     */
     void Replicate();
 
+    /**
+     * @brief This method copies a variable from the origin model part to the destination model part for post-process purpose.
+     */
     template<class TVarType>
     void TransferVariable(TVarType& rVariable)
     {
@@ -91,11 +100,14 @@ public:
         for (int i = 0; i < static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
         {
             const auto it_node = mrOriginModelPart.NodesBegin() + i;
-            const auto dest_node = mReplicatedNodes[it_node->Id()];
+            const auto dest_node = mReplicatedNodesMap[it_node->Id()];
             dest_node->FastGetSolutionStepValue(rVariable) = it_node->FastGetSolutionStepValue(rVariable);
         }
     }
 
+    /**
+     * @brief This method copies a variable from the origin model part to the destination model part for post-process purpose.
+     */
     template<class TVarType>
     void TransferNonHistoricalVariable(TVarType& rVariable)
     {
@@ -103,18 +115,30 @@ public:
         for (int i = 0; i < static_cast<int>(mrOriginModelPart.NumberOfNodes()); ++i)
         {
             const auto it_node = mrOriginModelPart.NodesBegin() + i;
-            const auto dest_node = mReplicatedNodes[it_node->Id()];
+            const auto dest_node = mReplicatedNodesMap[it_node->Id()];
             dest_node->SetValue(rVariable, it_node->GetValue(rVariable));
         }
     }
 
-    void SetOriginMeshPosition();
+    /**
+     * @brief This method sets the origin mesh Z-coordinate to zero.
+     */
+    void SetOriginMeshZCoordinate();
 
-    void SetOriginMeshPosition(Variable<double>& rVariable);
+    /**
+     * @brief This method sets the origin mesh Z-coordinate to a given scalar variable.
+     */
+    void SetOriginMeshZCoordinate(Variable<double>& rVariable);
 
-    void SetDestinationMeshPosition();
+    /**
+     * @brief This method sets the destination mesh Z-coordinate to zero.
+     */
+    void SetDestinationMeshZCoordinate();
 
-    void SetDestinationMeshPosition(Variable<double>& rVariable);
+    /**
+     * @brief This method sets the destination mesh Z-coordinate to a given scalar variable.
+     */
+    void SetDestinationMeshZCoordinate(Variable<double>& rVariable);
 
     ///@}
     ///@name Access
@@ -153,43 +177,6 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -201,8 +188,8 @@ private:
 
     ModelPart& mrOriginModelPart;
     ModelPart& mrDestinationModelPart;
-    bool mReplicateSubModelParts;
-    std::unordered_map<IndexType, Node<3>::Pointer> mReplicatedNodes;
+    const bool mReplicateSubModelParts;
+    std::unordered_map<IndexType, Node<3>::Pointer> mReplicatedNodesMap;
 
     ///@}
     ///@name Private Operators
@@ -212,6 +199,10 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void SetMeshZCoordinate(ModelPart& rModelPart);
+
+    void SetMeshZCoordinate(ModelPart& rModelPart, Variable<double>& rVariable);
 
     void GetMaximumIds(IndexType& rUniqueNodeId, IndexType& rUniqueElemId, IndexType& rUniqueCondId, IndexType& rUniquePropId);
 
@@ -230,10 +221,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    ReplicateModelPartUtility& operator=(ReplicateModelPartUtility const& rOther);
+    ReplicateModelPartUtility& operator=(ReplicateModelPartUtility const& rOther) = delete;
 
     /// Copy constructor.
-    ReplicateModelPartUtility(ReplicateModelPartUtility const& rOther);
+    ReplicateModelPartUtility(ReplicateModelPartUtility const& rOther) = delete;
 
 
     ///@}
