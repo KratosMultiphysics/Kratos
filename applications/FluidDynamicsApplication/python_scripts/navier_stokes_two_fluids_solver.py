@@ -57,7 +57,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "formulation": {
                 "dynamic_tau": 1.0
             },
-            "bfecc_convection" : false
+            "bfecc_convection" : false,
+            "bfecc_number_substeps" : 10
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -175,7 +176,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if not self._bfecc_convection:
                 (self.level_set_convection_process).Execute()   # Convect the level-set according to the previous step velocity
             else:
-                (self.level_set_convection_process).BFECCconvect(self.main_model_part, KratosMultiphysics.DISTANCE, KratosMultiphysics.VELOCITY, 10)
+                (self.level_set_convection_process).BFECCconvect(self.main_model_part,
+                                                                 KratosMultiphysics.DISTANCE,
+                                                                 KratosMultiphysics.VELOCITY,
+                                                                 self.settings["bfecc_number_substeps"])
 
             (self.variational_distance_process).Execute()   # Recompute the distance field according to the new level set position
             self._set_physical_properties()                 # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level set
