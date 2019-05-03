@@ -347,8 +347,6 @@ class MultilevelMonteCarlo(object):
             print("\n ######## WARNING: store_lower_levels_samples set to True --> introducing a BIAS in the problem ########\n")
         # current_number_levels: number of levels of current iteration
         self.current_number_levels = self.settings["levels_screening"].GetInt()
-        # previous_number_levels: number of levels of previous iteration
-        self.previous_number_levels = None
 
         # batches_number_samples: total number of samples, organized in level and batches
         # batches_number_samples = [ [ [level0_batch1] [level1_batch1] .. ] [ [level0_batch2] [level1_batch2] ..] .. ]
@@ -746,29 +744,6 @@ class MultilevelMonteCarlo(object):
     input:  self: an instance of the class
     """
     def FinalizeMLMCPhase(self):
-        """
-        # prepare lists
-        for _ in range (self.current_number_levels - self.previous_number_levels): # append a list for the new level
-            self.difference_QoI.raw_moment_1.append([])
-            self.difference_QoI.unbiased_central_moment_2.append([])
-            self.difference_QoI.central_moment_1.append([])
-            self.difference_QoI.central_moment_2.append([])
-            self.difference_QoI.central_moment_3.append([])
-            self.difference_QoI.central_moment_4.append([])
-            self.difference_QoI.number_samples.append(0)
-            self.time_ML.raw_moment_1.append([])
-            self.time_ML.unbiased_central_moment_2.append([])
-            self.time_ML.central_moment_1.append([])
-            self.time_ML.central_moment_2.append([])
-            self.time_ML.central_moment_3.append([])
-            self.time_ML.central_moment_4.append([])
-            self.time_ML.number_samples.append(0)
-        # compute mean, sample variance and second moment for difference QoI and time ML
-        for level in range (self.current_number_levels+1):
-            for i_sample in range(self.previous_number_samples[level],self.number_samples[level]):
-                self.difference_QoI.UpdateOnePassCentralMoments(level,i_sample)
-                self.time_ML.UpdateOnePassCentralMoments(level,i_sample)"""
-
         # update power sums batches
         for batch in range (len(self.batches_number_samples)): # i.e. total number of batches
             if (self.batches_execution_finished[batch] is True and self.batches_analysis_finished[batch] is not True): # consider batches completed and not already analysed
@@ -789,8 +764,6 @@ class MultilevelMonteCarlo(object):
                     self.difference_QoI.ComputeHStatistics(level)
                     self.time_ML.ComputeHStatistics(level)
 
-                # update number of levels
-                self.previous_number_levels = self.current_number_levels
                 """
                 the functions executed in FinalizePhaseAux_Task are the followings:
                 self.ComputeMeanMLMCQoI()
@@ -825,10 +798,9 @@ class MultilevelMonteCarlo(object):
                 self.mean_mlmc_QoI = get_value_from_remote(self.mean_mlmc_QoI)
                 self.number_samples = get_value_from_remote(self.number_samples)
                 # check convergence
-                # convergence reached if: i) current_iteration >= number_iterations_iE
-                #                        ii) total_error < tolerance_i
+                # convergence reached if: total_error < tolerance
                 # if not update current_iteration
-                if (self.iteration_counter >= self.number_iterations_iE) and (self.total_error < self.tolerance_i):
+                if (self.total_error < self.settings["tolerance"].GetDouble()):
                     self.convergence = True
                 else:
                     self.iteration_counter = self.iteration_counter + 1
@@ -860,7 +832,6 @@ class MultilevelMonteCarlo(object):
         print("current tolerance = ",self.tolerance_i)
         print("updated estimated Bayesian Variance initialize phase = ",self.bayesian_variance)
         print("current number of levels = ",self.current_number_levels)
-        print("previous number of levels = ",self.previous_number_levels)
         print("current splitting parameter = ",self.theta_i)
         print("batch size = ",self.batch_size)
         print("batches prepared = ",self.batches_number_samples)
@@ -1081,7 +1052,6 @@ class MultilevelMonteCarlo(object):
         # update variables
         self.bayesian_variance = bayesian_variance
         self.current_number_levels = current_number_levels
-        self.previous_number_levels = Lmin
         del(tol,Wmin,current_number_levels,cgamma,gamma,calpha,alpha,cphi,mesh_parameters_all_levels,Lmax,Lmin)
 
     """
@@ -1156,9 +1126,8 @@ class MultilevelMonteCarlo(object):
             nsam[lev] = int(nsam[lev])
         # update variables and delete local variables
         self.batch_size = diff_nsam
-        self.previous_number_samples = previous_number_samples
         del(current_number_levels,bayesian_variance,min_samples_add,cgamma,gamma,cphi,mesh_parameters_current_levels,\
-        theta,tol,nsam,opt_number_samples,previous_number_samples,diff_nsam)
+        theta,tol,nsam,opt_number_samples,diff_nsam)
 
     """
     function computing the mlmc estimator for the mean of the Quantity of Interest
