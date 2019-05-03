@@ -1469,4 +1469,51 @@ void FemDem2DElement::AssignComponentsToSecondOrderCentralDifferencesTangentTens
 		rTangentTensor(row, Component) = (rPerturbedStress[row] - rMinusPerturbedStress[row]) / Perturbation;
 	}
 }
+
+void FemDem2DElement::CalculateTangentTensorUPerturbed(
+	Matrix& rTangentTensor,
+	const Vector& rStrainVectorGP,
+	const Vector& rStressVectorGP,
+	const Vector& rInternalForcesVectorGP,
+	const Matrix& rElasticMatrix,
+	const Element* pCurrentElement
+	)
+{
+	auto& rGeometry = pCurrentElement->GetGeometry();
+	const unsigned int number_of_nodes = rGeometry.PointsNumber();
+	const unsigned int dimension       = rGeometry.WorkingSpaceDimension();
+	Vector current_displacements(number_of_nodes*dimension);
+	Vector previous_displacements(number_of_nodes*dimension);
+
+	// we fill the Vectors
+	for (unsigned int i = 0; i < number_of_nodes; i++) {
+		array_1d<double,3> displacement = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+		array_1d<double,3> displacement_old = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT, 1);
+
+		current_displacements[2*i]     = displacement[0];
+		current_displacements[2*i + 1] = displacement[1];
+
+		previous_displacements[2*i]     = displacement_old[0];
+		previous_displacements[2*i + 1] = displacement_old[1];
+	}
+
+}
+
+void FemDem2DElement::CalculateInternalForcesVector(
+	const Element* pCurrentElement, 
+	const double NumericalTolerance, 
+	const Vector& rDisplacementPerturbation)
+{
+
+}
+
+
+
+
+
+
+
+
+
+
 } // namespace Kratos

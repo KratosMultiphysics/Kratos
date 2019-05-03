@@ -211,6 +211,19 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 		const double Perturbation,
 		const int Component);
 
+	void CalculateTangentTensorUPerturbed(
+		Matrix& rTangentTensor,
+		const Vector& rStrainVectorGP,
+		const Vector& rStressVectorGP,
+		const Vector& rInternalForcesVectorGP,
+		const Matrix& rElasticMatrix,
+		const Element* pCurrentElement);
+
+	void CalculateInternalForcesVector(
+		const Element* pCurrentElement, 
+		const double NumericalTolerance, 
+		const Vector& rDisplacementPerturbation);
+
 	private:
 	int mNumberOfEdges;
 	// Each component == Each edge
