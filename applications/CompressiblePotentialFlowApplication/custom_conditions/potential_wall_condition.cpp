@@ -188,9 +188,8 @@ void PotentialWallCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& Conditi
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PotentialWallCondition<TDim, TNumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void PotentialWallCondition<TDim, TNumNodes>::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    std::cout << "WHAT is the Current Process Info????\t" << rCurrentProcessInfo << std::endl;
     std::vector<double> rValues;
     ElementPointerType pElem = pGetElement();
     pElem->GetValueOnIntegrationPoints(PRESSURE, rValues, rCurrentProcessInfo);
