@@ -75,10 +75,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         self.metric_parameters = settings["metric_parameters"]
         self.distance_modification_parameters = settings["distance_modification_parameters"]
 
-        # We set to zero the metric
-        ZeroVector = [0.0,0.0,0.0]
-        KratosMultiphysics.VariableUtils().SetVectorVar(MeshingApplication.METRIC_TENSOR_2D, ZeroVector, self.main_model_part.Nodes)
-
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(MeshingApplication.METRIC_TENSOR_2D, self.main_model_part.Nodes)
 
         ''' Defining linear solver to be used by the variational distance process'''
         import python_linear_solver_factory #Linear solver for variational distance process
@@ -116,7 +113,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Elapsed time: ',time.time()-ini_time)
 
         KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.GEOMETRY_DISTANCE, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DISTANCE, 0.0, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.DISTANCE, self.main_model_part.Nodes)
         self.ApplyFlags()
 
         ''' ############################################################################################## '''
