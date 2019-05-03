@@ -281,7 +281,7 @@ void FSWernerWengleWallCondition<2, 2>::CalculateWallParameters(
         double DetM, s, w1, Proj;
         array_1d<double, 3> Rhs;
         MatrixType M(2, 2), InvM(2, 2);
-        ElementPointerType pElem = pGetElement();
+        auto pElem = pGetElement();
         const array_1d<double, 3>& Normal = this->GetValue(NORMAL);
         GeometryType& rElemGeom = pElem->GetGeometry();
         const GeometriesArrayType& edges = rElemGeom.Edges();
@@ -354,7 +354,7 @@ void FSWernerWengleWallCondition<3, 3>::CalculateWallParameters(
 	double DetM, s, w1, w2, Proj;
 	array_1d<double, 3> Rhs;
 	MatrixType M(3, 3), InvM(3, 3);
-	ElementPointerType pElem = pGetElement();
+	auto pElem = pGetElement();
 	const array_1d<double, 3>& Normal = this->GetValue(NORMAL);
 	const GeometriesArrayType& rElemFaces = pElem->GetGeometry().Faces();
 	const array_1d<double, 3>& center = this->GetGeometry().Center();

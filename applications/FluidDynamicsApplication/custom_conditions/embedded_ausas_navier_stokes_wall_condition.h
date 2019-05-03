@@ -34,6 +34,7 @@
 #include "fluid_dynamics_application_variables.h"
 #include "includes/deprecated_variables.h"
 #include "includes/cfd_variables.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -253,11 +254,11 @@ public:
         if (n_pos != 0 && n_neg != 0){
 
             // Get all the possible element candidates
-            WeakPointerVector<Element> element_candidates;
+            GlobalPointersVector<Element> element_candidates;
             for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
-                WeakPointerVector<Element> &r_node_element_candidates = r_geometry[i_node].GetValue(NEIGHBOUR_ELEMENTS);
+                auto& r_node_element_candidates = r_geometry[i_node].GetValue(NEIGHBOUR_ELEMENTS);
                 for (unsigned int j = 0; j < r_node_element_candidates.size(); j++) {
-                    element_candidates.push_back(r_node_element_candidates(j));
+                    element_candidates.push_back(r_node_element_candidates[j]);
                 }
             }
 
@@ -276,7 +277,7 @@ public:
 
             // Iterate the candidate elements
             for (unsigned int i_candidate = 0; i_candidate < element_candidates.size(); ++i_candidate) {
-                GeometryType &r_elem_geom = element_candidates[i_candidate].GetGeometry();
+                GeometryType &r_elem_geom = element_candidates[i_candidate]->GetGeometry();
                 const unsigned int n_elem_nodes = r_elem_geom.PointsNumber();
 
                 // Get a sort array with the iterated candidate element nodal ids
@@ -705,8 +706,8 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    Element::Pointer pGetElement() {
-		return mpParentElement.lock();
+    GlobalPointer<Element>& pGetElement() {
+		return mpParentElement;
 	}
 
     std::vector<unsigned int > GetParentElementIds() {
@@ -738,7 +739,7 @@ protected:
         // Otherwise, take the values from the current condition geometry
         if (rData.n_pos != 0 && rData.n_neg != 0){
             // Get the parent element nodal distances
-            Element::Pointer p_parent_element = this->pGetElement();
+            auto& p_parent_element = this->pGetElement();
             GeometryPointerType p_parent_geometry = p_parent_element->pGetGeometry();
             const Vector &distances = p_parent_element->GetValue(ELEMENTAL_DISTANCES);
             const unsigned int n_parent_nodes = p_parent_geometry->PointsNumber();
@@ -884,7 +885,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ElementWeakPointerType mpParentElement;
+    GlobalPointer<Element> mpParentElement;
     std::vector<unsigned int> mParentElementIds;
 
     ///@}

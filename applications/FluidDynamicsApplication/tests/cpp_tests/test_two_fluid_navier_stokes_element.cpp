@@ -83,7 +83,7 @@ namespace Kratos {
 			std::vector<ModelPart::IndexType> elemNodes {1, 2, 3};
 			modelPart.CreateNewElement("TwoFluidNavierStokes2D3N", 1, elemNodes, pElemProp);
 
-			Element::Pointer pElement = modelPart.pGetElement(1);
+			Element::Pointer pElement = modelPart.Elements()(1);
 
 			// Define the nodal values
 			Matrix vel_original(3,2);
@@ -178,7 +178,7 @@ namespace Kratos {
 			std::vector<ModelPart::IndexType> elemNodes {1, 2, 3, 4};
 			modelPart.CreateNewElement("TwoFluidNavierStokes3D4N", 1, elemNodes, pElemProp);
 
-			Element::Pointer pElement = modelPart.pGetElement(1);
+			Element::Pointer pElement = modelPart.Elements()(1);
 
 			// Define the nodal values
 			Matrix vel_original(4,3);
@@ -282,7 +282,7 @@ namespace Kratos {
             std::vector<ModelPart::IndexType> elemNodes{ 1, 2, 3, 4 };
             modelPart.CreateNewElement("TwoFluidNavierStokes3D4N", 1, elemNodes, pElemProp);
 
-            Element::Pointer pElement = modelPart.pGetElement(1);
+            Element::Pointer pElement = modelPart.Elements()(1);
 
             // Define the nodal values
             Matrix vel_original(4, 3);
@@ -386,7 +386,7 @@ namespace Kratos {
             std::vector<ModelPart::IndexType> elemNodes{ 1, 2, 3, 4 };
             modelPart.CreateNewElement("TwoFluidNavierStokes3D4N", 1, elemNodes, pElemProp);
 
-            Element::Pointer pElement = modelPart.pGetElement(1);
+            Element::Pointer pElement = modelPart.Elements()(1);
 
             // Define the nodal values
             Matrix vel_original(4, 3);
@@ -494,7 +494,7 @@ namespace Kratos {
 
 			modelPart.CreateNewElement("TwoFluidNavierStokes2D3N", 1, elemNodes1, pElemProp);
 
-			Element::Pointer pElement = modelPart.pGetElement(1);
+			Element::Pointer pElement = modelPart.Elements()(1);
 
 			// Define the nodal values as 0 for hydrostatic case
 			Matrix vel_original(3,2);
@@ -625,8 +625,8 @@ namespace Kratos {
             std::vector<ModelPart::IndexType> elemNodes2 {2, 4, 3};
 			modelPart.CreateNewElement("TwoFluidNavierStokes2D3N", 1, elemNodes1, pElemProp);
             modelPart.CreateNewElement("TwoFluidNavierStokes2D3N", 2, elemNodes2, pElemProp);
-            Element::Pointer pElement1 = modelPart.pGetElement(1);
-            Element::Pointer pElement2 = modelPart.pGetElement(2);
+            Element::Pointer pElement1 = modelPart.Elements()(1);
+            Element::Pointer pElement2 = modelPart.Elements()(2);
 
             std::vector<ModelPart::IndexType> condNodes1 {1, 2};
             std::vector<ModelPart::IndexType> condNodes2 {2, 4};
@@ -639,12 +639,12 @@ namespace Kratos {
 			pCondition2->SetFlags(SLIP);
 
 			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
-			WeakPointerVector<Element> wpParent1;
-			wpParent1.push_back(modelPart.pGetElement(1));
+			GlobalPointersVector<Element> wpParent1;
+			wpParent1.push_back(GlobalPointer<Element>(modelPart.Elements()(1)));
 			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
 
-			WeakPointerVector<Element> wpParent2;
-			wpParent2.push_back(modelPart.pGetElement(2));
+			GlobalPointersVector<Element> wpParent2;
+			wpParent2.push_back(GlobalPointer<Element>(modelPart.Elements()(2)));
 			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
 
             Vector elemRHS1 = ZeroVector(9);
@@ -808,9 +808,9 @@ namespace Kratos {
 			modelPart.CreateNewElement("TwoFluidNavierStokes3D4N", 2, elemNodes2, pElemProp);
 			modelPart.CreateNewElement("TwoFluidNavierStokes3D4N", 3, elemNodes3, pElemProp);
 
-            Element::Pointer pElement1 = modelPart.pGetElement(1);
-			Element::Pointer pElement2 = modelPart.pGetElement(2);
-			Element::Pointer pElement3 = modelPart.pGetElement(3);
+            Element::Pointer pElement1 = modelPart.Elements()(1);
+			Element::Pointer pElement2 = modelPart.Elements()(2);
+			Element::Pointer pElement3 = modelPart.Elements()(3);
 
 			// Creation of conditions (following MDPA file from GiD)
             std::vector<ModelPart::IndexType> condNodes1 {1, 5, 3};			// start at position 8
@@ -830,16 +830,16 @@ namespace Kratos {
 			pCondition3->SetFlags(SLIP);
 
 			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
-			WeakPointerVector<Element> wpParent1;
-			wpParent1.push_back(modelPart.pGetElement(3));
+			GlobalPointersVector<Element> wpParent1;
+			wpParent1.push_back(modelPart.Elements()(3));
 			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
 
-			WeakPointerVector<Element> wpParent2;
-			wpParent2.push_back(modelPart.pGetElement(2));
+			GlobalPointersVector<Element> wpParent2;
+			wpParent2.push_back(modelPart.Elements()(2));
 			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
 
-			WeakPointerVector<Element> wpParent3;
-			wpParent3.push_back(modelPart.pGetElement(1));
+			GlobalPointersVector<Element> wpParent3;
+			wpParent3.push_back(modelPart.Elements()(1));
 			pCondition3->SetValue( NEIGHBOUR_ELEMENTS, wpParent3 );
 
             Vector elemRHS1 = ZeroVector(16);
@@ -1053,8 +1053,8 @@ namespace Kratos {
             std::vector<ModelPart::IndexType> elemNodes2 {2, 4, 3};
 			modelPart.CreateNewElement("TwoFluidNavierStokes2D3N", 1, elemNodes1, pElemProp);
             modelPart.CreateNewElement("TwoFluidNavierStokes2D3N", 2, elemNodes2, pElemProp);
-            Element::Pointer pElement1 = modelPart.pGetElement(1);
-            Element::Pointer pElement2 = modelPart.pGetElement(2);
+            Element::Pointer pElement1 = modelPart.Elements()(1);
+            Element::Pointer pElement2 = modelPart.Elements()(2);
 
 
             std::vector<ModelPart::IndexType> condNodes1 {1, 2};
@@ -1068,12 +1068,12 @@ namespace Kratos {
 			pCondition2->SetFlags(SLIP);
 
 			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
-			WeakPointerVector<Element> wpParent1;
-			wpParent1.push_back(modelPart.pGetElement(1));
+			GlobalPointersVector<Element> wpParent1;
+			wpParent1.push_back(modelPart.Elements()(1));
 			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
 
-			WeakPointerVector<Element> wpParent2;
-			wpParent2.push_back(modelPart.pGetElement(2));
+			GlobalPointersVector<Element> wpParent2;
+			wpParent2.push_back(modelPart.Elements()(2));
 			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
 
             Vector elemRHS1 = ZeroVector(9);
@@ -1235,7 +1235,7 @@ namespace Kratos {
             std::vector<ModelPart::IndexType> elemNodes{ 1, 2, 3, 4 };
             modelPart.CreateNewElement("TwoFluidNavierStokes3D4N", 1, elemNodes, pElemProp);
 
-            Element::Pointer pElement = modelPart.pGetElement(1);
+            Element::Pointer pElement = modelPart.Elements()(1);
 
             // Define the nodal values
             Matrix vel_original(4, 3);
@@ -1346,9 +1346,9 @@ namespace Kratos {
 			modelPart.CreateNewElement("TwoFluidNavierStokes2D3N", 1, elemNodes1, pElemProp);
             modelPart.CreateNewElement("TwoFluidNavierStokes2D3N", 2, elemNodes2, pElemProp);
 			modelPart.CreateNewElement("TwoFluidNavierStokes2D3N", 3, elemNodes3, pElemProp);
-            Element::Pointer pElement1 = modelPart.pGetElement(1);
-            Element::Pointer pElement2 = modelPart.pGetElement(2);
-			Element::Pointer pElement3 = modelPart.pGetElement(3);
+            Element::Pointer pElement1 = modelPart.Elements()(1);
+            Element::Pointer pElement2 = modelPart.Elements()(2);
+			Element::Pointer pElement3 = modelPart.Elements()(3);
 
 
             std::vector<ModelPart::IndexType> condNodes1 {2, 3};
@@ -1362,12 +1362,12 @@ namespace Kratos {
 			pCondition2->SetFlags(SLIP);
 
 			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
-			WeakPointerVector<Element> wpParent1;
-			wpParent1.push_back(modelPart.pGetElement(1));
+			GlobalPointersVector<Element> wpParent1;
+			wpParent1.push_back(modelPart.Elements()(1));
 			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
 
-			WeakPointerVector<Element> wpParent2;
-			wpParent2.push_back(modelPart.pGetElement(3));
+			GlobalPointersVector<Element> wpParent2;
+			wpParent2.push_back(modelPart.Elements()(3));
 			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
 
             Vector elemRHS1 = ZeroVector(9);
@@ -1532,9 +1532,9 @@ namespace Kratos {
 			modelPart.CreateNewElement("TwoFluidNavierStokes3D4N", 2, elemNodes2, pElemProp);
 			modelPart.CreateNewElement("TwoFluidNavierStokes3D4N", 3, elemNodes3, pElemProp);
 
-            Element::Pointer pElement1 = modelPart.pGetElement(1);
-			Element::Pointer pElement2 = modelPart.pGetElement(2);
-			Element::Pointer pElement3 = modelPart.pGetElement(3);
+            Element::Pointer pElement1 = modelPart.Elements()(1);
+			Element::Pointer pElement2 = modelPart.Elements()(2);
+			Element::Pointer pElement3 = modelPart.Elements()(3);
 
 			// Creation of conditions (following MDPA file from GiD)
             std::vector<ModelPart::IndexType> condNodes1 {1, 5, 3};			// start at position 8
@@ -1554,16 +1554,16 @@ namespace Kratos {
 			pCondition3->SetFlags(SLIP);
 
 			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
-			WeakPointerVector<Element> wpParent1;
-			wpParent1.push_back(modelPart.pGetElement(3));
+			GlobalPointersVector<Element> wpParent1;
+			wpParent1.push_back(modelPart.Elements()(3));
 			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
 
-			WeakPointerVector<Element> wpParent2;
-			wpParent2.push_back(modelPart.pGetElement(2));
+			GlobalPointersVector<Element> wpParent2;
+			wpParent2.push_back(modelPart.Elements()(2));
 			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
 
-			WeakPointerVector<Element> wpParent3;
-			wpParent3.push_back(modelPart.pGetElement(1));
+			GlobalPointersVector<Element> wpParent3;
+			wpParent3.push_back(modelPart.Elements()(1));
 			pCondition3->SetValue( NEIGHBOUR_ELEMENTS, wpParent3 );
 
             Vector elemRHS1 = ZeroVector(16);

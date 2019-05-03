@@ -12,6 +12,7 @@
 
 #include "navier_stokes_wall_condition.h"
 #include "includes/checks.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -111,13 +112,13 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLocalSystem(MatrixType&
 
     if ( this->Is(SLIP) ){
         // finding parent element to retrieve viscous stresses which are later stored in "data"
-        WeakPointerVector<Element> parentElement = this->GetValue( NEIGHBOUR_ELEMENTS );
+        auto& parentElement = this->GetValue( NEIGHBOUR_ELEMENTS );
         KRATOS_ERROR_IF( parentElement.size() > 1 ) << "A condition was assigned more than one parent element." << std::endl;
         KRATOS_ERROR_IF( parentElement.size() == 0 ) << "A condition was NOT assigned a parent element. "
         << "This leads to errors for the slip condition [BEHR2004] "
         << "Please execute the check_and_prepare_model_process_fluid process." << std::endl;
 
-        Element& parent = parentElement[0];
+        Element& parent = *parentElement[0];
         data.ViscousStress = ZeroVector( 3*(TDim-1) );
         parent.Calculate(FLUID_STRESS, data.ViscousStress, rCurrentProcessInfo);
     }
@@ -196,13 +197,13 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorTyp
 
     if ( this->Is(SLIP) ){
         // finding parent element to retrieve viscous stresses which are later stored in "data"
-        WeakPointerVector<Element> parentElement = this->GetValue( NEIGHBOUR_ELEMENTS );
+        auto& parentElement = this->GetValue( NEIGHBOUR_ELEMENTS );
         KRATOS_ERROR_IF( parentElement.size() > 1 ) << "A condition was assigned more than one parent element." << std::endl;
         KRATOS_ERROR_IF( parentElement.size() == 0 ) << "A condition was NOT assigned a parent element. "
         << "This leads to errors for the slip condition [BEHR2004] "
         << "Please execute the check_and_prepare_model_process_fluid process." << std::endl;
 
-        Element& parent = parentElement[0];
+        Element& parent = *parentElement[0];
         data.ViscousStress = ZeroVector( 3*(TDim-1) );
         parent.Calculate(FLUID_STRESS, data.ViscousStress, rCurrentProcessInfo);
     }

@@ -54,6 +54,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/deprecated_variables.h"
 #include "includes/cfd_variables.h"
+#include "includes/global_pointer_variables.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -258,13 +259,13 @@ public:
 		double EdgeLength;
 		array_1d<double,3> Edge;
 		GeometryType& rGeom = this->GetGeometry();
-		WeakPointerVector<Element> ElementCandidates;
+		GlobalPointersVector<Element> ElementCandidates;
 		for (SizeType i = 0; i < TDim; i++)
 		{
-			WeakPointerVector<Element>& rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+			auto& rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
 			for (SizeType j = 0; j < rNodeElementCandidates.size(); j++)
 			{
-				ElementCandidates.push_back(rNodeElementCandidates(j));
+				ElementCandidates.push_back(rNodeElementCandidates[j]);
 			}
 		}
 
@@ -279,7 +280,7 @@ public:
 
 		for (SizeType i=0; i < ElementCandidates.size(); i++)
 		{
-			GeometryType& rElemGeom = ElementCandidates[i].GetGeometry();
+			GeometryType& rElemGeom = ElementCandidates[i]->GetGeometry();
 			ElementNodeIds.resize(rElemGeom.PointsNumber());
 
 			for (SizeType j=0; j < rElemGeom.PointsNumber(); j++)
@@ -552,9 +553,9 @@ protected:
 	///@name Protected Operations
 	///@{
 
-	ElementPointerType pGetElement()
+	GlobalPointer<Element> pGetElement()
 	{
-		return mpElement.lock();
+		return mpElement;
 	}
 
 	template< class TVariableType >
@@ -918,7 +919,7 @@ private:
 	///@{
 	bool mInitializeWasPerformed;
 	double mMinEdgeLength;
-	ElementWeakPointerType mpElement;
+	GlobalPointer<Element> mpElement;
 
 	///@}
 	///@name Serialization
