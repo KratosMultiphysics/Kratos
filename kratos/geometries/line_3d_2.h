@@ -52,8 +52,8 @@ namespace Kratos
  * @class Line3D2
  * @ingroup KratosCore
  * @brief An two node 3D line geometry with linear shape functions
- * @details The node ordering corresponds with: 
- *      0----------1 --> u  
+ * @details The node ordering corresponds with:
+ *      0----------1 --> u
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -176,7 +176,7 @@ public:
         BaseType::Points().push_back( pSecondPoint );
     }
 
-    Line3D2( const PointsArrayType& ThisPoints )
+    explicit Line3D2( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( BaseType::PointsNumber() != 2 )
@@ -208,7 +208,7 @@ public:
     obvious that any change to this new geometry's point affect
     source geometry's points too.
     */
-    template<class TOtherPointType> Line3D2( Line3D2<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Line3D2( Line3D2<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -714,7 +714,7 @@ public:
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) override
+        ) const override
     {
         PointLocalCoordinates( rResult, rPoint );
 

@@ -3,7 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes KM bac
 import KratosMultiphysics as KM
 
 # Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 # Convergence criteria class
@@ -93,7 +92,7 @@ class convergence_criterion:
 
             if (condn_convergence_criterion is True):
                 # Construct the solver
-                import eigen_solver_factory
+                from KratosMultiphysics import eigen_solver_factory
                 settings_max = KM.Parameters("""
                 {
                     "solver_type"             : "power_iteration_highest_eigenvalue_solver",
@@ -142,7 +141,7 @@ class convergence_criterion:
             self.mechanical_convergence_criterion = None
         else: # Standard criteria (same as structural mechanics application)
             # Construction of the class convergence_criterion
-            import convergence_criteria_factory
+            from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
             base_mechanical_convergence_criterion = convergence_criteria_factory.convergence_criterion(convergence_criterion_parameters)
 
             # Adding the mortar criteria

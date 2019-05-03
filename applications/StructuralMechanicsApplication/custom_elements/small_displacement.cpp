@@ -195,9 +195,11 @@ void SmallDisplacement::CalculateKinematicVariables(
     const GeometryType::IntegrationMethod& rIntegrationMethod
     )
 {
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(rIntegrationMethod);
+    const auto& r_geometry = GetGeometry();
+
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(rIntegrationMethod);
     // Shape functions
-    rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues(rThisKinematicVariables.N, r_integration_points[PointNumber].Coordinates());
+    rThisKinematicVariables.N = r_geometry.ShapeFunctionsValues(rThisKinematicVariables.N, r_integration_points[PointNumber].Coordinates());
 
     rThisKinematicVariables.detJ0 = CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, rIntegrationMethod);
 
@@ -207,10 +209,9 @@ void SmallDisplacement::CalculateKinematicVariables(
     CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, r_integration_points, PointNumber );
 
     // Compute equivalent F
-    Vector displacements;
-    GetValuesVector(displacements);
-    Vector strain_vector = prod(rThisKinematicVariables.B, displacements);
-    rThisKinematicVariables.F = ComputeEquivalentF(strain_vector);
+    GetValuesVector(rThisKinematicVariables.Displacements);
+    Vector strain_vector = prod(rThisKinematicVariables.B, rThisKinematicVariables.Displacements);
+    ComputeEquivalentF(rThisKinematicVariables.F, strain_vector);
     rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
 }
 
@@ -225,8 +226,13 @@ void SmallDisplacement::SetConstitutiveVariables(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints
     )
 {
+    const auto& r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+    const SizeType mat_size = number_of_nodes * dimension;
+
     // Displacements vector
-    Vector displacements;
+    Vector displacements(mat_size);
     GetValuesVector(displacements);
 
     // Compute strain
@@ -305,29 +311,29 @@ void SmallDisplacement::CalculateB(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix SmallDisplacement::ComputeEquivalentF(const Vector& rStrainTensor) const
+void SmallDisplacement::ComputeEquivalentF(
+    Matrix& rF,
+    const Vector& rStrainTensor
+    ) const
 {
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
-    Matrix F(dim,dim);
 
     if(dim == 2) {
-        F(0,0) = 1.0+rStrainTensor(0);
-        F(0,1) = 0.5*rStrainTensor(2);
-        F(1,0) = 0.5*rStrainTensor(2);
-        F(1,1) = 1.0+rStrainTensor(1);
+        rF(0,0) = 1.0+rStrainTensor(0);
+        rF(0,1) = 0.5*rStrainTensor(2);
+        rF(1,0) = 0.5*rStrainTensor(2);
+        rF(1,1) = 1.0+rStrainTensor(1);
     } else {
-        F(0,0) = 1.0+rStrainTensor(0);
-        F(0,1) = 0.5*rStrainTensor(3);
-        F(0,2) = 0.5*rStrainTensor(5);
-        F(1,0) = 0.5*rStrainTensor(3);
-        F(1,1) = 1.0+rStrainTensor(1);
-        F(1,2) = 0.5*rStrainTensor(4);
-        F(2,0) = 0.5*rStrainTensor(5);
-        F(2,1) = 0.5*rStrainTensor(4);
-        F(2,2) = 1.0+rStrainTensor(2);
+        rF(0,0) = 1.0+rStrainTensor(0);
+        rF(0,1) = 0.5*rStrainTensor(3);
+        rF(0,2) = 0.5*rStrainTensor(5);
+        rF(1,0) = 0.5*rStrainTensor(3);
+        rF(1,1) = 1.0+rStrainTensor(1);
+        rF(1,2) = 0.5*rStrainTensor(4);
+        rF(2,0) = 0.5*rStrainTensor(5);
+        rF(2,1) = 0.5*rStrainTensor(4);
+        rF(2,2) = 1.0+rStrainTensor(2);
     }
-
-    return F;
 }
 
 /***********************************************************************************/

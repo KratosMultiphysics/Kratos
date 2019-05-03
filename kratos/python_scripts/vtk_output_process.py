@@ -19,13 +19,15 @@ class VtkOutputProcess(KratosMultiphysics.Process):
             "output_precision"                   : 7,
             "output_control_type"                : "step",
             "output_frequency"                   : 1.0,
-            "output_sub_model_parts"             : true,
+            "output_sub_model_parts"             : false,
             "folder_name"                        : "VTK_Output",
+            "custom_name_prefix"                 : "",
             "save_output_files_in_folder"        : true,
             "nodal_solution_step_data_variables" : [],
             "nodal_data_value_variables"         : [],
             "element_data_value_variables"       : [],
-            "condition_data_value_variables"     : []
+            "condition_data_value_variables"     : [],
+            "gauss_point_variables"              : []
         }""")
 
         model_part_name = settings["model_part_name"].GetString()

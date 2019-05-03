@@ -24,7 +24,9 @@ class StructuralMechanicsTestFactoryMPI(StructuralMechanicsTestFactory):
         # Here we append "_mpi" to the name of the results file
         # e.g. "test_results.json" => "test_results_mpi.json"
         # This is necessary becs the node numbering changes with the partitioning
-        results_file_param = project_parameters["json_check_process"][0]["Parameters"]["input_file_name"]
+        if project_parameters["solver_settings"].Has("linear_solver_settings"):
+            project_parameters["solver_settings"].RemoveValue("linear_solver_settings")
+        results_file_param = project_parameters["processes"]["json_check_process"][0]["Parameters"]["input_file_name"]
         results_file_name = results_file_param.GetString()
         raw_path, file_name = os.path.split(results_file_name)
         raw_file_name, file_ext = os.path.splitext(file_name)

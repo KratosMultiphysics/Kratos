@@ -122,7 +122,7 @@ namespace Testing {
 
         // Compute the global coordinates of the baricentre
         const Geometry<Point>::PointsArrayType geom_pts = p_geom->Points();
-        Point centre = geom_pts[0] + geom_pts[1];
+        Point centre = Point{geom_pts[0] + geom_pts[1]};
         centre *= 1.0/2.0;
 
         // Compute the centre local coordinates
@@ -308,8 +308,8 @@ namespace Testing {
         KRATOS_CHECK_NEAR(p_geom->ShapeFunctionValue(1, coord), 5.0/6.0, TOLERANCE);
         auto& r_geom = *p_geom;
         Geometry<Node<3>>::Pointer p_geom_nodes = Kratos::make_shared<Line3D2<Node<3>>>(
-        Kratos::make_shared<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
-        Kratos::make_shared<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
+        Kratos::make_intrusive<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
+        Kratos::make_intrusive<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
         );
         CrossCheckShapeFunctionsValues(*p_geom_nodes);
     }
@@ -349,8 +349,8 @@ namespace Testing {
         Geometry<Point>::Pointer p_geom = GeneratePointsDiagonalLine3D2();
         auto& r_geom = *p_geom;
         Geometry<Node<3>>::Pointer p_geom_nodes = Kratos::make_shared<Line3D2<Node<3>>>(
-        Kratos::make_shared<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
-        Kratos::make_shared<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
+        Kratos::make_intrusive<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
+        Kratos::make_intrusive<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
         );
         TestAllShapeFunctionsLocalGradients(*p_geom_nodes);
     }

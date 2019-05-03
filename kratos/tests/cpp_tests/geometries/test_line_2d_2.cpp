@@ -90,6 +90,21 @@ namespace Testing {
         KRATOS_CHECK_NEAR(geom->Length(), std::sqrt(2.0), TOLERANCE);
     }
 
+    /** Checks if the bounding box of the line is calculated correctly.
+    * Checks if the bounding box of the line is calculated correctly.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(BoundingBoxLine2D2, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GeneratePointsDiagonalLine2D2();
+
+        Point low_point, high_point;
+        p_geom->BoundingBox(low_point, high_point);
+
+        KRATOS_CHECK_NEAR(low_point.X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR(low_point.Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR(high_point.X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR(high_point.Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
+    }
+
     /** Checks the inside test for a given point respect to the line
     * Checks the inside test for a given point respect to the line
     * It performs 4 tests:
@@ -123,7 +138,7 @@ namespace Testing {
 
         // Compute the global coordinates of the baricentre
         const Geometry<Point>::PointsArrayType geom_pts = geom->Points();
-        Point centre = geom_pts[0] + geom_pts[1];
+        Point centre = Point{geom_pts[0] + geom_pts[1]};
         centre *= 1.0/2.0;
 
         // Compute the centre local coordinates
@@ -309,8 +324,8 @@ namespace Testing {
         KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 5.0/6.0, TOLERANCE);
         auto& r_geom = *geom;
         auto p_geom_nodes = Kratos::make_shared<Line2D2<Node<3>>>(
-        Kratos::make_shared<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
-        Kratos::make_shared<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
+        Kratos::make_intrusive<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
+        Kratos::make_intrusive<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
         );
         CrossCheckShapeFunctionsValues(*p_geom_nodes);
     }
@@ -338,8 +353,8 @@ namespace Testing {
         auto geom = GeneratePointsDiagonalLine2D2();
         auto& r_geom = *geom;
         auto p_geom_nodes = Kratos::make_shared<Line2D2<Node<3>>>(
-        Kratos::make_shared<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
-        Kratos::make_shared<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
+        Kratos::make_intrusive<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
+        Kratos::make_intrusive<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
         );
         TestAllShapeFunctionsLocalGradients(*p_geom_nodes);
     }

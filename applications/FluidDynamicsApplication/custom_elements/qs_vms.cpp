@@ -564,9 +564,9 @@ void QSVMS<TElementData>::AddBoundaryTraction(TElementData& rData,
         for (unsigned int d = 0; d < Dim; d++) {
             const unsigned int row = i*BlockSize + d;
             for (unsigned int col = 0; col < LocalSize; col++) {
-                rLHS(row,col) += wni*normal_stress_operator(d,col);
+                rLHS(row,col) -= wni*normal_stress_operator(d,col);
             }
-            rRHS[row] -= wni*(shear_stress[d]-p_gauss*rUnitNormal[d]);
+            rRHS[row] += wni*(shear_stress[d]-p_gauss*rUnitNormal[d]);
         }
     }
 }

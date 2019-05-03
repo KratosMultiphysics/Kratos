@@ -1,6 +1,6 @@
 import sys
 import os
-from DEM_procedures import KratosPrint as Say
+from DEM_procedures import KratosPrintInfo as Say
 import KratosSwimmingDEM as script
 
 

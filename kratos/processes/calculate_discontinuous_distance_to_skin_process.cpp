@@ -165,7 +165,7 @@ namespace Kratos
 				ComputePlaneApproximation(rElement1, int_pts_vector, base_pt, normal);
 
 				// Compute the distance to the approximation plane
-				Plane3D approximation_plane(normal, base_pt);
+				Plane3D approximation_plane(normal, Point{base_pt});
 				for (int i = 0; i < number_of_tetrahedra_points; i++) {
 					elemental_distances[i] = approximation_plane.CalculateSignedDistance(r_geometry[i]);
 				}
@@ -379,14 +379,14 @@ namespace Kratos
 		// plane by extruding the intersection point 0 in the z-direction.
 		array_1d<double,3> z_coord_pt = rIntPtsVector[0];
 		z_coord_pt[2] = 1.0;
-		return Plane3D(rIntPtsVector[0], rIntPtsVector[1], z_coord_pt);
+		return Plane3D(Point{rIntPtsVector[0]}, Point{rIntPtsVector[1]}, Point{z_coord_pt});
 	}
 
 	template<>
 	Plane3D CalculateDiscontinuousDistanceToSkinProcess<3>::SetIntersectionPlane(
 		const std::vector<array_1d<double,3>> &rIntPtsVector)
 	{
-		return Plane3D(rIntPtsVector[0], rIntPtsVector[1], rIntPtsVector[2]);
+		return Plane3D(Point{rIntPtsVector[0]}, Point{rIntPtsVector[1]}, Point{rIntPtsVector[2]});
 	}
 
 	template<>

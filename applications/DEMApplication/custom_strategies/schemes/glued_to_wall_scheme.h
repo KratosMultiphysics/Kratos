@@ -33,6 +33,8 @@ namespace Kratos {
 
         GluedToWallScheme(Condition* p_wall, SphericParticle* p_sphere);
 
+        GluedToWallScheme(Condition* p_wall, SphericParticle* p_sphere, bool& is_inside);
+
         /// Destructor.
         virtual ~GluedToWallScheme() {}
 
@@ -51,6 +53,18 @@ namespace Kratos {
 
         void Move(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) override;
         void Rotate(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) override;
+
+        Condition* pGetCondition() {
+            return mCondition;
+        }
+
+        Vector& GetShapeFunctionsValues() {
+            return mShapeFunctionsValues;
+        }
+
+        double GetDistanceSignedWithNormal() {
+            return mDistanceSignedWithNormal;
+        }
 
 
         /// Turn back information as a string.
@@ -93,6 +107,7 @@ namespace Kratos {
             *this = rOther;
         }
 
+        bool ShapeFunctionsValuesAreBetween0and1();
         ///@}
 
     }; // Class GluedToWallScheme

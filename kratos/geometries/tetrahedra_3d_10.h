@@ -32,19 +32,19 @@ namespace Kratos
  * @class Tetrahedra3D10
  * @ingroup KratosCore
  * @brief A ten node tetrahedra geometry with quadratic shape functions
- * @details The node ordering corresponds with:       
- *                     3                              
- *                   ,/|`\                          
- *                 ,/  |  `\       
- *               ,7    '.   `9     
- *             ,/       8     `\   
- *          ,/          |       `\ 
+ * @details The node ordering corresponds with:
+ *                     3
+ *                   ,/|`\
+ *                 ,/  |  `\
+ *               ,7    '.   `9
+ *             ,/       8     `\
+ *          ,/          |       `\
  *         0--------6--'.--------2
- *          `\.         |      ,/ 
- *             `\.      |    ,5   
- *                `4.   '. ,/     
- *                   `\. |/       
- *                      `1         
+ *          `\.         |      ,/
+ *             `\.      |    ,5
+ *                `4.   '. ,/
+ *                   `\. |/
+ *                      `1
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -416,10 +416,10 @@ public:
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
-        ) override
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -749,7 +749,7 @@ private:
 
     /**
      * @brief Returns vector of shape function values at local coordinate.
-     * 
+     *
      * For a definition of the shape functions see, e.g.,
      * P. Wriggers, Nonlinear Finite Element Methods, Springer, 2008, Sec. 4.1.
      */
@@ -974,4 +974,4 @@ GeometryData Tetrahedra3D10<TPointType>::msGeometryData(
 
 }// namespace Kratos.
 
-#endif // KRATOS_TETRAHEDRA_3D_4_H_INCLUDED  defined 
+#endif // KRATOS_TETRAHEDRA_3D_4_H_INCLUDED  defined

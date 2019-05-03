@@ -123,7 +123,6 @@ public:
             rOriginInterfaceModelPart.NodesEnd());
 
         // Create new elements emulating the condition based interface
-        ModelPart::ElementsContainerType new_elems_vect;
         for (int i_cond = 0; i_cond < rOriginInterfaceModelPart.NumberOfConditions(); ++i_cond) {
             const auto &it_cond = rOriginInterfaceModelPart.ConditionsBegin() + i_cond;
             auto p_elem = Kratos::make_shared<Element>(it_cond->Id(), it_cond->pGetGeometry());

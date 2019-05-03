@@ -13,6 +13,7 @@ class AleFluidSolver(PythonSolver):
         default_settings = KM.Parameters("""{
             "solver_type"                 : "ale_fluid",
             "echo_level"                  : 0,
+            "start_fluid_solution_time"   : 0.0,
             "ale_boundary_parts"          : [ ],
             "mesh_motion_parts"           : [ ],
             "fluid_solver_settings"       : { },
@@ -25,6 +26,8 @@ class AleFluidSolver(PythonSolver):
         solver_settings.ValidateAndAssignDefaults(default_settings)
 
         super(AleFluidSolver, self).__init__(model, solver_settings)
+
+        self.start_fluid_solution_time = self.settings["start_fluid_solution_time"].GetDouble()
 
         self.parallelism = parallelism
 
@@ -49,7 +52,6 @@ class AleFluidSolver(PythonSolver):
 
         ## Creating the fluid solver
         self.fluid_solver = self._CreateFluidSolver(fluid_solver_settings, parallelism)
-        self.is_printing_rank = self.fluid_solver._IsPrintingRank()
 
         # Doing this after the Fluid-solver-settings have been validated to access the settings
         self._SelectMeshVelocityCalculationSettings()
@@ -97,8 +99,7 @@ class AleFluidSolver(PythonSolver):
               self.mesh_motion_solver_full_mesh.GetMinimumBufferSize(),
               KM.GetMinimumBufferSize(self.time_int_helper) ] )
 
-        if self.is_printing_rank:
-            KM.Logger.PrintInfo("::[AleFluidSolver]::", "Construction finished")
+        KM.Logger.PrintInfo("::[AleFluidSolver]::", "Construction finished")
 
     def AddVariables(self):
         self.mesh_motion_solver_full_mesh.AddVariables()
@@ -111,14 +112,12 @@ class AleFluidSolver(PythonSolver):
         if not time_scheme.startswith("bdf"): # bdfx does not need MESH_ACCELERATION
             main_model_part.AddNodalSolutionStepVariable(KM.MESH_ACCELERATION)
 
-        if self.is_printing_rank:
-            KM.Logger.PrintInfo("::[AleFluidSolver]::", "Variables Added")
+        KM.Logger.PrintInfo("::[AleFluidSolver]::", "Variables Added")
 
     def AddDofs(self):
         self.mesh_motion_solver_full_mesh.AddDofs()
         self.fluid_solver.AddDofs()
-        if self.is_printing_rank:
-            KM.Logger.PrintInfo("::[AleFluidSolver]::", "DOFs Added")
+        KM.Logger.PrintInfo("::[AleFluidSolver]::", "DOFs Added")
 
     def Initialize(self):
         # Saving the ALE-interface-parts for later
@@ -159,8 +158,7 @@ class AleFluidSolver(PythonSolver):
             mesh_solver.Initialize()
         self.fluid_solver.Initialize()
 
-        if self.is_printing_rank:
-            KM.Logger.PrintInfo("::[AleFluidSolver]::", "Finished initialization")
+        KM.Logger.PrintInfo("::[AleFluidSolver]::", "Finished initialization")
 
     def ImportModelPart(self):
         self.fluid_solver.ImportModelPart() # only ONE mesh_solver imports the ModelPart
@@ -194,17 +192,20 @@ class AleFluidSolver(PythonSolver):
         self.fluid_solver.FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
+        is_converged = True
         for mesh_solver in self.mesh_motion_solvers:
-            mesh_solver.SolveSolutionStep()
+            is_converged &= mesh_solver.SolveSolutionStep()
 
         for mesh_solver in self.mesh_motion_solvers:
             KMM.CalculateMeshVelocities(
                 mesh_solver.GetComputingModelPart(),
                 self.time_int_helper)
 
-        self.__ApplyALEBoundaryCondition()
+        if self.fluid_solver.GetComputingModelPart().ProcessInfo[KM.TIME] >= self.start_fluid_solution_time:
+            self.__ApplyALEBoundaryCondition()
+            is_converged &= self.fluid_solver.SolveSolutionStep()
 
-        self.fluid_solver.SolveSolutionStep()
+        return is_converged
 
     def Check(self):
         for mesh_solver in self.mesh_motion_solvers:
@@ -223,7 +224,7 @@ class AleFluidSolver(PythonSolver):
         return self.fluid_solver
 
     def GetMeshMotionSolver(self):
-        if len(self.mesh_motion_solvers > 1):
+        if len(self.mesh_motion_solvers) > 1:
             raise Exception('More than one mesh-motion-solver \
                 exists, please use "GetMeshMotionSolvers"')
         return self.mesh_motion_solvers[0]

@@ -25,7 +25,7 @@
 #include "spaces/ublas_space.h"
 
 /* Element include */
-#include "tests/cpp_tests/auxiliar_files/test_element.h"
+#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_element.h"
 
 // Linear solvers
 #include "linear_solvers/reorderer.h"
@@ -40,7 +40,7 @@
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 
 // The most builder and solver (the block builder and solver)
-#include "solving_strategies/convergencecriterias/residual_criteria.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
 // The strategies to test
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"

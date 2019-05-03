@@ -77,6 +77,7 @@ public:
         auto p_conv_criteria =
             Kratos::make_shared<ResidualCriteria<SparseSpaceType, LocalSpaceType>>(
                 1e-10, 1e-13);
+        p_conv_criteria->SetEchoLevel(0);
         mpSolver = Kratos::make_shared<ResidualBasedNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>>(
             rModelPart, p_scheme, p_linear_solver, p_conv_criteria, 10, true, false, true);
     }
@@ -84,6 +85,7 @@ public:
     void Initialize() override
     {
         mpSolver->Initialize();
+        mpSolver->SetEchoLevel(0);
     }
 
     double Solve() override
@@ -123,6 +125,7 @@ public:
     void Initialize() override
     {
         mpSolver->Initialize();
+        mpSolver->SetEchoLevel(0);
     }
 
     double Solve() override
@@ -595,6 +598,7 @@ struct PrimalResults : Base::PrimalResults
 
 void InitializePrimalModelPart(ModelPart& rModelPart)
 {
+    rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 1);
     rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
     rModelPart.AddNodalSolutionStepVariable(REACTION);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
@@ -618,6 +622,7 @@ void InitializePrimalModelPart(ModelPart& rModelPart)
 
 void InitializeAdjointModelPart(ModelPart& rModelPart)
 {
+    rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 1);
     rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
     rModelPart.AddNodalSolutionStepVariable(REACTION);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
@@ -676,7 +681,12 @@ KRATOS_TEST_CASE_IN_SUITE(ResidualBasedAdjointBossak_TwoMassSpringDamperSystem, 
     Base::AdjointStrategy adjoint_solver(adjoint_model_part, p_results_data, p_response_function);
     adjoint_solver.Initialize();
     SensitivityBuilder sensitivity_builder(
-        Parameters{R"({ "element_data_sensitivity_variables": ["SCALAR_SENSITIVITY"] })"},
+        Parameters{R"(
+            { 
+                "element_data_value_sensitivity_variables": ["SCALAR_SENSITIVITY"],
+                "build_mode": "integrate",
+                "nodal_solution_step_sensitivity_calculation_is_thread_safe" : true
+            })"},
         adjoint_model_part, p_response_function);
     sensitivity_builder.Initialize();
     adjoint_model_part.CloneTimeStep(end_time + 2. * delta_time);

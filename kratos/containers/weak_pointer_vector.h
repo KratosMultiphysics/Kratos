@@ -109,7 +109,7 @@ public:
 
     WeakPointerVector(const WeakPointerVector& rOther) :  mData(rOther.mData) {}
 
-    WeakPointerVector(const TContainerType& rContainer) :  mData(rContainer)
+    explicit WeakPointerVector(const TContainerType& rContainer) :  mData(rContainer)
     {
     }
 

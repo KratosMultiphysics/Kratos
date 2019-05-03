@@ -163,7 +163,7 @@ namespace Kratos {
                                                                       bool has_rotation,
                                                                       bool initial) {
         KRATOS_TRY
-        array_1d<double, 3 > null_vector(3, 0.0);
+        array_1d<double, 3 > null_vector = ZeroVector(3);
 
         double bx = reference_node->X();
         double cy = reference_node->Y();
@@ -181,7 +181,7 @@ namespace Kratos {
             pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL] + 100; //So the inlet ghost spheres are not in the same
         }                                                                                             //layer of the inlet newly created spheres
         else {
-            pnew_node = Kratos::make_shared< Node<3> >(aId, bx, cy, dz);
+            pnew_node = Kratos::make_intrusive<Node<3>>(aId, bx, cy, dz);
             pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
             pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
             #pragma omp critical
@@ -240,7 +240,7 @@ namespace Kratos {
                                                                                  bool has_rotation,
                                                                                  bool initial) {
         KRATOS_TRY
-        array_1d<double, 3 > null_vector(3, 0.0);
+        array_1d<double, 3 > null_vector = ZeroVector(3);
 
         double bx = reference_node->X();
         double cy = reference_node->Y();
@@ -258,7 +258,7 @@ namespace Kratos {
             pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL] + 100; //So the inlet ghost spheres are not in the same
         }                                                                                             //layer of the inlet newly created spheres
         else {
-            pnew_node = Kratos::make_shared< Node<3> >(aId, bx, cy, dz);
+            pnew_node = Kratos::make_intrusive<Node<3>>(aId, bx, cy, dz);
             pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
             pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
             #pragma omp critical
@@ -350,7 +350,7 @@ namespace Kratos {
             pnew_node->Set(BLOCKED);
         }
         else {
-            array_1d<double, 3 > zero_vector(3, 0.0);
+            array_1d<double, 3 > zero_vector = ZeroVector(3);
             SphericParticle* injector_spheric_particle = dynamic_cast<SphericParticle*> (injector_element.get());
             if (r_sub_model_part_with_parameters[DENSE_INLET]){
                 p_particle->Set(DEMFlags::CUMULATIVE_ZONE, true);
@@ -403,7 +403,7 @@ namespace Kratos {
                                                             double radius,
                                                             Properties& params) {
         KRATOS_TRY
-        pnew_node = Kratos::make_shared< Node<3> >( aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2] );
+        pnew_node = Kratos::make_intrusive<Node<3>>( aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2] );
         pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
         pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
 
@@ -414,7 +414,7 @@ namespace Kratos {
         }
 
         pnew_node->FastGetSolutionStepValue(RADIUS) = radius;
-        array_1d<double, 3 > null_vector(3, 0.0);
+        array_1d<double, 3 > null_vector = ZeroVector(3);
         pnew_node->FastGetSolutionStepValue(VELOCITY) = null_vector;
         pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
         pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL];
@@ -450,7 +450,7 @@ namespace Kratos {
                                                                         int aId,
                                                                         array_1d<double, 3>& reference_coordinates) {
         KRATOS_TRY
-        pnew_node = Kratos::make_shared< Node<3> >(aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2]);
+        pnew_node = Kratos::make_intrusive<Node<3>>(aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2]);
         pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
         pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
 
@@ -459,7 +459,7 @@ namespace Kratos {
             r_modelpart.Nodes().push_back(pnew_node);
         }
 
-        array_1d<double, 3> null_vector(3, 0.0);
+        array_1d<double, 3> null_vector = ZeroVector(3);
         pnew_node->FastGetSolutionStepValue(VELOCITY) = null_vector;
         pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
 
@@ -661,7 +661,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             p_cluster->SetInitialConditionsToSpheres(r_sub_model_part_with_parameters[VELOCITY]);
         }
 
-        array_1d<double, 3 > zero_vector(3, 0.0);
+        array_1d<double, 3 > zero_vector = ZeroVector(3);
 
         for (unsigned int i=0; i<p_cluster->GetNumberOfSpheres(); i++) {
             SphericParticle* spheric_p_particle = p_cluster->GetSpheres()[i];
@@ -706,7 +706,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
         pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
 
-        array_1d<double, 3 > null_vector(3, 0.0);
+        array_1d<double, 3 > null_vector = ZeroVector(3);
 
         pnew_node->FastGetSolutionStepValue(VELOCITY) = null_vector;
         pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = (*r_params)[PARTICLE_MATERIAL];
@@ -762,7 +762,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         double dz = coordinates[2];
 
         Node<3>::Pointer pnew_node;
-        pnew_node = Kratos::make_shared< Node<3> >(r_Elem_Id, bx, cy, dz);
+        pnew_node = Kratos::make_intrusive<Node<3>>(r_Elem_Id, bx, cy, dz);
         Geometry<Node<3> >::PointsArrayType nodelist;
         nodelist.push_back(pnew_node);
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
@@ -795,7 +795,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         double dz = coordinates[2];
 
         Node<3>::Pointer pnew_node;
-        pnew_node = Kratos::make_shared< Node<3> >(r_Elem_Id, bx, cy, dz);
+        pnew_node = Kratos::make_intrusive<Node<3>>(r_Elem_Id, bx, cy, dz);
         Geometry<Node<3> >::PointsArrayType nodelist;
         nodelist.push_back(pnew_node);
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);

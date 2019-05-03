@@ -1,4 +1,7 @@
 ﻿from __future__ import print_function, absolute_import, division
+
+import sys
+
 from KratosMultiphysics import Parameters
 from KratosMultiphysics import Vector
 from KratosMultiphysics import Matrix
@@ -7,8 +10,23 @@ from KratosMultiphysics import FileSerializer, StreamSerializer, SerializerTrace
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-import sys
-
+# Use cPickle on Python 2.7 (Note that only the cPickle module is supported on Python 2.7)
+# Source: https://pybind11.readthedocs.io/en/stable/advanced/classes.html
+pickle_message = ""
+try:
+    import cickle as pickle
+    have_pickle_module = True
+except ImportError:
+    if sys.version_info > (3, 0):
+        try:
+            import pickle
+            have_pickle_module = True
+        except ImportError:
+            have_pickle_module = False
+            pickle_message = "No pickle module found"
+    else:
+        have_pickle_module = False
+        pickle_message = "No valid pickle module found"
 
 # input string with ugly formatting
 json_string = """
@@ -104,6 +122,32 @@ defaults = """
 }
 """
 
+incomplete = """
+{
+    "level1": {
+    },
+    "new_default_obj": {
+        "aaa": "string",
+        "bbb": false,
+        "ccc": 22
+    },
+    "new_default_value": -123.0,
+    "string_value": "hello"
+}"""
+
+incomplete_with_extra_parameter = """
+{
+    "level1": {
+        "new_sublevel": "this should only be assigned in recursive"
+    },
+    "new_default_obj": {
+        "aaa": "string",
+        "bbb": false,
+        "ccc": 22
+    },
+    "new_default_value": -123.0,
+    "string_value": "hello"
+}"""
 
 expected_validation_output = """{
     "bool_value": true,
@@ -197,9 +241,6 @@ class TestParameters(KratosUnittest.TestCase):
     def setUp(self):
         self.kp = Parameters(json_string)
         self.compact_expected_output = """{"bool_value":true,"double_value":2.0,"int_value":10,"level1":{"list_value":[3,"hi",false],"tmp":5.0},"string_value":"hello"}"""
-
-        if (sys.version_info < (3, 2)):
-            self.assertRaisesRegex = self.assertRaisesRegexp
 
     def test_kratos_parameters(self):
         self.assertEqual(
@@ -318,6 +359,61 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertEqual(kp.PrettyPrintJsonString(), expected_validation_output)
 
         self.assertEqual(kp["level1"]["tmp"].GetDouble(), 5.0)  # not 2, since kp overwrites the defaults
+
+    def test_add_missing_parameters(self):
+        # only missing parameters are added, no complaints if there already exist more than in the defaults
+        kp = Parameters(json_string)
+        tmp = Parameters(incomplete_with_extra_parameter)
+
+        kp.AddMissingParameters(tmp)
+
+        self.assertEqual(kp["new_default_obj"]["aaa"].GetString(), "string")
+        self.assertEqual(kp["string_value"].GetString(), "hello")
+        self.assertFalse(kp["level1"].Has("new_sublevel"))
+
+    def test_recursively_add_missing_parameters(self):
+        # only missing parameters are added, no complaints if there already exist more than in the defaults
+        kp = Parameters(json_string)
+        tmp = Parameters(incomplete_with_extra_parameter)
+
+        kp.RecursivelyAddMissingParameters(tmp)
+
+        self.assertTrue(kp["level1"].Has("new_sublevel"))
+        self.assertEqual(kp["level1"]["new_sublevel"].GetString(), "this should only be assigned in recursive")
+
+    def test_validate_defaults(self):
+        # only parameters from defaults are validated, no new values are added
+        kp = Parameters(incomplete_with_extra_parameter)
+        tmp = Parameters(defaults)
+
+        kp.ValidateDefaults(tmp)
+
+        self.assertFalse(kp.Has("bool_value"))
+        self.assertFalse(kp.Has("double_value"))
+        self.assertTrue(kp.Has("level1"))
+
+    def test_recursively_validate_defaults(self):
+        # only parameters from defaults are validated, no new values are added
+        kp = Parameters(incomplete)
+        tmp = Parameters(defaults)
+
+        kp.RecursivelyValidateDefaults(tmp)
+
+        self.assertFalse(kp.Has("bool_value"))
+        self.assertFalse(kp.Has("double_value"))
+        self.assertTrue(kp.Has("level1"))
+
+
+    def test_recursively_validate_defaults_fails(self):
+        # only parameters from defaults are validated, no new values are added
+        kp = Parameters(incomplete_with_extra_parameter)
+        tmp = Parameters(defaults)
+
+        with self.assertRaises(RuntimeError):
+            kp.RecursivelyValidateDefaults(tmp)
+
+        # sub_level
+        self.assertFalse(kp["level1"].Has("tmp"))
 
     def test_add_value(self):
         kp = Parameters("{}")
@@ -479,7 +575,7 @@ class TestParameters(KratosUnittest.TestCase):
             else:
                 with self.assertRaises(RuntimeError):
                     tmp[key].GetMatrix()
-                    
+
     def test_vector_interface(self):
         # Read and check Vectors from a Parameters-Object
         tmp = Parameters("""{
@@ -631,17 +727,34 @@ class TestParameters(KratosUnittest.TestCase):
         serializer.Save("ParametersSerialization",tmp)
         del(tmp)
         del(serializer)
-        
+
 
         #unpickle data - note that here i override "serialized_data"
         serializer = FileSerializer(file_name,SerializerTraceType.SERIALIZER_NO_TRACE)
 
         loaded_parameters = Parameters()
         serializer.Load("ParametersSerialization",loaded_parameters)
-        
+
         self.assertEqual(check, loaded_parameters.WriteJsonString())
         kratos_utils.DeleteFileIfExisting(file_name + ".rest")
+    
+    def test_get_string_array_valid(self):
+        tmp = Parameters("""{
+            "parameter": ["foo", "bar"]
+        } """)
+        v = tmp["parameter"].GetStringArray()
+        self.assertEqual(len(v), 2)
+        self.assertEqual(v[0], "foo")
+        self.assertEqual(v[1], "bar")
+    
+    def test_get_string_array_invalid(self):
+        tmp = Parameters("""{
+            "parameter": ["foo", true]
+        } """)
+        with self.assertRaisesRegex(RuntimeError, r'Error: Argument must be a string'):
+            tmp["parameter"].GetStringArray()
 
+    @KratosUnittest.skipUnless(have_pickle_module, "Pickle module error: : " + pickle_message)
     def test_stream_serialization(self):
         tmp = Parameters(defaults)
         check = tmp.WriteJsonString()
@@ -649,15 +762,9 @@ class TestParameters(KratosUnittest.TestCase):
         serializer = StreamSerializer(SerializerTraceType.SERIALIZER_NO_TRACE)
         serializer.Save("ParametersSerialization",tmp)
         del(tmp)
-        
-        # ######## here we pickle the serializer
-        try:
-            import cickle as pickle  # Use cPickle on Python 2.7
-        except ImportError:
-            import pickle
 
         #pickle dataserialized_data
-        pickled_data = pickle.dumps(serializer, 2) #second argument is the protocol and is NECESSARY (according to pybind11 docs)
+        pickled_data = pickle.dumps(serializer, protocol=2) # Second argument is the protocol and is NECESSARY (according to pybind11 docs)
         del(serializer)
 
         #unpickle data - note that here i override "serialized_data"
@@ -665,9 +772,8 @@ class TestParameters(KratosUnittest.TestCase):
 
         loaded_parameters = Parameters()
         serializer.Load("ParametersSerialization",loaded_parameters)
-        
-        self.assertEqual(check, loaded_parameters.WriteJsonString())
 
+        self.assertEqual(check, loaded_parameters.WriteJsonString())
 
 
 if __name__ == '__main__':

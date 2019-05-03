@@ -1,148 +1,96 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# importing the Kratos Library
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+# Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.CompressiblePotentialFlowApplication as KCPFApp
 
-def CreateSolver(main_model_part, custom_settings):
-    return LaplacianSolver(main_model_part, custom_settings)
+# Importing the base class
+from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
-class LaplacianSolver:
-    def __init__(self, model_part, custom_settings):
-        self.MoveMeshFlag = False
+def CreateSolver(model, custom_settings):
+    return PotentialFlowSolver(model, custom_settings)
 
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
-        self.main_model_part = model_part
+class PotentialFlowSolver(FluidSolver):
 
-        ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
+    def _ValidateSettings(self, settings):
+        # Defaul settings string in json format
+        default_settings = KratosMultiphysics.Parameters(r'''{
             "solver_type": "potential_flow_solver",
-            "echo_level": 1,
+            "model_part_name": "PotentialFluidModelPart",
+            "domain_size": -1,
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": "unknown_name"
+            },
+            "material_import_settings": {
+                "materials_filename": "unknown_materials.json"
+            },
+            "formulation": {
+                "element_type": "imcompressible_potential"
+            },
+            "maximum_iterations": 10,
+            "echo_level": 0,
             "relative_tolerance": 1e-5,
             "absolute_tolerance": 1e-9,
-            "maximum_iterations": 1,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
-            "calculate_solution_norm" : false,
-            "volume_model_part_name" : "volume_model_part",
-            "skin_parts":[],
-            "no_skin_parts"                : [],
-            "model_import_settings": {
-                    "input_type": "mdpa",
-                    "input_filename": "unknown_name"
-            },
+            "calculate_solution_norm": false,
             "linear_solver_settings": {
-                    "solver_type": "amgcl",
-                    "max_iteration": 400,
-                    "gmres_krylov_space_dimension": 100,
-                    "smoother_type":"ilu0",
-                    "coarsening_type":"ruge_stuben",
-                    "coarse_enough" : 5000,
-                    "krylov_type": "lgmres",
-                    "tolerance": 1e-9,
-                    "verbosity": 3,
-                    "scaling": false
-            }
-        }""")
+                "solver_type": "amgcl"
+            },
+            "volume_model_part_name": "volume_model_part",
+            "skin_parts":[""],
+            "no_skin_parts": [""],
+            "move_mesh_flag": false
+        }''')
 
-        ##overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
 
-        #construct the linear solvers
+    def __init__(self, model, custom_settings):
+
+        super(PotentialFlowSolver, self).__init__(model, custom_settings)
+
+        # There is only a single rank in OpenMP, we always print
+        self._is_printing_rank = True
+
+        # Set the element and condition names for the replace settings
+        # TODO: Create a formulation class helper as soon as there is more than one element is present
+        self.element_name = "IncompressiblePotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+        self.min_buffer_size = 1
+
+        # Construct the linear solvers
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        print("Construction of LaplacianSolver finished")
-
     def AddVariables(self):
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        # Degrees of freedom
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.VELOCITY_POTENTIAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL)
+
+        # Kratos variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.VELOCITY_INFINITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.POSITIVE_FACE_PRESSURE, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.NEGATIVE_FACE_PRESSURE, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
 
     def Initialize(self):
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
-
+        # TODO: Rename to self.strategy once we upgrade the base FluidDynamicsApplication solvers
         self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
-            self.main_model_part,
+            self.GetComputingModelPart(),
             time_scheme,
             self.linear_solver,
             self.settings["compute_reactions"].GetBool(),
             self.settings["reform_dofs_at_each_step"].GetBool(),
             self.settings["calculate_solution_norm"].GetBool(),
-            move_mesh_flag)
+            self.settings["move_mesh_flag"].GetBool())
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
-        self.solver.Check()
+        (self.solver).Initialize()
 
-    def ImportModelPart(self):
-
-        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            #here it would be the place to import restart data if required
-            print(self.settings["model_import_settings"]["input_filename"].GetString())
-            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
-
-            throw_errors = False
-            KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part,throw_errors).Execute()
-            #here we replace the dummy elements we read with proper elements
-            self.settings.AddEmptyValue("element_replace_settings")
-            if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                    {
-                    "element_name":"CompressiblePotentialFlowElement3D4N",
-                    "condition_name": "PotentialWallCondition3D3N"
-                    }
-                    """)
-            elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                    {
-                    "element_name":"CompressiblePotentialFlowElement2D3N",
-                    "condition_name": "PotentialWallCondition2D2N"
-                    }
-                    """)
-            else:
-                raise Exception("Domain size is not 2 or 3!!")
-
-            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
-
-        else:
-            raise Exception("other input options are not yet implemented")
-
-        current_buffer_size = self.main_model_part.GetBufferSize()
-        if(self.GetMinimumBufferSize() > current_buffer_size):
-            self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
-
-        print ("model reading finished")
-
-    def GetMinimumBufferSize(self):
-        return 2;
-
-    def GetComputingModelPart(self):
-        return self.main_model_part
-
-    def GetOutputVariables(self):
-        pass
-
-    def ComputeDeltaTime(self):
-        pass
-
-    def SaveRestart(self):
-        pass #one should write the restart file here
-
-    def Solve(self):
-        (self.solver).Solve()
-
-    #
-    def SetEchoLevel(self, level):
-        (self.solver).SetEchoLevel(level)
-
-    #
-    def Clear(self):
-        (self.solver).Clear()
-
+    def AdvanceInTime(self, current_time):
+        raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")

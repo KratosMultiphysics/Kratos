@@ -43,7 +43,7 @@ namespace Kratos {
 
           // double  calculation_area = Globals::Pi * calculated_radius * calculated_radius;
 
-           double  calculation_area = Globals::Pi * equiv_radius * indentation ;
+        double  calculation_area = Globals::Pi * equiv_radius * indentation ;
 
 
        //double rmin = my_radius;
@@ -51,13 +51,13 @@ namespace Kratos {
        //double  calculation_area = 3.14 * rmin*rmin;
 
 
-            double normal_force = DEM_D_Linear_viscous_Coulomb::CalculateNormalForce(indentation);
+        double normal_force = DEM_D_Linear_viscous_Coulomb::CalculateNormalForce(indentation);
            //double normal_force = 0.666666666666666666667 * mKn * indentation;
            //double normal_force = 0 * mKn * indentation;
                           // KRATOS_INFO("DEM") << "indentation  " << indentation << std::endl;
 
-            double force[3];
-        Matrix average_stress_tensor = ZeroMatrix(3,3);
+        double force[3];
+        BoundedMatrix<double, 3, 3> average_stress_tensor = ZeroMatrix(3,3);
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {

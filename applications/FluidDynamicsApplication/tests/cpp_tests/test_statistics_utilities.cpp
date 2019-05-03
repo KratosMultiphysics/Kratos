@@ -32,7 +32,7 @@ void TestStatisticsUtilitiesInitializeModelPart(
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
     rModelPart.AddNodalSolutionStepVariable(PRESSURE);
     rModelPart.SetBufferSize(BufferSize);
-    Properties::Pointer p_properties = rModelPart.pGetProperties(0);
+    Properties::Pointer p_properties = rModelPart.CreateNewProperties(0);
 
     // Geometry creation
     rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);

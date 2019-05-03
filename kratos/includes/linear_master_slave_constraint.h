@@ -370,6 +370,61 @@ public:
     }
 
     /**
+     * @brief This method returns the slave dof vector
+     * @return The vector containing the slave dofs
+     */
+    const DofPointerVectorType& GetSlaveDofsVector() const override
+    {
+        return mSlaveDofsVector;
+    }
+
+    /**
+     * @brief This method returns the slave dof vector
+     * @return The vector containing the slave dofs
+     */
+    const DofPointerVectorType& GetMasterDofsVector() const override
+    {
+        return mMasterDofsVector;
+    }
+
+    /**
+     * @brief This method resets the values of the slave dofs
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void ResetSlaveDofs(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        for (IndexType i = 0; i < mSlaveDofsVector.size(); ++i) {
+            #pragma omp atomic
+            mSlaveDofsVector[i]->GetSolutionStepValue() *= 0.0;
+        }
+    }
+
+    /**
+     * @brief This method directly applies the master/slave relationship
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void Apply(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        // Saving the master dofs values
+        Vector master_dofs_values(mMasterDofsVector.size());
+
+        for (IndexType i = 0; i < mMasterDofsVector.size(); ++i) {
+            master_dofs_values[i] = mMasterDofsVector[i]->GetSolutionStepValue();
+        }
+
+        // Apply the constraint to the slave dofs
+        for (IndexType i = 0; i < mRelationMatrix.size1(); ++i) {
+            double aux = mConstantVector[i];
+            for(IndexType j = 0; j < mRelationMatrix.size2(); ++j) {
+                aux += mRelationMatrix(i,j) * master_dofs_values[j];
+            }
+
+            #pragma omp atomic
+            mSlaveDofsVector[i]->GetSolutionStepValue() += aux;
+        }
+    }
+
+    /**
      * @brief This is called during the assembling process in order
      * @details To calculate the relation between the master and slave.
      * @param rTransformationMatrix the matrix which relates the master and slave degree of freedom

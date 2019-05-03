@@ -217,7 +217,7 @@ public:
         this->Points().push_back( pPoint6 );
     }
 
-    Prism3D6( const PointsArrayType& ThisPoints )
+    explicit Prism3D6( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         KRATOS_ERROR_IF( this->PointsNumber() != 6 ) << "Invalid points number. Expected 6, given " << this->PointsNumber() << std::endl;
@@ -249,7 +249,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Prism3D6( Prism3D6<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Prism3D6( Prism3D6<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -476,7 +476,7 @@ public:
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) override
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 

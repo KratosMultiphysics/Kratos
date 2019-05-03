@@ -140,7 +140,8 @@ class KRATOS_API(DEM_APPLICATION) DEM_FEM_Search : public SpatialSearch
       RadiusArrayType Radius_out;
 
       int num_of_threads = OpenMPUtils::GetNumThreads();
-      DenseVector<unsigned int> total_dem_partition_index; vector<unsigned int> total_fem_partition_index;
+      std::vector<unsigned int> total_dem_partition_index;
+      std::vector<unsigned int> total_fem_partition_index;
 
       OpenMPUtils::CreatePartition(num_of_threads, elements_sear.size(), total_dem_partition_index);
       OpenMPUtils::CreatePartition(num_of_threads, conditions_bins.size(), total_fem_partition_index);

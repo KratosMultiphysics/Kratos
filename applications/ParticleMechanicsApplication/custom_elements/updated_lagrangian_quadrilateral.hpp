@@ -118,7 +118,6 @@ protected:
 
         // Variables including all integration points
         Matrix CurrentDisp;
-        Matrix PreviousDisp;
 
         /**
          * sets the value of a specified pointer variable

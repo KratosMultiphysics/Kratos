@@ -1,4 +1,6 @@
 from __future__ import print_function, absolute_import, division
+from KratosMultiphysics import Logger
+
 from unittest import *
 from contextlib import contextmanager
 
@@ -22,6 +24,11 @@ class TestLoader(TestLoader):
 
 
 class TestCase(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        if (sys.version_info < (3, 2)):
+            cls.assertRaisesRegex = cls.assertRaisesRegexp
 
     def run(self, result=None):
         super(TestCase,self).run(result)
@@ -76,21 +83,21 @@ def Usage():
         '\t python kratos_run_tests [-l level] [-v verbosity]',
         'Options',
         '\t -h, --help: Shows this command',
-        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'',  # noqa
-        '\t              For MPI tests, use the equivalent distributed test suites: \'(mpi_all)\', \'(mpi_nightly)\' \'(mpi_small)\'',
-        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2'
+        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\' \'(validation)\'',  # noqa
+        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
+        '\t --using-mpi: If running in MPI and executing the MPI-tests'
     ]
-
     for l in lines:
-        print(l)
+        Logger.PrintInfo(l) # using the logger to only print once in MPI
 
 
 def runTests(tests):
     verbose_values = [0, 1, 2]
-    level_values = ['all', 'small', 'nightly', 'validation', 'mpi_all', 'mpi_small', 'mpi_nightly', 'mpi_validation']
+    level_values = ['all', 'small', 'nightly', 'validation']
 
     verbosity = 1
     level = 'all'
+    is_mpi = False
 
     # Parse Commandline
     try:
@@ -99,7 +106,8 @@ def runTests(tests):
             'hv:l:', [
                 'help',
                 'verbose=',
-                'level='
+                'level=',
+                'using-mpi'
             ])
     except getopt.GetoptError as err:
         print(str(err))
@@ -124,8 +132,13 @@ def runTests(tests):
                 print('Error: {} is not a valid level.'.format(a))
                 Usage()
                 sys.exit()
+        elif o in ('--using-mpi'):
+            is_mpi = True
         else:
             assert False, 'unhandled option'
+
+    if is_mpi:
+        level = "mpi_" + level
 
     if tests[level].countTestCases() == 0:
         print(
@@ -147,8 +160,42 @@ KratosSuites = {
     'mpi_validation': TestSuite(),
 }
 
+
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     '''Same implementation as math.isclose
     self-implemented bcs msth.isclose was only introduced in python3.5
     '''
     return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+
+
+class WorkFolderScope:
+    """ Helper-class to execute test in a specific target path
+
+        Input
+        -----
+        - rel_path_work_folder: String
+            Relative path of the target dir from the calling script
+
+        - file_path: String
+            Absolute path of the calling script
+
+        - add_to_path: Bool
+            "False" (default) if no need to add the target dir to the path, "True" otherwise.
+    """
+
+    def __init__(self, rel_path_work_folder, file_path, add_to_path=False):
+        self.currentPath = os.getcwd()
+        self.add_to_path = add_to_path
+        if self.add_to_path:
+            self.currentPythonpath = sys.path
+        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(file_path)), rel_path_work_folder))
+
+    def __enter__(self):
+        os.chdir(self.scope)
+        if self.add_to_path:
+            sys.path.append(self.scope)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.chdir(self.currentPath)
+        if self.add_to_path:
+            sys.path = self.currentPythonpath
