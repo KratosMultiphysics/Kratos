@@ -23,8 +23,9 @@ FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersectedGeometr
     ModelPart& rPart2,
     const double BoundingBoxFactor,
     const bool DebugOBB,
-    const OBBHasIntersectionType IntersectionType
-    ) : BaseType(rPart1, rPart2, BoundingBoxFactor, DebugOBB, IntersectionType)
+    const OBBHasIntersectionType IntersectionType,
+    const Flags Options
+    ) : BaseType(rPart1, rPart2, BoundingBoxFactor, DebugOBB, IntersectionType, Options)
 {
 }
 
@@ -47,6 +48,17 @@ FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersectedGeometr
 
     KRATOS_ERROR_IF(r_intersected_model_part_name == "") << "intersected_model_part_name must be defined on parameters" << std::endl;
     KRATOS_ERROR_IF(r_intersecting_model_part_name == "") << "intersecting_model_part_name must be defined on parameters" << std::endl;
+
+    // Setting flags
+    const bool intersecting_conditions = ThisParameters["intersecting_conditions"].GetBool();
+    const bool intersecting_elements = ThisParameters["intersecting_elements"].GetBool();
+    const bool intersected_conditions = ThisParameters["intersected_conditions"].GetBool();
+    const bool intersected_elements = ThisParameters["intersected_elements"].GetBool();
+
+    BaseProcessType::mOptions.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS, intersecting_conditions);
+    BaseProcessType::mOptions.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS, intersecting_elements);
+    BaseProcessType::mOptions.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS, intersected_conditions);
+    BaseProcessType::mOptions.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS, intersected_elements);
 
     // Setting the bounding box factor
     mBoundingBoxFactor = BaseType::mThisParameters["bounding_box_factor"].GetDouble();
@@ -185,13 +197,17 @@ Parameters FindIntersectedGeometricalObjectsWithOBBForSearchProcess::GetDefaultP
 {
     Parameters default_parameters = Parameters(R"(
     {
-        "intersected_model_part_name"           : "",
-        "intersecting_model_part_name"          : "",
+        "intersected_model_part_name"     : "",
+        "intersecting_model_part_name"    : "",
         "bounding_box_factor"             : -1.0,
         "debug_obb"                       : false,
         "OBB_intersection_type"           : "SeparatingAxisTheorem",
         "lower_bounding_box_coefficient"  : 0.0,
-        "higher_bounding_box_coefficient" : 1.0
+        "higher_bounding_box_coefficient" : 1.0,
+        "intersecting_conditions"         : true,
+        "intersecting_elements"           : false,
+        "intersected_conditions"          : true,
+        "intersected_elements"            : false
     })" );
 
     return default_parameters;
