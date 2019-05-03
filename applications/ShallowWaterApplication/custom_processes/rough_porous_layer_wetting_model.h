@@ -22,6 +22,7 @@
 
 // Project includes
 #include "processes/process.h"
+#include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 
 

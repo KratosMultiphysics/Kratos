@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "processes/process.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
 
@@ -62,12 +63,32 @@ public:
     /// Pointer definition of ResidualBasedIncrementalUpdateDryWettingScheme
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedIncrementalUpdateDryWettingScheme);
 
+    typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace> BaseType;
+
+    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+
+    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    ResidualBasedIncrementalUpdateDryWettingScheme(){}
+    /// @brief Default constructor.
+    ResidualBasedIncrementalUpdateDryWettingScheme()
+        : BaseType()
+    {}
+
+    /// @brief Constructor with wetting drying model.
+    ResidualBasedIncrementalUpdateDryWettingScheme(Process::Pointer pDryWettingModel)
+        : BaseType()
+        , mpDryWettingModel(pDryWettingModel)
+    {}
+
+    /// @brief Copy constructor.
+    explicit ResidualBasedIncrementalUpdateDryWettingScheme(ResidualBasedIncrementalUpdateDryWettingScheme& rOther)
+        :BaseType(rOther)
+    {
+    }
 
     /// Destructor.
     virtual ~ResidualBasedIncrementalUpdateDryWettingScheme(){}
@@ -81,6 +102,25 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief It initializes a non-linear iteration (for the element)
+     * @param rModelPart The model of the problem to solve
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
+     */
+    void InitializeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        if (mpDryWettingModel != 0) {
+            mpDryWettingModel->Execute();
+        }
+        BaseType::InitializeNonLinIteration(rModelPart, rA, rDx, rb);
+    }
 
     ///@}
     ///@name Access
@@ -121,43 +161,6 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -167,6 +170,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    Process::Pointer mpDryWettingModel;
 
     ///@}
     ///@name Private Operators
