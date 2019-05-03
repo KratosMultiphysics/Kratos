@@ -18,6 +18,7 @@
 #include <string>
 #include <iostream>
 #include <map>
+#include <typeinfo>
 
 // External includes
 
@@ -80,6 +81,9 @@ public:
 
     static void Add(std::string const& Name, TComponentType const& ThisComponent)
     {
+        // check if a different object was already registered with this name, since this is undefined behavior
+        auto it_comp =  msComponents.find(Name);
+        KRATOS_ERROR_IF(it_comp != msComponents.end() && typeid(*(it_comp->second)) != typeid(ThisComponent)) << "An object of different type was already registered with name \"" << Name << "\"!" << std::endl;
         msComponents.insert(ValueType(Name , &ThisComponent));
     }
 
