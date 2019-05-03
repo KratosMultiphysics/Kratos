@@ -32,7 +32,7 @@ array_1d<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement)
                 potentials[i] = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
             }
             else {
-                potentials[i] = Geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+                potentials[i] = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
             }
         }
     }
