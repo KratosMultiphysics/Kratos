@@ -674,10 +674,9 @@ public:
                     value += tau *
                              (velocity_convective_terms[a] + s * gauss_shape_functions[a]) *
                              velocity_convective_terms[b];
-                    value +=
-                        tau *
-                        (velocity_convective_terms[a] + s * gauss_shape_functions[a]) *
-                        reaction * gauss_shape_functions[b]; // * positive_values_list[b];
+                    value += tau *
+                             (velocity_convective_terms[a] + s * gauss_shape_functions[a]) *
+                             reaction * gauss_shape_functions[b]; // * positive_values_list[b];
 
                     // Adding cross wind dissipation
                     value += cross_wind_diffusion * dNa_dNb * velocity_magnitude_square;
@@ -1023,6 +1022,17 @@ private:
         element_length = 2.0 * velocity_norm / std::sqrt(stab_convection);
     }
 
+    double CalculatePsiOne(const double velocity_norm, const double tau, const double reaction_tilde)
+    {
+        return velocity_norm + tau * velocity_norm * reaction_tilde;
+    }
+
+    double CalculatePsiTwo(const double reaction_tilde, const double tau, const double element_length)
+    {
+        return (reaction_tilde + tau * reaction_tilde * std::abs(reaction_tilde)) *
+               std::pow(element_length, 2) / 6.0;
+    }
+
     void CalculateCrossWindDiffusionParameters(double& chi,
                                                double& k1,
                                                double& k2,
@@ -1039,23 +1049,22 @@ private:
 
         chi = 2.0 / (std::abs(reaction_dynamics) * element_length + 2.0 * velocity_magnitude);
 
+        const double psi_one =
+            this->CalculatePsiOne(velocity_magnitude, tau, reaction_dynamics);
+        const double psi_two = this->CalculatePsiTwo(reaction_dynamics, tau, element_length);
+
         double value = 0.0;
-        value =
-            std::abs(0.5 * (velocity_magnitude - tau * velocity_magnitude * reaction_dynamics +
-                            tau * velocity_magnitude * std::abs(reaction_dynamics))) *
-                element_length -
-            (effective_kinematic_viscosity + tau * std::pow(velocity_magnitude, 2)) +
-            (reaction_dynamics + tau * reaction_dynamics * std::abs(reaction_dynamics)) *
-                std::pow(element_length, 2) / 6.0;
+
+        value = 0.5 * std::abs(psi_one - tau * velocity_magnitude * reaction_dynamics) * element_length;
+        value -= (effective_kinematic_viscosity + tau * std::pow(velocity_magnitude, 2));
+        value += psi_two;
 
         k1 = std::max(value, 0.0);
 
-        value = std::abs(0.5 * (velocity_magnitude + tau * velocity_magnitude *
-                                                         std::abs(reaction_dynamics))) *
-                    element_length -
-                effective_kinematic_viscosity +
-                (reaction_dynamics + tau * reaction_dynamics * std::abs(reaction_dynamics)) *
-                    std::pow(element_length, 2) / 6.0;
+        value = 0.5 * std::abs(psi_one) * element_length;
+        value -= effective_kinematic_viscosity;
+        value += psi_two;
+
         k2 = std::max(value, 0.0);
     }
 
