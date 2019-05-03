@@ -14,6 +14,7 @@
 // Project includes
 #include "custom_elements/solid_elements/updated_lagrangian_segregated_V_P_element.hpp"
 #include "solid_mechanics_application_variables.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -748,11 +749,11 @@ void UpdatedLagrangianSegregatedVPElement::GetFreeSurfaceFaces(std::vector<std::
   rGeometry.NodesInFaces(NodesInFaces);
 
   //based in existance of neighbour elements (proper detection for triangles and tetrahedra)
-  ElementWeakPtrVectorType& nElements = this->GetValue(NEIGHBOUR_ELEMENTS);
+  auto& nElements = this->GetValue(NEIGHBOUR_ELEMENTS);
   unsigned int counter=0;
   for(auto& i_nelem : nElements)
   {
-    if(i_nelem.Id() == this->Id())  // If there is no shared element in face nf (the Id coincides)
+    if(i_nelem->Id() == this->Id())  // If there is no shared element in face nf (the Id coincides)
     {
       std::vector<SizeType> Nodes;
       unsigned int FixedNodes  = 0;

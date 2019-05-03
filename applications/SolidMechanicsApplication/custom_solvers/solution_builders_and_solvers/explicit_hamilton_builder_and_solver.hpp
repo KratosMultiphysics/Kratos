@@ -28,6 +28,7 @@
 #include "utilities/beam_math_utilities.hpp"
 
 #include "solid_mechanics_application_variables.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -530,7 +531,7 @@ public:
 
 	//IT HAS TO BE MODIFIED TO ONLY COMPUTE THE NODE NEIGHBOUR ELEMENTS AND CONDITIONS:
 
-	ElementWeakPtrVectorType& nElements = pNode->GetValue(NEIGHBOUR_ELEMENTS);
+	auto& nElements = pNode->GetValue(NEIGHBOUR_ELEMENTS);
 
 	//std::cout<<" node ("<<(pNode)->Id()<<"): "<<rE.size()<<std::endl;
 
@@ -543,12 +544,14 @@ public:
 
 	for(auto i_nelem(nElements.begin()); i_nelem != nElements.end(); ++i_nelem)
         {
+          Element::Pointer pelem(&*i_nelem);
           //calculate elemental contribution
-          pScheme->CalculateSystemContributions(*i_nelem.base(), LHS_Contribution, RHS_Contribution, EquationId, rCurrentProcessInfo);
+          pScheme->CalculateSystemContributions(pelem, LHS_Contribution, RHS_Contribution, EquationId, rCurrentProcessInfo);
 
           // clean local elemental memory
-          pScheme->CleanMemory(*i_nelem.base());
+          pScheme->CleanMemory(pelem);
         }
+
 
 
 

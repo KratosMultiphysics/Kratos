@@ -58,9 +58,6 @@ public:
     typedef BeamMathUtils<double>                   BeamMathUtilsType;
     typedef Quaternion<double>                         QuaternionType;
 
-    typedef WeakPointerVector<Node<3> >         NodeWeakPtrVectorType;
-    typedef WeakPointerVector<Element>       ElementWeakPtrVectorType;
-    typedef WeakPointerVector<Condition>   ConditionWeakPtrVectorType;
     /// Pointer definition of BuildStringSkinProcess
     KRATOS_CLASS_POINTER_DEFINITION(BuildStringSkinProcess);
 
@@ -320,11 +317,11 @@ private:
 
         mGeneratrixNodes.push_back( Starter );
 
-        ElementWeakPtrVectorType& nElements = Starter->GetValue(NEIGHBOUR_ELEMENTS);
+        auto& nElements = Starter->GetValue(NEIGHBOUR_ELEMENTS);
 
         for(auto& i_nelem : nElements)
         {
-          Element::GeometryType& rGeometry = i_nelem.GetGeometry();
+          Element::GeometryType& rGeometry = i_nelem->GetGeometry();
 
           bool selected = true;
           for(unsigned int j = 0; j < rGeometry.size(); j++)
@@ -1189,7 +1186,7 @@ private:
         nNodes.clear();
         nNodes.resize(AverageNodes);
 
-        ElementWeakPtrVectorType& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
+        auto& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
         nElements.clear();
         nElements.resize(AverageElements);
       }
@@ -1200,7 +1197,7 @@ private:
 	  Element::GeometryType& rGeometry = i_elem.GetGeometry();
 	  int size= rGeometry.FacesNumber();
 
-	  ElementWeakPtrVectorType& nElements = i_elem.GetValue(NEIGHBOUR_ELEMENTS);
+	  auto& nElements = i_elem.GetValue(NEIGHBOUR_ELEMENTS);
           nElements.clear();
 	  nElements.resize(size);
 
@@ -1230,10 +1227,12 @@ private:
     //************************************************************************************
     //************************************************************************************
 
-    ElementWeakPtrType CheckForNeighbourElems1D (unsigned int Id_1, ElementWeakPtrVectorType& nElements, ElementsContainerType::iterator i_elem)
+    GlobalPointer<Element> CheckForNeighbourElems1D (unsigned int Id_1, 
+                                                  GlobalPointersVector<Element>& nElements, 
+                                                  ElementsContainerType::iterator i_elem)
     {
       //look for the faces around node Id_1
-      for(auto i_nelem(nElements.begin()); i_nelem != nElements.end(); ++i_nelem)
+      for(auto i_nelem : nElements)
       {
         //look for the nodes of the neighbour faces
         Geometry<Node<3> >& nGeometry = i_nelem->GetGeometry();
@@ -1244,13 +1243,13 @@ private:
             {
               if(i_nelem->Id() != i_elem->Id())
               {
-                return *i_nelem.base();
+                return i_nelem;
               }
             }
           }
         }
       }
-      return *i_elem.base();
+      return GlobalPointer<Element>(*i_elem.base());
     }
 
     //************************************************************************************
@@ -1284,15 +1283,15 @@ private:
       //adding the neighbouring nodes to all nodes in the mesh
       for(auto& i_node : rNodes)
       {
-        ElementWeakPtrVectorType& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
+        auto& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
         for(auto& i_nelem : nElements)
         {
-          Element::GeometryType& rGeometry = i_nelem.GetGeometry();
+          Element::GeometryType& rGeometry = i_nelem->GetGeometry();
           for(unsigned int i = 0; i < rGeometry.size(); i++)
           {
             if( rGeometry[i].Id() != i_node.Id() )
             {
-              auto& nNodes = i_nelem.GetValue(NEIGHBOUR_NODES);
+              auto& nNodes = i_nelem->GetValue(NEIGHBOUR_NODES);
               AddUniquePointer< Node<3> >(nNodes, rGeometry(i));
             }
 
@@ -1311,7 +1310,7 @@ private:
         Geometry<Node<3> >& rGeometry = i_elem->GetGeometry();
         if( rGeometry.FacesNumber() == 2 ){
 
-          ElementWeakPtrVectorType& nElements = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
+          auto& nElements = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
 
           //vector of the 2 faces around the given face
           if( nElements.size() != 2 )
