@@ -326,6 +326,12 @@ public:
     /// Pointer definition of FindIntersectedGeometricalObjectsProcess
     KRATOS_CLASS_POINTER_DEFINITION(FindIntersectedGeometricalObjectsProcess);
 
+    /// Local Flags
+    KRATOS_DEFINE_LOCAL_FLAG( INTERSECTING_CONDITIONS );
+    KRATOS_DEFINE_LOCAL_FLAG( INTERSECTING_ELEMENTS );
+    KRATOS_DEFINE_LOCAL_FLAG( INTERSECTED_CONDITIONS );
+    KRATOS_DEFINE_LOCAL_FLAG( INTERSECTED_ELEMENTS );
+
     /// Octree definitions
     using ConfigurationType = Internals::DistanceSpatialContainersConfigure;
     using CellType = OctreeBinaryCell<ConfigurationType>;
@@ -365,7 +371,8 @@ public:
      */
     FindIntersectedGeometricalObjectsProcess(
         ModelPart& rModelPartIntersected,
-        ModelPart& rModelPartIntersecting
+        ModelPart& rModelPartIntersecting,
+        const Flags Options = INTERSECTING_CONDITIONS|INTERSECTING_ELEMENTS|INTERSECTED_CONDITIONS|INTERSECTED_ELEMENTS
         );
 
     /**
@@ -491,6 +498,7 @@ protected:
     ModelPart& mrModelPartIntersected;  /// Model part intersected
     ModelPart& mrModelPartIntersecting; /// Model part intersecting
     OctreeType mOctree;                 /// The octree structucture that performs the search
+    Flags mOptions;                     /// Local flags
 
     ///@}
     ///@name Protected Operators
