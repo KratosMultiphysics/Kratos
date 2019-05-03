@@ -1164,7 +1164,7 @@ public:
         for (IndexType i_point = 0; i_point < p_points.size(); ++i_point) {
             PointsArrayType point_array;
             point_array.push_back(p_points(i_point));
-            auto p_point_geometry = Kratos::make_shared<GeometryType>(point_array, mpGeometryData);
+            auto p_point_geometry = Kratos::make_shared<Geometry<TPointType>>(point_array);
             points.push_back(p_point_geometry);
         }
 
