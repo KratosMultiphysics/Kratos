@@ -24,15 +24,9 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_parameters);
 
         self.model_part = Model[settings["model_part_name"].GetString()]
-        self.free_stream_velocity = KratosMultiphysics.Vector(3)#array('d', [1.0, 2.0, 3.14])#np.array([0,0,0])#np.zeros(3)#vector(3)
-        self.free_stream_velocity[0] = settings["free_stream_velocity"][0].GetDouble()
-        self.free_stream_velocity[1] = settings["free_stream_velocity"][1].GetDouble()
-        self.free_stream_velocity[2] = settings["free_stream_velocity"][2].GetDouble()
-        #self.density_infinity = settings["density_infinity"].GetDouble() #TODO: must read this from the properties
+        self.free_stream_velocity = settings["free_stream_velocity"].GetVector()
         self.inlet_phi = settings["inlet_phi"].GetDouble()
         self.model_part.ProcessInfo.SetValue(CompressiblePotentialFlowApplication.FREE_STREAM_VELOCITY,self.free_stream_velocity)
-
-
 
     def Execute(self):
         #KratosMultiphysics.VariableUtils().SetVectorVar(CompressiblePotentialFlowApplication.FREE_STREAM_VELOCITY, self.free_stream_velocity, self.model_part.Conditions)
