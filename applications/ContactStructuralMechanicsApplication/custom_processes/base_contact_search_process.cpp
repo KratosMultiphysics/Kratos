@@ -1207,7 +1207,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeM
 
     // We compute now the normal gap and set the nodes under certain threshold as active
     array_1d<double, 3> normal, auxiliar_coordinates, components_gap;
-    double gap;
+    double gap = 0.0;
     const auto it_node_begin = r_nodes_array.begin();
     #pragma omp parallel for firstprivate(gap, normal, auxiliar_coordinates, components_gap)
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
