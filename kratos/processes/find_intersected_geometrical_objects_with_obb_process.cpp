@@ -24,8 +24,9 @@ FindIntersectedGeometricalObjectsWithOBBProcess::FindIntersectedGeometricalObjec
     ModelPart& rModelPartIntersecting,
     const double BoundingBoxFactor,
     const bool DebugOBB,
-    const OBBHasIntersectionType IntersectionType
-    ) : BaseType(rModelPartIntersected, rModelPartIntersecting),
+    const OBBHasIntersectionType IntersectionType,
+    const Flags Options
+    ) : BaseType(rModelPartIntersected, rModelPartIntersecting, Options),
         mBoundingBoxFactor(BoundingBoxFactor),
         mDebugOBB(DebugOBB),
         mIntersectionType(IntersectionType)
@@ -64,6 +65,17 @@ FindIntersectedGeometricalObjectsWithOBBProcess::FindIntersectedGeometricalObjec
 
     KRATOS_ERROR_IF(r_intersected_model_part_name == "") << "intersected_model_part_name must be defined on parameters" << std::endl;
     KRATOS_ERROR_IF(r_intersecting_model_part_name == "") << "intersecting_model_part_name must be defined on parameters" << std::endl;
+
+    // Setting flags
+    const bool intersecting_conditions = ThisParameters["intersecting_conditions"].GetBool();
+    const bool intersecting_elements = ThisParameters["intersecting_elements"].GetBool();
+    const bool intersected_conditions = ThisParameters["intersected_conditions"].GetBool();
+    const bool intersected_elements = ThisParameters["intersected_elements"].GetBool();
+
+    BaseType::mOptions.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS, intersecting_conditions);
+    BaseType::mOptions.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS, intersecting_elements);
+    BaseType::mOptions.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS, intersected_conditions);
+    BaseType::mOptions.Set(FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS, intersected_elements);
 
     // Setting the bounding box factor
     mBoundingBoxFactor = mThisParameters["bounding_box_factor"].GetDouble();
@@ -430,7 +442,11 @@ Parameters FindIntersectedGeometricalObjectsWithOBBProcess::GetDefaultParameters
         "intersecting_model_part_name" : "",
         "bounding_box_factor"          : -1.0,
         "debug_obb"                    : false,
-        "OBB_intersection_type"        : "SeparatingAxisTheorem"
+        "OBB_intersection_type"        : "SeparatingAxisTheorem",
+        "intersecting_conditions"      : true,
+        "intersecting_elements"        : true,
+        "intersected_conditions"       : true,
+        "intersected_elements"         : true
     })" );
 
     return default_parameters;
