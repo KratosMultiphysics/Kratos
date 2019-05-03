@@ -693,7 +693,7 @@ class MultilevelMonteCarlo(object):
         # convergence reached if: i) current_iteration >= number_iterations_iE
         #                        ii) total_error < tolerance_i
         # if not update current_iteration
-        if (self.current_iteration >= self.number_iterations_iE) and (self.total_error < self.tolerance_i):
+        if (self.total_error < self.settings["tolerance"].GetDouble()):
             self.convergence = True
         else:
             self.current_iteration = self.current_iteration + 1
@@ -710,7 +710,7 @@ class MultilevelMonteCarlo(object):
         print("mean time_ML",self.time_ML.raw_moment_1)
         print("rates coefficient = ",self.rates_error)
         print("estimated Bayesian variance = ",self.bayesian_variance)
-        print("minimum number of MLMC iterations = ",self.number_iterations_iE)
+        print("estimated number of CMLMC iterations = ",self.number_iterations_iE)
 
     """
     function printing informations about initializing MLMC phase
