@@ -46,14 +46,14 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         RX = rx/self.reference_area
         RY = ry/self.reference_area
 
-        Cl = RY
-        Cd = RX
+        self.Cl = RY
+        self.Cd = RX
 
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Cl = ', Cl)
-        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Cd = ', Cd)
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Cl = ', self.Cl)
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Cd = ', self.Cd)
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','RZ = ', RZ)
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','Mach = ', self.velocity_infinity[0]/340)
 
         if self.create_output_file:
             with open("cl.dat", 'w') as cl_file:
-                cl_file.write('{0:15.12f}'.format(Cl))
+                cl_file.write('{0:15.12f}'.format(self.Cl))
