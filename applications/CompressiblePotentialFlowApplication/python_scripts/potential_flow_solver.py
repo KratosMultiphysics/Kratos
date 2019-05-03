@@ -79,9 +79,6 @@ class PotentialFlowSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
 
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE,self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Fluid solver DOFs added correctly.")
@@ -102,5 +99,22 @@ class PotentialFlowSolver(FluidSolver):
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         (self.solver).Initialize()
 
+    def Predict(self):
+        self.solver.Predict()
+
     def AdvanceInTime(self, current_time):
         raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
+
+    def FinalizeSolutionStep(self):
+        # if self._TimeBufferIsInitialized():
+        (self.solver).FinalizeSolutionStep()
+
+    def SolveSolutionStep(self):
+        # print(self._TimeBufferIsInitialized, "\n")
+        KratosMultiphysics.Logger.PrintInfo("OOOOOOOOOOOO", self.solver)
+        is_converged = self.solver.SolveSolutionStep()
+        if not is_converged:
+            msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
+            msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
+            KratosMultiphysics.Logger.PrintWarning("FluidSolver",msg)
+

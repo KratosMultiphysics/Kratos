@@ -23,3 +23,8 @@ class AlePotentialFlowSolver(AleFluidSolver):
         for mesh_solver in self.mesh_motion_solvers:
             mesh_solver.SolveSolutionStep()
         self.fluid_solver.SolveSolutionStep()
+
+    def FinalizeSolutionStep(self):
+        for mesh_solver in self.mesh_motion_solvers:
+            mesh_solver.FinalizeSolutionStep()
+        self.fluid_solver.FinalizeSolutionStep()
