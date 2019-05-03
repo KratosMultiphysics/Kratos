@@ -23,7 +23,7 @@ array_1d<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement)
 
     if (kutta == 0) {
         for (unsigned int i = 0; i < NumNodes; i++) {
-            potentials[i] = Geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+            potentials[i] = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         }
     }
     else {
