@@ -158,8 +158,18 @@ class FEMDEM_Solution:
         ########################################################
 
         # print(self.FEM_Solution.main_model_part.GetNode(55).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT))
-        # print(self.FEM_Solution.main_model_part.GetNode(55).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 2))
+        # print(self.FEM_Solution.main_model_part.GetNode(55).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1))
         # Wait()
+        #######################################
+        for node in self.FEM_Solution.main_model_part.Nodes:
+            displ = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+            displ_old = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1)
+            displ_increment = displ - displ_old
+            node.SetSolutionStepValue(KratosFemDem.DISPLACEMENT_INCREMENT, displ_increment)
+            # print(node.GetSolutionStepValue(KratosFemDem.DISPLACEMENT_INCREMENT))
+            # Wait()
+
+        #######################################
 
         if self.PressureLoad:
             # This must be called before Generating DEM

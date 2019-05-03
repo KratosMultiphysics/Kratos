@@ -1487,6 +1487,7 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 	Vector current_displacements(mat_size);
 	Vector previous_displacements(mat_size);
 	Vector displacements_copy(mat_size);
+	Vector displ_increment(mat_size);
 
 	rTangentTensor.resize(mat_size, mat_size);
 
@@ -1494,41 +1495,47 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 	for (unsigned int i = 0; i < number_of_nodes; i++) {
 		array_1d<double,3> displacement = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT);
 		array_1d<double,3> displacement_old = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT, 1);
+		array_1d<double,3> displacement_incr = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT_INCREMENT);
 
 		current_displacements[2*i]     = displacement[0];
 		current_displacements[2*i + 1] = displacement[1];
 
 		previous_displacements[2*i]     = displacement_old[0];
 		previous_displacements[2*i + 1] = displacement_old[1];
+
+		displ_increment[2*i]     = displacement_incr[0];
+		displ_increment[2*i + 1] = displacement_incr[1];		
 	}
 	
 	const double displ_norm = norm_2(current_displacements);
-	// const double delta_displ_norm = norm_2(r_delta_displ);
-	// const double numerical_tolerance = std::sqrt(tolerance) * (1.0 + displ_norm / delta_displ_norm);
-	// const double numerical_tolerance = std::sqrt(tolerance) * (1.0 + displ_norm);
-	// const double numerical_tolerance = 1e-12 * displ_norm;
-	// const double numerical_tolerance = std::sqrt(tolerance) * (1.0 + displ_norm);
-	const double numerical_tolerance = 1e-15;
+	const double delta_displ_norm = norm_2(displ_increment);
+	const double numerical_tolerance = std::sqrt(tolerance) * (1.0 + displ_norm / delta_displ_norm);
+
+	for (unsigned int i = 0; i < mat_size; i++) {
+		if (std::abs(displ_increment[i]) < tolerance) 
+			displ_increment[i] = delta_displ_norm / 1.0e3;
+	}
+
 
 	// We impose a certain displ perturbation = numerical_tolerance*delta_u
-	Vector displacement_perturbation(mat_size);
+	// Vector displacement_perturbation(mat_size);
 
-	// const double min = -1.0;
-	const double min = 0.0;
-	const double max = 1.0;
+	// // const double min = -1.0;
+	// const double min = 0.0;
+	// const double max = 1.0;
 	
 	// here the perturbations at each DoF are computed
-	for (unsigned int i = 0; i < mat_size; i++) {
-		const double random_contr = ((double) rand()*(max - min) / (double)RAND_MAX + min);
-		displacement_perturbation[i] = random_contr;
-	}
+	// for (unsigned int i = 0; i < mat_size; i++) {
+	// 	const double random_contr = ((double) rand()*(max - min) / (double)RAND_MAX + min);
+	// 	displacement_perturbation[i] = random_contr;
+	// }
 
 	noalias(displacements_copy) = current_displacements;
 
 	// loop over DoF in order to perturbate at each one
 	for (unsigned int comp = 0; comp < current_displacements.size(); comp++) {
 		// We perturbate the displacement field and save the u field
-		current_displacements[comp] += numerical_tolerance * displacement_perturbation[comp];
+		current_displacements[comp] += numerical_tolerance * displ_increment[comp];
 
 		// Now we recompute everything
 		for (unsigned int i = 0; i < number_of_nodes; i++) {
@@ -1629,11 +1636,11 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 			// Assign components to tangent tensor
 			for (unsigned int row = 0; row < mat_size; ++row) {
 				rTangentTensor(row, comp) = (perturbed_internal_forces[row] - rInternalForcesVectorGP[row]) 
-					/ (numerical_tolerance * displacement_perturbation[comp]);
+					/ (numerical_tolerance * displ_increment[comp]);
 			}
 		}
 	}
-	rTangentTensor = (trans(rTangentTensor) + rTangentTensor)*0.5;
+	// rTangentTensor = (trans(rTangentTensor) + rTangentTensor)*0.5;
 	// KRATOS_WATCH(rTangentTensor)
 }
 } // namespace Kratos
