@@ -288,6 +288,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSynchronize, K
     r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
     r_model_part.AddNodalSolutionStepVariable(DOMAIN_SIZE);           // Variable<int>
     r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);           // Variable<double>
+    r_model_part.AddNodalSolutionStepVariable(IS_RESTARTED);          // Variable<bool>
     r_model_part.AddNodalSolutionStepVariable(VELOCITY);              // Variable< array_1d<double,3> >
     r_model_part.AddNodalSolutionStepVariable(CAUCHY_STRESS_VECTOR);  // Variable<Vector>
     r_model_part.AddNodalSolutionStepVariable(DEFORMATION_GRADIENT);  // Variable<Matrix>
@@ -301,6 +302,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSynchronize, K
     {
         i_node->FastGetSolutionStepValue(DOMAIN_SIZE, 0) = 1;
         i_node->FastGetSolutionStepValue(TEMPERATURE, 0) = 2.0;
+        i_node->FastGetSolutionStepValue(IS_RESTARTED, 0) = true;
         i_node->FastGetSolutionStepValue(VELOCITY_X, 0) = 1.0;
         i_node->FastGetSolutionStepValue(VELOCITY_Y, 0) = 2.0;
         Vector& r_cauchy_stress = i_node->FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR, 0);
@@ -323,6 +325,12 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSynchronize, K
     for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
     {
         KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(TEMPERATURE,0), 2.0);
+    }
+
+    r_comm.SynchronizeVariable(IS_RESTARTED);
+    for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
+    {
+        KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(IS_RESTARTED,0), true);
     }
 
     r_comm.SynchronizeVariable(VELOCITY);
@@ -466,6 +474,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataSynchronize, KratosMPICoreFast
     {
         i_node->GetValue(DOMAIN_SIZE) = 1;
         i_node->GetValue(TEMPERATURE) = 2.0;
+        i_node->GetValue(IS_RESTARTED) = true;
         i_node->GetValue(VELOCITY_X) = 1.0;
         i_node->GetValue(VELOCITY_Y) = 2.0;
         Vector& r_cauchy_stress = i_node->GetValue(CAUCHY_STRESS_VECTOR);
@@ -488,6 +497,12 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataSynchronize, KratosMPICoreFast
     for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
     {
         KRATOS_CHECK_EQUAL(i_node->GetValue(TEMPERATURE), 2.0);
+    }
+
+    r_comm.SynchronizeNonHistoricalVariable(IS_RESTARTED);
+    for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
+    {
+        KRATOS_CHECK_EQUAL(i_node->GetValue(IS_RESTARTED), true);
     }
 
     r_comm.SynchronizeNonHistoricalVariable(VELOCITY);
@@ -563,6 +578,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchronize, Krato
     r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
     r_model_part.AddNodalSolutionStepVariable(DOMAIN_SIZE);           // Variable<int>
     r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);           // Variable<double>
+    r_model_part.AddNodalSolutionStepVariable(IS_RESTARTED);          // Variable<bool>
     r_model_part.AddNodalSolutionStepVariable(VELOCITY);              // Variable< array_1d<double,3> >
     r_model_part.AddNodalSolutionStepVariable(CAUCHY_STRESS_VECTOR);  // Variable<Vector>
     r_model_part.AddNodalSolutionStepVariable(DEFORMATION_GRADIENT);  // Variable<Matrix>
@@ -577,6 +593,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchronize, Krato
     {
         i_node->FastGetSolutionStepValue(DOMAIN_SIZE, 0) = 1;
         i_node->FastGetSolutionStepValue(TEMPERATURE, 0) = 2.0;
+        i_node->FastGetSolutionStepValue(IS_RESTARTED, 0) = true;
         i_node->FastGetSolutionStepValue(VELOCITY_X, 0) = 1.0;
         i_node->FastGetSolutionStepValue(VELOCITY_Y, 0) = 2.0;
         Vector& r_cauchy_stress = i_node->FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR, 0);
@@ -600,6 +617,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepDataSynchronize, Krato
         {
             KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(DOMAIN_SIZE,step), 1);
             KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(TEMPERATURE,step), 2.0);
+            KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(IS_RESTARTED,step), true);
             KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(VELOCITY_X,step), 1.0);
             KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(VELOCITY_Y,step), 2.0);
             KRATOS_CHECK_EQUAL(i_node->FastGetSolutionStepValue(VELOCITY_Z,step), 0.0);
