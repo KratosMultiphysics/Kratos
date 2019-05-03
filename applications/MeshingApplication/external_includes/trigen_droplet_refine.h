@@ -665,7 +665,7 @@ public:
             int base = ( iii->Id() - 1 )*3;
 
             (iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
-            WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
+            auto& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
             for(int i = 0; i<3; i++)
             {
                 int index = out2.neighborlist[base+i];

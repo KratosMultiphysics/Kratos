@@ -964,7 +964,7 @@ public:
             int base = ( iii->Id() - 1 )*3;
 
             (iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
-            WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
+            auto& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
             for(int i = 0; i<3; i++)
             {
                 int index = out2.neighborlist[base+i];
@@ -1467,7 +1467,7 @@ private:
             if(elem->GetValue(IS_WATER_ELEMENT) == 0)
             {
 
-                WeakPointerVector< Element >& neighbor_els = elem->GetValue(NEIGHBOUR_ELEMENTS);
+                auto& neighbor_els = elem->GetValue(NEIGHBOUR_ELEMENTS);
                 Geometry< Node<3> >& geom = elem->GetGeometry();
 
                 for(int ii=0; ii<(Tdim+1); ++ii)
