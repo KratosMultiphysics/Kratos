@@ -186,7 +186,7 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 	ConstitutiveLaw::Parameters values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
 	//set constitutive law flags:
-	Flags& ConstitutiveLawOptions=values.GetOptions();
+	Flags& ConstitutiveLawOptions = values.GetOptions();
 
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -241,6 +241,7 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		const Matrix& C =  values.GetConstitutiveMatrix();
 		Matrix tangent_tensor;
 		const Vector& r_strain_vector = values.GetStrainVector();
+
 		if (is_damaging == true && std::abs(r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2]) > tolerance) {
 			if (this->GetProperties()[TANGENT_CONSTITUTIVE_TENSOR] == true) {
 				const Vector& r_internal_forces = variables.IntegrationWeight * prod(trans(variables.B), r_integrated_stress_vector);
@@ -1378,7 +1379,9 @@ void FemDem2DElement::CalculatePerturbation(
 	const double max_strain_component = this->GetMaxAbsValue(rStrainVectorGP);
 	perturbation_2 = 1.0e-10 * max_strain_component;
 	rPerturbation = std::max(perturbation_1, perturbation_2);
-	if (rPerturbation < 1e-8) rPerturbation = 1e-8;
+
+	const double min_pert = std::sqrt(tolerance) * (1.0 + max_strain_component);
+	if (rPerturbation < min_pert) rPerturbation = min_pert;
 }
 
 void FemDem2DElement::PerturbateStrainVector(
@@ -1398,15 +1401,15 @@ void FemDem2DElement::IntegratePerturbedStrain(
 	const Matrix& rElasticMatrix
 	)
 {
-	const Vector& perturbed_predictive_stress = prod(rElasticMatrix, rPerturbedStrainVector);
+	const Vector& r_perturbed_predictive_stress = prod(rElasticMatrix, rPerturbedStrainVector);
 	Vector damages_edges = ZeroVector(mNumberOfEdges);
 
-	auto &r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+	auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
 	KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
 
 	for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
-		const Vector& average_stress_edge = 0.5*(r_elem_neigb[edge].GetValue(STRESS_VECTOR) + perturbed_predictive_stress);
-		const Vector& average_strain_edge = 0.5*(r_elem_neigb[edge].GetValue(STRAIN_VECTOR) + rPerturbedStrainVector);
+		const Vector& r_average_stress_edge = 0.5*(r_elem_neigb[edge].GetValue(STRESS_VECTOR) + r_perturbed_predictive_stress);
+		const Vector& r_average_strain_edge = 0.5*(r_elem_neigb[edge].GetValue(STRAIN_VECTOR) + rPerturbedStrainVector);
 
 		double damage_edge = mDamages[edge];
 		double threshold = mThresholds[edge];
@@ -1415,15 +1418,15 @@ void FemDem2DElement::IntegratePerturbedStrain(
 		bool dummy = false;
 		this->IntegrateStressDamageMechanics(threshold,
 											 damage_edge,
-											 average_strain_edge, 
-											 average_stress_edge, 
+											 r_average_strain_edge, 
+											 r_average_stress_edge, 
 											 edge, 
 											 length,
 											 dummy);
 		damages_edges[edge] = damage_edge;
 	} // End loop edges
 	const double damage_element = this->CalculateElementalDamage(damages_edges);
-	rPerturbedStressVector = (1.0 - damage_element) * perturbed_predictive_stress;
+	noalias(rPerturbedStressVector) = (1.0 - damage_element) * r_perturbed_predictive_stress;
 }
 
 void FemDem2DElement::AssignComponentsToTangentTensor(
