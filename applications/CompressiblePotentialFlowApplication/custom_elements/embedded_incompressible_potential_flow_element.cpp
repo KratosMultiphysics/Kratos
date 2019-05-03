@@ -77,7 +77,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
     for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
         distances(i_node) = this->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
 
-    BaseType::GetPotentialOnNormalElement(potential);
+    potential = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*this);
 
     ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(distances);
     Matrix positive_side_sh_func;
@@ -102,7 +102,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
 }
 
 template <>
-ModifiedShapeFunctions::Pointer EmbeddedIncompressiblePotentialFlowElement<2,3>::pGetModifiedShapeFunctions(Vector& rDistances) {                   
+ModifiedShapeFunctions::Pointer EmbeddedIncompressiblePotentialFlowElement<2,3>::pGetModifiedShapeFunctions(Vector& rDistances) {
     return Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(this->pGetGeometry(), rDistances);
 }
 
