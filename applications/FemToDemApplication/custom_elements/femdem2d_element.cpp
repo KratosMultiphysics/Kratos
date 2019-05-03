@@ -204,6 +204,9 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		//compute element kinematic variables B, F, DN_DX ...
 		this->CalculateKinematics(variables, point_number);
 
+		KRATOS_WATCH(variables.DN_DX)
+		KRATOS_WATCH(variables.H)
+
 		//calculate material response
 		this->CalculateMaterialResponse(variables, values, point_number); // FEMDEM
 
@@ -292,7 +295,7 @@ void FemDem2DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 	//set constitutive law flags:
 	Flags& ConstitutiveLawOptions = values.GetOptions();
 
-	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+	//ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
 	//reading integration points
@@ -386,7 +389,7 @@ void FemDem2DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 	Flags& ConstitutiveLawOptions = values.GetOptions();
 
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+	//ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
 	//reading integration points
 	const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
@@ -1496,10 +1499,16 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 		previous_displacements[2*i]     = displacement_old[0];
 		previous_displacements[2*i + 1] = displacement_old[1];
 	}
-	const Vector& r_delta_displ = current_displacements - previous_displacements;
+	std::cout << "************************************************************" << std::endl;
+	KRATOS_WATCH(this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT))
+	KRATOS_WATCH(this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT))
+	KRATOS_WATCH(this->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT))
+	// KRATOS_WATCH(this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT,1))
+	// const Vector& r_delta_displ = current_displacements - previous_displacements;
 	const double displ_norm = norm_2(current_displacements);
-	const double delta_displ_norm = norm_2(r_delta_displ);
-	const double numerical_tolerance = std::sqrt(tolerance) * (1.0 + displ_norm / delta_displ_norm);
+	// const double delta_displ_norm = norm_2(r_delta_displ);
+	// const double numerical_tolerance = std::sqrt(tolerance) * (1.0 + displ_norm / delta_displ_norm);
+	const double numerical_tolerance = std::sqrt(tolerance) * (1.0 + displ_norm);
 
 	// We impose a certain displ perturbation = numerical_tolerance*delta_u
 	Vector displacement_perturbation(number_of_nodes*dimension);
@@ -1509,14 +1518,94 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 	noalias(displacements_copy) = current_displacements;
 	noalias(current_displacements) += numerical_tolerance * displacement_perturbation;
 
-	// Now we recompute everyting
+	// Now we recompute everything
 	for (unsigned int i = 0; i < number_of_nodes; i++) {
 		array_1d<double,3>& r_displacement = this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
-		// We sibstitute the perturbed displ
+		// We substitute the perturbed displ
 		r_displacement[0] = current_displacements[2*i];
 		r_displacement[1] = current_displacements[2*i + 1];
 	}
+	std::cout << "**** despues de pert" << std::endl;
+	KRATOS_WATCH(this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT))
+	KRATOS_WATCH(this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT))
+	KRATOS_WATCH(this->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT))
+
+	// KRATOS_WATCH(numerical_tolerance)
+	// KRATOS_WATCH(displacement_perturbation)
+	// KRATOS_WATCH(displ_norm)
+	// KRATOS_WATCH(this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT))
+// ************************************************************************************************************************
+	//create and initialize element variables:
+	ElementDataType variables;
+	ProcessInfo dummy_process_info;
+	this->InitializeElementData(variables, dummy_process_info);
+
+	//create constitutive law parameters:
+	ConstitutiveLaw::Parameters values(this->GetGeometry(), this->GetProperties(), dummy_process_info);
+
+	//set constitutive law flags:
+	Flags& ConstitutiveLawOptions = values.GetOptions();
+
+	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+	//reading integration points
+	const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod );
+
+	//auxiliary terms
+	Vector VolumeForce(dimension);
+
+	auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+	KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
+
+	for (SizeType point_number = 0; point_number < r_integration_points.size(); point_number++ ) {
+		//compute element kinematic variables B, F, DN_DX ...
+		this->CalculateKinematics(variables, point_number);
+
+		//calculate material response
+		this->CalculateMaterialResponse(variables, values, point_number); // FEMDEM
+
+		//calculating weights for integration on the "reference configuration"
+		variables.IntegrationWeight = r_integration_points[point_number].Weight() * variables.detJ;
+		variables.IntegrationWeight = this->CalculateIntegrationWeight(variables.IntegrationWeight );
+
+		// Loop over edges of the element...
+		Vector average_stress_edge(3);
+		Vector average_strain_edge(3);
+		bool is_damaging = false;
+		Vector damages(mNumberOfEdges);
+
+		for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
+			this->CalculateAverageStressOnEdge(&r_elem_neigb[edge], this, average_stress_edge);
+			this->CalculateAverageStrainOnEdge(&r_elem_neigb[edge], this, average_strain_edge);
+
+			// We recover converged values
+			double threshold = mThresholds[edge];
+			double damage = mDamages[edge];
+			
+			const double length = this->CalculateCharacteristicLength(this, r_elem_neigb[edge], edge);
+			this->IntegrateStressDamageMechanics(threshold, damage, average_strain_edge,
+													average_stress_edge, edge, length, is_damaging);
+
+			damages[edge] = damage;
+		} // Loop over edges
+
+		// Calculate the elemental Damage...
+		const double damage_element = this->CalculateElementalDamage(damages);
+		const Vector& r_predictive_stress_vector = values.GetStressVector();
+		const Vector& r_integrated_stress_vector = (1.0 - damage_element) * r_predictive_stress_vector;
+
+		KRATOS_WATCH(r_integrated_stress_vector)
+		KRATOS_WATCH(rStressVectorGP)
+		KRATOS_WATCH(rStrainVectorGP)
+		KRATOS_WATCH(values.GetStrainVector())
+		// KRATOS_WATCH(displ_norm)
+		// KRATOS_WATCH(displ_norm)
+		KRATOS_WATCH(displ_norm)
+
+	}
+
 
 
 

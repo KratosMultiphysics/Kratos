@@ -114,10 +114,10 @@ class FEMDEM_Solution:
         # modified for the remeshing
         self.FEM_Solution.delta_time = self.ComputeDeltaTime()
         self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.FEM_Solution.delta_time
-        self.FEM_Solution.time = self.FEM_Solution.time + self.FEM_Solution.delta_time
-        self.FEM_Solution.main_model_part.CloneTimeStep(self.FEM_Solution.time)
-        self.FEM_Solution.step = self.FEM_Solution.step + 1
+        self.FEM_Solution.time +=  self.FEM_Solution.delta_time
+        self.FEM_Solution.step += 1
         self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.FEM_Solution.step
+        self.FEM_Solution.main_model_part.CloneTimeStep(self.FEM_Solution.time)
 
         neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
         neighbour_elemental_finder.Execute()
@@ -156,6 +156,10 @@ class FEMDEM_Solution:
         #### SOLVE FEM #########################################
         self.FEM_Solution.solver.Solve()
         ########################################################
+
+        # print(self.FEM_Solution.main_model_part.GetNode(55).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT))
+        # print(self.FEM_Solution.main_model_part.GetNode(55).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 2))
+        # Wait()
 
         if self.PressureLoad:
             # This must be called before Generating DEM
