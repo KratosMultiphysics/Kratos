@@ -23,6 +23,7 @@
 #include "utilities/math_utils.h"
 #include "utilities/variable_utils.h"
 #include "includes/key_hash.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -136,9 +137,9 @@ void TetrahedralMeshOrientationCheck::Execute()
                     }
 
                     if(mrOptions.Is(ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS)) {
-                        WeakPointerVector< Element > vector_of_neighbours;
+                        GlobalPointersVector< Element > vector_of_neighbours;
                         vector_of_neighbours.resize(1);
-                        vector_of_neighbours(0) = Element::WeakPointer( *it_elem.base() );
+                        vector_of_neighbours[0] = GlobalPointer<Element>( *it_elem.base() );
                         for (Condition::Pointer p_cond : list_conditions) {
                             p_cond->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
                         }

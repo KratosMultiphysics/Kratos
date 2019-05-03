@@ -27,7 +27,7 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
-
+#include "includes/global_pointer.h"
 
 namespace Kratos
 {
@@ -147,8 +147,9 @@ namespace Kratos
 
 		bool ElementHas(Element& rElement, Node<3> const& rCoarseNode);
 
-		void SwapElementNode(Element& rElement, Node<3> const& rThisNode, Node<3>::Pointer pCoarseNode);
-
+    void SwapElementNode(Element& rElement, 
+				Node<3> const& rThisNode, 
+				GlobalPointer<Node<3>>& pCoarseNode);
       ///@}
 
     }; // Class MeshNodeCollapsingProcess

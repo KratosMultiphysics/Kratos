@@ -130,7 +130,7 @@ public:
             for(unsigned int i = 0; i < pGeom.size(); i++)
             {
                 //KRATOS_WATCH( pGeom[i] );
-                (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(ie.base()) ) );
+                (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( GlobalPointer<Element>( *(ie.base()) ) );
                 //KRATOS_WATCH( (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).size() );
             }
         }
@@ -138,11 +138,11 @@ public:
         //adding the neighbouring nodes
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
-            WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
+            auto& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
 
             for(unsigned int ie = 0; ie < rE.size(); ie++)
             {
-                Element::GeometryType& pGeom = rE[ie].GetGeometry();
+                Element::GeometryType& pGeom = rE[ie]->GetGeometry();
                 for(unsigned int i = 0; i < pGeom.size(); i++)
                 {
                     if(pGeom[i].Id() != in->Id() )

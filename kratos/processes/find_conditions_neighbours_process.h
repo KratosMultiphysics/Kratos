@@ -116,13 +116,13 @@ public:
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
             (in->GetValue(NEIGHBOUR_CONDITIONS)).reserve(mavg_conds);
-            WeakPointerVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
+            auto& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
             rC.erase(rC.begin(),rC.end() );
         }
         for(ConditionsContainerType::iterator ic = rConds.begin(); ic!=rConds.end(); ic++)
         {
             (ic->GetValue(NEIGHBOUR_CONDITIONS)).reserve(3);
-            WeakPointerVector<Condition >& rC = ic->GetValue(NEIGHBOUR_CONDITIONS);
+            auto& rC = ic->GetValue(NEIGHBOUR_CONDITIONS);
             rC.erase(rC.begin(),rC.end() );
         }
 
@@ -133,7 +133,7 @@ public:
             for(unsigned int i = 0; i < pGeom.size(); i++)
             {
                 //KRATOS_WATCH( pGeom[i] );
-                (pGeom[i].GetValue(NEIGHBOUR_CONDITIONS)).push_back( Condition::WeakPointer( *(ic.base()) ) );
+                (pGeom[i].GetValue(NEIGHBOUR_CONDITIONS)).push_back( GlobalPointer<Condition>( *(ic.base()) ) );
                 //KRATOS_WATCH( (pGeom[i].GetValue(NEIGHBOUR_CONDITIONS)).size() );
             }
         }
@@ -148,14 +148,14 @@ public:
                 Geometry<Node<3> >& geom = (ic)->GetGeometry();
                 //vector of the 3 faces around the given face
                 (ic->GetValue(NEIGHBOUR_CONDITIONS)).resize(3);
-                WeakPointerVector< Condition >& neighb_faces = ic->GetValue(NEIGHBOUR_CONDITIONS);
+                auto& neighb_faces = ic->GetValue(NEIGHBOUR_CONDITIONS);
                 //neighb_face is the vector containing pointers to the three faces around ic
                 //neighb_face[0] = neighbour face over edge 1-2 of element ic;
                 //neighb_face[1] = neighbour face over edge 2-0 of element ic;
                 //neighb_face[2] = neighbour face over edge 0-1 of element ic;
-                neighb_faces(0) = CheckForNeighbourFaces(geom[1].Id(), geom[2].Id(), geom[1].GetValue(NEIGHBOUR_CONDITIONS), ic->Id());
-                neighb_faces(1) = CheckForNeighbourFaces(geom[2].Id(), geom[0].Id(), geom[2].GetValue(NEIGHBOUR_CONDITIONS), ic->Id());
-                neighb_faces(2) = CheckForNeighbourFaces(geom[0].Id(), geom[1].Id(), geom[0].GetValue(NEIGHBOUR_CONDITIONS), ic->Id());
+                neighb_faces[0] = CheckForNeighbourFaces(geom[1].Id(), geom[2].Id(), geom[1].GetValue(NEIGHBOUR_CONDITIONS), ic->Id());
+                neighb_faces[1] = CheckForNeighbourFaces(geom[2].Id(), geom[0].Id(), geom[2].GetValue(NEIGHBOUR_CONDITIONS), ic->Id());
+                neighb_faces[2] = CheckForNeighbourFaces(geom[0].Id(), geom[1].Id(), geom[0].GetValue(NEIGHBOUR_CONDITIONS), ic->Id());
             }
         }
     }
@@ -166,13 +166,13 @@ public:
         NodesContainerType& rNodes = mr_model_part.Nodes();
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
-            WeakPointerVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
+            auto& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
             rC.erase(rC.begin(),rC.end());
         }
         ConditionsContainerType& rConds = mr_model_part.Conditions();
         for(ConditionsContainerType::iterator ic = rConds.begin(); ic!=rConds.end(); ic++)
         {
-            WeakPointerVector<Condition >& rC = ic->GetValue(NEIGHBOUR_CONDITIONS);
+            auto& rC = ic->GetValue(NEIGHBOUR_CONDITIONS);
             rC.erase(rC.begin(),rC.end());
         }
 
@@ -290,10 +290,10 @@ private:
 
     }
 
-    Condition::WeakPointer CheckForNeighbourFaces (unsigned int Id_1, unsigned int Id_2, WeakPointerVector< Condition >& neighbour_face, unsigned int face)
+    GlobalPointer<Condition> CheckForNeighbourFaces (unsigned int Id_1, unsigned int Id_2, GlobalPointersVector< Condition >& neighbour_face, unsigned int face)
     {
         //look for the faces around node Id_1
-        for( WeakPointerVector< Condition >::iterator i =neighbour_face.begin(); i != neighbour_face.end(); i++)
+        for(auto i : neighbour_face)
         {
             //look for the nodes of the neighbour faces
             Geometry<Node<3> >& neigh_face_geometry = (i)->GetGeometry();
@@ -303,12 +303,12 @@ private:
                 {
                     if(i->Id() != face)
                     {
-                        return *(i.base());
+                        return i;
                     }
                 }
             }
         }
-        return Condition::WeakPointer();
+        return GlobalPointer<Condition>();
     }
     ///@}
     ///@name Private Operations

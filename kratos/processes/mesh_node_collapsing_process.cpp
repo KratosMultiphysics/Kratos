@@ -74,7 +74,7 @@ namespace Kratos
 		// element in the ball which is already set to be erased
 		double current_quality = std::numeric_limits<double>::max();
 		auto& neighbour_elements = rThisNode.GetValue(NEIGHBOUR_ELEMENTS);
-		for (auto i_element = neighbour_elements.begin(); i_element != neighbour_elements.end(); i_element++) {
+		for(auto& i_element : neighbour_elements) {
 			if (i_element->IsNot(TO_ERASE)) {
 				double domain_size = i_element->GetGeometry().DomainSize();
 				current_quality = std::min(current_quality, domain_size);
@@ -95,12 +95,12 @@ namespace Kratos
 		if (i_coarse_node != r_neighbours.end()) {
 			rThisNode.Set(TO_ERASE);
 			auto& neighbour_elements = rThisNode.GetValue(NEIGHBOUR_ELEMENTS);
-			for (auto i_element = neighbour_elements.begin(); i_element != neighbour_elements.end(); i_element++)
+			for (auto i_element : neighbour_elements){
 				if (ElementHas(*i_element, **i_coarse_node))
 					i_element->Set(TO_ERASE);
 				else
-				KRATOS_ERROR << "WE NEED INTRUSIVE PTR TO DO THIS - DISABLING";
-					//SwapElementNode(*i_element, rThisNode, **i_coarse_node);
+					SwapElementNode(*i_element, rThisNode, *i_coarse_node);
+			}
 		}
 	}
 
@@ -118,7 +118,7 @@ namespace Kratos
 		auto& neighbour_elements = rThisNode.GetValue(NEIGHBOUR_ELEMENTS);
 		double min_quality = std::numeric_limits<double>::max();
 
-		for (auto i_element = neighbour_elements.begin(); i_element != neighbour_elements.end(); i_element++)
+		for(auto i_element : neighbour_elements)
 			if (!ElementHas(*i_element, rCoarseNode)) {
 				double domain_size = i_element->GetGeometry().DomainSize();
 				min_quality = std::min(min_quality, domain_size);
@@ -134,12 +134,14 @@ namespace Kratos
 		return false;
 	}
 
-	void MeshNodeCollapsingProcess::SwapElementNode(Element& rElement, Node<3> const& rThisNode, Node<3>::Pointer pCoarseNode) {
+	void MeshNodeCollapsingProcess::SwapElementNode(Element& rElement, 
+				Node<3> const& rThisNode, 
+				GlobalPointer<Node<3>>& pCoarseNode) {
 		std::size_t number_of_nodes = rElement.GetGeometry().size();
 		auto& geometry = rElement.GetGeometry();
 		for (std::size_t i = 0; i < number_of_nodes; i++)
 			if (geometry[i].Id() == rThisNode.Id())
-				geometry(i) = pCoarseNode;
+				geometry(i) = Node<3>::Pointer(&*pCoarseNode);
 	}
 
 }  // namespace Kratos.
