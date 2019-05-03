@@ -144,31 +144,55 @@ public:
      * @tparam TGeometryType The type of the geometry
      * @param rGeom The geometry where to be projected
      * @param rPointToProject The point to be projected
-     * @param rLocalCoords The local coordinates of the projection
-     * @return Inside True is inside, false not
+     * @param rPointProjected The point pojected over the line/plane
+     * @param EchoLevel If we want debugging info we should consider greater than 0
+     * @return Distance The distance between surfaces
      */
     template<class TGeometryType>
-    static inline bool ProjectOnGeometry(TGeometryType& rGeom,
-                           const Point& rPointToProject,
-                           array_1d<double,3>& rLocalCoords,
-                           double& rDistance)
+    static inline double FastProjectOnGeometry(const TGeometryType& rGeom,
+                                               const Point& rPointToProject,
+                                               PointType& rPointProjected,
+                                               const SizeType EchoLevel = 0)
     {
-        Point projected_point;
-
-        // using the normal in the center as trial for the projection
+        // using the normal in the center of the geometry for the projection
         array_1d<double,3> local_coords_center;
         rGeom.PointLocalCoordinates(local_coords_center, rGeom.Center());
         const array_1d<double,3> normal = rGeom.UnitNormal(local_coords_center);
 
-        // trying to project to the geometry
-        rDistance = std::abs(FastProjectDirection(
+        return FastProjectDirection(
             rGeom,
             rPointToProject,
-            projected_point,
+            rPointProjected,
             normal,
-            normal));
+            normal,
+            EchoLevel);
+    }
 
-        return rGeom.IsInside(projected_point, rLocalCoords, 1E-14);
+    /**
+     * @brief Project a point over a line (2D or 3D)
+     * @tparam TGeometryType The type of the line
+     * @param rGeom The line where to be projected
+     * @param rPointToProject The point to be projected
+     * @param rPointProjected The point pojected over the line
+     * @return Distance The distance between point and line
+     * @link https://www.qc.edu.hk/math/Advanced%20Level/Point_to_line.htm "Method 3 Using Dot Product"
+     */
+    template<class TGeometryType>
+    static inline double FastProjectOnLine(const TGeometryType& rGeom,
+                                           const Point& rPointToProject,
+                                           PointType& rPointProjected)
+    {
+        const array_1d<double, 3> p_a = rGeom[0].Coordinates();
+        const array_1d<double, 3> p_b = rGeom[1].Coordinates();
+        const array_1d<double, 3> ab = p_b - p_a;
+
+        const array_1d<double, 3> p_c = rPointToProject.Coordinates();
+
+        const double factor = (inner_prod(p_b, p_c) - inner_prod(p_a, p_c) - inner_prod(p_b, p_a) + inner_prod(p_a, p_a)) / inner_prod(ab, ab);
+
+        rPointProjected.Coordinates() = p_a + factor * ab;
+
+        return norm_2(rPointProjected.Coordinates()-p_c);
     }
 
     /**

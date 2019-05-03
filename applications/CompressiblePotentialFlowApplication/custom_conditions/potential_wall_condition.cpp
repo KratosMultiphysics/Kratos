@@ -82,19 +82,17 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                                                     ProcessInfo& rCurrentProcessInfo)
 {
-    VectorType RHS;
-    this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
+    if (rLeftHandSideMatrix.size1() != TNumNodes)
+        rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
+    rLeftHandSideMatrix.clear();
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PotentialWallCondition<TDim, TNumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void PotentialWallCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                                                    ProcessInfo& rCurrentProcessInfo)
 {
-    if (rLeftHandSideMatrix.size1() != TNumNodes)
-        rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
     if (rRightHandSideVector.size() != TNumNodes)
         rRightHandSideVector.resize(TNumNodes, false);
-    rLeftHandSideMatrix.clear();
 
     array_1d<double, 3> An;
     if (TDim == 2)
@@ -110,6 +108,16 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateLocalSystem(
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
         rRightHandSideVector[i] = value;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void PotentialWallCondition<TDim, TNumNodes>::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    if (rLeftHandSideMatrix.size1() != TNumNodes)
+        rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
+    rLeftHandSideMatrix.clear();
+    this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

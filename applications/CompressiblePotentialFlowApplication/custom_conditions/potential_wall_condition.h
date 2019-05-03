@@ -190,6 +190,9 @@ public:
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                               ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo) override;

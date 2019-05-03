@@ -51,7 +51,12 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                     "ShellThinElement3D3N"           : "AdjointFiniteDifferencingShellThinElement3D3N",
                     "CrLinearBeamElement3D2N"        : "AdjointFiniteDifferenceCrBeamElementLinear3D2N",
                     "TrussLinearElement3D2N"         : "AdjointFiniteDifferenceTrussLinearElement3D2N",
-                    "TrussElement3D2N"               : "AdjointFiniteDifferenceTrussElement3D2N"
+                    "TrussElement3D2N"               : "AdjointFiniteDifferenceTrussElement3D2N",
+                    "TotalLagrangianElement2D3N"     : "TotalLagrangianAdjointElement2D3N",
+                    "TotalLagrangianElement2D4N"     : "TotalLagrangianAdjointElement2D4N",
+                    "TotalLagrangianElement2D6N"     : "TotalLagrangianAdjointElement2D6N",
+                    "TotalLagrangianElement3D4N"     : "TotalLagrangianAdjointElement3D4N",
+                    "TotalLagrangianElement3D8N"     : "TotalLagrangianAdjointElement3D8N"
                 },
                 "condition_name_table" :
                 {
@@ -109,8 +114,9 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
     def SolveSolutionStep(self):
         if self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
             self._SolveSolutionStepSpecialLinearStrainEnergy()
+            return True
         else:
-            super(StructuralMechanicsAdjointStaticSolver, self).SolveSolutionStep()
+            return super(StructuralMechanicsAdjointStaticSolver, self).SolveSolutionStep()
 
     def _SolveSolutionStepSpecialLinearStrainEnergy(self):
         for node in self.main_model_part.Nodes:

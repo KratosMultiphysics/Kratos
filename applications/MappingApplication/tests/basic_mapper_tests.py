@@ -4,8 +4,6 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
 data_comm = KM.DataCommunicator.GetDefault()
 import mapper_test_case
-from KratosMultiphysics import from_json_check_result_process
-from KratosMultiphysics import json_output_process
 from math import sin, cos
 import os
 
@@ -76,22 +74,22 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_Map_non_constant_scalar(self):
         SetHistoricalNonUniformSolutionScalar(self.interface_model_part_origin.Nodes, KM.PRESSURE)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE)
-        CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.TEMPERATURE, GetFilePath(self.__GetFileName("map_scalar")))
+        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.TEMPERATURE, GetFilePath(self.__GetFileName("map_scalar")))
 
     def test_InverseMap_non_constant_scalar(self):
         SetHistoricalNonUniformSolutionScalar(self.interface_model_part_destination.Nodes, KM.TEMPERATURE)
         self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE)
-        CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.PRESSURE, GetFilePath(self.__GetFileName("inverse_map_scalar")))
+        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.PRESSURE, GetFilePath(self.__GetFileName("inverse_map_scalar")))
 
     def test_Map_non_constant_vector(self):
         SetHistoricalNonUniformSolutionVector(self.interface_model_part_origin.Nodes, KM.FORCE)
         self.mapper.Map(KM.FORCE, KM.VELOCITY)
-        CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.VELOCITY, GetFilePath(self.__GetFileName("map_vector")))
+        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.VELOCITY, GetFilePath(self.__GetFileName("map_vector")))
 
     def test_InverseMap_non_constant_vector(self):
         SetHistoricalNonUniformSolutionVector(self.interface_model_part_destination.Nodes, KM.VELOCITY)
         self.mapper.InverseMap(KM.FORCE, KM.VELOCITY)
-        CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.FORCE, GetFilePath(self.__GetFileName("inverse_map_vector")))
+        mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_origin, KM.FORCE, GetFilePath(self.__GetFileName("inverse_map_vector")))
 
     def test_SWAP_SIGN_Map_scalar(self):
         val = 1.234
@@ -257,51 +255,6 @@ def SetHistoricalNonUniformSolutionVector(nodes, variable):
         val_2 = 33*cos(node.X0) + node.Y0*5 + 22*node.Z0
         val_3 = 12*sin(node.Y0) + node.Z0*15 + 22*node.X0
         node.SetSolutionStepValue(variable, KM.Vector([val_1, val_2, val_3]))
-
-def OutputReferenceSolution(model_part, variable, file_name):
-    full_model_part_name = model_part.Name
-    if model_part.IsSubModelPart():
-        full_model_part_name = model_part.GetParentModelPart().Name  + "." + full_model_part_name
-
-    if data_comm.IsDistributed():
-        raise Exception("Writing of reference results in not possible in MPI!")
-    KM.Logger.PrintWarning('BasicMapperTests', 'Writing reference solution for ModelPart "{}"; Variable "{}"; FileName "{}"'.format(full_model_part_name, variable.Name(), file_name))
-
-    output_parameters = KM.Parameters("""{
-        "output_variables"     : [\"""" + variable.Name() + """\"],
-        "output_file_name"     : \"""" + file_name + """\",
-        "model_part_name"      : \"""" + full_model_part_name + """\",
-        "time_frequency"       : 0.00,
-        "use_node_coordinates" : true
-    }""")
-
-    output_proc = json_output_process.JsonOutputProcess(model_part.GetModel(), output_parameters)
-    output_proc.ExecuteInitialize()
-    output_proc.ExecuteBeforeSolutionLoop()
-    output_proc.ExecuteFinalizeSolutionStep()
-
-def CheckHistoricalNonUniformValues(model_part, variable, file_name, output_reference_solution=False):
-    if output_reference_solution:
-        OutputReferenceSolution(model_part, variable, file_name)
-    else:
-        full_model_part_name = model_part.Name
-        if model_part.IsSubModelPart():
-            full_model_part_name = model_part.GetParentModelPart().Name  + "." + full_model_part_name
-
-        check_parameters = KM.Parameters("""{
-            "check_variables"           : [\"""" + variable.Name() + """\"],
-            "input_file_name"           : \"""" + file_name + """\",
-            "model_part_name"           : \"""" + full_model_part_name + """\",
-            "tolerance"                 : 1e-6,
-            "relative_tolerance"        : 1e-9,
-            "time_frequency"            : 0.00,
-            "use_node_coordinates"      : true,
-            "check_only_local_entities" : true
-        }""")
-        # TODO check all entities, requires some syncronization though!
-        check_proc = from_json_check_result_process.FromJsonCheckResultProcess(model_part.GetModel(), check_parameters)
-        check_proc.ExecuteInitialize()
-        check_proc.ExecuteFinalizeSolutionStep()
 
 def GetNodes(model_part):
     return model_part.GetCommunicator().LocalMesh().Nodes
