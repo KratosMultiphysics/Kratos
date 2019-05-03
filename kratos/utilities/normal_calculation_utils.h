@@ -12,6 +12,7 @@
 //
 //
 #include "includes/model_part.h"
+#include "includes/global_pointer_variables.h"
 
 #if !defined(KRATOS_NORMAL_CALCULATION_UTILS )
 #define  KRATOS_NORMAL_CALCULATION_UTILS
@@ -335,10 +336,10 @@ public:
 	  N_Mat.reserve(10);
 	  double nodal_area = 0.0;
 	 
-	  WeakPointerVector<Condition >& ng_cond = it->GetValue(NEIGHBOUR_CONDITIONS);
+	  auto& ng_cond = it->GetValue(NEIGHBOUR_CONDITIONS);
 	  
 	  if(ng_cond.size() != 0){	  
-	    for(WeakPointerVector<Condition >::iterator ic = ng_cond.begin(); ic!=ng_cond.end(); ic++)
+	    for(auto ic : ng_cond)
 	    {
 		Condition::GeometryType& pGeom = ic->GetGeometry();
 		const array_1d<double,3>&  rNormal = ic->GetValue(NORMAL);
@@ -453,10 +454,10 @@ public:
 	  N_Mat.reserve(10);
 	  double nodal_area = 0.0;
 	 
-	  WeakPointerVector<Condition >& ng_cond = it->GetValue(NEIGHBOUR_CONDITIONS);
+	  auto& ng_cond = it->GetValue(NEIGHBOUR_CONDITIONS);
 	  
 	  if(ng_cond.size() != 0){	  
-	    for(WeakPointerVector<Condition >::iterator ic = ng_cond.begin(); ic!=ng_cond.end(); ic++)
+	    for(auto ic : ng_cond)
 	    {
 		Condition::GeometryType& pGeom = ic->GetGeometry();
 		const array_1d<double,3>&  rNormal = ic->GetValue(NORMAL);

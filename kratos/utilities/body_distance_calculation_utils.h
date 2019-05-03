@@ -310,8 +310,7 @@ public:
                 if(it->FastGetSolutionStepValue(rDistanceVar) < max_distance)
                 {
                     //loop over neighbour elements and add them to the todo list
-                    for (WeakPointerVector< Element >::iterator ie = it->GetValue(NEIGHBOUR_ELEMENTS).begin();
-                            ie != it->GetValue(NEIGHBOUR_ELEMENTS).end(); ie++)
+                    for (auto& ie : it->GetValue(NEIGHBOUR_ELEMENTS))
                     {
                         unsigned int visited_nodes = 0;
                         Element::GeometryType& geom = ie->GetGeometry();
@@ -326,7 +325,7 @@ public:
                             if( ie->GetValue(IS_VISITED) != 1 ) //it is to be used for the next step (an was not added before by another element)
                             {
                                 ie->GetValue(IS_VISITED) = 1;
-                                elements_to_solve.push_back( (*(ie.base())).lock());
+                                elements_to_solve.push_back( Element::Pointer(&*ie) );
                             }
 
                         //                        if(visited_nodes == TDim+1)
