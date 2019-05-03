@@ -80,6 +80,14 @@ template<> struct SendTraits<int>
     constexpr static std::size_t BlockSize = 1;
 };
 
+template<> struct SendTraits<bool>
+{
+    using SendType = int; // Note: sending bool as int to avoid the problems of std::vector<bool>
+    using BufferType = std::vector<SendType>;
+    constexpr static bool IsFixedSize = true;
+    constexpr static std::size_t BlockSize = 1;
+};
+
 template<> struct SendTraits<double>
 {
     using SendType = double;
@@ -203,6 +211,9 @@ struct SendTools<int> : public DirectCopyTransfer<int> {};
 
 template<>
 struct SendTools<double>: public DirectCopyTransfer<double> {};
+
+template<>
+struct SendTools<bool>: public DirectCopyTransfer<bool> {};
 
 template<std::size_t TDim>
 struct SendTools< array_1d<double,TDim> >: public DirectCopyTransfer<array_1d<double,TDim>> {};
@@ -755,6 +766,13 @@ public:
         return true;
     }
 
+    bool SynchronizeVariable(Variable<bool> const& rThisVariable) override
+    {
+        MPIInternals::NodalSolutionStepValueAccess<bool> solution_step_value_access(rThisVariable);
+        SynchronizeFixedSizeValues(solution_step_value_access);
+        return true;
+    }
+
     bool SynchronizeVariable(Variable<array_1d<double, 3 > > const& rThisVariable) override
     {
         MPIInternals::NodalSolutionStepValueAccess<array_1d<double,3>> solution_step_value_access(rThisVariable);
@@ -807,6 +825,13 @@ public:
     bool SynchronizeNonHistoricalVariable(Variable<double> const& rThisVariable) override
     {
         MPIInternals::NodalDataAccess<double> nodal_data_access(rThisVariable);
+        SynchronizeFixedSizeValues(nodal_data_access);
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalVariable(Variable<bool> const& rThisVariable) override
+    {
+        MPIInternals::NodalDataAccess<bool> nodal_data_access(rThisVariable);
         SynchronizeFixedSizeValues(nodal_data_access);
         return true;
     }
