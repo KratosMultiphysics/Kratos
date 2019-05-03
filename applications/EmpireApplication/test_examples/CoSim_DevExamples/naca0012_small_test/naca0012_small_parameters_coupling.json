@@ -10,7 +10,7 @@
         "solver_type"            : "ale_potential_flow",
         "ale_boundary_parts"     : ["Body2D_Body"],
         "mesh_motion_solver_settings"                     :{
-            "solver_type" : "mesh_solver_structural_similarity",
+            "solver_type" : "structural_similarity",
             "mesh_motion_linear_solver_settings" : {
                 "solver_type" : "amgcl",
                 "smoother_type":"ilu0",
