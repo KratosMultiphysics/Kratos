@@ -177,7 +177,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 (self.level_set_convection_process).BFECCconvect(self.main_model_part,
                                                                  KratosMultiphysics.DISTANCE,
                                                                  KratosMultiphysics.VELOCITY,
-                                                                 self.settings["bfecc_number_substeps"])
+                                                                 self.settings["bfecc_number_substeps"].GetInt())
             else:
                 (self.level_set_convection_process).Execute()   # Convect the level-set according to the previous step velocity
                 
@@ -244,12 +244,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 return
 
             import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
-            locator = KratosMultiphysics.BinBasedFastPointLocator2D(self.main_model_part)
-            locator.UpdateSearchDatabase()
 
             if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+                locator = KratosMultiphysics.BinBasedFastPointLocator2D(self.main_model_part).UpdateSearchDatabase()
                 level_set_convection_process = KratosConvDiff.BFECCConvection2D(locator)
             else:
+                locator = KratosMultiphysics.BinBasedFastPointLocator3D(self.main_model_part).UpdateSearchDatabase()
                 level_set_convection_process = KratosConvDiff.BFECCConvection3D(locator)
         else:
             if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
