@@ -1262,7 +1262,12 @@ public:
      */
     KRATOS_DEPRECATED_MESSAGE("This is legacy version (use GenerateEdgesInstead)") virtual GeometriesArrayType Faces( void )
     {
-        return this->GenerateFaces();
+        const SizeType dimension = this->LocalSpaceDimension();
+        if (dimension == 3) {
+            return this->GenerateFaces();
+        } else {
+            return this->GenerateEdges();
+        }
     }
 
     /**
