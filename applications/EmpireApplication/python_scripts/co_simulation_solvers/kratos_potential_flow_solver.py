@@ -43,19 +43,20 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
 
     def SolveSolutionStep(self):
         self.wake_process.FindWakeElements()
+        KratosMultiphysics.Logger.PrintInfo("IIIIIIIIIII", self.wake_process)
 
         super(KratosPotentialFlowSolver, self).SolveSolutionStep()
 
-        # self.conversion_process.Execute()
-        # self.wake_process.CleanMarking()
+        self.conversion_process.ExecuteFinalizeSolutionStep()
+        self.wake_process.CleanMarking()
 
     def FinalizeSolutionStep(self):
-        self.wake_process.FindWakeElements()
-        self.conversion_process.Execute()
+        # self.wake_process.FindWakeElements()
+        # self.conversion_process.ExecuteFinalizeSolutionStep()
         super(KratosPotentialFlowSolver, self).FinalizeSolutionStep()
 
 
-        self.wake_process.CleanMarking()
+        # self.wake_process.CleanMarking()
 
     def _GetParallelType(self):
         return self.project_parameters["problem_data"]["parallel_type"].GetString()

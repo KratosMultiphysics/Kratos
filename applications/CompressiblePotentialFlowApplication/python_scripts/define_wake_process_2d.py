@@ -90,7 +90,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         # Mark the trailing edge element that is further downstream as wake
         self.MarkWakeTEElement()
         # Having a trial
-        self.CleanMarking()
+        # self.CleanMarking()
 
     def SaveTrailingEdgeNode(self):
         # This function finds and saves the trailing edge for further computations
@@ -120,7 +120,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
                 # Selecting the cut (wake) elements
                 wake_element = self.SelectWakeElements(distances_to_wake)
-
                 if(wake_element):
                     elem.SetValue(CPFApp.WAKE, True)
                     elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
