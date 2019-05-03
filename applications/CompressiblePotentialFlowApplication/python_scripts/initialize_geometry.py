@@ -48,25 +48,33 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                         "boundary_layer_max_distance"           : 1,
                         "interpolation"                         : "Linear"
                     }
+                },
+                "distance_modification_parameters":{
+                    "distance_threshold"                     : 0.001,
+                    "check_at_each_time_step"                : true,
+                    "avoid_almost_empty_elements"            : true,
+                    "deactivate_full_negative_elements"      : false
                 }
             }  """ );
         settings.ValidateAndAssignDefaults(default_parameters)
         self.model=Model
         self.main_model_part = Model.GetModelPart(settings["model_part_name"].GetString()).GetRootModelPart()
         self.geometry_parameter = settings["geometry_parameter"].GetDouble()
-        self.do_remeshing = settings["remeshing_flag"].GetBool()
         self.initial_point = settings["initial_point"].GetVector()
         self.skin_model_part=self.model.CreateModelPart("skin")
         self.skin_model_part_name=settings["skin_model_part_name"].GetString()
         self.boundary_model_part = self.main_model_part.CreateSubModelPart("boundary_model_part")
         KratosMultiphysics.ModelPartIO(self.skin_model_part_name).ReadModelPart(self.skin_model_part)
 
-        '''Loop parameters'''
+        '''Remeshing loop parameters'''
+        self.do_remeshing = settings["remeshing_flag"].GetBool()
         self.step = 0
         self.max_iter = settings["maximum_iterations"].GetInt()
         self.print_output_flag = settings["print_output"].GetBool()
 
-        self.MetricParameters = settings["metric_parameters"]
+        self.metric_parameters = settings["metric_parameters"]
+        self.distance_modification_parameters = settings["distance_modification_parameters"]
+
         # We set to zero the metric
         ZeroVector = [0.0,0.0,0.0]
         KratosMultiphysics.VariableUtils().SetVectorVar(MeshingApplication.METRIC_TENSOR_2D, ZeroVector, self.main_model_part.Nodes)
@@ -103,7 +111,8 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             self.RefineMesh()
             self.CalculateDistance()
             self.UpdateParameters()
-
+        self.ModifyFinalDistance()
+        self.ExtendDistance()
         KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Elapsed time: ',time.time()-ini_time)
 
         KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.GEOMETRY_DISTANCE, self.main_model_part.Nodes)
@@ -178,7 +187,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.main_model_part)
         find_nodal_h.Execute()
 
-        metric_process = MeshingApplication.ComputeLevelSetSolMetricProcess2D(self.main_model_part,  KratosMultiphysics.DISTANCE_GRADIENT, self.MetricParameters)
+        metric_process = MeshingApplication.ComputeLevelSetSolMetricProcess2D(self.main_model_part,  KratosMultiphysics.DISTANCE_GRADIENT, self.metric_parameters)
         metric_process.Execute()
 
         self.PrintOutput('metric_output'+str(self.step))
@@ -200,8 +209,19 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
 
     def UpdateParameters(self):
         ''' This process updates remeshing parameters in case more than one iteration is performed'''
-        previous_size=self.MetricParameters["minimal_size"].GetDouble()
-        self.MetricParameters["minimal_size"].SetDouble(previous_size*0.5)
+        previous_size=self.metric_parameters["minimal_size"].GetDouble()
+        self.metric_parameters["minimal_size"].SetDouble(previous_size*0.5)
+
+    def ModifyFinalDistance(self):
+        ''' This function modifies the distance field to avoid ill defined cuts.
+        '''
+        dist_modification_parameters = KratosMultiphysics.Parameters(""" {
+            "distance_threshold"                     : 0.001,
+            "check_at_each_time_step"                : true,
+            "avoid_almost_empty_elements"            : true,
+            "deactivate_full_negative_elements"      : false
+        }""")
+        KratosMultiphysics.FluidDynamicsApplication.DistanceModificationProcess(self.main_model_part,dist_modification_parameters)
 
     def ApplyFlags(self):
         ''' This process finds the elements that are cut and the elements that lie inside the geometry.
