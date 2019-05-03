@@ -1243,14 +1243,6 @@ void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Conditi
  * definition of condition specific variables
  */
 
-#undef  KRATOS_EXPORT_MACRO
-#define KRATOS_EXPORT_MACRO KRATOS_API
-
-KRATOS_DEFINE_VARIABLE(WeakPointerVector< Condition >, NEIGHBOUR_CONDITIONS)
-
-#undef  KRATOS_EXPORT_MACRO
-#define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
-
 } // namespace Kratos.
 #endif // KRATOS_CONDITION_H_INCLUDED  defined
 

@@ -1267,13 +1267,6 @@ void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Element
  * definition of elemental specific variables
  */
 
-#undef  KRATOS_EXPORT_MACRO
-#define KRATOS_EXPORT_MACRO KRATOS_API
-
-KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NEIGHBOUR_ELEMENTS)
-
-#undef  KRATOS_EXPORT_MACRO
-#define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
 
 } // namespace Kratos.
 #endif // KRATOS_ELEMENT_H_INCLUDED  defined
