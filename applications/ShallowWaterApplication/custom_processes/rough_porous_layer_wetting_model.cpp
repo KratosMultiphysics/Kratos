@@ -27,6 +27,13 @@ namespace Kratos
 RoughPorousLayerWettingModel::RoughPorousLayerWettingModel(ModelPart& rModelPart, Parameters ThisParameters)
  : mrModelPart(rModelPart)
 {
+    Parameters default_parameters = Parameters(R"(
+    {
+        "model_name"        : "rough_porous_layer",
+        "layer_thickness"   : 1.0,
+        "roughness_factor"  : 0.1
+    })");
+    ThisParameters.ValidateAndAssignDefaults(default_parameters);
     mLayerThickness = ThisParameters["layer_thickness"].GetDouble();
     mRoughnessFactor = ThisParameters["roughness_factor"].GetDouble();
 }

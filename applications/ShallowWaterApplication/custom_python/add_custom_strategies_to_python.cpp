@@ -44,8 +44,10 @@ namespace Python
     py::class_<
         ResidualBasedIncrementalUpdateDryWettingScheme,
         typename ResidualBasedIncrementalUpdateDryWettingScheme::Pointer,
-        BaseSchemeType> (m, "ResidualBasedIncrementalUpdateDryWettingScheme")
+        BaseSchemeType>
+        (m, "ResidualBasedIncrementalUpdateDryWettingScheme")
         .def(py::init<>())
+        .def(py::init<Process::Pointer>())
         ;
 
   }
