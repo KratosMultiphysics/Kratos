@@ -502,8 +502,8 @@ private:
      */
     void AssemblyMortarOperators(
         const std::vector<array_1d<PointType,TDim>>& rConditionsPointSlave,
-        GeometryType& rSlaveGeometry,
-        GeometryType& rMasterGeometry,
+        const GeometryType& rSlaveGeometry,
+        const GeometryType& rMasterGeometry,
         const array_1d<double, 3>& rMasterNormal,
         MortarKinematicVariablesType& rThisKinematicVariables,
         MortarOperatorType& rThisMortarOperators,
@@ -589,8 +589,8 @@ private:
      */
     void ComputeResidualMatrix(
         Matrix& rResidualMatrix,
-        GeometryType& rSlaveGeometry,
-        GeometryType& rMasterGeometry,
+        const GeometryType& rSlaveGeometry,
+        const GeometryType& rMasterGeometry,
         const MortarOperatorType& rThisMortarOperators
         );
 
@@ -609,7 +609,7 @@ private:
         std::vector<VectorType>& rb,
         const SizeType VariableSize,
         const Matrix& rResidualMatrix,
-        GeometryType& rSlaveGeometry,
+        const GeometryType& rSlaveGeometry,
         IntMap& rInverseConectivityDatabase,
         const MortarOperatorType& rThisMortarOperators
         );
@@ -626,7 +626,7 @@ private:
         std::vector<VectorType>& rb,
         const SizeType VariableSize,
         const Matrix& rResidualMatrix,
-        GeometryType& rSlaveGeometry,
+        const GeometryType& rSlaveGeometry,
         IntMap& rInverseConectivityDatabase
         );
 
@@ -668,7 +668,7 @@ private:
         )
     {
         // The root model part
-        ModelPart& root_model_part = mOriginModelPart.GetRootModelPart();
+        ModelPart& r_root_model_part = mOriginModelPart.GetRootModelPart();
 
         // Getting the auxiliar variable
         TVarType aux_variable = MortarUtilities::GetAuxiliarVariable<TVarType>();
@@ -687,7 +687,7 @@ private:
             const IndexType master_id = pIndexesPairs->GetId(it_pair);
             auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
             const auto& r_master_normal = p_cond_master->GetValue(NORMAL);
-            auto& r_master_geometry = p_cond_master->GetGeometry();
+            const auto& r_master_geometry = p_cond_master->GetGeometry();
 
             const IntegrationMethod& this_integration_method = GetIntegrationMethod();
 
@@ -791,7 +791,7 @@ private:
         // Clear indexes
         for (IndexType i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove) {
             for (auto& id : conditions_to_erase ) {
-                auto p_cond = root_model_part.pGetCondition(id);
+                auto p_cond = r_root_model_part.pGetCondition(id);
                 p_cond->Set(TO_ERASE, true);
             }
             pIndexesPairs->RemoveId(indexes_to_remove[i_to_remove]);
