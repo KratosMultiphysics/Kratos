@@ -46,7 +46,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     this->Set(MODIFIED, !using_average_nodal_normal);
 
     // We set some values
-    mDiscontinuousInterface = mThisParameters["compute_discontinuous_interface"].GetBool();
+    mDiscontinuousInterface = mThisParameters["discontinuous_interface"].GetBool();
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
     mOriginHistorical = mThisParameters["origin_variable_historical"].GetBool();
     mDestinationHistorical = mThisParameters["destination_variable_historical"].GetBool();
@@ -79,7 +79,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     this->Set(MODIFIED, !using_average_nodal_normal);
 
     // We set some values
-    mDiscontinuousInterface = mThisParameters["compute_discontinuous_interface"].GetBool();
+    mDiscontinuousInterface = mThisParameters["discontinuous_interface"].GetBool();
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
     mOriginHistorical = mThisParameters["origin_variable_historical"].GetBool();
     mDestinationHistorical = mThisParameters["destination_variable_historical"].GetBool();
@@ -113,7 +113,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     this->Set(MODIFIED, !using_average_nodal_normal);
 
     // We set some values
-    mDiscontinuousInterface = mThisParameters["compute_discontinuous_interface"].GetBool();
+    mDiscontinuousInterface = mThisParameters["discontinuous_interface"].GetBool();
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
     mOriginHistorical = mThisParameters["origin_variable_historical"].GetBool();
     mDestinationHistorical = mThisParameters["destination_variable_historical"].GetBool();
@@ -988,7 +988,7 @@ Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>
     {
         "echo_level"                       : 0,
         "using_average_nodal_normal"       : true,
-        "compute_discontinuous_interface"  : false,
+        "discontinuous_interface"          : false,
         "discontinous_interface_factor"    : 1.0e-4,
         "absolute_convergence_tolerance"   : 1.0e-9,
         "relative_convergence_tolerance"   : 1.0e-4,

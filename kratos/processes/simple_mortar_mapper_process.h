@@ -457,7 +457,7 @@ private:
 
     double mMappingCoefficient = 1.0;             /// The mapping coefficient
 
-    bool mDiscontinuousInterface = false;         /// A bool that defines if the origin variables is historical
+    bool mDiscontinuousInterface = false;         /// A bool that defines if interface is doscontinous
     bool mOriginHistorical = true;                /// A bool that defines if the origin variables is historical
     bool mDestinationHistorical = true;           /// A bool that defines if the destination variables is historical
 
@@ -680,14 +680,14 @@ private:
         const double discontinous_interface_factor = mDiscontinuousInterface ? mThisParameters["discontinous_interface_factor"].GetDouble() : 1.0;
 
         // Geometrical values
-        const array_1d<double, 3>& r_slave_normal = itCond->GetValue(NORMAL);
-        GeometryType& r_slave_geometry = itCond->GetGeometry();
+        const auto& r_slave_normal = itCond->GetValue(NORMAL);
+        auto& r_slave_geometry = itCond->GetGeometry();
 
         for (auto it_pair = pIndexesPairs->begin(); it_pair != pIndexesPairs->end(); ++it_pair ) {
             const IndexType master_id = pIndexesPairs->GetId(it_pair);
-            Condition::Pointer p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
-            const array_1d<double, 3>& r_master_normal = p_cond_master->GetValue(NORMAL);
-            GeometryType& r_master_geometry = p_cond_master->GetGeometry();
+            auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
+            const auto& r_master_normal = p_cond_master->GetValue(NORMAL);
+            auto& r_master_geometry = p_cond_master->GetGeometry();
 
             const IntegrationMethod& this_integration_method = GetIntegrationMethod();
 
@@ -749,20 +749,20 @@ private:
                                 const double nodal_area_contribution = rThisMortarOperators.DOperator(i_node, i_node);
 
                                 // The original node coordinates
-                                const array_1d<double, 3>& r_slave_node_coordinates = r_slave_geometry[i_node].Coordinates();
+                                const auto& r_slave_node_coordinates = r_slave_geometry[i_node].Coordinates();
 
                                 // Iterating over other paired conditions
-                                const auto& index_masp_master = p_cond_master->GetValue(INDEX_SET);
-                                for (auto it_master_pair = index_masp_master->begin(); it_master_pair != index_masp_master->end(); ++it_master_pair ) {
+                                const auto& r_index_masp_master = p_cond_master->GetValue(INDEX_SET);
+                                for (auto it_master_pair = r_index_masp_master->begin(); it_master_pair != r_index_masp_master->end(); ++it_master_pair ) {
 
-                                    const IndexType auxiliar_slave_id = index_masp_master->GetId(it_master_pair);
+                                    const IndexType auxiliar_slave_id = r_index_masp_master->GetId(it_master_pair);
                                     if (itCond->Id() != auxiliar_slave_id) {
-                                        Condition::Pointer p_cond_auxiliar_slave = mDestinationModelPart.pGetCondition(auxiliar_slave_id); // AUXILIAR SLAVE
+                                        auto p_cond_auxiliar_slave = mDestinationModelPart.pGetCondition(auxiliar_slave_id); // AUXILIAR SLAVE
                                         GeometryType& r_auxiliar_slave_geometry = p_cond_auxiliar_slave->GetGeometry();
 
                                         for (IndexType j_node = 0; j_node < TNumNodes; ++j_node) {
                                             // The auxiliar node coordinates
-                                            const array_1d<double, 3>& r_auxiliar_slave_node_coordinates = r_auxiliar_slave_geometry[j_node].Coordinates();
+                                            const auto& r_auxiliar_slave_node_coordinates = r_auxiliar_slave_geometry[j_node].Coordinates();
                                             const double distance = norm_2(r_auxiliar_slave_node_coordinates - r_slave_node_coordinates);
                                             const double contribution_coeff = 1.0/std::pow((1.0 + distance/(discontinous_interface_factor * element_length)), 2);
 
@@ -791,7 +791,7 @@ private:
         // Clear indexes
         for (IndexType i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove) {
             for (auto& id : conditions_to_erase ) {
-                Condition::Pointer p_cond = root_model_part.pGetCondition(id);
+                auto p_cond = root_model_part.pGetCondition(id);
                 p_cond->Set(TO_ERASE, true);
             }
             pIndexesPairs->RemoveId(indexes_to_remove[i_to_remove]);
