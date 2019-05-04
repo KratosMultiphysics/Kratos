@@ -74,8 +74,11 @@ bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
             double delta_xi = (i_master == 0) ? 0.5 : -0.5;
             const bool is_inside = GeometricalProjectionUtilities::ProjectIterativeLine2D(rOriginalSlaveGeometry, rOriginalMasterGeometry[i_master].Coordinates(), projected_gp_local, rSlaveNormal, tolerance, delta_xi);
 
-            if (is_inside)
+            if (is_inside) {
                 auxiliar_xi.push_back(projected_gp_local[0]);
+                if (projected_gp_local[0] > (1.0 - tolerance)) auxiliar_coordinates[1] = 1.0;
+                else if (projected_gp_local[0] < (-1.0 + tolerance)) auxiliar_coordinates[0] = -1.0;
+            }
         }
 
         // In this case one edge of the slave belongs to the master and additionally one node of the master belongs to the slave
@@ -101,9 +104,8 @@ bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
                     auxiliar_coordinates[0] = auxiliar_xi[1];
                 }
             }
-        } else { // THIS IS NOT SUPPOSED TO HAPPEN
-            KRATOS_DEBUG_ERROR << "THIS IS NOT SUPPOSED TO HAPPEN!!!!\n" << rOriginalSlaveGeometry << "\n" << rOriginalMasterGeometry << std::endl;
-            return false;  // NOTE: Giving problems
+        } else { // Projection not possible
+            return false;
         }
 
         total_weight = auxiliar_coordinates[1] - auxiliar_coordinates[0];
@@ -549,6 +551,8 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
 
             if (is_inside) {
                 auxiliar_xi.push_back(projected_gp_local[0]);
+                if (projected_gp_local[0] > (1.0 - tolerance)) auxiliar_coordinates[1] = 1.0;
+                else if (projected_gp_local[0] < (-1.0 + tolerance)) auxiliar_coordinates[0] = -1.0;
                 auxiliar_master_belong.push_back( static_cast<PointBelongsLine2D2N>(2 + i_master));
             }
         }
@@ -584,9 +588,8 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
                     auxiliar_belong[0] = auxiliar_master_belong[1];
                 }
             }
-        } else { // THIS IS NOT SUPPOSED TO HAPPEN
-            KRATOS_DEBUG_ERROR << "THIS IS NOT SUPPOSED TO HAPPEN!!!!\n" << rOriginalSlaveGeometry << "\n" << rOriginalMasterGeometry << std::endl;
-            return false;  // NOTE: Giving problems
+        } else { // Projection not possible
+            return false;
         }
 
         total_weight = auxiliar_coordinates[1] - auxiliar_coordinates[0];
