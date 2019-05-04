@@ -941,7 +941,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
             IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
             for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                 const IndexType master_id = p_indexes_pairs->GetId(it_pair);
-                Condition::Pointer p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
+                auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
                 (p_cond_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
             }
         } else {
