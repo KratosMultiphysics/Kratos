@@ -158,6 +158,81 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    void FinalizeSolutionStep(
+        ModelPart& r_model_part,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        // Clear nodal variables
+
+        const int NNodes = static_cast<int>(r_model_part.Nodes().size());
+        ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
+
+
+        #pragma omp parallel for
+        for(int i = 0; i < NNodes; i++)
+        {
+            ModelPart::NodesContainerType::iterator itNode = node_begin + i;
+
+            itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
+
+            array_1d<double,3>& rNodalPhiGradient = itNode->FastGetSolutionStepValue(NODAL_PHI_GRADIENT);
+            noalias(rNodalPhiGradient) = ZeroVector(3);
+        }
+
+        BaseType::FinalizeSolutionStep(r_model_part,A,Dx,b);
+
+        // Compute smoothed nodal variables
+
+        #pragma omp parallel for
+        for(int i = 0; i < NNodes; i++)
+        {
+            ModelPart::NodesContainerType::iterator itNode = node_begin + i;
+
+            const double& NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
+            if (NodalArea>1.0e-20)
+            {
+                const double InvNodalArea = 1.0/NodalArea;
+                array_1d<double,3>& rNodalPhiGradient = itNode->FastGetSolutionStepValue(NODAL_PHI_GRADIENT);
+                for(unsigned int i = 0; i<3; i++)
+                {
+                    rNodalPhiGradient[i] *= InvNodalArea;
+                }
+            }
+        }
+
+        const double& Time = r_model_part.GetProcessInfo()[TIME];
+
+        const double M = 1000.0;
+        const double D = 0.01;
+        const double L = 1.0;
+
+        #pragma omp parallel for
+        for(int i = 0; i < NNodes; i++)
+        {
+            ModelPart::NodesContainerType::iterator itNode = node_begin + i;
+
+            double& rNodalAnalyticSolution = itNode->FastGetSolutionStepValue(NODAL_ANALYTIC_SOLUTION);
+            const double& velocity_x = itNode->FastGetSolutionStepValue(VELOCITY_X);
+            const double& velocity_y = itNode->FastGetSolutionStepValue(VELOCITY_Y);
+            const double& velocity_z = itNode->FastGetSolutionStepValue(VELOCITY_Z);
+
+            rNodalAnalyticSolution = M /(4.0 * Globals::Pi * Time * D * L)
+                                    * std::exp(-(itNode->X()-(2.0 + velocity_x * Time))*(itNode->X()-(2.0 + velocity_x * Time)) / (4 * D * Time)
+                                               -(itNode->Y()-(5.0 + velocity_y * Time))*(itNode->Y()-(5.0 + velocity_y * Time)) / (4 * D * Time)
+                                               -(itNode->Z()-(0.0 + velocity_z * Time))*(itNode->Z()-(0.0 + velocity_z * Time)) / (4 * D * Time));
+
+        }
+
+        KRATOS_CATCH("")
+    }
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     void Predict(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
@@ -177,6 +252,27 @@ public:
         TSystemVectorType& b) override
     {
         KRATOS_TRY
+
+
+        // Clear nodal variables
+
+        const int NNodes = static_cast<int>(r_model_part.Nodes().size());
+        ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
+
+
+        #pragma omp parallel for
+        for(int i = 0; i < NNodes; i++)
+        {
+            ModelPart::NodesContainerType::iterator itNode = node_begin + i;
+
+            itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
+
+            array_1d<double,3>& rNodalPhiGradient = itNode->FastGetSolutionStepValue(NODAL_PHI_GRADIENT);
+            noalias(rNodalPhiGradient) = ZeroVector(3);
+        }
+
+
+        // // Extrapolate GP values to nodal variables
 
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
@@ -199,6 +295,27 @@ public:
             ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
             itCond -> InitializeNonLinearIteration(CurrentProcessInfo);
         }
+
+
+        // Compute smoothed nodal variables
+
+        #pragma omp parallel for
+        for(int i = 0; i < NNodes; i++)
+        {
+            ModelPart::NodesContainerType::iterator itNode = node_begin + i;
+
+            const double& NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
+            if (NodalArea>1.0e-20)
+            {
+                const double InvNodalArea = 1.0/NodalArea;
+                array_1d<double,3>& rNodalPhiGradient = itNode->FastGetSolutionStepValue(NODAL_PHI_GRADIENT);
+                for(unsigned int i = 0; i<3; i++)
+                {
+                    rNodalPhiGradient[i] *= InvNodalArea;
+                }
+            }
+        }
+
 
         KRATOS_CATCH("")
     }
@@ -266,6 +383,12 @@ public:
             noalias(RHS_Contribution) += mMVector[thread];
 
         (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+
+// if(rCurrentElement->Id() == 8)
+// {
+//     KRATOS_WATCH(LHS_Contribution)
+//     KRATOS_WATCH(RHS_Contribution)
+// }
 
         KRATOS_CATCH( "" )
     }

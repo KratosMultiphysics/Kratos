@@ -112,7 +112,8 @@ class FEMDEM_Solution:
     def InitializeSolutionStep(self):
 
         # modified for the remeshing
-        self.FEM_Solution.delta_time = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        self.FEM_Solution.delta_time = self.ComputeDeltaTime()
+        self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.FEM_Solution.delta_time
         self.FEM_Solution.time = self.FEM_Solution.time + self.FEM_Solution.delta_time
         self.FEM_Solution.main_model_part.CloneTimeStep(self.FEM_Solution.time)
         self.FEM_Solution.step = self.FEM_Solution.step + 1
@@ -898,7 +899,7 @@ class FEMDEM_Solution:
             # We need to check if the model part has been modified recently
             if self.RemeshingProcessMMG.step_frequency > 0:
                 if step >= self.RemeshingProcessMMG.step_frequency:
-                        if self.RemeshingProcessMMG.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.RemeshingProcessMMG.initial_step:
+                        if self.RemeshingProcessMMG.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.RemeshingProcessMMG.initial_step:
                             # Has remeshed
                             is_remeshed = True
         return is_remeshed
@@ -937,13 +938,15 @@ class FEMDEM_Solution:
 
     def InitializeIntegrationPointsVariables(self):
 
-        for elem in self.FEM_Solution.main_model_part.Elements:
-            elem.SetValue(KratosFemDem.STRESS_THRESHOLD, 0.0)
-            elem.SetValue(KratosFemDem.DAMAGE_ELEMENT, 0.0)
-            elem.SetValue(KratosFemDem.PRESSURE_EXPANDED, 0)
-            elem.SetValue(KratosFemDem.SMOOTHING, 0)
-            elem.SetValue(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0])
-            elem.SetValue(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0])
+        utils = KratosMultiphysics.VariableUtils()
+        utils.SetNonHistoricalVariable(KratosFemDem.STRESS_THRESHOLD, 0.0, self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.DAMAGE_ELEMENT, 0.0, self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_EXPANDED, 0, self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.IS_SKIN, 0, self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.SMOOTHING, 0, self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0], self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0], self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR_INTEGRATED, [0.0,0.0,0.0], self.FEM_Solution.main_model_part.Elements)
 
 #============================================================================================================================
 
@@ -1040,3 +1043,28 @@ class FEMDEM_Solution:
                                                                             self.SkinDetectionProcessParameters)
         skin_detection_process.Execute()
         self.GenerateDemAfterRemeshing()
+
+#============================================================================================================================
+
+    def ComputeDeltaTime(self):
+
+        if self.FEM_Solution.ProjectParameters["problem_data"].Has("time_step"):
+            return self.FEM_Solution.ProjectParameters["problem_data"]["time_step"].GetDouble()
+
+        elif self.FEM_Solution.ProjectParameters["problem_data"].Has("variable_time_steps"):
+
+            current_time = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            for key in self.FEM_Solution.ProjectParameters["problem_data"]["variable_time_steps"].keys():
+                interval_settings = self.FEM_Solution.ProjectParameters["problem_data"]["variable_time_steps"][key]
+                interval = KratosMultiphysics.IntervalUtility(interval_settings)
+
+                 # Getting the time step of the interval
+                if interval.IsInInterval(current_time):
+                    return interval_settings["time_step"].GetDouble()
+            # If we arrive here we raise an error because the intervals are not well defined
+            raise Exception("::[MechanicalSolver]:: Time stepping not well defined!")
+        else:
+            raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
+
+
+            

@@ -162,7 +162,7 @@ virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_
 
 virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
 virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme);
-virtual void SwapIntegrationSchemeToGluedToWall(Condition* p_wall);
+virtual bool SwapIntegrationSchemeToGluedToWall(Condition* p_wall);
 virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { return *mpTranslationalIntegrationScheme; }
 virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
 
@@ -218,14 +218,6 @@ virtual double GetParticleKNormal();
 void   SetParticleKNormalFromProperties(double* particle_k_normal);
 virtual double GetParticleKTangential();
 void   SetParticleKTangentialFromProperties(double* particle_k_tangential);
-
-//Dependent Friction
-virtual double GetParticleContactRadius();
-void   SetParticleContactRadiusFromProperties(double* particle_contact_radius);
-virtual double GetParticleMaxStress();
-void   SetParticleMaxStressFromProperties(double* particle_max_stress);
-virtual double GetParticleGamma();
-void   SetParticleGammaFromProperties(double* particle_gamma);
 
 array_1d<double, 3>& GetForce();
 

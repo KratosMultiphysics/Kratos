@@ -21,6 +21,7 @@
 #include "compressible_potential_flow_application.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_response_functions_to_python.h"
 
 namespace Kratos
 {
@@ -36,6 +37,7 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
                KratosApplication>(m, "KratosCompressiblePotentialFlowApplication")
         .def(py::init<>());
 
+    AddCustomResponseFunctionUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
 
     //registering variables in python
@@ -43,13 +45,25 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VELOCITY_POTENTIAL);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUXILIARY_VELOCITY_POTENTIAL);
 
+    //Embedded variables
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, GEOMETRY_DISTANCE)
+
+    // Adjoint potential
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ADJOINT_VELOCITY_POTENTIAL);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
+
     // Flow field magnitudes
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, VELOCITY_INFINITY);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, VELOCITY_LOWER);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PRESSURE_LOWER);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, POTENTIAL_JUMP);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ENERGY_NORM_REFERENCE);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, POTENTIAL_ENERGY_REFERENCE);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HEAT_CAPACITY_RATIO);
+
+    // Free stream magnitudes
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, FREE_STREAM_VELOCITY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FREE_STREAM_DENSITY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FREE_STREAM_MACH);
 
     // Markers
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, WAKE);

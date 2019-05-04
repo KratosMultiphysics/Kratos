@@ -869,7 +869,7 @@ protected:
      */
      void PeriodicConditionProjectionCorrection(ModelPart& rModelPart)
      {
-         if (mrPeriodicIdVar.Key() != 0)
+         if (mrPeriodicIdVar.Key() != Kratos::Variable<int>::StaticObject().Key())
          {
              int GlobalNodesNum = rModelPart.GetCommunicator().LocalMesh().Nodes().size();
              rModelPart.GetCommunicator().SumAll(GlobalNodesNum);
@@ -954,7 +954,7 @@ protected:
 
      void PeriodicConditionVelocityCorrection(ModelPart& rModelPart)
      {
-         if (mrPeriodicIdVar.Key() != 0)
+         if (mrPeriodicIdVar.Key() != Kratos::Variable<int>::StaticObject().Key())
          {
              int GlobalNodesNum = rModelPart.GetCommunicator().LocalMesh().Nodes().size();
              rModelPart.GetCommunicator().SumAll(GlobalNodesNum);

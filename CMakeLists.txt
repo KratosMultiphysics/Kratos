@@ -4,8 +4,9 @@ cmake_minimum_required (VERSION 2.8.6)
 
 
 # Setting some policies
+# No recursive dereferencing 
 if(POLICY CMP0054)
-  cmake_policy(SET CMP0054 OLD)
+  cmake_policy(SET CMP0054 NEW)
 endif(POLICY CMP0054)
 
 # Uses INTERFACE_LINK_LIBRARIES instead of LINK_INTERFACE_LIBRARIES

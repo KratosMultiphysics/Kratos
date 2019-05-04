@@ -418,8 +418,12 @@ namespace Kratos
 			    const int Step);
       
       void GetPressureValues(Vector& rValues,
-			     const int Step = 0);
-      
+			     const int Step = 0);      
+
+      void GetFluidFractionRateValues(Vector& rValues);
+ 
+      void GetFluidFractionRateOldValues(Vector& rValues);
+
       void GetDensityValues(Vector& rValues,
 			    const int Step = 0);
 
@@ -529,6 +533,10 @@ namespace Kratos
 				  const double theta);
 
       void CalcVelDefGrad(const ShapeFunctionDerivativesType& rDN_DX,
+			  MatrixType &FgradVel,
+			  const double theta);
+
+      void CalcVelDefGradAndInverse(const ShapeFunctionDerivativesType& rDN_DX,
 			  MatrixType &FgradVel,
 			  MatrixType &invFgradVel,
 			  double &FVelJacobian,

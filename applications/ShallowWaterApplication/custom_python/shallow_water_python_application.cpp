@@ -21,6 +21,7 @@
 #include "includes/define_python.h"
 #include "shallow_water_application.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 
 
 namespace Kratos
@@ -41,6 +42,24 @@ namespace Python
         ;
 
     AddCustomUtilitiesToPython(m);
+    AddCustomProcessesToPython(m);
+
+    // Adding enums
+    py::enum_<Framework>(m, "Framework")
+    .value("EULERIAN_FRAMEWORK", EULERIAN_FRAMEWORK)
+    .value("PFEM2_FRAMEWORK", PFEM2_FRAMEWORK)
+    ;
+
+    py::enum_<Formulation>(m, "Formulation")
+    .value("REDUCED_VARIABLES", REDUCED_VARIABLES)
+    .value("CONSERVED_VARIABLES", CONSERVED_VARIABLES)
+    ;
+
+    py::enum_<Variables>(m, "Variables")
+    .value("FREE_SURFACE_VARIABLE", FREE_SURFACE_VARIABLE)
+    .value("VELOCITY_VARIABLE", VELOCITY_VARIABLE)
+    .value("FREE_SURFACE_AND_VELOCITY", FREE_SURFACE_AND_VELOCITY)
+    ;
 
     // Registering variables in python
     // Shallow water variables
@@ -50,6 +69,7 @@ namespace Python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RAIN);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,FREE_SURFACE_ELEVATION);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,MANNING);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TOPOGRAPHY_GRADIENT);
 
     // Specific variables for PFEM2
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,MEAN_SIZE);

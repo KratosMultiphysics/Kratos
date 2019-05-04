@@ -130,25 +130,25 @@
                 "model_part_name"        : "Structure.computing_domain",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER","WEIGHTED_GAP","WEIGHTED_SLIP"],
-            "nodal_nonhistorical_results": ["AUGMENTED_NORMAL_CONTACT_PRESSURE","AUGMENTED_TANGENT_CONTACT_PRESSURE"],
-            "nodal_flags_results": ["ACTIVE","SLAVE","SLIP"],
-            "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
-        },
-        "point_data_configuration"  : []}}}]
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "step",
+                        "output_control_type" : "step",
+                        "output_frequency"    : 1,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER","WEIGHTED_GAP","WEIGHTED_SLIP"],
+                        "nodal_nonhistorical_results": ["AUGMENTED_NORMAL_CONTACT_PRESSURE","AUGMENTED_TANGENT_CONTACT_PRESSURE"],
+                        "nodal_flags_results": ["ACTIVE","SLAVE","SLIP"],
+                        "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
+                    },
+                    "point_data_configuration"  : []}}}]
     }
 }

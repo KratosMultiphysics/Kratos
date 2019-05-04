@@ -9,7 +9,7 @@ import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 class PoromechanicsAnalysis(AnalysisStage):
     '''Main script for poromechanics simulations.'''
