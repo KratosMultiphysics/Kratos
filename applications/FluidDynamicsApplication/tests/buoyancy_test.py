@@ -3,7 +3,7 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
-have_convection_diffusion = KratosUtilities.IsApplicationAvailable("ConvectionDiffusionApplication")
+have_convection_diffusion = KratosUtilities.CheckIfApplicationsAvailable("ConvectionDiffusionApplication")
 if have_convection_diffusion:
     import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
 

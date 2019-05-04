@@ -348,7 +348,7 @@ void StressCalculation::CalculateStressOnGPShell(Element& rElement,
     else
         rElement.CalculateOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector, rCurrentProcessInfo);
 
-    rOutput.resize(num_gps);
+    rOutput.resize(num_gps, false);
     for(IndexType i = 0; i < num_gps; i++)
     {
         rOutput(i) = stress_vector[i](direction_1, direction_2);
@@ -427,7 +427,7 @@ void StressCalculation::CalculateStressOnGPBeam(Element& rElement,
 
     const SizeType GP_num = rElement.GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
 
-    rOutput.resize(GP_num);
+    rOutput.resize(GP_num, false);
     for(IndexType i = 0; i < GP_num ; i++)
     {
         rOutput(i) = stress_vector[i][direction_1];
@@ -449,7 +449,7 @@ void StressCalculation::CalculateStressOnNodeBeam(Element& rElement,
                                             stress_vector, rCurrentProcessInfo,
                                             direction_1);
 
-    rOutput.resize(2);
+    rOutput.resize(2, false);
     rOutput(0) = 2 * stress_vector[0][direction_1] - stress_vector[1][direction_1];
     rOutput(1) = 2 * stress_vector[2][direction_1] - stress_vector[1][direction_1];
 

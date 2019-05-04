@@ -14,15 +14,15 @@
             "mesh_motion" : {
                 "apply_mesh_solver" : true,
                 "solver_settings" : {
-                    "solver_type": "mesh_solver_structural_similarity",
-                    "model_part_name"    : "structure",
-                    "model_import_settings"              : {
+                    "domain_size"     : 3,
+                    "solver_type"     : "structural_similarity",
+                    "model_part_name" : "structure",
+                    "model_import_settings" : {
                         "input_type"     : "use_input_model_part"
                     },
                     "time_stepping" : {
                         "time_step"       : 1.0
                     },
-                    "domain_size"     : 3,
                     "mesh_motion_linear_solver_settings"  : {
                         "solver_type"         : "AMGCL",
                         "max_iteration"       : 500,
@@ -33,8 +33,7 @@
                         "coarsening_type"     : "aggregation",
                         "scaling"             : false,
                         "verbosity"           : 1
-                    },
-                    "compute_reactions"     : false
+                    }
                 }
             }
         },

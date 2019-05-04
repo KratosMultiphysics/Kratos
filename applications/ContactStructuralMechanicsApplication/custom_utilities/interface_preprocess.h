@@ -7,7 +7,7 @@
 //                                       license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-// 
+//
 
 
 #if !defined(KRATOS_INTERFACE_PREPROCESS_CONDITION_H_INCLUDED )
@@ -27,7 +27,7 @@ namespace Kratos
 {
 ///@name Kratos Globals
 ///@{
-    
+
 ///@}
 ///@name Type Definitions
 ///@{
@@ -35,15 +35,15 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
+
 ///@}
 ///@name Kratos Classes
 ///@{
-  
+
 /**
  * @ingroup ContactStructuralMechanicsApplication
  * @class InterfacePreprocessCondition
@@ -51,12 +51,12 @@ namespace Kratos
  * @todo Add parallelization
  * @author Vicente Mataix Ferrandiz
  */
-class InterfacePreprocessCondition
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) InterfacePreprocessCondition
 {
 public:
     ///@name Type Definitions
     ///@{
-    
+
     /// Geometric definitions
     typedef Point                                              PointType;
     typedef Node<3>                                             NodeType;
@@ -73,16 +73,16 @@ public:
     typedef ModelPart::NodesContainerType                 NodesArrayType;
     typedef ModelPart::ElementsContainerType           ElementsArrayType;
     typedef ModelPart::ConditionsContainerType       ConditionsArrayType;
-    
+
     /// Pointer definition of ExactMortarIntegrationUtility
     KRATOS_CLASS_POINTER_DEFINITION(InterfacePreprocessCondition);
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     /// Constructor
-    
+
     /**
      * @brief This is the default constructor
      * @param rMainModelPrt The model part to consider
@@ -91,14 +91,14 @@ public:
     :mrMainModelPart(rMainModelPrt)
     {
     }
-    
+
     /// Destructor.
     virtual ~InterfacePreprocessCondition() = default;
-    
+
     ///@}
     ///@name Operators
     ///@{
-    
+
     ///@}
     ///@name Operations
     ///@{
@@ -108,12 +108,11 @@ public:
      * @param rInterfacePart The interface model part
      * @param ThisParameters The configuration parameters
      */
-    template<const std::size_t TDim>
     void GenerateInterfacePart(
         ModelPart& rInterfacePart,
         Parameters ThisParameters =  Parameters(R"({})")
         );
-    
+
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -145,13 +144,13 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
 
     ModelPart& mrMainModelPart; /// The main model part storing all the information
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -220,7 +219,7 @@ private:
         const IndexType CondId,
         Condition const& rCondition
         );
-    
+
     /**
      * @brief This method assign the corresponding master/slave flag to the condition in function of its nodes
      * @param pCond The pointer to the condition
@@ -236,13 +235,13 @@ private:
         const IndexType NodesCounter,
         const IndexType CondCounter
         );
-    
+
     /**
      * @brief It reorders the Ids of the conditions
      * @return cond_id: The Id from the last condition
      */
     IndexType ReorderConditions();
-    
+
     /**
      * @brief This method creates the conditions for the edges
      * @param rInterfacePart The model part of the interface
@@ -260,7 +259,7 @@ private:
         IndexType& CondCounter,
         IndexType& CondId
         );
-    
+
     /**
      * @brief This method creates the conditions for the faces
      * @param rInterfacePart The model part of the interface
@@ -278,7 +277,7 @@ private:
         IndexType& CondCounter,
         IndexType& CondId
         );
-    
+
     ///@}
     ///@name Private  Access
     ///@{

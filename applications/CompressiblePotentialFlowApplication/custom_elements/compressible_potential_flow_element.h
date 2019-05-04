@@ -86,22 +86,34 @@ public:
     /**
      * Constructor.
      */
-    explicit CompressiblePotentialFlowElement(IndexType NewId = 0) {};
+    explicit CompressiblePotentialFlowElement(IndexType NewId = 0) {
+        KRATOS_WARNING_ONCE("DEPRECATED") << "CompressiblePotentialFlowElement was replaced by "
+            << "IncompressiblePotentialFlowElement, it will be removed soon!" << std::endl;
+    };
 
     /**
      * Constructor using an array of nodes
      */
-    CompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes):Element(NewId, ThisNodes) {};
+    CompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes):Element(NewId, ThisNodes) {
+        KRATOS_WARNING_ONCE("DEPRECATED") << "CompressiblePotentialFlowElement was replaced by "
+            << "IncompressiblePotentialFlowElement, it will be removed soon!" << std::endl;
+    };
 
     /**
      * Constructor using Geometry
      */
-    CompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry):Element(NewId, pGeometry) {};
+    CompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry):Element(NewId, pGeometry) {
+        KRATOS_WARNING_ONCE("DEPRECATED") << "CompressiblePotentialFlowElement was replaced by "
+            << "IncompressiblePotentialFlowElement, it will be removed soon!" << std::endl;
+    };
 
     /**
      * Constructor using Properties
      */
-    CompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):Element(NewId, pGeometry, pProperties) {};
+    CompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):Element(NewId, pGeometry, pProperties) {
+        KRATOS_WARNING_ONCE("DEPRECATED") << "CompressiblePotentialFlowElement was replaced by "
+            << "IncompressiblePotentialFlowElement, it will be removed soon!" << std::endl;
+    };
 
     /**
      * Copy Constructor
@@ -132,6 +144,8 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
+        KRATOS_WARNING_ONCE("DEPRECATED") << "CompressiblePotentialFlowElement was replaced by "
+            << "IncompressiblePotentialFlowElement, it will be removed soon!" << std::endl;
         return Element::Pointer(new CompressiblePotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
         KRATOS_CATCH("");
     }
@@ -139,6 +153,8 @@ public:
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
+        KRATOS_WARNING_ONCE("DEPRECATED") << "CompressiblePotentialFlowElement was replaced by "
+            << "IncompressiblePotentialFlowElement, it will be removed soon!" << std::endl;
         return Element::Pointer(new CompressiblePotentialFlowElement(NewId, pGeom, pProperties));
         KRATOS_CATCH("");
     }
@@ -146,6 +162,8 @@ public:
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
         KRATOS_TRY
+        KRATOS_WARNING_ONCE("DEPRECATED") << "CompressiblePotentialFlowElement was replaced by "
+            << "IncompressiblePotentialFlowElement, it will be removed soon!" << std::endl;
         return Element::Pointer(new CompressiblePotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
         KRATOS_CATCH("");
     }
@@ -244,8 +262,8 @@ public:
         {
             data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         }
-        
-        
+
+
         //TEST:
         bool kutta_element = false;
         for(unsigned int i=0; i<NumNodes; ++i)
@@ -264,21 +282,21 @@ public:
             rLeftHandSideMatrix.clear();
 
             ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data);
-                        
+
             noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
-            
+
         }
         else //it is a wake element
         {
             GetWakeDistances(data.distances);
-            
+
             //note that the lhs and rhs have double the size!!
             if(rLeftHandSideMatrix.size1() != 2*NumNodes || rLeftHandSideMatrix.size2() != 2*NumNodes)
                 rLeftHandSideMatrix.resize(2*NumNodes,2*NumNodes,false);
             if(rRightHandSideVector.size() != 2*NumNodes)
                 rRightHandSideVector.resize(2*NumNodes,false);
             rLeftHandSideMatrix.clear();
-            
+
             //subdivide the element
             constexpr unsigned int nvolumes = 3*(Dim-1);
             bounded_matrix<double,NumNodes, Dim > Points;
@@ -287,12 +305,12 @@ public:
             array_1d<double,nvolumes> PartitionsSign;
             std::vector<Matrix> GradientsValue(nvolumes);
             bounded_matrix<double,nvolumes, 2> NEnriched;
-            
+
             for(unsigned int i=0; i<GradientsValue.size(); ++i)
                 GradientsValue[i].resize(2,Dim,false);
-           
-            
-            
+
+
+
             for(unsigned int i = 0; i<NumNodes; ++i)
             {
                 const array_1d<double, 3>& coords = GetGeometry()[i].Coordinates();
@@ -301,19 +319,19 @@ public:
                     Points(i, k) = coords[k];
                 }
             }
-            
+
             const unsigned int nsubdivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions(Points,
                                                                                             data.DN_DX,
                                                                                             data.distances,
-                                                                                            Volumes, 
-                                                                                            GPShapeFunctionValues, 
-                                                                                            PartitionsSign, 
-                                                                                            GradientsValue, 
+                                                                                            Volumes,
+                                                                                            GPShapeFunctionValues,
+                                                                                            PartitionsSign,
+                                                                                            GradientsValue,
                                                                                             NEnriched);
             //compute the lhs and rhs that would correspond to it not being divided
             Matrix lhs_positive = ZeroMatrix(NumNodes,NumNodes);
             Matrix lhs_negative = ZeroMatrix(NumNodes,NumNodes);
-            
+
             for(unsigned int i=0; i<nsubdivisions; ++i)
             {
                 if(PartitionsSign[i] > 0)
@@ -323,12 +341,12 @@ public:
             }
 
             //also next version works - NON SYMMETRIC - but it does not require a penalty
-//                 array_1d<double,Dim> n = prod(data.DN_DX,data.distances); //rCurrentProcessInfo[VELOCITY]; 
+//                 array_1d<double,Dim> n = prod(data.DN_DX,data.distances); //rCurrentProcessInfo[VELOCITY];
 //                 n /= norm_2(n);
 //                 bounded_matrix<double,Dim,Dim> nn = outer_prod(n,n);
 //                 bounded_matrix<double,NumNodes,Dim> tmp = prod(data.DN_DX,nn);
 //                 bounded_matrix<double,NumNodes,NumNodes> constraint = data.vol*prod(tmp, trans(data.DN_DX));
-//                                 
+//
 //                 bounded_matrix<double,Dim,Dim> P = IdentityMatrix(Dim,Dim) - nn;
 //                 noalias(tmp) = prod(data.DN_DX,P);
 //                 bounded_matrix<double,NumNodes,NumNodes> tangent_constraint = /*1e3**/data.vol*prod(tmp, trans(data.DN_DX));
@@ -338,11 +356,11 @@ public:
                     {
                         for(unsigned int j=0; j<NumNodes; ++j)
                         {
-                            rLeftHandSideMatrix(i,j)            =  lhs_positive(i,j); 
-                            rLeftHandSideMatrix(i,j+NumNodes)   =  0.0; 
-                            
-                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j); 
-                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0; 
+                            rLeftHandSideMatrix(i,j)            =  lhs_positive(i,j);
+                            rLeftHandSideMatrix(i,j+NumNodes)   =  0.0;
+
+                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j);
+                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
                         }
                     }
                 }
@@ -352,15 +370,15 @@ public:
                     {
                         for(unsigned int j=0; j<NumNodes; ++j)
                         {
-                            rLeftHandSideMatrix(i,j)                   =  lhs_positive(i,j); 
-                            rLeftHandSideMatrix(i,j+NumNodes)          =  0.0; 
-                            
-                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j); 
-                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0; 
+                            rLeftHandSideMatrix(i,j)                   =  lhs_positive(i,j);
+                            rLeftHandSideMatrix(i,j+NumNodes)          =  0.0;
+
+                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j);
+                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
                         }
                     }
-                    
-                
+
+
                     //side1  -assign constraint only on the AUXILIARY_VELOCITY_POTENTIAL dofs
                     for(unsigned int i=0; i<NumNodes; ++i)
                     {
@@ -368,21 +386,21 @@ public:
                         {
                                 for(unsigned int j=0; j<NumNodes; ++j)
                                 {
-                                    rLeftHandSideMatrix(i,j)          = lhs_positive(i,j); 
-                                    rLeftHandSideMatrix(i,j+NumNodes) = -lhs_positive(i,j); 
+                                    rLeftHandSideMatrix(i,j)          = lhs_positive(i,j);
+                                    rLeftHandSideMatrix(i,j+NumNodes) = -lhs_positive(i,j);
                                 }
                         }
                     }
-                    
+
                     //side2 -assign constraint only on the AUXILIARY_VELOCITY_POTENTIAL dofs
                     for(unsigned int i=0; i<NumNodes; ++i)
-                    {                            
+                    {
                         if(data.distances[i]>0)
-                        {   
+                        {
                             for(unsigned int j=0; j<NumNodes; ++j)
                                 {
                                     rLeftHandSideMatrix(i+NumNodes,j+NumNodes) = lhs_negative(i,j);
-                                    rLeftHandSideMatrix(i+NumNodes,j) = -lhs_negative(i,j); 
+                                    rLeftHandSideMatrix(i+NumNodes,j) = -lhs_negative(i,j);
                                 }
                         }
                     }
@@ -391,7 +409,7 @@ public:
             GetValuesOnSplitElement(split_element_values, data.distances);
             noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,split_element_values);
         }
-        
+
     }
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
@@ -671,8 +689,8 @@ protected:
 
     double ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo)
     {
-        const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
-        const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
+        const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+        const double vinfinity_norm2 = inner_prod(free_stream_velocity, free_stream_velocity);
 
         KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
             << "Error on element -> " << this->Id() << "\n"
@@ -681,15 +699,15 @@ protected:
         array_1d<double, Dim> v;
         ComputeVelocityNormalElement(v);
 
-        double pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
+        double pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(free_stream_velocity) - norm_2(v));
 
         return pressure;
     }
 
     double ComputePressureWakeElement(const ProcessInfo& rCurrentProcessInfo)
     {
-        const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
-        const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
+        const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+        const double vinfinity_norm2 = inner_prod(free_stream_velocity, free_stream_velocity);
 
         KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
             << "Error on element -> " << this->Id() << "\n"
@@ -698,7 +716,7 @@ protected:
         array_1d<double, Dim> v;
         ComputeVelocityLowerWakeElement(v);
 
-        double pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
+        double pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(free_stream_velocity) - norm_2(v));
 
         return pressure;
     }

@@ -301,10 +301,6 @@ public:
 
         if(rVariable == HEAT_FLUX) //compute the heat flux per unit volume induced by the shearing
         {
-            const unsigned int NumNodes = 4;
-            const unsigned int Dim = 3;
-            const unsigned int strain_size = 6;
-
             double distance_center = 0.0;
             for(unsigned int i=0; i<GetGeometry().size(); i++)
                 distance_center += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
@@ -316,60 +312,81 @@ public:
             }
             else //OTHER MATERIAL
             {
-                //struct to pass around the data
-                element_data<NumNodes,Dim> data;
-
-                //getting data for the given geometry
-                double Volume;
-                GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, Volume);
-
-
-                for (unsigned int i = 0; i < NumNodes; i++)
-                {
-                    const array_1d<double,3>& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-
-                    for(unsigned int k=0; k<Dim; k++)
-                    {
-                        data.v(i,k)   = vel[k];
-                    }
-                }
-
-                if (data.stress.size() != strain_size) data.stress.resize(strain_size,false);
-
-                const BoundedMatrix<double,NumNodes,Dim>& v = data.v;
-                const BoundedMatrix<double,NumNodes,Dim>& DN = data.DN_DX;
-
-                //compute strain
-                Vector strain(strain_size);
-                strain[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0) + DN(3,0)*v(3,0);
-                strain[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1) + DN(3,1)*v(3,1);
-                strain[2] = DN(0,2)*v(0,2) + DN(1,2)*v(1,2) + DN(2,2)*v(2,2) + DN(3,2)*v(3,2);
-                strain[3] = DN(0,0)*v(0,1) + DN(0,1)*v(0,0) + DN(1,0)*v(1,1) + DN(1,1)*v(1,0) + DN(2,0)*v(2,1) + DN(2,1)*v(2,0) + DN(3,0)*v(3,1) + DN(3,1)*v(3,0);
-                strain[4] = DN(0,1)*v(0,2) + DN(0,2)*v(0,1) + DN(1,1)*v(1,2) + DN(1,2)*v(1,1) + DN(2,1)*v(2,2) + DN(2,2)*v(2,1) + DN(3,1)*v(3,2) + DN(3,2)*v(3,1);
-                strain[5] = DN(0,0)*v(0,2) + DN(0,2)*v(0,0) + DN(1,0)*v(1,2) + DN(1,2)*v(1,0) + DN(2,0)*v(2,2) + DN(2,2)*v(2,0) + DN(3,0)*v(3,2) + DN(3,2)*v(3,0);
+                const unsigned int NumNodes = 4;
+                const unsigned int strain_size = 6;
 
                 //create constitutive law parameters:
-                ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+                const Properties& r_properties = GetProperties();
+                ConstitutiveLaw::Parameters Values(GetGeometry(),r_properties,rCurrentProcessInfo);
 
                 //set constitutive law flags:
                 Flags& ConstitutiveLawOptions=Values.GetOptions();
                 ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
                 ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-                //this is to pass the shape functions. Unfortunately it is needed to make a copy to a flexible size vector
-                const Vector Nvec(data.N);
+                Vector Nvec(NumNodes);
+                for(unsigned int i=0; i<NumNodes; i++) Nvec[i]=0.25;
                 Values.SetShapeFunctionsValues(Nvec);
 
-                Values.SetStrainVector(strain); //this is the input parameter
-                Values.SetStressVector(data.stress); //this is an ouput parameter
+                Vector strain = CalculateStrain();
+                Values.SetStrainVector(strain);
+
+                Vector stress(strain_size);
+                Values.SetStressVector(stress); //this is an ouput parameter
+
     //             Values.SetConstitutiveMatrix(data.C);      //this is an ouput parameter
 
                 //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
                 //this is ok under the hypothesis that no history dependent behaviour is employed
                 mp_constitutive_law->CalculateMaterialResponseCauchy(Values);
 
-                Output = 0.5*inner_prod(data.stress, strain);
+                Output = inner_prod(stress, strain);
             }
+        }
+        else if(rVariable == EQ_STRAIN_RATE) //compute effective strain rate
+        {
+            const unsigned int NumNodes = 4;
+
+            const Properties& r_properties = GetProperties();
+            ConstitutiveLaw::Parameters Values(GetGeometry(),r_properties,rCurrentProcessInfo);
+
+            Vector Nvec(NumNodes);
+            for(unsigned int i=0; i<NumNodes; i++) Nvec[i]=0.25;
+            Values.SetShapeFunctionsValues(Nvec);
+
+            Vector strain = CalculateStrain();
+            Values.SetStrainVector(strain);
+
+            Output = mp_constitutive_law->CalculateValue(Values,rVariable, Output);
+        } 
+        else if(rVariable == EFFECTIVE_VISCOSITY) //compute the heat flux per unit volume induced by the shearing
+        {
+            double distance_center = 0.0;
+            for(unsigned int i=0; i<GetGeometry().size(); i++)
+                distance_center += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+            distance_center/=static_cast<double>(GetGeometry().size());
+
+            if(distance_center > 0) //AIR
+            {
+                const Properties& r_properties = GetProperties();
+                Output = r_properties[DYNAMIC_VISCOSITY];
+            }
+            else //OTHER MATERIAL
+            {
+                const unsigned int NumNodes = 4;
+
+                const Properties& r_properties = GetProperties();
+                ConstitutiveLaw::Parameters Values(GetGeometry(),r_properties,rCurrentProcessInfo);
+
+                Vector Nvec(NumNodes);
+                for(unsigned int i=0; i<NumNodes; i++) Nvec[i]=0.25;
+                Values.SetShapeFunctionsValues(Nvec);
+
+                Vector strain = CalculateStrain();
+                Values.SetStrainVector(strain);
+
+                Output = mp_constitutive_law->CalculateValue(Values,rVariable, Output);
+            }         
         }
 
         KRATOS_CATCH("")
@@ -712,7 +729,7 @@ public:
 
         double max_diag = 0.0;
         for(unsigned int k=0; k<Dim+1; k++)
-            if(fabs(Kee_tot(k,k) ) > max_diag) max_diag = fabs(Kee_tot(k,k) );
+            if(std::abs(Kee_tot(k,k) ) > max_diag) max_diag = std::abs(Kee_tot(k,k) );
         if(max_diag == 0) max_diag = 1.0;
 
         if(positive_volume/Vol < min_area_ratio)
@@ -739,11 +756,11 @@ public:
         //"weakly" impose continuity
         for(unsigned int i=0; i<Dim; i++)
         {
-            const double di = fabs(distances[i]);
+            const double di = std::abs(distances[i]);
 
             for(unsigned int j=i+1; j<Dim+1; j++)
             {
-                const double dj =  fabs(distances[j]);
+                const double dj =  std::abs(distances[j]);
 
                 if( distances[i]*distances[j] < 0.0) //cut edge
                 {
@@ -763,7 +780,8 @@ public:
 
         //add to LHS enrichment contributions
         double det;
-        BoundedMatrix<double,4,4> inverse_diag = MathUtils<double>::InvertMatrix<4>(Kee_tot,det);
+        BoundedMatrix<double,4,4> inverse_diag;
+        MathUtils<double>::InvertMatrix(Kee_tot, inverse_diag,det);
 
         const BoundedMatrix<double,4,16> tmp = prod(inverse_diag,Htot);
         noalias(rLeftHandSideMatrix) -= prod(Vtot,tmp);
@@ -818,8 +836,6 @@ private:
 ///@{
     virtual void ComputeConstitutiveResponse_AIR(element_data<4,3>& data, const double rho, const double nu,  ProcessInfo& rCurrentProcessInfo)
     {
-        const unsigned int nnodes = 4;
-        const unsigned int dim = 3;
         const unsigned int strain_size = 6;
 
         if(data.C.size1() != strain_size)
@@ -827,17 +843,8 @@ private:
         if(data.stress.size() != strain_size)
             data.stress.resize(strain_size,false);
 
-        const BoundedMatrix<double,nnodes,dim>& v = data.v;
-        const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
-
         //compute strain
-        Vector strain(strain_size);
-        strain[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0) + DN(3,0)*v(3,0);
-        strain[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1) + DN(3,1)*v(3,1);
-        strain[2] = DN(0,2)*v(0,2) + DN(1,2)*v(1,2) + DN(2,2)*v(2,2) + DN(3,2)*v(3,2);
-        strain[3] = DN(0,0)*v(0,1) + DN(0,1)*v(0,0) + DN(1,0)*v(1,1) + DN(1,1)*v(1,0) + DN(2,0)*v(2,1) + DN(2,1)*v(2,0) + DN(3,0)*v(3,1) + DN(3,1)*v(3,0);
-        strain[4] = DN(0,1)*v(0,2) + DN(0,2)*v(0,1) + DN(1,1)*v(1,2) + DN(1,2)*v(1,1) + DN(2,1)*v(2,2) + DN(2,2)*v(2,1) + DN(3,1)*v(3,2) + DN(3,2)*v(3,1);
-        strain[5] = DN(0,0)*v(0,2) + DN(0,2)*v(0,0) + DN(1,0)*v(1,2) + DN(1,2)*v(1,0) + DN(2,0)*v(2,2) + DN(2,2)*v(2,0) + DN(3,0)*v(3,2) + DN(3,2)*v(3,0);
+        Vector strain = CalculateStrain();
 
         //here we shall call the constitutive law
         data.C.clear();
@@ -858,6 +865,40 @@ private:
         data.stress[5] =  c2*strain[5];
     }
 
+    //compute strain
+
+    Vector CalculateStrain()
+    {
+        const unsigned int NumNodes = 4;
+        const unsigned int Dim = 3;
+        const unsigned int strain_size = 6;
+
+        //struct to pass around the data
+        element_data<NumNodes,Dim> data;
+
+        //getting data for the given geometry
+        double Volume;
+        BoundedMatrix<double,NumNodes,Dim> v, DN;
+        array_1d<double,NumNodes> N;
+        GeometryUtils::CalculateGeometryData(GetGeometry(), DN, N, Volume);
+
+        for (unsigned int i = 0; i < NumNodes; i++)
+        {
+            const array_1d<double,3>& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+            for(unsigned int k=0; k<Dim; k++)
+                v(i,k)   = vel[k];
+        }
+
+        Vector strain(strain_size);
+        strain[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0) + DN(3,0)*v(3,0);
+        strain[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1) + DN(3,1)*v(3,1);
+        strain[2] = DN(0,2)*v(0,2) + DN(1,2)*v(1,2) + DN(2,2)*v(2,2) + DN(3,2)*v(3,2);
+        strain[3] = DN(0,0)*v(0,1) + DN(0,1)*v(0,0) + DN(1,0)*v(1,1) + DN(1,1)*v(1,0) + DN(2,0)*v(2,1) + DN(2,1)*v(2,0) + DN(3,0)*v(3,1) + DN(3,1)*v(3,0);
+        strain[4] = DN(0,1)*v(0,2) + DN(0,2)*v(0,1) + DN(1,1)*v(1,2) + DN(1,2)*v(1,1) + DN(2,1)*v(2,2) + DN(2,2)*v(2,1) + DN(3,1)*v(3,2) + DN(3,2)*v(3,1);
+        strain[5] = DN(0,0)*v(0,2) + DN(0,2)*v(0,0) + DN(1,0)*v(1,2) + DN(1,2)*v(1,0) + DN(2,0)*v(2,2) + DN(2,2)*v(2,0) + DN(3,0)*v(3,2) + DN(3,2)*v(3,0);
+        return strain;
+    }
+    
 
 ///@}
 ///@name Private  Access

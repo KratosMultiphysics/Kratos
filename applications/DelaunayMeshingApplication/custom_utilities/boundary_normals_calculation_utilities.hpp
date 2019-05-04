@@ -745,7 +745,7 @@ protected:
 
     if( rModelPart.NumberOfConditions() && this->CheckConditionsDimension(rModelPart, dimension-1) ){
 
-      ConditionsContainerType& rConditions = rModelPart.Conditions();
+    //   ConditionsContainerType& rConditions = rModelPart.Conditions();
 
       //adding the normals to the nodes
       for(auto& i_cond : rModelPart.Conditions())

@@ -7,7 +7,7 @@ import KratosMultiphysics
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 
 # Importing the base class
-from python_solver import PythonSolver
+from KratosMultiphysics.python_solver import PythonSolver
 
 def CreateSolver(model, custom_settings):
     return ParticleMPMSolver(model, custom_settings)
@@ -86,17 +86,17 @@ class ParticleMPMSolver(PythonSolver):
             custom_settings.RemoveValue("geometry_element")
             warning = '\n::[ParticleMPMSolver]:: W-A-R-N-I-N-G: You have specified "geometry_element", '
             warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-            self.print_warning_on_rank_zero("Geometry element", warning)
+            KratosMultiphysics.Logger.PrintWarning("Geometry element", warning)
         if custom_settings.Has("particle_per_element"):
             custom_settings.RemoveValue("particle_per_element")
             warning = '\n::[ParticleMPMSolver]:: W-A-R-N-I-N-G: You have specified "particle_per_element", '
             warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-            self.print_warning_on_rank_zero("Particle per element", warning)
+            KratosMultiphysics.Logger.PrintWarning("Particle per element", warning)
         if custom_settings.Has("line_search"):
             custom_settings.RemoveValue("line_search")
             warning = '\n::[ParticleMPMSolver]:: W-A-R-N-I-N-G: You have specified "line_search", '
             warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-            self.print_warning_on_rank_zero("Geometry element", warning)
+            KratosMultiphysics.Logger.PrintWarning("Geometry element", warning)
 
         # Overwrite the default settings with user-provided parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -110,7 +110,7 @@ class ParticleMPMSolver(PythonSolver):
             self.block_builder = False
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        self.print_on_rank_zero("::[ParticleMPMSolver]:: ", "Solver is constructed correctly.")
+        KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ", "Solver is constructed correctly.")
 
 
     ### Solver public functions
@@ -119,13 +119,13 @@ class ParticleMPMSolver(PythonSolver):
         self._add_variables_to_model_part(self.grid_model_part)
         self._add_variables_to_model_part(self.initial_material_model_part)
 
-        self.print_on_rank_zero("::[ParticleMPMSolver]:: ", "Variables are added.")
+        KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ", "Variables are added.")
 
     def ImportModelPart(self):
         # Read model part
         self._model_part_reading()
 
-        self.print_on_rank_zero("::[ParticleMPMSolver]:: ","Models are imported.")
+        KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ","Models are imported.")
 
     def PrepareModelPart(self):
         # Set buffer size
@@ -134,7 +134,7 @@ class ParticleMPMSolver(PythonSolver):
         # Executes the check and prepare model process
         self._execute_check_and_prepare()
 
-        self.print_on_rank_zero("::[ParticleMPMSolver]:: ", "ModelPart prepared for Solver.")
+        KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ", "ModelPart prepared for Solver.")
 
     def GetComputingModelPart(self):
         if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
@@ -151,7 +151,7 @@ class ParticleMPMSolver(PythonSolver):
         self._add_dofs_to_model_part(self.grid_model_part)
         self._add_dofs_to_model_part(self.initial_material_model_part)
 
-        self.print_on_rank_zero("::[ParticleMPMSolver]:: ","DOFs are added.")
+        KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ","DOFs are added.")
 
     def Initialize(self):
         #TODO: implement solver_settings and change the input of the constructor in MPM_strategy.h
@@ -226,7 +226,7 @@ class ParticleMPMSolver(PythonSolver):
         # Check if everything is assigned correctly
         self._check()
 
-        self.print_on_rank_zero("::[ParticleMPMSolver]:: ","Solver is initialized correctly.")
+        KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ","Solver is initialized correctly.")
 
     def AdvanceInTime(self, current_time):
         dt = self.ComputeDeltaTime()
@@ -334,7 +334,7 @@ class ParticleMPMSolver(PythonSolver):
         # Specific active node and element check for particle MPM solver
         for node in self.grid_model_part.Nodes:
             if (node.Is(KratosMultiphysics.ACTIVE)):
-                self.print_on_rank_zero("::[ParticleMPMSolver]:: ","WARNING: This grid node have been set active: ", node.Id)
+                KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ","WARNING: This grid node have been set active: ", node.Id)
 
         # Setting active initial elements
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, self.initial_material_model_part.Elements)
@@ -345,9 +345,9 @@ class ParticleMPMSolver(PythonSolver):
         # Read material property
         materials_imported = self._import_constitutive_laws()
         if materials_imported:
-            self.print_on_rank_zero("::[ParticleMPMSolver]:: ","Constitutive law was successfully imported.")
+            KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ","Constitutive law was successfully imported.")
         else:
-            self.print_warning_on_rank_zero("::[ParticleMPMSolver]:: ","Constitutive law was not imported.")
+            KratosMultiphysics.Logger.PrintWarning("::[ParticleMPMSolver]:: ","Constitutive law was not imported.")
 
         # Clone property of model_part2 to model_part3
         self.material_model_part.Properties = self.initial_material_model_part.Properties

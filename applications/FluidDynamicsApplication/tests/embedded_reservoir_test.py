@@ -1,7 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.kratos_utilities as KratosUtilities
-have_external_solvers = KratosUtilities.IsApplicationAvailable("ExternalSolversApplication")
+have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 

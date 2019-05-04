@@ -31,8 +31,9 @@
 #include "custom_constitutive/DEM_D_JKR_cohesive_law.h"
 #include "custom_constitutive/DEM_D_Bentonite_Colloid_CL.h"
 #include "custom_constitutive/DEM_D_DMT_cohesive_law.h"
+#include "custom_constitutive/DEM_D_Stress_dependent_cohesive_CL.h"
 #include "custom_constitutive/dem_d_linear_custom_constants_cl.h"
-#include "custom_constitutive/DEM_D_Hertz_dependent_friction_CL.h"
+#include "custom_constitutive/DEM_D_Conical_damage_CL.h"
 #include "custom_constitutive/DEM_KDEM_fabric_CL.h"
 #include "custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "custom_constitutive/DEM_KDEM_CamClay_CL.h"
@@ -135,6 +136,7 @@ KRATOS_CREATE_VARIABLE(int, CONCRETE_TEST_OPTION)
 KRATOS_CREATE_VARIABLE(int, COHESIVE_GROUP)
 KRATOS_CREATE_VARIABLE(double, PARTICLE_TENSION)
 KRATOS_CREATE_VARIABLE(double, PARTICLE_COHESION)
+KRATOS_CREATE_VARIABLE(double, AMOUNT_OF_COHESION_FROM_STRESS)
 KRATOS_CREATE_VARIABLE(int, IF_BOUNDARY_ELEMENT)
 KRATOS_CREATE_VARIABLE(Vector, IF_BOUNDARY_FACE)
 KRATOS_CREATE_VARIABLE(DenseVector<int>, PARTICLE_CONTACT_FAILURE_ID)
@@ -168,9 +170,12 @@ KRATOS_CREATE_VARIABLE(double, PARTICLE_ROTATION_DAMP_RATIO)
 KRATOS_CREATE_VARIABLE(double, DAMPING_GAMMA)
 KRATOS_CREATE_VARIABLE(double, K_NORMAL)
 KRATOS_CREATE_VARIABLE(double, K_TANGENTIAL)
-KRATOS_CREATE_VARIABLE(double, CONTACT_RADIUS)
-KRATOS_CREATE_VARIABLE(double, MAX_STRESS)
-KRATOS_CREATE_VARIABLE(double, GAMMA)
+KRATOS_CREATE_VARIABLE(double, CONICAL_DAMAGE_CONTACT_RADIUS)
+KRATOS_CREATE_VARIABLE(double, CONICAL_DAMAGE_MAX_STRESS)
+KRATOS_CREATE_VARIABLE(double, CONICAL_DAMAGE_ALPHA)
+KRATOS_CREATE_VARIABLE(double, CONICAL_DAMAGE_ALPHA_FUNCTION)
+KRATOS_CREATE_VARIABLE(double, CONICAL_DAMAGE_GAMMA)
+KRATOS_CREATE_VARIABLE(double, LEVEL_OF_FOULING)
 KRATOS_CREATE_VARIABLE(double, EXCENTRICITY)
 KRATOS_CREATE_VARIABLE(double, EXCENTRICITY_STANDARD_DEVIATION)
 KRATOS_CREATE_VARIABLE(double, ROTATIONAL_MOMENT_COEFFICIENT)
@@ -437,6 +442,7 @@ KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication
       mRigidEdge3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mRigidBodyElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mShipElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+      mContactInfoSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mSingleSphereCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mMapCon3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))) {}
@@ -546,6 +552,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(COHESIVE_GROUP)
     KRATOS_REGISTER_VARIABLE(PARTICLE_TENSION)
     KRATOS_REGISTER_VARIABLE(PARTICLE_COHESION)
+    KRATOS_REGISTER_VARIABLE(AMOUNT_OF_COHESION_FROM_STRESS)
     KRATOS_REGISTER_VARIABLE(IF_BOUNDARY_ELEMENT)
     KRATOS_REGISTER_VARIABLE(IF_BOUNDARY_FACE)
     KRATOS_REGISTER_VARIABLE(PARTICLE_CONTACT_FAILURE_ID)
@@ -577,9 +584,12 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(DAMPING_GAMMA)
     KRATOS_REGISTER_VARIABLE(K_NORMAL)
     KRATOS_REGISTER_VARIABLE(K_TANGENTIAL)
-    KRATOS_REGISTER_VARIABLE(CONTACT_RADIUS)
-    KRATOS_REGISTER_VARIABLE(MAX_STRESS)
-    KRATOS_REGISTER_VARIABLE(GAMMA)
+    KRATOS_REGISTER_VARIABLE(CONICAL_DAMAGE_CONTACT_RADIUS)
+    KRATOS_REGISTER_VARIABLE(CONICAL_DAMAGE_MAX_STRESS)
+    KRATOS_REGISTER_VARIABLE(CONICAL_DAMAGE_ALPHA)
+    KRATOS_REGISTER_VARIABLE(CONICAL_DAMAGE_ALPHA_FUNCTION)
+    KRATOS_REGISTER_VARIABLE(CONICAL_DAMAGE_GAMMA)
+    KRATOS_REGISTER_VARIABLE(LEVEL_OF_FOULING)
     KRATOS_REGISTER_VARIABLE(EXCENTRICITY)
     KRATOS_REGISTER_VARIABLE(EXCENTRICITY_STANDARD_DEVIATION)
     KRATOS_REGISTER_VARIABLE(ROTATIONAL_MOMENT_COEFFICIENT)
@@ -815,6 +825,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_ELEMENT("ParticleContactElement", mParticleContactElement)
     KRATOS_REGISTER_ELEMENT("RigidBodyElement3D", mRigidBodyElement3D)
     KRATOS_REGISTER_ELEMENT("ShipElement3D", mShipElement3D)
+    KRATOS_REGISTER_ELEMENT("ContactInfoSphericParticle3D", mContactInfoSphericParticle3D)
     KRATOS_REGISTER_ELEMENT("Cluster3D", mCluster3D)
     KRATOS_REGISTER_ELEMENT("SingleSphereCluster3D", mSingleSphereCluster3D)
 
@@ -845,10 +856,11 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEM_D_JKR_Cohesive_Law", DEM_D_JKR_Cohesive_Law());
     Serializer::Register("DEM_D_Bentonite_Colloid", DEM_D_Bentonite_Colloid());
     Serializer::Register("DEM_D_DMT_Cohesive_Law", DEM_D_DMT_Cohesive_Law());
+    Serializer::Register("DEM_D_Stress_Dependent_Cohesive", DEM_D_Stress_Dependent_Cohesive());
     Serializer::Register(
         "DEM_D_Linear_Custom_Constants", DEM_D_Linear_Custom_Constants());
     Serializer::Register(
-        "DEM_D_Hertz_dependent_friction", DEM_D_Hertz_dependent_friction());
+        "DEM_D_Conical_damage", DEM_D_Conical_damage());
     Serializer::Register("DEM_D_Hertz_viscous_Coulomb_Nestle",
         DEM_D_Hertz_viscous_Coulomb_Nestle());
 

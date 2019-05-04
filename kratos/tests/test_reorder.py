@@ -12,11 +12,6 @@ def GetFilePath(fileName):
 
 
 class TestReorder(KratosUnittest.TestCase):
-
-    def setUp(self):
-        if (sys.version_info < (3, 2)):
-            self.assertRaisesRegex = self.assertRaisesRegexp
-
     def test_reorder(self):
         current_model = KratosMultiphysics.Model()
 

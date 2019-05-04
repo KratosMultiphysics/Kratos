@@ -10,7 +10,7 @@ import structural_response_function_factory
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-if kratos_utils.IsApplicationAvailable("EigenSolversApplication"):
+if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
     has_eigensolvers_application = True
 else:
     has_eigensolvers_application = False

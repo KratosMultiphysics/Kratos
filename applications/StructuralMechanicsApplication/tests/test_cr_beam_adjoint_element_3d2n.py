@@ -66,9 +66,7 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         apply_material_properties(self.model_part,dim)
         prop = self.model_part.GetProperties()[0]
 
-        self.model_part.CreateNewElement("CrLinearBeamElement3D2N", 1, [1, 2], prop)
-        StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(
-            self.model_part).Execute()
+        self.model_part.CreateNewElement("AdjointFiniteDifferenceCrBeamElementLinear3D2N", 1, [1, 2], prop)
         self.adjoint_beam_element = self.model_part.GetElement(1)
 
         self.model_part.CreateNewElement("CrLinearBeamElement3D2N", 2, [1, 2], prop)
@@ -183,8 +181,8 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
 
         # pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix(6,12)
-        self.adjoint_beam_element.SetValue(StructuralMechanicsApplication.PERTURBATION_SIZE, h)
-        self.adjoint_beam_element.CalculateSensitivityMatrix(StructuralMechanicsApplication.SHAPE,PseudoLoadMatrix,self.model_part.ProcessInfo)
+        self.model_part.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = h
+        self.adjoint_beam_element.CalculateSensitivityMatrix(KratosMultiphysics.SHAPE_SENSITIVITY,PseudoLoadMatrix,self.model_part.ProcessInfo)
         self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
 
     def test_CalculateSensitivityMatrix_Property(self):
@@ -217,7 +215,7 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
 
         # pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix(1,12)
-        self.adjoint_beam_element.SetValue(StructuralMechanicsApplication.PERTURBATION_SIZE, h)
+        self.model_part.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = h
         self.adjoint_beam_element.CalculateSensitivityMatrix(StructuralMechanicsApplication.I22, PseudoLoadMatrix, self.model_part.ProcessInfo)
         self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
 
