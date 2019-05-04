@@ -344,11 +344,6 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
 
         const bool dual_LM =  DerivativesUtilitiesType::CalculateAeAndDeltaAe(slave_geometry, normal_slave, master_geometry, rDerivativeData, rVariables, consider_normal_variation, conditions_points_slave, this_integration_method, GetAxisymmetricCoefficient(rVariables));
 
-    #ifdef KRATOS_DEBUG
-        if (dual_LM == false)
-            KRATOS_WARNING("No dual LM") << "NOT USING DUAL LM. Integration area: " << integration_area << "\tOriginal area: " << geometry_area << "\tRatio: " << integration_area/geometry_area << std::endl;
-    #endif
-
         for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
             PointerVector< PointType > points_array(TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
             array_1d<BelongType, TDim> belong_array;
