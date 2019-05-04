@@ -17,7 +17,6 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
@@ -25,6 +24,7 @@
 #include "custom_processes/initial_perturbation_process.h"
 #include "custom_processes/apply_sinusoidal_function_process.h"
 #include "custom_processes/rough_porous_layer_wetting_model.h"
+#include "custom_processes/id_renumbering_process.h"
 
 
 namespace Kratos
@@ -64,6 +64,18 @@ namespace Python
         (m, "RoughPorousLayerWettingModel")
         .def(py::init<ModelPart&, Parameters>())
         .def(py::init<ModelPart&, double, double>())
+        ;
+
+        py::class_<IdRenumberingProcess, IdRenumberingProcess::Pointer, Process>
+        (m, "IdRenumberingProcess")
+        .def(py::init<Model&>())
+        .def(py::init<Model&, StringVectorType&>())
+        .def("RenumberNodes", &IdRenumberingProcess::RenumberNodes)
+        .def("RenumberElements", &IdRenumberingProcess::RenumberElements)
+        .def("RenumberConditions", &IdRenumberingProcess::RenumberConditions)
+        .def("RestoreNodes", &IdRenumberingProcess::RestoreNodes)
+        .def("RestoreElements", &IdRenumberingProcess::RestoreElements)
+        .def("RestoreConditions", &IdRenumberingProcess::RestoreConditions)
         ;
 
     }
