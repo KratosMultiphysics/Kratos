@@ -383,7 +383,9 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             self._do_fm_ale_operations()
 
             # Call the base SolveSolutionStep to solve the embedded CFD problem
-            super(NavierStokesEmbeddedMonolithicSolver,self).SolveSolutionStep()
+            return super(NavierStokesEmbeddedMonolithicSolver,self).SolveSolutionStep()
+        else:
+            return True
 
     def FinalizeSolutionStep(self):
         # Call the base solver FinalizeSolutionStep()
