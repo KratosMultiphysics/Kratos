@@ -314,7 +314,7 @@ double GetAuxiliarValue<Variable<array_1d<double, 3>>>(
 
 template<>
 void MatrixValue<Variable<double>, Historical>(
-    GeometryType& rThisGeometry,
+    const GeometryType& rThisGeometry,
     Variable<double>& rThisVariable,
     Matrix& rThisValue
     )
@@ -331,7 +331,7 @@ void MatrixValue<Variable<double>, Historical>(
 
 template<>
 void MatrixValue<Variable<array_1d<double, 3>>, Historical>(
-    GeometryType& rThisGeometry,
+    const GeometryType& rThisGeometry,
     Variable<array_1d<double, 3>>& rThisVariable,
     Matrix& rThisValue
     )
@@ -353,7 +353,7 @@ void MatrixValue<Variable<array_1d<double, 3>>, Historical>(
 
 template<>
 void MatrixValue<Variable<double>, NonHistorical>(
-    GeometryType& rThisGeometry,
+    const GeometryType& rThisGeometry,
     Variable<double>& rThisVariable,
     Matrix& rThisValue
     )
@@ -370,7 +370,7 @@ void MatrixValue<Variable<double>, NonHistorical>(
 
 template<>
 void MatrixValue<Variable<array_1d<double, 3>>, NonHistorical>(
-    GeometryType& rThisGeometry,
+    const GeometryType& rThisGeometry,
     Variable<array_1d<double, 3>>& rThisVariable,
     Matrix& rThisValue
     )

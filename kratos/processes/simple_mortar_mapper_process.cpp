@@ -313,14 +313,14 @@ double SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Ge
 template< SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster >
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::AssemblyMortarOperators(
     const std::vector<array_1d<PointType,TDim>>& rConditionsPointSlave,
-    GeometryType& rSlaveGeometry,
-    GeometryType& rMasterGeometry,
+    const GeometryType& rSlaveGeometry,
+    const GeometryType& rMasterGeometry,
     const array_1d<double, 3>& rMasterNormal,
     MortarKinematicVariablesType& rThisKinematicVariables,
     MortarOperatorType& rThisMortarOperators,
     const IntegrationMethod& rThisIntegrationMethod,
     const BoundedMatrixType Ae
-)
+    )
 {
     for (IndexType i_geom = 0; i_geom < rConditionsPointSlave.size(); ++i_geom) {
         std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
@@ -462,7 +462,7 @@ template< SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNum
 inline void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::InvertDiagonalMatrix(
     const BoundedMatrixType& rInputMatrix,
     BoundedMatrixType& rInvertedMatrix
-)
+    )
 {
     for (IndexType i = 0; i < TNumNodes; ++i) {
         for (IndexType j = 0; j < TNumNodes; ++j) {
@@ -527,7 +527,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
 template< SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster >
 IntegrationMethod SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::GetIntegrationMethod()
 {
-    const int& integration_order = mThisParameters["integration_order"].GetInt();
+    const int integration_order = mThisParameters["integration_order"].GetInt();
     switch ( integration_order )
     {
     case 1:
@@ -567,10 +567,10 @@ bool SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
 template< SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster >
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::ComputeResidualMatrix(
     Matrix& ResidualMatrix,
-    GeometryType& SlaveGeometry,
-    GeometryType& MasterGeometry,
+    const GeometryType& SlaveGeometry,
+    const GeometryType& MasterGeometry,
     const MortarOperatorType& rThisMortarOperators
-)
+    )
 {
     const SizeType size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
     Matrix var_origin_matrix(TNumNodesMaster, size_to_compute);
@@ -601,10 +601,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
     std::vector<VectorType>& rb,
     const SizeType VariableSize,
     const Matrix& rResidualMatrix,
-    GeometryType& rSlaveGeometry,
+    const GeometryType& rSlaveGeometry,
     IntMap& rInverseConectivityDatabase,
     const MortarOperatorType& rThisMortarOperators
-)
+    )
 {
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
         const SizeType node_i_id = rSlaveGeometry[i_node].Id();
@@ -638,14 +638,14 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
     std::vector<VectorType>& rb,
     const SizeType VariableSize,
     const Matrix& rResidualMatrix,
-    GeometryType& rSlaveGeometry,
+    const GeometryType& rSlaveGeometry,
     IntMap& rInverseConectivityDatabase
-)
+    )
 {
     // First we assemble the RHS
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const int& node_i_id = rSlaveGeometry[i_node].Id();
-        const int& pos_i_id = rInverseConectivityDatabase[node_i_id];
+        const int node_i_id = rSlaveGeometry[i_node].Id();
+        const int pos_i_id = rInverseConectivityDatabase[node_i_id];
         for (IndexType i_var = 0; i_var < VariableSize; ++i_var) {
             double& aux_b = rb[i_var][pos_i_id];
             #pragma omp atomic

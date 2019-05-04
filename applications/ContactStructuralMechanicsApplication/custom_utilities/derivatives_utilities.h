@@ -329,7 +329,7 @@ public:
      * @brief It computes the delta normal of the center of the geometry
      * @param rThisGeometry The geometry where the delta normal is computed
      */
-    static inline array_1d<array_1d<double, 3>, TDim * TNumNodes> DeltaNormalCenter(GeometryType& rThisGeometry)
+    static inline array_1d<array_1d<double, 3>, TDim * TNumNodes> DeltaNormalCenter(const GeometryType& rThisGeometry)
     {
         // We compute the gradient and jacobian
         GeometryType::CoordinatesArrayType point_local;
@@ -456,7 +456,7 @@ public:
      */
     static inline void CalculateDeltaNormalMaster(
         array_1d<BoundedMatrix<double, TNumNodesMaster, TDim>, TNumNodesMaster * TDim>& rDeltaNormal,
-        GeometryType& rThisGeometry
+        const GeometryType& rThisGeometry
         )
     {
         BoundedMatrix<double, TNumNodesMaster, TDim> aux_normal_geometry = MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(rThisGeometry,  NORMAL, 1);
@@ -553,14 +553,14 @@ public:
         DerivativeDataType& rDerivativeData,
         const array_1d<BelongType, TDim>& rTheseBelongs,
         const NormalDerivativesComputation ConsiderNormalVariation,
-        GeometryType& rSlaveGeometry,
-        GeometryType& rMasterGeometry,
+        const GeometryType& rSlaveGeometry,
+        const GeometryType& rMasterGeometry,
         const array_1d<double, 3>& rNormal
         )
     {
         // The Normal and delta Normal in the center of the element
         const array_1d<array_1d<double, 3>, TDim * TNumNodes> all_delta_normal = DeltaNormalCenter(rSlaveGeometry);
-	array_1d<double, 3> zero_array(3, 0.0);
+	array_1d<double, 3> zero_array = ZeroVector(3);
         array_1d<double, 3> delta_normal;
 
         const double aux_nodes_coeff = static_cast<double>(TNumNodes);
@@ -688,8 +688,8 @@ public:
     static inline void CalculateDeltaN1(
         const GeneralVariables& rVariables,
         DerivativeDataType& rDerivativeData,
-        GeometryType& rSlaveGeometry,
-        GeometryType& rMasterGeometry,
+        const GeometryType& rSlaveGeometry,
+        const GeometryType& rMasterGeometry,
         const array_1d<double, 3> rSlaveNormal,
         const DecompositionType& rDecompGeom,
         const PointType& rLocalPointDecomp,
@@ -698,7 +698,7 @@ public:
         )
     {
         // Auxiliar zero array
-        const array_1d<double, 3> zero_array(3, 0.0);
+        const array_1d<double, 3> zero_array = ZeroVector(3);
 
         /* Shape functions */
         const VectorType& r_N1 = rVariables.NSlave;
@@ -720,7 +720,7 @@ public:
                     const array_1d<double, 3> delta_normal = ((ConsiderNormalVariation == ELEMENTAL_DERIVATIVES || ConsiderNormalVariation == NODAL_ELEMENTAL_DERIVATIVES) && i_node < TNumNodes) ? all_delta_normal[i_node * TDim + i_dof] : zero_array;
 
                     // We compute the residuals
-                    array_1d<double, 3> aux_RHS1(3, 0.0);
+                    array_1d<double, 3> aux_RHS1 = ZeroVector(3);
 
                     // The vertex cell contribution
                     const auto& r_local_delta_cell = rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof];
@@ -762,8 +762,8 @@ public:
     static inline void CalculateDeltaN(
         const GeneralVariables& rVariables,
         DerivativeDataType& rDerivativeData,
-        GeometryType& rSlaveGeometry,
-        GeometryType& rMasterGeometry,
+        const GeometryType& rSlaveGeometry,
+        const GeometryType& rMasterGeometry,
         const array_1d<double, 3>& rSlaveNormal,
         const array_1d<double, 3>& rMasterNormal,
         const DecompositionType& rDecompGeom,
@@ -774,7 +774,7 @@ public:
         )
     {
         // Auxiliar zero array
-        const array_1d<double, 3> zero_array(3, 0.0);
+        const array_1d<double, 3> zero_array = ZeroVector(3);
 
         /* Shape functions */
         const VectorType& r_N1 = rVariables.NSlave;
@@ -908,13 +908,13 @@ public:
     {
         KRATOS_TRY;
 
-        rDeltaPosition = ZeroMatrix(TDim, TDim);
+        noalias(rDeltaPosition) = ZeroMatrix(TDim, TDim);
 
+        Vector N;
         for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node ) {
             const array_1d<double, 3 > delta_displacement = rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT) - rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);
 
             for ( IndexType j_node = 0; j_node < TDim; ++j_node ) {
-                Vector N;
                 rThisGeometry.ShapeFunctionsValues( N, rLocalCoordinates[j_node].Coordinates() );
 
                 for ( IndexType j_dim = 0; j_dim < TDim; ++j_dim )
@@ -929,27 +929,26 @@ public:
 
     /**
      * @brief Returns a matrix with the increment of displacements
-     * @param DeltaPosition The matrix with the increment of displacements
+     * @param rDeltaPosition The matrix with the increment of displacements
      * @param ThisGeometry The geometry considered
      */
-
     static inline Matrix& CalculateDeltaPosition(
-        Matrix& DeltaPosition,
+        Matrix& rDeltaPosition,
         const GeometryType& ThisGeometry
         )
     {
         KRATOS_TRY;
 
-        DeltaPosition = ZeroMatrix(TNumNodes, TDim);
+        noalias(rDeltaPosition) = ZeroMatrix(TNumNodes, TDim);
 
         for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node ) {
             const array_1d<double, 3 > delta_displacement = ThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT) - ThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);
 
             for ( IndexType i_dim = 0; i_dim < TDim; ++i_dim )
-                DeltaPosition(i_node, i_dim) += delta_displacement[i_dim];
+                rDeltaPosition(i_node, i_dim) += delta_displacement[i_dim];
         }
 
-        return DeltaPosition;
+        return rDeltaPosition;
 
         KRATOS_CATCH( "" );
     }
@@ -961,7 +960,6 @@ public:
      * @param rMasterGeometry The master geometry
      * @param IndexNode The node index
      */
-
     static inline void CalculateDeltaPosition(
         VectorType& rDeltaPosition,
         const GeometryType& rSlaveGeometry,
@@ -1000,7 +998,7 @@ public:
     {
         KRATOS_TRY;
 
-        rDeltaPosition = ZeroVector(3);
+        noalias(rDeltaPosition) = ZeroVector(3);
 
         if (IndexNode < TNumNodes) {
             rDeltaPosition[iDoF] = (rSlaveGeometry[IndexNode].FastGetSolutionStepValue(DISPLACEMENT) - rSlaveGeometry[IndexNode].FastGetSolutionStepValue(DISPLACEMENT,1))[iDoF];
@@ -1054,9 +1052,9 @@ public:
      * @param AxiSymCoeff The axisymmetric coefficient
      */
     static inline bool CalculateAeAndDeltaAe(
-        GeometryType& rSlaveGeometry,
+        const GeometryType& rSlaveGeometry,
         const array_1d<double, 3>& rSlaveNormal,
-        GeometryType& rMasterGeometry,
+        const GeometryType& rMasterGeometry,
         DerivativeDataType& rDerivativeData,
         GeneralVariables& rVariables,
         const NormalDerivativesComputation ConsiderNormalVariation,
@@ -1228,9 +1226,9 @@ private:
         const array_1d<double, 3>& rDeltaNormal
         )
     {
+        BoundedMatrix<double, 3, 3> aux_matrix;
         for (IndexType itry = 0; itry < 3; ++itry) {
             if (rDeltaNormal[itry] > ZeroTolerance) {
-                BoundedMatrix<double, 3, 3> aux_matrix;
 
                 const IndexType aux_index_1 = itry == 2 ? 0 : itry + 1;
                 const IndexType aux_index_2 = itry == 2 ? 1 : (itry == 1 ? 0 : 2);
@@ -1269,9 +1267,9 @@ private:
         const IndexType iGeometry
         )
     {
+        BoundedMatrix<double, 3, 3> aux_matrix;
         for (IndexType itry = 0; itry < 3; ++itry) {
             if (rDeltaNormal(iGeometry, itry) > ZeroTolerance) {
-                BoundedMatrix<double, 3, 3> aux_matrix;
 
                 const IndexType aux_index_1 = itry == 2 ? 0 : itry + 1;
                 const IndexType aux_index_2 = itry == 2 ? 1 : (itry == 1 ? 0 : 2);
