@@ -103,7 +103,7 @@ public:
     ///@{
 
     /**
-     * @brief It initializes a non-linear iteration (for the element)
+     * @brief It initializes a non-linear iteration
      * @param rModelPart The model of the problem to solve
      * @param rA LHS matrix
      * @param rDx Incremental update of primary variables
@@ -120,6 +120,26 @@ public:
             mpDryWettingModel->Execute();
         }
         BaseType::InitializeNonLinIteration(rModelPart, rA, rDx, rb);
+    }
+
+    /**
+     * @brief Function called once at the end of a solution step, after convergence is reached if an iterative process is needed
+     * @param rModelPart The model part of the problem to solve
+     * @param A LHS matrix
+     * @param Dx Incremental update of primary variables
+     * @param b RHS Vector
+     */
+    void FinalizeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        if (mpDryWettingModel != 0) {
+            mpDryWettingModel->ExecuteFinalizeSolutionStep();
+        }
+        BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
     }
 
     ///@}

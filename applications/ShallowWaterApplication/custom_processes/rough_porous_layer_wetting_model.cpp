@@ -40,10 +40,14 @@ RoughPorousLayerWettingModel::RoughPorousLayerWettingModel(ModelPart& rModelPart
 
 void RoughPorousLayerWettingModel::Execute()
 {
+    // Definition of the first node iterator
+    auto it_node_begin = mrModelPart.NodesBegin();
+
+    // Execution of the rough porous layer method
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
     {
-        auto it_node = mrModelPart.NodesBegin();
+        auto it_node = it_node_begin + i;
         const double free_surface = it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
         const double topography = it_node->FastGetSolutionStepValue(TOPOGRAPHY);
         const double manning = it_node->FastGetSolutionStepValue(MANNING);
@@ -56,12 +60,12 @@ void RoughPorousLayerWettingModel::Execute()
             bathymetry = -topography;
             equivalent_manning = manning;
         }
-        else if ((topography < free_surface) & (free_surface <= equivalent_topography)) // Transition domain
+        else if (topography < free_surface) // Transition domain
         {
             bathymetry = -free_surface + mLayerThickness;
             equivalent_manning = manning;
         }
-        else if (free_surface <= topography) // Dry domain
+        else // Dry domain
         {
             bathymetry = -free_surface + mLayerThickness;
             equivalent_manning = manning;
@@ -69,4 +73,29 @@ void RoughPorousLayerWettingModel::Execute()
     }
 }
 
-}  // namespace Kratos.
+void RoughPorousLayerWettingModel::ExecuteFinalizeSolutionStep()
+{
+    // Definition of the first node iterator
+    auto it_elements_begin = mrModelPart.ElementsBegin();
+
+    // Identification of the dry and wet elements
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
+    {
+        auto it_elem = it_elements_begin + i;
+
+        bool wet_element = false;
+        for(auto& node : it_elem->GetGeometry())
+        {
+            const double free_surface = node.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
+            const double topography = node.FastGetSolutionStepValue(TOPOGRAPHY);
+            if (free_surface > topography) {
+                wet_element = true;  // It means there is almost a wet node
+            }
+        }
+
+        it_elem->Set(FLUID, wet_element);
+    }
+}
+
+}  // namespace Kratos
