@@ -140,7 +140,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         self._mapper_tests(input_filename, 3, 3)
 
     def test_mortar_mapping_triangle_discontinous_interface(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_double_curvature_integration_triangle_discontinous_interface"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/mortar_mapper_python_tests/test_double_curvature_integration_triangle_discontinous_interface"
         self._mapper_tests(input_filename, 3, 3, False, False, True)
 
     def test_mortar_mapping_quad(self):
