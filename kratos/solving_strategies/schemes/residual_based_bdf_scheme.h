@@ -178,7 +178,6 @@ public:
      * @param rDx incremental update of primary variables
      * @param rb RHS Vector
      */
-
     void Update(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -206,7 +205,6 @@ public:
      * @param rDx Incremental update of primary variables
      * @param rb RHS Vector
      */
-
     void Predict(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -245,11 +243,12 @@ public:
         ImplicitBaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
         const double delta_time = r_current_process_info[DELTA_TIME];
-        const double previous_delta_time = std::abs(r_previous_process_info[DELTA_TIME]) > ZeroTolerance ? r_previous_process_info[DELTA_TIME] : delta_time;
+        double previous_delta_time = r_previous_process_info[DELTA_TIME];
 
         KRATOS_ERROR_IF(delta_time < ZeroTolerance) << "Detected delta_time equal to zero or negative in the Solution Scheme DELTA_TIME: " << delta_time << ". PLEASE : check if the time step is created correctly for the current time step" << std::endl;
-        KRATOS_ERROR_IF(previous_delta_time < ZeroTolerance) << "Detected previous_delta_time equal to zero or negative in the Solution Scheme DELTA_TIME: " << previous_delta_time << ". PLEASE : check if the time step is created correctly for the previous time step" << std::endl;
-
+        KRATOS_WARNING_IF("ResidualBasedBDFScheme", previous_delta_time < ZeroTolerance) << "Detected previous_delta_time equal to zero or negative in the Solution Scheme DELTA_TIME: " << previous_delta_time << ". PLEASE : check if the time step is created correctly for the previous time step" << std::endl;
+        previous_delta_time = std::abs(previous_delta_time) > ZeroTolerance ? previous_delta_time : delta_time;
+        
         // Calculate the BDF coefficients
         const double rho = previous_delta_time / delta_time;
         double time_coeff = 0.0;
