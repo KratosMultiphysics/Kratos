@@ -23,13 +23,7 @@
 #include "includes/model_part.h"
 #include "includes/mortar_classes.h"
 
-/* Utilities */
-#include "utilities/geometrical_projection_utilities.h"
-#include "utilities/mortar_utilities.h"
-#include "utilities/math_utils.h"
-
 /* Geometries */
-#include "geometries/point.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/triangle_3d_3.h"
 
@@ -65,17 +59,11 @@ namespace Kratos
  * @tparam TNumNodesMaster The number of nodes of the master
  */
 template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
-class DerivativesUtilities
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) DerivativesUtilities
 {
 public:
     ///@name Type Definitions
     ///@{
-
-    /// The vector considered
-    typedef Vector                                                                                                      VectorType;
-
-    /// The dense matrix considered
-    typedef Matrix                                                                                                      MatrixType;
 
     /// The index type
     typedef std::size_t                                                                                                  IndexType;
@@ -85,9 +73,6 @@ public:
 
     /// The array of nodes contained in a geometry
     typedef Geometry<NodeType>::PointsArrayType                                                                     NodesArrayType;
-
-    /// The Properties type
-    typedef Properties                                                                                              PropertiesType;
 
     /// The belong type (for derivatives definition)
     typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, typename std::conditional<TNumNodesMaster == 3, PointBelongsTriangle3D3N, PointBelongsTriangle3D3NQuadrilateral3D4N>::type, typename std::conditional<TNumNodesMaster == 3, PointBelongsQuadrilateral3D4NTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type>::type BelongType;
@@ -335,7 +320,7 @@ public:
      * @param IndexNode The node index
      */
     static inline void CalculateDeltaPosition(
-        VectorType& rDeltaPosition,
+        Vector& rDeltaPosition,
         const GeometryType& rSlaveGeometry,
         const GeometryType& rMasterGeometry,
         const IndexType IndexNode
@@ -350,7 +335,7 @@ public:
      * @param iDoF The degree of freedom index
      */
     static inline void CalculateDeltaPosition(
-        VectorType& rDeltaPosition,
+        Vector& rDeltaPosition,
         const GeometryType& rSlaveGeometry,
         const GeometryType& rMasterGeometry,
         const IndexType IndexNode,
@@ -497,7 +482,7 @@ private:
     static inline void DeltaPointLocalCoordinatesSlave(
         array_1d<double, 2>& rResult,
         const array_1d<double, 3>& rDeltaPoint,
-        const MatrixType& rDNDe,
+        const Matrix& rDNDe,
         const GeometryType& rThisGeometry,
         const array_1d<double, 3>& rThisNormal
         );
@@ -512,7 +497,7 @@ private:
     static inline void DeltaPointLocalCoordinatesMaster(
         array_1d<double, 2>& rResult,
         const array_1d<double, 3>& rDeltaPoint,
-        const MatrixType& rDNDe,
+        const Matrix& rDNDe,
         const GeometryType& rThisGeometry,
         const array_1d<double, 3>& rThisNormal
         );
@@ -536,8 +521,8 @@ private:
         const array_1d<double, 3>& rSlaveNormal,
         const GeometryType& rSlaveGeometry,
         const GeometryType& rMasterGeometry,
-        const VectorType& rN1,
-        const MatrixType& rDNDe1,
+        const Vector& rN1,
+        const Matrix& rDNDe1,
         const IndexType MortarNode,
         const IndexType iNode,
         const IndexType iDoF,
@@ -563,8 +548,8 @@ private:
          const array_1d<double, 3>& rSlaveNormal,
          const GeometryType& rSlaveGeometry,
          const GeometryType& rMasterGeometry,
-         const VectorType& rN2,
-         const MatrixType& rDNDe2,
+         const Vector& rN2,
+         const Matrix& rDNDe2,
          const IndexType MortarNode,
          const IndexType iNode,
          const IndexType iDoF,
