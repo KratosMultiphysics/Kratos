@@ -167,6 +167,8 @@ public:
         DerivativeDataType& rDerivativeData
         )
     {
+        KRATOS_TRY
+
         if (TDim == 2) {
             // Fill up the elements corresponding to the slave DOFs - the rest remains zero
             for ( IndexType i_slave = 0, i = 0; i_slave < TNumNodes; ++i_slave, i += TDim ) {
@@ -198,6 +200,8 @@ public:
                 }
             }
         }
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -212,6 +216,8 @@ public:
         const Matrix& rDNDe
         )
     {
+        KRATOS_TRY
+
         // Tangent directions
         array_1d<double,3> j0 = ZeroVector(3), j1 = ZeroVector(3);
 
@@ -260,6 +266,8 @@ public:
         }
 
         return delta_normal;
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -275,6 +283,8 @@ public:
         const Matrix& rDNDe
         )
     {
+        KRATOS_TRY
+
         // Tangent directions
         array_1d<double,3> j0 = ZeroVector(3), j1 = ZeroVector(3);
 
@@ -323,6 +333,8 @@ public:
         }
 
         return delta_normal;
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -331,6 +343,8 @@ public:
      */
     static inline array_1d<array_1d<double, 3>, TDim * TNumNodes> DeltaNormalCenter(const GeometryType& rThisGeometry)
     {
+        KRATOS_TRY
+
         // We compute the gradient and jacobian
         GeometryType::CoordinatesArrayType point_local;
         rThisGeometry.PointLocalCoordinates( point_local, (rThisGeometry.Center()).Coordinates( ) ) ;
@@ -371,6 +385,8 @@ public:
         }
 
         return normalized_delta_normal_0;
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -383,6 +399,8 @@ public:
         GeometryType& rThisGeometry
         )
     {
+        KRATOS_TRY
+
         BoundedMatrix<double, TNumNodes, TDim> aux_normal_geometry = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(rThisGeometry,  NORMAL, 1);
         BoundedMatrix<double, TNumNodes, TDim> aux_delta_normal_geometry = ZeroMatrix(TNumNodes, TDim);
 
@@ -445,6 +463,8 @@ public:
                 }
             }
         }
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -458,6 +478,8 @@ public:
         const GeometryType& rThisGeometry
         )
     {
+        KRATOS_TRY
+
         BoundedMatrix<double, TNumNodesMaster, TDim> aux_normal_geometry = MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(rThisGeometry,  NORMAL, 1);
         BoundedMatrix<double, TNumNodesMaster, TDim> aux_delta_normal_geometry = ZeroMatrix(TNumNodesMaster, TDim);
 
@@ -517,6 +539,8 @@ public:
                 }
             }
         }
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -553,9 +577,11 @@ public:
         const array_1d<double, 3>& rNormal
         )
     {
+        KRATOS_TRY
+
         // The Normal and delta Normal in the center of the element
         const array_1d<array_1d<double, 3>, TDim * TNumNodes> all_delta_normal = DeltaNormalCenter(rSlaveGeometry);
-	array_1d<double, 3> zero_array = ZeroVector(3);
+        array_1d<double, 3> zero_array = ZeroVector(3);
         array_1d<double, 3> delta_normal;
 
         const double aux_nodes_coeff = static_cast<double>(TNumNodes);
@@ -668,6 +694,8 @@ public:
                 }
             }
         }
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -694,6 +722,8 @@ public:
         const NormalDerivativesComputation ConsiderNormalVariation = NO_DERIVATIVES_COMPUTATION
         )
     {
+        KRATOS_TRY
+
         // Auxiliar zero array
         const array_1d<double, 3> zero_array = ZeroVector(3);
 
@@ -741,6 +771,8 @@ public:
                 }
             }
         }
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -771,6 +803,8 @@ public:
         const bool DualLM = false
         )
     {
+        KRATOS_TRY
+
         // Auxiliar zero array
         const array_1d<double, 3> zero_array = ZeroVector(3);
 
@@ -892,6 +926,8 @@ public:
                 }
             }
         }
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -1078,6 +1114,8 @@ public:
         const double AxiSymCoeff = 1.0
         )
     {
+        KRATOS_TRY
+
         // We initilize the Ae components
         AeData ae_data;
         ae_data.Initialize();
@@ -1158,6 +1196,8 @@ public:
         }
 
         return ae_data.CalculateDeltaAe(rDerivativeData);
+
+        KRATOS_CATCH("")
     }
 
 private:
@@ -1198,6 +1238,8 @@ private:
         double Coeff = 1.0
         )
     {
+        KRATOS_TRY
+
         // We create the auxiliar array
         array_1d<double, 3> aux_delta_vertex = ZeroVector(3);
 
@@ -1226,6 +1268,8 @@ private:
             aux_delta_vertex += coordsxnormal * rDeltaNormal;
 
         return Coeff * aux_delta_vertex;
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -1239,6 +1283,8 @@ private:
         const array_1d<double, 3>& rDeltaNormal
         )
     {
+        KRATOS_TRY
+
         BoundedMatrix<double, 3, 3> aux_matrix;
         for (IndexType itry = 0; itry < 3; ++itry) {
             if (rDeltaNormal[itry] > ZeroTolerance) {
@@ -1265,6 +1311,8 @@ private:
         }
 
         return IdentityMatrix(3, 3);
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -1280,6 +1328,8 @@ private:
         const IndexType iGeometry
         )
     {
+        KRATOS_TRY
+
         BoundedMatrix<double, 3, 3> aux_matrix;
         for (IndexType itry = 0; itry < 3; ++itry) {
             if (rDeltaNormal(iGeometry, itry) > ZeroTolerance) {
@@ -1306,6 +1356,8 @@ private:
         }
 
         return IdentityMatrix(3, 3);
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -1319,6 +1371,8 @@ private:
         const GeometryType::CoordinatesArrayType& rPointLocal
         )
     {
+        KRATOS_TRY
+
         // We compute the previous normal in the geometry
         Matrix previous_jacobian, delta_position;
         delta_position = CalculateDeltaPosition(delta_position, rThisGeometry);
@@ -1346,6 +1400,8 @@ private:
         KRATOS_ERROR_IF(norm_normal < ZeroTolerance) << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;
 
         return previous_normal;
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -1364,6 +1420,8 @@ private:
         IndexType& riBelongMasterEnd
         )
     {
+        KRATOS_TRY
+
         IndexType index_to_decompose = AuxIndex - (TNumNodesMaster + TNumNodes);
 
         riBelongMasterEnd = index_to_decompose/10000;
@@ -1373,6 +1431,8 @@ private:
         riBelongSlaveEnd = index_to_decompose/100;
         index_to_decompose = std::fmod(index_to_decompose, 100);
         riBelongSlaveStart = index_to_decompose/10;
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -1391,6 +1451,8 @@ private:
         const array_1d<double, 3>& rThisNormal
         )
     {
+        KRATOS_TRY
+
         BoundedMatrix<double, 3, TNumNodes> X;
         for(IndexType i = 0; i < TNumNodes; ++i) {
             X(0, i) = rThisGeometry[i].X();
@@ -1434,6 +1496,8 @@ private:
 //         #ifdef KRATOS_DEBUG
 //             KRATOS_WARNING_IF("Jacobian invert", !good_condition_number) << "WARNING: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
 //         #endif
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -1452,6 +1516,8 @@ private:
         const array_1d<double, 3>& rThisNormal
         )
     {
+        KRATOS_TRY
+
         BoundedMatrix<double, 3, TNumNodesMaster> X;
         for(IndexType i = 0; i < TNumNodesMaster; ++i) {
             X(0, i) = rThisGeometry[i].X();
@@ -1475,6 +1541,8 @@ private:
 
         const array_1d<double, 2> res = prod(trans(DN), rDeltaPoint);
         noalias(rResult) = prod(invJ, res);
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -1504,6 +1572,8 @@ private:
         const NormalDerivativesComputation ConsiderNormalVariation
         )
     {
+        KRATOS_TRY
+
         array_1d<double, TDim> Xa, DXa;
         BoundedMatrix<double, TDim, TNumNodes> X1, DX1;
         BoundedMatrix<double, 3, TNumNodes> n1, Dn1;
@@ -1537,6 +1607,8 @@ private:
         const double num = (rN1[iNode]*DX1(0,iNode) - DXa[0])*(rN1[iNode]*n1(1,iNode)) - (rN1[iNode]*DX1(1,iNode) - DXa[1])*(rN1[iNode]*n1(0,iNode)) + (rN1[iNode]*X1(0,iNode) - Xa[0])*(rN1[iNode]*Dn1(1,iNode)) - (rN1[iNode]*X1(1,iNode) - Xa[1])*(rN1[iNode]*Dn1(0,iNode));
 
         return num/denom;
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -1566,6 +1638,8 @@ private:
          const NormalDerivativesComputation ConsiderNormalVariation
          )
      {
+         KRATOS_TRY
+
          array_1d<double, TDim> Xa, DXa;
          array_1d<double, 3>    na, Dna;
          BoundedMatrix<double, TDim, TNumNodesMaster> X2, DX2;
@@ -1600,6 +1674,8 @@ private:
          const double rhs = (rN2[iNode]*DX2(0, iNode)-DXa[0])*na[1] - (rN2[iNode]*DX2(1, iNode)-DXa[1])*na[0] + (rN2[iNode]*X2(0, iNode)-Xa[0])*Dna[1] - (rN2[iNode]*X2(1, iNode)-Xa[1])*Dna[0];
 
          return lhs*rhs;
+
+         KRATOS_CATCH("")
     }
 
     ///@}
