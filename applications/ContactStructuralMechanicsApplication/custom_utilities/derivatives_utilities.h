@@ -252,10 +252,10 @@ public:
 
                 MathUtils<double>::CrossProduct(aux_delta_normal0, j0, delta_j1);
                 MathUtils<double>::CrossProduct(aux_delta_normal1, delta_j0, j1);
-                const array_1d<double, 3> aux_delta_normal = aux_delta_normal0 + aux_delta_normal1;
-                const double delta_norm = inner_prod(aux_delta_normal, normal);
+                const array_1d<double, 3> r_aux_delta_normal = aux_delta_normal0 + aux_delta_normal1;
+                const double delta_norm = inner_prod(r_aux_delta_normal, normal);
 
-                delta_normal[i_dof] = (aux_delta_normal + unit_normal * delta_norm)/area_normal_norm;
+                delta_normal[i_dof] = (r_aux_delta_normal + unit_normal * delta_norm)/area_normal_norm;
             }
         }
 
@@ -299,15 +299,15 @@ public:
         const array_1d<double, 3> unit_normal = normal/area_normal_norm;
 
         array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> delta_normal;
-        array_1d<double,3> delta_j0, delta_j1;
+        array_1d<double,3> delta_j0, delta_j1, r_aux_delta_normal;
         const array_1d<double, 3> zero_array = ZeroVector(3);
         array_1d<double, 3> aux_delta_normal0, aux_delta_normal1;
         for ( IndexType i_node = 0; i_node < TNumNodesMaster; ++i_node ) {
             for(IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
                 const IndexType i_dof = i_node * TDim + i_dim;
 
-                delta_j0 = zero_array;
-                delta_j1 = zero_array;
+                noalias(delta_j0) = zero_array;
+                noalias(delta_j1) = zero_array;
 
                 delta_j0[i_dim] += rDNDe(i_node, 0);
                 if (TDim == 3)
@@ -315,10 +315,10 @@ public:
 
                 MathUtils<double>::CrossProduct(aux_delta_normal0, j0, delta_j1);
                 MathUtils<double>::CrossProduct(aux_delta_normal1, delta_j0, j1);
-                const array_1d<double, 3> aux_delta_normal = aux_delta_normal0 + aux_delta_normal1;
-                const double delta_norm = inner_prod(aux_delta_normal, normal);
+                noalias(r_aux_delta_normal) = aux_delta_normal0 + aux_delta_normal1;
+                const double delta_norm = inner_prod(r_aux_delta_normal, normal);
 
-                delta_normal[i_dof] = (aux_delta_normal + unit_normal * delta_norm)/area_normal_norm;
+                delta_normal[i_dof] = (r_aux_delta_normal + unit_normal * delta_norm)/area_normal_norm;
             }
         }
 
@@ -349,8 +349,8 @@ public:
         for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3> delta_disp = rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT) - rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT, 1);
             for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
-                const array_1d<double, 3>& aux_delta_normal = aux_delta_normal_0[i_node * TDim + i_dof];
-                aux_delta_normal0 += delta_disp[i_dof] * aux_delta_normal;
+                const array_1d<double, 3>& r_aux_delta_normal = aux_delta_normal_0[i_node * TDim + i_dof];
+                aux_delta_normal0 += delta_disp[i_dof] * r_aux_delta_normal;
             }
         }
 
@@ -365,8 +365,8 @@ public:
         array_1d<array_1d<double, 3>, TDim * TNumNodes> normalized_delta_normal_0;
         for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
-                const array_1d<double, 3>& aux_delta_normal = aux_delta_normal_0[i_node * TDim + i_dof];
-                normalized_delta_normal_0[i_node * TDim + i_dof] = prod(renormalizer_matrix, aux_delta_normal);
+                const array_1d<double, 3>& r_aux_delta_normal = aux_delta_normal_0[i_node * TDim + i_dof];
+                normalized_delta_normal_0[i_node * TDim + i_dof] = prod(renormalizer_matrix, r_aux_delta_normal);
             }
         }
 
@@ -386,24 +386,27 @@ public:
         BoundedMatrix<double, TNumNodes, TDim> aux_normal_geometry = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(rThisGeometry,  NORMAL, 1);
         BoundedMatrix<double, TNumNodes, TDim> aux_delta_normal_geometry = ZeroMatrix(TNumNodes, TDim);
 
+        // Auxiliar variables
+        GeometryType::CoordinatesArrayType point_local;
+        Matrix jacobian, gradient;
+        array_1d<array_1d<double, 3>, TDim * TNumNodes> delta_normal_node;
+        array_1d<double, TDim> aux_delta_normal;
+
+        // Iterate over geometry nodes
         for ( IndexType i_geometry = 0; i_geometry < TNumNodes; ++i_geometry ) {
             // We compute the gradient and jacobian
-            GeometryType::CoordinatesArrayType point_local;
-            rThisGeometry.PointLocalCoordinates( point_local, rThisGeometry[i_geometry].Coordinates( ) ) ;
-            Matrix jacobian;
+            rThisGeometry.PointLocalCoordinates( point_local, rThisGeometry[i_geometry].Coordinates( ));
             jacobian = rThisGeometry.Jacobian( jacobian, point_local);
-            Matrix gradient;
             rThisGeometry.ShapeFunctionsLocalGradients( gradient, point_local );
 
             // We compute the delta normal of the node
-            const array_1d<array_1d<double, 3>, TDim * TNumNodes> delta_normal_node = GPDeltaNormalSlave(jacobian, gradient);
+            delta_normal_node = GPDeltaNormalSlave(jacobian, gradient);
             for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 const array_1d<double, 3> delta_disp = rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT) - rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT, 1);
                 for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
-                    array_1d<double, TDim> aux_delta_normal;
-                    const array_1d<double, 3>& delta_normal = delta_normal_node[i_node * TDim + i_dof];
+                    const array_1d<double, 3>& r_delta_normal = delta_normal_node[i_node * TDim + i_dof];
                     for (IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
-                        aux_delta_normal[i_dim] = delta_normal[i_dim];
+                        aux_delta_normal[i_dim] = r_delta_normal[i_dim];
                     }
                     row(aux_delta_normal_geometry, i_geometry) += delta_disp[i_dof] * aux_delta_normal;
                 }
@@ -417,30 +420,26 @@ public:
         // We compute the diff matrix to compute the auxiliar matrix later
         const BoundedMatrix<double, TNumNodes, TDim> diff_matrix = calculated_normal_geometry - aux_normal_geometry;
 
+        // Auxilary terms
+        BoundedMatrix<double, TDim, TDim> renormalizer_matrix;
+
         // We iterate over the nodes of the geometry
         for ( IndexType i_geometry = 0; i_geometry < TNumNodes; ++i_geometry ) {
             // Computing auxiliar matrix
-            const BoundedMatrix<double, TDim, TDim> renormalizer_matrix = (TDim == 3) ? ComputeRenormalizerMatrix(diff_matrix, aux_delta_normal_geometry, i_geometry) : IdentityMatrix(2, 2);
+            noalias(renormalizer_matrix) = (TDim == 3) ? ComputeRenormalizerMatrix(diff_matrix, aux_delta_normal_geometry, i_geometry) : IdentityMatrix(2, 2);
 
             // We compute the gradient and jacobian
-            GeometryType::CoordinatesArrayType point_local;
             rThisGeometry.PointLocalCoordinates( point_local, rThisGeometry[i_geometry].Coordinates( ) ) ;
-            Matrix jacobian;
             jacobian = rThisGeometry.Jacobian( jacobian, point_local);
-            Matrix gradient;
             rThisGeometry.ShapeFunctionsLocalGradients( gradient, point_local );
 
-            // Auxilary terms
-            array_1d<double, TDim> aux_delta_normal;
-
             // We compute the delta normal of the node
-            const array_1d<array_1d<double, 3>, TDim * TNumNodes> delta_normal_node = GPDeltaNormalSlave(jacobian, gradient);
+            delta_normal_node = GPDeltaNormalSlave(jacobian, gradient);
             for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
-                    array_1d<double, TDim> aux_delta_normal;
-                    const array_1d<double, 3>& delta_normal = delta_normal_node[i_node * TDim + i_dof];
+                    const array_1d<double, 3>& r_delta_normal = delta_normal_node[i_node * TDim + i_dof];
                     for (IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
-                        aux_delta_normal[i_dim] = delta_normal[i_dim];
+                        aux_delta_normal[i_dim] = r_delta_normal[i_dim];
                     }
                     row(rDeltaNormal[i_node * TDim + i_dof], i_geometry) = prod(renormalizer_matrix, aux_delta_normal);
                 }
@@ -510,7 +509,6 @@ public:
             delta_normal_node = GPDeltaNormalMaster(jacobian, gradient);
             for ( IndexType i_node = 0; i_node < TNumNodesMaster; ++i_node) {
                 for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
-                    array_1d<double, TDim> aux_delta_normal;
                     const array_1d<double, 3>& delta_normal = delta_normal_node[i_node * TDim + i_dof];
                     for (IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
                         aux_delta_normal[i_dim] = delta_normal[i_dim];
