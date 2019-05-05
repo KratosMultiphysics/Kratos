@@ -372,7 +372,7 @@ namespace Kratos {
         const double equivalent_radius = sqrt(calculation_area / Globals::Pi);
         const double Inertia_I = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
         const double Inertia_J = 2.0 * Inertia_I; // This is the polar inertia
-        const double debugging_rotational_factor = 1.0; //1.0; // Hardcoded only for testing purposes. Obviously, this parameter should be always 1.0
+        const double debugging_rotational_factor = 0.05; //1.0; // Hardcoded only for testing purposes. Obviously, this parameter should be always 1.0
 
         const double element_mass  = element->GetMass();
         const double neighbor_mass = neighbor->GetMass();
