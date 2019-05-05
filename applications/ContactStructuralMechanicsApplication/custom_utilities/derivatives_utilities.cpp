@@ -16,6 +16,11 @@
 // Project includes
 #include "custom_utilities/derivatives_utilities.h"
 
+/* Utilities */
+#include "utilities/geometrical_projection_utilities.h"
+#include "utilities/mortar_utilities.h"
+#include "utilities/math_utils.h"
+
 namespace Kratos
 {
 template<const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster>
@@ -548,16 +553,16 @@ inline void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation,
     const array_1d<double, 3> zero_array = ZeroVector(3);
 
     /* Shape functions */
-    const VectorType& r_N1 = rVariables.NSlave;
+    const Vector& r_N1 = rVariables.NSlave;
 
     /* Local gradients */
-    const MatrixType& r_DNDe1 = rVariables.DNDeSlave;
+    const Matrix& r_DNDe1 = rVariables.DNDeSlave;
 
     // The Normal and delta Normal in the center of the element
     const array_1d<array_1d<double, 3>, TDim * TNumNodes> all_delta_normal = DeltaNormalCenter(rSlaveGeometry);
 
     /* Shape function decomposition */
-    VectorType N_decomp;
+    Vector N_decomp;
     rDecompGeom.ShapeFunctionsValues( N_decomp, rLocalPointDecomp.Coordinates() );
 
     if (TDim == 3) { // NOTE: This is not used in 2D
@@ -619,18 +624,18 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
     const array_1d<double, 3> zero_array = ZeroVector(3);
 
     /* Shape functions */
-    const VectorType& r_N1 = rVariables.NSlave;
-    const VectorType& r_N2 = rVariables.NMaster;
+    const Vector& r_N1 = rVariables.NSlave;
+    const Vector& r_N2 = rVariables.NMaster;
 
     /* Local gradients */
-    const MatrixType& r_DNDe1 = rVariables.DNDeSlave;
-    const MatrixType& r_DNDe2 = rVariables.DNDeMaster;
+    const Matrix& r_DNDe1 = rVariables.DNDeSlave;
+    const Matrix& r_DNDe2 = rVariables.DNDeMaster;
 
     // The Normal and delta Normal in the center of the element
     const array_1d<array_1d<double, 3>, TDim * TNumNodes> all_delta_normal = DeltaNormalCenter(rSlaveGeometry);
 
     /* Shape function decomposition */
-    VectorType N_decomp;
+    Vector N_decomp;
     rDecompGeom.ShapeFunctionsValues( N_decomp, rLocalPointDecomp.Coordinates() );
 
     if (TDim == 2) {
@@ -811,7 +816,7 @@ inline Matrix& DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariati
 
 template<const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster>
 inline void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster>::CalculateDeltaPosition(
-    VectorType& rDeltaPosition,
+    Vector& rDeltaPosition,
     const GeometryType& rSlaveGeometry,
     const GeometryType& rMasterGeometry,
     const IndexType IndexNode
@@ -834,7 +839,7 @@ inline void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation,
 
 template<const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster>
 inline void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster>::CalculateDeltaPosition(
-    VectorType& rDeltaPosition,
+    Vector& rDeltaPosition,
     const GeometryType& rSlaveGeometry,
     const GeometryType& rMasterGeometry,
     const IndexType IndexNode,
@@ -1194,7 +1199,7 @@ template<const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const 
 inline void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster>::DeltaPointLocalCoordinatesSlave(
     array_1d<double, 2>& rResult,
     const array_1d<double, 3>& rDeltaPoint,
-    const MatrixType& rDNDe,
+    const Matrix& rDNDe,
     const GeometryType& rThisGeometry,
     const array_1d<double, 3>& rThisNormal
     )
@@ -1255,7 +1260,7 @@ template<const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const 
 inline void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster>::DeltaPointLocalCoordinatesMaster(
     array_1d<double, 2>& rResult,
     const array_1d<double, 3>& rDeltaPoint,
-    const MatrixType& rDNDe,
+    const Matrix& rDNDe,
     const GeometryType& rThisGeometry,
     const array_1d<double, 3>& rThisNormal
     )
@@ -1298,8 +1303,8 @@ inline double DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariatio
     const array_1d<double, 3>& rSlaveNormal,
     const GeometryType& rSlaveGeometry,
     const GeometryType& rMasterGeometry,
-    const VectorType& rN1,
-    const MatrixType& rDNDe1,
+    const Vector& rN1,
+    const Matrix& rDNDe1,
     const IndexType MortarNode,
     const IndexType iNode,
     const IndexType iDoF,
@@ -1354,8 +1359,8 @@ inline double DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariatio
     const array_1d<double, 3>& rSlaveNormal,
     const GeometryType& rSlaveGeometry,
     const GeometryType& rMasterGeometry,
-    const VectorType& rN2,
-    const MatrixType& rDNDe2,
+    const Vector& rN2,
+    const Matrix& rDNDe2,
     const IndexType MortarNode,
     const IndexType iNode,
     const IndexType iDoF,
