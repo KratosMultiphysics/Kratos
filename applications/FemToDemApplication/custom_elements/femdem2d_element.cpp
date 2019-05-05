@@ -246,7 +246,7 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 			if (this->GetProperties()[TANGENT_CONSTITUTIVE_TENSOR] == true) {
 				const Vector& r_internal_forces = variables.IntegrationWeight * prod(trans(variables.B), r_integrated_stress_vector);
 				this->CalculateTangentTensorUPerturbed(tangent_tensor, r_strain_vector, r_integrated_stress_vector, r_internal_forces, C);
-				noalias(rLeftHandSideMatrix) += tangent_tensor;
+				noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * tangent_tensor;
 			} else {
 				this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, C);
 				noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * prod(trans(variables.B), Matrix(prod(tangent_tensor, variables.B)));
