@@ -171,28 +171,65 @@ public:
     /**
      * @brief Project a point over a line (2D or 3D)
      * @tparam TGeometryType The type of the line
-     * @param rGeom The line where to be projected
+     * @param rGeometry The line where to be projected
      * @param rPointToProject The point to be projected
      * @param rPointProjected The point pojected over the line
      * @return Distance The distance between point and line
      * @link https://www.qc.edu.hk/math/Advanced%20Level/Point_to_line.htm "Method 3 Using Dot Product"
      */
     template<class TGeometryType>
-    static inline double FastProjectOnLine(const TGeometryType& rGeom,
+    static inline double FastProjectOnLine(const TGeometryType& rGeometry,
                                            const Point& rPointToProject,
                                            PointType& rPointProjected)
     {
-        const array_1d<double, 3> p_a = rGeom[0].Coordinates();
-        const array_1d<double, 3> p_b = rGeom[1].Coordinates();
-        const array_1d<double, 3> ab = p_b - p_a;
+        const array_1d<double, 3>& r_p_a = rGeometry[0].Coordinates();
+        const array_1d<double, 3>& r_p_b = rGeometry[1].Coordinates();
+        const array_1d<double, 3> ab = r_p_b - r_p_a;
 
         const array_1d<double, 3> p_c = rPointToProject.Coordinates();
 
-        const double factor = (inner_prod(p_b, p_c) - inner_prod(p_a, p_c) - inner_prod(p_b, p_a) + inner_prod(p_a, p_a)) / inner_prod(ab, ab);
+        const double factor = (inner_prod(r_p_b, p_c) - inner_prod(r_p_a, p_c) - inner_prod(r_p_b, r_p_a) + inner_prod(r_p_a, r_p_a)) / inner_prod(ab, ab);
 
-        rPointProjected.Coordinates() = p_a + factor * ab;
+        rPointProjected.Coordinates() = r_p_a + factor * ab;
 
         return norm_2(rPointProjected.Coordinates()-p_c);
+    }
+
+    /**
+     * @brief Project a point over a line (2D only)
+     * @tparam TGeometryType The type of the line
+     * @param rGeometry The line where to be projected
+     * @param rPointToProject The point to be projected
+     * @param rPointProjected The point pojected over the line
+     * @return Distance The distance between point and line
+     */
+    template<class TGeometryType>
+    static inline double FastProjectOnLine2D(
+        const TGeometryType& rGeometry,
+        const Point& rPointToProject,
+        PointType& rPointProjected
+        )
+    {
+        // Node coordinates
+        const array_1d<double, 3>& r_p_a = rGeometry[0].Coordinates();
+        const array_1d<double, 3>& r_p_b = rGeometry[1].Coordinates();
+        const array_1d<double, 3>& r_p_c = rPointToProject.Coordinates();
+
+        // We compute the normal
+        array_1d<double,3> normal;
+        normal[0] = r_p_b[1] - r_p_a[1];
+        normal[1] = r_p_a[0] - r_p_b[0];
+        normal[2] = 0.0;
+
+        const double norm_normal = norm_2(normal);
+        if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
+        else KRATOS_ERROR << "Zero norm normal: X: " << normal[0] << "\tY: " << normal[1] << std::endl;
+
+        const array_1d<double,3> vector_points = r_p_a - r_p_c;
+        const double distance = inner_prod(vector_points, normal)/norm_normal;
+        noalias(rPointProjected.Coordinates()) = r_p_c + normal * distance;
+
+        return distance;
     }
 
     /**
