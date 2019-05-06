@@ -12,6 +12,7 @@
 #include "custom_utilities/compute_dem_face_load_utility.h"
 #include "custom_utilities/interpolate_structural_solution_for_dem_utility.h"
 #include "custom_utilities/control_module_fem_dem_utilities.hpp"
+#include "custom_utilities/stress_failure_check_utilities.hpp"
 
 namespace Kratos {
 
@@ -46,6 +47,11 @@ namespace Kratos {
                 .def("ExecuteInitialize", &ControlModuleFemDemUtilities::ExecuteInitialize)
                 .def("ExecuteInitializeSolutionStep", &ControlModuleFemDemUtilities::ExecuteInitializeSolutionStep)
                 .def("ExecuteFinalizeSolutionStep", &ControlModuleFemDemUtilities::ExecuteFinalizeSolutionStep)
+            ;
+
+            class_<StressFailureCheckUtilities> (m, "StressFailureCheckUtilities")
+                .def(init<ModelPart&,ModelPart&,Parameters&>())
+                .def("ExecuteFinalizeSolutionStep", &StressFailureCheckUtilities::ExecuteFinalizeSolutionStep)
             ;
 
         }
