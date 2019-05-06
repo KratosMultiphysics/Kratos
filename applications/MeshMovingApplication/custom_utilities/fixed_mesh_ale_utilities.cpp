@@ -265,6 +265,7 @@ namespace Kratos
     void FixedMeshALEUtilities::CreateVirtualModelPartElements(const ModelPart &rOriginModelPart)
     {
         auto &r_elems = rOriginModelPart.Elements();
+        ModelPart::ElementsContainerType new_elements_container;
         for(auto &elem : r_elems) {
             // Set the array of virtual nodes to create the element from the original ids.
             NodesArrayType new_nodes_array;
@@ -274,10 +275,11 @@ namespace Kratos
             }
             auto p_new_geom = r_orig_geom.Create(new_nodes_array);
 
-            // Create a Laplacian mesh moving element with the same Id() but the virtual mesh nodes
+            // Create a structural mesh moving element with the same Id() but the virtual mesh nodes
             auto p_elem = Kratos::make_shared<StructuralMeshMovingElement>(elem.Id(), p_new_geom, elem.pGetProperties());
-            mrVirtualModelPart.AddElement(p_elem);
+            new_elements_container.push_back(p_elem);
         }
+        mrVirtualModelPart.AddElements(new_elements_container.begin(), new_elements_container.end());
     }
 
     /* Private functions *******************************************************/
@@ -344,7 +346,7 @@ namespace Kratos
         mpMeshMovingStrategy->SetEchoLevel(echo_level);
     }
 
-    const Vector FixedMeshALEUtilities::SetDistancesVector(ModelPart::ElementIterator ItElem)
+    const Vector FixedMeshALEUtilities::SetDistancesVector(ModelPart::ElementIterator ItElem) const
     {
         auto &r_geom = ItElem->GetGeometry();
         Vector nodal_distances(r_geom.PointsNumber());
@@ -364,7 +366,7 @@ namespace Kratos
         return nodal_distances;
     }
 
-    inline bool FixedMeshALEUtilities::IsSplit(const Vector &rDistances)
+    inline bool FixedMeshALEUtilities::IsSplit(const Vector &rDistances) const
     {
         unsigned int n_pos = 0, n_neg = 0;
         for (double dist : rDistances) {

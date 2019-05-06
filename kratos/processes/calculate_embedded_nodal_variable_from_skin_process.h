@@ -157,7 +157,7 @@ inline void EmbeddedNodalVariableFromSkinTypeHelperClass<array_1d<double, 3>>::A
 }
 
 template <class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class KRATOS_API(KRATOS_CORE) CalculateEmbeddedNodalVariableFromSkinProcess : public Process
+class CalculateEmbeddedNodalVariableFromSkinProcess : public Process
 {
 public:
 
