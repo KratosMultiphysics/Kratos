@@ -344,7 +344,6 @@ void FemDem2DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 	Flags& ConstitutiveLawOptions = values.GetOptions();
 
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-	//ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
 	//reading integration points
 	const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
@@ -1443,7 +1442,6 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 	const unsigned int dimension       = rGeometry.WorkingSpaceDimension();
 	const int mat_size = number_of_nodes*dimension;
 	Vector current_displacements(mat_size);
-	Vector previous_displacements(mat_size);
 	Vector displacements_copy(mat_size);
 	Vector displ_increment(mat_size);
 
@@ -1451,15 +1449,11 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 
 	// we fill the Vectors
 	for (unsigned int i = 0; i < number_of_nodes; i++) {
-		array_1d<double,3> displacement = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT);
-		array_1d<double,3> displacement_old = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT, 1);
+		array_1d<double,3>& r_displacement = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT);
 		array_1d<double,3> displacement_incr = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT_INCREMENT);
 
-		current_displacements[2*i]     = displacement[0];
-		current_displacements[2*i + 1] = displacement[1];
-
-		previous_displacements[2*i]     = displacement_old[0];
-		previous_displacements[2*i + 1] = displacement_old[1];
+		current_displacements[2*i]     = r_displacement[0];
+		current_displacements[2*i + 1] = r_displacement[1];
 
 		displ_increment[2*i]     = displacement_incr[0];
 		displ_increment[2*i + 1] = displacement_incr[1];		
@@ -1552,15 +1546,6 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 			const Vector& r_predictive_stress_vector = values.GetStressVector();
 			const Vector& r_integrated_stress_vector = (1.0 - damage_element) * r_predictive_stress_vector;
 
-			// std::cout << "**************************" << std::endl;
-			// KRATOS_WATCH(r_integrated_stress_vector)
-			// KRATOS_WATCH(rStressVectorGP)
-			// KRATOS_WATCH(numerical_tolerance)
-			// KRATOS_WATCH(displacement_perturbation[comp])
-			// KRATOS_WATCH(displacement_perturbation)
-			// KRATOS_WATCH(numerical_tolerance)
-			// KRATOS_WATCH(displ_norm)
-
 			// Now we Reset the displacement field
 			for (unsigned int i = 0; i < number_of_nodes; i++) {
 				array_1d<double,3>& r_displacement = this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
@@ -1574,9 +1559,6 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 			// And compute the new Fint (only one GP)
 			perturbed_internal_forces = variables.IntegrationWeight * prod(trans(variables.B), r_integrated_stress_vector);
 
-			// KRATOS_WATCH(perturbed_internal_forces)
-			// KRATOS_WATCH(rInternalForcesVectorGP)
-
 			// Assign components to tangent tensor
 			for (unsigned int row = 0; row < mat_size; ++row) {
 				rTangentTensor(row, comp) = (perturbed_internal_forces[row] - rInternalForcesVectorGP[row]) 
@@ -1584,7 +1566,5 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 			}
 		}
 	}
-	// rTangentTensor = (trans(rTangentTensor) + rTangentTensor)*0.5;
-	// KRATOS_WATCH(rTangentTensor)
 }
 } // namespace Kratos
