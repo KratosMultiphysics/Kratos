@@ -246,7 +246,7 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 			if (this->GetProperties()[TANGENT_CONSTITUTIVE_TENSOR] == true) {
 				const Vector& r_internal_forces = variables.IntegrationWeight * prod(trans(variables.B), r_integrated_stress_vector);
 				this->CalculateTangentTensorUPerturbed(tangent_tensor, r_strain_vector, r_integrated_stress_vector, r_internal_forces, C);
-				noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * tangent_tensor;
+				noalias(rLeftHandSideMatrix) += tangent_tensor;
 			} else {
 				this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, C);
 				noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * prod(trans(variables.B), Matrix(prod(tangent_tensor, variables.B)));
@@ -291,19 +291,11 @@ void FemDem2DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 	ConstitutiveLaw::Parameters values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
 	//set constitutive law flags:
-	Flags& ConstitutiveLawOptions = values.GetOptions();
-
-	//ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+	Flags& r_constitutive_law_options = values.GetOptions();
+	r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
 	//reading integration points
 	const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod );
-
-	//auxiliary terms
-	Vector VolumeForce(dimension);
-
-	auto &r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
-	KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
 
 	for (SizeType point_number = 0; point_number < r_integration_points.size(); point_number++ ) {
 		//compute element kinematic variables B, F, DN_DX ...
@@ -316,46 +308,13 @@ void FemDem2DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 		variables.IntegrationWeight = r_integration_points[point_number].Weight() * variables.detJ;
 		variables.IntegrationWeight = this->CalculateIntegrationWeight(variables.IntegrationWeight );
 
-		// Loop over edges of the element...
-		Vector average_stress_edge(3);
-		Vector average_strain_edge(3);
-		bool is_damaging = false;
-		Vector damages(mNumberOfEdges);
-
-		for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
-			this->CalculateAverageStressOnEdge(&r_elem_neigb[edge], this, average_stress_edge);
-			this->CalculateAverageStrainOnEdge(&r_elem_neigb[edge], this, average_strain_edge);
-
-			// We recover converged values
-			double threshold = mThresholds[edge];
-			double damage = mDamages[edge];
-			
-			const double length = this->CalculateCharacteristicLength(this, r_elem_neigb[edge], edge);
-			this->IntegrateStressDamageMechanics(threshold, damage, average_strain_edge,
-													average_stress_edge, edge, length, is_damaging);
-			damages[edge] = damage;
-		} // Loop over edges
-
 		// Calculate the elemental Damage...
-		const double damage_element = this->CalculateElementalDamage(damages);
-		const Vector& r_predictive_stress_vector = values.GetStressVector();
-		const Vector& r_integrated_stress_vector = (1.0 - damage_element) * r_predictive_stress_vector;
+		const double damage_element = this->CalculateElementalDamage(mDamages);
 
 		//contributions to stiffness matrix calculated on the reference config
 		const Matrix& C =  values.GetConstitutiveMatrix();
-		Matrix tangent_tensor;
-		const Vector& r_strain_vector = values.GetStrainVector();
-		if (is_damaging == true && std::abs(r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2]) > tolerance) {
-			if (this->GetProperties()[TANGENT_CONSTITUTIVE_TENSOR] == true) {
-				const Vector& r_internal_forces = variables.IntegrationWeight * prod(trans(variables.B), r_integrated_stress_vector);
-				this->CalculateTangentTensorUPerturbed(tangent_tensor, r_strain_vector, r_integrated_stress_vector, r_internal_forces, C);
-			} else {
-				this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, C);
-				noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * prod(trans(variables.B), Matrix(prod(tangent_tensor, variables.B)));
-			}
-		} else {
-			noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * (1.0 - damage_element) * prod(trans(variables.B), Matrix(prod(C, variables.B)));
-		}
+		// noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * (1.0 - damage_element) * prod(trans(variables.B), Matrix(prod(C, variables.B)));
+		noalias(rLeftHandSideMatrix) += variables.IntegrationWeight  * prod(trans(variables.B), Matrix(prod(C, variables.B)));
 	}
 	KRATOS_CATCH("")
 }
@@ -1198,7 +1157,7 @@ void FemDem2DElement::RankineFragileLaw(
 	const double F = uniaxial_stress - rThreshold;
 
 	if (F <= 0.0) {// Elastic region --> Damage is constant
-		rDamage = this->GetConvergedDamage();
+		rDamage = this->GetConvergedDamages(Edge);
 	} else {
 		rDamage = 0.98; // Fragile  law
 		rIsDamaging = true;
@@ -1515,20 +1474,6 @@ void FemDem2DElement::CalculateTangentTensorUPerturbed(
 		if (std::abs(displ_increment[i]) < tolerance) 
 			displ_increment[i] = delta_displ_norm / 1.0e3;
 	}
-
-
-	// We impose a certain displ perturbation = numerical_tolerance*delta_u
-	// Vector displacement_perturbation(mat_size);
-
-	// // const double min = -1.0;
-	// const double min = 0.0;
-	// const double max = 1.0;
-	
-	// here the perturbations at each DoF are computed
-	// for (unsigned int i = 0; i < mat_size; i++) {
-	// 	const double random_contr = ((double) rand()*(max - min) / (double)RAND_MAX + min);
-	// 	displacement_perturbation[i] = random_contr;
-	// }
 
 	noalias(displacements_copy) = current_displacements;
 
