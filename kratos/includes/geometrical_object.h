@@ -54,7 +54,6 @@ namespace Kratos
  * @details Derives from IndexedObject, so it has an ID, and from Flags
  * @author Pooyan Dadvand
 */
-
 class GeometricalObject : public IndexedObject, public Flags, public std::intrusive_base<GeometricalObject>
 {
 public:

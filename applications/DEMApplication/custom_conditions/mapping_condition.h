@@ -30,7 +30,7 @@ class KRATOS_API(DEM_APPLICATION) MAPcond : public Condition
 public:
 
     // Counted pointer of MAPcond
-    KRATOS_CLASS_POINTER_DEFINITION( MAPcond );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MAPcond );
 
 
 	typedef WeakPointerVector<Element> ParticleWeakVectorType;
