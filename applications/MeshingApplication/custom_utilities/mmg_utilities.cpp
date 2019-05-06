@@ -789,7 +789,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
     // Sometimes MMG creates conditions where there are not, then we skip
     Properties::Pointer p_prop = nullptr;
     Condition::Pointer p_base_condition = nullptr;
-    if (rMapPointersRefCondition[Ref] == nullptr) {
+    if (rMapPointersRefCondition[Ref].get() == nullptr) {
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
             KRATOS_WARNING("MmgUtilities") << "Condition. Null pointer returned" << std::endl;
             return p_condition;
@@ -827,7 +827,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     const IndexType CondId,
-    int& PropId,
+    int& Ref,
     int& IsRequired,
     bool SkipCreation
     )
@@ -837,13 +837,13 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
 
     int vertex_0, vertex_1, vertex_2;
 
-    KRATOS_ERROR_IF(MMG3D_Get_triangle(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &PropId, &IsRequired) != 1 ) << "Unable to get triangle" << std::endl;
+    KRATOS_ERROR_IF(MMG3D_Get_triangle(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &Ref, &IsRequired) != 1 ) << "Unable to get triangle" << std::endl;
 
     // Sometimes MMG creates conditions where there are not, then we skip
     Properties::Pointer p_prop = nullptr;
     Condition::Pointer p_base_condition = nullptr;
 
-    if (rMapPointersRefCondition[PropId] == nullptr) {
+    if (rMapPointersRefCondition[Ref].get() == nullptr) {
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
             KRATOS_WARNING("MmgUtilities") << "Condition. Null pointer returned" << std::endl;
             return p_condition;
@@ -853,7 +853,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
             p_base_condition = KratosComponents<Condition>::Get("SurfaceCondition3D3N").Create(0, dummy_nodes, p_prop);
         }
     } else {
-        p_base_condition = rMapPointersRefCondition[PropId];
+        p_base_condition = rMapPointersRefCondition[Ref];
         p_prop = p_base_condition->pGetProperties();
     }
 
@@ -883,7 +883,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeCondition(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     const IndexType CondId,
-    int& PropId,
+    int& Ref,
     int& IsRequired,
     bool SkipCreation
     )
@@ -893,10 +893,10 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeCondition(
 
     int edge_0, edge_1, is_ridge;
 
-    KRATOS_ERROR_IF(MMGS_Get_edge(mMmgMesh, &edge_0, &edge_1, &PropId, &is_ridge, &IsRequired) != 1 ) << "Unable to get edge" << std::endl;
+    KRATOS_ERROR_IF(MMGS_Get_edge(mMmgMesh, &edge_0, &edge_1, &Ref, &is_ridge, &IsRequired) != 1 ) << "Unable to get edge" << std::endl;
 
     // Sometimes MMG creates conditions where there are not, then we skip
-    if (rMapPointersRefCondition[PropId] == nullptr) {
+    if (rMapPointersRefCondition[Ref].get() == nullptr) {
         KRATOS_WARNING("MmgUtilities") << "Condition. Null pointer returned" << std::endl;
         return p_condition;
     }
@@ -910,7 +910,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeCondition(
         condition_nodes[0] = rModelPart.pGetNode(edge_0);
         condition_nodes[1] = rModelPart.pGetNode(edge_1);
 
-        p_condition = rMapPointersRefCondition[PropId]->Create(CondId, PointerVector<NodeType>{condition_nodes}, rMapPointersRefCondition[PropId]->pGetProperties());
+        p_condition = rMapPointersRefCondition[Ref]->Create(CondId, PointerVector<NodeType>{condition_nodes}, rMapPointersRefCondition[Ref]->pGetProperties());
     } else if (mEchoLevel > 2)
         KRATOS_INFO("MmgUtilities") << "Condition creation avoided" << std::endl;
 
@@ -925,7 +925,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateSecondTypeCondition(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     const IndexType CondId,
-    int& PropId,
+    int& Ref,
     int& IsRequired,
     bool SkipCreation
     )
@@ -941,7 +941,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeCondition(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     const IndexType CondId,
-    int& PropId,
+    int& Ref,
     int& IsRequired,
     bool SkipCreation
     )
@@ -950,10 +950,10 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeCondition(
 
     int vertex_0, vertex_1, vertex_2, vertex_3;
 
-    KRATOS_ERROR_IF(MMG3D_Get_quadrilateral(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &PropId, &IsRequired) != 1 ) << "Unable to get quadrilateral" << std::endl;
+    KRATOS_ERROR_IF(MMG3D_Get_quadrilateral(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &Ref, &IsRequired) != 1 ) << "Unable to get quadrilateral" << std::endl;
 
     // Sometimes MMG creates conditions where there are not, then we skip
-    if (rMapPointersRefCondition[PropId] == nullptr) {
+    if (rMapPointersRefCondition[Ref].get() == nullptr) {
         KRATOS_WARNING("MmgUtilities") << "Condition. Null pointer returned" << std::endl;
         return p_condition;
     }
@@ -971,7 +971,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeCondition(
         condition_nodes[2] = rModelPart.pGetNode(vertex_2);
         condition_nodes[3] = rModelPart.pGetNode(vertex_3);
 
-        p_condition = rMapPointersRefCondition[PropId]->Create(CondId, PointerVector<NodeType>{condition_nodes}, rMapPointersRefCondition[PropId]->pGetProperties());
+        p_condition = rMapPointersRefCondition[Ref]->Create(CondId, PointerVector<NodeType>{condition_nodes}, rMapPointersRefCondition[Ref]->pGetProperties());
     } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgUtilities") << "Condition creation avoided" << std::endl;
 
@@ -986,7 +986,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateSecondTypeCondition(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
     const IndexType CondId,
-    int& PropId,
+    int& Ref,
     int& IsRequired,
     bool SkipCreation
     )
@@ -1002,7 +1002,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
     const IndexType ElemId,
-    int& PropId,
+    int& Ref,
     int& IsRequired,
     bool SkipCreation
     )
@@ -1011,11 +1011,11 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
 
     int vertex_0, vertex_1, vertex_2;
 
-    KRATOS_ERROR_IF(MMG2D_Get_triangle(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &PropId, &IsRequired) != 1 ) << "Unable to get triangle" << std::endl;
+    KRATOS_ERROR_IF(MMG2D_Get_triangle(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &Ref, &IsRequired) != 1 ) << "Unable to get triangle" << std::endl;
 
     if (mRemoveRegions && mDiscretization == DiscretizationOption::ISOSURFACE) {
         // The existence of a _nullptr_ indicates an element that was removed. This is not an alarming indicator.
-        if (rMapPointersRefElement[PropId] == nullptr) {
+        if (rMapPointersRefElement[Ref].get() == nullptr) {
             // KRATOS_INFO("MmgUtilities") << "Element has been removed from domain. Ok." << std::endl;
             return p_element;
         } else {
@@ -1028,7 +1028,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
                 element_nodes[0] = rModelPart.pGetNode(vertex_0);
                 element_nodes[1] = rModelPart.pGetNode(vertex_1);
                 element_nodes[2] = rModelPart.pGetNode(vertex_2);
-                p_element = rMapPointersRefElement[PropId]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[PropId]->pGetProperties());
+                p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
             }
         }
     } else {
@@ -1037,7 +1037,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
         Element::Pointer p_base_element = nullptr;
 
         // Sometimes MMG creates elements where there are not, then we skip
-        if (rMapPointersRefElement[PropId] == nullptr) {
+        if (rMapPointersRefElement[Ref].get() == nullptr) {
             if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
                 KRATOS_WARNING("MmgUtilities") << "Element. Null pointer returned" << std::endl;
                 return p_element;
@@ -1047,7 +1047,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
                 p_base_element = KratosComponents<Element>::Get("Element2D3N").Create(0, dummy_nodes, p_prop);
             }
         } else {
-            p_base_element = rMapPointersRefElement[PropId];
+            p_base_element = rMapPointersRefElement[Ref];
             p_prop = p_base_element->pGetProperties();
         }
 
@@ -1078,7 +1078,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
     const IndexType ElemId,
-    int& PropId,
+    int& Ref,
     int& IsRequired,
     bool SkipCreation
     )
@@ -1087,11 +1087,11 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
 
     int vertex_0, vertex_1, vertex_2, vertex_3;
 
-    KRATOS_ERROR_IF(MMG3D_Get_tetrahedron(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &PropId, &IsRequired) != 1 ) << "Unable to get tetrahedron" << std::endl;
+    KRATOS_ERROR_IF(MMG3D_Get_tetrahedron(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &Ref, &IsRequired) != 1 ) << "Unable to get tetrahedron" << std::endl;
 
     if (mRemoveRegions && mDiscretization == DiscretizationOption::ISOSURFACE) {
         // The existence of a _nullptr_ indicates an element that was removed. This is not an alarming indicator.
-        if (rMapPointersRefElement[PropId] == nullptr) {
+        if (rMapPointersRefElement[Ref].get() == nullptr) {
             // KRATOS_INFO("MmgUtilities") << "Element has been removed from domain. Ok." << std::endl;
             return p_element;
         } else {
@@ -1105,7 +1105,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
                 element_nodes[1] = rModelPart.pGetNode(vertex_1);
                 element_nodes[2] = rModelPart.pGetNode(vertex_2);
                 element_nodes[3] = rModelPart.pGetNode(vertex_3);
-                p_element = rMapPointersRefElement[PropId]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[PropId]->pGetProperties());
+                p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
             }
         }
     } else {
@@ -1114,7 +1114,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
         Element::Pointer p_base_element = nullptr;
 
         // Sometimes MMG creates elements where there are not, then we skip
-        if (rMapPointersRefElement[PropId] == nullptr) {
+        if (rMapPointersRefElement[Ref].get() == nullptr) {
             if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
                 KRATOS_WARNING("MmgUtilities") << "Element. Null pointer returned" << std::endl;
                 return p_element;
@@ -1124,7 +1124,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
                 p_base_element = KratosComponents<Element>::Get("Element3D4N").Create(0, dummy_nodes, p_prop);
             }
         } else {
-            p_base_element = rMapPointersRefElement[PropId];
+            p_base_element = rMapPointersRefElement[Ref];
             p_prop = p_base_element->pGetProperties();
         }
 
@@ -1157,7 +1157,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeElement(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
     const IndexType ElemId,
-    int& PropId,
+    int& Ref,
     int& IsRequired,
     bool SkipCreation
     )
@@ -1166,10 +1166,10 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeElement(
 
     int vertex_0, vertex_1, vertex_2;
 
-    KRATOS_ERROR_IF(MMGS_Get_triangle(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &PropId, &IsRequired) != 1 ) << "Unable to get triangle" << std::endl;
+    KRATOS_ERROR_IF(MMGS_Get_triangle(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &Ref, &IsRequired) != 1 ) << "Unable to get triangle" << std::endl;
 
     // Sometimes MMG creates elements where there are not, then we skip
-    if (rMapPointersRefElement[PropId] == nullptr) {
+    if (rMapPointersRefElement[Ref].get() == nullptr) {
         KRATOS_WARNING("MmgUtilities") << "Element. Null pointer returned" << std::endl;
         return p_element;
     }
@@ -1185,7 +1185,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeElement(
         element_nodes[1] = rModelPart.pGetNode(vertex_1);
         element_nodes[2] = rModelPart.pGetNode(vertex_2);
 
-        p_element = rMapPointersRefElement[PropId]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[PropId]->pGetProperties());
+        p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
     } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgUtilities") << "Element creation avoided" << std::endl;
 
@@ -1200,7 +1200,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateSecondTypeElement(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
     const IndexType ElemId,
-    int& PropId,
+    int& Ref,
     int& IsRequired,
     bool SkipCreation
     )
@@ -1216,7 +1216,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeElement(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
     const IndexType ElemId,
-    int& PropId,
+    int& Ref,
     int& IsRequired,
     bool SkipCreation
     )
@@ -1225,10 +1225,10 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeElement(
 
     int vertex_0, vertex_1, vertex_2, vertex_3, vertex_4, vertex_5;
 
-    KRATOS_ERROR_IF(MMG3D_Get_prism(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &vertex_4, &vertex_5, &PropId, &IsRequired) != 1 ) << "Unable to get prism" << std::endl;
+    KRATOS_ERROR_IF(MMG3D_Get_prism(mMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &vertex_4, &vertex_5, &Ref, &IsRequired) != 1 ) << "Unable to get prism" << std::endl;
 
     // Sometimes MMG creates elements where there are not, then we skip
-    if (rMapPointersRefElement[PropId] == nullptr) {
+    if (rMapPointersRefElement[Ref].get() == nullptr) {
         KRATOS_WARNING("MmgUtilities") << "Element. Null pointer returned" << std::endl;
         return p_element;
     }
@@ -1250,7 +1250,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeElement(
         element_nodes[4] = rModelPart.pGetNode(vertex_4);
         element_nodes[5] = rModelPart.pGetNode(vertex_5);
 
-        p_element = rMapPointersRefElement[PropId]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[PropId]->pGetProperties());
+        p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
     } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgUtilities") << "Element creation avoided" << std::endl;
 
@@ -1265,7 +1265,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateSecondTypeElement(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement,
     const IndexType ElemId,
-    int& PropId,
+    int& Ref,
     int& IsRequired,
     bool SkipCreation
     )
