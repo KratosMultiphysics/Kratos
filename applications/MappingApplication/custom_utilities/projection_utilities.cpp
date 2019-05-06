@@ -49,6 +49,17 @@ void FillEquationIdVector(const GeometryType& rGeometry,
     }
 }
 
+bool IsBetterProjection(const PairingIndex CurrentPairingIndex,
+                        const PairingIndex PairingIndexToCheck,
+                        const double CurrentMinDistance,
+                        const double DistanceToCheck)
+{
+    // the projection is better if either:
+    // - the new pairing-index is better (i.e. larger) than the current pairing-index
+    // - the new pairing-index the same as the current pairing-index but the projection distance is smaller
+    return (PairingIndexToCheck > CurrentPairingIndex || (PairingIndexToCheck == CurrentPairingIndex && DistanceToCheck < CurrentMinDistance));
+}
+
 }
 
 PairingIndex ProjectOnLine(const GeometryType& rGeometry,
@@ -142,7 +153,7 @@ PairingIndex ProjectOnSurface(const GeometryType& rGeometry,
             const PairingIndex edge_index = ProjectOnLine(r_edge, rPointToProject, LocalCoordTol, edge_sf_values, edge_eq_ids, edge_distance);
 
             // check if the current edge gives a better result
-            if (edge_index > pairing_index || (edge_index == pairing_index && edge_distance < rProjectionDistance)) {
+            if (IsBetterProjection(pairing_index, edge_index, rProjectionDistance, edge_distance)) {
                 pairing_index = edge_index;
                 rShapeFunctionValues = edge_sf_values;
                 rProjectionDistance = edge_distance;
@@ -195,7 +206,7 @@ PairingIndex ProjectIntoVolume(const GeometryType& rGeometry,
             const PairingIndex face_index = ProjectOnSurface(r_face, rPointToProject, LocalCoordTol, face_sf_values, face_eq_ids, face_distance);
 
             // check if the current edge gives a better result
-            if (face_index > pairing_index || (face_index == pairing_index && face_distance < rProjectionDistance)) {
+            if (IsBetterProjection(pairing_index, face_index, rProjectionDistance, face_distance)) {
                 pairing_index = face_index;
                 rShapeFunctionValues = face_sf_values;
                 rProjectionDistance = face_distance;
