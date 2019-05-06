@@ -70,7 +70,6 @@ class PotentialFlowSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL)
 
         # Kratos variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 
     def AddDofs(self):

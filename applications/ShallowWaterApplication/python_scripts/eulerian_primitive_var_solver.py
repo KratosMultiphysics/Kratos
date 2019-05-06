@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 
 ## Import base class file
-from shallow_water_base_solver import ShallowWaterBaseSolver
+from KratosMultiphysics.ShallowWaterApplication.shallow_water_base_solver import ShallowWaterBaseSolver
 
 def CreateSolver(model, custom_settings):
     return EulerianPrimitiveVarSolver(model, custom_settings)
@@ -23,7 +23,7 @@ class EulerianPrimitiveVarSolver(ShallowWaterBaseSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(Shallow.HEIGHT, self.main_model_part)
 
-        self.print_on_rank_zero("::[EulerianPrimitiveVarSolver]::", "Shallow water solver DOFs added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("::[EulerianPrimitiveVarSolver]::", "Shallow water solver DOFs added correctly.")
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():

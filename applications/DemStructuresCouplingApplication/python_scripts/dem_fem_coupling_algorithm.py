@@ -49,6 +49,9 @@ class Algorithm(object):
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.SHEAR_STRESS)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.NON_DIMENSIONAL_VOLUME_WEAR)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.IMPACT_WEAR)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.TARGET_STRESS)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.REACTION_STRESS)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.LOADING_VELOCITY)
 
     def Run(self):
         self.Initialize()
@@ -62,6 +65,13 @@ class Algorithm(object):
         self._DetectStructuresSkin()
         self._TransferStructuresSkinToDem()
         self.dem_solution.solver.Initialize()
+
+        # import control_module_fem_dem_utility
+        # self.control_module_fem_dem_utility = control_module_fem_dem_utility.ControlModuleFemDemUtility(self.model,self.dem_solution.spheres_model_part)
+        # self.control_module_fem_dem_utility.ExecuteInitialize()
+
+        # from KratosMultiphysics.DemStructuresCouplingApplication import stress_failure_check_utility
+        # self.stress_failure_check_utility = stress_failure_check_utility.StressFailureCheckUtility(self.dem_solution.spheres_model_part)
 
         mixed_mp = self.model.CreateModelPart('MixedPart')
         filename = os.path.join(self.dem_solution.post_path, self.dem_solution.DEM_parameters["problem_name"].GetString())
@@ -79,7 +89,7 @@ class Algorithm(object):
                             mixed_mp
                             )
 
-        structures_nodal_results = ["VOLUME_ACCELERATION","DEM_SURFACE_LOAD"]
+        structures_nodal_results = ["VOLUME_ACCELERATION","DEM_SURFACE_LOAD","REACTION","TARGET_STRESS","REACTION_STRESS","LOADING_VELOCITY"]
         dem_nodal_results = ["IS_STICKY", "DEM_STRESS_TENSOR"]
         clusters_nodal_results = []
         rigid_faces_nodal_results = ["DEM_NODAL_AREA"]
@@ -148,6 +158,7 @@ class Algorithm(object):
 
             self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
             self.structural_solution.InitializeSolutionStep()
+            # self.control_module_fem_dem_utility.ExecuteInitializeSolutionStep()
             self.structural_solution._GetSolver().Predict()
             self.structural_solution._GetSolver().SolveSolutionStep()
             self.structural_solution.FinalizeSolutionStep()
@@ -212,9 +223,13 @@ class Algorithm(object):
                     self.dem_solution.demio.PrintMultifileLists(self.dem_solution.time, self.dem_solution.post_path)
                     self.dem_solution.time_old_print = self.dem_solution.time
 
+                    # self.stress_failure_check_utility.ExecuteFinalizeSolutionStep()
+
                 self.dem_solution.FinalizeTimeStep(self.dem_solution.time)
 
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
+            # TODO: Should control_module_fem_dem_utility.ExecuteFinalizeSolutionStep be done before or after RestoreStructuralSolution ?
+            # self.control_module_fem_dem_utility.ExecuteFinalizeSolutionStep()
 
     def ReadDemModelParts(self,
                                     starting_node_Id=0,

@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 def Factory(settings, Model):
@@ -52,7 +51,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
             "interval"                    : [0.0,"End"],
             "normal_variation"            : "no_derivatives_computation",
             "frictional_law"              : "Coulomb",
-            "tangent_factor"              : 1.0e-1,
+            "tangent_factor"              : 1.0e-4,
             "integration_order"           : 2,
             "clear_inactive_for_post"     : true,
             "search_parameters" : {
@@ -71,10 +70,12 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
                 "predict_correct_lagrange_multiplier" : false,
                 "check_gap"                           : "check_mapping"
             },
-            "advance_explicit_parameters" : {
-                "manual_max_gap_theshold" : true,
-                "max_gap_threshold"       : 1.0e-1,
-                "max_gap_factor"          : 1.0e4
+            "advance_explicit_parameters"  : {
+                "manual_max_gap_theshold"  : false,
+                "automatic_gap_factor"     : 1.0e-1,
+                "max_gap_threshold"        : 5.0e-2,
+                "max_gap_factor"           : 1.0e2,
+                "logistic_exponent_factor" : 6.0
             },
             "advance_ALM_parameters" : {
                 "manual_ALM"                  : false,
@@ -92,12 +93,12 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         }
         """)
 
-        # Construct the base process.
-        super(ExplicitPenaltyContactProcess, self).__init__(Model, settings)
-
         # Overwrite the default settings with user-provided parameters
         self.contact_settings = settings
         self.contact_settings.RecursivelyValidateAndAssignDefaults(default_parameters)
+
+        # Construct the base process.
+        super(ExplicitPenaltyContactProcess, self).__init__(Model, self.contact_settings)
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
