@@ -458,7 +458,7 @@ namespace MortarUtilities
      */
     template< class TVarType, HistoricalValues THist>
     void KRATOS_API(KRATOS_CORE) MatrixValue(
-        GeometryType& rThisGeometry,
+        const GeometryType& rThisGeometry,
         TVarType& rThisVariable,
         Matrix& rThisValue
         );

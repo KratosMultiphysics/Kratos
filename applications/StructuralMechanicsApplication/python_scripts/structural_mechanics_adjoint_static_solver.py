@@ -114,8 +114,9 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
     def SolveSolutionStep(self):
         if self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
             self._SolveSolutionStepSpecialLinearStrainEnergy()
+            return True
         else:
-            super(StructuralMechanicsAdjointStaticSolver, self).SolveSolutionStep()
+            return super(StructuralMechanicsAdjointStaticSolver, self).SolveSolutionStep()
 
     def _SolveSolutionStepSpecialLinearStrainEnergy(self):
         for node in self.main_model_part.Nodes:
