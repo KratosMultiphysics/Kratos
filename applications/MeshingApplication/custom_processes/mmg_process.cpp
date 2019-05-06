@@ -634,7 +634,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
             Condition::Pointer p_condition = mMmmgUtilities.CreateFirstTypeCondition(mrThisModelPart, mpRefCondition, cond_id, ref, is_required, skip_creation);
 
-            if (p_condition != nullptr) {
+            if (p_condition.get() != nullptr) {
                 created_conditions_vector.push_back(p_condition);
 //                 mrThisModelPart.AddCondition(p_condition);
                 if (ref != 0) first_color_cond[static_cast<IndexType>(ref)].push_back(cond_id);// NOTE: ref == 0 is the MainModelPart
@@ -654,7 +654,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
             }
             Condition::Pointer p_condition = mMmmgUtilities.CreateSecondTypeCondition(mrThisModelPart, mpRefCondition, cond_id, ref, is_required, skip_creation);
 
-            if (p_condition != nullptr) {
+            if (p_condition.get() != nullptr) {
                 created_conditions_vector.push_back(p_condition);
 //                 mrThisModelPart.AddCondition(p_condition);
                 if (ref != 0) second_color_cond[static_cast<IndexType>(ref)].push_back(cond_id);// NOTE: ref == 0 is the MainModelPart
@@ -680,7 +680,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
             Element::Pointer p_element = mMmmgUtilities.CreateFirstTypeElement(mrThisModelPart, mpRefElement, elem_id, ref, is_required, skip_creation);
 
-            if (p_element != nullptr) {
+            if (p_element.get() != nullptr) {
                 created_elements_vector.push_back(p_element);
 //                 mrThisModelPart.AddElement(p_element);
                 if (ref != 0) first_color_elem[static_cast<IndexType>(ref)].push_back(elem_id);// NOTE: ref == 0 is the MainModelPart
@@ -701,7 +701,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
             Element::Pointer p_element = mMmmgUtilities.CreateSecondTypeElement(mrThisModelPart, mpRefElement, elem_id, ref, is_required,skip_creation);
 
-            if (p_element != nullptr) {
+            if (p_element.get() != nullptr) {
                 created_elements_vector.push_back(p_element);
 //                 mrThisModelPart.AddElement(p_element);
                 if (ref != 0) second_color_elem[static_cast<IndexType>(ref)].push_back(elem_id);// NOTE: ref == 0 is the MainModelPart

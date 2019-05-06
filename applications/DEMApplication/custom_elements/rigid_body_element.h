@@ -32,7 +32,7 @@ namespace Kratos {
 
     public:
         /// Pointer definition of RigidBodyElement3D
-        KRATOS_CLASS_POINTER_DEFINITION(RigidBodyElement3D);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RigidBodyElement3D);
 
         RigidBodyElement3D();
         RigidBodyElement3D(IndexType NewId, GeometryType::Pointer pGeometry);

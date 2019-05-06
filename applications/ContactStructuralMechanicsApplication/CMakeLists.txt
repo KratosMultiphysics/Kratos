@@ -16,6 +16,7 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/contact_structural_mechanics_application_variables.cpp
 
     ## UTILITIES
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/derivatives_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mortar_explicit_contribution_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocess.cpp
 

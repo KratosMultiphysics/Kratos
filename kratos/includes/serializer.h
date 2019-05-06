@@ -391,6 +391,13 @@ public:
 
     void load(std::string const & rTag, Kratos::shared_ptr<ModelPart>& pValue);
 
+    template<class TDataType>
+    void load(std::string const & rTag, Kratos::intrusive_weak_ptr<TDataType>& pValue)
+    {
+        // This is for testing. I have to change it. Pooyan.
+        //KRATOS_ERROR << "The serialization for weak_ptrs is not implemented yet" << std::endl;
+//    read(*pValue);
+    }
 
     template<class TDataType>
     void load(std::string const & rTag, Kratos::weak_ptr<TDataType>& pValue)
@@ -611,6 +618,13 @@ public:
     void save(std::string const & rTag, Kratos::intrusive_ptr<TDataType> pValue)
     {
         save(rTag, pValue.get());
+    }
+
+    template<class TDataType>
+    void save(std::string const & rTag, Kratos::intrusive_weak_ptr<TDataType> pValue)
+    {
+        //no implementaion for now... 
+        //save(rTag, pValue.lock().get());
     }
 
     template<class TDataType>

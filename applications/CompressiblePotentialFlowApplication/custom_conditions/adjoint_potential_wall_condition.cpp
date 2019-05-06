@@ -22,7 +22,7 @@ template <class TPrimalCondition>
 Condition::Pointer AdjointPotentialWallCondition<TPrimalCondition>::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<AdjointPotentialWallCondition<TPrimalCondition>>(
+    return Kratos::make_intrusive<AdjointPotentialWallCondition<TPrimalCondition>>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
@@ -30,7 +30,7 @@ template <class TPrimalCondition>
 Condition::Pointer AdjointPotentialWallCondition<TPrimalCondition>::Create(
     IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const 
 {
-    return Kratos::make_shared<AdjointPotentialWallCondition<TPrimalCondition>>(
+    return Kratos::make_intrusive<AdjointPotentialWallCondition<TPrimalCondition>>(
             NewId, pGeom, pProperties);
 }
 

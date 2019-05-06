@@ -232,7 +232,7 @@ protected:
         // Generating the elements
         r_distance_model_part.Elements().reserve(base_model_part.Elements().size());
         for (auto it_elem = base_model_part.ElementsBegin(); it_elem != base_model_part.ElementsEnd(); ++it_elem){
-            Element::Pointer p_element = Kratos::make_shared<DistanceCalculationElementSimplex<TDim> >(
+            Element::Pointer p_element = Kratos::make_intrusive<DistanceCalculationElementSimplex<TDim> >(
                 it_elem->Id(),
                 it_elem->pGetGeometry(),
                 it_elem->pGetProperties());
