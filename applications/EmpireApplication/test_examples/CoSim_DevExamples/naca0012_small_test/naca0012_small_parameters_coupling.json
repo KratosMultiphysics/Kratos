@@ -58,7 +58,8 @@
             "Parameters"    : {
                 "model_part_name"   : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "inlet_phi"         : 1.0,
-                "velocity_infinity" : [10.0,0.0,0.0]
+                "velocity_infinity" : [10.0,0.0,0.0],
+                "free_stream_density": 1.225
             }
         },{
             "python_module" : "define_wake_process_2d",
