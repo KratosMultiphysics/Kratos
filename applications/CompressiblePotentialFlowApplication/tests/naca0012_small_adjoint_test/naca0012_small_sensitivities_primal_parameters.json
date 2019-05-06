@@ -32,8 +32,9 @@
             "process_name"  : "FarFieldProcess",
             "Parameters"    : {
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
-                "inlet_phi"         : 1.0,
-                "free_stream_velocity" : [10.0,0.0,0.0]
+                "angle_of_attack": 0.0,
+                "mach_infinity": 0.02941176471,
+                "inlet_phi"         : 1.0
             }
         },{
             "python_module" : "define_wake_process_2d",
@@ -50,7 +51,6 @@
             "process_name"  : "ComputeLiftProcess3D",
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.Body2D_Body",
-                "free_stream_velocity" : [10.0,0.0,0.0],
                 "moment_reference_point" : [0.0,0.0,0.0]
             }
         }],
@@ -64,7 +64,7 @@
                 "file_settings" : {
                     "file_access_mode" : "truncate"
                 },
-                
+
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY_POTENTIAL", "AUXILIARY_VELOCITY_POTENTIAL"]
                 },

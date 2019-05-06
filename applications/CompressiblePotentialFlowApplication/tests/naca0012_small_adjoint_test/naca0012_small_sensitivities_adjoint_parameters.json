@@ -41,8 +41,9 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "Parameters"    : {
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
-                "inlet_phi"         : 1.0,
-                "free_stream_velocity" : [10.0,0.0,0.0]
+                "angle_of_attack": 0.0,
+                "mach_infinity": 0.02941176471,
+                "inlet_phi"         : 1.0
             }
         },{
             "python_module" : "define_wake_process_2d",

@@ -23,7 +23,6 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "please specify the model part that contains the surface nodes",
-            "free_stream_velocity": [1.0,0.0,0.0],
             "reference_area": 1.0,
             "moment_reference_point" : [0.0,0.0,0.0]
         }''')
