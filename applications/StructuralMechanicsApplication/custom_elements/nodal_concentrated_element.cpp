@@ -315,7 +315,7 @@ void NodalConcentratedElement::CalculateRightHandSide(VectorType& rRightHandSide
         rRightHandSideVector[j]  += volume_acceleration[j] * nodal_mass;
 
     // Compute and add internal forces
-    const array_1d<double, 3 >& nodal_stiffness = rconst_this.GetValue(NODAL_STIFFNESS);
+    const array_1d<double, 3 >& nodal_stiffness = rconst_this.GetValue(NODAL_DISPLACEMENT_STIFFNESS);
     for ( unsigned int j = 0; j < dimension; ++j )
         rRightHandSideVector[j]  -= nodal_stiffness[j] * current_displacement[j];
 }
@@ -339,7 +339,7 @@ void NodalConcentratedElement::CalculateLeftHandSide( MatrixType& rLeftHandSideM
     const auto& rconst_this = *this;
 
     // We add the nodal stiffness
-    const array_1d<double, 3 >& nodal_stiffness = rconst_this.GetValue(NODAL_STIFFNESS);
+    const array_1d<double, 3 >& nodal_stiffness = rconst_this.GetValue(NODAL_DISPLACEMENT_STIFFNESS);
     for ( unsigned int j = 0; j < dimension; ++j )
         rLeftHandSideMatrix(j, j) += nodal_stiffness[j];
 }
@@ -442,7 +442,7 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo )
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
     KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
     KRATOS_CHECK_VARIABLE_KEY(NODAL_MASS)
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_STIFFNESS)
+    KRATOS_CHECK_VARIABLE_KEY(NODAL_DISPLACEMENT_STIFFNESS)
     KRATOS_CHECK_VARIABLE_KEY(NODAL_DAMPING_RATIO)
     KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
 

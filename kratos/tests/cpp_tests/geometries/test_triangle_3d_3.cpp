@@ -25,9 +25,9 @@
 // Utility includes
 #include "utilities/geometry_utilities.h"
 
-namespace Kratos 
+namespace Kratos
 {
-namespace Testing 
+namespace Testing
 {
     /// Factory functions
 
@@ -172,10 +172,10 @@ namespace Testing
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IsInside, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRightTriangle3D3<NodeType>();
 
-        Point PointInside(0.33, 0.33, 0.0);
+        Point PointInside(0.5 * std::cos(Globals::Pi/4), 0.5, 0.5 * std::sin(Globals::Pi/4));
         Point PointOutside(0.66, 0.66, 0.0);
         Point PointInVertex(0.0, 0.0, 0.0);
-        Point PointInEdge(0.5, 0.5, 0.0);
+        Point PointInEdge(0.0, 0.5, 0.0);
 
         Point LocalCoords;
 
