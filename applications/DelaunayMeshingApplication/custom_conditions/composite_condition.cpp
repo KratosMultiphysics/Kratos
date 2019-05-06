@@ -103,7 +103,7 @@ CompositeCondition&  CompositeCondition::operator=(CompositeCondition const& rOt
 Condition::Pointer CompositeCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,
 					       PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared<CompositeCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+  return Kratos::make_intrusive<CompositeCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 
@@ -115,7 +115,7 @@ Condition::Pointer CompositeCondition::Create( IndexType NewId, GeometryType::Po
 					       PropertiesType::Pointer pProperties) const
 {
 
-  return Kratos::make_shared<CompositeCondition>( NewId, pGeom, pProperties );
+  return Kratos::make_intrusive<CompositeCondition>( NewId, pGeom, pProperties );
 }
 
 
@@ -142,7 +142,7 @@ Condition::Pointer CompositeCondition::Clone( IndexType NewId, NodesArrayType co
   NewCompositeCondition.SetData(this->GetData());
   NewCompositeCondition.SetFlags(this->GetFlags());
 
-  return Kratos::make_shared< CompositeCondition > (NewCompositeCondition);
+  return Kratos::make_intrusive< CompositeCondition > (NewCompositeCondition);
 }
 
 

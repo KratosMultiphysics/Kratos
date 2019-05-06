@@ -53,7 +53,7 @@ Element::Pointer AxisymSmallDisplacement::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<AxisymSmallDisplacement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<AxisymSmallDisplacement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 //************************************************************************************
@@ -65,7 +65,7 @@ Element::Pointer AxisymSmallDisplacement::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<AxisymSmallDisplacement>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<AxisymSmallDisplacement>( NewId, pGeom, pProperties );
 }
 
 //******************************* DESTRUCTOR *****************************************

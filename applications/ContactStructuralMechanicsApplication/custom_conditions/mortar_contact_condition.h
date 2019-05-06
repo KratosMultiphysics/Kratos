@@ -81,7 +81,7 @@ public:
     ///@{
 
     /// Counted pointer of MortarContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MortarContactCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MortarContactCondition );
 
     /// Base class definitions
     typedef PairedCondition                                                               BaseType;
@@ -595,7 +595,7 @@ protected:
      * @param CurrentGeometry The geometry containing the nodes that are needed to be checked as active or inactive
      * @return The integer that can be used to identify the case to compute
      */
-    virtual IndexType GetActiveInactiveValue(GeometryType& CurrentGeometry) const
+    virtual IndexType GetActiveInactiveValue(const GeometryType& CurrentGeometry) const
     {
         KRATOS_ERROR << "You are calling to the base class method GetActiveInactiveValue, you are evil, and your seed must be eradicated from the face of the earth" << std::endl;
 
