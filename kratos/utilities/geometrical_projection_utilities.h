@@ -204,7 +204,7 @@ public:
      * @return Distance The distance between point and line
      */
     template<class TGeometryType>
-    static inline double FastNormalProjectOnLine(
+    static inline double FastProjectOnLine2D(
         const TGeometryType& rGeometry,
         const Point& rPointToProject,
         PointType& rPointProjected
