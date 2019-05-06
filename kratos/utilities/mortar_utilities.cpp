@@ -314,7 +314,7 @@ double GetAuxiliarValue<Variable<array_1d<double, 3>>>(
 
 template<>
 void MatrixValue<Variable<double>, Historical>(
-    GeometryType& rThisGeometry,
+    const GeometryType& rThisGeometry,
     Variable<double>& rThisVariable,
     Matrix& rThisValue
     )
@@ -331,7 +331,7 @@ void MatrixValue<Variable<double>, Historical>(
 
 template<>
 void MatrixValue<Variable<array_1d<double, 3>>, Historical>(
-    GeometryType& rThisGeometry,
+    const GeometryType& rThisGeometry,
     Variable<array_1d<double, 3>>& rThisVariable,
     Matrix& rThisValue
     )
@@ -353,7 +353,7 @@ void MatrixValue<Variable<array_1d<double, 3>>, Historical>(
 
 template<>
 void MatrixValue<Variable<double>, NonHistorical>(
-    GeometryType& rThisGeometry,
+    const GeometryType& rThisGeometry,
     Variable<double>& rThisVariable,
     Matrix& rThisValue
     )
@@ -370,7 +370,7 @@ void MatrixValue<Variable<double>, NonHistorical>(
 
 template<>
 void MatrixValue<Variable<array_1d<double, 3>>, NonHistorical>(
-    GeometryType& rThisGeometry,
+    const GeometryType& rThisGeometry,
     Variable<array_1d<double, 3>>& rThisVariable,
     Matrix& rThisValue
     )
@@ -474,9 +474,6 @@ void AddAreaWeightedNodalValue<Variable<double>, Historical>(
 {
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
-#ifdef KRATOS_DEBUG
-    KRATOS_WARNING_IF("WARNING:: NODE OF NULL AREA.", null_area && pThisNode->Is(SLAVE)) << " ID: " << pThisNode->Id() << std::endl;
-#endif
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
     double& r_aux_value = pThisNode->FastGetSolutionStepValue(rThisVariable);
     #pragma omp atomic
@@ -496,9 +493,6 @@ void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, Historical>(
 {
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
-#ifdef KRATOS_DEBUG
-    KRATOS_WARNING_IF("WARNING:: NODE OF NULL AREA.", null_area && pThisNode->Is(SLAVE)) << " ID: " << pThisNode->Id() << std::endl;
-#endif
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
     auto& aux_vector = pThisNode->FastGetSolutionStepValue(rThisVariable);
     const auto& nodal_vaux = pThisNode->GetValue(NODAL_VAUX);
@@ -522,9 +516,6 @@ void AddAreaWeightedNodalValue<Variable<double>, NonHistorical>(
 {
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
-#ifdef KRATOS_DEBUG
-    KRATOS_WARNING_IF("WARNING:: NODE OF NULL AREA.", null_area && pThisNode->Is(SLAVE)) << " ID: " << pThisNode->Id() << std::endl;
-#endif
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
     double& r_aux_value = pThisNode->GetValue(rThisVariable);
     #pragma omp atomic
@@ -544,9 +535,6 @@ void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, NonHistorical>(
 {
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
-#ifdef KRATOS_DEBUG
-    KRATOS_WARNING_IF("WARNING:: NODE OF NULL AREA.", null_area && pThisNode->Is(SLAVE)) << " ID: " << pThisNode->Id() << std::endl;
-#endif
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
     auto& aux_vector = pThisNode->GetValue(rThisVariable);
     const auto& nodal_vaux = pThisNode->GetValue(NODAL_VAUX);
