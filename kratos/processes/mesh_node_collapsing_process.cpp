@@ -99,8 +99,10 @@ namespace Kratos
 				if (ElementHas(*i_element, **i_coarse_node))
 					i_element->Set(TO_ERASE);
 				else
-				KRATOS_ERROR << "WE NEED INTRUSIVE PTR TO DO THIS - DISABLING";
-					//SwapElementNode(*i_element, rThisNode, **i_coarse_node);
+				{
+					Node<3>::Pointer p_coarse_node( &(**i_coarse_node) );
+					SwapElementNode(*i_element, rThisNode, p_coarse_node);
+				}
 		}
 	}
 
