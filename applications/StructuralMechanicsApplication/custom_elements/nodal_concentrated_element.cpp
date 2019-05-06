@@ -102,7 +102,7 @@ Element::Pointer NodalConcentratedElement::Create(
     ) const
 {
     //NEEDED TO CREATE AN ELEMENT
-    return Kratos::make_intrusive<NodalConcentratedElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties, mUseRayleighDamping );
+    return Kratos::make_intrusive<NodalConcentratedElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties, mELementalFlags.Is(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING), mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ACTIVE_NODE_FLAG) );
 }
 
 /***********************************************************************************/
@@ -115,7 +115,7 @@ Element::Pointer NodalConcentratedElement::Create(
     ) const
 {
     //NEEDED TO CREATE AN ELEMENT
-    return Kratos::make_intrusive<NodalConcentratedElement>( NewId, pGeom, pProperties, mUseRayleighDamping );
+    return Kratos::make_intrusive<NodalConcentratedElement>( NewId, pGeom, pProperties, mELementalFlags.Is(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING), mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ACTIVE_NODE_FLAG) );
 }
 
 //************************************CLONE*******************************************
@@ -129,7 +129,7 @@ Element::Pointer NodalConcentratedElement::Clone(
     //YOU CREATE A NEW ELEMENT CLONING THEIR VARIABLES
     //ALL MEMBER VARIABLES THAT MUST BE CLONED HAVE TO BE DEFINED HERE
 
-    NodalConcentratedElement new_element(NewId, GetGeometry().Create( rThisNodes ), pGetProperties(), mUseRayleighDamping );
+    NodalConcentratedElement new_element(NewId, GetGeometry().Create( rThisNodes ), pGetProperties(), mELementalFlags.Is(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING), mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ACTIVE_NODE_FLAG) );
 
     return Kratos::make_intrusive<NodalConcentratedElement>(new_element);
 }
