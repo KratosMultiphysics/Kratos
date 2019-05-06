@@ -464,12 +464,12 @@ public:
 		return get() != nullptr;
 	}
 
-	constexpr _T & operator*() const {
+	_T & operator*() const {
 		assert(get());
 
 		return *get();
 	}
-	constexpr _T * operator->() const {
+	_T * operator->() const {
 		assert(get());
 
 		return get();
