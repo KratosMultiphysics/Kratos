@@ -155,7 +155,7 @@ inline void EmbeddedNodalVariableFromSkinTypeHelperClass<array_1d<double, 3>>::A
 }
 
 template <class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class KRATOS_API(KRATOS_CORE) CalculateEmbeddedNodalVariableFromSkinProcess : public Process
+class CalculateEmbeddedNodalVariableFromSkinProcess : public Process
 {
 public:
 
@@ -577,7 +577,7 @@ protected:
                                 this->AddEdgeNodes(r_i_edge_geom, rModelPart);
 
                                 // Create a new element with the intersected edge geometry and fake properties
-                                auto p_element = Kratos::make_shared<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(
+                                Element::Pointer p_element = Kratos::make_intrusive<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(
                                     new_elem_id,
                                     this->pSetEdgeElementGeometry(rModelPart, r_i_edge_geom, i_edge_pair),
                                     rModelPart.pGetProperties(0));

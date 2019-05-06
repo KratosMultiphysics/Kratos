@@ -37,7 +37,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of ParticleContactElement
-    KRATOS_CLASS_POINTER_DEFINITION( ParticleContactElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( ParticleContactElement );
 
     /// Default constructor.
     ParticleContactElement( IndexType NewId, GeometryType::Pointer pGeometry );

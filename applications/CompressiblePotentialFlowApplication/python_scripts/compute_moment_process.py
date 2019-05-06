@@ -42,7 +42,7 @@ class ComputeMomentProcess(KratosMultiphysics.Process):
         m = KratosMultiphysics.Vector(3)
 
         for cond in self.body_model_part.Conditions:
-            n =  KratosMultiphysics.Vector(cond.GetValue(KratosMultiphysics.NORMAL)) #normal direction assumed outward of domain
+            n =  cond.GetGeometry().Normal()#normal direction assumed outward of domain
             cp = cond.GetValue(KratosMultiphysics.PRESSURE)
             mid_point = cond.GetGeometry().Center()
             lever = mid_point-self.reference_point
