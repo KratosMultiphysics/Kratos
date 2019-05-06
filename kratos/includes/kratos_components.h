@@ -89,23 +89,11 @@ public:
 
     static TComponentType const& Get(std::string const& Name)
     {
-#ifdef KRATOS_DEBUG
         auto it_comp =  msComponents.find(Name);
-        if (it_comp != msComponents.end()) {
-            return *(it_comp->second);
-        }
 
-        std::stringstream err_msg;
-        err_msg << "The component \"" << Name << "\" is not registered!\n"
-                << "Maybe you need to import the application where it is defined?\n"
-                << "The following components of this type are registered:" << std::endl;
-        KratosComponents instance; // creating an instance for using "PrintData"
-        instance.PrintData(err_msg);
-        KRATOS_ERROR << err_msg.str() << std::endl;
+        KRATOS_DEBUG_ERROR_IF(it_comp == msComponents.end()) << GetMessageUnregisteredComponent(Name) << std::endl;
 
-#else
-        return *(msComponents.find(Name)->second);
-#endif
+        return *(it_comp->second);
     }
 
     static ComponentsContainerType & GetComponents()
@@ -226,6 +214,14 @@ private:
     ///@name Private Operations
     ///@{
 
+    static std::string GetMessageUnregisteredComponent(const std::string& rName)
+    {
+        std::stringstream msg;
+        msg << "The component \"" << rName << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following components of this type are registered:" << std::endl;
+        KratosComponents instance; // creating an instance for using "PrintData"
+        instance.PrintData(msg);
+        return msg.str();
+    }
 
     ///@}
     ///@name Private  Access
@@ -298,44 +294,20 @@ public:
 
     static VariableData & Get(std::string const& Name)
     {
-#ifdef KRATOS_DEBUG
         auto it_comp =  msComponents.find(Name);
-        if (it_comp != msComponents.end()) {
-            return *(it_comp->second);
-        }
 
-        std::stringstream err_msg;
-        err_msg << "The variable \"" << Name << "\" is not registered!\n"
-                << "Maybe you need to import the application where it is defined?\n"
-                << "The following variables are registered:" << std::endl;
-        KratosComponents instance; // creating an instance for using "PrintData"
-        instance.PrintData(err_msg);
-        KRATOS_ERROR << err_msg.str() << std::endl;
+        KRATOS_DEBUG_ERROR_IF(it_comp == msComponents.end()) << GetMessageUnregisteredVariable(Name) << std::endl;
 
-#else
-        return *(msComponents.find(Name)->second);
-#endif
+        return *(it_comp->second);
     }
 
     static VariableData* pGet(std::string const& Name)
     {
-#ifdef KRATOS_DEBUG
         auto it_comp =  msComponents.find(Name);
-        if (it_comp != msComponents.end()) {
-            return it_comp->second;
-        }
 
-        std::stringstream err_msg;
-        err_msg << "The variable \"" << Name << "\" is not registered!\n"
-                << "Maybe you need to import the application where it is defined?\n"
-                << "The following variables are registered:" << std::endl;
-        KratosComponents instance; // creating an instance for using "PrintData"
-        instance.PrintData(err_msg);
-        KRATOS_ERROR << err_msg.str() << std::endl;
+        KRATOS_DEBUG_ERROR_IF(it_comp == msComponents.end()) << GetMessageUnregisteredVariable(Name) << std::endl;
 
-#else
-        return msComponents.find(Name)->second;
-#endif
+        return it_comp->second;
     }
 
     static ComponentsContainerType & GetComponents()
@@ -457,6 +429,14 @@ private:
     ///@name Private Operations
     ///@{
 
+    static std::string GetMessageUnregisteredVariable(const std::string& rName)
+    {
+        std::stringstream msg;
+        msg << "The variable \"" << rName << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following variables are registered:" << std::endl;
+        KratosComponents instance; // creating an instance for using "PrintData"
+        instance.PrintData(msg);
+        return msg.str();
+    }
 
     ///@}
     ///@name Private  Access
