@@ -61,10 +61,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         self.main_model_part = Model.GetModelPart(settings["model_part_name"].GetString()).GetRootModelPart()
         self.geometry_parameter = settings["geometry_parameter"].GetDouble()
         self.initial_point = settings["initial_point"].GetVector()
-        self.skin_model_part=self.model.CreateModelPart("skin")
         self.skin_model_part_name=settings["skin_model_part_name"].GetString()
-        self.boundary_model_part = self.main_model_part.CreateSubModelPart("boundary_model_part")
-        KratosMultiphysics.ModelPartIO(self.skin_model_part_name).ReadModelPart(self.skin_model_part)
 
         '''Remeshing loop parameters'''
         self.do_remeshing = settings["remeshing_flag"].GetBool()
@@ -127,8 +124,10 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         self.Execute()
 
     def InitializeSkinModelPart(self):
-        ''' This function moves the skin_model_part in the main_model_part to the desired initial point (self.initial_point).
+        ''' This function loads and moves the skin_model_part in the main_model_part to the desired initial point (self.initial_point).
             It also rotates the skin model part around the initial point according to the (self.geometry_parameter)'''
+        self.skin_model_part=self.model.CreateModelPart("skin")
+        KratosMultiphysics.ModelPartIO(self.skin_model_part_name).ReadModelPart(self.skin_model_part)
         ini_time=time.time()
         if self.skin_model_part_name=='naca0012':
             MoveModelPart(self.initial_point, self.skin_model_part)
