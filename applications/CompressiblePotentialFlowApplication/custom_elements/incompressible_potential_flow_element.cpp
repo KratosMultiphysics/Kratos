@@ -426,6 +426,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
         CalculateLocalSystemSubdividedElement(lhs_positive, lhs_negative, rCurrentProcessInfo);
         AssignLocalSystemSubdividedElement(rLeftHandSideMatrix, lhs_positive,
                                            lhs_negative, lhs_total, data);
+        //KRATOS_WATCH(lhs_total)
     }
     else
         AssignLocalSystemWakeElement(rLeftHandSideMatrix, lhs_total, data);
@@ -449,6 +450,46 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
     const double free_stream_density = 1.0; //TODO: Read from rCurrentProcessInfo[FREE_STREAM_DENSITY] once available
 
     GetWakeDistances(data.distances);
+
+    ModifiedShapeFunctions::Pointer p_calculator =
+        EmbeddedDiscontinuousInternals::GetShapeFunctionCalculator<Dim, NumNodes>(
+            *this,
+            data.distances);
+
+    Matrix positive_side_sh_func;
+    ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
+    Vector positive_side_weights;
+
+    p_calculator->ComputePositiveSideShapeFunctionsAndGradientsValues(
+        positive_side_sh_func, positive_side_sh_func_gradients,
+        positive_side_weights, GeometryData::GI_GAUSS_1);
+
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_positivo = ZeroMatrix(NumNodes, NumNodes);
+    BoundedMatrix<double, NumNodes, Dim> DN_DX;
+
+    for (unsigned int i_gauss = 0;
+         i_gauss < positive_side_sh_func_gradients.size(); i_gauss++) {
+        DN_DX = positive_side_sh_func_gradients(i_gauss);
+        noalias(lhs_positivo) += prod(DN_DX, trans(DN_DX)) * positive_side_weights(i_gauss)*free_stream_density;
+    }
+
+    Matrix negative_side_sh_func;
+    ModifiedShapeFunctions::ShapeFunctionsGradientsType negative_side_sh_func_gradients;
+    Vector negative_side_weights;
+
+    p_calculator->ComputeNegativeSideShapeFunctionsAndGradientsValues(
+        negative_side_sh_func, negative_side_sh_func_gradients,
+        negative_side_weights, GeometryData::GI_GAUSS_1);
+
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_negativo = ZeroMatrix(NumNodes, NumNodes);
+
+    for (unsigned int i_gauss = 0;
+         i_gauss < negative_side_sh_func_gradients.size(); i_gauss++) {
+        DN_DX = negative_side_sh_func_gradients(i_gauss);
+        noalias(lhs_negativo) += prod(DN_DX, trans(DN_DX)) * negative_side_weights(i_gauss)*free_stream_density;
+    }
+
+
 
     // Subdivide the element
     constexpr unsigned int nvolumes = 3 * (Dim - 1);
@@ -481,6 +522,42 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
         else
             ComputeLHSGaussPointContribution(Volumes[i]*free_stream_density, lhs_negative, data);
     }
+
+    // double area = 0.0;
+    // for (unsigned int i = 0; i< nsubdivisions; ++i)
+    // {
+    //     area += Volumes[i];
+    //     if (PartitionsSign[i] > 0)
+    //         KRATOS_WATCH(Volumes[i])
+    //     else
+    //     {
+    //         KRATOS_WATCH(Volumes[i])
+    //     }
+
+    // }
+
+    // double areo = 0.0;
+    // for (unsigned int i = 0; i < positive_side_sh_func_gradients.size(); ++i){
+    //     areo += positive_side_weights(i);
+    // }
+    // for (unsigned int i = 0; i < negative_side_sh_func_gradients.size(); ++i){
+    //     areo += negative_side_weights(i);
+    // }
+    // KRATOS_WATCH(lhs_positive)
+    // KRATOS_WATCH(lhs_negative)
+    // KRATOS_WATCH(data.DN_DX)
+    KRATOS_WATCH(lhs_positive)
+    KRATOS_WATCH(lhs_positivo)
+    KRATOS_WATCH(lhs_negative)
+    KRATOS_WATCH(lhs_negativo)
+    // KRATOS_WATCH(area)
+    // KRATOS_WATCH(data.vol)
+    // KRATOS_WATCH(Volumes)
+    // KRATOS_WATCH(areo)
+    // KRATOS_WATCH(positive_side_weights)
+    // KRATOS_WATCH(negative_side_weights)
+    // KRATOS_WATCH(GPShapeFunctionValues)
+    // KRATOS_WATCH(positive_side_sh_func)
 }
 
 template <int Dim, int NumNodes>
@@ -759,6 +836,20 @@ template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Helper functions for template specialization
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace EmbeddedDiscontinuousInternals {
+
+template <>
+ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<2, 3>(const Element& rElement, const Vector& rElementalDistances)
+{
+    return Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(rElement.pGetGeometry(), rElementalDistances);
+}
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

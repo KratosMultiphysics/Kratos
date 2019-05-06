@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/element.h"
 #include "includes/kratos_flags.h"
-
+#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/enrichment_utilities.h"
 
@@ -273,10 +273,6 @@ private:
     double ComputePressureCoefficient(const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -287,20 +283,15 @@ private:
     void load(Serializer& rSerializer) override;
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
 }; // Class IncompressiblePotentialFlowElement
+
+namespace EmbeddedDiscontinuousInternals {
+
+template <size_t TDim, size_t TNumNodes>
+ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator(
+    const Element &rElement,
+    const Vector &rElementalDistances);
+}
 
 ///@}
 
