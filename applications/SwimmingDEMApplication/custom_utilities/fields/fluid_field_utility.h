@@ -9,7 +9,7 @@
 #include "velocity_field.h"
 namespace Kratos
 {
-class KRATOS_API(SWIMMING_DEM_APPLICATION) FluidFieldUtility : public FieldUtility
+class KRATOS_API(SWIMMING_DEM_APPLICATION) FluidFieldUtility
 {
 public:
 
@@ -17,16 +17,16 @@ KRATOS_CLASS_POINTER_DEFINITION(FluidFieldUtility);
 
 /// Default constructor.
 
-FluidFieldUtility(SpaceTimeSet& rDomain, VelocityField& rField, const double fluid_density = 1000.0, const double fluid_kinematic_viscosity = 1e-6):
-    FieldUtility(rDomain, rField), mFluidDensity(fluid_density), mFluidViscosity(fluid_kinematic_viscosity){}
+FluidFieldUtility(SpaceTimeSet& rDomain, RealField& PressureField, VelocityField& rField, const double fluid_density = 1000.0, const double fluid_kinematic_viscosity = 1e-6):
+    FieldUtility(rDomain, rField), mrPressureField(PressureField) mFluidDensity(fluid_density), mFluidViscosity(fluid_kinematic_viscosity){}
 
 /// Destructor.
 
 virtual ~FluidFieldUtility(){}
 
-void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed) override;
+virtual void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed);
 
-void ImposeFieldOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& variable_to_be_imposed) override;
+virtual void ImposeFieldOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& variable_to_be_imposed, const Variable<double >& variable_to_be_imposed);
 
 virtual void ImposeVelocityOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& container_variable)
 {
@@ -104,6 +104,8 @@ private:
 ///@{
 double mFluidDensity;
 double mFluidViscosity;
+RealField& mrPressureField;
+VelocityField& mrVelocityField;
 ///@}
 ///@name Private Operators
 ///@{

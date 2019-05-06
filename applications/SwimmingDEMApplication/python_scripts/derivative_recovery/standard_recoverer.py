@@ -13,7 +13,7 @@ class StandardGradientRecoverer(recoverer.GradientRecoverer):
     def RecoverGradientOfVelocity(self):
         self.RecoverGradientOfVector(Kratos.VELOCITY, Kratos.VELOCITY_X_GRADIENT, Kratos.VELOCITY_Y_GRADIENT, Kratos.VELOCITY_Z_GRADIENT)
     def RecoverPressureGradient(self):
-        self.RecoverGradientOfScalar(Kratos.PRESSURE, Kratos.RECOVERED_PRESSURE_GRADIENT)
+        self.RecoverGradientOfScalar(Kratos.PRESSURE, Kratos.PRESSURE_GRADIENT)
 
 class StandardMaterialAccelerationRecoverer(recoverer.MaterialAccelerationRecoverer):
     def __init__(self, project_parameters, model_part):

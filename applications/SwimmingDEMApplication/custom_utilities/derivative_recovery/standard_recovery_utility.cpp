@@ -28,6 +28,7 @@
 namespace Kratos
 {
 
+using Vector3 = StandardRecoveryUtility::Vector3;
 using DoubleVarType = StandardRecoveryUtility::DoubleVarType;
 using ComponentVarType = StandardRecoveryUtility::ComponentVarType;
 using ArrayVarType = StandardRecoveryUtility::ArrayVarType;
@@ -63,8 +64,8 @@ void StandardRecoveryUtility::AddPartialTimeDerivative(const ArrayVarType& rVari
     const double delta_time_inv = 1.0 / mrModelPart.GetProcessInfo()[DELTA_TIME];
 
     for (auto inode = mrModelPart.NodesBegin(); inode != mrModelPart.NodesEnd(); ++inode){
-        array_1d <double, 3>& material_derivative = inode->FastGetSolutionStepValue(rTimeDerivativeVariable);
-        const array_1d <double, 3> eulerian_rate_of_change = delta_time_inv * (inode->FastGetSolutionStepValue(rVariable)
+        Vector3& material_derivative = inode->FastGetSolutionStepValue(rTimeDerivativeVariable);
+        const Vector3 eulerian_rate_of_change = delta_time_inv * (inode->FastGetSolutionStepValue(rVariable)
                                                                                - inode->FastGetSolutionStepValue(rVariable, 1));
         noalias(material_derivative) += eulerian_rate_of_change;
     }
@@ -120,10 +121,10 @@ void StandardRecoveryUtility::CalculateMaterialDerivative(const ArrayVarType& rV
         ++entry;
     }
 
-    std::vector<array_1d <double, 3> > convective_contributions_to_the_derivative;
+    std::vector<Vector3 > convective_contributions_to_the_derivative;
     convective_contributions_to_the_derivative.resize(entry);
 
-    array_1d <double, 3> grad = ZeroVector(3);
+    Vector3 grad = ZeroVector(3);
     const int TDim = 3;
     array_1d <double, TDim + 1 > elemental_values;
     array_1d <double, TDim + 1 > N; // shape functions vector
@@ -144,7 +145,7 @@ void StandardRecoveryUtility::CalculateMaterialDerivative(const ArrayVarType& rV
                 elemental_values[i] = geom[i].FastGetSolutionStepValue(rVectorVariable)[j];
             }
 
-            array_1d <double, 3> grad_aux = prod(trans(DN_DX), elemental_values); // its dimension may be 2
+            Vector3 grad_aux = prod(trans(DN_DX), elemental_values); // its dimension may be 2
 
             for (unsigned int i = 0; i < TDim; ++i){
                 grad[i] = grad_aux[i];
@@ -161,27 +162,27 @@ void StandardRecoveryUtility::CalculateMaterialDerivative(const ArrayVarType& rV
         // normalizing the contributions to the gradient and getting the j-component of the material derivative
 
         for (auto inode = mrModelPart.NodesBegin(); inode != mrModelPart.NodesEnd(); ++inode){
-            array_1d <double, 3>& stored_gradient_of_component_j = inode->FastGetSolutionStepValue(rMaterialDerivativeVariable);
+            Vector3& stored_gradient_of_component_j = inode->FastGetSolutionStepValue(rMaterialDerivativeVariable);
             stored_gradient_of_component_j /= inode->FastGetSolutionStepValue(NODAL_AREA);
 
             if (mStoreFullGradient){
                 if (j == 0){
-                    array_1d <double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_X_GRADIENT);
+                    Vector3& gradient = inode->FastGetSolutionStepValue(VELOCITY_X_GRADIENT);
                     noalias(gradient) = stored_gradient_of_component_j;
                 }
 
                 else if (j == 1){
-                    array_1d <double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_Y_GRADIENT);
+                    Vector3& gradient = inode->FastGetSolutionStepValue(VELOCITY_Y_GRADIENT);
                     noalias(gradient) = stored_gradient_of_component_j;
                 }
 
                 else {
-                    array_1d <double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_Z_GRADIENT);
+                    Vector3& gradient = inode->FastGetSolutionStepValue(VELOCITY_Z_GRADIENT);
                     noalias(gradient) = stored_gradient_of_component_j;
                 }
             }
 
-            const array_1d <double, 3>& velocity = inode->FastGetSolutionStepValue(VELOCITY);
+            const Vector3& velocity = inode->FastGetSolutionStepValue(VELOCITY);
             convective_contributions_to_the_derivative[id_to_position[inode->Id()]][j] = SWIMMING_INNER_PRODUCT_3(velocity, stored_gradient_of_component_j);
             stored_gradient_of_component_j = ZeroVector(3);
         }
@@ -191,8 +192,8 @@ void StandardRecoveryUtility::CalculateMaterialDerivative(const ArrayVarType& rV
     // Adding convective part
 
     for (auto inode = mrModelPart.NodesBegin(); inode != mrModelPart.NodesEnd(); ++inode){
-        const array_1d <double, 3>& stored_convective_contribution = convective_contributions_to_the_derivative[id_to_position[inode->Id()]];
-        array_1d <double, 3>& material_derivative = inode->FastGetSolutionStepValue(rMaterialDerivativeVariable);
+        const Vector3& stored_convective_contribution = convective_contributions_to_the_derivative[id_to_position[inode->Id()]];
+        Vector3& material_derivative = inode->FastGetSolutionStepValue(rMaterialDerivativeVariable);
         material_derivative = stored_convective_contribution;
     }
 

@@ -20,7 +20,8 @@
 "print_particles_results_option" : false,
 "add_each_hydro_force_option" : true,
 "add_each_hydro_force_option_comment" : " add each of the hydrodynamic forces (drag, lift and virtual mass)",
-
+"vorticity_calculation_type" : 1,
+"pressure_grad_recovery_type" : 1,
 "print_debug_info_option" : false,
 "print_debug_info_option_comment" : " print a summary of global physical measures",
 "print_particles_results_cycle" : 1,
@@ -64,7 +65,7 @@
 "fluid_nodal_results" : {
     "MATERIAL_ACCELERATION" : true,
     "VELOCITY_GRADIENT" : false,
-    "PRESSURE_GRADIENT" : false,
+    "PRESSURE_GRADIENT" : true,
     "AVERAGED_FLUID_VELOCITY" : false,
     "FLUID_FRACTION" : false,
     "FLUID_FRACTION_OLD" : false,
@@ -83,7 +84,7 @@
     "VISCOSITY" : false,
     "DISTANCE" : false,
     "SLIP_VELOCITY" : false,
-    "VORTICITY" : false,
+    "VORTICITY" : true,
     "VELOCITY_LAPLACIAN" : false,
     "BODY_FORCE" : false,
     "CONDUCTIVITY" : false,

@@ -25,6 +25,7 @@ class DerivativeRecoveryStrategy:
         self.mat_deriv_type = self.parameters["material_acceleration_calculation_type"].GetInt()
         self.laplacian_type = self.parameters["laplacian_calculation_type"].GetInt()
         self.vorticity_type = self.parameters["vorticity_calculation_type"].GetInt()
+
         self.pressure_grad_type = self.parameters["pressure_grad_recovery_type"].GetInt()
         self.fluid_fraction_grad_type = self.parameters["coupling"]["backward_coupling"]["fluid_fraction_grad_type"].GetInt()
 
@@ -98,7 +99,7 @@ class DerivativeRecoveryStrategy:
             raise Exception('The value of laplacian_calculation_type is ' + str(self.laplacian_type) + ' , which does not correspond to any valid option.')
 
     def GetVorticityTool(self):
-        if self.pre_computed_derivatives:
+        if self.pre_computed_derivatives or self.vorticity_type == 1:
             return recoverer.VorticityRecoverer(self.parameters, self.fluid_model_part)
         if self.vorticity_type == 0:
             return recoverer.EmptyVorticityRecoverer(self.parameters, self.fluid_model_part)
@@ -144,7 +145,9 @@ class DerivativeRecoveryStrategy:
         self.mat_deriv_tool.RecoverMaterialAcceleration()
         # standard = standard_recoverer.StandardMaterialAccelerationRecoverer(self.parameters, self.fluid_model_part)
         # standard.cplusplus_recovery_tool.SmoothVectorField(self.fluid_model_part, MATERIAL_ACCELERATION, VELOCITY_COMPONENT_GRADIENT)
+        self.vorticity_tool.RecoverVorticityFromGradient()
         self.velocity_grad_tool.RecoverGradientOfVelocity()
         self.pressure_grad_tool.RecoverPressureGradient()
         self.fluid_fraction_grad_tool.RecoverFluidFractionGradient()
         self.laplacian_tool.RecoverVelocityLaplacian()
+        self.pressure_grad_tool.RecoverPressureGradient()

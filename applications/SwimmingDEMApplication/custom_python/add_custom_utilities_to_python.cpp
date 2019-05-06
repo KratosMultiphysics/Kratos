@@ -326,8 +326,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         ;
 
     // and the same for 'FluidFieldUtility' ...
-    py::class_<FluidFieldUtility, FluidFieldUtility::Pointer, FieldUtility> (m, "FluidFieldUtility")
+    py::class_<FluidFieldUtility, FluidFieldUtility::Pointer> (m, "FluidFieldUtility")
         .def(py::init<SpaceTimeSet&, VelocityField&, const double, const double >())
+        .def("ImposeFieldOnNodes", ImposeDoubleField)
+        .def("ImposeFieldOnNodes", ImposeVectorField)
         ;
 
     py::class_<RecoveryVariablesContainer, RecoveryVariablesContainer::Pointer>

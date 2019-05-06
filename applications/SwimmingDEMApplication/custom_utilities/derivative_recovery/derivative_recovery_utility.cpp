@@ -176,22 +176,4 @@ void DerivativeRecoveryUtility::CalculateLaplacian(const std::string VariableNam
     }
 }
 
-// template <>
-// void DerivativeRecoveryUtility::AddPartialTimeDerivative(const DoubleVarType& rVariable, const DoubleVarType& rTimeDerivativeVariable)
-// {
-//     this->AddPartialTimeDerivative(rVariable, rTimeDerivativeVariable);
-// }
-
-// template <>
-// void CalculateMaterialDerivative(const DoubleVarType& rVariable, const DoubleVarType& rTimeDerivativeVariable)
-// {
-//     this->CalculateMaterialDerivative(rVariable, rTimeDerivativeVariable);
-// }
-
-// template <>
-// void CalculateMaterialDerivative(const ArrayVarType& rVariable, const ArrayVarType& rTimeDerivativeVariable)
-// {
-//     this->CalculateMaterialDerivative(rVariable, rTimeDerivativeVariable);
-// }
-
 }  // namespace Kratos.
