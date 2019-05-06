@@ -22,7 +22,7 @@ class KRATOS_API(DEM_APPLICATION) RigidFace3D : public DEMWall
 public:
 
     // Counted pointer of RigidFace3D
-    KRATOS_CLASS_POINTER_DEFINITION( RigidFace3D );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( RigidFace3D );
 
 
     typedef WeakPointerVector<Element> ParticleWeakVectorType;

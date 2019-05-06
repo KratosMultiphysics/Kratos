@@ -27,7 +27,7 @@ class KRATOS_API(DEM_APPLICATION) DEMWall : public Condition
 public:
 
     // Counted pointer of DEMWall
-    KRATOS_CLASS_POINTER_DEFINITION( DEMWall );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( DEMWall );
 
 
 	typedef WeakPointerVector<Element> ParticleWeakVectorType;
