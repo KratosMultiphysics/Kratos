@@ -129,7 +129,6 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         {
             "virtual_model_part_name": "VirtualModelPart",
             "structure_model_part_name": "",
-            "level_set_type": "",
             "linear_solver_settings": {
                 "solver_type": "cg",
                 "tolerance": 1.0e-8,
@@ -238,8 +237,6 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
 
         ## Set the formulation level set type
         self.level_set_type = self.embedded_formulation.level_set_type
-        if self.settings["fm_ale_settings"]["fm_ale_solver_settings"].Has("level_set_type"):
-            self.settings["fm_ale_settings"]["fm_ale_solver_settings"]["level_set_type"].SetString(self.level_set_type)
 
         ## Construct the linear solver
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory

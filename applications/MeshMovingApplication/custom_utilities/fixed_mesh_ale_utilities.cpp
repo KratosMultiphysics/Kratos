@@ -32,11 +32,9 @@ namespace Kratos
 
     FixedMeshALEUtilities::FixedMeshALEUtilities(
         ModelPart &rVirtualModelPart,
-        ModelPart &rStructureModelPart,
-        const std::string LevelSetType) :
+        ModelPart &rStructureModelPart) :
         mrVirtualModelPart(rVirtualModelPart),
-        mrStructureModelPart(rStructureModelPart),
-        mLevelSetType(LevelSetType)
+        mrStructureModelPart(rStructureModelPart)
     {
         // Get the default settings
         auto default_parameters = this->GetDefaultSettings();
@@ -58,16 +56,10 @@ namespace Kratos
         Model &rModel,
         Parameters &rParameters) :
         mrVirtualModelPart(rModel.GetModelPart(rParameters["virtual_model_part_name"].GetString())),
-        mrStructureModelPart(rModel.GetModelPart(rParameters["structure_model_part_name"].GetString())),
-        mLevelSetType(rParameters["level_set_type"].GetString())
+        mrStructureModelPart(rModel.GetModelPart(rParameters["structure_model_part_name"].GetString()))
     {
         // Validate with default parameters
         rParameters.ValidateAndAssignDefaults(this->GetDefaultSettings());
-
-        // Check the input level set type
-        if (mLevelSetType != "continuous" && mLevelSetType != "discontinuous") {
-            KRATOS_ERROR << "Provided level set type is: " << mLevelSetType << ". Only \"continuous\" and \"discontinuous\" types are supported.";
-        }
 
         // Save the embedded nodal variable settings
         mEmbeddedNodalVariableSettings = rParameters["embedded_nodal_variable_settings"];
@@ -249,19 +241,6 @@ namespace Kratos
 
     /* Protected functions *******************************************************/
 
-    FixedMeshALEUtilities::FixedMeshALEUtilities(
-        ModelPart &rVirtualModelPart,
-        ModelPart &rStructureModelPart) :
-        mrVirtualModelPart(rVirtualModelPart),
-        mrStructureModelPart(rStructureModelPart)
-    {
-        if (mrStructureModelPart.GetBufferSize() < 2)
-        {
-            (mrStructureModelPart.GetRootModelPart()).SetBufferSize(2);
-            KRATOS_WARNING("FixedMeshALEUtilities") << "Structure model part buffer size is 1. Setting buffer size to 2." << std::endl;
-        }
-    }
-
     void FixedMeshALEUtilities::CreateVirtualModelPartElements(const ModelPart &rOriginModelPart)
     {
         auto &r_elems = rOriginModelPart.Elements();
@@ -290,7 +269,6 @@ namespace Kratos
         {
             "virtual_model_part_name": "",
             "structure_model_part_name": "",
-            "level_set_type": "",
             "linear_solver_settings": {
                 "solver_type": "cg",
                 "tolerance": 1.0e-8,
@@ -328,7 +306,7 @@ namespace Kratos
         BuilderAndSolverPointerType p_builder_and_solver = Kratos::make_shared<BuilderAndSolverType>(mpLinearSolver);
 
         // Set a linear strategy to solve the mesh moving problem
-        const unsigned int echo_level = 2;
+        const unsigned int echo_level = 0;
         const bool compute_reactions = false;
         const bool calculate_norm_dx_flag = false;
         const bool reform_dof_set_at_each_step = false;
@@ -344,42 +322,6 @@ namespace Kratos
         mpMeshMovingStrategy->Check();
         mpMeshMovingStrategy->Initialize();
         mpMeshMovingStrategy->SetEchoLevel(echo_level);
-    }
-
-    const Vector FixedMeshALEUtilities::SetDistancesVector(ModelPart::ElementIterator ItElem) const
-    {
-        auto &r_geom = ItElem->GetGeometry();
-        Vector nodal_distances(r_geom.PointsNumber());
-
-        if (mLevelSetType == "continuous"){
-            // Continuous nodal distance function case
-            for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-                nodal_distances[i_node] = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
-            }
-        } else if (mLevelSetType == "discontinuous") {
-            // Discontinuous elemental distance function case
-            nodal_distances = ItElem->GetValue(ELEMENTAL_DISTANCES);
-        } else {
-            KRATOS_ERROR << "Level set type must be either 'continuous' or 'discontinuous'. Got " << mLevelSetType;
-        }
-
-        return nodal_distances;
-    }
-
-    inline bool FixedMeshALEUtilities::IsSplit(const Vector &rDistances) const
-    {
-        unsigned int n_pos = 0, n_neg = 0;
-        for (double dist : rDistances) {
-            if(dist >= 0) {
-                ++n_pos;
-            } else {
-                ++n_neg;
-            }
-        }
-        if (n_pos > 0 && n_neg > 0) {
-            return true;
-        }
-        return false;
     }
 
     void FixedMeshALEUtilities::InitializeVirtualMeshValues()
@@ -437,6 +379,16 @@ namespace Kratos
             it_node->FastGetSolutionStepValue(DISPLACEMENT, 1) = ZeroVector(3);
         }
 
+        // Place the structure in its previous position
+        #pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(mrStructureModelPart.NumberOfNodes()); ++i_node) {
+            auto it_node = mrStructureModelPart.NodesBegin() + i_node;
+            const auto d_1 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
+            it_node->X() = it_node->X0() + d_1[0];
+            it_node->Y() = it_node->Y0() + d_1[1];
+            it_node->Z() = it_node->Z0() + d_1[2];
+        }
+
         // Compute the DISPLACEMENT increment from the structure model part and save it in the origin mesh MESH_DISPLACEMENT
         const unsigned int buff_pos_0 = 0;
         FixedMeshALEUtilities::EmbeddedNodalVariableProcessArrayType emb_nod_var_from_skin_proc_array_0(
@@ -446,7 +398,6 @@ namespace Kratos
             DISPLACEMENT,
             DISPLACEMENT,
             mEmbeddedNodalVariableSettings["gradient_penalty_coefficient"].GetDouble(),
-            mLevelSetType,
             buff_pos_0);
         emb_nod_var_from_skin_proc_array_0.Execute();
         emb_nod_var_from_skin_proc_array_0.Clear();
@@ -459,7 +410,6 @@ namespace Kratos
             DISPLACEMENT,
             DISPLACEMENT,
             mEmbeddedNodalVariableSettings["gradient_penalty_coefficient"].GetDouble(),
-            mLevelSetType,
             buff_pos_1);
         emb_nod_var_from_skin_proc_array_1.Execute();
         emb_nod_var_from_skin_proc_array_1.Clear();
@@ -467,7 +417,7 @@ namespace Kratos
         // In the intersected elements, set the MESH_DISPLACEMENT as the increment of displacement and fix it
         for (int i_elem = 0; i_elem < static_cast<int>(mpOriginModelPart->NumberOfElements()); ++i_elem) {
             auto it_elem = mpOriginModelPart->ElementsBegin() + i_elem;
-            if (this->IsSplit(this->SetDistancesVector(it_elem))) {
+            if (it_elem->Is(INTERFACE)) {
                 const auto &r_geom = it_elem->GetGeometry();
                 auto &r_virt_geom = (mrVirtualModelPart.ElementsBegin() + i_elem)->GetGeometry();
                 for (unsigned int i_node = 0; i_node < r_virt_geom.PointsNumber(); ++i_node) {
@@ -479,6 +429,16 @@ namespace Kratos
                     r_virt_geom[i_node].Fix(MESH_DISPLACEMENT_Z);
                 }
             }
+        }
+
+        // Revert the structure movement to its current position
+        #pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(mrStructureModelPart.NumberOfNodes()); ++i_node) {
+            auto it_node = mrStructureModelPart.NodesBegin() + i_node;
+            const auto d_0 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 0);
+            it_node->X() = it_node->X0() + d_0[0];
+            it_node->Y() = it_node->Y0() + d_0[1];
+            it_node->Z() = it_node->Z0() + d_0[2];
         }
     }
 

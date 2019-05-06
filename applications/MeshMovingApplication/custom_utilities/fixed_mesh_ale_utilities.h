@@ -105,8 +105,7 @@ public:
     /// Constructor
     FixedMeshALEUtilities(
         ModelPart &rVirtualModelPart,
-        ModelPart &rStructureModelPart,
-        const std::string LevelSetType);
+        ModelPart &rStructureModelPart);
 
     /// Constructor with model and parameters
     FixedMeshALEUtilities(
@@ -198,10 +197,6 @@ protected:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor for derived classes
-    FixedMeshALEUtilities(
-        ModelPart &rVirtualModelPart,
-        ModelPart &rStructureModelPart);
 
     ///@}
     ///@name Static Member Variables
@@ -267,7 +262,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    const std::string mLevelSetType;
     LinearSolverType::Pointer mpLinearSolver = nullptr;
     StrategyPointerType mpMeshMovingStrategy = nullptr;
 
@@ -299,26 +293,6 @@ private:
      * This methods sets the mesh moving linear solver strategy
      */
     void SetMeshMovingStrategy();
-
-    /**
-     * @brief Set the Distances Vector object
-     * For an element, this method sets its nodal distances vector.
-     * This is done in accordance to mLevelSetType, which contains
-     * the level set type (continuous or discontinuous)
-     * @param ItElem Iterator to the element to get the distances of
-     * @return const Vector Vector containing the elemental nodal distances
-     */
-    const Vector SetDistancesVector(ModelPart::ElementIterator ItElem) const;
-
-    /**
-     * @brief Check if an element is split
-     * From the provided nodal distances vector, this method
-     * checks if such element is intersected by the level set
-     * @param rDistances Refence to the nodal distances vector
-     * @return true If the element is intersected
-     * @return false If the element is not intersected
-     */
-    bool IsSplit(const Vector &rDistances) const;
 
     /**
      * @brief Copy the origin model part data to the virtual one
