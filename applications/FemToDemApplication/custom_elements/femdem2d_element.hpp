@@ -153,7 +153,6 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	double GetMaxAbsValue(const Vector& rValues);
 	double GetMinAbsValue(const Vector& rValues);
 
-
 	void CalculateDeformationMatrix(Matrix &rB, const Matrix &rDN_DX);
 
 	void SetValueOnIntegrationPoints(
@@ -212,7 +211,7 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 		const double Perturbation,
 		const int Component);
 
-       private:
+	private:
 	int mNumberOfEdges;
 	// Each component == Each edge
 	Vector mThresholds; // Stress mThreshold on edge

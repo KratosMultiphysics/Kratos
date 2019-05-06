@@ -202,7 +202,6 @@ public:
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& rThisNodes,
@@ -216,7 +215,6 @@ public:
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-
     Condition::Pointer Create(
         IndexType NewId,
         GeometryPointerType pGeom,
@@ -421,7 +419,7 @@ protected:
      * @param rCurrentGeometry The geometry containing the nodes that are needed to be checked as active or inactive
      * @return The integer that can be used to identify the case to compute
      */
-    IndexType GetActiveInactiveValue(GeometryType& rCurrentGeometry) const override
+    IndexType GetActiveInactiveValue(const GeometryType& rCurrentGeometry) const override
     {
         IndexType value = 0;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -550,11 +548,15 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
+        rSerializer.save("PreviousMortarOperators", mPreviousMortarOperators);
+        rSerializer.save("PreviousMortarOperatorsInitialized", mPreviousMortarOperatorsInitialized);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
+        rSerializer.load("PreviousMortarOperators", mPreviousMortarOperators);
+        rSerializer.load("PreviousMortarOperatorsInitialized", mPreviousMortarOperatorsInitialized);
     }
 
     ///@}
