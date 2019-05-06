@@ -50,7 +50,7 @@ namespace Kratos {
             ;
 
             class_<StressFailureCheckUtilities> (m, "StressFailureCheckUtilities")
-                .def(init<ModelPart&,ModelPart&,Parameters&>())
+                .def(init<ModelPart&,Parameters&>())
                 .def("ExecuteFinalizeSolutionStep", &StressFailureCheckUtilities::ExecuteFinalizeSolutionStep)
             ;
 
