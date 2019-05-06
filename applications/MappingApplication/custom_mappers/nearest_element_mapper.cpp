@@ -168,7 +168,7 @@ void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     else ResizeToZero(rLocalMappingMatrix, rOriginIds, rDestinationIds, rPairingStatus);
 }
 
-std::string NearestElementLocalSystem::PairingInfo(const int EchoLevel, const int CommRank) const
+std::string NearestElementLocalSystem::PairingInfo(const int EchoLevel) const
 {
     KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
 
@@ -182,7 +182,6 @@ std::string NearestElementLocalSystem::PairingInfo(const int EchoLevel, const in
             mpNode->SetValue(PAIRING_STATUS, -1);
         }
     }
-    buffer << " in rank " << CommRank;
     return buffer.str();
 }
 
