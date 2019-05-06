@@ -1134,7 +1134,7 @@ public:
      * @see GenerateEdges()
      * @see GenerateFaces()
      */
-    virtual GeometriesArrayType GenerateBoundariesEntities( void )
+    virtual GeometriesArrayType GenerateBoundariesEntities()
     {
         const SizeType dimension = this->LocalSpaceDimension();
         if (dimension == 3) {
@@ -1156,7 +1156,7 @@ public:
      * @return GeometriesArrayType containes this geometry points.
      * @see Points()
      */
-    virtual GeometriesArrayType GeneratePoints( void )
+    virtual GeometriesArrayType GeneratePoints()
     {
         GeometriesArrayType points;
 
