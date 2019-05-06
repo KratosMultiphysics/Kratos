@@ -194,6 +194,9 @@ public:
     void PrintData(std::ostream& rOStream) const override;
 
     ///@}
+protected:
+
+    void GetPotentialOnNormalElement(array_1d<double, NumNodes>& phis) const;
 
 private:
     ///@name Private Operators
@@ -249,8 +252,6 @@ private:
     void ComputePotentialJump(ProcessInfo& rCurrentProcessInfo);
 
     void ComputeElementInternalEnergy();
-
-    void GetPotentialOnNormalElement(array_1d<double, NumNodes>& phis) const;
 
     void GetPotentialOnWakeElement(Vector& split_element_values,
                                    const array_1d<double, NumNodes>& distances) const;

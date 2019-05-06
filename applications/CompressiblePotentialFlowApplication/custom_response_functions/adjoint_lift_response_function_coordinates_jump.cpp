@@ -41,17 +41,17 @@ namespace Kratos
 
         Element tracedElem = rModelPart.GetElement(mpNeighboringElement->Id());
         const array_1d<double, 3> v_inf = rModelPart.GetProcessInfo().GetValue(FREE_STREAM_VELOCITY);
-        double vinfinity_norm = norm_2(v_inf);
+        double free_stream_velocity_norm = norm_2(v_inf);
         unsigned int NumNodes = tracedElem.GetGeometry().size();
         double lift_coefficient=0.0;
         for(IndexType i = 0; i < NumNodes; ++i)
         {
             if(tracedElem.GetGeometry()[i].GetValue(TRAILING_EDGE))
-            {   
+            {
                 double potential = tracedElem.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
                 double aux_potential = tracedElem.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
 
-                lift_coefficient = 2.0 / vinfinity_norm * std::abs(potential - aux_potential);
+                lift_coefficient = 2.0 / free_stream_velocity_norm * std::abs(potential - aux_potential);
             }
         }
 
@@ -79,7 +79,7 @@ namespace Kratos
             for(IndexType i = 0; i < NumNodes; ++i)
             {
                 if(rAdjointElement.GetGeometry()[i].GetValue(TRAILING_EDGE))
-                {   
+                {
                     rResponseGradient[i] = derivative;
                     rResponseGradient[i+NumNodes] = -derivative;
                 }
@@ -97,7 +97,7 @@ namespace Kratos
         rResponseGradient = ZeroVector(rResidualGradient.size1());
         KRATOS_CATCH("");
     }
-  
+
 
     void AdjointLiftJumpCoordinatesResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
                                              const Variable<double>& rVariable,
@@ -148,7 +148,7 @@ namespace Kratos
         KRATOS_TRY;
 
         for (auto elem_it = mrModelPart.Elements().ptr_begin(); elem_it != mrModelPart.Elements().ptr_end(); ++elem_it)
-        {   
+        {
             if ((*elem_it)->Is(STRUCTURE)){
                 mpNeighboringElement = (*elem_it);
                 return;
