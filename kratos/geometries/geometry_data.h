@@ -292,8 +292,9 @@ public:
         , mDefaultMethod( ThisDefaultMethod )
         , mIntegrationPoints( ThisIntegrationPoints )
         , mShapeFunctionsValues( ThisShapeFunctionsValues )
-        , mShapeFunctionsLocalGradients( ThisShapeFunctionsLocalGradients )
     {
+        //mShapeFunctionsDerivativesContainer
+        //mShapeFunctionsDerivativesContainer[0] = ThisShapeFunctionsLocalGradients;
     }
 
     /** Constructor.
@@ -321,7 +322,7 @@ public:
         , mDefaultMethod( rOther.mDefaultMethod )
         , mIntegrationPoints( rOther.mIntegrationPoints )
         , mShapeFunctionsValues( rOther.mShapeFunctionsValues )
-        , mShapeFunctionsLocalGradients( rOther.mShapeFunctionsLocalGradients )
+        , mShapeFunctionsDerivativesContainer( rOther.mShapeFunctionsDerivativesContainer)
     {
     }
 
@@ -353,7 +354,7 @@ public:
         mDefaultMethod = rOther.mDefaultMethod;
         mIntegrationPoints = rOther.mIntegrationPoints;
         mShapeFunctionsValues = rOther.mShapeFunctionsValues;
-        mShapeFunctionsLocalGradients = rOther.mShapeFunctionsLocalGradients;
+        mShapeFunctionsDerivativesContainer = rOther.mShapeFunctionsDerivativesContainer;
 
         return *this;
     }
@@ -651,7 +652,7 @@ public:
     */
     const ShapeFunctionsGradientsType& ShapeFunctionsLocalGradients() const
     {
-        return mShapeFunctionsLocalGradients[mDefaultMethod];
+        return mShapeFunctionsDerivativesContainer[mDefaultMethod][1];
     }
 
     /** This method gives all shape functions gradients evaluated in
@@ -677,7 +678,7 @@ public:
     */
     const ShapeFunctionsGradientsType& ShapeFunctionsLocalGradients( enum IntegrationMethod ThisMethod ) const
     {
-        return mShapeFunctionsLocalGradients[ThisMethod];
+        return mShapeFunctionsDerivativesContainer[ThisMethod][1];
     }
 
     /** This method gives gradient of given shape function evaluated in
@@ -704,10 +705,10 @@ public:
     */
     const Matrix& ShapeFunctionLocalGradient( IndexType IntegrationPointIndex ) const
     {
-        if ( mShapeFunctionsLocalGradients[mDefaultMethod].size() <= IntegrationPointIndex )
+        if (mShapeFunctionsDerivativesContainer[mDefaultMethod][1].size() <= IntegrationPointIndex )
             KRATOS_ERROR << "No existing integration point" << std::endl;
 
-        return mShapeFunctionsLocalGradients[mDefaultMethod][IntegrationPointIndex];
+        return mShapeFunctionsDerivativesContainer[mDefaultMethod][1][IntegrationPointIndex];
     }
 
     /** This method gives gradient of given shape function evaluated
@@ -735,20 +736,20 @@ public:
     */
     const Matrix& ShapeFunctionLocalGradient( IndexType IntegrationPointIndex, enum IntegrationMethod ThisMethod ) const
     {
-        if ( mShapeFunctionsLocalGradients[ThisMethod].size() <= IntegrationPointIndex )
+        if (mShapeFunctionsDerivativesContainer[ThisMethod][1].size() <= IntegrationPointIndex )
         {
             KRATOS_ERROR << "No existing integration point" << std::endl;
         }
 
-        return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
+        return mShapeFunctionsDerivativesContainer[ThisMethod][1][IntegrationPointIndex];
     }
 
     const Matrix& ShapeFunctionLocalGradient( IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex, enum IntegrationMethod ThisMethod ) const
     {
-        if ( mShapeFunctionsLocalGradients[ThisMethod].size() <= IntegrationPointIndex )
+        if (mShapeFunctionsDerivativesContainer[ThisMethod][1].size() <= IntegrationPointIndex )
             KRATOS_ERROR << "No existing integration point" << std::endl;
 
-        return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
+        return mShapeFunctionsDerivativesContainer[ThisMethod][1][IntegrationPointIndex];
     }
 
 
@@ -859,7 +860,7 @@ private:
 
     ShapeFunctionsValuesContainerType mShapeFunctionsValues;
 
-    ShapeFunctionsLocalGradientsContainerType mShapeFunctionsLocalGradients;
+    //ShapeFunctionsLocalGradientsContainerType mShapeFunctionsLocalGradients;
 
     ShapeFunctionsDerivativesContainerType mShapeFunctionsDerivativesContainer;
 

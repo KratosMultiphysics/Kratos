@@ -922,6 +922,27 @@ public:
         return normal;
     }
 
+    /**
+    * @brief 
+    */
+    virtual array_1d<double, 3> UnitNormal(array_1d<double, 3>& rResult, IndexType IntegrationPointIndex) const
+    {
+        UnitNormal(rResult, IntegrationPointIndex, mpGeometryData->DefaultIntegrationMethod());
+        return rResult;
+    }
+
+    /**
+    * @brief
+    */
+    virtual array_1d<double, 3> UnitNormal(array_1d<double, 3>& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const
+    {
+        array_1d<double, 3> normal = Normal(rResult, IntegrationPointIndex);
+        const double rResult = norm_2(normal);
+        if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
+        else KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;
+        return rResult;
+    }
+
     /** Calculates the quality of the geometry according to a given criteria.
      *
      * Calculates the quality of the geometry according to a given criteria. In General
@@ -1931,20 +1952,39 @@ public:
         return rResult;
     }
 
-
-
     ///@}
     ///@name Shape Function
     ///@{
 
-    const ShapeFunctionsDerivativesIntegrationPointsType& ShapeFunctionsLocalGradients(IndexType DerivativeOrder) const
+    const ShapeFunctionsDerivativesIntegrationPointsType& ShapeFunctionsDerivatives(
+        IndexType DerivativeOrder) const
     {
         return mpGeometryData->ShapeFunctionsDerivativesIntegrationPoints(DerivativeOrder);
     }
 
-    const ShapeFunctionsDerivativesType& ShapeFunctionsDerivatives(IndexType DerivativeOrder, IndexType IntegrationPointIndex) const
+    const ShapeFunctionsDerivativesType& ShapeFunctionsDerivatives(
+        IndexType DerivativeOrder,
+        IndexType IntegrationPointIndex) const
     {
         return mpGeometryData->ShapeFunctionsDerivatives(DerivativeOrder, IntegrationPointIndex);
+    }
+
+    virtual ShapeFunctionsDerivativesType& ShapeFunctionsDerivative(
+        IndexType DerivativeOrder,
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates) const
+    {
+        KRATOS_ERROR << "Calling base class ShapeFunctionsDerivative method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return rResult;
+    }
+
+    virtual ShapeFunctionsDerivativesVectorType& ShapeFunctionsDerivatives(
+        IndexType DerivativeOrder,
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates) const
+    {
+        KRATOS_ERROR << "Calling base class ShapeFunctionsDerivatives method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return rResult;
     }
 
     /** This method gives all shape functions values evaluated in all

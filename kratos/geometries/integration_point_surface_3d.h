@@ -39,6 +39,13 @@ template<class TPointType> class IntegrationPointSurface3d
 public:
 
     /**
+    * Geometry as base class.
+    */
+    typedef Geometry<TPointType> BaseType;
+
+    typedef Geometry<TPointType> GeometryType;
+
+    /**
      * Pointer definition of IntegrationPointSurface3d
      */
     KRATOS_CLASS_POINTER_DEFINITION( IntegrationPointSurface3d );
@@ -57,7 +64,7 @@ public:
     {
         msGeometryData = GeometryData(3, 3, 2);
 
-        mpGeometryData = &msGeometryData;
+        mpGeometryData = &mGeometryData;
 
         IntegrationPoint(rLocalCoordinates[0], rLocalCoordinates[1], rIntegrationWeight);
 
@@ -65,6 +72,22 @@ public:
         IntegrationPoints[0] = IntegrationPoint;
 
         msGeometryData.SetGeometryData(IntegrationPoints, rShapeFunctionsDerivativesVector);
+    }
+
+    IntegrationPointSurface3d(
+        const PointsArrayType& ThisPoints,
+        const IntgrationPoint& rIntegrationPoint,
+        ShapeFunctionsDerivativesVectorType& rShapeFunctionsDerivativesVector)
+        : BaseType(ThisPoints, nullptr)
+    {
+        msGeometryData = GeometryData(3, 3, 2);
+
+        mpGeometryData = &mGeometryData;
+
+        IntegrationPointsContainerType IntegrationPoints = IntegrationPointsContainerType(1);
+        IntegrationPoints[0] = rIntegrationPoint;
+
+        msGeometryData.SetGeometryData(rIntegrationPoint, rShapeFunctionsDerivativesVector);
     }
 
     /**
@@ -186,6 +209,8 @@ public:
         return location;
     }
 
+
+
     ///@}
     ///@name Information
     ///@{
@@ -233,7 +258,7 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    GeometryData msGeometryData;
+    GeometryData mGeometryData;
 
     ///@}
     ///@name Serialization
@@ -287,15 +312,6 @@ template<class TPointType> inline std::ostream& operator << (
     rThis.PrintData( rOStream );
     return rOStream;
 }
-
-//template<class TPointType>
-//const GeometryData IntegrationPointSurface3d<TPointType>::msGeometryData(3,
-//    3,
-//    2,
-//    GeometryData::GI_GAUSS_1,
-//    {},
-//    {},
-//    {});
 
 }  // namespace Kratos.
 
