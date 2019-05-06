@@ -89,6 +89,7 @@ public:
 
     static TComponentType const& Get(std::string const& Name)
     {
+#ifdef KRATOS_DEBUG
         auto it_comp =  msComponents.find(Name);
         if (it_comp != msComponents.end()) {
             return *(it_comp->second);
@@ -101,6 +102,10 @@ public:
         KratosComponents instance; // creating an instance for using "PrintData"
         instance.PrintData(err_msg);
         KRATOS_ERROR << err_msg.str() << std::endl;
+
+#else
+        return *(msComponents.find(Name)->second);
+#endif
     }
 
     static ComponentsContainerType & GetComponents()
@@ -293,6 +298,7 @@ public:
 
     static VariableData & Get(std::string const& Name)
     {
+#ifdef KRATOS_DEBUG
         auto it_comp =  msComponents.find(Name);
         if (it_comp != msComponents.end()) {
             return *(it_comp->second);
@@ -305,13 +311,18 @@ public:
         KratosComponents instance; // creating an instance for using "PrintData"
         instance.PrintData(err_msg);
         KRATOS_ERROR << err_msg.str() << std::endl;
+
+#else
+        return *(msComponents.find(Name)->second);
+#endif
     }
 
     static VariableData* pGet(std::string const& Name)
     {
+#ifdef KRATOS_DEBUG
         auto it_comp =  msComponents.find(Name);
         if (it_comp != msComponents.end()) {
-            return (it_comp->second);
+            return it_comp->second;
         }
 
         std::stringstream err_msg;
@@ -321,6 +332,10 @@ public:
         KratosComponents instance; // creating an instance for using "PrintData"
         instance.PrintData(err_msg);
         KRATOS_ERROR << err_msg.str() << std::endl;
+
+#else
+        return msComponents.find(Name)->second;
+#endif
     }
 
     static ComponentsContainerType & GetComponents()
