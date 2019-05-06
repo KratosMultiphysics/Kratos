@@ -96,7 +96,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         self.linear_solver = python_linear_solver_factory.ConstructSolver(linear_solver_settings)
 
     def Execute(self):
-        KratosMultiphysics.Logger.PrintInfo('Executing Initialize Geometry')
+        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Executing Initialize Geometry')
         self.InitializeSkinModelPart()
         self.CalculateDistance()
 
@@ -110,23 +110,18 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             self.UpdateParameters()
         self.ModifyFinalDistance()
         self.ExtendDistance()
-        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Elapsed time: ',time.time()-ini_time)
-
-        KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.GEOMETRY_DISTANCE, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.DISTANCE, self.main_model_part.Nodes)
+        self.CopyAndDeleteDefaultDistance()
         self.ApplyFlags()
+        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Elapsed time: ',time.time()-ini_time)
 
         ''' ############################################################################################## '''
         ''' THESE FUNCTION CALLS ARE TEMPORARY AND WILL BE REMOVED ONCE THE EMBEDDED WAKE PROCESS IS DEFINED '''
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.main_model_part,self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
         # Find nodal neigbours util call
         avg_elem_num = 10
         avg_node_num = 10
         KratosMultiphysics.FindNodalNeighboursProcess(
             self.main_model_part, avg_elem_num, avg_node_num).Execute()
         ''' ############################################################################################## '''
-
-        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Level Set geometry initialized')
 
     def ExecuteInitialize(self):
         self.Execute()
@@ -219,6 +214,13 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             "deactivate_full_negative_elements"      : false
         }""")
         KratosMultiphysics.FluidDynamicsApplication.DistanceModificationProcess(self.main_model_part,dist_modification_parameters)
+
+    def CopyAndDeleteDefaultDistance(self):
+        ''' This function copies the distance field to an auxiliary distance variable and sets
+        to zero the default one.
+        '''
+        KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.GEOMETRY_DISTANCE, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.DISTANCE, self.main_model_part.Nodes)
 
     def ApplyFlags(self):
         ''' This process finds the elements that are cut and the elements that lie inside the geometry.
