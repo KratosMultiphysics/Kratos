@@ -64,7 +64,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/fields/time_dependant_porosity_field.h"
 #include "custom_utilities/fields/sets/space_time_rule.h"
 #include "custom_utilities/fields/sets/space_time_set.h"
-#include "custom_utilities/fields/field_utility.h"
+#include "custom_utilities/fields/scalar_field_utility.h"
+#include "custom_utilities/fields/vector_field_utility.h"
 #include "custom_utilities/fields/fluid_field_utility.h"
 #include "custom_utilities/fields/vector_field.h"
 #include "custom_utilities/fields/velocity_field.h"
@@ -327,9 +328,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 
     // and the same for 'FluidFieldUtility' ...
     py::class_<FluidFieldUtility, FluidFieldUtility::Pointer> (m, "FluidFieldUtility")
-        .def(py::init<SpaceTimeSet&, VelocityField&, const double, const double >())
-        .def("ImposeFieldOnNodes", ImposeDoubleField)
-        .def("ImposeFieldOnNodes", ImposeVectorField)
+        .def(py::init<SpaceTimeSet&, ScalarField&, VelocityField&, const double, const double >())
+        .def("ImposePressureFieldOnNodes", ImposePressureFieldOnNodes)
+        .def("ImposeVelocityFieldOnNodes", ImposeVelocityFieldOnNodes)
         ;
 
     py::class_<RecoveryVariablesContainer, RecoveryVariablesContainer::Pointer>

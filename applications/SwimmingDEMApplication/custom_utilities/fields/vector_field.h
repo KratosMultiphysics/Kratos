@@ -13,7 +13,6 @@
 
 /* Project includes */
 #include "includes/define.h"
-#include "includes/variables.h"
 #include "utilities/openmp_utils.h"
 #include "real_functions.h"
 #include "includes/variables.h"

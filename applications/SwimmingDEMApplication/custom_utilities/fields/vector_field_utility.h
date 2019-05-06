@@ -1,5 +1,5 @@
-#ifndef KRATOS_FIELD_UTILITY_H
-#define KRATOS_FIELD_UTILITY_H
+#ifndef KRATOS_VECTOR_FIELD_UTILITY_H
+#define KRATOS_VECTOR_FIELD_UTILITY_H
 // /* External includes */
 
 // System includes
@@ -26,20 +26,20 @@
 
 namespace Kratos
 {
-class KRATOS_API(SWIMMING_DEM_APPLICATION) FieldUtility
+class KRATOS_API(SWIMMING_DEM_APPLICATION) VectorFieldUtility
 {
 public:
 
-KRATOS_CLASS_POINTER_DEFINITION(FieldUtility);
+KRATOS_CLASS_POINTER_DEFINITION(VectorFieldUtility);
 
 /// Default constructor.
 
-FieldUtility(SpaceTimeSet& rDomain, VectorField<3>& rField):
+VectorFieldUtility(SpaceTimeSet& rDomain, VectorField<3>& rField):
     mrDomain(rDomain), mrVectorField(rField){}
 
 /// Destructor.
 
-virtual ~FieldUtility(){}
+virtual ~VectorFieldUtility(){}
 
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -279,12 +279,12 @@ private:
 ///@{
 
 /// Assignment operator.
-FieldUtility & operator=(FieldUtility const& rOther);
+VectorFieldUtility & operator=(VectorFieldUtility const& rOther);
 
 
 ///@}
 
-}; // Class FieldUtility
+}; // Class VectorFieldUtility
 
 ///@}
 
@@ -297,4 +297,4 @@ FieldUtility & operator=(FieldUtility const& rOther);
 ///@{
 
 } // namespace Kratos.
-#endif // KRATOS_FIELD_UTILITY_H
+#endif // KRATOS_VECTOR_FIELD_UTILITY_H

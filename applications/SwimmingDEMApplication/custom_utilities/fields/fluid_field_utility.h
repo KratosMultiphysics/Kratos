@@ -5,7 +5,8 @@
 // System includes
 
 /* Project includes */
-#include "field_utility.h"
+#include "scalar_field_utility.h"
+#include "vector_field_utility.h"
 #include "velocity_field.h"
 namespace Kratos
 {
@@ -17,8 +18,16 @@ KRATOS_CLASS_POINTER_DEFINITION(FluidFieldUtility);
 
 /// Default constructor.
 
-FluidFieldUtility(SpaceTimeSet& rDomain, RealField& PressureField, VelocityField& rField, const double fluid_density = 1000.0, const double fluid_kinematic_viscosity = 1e-6):
-    FieldUtility(rDomain, rField), mrPressureField(PressureField) mFluidDensity(fluid_density), mFluidViscosity(fluid_kinematic_viscosity){}
+FluidFieldUtility(SpaceTimeSet& rDomain,
+                  RealField& PressureField,
+                  VelocityField& rVelocityField,
+                  const double FluidDensity = 1000.0,
+                  const double FluidKinematicViscosity = 1e-6):
+    mrDomain(rDomain),
+    mrPressureField(PressureField),
+    mrVelocityField(rVelocityField),
+    mFluidDensity(FluidDensity),
+    mFluidViscosity(FluidKinematicViscosity){}
 
 /// Destructor.
 
@@ -26,28 +35,27 @@ virtual ~FluidFieldUtility(){}
 
 virtual void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed);
 
-virtual void ImposeFieldOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& variable_to_be_imposed, const Variable<double >& variable_to_be_imposed);
+virtual void ImposeFieldOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& fluid_variable_to_be_imposed, const Variable<double >& pressure_variable_to_be_imposed);
 
 virtual void ImposeVelocityOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& container_variable)
 {
-    auto r_velocity_field = dynamic_cast<VelocityField&> (mrVectorField);
-    r_velocity_field.ImposeVelocityOnNodes(r_model_part, container_variable);
+    mrVelocityField.ImposeVelocityOnNodes(r_model_part, container_variable);
 }
 
-virtual std::string Info() const override
+virtual std::string Info() const
 {
     return "";
 }
 
 /// Print information about this object.
 
-virtual void PrintInfo(std::ostream& rOStream) const override
+virtual void PrintInfo(std::ostream& rOStream) const
 {
 }
 
 /// Print object's data.
 
-virtual void PrintData(std::ostream& rOStream) const override
+virtual void PrintData(std::ostream& rOStream) const
 {
 }
 
@@ -102,10 +110,11 @@ private:
 ///@}
 ///@name Member r_variables
 ///@{
-double mFluidDensity;
-double mFluidViscosity;
+SpaceTimeSet& mrDomain;
 RealField& mrPressureField;
 VelocityField& mrVelocityField;
+double mFluidDensity;
+double mFluidViscosity;
 ///@}
 ///@name Private Operators
 ///@{

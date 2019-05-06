@@ -1,5 +1,5 @@
-#ifndef KRATOS_FIELD_UTILITY_H
-#define KRATOS_FIELD_UTILITY_H
+#ifndef KRATOS_SCALAR_FIELD_UTILITY_H
+#define KRATOS_SCALAR_FIELD_UTILITY_H
 // /* External includes */
 
 // System includes
@@ -33,7 +33,7 @@ KRATOS_CLASS_POINTER_DEFINITION(RealFieldUtility);
 
 /// Default constructor.
 
-RealFieldUtility(SpaceTimeSet& rDomain, RealFeild& rField):
+RealFieldUtility(SpaceTimeSet& rDomain, RealField& rField):
     mrDomain(rDomain), mrRealField(rField){}
 
 /// Destructor.
@@ -77,24 +77,6 @@ double EvaluateFieldAtPoint(const double& time,
 
 //***************************************************************************************************************
 //***************************************************************************************************************
-
-array_1d<double, 3> EvaluateFieldAtPoint(const double& time,
-                                      const array_1d<double, 3>& coor,
-                                      RealField::Pointer formula)
-{
-    if (mrDomain.IsIn(time, coor[0], coor[1], coor[2])){
-        double value;
-        formula->Evaluate(time, coor, value);
-        return(value);
-    }
-
-    return(0.0);
-
-}
-
-//***************************************************************************************************************
-//***************************************************************************************************************
-
 
 virtual void ImposeFieldOnNodes(Variable<double>& destination_variable,
                      const double default_value,
@@ -261,4 +243,4 @@ RealFieldUtility & operator=(RealFieldUtility const& rOther);
 ///@{
 
 } // namespace Kratos.
-#endif // KRATOS_FIELD_UTILITY_H
+#endif // KRATOS_SCALAR_FIELD_UTILITY_H

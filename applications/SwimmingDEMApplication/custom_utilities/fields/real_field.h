@@ -22,6 +22,8 @@
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "real_functions.h"
+#include "includes/variables.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -106,6 +108,7 @@ virtual void PrintData(std::ostream& rOStream) const
 {
 }
 
+virtual void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed){}
 
 ///@}
 ///@name Friends

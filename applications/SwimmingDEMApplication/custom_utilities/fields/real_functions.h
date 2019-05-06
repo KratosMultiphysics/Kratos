@@ -31,7 +31,7 @@ KRATOS_CLASS_POINTER_DEFINITION(RealFunction);
 
 /// Default constructor.
 
-RealFunction(const double param1, const double param2):mA(param1), mB(param2){}
+RealFunction(const double param1, const double param2): mA(param1), mB(param2){}
 
 /// Destructor.
 

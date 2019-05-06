@@ -18,10 +18,12 @@ void FluidFieldUtility::ImposeFieldOnNodes(ModelPart& r_model_part, const Variab
         fluid_viscosity = mFluidViscosity;
         fluid_density = mFluidDensity;
     }
-    mrVectorField.ImposeFieldOnNodes(r_model_part, variables_to_be_imposed);
+    mrVelocityField.ImposeFieldOnNodes(r_model_part, variables_to_be_imposed);
 }
 
-void FluidFieldUtility::ImposeFieldOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& variable_to_be_imposed)
+void FluidFieldUtility::ImposeFieldOnNodes(ModelPart& r_model_part, ModelPart& r_model_part,
+                                           const Variable<array_1d<double, 3> >& fluid_variable_to_be_imposed,
+                                           const Variable<double >& pressure_variable_to_be_imposed)
 {
     const double time = r_model_part.GetProcessInfo()[TIME];
 
@@ -35,8 +37,8 @@ void FluidFieldUtility::ImposeFieldOnNodes(ModelPart& r_model_part, const Variab
         fluid_viscosity = mFluidViscosity;
         fluid_density = mFluidDensity;
         const array_1d<double, 3>& coordinates = node_it->Coordinates();
-        array_1d<double, 3>& vector = node_it->FastGetSolutionStepValue(variable_to_be_imposed);
-        mrVectorField.Evaluate(time, coordinates, vector);
+        array_1d<double, 3>& vector = node_it->FastGetSolutionStepValue(fluid_variable_to_be_imposed);
+        mrVelocityField.Evaluate(time, coordinates, vector);
     }
 }
 
