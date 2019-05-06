@@ -66,9 +66,7 @@ PairingIndex ProjectOnLine(const GeometryType& rGeometry,
     array_1d<double, 3> local_coords;
     PairingIndex pairing_index;
 
-    const bool is_inside = rGeometry.IsInside(projected_point, local_coords, 1e-14);
-
-    if (is_inside) {
+    if (rGeometry.IsInside(projected_point, local_coords, 1e-14)) {
         pairing_index = PairingIndex::Line_Inside;
         rGeometry.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
         FillEquationIdVector(rGeometry, rEquationIds);
@@ -76,7 +74,7 @@ PairingIndex ProjectOnLine(const GeometryType& rGeometry,
     } else if (!ComputeApproximation) {
         return PairingIndex::Unspecified;
 
-    } else if (!is_inside && rGeometry.IsInside(projected_point, local_coords, LocalCoordTol)) {
+    } else if (rGeometry.IsInside(projected_point, local_coords, LocalCoordTol)) {
         pairing_index = PairingIndex::Line_Outside;
         rGeometry.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
         FillEquationIdVector(rGeometry, rEquationIds);
@@ -120,9 +118,7 @@ PairingIndex ProjectOnSurface(const GeometryType& rGeometry,
     array_1d<double, 3> local_coords;
     PairingIndex pairing_index;
 
-    const bool is_inside = rGeometry.IsInside(projected_point, local_coords, 1e-14);
-
-    if (is_inside) {
+    if (rGeometry.IsInside(projected_point, local_coords, 1e-14)) {
         pairing_index = PairingIndex::Surface_Inside;
         rGeometry.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
         FillEquationIdVector(rGeometry, rEquationIds);
@@ -130,7 +126,7 @@ PairingIndex ProjectOnSurface(const GeometryType& rGeometry,
     } else if (!ComputeApproximation) {
         return PairingIndex::Unspecified;
 
-    } else if (!is_inside && rGeometry.IsInside(projected_point, local_coords, LocalCoordTol)) {
+    } else if (rGeometry.IsInside(projected_point, local_coords, LocalCoordTol)) {
         pairing_index = PairingIndex::Surface_Outside;
         rGeometry.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
         FillEquationIdVector(rGeometry, rEquationIds);
@@ -168,9 +164,8 @@ PairingIndex ProjectIntoVolume(const GeometryType& rGeometry,
 {
     array_1d<double, 3> local_coords;
     PairingIndex pairing_index;
-    bool is_inside = rGeometry.IsInside(rPointToProject, local_coords);
 
-    if (is_inside) {
+    if (rGeometry.IsInside(rPointToProject, local_coords)) {
         pairing_index = PairingIndex::Volume_Inside;
         rGeometry.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
         FillEquationIdVector(rGeometry, rEquationIds);
@@ -181,7 +176,7 @@ PairingIndex ProjectIntoVolume(const GeometryType& rGeometry,
     } else if (!ComputeApproximation) {
         return PairingIndex::Unspecified;
 
-    } else if (!is_inside && rGeometry.IsInside(rPointToProject, local_coords, LocalCoordTol)) {
+    } else if (rGeometry.IsInside(rPointToProject, local_coords, LocalCoordTol)) {
         pairing_index = PairingIndex::Volume_Outside;
         rGeometry.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
         FillEquationIdVector(rGeometry, rEquationIds);
