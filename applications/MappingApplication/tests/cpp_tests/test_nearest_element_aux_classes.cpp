@@ -255,8 +255,8 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_BasicTests, KratosMappingApp
     KRATOS_CHECK_EQUAL(origin_ids2.size(), 0);
     KRATOS_CHECK_EQUAL(destination_ids2.size(), 0);
 
-    KRATOS_CHECK_C_STRING_EQUAL((local_sys.PairingInfo(2,23)).c_str(),
-        "NearestElementLocalSystem based on Node #8 at Coodinates 1 | 2.5 | -5 in rank 23");
+    KRATOS_CHECK_C_STRING_EQUAL((local_sys.PairingInfo(2)).c_str(),
+        "NearestElementLocalSystem based on Node #8 at Coodinates 1 | 2.5 | -5");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystem_Line, KratosMappingApplicationSerialTestSuite)
