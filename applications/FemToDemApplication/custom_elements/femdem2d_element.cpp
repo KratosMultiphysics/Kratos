@@ -313,8 +313,7 @@ void FemDem2DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 
 		//contributions to stiffness matrix calculated on the reference config
 		const Matrix& C =  values.GetConstitutiveMatrix();
-		// noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * (1.0 - damage_element) * prod(trans(variables.B), Matrix(prod(C, variables.B)));
-		noalias(rLeftHandSideMatrix) += variables.IntegrationWeight  * prod(trans(variables.B), Matrix(prod(C, variables.B)));
+		noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * (1.0 - damage_element) * prod(trans(variables.B), Matrix(prod(C, variables.B)));
 	}
 	KRATOS_CATCH("")
 }
