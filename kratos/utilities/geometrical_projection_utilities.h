@@ -196,7 +196,7 @@ public:
     }
 
     /**
-     * @brief Computes the normal projection a point over a line (2D only)
+     * @brief Project a point over a line (2D only)
      * @tparam TGeometryType The type of the line
      * @param rGeometry The line where to be projected
      * @param rPointToProject The point to be projected
