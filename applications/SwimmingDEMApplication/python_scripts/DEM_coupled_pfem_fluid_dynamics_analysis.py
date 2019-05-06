@@ -26,10 +26,10 @@ class DEMCoupledPFEMFluidDynamicsAnalysis(PfemFluidDynamicsAnalysis):
         self.fluid_model_part = self._GetSolver().main_model_part
 
     def Initialize(self):
-        self.AddFluidVariablesBySwimmingDEMAlgorithm()
+        self.AddFluidVariablesForSwimmingDEM()
         super(DEMCoupledPFEMFluidDynamicsAnalysis, self).Initialize()
 
-    def AddFluidVariablesBySwimmingDEMAlgorithm(self):
+    def AddFluidVariablesForSwimmingDEM(self):
         self.vars_man.AddNodalVariables(self.fluid_model_part, self.vars_man.fluid_vars)
 
     def RunSingleTimeStep(self):

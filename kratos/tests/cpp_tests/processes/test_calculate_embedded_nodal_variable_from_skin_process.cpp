@@ -80,7 +80,8 @@ namespace Testing {
             "skin_model_part_name": "Skin",
             "skin_variable_name": "TEMPERATURE",
             "embedded_nodal_variable_name": "TEMPERATURE",
-            "level_set_type": "continuous"
+            "level_set_type": "continuous",
+            "gradient_penalty_coefficient": 1.0e-5
         }
         )");
         EmbeddedNodalVariableProcessDouble emb_nod_var_from_skin_proc(current_model, settings);
@@ -144,7 +145,8 @@ namespace Testing {
             "skin_model_part_name": "Skin",
             "skin_variable_name": "DISPLACEMENT",
             "embedded_nodal_variable_name": "DISPLACEMENT",
-            "level_set_type": "discontinuous"
+            "level_set_type": "discontinuous",
+            "gradient_penalty_coefficient": 1.0e-5
         }
         )");
         EmbeddedNodalVariableProcessArray emb_nod_var_from_skin_proc(current_model, settings);
