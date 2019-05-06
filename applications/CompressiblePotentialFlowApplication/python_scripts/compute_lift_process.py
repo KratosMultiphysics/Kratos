@@ -35,7 +35,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         rz = 0.0
 
         for cond in self.body_model_part.Conditions:
-            n = cond.GetValue(KratosMultiphysics.NORMAL)
+            n = cond.GetGeometry().Normal()
             cp = cond.GetValue(KratosMultiphysics.PRESSURE)
 
             rx += n[0]*cp
