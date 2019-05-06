@@ -735,7 +735,7 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 
             ConditionType::Pointer p_condition = CreateCondition0(cond_id, ref, is_required, skip_creation);
 
-            if (p_condition != nullptr) {
+            if (p_condition.get() != nullptr) {
                 created_conditions_vector.push_back(p_condition);
 //                 mrThisModelPart.AddCondition(p_condition);
                 if (ref != 0) color_cond_0[static_cast<IndexType>(ref)].push_back(cond_id);// NOTE: ref == 0 is the MainModelPart
@@ -755,7 +755,7 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
             }
             ConditionType::Pointer p_condition = CreateCondition1(cond_id, ref, is_required, skip_creation);
 
-            if (p_condition != nullptr) {
+            if (p_condition.get() != nullptr) {
                 created_conditions_vector.push_back(p_condition);
 //                 mrThisModelPart.AddCondition(p_condition);
                 if (ref != 0) color_cond_1[static_cast<IndexType>(ref)].push_back(cond_id);// NOTE: ref == 0 is the MainModelPart
@@ -781,7 +781,7 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 
             ElementType::Pointer p_element = CreateElement0(elem_id, ref, is_required, skip_creation);
 
-            if (p_element != nullptr) {
+            if (p_element.get() != nullptr) {
                 created_elements_vector.push_back(p_element);
 //                 mrThisModelPart.AddElement(p_element);
                 if (ref != 0) color_elem_0[static_cast<IndexType>(ref)].push_back(elem_id);// NOTE: ref == 0 is the MainModelPart
@@ -802,7 +802,7 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 
             ElementType::Pointer p_element = CreateElement1(elem_id, ref, is_required,skip_creation);
 
-            if (p_element != nullptr) {
+            if (p_element.get() != nullptr) {
                 created_elements_vector.push_back(p_element);
 //                 mrThisModelPart.AddElement(p_element);
                 if (ref != 0) color_elem_1[static_cast<IndexType>(ref)].push_back(elem_id);// NOTE: ref == 0 is the MainModelPart
@@ -1528,7 +1528,7 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateCondition0(
     // Sometimes MMG creates conditions where there are not, then we skip
     Properties::Pointer p_prop = nullptr;
     Condition::Pointer p_base_condition = nullptr;
-    if (mpRefCondition[PropId] == nullptr) {
+    if (mpRefCondition[PropId].get() == nullptr) {
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
             KRATOS_WARNING("MmgProcess") << "Condition. Null pointer returned" << std::endl;
             return p_condition;
@@ -1582,7 +1582,7 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition0(
     Properties::Pointer p_prop = nullptr;
     Condition::Pointer p_base_condition = nullptr;
 
-    if (mpRefCondition[PropId] == nullptr) {
+    if (mpRefCondition[PropId].get() == nullptr) {
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
             KRATOS_WARNING("MmgProcess") << "Condition. Null pointer returned" << std::endl;
             return p_condition;
@@ -1635,7 +1635,7 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMGS>::CreateCondition0(
     }
 
     // Sometimes MMG creates conditions where there are not, then we skip
-    if (mpRefCondition[PropId] == nullptr) {
+    if (mpRefCondition[PropId].get() == nullptr) {
         KRATOS_WARNING("MmgProcess") << "Condition. Null pointer returned" << std::endl;
         return p_condition;
     }
@@ -1690,7 +1690,7 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition1(
     }
 
     // Sometimes MMG creates conditions where there are not, then we skip
-    if (mpRefCondition[PropId] == nullptr) {
+    if (mpRefCondition[PropId].get() == nullptr) {
         KRATOS_WARNING("MmgProcess") << "Condition. Null pointer returned" << std::endl;
         return p_condition;
     }
@@ -1751,7 +1751,7 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateElement0(
     if( mRemoveRegions && mDiscretization == DiscretizationOption::ISOSURFACE ){
 
         // the existence of a _nullptr_ indicates an element that was removed. This is not an alarming indicator.
-        if (mpRefElement[PropId] == nullptr) {
+        if (mpRefElement[PropId].get() == nullptr) {
             // KRATOS_INFO("MmgProcess") << "Element has been removed from domain. Ok." << std::endl;
             return p_element;
 
@@ -1777,7 +1777,7 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateElement0(
         Element::Pointer p_base_element = nullptr;
 
         // Sometimes MMG creates elements where there are not, then we skip
-        if (mpRefElement[PropId] == nullptr) {
+        if (mpRefElement[PropId].get() == nullptr) {
             if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
                 KRATOS_WARNING("MmgProcess") << "Element. Null pointer returned" << std::endl;
                 return p_element;
@@ -1831,7 +1831,7 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement0(
     if( mRemoveRegions && mDiscretization == DiscretizationOption::ISOSURFACE ){
 
         // the existence of a _nullptr_ indicates an element that was removed. This is not an alarming indicator.
-        if (mpRefElement[PropId] == nullptr) {
+        if (mpRefElement[PropId].get() == nullptr) {
             // KRATOS_INFO("MmgProcess") << "Element has been removed from domain. Ok." << std::endl;
             return p_element;
 
@@ -1858,7 +1858,7 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement0(
         Element::Pointer p_base_element = nullptr;
 
         // Sometimes MMG creates elements where there are not, then we skip
-        if (mpRefElement[PropId] == nullptr) {
+        if (mpRefElement[PropId].get() == nullptr) {
             if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
                 KRATOS_WARNING("MmgProcess") << "Element. Null pointer returned" << std::endl;
                 return p_element;
@@ -1913,7 +1913,7 @@ ElementType::Pointer MmgProcess<MMGLibray::MMGS>::CreateElement0(
         exit(EXIT_FAILURE);
 
     // Sometimes MMG creates elements where there are not, then we skip
-    if (mpRefElement[PropId] == nullptr) {
+    if (mpRefElement[PropId].get() == nullptr) {
         KRATOS_WARNING("MmgProcess") << "Element. Null pointer returned" << std::endl;
         return p_element;
     }
@@ -1970,7 +1970,7 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement1(
     }
 
     // Sometimes MMG creates elements where there are not, then we skip
-    if (mpRefElement[PropId] == nullptr) {
+    if (mpRefElement[PropId].get() == nullptr) {
         KRATOS_WARNING("MmgProcess") << "Element. Null pointer returned" << std::endl;
         return p_element;
     }

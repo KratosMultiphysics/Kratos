@@ -578,7 +578,7 @@ protected:
                             this->AddEdgeNodes(r_i_edge_geom, rModelPart);
 
                             // Create a new element with the intersected edge geometry and fake properties
-                            auto p_element = Kratos::make_shared<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(
+                            auto p_element = Kratos::make_intrusive<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(
                                 new_elem_id,
                                 this->pSetEdgeElementGeometry(rModelPart, r_i_edge_geom, i_edge_pair),
                                 rModelPart.pGetProperties(0));
