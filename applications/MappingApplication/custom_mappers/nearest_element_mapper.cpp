@@ -46,7 +46,7 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rIn
         (geom_family == GeometryData::Kratos_Triangle      && num_nodes == 3) || // linear triangle
         (geom_family == GeometryData::Kratos_Quadrilateral && num_nodes == 4)) { // linear quad
         Point projected_point;
-        proj_dist = GeometricalProjectionUtilities::FastProjectOnGeometry(*p_geom, point_to_proj, projected_point);
+        proj_dist = std::abs(GeometricalProjectionUtilities::FastProjectOnGeometry(*p_geom, point_to_proj, projected_point));
         is_inside = p_geom->IsInside(projected_point, local_coords, 1e-14);
     }
     else if (geom_family == GeometryData::Kratos_Tetrahedra ||
