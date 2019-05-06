@@ -257,7 +257,7 @@ void UniformRefinementUtility::ExecuteDivision(
             // Loop the edges to get or create the middle nodes
             for (auto edge : geom.Edges())
                 middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
-            
+
             // Split the triangle
             PointerVector<NodeType> sub_element_nodes(3);    // a triangle is defined by 3 nodes
             for (int position = 0; position < 4; position++) // there are 4 sub triangles
@@ -736,7 +736,7 @@ void UniformRefinementUtility::CreateElement(
 {
     Element::Pointer sub_element = pOriginElement->Clone(++mLastElemId, rThisNodes);
 
-    if (sub_element != nullptr)
+    if (sub_element.get() != nullptr)
     {
         // Add the element to the origin model part
         mrModelPart.AddElement(sub_element);
@@ -766,7 +766,7 @@ void UniformRefinementUtility::CreateCondition(
 {
     Condition::Pointer sub_condition = pOriginCondition->Clone(++mLastCondId, rThisNodes);
 
-    if (sub_condition != nullptr)
+    if (sub_condition.get() != nullptr)
     {
         // Add the condition to the origin model part
         mrModelPart.AddCondition(sub_condition);
