@@ -28,6 +28,7 @@
 
 // Application includes
 #include "custom_utilities/AuxiliaryFunctions.h"
+#include "custom_elements/spheric_continuum_particle.h"
 
 #include "dem_structures_coupling_application_variables.h"
 
@@ -69,14 +70,6 @@ StressFailureCheckUtilities(ModelPart& rModelPart,
     mMinRadius = rParameters["min_radius"].GetDouble();
     mMaxRadius = rParameters["max_radius"].GetDouble();
 
-    mSigma1File.open("sigma1average_t.txt", std::fstream::out | std::fstream::trunc);
-    mSigma1File << "0.0 0.0" << std::endl;
-    mSigma1File.close();
-
-    mSigma3File.open("sigma3average_t.txt", std::fstream::out | std::fstream::trunc);
-    mSigma3File << "0.0 0.0" << std::endl;
-    mSigma3File.close();
-
     KRATOS_CATCH("");
 }
 
@@ -89,31 +82,33 @@ virtual ~StressFailureCheckUtilities(){}
 
 void ExecuteFinalizeSolutionStep()
 {
-    // int NElems = static_cast<int>(mrModelPart.Elements().size());
-    // ModelPart::ElementsContainerType::iterator el_begin = mrModelPart.ElementsBegin();
     std::vector<double> ThreadSigma1(OpenMPUtils::GetNumThreads(), 0.0);
     // std::vector<double> ThreadSigma2(OpenMPUtils::GetNumThreads(), 0.0);
     std::vector<double> ThreadSigma3(OpenMPUtils::GetNumThreads(), 0.0);
     std::vector<int> ThreadNParticles(OpenMPUtils::GetNumThreads(), 0);
+
+    ModelPart::ElementsContainerType& rElements = mrModelPart.GetCommunicator().LocalMesh().Elements();
 
     #pragma omp parallel
     {
         int k = OpenMPUtils::ThisThread();
 
         #pragma omp for
-        for(int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++)
+        for(int i = 0; i < (int)rElements.size(); i++)
         {
-            ModelPart::ElementsContainerType::iterator itElem = mrModelPart.ElementsBegin() + i;
+            ModelPart::ElementsContainerType::ptr_iterator ptr_itElem = rElements.ptr_begin() + i;
 
-            const array_1d<double,3> DemPosition = itElem->GetGeometry().GetPoint(0).Coordinates();
-            const double XDistance2 = std::pow(DemPosition[0]-mCylinderCenter[0],2);
-            const double YDistance2 = std::pow(DemPosition[1]-mCylinderCenter[1],2);
+            const array_1d<double,3> DemPosition = (*ptr_itElem)->GetGeometry()[0].Coordinates();
+            const double Distance2 = std::pow(DemPosition[0]-mCylinderCenter[0],2)
+                                    + std::pow(DemPosition[1]-mCylinderCenter[1],2);
 
-            if( XDistance2 + YDistance2 > mMinRadius && XDistance2 + YDistance2 < mMaxRadius )
+            if( (Distance2 >= std::pow(mMinRadius,2)) && (Distance2 <= std::pow(mMaxRadius,2)) )
             {
-                // BoundedMatrix<double, 3, 3> stress_tensor = (*(itElem->mSymmStressTensor));
+                Element* p_element = ptr_itElem->get();
+                SphericContinuumParticle* pDemElem = dynamic_cast<SphericContinuumParticle*> (p_element);
+                BoundedMatrix<double, 3, 3> stress_tensor = (*(pDemElem->mSymmStressTensor));
                 Vector principal_stresses(3);
-                noalias(principal_stresses) = AuxiliaryFunctions::EigenValuesDirectMethod((*(itElem->mSymmStressTensor)));
+                noalias(principal_stresses) = AuxiliaryFunctions::EigenValuesDirectMethod(stress_tensor);
                 const double max_stress = *std::max_element(principal_stresses.begin(), principal_stresses.end());
                 const double min_stress = *std::min_element(principal_stresses.begin(), principal_stresses.end());
                 ThreadSigma1[k] += max_stress;
@@ -141,13 +136,20 @@ void ExecuteFinalizeSolutionStep()
 
     double CurrentTime = mrModelPart.GetProcessInfo()[TIME];
 
-    mSigma1File.open("sigma1average_t.txt", std::fstream::out | std::fstream::app);
-    mSigma1File << CurrentTime << " " << Sigma1Average << std::endl;
-    mSigma1File.close();
+    // Note: These two files are written in the "problemname_Graphs" folder.
+    //       They are erased at the beginning of the simulation.
+    std::fstream Sigma1File;
+    std::fstream Sigma3File;
 
-    mSigma3File.open("sigma3average_t.txt", std::fstream::out | std::fstream::app);
-    mSigma3File << CurrentTime << " " << Sigma3Average << std::endl;
-    mSigma3File.close();
+    Sigma1File.open("sigma1average_t.txt", std::fstream::out | std::fstream::app);
+    Sigma1File.precision(12);
+    Sigma1File << CurrentTime << " " << Sigma1Average << std::endl;
+    Sigma1File.close();
+
+    Sigma3File.open("sigma3average_t.txt", std::fstream::out | std::fstream::app);
+    Sigma3File.precision(12);
+    Sigma3File << CurrentTime << " " << Sigma3Average << std::endl;
+    Sigma3File.close();
 }
 
 
@@ -198,8 +200,6 @@ protected:
     array_1d<double,3> mCylinderCenter;
     double mMinRadius;
     double mMaxRadius;
-    std::fstream mSigma1File;
-    std::fstream mSigma3File;
 
 ///@}
 ///@name Protected member r_variables

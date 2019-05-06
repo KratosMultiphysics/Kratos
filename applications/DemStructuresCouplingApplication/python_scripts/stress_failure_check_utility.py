@@ -9,7 +9,7 @@ class StressFailureCheckUtility(object):
         {
             "cylinder_center": [0.0,0.0,0.0],
             "min_radius": 0.00381,
-            "max_radius": 0.00481
+            "max_radius": 0.006
         }  """ )
 
         self.utility = DemFem.StressFailureCheckUtilities(self.model_part,self.settings)
