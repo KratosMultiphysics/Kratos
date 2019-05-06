@@ -1305,7 +1305,7 @@ public:
      * @see EdgesNumber()
      * @see Edge()
      */
-    GeometriesArrayType GenerateEdges() override
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
@@ -1339,7 +1339,7 @@ public:
      * @see GenerateEdges
      * @see FacesNumber
      */
-    GeometriesArrayType GenerateFaces() override
+    GeometriesArrayType GenerateFaces() const override
     {
         GeometriesArrayType faces = GeometriesArrayType();
 

@@ -1134,7 +1134,7 @@ public:
      * @see GenerateEdges()
      * @see GenerateFaces()
      */
-    virtual GeometriesArrayType GenerateBoundariesEntities()
+    virtual GeometriesArrayType GenerateBoundariesEntities() const
     {
         const SizeType dimension = this->LocalSpaceDimension();
         if (dimension == 3) {
@@ -1156,7 +1156,7 @@ public:
      * @return GeometriesArrayType containes this geometry points.
      * @see Points()
      */
-    virtual GeometriesArrayType GeneratePoints()
+    virtual GeometriesArrayType GeneratePoints() const
     {
         GeometriesArrayType points;
 
@@ -1213,7 +1213,7 @@ public:
      * @see EdgesNumber()
      * @see Edge()
      */
-    virtual GeometriesArrayType GenerateEdges()
+    virtual GeometriesArrayType GenerateEdges() const
     {
         KRATOS_ERROR << "Calling base class Edges method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
     }
@@ -1278,7 +1278,7 @@ public:
      * @see GenerateEdges
      * @see FacesNumber
      */
-    virtual GeometriesArrayType GenerateFaces()
+    virtual GeometriesArrayType GenerateFaces() const
     {
         KRATOS_ERROR << "Calling base class GenerateFaces method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
     }

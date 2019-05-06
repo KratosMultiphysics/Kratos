@@ -890,7 +890,7 @@ public:
      * @see EdgesNumber()
      * @see Edge()
      */
-    GeometriesArrayType GenerateEdges() override
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
