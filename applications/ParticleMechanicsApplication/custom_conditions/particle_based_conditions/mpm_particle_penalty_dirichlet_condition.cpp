@@ -46,7 +46,7 @@ MPMParticlePenaltyDirichletCondition::MPMParticlePenaltyDirichletCondition( Inde
 
 Condition::Pointer MPMParticlePenaltyDirichletCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<MPMParticlePenaltyDirichletCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMParticlePenaltyDirichletCondition>(NewId, pGeom, pProperties);
 }
 
 //************************************************************************************
@@ -54,7 +54,7 @@ Condition::Pointer MPMParticlePenaltyDirichletCondition::Create(IndexType NewId,
 
 Condition::Pointer MPMParticlePenaltyDirichletCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared<MPMParticlePenaltyDirichletCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<MPMParticlePenaltyDirichletCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 //******************************* DESTRUCTOR *****************************************
