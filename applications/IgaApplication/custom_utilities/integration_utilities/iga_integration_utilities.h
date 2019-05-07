@@ -35,7 +35,7 @@ namespace IgaIntegrationUtilities
         {
             auto it_elem = rElementList[i];
 
-            auto p_element = rReferenceElement.Create(rIdCounter, it_elem->pGetGeometry(), it_elem->pGetProperties());
+            auto p_element = rReferenceElement.Create(rIdCounter, it_elem->pGetGeometry(), nullptr);
 
             rIdCounter++;
 
