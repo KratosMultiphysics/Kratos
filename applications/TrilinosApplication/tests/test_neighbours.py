@@ -2,9 +2,13 @@
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
-import KratosMultiphysics.mpi as KratosMPI
-import KratosMultiphysics.MetisApplication as KratosMetis
-import kratos_utilities
+#import KratosMultiphysics.mpi as KratosMPI
+# import KratosMultiphysics.MetisApplication as KratosMetis
+# import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+import KratosMultiphysics.kratos_utilities as kratos_utilities
+
+import os
+
 
 
 def GetFilePath(fileName):
@@ -22,33 +26,33 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(rank)+".time")
         kratos_comm.Barrier()
 
+    def _ReadSerialModelPart(self,model_part, mdpa_file_name):
+        import_flags = KratosMultiphysics.ModelPartIO.READ | KratosMultiphysics.ModelPartIO.SKIP_TIMER
+        KratosMultiphysics.ModelPartIO(mdpa_file_name, import_flags).ReadModelPart(model_part)
+
+    def _ReadDistributedModelPart(self,model_part, mdpa_file_name):
+        from KratosMultiphysics.TrilinosApplication import trilinos_import_model_part_utility
+
+        importer_settings = KratosMultiphysics.Parameters("""{
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": \"""" + mdpa_file_name + """\",
+                "partition_in_memory" : false
+            },
+            "echo_level" : 0
+        }""")
+
+        model_part_import_util = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(model_part, importer_settings)
+        model_part_import_util.ImportModelPart()
+        model_part_import_util.CreateCommunicators()
+
     def _ReadModelPart(self, input_filename, mp):
         kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
 
-        if(kratos_comm.IsDistributed()):
-            if kratos_comm.Rank() == 0 :
-
-                # Original .mdpa file reading
-                model_part_io = KratosMultiphysics.ModelPartIO(input_filename)
-
-                # Partition of the original .mdpa file
-                number_of_partitions = kratos_comm.Size() # Number of partitions equals the number of processors
-                domain_size = mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-                verbosity = 0
-                sync_conditions = True # Make sure that the condition goes to the same partition as the element is a face of
-
-                partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
-                partitioner.Execute()
-
-            kratos_comm.Barrier()
-
-            ## Read the partitioned .mdpa files
-            mpi_input_filename = input_filename + "_" + str(kratos_comm.Rank())
-            model_part_io = KratosMultiphysics.ModelPartIO(mpi_input_filename)
-            model_part_io.ReadModelPart(mp)
+        if kratos_comm.IsDistributed():
+            self._ReadDistributedModelPart(mp, input_filename)
         else:
-            model_part_io = KratosMultiphysics.ModelPartIO(input_filename)
-            model_part_io.ReadModelPart(mp)
+            self._ReadSerialModelPart(mp, input_filename)
 
         print("reading finished")
 
@@ -66,7 +70,7 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
         ## Serial partition of the original .mdpa file
-        input_filename = "test_mpi_communicator"
+        input_filename = GetFilePath("test_mpi_communicator")
         self._ReadModelPart(input_filename, main_model_part)
 
         #compute nodal neighbours

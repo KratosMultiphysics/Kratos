@@ -38,7 +38,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicator, KratosMPICoreFastSuite)
     auto pnode = mp.CreateNewNode(current_rank+1, current_rank,current_rank,current_rank); //the node is equal to the current rank;
     pnode->FastGetSolutionStepValue(PARTITION_INDEX) = current_rank;
     pnode->SetValue(TEMPERATURE, current_rank );
-    //GlobalPointer< Node<3> > gp(pnode, pnode->FastGetSolutionStepValue(PARTITION_INDEX));
 
     GlobalPointerUtilities<ModelPart::NodesContainerType, Node<3> > gp_utility(r_default_comm);
 

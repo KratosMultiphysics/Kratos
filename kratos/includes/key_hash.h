@@ -38,10 +38,6 @@ namespace Kratos
     /// The definition of the hash type
     typedef std::size_t HashType;
 
-    // The node definition
-//    template< int TDim> class Node; //forward declaration
-//    typedef Node<3> NodeType;
-
 ///@}
 ///@name  Enum's
 ///@{

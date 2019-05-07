@@ -99,9 +99,13 @@ namespace Kratos
 				if (ElementHas(*i_element, **i_coarse_node))
 					i_element->Set(TO_ERASE);
 				else
-					SwapElementNode(*i_element, rThisNode, *i_coarse_node);
-			}
+				{
+					Node<3>::Pointer p_coarse_node =  (*i_coarse_node)->shared_from_this();
+					SwapElementNode(*i_element, rThisNode, p_coarse_node);
+				}
 		}
+
+		KRATOS_WATCH("finished")
 	}
 
 	double MeshNodeCollapsingProcess::CalculateQualityIfNodeCollapses(
