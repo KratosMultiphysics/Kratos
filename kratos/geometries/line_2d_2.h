@@ -10,8 +10,9 @@
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
 //                   Felix Nagel
-//  contributors:    Hoang Giang Bui
+//  Contributors:    Hoang Giang Bui
 //                   Josep Maria Carbonell
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_LINE_2D_2_H_INCLUDED )
@@ -25,7 +26,7 @@
 #include "geometries/geometry.h"
 #include "integration/line_gauss_legendre_integration_points.h"
 #include "integration/line_collocation_integration_points.h"
-
+#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
@@ -53,8 +54,8 @@ namespace Kratos
  * @class Line2D2
  * @ingroup KratosCore
  * @brief An two node 2D line geometry with linear shape functions
- * @details The node ordering corresponds with: 
- *      0----------1 --> u  
+ * @details The node ordering corresponds with:
+ *      0----------1 --> u
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -881,9 +882,22 @@ public:
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) override
+        ) const override
     {
-        PointLocalCoordinates( rResult, rPoint );
+        // We compute the distance, if it is not in the pane we
+        const Point point_to_project(rPoint);
+        Point point_projected;
+        const double distance = GeometricalProjectionUtilities::FastProjectOnLine2D(*this, point_to_project, point_projected);
+
+        // We check if we are on the plane
+        if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
+            if (std::abs(distance) > 1.0e-6 * Length()) {
+                KRATOS_WARNING_FIRST_N("Line2D2", 10) << "The point of coordinates X: " << rPoint[0] << "\tY: " << rPoint[1] << " it is in a distance: " << std::abs(distance) << std::endl;
+                return false;
+            }
+        }
+
+        PointLocalCoordinates( rResult, point_projected );
 
         if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) ) {
             return true;

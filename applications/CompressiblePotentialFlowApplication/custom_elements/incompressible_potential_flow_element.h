@@ -50,7 +50,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of IncompressiblePotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(IncompressiblePotentialFlowElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(IncompressiblePotentialFlowElement);
 
     ///@}
     ///@name Life Cycle

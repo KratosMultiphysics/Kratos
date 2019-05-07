@@ -66,7 +66,7 @@ ContactDomainLM2DCondition&  ContactDomainLM2DCondition::operator=(ContactDomain
 
 Condition::Pointer ContactDomainLM2DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared<ContactDomainLM2DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
+  return Kratos::make_intrusive<ContactDomainLM2DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
 }
 
 //************************************CLONE*******************************************

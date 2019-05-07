@@ -21,20 +21,20 @@
 #include "includes/mesh_moving_variables.h"
 
 // Application includes
-#include "custom_utilities/explicit_mesh_moving_utilities.h"
+#include "custom_utilities/explicit_fixed_mesh_ale_utilities.h"
 
 namespace Kratos {
 namespace Testing {
 
-    KRATOS_TEST_CASE_IN_SUITE(ExplicitMeshMovingUtilities2D, MeshMovingApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(ExplicitFixedMeshALEUtilities2D, MeshMovingApplicationFastSuite)
     {
         Model current_model;
 
         // Generate the origin model part (done with the StructuredMeshGeneratorProcess)
-        Node<3>::Pointer p_point_1 = Kratos::make_shared<Node<3>>(1, 0.0, 0.0, 0.0);
-        Node<3>::Pointer p_point_2 = Kratos::make_shared<Node<3>>(2, 0.0, 1.0, 0.0);
-        Node<3>::Pointer p_point_3 = Kratos::make_shared<Node<3>>(3, 1.0, 1.0, 0.0);
-        Node<3>::Pointer p_point_4 = Kratos::make_shared<Node<3>>(4, 1.0, 0.0, 0.0);
+        Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
+        Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.0, 1.0, 0.0);
+        Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.0, 1.0, 0.0);
+        Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 1.0, 0.0, 0.0);
 
         Quadrilateral2D4<Node<3> > geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
@@ -48,6 +48,7 @@ namespace Testing {
         origin_model_part.SetBufferSize(3);
         origin_model_part.AddNodalSolutionStepVariable(VELOCITY);
         origin_model_part.AddNodalSolutionStepVariable(PRESSURE);
+        origin_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         origin_model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
         origin_model_part.AddNodalSolutionStepVariable(MESH_DISPLACEMENT);
         StructuredMeshGeneratorProcess(geometry, origin_model_part, mesher_parameters).Execute();
@@ -109,11 +110,11 @@ namespace Testing {
 
         // Set the explicit mesh moving utility
         const double search_radius = 1.0;
-        ExplicitMeshMovingUtilities::Pointer p_mesh_moving =
-            Kratos::make_shared<ExplicitMeshMovingUtilities>(virtual_model_part, str_model_part, search_radius);
+        ExplicitFixedMeshALEUtilities::Pointer p_mesh_moving =
+            Kratos::make_shared<ExplicitFixedMeshALEUtilities>(virtual_model_part, str_model_part, search_radius);
 
         // Fill the virtual model part geometry
-        p_mesh_moving->FillVirtualModelPart(origin_model_part);
+        p_mesh_moving->Initialize(origin_model_part);
 
         // Copy the origin model part data to the virtual one
         VariableUtils::Pointer p_var_utils = Kratos::make_shared<VariableUtils>();
@@ -124,7 +125,7 @@ namespace Testing {
 
         // Execute the explicit mesh movement operations
         const unsigned int buffer_size = 3;
-        p_mesh_moving->ComputeExplicitMeshMovement(delta_time);
+        p_mesh_moving->ComputeMeshMovement(delta_time);
         p_mesh_moving->ProjectVirtualValues<2>(origin_model_part, buffer_size);
         p_mesh_moving->UndoMeshMovement();
 

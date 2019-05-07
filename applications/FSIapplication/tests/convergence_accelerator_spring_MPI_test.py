@@ -82,8 +82,6 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL)
         mpi.world.barrier()
 
-        KratosMetis.SetMPICommunicatorProcess(model_part).Execute()
-
         model_part_io = KratosMultiphysics.ModelPartIO( filename )
         model_part_io.ReadModelPart(model_part)
         model_part.SetBufferSize(2)
