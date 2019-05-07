@@ -65,7 +65,7 @@ public:
     ///@{
 
     /// Pointer definition of PotentialWallCondition
-    KRATOS_CLASS_POINTER_DEFINITION(PotentialWallCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(PotentialWallCondition);
 
     static constexpr int NumNodes = TNumNodes;
     static constexpr int Dim = TDim;

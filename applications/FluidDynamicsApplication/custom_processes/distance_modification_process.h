@@ -190,6 +190,31 @@ private:
 
     void DeactivateFullNegativeElements();
 
+    template<class TDistancesVectorType>
+    void SetElementToSplitFlag(
+        Element &rElem,
+        const TDistancesVectorType& rDistancesVector)
+    {
+        unsigned int n_pos = 0;
+        unsigned int n_neg = 0;
+        for (double i_dist : rDistancesVector) {
+            if (i_dist < 0.0) {
+                n_neg++;
+            } else {
+                n_pos++;
+            }
+        }
+        if (n_neg != 0 && n_pos != 0) {
+            rElem.Set(TO_SPLIT, true);
+        } else {
+            rElem.Set(TO_SPLIT, false);
+        }
+    }
+
+    void SetContinuousDistanceToSplitFlag();
+
+    void SetDiscontinuousDistanceToSplitFlag();
+
     ///@}
     ///@name Private  Access
     ///@{
