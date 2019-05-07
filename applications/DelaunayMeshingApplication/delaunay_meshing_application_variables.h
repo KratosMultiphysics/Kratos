@@ -32,6 +32,7 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "utilities/indexed_object.h"
+#include "containers/global_pointers_vector.h"
 
 namespace Kratos
 {
@@ -40,13 +41,9 @@ namespace Kratos
   typedef PointerVectorSet<Condition, IndexedObject> ConditionContainerType;
 
   typedef Node<3>::WeakPointer NodeWeakPtrType;
-  typedef Element::WeakPointer ElementWeakPtrType;
-  typedef Condition::WeakPointer ConditionWeakPtrType;
-
+  
   typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-  typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
-  ///@}
+   ///@}
 
   ///@name Kratos Globals
   ///@{
@@ -68,12 +65,12 @@ namespace Kratos
 
   //custom neighbor and masters
   KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, NodeWeakPtrType,                    MASTER_NODE )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, ElementWeakPtrType,              MASTER_ELEMENT )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, ConditionWeakPtrType,          MASTER_CONDITION )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, GlobalPointer<Element>,              MASTER_ELEMENT )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, GlobalPointer<Condition>,          MASTER_CONDITION )
 
   KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, NodeWeakPtrVectorType,             MASTER_NODES )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, ElementWeakPtrVectorType,       MASTER_ELEMENTS )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, ConditionWeakPtrVectorType,   MASTER_CONDITIONS )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, GlobalPointersVector<Element>,       MASTER_ELEMENTS )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, GlobalPointersVector<Condition>,   MASTER_CONDITIONS )
 
   //condition variables
   KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, ConditionContainerType,      CHILDREN_CONDITIONS)

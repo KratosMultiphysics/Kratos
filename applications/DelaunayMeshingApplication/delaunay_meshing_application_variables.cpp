@@ -9,6 +9,7 @@
 
 #include "delaunay_meshing_application_variables.h"
 #include "utilities/stl_io.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -18,12 +19,8 @@ namespace Kratos
   typedef array_1d<double,6> Vector6;
 
   typedef Node<3>::WeakPointer NodeWeakPtrType;
-  typedef Element::WeakPointer ElementWeakPtrType;
-  typedef Condition::WeakPointer ConditionWeakPtrType;
-
+  
   typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-  typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
   ///@}
 
   ///@name Kratos Globals
@@ -46,12 +43,12 @@ namespace Kratos
 
   //custom neighbor and masters
   KRATOS_CREATE_VARIABLE(NodeWeakPtrType,                    MASTER_NODE )
-  KRATOS_CREATE_VARIABLE(ElementWeakPtrType,              MASTER_ELEMENT )
-  KRATOS_CREATE_VARIABLE(ConditionWeakPtrType,          MASTER_CONDITION )
+  KRATOS_CREATE_VARIABLE(GlobalPointer<Element>,              MASTER_ELEMENT )
+  KRATOS_CREATE_VARIABLE(GlobalPointer<Condition>,          MASTER_CONDITION )
 
   KRATOS_CREATE_VARIABLE(NodeWeakPtrVectorType,             MASTER_NODES )
-  KRATOS_CREATE_VARIABLE(ElementWeakPtrVectorType,       MASTER_ELEMENTS )
-  KRATOS_CREATE_VARIABLE(ConditionWeakPtrVectorType,   MASTER_CONDITIONS )
+  KRATOS_CREATE_VARIABLE(GlobalPointersVector<Element>,       MASTER_ELEMENTS )
+  KRATOS_CREATE_VARIABLE(GlobalPointersVector<Condition>,   MASTER_CONDITIONS )
 
   //condition variables
   KRATOS_CREATE_VARIABLE(ConditionContainerType,     CHILDREN_CONDITIONS )

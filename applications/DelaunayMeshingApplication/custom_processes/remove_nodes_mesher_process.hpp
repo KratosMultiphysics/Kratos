@@ -601,7 +601,7 @@ class RemoveNodesMesherProcess
         double& MeanError = i_node.FastGetSolutionStepValue(MEAN_ERROR);
         MeanError = NodalError[nodes_ids[i_node.Id()]];
 
-        ElementWeakPtrVectorType& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
+        auto& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
         double mean_node_radius = 0;
         for(auto& i_nelem : nElements)
         {
