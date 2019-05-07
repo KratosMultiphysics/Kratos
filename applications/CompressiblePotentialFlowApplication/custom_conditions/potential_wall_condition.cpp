@@ -22,7 +22,7 @@ Condition::Pointer PotentialWallCondition<TDim, TNumNodes>::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Condition::Pointer(Kratos::make_shared<PotentialWallCondition>(
+    return Condition::Pointer(Kratos::make_intrusive<PotentialWallCondition>(
         NewId, GetGeometry().Create(ThisNodes), pProperties));
     KRATOS_CATCH("");
 }
@@ -32,7 +32,7 @@ Condition::Pointer PotentialWallCondition<TDim, TNumNodes>::Create(
     IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
     return Condition::Pointer(
-        Kratos::make_shared<PotentialWallCondition>(NewId, pGeom, pProperties));
+        Kratos::make_intrusive<PotentialWallCondition>(NewId, pGeom, pProperties));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -52,12 +52,6 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::Initialize()
 {
     KRATOS_TRY;
-
-    const array_1d<double, 3>& rNormal = this->GetValue(NORMAL);
-
-    KRATOS_ERROR_IF(norm_2(rNormal) < std::numeric_limits<double>::epsilon())
-        << "Error on condition -> " << this->Id() << "\n"
-        << "NORMAL must be calculated before using this condition." << std::endl;
 
     if (mInitializeWasPerformed)
         return;
@@ -100,11 +94,11 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType&
     else
         CalculateNormal3D(An);
 
-    const double density_infinity = 1.0; //TODO: Read from rCurrentProcessInfo[DENSITY_INFINITY] once available
+    const double free_stream_density = 1.0; //TODO: Read from rCurrentProcessInfo[FREE_STREAM_DENSITY] once available
 
     const PotentialWallCondition& r_this = *this;
-    const array_1d<double, 3>& v = r_this.GetValue(VELOCITY_INFINITY);
-    const double value = density_infinity*inner_prod(v, An) / static_cast<double>(TNumNodes);
+    const array_1d<double, 3>& v = r_this.GetValue(FREE_STREAM_VELOCITY);
+    const double value = free_stream_density*inner_prod(v, An) / static_cast<double>(TNumNodes);
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
         rRightHandSideVector[i] = value;
@@ -262,7 +256,7 @@ void PotentialWallCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
 template <unsigned int TDim, unsigned int TNumNodes>
 inline Element::Pointer PotentialWallCondition<TDim, TNumNodes>::pGetElement() const
 {
-    KRATOS_ERROR_IF_NOT(mpElement.lock() != 0)
+    KRATOS_ERROR_IF(!mpElement.lock())
         << "No element found for condition #" << this->Id() << std::endl;
     return mpElement.lock();
 }

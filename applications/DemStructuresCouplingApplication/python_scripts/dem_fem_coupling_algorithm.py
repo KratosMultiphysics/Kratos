@@ -76,6 +76,9 @@ class Algorithm(object):
         # from KratosMultiphysics.DemStructuresCouplingApplication import stress_failure_check_utility
         # self.stress_failure_check_utility = stress_failure_check_utility.StressFailureCheckUtility(self.dem_solution.spheres_model_part)
 
+        # from KratosMultiphysics.DemStructuresCouplingApplication import stress_failure_check_utility
+        # self.stress_failure_check_utility = stress_failure_check_utility.StressFailureCheckUtility(self.dem_solution.spheres_model_part)
+
         mixed_mp = self.model.CreateModelPart('MixedPart')
         filename = os.path.join(self.dem_solution.post_path, self.dem_solution.DEM_parameters["problem_name"].GetString())
         self.gid_output = dem_structures_coupling_gid_output.DemStructuresCouplingGiDOutput(

@@ -2003,8 +2003,7 @@ class ParallelUtils(object):
 
     @classmethod
     def SetCommunicator(self, spheres_model_part, model_part_io_spheres, spheres_mp_filename):
-        MPICommSetup = 0
-        return [model_part_io_spheres, spheres_model_part, MPICommSetup]
+        return [model_part_io_spheres, spheres_model_part]
 
     @classmethod
     def GetSearchStrategy(self, solver, model_part):

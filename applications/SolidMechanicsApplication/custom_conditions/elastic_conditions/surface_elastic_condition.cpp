@@ -45,7 +45,7 @@ namespace Kratos
   //***********************************************************************************
   Condition::Pointer SurfaceElasticCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<SurfaceElasticCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<SurfaceElasticCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -58,7 +58,7 @@ namespace Kratos
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared<SurfaceElasticCondition>(NewCondition);
+    return Kratos::make_intrusive<SurfaceElasticCondition>(NewCondition);
   }
 
 
