@@ -93,8 +93,6 @@ class TestMPICommunicator(KratosUnittest.TestCase):
             9 : [5,6,8]
         }
 
-        print(found_ids)
-
         #do the check
         for key,values in found_ids.items():
             ref_values = reference_ids[key]
