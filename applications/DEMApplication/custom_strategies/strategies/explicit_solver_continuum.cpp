@@ -706,21 +706,6 @@ namespace Kratos {
                 }
             }
         }
-
-		// SAND PRODUCTION SIMULATIONS ONLY!!!!
-
-		const bool sand_prod_simulation = true;
-
-		if (!sand_prod_simulation) return;
-
-        const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
-        #pragma omp parallel
-        {
-            #pragma omp for
-            for (int i = 0; i < number_of_particles; i++) {
-                mListOfSphericContinuumParticles[i]->RemoveSpheresInsideInnerHole();
-            }
-        }
     }
 
     void ContinuumExplicitSolverStrategy::FinalizeSolutionStepFEM() {

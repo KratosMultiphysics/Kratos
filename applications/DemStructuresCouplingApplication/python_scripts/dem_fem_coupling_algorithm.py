@@ -202,6 +202,16 @@ class Algorithm(object):
                 self.dem_solution.SolverSolve()
 
                 DemFem.DemStructuresCouplingUtilities().MarkBrokenSpheres(self.dem_solution.spheres_model_part)
+                center = Kratos.Array3()
+                center[0] = 0.0
+                center[1] = 0.0
+                center[2] = 0.0
+                axis = Kratos.Array3()
+                axis[0] = 0.0
+                axis[1] = 0.0
+                axis[2] = 1.0
+                radius = 0.003
+                self.dem_solution.creator_destructor.MarkParticlesForErasingGivenCylinder(self.dem_solution.spheres_model_part, center, axis, radius)
 
                 self.dem_solution.AfterSolveOperations()
 
