@@ -106,13 +106,12 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             self.CalculateDistance()
             self.UpdateParameters()
         self.ModifyFinalDistance()
-        # self.ApplyFlags()
         self.ExtendDistance()
         self.CopyAndDeleteDefaultDistance()
         KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Elapsed time: ',time.time()-ini_time)
 
         ''' ############################################################################################## '''
-        ''' THESE FUNCTION CALLS ARE TEMPORARY AND WILL BE REMOVED ONCE THE EMBEDDED WAKE PROCESS IS DEFINED '''
+        ''' THIS FUNCTION CALL IS TEMPORARY AND WILL BE REMOVED ONCE THE EMBEDDED WAKE PROCESS IS DEFINED '''
         # Find nodal neigbours util call
         avg_elem_num = 10
         avg_node_num = 10
@@ -219,13 +218,6 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         '''
         KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.GEOMETRY_DISTANCE, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.DISTANCE, self.main_model_part.Nodes)
-
-    def ApplyFlags(self):
-        ''' This process finds the elements that are cut and the elements that lie inside the geometry.
-        '''
-        ini_time = time.time()
-        KratosMultiphysics.CompressiblePotentialFlowApplication.ApplyEmbeddedFlagsProcess(self.main_model_part).Execute()
-        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Apply flags time: ',time.time()-ini_time)
 
     def PrintOutput(self,filename):
         if self.print_output_flag:
