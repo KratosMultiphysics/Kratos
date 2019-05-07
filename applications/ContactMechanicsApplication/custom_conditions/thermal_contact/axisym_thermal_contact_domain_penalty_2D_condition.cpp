@@ -67,7 +67,7 @@ AxisymThermalContactDomainPenalty2DCondition&  AxisymThermalContactDomainPenalty
 
 Condition::Pointer AxisymThermalContactDomainPenalty2DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared<AxisymThermalContactDomainPenalty2DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
+  return Kratos::make_intrusive<AxisymThermalContactDomainPenalty2DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
 }
 
 //************************************CLONE*******************************************

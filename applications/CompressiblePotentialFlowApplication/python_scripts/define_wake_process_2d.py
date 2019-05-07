@@ -59,10 +59,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
         else: self.trailing_edge_model_part = self.fluid_model_part.GetSubModelPart("trailing_edge_model_part")
 
-        # Call the nodal normal calculation util
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
-            self.fluid_model_part, self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-
         # Find nodal neigbours util call
         avg_elem_num = 10
         avg_node_num = 10

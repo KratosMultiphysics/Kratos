@@ -64,7 +64,7 @@ public:
 
     /// Counted pointer of ConvDiff2D
     // typedef GeometryData::IntegrationMethod IntegrationMethod;
-    KRATOS_CLASS_POINTER_DEFINITION(ConvDiff2D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ConvDiff2D);
 
     ///@}
     ///@name Life Cycle
