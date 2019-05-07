@@ -4,7 +4,12 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.MetisApplication as KratosMetis
+import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.kratos_utilities as kratos_utilities
+
+import trilinos_import_model_part_utility
+import os
+
 
 
 def GetFilePath(fileName):
@@ -26,6 +31,19 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
 
         if(kratos_comm.IsDistributed()):
+            # import_settings = KratosMultiphysics.Parameters("""{
+            #     "echo_level" : 0,
+            #     "model_import_settings" : {
+            #         "input_type" : "mdpa",
+            #         "input_filename" :""
+            #     }
+            # } """)
+            # import_settings["model_import_settings"]["input_filename"].SetString(input_filename)
+
+            # TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(mp, import_settings)
+            # TrilinosModelPartImporter.ImportModelPart()
+            # TrilinosModelPartImporter.CreateCommunicators()
+            # print(mp)
             if kratos_comm.Rank() == 0 :
 
                 # Original .mdpa file reading
@@ -42,10 +60,11 @@ class TestMPICommunicator(KratosUnittest.TestCase):
 
             kratos_comm.Barrier()
 
-            ## Read the partitioned .mdpa files
+            # Read the partitioned .mdpa files
             mpi_input_filename = input_filename + "_" + str(kratos_comm.Rank())
             model_part_io = KratosMultiphysics.ModelPartIO(mpi_input_filename)
             model_part_io.ReadModelPart(mp)
+            print(mp)
         else:
             model_part_io = KratosMultiphysics.ModelPartIO(input_filename)
             model_part_io.ReadModelPart(mp)
@@ -66,7 +85,7 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
         ## Serial partition of the original .mdpa file
-        input_filename = "test_mpi_communicator"
+        input_filename = GetFilePath("test_mpi_communicator")
         self._ReadModelPart(input_filename, main_model_part)
 
         #compute nodal neighbours
