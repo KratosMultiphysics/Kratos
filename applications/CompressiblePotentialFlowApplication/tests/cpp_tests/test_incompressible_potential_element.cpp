@@ -278,9 +278,11 @@ namespace Kratos {
 
       auto potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*pElement);
 
-      KRATOS_CHECK_NEAR(potentials(0), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(potentials(1), 1.0, 1e-7);
-      KRATOS_CHECK_NEAR(potentials(2), 2.0, 1e-7);
+      std::vector<double> reference({0.0, 1.0, 2.0});
+
+      for (unsigned int i = 0; i < potentials.size(); i++) {
+        KRATOS_CHECK_NEAR(potentials(i), reference[i], 1e-7);
+      }
     }
 
   } // namespace Testing
