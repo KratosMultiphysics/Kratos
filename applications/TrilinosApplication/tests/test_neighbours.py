@@ -4,7 +4,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.MetisApplication as KratosMetis
-import kratos_utilities
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 
 def GetFilePath(fileName):
