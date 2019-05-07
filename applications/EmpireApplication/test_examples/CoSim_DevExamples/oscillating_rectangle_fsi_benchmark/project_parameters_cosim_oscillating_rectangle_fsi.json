@@ -2,7 +2,7 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 100.0,
+        "end_time" : 2.0,
         "echo_level" : 0,
         "print_colors" : true
     },
