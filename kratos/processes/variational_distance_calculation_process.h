@@ -446,13 +446,16 @@ protected:
         if(current_model.HasModelPart( mAuxModelPartName ))
             current_model.DeleteModelPart( mAuxModelPartName );
 
+        // Ensure that the nodes have distance as a DOF
+        VariableUtils().AddDof<Variable<double> >(DISTANCE, base_model_part);
+
         // Generate
         ModelPart& r_distance_model_part = current_model.CreateModelPart( mAuxModelPartName );
 
         Element::Pointer p_distance_element = Kratos::make_intrusive<DistanceCalculationElementSimplex<TDim> >();
 
-        // Ensure that the nodes have distance as a DOF
-        VariableUtils().AddDof<Variable<double> >(DISTANCE, base_model_part);
+        ConnectivityPreserveModeler modeler;
+        modeler.GenerateModelPart(base_model_part, r_distance_model_part, *p_distance_element);
 
         // Using the conditions to mark the boundary with the flag boundary
         // Note that we DO NOT add the conditions to the model part
