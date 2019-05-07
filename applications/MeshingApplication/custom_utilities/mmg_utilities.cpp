@@ -797,6 +797,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
             p_prop = rModelPart.pGetProperties(0);
             PointerVector<NodeType> dummy_nodes (2);
             p_base_condition = KratosComponents<Condition>::Get("LineCondition2D2N").Create(0, dummy_nodes, p_prop);
+            p_base_condition->Set(MARKER);
         }
     } else {
         p_base_condition = rMapPointersRefCondition[Ref];
@@ -813,6 +814,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
         condition_nodes[1] = rModelPart.pGetNode(edge_1);
 
         p_condition = p_base_condition->Create(CondId, PointerVector<NodeType>{condition_nodes}, p_prop);
+        if (p_base_condition->Is(MARKER)) p_condition->Set(MARKER);
     } else if (mEchoLevel > 2)
         KRATOS_INFO("MmgUtilities") << "Condition creation avoided" << std::endl;
 
@@ -851,6 +853,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
             p_prop = rModelPart.pGetProperties(0);
             PointerVector<NodeType> dummy_nodes (3);
             p_base_condition = KratosComponents<Condition>::Get("SurfaceCondition3D3N").Create(0, dummy_nodes, p_prop);
+            p_base_condition->Set(MARKER);
         }
     } else {
         p_base_condition = rMapPointersRefCondition[Ref];
@@ -869,6 +872,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
         condition_nodes[2] = rModelPart.pGetNode(vertex_2);
 
         p_condition = p_base_condition->Create(CondId, PointerVector<NodeType>{condition_nodes}, p_prop);
+        if (p_base_condition->Is(MARKER)) p_condition->Set(MARKER);
     } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgUtilities") << "Condition creation avoided" << std::endl;
 
