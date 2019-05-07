@@ -100,10 +100,7 @@ namespace Kratos
 					i_element->Set(TO_ERASE);
 				else
 				{
-					KRATOS_WATCH((*i_coarse_node)->use_count())
 					Node<3>::Pointer p_coarse_node =  (*i_coarse_node)->shared_from_this();
-					KRATOS_WATCH(p_coarse_node.use_count())
-					KRATOS_WATCH((*i_coarse_node)->use_count())
 					SwapElementNode(*i_element, rThisNode, p_coarse_node);
 				}
 		}
