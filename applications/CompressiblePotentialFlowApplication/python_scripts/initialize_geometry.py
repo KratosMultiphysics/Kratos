@@ -53,7 +53,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                     "distance_threshold"                     : 0.001,
                     "check_at_each_time_step"                : true,
                     "avoid_almost_empty_elements"            : true,
-                    "deactivate_full_negative_elements"      : false
+                    "deactivate_full_negative_elements"      : true
                 }
             }  """ );
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -106,9 +106,9 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             self.CalculateDistance()
             self.UpdateParameters()
         self.ModifyFinalDistance()
+        # self.ApplyFlags()
         self.ExtendDistance()
         self.CopyAndDeleteDefaultDistance()
-        self.ApplyFlags()
         KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Elapsed time: ',time.time()-ini_time)
 
         ''' ############################################################################################## '''
@@ -172,7 +172,8 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             In order to perform the refinement, it is needed to calculate the distance gradient, the initial nodal_h and the level_set metric.
         '''
         ini_time=time.time()
-        local_gradient = KratosMultiphysics.ComputeNodalGradientProcess2D(self.main_model_part, KratosMultiphysics.DISTANCE, KratosMultiphysics.DISTANCE_GRADIENT, KratosMultiphysics.NODAL_AREA)
+        local_gradient = KratosMultiphysics.ComputeNodalGradientProcess2D(self.main_model_part, KratosMultiphysics.DISTANCE,
+                                            KratosMultiphysics.DISTANCE_GRADIENT, KratosMultiphysics.NODAL_AREA)
         local_gradient.Execute()
 
         find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.main_model_part)
@@ -206,13 +207,11 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
     def ModifyFinalDistance(self):
         ''' This function modifies the distance field to avoid ill defined cuts.
         '''
-        dist_modification_parameters = KratosMultiphysics.Parameters(""" {
-            "distance_threshold"                     : 0.001,
-            "check_at_each_time_step"                : true,
-            "avoid_almost_empty_elements"            : true,
-            "deactivate_full_negative_elements"      : false
-        }""")
-        KratosMultiphysics.FluidDynamicsApplication.DistanceModificationProcess(self.main_model_part,dist_modification_parameters)
+        ini_time = time.time()
+        find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.main_model_part)
+        find_nodal_h.Execute()
+        KratosMultiphysics.FluidDynamicsApplication.DistanceModificationProcess(self.main_model_part,self.distance_modification_parameters).Execute()
+        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Modify distance time: ',time.time()-ini_time)
 
     def CopyAndDeleteDefaultDistance(self):
         ''' This function copies the distance field to an auxiliary distance variable and sets

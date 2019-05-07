@@ -55,7 +55,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSy
     const int kutta = r_this.GetValue(KUTTA);
 
 
-    if (this->Is(BOUNDARY) && wake == 0 && kutta == 0)
+    if (this->Is(TO_SPLIT) && wake == 0 && kutta == 0)
         CalculateEmbeddedLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
     else
         BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
