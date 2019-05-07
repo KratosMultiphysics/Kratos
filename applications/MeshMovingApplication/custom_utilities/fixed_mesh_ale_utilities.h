@@ -23,7 +23,7 @@
 // Project includes
 #include "containers/model.h"
 #include "includes/define.h"
-#include "includes/linear_solver_factory.h"
+#include "factories/linear_solver_factory.h"
 #include "linear_solvers/linear_solver.h"
 #include "processes/calculate_embedded_nodal_variable_from_skin_process.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
