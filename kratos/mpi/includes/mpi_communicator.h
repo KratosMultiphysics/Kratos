@@ -552,9 +552,9 @@ enum class OperationType {
     Replace,
     SumValues,
     MinValues,
-    OrMaskedFlags,
-    AndMaskedFlags,
-    ReplaceMaskedFlags
+    OrAccessedFlags,
+    AndAccessedFlags,
+    ReplaceAccessedFlags
 };
 
 // Auxiliary type for compile-time dispatch of the reduction operation in data transfer methods
@@ -1104,12 +1104,12 @@ public:
         constexpr MeshAccess<DistributedType::Local> local_meshes;
         constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
         MPIInternals::NodalFlagsAccess nodal_flag_access(TheFlags);
-        constexpr Operation<OperationType::OrMaskedFlags> masked_or;
-        constexpr Operation<OperationType::ReplaceMaskedFlags> masked_replace;
+        constexpr Operation<OperationType::OrAccessedFlags> or_accessed;
+        constexpr Operation<OperationType::ReplaceAccessedFlags> replace_accessed;
 
-        TransferDistributedValues(ghost_meshes, local_meshes, nodal_flag_access, masked_or);
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_flag_access, or_accessed);
 
-        TransferDistributedValues(local_meshes, ghost_meshes, nodal_flag_access, masked_replace);
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_flag_access, replace_accessed);
         return true;
     }
 
@@ -1122,12 +1122,12 @@ public:
         constexpr MeshAccess<DistributedType::Local> local_meshes;
         constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
         MPIInternals::NodalFlagsAccess nodal_flag_access(TheFlags);
-        constexpr Operation<OperationType::AndMaskedFlags> masked_and;
-        constexpr Operation<OperationType::ReplaceMaskedFlags> masked_replace;
+        constexpr Operation<OperationType::AndAccessedFlags> and_accessed;
+        constexpr Operation<OperationType::ReplaceAccessedFlags> replace_accessed;
 
-        TransferDistributedValues(ghost_meshes, local_meshes, nodal_flag_access, masked_and);
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_flag_access, and_accessed);
 
-        TransferDistributedValues(local_meshes, ghost_meshes, nodal_flag_access, masked_replace);
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_flag_access, replace_accessed);
         return true;
     }
 
@@ -1581,7 +1581,7 @@ private:
         const typename TDatabaseAccess::SendType* pBuffer,
         TDatabaseAccess& rAccess,
         typename TDatabaseAccess::IteratorType ContainerIterator,
-        Operation<OperationType::AndMaskedFlags>)
+        Operation<OperationType::AndAccessedFlags>)
     {
         using ValueType = typename TDatabaseAccess::ValueType;
         ValueType recv_value;
@@ -1596,7 +1596,7 @@ private:
         const typename TDatabaseAccess::SendType* pBuffer,
         TDatabaseAccess& rAccess,
         typename TDatabaseAccess::IteratorType ContainerIterator,
-        Operation<OperationType::OrMaskedFlags>)
+        Operation<OperationType::OrAccessedFlags>)
     {
         using ValueType = typename TDatabaseAccess::ValueType;
         ValueType recv_value;
@@ -1611,7 +1611,7 @@ private:
         const typename TDatabaseAccess::SendType* pBuffer,
         TDatabaseAccess& rAccess,
         typename TDatabaseAccess::IteratorType ContainerIterator,
-        Operation<OperationType::ReplaceMaskedFlags>)
+        Operation<OperationType::ReplaceAccessedFlags>)
     {
         using ValueType = typename TDatabaseAccess::ValueType;
         ValueType recv_value;
