@@ -52,7 +52,7 @@ public:
     ///@{
 
     /// Counted pointer of AxisymLineLoadCondition2D
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymLineLoadCondition2D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymLineLoadCondition2D);
 
     ///@}
     ///@name Life Cycle

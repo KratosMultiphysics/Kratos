@@ -17,23 +17,20 @@ class FormfindingMechanicalSolver(MechanicalSolver):
 
     This class creates the mechanical solver for formdinding.
 
-    Public member variables:
-    formfinding_settings -- settings for the formfinding solver.
-
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings):
-        # Set defaults and validate custom settings.
-        self.formfinding_settings = KratosMultiphysics.Parameters("""{
-            "print_formfinding_iterations": false
-        }
-        """)
-        self.validate_and_transfer_matching_settings(custom_settings, self.formfinding_settings)
-        # Validate the remaining settings in the base class.
-
         # Construct the base solver.
         super(FormfindingMechanicalSolver, self).__init__(main_model_part, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[FormfindingMechanicalSolver]:: ", "Construction finished")
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "print_formfinding_iterations" : false
+        }""")
+        this_defaults.AddMissingParameters(super(FormfindingMechanicalSolver, cls).GetDefaultSettings())
+        return this_defaults
 
     def _create_solution_scheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
@@ -54,5 +51,5 @@ class FormfindingMechanicalSolver(MechanicalSolver):
                                                                 self.settings["compute_reactions"].GetBool(),
                                                                 self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                 self.settings["move_mesh_flag"].GetBool(),
-                                                                self.formfinding_settings["print_formfinding_iterations"].GetBool(),
+                                                                self.settings["print_formfinding_iterations"].GetBool(),
                                                                 self.settings["line_search"].GetBool())

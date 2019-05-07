@@ -361,7 +361,7 @@ protected:
 public:
 
   /// Counted pointer of ContactDomainCondition
-  KRATOS_CLASS_POINTER_DEFINITION( ContactDomainCondition );
+  KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( ContactDomainCondition );
 
 
   ///@}
