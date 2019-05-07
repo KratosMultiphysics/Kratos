@@ -13,35 +13,16 @@
 #if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H)
 #define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H
 
-// System includes
-
-// External includes
-
 // Project includes
 #include "includes/element.h"
 #include "includes/kratos_flags.h"
 
 #include "utilities/geometry_utilities.h"
 #include "utilities/enrichment_utilities.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -52,7 +33,7 @@ public:
     template <unsigned int TNumNodes, unsigned int TDim>
     struct ElementalData
     {
-        array_1d<double, TNumNodes> phis, distances;
+        array_1d<double, TNumNodes> potentials, distances;
         double vol;
 
         BoundedMatrix<double, TNumNodes, TDim> DN_DX;
@@ -69,7 +50,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of IncompressiblePotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(IncompressiblePotentialFlowElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(IncompressiblePotentialFlowElement);
 
     ///@}
     ///@name Life Cycle
@@ -194,9 +175,6 @@ public:
     void PrintData(std::ostream& rOStream) const override;
 
     ///@}
-protected:
-
-    void GetPotentialOnNormalElement(array_1d<double, NumNodes>& phis) const;
 
 private:
     ///@name Private Operators
@@ -273,10 +251,6 @@ private:
     double ComputePressureCoefficient(const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -287,32 +261,10 @@ private:
     void load(Serializer& rSerializer) override;
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
 
 }; // Class IncompressiblePotentialFlowElement
 
 ///@}
-
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
-
-///@}
-
 } // namespace Kratos.
 
 #endif // KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H  defined

@@ -388,7 +388,8 @@ void FemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 	ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
 	//set constitutive law flags:
-	Flags &ConstitutiveLawOptions = values.GetOptions();
+	Flags& r_constitutive_law_options = values.GetOptions();
+	r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
 	//reading integration points
 	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -406,49 +407,11 @@ void FemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 		variables.IntegrationWeight = integration_points[point_number].Weight() * variables.detJ;
 		variables.IntegrationWeight = this->CalculateIntegrationWeight( variables.IntegrationWeight );
 
-		// Loop over edges of the element...
-		Vector average_stress_edge(6);
-		Vector average_strain_edge(6);
-		bool is_damaging = false;
-		Vector damages = ZeroVector(mNumberOfEdges);
-
-		for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
-			std::vector<Element*> p_edge_neighbours = this->GetEdgeNeighbourElements(edge);
-			Vector average_stress_edge, average_strain_edge;
-
-			this->CalculateAverageStressOnEdge(average_stress_edge, p_edge_neighbours);
-			this->CalculateAverageStrainOnEdge(average_strain_edge, p_edge_neighbours);
-
-			double damage_edge = mDamages[edge];
-			double threshold = mThresholds[edge];
-			
-			this->IntegrateStressDamageMechanics(threshold, 
-													damage_edge,
-													average_strain_edge, 
-													average_stress_edge, 
-													edge, 
-													r_characteristic_lengths[edge],
-													is_damaging);
-			damages[edge] = damage_edge;
-		} // Loop over edges
-
 		// Calculate the elemental Damage...
-		const double damage_element = this->CalculateElementalDamage(damages);
-		const Vector& r_predictive_stress_vector = values.GetStressVector();
-		const Vector& r_integrated_stress_vector = (1.0 - damage_element) * r_predictive_stress_vector;
-		const Vector& r_strain_vector = values.GetStrainVector();
-
-		//contributions to stiffness matrix calculated on the reference config
+		const double damage_element = this->CalculateElementalDamage(mDamages);
 		const Matrix& C =  values.GetConstitutiveMatrix();
-		Matrix tangent_tensor;
-		if (is_damaging == true && std::abs(r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2]
-			+ r_strain_vector[3] + r_strain_vector[4] + r_strain_vector[5]) > tolerance) {
 
-			this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, C);
-			noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * prod(trans(variables.B), Matrix(prod(tangent_tensor, variables.B)));
-		} else {
-			noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * (1.0 - damage_element) * prod(trans(variables.B), Matrix(prod(C, variables.B)));
-		}
+		noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * (1.0 - damage_element) * prod(trans(variables.B), Matrix(prod(C, variables.B)));
 	}
 	KRATOS_CATCH("")
 }

@@ -9,7 +9,7 @@ import KratosMultiphysics.MeshingApplication as MeshingApplication
 import KratosMultiphysics.SolidMechanicsApplication as Solid
 import math
 import os
-import mmg_process as MMG
+import KratosMultiphysics.MeshingApplication.mmg_process as MMG
 
 def Wait():
     input("Press Something")
@@ -72,7 +72,12 @@ class FEMDEM_Solution:
             self.PressureLoad = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
         if self.PressureLoad:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
-        
+
+        if self.FEM_Solution.ProjectParameters.Has("displacement_perturbed_tangent") == False:
+            self.DisplacementPerturbedTangent = False
+        else:
+            self.DisplacementPerturbedTangent = self.FEM_Solution.ProjectParameters["displacement_perturbed_tangent"].GetBool()
+
         self.SkinDetectionProcessParameters = KratosMultiphysics.Parameters("""
         {
             "name_auxiliar_model_part" : "SkinDEMModelPart",
@@ -114,10 +119,10 @@ class FEMDEM_Solution:
         # modified for the remeshing
         self.FEM_Solution.delta_time = self.ComputeDeltaTime()
         self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.FEM_Solution.delta_time
-        self.FEM_Solution.time = self.FEM_Solution.time + self.FEM_Solution.delta_time
-        self.FEM_Solution.main_model_part.CloneTimeStep(self.FEM_Solution.time)
-        self.FEM_Solution.step = self.FEM_Solution.step + 1
+        self.FEM_Solution.time +=  self.FEM_Solution.delta_time
+        self.FEM_Solution.step += 1
         self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.FEM_Solution.step
+        self.FEM_Solution.main_model_part.CloneTimeStep(self.FEM_Solution.time)
 
         neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
         neighbour_elemental_finder.Execute()
@@ -157,6 +162,10 @@ class FEMDEM_Solution:
         self.FEM_Solution.solver.Solve()
         ########################################################
 
+        # Used in the tangent calculator
+        if self.DisplacementPerturbedTangent:
+            self.ComputeDeltaDisplacement()
+
         if self.PressureLoad:
             # This must be called before Generating DEM
             self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECONSTRUCT_PRESSURE_LOAD] = 0 # It is modified inside
@@ -172,7 +181,7 @@ class FEMDEM_Solution:
                 self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.INTERNAL_PRESSURE_ITERATION] = 1
                 while self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.INTERNAL_PRESSURE_ITERATION] > 0:
                     KratosFemDem.ExtendPressureConditionProcess2D(self.FEM_Solution.main_model_part).Execute()
-            
+
         self.SpheresModelPart = self.ParticleCreatorDestructor.GetSpheresModelPart()
         self.CheckForPossibleIndentations()
 
@@ -195,7 +204,7 @@ class FEMDEM_Solution:
 
         self.DEM_Solution.AfterSolveOperations()
         self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
-        
+
         # to print DEM with the FEM coordinates
         self.UpdateDEMVariables()
 
@@ -676,7 +685,7 @@ class FEMDEM_Solution:
             is_active = True
             if Element.IsDefined(KratosMultiphysics.ACTIVE):
                 is_active = Element.Is(KratosMultiphysics.ACTIVE)
-            
+
             if is_active == True:
                 for i in range(0,3): # Loop over nodes of the element
                     node = Element.GetNodes()[i]
@@ -726,7 +735,7 @@ class FEMDEM_Solution:
         total_reaction_y     = 0.0
         total_displacement_y = 0.0
         interval = self.FEM_Solution.ProjectParameters["interval_of_watching"].GetDouble()
-        
+
         if self.FEM_Solution.time - self.TimePreviousPlotting >= interval:
             if self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size() > 0:
                 if self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][0].IsInt():
@@ -740,7 +749,7 @@ class FEMDEM_Solution:
                         submodel_name = self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][index].GetString()
                         for node in self.FEM_Solution.main_model_part.GetSubModelPart(submodel_name).Nodes:
                             total_displacement_x += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-                            total_displacement_y += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y) 
+                            total_displacement_y += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
 
                 if self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][0].IsInt():
                     for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"].size()):
@@ -753,7 +762,7 @@ class FEMDEM_Solution:
                         submodel_name = self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][index].GetString()
                         for node in self.FEM_Solution.main_model_part.GetSubModelPart(submodel_name).Nodes:
                             total_reaction_x += node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)
-                            total_reaction_y += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y) 
+                            total_reaction_y += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)
 
                 self.PlotFile = open("PlotFile.txt","a")
                 self.PlotFile.write("    " + "{0:.4e}".format(time).rjust(11) + "    " + "{0:.4e}".format(total_displacement_x).rjust(11) +
@@ -1066,5 +1075,11 @@ class FEMDEM_Solution:
         else:
             raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
 
+#============================================================================================================================
 
-            
+    def ComputeDeltaDisplacement(self):
+        for node in self.FEM_Solution.main_model_part.Nodes:
+            displ = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+            displ_old = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1)
+            displ_increment = displ - displ_old
+            node.SetSolutionStepValue(KratosFemDem.DISPLACEMENT_INCREMENT, displ_increment)

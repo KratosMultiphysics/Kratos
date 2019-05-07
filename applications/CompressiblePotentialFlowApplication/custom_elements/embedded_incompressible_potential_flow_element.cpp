@@ -22,7 +22,7 @@ Element::Pointer EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Crea
     IndexType NewId, NodesArrayType const& ThisNodes, typename PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<EmbeddedIncompressiblePotentialFlowElement>(
+    return Kratos::make_intrusive<EmbeddedIncompressiblePotentialFlowElement>(
         NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
@@ -32,7 +32,7 @@ Element::Pointer EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Crea
     IndexType NewId, typename GeometryType::Pointer pGeom, typename PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<EmbeddedIncompressiblePotentialFlowElement>(
+    return Kratos::make_intrusive<EmbeddedIncompressiblePotentialFlowElement>(
         NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
@@ -42,7 +42,7 @@ Element::Pointer EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Clon
     IndexType NewId, NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<EmbeddedIncompressiblePotentialFlowElement>(
+    return Kratos::make_intrusive<EmbeddedIncompressiblePotentialFlowElement>(
         NewId, this->GetGeometry().Create(ThisNodes), this->pGetProperties());
     KRATOS_CATCH("");
 }
@@ -78,7 +78,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
     for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
         distances(i_node) = this->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
 
-    BaseType::GetPotentialOnNormalElement(potential);
+    potential = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*this);
 
     ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(distances);
     Matrix positive_side_sh_func;
