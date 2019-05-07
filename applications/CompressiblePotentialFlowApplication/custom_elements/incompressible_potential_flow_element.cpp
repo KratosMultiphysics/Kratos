@@ -444,6 +444,8 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
 {
     ElementalData<NumNodes, Dim> data;
 
+    std::cout.precision(17);
+
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
