@@ -707,15 +707,15 @@ namespace Kratos
                     rModelPart.CreateNewNode(7, 1.0,0.0,1.0e-3);
                     rModelPart.CreateNewNode(8, 0.0,0.0,1.0e-3);
                 } else if (PairIndex == 3) {
-                    rModelPart.CreateNewNode(1, 0.0,0.2,1.0e-3);
+                    rModelPart.CreateNewNode(1, 0.0,0.3,2.0e-3);
                     rModelPart.CreateNewNode(2, 1.0,0.2,1.0e-3);
-                    rModelPart.CreateNewNode(3, 1.1,1.1,0.0);
-                    rModelPart.CreateNewNode(4, 0.2,1.0,0.0);
+                    rModelPart.CreateNewNode(3, 1.2,1.1,0.0);
+                    rModelPart.CreateNewNode(4, 0.2,1.1,0.0);
 
-                    rModelPart.CreateNewNode(5,-0.1,1.0,1.0e-3);
-                    rModelPart.CreateNewNode(6, 1.0,1.1,1.0e-3);
-                    rModelPart.CreateNewNode(7, 1.0,0.1,2.0e-3);
-                    rModelPart.CreateNewNode(8, 0.0,0.1,2.0e-3);
+                    rModelPart.CreateNewNode(5,-0.1,1.0,2.0e-3);
+                    rModelPart.CreateNewNode(6, 1.2,1.1,2.0e-3);
+                    rModelPart.CreateNewNode(7, 1.0,0.1,3.0e-3);
+                    rModelPart.CreateNewNode(8, 0.1,0.1,3.0e-3);
                 } else {
                     KRATOS_ERROR << "NOT IMPLEMENTED YET" << std::endl;
                 }
