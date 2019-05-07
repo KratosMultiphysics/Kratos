@@ -382,16 +382,16 @@ private:
     void load(Serializer &rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.save("FatigueReductionFactor", mFatigueReductionFactor);
-        rSerializer.save("PreviousStresses", mPreviousStresses);
-        rSerializer.save("MaxStress", mMaxStress);
-        rSerializer.save("MinStress", mMinStress);
-        rSerializer.save("PreviousMaxStress", mPreviousMaxStress);
-        rSerializer.save("PreviousMinStress", mPreviousMinStress);
-        rSerializer.save("NumberOfCycles", mNumberOfCycles);
-        rSerializer.save("FatigueReductionParameter", mFatigueReductionParameter);
-        rSerializer.save("StressVector", mStressVector);
-        rSerializer.save("HasCountedCycle", mHasCountedCycle);
+        rSerializer.load("FatigueReductionFactor", mFatigueReductionFactor);
+        rSerializer.load("PreviousStresses", mPreviousStresses);
+        rSerializer.load("MaxStress", mMaxStress);
+        rSerializer.load("MinStress", mMinStress);
+        rSerializer.load("PreviousMaxStress", mPreviousMaxStress);
+        rSerializer.load("PreviousMinStress", mPreviousMinStress);
+        rSerializer.load("NumberOfCycles", mNumberOfCycles);
+        rSerializer.load("FatigueReductionParameter", mFatigueReductionParameter);
+        rSerializer.load("StressVector", mStressVector);
+        rSerializer.load("HasCountedCycle", mHasCountedCycle);
     }
 
     ///@}
