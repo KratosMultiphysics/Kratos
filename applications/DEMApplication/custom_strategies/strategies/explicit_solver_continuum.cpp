@@ -195,7 +195,6 @@ namespace Kratos {
         const int time_step = r_process_info[TIME_STEPS];
         const double time = r_process_info[TIME];
         const bool is_time_to_search_neighbours = (time_step + 1) % GetNStepSearch() == 0 && (time_step > 0); //Neighboring search. Every N times.
-        const bool is_time_to_print_results = r_process_info[IS_TIME_TO_PRINT];
 
         if (r_process_info[SEARCH_CONTROL] > 0) {
 
@@ -242,9 +241,7 @@ namespace Kratos {
 
             //if (r_process_info[BOUNDING_BOX_OPTION] == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
 
-            const bool print_results = true;
-
-            if (print_results && r_process_info[CONTACT_MESH_OPTION]) { //is_time_to_print_results && r_process_info[CONTACT_MESH_OPTION] == 1) {
+            if (r_process_info[CONTACT_MESH_OPTION]) {
                 CreateContactElements();
                 InitializeContactElements();
             }

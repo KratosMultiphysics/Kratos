@@ -213,7 +213,12 @@ class Algorithm(object):
                 axis[0] = 0.0
                 axis[1] = 0.0
                 axis[2] = 1.0
-                radius = 0.003
+
+                specimen_radius_small = 0.0036195; #95% of the real hole. This is for the CTW16 specimen (smaller inner radius)
+                specimen_radius_large = 0.012065; #95% of the real hole. This is for the CTW10 specimen (larger inner radius)
+                blind_radius = 0.036195; #95% of the real hole
+                radius = 0.01
+
                 self.dem_solution.creator_destructor.MarkParticlesForErasingGivenCylinder(self.dem_solution.spheres_model_part, center, axis, radius)
 
                 self.dem_solution.AfterSolveOperations()
