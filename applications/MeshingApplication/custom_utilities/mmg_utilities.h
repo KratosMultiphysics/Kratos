@@ -195,14 +195,14 @@ public:
     SizeType GetEchoLevel();
 
     /**
-     * @brief This method sets the echo level
-     * @param[in] Discretization Sets the echo level
+     * @brief This method sets the discretization method
+     * @param[in] Discretization Sets the discretization method
      */
     void SetDiscretization(const DiscretizationOption Discretization);
 
     /**
-     * @brief This method gets the echo level
-     * @return mDiscretization Gets the echo level
+     * @brief This method gets the discretization method
+     * @return mDiscretization Gets the discretization method
      */
     DiscretizationOption GetDiscretization();
 
