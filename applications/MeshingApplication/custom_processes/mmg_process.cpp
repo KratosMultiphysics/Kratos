@@ -996,15 +996,26 @@ void MmgProcess<TMMGLibrary>::AssignAndClearAuxiliarSubModelPartForFlags()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::ClearConditionsDuplicatedGeometries()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ClearConditionsDuplicatedGeometries()
 {
     // Next check that the conditions are oriented accordingly to do so begin by putting all of the conditions in a set
-    typedef std::unordered_set<DenseVector<IndexType>, KeyHasherRange<DenseVector<IndexType>>, KeyComparorRange<DenseVector<IndexType>> > HashSetType;
-    HashSetType faces_set;
+    typedef std::unordered_map<DenseVector<IndexType>, std::vector<IndexType>, KeyHasherRange<DenseVector<IndexType>>, KeyComparorRange<DenseVector<IndexType>> > HashMapType;
+    HashMapType faces_map;
 
     // Iterate over conditions
     ConditionsArrayType& r_conditions_array = mrThisModelPart.Conditions();
+
+    // Reset flag
+    const auto it_cond_begin = r_conditions_array.begin();
+    const int number_of_conditions = static_cast<int>(r_conditions_array.size());
+    #pragma omp parallel for
+    for(int i = 0; i < number_of_conditions; ++i) {
+        const auto it_cond = it_cond_begin + i;
+        it_cond->Reset(TO_ERASE);
+    }
+
+    // Create map
     for(auto& r_cond : r_conditions_array) {
 
         GeometryType& r_geom = r_cond.GetGeometry();
@@ -1018,12 +1029,28 @@ void MmgProcess<TMMGLibrary>::ClearConditionsDuplicatedGeometries()
         std::sort(ids.begin(), ids.end());
 
         // Insert a pointer to the condition identified by the hash value ids
-        HashSetType::iterator it_face = faces_set.find(ids);
-        if(it_face != faces_set.end() ) { // Already defined vector
-            r_cond.Set(TO_ERASE);
-            KRATOS_INFO_IF("MmgProcess", mEchoLevel > 2) << "Condition created ID:\t" << r_cond.Id() << " will be removed" << std::endl;
+        HashMapType::iterator it_face = faces_map.find(ids);
+        if(it_face != faces_map.end() ) { // Already defined vector
+            (it_face->second).push_back(r_cond.Id());
         } else {
-            faces_set.insert( HashSetType::value_type(ids) );
+            std::vector<IndexType> aux_cond_id(1);
+            aux_cond_id[0] = r_cond.Id();
+            faces_map.insert( HashMapType::value_type(std::pair<DenseVector<IndexType>, std::vector<IndexType>>({ids, aux_cond_id})) );
+        }
+    }
+
+    // We set the flag
+    SizeType counter = 1;
+    for (auto& i_pair : faces_map) {
+        const auto& r_pairs = i_pair.second;
+        for (auto i_id : r_pairs) {
+            auto p_cond = mrThisModelPart.pGetCondition(i_id);
+            if (p_cond->Is(MARKER) && counter < r_pairs.size()) { // Only remove dummy conditions repeated
+                p_cond->Set(TO_ERASE);
+                KRATOS_INFO_IF("MmgProcess", mEchoLevel > 2) << "Condition created ID:\t" << i_id << " will be removed" << std::endl;
+                ++counter;
+            }
+            counter = 1;
         }
     }
 
