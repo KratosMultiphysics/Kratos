@@ -27,7 +27,8 @@
                 "coarse_enough" : 5000
             },
             "time_order" : 2,
-            "reform_dofs_each_step" : false
+            "reform_dofs_each_step" : false,
+            "echo_level": 1
         },
 
         "fluid_solver_settings"  :{

@@ -40,9 +40,8 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
         for cond in self.body_model_part.Conditions:
             condition_normal = cond.GetValue(KratosMultiphysics.NORMAL)
             pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE)
-            print(pressure_coefficient)
+
             for node in cond.GetNodes():
-                KratosMultiphysics.Logger.PrintInfo("pressure_coefficient   ",pressure_coefficient)
                 added_force = condition_normal*(pressure_coefficient/2.0)*dynamic_pressure
                 nodal_force = node.GetSolutionStepValue(KratosMultiphysics.REACTION) + added_force
                 node.SetSolutionStepValue(KratosMultiphysics.REACTION, nodal_force)
