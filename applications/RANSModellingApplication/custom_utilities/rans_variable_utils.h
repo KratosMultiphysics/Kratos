@@ -138,7 +138,7 @@ public:
 
         double min_value = rNodes.begin()->FastGetSolutionStepValue(rVariable);
 
-#pragma omp parallel for reduction(min : min_value)
+// #pragma omp parallel for reduction(min : min_value) #Not working in windows
         for (int i = 0; i < number_of_nodes; i++)
         {
             const double value = (rNodes.begin() + i)->FastGetSolutionStepValue(rVariable);
@@ -164,7 +164,7 @@ public:
 
         double max_value = rNodes.begin()->FastGetSolutionStepValue(rVariable);
 
-#pragma omp parallel for reduction(max : max_value)
+// #pragma omp parallel for reduction(max : max_value) # not working in windows
         for (int i = 0; i < number_of_nodes; i++)
         {
             const double value = (rNodes.begin() + i)->FastGetSolutionStepValue(rVariable);
