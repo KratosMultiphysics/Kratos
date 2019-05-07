@@ -7,23 +7,23 @@ coor = list(sp.symbols('coor:3'))
 mA = sp.symbols('mA')
 mD = sp.symbols('mD')
 
-mExpD2T  = sp.exp(- mD * mD * time)
-mExpAX   = sp.exp(mA * coor[0])
-mExpAY   = sp.exp(mA * coor[1])
-mExpAZ   = sp.exp(mA * coor[2])
-mSinAXDY = sp.sin(mA * coor[0] + mD * coor[1])
-mCosAXDY = sp.cos(mA * coor[0] + mD * coor[1])
-mSinAYDZ = sp.sin(mA * coor[1] + mD * coor[2])
-mCosAYDZ = sp.cos(mA * coor[1] + mD * coor[2])
-mSinAZDX = sp.sin(mA * coor[2] + mD * coor[0])
-mCosAZDX = sp.cos(mA * coor[2] + mD * coor[0])
+exp_d2t  = sp.exp(- mD * mD * time)
+exp_ax   = sp.exp(mA * coor[0])
+exp_ay   = sp.exp(mA * coor[1])
+exp_az   = sp.exp(mA * coor[2])
+sin_axdy = sp.sin(mA * coor[0] + mD * coor[1])
+cos_axdy = sp.cos(mA * coor[0] + mD * coor[1])
+sin_aydz = sp.sin(mA * coor[1] + mD * coor[2])
+cos_aydz = sp.cos(mA * coor[1] + mD * coor[2])
+sin_azdx = sp.sin(mA * coor[2] + mD * coor[0])
+cos_azdx = sp.cos(mA * coor[2] + mD * coor[0])
 
-p = - 0.5 * mA**2 * (mExpAX**2
-                   + mExpAY**2
-                   + mExpAZ**2
-                   + 2 * mSinAXDY * mCosAZDX * mExpAY * mExpAZ
-                   + 2 * mSinAYDZ * mCosAXDY * mExpAZ * mExpAX
-                   + 2 * mSinAZDX * mCosAYDZ * mExpAX * mExpAY) * mExpD2T ** 2
+p = - 0.5 * mA**2 * (exp_ax**2
+                   + exp_ay**2
+                   + exp_az**2
+                   + 2 * sin_axdy * cos_azdx * exp_ay * exp_az
+                   + 2 * sin_aydz * cos_axdy * exp_az * exp_ax
+                   + 2 * sin_azdx * cos_aydz * exp_ax * exp_ay) * exp_d2t ** 2
 
 def GetCppCode(formula):
     code = str(ccode(formula))
