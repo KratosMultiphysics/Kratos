@@ -438,22 +438,22 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual void ReGenerateDistanceModelPart(ModelPart& base_model_part)
+    virtual void ReGenerateDistanceModelPart(ModelPart& r_base_model_part)
     {
         KRATOS_TRY
 
-        Model& current_model = mr_base_model_part.GetModel();
+        Model& current_model = r_base_model_part.GetModel();
         if(current_model.HasModelPart( mAuxModelPartName ))
             current_model.DeleteModelPart( mAuxModelPartName );
 
         // Ensure that the nodes have distance as a DOF
-        VariableUtils().AddDof<Variable<double> >(DISTANCE, base_model_part);
+        VariableUtils().AddDof<Variable<double> >(DISTANCE, r_base_model_part);
 
         // Generate
         ModelPart& r_distance_model_part = current_model.CreateModelPart( mAuxModelPartName );
 
         // Ensure that the variable lists are matching
-        const auto& r_origin_variable_list = base_model_part.GetNodalSolutionStepVariablesList();
+        const auto& r_origin_variable_list = r_base_model_part.GetNodalSolutionStepVariablesList();
         for (const auto& var : r_origin_variable_list) {
             r_distance_model_part.GetNodalSolutionStepVariablesList().Add(var);
         }
@@ -461,21 +461,21 @@ protected:
         Element::Pointer p_distance_element = Kratos::make_intrusive<DistanceCalculationElementSimplex<TDim> >();
 
         ConnectivityPreserveModeler modeler;
-        modeler.GenerateModelPart(base_model_part, r_distance_model_part, *p_distance_element);
+        modeler.GenerateModelPart(r_base_model_part, r_distance_model_part, *p_distance_element);
 
         // Using the conditions to mark the boundary with the flag boundary
         // Note that we DO NOT add the conditions to the model part
         VariableUtils().SetFlag<ModelPart::NodesContainerType>(BOUNDARY, false, r_distance_model_part.Nodes());
         // Note that above we have assigned the same geometry. Thus the flag is
         // set in the distance model part despite we are iterating the base one
-        for (auto it_cond = base_model_part.ConditionsBegin(); it_cond != base_model_part.ConditionsEnd(); ++it_cond){
+        for (auto it_cond = r_base_model_part.ConditionsBegin(); it_cond != r_base_model_part.ConditionsEnd(); ++it_cond){
             Geometry< Node<3> >& geom = it_cond->GetGeometry();
             for(unsigned int i=0; i<geom.size(); i++){
                 geom[i].Set(BOUNDARY,true);
             }
         }
 
-        base_model_part.GetCommunicator().SynchronizeOrNodalFlags(BOUNDARY);
+        r_base_model_part.GetCommunicator().SynchronizeOrNodalFlags(BOUNDARY);
 
         mdistance_part_is_initialized = true;
 
