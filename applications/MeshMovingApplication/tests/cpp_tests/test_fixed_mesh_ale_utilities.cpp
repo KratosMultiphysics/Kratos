@@ -121,6 +121,9 @@ namespace Testing {
         // Fill the virtual model part geometry
         p_mesh_moving->Initialize(origin_model_part);
 
+        // Fill the virtual mesh values
+        p_mesh_moving->SetVirtualMeshValuesFromOriginMesh();
+
         // Execute the FM-ALE operations
         const unsigned int buffer_size = 3;
         p_mesh_moving->ComputeMeshMovement(delta_time);

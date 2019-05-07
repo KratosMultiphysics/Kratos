@@ -133,6 +133,15 @@ public:
     virtual void Initialize(ModelPart &rOriginModelPart);
 
     /**
+     * @brief Set the Virtual Mesh Values From Origin Mesh object
+     * This method sets the VELOCITY and PRESSURE historical values in the virtual mesh.
+     * The values are retrieved from the origin mesh. This needs to be called in the
+     * InitializeSolutionStep of the solver. Note that if sub-iteration is done (e.g.
+     * FSI) this must be called before and just once.
+     */
+    virtual void SetVirtualMeshValuesFromOriginMesh();
+
+    /**
      * @brief Compute the virtual mesh movement
      * This method computes the virtual mesh movement in accordance to the immersed structure
      * DISPLACEMENT values. To that purpose it sets the fixity and creates & solves the
@@ -295,10 +304,11 @@ private:
     void SetMeshMovingStrategy();
 
     /**
-     * @brief Copy the origin model part data to the virtual one
-     * This methods copies the PRESSURE and VELOCITY values from the nodes
-     * of the origin model part to the virtual model part ones. In needs to
-     * be called before the mesh moving and projection is done.
+     * @brief Initialize the MESH_DISPLACEMENT and MESH_VELOCITY values
+     * Initialize the MESH_DISPLACEMENT and MESH_VELOCITY values
+     * Note that both positions of the buffer are initialized to zero. This is important
+     * in case the CloneTimeStep() is done in the virtual model part, since the method
+     * assumes that the mesh is in the origin position when computing the MESH_VELOCITY.
      */
     void InitializeVirtualMeshValues();
 

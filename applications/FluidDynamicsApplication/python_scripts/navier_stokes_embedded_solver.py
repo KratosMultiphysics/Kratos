@@ -508,17 +508,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         if (self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt() > 0):
             if (self._is_fm_ale_step()):
                 # Fill the virtual model part variable values: VELOCITY (n,nn), PRESSURE (n,nn)
-                for i_step in range(self.main_model_part.GetBufferSize()):
-                    KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
-                        KratosMultiphysics.PRESSURE,
-                        self.main_model_part,
-                        self._get_fm_ale_virtual_model_part(),
-                        i_step)
-                    KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
-                        KratosMultiphysics.VELOCITY,
-                        self.main_model_part,
-                        self._get_fm_ale_virtual_model_part(),
-                        i_step)
+                self._get_mesh_moving_util().SetVirtualMeshValuesFromOriginMesh()
 
     def _do_fm_ale_operations(self):
         if (self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt() > 0):
