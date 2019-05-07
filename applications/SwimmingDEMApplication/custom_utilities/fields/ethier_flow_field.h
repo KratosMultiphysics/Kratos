@@ -210,6 +210,8 @@ private:
 double mA;
 double mD;
 std::vector<int> mCoordinatesAreUpToDate;
+std::vector<double> mTime;
+std::vector<array_1d<double, 3>> mCoordinates;
 std::vector<double> mExpD2T;
 std::vector<double> mExpAX;
 std::vector<double> mExpAZ;
@@ -281,6 +283,8 @@ EthierPressureField(const double a, const double b)
 virtual ~EthierPressureField(){}
 
 void ResizeVectorsForParallelism(const int n_threads);
+void UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const int i_thread = 0) override;
+void UpdateCoordinates(const double time, const DenseVector<double>& coor, const int i_thread = 0) override;
 
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -378,6 +382,8 @@ private:
 double mA;
 double mD;
 std::vector<int> mCoordinatesAreUpToDate;
+std::vector<double> mTime;
+std::vector<array_1d<double, 3>> mCoordinates;
 std::vector<double> mExpD2T;
 std::vector<double> mExpAX;
 std::vector<double> mExpAZ;
@@ -401,9 +407,9 @@ double U(const int i_thread = 0) override;
 
 // First-order derivatives
 double UDT(const int i_thread = 0) override;
+double UD0(const int i_thread = 0) override;
 double UD1(const int i_thread = 0) override;
 double UD2(const int i_thread = 0) override;
-double UD3(const int i_thread = 0) override;
 
 // Second-order derivatives
 double UDTDT(const int i_thread = 0) override;

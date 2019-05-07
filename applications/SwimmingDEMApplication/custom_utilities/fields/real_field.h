@@ -44,6 +44,15 @@ virtual ~RealField(){}
 //***************************************************************************************************************
 //***************************************************************************************************************
 
+virtual void UpdateCoordinates(const double time,
+                               const array_1d<double, 3>& coor,
+                               const int i_thread = 0){}
+
+virtual void UpdateCoordinates(const double time,
+                               const DenseVector<double>& coor,
+                               const int i_thread = 0){}
+
+
 virtual double Evaluate(const double time,
                         const array_1d<double, 3>& coor,
                         const int i_thread = 0)
@@ -152,9 +161,9 @@ virtual double U(const int i_thread = 0){return 0.0;}
 // First-order derivatives
 
 virtual double UDT(const int i_thread = 0){return 0.0;}
+virtual double UD0(const int i_thread = 0){return 0.0;}
 virtual double UD1(const int i_thread = 0){return 0.0;}
 virtual double UD2(const int i_thread = 0){return 0.0;}
-virtual double UD3(const int i_thread = 0){return 0.0;}
 
 // Second-order derivatives
 virtual double UDTDT(const int i_thread = 0){return 0.0;}

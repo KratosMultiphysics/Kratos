@@ -100,6 +100,8 @@ virtual void UpdateCoordinates(const double time,
                                const array_1d<double, 3>& coor,
                                const int i_thread = 0){}
 
+virtual void UpdateCoordinates(const double time, const DenseVector<double>& coor, const int i_thread = 0){}
+
 virtual void LockCoordinates(const int i_thread = 0){(void)i_thread;}
 
 virtual void UnlockCoordinates(const int i_thread = 0){(void)i_thread;}
@@ -140,7 +142,6 @@ void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_
 
 virtual void ImposeVelocityOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& container_variable);
 
-virtual void UpdateCoordinates(const double time, const DenseVector<double>& coor, const int i_thread = 0){}
 //***************************************************************************************************************
 //***************************************************************************************************************
 
