@@ -38,7 +38,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
         dynamic_pressure = 0.5*free_stream_density*free_stream_velocity_norm**2
 
         for cond in self.body_model_part.Conditions:
-            condition_normal = cond.GetValue(KratosMultiphysics.NORMAL)
+            condition_normal = cond.GetGeometry().Normal()
             pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE)
 
             for node in cond.GetNodes():

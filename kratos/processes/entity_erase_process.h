@@ -7,30 +7,20 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
-
-#if !defined(KRATOS_CONDITION_ERASE_PROCESS_INCLUDED )
-#define  KRATOS_CONDITION_ERASE_PROCESS_INCLUDED
-
-
+#if !defined(KRATOS_ENTITY_ERASE_PROCESS_INCLUDED )
+#define  KRATOS_ENTITY_ERASE_PROCESS_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-#include "includes/kratos_flags.h"
-
 
 namespace Kratos
 {
@@ -55,38 +45,60 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-//erases the nodes marked as
-/** Detail class definition.
+/**
+ * @class EntitiesEraseProcess
+ * @ingroup KratosCore
+ * @brief This process removes the entities from a model part with the flag TO_ERASE
+ * @details It does some things additionally:
+ *  - RemoveFromAllLevels If the entities will be removed from all levels
+ *  - AssignFlag If the flag will be assigned (this means removing all entities of the model part)
+ *  - RemoveBelongings If removing the belogings of the removed entity
+ * @tparam TEntity The type entity considered
+ * @author Vicente Mataix Ferrandiz
 */
-
-class ConditionEraseProcess
+template<class TEntity>
+class KRATOS_API(KRATOS_CORE) EntitiesEraseProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ConditionEraseProcess
-    KRATOS_CLASS_POINTER_DEFINITION(ConditionEraseProcess);
+    // DEFINITION OF FLAGS TO CONTROL THE BEHAVIOUR
+    KRATOS_DEFINE_LOCAL_FLAG(REMOVE_FROM_ALL_LEVELS); /// If the entities will be removed from all levels
+    KRATOS_DEFINE_LOCAL_FLAG(ERASE_ALL_ENTITIES);     /// If the flag will be assigned (this means removing all entities of the model part)
+
+    /// Pointer definition of EntitiesEraseProcess
+    KRATOS_CLASS_POINTER_DEFINITION(EntitiesEraseProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    ConditionEraseProcess(ModelPart& model_part)
-        : mr_model_part(model_part)
-    {
-        KRATOS_TRY
-        KRATOS_CATCH("")
-    }
+    /**
+     * @brief The default parameters
+     * @param rModelPart The model part where remove the entities
+     * @param Options The flags definitions
+     */
+    explicit EntitiesEraseProcess(
+        ModelPart& rModelPart,
+        Flags Options = NOT_REMOVE_FROM_ALL_LEVELS | NOT_ERASE_ALL_ENTITIES
+        );
+
+    /**
+     * @brief The default parameters (with parameters)
+     * @param rModelPart The model part where remove the entities
+     * @param ThisParameters The configuration parameters
+     */
+    explicit EntitiesEraseProcess(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        );
 
     /// Destructor.
-    ~ConditionEraseProcess() override
+    ~EntitiesEraseProcess() override
     {
     }
-
 
     ///@}
     ///@name Operators
@@ -97,20 +109,11 @@ public:
         Execute();
     }
 
-
     ///@}
     ///@name Operations
     ///@{
 
-    void Execute() override
-    {
-        KRATOS_TRY;
-        
-        mr_model_part.RemoveConditions(TO_ERASE);
-
-        KRATOS_CATCH("")
-    }
-
+    void Execute() override;
 
     ///@}
     ///@name Access
@@ -129,20 +132,19 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ConditionEraseProcess";
+        return "EntitiesEraseProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ConditionEraseProcess";
+        rOStream << "EntitiesEraseProcess";
     }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
     }
-
 
     ///@}
     ///@name Friends
@@ -196,8 +198,10 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart& mr_model_part;
 
+    ModelPart& mrModelPart; /// The model part to be computed
+
+    Flags mrOptions;        /// Local flags
 
     ///@}
     ///@name Private Operators
@@ -207,6 +211,10 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Private  Access
@@ -223,15 +231,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    ConditionEraseProcess& operator=(ConditionEraseProcess const& rOther);
+    EntitiesEraseProcess& operator=(EntitiesEraseProcess const& rOther);
 
     /// Copy constructor.
-    //ConditionEraseProcess(ConditionEraseProcess const& rOther);
+    //EntitiesEraseProcess(EntitiesEraseProcess const& rOther);
 
 
     ///@}
 
-}; // Class ConditionEraseProcess
+}; // Class EntitiesEraseProcess
 
 ///@}
 
@@ -245,12 +253,14 @@ private:
 
 
 /// input stream function
+template<class TEntity>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  ConditionEraseProcess& rThis);
+                                  EntitiesEraseProcess<TEntity>& rThis);
 
 /// output stream function
+template<class TEntity>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ConditionEraseProcess& rThis)
+                                  const EntitiesEraseProcess<TEntity>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -263,6 +273,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CONDITION_ERASE_PROCESS_INCLUDED  defined 
+#endif // KRATOS_ENTITY_ERASE_PROCESS_INCLUDED  defined
 
 

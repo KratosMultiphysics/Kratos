@@ -31,7 +31,22 @@ class PythonSolver(object):
         self.model = model
         self.settings = settings
 
+        # TODO remove the check once the derived solvers implement this
+        if hasattr(self, '_validate_settings_in_baseclass'):
+            self.settings.ValidateAndAssignDefaults(self.GetDefaultSettings())
+        else:
+            from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+            IssueDeprecationWarning('PythonSolver', 'the settings are not validated in the baseclass for solver "%s", please implement it' %(self.__class__.__name__))
+
         self.echo_level = self.settings["echo_level"].GetInt()
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        """This function returns the default-settings used by this class
+        """
+        return KratosMultiphysics.Parameters("""{
+            "echo_level" : 0
+        }""")
 
     def AddVariables(self):
         """This function add the Variables needed by this PythonSolver to the the ModelPart
@@ -205,6 +220,9 @@ class PythonSolver(object):
         KratosMultiphysics.Logger.PrintWarning(" ".join(map(str,args)))
 
     def validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
+        from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+        IssueDeprecationWarning('PythonSolver', '"validate_and_transfer_matching_settings" is deprecated, please use the functionalities provided by "GetDefaultSettings"')
+
         """Transfer matching settings from origin to destination.
 
         If a name in origin matches a name in destination, then the setting is
