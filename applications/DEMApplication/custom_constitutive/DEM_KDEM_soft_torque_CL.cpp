@@ -51,9 +51,6 @@ namespace Kratos {
         const double Inertia_J = 2.0 * Inertia_I; // This is the polar inertia
         double rotational_moment_coeff = element->GetProperties()[ROTATIONAL_MOMENT_COEFFICIENT];
 
-        const double element_mass  = element->GetMass();
-        const double neighbor_mass = neighbor->GetMass();
-
         ElasticLocalRotationalMoment[0] = -rotational_moment_coeff * equiv_young * Inertia_I * LocalDeltaRotatedAngle[0] / distance;
         ElasticLocalRotationalMoment[1] = -rotational_moment_coeff * equiv_young * Inertia_I * LocalDeltaRotatedAngle[1] / distance;
         ElasticLocalRotationalMoment[2] = -rotational_moment_coeff * equiv_young * Inertia_J * LocalDeltaRotatedAngle[2] / distance;
