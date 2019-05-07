@@ -41,7 +41,8 @@ def GetDefaultInputParameters():
             "RemoveBallsInEmbeddedOption"      : false,
             "solver_settings" :{
                 "strategy"                 : "deprecated_key.invalid_strategy",
-                "RemoveBallsInitiallyTouchingWalls": false
+                "RemoveBallsInitiallyTouchingWalls": false,
+                "do_search_neighbours": true
             },
             "echo_level"                  : 1,
             "problem_data"     : {

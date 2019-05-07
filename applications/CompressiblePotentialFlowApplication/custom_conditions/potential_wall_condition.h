@@ -58,14 +58,17 @@ namespace Kratos
 
 /// Implements a wall condition for the potential flow formulation
 template <unsigned int TDim, unsigned int TNumNodes = TDim>
-class PotentialWallCondition : public Condition
+class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) PotentialWallCondition : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of PotentialWallCondition
-    KRATOS_CLASS_POINTER_DEFINITION(PotentialWallCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(PotentialWallCondition);
+
+    static constexpr int NumNodes = TNumNodes;
+    static constexpr int Dim = TDim;
 
     typedef Node<3> NodeType;
 
@@ -185,6 +188,9 @@ public:
     void Initialize() override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                               ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,

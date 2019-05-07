@@ -72,6 +72,11 @@ class FEMDEM_Solution:
             self.PressureLoad = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
         if self.PressureLoad:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
+
+        if self.FEM_Solution.ProjectParameters.Has("displacement_perturbed_tangent") == False:
+            self.DisplacementPerturbedTangent = False
+        else:
+            self.DisplacementPerturbedTangent = self.FEM_Solution.ProjectParameters["displacement_perturbed_tangent"].GetBool()
         
         self.SkinDetectionProcessParameters = KratosMultiphysics.Parameters("""
         {
@@ -114,10 +119,10 @@ class FEMDEM_Solution:
         # modified for the remeshing
         self.FEM_Solution.delta_time = self.ComputeDeltaTime()
         self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.FEM_Solution.delta_time
-        self.FEM_Solution.time = self.FEM_Solution.time + self.FEM_Solution.delta_time
-        self.FEM_Solution.main_model_part.CloneTimeStep(self.FEM_Solution.time)
-        self.FEM_Solution.step = self.FEM_Solution.step + 1
+        self.FEM_Solution.time +=  self.FEM_Solution.delta_time
+        self.FEM_Solution.step += 1
         self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.FEM_Solution.step
+        self.FEM_Solution.main_model_part.CloneTimeStep(self.FEM_Solution.time)
 
         neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
         neighbour_elemental_finder.Execute()
@@ -156,6 +161,10 @@ class FEMDEM_Solution:
         #### SOLVE FEM #########################################
         self.FEM_Solution.solver.Solve()
         ########################################################
+
+        # Used in the tangent calculator
+        if self.DisplacementPerturbedTangent:
+            self.ComputeDeltaDisplacement()
 
         if self.PressureLoad:
             # This must be called before Generating DEM
@@ -899,7 +908,7 @@ class FEMDEM_Solution:
             # We need to check if the model part has been modified recently
             if self.RemeshingProcessMMG.step_frequency > 0:
                 if step >= self.RemeshingProcessMMG.step_frequency:
-                        if self.RemeshingProcessMMG.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.RemeshingProcessMMG.initial_step:
+                        if self.RemeshingProcessMMG.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.RemeshingProcessMMG.initial_step:
                             # Has remeshed
                             is_remeshed = True
         return is_remeshed
@@ -938,14 +947,15 @@ class FEMDEM_Solution:
 
     def InitializeIntegrationPointsVariables(self):
 
-        for elem in self.FEM_Solution.main_model_part.Elements:
-            elem.SetValue(KratosFemDem.STRESS_THRESHOLD, 0.0)
-            elem.SetValue(KratosFemDem.DAMAGE_ELEMENT, 0.0)
-            elem.SetValue(KratosFemDem.PRESSURE_EXPANDED, 0)
-            elem.SetValue(KratosFemDem.IS_SKIN, 0)
-            elem.SetValue(KratosFemDem.SMOOTHING, 0)
-            elem.SetValue(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0])
-            elem.SetValue(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0])
+        utils = KratosMultiphysics.VariableUtils()
+        utils.SetNonHistoricalVariable(KratosFemDem.STRESS_THRESHOLD, 0.0, self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.DAMAGE_ELEMENT, 0.0, self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_EXPANDED, 0, self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.IS_SKIN, 0, self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.SMOOTHING, 0, self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0], self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0], self.FEM_Solution.main_model_part.Elements)
+        utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR_INTEGRATED, [0.0,0.0,0.0], self.FEM_Solution.main_model_part.Elements)
 
 #============================================================================================================================
 
@@ -1065,5 +1075,11 @@ class FEMDEM_Solution:
         else:
             raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
 
+#============================================================================================================================
 
-            
+    def ComputeDeltaDisplacement(self):
+        for node in self.FEM_Solution.main_model_part.Nodes:
+            displ = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+            displ_old = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1)
+            displ_increment = displ - displ_old
+            node.SetSolutionStepValue(KratosFemDem.DISPLACEMENT_INCREMENT, displ_increment)

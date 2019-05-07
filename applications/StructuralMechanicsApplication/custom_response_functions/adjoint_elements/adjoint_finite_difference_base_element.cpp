@@ -278,9 +278,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
     KRATOS_TRY;
 
     // Get perturbation size
-    // There is a bug here, the value actually step_size*10
-    //const double delta = this->GetPerturbationSize(rDesignVariable);
-    const double delta = this->GetValue(PERTURBATION_SIZE);
+    const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
     ProcessInfo process_info = rCurrentProcessInfo;
 
     Vector RHS;
@@ -307,8 +305,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
 {
     KRATOS_TRY;
 
-    // TODO Mahmoud: GetPerturbationSize() should not be affected by changes element length
-    const double delta = this->GetPerturbationSize(rDesignVariable);
+    const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
     ProcessInfo process_info = rCurrentProcessInfo;
 
     const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
@@ -451,7 +448,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
         StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
 
     // Get perturbation size
-    const double delta = this->GetPerturbationSize(rDesignVariable);
+    const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
 
     const SizeType stress_vector_size = stress_vector_undist.size();
     rOutput.resize(1, stress_vector_size, false);
@@ -501,7 +498,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
     Vector stress_vector_dist;
 
     // Get perturbation size
-    const double delta = this->GetPerturbationSize(rDesignVariable);
+    const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
 
     if(rDesignVariable == SHAPE_SENSITIVITY)
     {
@@ -558,25 +555,31 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
 
 // private
 template <class TPrimalElement>
-double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<double>& rDesignVariable)
+double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<double>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const
 {
-    const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
-    const double delta = this->GetValue(PERTURBATION_SIZE) * correction_factor;
+    double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
+    if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE]) {
+            delta *= this->GetPerturbationSizeModificationFactor(rDesignVariable);
+    }
+
     KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
     return delta;
 }
 
 template <class TPrimalElement>
-double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable)
+double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const
 {
-    const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
-    const double delta = this->GetValue(PERTURBATION_SIZE) * correction_factor;
+    double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
+    if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE]) {
+            delta *= this->GetPerturbationSizeModificationFactor(rDesignVariable);
+    }
+
     KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
     return delta;
 }
 
 template <class TPrimalElement>
-double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSizeModificationFactor(const Variable<double>& rDesignVariable)
+double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSizeModificationFactor(const Variable<double>& rDesignVariable) const
 {
     KRATOS_TRY;
 
@@ -592,7 +595,7 @@ double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize
 }
 
 template <class TPrimalElement>
-double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable)
+double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) const
 {
     KRATOS_TRY;
 

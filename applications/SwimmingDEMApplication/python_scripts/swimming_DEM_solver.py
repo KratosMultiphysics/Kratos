@@ -1,24 +1,22 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-# Importing the Kratos Library
-import KratosMultiphysics
+from KratosMultiphysics import Logger, Parameters
 from python_solver import PythonSolver
-
-# Import applications
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
+import math
 import swimming_DEM_procedures as SDP
+import parameters_tools as PT
 import CFD_DEM_coupling
 import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
-import math
 
 def Say(*args):
-    KratosMultiphysics.Logger.PrintInfo("SwimmingDEM", *args)
-    KratosMultiphysics.Logger.Flush()
+    Logger.PrintInfo("SwimmingDEM", *args)
+    Logger.Flush()
 
 class SwimmingDEMSolver(PythonSolver):
     def _ValidateSettings(self, project_parameters):
 
-        default_processes_settings = KratosMultiphysics.Parameters("""{
+        default_processes_settings = Parameters("""{
                 "python_module" : "calculate_nodal_area_process",
                 "kratos_module" : "KratosMultiphysics",
                 "process_name"  : "CalculateNodalAreaProcess",
@@ -64,16 +62,17 @@ class SwimmingDEMSolver(PythonSolver):
         self.dem_solver = dem_solver
         self.project_parameters = self._ValidateSettings(project_parameters)
         self.next_time_to_solve_fluid = project_parameters['problem_data']['start_time'].GetDouble()
-        self.coupling_level_type = project_parameters["coupling_level_type"].GetInt()
-        self.interaction_start_time = project_parameters["interaction_start_time"].GetDouble()
-        self.integration_scheme = project_parameters["TranslationalIntegrationScheme"].GetString()
+        self.coupling_level_type = project_parameters["coupling"]["coupling_level_type"].GetInt()
+        self.interaction_start_time = project_parameters["coupling"]["interaction_start_time"].GetDouble()
+        self.integration_scheme = project_parameters["custom_dem"]["translational_integration_scheme"].GetString()
         self.fluid_dt = fluid_solver.settings["time_stepping"]["time_step"].GetDouble()
-        self.do_solve_dem = project_parameters["do_solve_dem"].GetBool()
-        self.solve_system = not self.project_parameters["fluid_already_calculated"].GetBool()
+        self.do_solve_dem = project_parameters["custom_dem"]["do_solve_dem"].GetBool()
+        self.solve_system = not self.project_parameters["custom_fluid"]["fluid_already_calculated"].GetBool()
 
         self.fluid_step = 0
         self.calculating_fluid_in_current_step = True
         self.first_DEM_iteration = True
+        self.SetHistoryForceOptions()
         self.ConstructStationarityTool()
         self.ConstructDerivativeRecoverer()
         self.ConstructHistoryForceUtility()
@@ -84,7 +83,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.stationarity = False
         self.stationarity_counter = self.GetStationarityCounter()
         self.stationarity_tool = SDP.StationarityAssessmentTool(
-            self.project_parameters["max_pressure_variation_rate_tol"].GetDouble(),
+            self.project_parameters["stationarity"]["max_pressure_variation_rate_tol"].GetDouble(),
             SDP.FunctionsCalculator()
             )
 
@@ -112,10 +111,22 @@ class SwimmingDEMSolver(PythonSolver):
 
         return projection_module
 
+    def SetHistoryForceOptions(self):
+        self.history_force_on = False
+        self.MAE_parameters = Parameters("{}")
+        for prop in self.project_parameters["properties"].values(): #TODO: now it only works for one property!
+            self.history_force_on = (PT.RecursiveFindParametersWithCondition(
+                                     self.project_parameters["properties"], 'history_force_parameters',
+                                     condition=lambda value: value['name'].GetString() != 'default'))
+            if self.history_force_on:
+                self.MAE_parameters = prop["hydrodynamic_law_parameters"]["history_force_parameters"]["mae_parameters"]
+            break
+        self.do_use_mae = PT.RecursiveFindTrueBoolInParameters(self.MAE_parameters, 'do_use_mae')
+
+
     def ConstructDerivativeRecoverer(self):
         self.derivative_recovery_counter = self.GetRecoveryCounter()
-        self.using_hinsberg_method = bool(self.project_parameters["basset_force_type"].GetInt() >= 3 or
-                                          self.project_parameters["basset_force_type"].GetInt() == 1)
+
         self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
             self.project_parameters,
             self.fluid_solver.main_model_part,
@@ -123,17 +134,18 @@ class SwimmingDEMSolver(PythonSolver):
 
     def ConstructHistoryForceUtility(self):
         self.quadrature_counter = self.GetHistoryForceQuadratureCounter()
-        self.basset_force_tool = SDEM.BassetForceTools()
+        if self.history_force_on:
+            self.basset_force_tool = SDEM.BassetForceTools(self.MAE_parameters)
 
     def GetStationarityCounter(self):
         return SDP.Counter(
-            steps_in_cycle=self.project_parameters["time_steps_per_stationarity_step"].GetInt(),
+            steps_in_cycle=self.project_parameters["stationarity"]["time_steps_per_stationarity_step"].GetInt(),
             beginning_step=1,
-            is_active=self.project_parameters["stationary_problem_option"].GetBool())
+            is_active=self.project_parameters["stationarity"]["stationary_problem_option"].GetBool())
 
     def GetRecoveryCounter(self):
         there_is_something_to_recover = (
-            self.project_parameters["coupling_level_type"].GetInt() or
+            self.project_parameters["coupling"]["coupling_level_type"].GetInt() or
             self.project_parameters["print_PRESSURE_GRADIENT_option"].GetBool())
         return SDP.Counter(1, 1, there_is_something_to_recover)
 
@@ -158,7 +170,7 @@ class SwimmingDEMSolver(PythonSolver):
         return self.time
 
     def UpdateALEMeshMovement(self, time): # TODO: move to derived solver
-        if self.project_parameters["ALE_option"].GetBool():
+        if self.project_parameters["custom_fluid"]["ALE_option"].GetBool():
             self.rotator.RotateMesh(self.fluid_solver.main_model_part, time)
             self._GetProjectionModule().UpdateDatabase(self.CalculateMinElementSize())
 
@@ -174,7 +186,7 @@ class SwimmingDEMSolver(PythonSolver):
     # solution algorithm. For instance, the pressure gradient, which is not used for
     # the coupling but can be of interest.
     def ComputePostProcessResults(self):
-        if self.project_parameters["coupling_level_type"].GetInt():
+        if self.project_parameters["coupling"]["coupling_level_type"].GetInt():
             self._GetProjectionModule().ComputePostProcessResults(self.dem_solver.spheres_model_part.ProcessInfo)
 
     def CannotIgnoreFluidNow(self):
@@ -201,7 +213,7 @@ class SwimmingDEMSolver(PythonSolver):
 
         # Solving the fluid part
         Say('Solving Fluid... (', self.fluid_solver.main_model_part.NumberOfElements(0), 'elements )\n')
-        self.solve_system = not self.project_parameters["fluid_already_calculated"].GetBool() and not self.stationarity
+        self.solve_system = not self.project_parameters["custom_fluid"]["fluid_already_calculated"].GetBool() and not self.stationarity
 
         if self.CannotIgnoreFluidNow():
             self.SolveFluidSolutionStep()
@@ -257,9 +269,9 @@ class SwimmingDEMSolver(PythonSolver):
         self.first_DEM_iteration = False
 
     def AppendValuesForTheHistoryForce(self):
-        if self.using_hinsberg_method:
+        if PT.RecursiveFindTrueBoolInParameters(self.MAE_parameters, 'do_use_mae'):
             self.basset_force_tool.AppendIntegrandsWindow(self.dem_solver.spheres_model_part)
-        elif self.project_parameters["basset_force_type"].GetInt() == 2:
+        else:
             self.basset_force_tool.AppendIntegrands(self.dem_solver.spheres_model_part)
 
     def ImportModelPart(self): # TODO: implement this

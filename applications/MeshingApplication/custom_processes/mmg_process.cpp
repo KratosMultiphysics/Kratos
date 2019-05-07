@@ -735,7 +735,7 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 
             ConditionType::Pointer p_condition = CreateCondition0(cond_id, ref, is_required, skip_creation);
 
-            if (p_condition != nullptr) {
+            if (p_condition.get() != nullptr) {
                 created_conditions_vector.push_back(p_condition);
 //                 mrThisModelPart.AddCondition(p_condition);
                 if (ref != 0) color_cond_0[static_cast<IndexType>(ref)].push_back(cond_id);// NOTE: ref == 0 is the MainModelPart
@@ -755,7 +755,7 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
             }
             ConditionType::Pointer p_condition = CreateCondition1(cond_id, ref, is_required, skip_creation);
 
-            if (p_condition != nullptr) {
+            if (p_condition.get() != nullptr) {
                 created_conditions_vector.push_back(p_condition);
 //                 mrThisModelPart.AddCondition(p_condition);
                 if (ref != 0) color_cond_1[static_cast<IndexType>(ref)].push_back(cond_id);// NOTE: ref == 0 is the MainModelPart
@@ -781,7 +781,7 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 
             ElementType::Pointer p_element = CreateElement0(elem_id, ref, is_required, skip_creation);
 
-            if (p_element != nullptr) {
+            if (p_element.get() != nullptr) {
                 created_elements_vector.push_back(p_element);
 //                 mrThisModelPart.AddElement(p_element);
                 if (ref != 0) color_elem_0[static_cast<IndexType>(ref)].push_back(elem_id);// NOTE: ref == 0 is the MainModelPart
@@ -802,7 +802,7 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 
             ElementType::Pointer p_element = CreateElement1(elem_id, ref, is_required,skip_creation);
 
-            if (p_element != nullptr) {
+            if (p_element.get() != nullptr) {
                 created_elements_vector.push_back(p_element);
 //                 mrThisModelPart.AddElement(p_element);
                 if (ref != 0) color_elem_1[static_cast<IndexType>(ref)].push_back(elem_id);// NOTE: ref == 0 is the MainModelPart
@@ -935,8 +935,10 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
     }
 
     // We set to zero the variables contained on the elements and conditions
-    SetToZeroEntityData(mrThisModelPart.Conditions(), r_old_model_part.Conditions());
-    SetToZeroEntityData(mrThisModelPart.Elements(), r_old_model_part.Elements());
+    if (r_old_model_part.Conditions().size() > 0)
+        SetToZeroEntityData(mrThisModelPart.Conditions(), r_old_model_part.Conditions());
+    if (r_old_model_part.Elements().size() > 0)
+        SetToZeroEntityData(mrThisModelPart.Elements(), r_old_model_part.Elements());
 
     // Finally remove old model part
     owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old");
@@ -1526,7 +1528,7 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateCondition0(
     // Sometimes MMG creates conditions where there are not, then we skip
     Properties::Pointer p_prop = nullptr;
     Condition::Pointer p_base_condition = nullptr;
-    if (mpRefCondition[PropId] == nullptr) {
+    if (mpRefCondition[PropId].get() == nullptr) {
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
             KRATOS_WARNING("MmgProcess") << "Condition. Null pointer returned" << std::endl;
             return p_condition;
@@ -1534,6 +1536,7 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateCondition0(
             p_prop = mrThisModelPart.pGetProperties(0);
             PointerVector<NodeType> dummy_nodes (2);
             p_base_condition = KratosComponents<Condition>::Get("LineCondition2D2N").Create(0, dummy_nodes, p_prop);
+            p_base_condition->Set(MARKER);
         }
     } else {
         p_base_condition = mpRefCondition[PropId];
@@ -1550,6 +1553,7 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateCondition0(
         condition_nodes[1] = mrThisModelPart.pGetNode(edge_1);
 
         p_condition = p_base_condition->Create(CondId, PointerVector<NodeType>{condition_nodes}, p_prop);
+        if (p_base_condition->Is(MARKER)) p_condition->Set(MARKER);
     } else if (mEchoLevel > 2)
         KRATOS_INFO("MmgProcess") << "Condition creation avoided" << std::endl;
 
@@ -1580,7 +1584,7 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition0(
     Properties::Pointer p_prop = nullptr;
     Condition::Pointer p_base_condition = nullptr;
 
-    if (mpRefCondition[PropId] == nullptr) {
+    if (mpRefCondition[PropId].get() == nullptr) {
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
             KRATOS_WARNING("MmgProcess") << "Condition. Null pointer returned" << std::endl;
             return p_condition;
@@ -1606,6 +1610,7 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition0(
         condition_nodes[2] = mrThisModelPart.pGetNode(vertex_2);
 
         p_condition = p_base_condition->Create(CondId, PointerVector<NodeType>{condition_nodes}, p_prop);
+        if (p_base_condition->Is(MARKER)) p_condition->Set(MARKER);
     } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgProcess") << "Condition creation avoided" << std::endl;
 
@@ -1633,7 +1638,7 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMGS>::CreateCondition0(
     }
 
     // Sometimes MMG creates conditions where there are not, then we skip
-    if (mpRefCondition[PropId] == nullptr) {
+    if (mpRefCondition[PropId].get() == nullptr) {
         KRATOS_WARNING("MmgProcess") << "Condition. Null pointer returned" << std::endl;
         return p_condition;
     }
@@ -1688,7 +1693,7 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition1(
     }
 
     // Sometimes MMG creates conditions where there are not, then we skip
-    if (mpRefCondition[PropId] == nullptr) {
+    if (mpRefCondition[PropId].get() == nullptr) {
         KRATOS_WARNING("MmgProcess") << "Condition. Null pointer returned" << std::endl;
         return p_condition;
     }
@@ -1749,7 +1754,7 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateElement0(
     if( mRemoveRegions && mDiscretization == DiscretizationOption::ISOSURFACE ){
 
         // the existence of a _nullptr_ indicates an element that was removed. This is not an alarming indicator.
-        if (mpRefElement[PropId] == nullptr) {
+        if (mpRefElement[PropId].get() == nullptr) {
             // KRATOS_INFO("MmgProcess") << "Element has been removed from domain. Ok." << std::endl;
             return p_element;
 
@@ -1775,7 +1780,7 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateElement0(
         Element::Pointer p_base_element = nullptr;
 
         // Sometimes MMG creates elements where there are not, then we skip
-        if (mpRefElement[PropId] == nullptr) {
+        if (mpRefElement[PropId].get() == nullptr) {
             if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
                 KRATOS_WARNING("MmgProcess") << "Element. Null pointer returned" << std::endl;
                 return p_element;
@@ -1829,7 +1834,7 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement0(
     if( mRemoveRegions && mDiscretization == DiscretizationOption::ISOSURFACE ){
 
         // the existence of a _nullptr_ indicates an element that was removed. This is not an alarming indicator.
-        if (mpRefElement[PropId] == nullptr) {
+        if (mpRefElement[PropId].get() == nullptr) {
             // KRATOS_INFO("MmgProcess") << "Element has been removed from domain. Ok." << std::endl;
             return p_element;
 
@@ -1856,7 +1861,7 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement0(
         Element::Pointer p_base_element = nullptr;
 
         // Sometimes MMG creates elements where there are not, then we skip
-        if (mpRefElement[PropId] == nullptr) {
+        if (mpRefElement[PropId].get() == nullptr) {
             if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
                 KRATOS_WARNING("MmgProcess") << "Element. Null pointer returned" << std::endl;
                 return p_element;
@@ -1911,7 +1916,7 @@ ElementType::Pointer MmgProcess<MMGLibray::MMGS>::CreateElement0(
         exit(EXIT_FAILURE);
 
     // Sometimes MMG creates elements where there are not, then we skip
-    if (mpRefElement[PropId] == nullptr) {
+    if (mpRefElement[PropId].get() == nullptr) {
         KRATOS_WARNING("MmgProcess") << "Element. Null pointer returned" << std::endl;
         return p_element;
     }
@@ -1968,7 +1973,7 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement1(
     }
 
     // Sometimes MMG creates elements where there are not, then we skip
-    if (mpRefElement[PropId] == nullptr) {
+    if (mpRefElement[PropId].get() == nullptr) {
         KRATOS_WARNING("MmgProcess") << "Element. Null pointer returned" << std::endl;
         return p_element;
     }
@@ -3287,11 +3292,22 @@ template<MMGLibray TMMGLibray>
 void MmgProcess<TMMGLibray>::ClearConditionsDuplicatedGeometries()
 {
     // Next check that the conditions are oriented accordingly to do so begin by putting all of the conditions in a set
-    typedef std::unordered_set<DenseVector<IndexType>, KeyHasherRange<DenseVector<IndexType>>, KeyComparorRange<DenseVector<IndexType>> > HashSetType;
-    HashSetType faces_set;
+    typedef std::unordered_map<DenseVector<IndexType>, std::vector<IndexType>, KeyHasherRange<DenseVector<IndexType>>, KeyComparorRange<DenseVector<IndexType>> > HashMapType;
+    HashMapType faces_map;
 
     // Iterate over conditions
     ConditionsArrayType& r_conditions_array = mrThisModelPart.Conditions();
+
+    // Reset flag
+    const auto it_cond_begin = r_conditions_array.begin();
+    const int number_of_conditions = static_cast<int>(r_conditions_array.size());
+    #pragma omp parallel for
+    for(int i = 0; i < number_of_conditions; ++i) {
+        const auto it_cond = it_cond_begin + i;
+        it_cond->Reset(TO_ERASE);
+    }
+
+    // Create map
     for(auto& r_cond : r_conditions_array) {
 
         GeometryType& r_geom = r_cond.GetGeometry();
@@ -3305,12 +3321,28 @@ void MmgProcess<TMMGLibray>::ClearConditionsDuplicatedGeometries()
         std::sort(ids.begin(), ids.end());
 
         // Insert a pointer to the condition identified by the hash value ids
-        HashSetType::iterator it_face = faces_set.find(ids);
-        if(it_face != faces_set.end() ) { // Already defined vector
-            r_cond.Set(TO_ERASE);
-            KRATOS_INFO_IF("MmgProcess", mEchoLevel > 2) << "Condition created ID:\t" << r_cond.Id() << " will be removed" << std::endl;
+        HashMapType::iterator it_face = faces_map.find(ids);
+        if(it_face != faces_map.end() ) { // Already defined vector
+            (it_face->second).push_back(r_cond.Id());
         } else {
-            faces_set.insert( HashSetType::value_type(ids) );
+            std::vector<IndexType> aux_cond_id(1);
+            aux_cond_id[0] = r_cond.Id();
+            faces_map.insert( HashMapType::value_type(std::pair<DenseVector<IndexType>, std::vector<IndexType>>({ids, aux_cond_id})) );
+        }
+    }
+
+    // We set the flag
+    SizeType counter = 1;
+    for (auto& i_pair : faces_map) {
+        const auto& r_pairs = i_pair.second;
+        for (auto i_id : r_pairs) {
+            auto p_cond = mrThisModelPart.pGetCondition(i_id);
+            if (p_cond->Is(MARKER) && counter < r_pairs.size()) { // Only remove dummy conditions repeated
+                p_cond->Set(TO_ERASE);
+                KRATOS_INFO_IF("MmgProcess", mEchoLevel > 2) << "Condition created ID:\t" << i_id << " will be removed" << std::endl;
+                ++counter;
+            }
+            counter = 1;
         }
     }
 

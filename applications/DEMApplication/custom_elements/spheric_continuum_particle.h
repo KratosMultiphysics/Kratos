@@ -38,7 +38,7 @@ namespace Kratos
     public:
 
         /// Pointer definition of SphericContinuumParticle
-        KRATOS_CLASS_POINTER_DEFINITION(SphericContinuumParticle);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SphericContinuumParticle);
 
         typedef WeakPointerVector<Element> ParticleWeakVectorType;
         typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
@@ -99,8 +99,7 @@ namespace Kratos
 
         void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
 
-        void ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& temp_neighbour_elements);
-        void ReorderFEMneighbours();
+        void ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& mTempNeighbourElements);
         virtual void UpdateContinuumNeighboursVector(ProcessInfo& r_process_info);
         virtual void ComputeForceWithNeighbourFinalOperations();
 

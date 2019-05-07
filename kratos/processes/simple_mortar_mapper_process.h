@@ -155,7 +155,7 @@ public:
      */
     Condition::Pointer GetCondition()
     {
-        KRATOS_DEBUG_ERROR_IF(mpOriginCond == nullptr) << "Condition no initialized in the PointMapper class" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(mpOriginCond.get() == nullptr) << "Condition no initialized in the PointMapper class" << std::endl;
         return mpOriginCond;
     }
 
@@ -168,7 +168,7 @@ public:
 
         auto aux_coord = Kratos::make_shared<array_1d<double, 3>>(this->Coordinates());
         KRATOS_ERROR_IF(!aux_coord) << "Coordinates no initialized in the PointMapper class" << std::endl;
-        KRATOS_ERROR_IF(mpOriginCond == nullptr) << "Condition no initialized in the PointMapper class" << std::endl;
+        KRATOS_ERROR_IF(mpOriginCond.use_count() == 0) << "Condition no initialized in the PointMapper class" << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -457,13 +457,14 @@ private:
 
     double mMappingCoefficient = 1.0;             /// The mapping coefficient
 
-    bool mOriginHistorical;                       /// A bool that defines if the origin variables is historical
-    bool mDestinationHistorical;                  /// A bool that defines if the destination variables is historical
+    bool mDiscontinuousInterface = false;         /// A bool that defines if interface is doscontinous
+    bool mOriginHistorical = true;                /// A bool that defines if the origin variables is historical
+    bool mDestinationHistorical = true;           /// A bool that defines if the destination variables is historical
 
-    unsigned int mEchoLevel;                      /// The verbosity level
+    unsigned int mEchoLevel = 0;                  /// The verbosity level
     Parameters mThisParameters;                   /// The configuration parameters
 
-    LinearSolverType::Pointer mpThisLinearSolver; // The linear solver used to compute the solution
+    LinearSolverType::Pointer mpThisLinearSolver; /// The linear solver used to compute the solution
 
     ///@}
     ///@name Private Operators
@@ -501,8 +502,8 @@ private:
      */
     void AssemblyMortarOperators(
         const std::vector<array_1d<PointType,TDim>>& rConditionsPointSlave,
-        GeometryType& rSlaveGeometry,
-        GeometryType& rMasterGeometry,
+        const GeometryType& rSlaveGeometry,
+        const GeometryType& rMasterGeometry,
         const array_1d<double, 3>& rMasterNormal,
         MortarKinematicVariablesType& rThisKinematicVariables,
         MortarOperatorType& rThisMortarOperators,
@@ -588,8 +589,8 @@ private:
      */
     void ComputeResidualMatrix(
         Matrix& rResidualMatrix,
-        GeometryType& rSlaveGeometry,
-        GeometryType& rMasterGeometry,
+        const GeometryType& rSlaveGeometry,
+        const GeometryType& rMasterGeometry,
         const MortarOperatorType& rThisMortarOperators
         );
 
@@ -608,7 +609,7 @@ private:
         std::vector<VectorType>& rb,
         const SizeType VariableSize,
         const Matrix& rResidualMatrix,
-        GeometryType& rSlaveGeometry,
+        const GeometryType& rSlaveGeometry,
         IntMap& rInverseConectivityDatabase,
         const MortarOperatorType& rThisMortarOperators
         );
@@ -625,7 +626,7 @@ private:
         std::vector<VectorType>& rb,
         const SizeType VariableSize,
         const Matrix& rResidualMatrix,
-        GeometryType& rSlaveGeometry,
+        const GeometryType& rSlaveGeometry,
         IntMap& rInverseConectivityDatabase
         );
 
@@ -667,7 +668,7 @@ private:
         )
     {
         // The root model part
-        ModelPart& root_model_part = mOriginModelPart.GetRootModelPart();
+        ModelPart& r_root_model_part = mOriginModelPart.GetRootModelPart();
 
         // Getting the auxiliar variable
         TVarType aux_variable = MortarUtilities::GetAuxiliarVariable<TVarType>();
@@ -675,15 +676,18 @@ private:
         // Indexes of the pair to be removed
         std::vector<IndexType> indexes_to_remove, conditions_to_erase;
 
+        // Getting discontinous factor
+        const double discontinous_interface_factor = mDiscontinuousInterface ? mThisParameters["discontinous_interface_factor"].GetDouble() : 1.0;
+
         // Geometrical values
-        const array_1d<double, 3>& r_slave_normal = itCond->GetValue(NORMAL);
-        GeometryType& r_slave_geometry = itCond->GetGeometry();
+        const auto& r_slave_normal = itCond->GetValue(NORMAL);
+        auto& r_slave_geometry = itCond->GetGeometry();
 
         for (auto it_pair = pIndexesPairs->begin(); it_pair != pIndexesPairs->end(); ++it_pair ) {
             const IndexType master_id = pIndexesPairs->GetId(it_pair);
-            Condition::Pointer p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
-            const array_1d<double, 3>& r_master_normal = p_cond_master->GetValue(NORMAL);
-            GeometryType& r_master_geometry = p_cond_master->GetGeometry();
+            auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
+            const auto& r_master_normal = p_cond_master->GetValue(NORMAL);
+            const auto& r_master_geometry = p_cond_master->GetGeometry();
 
             const IntegrationMethod& this_integration_method = GetIntegrationMethod();
 
@@ -736,6 +740,40 @@ private:
                             #pragma omp atomic
                             r_nodal_area += rThisMortarOperators.DOperator(i_node, i_node);
                         }
+                        // In case of discontinous interface we add contribution to near nodes
+                        if (mDiscontinuousInterface) {
+                            const double element_length = r_slave_geometry.Length();
+
+                            // Iterating over nodes
+                            for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+                                const double nodal_area_contribution = rThisMortarOperators.DOperator(i_node, i_node);
+
+                                // The original node coordinates
+                                const auto& r_slave_node_coordinates = r_slave_geometry[i_node].Coordinates();
+
+                                // Iterating over other paired conditions
+                                const auto& r_index_masp_master = p_cond_master->GetValue(INDEX_SET);
+                                for (auto it_master_pair = r_index_masp_master->begin(); it_master_pair != r_index_masp_master->end(); ++it_master_pair ) {
+
+                                    const IndexType auxiliar_slave_id = r_index_masp_master->GetId(it_master_pair);
+                                    if (itCond->Id() != auxiliar_slave_id) {
+                                        auto p_cond_auxiliar_slave = mDestinationModelPart.pGetCondition(auxiliar_slave_id); // AUXILIAR SLAVE
+                                        GeometryType& r_auxiliar_slave_geometry = p_cond_auxiliar_slave->GetGeometry();
+
+                                        for (IndexType j_node = 0; j_node < TNumNodes; ++j_node) {
+                                            // The auxiliar node coordinates
+                                            const auto& r_auxiliar_slave_node_coordinates = r_auxiliar_slave_geometry[j_node].Coordinates();
+                                            const double distance = norm_2(r_auxiliar_slave_node_coordinates - r_slave_node_coordinates);
+                                            const double contribution_coeff = 1.0/std::pow((1.0 + distance/(discontinous_interface_factor * element_length)), 2);
+
+                                            double& r_nodal_area = r_auxiliar_slave_geometry[j_node].GetValue(NODAL_AREA);
+                                            #pragma omp atomic
+                                            r_nodal_area += contribution_coeff * nodal_area_contribution;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 } else if (TImplicit) {
                     const SizeType variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
@@ -753,7 +791,7 @@ private:
         // Clear indexes
         for (IndexType i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove) {
             for (auto& id : conditions_to_erase ) {
-                Condition::Pointer p_cond = root_model_part.pGetCondition(id);
+                auto p_cond = r_root_model_part.pGetCondition(id);
                 p_cond->Set(TO_ERASE, true);
             }
             pIndexesPairs->RemoveId(indexes_to_remove[i_to_remove]);
@@ -761,12 +799,14 @@ private:
     }
 
     /**
+     * @brief This method creates an inverse database
+     */
+    void CreateInverseDatabase();
+
+    /**
      * @brief Reset the interface database
-     * This method resets the mapping database saved in the destination database.
-     * Note that this needs to be done if such modelpart has changed its number
-     * of nodes or conditions. This needs to be done even though the mapping
-     * instance is deleted since such information is saved in the destination
-     * nodes and conditions.
+     * @details This method resets the mapping database saved in the destination database.
+     * @note Note that this needs to be done if such modelpart has changed its number of nodes or conditions. This needs to be done even though the mapping instance is deleted since such information is saved in the destination nodes and conditions.
      */
     void UpdateInterface();
 

@@ -91,8 +91,7 @@
                 "filename"                         : "mmg_lagrangian_test/beam2D_line_load_test",
                 "save_external_files"               : true,
                 "anisotropy_remeshing"              : false,
-                "echo_level"                        : 0,
-                "debug_mode"                        : false
+                "echo_level"                        : 0
             }
         }
         ],

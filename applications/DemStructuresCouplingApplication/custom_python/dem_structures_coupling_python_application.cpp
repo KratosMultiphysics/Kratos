@@ -16,6 +16,7 @@
 #include "../dem_structures_coupling_application.h"
 #include "../dem_structures_coupling_application_variables.h"
 #include "add_custom_utilities_to_python.h"
+#include "add_custom_processes_to_python.h"
 
 
 namespace Kratos
@@ -34,6 +35,7 @@ PYBIND11_MODULE(KratosDemStructuresCouplingApplication, m)
 
     //AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
+    AddCustomProcessesToPython(m);
 
     //registering variables in python
 
@@ -41,6 +43,9 @@ PYBIND11_MODULE(KratosDemStructuresCouplingApplication, m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, BACKUP_LAST_STRUCTURAL_VELOCITY)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, BACKUP_LAST_STRUCTURAL_DISPLACEMENT)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, SMOOTHED_STRUCTURAL_VELOCITY)
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TARGET_STRESS)
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, REACTION_STRESS)
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, LOADING_VELOCITY)
 }
 
 }  // namespace Python.

@@ -20,6 +20,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/mat_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/legacy_structural_app_vars.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_application.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/integration_rules.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/mmio.c;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/timer.cpp;
@@ -31,6 +32,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/process_info.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/oriented_bounding_box.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/simple_mortar_mapper_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp;
@@ -58,7 +60,9 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_h_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_nodal_area_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/skin_detection_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/processes/replace_elements_and_condition_process.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/replace_elements_and_condition_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/entity_erase_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_variable_to_entities_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedral_mesh_orientation_check.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/integration_values_extrapolation_to_nodes_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
@@ -91,6 +95,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/triangle_2d_3_ausas_modified_shape_functions.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/elements/embedded_nodal_variable_calculation_element_simplex.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/elements/mesh_element.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/conditions/mesh_condition.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/apply_periodic_boundary_condition_process.cpp;
@@ -99,7 +104,7 @@ set( KRATOS_CORE_SOURCES
 
 ## Kratos python interface code
 set( KRATOS_PYTHON_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_field_to_conditions_process.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_field_to_entities_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_part_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_points_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_deprecated_variables_to_python.cpp

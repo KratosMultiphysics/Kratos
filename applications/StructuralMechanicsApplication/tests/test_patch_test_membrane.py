@@ -178,7 +178,7 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(1e-15,1e-15)
+        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-6,1e-9)
         convergence_criterion.SetEchoLevel(0)
 
         max_iters = 1000
@@ -323,7 +323,7 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
 class StaticPatchTestMembrane(BasePatchTestMembrane):
 
     def test_membrane_3d3n_static(self):
-        displacement_results = [-4.628753e-12 , -0.04937043 , -6.483677e-12]
+        displacement_results = [-4.628753e-12 , -0.0493006 , -6.483677e-12]
 
         current_model = KratosMultiphysics.Model()
 
@@ -336,7 +336,7 @@ class StaticPatchTestMembrane(BasePatchTestMembrane):
         #self.__post_process(mp)
 
     def test_membrane_3d4n_static(self):
-        displacement_results = [1.73962e-07 , -0.05202096 , -1.243591e-08]
+        displacement_results = [1.73962e-07 , -0.0519422 , -1.243591e-08]
 
         current_model = KratosMultiphysics.Model()
 

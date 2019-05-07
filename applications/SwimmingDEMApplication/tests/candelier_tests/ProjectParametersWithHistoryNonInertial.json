@@ -1,83 +1,58 @@
 {
-"Dimension"                        : 3,
-"GravityX"                         : 0.0,
-"GravityY"                         : 0.0,
-"GravityZ"                         : -9.81,
+"ElementType" : "SwimmingDEMElement",
 
-"OutputFileType"                   : "Binary",
-"Multifile"                        : "multiple_files",
+"time_stepping" : {
+    "automatic_time_step" : false,
+    "time_step" : 0.005
+},
 
-"TranslationalIntegrationScheme"   : "Hybrid_Bashforth",
-"MaxTimeStep"                      : 0.005,
-"FinalTime"                        : 1.0,
-"ControlTime"                      : 4.0,
-"NeighbourSearchFrequency"         : 1,
-"TestType" : "None",
+"problem_data" : {
+    "problem_name" : "Candelier",
+    "parallel_type" : "OpenMP",
+    "echo_level" : 1,
+    "start_time" : 0.0,
+    "end_time" : 1
+},
 
-"ElementType"                      : "SwimmingDEMElement",
+"frame_of_reference" : {
+    "frame_type": 1,
+    "angular_velocity_of_frame_X" : 0.0,
+    "angular_velocity_of_frame_Y" : 0.0,
+    "angular_velocity_of_frame_Z" : 0.0,
+    "angular_velocity_of_frame_old_X" : 0.0,
+    "angular_velocity_of_frame_old_Y" : 0.0,
+    "angular_velocity_of_frame_old_Z" : 0.0,
+    "acceleration_of_frame_origin_X" : 0.0,
+    "acceleration_of_frame_origin_Y" : 0.0,
+    "acceleration_of_frame_origin_Z" : 0.0,
+    "angular_acceleration_of_frame_X" : 0.0,
+    "angular_acceleration_of_frame_Y" : 0.0,
+    "angular_acceleration_of_frame_Z" : 0.0,
+    "frame_rotation_axis_initial_point" : [0.0,0.0,0.0],
+    "frame_rotation_axis_final_point" : [0.0,0.0,1.0],
+    "angular_velocity_magnitude" : 0.0
+},
 
-"do_print_results_option"                : false,
-"coupling_level_type"                    : 1,
-"time_averaging_type"                    : 0,
-"interaction_start_time"                 : 0.0,
-"gradient_calculation_type"              : 1,
-"gradient_calculation_type_comment"      : "(Not calculated (0), volume-weighed average(1), Superconvergent recovery(2))",
-"viscosity_modification_type"            : 0,
-"coupling_weighing_type"                 : 2,
-"coupling_weighing_type_comment"         : "{fluid_to_DEM, DEM_to_fluid, fluid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2), averaging method (3)",
-"fluid_model_type"                       : 1,
-"fluid_model_type_comment"               : " untouched, velocity incremented by 1/fluid_fraction (0), modified mass conservation only (1)",
-"print_particles_results_option"         : false,
-"add_each_hydro_force_option"            : true,
-"add_each_hydro_force_option_comment"    : " add each of the hydrodynamic forces (drag, lift and virtual mass)",
-"stationary_problem_option"              : false,
-"stationary_problem_option_comment"      : " stationary, stop calculating the fluid after it reaches the stationary state",
-"flow_in_porous_medium_option"           : false,
-"flow_in_porous_medium_option_comment"   : " the porosity is an imposed field",
-"flow_in_porous_DEM_medium_option"       : false,
-"flow_in_porous_DEM_medium_option_comment" : "the DEM part is kept static",
-"embedded_option"                        : false,
-"embedded_option_comment"                : "the embedded domain tools are to be used",
-"make_results_directories_option"        : true,
-"make_results_directories_option_comment": "results are written into a folder (../results) inside the problem folder",
-"body_force_on_fluid_option"             : true,
-"print_debug_info_option"                : false,
-"print_debug_info_option_comment"        : " print a summary of global physical measures",
-"print_particles_results_cycle"          : 1,
-"print_particles_results_cycle_comment"  : " number of 'ticks' per printing cycle",
-"debug_tool_cycle"                       : 10,
-"debug_tool_cycle_comment"                       : " number of 'ticks' per debug computations cycle",
-"similarity_transformation_type"         : 0,
-"similarity_transformation_type_comment" : " no transformation (0), Tsuji (1)",
-"dem_inlet_element_type"                 : "SphericSwimmingParticle3D",
-"dem_inlet_element_type_comment"         : " SphericParticle3D, SphericSwimmingParticle3D",
-"drag_modifier_type"                     : 2,
-"drag_modifier_type_comment"             : " Hayder (2), Chien (3) # problemtype option",
-"drag_porosity_correction_type"          : 0,
-"drag_porosity_correction_type_comment"  : " No correction (0), Richardson and Zaki (1)",
-"min_fluid_fraction"                     : 0.2,
-"initial_drag_force"                     : 0.0,
-"drag_law_slope"                         : 0.0,
-"power_law_tol"                          : 0.0,
-"model_over_real_diameter_factor"        : 1.0,
-"model_over_real_diameter_factor_comment": " not active if similarity_transformation_type = 0",
-"max_pressure_variation_rate_tol"        : 1e-3,
-"max_pressure_variation_rate_tol_comment": " for stationary problems, criterion to stop the fluid calculations",
-"time_steps_per_stationarity_step"       : 15,
-"time_steps_per_stationarity_step_comment": " number of fluid time steps between consecutive assessment of stationarity steps",
-"meso_scale_length"                      : 0.2,
-"meso_scale_length_comment"              : " the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)",
-"shape_factor"                           : 0.5,
-"basset_force_type"                      : 2,
-"frame_of_reference_type"                : 1,
-"angular_velocity_of_frame_Z"            : 0.5,
+"do_print_results_option" : false,
+"gradient_calculation_type" : 1,
+"gradient_calculation_type_comment" : "(Not calculated (0), volume-weighed average(1), Superconvergent recovery(2))",
+"print_particles_results_option" : false,
+"add_each_hydro_force_option" : true,
+"add_each_hydro_force_option_comment" : " add each of the hydrodynamic forces (drag, lift and virtual mass)",
 
-"OutputTimeStep"                   : 0.5,
-"PostPressure"                     : false,
-"PostFluidPressure"                          : false,
+"print_debug_info_option" : false,
+"print_debug_info_option_comment" : " print a summary of global physical measures",
+"print_particles_results_cycle" : 1,
+"print_particles_results_cycle_comment" : " number of 'ticks' per printing cycle",
+"debug_tool_cycle" : 10,
+"debug_tool_cycle_comment" : " number of 'ticks' per debug computations cycle",
+"drag_modifier_type" : 2,
+"drag_modifier_type_comment" : " Hayder (2), Chien (3) # problemtype option",
+
+
+"output_interval" : 0.5,
 
 "properties": [{
-    "model_part_name": "settling_particles",
     "properties_id": 1,
     "hydrodynamic_law_parameters": {
         "name": "HydrodynamicInteractionLaw",
@@ -106,207 +81,210 @@
     }
 }],
 
-"problem_name" : "Candelier",
-
 "processes" : {
     "auxiliar_process_list" : [{
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module"   : "KratosMultiphysics",
-        "process_name"    : "FromJsonCheckResultProcess",
-        "Parameters"      : {
-            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name"      : "candelier_tests/candelier_errors_no_history_non_inertial.json",
-            "model_part_name"      : "SpheresPart",
-            "time_frequency"       : 0.5
+        "python_module" : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name" : "FromJsonCheckResultProcess",
+        "Parameters" : {
+            "check_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "input_file_name" : "candelier_tests/candelier_errors_no_history_non_inertial.json",
+            "model_part_name" : "SpheresPart",
+            "time_frequency" : 0.5
         }
         }]
 
     },
 
-    "json_output_process"  : [{
+    "json_output_process" : [{
         "python_module" : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "JsonOutputProcess",
-        "Parameters"    : {
-            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "output_file_name"     : "candelier_tests/candelier_errors_no_history_non_inertial.json",
-            "model_part_name"      : "SpheresPart",
-            "time_frequency"       : 0.5
+        "process_name" : "JsonOutputProcess",
+        "Parameters" : {
+            "output_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "output_file_name" : "candelier_tests/candelier_errors_no_history_non_inertial.json",
+            "model_part_name" : "SpheresPart",
+            "time_frequency" : 0.5
         }
     }],
 
 "fluid_parameters" : {
-    "problem_data"     : {
-        "problem_name"  : "CandelierFluid",
+    "problem_data" : {
+        "problem_name" : "CandelierFluid",
         "parallel_type" : "OpenMP",
-        "echo_level"    : 0,
-        "start_time"    : 0.0,
-        "end_time"      : 1
+        "echo_level" : 0,
+        "start_time" : 0.0,
+        "end_time" : 1
     },
 
-    "solver_settings"  : {
-        "model_part_name"             : "FluidModelPart",
-        "domain_size"                 : 3,
-        "solver_type"                 : "Monolithic",
-        "model_import_settings"       : {
-            "input_type"     : "mdpa",
+    "solver_settings" : {
+        "model_part_name" : "FluidModelPart",
+        "domain_size" : 3,
+        "solver_type" : "Monolithic",
+        "model_import_settings" : {
+            "input_type" : "mdpa",
             "input_filename" : "candelier_tests/CandelierFluid"
         },
         "formulation": {
             "element_type": "vms"
         },
-        "echo_level"                  : 1,
-        "compute_reactions"           : false,
-        "maximum_iterations"          : 10,
+        "echo_level" : 1,
+        "compute_reactions" : false,
+        "maximum_iterations" : 10,
         "relative_velocity_tolerance" : 0.001,
         "absolute_velocity_tolerance" : 1e-5,
         "relative_pressure_tolerance" : 0.001,
         "absolute_pressure_tolerance" : 1e-5,
-        "linear_solver_settings"      : {
-            "solver_type"         : "amgcl",
-            "max_iteration"       : 200,
-            "tolerance"           : 1e-7,
+        "linear_solver_settings" : {
+            "solver_type" : "amgcl",
+            "max_iteration" : 200,
+            "tolerance" : 1e-7,
             "provide_coordinates" : false,
-            "smoother_type"       : "ilu0",
-            "krylov_type"         : "gmres",
-            "coarsening_type"     : "aggregation",
-            "scaling"             : false
+            "smoother_type" : "ilu0",
+            "krylov_type" : "gmres",
+            "coarsening_type" : "aggregation",
+            "scaling" : false
         },
-        "volume_model_part_name"      : "Parts_fluid",
-        "skin_parts"                  : ["Outlet3D_fixed_pressure","NoSlip3D_walls"],
-        "no_skin_parts"               : [],
-        "time_stepping"               : {
+        "volume_model_part_name" : "Parts_fluid",
+        "skin_parts" : ["Outlet3D_fixed_pressure","NoSlip3D_walls"],
+        "no_skin_parts" : [],
+        "time_stepping" : {
             "automatic_time_step" : false,
-            "time_step"           : 0.01
+            "time_step" : 0.01
         }
     },
-    "processes"        : {
-        "initial_conditions_process_list"  : [{
+    "processes" : {
+        "initial_conditions_process_list" : [{
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
-            "Parameters"    : {
+            "Parameters" : {
                 "model_part_name" : "FluidModelPart.VELOCITY_fluid",
-                "variable_name"   : "VELOCITY",
-                "constrained"     : [false,false,false],
-                "value"           : [0.0,0.0,0.0]
+                "variable_name" : "VELOCITY",
+                "constrained" : [false,false,false],
+                "value" : [0.0,0.0,0.0]
             }
         }],
         "boundary_conditions_process_list" : [{
             "python_module" : "apply_outlet_process",
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-            "Parameters"    : {
-                "model_part_name"    : "FluidModelPart.Outlet3D_fixed_pressure",
-                "variable_name"      : "PRESSURE",
-                "constrained"        : true,
-                "value"              : 0.0,
+            "Parameters" : {
+                "model_part_name" : "FluidModelPart.Outlet3D_fixed_pressure",
+                "variable_name" : "PRESSURE",
+                "constrained" : true,
+                "value" : 0.0,
                 "hydrostatic_outlet" : false,
-                "h_top"              : 0.0
+                "h_top" : 0.0
             }
         },{
             "python_module" : "apply_noslip_process",
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-            "Parameters"    : {
+            "Parameters" : {
                 "model_part_name" : "FluidModelPart.NoSlip3D_walls"
             }
         }],
-        "gravity"                          : [{
+        "gravity" : [{
             "python_module" : "assign_vector_by_direction_process",
             "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "AssignVectorByDirectionProcess",
-            "Parameters"    : {
+            "process_name" : "AssignVectorByDirectionProcess",
+            "Parameters" : {
                 "model_part_name" : "FluidModelPart.Parts_fluid",
-                "variable_name"   : "BODY_FORCE",
-                "modulus"         : 9.81,
-                "constrained"     : false,
-                "direction"       : [0.0,0.0,-1.0]
+                "variable_name" : "BODY_FORCE",
+                "modulus" : 9.81,
+                "constrained" : false,
+                "direction" : [0.0,0.0,-1.0]
             }
         }],
-        "auxiliar_process_list"            : []
-        }
+        "auxiliar_process_list" : []
+    }
+},
+
+"custom_dem" : {
+    "do_solve_dem" : true,
+    "do_search_neighbours" : false,
+    "type_of_dem_inlet" : "VelocityImposed",
+    "type_of_dem_inlet_comment" : "VelocityImposed or ForceImposed",
+    "translational_integration_scheme" : "Hybrid_Bashforth"
+},
+
+"dem_parameters" : {
+    "problem_data" : {
+        "problem_name" : "CandelierFluid",
+        "parallel_type" : "OpenMP",
+        "echo_level" : 0,
+        "start_time" : 0.0,
+        "end_time" : 1
+    },
+    "do_print_results_option" : false,
+    "Dimension" : 3,
+    "PeriodicDomainOption" : false,
+    "BoundingBoxOption" : true,
+    "AutomaticBoundingBoxOption" : false,
+    "BoundingBoxEnlargementFactor" : 1.0,
+    "BoundingBoxStartTime" : 0.0,
+    "BoundingBoxStopTime" : 1000.0,
+    "BoundingBoxMaxX" : 1000.0,
+    "BoundingBoxMaxY" : 1000.0,
+    "BoundingBoxMaxZ" : 1000.0,
+    "BoundingBoxMinX" : -1000.0,
+    "BoundingBoxMinY" : -1000.0,
+    "BoundingBoxMinZ" : -1000.0,
+
+    "dem_inlet_option" : false,
+    "GravityX" : 0.0,
+    "GravityY" : 0.0,
+    "GravityZ" : -9.81,
+
+    "VelocityTrapOption" : false,
+    "RotationOption" : true,
+    "CleanIndentationsOption" : false,
+    "RemoveBallsInEmbeddedOption" : true,
+    "solver_settings" : {
+        "strategy" : "swimming_sphere_strategy",
+        "RemoveBallsInitiallyTouchingWalls" : false
     },
 
-    "dem_parameters" : {
-        "problem_data"     : {
-            "problem_name"  : "CandelierFluid",
-            "parallel_type" : "OpenMP",
-            "echo_level"    : 0,
-            "start_time"    : 0.0,
-            "end_time"      : 1
-        },
-        "do_print_results_option"          : false,
-        "Dimension"                        : 3,
-        "PeriodicDomainOption"             : false,
-        "BoundingBoxOption"                : true,
-        "AutomaticBoundingBoxOption"       : false,
-        "BoundingBoxEnlargementFactor"     : 1.0,
-        "BoundingBoxStartTime"             : 0.0,
-        "BoundingBoxStopTime"              : 1000.0,
-        "BoundingBoxMaxX"                  : 1000.0,
-        "BoundingBoxMaxY"                  : 1000.0,
-        "BoundingBoxMaxZ"                  : 1000.0,
-        "BoundingBoxMinX"                  : -1000.0,
-        "BoundingBoxMinY"                  : -1000.0,
-        "BoundingBoxMinZ"                  : -1000.0,
 
-        "dem_inlet_option"                 : false,
-        "GravityX"                         : 0.0,
-        "GravityY"                         : 0.0,
-        "GravityZ"                         : -9.81,
+    "DeltaOption" : "Absolute",
+    "SearchTolerance" : 0.0001,
+    "CoordinationNumber" : 10,
+    "AmplifiedSearchRadiusExtension" : 0.0,
+    "ModelDataInfo" : false,
+    "VirtualMassCoefficient" : 1.0,
+    "RollingFrictionOption" : false,
+    "DontSearchUntilFailure" : false,
+    "ContactMeshOption" : false,
+    "Multifile" : "multiple_files",
 
-        "VelocityTrapOption"               : false,
-        "RotationOption"                   : true,
-        "CleanIndentationsOption"          : false,
-        "RemoveBallsInEmbeddedOption"      : true,
-        "solver_settings" : {
-                "strategy"                 : "swimming_sphere_strategy",
-                "RemoveBallsInitiallyTouchingWalls"          : false
-        },
-
-
-        "DeltaOption"                      : "Absolute",
-        "SearchTolerance"                  : 0.0001,
-        "CoordinationNumber"               : 10,
-        "AmplifiedSearchRadiusExtension"   : 0.0,
-        "ModelDataInfo"                    : false,
-        "VirtualMassCoefficient"           : 1.0,
-        "RollingFrictionOption"            : false,
-        "DontSearchUntilFailure"           : false,
-        "ContactMeshOption"                : false,
-        "OutputFileType"                   : "Binary",
-        "Multifile"                        : "multiple_files",
-
-        "TranslationalIntegrationScheme"   : "Hybrid_Bashforth",
-        "RotationalIntegrationScheme"      : "Direct_Integration",
-        "DeltaTimeSafetyFactor"            : 1.0,
-        "MaxTimeStep"                      : 0.005,
-        "FinalTime"                        : 1.0,
-        "ControlTime"                      : 4.0,
-        "NeighbourSearchFrequency"         : 1,
-        "TestType" : "None",
-        "ElementType"                      : "SwimmingDEMElement",
-        "problem_name" : "Candelier",
-        "GraphExportFreq"                  : 1e-3,
-        "VelTrapGraphExportFreq"           : 1e-3,
-        "OutputTimeStep"                   : 0.5,
-        "PostDisplacement"                 : true,
-        "PostVelocity"                     : true,
-        "PostElasticForces"                : false,
-        "PostContactForces"                : false,
-        "PostRigidElementForces"           : false,
-        "PostTangentialElasticForces"      : false,
-        "PostTotalForces"                  : false,
-        "PostShearStress"                  : false,
-        "PostNonDimensionalVolumeWear"     : false,
-        "PostNodalArea"                    : false,
-        "PostRHS"                          : false,
-        "PostDampForces"                   : false,
-        "PostAppliedForces"                : false,
-        "PostRadius"                       : true,
-        "PostGroupId"                      : false,
-        "PostExportId"                     : false,
-        "PostAngularVelocity"              : false,
-        "PostParticleMoment"               : false,
-        "PostEulerAngles"                  : false,
-        "PostBoundingBox"                  : false
-    }
+    "TranslationalIntegrationScheme" : "Hybrid_Bashforth",
+    "RotationalIntegrationScheme" : "Direct_Integration",
+    "DeltaTimeSafetyFactor" : 1.0,
+    "MaxTimeStep" : 0.005,
+    "FinalTime" : 1.0,
+    "NeighbourSearchFrequency" : 1,
+    "TestType" : "None",
+    "ElementType" : "SwimmingDEMElement",
+    "problem_name" : "Candelier",
+    "GraphExportFreq" : 1e-3,
+    "VelTrapGraphExportFreq" : 1e-3,
+    "PostDisplacement" : true,
+    "PostVelocity" : true,
+    "PostElasticForces" : false,
+    "PostContactForces" : false,
+    "PostRigidElementForces" : false,
+    "PostTangentialElasticForces" : false,
+    "PostTotalForces" : false,
+    "PostShearStress" : false,
+    "PostNonDimensionalVolumeWear" : false,
+    "PostNodalArea" : false,
+    "PostRHS" : false,
+    "PostDampForces" : false,
+    "PostAppliedForces" : false,
+    "PostRadius" : true,
+    "PostGroupId" : false,
+    "PostExportId" : false,
+    "PostAngularVelocity" : false,
+    "PostParticleMoment" : false,
+    "PostEulerAngles" : false,
+    "PostBoundingBox" : false
+}
 }

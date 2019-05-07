@@ -921,7 +921,7 @@ protected:
             FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
 
          pFace    = Kratos::make_shared<Line2D2<NodeType> >(FaceNodes);
-         pElement = Kratos::make_shared<Element>(ElementId, pFace, pProperties);
+         pElement = Kratos::make_intrusive<Element>(ElementId, pFace, pProperties);
 
          rModelPart.AddElement(pElement);
          pElement->Set(ACTIVE,false);
@@ -1011,7 +1011,7 @@ protected:
 	  FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
 
 	pFace    = Kratos::make_shared<Quadrilateral3D4<NodeType> >(FaceNodes);
-	pElement = Kratos::make_shared<Element>(ElementId, pFace, pProperties);
+	pElement = Kratos::make_intrusive<Element>(ElementId, pFace, pProperties);
 
 	rModelPart.AddElement(pElement);
 	pElement->Set(ACTIVE,false);
