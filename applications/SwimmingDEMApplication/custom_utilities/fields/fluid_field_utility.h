@@ -33,14 +33,38 @@ FluidFieldUtility(SpaceTimeSet& rDomain,
 
 virtual ~FluidFieldUtility(){}
 
+void MarkNodesInside(ModelPart& r_model_part, const ProcessInfo& r_current_process_info)
+{
+    const int nnodes = r_model_part.Nodes().size();
+    const double time = r_current_process_info[TIME];
+
+    #pragma omp parallel for
+    for (int i = 0; i < nnodes; ++i){
+        ModelPart::NodeIterator node_it = r_model_part.NodesBegin() + i;
+        double coor_x = node_it->X();
+        double coor_y = node_it->Y();
+        double coor_z = node_it->Z();
+        bool is_in = mrDomain.IsIn(time, coor_x, coor_y, coor_z);
+        node_it->Set(INSIDE, is_in);
+    }
+}
+
 virtual void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed);
 
-virtual void ImposeFieldOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& fluid_variable_to_be_imposed, const Variable<double >& pressure_variable_to_be_imposed);
+virtual void ImposeFieldOnNodes(ModelPart& r_model_part,
+                                const Variable<array_1d<double, 3> >& fluid_variable_to_be_imposed,
+                                const Variable<double >& pressure_variable_to_be_imposed);
+
+virtual void ImposePressureFieldOnNodes(ModelPart& r_model_part, const Variable<double>& container_variable)
+{
+
+}
 
 virtual void ImposeVelocityOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& container_variable)
 {
     mrVelocityField.ImposeVelocityOnNodes(r_model_part, container_variable);
 }
+
 
 virtual std::string Info() const
 {

@@ -21,7 +21,7 @@ void FluidFieldUtility::ImposeFieldOnNodes(ModelPart& r_model_part, const Variab
     mrVelocityField.ImposeFieldOnNodes(r_model_part, variables_to_be_imposed);
 }
 
-void FluidFieldUtility::ImposeFieldOnNodes(ModelPart& r_model_part, ModelPart& r_model_part,
+void FluidFieldUtility::ImposeFieldOnNodes(ModelPart& r_model_part,
                                            const Variable<array_1d<double, 3> >& fluid_variable_to_be_imposed,
                                            const Variable<double >& pressure_variable_to_be_imposed)
 {

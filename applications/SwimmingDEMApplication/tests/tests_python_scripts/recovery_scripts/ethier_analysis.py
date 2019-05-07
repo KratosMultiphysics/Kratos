@@ -14,6 +14,7 @@ import parameters_tools as PT
 class EthierBenchmarkAnalysis(SwimmingDEMAnalysis):
     def __init__(self, model, varying_parameters=Parameters("{}")):
         super(EthierBenchmarkAnalysis, self).__init__(model, varying_parameters)
+        self.vars_man.fluid_vars += [SDEM.VECTORIAL_ERROR, SDEM.VECTORIAL_ERROR_1]
         self._GetDEMAnalysis().mdpas_folder_path = os.path.join(self._GetDEMAnalysis().main_path, 'recovery_tests')
         self.project_parameters["custom_fluid"]["fluid_already_calculated"].SetBool(True)
         self.project_parameters.AddEmptyValue("load_derivatives").SetBool(False)
@@ -36,13 +37,22 @@ class EthierBenchmarkAnalysis(SwimmingDEMAnalysis):
             self.flow_field.Evaluate(0.0, coor, vel, 0)
             node.SetSolutionStepValue(Kratos.VELOCITY, vel)
 
+    def FinalizeSolutionStep(self):
+        super(EthierBenchmarkAnalysis, self).FinalizeSolutionStep()
+        self.CalculateRecoveryErrors(self.time)
+
     def GetFieldUtility(self):
         a = math.pi / 4
         d = math.pi / 2
 
+        self.pressure_field = SDEM.RealField()
         self.flow_field = SDEM.EthierFlowField(a, d)
         space_time_set = SDEM.SpaceTimeSet()
-        self.field_utility = SDEM.FluidFieldUtility(space_time_set, self.flow_field, 1000.0, 1e-6)
+        self.field_utility = SDEM.FluidFieldUtility(space_time_set,
+                                                    self.pressure_field,
+                                                    self.flow_field,
+                                                    1000.0,
+                                                    1e-6)
         return self.field_utility
 
     def GetRecoveryCounter(self):
@@ -67,7 +77,7 @@ class EthierBenchmarkAnalysis(SwimmingDEMAnalysis):
             total_volume += nodal_volume
             coor = Vector([node.X, node.Y, node.Z])
 
-            self.flow_field.CalculateConvectiveDerivative(0., coor, mat_deriv, 0)
+            self.flow_field.CalculateMaterialAcceleration(0., coor, mat_deriv, 0)
             self.flow_field.CalculateLaplacian(0., coor, laplacian, 0)
             calc_mat_deriv = node.GetSolutionStepValue(Kratos.MATERIAL_ACCELERATION)
             calc_laplacian = node.GetSolutionStepValue(Kratos.VELOCITY_LAPLACIAN)
@@ -78,8 +88,8 @@ class EthierBenchmarkAnalysis(SwimmingDEMAnalysis):
             L2_norm_laplacian += module_laplacian_squared * nodal_volume
             diff_mat_deriv = calc_mat_deriv - mat_deriv
             diff_laplacian = calc_laplacian - laplacian
-            node.SetSolutionStepValue(Kratos.VECTORIAL_ERROR, Vector(list(diff_mat_deriv)))
-            node.SetSolutionStepValue(Kratos.VECTORIAL_ERROR_1, Vector(list(diff_laplacian)))
+            node.SetSolutionStepValue(SDEM.VECTORIAL_ERROR, Vector(list(diff_mat_deriv)))
+            node.SetSolutionStepValue(SDEM.VECTORIAL_ERROR_1, Vector(list(diff_laplacian)))
             module_mat_deriv_error_squared = sum(x**2 for x in diff_mat_deriv)
             module_laplacian_error_squared = sum(x**2 for x in diff_laplacian)
             L2_norm_mat_deriv_error += module_mat_deriv_error_squared * nodal_volume
@@ -99,8 +109,8 @@ class EthierBenchmarkAnalysis(SwimmingDEMAnalysis):
         max_laplacian_error **= 0.5
 
         if L2_norm_mat_deriv > 0 and L2_norm_laplacian > 0:
-            SDP.MultiplyNodalVariableByFactor(self.fluid_model_part, Kratos.VECTORIAL_ERROR, 1.0 / L2_norm_mat_deriv)
-            SDP.MultiplyNodalVariableByFactor(self.fluid_model_part, Kratos.VECTORIAL_ERROR_1, 1.0 / L2_norm_laplacian)
+            SDP.MultiplyNodalVariableByFactor(self.fluid_model_part, SDEM.VECTORIAL_ERROR, 1.0 / L2_norm_mat_deriv)
+            SDP.MultiplyNodalVariableByFactor(self.fluid_model_part, SDEM.VECTORIAL_ERROR_1, 1.0 / L2_norm_laplacian)
             self.current_mat_deriv_errors[0] = L2_norm_mat_deriv_error / L2_norm_mat_deriv
             self.current_mat_deriv_errors[1] = max_mat_deriv_error / L2_norm_mat_deriv
             self.current_laplacian_errors[0] = L2_norm_laplacian_error / L2_norm_laplacian
@@ -109,9 +119,9 @@ class EthierBenchmarkAnalysis(SwimmingDEMAnalysis):
             self.laplacian_errors.append(self.current_laplacian_errors)
 
             text_width = 40
-            print('\n' + '-.' * text_width)
-            print('L2 error for the material derivative'.ljust(text_width), self.current_mat_deriv_errors[0])
-            print('max error for the material derivative'.ljust(text_width), self.current_mat_deriv_errors[1])
-            print('L2 error for the laplacian'.ljust(text_width), self.current_laplacian_errors[0])
-            print('max error for the laplacian'.ljust(text_width), self.current_laplacian_errors[1])
-            print('-.' * text_width + '\n')
+            Say('\n' + '-.' * text_width)
+            Say('L2 error for the material derivative'.ljust(text_width), self.current_mat_deriv_errors[0])
+            Say('max error for the material derivative'.ljust(text_width), self.current_mat_deriv_errors[1])
+            Say('L2 error for the laplacian'.ljust(text_width), self.current_laplacian_errors[0])
+            Say('max error for the laplacian'.ljust(text_width), self.current_laplacian_errors[1])
+            Say('-.' * text_width + '\n')

@@ -298,25 +298,25 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("GetRules", &SpaceTimeSet::GetRules)
         ;
 
-    // next we do what is needed to define the overloaded function 'FieldUtility::ImposeFieldOnNodes'
+    // next we do what is needed to define the overloaded function 'VectorFieldUtility::ImposeFieldOnNodes'
 
-    typedef double (FieldUtility::*EvaluateDoubleFieldAtPoint)(const double&, const array_1d<double, 3>&, RealField::Pointer);
-    typedef array_1d<double, 3> (FieldUtility::*EvaluateVectorFieldAtPoint)(const double&, const array_1d<double, 3>&, VectorField<3>::Pointer);
+    typedef double (VectorFieldUtility::*EvaluateDoubleFieldAtPoint)(const double&, const array_1d<double, 3>&, RealField::Pointer);
+    typedef array_1d<double, 3> (VectorFieldUtility::*EvaluateVectorFieldAtPoint)(const double&, const array_1d<double, 3>&, VectorField<3>::Pointer);
 
-    EvaluateDoubleFieldAtPoint EvaluateDoubleField = &FieldUtility::EvaluateFieldAtPoint;
-    EvaluateVectorFieldAtPoint EvaluateVectorField = &FieldUtility::EvaluateFieldAtPoint;
+    EvaluateDoubleFieldAtPoint EvaluateDoubleField = &VectorFieldUtility::EvaluateFieldAtPoint;
+    EvaluateVectorFieldAtPoint EvaluateVectorField = &VectorFieldUtility::EvaluateFieldAtPoint;
 
-    typedef void (FieldUtility::*ImposeDoubleFieldOnNodes)(Variable<double>&, const double, RealField::Pointer, ModelPart&, const ProcessInfo&, const bool);
-    typedef void (FieldUtility::*ImposeVectorFieldOnNodes)(Variable<array_1d<double, 3> >&, const array_1d<double, 3>, VectorField<3>::Pointer, ModelPart&, const ProcessInfo&, const bool);
-    typedef void (FieldUtility::*ImposeVelocityFieldOnNodes)(ModelPart&, const VariablesList&);
-    typedef void (FieldUtility::*ImposeFieldOnNodes)(ModelPart&, const Variable<array_1d<double, 3> >&);
+    typedef void (VectorFieldUtility::*ImposeDoubleFieldOnNodes)(Variable<double>&, const double, RealField::Pointer, ModelPart&, const ProcessInfo&, const bool);
+    typedef void (VectorFieldUtility::*ImposeVectorFieldOnNodes)(Variable<array_1d<double, 3> >&, const array_1d<double, 3>, VectorField<3>::Pointer, ModelPart&, const ProcessInfo&, const bool);
+    typedef void (VectorFieldUtility::*ImposeVelocityFieldOnNodes)(ModelPart&, const VariablesList&);
+    typedef void (VectorFieldUtility::*ImposeFieldOnNodes)(ModelPart&, const Variable<array_1d<double, 3> >&);
 
-    ImposeDoubleFieldOnNodes ImposeDoubleField = &FieldUtility::ImposeFieldOnNodes;
-    ImposeVectorFieldOnNodes ImposeVectorField = &FieldUtility::ImposeFieldOnNodes;
-    ImposeVelocityFieldOnNodes ImposeVelocityField = &FieldUtility::ImposeFieldOnNodes;
-    ImposeFieldOnNodes ImposeField = &FieldUtility::ImposeFieldOnNodes;
+    ImposeDoubleFieldOnNodes ImposeDoubleField = &VectorFieldUtility::ImposeFieldOnNodes;
+    ImposeVectorFieldOnNodes ImposeVectorField = &VectorFieldUtility::ImposeFieldOnNodes;
+    ImposeVelocityFieldOnNodes ImposeVelocityField = &VectorFieldUtility::ImposeFieldOnNodes;
+    ImposeFieldOnNodes ImposeField = &VectorFieldUtility::ImposeFieldOnNodes;
 
-    py::class_<FieldUtility, FieldUtility::Pointer> (m, "FieldUtility")
+    py::class_<VectorFieldUtility, VectorFieldUtility::Pointer> (m, "VectorFieldUtility")
         .def(py::init<SpaceTimeSet&, VectorField<3>& >())
         .def("EvaluateFieldAtPoint", EvaluateDoubleField)
         .def("EvaluateFieldAtPoint", EvaluateVectorField)
@@ -328,9 +328,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 
     // and the same for 'FluidFieldUtility' ...
     py::class_<FluidFieldUtility, FluidFieldUtility::Pointer> (m, "FluidFieldUtility")
-        .def(py::init<SpaceTimeSet&, ScalarField&, VelocityField&, const double, const double >())
-        .def("ImposePressureFieldOnNodes", ImposePressureFieldOnNodes)
-        .def("ImposeVelocityFieldOnNodes", ImposeVelocityFieldOnNodes)
+        .def(py::init<SpaceTimeSet&, RealField&, VelocityField&, const double, const double >())
+        .def("ImposeFieldOnNodes", &FluidFieldUtility::ImposePressureFieldOnNodes)
+        .def("ImposePressureFieldOnNodes", &FluidFieldUtility::ImposePressureFieldOnNodes)
+        .def("ImposeVelocityFieldOnNodes", &FluidFieldUtility::ImposeVelocityOnNodes)
         ;
 
     py::class_<RecoveryVariablesContainer, RecoveryVariablesContainer::Pointer>
