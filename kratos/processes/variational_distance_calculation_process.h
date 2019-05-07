@@ -452,6 +452,12 @@ protected:
         // Generate
         ModelPart& r_distance_model_part = current_model.CreateModelPart( mAuxModelPartName );
 
+        // Ensure that the variable lists are matching
+        const auto& r_origin_variable_list = base_model_part.GetNodalSolutionStepVariablesList();
+        for (const auto& var : r_origin_variable_list) {
+            r_distance_model_part.GetNodalSolutionStepVariablesList().Add(var);
+        }
+
         Element::Pointer p_distance_element = Kratos::make_intrusive<DistanceCalculationElementSimplex<TDim> >();
 
         ConnectivityPreserveModeler modeler;
@@ -469,7 +475,7 @@ protected:
             }
         }
 
-        r_distance_model_part.GetCommunicator().SynchronizeOrNodalFlags(BOUNDARY);
+        base_model_part.GetCommunicator().SynchronizeOrNodalFlags(BOUNDARY);
 
         mdistance_part_is_initialized = true;
 
