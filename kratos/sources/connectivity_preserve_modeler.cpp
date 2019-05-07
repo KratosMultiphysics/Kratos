@@ -44,6 +44,28 @@ void ConnectivityPreserveModeler::GenerateModelPart(
     KRATOS_CATCH("");
 }
 
+void ConnectivityPreserveModeler::GenerateModelPart(
+    ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart,
+    Element const& rReferenceElement)
+{
+    KRATOS_TRY;
+
+    this->CheckVariableLists(rOriginModelPart, rDestinationModelPart);
+
+    this->ResetModelPart(rDestinationModelPart);
+
+    this->CopyCommonData(rOriginModelPart, rDestinationModelPart);
+
+    this->DuplicateElements(rOriginModelPart, rDestinationModelPart, rReferenceElement);
+
+    this->DuplicateCommunicatorData(rOriginModelPart,rDestinationModelPart);
+
+    this->DuplicateSubModelParts(rOriginModelPart, rDestinationModelPart);
+
+    KRATOS_CATCH("");
+}
+
 // Private methods /////////////////////////////////////////////////////////////
 void ConnectivityPreserveModeler::CheckVariableLists(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart) const
 {
@@ -211,10 +233,13 @@ ModelPart& rDestinationModelPart) const
             ids.push_back(it->Id());
         destination_part.AddElements(ids, 0); //adding by index
 
-        ids.clear();
-        for(auto it=i_part->ConditionsBegin(); it!=i_part->ConditionsEnd(); ++it)
-            ids.push_back(it->Id());
-        destination_part.AddConditions(ids, 0);
+        if (rDestinationModelPart.NumberOfConditions() > 0) // Note that we may have copied elements only
+        {
+            ids.clear();
+            for(auto it=i_part->ConditionsBegin(); it!=i_part->ConditionsEnd(); ++it)
+                ids.push_back(it->Id());
+            destination_part.AddConditions(ids, 0);
+        }
 
         // Duplicate the Communicator for this SubModelPart
         this->DuplicateCommunicatorData(*i_part, destination_part);

@@ -87,6 +87,25 @@ public:
         const Condition& rReferenceBoundaryCondition
     ) override;
 
+    /// Generate a copy of rOriginModelPart in rDestinationModelPart, using the given element type.
+    /** This function fills rDestinationModelPart using data obtained from
+     *  rOriginModelPart. The elements of rDestinationModelPart part use the
+     *  same connectivity (and id) as in rOriginModelPart but their type is
+     *  determined by rReferenceElement. In this variant, conditions are not
+     *  copied.
+     *  Note that both ModelParts will share the same nodes, as well as
+     *  ProcessInfo and tables. SubModelParts and, in MPI, communicator data
+     *  will be replicated in DestinationModelPart.
+     *  @param rOriginModelPart The source ModelPart.
+     *  @param rDestinationModelPart The ModelPart to be filled by this function.
+     *  @param rReferenceElement The Element type for rDestinationModelPart.
+     */
+    virtual void GenerateModelPart(
+        ModelPart& OriginModelPart,
+        ModelPart& DestinationModelPart,
+        const Element& rReferenceElement
+    );
+
     ///@}
 
 private:
