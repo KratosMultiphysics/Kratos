@@ -14,7 +14,7 @@
 // Project includes
 #include "custom_meshers/laplacian_smoothing.hpp"
 #include "custom_meshers/mesher.hpp"
-
+#include "includes/global_pointer_variables.h"
 #include "delaunay_meshing_application_variables.h"
 
 namespace Kratos
@@ -332,15 +332,15 @@ namespace Kratos
 
     for(unsigned int el = 0; el<rModelPart.Elements().size(); el++)
       {
-	ElementWeakPtrVectorType& nElements = (element_begin+el)->GetValue(NEIGHBOUR_ELEMENTS);
+	auto& nElements = (element_begin+el)->GetValue(NEIGHBOUR_ELEMENTS);
 
         int counter = 0;
         for(auto& i_nelem : nElements)
         {
-	  if( (element_begin+el)->Id() == i_nelem.Id() )
+	  if( (element_begin+el)->Id() == i_nelem->Id() )
 	    ElementNeighbourList[el*nds+counter] = 0;
 	  else
-	    ElementNeighbourList[el*nds+counter] = i_nelem.Id();
+	    ElementNeighbourList[el*nds+counter] = i_nelem->Id();
           ++counter;
 	}
 
@@ -371,7 +371,7 @@ namespace Kratos
 	int Id= ci_elem->Id() - 1;
 
 	int number_of_faces = ci_elem->GetGeometry().FacesNumber(); //defined for triangles and tetrahedra
-	ElementWeakPtrVectorType& nElements = ci_elem->GetValue(NEIGHBOUR_ELEMENTS);
+	auto& nElements = ci_elem->GetValue(NEIGHBOUR_ELEMENTS);
         nElements.resize(number_of_faces);
 
 	for(int i = 0; i<number_of_faces; i++)
@@ -385,11 +385,11 @@ namespace Kratos
 
 	    if(index > 0)
 	      {
-		nElements(i) = *(el_begin + index -1).base();
+		nElements(i) = GlobalPointer<Element>(&*(el_begin + index -1));
 	      }
 	    else
 	      {
-		nElements(i) = *ci_elem.base();
+		nElements(i) = GlobalPointer<Element>(&*ci_elem);
 		facecounter++;
 	      }
 	  }

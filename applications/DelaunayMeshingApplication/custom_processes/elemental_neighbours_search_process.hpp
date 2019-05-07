@@ -22,6 +22,7 @@
 #include "utilities/openmp_utils.h"
 #include "custom_processes/mesher_process.hpp"
 #include "delaunay_meshing_application_variables.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -143,12 +144,12 @@ class ElementalNeighboursSearchProcess
   {
     for(auto& i_node: mrModelPart.Nodes())
     {
-      ElementWeakPtrVectorType& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
+      auto& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
       nElements.clear();
     }
     for(auto& i_elem : mrModelPart.Elements())
     {
-      ElementWeakPtrVectorType& nElements = i_elem.GetValue(NEIGHBOUR_ELEMENTS);
+      auto& nElements = i_elem.GetValue(NEIGHBOUR_ELEMENTS);
       nElements.clear();
     }
   }
@@ -242,10 +243,12 @@ class ElementalNeighboursSearchProcess
 
   }
 
-  ElementWeakPtrType CheckForNeighbourElems1D (unsigned int Id_1, ElementWeakPtrVectorType& nElements, ElementsContainerType::iterator i_elem)
+  GlobalPointer<Element> CheckForNeighbourElems1D (unsigned int Id_1, 
+                                        GlobalPointersVector<Element>& nElements, 
+                                        ElementsContainerType::iterator i_elem)
   {
     //look for the faces around node Id_1
-    for(auto i_nelem(nElements.begin()); i_nelem != nElements.end(); ++i_nelem)
+    for(auto i_nelem : nElements)
     {
       //look for the nodes of the neighbour faces
       Geometry<Node<3> >& nGeometry = i_nelem->GetGeometry();
@@ -256,20 +259,20 @@ class ElementalNeighboursSearchProcess
           {
             if(i_nelem->Id() != i_elem->Id())
             {
-              return Element::WeakPointer(*i_nelem.base());
+              return i_nelem;
             }
           }
         }
       }
     }
-    return Element::WeakPointer(*i_elem.base());
+    return GlobalPointer<Element>(*i_elem.base());
   }
 
 
-  ElementWeakPtrType CheckForNeighbourElems2D (unsigned int Id_1, unsigned int Id_2, ElementWeakPtrVectorType& nElements, ElementsContainerType::iterator i_elem)
+  GlobalPointer<Element> CheckForNeighbourElems2D (unsigned int Id_1, unsigned int Id_2, GlobalPointersVector<Element>& nElements, ElementsContainerType::iterator i_elem)
   {
     //look for the faces around node Id_1
-    for(auto i_nelem(nElements.begin()); i_nelem != nElements.end(); ++i_nelem)
+    for(auto i_nelem : nElements)
     {
       //look for the nodes of the neighbour faces
       Geometry<Node<3> >& nGeometry = i_nelem->GetGeometry();
@@ -280,19 +283,20 @@ class ElementalNeighboursSearchProcess
           {
             if(i_nelem->Id() != i_elem->Id())
             {
-              return *i_nelem.base();
+              return i_nelem;
             }
           }
         }
       }
     }
-    return *i_elem.base();
+    return GlobalPointer<Element>(*i_elem.base());
   }
 
-  ElementWeakPtrType CheckForNeighbourElems3D (unsigned int Id_1, unsigned int Id_2, unsigned int Id_3, ElementWeakPtrVectorType& nElements, ElementsContainerType::iterator i_elem)
+  GlobalPointer<Element> CheckForNeighbourElems3D (unsigned int Id_1, unsigned int Id_2, 
+  unsigned int Id_3, GlobalPointersVector<Element>& nElements, ElementsContainerType::iterator i_elem)
   {
     //look for the faces around node Id_1
-    for(auto i_nelem(nElements.begin()); i_nelem != nElements.end(); ++i_nelem)
+    for(auto i_nelem : nElements)
     {
       //look for the nodes of the neighbour faces
       Geometry<Node<3> >& nGeometry = i_nelem->GetGeometry();
@@ -306,7 +310,7 @@ class ElementalNeighboursSearchProcess
               if (nGeometry[node_j].Id() == Id_3)
                 if(i_nelem->Id() != i_elem->Id())
                 {
-                  return *i_nelem.base();
+                  return i_nelem;
                 }
             }
           }
@@ -372,7 +376,7 @@ class ElementalNeighboursSearchProcess
       auto& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
       for(const auto& i_nelem : nElements)
       {
-        std::cout<< i_nelem.Id()<<", ";
+        std::cout<< i_nelem->Id()<<", ";
       }
       std::cout<<" )"<<std::endl;
     }
@@ -388,7 +392,7 @@ class ElementalNeighboursSearchProcess
       auto& nElements = i_elem.GetValue(NEIGHBOUR_ELEMENTS);
       for(auto& i_nelem : nElements)
       {
-        std::cout<< i_nelem.Id()<<", ";
+        std::cout<< i_nelem->Id()<<", ";
       }
       std::cout<<" )"<<std::endl;
     }
@@ -458,7 +462,7 @@ class ElementalNeighboursSearchProcess
           unsigned int iface=0;
           for(auto& i_nelem : nElements)
           {
-            if (i_nelem.Id() == i_elem->Id())  // If there is no shared element in face nf (the Id coincides)
+            if (i_nelem->Id() == i_elem->Id())  // If there is no shared element in face nf (the Id coincides)
             {
               i_elem->Set(BOUNDARY);
 
@@ -492,7 +496,7 @@ class ElementalNeighboursSearchProcess
           unsigned int iface=0;
           for(auto& i_nelem : nElements)
           {
-            if(i_nelem.Id() == i_elem->Id())  // If there is no shared element in face nf (the Id coincides)
+            if(i_nelem->Id() == i_elem->Id())  // If there is no shared element in face nf (the Id coincides)
             {
               i_elem->Set(BOUNDARY);
 
@@ -542,7 +546,7 @@ class ElementalNeighboursSearchProcess
           unsigned int iface=0;
           for(auto& i_nelem : nElements)
           {
-            if(i_nelem.Id() == i_elem->Id())  // If there is no shared element in face nf (the Id coincides)
+            if(i_nelem->Id() == i_elem->Id())  // If there is no shared element in face nf (the Id coincides)
             {
               i_elem->Set(BOUNDARY);
 
@@ -579,7 +583,7 @@ class ElementalNeighboursSearchProcess
           unsigned int iface=0;
           for(auto& i_nelem : nElements)
           {
-            if(i_nelem.Id() == i_elem->Id())  // If there is no shared element in face nf (the Id coincides)
+            if(i_nelem->Id() == i_elem->Id())  // If there is no shared element in face nf (the Id coincides)
             {
               i_elem->Set(BOUNDARY);
 
@@ -694,7 +698,7 @@ class ElementalNeighboursSearchProcess
 
         for(auto& i_nelem : nElements)  //loop over elements surronding a point
         {
-          jelem=i_nelem.Id();
+          jelem=i_nelem->Id();
           unsigned int ielem =rElements[el].Id();
 
           if(jelem!=ielem)
@@ -726,7 +730,7 @@ class ElementalNeighboursSearchProcess
         }
 
 
-        if (rElements[el].GetValue(NEIGHBOUR_ELEMENTS)[nf].Id() == rElements[el].Id())  // If there is no shared element in face nf (the Id coincides)
+        if (rElements[el].GetValue(NEIGHBOUR_ELEMENTS)[nf]->Id() == rElements[el].Id())  // If there is no shared element in face nf (the Id coincides)
         {
 
           rElements[el].Set(BOUNDARY);

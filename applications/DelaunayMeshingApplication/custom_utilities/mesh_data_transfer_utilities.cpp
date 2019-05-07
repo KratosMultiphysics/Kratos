@@ -14,7 +14,7 @@
 // Project includes
 #include "includes/kratos_flags.h"
 #include "custom_utilities/mesh_data_transfer_utilities.hpp"
-
+#include "includes/global_pointer_variables.h"
 #include "delaunay_meshing_application_variables.h"
 
 namespace Kratos
@@ -317,8 +317,8 @@ void MeshDataTransferUtilities::TransferBoundaryData(const TransferParameters& r
 
         //std::cout<<" Transfer: Cond: "<<i_cond.Id()<<" is Active "<<std::endl;
 
-        Element*           MasterElement   = i_cond.GetValue(MASTER_ELEMENT).lock().get();
-        Condition*         MasterCondition = i_cond.GetValue(MASTER_CONDITION).lock().get();
+        Element*           MasterElement   = &*(i_cond.GetValue(MASTER_ELEMENT));
+        Condition*         MasterCondition = &*(i_cond.GetValue(MASTER_CONDITION));
 
         unsigned int integration_points_number = (MasterElement->pGetGeometry())->IntegrationPointsNumber(MasterElement->GetIntegrationMethod());
 
@@ -798,7 +798,7 @@ void MeshDataTransferUtilities::TransferElementalValuesToNodes( const TransferPa
       //fill variables that are non assigned vectors
       this->FillVectorData(variables_list, i_node);
 
-      ElementWeakPtrVectorType& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
+      auto& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
 
       double Area         = 0;
       double ElementArea  = 0;
@@ -841,7 +841,7 @@ void MeshDataTransferUtilities::TransferElementalValuesToNodes( const TransferPa
       for(auto& i_nelem : nElements)
       {
 
-        Geometry<Node<3> >& rGeometry = i_nelem.GetGeometry();
+        Geometry<Node<3> >& rGeometry = i_nelem->GetGeometry();
         ElementArea = rGeometry.Area();
         Area += ElementArea;
 
@@ -849,7 +849,7 @@ void MeshDataTransferUtilities::TransferElementalValuesToNodes( const TransferPa
         for(unsigned int i=0; i<rTransferVariables.DoubleVariables.size(); ++i)
         {
           //elemental value
-          i_nelem.GetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),ElementDoubleVariableArray,CurrentProcessInfo);
+          i_nelem->GetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),ElementDoubleVariableArray,CurrentProcessInfo);
           for(unsigned int j=0; j<integration_points_number; ++j)
           {
             NodesDoubleVariableArray[i] += ElementDoubleVariableArray[j] * ElementArea/double(integration_points_number);
@@ -860,7 +860,7 @@ void MeshDataTransferUtilities::TransferElementalValuesToNodes( const TransferPa
         for(unsigned int i=0; i<rTransferVariables.Array1DVariables.size(); ++i)
         {
           //elemental value
-          i_nelem.GetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),ElementArray1DVariableArray,CurrentProcessInfo);
+          i_nelem->GetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),ElementArray1DVariableArray,CurrentProcessInfo);
           for(unsigned int j=0; j<integration_points_number; ++j)
           {
             NodesArray1DVariableArray[i] += ElementArray1DVariableArray[j] * ElementArea/double(integration_points_number);
@@ -871,7 +871,7 @@ void MeshDataTransferUtilities::TransferElementalValuesToNodes( const TransferPa
         for(unsigned int i=0; i<rTransferVariables.VectorVariables.size(); ++i)
         {
           //elemental value
-          i_nelem.GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
+          i_nelem->GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
           for(unsigned int j=0; j<integration_points_number; ++j)
           {
             NodesVectorVariableArray[i] += ElementVectorVariableArray[j] * ElementArea/double(integration_points_number);
@@ -882,7 +882,7 @@ void MeshDataTransferUtilities::TransferElementalValuesToNodes( const TransferPa
         for(unsigned int i=0; i<rTransferVariables.MatrixVariables.size(); ++i)
         {
           //elemental value
-          i_nelem.GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
+          i_nelem->GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
           for(unsigned int j=0; j<integration_points_number; ++j)
           {
             NodesMatrixVariableArray[i] += ElementMatrixVariableArray[j] * ElementArea/double(integration_points_number);

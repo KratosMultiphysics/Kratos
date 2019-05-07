@@ -22,6 +22,7 @@
 // Project includes
 #include "delaunay_meshing_application_variables.h"
 #include "custom_utilities/mesher_utilities.hpp"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -654,12 +655,12 @@ protected:
 
       //if(i_node.Is(BOUNDARY)){
 
-      ElementWeakPtrVectorType& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
+      auto& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
 
       for(auto& i_nelem : nElements)
       {
 
-        Element::GeometryType& rGeometry = i_nelem.GetGeometry();
+        Element::GeometryType& rGeometry = i_nelem->GetGeometry();
 
         if( rGeometry.EdgesNumber() > 1 &&  rGeometry.LocalSpaceDimension() == dimension ){
 

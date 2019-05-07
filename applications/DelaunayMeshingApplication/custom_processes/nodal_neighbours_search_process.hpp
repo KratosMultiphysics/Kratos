@@ -284,10 +284,10 @@ class NodalNeighboursSearchProcess
     {
       std::cout<<"["<<i_node.Id()<<"]:"<<std::endl;
       std::cout<<"( ";
-      ElementWeakPtrVectorType& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
+      auto& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
       for(auto& i_nelem : nElements)
       {
-        std::cout<< i_nelem.Id()<<", ";
+        std::cout<< i_nelem->Id()<<", ";
       }
       std::cout<<" )"<<std::endl;
     }
@@ -338,10 +338,10 @@ class NodalNeighboursSearchProcess
     //adding the neighbouring nodes to all nodes in the mesh
     for(auto& i_node : rNodes)
     {
-      ElementWeakPtrVectorType& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
+      auto& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
       for(auto& i_nelem : nElements)
       {
-        Element::GeometryType& rGeometry = i_nelem.GetGeometry();
+        Element::GeometryType& rGeometry = i_nelem->GetGeometry();
         for(unsigned int i = 0; i < rGeometry.size(); ++i)
         {
           if( rGeometry[i].Id() != i_node.Id() )
@@ -421,7 +421,7 @@ class NodalNeighboursSearchProcess
         ipoi1=rGeometry[i].Id();         //counter
         PSharedE[ipoi1]-=1;
         //std::cout<<" NODE "<<ie->Id()<<" "<<PSharedE[ipoi1]<<std::endl;
-        ElementWeakPtrVectorType& nElements= rNodes[ipoi1].GetValue(NEIGHBOUR_ELEMENTS);
+        auto& nElements= rNodes[ipoi1].GetValue(NEIGHBOUR_ELEMENTS);
         nElements(PSharedE[ipoi1])= *i_elem.base();
       }
     }
@@ -435,14 +435,14 @@ class NodalNeighboursSearchProcess
 
     for(auto& i_node : rNodes)
     {
-      ElementWeakPtrVectorType& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
+      auto& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
 
       rpn = i_node.Id();
 
       for(auto& i_nelem : nElements)
       {
 
-        Element::GeometryType& rGeometry = i_nelem.GetGeometry();
+        Element::GeometryType& rGeometry = i_nelem->GetGeometry();
 
         for (unsigned int nd=0; nd<rGeometry.size(); ++nd)
         {
