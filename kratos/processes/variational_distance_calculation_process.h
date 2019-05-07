@@ -451,6 +451,9 @@ protected:
 
         Element::Pointer p_distance_element = Kratos::make_intrusive<DistanceCalculationElementSimplex<TDim> >();
 
+        // Ensure that the nodes have distance as a DOF
+        VariableUtils().AddDof<Variable<double> >(DISTANCE, base_model_part);
+
         // Using the conditions to mark the boundary with the flag boundary
         // Note that we DO NOT add the conditions to the model part
         VariableUtils().SetFlag<ModelPart::NodesContainerType>(BOUNDARY, false, r_distance_model_part.Nodes());
