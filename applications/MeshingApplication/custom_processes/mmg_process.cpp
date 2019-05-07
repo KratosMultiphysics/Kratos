@@ -996,8 +996,8 @@ void MmgProcess<TMMGLibrary>::AssignAndClearAuxiliarSubModelPartForFlags()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::ClearConditionsDuplicatedGeometries()
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::ClearConditionsDuplicatedGeometries()
 {
     // Next check that the conditions are oriented accordingly to do so begin by putting all of the conditions in a set
     typedef std::unordered_map<DenseVector<IndexType>, std::vector<IndexType>, KeyHasherRange<DenseVector<IndexType>>, KeyComparorRange<DenseVector<IndexType>> > HashMapType;
