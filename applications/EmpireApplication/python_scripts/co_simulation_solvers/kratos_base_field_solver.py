@@ -12,6 +12,7 @@ from co_simulation_tools import solverprint, bold, red
 
 class KratosBaseFieldSolver(CoSimulationBaseSolver):
     def __init__(self, cosim_solver_settings, level):
+        KratosMultiphysics.Logger.PrintInfo("__init__ KratosBaseFieldSolver Starts HERE")
         super(KratosBaseFieldSolver, self).__init__(cosim_solver_settings, level)
         self.model = KratosMultiphysics.Model()
 
@@ -23,6 +24,7 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         self.project_parameters = KratosMultiphysics.Parameters(parameters)
+        KratosMultiphysics.Logger.PrintInfo("KRATOSBASEFIELDSOLVER __INIT__ Done")
 
     def Initialize(self):
         self._GetAnalysisStage().Initialize()
@@ -49,6 +51,7 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
         self._GetAnalysisStage().OutputSolutionStep()
 
     def SolveSolutionStep(self):
+        KratosMultiphysics.Logger.PrintInfo("AAAAAAAAAAAAAAAAAAAA", self._GetAnalysisStage()._GetSolver())
         self._GetAnalysisStage()._GetSolver().SolveSolutionStep()
 
     def GetBufferSize(self):

@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division
 
 # Other imports
+import KratosMultiphysics
 import co_simulation_ios.co_simulation_io_factory as io_factory
 
 def CreateSolver(cosim_solver_settings, level):
@@ -70,6 +71,7 @@ class CoSimulationBaseSolver(object):
     def ExportData(self, data_name, to_client):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
+        KratosMultiphysics.Logger.PrintInfo("SOLVER NAME:::: ", data_name)
         self.io.ExportData(data_name, to_client)
     def ExportMesh(self, mesh_name, to_client):
         if not self.io_is_initialized:

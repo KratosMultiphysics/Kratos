@@ -1,6 +1,6 @@
 # Importing the base class
 from co_simulation_solvers.co_simulation_base_coupling_solver import CoSimulationBaseCouplingSolver
-
+import KratosMultiphysics
 # Other imports
 from co_simulation_convergence_criteria.co_simulation_convergence_criteria_factory import CreateConvergenceCriteria
 from co_simulation_tools import couplingsolverprint, red, green, cyan, bold
@@ -23,12 +23,11 @@ class SimpleSteadyCouplingSolver(CoSimulationBaseCouplingSolver):
         self.convergence_criteria.SetEchoLevel(self.echo_level)
 
         self.num_coupling_iterations = self.cosim_solver_settings["num_coupling_iterations"]
+        KratosMultiphysics.Logger.PrintInfo("INIT inside the SimpleSteadyCouplingSolver IS CALLED HERE")
 
 
 
     def SolveSolutionStep(self):
-        #There is a problem here that the self_Name is not recognized
-        # when changing the echo level to >0
 
         for k in range(self.num_coupling_iterations):
             if self.echo_level > 0:

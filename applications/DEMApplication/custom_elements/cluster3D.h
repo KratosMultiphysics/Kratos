@@ -30,7 +30,7 @@ namespace Kratos
 
     public:
         /// Pointer definition of Cluster3D
-        KRATOS_CLASS_POINTER_DEFINITION(Cluster3D);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Cluster3D);
 
         Cluster3D();
         Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry);

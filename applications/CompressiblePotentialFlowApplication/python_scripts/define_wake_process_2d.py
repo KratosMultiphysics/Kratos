@@ -59,10 +59,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
         else: self.trailing_edge_model_part = self.fluid_model_part.GetSubModelPart("trailing_edge_model_part")
 
-        # Call the nodal normal calculation util
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
-            self.fluid_model_part, self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-
         # Find nodal neigbours util call
         avg_elem_num = 10
         avg_node_num = 10
@@ -72,6 +68,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         for cond in self.body_model_part.Conditions:
             for node in cond.GetNodes():
                 node.Set(KratosMultiphysics.SOLID)
+
 
     def ExecuteInitialize(self):
         self.FindWakeElements()
@@ -86,7 +83,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         # Mark the trailing edge element that is further downstream as wake
         self.MarkWakeTEElement()
         # Having a trial
-        self.CleanMarking()
+        # self.CleanMarking()
 
     def SaveTrailingEdgeNode(self):
         # This function finds and saves the trailing edge for further computations
@@ -116,7 +113,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
                 # Selecting the cut (wake) elements
                 wake_element = self.SelectWakeElements(distances_to_wake)
-
                 if(wake_element):
                     elem.SetValue(CPFApp.WAKE, True)
                     elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)

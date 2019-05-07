@@ -10,7 +10,7 @@
         "solver_type"            : "ale_potential_flow",
         "ale_boundary_parts"     : ["Body2D_Body"],
         "mesh_motion_solver_settings"                     :{
-            "solver_type" : "mesh_solver_structural_similarity",
+            "solver_type" : "structural_similarity",
             "mesh_motion_linear_solver_settings" : {
                 "solver_type" : "amgcl",
                 "smoother_type":"ilu0",
@@ -27,7 +27,8 @@
                 "coarse_enough" : 5000
             },
             "time_order" : 2,
-            "reform_dofs_each_step" : false
+            "reform_dofs_each_step" : false,
+            "echo_level": 1
         },
 
         "fluid_solver_settings"  :{
@@ -38,7 +39,7 @@
                 "input_type"     : "mdpa",
                 "input_filename" : "naca0012_small"
             },
-            "maximum_iterations"     : 2,
+            "maximum_iterations"     : 5,
             "echo_level"             : 0,
             "linear_solver_settings"  : {
                     "solver_type"             : "ExternalSolversApplication.super_lu",
@@ -58,7 +59,8 @@
             "Parameters"    : {
                 "model_part_name"   : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "inlet_phi"         : 1.0,
-                "velocity_infinity" : [10.0,0.0,0.0]
+                "velocity_infinity" : [10.0,0.0,0.0],
+                "free_stream_density": 1.225
             }
         },{
             "python_module" : "define_wake_process_2d",
@@ -94,8 +96,7 @@
             "process_name"  : "ComputeForcesOnNodesProcess",
             "Parameters"    : {
                 "model_part_name" : "FluidModelPart.Body2D_Body",
-                "create_output_file": true,
-                "output_variables" : ["VELOCITY_POTENTIAL","REACTION"]
+                "create_output_file": true
             }
         },{
             "python_module" : "placeholder_process",
@@ -137,5 +138,26 @@
                 "output_variables" : ["REACTION"]
             }
          }]
+    },
+    "output_configuration"             : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "time",
+            "output_control_type" : "time",
+            "output_frequency"    : 0.5,
+            "body_output"         : true,
+            "node_output"         : true,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["MESH_DISPLACEMENT","REACTION"],
+            "nodal_nonhistorical_results": [],
+            "gauss_point_results" : ["PRESSURE","VELOCITY"]
+        },
+        "point_data_configuration"  : []
     }
 }

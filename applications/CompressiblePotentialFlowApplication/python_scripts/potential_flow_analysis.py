@@ -108,6 +108,6 @@ class PotentialFlowAnalysis(AnalysisStage):
         self.InitializeSolutionStep()
         self._GetSolver().Predict()
         self._GetSolver().SolveSolutionStep()
-        self.FinalizeSolutionStep()
+        self._GetSolver().FinalizeSolutionStep()
         self.OutputSolutionStep()
 

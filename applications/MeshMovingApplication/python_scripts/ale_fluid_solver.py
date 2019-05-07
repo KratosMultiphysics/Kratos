@@ -20,7 +20,6 @@ class AleFluidSolver(PythonSolver):
             "mesh_motion_solver_settings" : { },
             "mesh_velocity_calculation"   : { }
         }""")
-
         # cannot recursively validate because validation of fluid- and
         # mesh-motion-settings is done in corresponding solvers
         solver_settings.ValidateAndAssignDefaults(default_settings)
@@ -46,7 +45,7 @@ class AleFluidSolver(PythonSolver):
                 warn_msg += 'switching it on!'
                 KM.Logger.PrintWarning("::[AleFluidSolver]::", warn_msg)
         else:
-            fluid_solver_settings.AddEmptyValue("compute_reactions").SetBool(True)
+            fluid_solver_settings.AddEmptyValue("compute_reactions").SetBool(False)
             info_msg = 'Setting "compute_reactions" to true for the fluid-solver'
             KM.Logger.PrintInfo("::[AleFluidSolver]::", info_msg)
 
@@ -192,8 +191,9 @@ class AleFluidSolver(PythonSolver):
         self.fluid_solver.FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
+        is_converged = True
         for mesh_solver in self.mesh_motion_solvers:
-            mesh_solver.SolveSolutionStep()
+            is_converged &= mesh_solver.SolveSolutionStep()
 
         for mesh_solver in self.mesh_motion_solvers:
             KMM.CalculateMeshVelocities(
@@ -202,7 +202,9 @@ class AleFluidSolver(PythonSolver):
 
         if self.fluid_solver.GetComputingModelPart().ProcessInfo[KM.TIME] >= self.start_fluid_solution_time:
             self.__ApplyALEBoundaryCondition()
-            self.fluid_solver.SolveSolutionStep()
+            is_converged &= self.fluid_solver.SolveSolutionStep()
+
+        return is_converged
 
     def Check(self):
         for mesh_solver in self.mesh_motion_solvers:
