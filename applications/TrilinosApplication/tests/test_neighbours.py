@@ -2,26 +2,19 @@
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
-#import KratosMultiphysics.mpi as KratosMPI
-# import KratosMultiphysics.MetisApplication as KratosMetis
-# import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 import os
 
-
-
 def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
 
-
-class TestMPICommunicator(KratosUnittest.TestCase):
+class TestNeighbors(KratosUnittest.TestCase):
 
     def tearDown(self):
         kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
         rank = kratos_comm.Rank()
-        if rank == 0:
-            kratos_utilities.DeleteFileIfExisting("test_mpi_communicator.time")
+        kratos_utilities.DeleteFileIfExisting("test_mpi_communicator.time")
         kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(rank)+".mdpa")
         kratos_utilities.DeleteFileIfExisting("test_mpi_communicator_"+str(rank)+".time")
         kratos_comm.Barrier()
@@ -54,8 +47,6 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         else:
             self._ReadSerialModelPart(mp, input_filename)
 
-        print("reading finished")
-
     def test_global_neighbour_pointers(self):
 
         kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
@@ -79,7 +70,6 @@ class TestMPICommunicator(KratosUnittest.TestCase):
 
         #obtain the ids of all the neighbours
         found_ids = neighbour_finder.GetNeighbourIds(kratos_comm, main_model_part.Nodes)
-
 
         reference_ids = {
             1 : [2,4,5],
