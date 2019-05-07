@@ -48,6 +48,24 @@ namespace Kratos {
       rModelPart.CreateNewElement("IncompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
     }
 
+    void GenerateElement_test(ModelPart& rModelPart)
+    {
+      // Variables addition
+      rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
+      rModelPart.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
+
+      // Set the element properties
+      rModelPart.CreateNewProperties(0);
+      Properties::Pointer pElemProp = rModelPart.pGetProperties(0);
+
+      // Geometry creation
+      rModelPart.CreateNewNode(1, 0.4989009, -0.04294878, 0);
+      rModelPart.CreateNewNode(2, 0.4980974, -0.04357787, 0);
+      rModelPart.CreateNewNode(3, 0.4995652, -0.04390239, 0);
+      std::vector<ModelPart::IndexType> elemNodes{ 1, 2, 3 };
+      rModelPart.CreateNewElement("IncompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
+    }
+
     void GenerateEmbeddedElement(ModelPart& rModelPart)
     {
       // Variables addition
@@ -205,6 +223,60 @@ namespace Kratos {
       for (unsigned int i = 0; i < RHS.size(); i++) {
         KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
       }
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(IncompressiblePotentialFlowElementCalculateLocalSystemWakeTe2, CompressiblePotentialApplicationFastSuite)
+    {
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      GenerateElement_test(model_part);
+      Element::Pointer pElement = model_part.pGetElement(1);
+
+      // Define the nodal values
+      Vector potential(3);
+      potential(0) = 0.0;
+      potential(1) = 0.0;
+      potential(2) = 0.0;
+
+      Vector distances(3);
+      distances(0) = 0.000629094;
+      distances(1) = 6.29094e-07;
+      distances(2) = -0.000324517;
+
+      pElement->GetValue(ELEMENTAL_DISTANCES) = distances;
+      pElement->GetValue(WAKE) = true;
+      pElement->Set(STRUCTURE);
+      pElement->GetGeometry()[0].SetValue(TRAILING_EDGE, true);
+
+      for (unsigned int i = 0; i < 3; i++){
+        if (distances(i) > 0.0)
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
+        else
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i);
+      }
+      for (unsigned int i = 0; i < 3; i++){
+        if (distances(i) < 0.0)
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i)+5;
+        else
+          pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i)+5;
+      }
+
+      // Compute RHS and LHS
+      Vector RHS = ZeroVector(6);
+      Matrix LHS = ZeroMatrix(6, 6);
+
+      pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+      // KRATOS_WATCH(LHS)
+      // KRATOS_WATCH(RHS)
+
+      // Check the RHS values (the RHS is computed as the LHS x previous_solution,
+      // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
+      std::vector<double> reference({0.125, 0.0, -0.5, 0.375, 0.0, 0.0});
+
+      // for (unsigned int i = 0; i < RHS.size(); i++) {
+      //   KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
+      // }
     }
 
     KRATOS_TEST_CASE_IN_SUITE(EmbeddedIncompressiblePotentialFlowElementCalculateLocalSystem, CompressiblePotentialApplicationFastSuite)

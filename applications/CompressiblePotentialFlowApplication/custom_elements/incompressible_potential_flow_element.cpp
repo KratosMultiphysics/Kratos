@@ -471,6 +471,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
          i_gauss < positive_side_sh_func_gradients.size(); i_gauss++) {
         DN_DX = positive_side_sh_func_gradients(i_gauss);
         noalias(lhs_positivo) += prod(DN_DX, trans(DN_DX)) * positive_side_weights(i_gauss)*free_stream_density;
+        KRATOS_WATCH(DN_DX)
     }
 
     Matrix negative_side_sh_func;
@@ -487,6 +488,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
          i_gauss < negative_side_sh_func_gradients.size(); i_gauss++) {
         DN_DX = negative_side_sh_func_gradients(i_gauss);
         noalias(lhs_negativo) += prod(DN_DX, trans(DN_DX)) * negative_side_weights(i_gauss)*free_stream_density;
+        KRATOS_WATCH(DN_DX)
     }
 
 
@@ -523,41 +525,44 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
             ComputeLHSGaussPointContribution(Volumes[i]*free_stream_density, lhs_negative, data);
     }
 
-    // double area = 0.0;
-    // for (unsigned int i = 0; i< nsubdivisions; ++i)
-    // {
-    //     area += Volumes[i];
-    //     if (PartitionsSign[i] > 0)
-    //         KRATOS_WATCH(Volumes[i])
-    //     else
-    //     {
-    //         KRATOS_WATCH(Volumes[i])
-    //     }
+    double area = 0.0;
+    for (unsigned int i = 0; i< nsubdivisions; ++i)
+    {
+        area += Volumes[i];
+        if (PartitionsSign[i] > 0)
+            KRATOS_WATCH(Volumes[i])
+        else
+        {
+            KRATOS_WATCH(Volumes[i])
+        }
 
-    // }
+    }
 
-    // double areo = 0.0;
-    // for (unsigned int i = 0; i < positive_side_sh_func_gradients.size(); ++i){
-    //     areo += positive_side_weights(i);
-    // }
-    // for (unsigned int i = 0; i < negative_side_sh_func_gradients.size(); ++i){
-    //     areo += negative_side_weights(i);
-    // }
+    double areo = 0.0;
+    for (unsigned int i = 0; i < positive_side_sh_func_gradients.size(); ++i){
+        areo += positive_side_weights(i);
+    }
+    for (unsigned int i = 0; i < negative_side_sh_func_gradients.size(); ++i){
+        areo += negative_side_weights(i);
+    }
     // KRATOS_WATCH(lhs_positive)
     // KRATOS_WATCH(lhs_negative)
-    // KRATOS_WATCH(data.DN_DX)
+    KRATOS_WATCH(data.DN_DX)
+    KRATOS_WATCH(GetGeometry())
+    KRATOS_WATCH(data.distances)
     KRATOS_WATCH(lhs_positive)
     KRATOS_WATCH(lhs_positivo)
     KRATOS_WATCH(lhs_negative)
     KRATOS_WATCH(lhs_negativo)
-    // KRATOS_WATCH(area)
-    // KRATOS_WATCH(data.vol)
-    // KRATOS_WATCH(Volumes)
-    // KRATOS_WATCH(areo)
-    // KRATOS_WATCH(positive_side_weights)
-    // KRATOS_WATCH(negative_side_weights)
-    // KRATOS_WATCH(GPShapeFunctionValues)
-    // KRATOS_WATCH(positive_side_sh_func)
+    KRATOS_WATCH(area)
+    KRATOS_WATCH(data.vol)
+    KRATOS_WATCH(Volumes)
+    KRATOS_WATCH(areo)
+    KRATOS_WATCH(positive_side_weights)
+    KRATOS_WATCH(negative_side_weights)
+    KRATOS_WATCH(GPShapeFunctionValues)
+    KRATOS_WATCH(positive_side_sh_func)
+    KRATOS_WATCH(negative_side_sh_func)
 }
 
 template <int Dim, int NumNodes>
