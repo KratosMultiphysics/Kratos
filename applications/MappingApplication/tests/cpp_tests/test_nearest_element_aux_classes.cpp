@@ -29,7 +29,7 @@ typedef typename MapperLocalSystem::MatrixType MatrixType;
 typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
 
 typedef std::vector<std::vector<double>> MatrixResultsType;
-typedef std::vector<double> EqIDVectorResultsType;
+typedef std::vector<int> EqIDVectorResultsType;
 
 typedef Node<3> NodeType;
 
