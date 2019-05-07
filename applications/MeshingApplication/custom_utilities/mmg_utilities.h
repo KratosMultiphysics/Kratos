@@ -228,7 +228,7 @@ public:
      * @brief Returns a vector of ids of spatially repeated nodes
      * @param[in,out] rModelPart The model part whose nodes are checked
      */
-    IndexVectorType FindDuplicateNodeIds(ModelPart& rModelPart);
+    IndexVectorType FindDuplicateNodeIds(const ModelPart& rModelPart);
 
     /**
      * @brief Returns a vector of ids of repeated conditions

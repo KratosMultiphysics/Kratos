@@ -268,7 +268,7 @@ void MmgUtilities<TMMGLibrary>::PrintAndGetMmgMeshInfo(MMGMeshInfo<TMMGLibrary>&
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
-IndexVectorType MmgUtilities<TMMGLibrary>::FindDuplicateNodeIds(ModelPart& rModelPart)
+IndexVectorType MmgUtilities<TMMGLibrary>::FindDuplicateNodeIds(const ModelPart& rModelPart)
 {
     DoubleVectorMapType node_map;
 
