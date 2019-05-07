@@ -3,13 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing Kratos Core, Applications and Dependencies
 import KratosMultiphysics
 
-# Importing the solvers (if available)
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "not imported")
-
 # Importing the base class
 from analysis_stage import AnalysisStage
 from KratosMultiphysics.ParticleMechanicsApplication.python_solvers_wrapper_particle import CreateSolver
@@ -86,13 +79,11 @@ class ParticleMechanicsAnalysis(AnalysisStage):
 
             ## Stop solution loop timer
             end_solve_time = time.time()
-            if self.is_printing_rank:
-                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "SOLVING TIME: ", end_solve_time - start_solve_time, " s]")
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "SOLVING TIME: ", end_solve_time - start_solve_time, " s]")
 
         ## Stop analysis timer
         analysis_end_time = time.time()
-        if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "ANALYSIS TIME: ", analysis_end_time - analysis_start_time, " s]")
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "ANALYSIS TIME: ", analysis_end_time - analysis_start_time, " s]")
 
 
     #### Internal functions ####

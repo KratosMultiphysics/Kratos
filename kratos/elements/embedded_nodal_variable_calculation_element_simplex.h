@@ -56,7 +56,7 @@ namespace Kratos
 /**
  */
 template< class TVarType >
-class EmbeddedNodalVariableCalculationElementSimplex : public Element
+class KRATOS_API(KRATOS_CORE) EmbeddedNodalVariableCalculationElementSimplex : public Element
 {
 public:
     ///@name Type Definitions

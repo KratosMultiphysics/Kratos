@@ -36,10 +36,55 @@ class MechanicalSolver(PythonSolver):
     settings -- Kratos parameters containing solver settings.
     """
     def __init__(self, model, custom_settings):
+        # temporary warnings, to be removed
+        # this needs to be done before the call to the constructor of the baseclass, bcs there the settings are validated
+        if custom_settings.Has("bodies_list"):
+            custom_settings.RemoveValue("bodies_list")
+            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "bodies_list", '
+            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
+            KratosMultiphysics.Logger.PrintWarning("Bodies list", warning)
+        if custom_settings.Has("solver_type"):
+            custom_settings.RemoveValue("solver_type")
+            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "solver_type", '
+            warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
+            warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
+            KratosMultiphysics.Logger.PrintWarning("Solver type", warning)
+        if custom_settings.Has("time_integration_method"):
+            custom_settings.RemoveValue("time_integration_method")
+            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "time_integration_method", '
+            warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
+            warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
+            KratosMultiphysics.Logger.PrintWarning("Time integration method", warning)
+
+        self._validate_settings_in_baseclass=True # To be removed eventually
         super(MechanicalSolver, self).__init__(model, custom_settings)
 
-        default_settings = KratosMultiphysics.Parameters("""
-        {
+        model_part_name = self.settings["model_part_name"].GetString()
+
+        if model_part_name == "":
+            raise Exception('Please specify a model_part name!')
+
+        # This will be changed once the Model is fully supported!
+        if self.model.HasModelPart(model_part_name):
+            self.main_model_part = self.model[model_part_name]
+        else:
+            self.main_model_part = self.model.CreateModelPart(model_part_name)
+            domain_size = self.settings["domain_size"].GetInt()
+            if domain_size < 0:
+                raise Exception('Please specify a "domain_size" >= 0!')
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Construction finished")
+
+        # Set if the analysis is restarted
+        if self.settings["model_import_settings"]["input_type"].GetString() == "rest":
+            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
+        else:
+            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
             "model_part_name" : "",
             "domain_size" : -1,
             "echo_level": 0,
@@ -74,52 +119,9 @@ class MechanicalSolver(PythonSolver):
             "auxiliary_variables_list" : [],
             "auxiliary_dofs_list" : [],
             "auxiliary_reaction_list" : []
-        }
-        """)
-
-        # temporary warnings, to be removed
-        if custom_settings.Has("bodies_list"):
-            custom_settings.RemoveValue("bodies_list")
-            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "bodies_list", '
-            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-            KratosMultiphysics.Logger.PrintWarning("Bodies list", warning)
-        if custom_settings.Has("solver_type"):
-            custom_settings.RemoveValue("solver_type")
-            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "solver_type", '
-            warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
-            warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
-            KratosMultiphysics.Logger.PrintWarning("Solver type", warning)
-        if custom_settings.Has("time_integration_method"):
-            custom_settings.RemoveValue("time_integration_method")
-            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "time_integration_method", '
-            warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
-            warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
-            KratosMultiphysics.Logger.PrintWarning("Time integration method", warning)
-
-        # Overwrite the default settings with user-provided parameters.
-        self.settings.ValidateAndAssignDefaults(default_settings)
-        model_part_name = self.settings["model_part_name"].GetString()
-
-        if model_part_name == "":
-            raise Exception('Please specify a model_part name!')
-
-        # This will be changed once the Model is fully supported!
-        if self.model.HasModelPart(model_part_name):
-            self.main_model_part = self.model[model_part_name]
-        else:
-            self.main_model_part = self.model.CreateModelPart(model_part_name)
-            domain_size = self.settings["domain_size"].GetInt()
-            if domain_size < 0:
-                raise Exception('Please specify a "domain_size" >= 0!')
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-
-        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Construction finished")
-
-        # Set if the analysis is restarted
-        if self.settings["model_import_settings"]["input_type"].GetString() == "rest":
-            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
-        else:
-            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
+        }""")
+        this_defaults.AddMissingParameters(super(MechanicalSolver, cls).GetDefaultSettings())
+        return this_defaults
 
     def AddVariables(self):
         # this can safely be called also for restarts, it is internally checked if the variables exist already

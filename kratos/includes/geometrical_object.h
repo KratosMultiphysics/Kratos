@@ -61,9 +61,7 @@ public:
     ///@{
 
     /// Pointer definition of GeometricalObject
-    typedef Kratos::intrusive_ptr<GeometricalObject> Pointer;
-    typedef Kratos::intrusive_weak_ptr<GeometricalObject> WeakPointer;
-    typedef Kratos::unique_ptr<GeometricalObject> UniquePointer;
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeometricalObject);
 
     /// Definition of the node type
     typedef Node <3> NodeType;
