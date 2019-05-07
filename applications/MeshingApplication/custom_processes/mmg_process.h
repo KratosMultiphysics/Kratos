@@ -302,10 +302,9 @@ private:
     Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
     NodeType::DofsContainerType  mDofs;                              /// Storage for the dof of the node
 
-    MmgUtilities<TMMGLibrary> mMmmgUtilities;                         /// The MMG utilities class
+    MmgUtilities<TMMGLibrary> mMmmgUtilities;                        /// The MMG utilities class
 
-    char* mFilename;                                                 /// I/O file name
-    std::string mStdStringFilename;                                  /// I/O file name (string)
+    std::string mFilename;                                           /// I/O file name
     IndexType mEchoLevel;                                            /// The echo level
 
     FrameworkEulerLagrange mFramework;                               /// The framework

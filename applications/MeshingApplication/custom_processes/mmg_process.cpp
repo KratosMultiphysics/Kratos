@@ -69,11 +69,8 @@ MmgProcess<TMMGLibrary>::MmgProcess(
     Parameters default_parameters = GetDefaultParameters();
     mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
-    mStdStringFilename = mThisParameters["filename"].GetString();
+    mFilename = mThisParameters["filename"].GetString();
     mEchoLevel = mThisParameters["echo_level"].GetInt();
-
-    mFilename = new char [mStdStringFilename.length() + 1];
-    std::strcpy (mFilename, mStdStringFilename.c_str());
 
     // The framework type
     mFramework = ConvertFramework(mThisParameters["framework"].GetString());
@@ -905,10 +902,10 @@ void MmgProcess<TMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
     const IndexType step = mrThisModelPart.GetProcessInfo()[STEP];
 
     // Automatically save the mesh
-    mMmmgUtilities.OutputMesh(mStdStringFilename, PostOutput, step);
+    mMmmgUtilities.OutputMesh(mFilename, PostOutput, step);
 
     // Automatically save the solution
-    mMmmgUtilities.OutputSol(mStdStringFilename, PostOutput, step);
+    mMmmgUtilities.OutputSol(mFilename, PostOutput, step);
 
     // Save the mesh in an .mdpa format
     const bool save_mdpa_file = mThisParameters["save_mdpa_file"].GetBool();
@@ -923,10 +920,6 @@ void MmgProcess<TMMGLibrary>::FreeMemory()
 {
     // Free the MMG structures
     mMmmgUtilities.FreeAll();
-
-    // Free filename (NOTE: Problems with more that one iteration)
-//     free(mFilename);
-//     mFilename = nullptr;
 
     // Free reference std::unordered_map
     mpRefElement.clear();
