@@ -30,6 +30,7 @@
 #include "elements/distance_calculation_element_simplex.h"
 #include "linear_solvers/linear_solver.h"
 #include "processes/process.h"
+#include "modeler/connectivity_preserve_modeler.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
@@ -447,35 +448,8 @@ protected:
 
         // Generate
         ModelPart& r_distance_model_part = current_model.CreateModelPart( mAuxModelPartName );
-        r_distance_model_part.Nodes().clear();
-        r_distance_model_part.Conditions().clear();
-        r_distance_model_part.Elements().clear();
 
-        r_distance_model_part.SetProcessInfo( base_model_part.pGetProcessInfo() );
-        r_distance_model_part.SetBufferSize(base_model_part.GetBufferSize());
-        r_distance_model_part.SetProperties(base_model_part.pProperties());
-        r_distance_model_part.Tables() = base_model_part.Tables();
-
-        // Assigning the nodes to the new model part
-        r_distance_model_part.Nodes() = base_model_part.Nodes();
-
-        // Ensure that the nodes have distance as a DOF
-        VariableUtils().AddDof<Variable<double> >(DISTANCE, base_model_part);
-
-        // Generating the elements
-        r_distance_model_part.Elements().reserve(base_model_part.Elements().size());
-        for (auto it_elem = base_model_part.ElementsBegin(); it_elem != base_model_part.ElementsEnd(); ++it_elem){
-            Properties::Pointer properties = it_elem->pGetProperties();
-            Element::Pointer p_element = Kratos::make_intrusive<DistanceCalculationElementSimplex<TDim> >(
-                it_elem->Id(),
-                it_elem->pGetGeometry(),
-                it_elem->pGetProperties());
-
-            // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
-            p_element->pGetGeometry() = it_elem->pGetGeometry();
-
-            r_distance_model_part.Elements().push_back(p_element);
-        }
+        Element::Pointer p_distance_element = Kratos::make_intrusive<DistanceCalculationElementSimplex<TDim> >();
 
         // Using the conditions to mark the boundary with the flag boundary
         // Note that we DO NOT add the conditions to the model part
@@ -488,6 +462,8 @@ protected:
                 geom[i].Set(BOUNDARY,true);
             }
         }
+
+        r_distance_model_part.GetCommunicator().SynchronizeOrNodalFlags(BOUNDARY);
 
         mdistance_part_is_initialized = true;
 
