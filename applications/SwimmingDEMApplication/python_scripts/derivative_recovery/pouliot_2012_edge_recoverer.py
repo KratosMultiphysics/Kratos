@@ -13,7 +13,7 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         a = pi / 4
         d = pi / 2*0
 
-        self.flow_field = SDEM.EthierFlowField(a, d)
+        self.flow_field = SDEM.EthierVelocityField(a, d)
         space_time_set = SDEM.SpaceTimeSet()
         self.field_utility = SDEM.FluidFieldUtility(space_time_set, self.flow_field, 1000.0, 1e-6)
         return self.field_utility

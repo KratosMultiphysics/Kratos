@@ -227,7 +227,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def(py::init<const double, const double, const double, const double>())
         ;
 
-    py::class_<EthierFlowField, EthierFlowField::Pointer, VelocityField > (m, "EthierFlowField")
+    py::class_<EthierVelocityField, EthierVelocityField::Pointer, VelocityField > (m, "EthierVelocityField")
         .def(py::init<const double, const double>())
         ;
 

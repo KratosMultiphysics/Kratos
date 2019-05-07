@@ -44,7 +44,9 @@ virtual ~RealField(){}
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-virtual double Evaluate(const double time, const array_1d<double, 3>& coor)
+virtual double Evaluate(const double time,
+                        const array_1d<double, 3>& coor,
+                        const int i_thread = 0)
 {
     return 0.0;
 }
@@ -52,7 +54,9 @@ virtual double Evaluate(const double time, const array_1d<double, 3>& coor)
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-virtual double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor)
+virtual double CalculateTimeDerivative(const double time,
+                                       const array_1d<double, 3>& coor,
+                                       const int i_thread = 0)
 {
     return 0.0;
 }
@@ -60,7 +64,10 @@ virtual double CalculateTimeDerivative(const double time, const array_1d<double,
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-virtual void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient)
+virtual void CalculateGradient(const double time,
+                               const array_1d<double, 3>& coor,
+                               array_1d<double, 3>& gradient,
+                               const int i_thread = 0)
 {
     gradient[0] = 0.0;
     gradient[1] = 0.0;
@@ -70,7 +77,10 @@ virtual void CalculateGradient(const double time, const array_1d<double, 3>& coo
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-virtual void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian)
+virtual void CalculateLaplacian(const double time,
+                                const array_1d<double, 3>& coor,
+                                array_1d<double, 3>& laplacian,
+                                const int i_thread = 0)
 {
     laplacian[0] = 0.0;
     laplacian[1] = 0.0;
@@ -135,6 +145,28 @@ protected:
 ///@name Protected Operations
 ///@{
 
+// Value
+
+virtual double U(const int i_thread = 0){return 0.0;}
+
+// First-order derivatives
+
+virtual double UDT(const int i_thread = 0){return 0.0;}
+virtual double UD1(const int i_thread = 0){return 0.0;}
+virtual double UD2(const int i_thread = 0){return 0.0;}
+virtual double UD3(const int i_thread = 0){return 0.0;}
+
+// Second-order derivatives
+virtual double UDTDT(const int i_thread = 0){return 0.0;}
+virtual double UDTD0(const int i_thread = 0){return 0.0;}
+virtual double UDTD1(const int i_thread = 0){return 0.0;}
+virtual double UDTD2(const int i_thread = 0){return 0.0;}
+virtual double UD0D0(const int i_thread = 0){return 0.0;}
+virtual double UD0D1(const int i_thread = 0){return 0.0;}
+virtual double UD0D2(const int i_thread = 0){return 0.0;}
+virtual double UD1D1(const int i_thread = 0){return 0.0;}
+virtual double UD1D2(const int i_thread = 0){return 0.0;}
+virtual double UD2D2(const int i_thread = 0){return 0.0;}
 
 ///@}
 ///@name Protected  Access

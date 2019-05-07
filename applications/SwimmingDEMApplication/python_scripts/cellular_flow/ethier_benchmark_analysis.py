@@ -68,7 +68,7 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
         d = math.pi / 2
 
         self.pressure_field = SDEM.RealField()
-        self.flow_field = SDEM.EthierFlowField(a, d)
+        self.flow_field = SDEM.EthierVelocityField(a, d)
         space_time_set = SDEM.SpaceTimeSet()
         self.field_utility = SDEM.FluidFieldUtility(space_time_set,
                                                     self.pressure_field,

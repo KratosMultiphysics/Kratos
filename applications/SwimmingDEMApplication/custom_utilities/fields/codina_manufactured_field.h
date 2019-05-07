@@ -23,7 +23,9 @@ virtual ~CodinaManufacturedField(){}
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-double Evaluate(const double time, const array_1d<double, 3>& coor)
+double Evaluate(const double time,
+                const array_1d<double, 3>& coor,
+                const int i_thread)
 {
     return 0.0;
 }
@@ -31,7 +33,9 @@ double Evaluate(const double time, const array_1d<double, 3>& coor)
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor)
+double CalculateTimeDerivative(const double time,
+                               const array_1d<double, 3>& coor,
+                               const int i_thread)
 {
     return 0.0;
 }
@@ -39,8 +43,15 @@ double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coo
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient){}
-void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian){}
+void CalculateGradient(const double time,
+                       const array_1d<double, 3>& coor,
+                       array_1d<double, 3>& gradient,
+                       const int i_thread){}
+
+void CalculateLaplacian(const double time,
+                        const array_1d<double, 3>& coor,
+                        array_1d<double, 3>& laplacian,
+                        const int i_thread){}
 
 //***************************************************************************************************************
 //***************************************************************************************************************

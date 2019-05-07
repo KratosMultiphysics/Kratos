@@ -45,7 +45,9 @@ virtual ~LinearRealField(){}
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-double Evaluate(const double time, const array_1d<double, 3>& coor) override
+double Evaluate(const double time,
+                const array_1d<double, 3>& coor,
+                const int i_thread) override
 {
     return mX0 + mFx.Evaluate(time) * coor[0] + mY0 + mFy.Evaluate(time) * coor[1] + mZ0 + mFz.Evaluate(time) * coor[2];
 }
@@ -53,7 +55,9 @@ double Evaluate(const double time, const array_1d<double, 3>& coor) override
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor) override
+double CalculateTimeDerivative(const double time,
+                              const array_1d<double, 3>& coor,
+                              const int i_thread) override
 {
     return mFx.CalculateDerivative(time) * coor[0] + mY0 + mFy.CalculateDerivative(time) * coor[1] + mZ0 + mFz.CalculateDerivative(time) * coor[2];;
 }
@@ -61,7 +65,10 @@ double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coo
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient) override
+void CalculateGradient(const double time,
+                      const array_1d<double, 3>& coor,
+                      array_1d<double, 3>& gradient,
+                      const int i_thread) override
 {
     gradient = ZeroVector(3);
 }
@@ -69,7 +76,10 @@ void CalculateGradient(const double time, const array_1d<double, 3>& coor, array
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian) override
+void CalculateLaplacian(const double time,
+                        const array_1d<double, 3>& coor,
+                        array_1d<double, 3>& laplacian,
+                        const int i_thread) override
 {
     laplacian = ZeroVector(3);
 }
