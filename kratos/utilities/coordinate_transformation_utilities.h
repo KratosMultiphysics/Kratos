@@ -82,7 +82,7 @@ public:
 			const Kratos::Flags& rSelectionFlag):
 	mDomainSize(DomainSize),
 	mBlockSize(NumRowsPerNode),
-	mrFlag(rSelectionFlag),
+	mrFlag(rSelectionFlag)
 	{}
 
 	/// Destructor.
