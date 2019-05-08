@@ -25,7 +25,6 @@
 #include "processes/fast_transfer_between_model_parts_process.h"
 #include "processes/find_nodal_h_process.h"
 #include "processes/find_nodal_neighbours_process.h"
-#include "processes/find_global_nodal_neighbours_process.h"
 #include "processes/find_conditions_neighbours_process.h"
 #include "processes/find_elements_neighbours_process.h"
 #include "processes/calculate_nodal_area_process.h"

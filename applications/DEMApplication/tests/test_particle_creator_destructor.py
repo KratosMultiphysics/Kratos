@@ -50,8 +50,9 @@ class TestParticleCreatorDestructor(KratosUnittest.TestCase):
         properties = self.spheres_model_part.GetProperties()[0]
         radius = 0.1
         element_name = "SphericParticle3D"
-
+        
         created_element = self.creator_destructor.CreateSphericParticle(self.spheres_model_part, coordinates, properties, radius, element_name)
+        
         created_node = created_element.GetNodes()[0]
 
         #Direct verification with the returned pointer
