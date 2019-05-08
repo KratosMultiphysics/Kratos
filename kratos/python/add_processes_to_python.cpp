@@ -27,6 +27,7 @@
 #include "processes/find_nodal_neighbours_process.h"
 #include "processes/find_conditions_neighbours_process.h"
 #include "processes/find_elements_neighbours_process.h"
+#include "processes/find_global_nodal_neighbours_process.h" 
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/node_erase_process.h" // TODO: To be removed
 #include "processes/entity_erase_process.h"
@@ -110,6 +111,40 @@ void CalculateEmbeddedVariableFromSkinArray(
     rDistProcess.CalculateEmbeddedVariableFromSkin(rVariable, rEmbeddedVariable);
 }
 
+std::unordered_map<int, std::vector<int> > GetNeighbourIds(
+            FindGlobalNodalNeighboursProcess& self, 
+            const DataCommunicator& rComm,
+            ModelPart::NodesContainerType& rNodes
+            )
+{
+    std::unordered_map<int, std::vector<int> > output;
+
+    GlobalPointersVector< Node<3> > gp_list;
+    for(auto& node : rNodes)
+        for(auto& gp : node.GetValue(GLOBAL_NEIGHBOUR_NODES))
+            gp_list.push_back(gp);
+    gp_list.Unique();
+
+    GlobalPointerCommunicator<Node<3>> pointer_comm(rComm, gp_list);
+    auto result_proxy = pointer_comm.Apply<int>(
+            [](GlobalPointer<Node<3>>& gp){return gp->Id();}
+    );
+
+    for(auto& node : rNodes)
+    {
+        auto& neighbours = node.GetValue(GLOBAL_NEIGHBOUR_NODES);
+        std::vector<int> tmp(neighbours.size());
+        for(unsigned int i=0; i<neighbours.size(); ++i)
+        {
+            tmp[i] = result_proxy.Get(neighbours[i]);
+        }
+        output[node.Id()] = tmp;   
+    }
+
+    return output;
+}
+
+
 void  AddProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -128,6 +163,12 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("__str__", PrintObject<Process>)
     ;
 
+    py::class_<FindGlobalNodalNeighboursProcess, FindGlobalNodalNeighboursProcess::Pointer, Process>
+        (m,"FindGlobalNodalNeighboursProcess")
+            .def(py::init<const DataCommunicator&, ModelPart&>())
+    .def("ClearNeighbours",&FindGlobalNodalNeighboursProcess::ClearNeighbours)
+    .def("GetNeighbourIds",GetNeighbourIds)
+    ;
     // Find NODAL_H (Historical variables stored)
     py::class_<FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>, FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"FindNodalHProcess")
     .def(py::init<ModelPart&>())

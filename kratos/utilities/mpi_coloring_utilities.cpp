@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "mpi/utilities/mpi_coloring_utilities.h"
+#include "utilities/mpi_coloring_utilities.h"
 
 namespace Kratos
 {
