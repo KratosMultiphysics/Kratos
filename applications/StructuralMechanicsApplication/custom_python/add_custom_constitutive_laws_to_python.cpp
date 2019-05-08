@@ -15,8 +15,8 @@
 // External includes
 
 // Project includes
-#include <custom_constitutive/small_strain_isotropic_damage_plane_strain_2d.h>
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
+#include <custom_constitutive/small_strain_isotropic_damage_plane_strain_2d.h>
 
 // Elastic laws
 #include "custom_constitutive/truss_constitutive_law.h"
@@ -312,7 +312,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     py::class_< GenericSmallStrainPlasticDamageModel <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>,
     typename GenericSmallStrainPlasticDamageModel <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
     ConstitutiveLaw >
-    (m,"SmallStrainPlasticDamageModel3DVonMisesVonMisesVonMises").def(py::init<>()); 
+    (m,"SmallStrainPlasticDamageModel3DVonMisesVonMisesVonMises").def(py::init<>());
 
     py::class_< GenericSmallStrainPlasticDamageModel <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>,
     typename GenericSmallStrainPlasticDamageModel <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,

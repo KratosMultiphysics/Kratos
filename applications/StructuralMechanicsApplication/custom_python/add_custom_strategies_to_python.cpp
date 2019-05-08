@@ -11,13 +11,13 @@
 
 // System includes
 
-// External includes
-#include "boost/numeric/ublas/vector.hpp"
-
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
 
 #include "spaces/ublas_space.h"
+
+// External includes
+#include "boost/numeric/ublas/vector.hpp"
 
 // Strategies
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
