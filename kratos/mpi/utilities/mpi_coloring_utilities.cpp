@@ -18,14 +18,14 @@
 
 // Project includes
 #include "includes/define.h"
-#include "utilities/mpi_coloring_utilities.h"
+#include "mpi/utilities/mpi_coloring_utilities.h"
 
 namespace Kratos
 {
 
 std::vector<int> MPIColoringUtilities::ComputeRecvList(
     const std::vector<int>& rLocalDestinationIds,
-    const DataCommunicator& rComm
+    MPIDataCommunicator& rComm
 )
 {
     const int global_rank = 0;
@@ -54,7 +54,7 @@ std::vector<int> MPIColoringUtilities::ComputeRecvList(
 
 std::vector<int> MPIColoringUtilities::ComputeCommunicationScheduling(
     const std::vector<int>& rLocalDestinationIds,
-    const DataCommunicator& rComm
+    MPIDataCommunicator& rComm
 )
 {
     const int global_rank = 0;

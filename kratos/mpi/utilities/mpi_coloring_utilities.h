@@ -24,7 +24,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/serializer.h"
-#include "includes/data_communicator.h"
+#include "mpi/includes/mpi_data_communicator.h"
 
 namespace Kratos
 {
@@ -81,7 +81,7 @@ public:
      */
     static std::vector<int> ComputeRecvList(
         const std::vector<int>& rLocalDestinationIds,
-        const DataCommunicator& rComm
+        MPIDataCommunicator& rComm
     );
 
     /** This function colors communications so to allow syncronous mpi communications
@@ -101,7 +101,7 @@ public:
      */
     static std::vector<int> ComputeCommunicationScheduling(
         const std::vector<int>& rLocalDestinationIds,
-        const DataCommunicator& rComm
+        MPIDataCommunicator& rComm
     );
 
 
