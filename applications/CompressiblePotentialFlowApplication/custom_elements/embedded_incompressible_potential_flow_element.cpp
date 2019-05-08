@@ -10,6 +10,7 @@
 //  Main authors:    Marc Núñez, based on Iñigo Lopez and Riccardo Rossi work
 //
 #include "embedded_incompressible_potential_flow_element.h"
+#include "compressible_potential_flow_application_variables.h"
 
 namespace Kratos
 {

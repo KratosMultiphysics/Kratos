@@ -30,6 +30,7 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/enrichment_utilities.h"
+#include "includes/cfd_variables.h"
 namespace Kratos
 {
 
@@ -462,7 +463,7 @@ public:
     {
         if(rValues.size() != 1) rValues.resize(1);
 
-        if (rVariable == PRESSURE)
+        if (rVariable == PRESSURE_COEFFICIENT)
         {
             double p = ComputePressure(rCurrentProcessInfo);
             rValues[0] = p;

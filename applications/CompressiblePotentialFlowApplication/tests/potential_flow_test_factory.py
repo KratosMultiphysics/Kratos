@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as UnitTest
@@ -9,6 +10,7 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 # Other imports
 from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_analysis import PotentialFlowAnalysis
 import KratosMultiphysics.kratos_utilities as kratos_utilities
+from KratosMultiphysics.KratosUnittest import isclose as t_isclose
 
 import os
 
@@ -33,17 +35,6 @@ class PotentialFlowTests(UnitTest.TestCase):
         # Set to true to get post-process files for the test
         self.print_output = False
 
-    def test_LiftAndMoment(self):
-        file_name = "naca0012_small"
-        settings_file_name = file_name + "_parameters.json"
-        work_folder = "naca0012_small_test"
-
-        with WorkFolderScope(work_folder):
-            self._runTest(settings_file_name)
-
-            kratos_utilities.DeleteTimeFiles(".")
-
-
     def test_Naca0012SmallAdjoint(self):
         if not hdf5_is_available:
             self.skipTest("Missing required application: HDF5Application")
@@ -56,21 +47,14 @@ class PotentialFlowTests(UnitTest.TestCase):
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name_primal)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.327805503865, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.105810071870, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.3230253050805644, 0.0, 1e-9)
             self._runTest(settings_file_name_adjoint)
 
             for file_name in os.listdir(os.getcwd()):
                 if file_name.endswith(".h5") or file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
-
-    def test_SmallLiftJumpTest(self):
-        file_name = "small_lift_jump"
-        settings_file_name = file_name + "_parameters.json"
-        work_folder = "naca0012_small_test"
-
-        with WorkFolderScope(work_folder):
-            self._runTest(settings_file_name)
-
-            kratos_utilities.DeleteTimeFiles(".")
 
     def test_EmbeddedCircleNoWake(self):
         settings_file_name = "embedded_circle_no_wake_parameters.json"
@@ -114,7 +98,7 @@ class PotentialFlowTests(UnitTest.TestCase):
                                 "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL","DISTANCE"],
                                 "nodal_nonhistorical_results": ["TRAILING_EDGE"],
                                 "elemental_conditional_flags_results": ["STRUCTURE"],
-                                "gauss_point_results" : ["PRESSURE","VELOCITY","VELOCITY_LOWER","PRESSURE_LOWER","WAKE","ELEMENTAL_DISTANCES","KUTTA"]
+                                "gauss_point_results" : ["PRESSURE_COEFFICIENT","VELOCITY","VELOCITY_LOWER","PRESSURE_LOWER","WAKE","ELEMENTAL_DISTANCES","KUTTA"]
                             },
                             "point_data_configuration"  : []
                         }
@@ -124,6 +108,16 @@ class PotentialFlowTests(UnitTest.TestCase):
 
         potential_flow_analysis = PotentialFlowAnalysis(model, settings)
         potential_flow_analysis.Run()
+        self.main_model_part = model.GetModelPart(settings["solver_settings"]["model_part_name"].GetString())
+
+    def _check_results(self, result, reference, rel_tol, abs_tol):
+        isclosethis = t_isclose(result, reference, rel_tol, abs_tol)
+
+        full_msg =  "Failed with following parameters:\n"
+        full_msg += str(result) + " != " + str(reference) + ", rel_tol = "
+        full_msg += str(rel_tol) + ", abs_tol = " + str(abs_tol)
+
+        self.assertTrue(isclosethis, msg=full_msg)
 
 if __name__ == '__main__':
     UnitTest.main()
