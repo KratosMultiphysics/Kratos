@@ -134,41 +134,51 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("ModelPartHasNodalVariableOrNot", ModelPartHasNodalVariableOrNot<array_1d<double, 3> >)
         ;
 
-    py::class_<RealFunction> (m, "RealFunction").def(py::init<const double, const double>())
+    py::class_<RealFunction, RealFunction::Pointer> (m, "RealFunction")
+        .def(py::init<const double, const double>())
         .def("Evaluate", &RealFunction::Evaluate)
         .def("CalculateDerivative", &RealFunction::CalculateDerivative)
         .def("CalculateSecondDerivative", &RealFunction::CalculateSecondDerivative)
         ;
 
-    py::class_<LinearFunction, RealFunction> (m, "LinearFunction")
+    py::class_<LinearFunction, LinearFunction::Pointer, RealFunction> (m, "LinearFunction")
         .def(py::init<const double, const double>())
-        .def("Evaluate", &LinearFunction::Evaluate)
-        .def("CalculateDerivative", &LinearFunction::CalculateDerivative)
-        .def("CalculateSecondDerivative", &LinearFunction::CalculateSecondDerivative)
         ;
 
-    py::class_<PowerFunction, RealFunction> (m, "PowerFunction")
+    py::class_<PowerFunction, PowerFunction::Pointer, RealFunction> (m, "PowerFunction")
         .def(py::init<const double, const double, const double>())
-        .def("Evaluate", &PowerFunction::Evaluate)
-        .def("CalculateDerivative", &PowerFunction::CalculateDerivative)
-        .def("CalculateSecondDerivative", &PowerFunction::CalculateSecondDerivative)
         ;
 
-    py::class_<AdditionFunction, RealFunction> (m, "AdditionFunction")
+    py::class_<AdditionFunction, AdditionFunction::Pointer, RealFunction> (m, "AdditionFunction")
         .def(py::init<const double, RealFunction&, RealFunction&>())
-        .def("Evaluate", &AdditionFunction::Evaluate)
-        .def("CalculateDerivative", &AdditionFunction::CalculateDerivative)
-        .def("CalculateSecondDerivative", &AdditionFunction::CalculateSecondDerivative)
         ;
 
-    py::class_<CompositionFunction, RealFunction> (m, "CompositionFunction")
+    py::class_<CompositionFunction, CompositionFunction::Pointer, RealFunction> (m, "CompositionFunction")
         .def(py::init<const double, RealFunction&, RealFunction&>())
-        .def("Evaluate", &CompositionFunction::Evaluate)
-        .def("CalculateDerivative", &CompositionFunction::CalculateDerivative)
-        .def("CalculateSecondDerivative", &CompositionFunction::CalculateSecondDerivative)
         ;
 
-    py::class_<RealField, RealField::Pointer> (m, "RealField").def(py::init<>())
+    typedef double (RealField::*TEvaluate)(const double, const DenseVector<double>&, const int);
+    TEvaluate EvaluateScalar = &RealField::Evaluate;
+
+    typedef double (RealField::*TCalculateTimeDerivative)(const double, const DenseVector<double>&, const int);
+    TCalculateTimeDerivative CalculateTimeDerivativeScalar = &RealField::CalculateTimeDerivative;
+
+    typedef void (RealField::*TCalculateGradient)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
+    TCalculateGradient CalculateGradientScalar = &RealField::CalculateGradient;
+
+    py::class_<RealField, RealField::Pointer> (m, "RealField")
+        .def(py::init<>())
+        .def("Evaluate", EvaluateScalar)
+        .def("CalculateTimeDerivative", CalculateTimeDerivativeScalar)
+        .def("CalculateGradient", CalculateGradientScalar)
+        ;
+
+    py::class_<LinearRealField, LinearRealField::Pointer, RealField > (m, "LinearRealField")
+        .def(py::init<const double&, const double&, const double&, RealFunction&, RealFunction&, RealFunction&>())
+        ;
+
+    py::class_<TimeDependantPorosityField, TimeDependantPorosityField::Pointer, RealField > (m, "TimeDependantPorosityField")
+        .def(py::init<const double&>())
         ;
 
     py::class_<VectorField<2>, VectorField<2>::Pointer> (m, "VectorField2D").def(py::init<>())
@@ -237,20 +247,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 
     py::class_<PouliotFlowField2D, PouliotFlowField2D::Pointer, VelocityField > (m, "PouliotFlowField2D")
         .def(py::init<>())
-        ;
-
-    py::class_<LinearRealField, LinearRealField::Pointer, RealField > (m, "LinearRealField")
-        .def(py::init<const double&, const double&, const double&, RealFunction&, RealFunction&, RealFunction&>())
-        .def("Evaluate", &LinearRealField::Evaluate)
-        .def("CalculateTimeDerivative", &LinearRealField::CalculateTimeDerivative)
-        ;
-
-    py::class_<TimeDependantPorosityField, TimeDependantPorosityField::Pointer, RealField > (m, "TimeDependantPorosityField")
-        .def(py::init<const double&>())
-        .def("Evaluate", &TimeDependantPorosityField::Evaluate)
-        .def("CalculateTimeDerivative", &TimeDependantPorosityField::CalculateTimeDerivative)
-        .def("CalculateGradient", &TimeDependantPorosityField::CalculateGradient)
-        .def("CalculateLaplacian", &TimeDependantPorosityField::CalculateLaplacian)
         ;
 
     py::class_<TimeDependantForceField, TimeDependantForceField::Pointer, VectorField<3>> (m, "TimeDependantForceField")

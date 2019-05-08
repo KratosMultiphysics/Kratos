@@ -123,56 +123,59 @@ void DerivativeRecoveryUtility::Recover()
 
 void DerivativeRecoveryUtility::CalculateGradient(const std::string VariableName, const std::string DerivativeVariableName)
 {
-    bool was_not_able_to_recover = true;
-    was_not_able_to_recover = !this->CalculateGradientIfPossible<DoubleVarType, ArrayVarType>(VariableName, DerivativeVariableName);
-    was_not_able_to_recover = !this->CalculateGradientIfPossible<ComponentVarType, ArrayVarType>( VariableName, DerivativeVariableName);
+    bool was_able_to_recover = this->CalculateGradientIfPossible<DoubleVarType, ArrayVarType>(VariableName, DerivativeVariableName);
+    if (! was_able_to_recover){
+        was_able_to_recover = this->CalculateGradientIfPossible<ComponentVarType, ArrayVarType>( VariableName, DerivativeVariableName);
+    }
 
-    if (was_not_able_to_recover) {
-        KRATOS_THROW_ERROR(std::invalid_argument, VariableName, "is not registered as any type of compatible variable: DOUBLE or SCALAR COMPONENT");
+    if (! was_able_to_recover) {
+        KRATOS_THROW_ERROR(std::invalid_argument, VariableName, " is not registered as any type of compatible variable: DOUBLE or SCALAR COMPONENT");
     }
 }
 
 void DerivativeRecoveryUtility::CalculateDivergence(const std::string VariableName, const std::string DerivativeVariableName)
 {
-    bool was_not_able_to_recover = true;
-    was_not_able_to_recover = !this->CalculateDivergenceIfPossible<ArrayVarType, DoubleVarType>(VariableName, DerivativeVariableName);
+    bool was_able_to_recover = this->CalculateDivergenceIfPossible<ArrayVarType, DoubleVarType>(VariableName, DerivativeVariableName);
 
-    if (was_not_able_to_recover) {
-        KRATOS_THROW_ERROR(std::invalid_argument, VariableName, "is not registered as any type of compatible variable: DOUBLE or SCALAR COMPONENT");
+    if (! was_able_to_recover) {
+        KRATOS_THROW_ERROR(std::invalid_argument, VariableName, " is not registered as any type of compatible variable: DOUBLE or SCALAR COMPONENT");
     }
 }
 
 void DerivativeRecoveryUtility::CalculateRotational(const std::string VariableName, const std::string DerivativeVariableName)
 {
-    bool was_not_able_to_recover = true;
-    was_not_able_to_recover = !this->CalculateRotationalIfPossible<ArrayVarType, ArrayVarType>(VariableName, DerivativeVariableName);
+    bool was_able_to_recover = this->CalculateRotationalIfPossible<ArrayVarType, ArrayVarType>(VariableName, DerivativeVariableName);
 
-    if (was_not_able_to_recover) {
-        KRATOS_THROW_ERROR(std::invalid_argument, VariableName, "is not registered as any type of compatible variable: ARRAY_1D");
+    if (! was_able_to_recover) {
+        KRATOS_THROW_ERROR(std::invalid_argument, VariableName, " is not registered as any type of compatible variable: DOUBLE or SCALAR COMPONENT");
     }
 }
 
 void DerivativeRecoveryUtility::CalculateMaterialDerivative(const std::string VariableName, const std::string DerivativeVariableName)
 {
-    bool was_not_able_to_recover = true;
-    was_not_able_to_recover = !this->CalculateMaterialDerivativeIfPossible<DoubleVarType, DoubleVarType>(VariableName, DerivativeVariableName);
-    was_not_able_to_recover = !this->CalculateMaterialDerivativeIfPossible<ComponentVarType, DoubleVarType>(VariableName, DerivativeVariableName);
-    was_not_able_to_recover = !this->CalculateMaterialDerivativeIfPossible<ArrayVarType, ArrayVarType>(VariableName, DerivativeVariableName);
-
-    if (was_not_able_to_recover) {
-        KRATOS_THROW_ERROR(std::invalid_argument, VariableName, "is not registered as any type of compatible variable: DOUBLE, SCALAR COMPONENT or ARRAY_1D");
+    bool was_able_to_recover = this->CalculateMaterialDerivativeIfPossible<DoubleVarType, DoubleVarType>(VariableName, DerivativeVariableName);
+    if (! was_able_to_recover){
+        was_able_to_recover = this->CalculateMaterialDerivativeIfPossible<ComponentVarType, DoubleVarType>(VariableName, DerivativeVariableName);
+    }
+    if (! was_able_to_recover){
+        was_able_to_recover = this->CalculateMaterialDerivativeIfPossible<ArrayVarType, ArrayVarType>(VariableName, DerivativeVariableName);
+    }
+    if (! was_able_to_recover) {
+        KRATOS_THROW_ERROR(std::invalid_argument, VariableName, " is not registered as any type of compatible variable: DOUBLE or SCALAR COMPONENT");
     }
 }
 
 void DerivativeRecoveryUtility::CalculateLaplacian(const std::string VariableName, const std::string DerivativeVariableName)
 {
-    bool was_not_able_to_recover = true;
-    was_not_able_to_recover = !this->CalculateLaplacianIfPossible<DoubleVarType, DoubleVarType>(VariableName, DerivativeVariableName);
-    was_not_able_to_recover = !this->CalculateLaplacianIfPossible<ComponentVarType, DoubleVarType>(VariableName, DerivativeVariableName);
-    was_not_able_to_recover = !this->CalculateLaplacianIfPossible<ArrayVarType, ArrayVarType>(VariableName, DerivativeVariableName);
-
-    if (was_not_able_to_recover) {
-        KRATOS_THROW_ERROR(std::invalid_argument, VariableName, "is not registered as any type of compatible variable: DOUBLE, SCALAR COMPONENT or ARRAY_1D");
+    bool was_able_to_recover = this->CalculateLaplacianIfPossible<DoubleVarType, DoubleVarType>(VariableName, DerivativeVariableName);
+    if (! was_able_to_recover){
+        was_able_to_recover = this->CalculateLaplacianIfPossible<ComponentVarType, DoubleVarType>(VariableName, DerivativeVariableName);
+    }
+    if (! was_able_to_recover){
+        was_able_to_recover = this->CalculateLaplacianIfPossible<ArrayVarType, ArrayVarType>(VariableName, DerivativeVariableName);
+    }
+    if (! was_able_to_recover) {
+        KRATOS_THROW_ERROR(std::invalid_argument, VariableName, " is not registered as any type of compatible variable: DOUBLE or SCALAR COMPONENT");
     }
 }
 

@@ -100,6 +100,9 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ## Utilities
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/binbased_DEM_fluid_coupled_mapping.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/basset_force_tools.cpp
+
+    # Fields
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/real_field_linear_time_dependant_coeff.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/velocity_field.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/cellular_flow_field.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/ethier_flow_field.cpp
@@ -116,6 +119,8 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/inlets/bentonite_force_based_inlet.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/fluid_field_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/shear_flow_1D_with_exponential_viscosity_field.cpp
+
+    # Recovery
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/derivative_recovery/derivative_recovery_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/derivative_recovery/standard_recovery_utility.cpp
 )

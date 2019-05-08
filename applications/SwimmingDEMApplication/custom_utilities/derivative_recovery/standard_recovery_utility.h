@@ -114,6 +114,7 @@ public:
     void PrintInfo(std::ostream& rOStream) const override {rOStream << "StandardRecoveryUtility";}
 
 
+
     ///@}
     ///@name Friends
     ///@{
@@ -129,6 +130,8 @@ void AddPartialTimeDerivative(const DoubleVarType& rVariable, const DoubleVarTyp
 // void AddPartialTimeDerivative(const ComponentVarType& rScalarComponent, const DoubleVarType& rTimeDerivativeVariable) override;
 
 void AddPartialTimeDerivative(const ArrayVarType& rVectorVariable, const ArrayVarType& rTimeDerivativeVariable) override;
+
+void CalculateGradient(const DoubleVarType& rScalarVariable, const ArrayVarType& rGradientVariable) override;
 
 // void CalculateGradient(const VariableData& rVariable, const VariableData& rGradientVariable) override;
 
@@ -193,6 +196,10 @@ private:
 
     // template<ArrayVarType, ArrayVarType>
     // void AddPartialTimeDerivative(const ArrayVarType& rVariable, const ArrayVarType& rTimeDerivativeVariable);
+
+    template<class TScalarVariable>
+    void CalculateScalarGradient(const TScalarVariable& rScalarVariable, const ArrayVarType& rGradientVariable);
+
 
     template<class TScalarVariable>
     void AddScalarPartialTimeDerivative(const TScalarVariable& rScalarVariable, const DoubleVarType& rGradientVariable);

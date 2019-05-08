@@ -185,6 +185,8 @@ class LinearFunction: public RealFunction
 {
 public:
 
+KRATOS_CLASS_POINTER_DEFINITION(LinearFunction);
+
 LinearFunction(const double a, const double b): RealFunction(a, b){}
 
 ~LinearFunction(){}
@@ -212,6 +214,8 @@ double CalculateSecondDerivative(const double x) override
 class PowerFunction: public RealFunction
 {
 public:
+
+KRATOS_CLASS_POINTER_DEFINITION(PowerFunction);
 
 PowerFunction(const double a, const double b, const double c):RealFunction(a, b), mC(c){}
 
@@ -243,6 +247,8 @@ double mC;
 class AdditionFunction: public RealFunction
 {
 public:
+
+KRATOS_CLASS_POINTER_DEFINITION(AdditionFunction);
 
 AdditionFunction(const double a, RealFunction& f, RealFunction& g):RealFunction(a, 1.0), mF(f), mG(g){}
 
@@ -276,6 +282,8 @@ class ProductFunction: public RealFunction
 {
 public:
 
+KRATOS_CLASS_POINTER_DEFINITION(ProductFunction);
+
 ProductFunction(const double a, RealFunction& f, RealFunction& g):RealFunction(a, 1.0), mF(f), mG(g){}
 
 ~ProductFunction(){}
@@ -307,6 +315,8 @@ RealFunction& mG;
 class CompositionFunction: public RealFunction
 {
 public:
+
+KRATOS_CLASS_POINTER_DEFINITION(CompositionFunction);
 
 CompositionFunction(const double a, RealFunction& f, RealFunction& g):RealFunction(a, 1.0), mF(f), mG(g){}
 

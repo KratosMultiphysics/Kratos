@@ -131,6 +131,9 @@ class SwimmingDEMSolver(PythonSolver):
                 "model_part_name" : "FluidModelPart",
                 "settings" : {},
                 "variables_for_recovery" : {
+                    "gradient" : {
+                        "PRESSURE" : "PRESSURE_GRADIENT"
+                    },
                     "material_derivative" : {
                         "VELOCITY" : "MATERIAL_ACCELERATION"
                     }

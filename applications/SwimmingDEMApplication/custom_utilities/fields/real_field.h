@@ -60,11 +60,25 @@ virtual double Evaluate(const double time,
     return 0.0;
 }
 
+virtual double Evaluate(const double time,
+                        const DenseVector<double>& coor,
+                        const int i_thread = 0)
+{
+    return 0.0;
+}
+
 //***************************************************************************************************************
 //***************************************************************************************************************
 
 virtual double CalculateTimeDerivative(const double time,
                                        const array_1d<double, 3>& coor,
+                                       const int i_thread = 0)
+{
+    return 0.0;
+}
+
+virtual double CalculateTimeDerivative(const double time,
+                                       const DenseVector<double>& coor,
                                        const int i_thread = 0)
 {
     return 0.0;
@@ -83,6 +97,16 @@ virtual void CalculateGradient(const double time,
     gradient[2] = 0.0;
 }
 
+virtual void CalculateGradient(const double time,
+                               const DenseVector<double>& coor,
+                               DenseVector<double>& gradient,
+                               const int i_thread = 0)
+{
+    gradient[0] = 0.0;
+    gradient[1] = 0.0;
+    gradient[2] = 0.0;
+}
+
 //***************************************************************************************************************
 //***************************************************************************************************************
 
@@ -90,6 +114,16 @@ virtual void CalculateLaplacian(const double time,
                                 const array_1d<double, 3>& coor,
                                 array_1d<double, 3>& laplacian,
                                 const int i_thread = 0)
+{
+    laplacian[0] = 0.0;
+    laplacian[1] = 0.0;
+    laplacian[2] = 0.0;
+}
+
+virtual void CalculateLaplacian(const double time,
+                               const DenseVector<double>& coor,
+                               DenseVector<double>& laplacian,
+                               const int i_thread = 0)
 {
     laplacian[0] = 0.0;
     laplacian[1] = 0.0;
@@ -198,7 +232,6 @@ private:
 ///@name Static Member r_variables
 ///@{
 
-
 ///@}
 ///@name Member r_variables
 ///@{
@@ -210,7 +243,6 @@ private:
 ///@}
 ///@name Private Operations
 ///@{
-
 
 ///@}
 ///@name Private  Access

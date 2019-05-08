@@ -24,7 +24,7 @@
 
 namespace Kratos
 {
-class LinearRealField: public RealField
+class KRATOS_API(SWIMMING_DEM_APPLICATION) LinearRealField: public RealField
 {
 public:
 
@@ -34,58 +34,42 @@ KRATOS_CLASS_POINTER_DEFINITION(LinearRealField);
 
 LinearRealField(const double& a0, const double& b0, const double& c0,
                 RealFunction& fa, RealFunction& fb, RealFunction& fc)
-              : mX0(a0), mY0(b0), mZ0(c0), mFx(fa), mFy(fb), mFz(fc)
-{}
+              : mX0(a0), mY0(b0), mZ0(c0), mpFx(), mpFy(), mpFz()
+{
+    mpFx.reset(&fa);
+    mpFy.reset(&fb);
+    mpFz.reset(&fc);
+}
 
 /// Destructor.
 
 virtual ~LinearRealField(){}
 
-
-//***************************************************************************************************************
-//***************************************************************************************************************
-
 double Evaluate(const double time,
                 const array_1d<double, 3>& coor,
-                const int i_thread) override
-{
-    return mX0 + mFx.Evaluate(time) * coor[0] + mY0 + mFy.Evaluate(time) * coor[1] + mZ0 + mFz.Evaluate(time) * coor[2];
-}
+                const int i_thread) override;
 
-//***************************************************************************************************************
-//***************************************************************************************************************
+double Evaluate(const double time,
+                const DenseVector<double>& coor,
+                const int i_thread) override;
 
 double CalculateTimeDerivative(const double time,
-                              const array_1d<double, 3>& coor,
-                              const int i_thread) override
-{
-    return mFx.CalculateDerivative(time) * coor[0] + mY0 + mFy.CalculateDerivative(time) * coor[1] + mZ0 + mFz.CalculateDerivative(time) * coor[2];;
-}
+                               const array_1d<double, 3>& coor,
+                               const int i_thread) override;
 
-//***************************************************************************************************************
-//***************************************************************************************************************
+double CalculateTimeDerivative(const double time,
+                               const DenseVector<double>& coor,
+                               const int i_thread) override;
 
 void CalculateGradient(const double time,
-                      const array_1d<double, 3>& coor,
-                      array_1d<double, 3>& gradient,
-                      const int i_thread) override
-{
-    gradient = ZeroVector(3);
-}
+                       const array_1d<double, 3>& coor,
+                       array_1d<double, 3>& gradient,
+                       const int i_thread) override;
 
-//***************************************************************************************************************
-//***************************************************************************************************************
-
-void CalculateLaplacian(const double time,
-                        const array_1d<double, 3>& coor,
-                        array_1d<double, 3>& laplacian,
-                        const int i_thread) override
-{
-    laplacian = ZeroVector(3);
-}
-
-//***************************************************************************************************************
-//***************************************************************************************************************
+void CalculateGradient(const double time,
+                       const DenseVector<double>& coor,
+                       DenseVector<double>& gradient,
+                       const int i_thread) override;
 
 ///@}
 ///@name Inquiry
@@ -141,7 +125,6 @@ protected:
 ///@name Protected Operations
 ///@{
 
-
 ///@}
 ///@name Protected  Access
 ///@{
@@ -170,9 +153,9 @@ private:
 double mX0;
 double mY0;
 double mZ0;
-RealFunction& mFx;
-RealFunction& mFy;
-RealFunction& mFz;
+std::unique_ptr<RealFunction> mpFx;
+std::unique_ptr<RealFunction> mpFy;
+std::unique_ptr<RealFunction> mpFz;
 
 ///@}
 ///@name Private Operators
@@ -181,7 +164,10 @@ RealFunction& mFz;
 ///@}
 ///@name Private Operations
 ///@{
-
+// template<TVector>
+// double Evaluate(const double time,
+//                 const TVector& coor,
+//                 const int i_thread);
 
 ///@}
 ///@name Private  Access
