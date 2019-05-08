@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#if !defined(KRATOS_SHALLOW_WATER_VARIABLES_UTILITY_H_INCLUDED)
-#define  KRATOS_SHALLOW_WATER_VARIABLES_UTILITY_H_INCLUDED
+#ifndef KRATOS_SHALLOW_WATER_VARIABLES_UTILITY_H_INCLUDED
+#define KRATOS_SHALLOW_WATER_VARIABLES_UTILITY_H_INCLUDED
 
 // System includes
 
@@ -239,145 +239,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    /**
-     * This method creates the dry properties as a copy of the wet properties
-     * The only difference between them is for visualization purpose
-     */
-    void DefineDryProperties()
-    {
-        // Create a copy for each property
-        const int nprop = static_cast<int>(mrModelPart.NumberOfProperties());
-        ModelPart::PropertiesContainerType::iterator prop_begin = mrModelPart.PropertiesBegin();
-
-        IndexType last_id = 0;
-        IndexVectorType prop_id;
-
-        for (int i = 0; i < nprop; i++)
-        {
-            auto prop = prop_begin + i;
-
-            if (prop->Id() > last_id)
-                last_id = prop->Id();
-            prop_id.push_back(prop->Id());
-        }
-
-        for (auto id : prop_id)
-        {
-            // Get pointers to the properties and create the dry property
-            Properties::Pointer wet_prop = mrModelPart.pGetProperties(id); // This work around is inefficient. TODO: find another way
-            Properties::Pointer dry_prop(new Properties(*wet_prop));
-            dry_prop->SetId(++last_id);
-
-            // Add the new property and add them to the maps
-            mrModelPart.AddProperties(dry_prop);
-            mWetToDryPropertiesMap[wet_prop->Id()] = dry_prop;
-            mDryToWetPropertiesMap[dry_prop->Id()] = wet_prop;
-        }
-    }
-
-    /**
-     * This method assign the wet and dry properties
-     * Wet and dry are tween properties
-     * The only difference between them is for visualization purpose
-     * ExecuteBeforOutputStep
-     * @see DefineDryProperties
-     */
-    void AssignDryWetProperties()
-    {
-        const int nelem = static_cast<int>(mrModelPart.Elements().size());
-        ModelPart::ElementsContainerType::iterator elem_begin = mrModelPart.ElementsBegin();
-
-        #pragma omp parallel for
-        for (int i = 0; i < nelem; i++)
-        {
-            auto elem = elem_begin + i;
-
-            if (elem->Is(FLUID))
-            {
-                auto search = mDryToWetPropertiesMap.find(elem->GetProperties().Id());
-                if (search != mDryToWetPropertiesMap.end()) // The element was dry
-                    elem->SetProperties(search->second);
-            }
-            else
-            {
-                auto search = mWetToDryPropertiesMap.find(elem->GetProperties().Id());
-                if (search != mWetToDryPropertiesMap.end()) // The element was wet
-                {
-                    elem->SetProperties(search->second);
-                }
-            }
-        }
-    }
-
-    /**
-     * This method sets the mesh position for visualization purpose
-     * ExecuteBeforeOutputStep
-     * @see ResetMeshPosition
-     */
-    void SetMeshPosition()
-    {
-        // Move mesh to the current position
-        const int nodes = static_cast<int>(mrModelPart.Nodes().size());
-        ModelPart::NodesContainerType::iterator node_begin = mrModelPart.NodesBegin();
-
-        #pragma omp parallel for
-        for(int i = 0; i < nodes; i++)
-        {
-            auto node = node_begin + i;
-
-            if (node->FastGetSolutionStepValue(HEIGHT) <= mDryHeight)
-            {
-                double value = node->FastGetSolutionStepValue(BATHYMETRY);
-                node->Z() = value;
-                node->FastGetSolutionStepValue(DISPLACEMENT_Z) = value;
-            }
-            else
-            {
-                double value = node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
-                node->Z() = value;
-                node->FastGetSolutionStepValue(DISPLACEMENT_Z) = value;
-            }
-        }
-    }
-
-    /**
-     * This method resets the mesh to the original position (Z0 = 0)
-     * ExecuteAfterOutputStep
-     * @see SetMeshPosition
-     */
-    void ResetMeshPosition()
-    {
-        // Move mesh to the original position
-        const int nodes = static_cast<int>(mrModelPart.Nodes().size());
-        ModelPart::NodesContainerType::iterator node_begin = mrModelPart.NodesBegin();
-
-        #pragma omp parallel for
-        for(int i = 0; i < nodes; i++)
-        {
-            auto node = node_begin + i;
-            node->Z() = node->Z0();
-        }
-    }
-
-    /**
-     * This method sets the all the elements active for visualization purpose
-     * ExecuteBeforeOutputStep
-     * @see AssignDryWetProperties
-     * @see SetDryWetState
-     */
-    void SetElementsActive()
-    {
-        const int nelem = static_cast<int>(mrModelPart.Elements().size());
-        ModelPart::ElementsContainerType::iterator elem_begin = mrModelPart.ElementsBegin();
-
-        #pragma omp parallel for
-        for (int i = 0; i < nelem; i++)
-        {
-            auto elem = elem_begin + i;
-            elem->Set(ACTIVE, true);
-        }
-    }
-
 protected:
 
 private:
@@ -386,8 +247,6 @@ private:
     double mWaterHeightConvert;
     double mDryHeight;
     double mZeroValue;
-    PropertiesMapType mWetToDryPropertiesMap;
-    PropertiesMapType mDryToWetPropertiesMap;
 
 }; // class ShallowWaterVariablesUtility
 
