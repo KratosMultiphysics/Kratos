@@ -44,7 +44,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.moment_coefficient = KratosMultiphysics.Vector(3)
 
         for cond in self.body_model_part.Conditions:
-            surface_normal = cond.GetValue(KratosMultiphysics.NORMAL)
+            surface_normal = cond.GetGeometry().Normal()
             pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
 
             # Computing forces
