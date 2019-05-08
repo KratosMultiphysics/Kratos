@@ -92,7 +92,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         self.CopyAndDeleteDefaultDistance()
         KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Elapsed time: ',time.time()-ini_time)
 
-        ''' ############################################################################################## '''
+        ''' ############################################################################################# '''
         ''' THIS FUNCTION CALL IS TEMPORARY AND WILL BE REMOVED ONCE THE EMBEDDED WAKE PROCESS IS DEFINED '''
         # Find nodal neigbours util call
         avg_elem_num = 10
