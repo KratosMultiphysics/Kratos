@@ -16,7 +16,7 @@
 #include "custom_conditions/rigid_contact/EP_point_rigid_contact_penalty_3D_condition.hpp"
 
 #include "custom_friction/coulomb_adhesion_friction_law.hpp"
-
+#include "includes/global_pointer_variables.h"
 #include "contact_mechanics_application_variables.h"
 #include "includes/mat_variables.h"
 #include "includes/global_pointer_variables.h"
@@ -303,12 +303,12 @@ namespace Kratos
       if( GetProperties().Has(PENALTY_PARAMETER) )
          PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
 
-      ElementWeakPtrVectorType& nElements = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
+      auto& nElements = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
       double ElasticModulus = 0;
       if( GetProperties().Has(YOUNG_MODULUS) )
          ElasticModulus = GetProperties()[YOUNG_MODULUS];
       else
-         ElasticModulus = nElements.front().GetProperties()[YOUNG_MODULUS];
+         ElasticModulus = nElements.front()->GetProperties()[YOUNG_MODULUS];
 
       // the Modified Cam Clay model does not have a constant Young modulus, so something similar to that is computed
       if (ElasticModulus <= 1.0e-5) {
@@ -317,7 +317,7 @@ namespace Kratos
           ProcessInfo SomeProcessInfo;
           for(auto& i_nelem : nElements)
           {
-            i_nelem.CalculateOnIntegrationPoints(YOUNG_MODULUS, ModulusVector, SomeProcessInfo);
+            i_nelem->CalculateOnIntegrationPoints(YOUNG_MODULUS, ModulusVector, SomeProcessInfo);
             ElasticModulus += ModulusVector[0];
           }
           ElasticModulus /= double(nElements.size());
@@ -644,13 +644,13 @@ namespace Kratos
          return Area;
 
 
-      ElementWeakPtrVectorType& nElements = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
+      auto& nElements = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
 
 
       std::vector< double > AreaVector;
       for(auto& i_nelem : nElements)
       {
-        const Geometry< Node < 3 > > & rElemGeom = i_nelem.GetGeometry();
+        const Geometry< Node < 3 > > & rElemGeom = i_nelem->GetGeometry();
         unsigned int nBoundary = 0;
 
         std::vector< unsigned int > BoundaryNodes;

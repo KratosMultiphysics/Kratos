@@ -13,7 +13,7 @@
 
 // Project includes
 #include "custom_conditions/deformable_contact/contact_domain_penalty_2D_condition.hpp"
-
+#include "includes/global_pointer_variables.h"
 #include "contact_mechanics_application_variables.h"
 
 
@@ -107,7 +107,7 @@ namespace Kratos
     //Contact face segment node1-node2
     unsigned int slave = mContactVariables.slaves.back();
 
-    const Properties& SlaveProperties  = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS).front().GetProperties();
+    const Properties& SlaveProperties  = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS).front()->GetProperties();
     const Properties& MasterProperties = rMasterElement.GetProperties();
     double Eslave  = 1e9;
     if( SlaveProperties.Has(YOUNG_MODULUS) ){

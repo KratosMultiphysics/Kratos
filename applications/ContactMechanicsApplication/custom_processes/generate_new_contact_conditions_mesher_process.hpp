@@ -213,9 +213,9 @@ namespace Kratos
 
 		if( pContactCondition->Is(SELECTED) ){ //two master nodes needed
 
-		  Element::ElementType& rMasterElement  = pMasterCondition->GetValue(MASTER_ELEMENTS).back();
+		  Element::ElementType& rMasterElement  = *pMasterCondition->GetValue(MASTER_ELEMENTS).back();
 		  Geometry< Node<3> >&  rMasterGeometry = rMasterElement.GetGeometry();
-		  Element::NodeType&    rMasterNode     = pContactCondition->GetValue(MASTER_NODES).back();
+		  Element::NodeType&    rMasterNode     = *pContactCondition->GetValue(MASTER_NODES).back();
 		  Geometry< Node<3> >&  rGeometry       = pContactCondition->GetGeometry();
 
 		  std::vector<bool> edge_nodes(4);

@@ -13,7 +13,7 @@
 
 // Project includes
 #include "custom_conditions/deformable_contact/contact_domain_LM_3D_condition.hpp"
-
+#include "includes/global_pointer_variables.h"
 #include "contact_mechanics_application_variables.h"
 
 
@@ -93,10 +93,10 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    Element::ElementType& rMasterElement = GetValue(MASTER_ELEMENTS).back();
+    Element::ElementType& rMasterElement = *(GetValue(MASTER_ELEMENTS).back());
     mContactVariables.SetMasterElement(rMasterElement);
 
-    Element::NodeType&    rMasterNode  = GetValue(MASTER_NODES).front();
+    Element::NodeType&    rMasterNode  = *(GetValue(MASTER_NODES).front());
     mContactVariables.SetMasterNode(rMasterNode);
 
     int slave = -1;
@@ -482,7 +482,7 @@ namespace Kratos
     noalias(F) = ZeroMatrix(3,3);
 
     //a.- Assign initial 2nd Piola Kirchhoff stress:
-    Condition* MasterCondition = GetValue(MASTER_CONDITION).lock().get();
+    Condition* MasterCondition = &*GetValue(MASTER_CONDITION);
 
     //Get previous mechanics stored in the master node/condition
     Vector StressVector;
@@ -670,7 +670,7 @@ namespace Kratos
     noalias(F) = ZeroMatrix(3,3);
 
     //a.- Assign initial 2nd Piola Kirchhoff stress:
-    Condition* MasterCondition = GetValue(MASTER_CONDITION).lock().get();
+    Condition* MasterCondition = &*GetValue(MASTER_CONDITION);
 
     //Get previous mechanics stored in the master node/condition
     Vector StressVector;
@@ -853,7 +853,7 @@ namespace Kratos
     //Contact face segment node1-node2
     unsigned int slave = mContactVariables.slaves.front();
 
-    const Properties& SlaveProperties  = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS).front().GetProperties();
+    const Properties& SlaveProperties  = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS).front()->GetProperties();
     const Properties& MasterProperties = rMasterElement.GetProperties();
     double Eslave  = 1e9;
     if( SlaveProperties.Has(YOUNG_MODULUS) ){
@@ -924,7 +924,7 @@ namespace Kratos
 
     // std::cout<<" Master Nodes "<<GetValue(MASTER_NODES).size()<<std::endl;
 
-    Element::ElementType& rMasterElement = GetValue(MASTER_ELEMENTS).back();
+    Element::ElementType& rMasterElement = *(GetValue(MASTER_ELEMENTS).back());
     mContactVariables.SetMasterElement(rMasterElement);
 
 
@@ -2518,15 +2518,15 @@ namespace Kratos
     //Check slave node inside the contacting domain:
 
     //node1:
-    ElementWeakPtrVectorType& nElements1 = GetGeometry()[node1].GetValue(NEIGHBOUR_ELEMENTS);
+    auto& nElements1 = GetGeometry()[node1].GetValue(NEIGHBOUR_ELEMENTS);
     //node2:
-    ElementWeakPtrVectorType& nElements2 = GetGeometry()[node2].GetValue(NEIGHBOUR_ELEMENTS);
+    auto& nElements2 = GetGeometry()[node2].GetValue(NEIGHBOUR_ELEMENTS);
 
     bool is_inside_a = false;
     //following slave normal projection of the slave Sx1 and Sy1
     for(auto& i_nelem : nElements1)
     {
-      GeometryType::PointsArrayType& vertices=i_nelem.GetGeometry().Points();
+      GeometryType::PointsArrayType& vertices=i_nelem->GetGeometry().Points();
 
       is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
                                                          vertices[1].X(), vertices[1].Y(),
@@ -2540,7 +2540,7 @@ namespace Kratos
 
       for(auto i_nelem : nElements2)
       {
-        GeometryType::PointsArrayType& vertices=i_nelem.GetGeometry().Points();
+        GeometryType::PointsArrayType& vertices=i_nelem->GetGeometry().Points();
 
         is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
                                                            vertices[1].X(), vertices[1].Y(),
@@ -2558,7 +2558,7 @@ namespace Kratos
     //following master normal projection of the slave Mx1 and My1
     for(auto& i_nelem : nElements1)
     {
-      GeometryType::PointsArrayType& vertices=i_nelem.GetGeometry().Points();
+      GeometryType::PointsArrayType& vertices=i_nelem->GetGeometry().Points();
 
       is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
                                                          vertices[1].X(), vertices[1].Y(),
@@ -2574,7 +2574,7 @@ namespace Kratos
 
       for(auto i_nelem : nElements2)
       {
-        GeometryType::PointsArrayType& vertices=i_nelem.GetGeometry().Points();
+        GeometryType::PointsArrayType& vertices=i_nelem->GetGeometry().Points();
 
         is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
                                                            vertices[1].X(), vertices[1].Y(),

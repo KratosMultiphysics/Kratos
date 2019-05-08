@@ -99,7 +99,7 @@ void RigidBodyPointRigidContactCondition::GetDofList(DofsVectorType& rConditionD
 
     rConditionDofList.resize(0);
 
-    Element& MasterElement = mMasterElements.back();
+    Element& MasterElement = *(mMasterElements.back());
     MasterElement.GetDofList(rConditionDofList, rCurrentProcessInfo);
 
     KRATOS_CATCH( "" )
@@ -115,7 +115,7 @@ void RigidBodyPointRigidContactCondition::EquationIdVector(EquationIdVectorType&
 
     rResult.resize( 0, false );
 
-    Element& MasterElement = mMasterElements.back();
+    Element& MasterElement = *(mMasterElements.back());
     MasterElement.EquationIdVector(rResult, rCurrentProcessInfo);
 
     KRATOS_CATCH( "" )
@@ -129,7 +129,7 @@ void RigidBodyPointRigidContactCondition::GetValuesVector(Vector& rValues, int S
 {
     KRATOS_TRY
 
-    Element& MasterElement = mMasterElements.back();
+    Element& MasterElement = *(mMasterElements.back());
     MasterElement.GetValuesVector(rValues, Step);
 
 
@@ -143,7 +143,7 @@ void RigidBodyPointRigidContactCondition::GetFirstDerivativesVector( Vector& rVa
 {
     KRATOS_TRY
 
-    Element& MasterElement = mMasterElements.back();
+    Element& MasterElement = *(mMasterElements.back());
     MasterElement.GetFirstDerivativesVector(rValues, Step);
 
     KRATOS_CATCH( "" )
@@ -157,7 +157,7 @@ void RigidBodyPointRigidContactCondition::GetSecondDerivativesVector( Vector& rV
 {
     KRATOS_TRY
 
-    Element& MasterElement = mMasterElements.back();
+    Element& MasterElement = *(mMasterElements.back());
     MasterElement.GetSecondDerivativesVector(rValues, Step);
 
     KRATOS_CATCH( "" )
@@ -326,7 +326,7 @@ void RigidBodyPointRigidContactCondition::CalculateKinematics(ConditionVariables
 
     //get contact properties and parameters
     double PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
-    double ElasticModulus   = mMasterElements.front().GetProperties()[YOUNG_MODULUS];
+    double ElasticModulus   = mMasterElements.front()->GetProperties()[YOUNG_MODULUS];
 
     //reduction of the penalty parameter:
     PenaltyParameter *=1e-6;
@@ -341,7 +341,7 @@ void RigidBodyPointRigidContactCondition::CalculateKinematics(ConditionVariables
     rVariables.Penalty.Tangent = rVariables.Penalty.Normal;
 
 
-    PointType CentroidPosition = GetGeometry()[0].Coordinates() - mMasterElements.front().GetGeometry()[0].Coordinates();
+    PointType CentroidPosition = GetGeometry()[0].Coordinates() - mMasterElements.front()->GetGeometry()[0].Coordinates();
 
 
     //compute the skewsymmmetric tensor of the distance

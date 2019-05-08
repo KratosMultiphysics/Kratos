@@ -146,7 +146,7 @@ namespace Kratos
     if( GetProperties().Has(PENALTY_PARAMETER) )
       PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
 
-    ElementWeakPtrVectorType& nElements = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
+    auto& nElements = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
     double ElasticModulus = 0;
     if( GetProperties().Has(YOUNG_MODULUS) ){
       ElasticModulus = GetProperties()[YOUNG_MODULUS];
@@ -156,11 +156,11 @@ namespace Kratos
     }
     else{
 
-	if( nElements.front().GetProperties().Has(YOUNG_MODULUS) ){
-	    ElasticModulus = nElements.front().GetProperties()[YOUNG_MODULUS];
+	if( nElements.front()->GetProperties().Has(YOUNG_MODULUS) ){
+	    ElasticModulus = nElements.front()->GetProperties()[YOUNG_MODULUS];
 	}
-	else if( nElements.front().GetProperties().Has(C10) ){
-	    ElasticModulus = nElements.front().GetProperties()[C10];
+	else if( nElements.front()->GetProperties().Has(C10) ){
+	    ElasticModulus = nElements.front()->GetProperties()[C10];
 	}
     }
 
@@ -170,7 +170,7 @@ namespace Kratos
       ProcessInfo SomeProcessInfo;
       for(auto& i_nelem : nElements)
       {
-        i_nelem.CalculateOnIntegrationPoints(EQUIVALENT_YOUNG_MODULUS, mModulus, SomeProcessInfo);
+        i_nelem->CalculateOnIntegrationPoints(EQUIVALENT_YOUNG_MODULUS, mModulus, SomeProcessInfo);
         ElasticModulus += mModulus[0];
       }
       ElasticModulus /= double(nElements.size());

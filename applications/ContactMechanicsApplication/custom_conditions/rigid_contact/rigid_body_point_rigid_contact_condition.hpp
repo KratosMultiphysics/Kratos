@@ -16,6 +16,7 @@
 
 // Project includes
 #include "custom_conditions/rigid_contact/point_rigid_contact_condition.hpp"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -287,7 +288,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ElementWeakPtrVectorType mMasterElements;
+    GlobalPointersVector<Element> mMasterElements;
 
     ///@}
     ///@name Private Operators

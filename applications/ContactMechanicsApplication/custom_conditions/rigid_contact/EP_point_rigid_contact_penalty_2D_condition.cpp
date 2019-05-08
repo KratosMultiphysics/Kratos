@@ -13,7 +13,7 @@
 
 // Project includes
 #include "custom_conditions/rigid_contact/EP_point_rigid_contact_penalty_2D_condition.hpp"
-
+#include "includes/global_pointer_variables.h"
 #include "contact_mechanics_application_variables.h"
 
 namespace Kratos
@@ -95,12 +95,12 @@ namespace Kratos
      if ( dimension != 2)
         return Area;
 
-     ElementWeakPtrVectorType& nElements = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
+     auto& nElements = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
 
      std::vector< double > AreaVector;
      for(auto& i_nelem : nElements)
      {
-        const Geometry< Node < 3 > > & rElemGeom = i_nelem.GetGeometry();
+        const Geometry< Node < 3 > > & rElemGeom = i_nelem->GetGeometry();
         unsigned int nBoundary = 0;
 
         std::vector< unsigned int > BoundaryNodes;

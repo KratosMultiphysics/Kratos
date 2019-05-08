@@ -14,7 +14,7 @@
 // Project includes
 #include "includes/kratos_flags.h"
 #include "custom_conditions/thermal_contact/thermal_contact_domain_condition.hpp"
-
+#include "includes/global_pointer_variables.h"
 #include "contact_mechanics_application_variables.h"
 
 
@@ -314,7 +314,7 @@ void ThermalContactDomainCondition::CalculateHeatConductivity()
 
   // unsigned int vsize=GetValue(MASTER_ELEMENTS).size();
   // Element::ElementType& MasterElement = *GetValue(MASTER_ELEMENTS)[vsize-1];
-  Element::ElementType& rMasterElement = GetValue(MASTER_ELEMENTS).back();
+  Element::ElementType& rMasterElement = *(GetValue(MASTER_ELEMENTS).back());
 
   //Look at the nodes, get the slave and get the Emin
 
@@ -323,8 +323,8 @@ void ThermalContactDomainCondition::CalculateHeatConductivity()
 
 
   double Kslave = 0;
-  if( GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS).front().GetProperties().Has(HEAT_CONDUCTIVITY) )
-    Kslave = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS).front().GetProperties()[HEAT_CONDUCTIVITY];
+  if( GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS).front()->GetProperties().Has(HEAT_CONDUCTIVITY) )
+    Kslave = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS).front()->GetProperties()[HEAT_CONDUCTIVITY];
 
   double Kmin = 0;
   if( rMasterElement.GetProperties().Has(HEAT_CONDUCTIVITY) )
