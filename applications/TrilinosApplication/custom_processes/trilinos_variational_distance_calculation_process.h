@@ -95,37 +95,10 @@ public:
 
         KRATOS_TRY
 
-        // Check that there is at least one element and node in the model
-        int NNode = base_model_part.Nodes().size();
-        int NElem = base_model_part.Elements().size();
-
-        if (NNode > 0){
-            VariableUtils().CheckVariableExists<Variable<double > >(DISTANCE, base_model_part.Nodes());
-            VariableUtils().CheckVariableExists<Variable<double > >(FLAG_VARIABLE, base_model_part.Nodes());
-        }
-
-        if(NElem > 0){
-            if(TDim == 2){
-                KRATOS_ERROR_IF(base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) <<
-                    "In 2D the element type is expected to be a triangle" << std::endl;
-            } else if(TDim == 3) {
-                KRATOS_ERROR_IF(base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) <<
-                    "In 3D the element type is expected to be a tetrahedra" << std::endl;
-            }
-        }
-
-        base_model_part.GetCommunicator().SumAll(NNode);
-        base_model_part.GetCommunicator().SumAll(NElem);
-
-        KRATOS_ERROR_IF(NNode == 0) << "The model has no nodes" << std::endl;
-        KRATOS_ERROR_IF(NElem == 0) << "The model has no elements" << std::endl;
+        this->ValidateInput();
 
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         this->ReGenerateDistanceModelPart(base_model_part);
-
-        // Generate a linear strategy
-        // Scheme
-        SchemePointerType pscheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace> >();
 
         // Builder and Solver
         const int RowSizeGuess = (TDim == 2 ? 15 : 40);
@@ -134,23 +107,7 @@ public:
             RowSizeGuess,
             plinear_solver);
 
-        // Solution strategy
-        const bool CalculateReactions = false;
-        const bool ReformDofAtEachIteration = false;
-        const bool CalculateNormDxFlag = false;
-
-        ModelPart& r_distance_model_part = base_model_part.GetModel().GetModelPart( mAuxModelPartName );
-        (this->mp_solving_strategy) = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
-            r_distance_model_part,
-            pscheme,
-            plinear_solver,
-            pBuilderSolver,
-            CalculateReactions,
-            ReformDofAtEachIteration,
-            CalculateNormDxFlag);
-
-        //TODO: check flag DO_EXPENSIVE_CHECKS
-        (this->mp_solving_strategy)->Check();
+        this->InitializeSolutionStrategy(plinear_solver, pBuilderSolver);
 
         KRATOS_CATCH("")
     }

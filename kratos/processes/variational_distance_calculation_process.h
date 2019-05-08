@@ -128,54 +128,20 @@ public:
         std::string AuxPartName = "RedistanceCalculationPart" )
         : mr_base_model_part( base_model_part ),
         mOptions( Options ),
-        mAuxModelPartName( AuxPartName )
+        mAuxModelPartName( AuxPartName ),
+        mmax_iterations(max_iterations),
+        mdistance_part_is_initialized(false)
     {
         KRATOS_TRY
 
-        mmax_iterations = max_iterations;
-        mdistance_part_is_initialized = false; //this will be set to true upon completing ReGenerateDistanceModelPart
-
-        // Check that there is at least one element and node in the model
-        KRATOS_ERROR_IF(base_model_part.NumberOfNodes() == 0) << "The model part has no nodes." << std::endl;
-        KRATOS_ERROR_IF(base_model_part.NumberOfElements() == 0) << "The model Part has no elements." << std::endl;
-
-        // Check if nodes have DISTANCE variable
-        VariableUtils().CheckVariableExists<Variable<double > >(DISTANCE, base_model_part.Nodes());
-        VariableUtils().CheckVariableExists<Variable<double > >(FLAG_VARIABLE, base_model_part.Nodes());
-
-        if(TDim == 2){
-            KRATOS_ERROR_IF(base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) <<
-                "In 2D the element type is expected to be a triangle." << std::endl;
-        } else if(TDim == 3) {
-            KRATOS_ERROR_IF(base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) <<
-                "In 3D the element type is expected to be a tetrahedron" << std::endl;
-        }
+        ValidateInput();
 
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         ReGenerateDistanceModelPart(base_model_part);
 
-        // Generate a linear strategy
-        SchemePointerType pscheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
+        auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
-        bool CalculateReactions = false;
-        bool ReformDofAtEachIteration = false;
-        bool CalculateNormDxFlag = false;
-        BuilderSolverPointerType pBuilderSolver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
-
-        Model& current_model = mr_base_model_part.GetModel();
-        ModelPart& r_distance_model_part = current_model.GetModelPart( mAuxModelPartName );
-
-        mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
-            r_distance_model_part,
-            pscheme,
-            plinear_solver,
-            pBuilderSolver,
-            CalculateReactions,
-            ReformDofAtEachIteration,
-            CalculateNormDxFlag);
-
-        // TODO: check flag DO_EXPENSIVE_CHECKS
-        mp_solving_strategy->Check();
+        InitializeSolutionStrategy(plinear_solver, p_builder_solver);
 
         KRATOS_CATCH("")
     }
@@ -437,6 +403,59 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    void ValidateInput()
+    {
+        const Communicator& r_comm = mr_base_model_part.GetCommunicator();
+        int num_elements = mr_base_model_part.NumberOfElements();
+        int num_nodes = mr_base_model_part.NumberOfNodes();
+
+        if (num_elements > 0)
+        {
+            const auto geometry_family = mr_base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily();
+            KRATOS_ERROR_IF( (TDim == 2) && (geometry_family != GeometryData::Kratos_Triangle) )
+            << "In 2D the element type is expected to be a triangle." << std::endl;
+            KRATOS_ERROR_IF( (TDim == 3) && (geometry_family != GeometryData::Kratos_Tetrahedra) )
+            << "In 3D the element type is expected to be a tetrahedron" << std::endl;
+        }
+
+        r_comm.SumAll(num_nodes);
+        KRATOS_ERROR_IF(num_nodes == 0) << "The model part has no nodes." << std::endl;
+
+        r_comm.SumAll(num_elements);
+        KRATOS_ERROR_IF(num_elements == 0) << "The model Part has no elements." << std::endl;
+
+        // Check that required nodal variables are present
+        VariableUtils().CheckVariableExists<Variable<double > >(DISTANCE, mr_base_model_part.Nodes());
+        VariableUtils().CheckVariableExists<Variable<double > >(FLAG_VARIABLE, mr_base_model_part.Nodes());
+    }
+
+    void InitializeSolutionStrategy(
+        typename TLinearSolver::Pointer pLinearSolver,
+        BuilderSolverPointerType pBuilderAndSolver)
+    {
+        // Generate a linear strategy
+        auto p_scheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
+
+        Model& r_model = mr_base_model_part.GetModel();
+        ModelPart& r_distance_model_part = r_model.GetModelPart( mAuxModelPartName );
+
+        bool CalculateReactions = false;
+        bool ReformDofAtEachIteration = false;
+        bool CalculateNormDxFlag = false;
+
+        mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
+            r_distance_model_part,
+            p_scheme,
+            pLinearSolver,
+            pBuilderAndSolver,
+            CalculateReactions,
+            ReformDofAtEachIteration,
+            CalculateNormDxFlag);
+
+        // TODO: check flag DO_EXPENSIVE_CHECKS
+        mp_solving_strategy->Check();
+    }
 
     virtual void ReGenerateDistanceModelPart(ModelPart& r_base_model_part)
     {
