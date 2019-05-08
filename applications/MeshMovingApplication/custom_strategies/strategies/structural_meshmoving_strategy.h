@@ -136,13 +136,6 @@ public:
     // Solve for the mesh movement
     mstrategy->Solve();
 
-    // Update FEM-base
-    const double delta_time =
-        BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
-
-    if (mcalculate_mesh_velocities == true)
-        MoveMeshUtilities::CalculateMeshVelocities(mpmesh_model_part, mtime_order,
-                                                   delta_time);
     MoveMeshUtilities::MoveMesh(
         mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
