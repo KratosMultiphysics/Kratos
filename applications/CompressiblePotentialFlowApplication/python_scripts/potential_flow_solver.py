@@ -92,9 +92,9 @@ class PotentialFlowSolver(FluidSolver):
         self._is_printing_rank = True
 
         # Set the element and condition names for the replace settings
-        self.embedded_formulation = PotentialFlowFormulation(self.settings["formulation"])
-        self.element_name = self.embedded_formulation.element_name
-        self.condition_name = self.embedded_formulation.condition_name
+        self.formulation = PotentialFlowFormulation(self.settings["formulation"])
+        self.element_name = self.formulation.element_name
+        self.condition_name = self.formulation.condition_name
         self.min_buffer_size = 1
 
         # Construct the linear solvers
