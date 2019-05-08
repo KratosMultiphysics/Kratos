@@ -102,6 +102,9 @@ private:
     ProjectionUtilities::PairingIndex mPairingIndex = ProjectionUtilities::PairingIndex::Unspecified;
     double mLocalCoordTol; // this is not needed after searching, hence no need to serialize it
 
+    void SaveSearchResult(const InterfaceObject& rInterfaceObject,
+                          const bool ComputeApproximation);
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
