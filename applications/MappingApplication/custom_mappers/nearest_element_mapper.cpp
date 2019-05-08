@@ -177,9 +177,7 @@ std::string NearestElementLocalSystem::PairingInfo(const int EchoLevel) const
     if (EchoLevel > 1) {// TODO leave here?
         buffer << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
         if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
-            mpNode->SetValue(PAIRING_STATUS, 0);
-        } else {
-            mpNode->SetValue(PAIRING_STATUS, -1);
+            mpNode->SetValue(PAIRING_STATUS, (int)mPairingIndex);
         }
     }
     return buffer.str();
