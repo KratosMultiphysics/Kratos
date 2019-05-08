@@ -59,6 +59,8 @@ class GlobalPointersVector : public std::vector< GlobalPointer<TDataType> >
 public:
     ///@name Type Definitions
     ///@{
+    typedef typename std::vector< GlobalPointer<TDataType> >::size_type size_type;
+
 
     /// Pointer definition of GlobalPointersVector
     KRATOS_CLASS_POINTER_DEFINITION(GlobalPointersVector);
@@ -85,6 +87,24 @@ public:
         {
             this->push_back(GlobalPointer<TDataType>(&item));
         }
+    }
+
+    void Sort()
+    {
+        std::sort(this->begin(), this->end(), GlobalPointerComparor<TDataType>());
+    }
+
+    void Unique()
+    {
+        Sort();
+        auto end_it = this->end();
+        auto new_end_it = std::unique(this->begin(), this->end(), GlobalPointerComparor<TDataType>());
+        this->erase(new_end_it, end_it);
+    }
+
+    GlobalPointer<TDataType>& operator()(const size_type& i)
+    {
+        return (*this)[i];
     }
 
     ///@}

@@ -65,6 +65,15 @@ public:
     , mRank(Rank) {
   }
 
+  /** Constructor by Kratos::shared_ptr
+   * Constructor by Kratos::shared_ptr
+   * @param DataPointer Boost Shared Pointer to the Data.
+   */
+  GlobalPointer(Kratos::intrusive_ptr<TDataType>& DataPointer, int Rank = 0)
+    : mDataPointer(DataPointer.get())
+    , mRank(Rank) {
+  }
+
   /** Constructor by Kratos::weak_ptr
    * Constructor by Kratos::weak_ptr
    * @param DataPointer Kratos Weak Pointer to the Data.
@@ -236,6 +245,23 @@ struct GlobalPointerComparor
         return ( &(*pGp1) == &(*pGp2)  &&  pGp1.GetRank() == pGp2.GetRank()  );
     }
 };
+
+/// input stream function
+template< class TDataType >
+inline std::istream& operator >> (std::istream& rIStream,
+                                  GlobalPointer<TDataType>& rThis)
+                                  {return rIStream;};
+
+/// output stream function
+template< class TDataType >
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const GlobalPointer<TDataType>& rThis)
+{
+    
+    rOStream << reinterpret_cast<const std::size_t>(&*rThis) << " : " << rThis.GetRank();
+
+    return rOStream;
+}
 
 } // namespace Kratos
 
