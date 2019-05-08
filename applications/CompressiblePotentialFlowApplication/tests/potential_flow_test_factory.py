@@ -53,7 +53,7 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._runTest(settings_file_name_adjoint)
 
             for file_name in os.listdir(os.getcwd()):
-                if file_name.endswith(".h5") or file_name.endswith(".time"):
+                if file_name.endswith(".h5"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
     def test_EmbeddedCircleNoWake(self):
@@ -62,8 +62,6 @@ class PotentialFlowTests(UnitTest.TestCase):
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
-
-            kratos_utilities.DeleteTimeFiles(".")
 
     def _runTest(self,settings_file_name):
         model = KratosMultiphysics.Model()
