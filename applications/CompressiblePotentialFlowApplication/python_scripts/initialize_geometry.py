@@ -75,7 +75,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(MeshingApplication.METRIC_TENSOR_2D, self.main_model_part.Nodes)
 
         ''' Defining linear solver to be used by the variational distance process'''
-        import python_linear_solver_factory #Linear solver for variational distance process
+        from KratosMultiphysics import python_linear_solver_factory #Linear solver for variational distance process
         linear_solver_settings=KratosMultiphysics.Parameters("""
         {
             "solver_type": "amgcl",
