@@ -136,8 +136,7 @@ void TransientConvectionDiffusionFICElement<TDim, TNumNodes>::CalculateFirstDeri
 
     Variables.IterationNumber = rCurrentProcessInfo[NL_ITERATION_NUMBER];
 
-    BoundedMatrix<double,TNumNodes,TNumNodes> MMatrixAux1 = ZeroMatrix( TNumNodes, TNumNodes );
-    BoundedMatrix<double,TNumNodes,TNumNodes> MMatrixAuxRight = ZeroMatrix( TNumNodes, TNumNodes );
+    BoundedMatrix<double,TNumNodes,TNumNodes> MMatrixAux = ZeroMatrix( TNumNodes, TNumNodes );
 
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
@@ -165,20 +164,30 @@ void TransientConvectionDiffusionFICElement<TDim, TNumNodes>::CalculateFirstDeri
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
 
-        array_1d <double, TNumNodes> AuxMVector;
-        noalias(AuxMVector) = Variables.rho_dot_c * (Variables.N + 0.5 * prod(Variables.GradNT,Variables.HVector));
+        array_1d <double, TNumNodes> AuxMVector1;
+        array_1d <double, TNumNodes> AuxMVector2;
 
-        MMatrixAux1 += outer_prod(AuxMVector,Variables.N) * Variables.IntegrationCoefficient;
+        noalias(AuxMVector1) = Variables.rho_dot_c * Variables.N;
+        noalias(AuxMVector2) = Variables.rho_dot_c * 0.5 * prod(Variables.GradNT,Variables.HVector);
 
-        // for (unsigned int i = 0 ; i < TNumNodes ; i++ )
-        // {
-        //     for (unsigned int j = 0 ; j < TNumNodes ; j ++ )
-        //     {
-        //         MMatrixAuxRight (i,i) += MMatrixAux1(i,j) / 3.0;
-        //     }
-        // }
+        //// M matrix
+        BoundedMatrix<double,TNumNodes,TNumNodes> MMatrixAux1 = ZeroMatrix( TNumNodes, TNumNodes );
+        BoundedMatrix<double,TNumNodes,TNumNodes> MMatrixAux2 = ZeroMatrix( TNumNodes, TNumNodes );
 
-        noalias(rLeftHandSideMatrix) += outer_prod(AuxMVector,Variables.N) * Variables.IntegrationCoefficient;
+        MMatrixAux1 = outer_prod(AuxMVector1,Variables.N) * Variables.IntegrationCoefficient;
+        MMatrixAux2 = outer_prod(AuxMVector2,Variables.N) * Variables.IntegrationCoefficient;
+
+        // We are not considering MMatrixAux2, which is the h term
+        MMatrixAux += MMatrixAux1 ;
+    }
+
+    for (unsigned int i = 0 ; i < TNumNodes ; i++ )
+    {
+        for (unsigned int j = 0 ; j < TNumNodes ; j ++ )
+        {
+            // LHS = Md lumped
+            rLeftHandSideMatrix (i,i) += MMatrixAux(i,j);
+        }
     }
 
     //rLeftHandSideMatrix = MMatrixAuxRight;
