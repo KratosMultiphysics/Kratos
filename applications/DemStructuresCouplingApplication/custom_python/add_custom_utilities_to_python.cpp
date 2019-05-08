@@ -4,10 +4,9 @@
  *  maceli@cimne.upc.edu
  */
 
+#include "custom_python/add_custom_utilities_to_python.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-
-#include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/dem_structures_coupling_utilities.h"
 #include "custom_utilities/compute_dem_face_load_utility.h"
 #include "custom_utilities/interpolate_structural_solution_for_dem_utility.h"
