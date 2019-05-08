@@ -26,10 +26,10 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "../../DEMApplication/custom_conditions/RigidFace.h"
-#include "../../DEMApplication/DEM_application_variables.h"
+#include "custom_conditions/RigidFace.h"
+#include "DEM_application_variables.h"
 #include "dem_structures_coupling_application_variables.h"
-#include "../../DEMApplication/custom_elements/spheric_continuum_particle.h"
+#include "custom_elements/spheric_continuum_particle.h"
 
 namespace Kratos
 {
