@@ -33,19 +33,16 @@ class TrilinosMeshSolverLaplacian(TrilinosMeshSolverBase):
 
     def _create_mesh_motion_solving_strategy(self):
         linear_solver = self.get_linear_solver()
-        time_order = self.settings["time_order"].GetInt()
         reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()
         compute_reactions = self.settings["compute_reactions"].GetBool()
-        calculate_mesh_velocities = self.settings["calculate_mesh_velocities"].GetBool()
-        echo_level = self.settings["echo_level"].GetInt()
         communicator = self.get_communicator()
         solving_strategy = TrilinosApplication.TrilinosLaplacianMeshMovingStrategy(
             communicator,
             self.mesh_model_part,
             linear_solver,
-            time_order,
+            0,
             reform_dofs_each_step,
             compute_reactions,
-            calculate_mesh_velocities,
-            echo_level)
+            False,
+            self.echo_level)
         return solving_strategy
