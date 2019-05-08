@@ -138,6 +138,7 @@ class MeshSolverBase(PythonSolver):
 
     def MoveMesh(self):
         # move local and ghost nodes
+        self.mesh_model_part.GetCommunicator().SynchronizeVariable(KratosMultiphysics.MESH_DISPLACEMENT)
         KMM.MoveMesh(self.mesh_model_part.Nodes)
 
     def ImportModelPart(self):
