@@ -13,8 +13,7 @@
 
 #include "mpi.h"
 #include "mpi/mpi_environment.h"
-#include "includes/parallel_environment.h"
-#include "utilities/mpi_coloring_utilities.h"
+#include "mpi/utilities/mpi_coloring_utilities.h"
 
 #include "testing/testing.h"
 
@@ -24,10 +23,10 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeRecvList, KratosMPICoreFastSuite)
 {
-    DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
-    const int world_size = r_default_comm.Size();
-    const int current_rank = r_default_comm.Rank();
+    const int world_size = mpi_world_communicator.Size();
+    const int current_rank = mpi_world_communicator.Rank();
 
     if(world_size == 4) //only implemented for the case of 4 mpi ranks
     {
@@ -45,7 +44,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeRecvList, KratosMPICoreFas
         expected_recv_list[2] = {1};
         expected_recv_list[3] = {0,1};
 
-        auto recv_list = MPIColoringUtilities::ComputeRecvList(send_list[current_rank], r_default_comm);
+        auto recv_list = MPIColoringUtilities::ComputeRecvList(send_list[current_rank], mpi_world_communicator);
 
         for(unsigned int j=0; j<recv_list.size(); ++j)
         {
@@ -56,10 +55,10 @@ KRATOS_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeRecvList, KratosMPICoreFas
 
 KRATOS_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeCommunicationScheduling, KratosMPICoreFastSuite)
 {
-    DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
-    const int world_size = r_default_comm.Size();
-    const int current_rank = r_default_comm.Rank();
+    const int world_size = mpi_world_communicator.Size();
+    const int current_rank = mpi_world_communicator.Rank();
 
     if(world_size == 4) //only implemented for the case of 4 mpi ranks
     {
@@ -77,7 +76,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeCommunicationScheduling, K
         expected_colors[2] = {-1,1,-1};
         expected_colors[3] = {-1,0,1};
 
-        auto colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list[current_rank], r_default_comm);
+        auto colors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list[current_rank], mpi_world_communicator);
 
         for(unsigned int j=0; j<colors.size(); ++j)
         {
