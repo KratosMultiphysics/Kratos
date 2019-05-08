@@ -246,6 +246,23 @@ struct GlobalPointerComparor
     }
 };
 
+/// input stream function
+template< class TDataType >
+inline std::istream& operator >> (std::istream& rIStream,
+                                  GlobalPointer<TDataType>& rThis)
+                                  {return rIStream;};
+
+/// output stream function
+template< class TDataType >
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const GlobalPointer<TDataType>& rThis)
+{
+    
+    rOStream << reinterpret_cast<const std::size_t>(&*rThis) << " : " << rThis.GetRank();
+
+    return rOStream;
+}
+
 } // namespace Kratos
 
 #endif // KRATOS_GLOBAL_POINTER_H_INCLUDED
