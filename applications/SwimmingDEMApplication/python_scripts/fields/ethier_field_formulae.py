@@ -41,6 +41,7 @@ def MakeCustomSubstitutions(code):
     code = code.replace('pow(', 'std::pow(')
     code = code.replace('sin(', 'std::sin(')
     code = code.replace('cos(', 'std::cos(')
+    code += ';'
     return code
 
 def GetCppCode(title, formula, elapsed_time):
