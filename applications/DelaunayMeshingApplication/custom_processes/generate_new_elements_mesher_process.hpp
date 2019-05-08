@@ -69,7 +69,6 @@ namespace Kratos
     typedef ConditionType::GeometryType       GeometryType;
 
     typedef ModelPart::ElementsContainerType     ElementsContainerType;
-    typedef WeakPointerVector<Element>        ElementWeakPtrVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -448,7 +447,7 @@ namespace Kratos
 
 	  unsigned int number_of_faces = i_elem->GetGeometry().FacesNumber(); //defined for triangles and tetrahedra
 
-	  ElementWeakPtrVectorType& nElements = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
+	  auto& nElements = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
 	  nElements.resize(number_of_faces);
 
 	  int index = 0;

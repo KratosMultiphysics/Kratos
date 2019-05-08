@@ -44,9 +44,6 @@ typedef Node<3>::WeakPointer NodeWeakPtrType;
 typedef Element::WeakPointer ElementWeakPtrType;
 typedef Condition::WeakPointer ConditionWeakPtrType;
 
-typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
 
 ///@}
 ///@name  Enum's
@@ -253,7 +250,7 @@ class GenerateNewConditionsMesherProcess
         DenseMatrix<unsigned int> lpofa; //connectivities of points defining faces
         DenseVector<unsigned int> lnofa; //number of points defining faces
 
-        ElementWeakPtrVectorType& nElements = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
+        auto& nElements = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
 
         //get matrix nodes in faces
         eGeometry.NodesInFaces(lpofa);
@@ -268,7 +265,7 @@ class GenerateNewConditionsMesherProcess
         {
           unsigned int NumberNodesInFace = lnofa[iface];
 
-          if(i_nelem.Id() == i_elem->Id())
+          if(i_nelem->Id() == i_elem->Id())
           {
             //if no neighbour is present => the face is free surface
             unsigned int rigid_nodes = 0;
@@ -408,10 +405,10 @@ class GenerateNewConditionsMesherProcess
 
                 //std::cout<<" _IDa_ "<<p_cond->Id()<<" MASTER ELEMENT "<<i_elem->Id()<<" MASTER NODE "<<eGeometry[lpofa(0,iface)].Id()<<" or "<<eGeometry[lpofa(NumberNodesInFace,iface)].Id()<<std::endl;
 
-                ElementWeakPtrVectorType& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
+                auto& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
                 MasterElements.push_back(*i_elem.base());
 
-                NodeWeakPtrVectorType& MasterNodes = p_cond->GetValue(MASTER_NODES);
+                auto& MasterNodes = p_cond->GetValue(MASTER_NODES);
                 MasterNodes.push_back(eGeometry(lpofa(0,iface)));
               }
               else{
@@ -442,10 +439,10 @@ class GenerateNewConditionsMesherProcess
 
                 //std::cout<<" _IDb_ "<<p_cond->Id()<<" MASTER ELEMENT "<<i_elem->Id()<<" MASTER NODE "<<eGeometry[lpofa(0,iface)].Id()<<" or "<<eGeometry[lpofa(NumberNodesInFace,iface)].Id()<<std::endl;
 
-                ElementWeakPtrVectorType& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
+                auto& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
                 MasterElements.push_back(*i_elem.base());
 
-                NodeWeakPtrVectorType& MasterNodes = p_cond->GetValue(MASTER_NODES);
+                auto& MasterNodes = p_cond->GetValue(MASTER_NODES);
                 MasterNodes.push_back(eGeometry(lpofa(0,iface)));
 
               }

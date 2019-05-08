@@ -48,7 +48,6 @@ class RefineElementsInEdgesMesherProcess
   typedef ModelPart::PropertiesType       PropertiesType;
   typedef ConditionType::GeometryType       GeometryType;
 
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
   ///@}
   ///@name Life Cycle
   ///@{
@@ -216,13 +215,13 @@ class RefineElementsInEdgesMesherProcess
 
     for(auto& i_elem : rBoundaryEdgedElements)
     {
-      ElementWeakPtrVectorType& nElements = i_elem.GetValue(NEIGHBOUR_ELEMENTS);
+      auto& nElements = i_elem.GetValue(NEIGHBOUR_ELEMENTS);
 
       unsigned int face=0;
       bool accepted_face = false;
       for(auto& i_nelem : nElements)
       {
-        if(i_nelem.Id() != i_elem.Id())  // If there is a shared element in face nf
+        if(i_nelem->Id() != i_elem.Id())  // If there is a shared element in face nf
         {
           accepted_face = true;
 

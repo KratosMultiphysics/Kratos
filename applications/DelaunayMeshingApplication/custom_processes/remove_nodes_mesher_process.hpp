@@ -605,7 +605,7 @@ class RemoveNodesMesherProcess
         double mean_node_radius = 0;
         for(auto& i_nelem : nElements)
         {
-          mean_node_radius+= mMesherUtilities.CalculateElementRadius(i_nelem.GetGeometry()); //Triangle 2D, Tetrahedron 3D
+          mean_node_radius+= mMesherUtilities.CalculateElementRadius(i_nelem->GetGeometry()); //Triangle 2D, Tetrahedron 3D
         }
 
         mean_node_radius /= double(nElements.size());

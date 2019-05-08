@@ -57,9 +57,6 @@ namespace Kratos
     typedef ModelPart::NodesContainerType                        NodesContainerType;
     typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
 
-    typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-    typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-    typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -110,12 +107,12 @@ namespace Kratos
 	{
 	  if( i_node.IsNot(NEW_ENTITY) ){// && i_node.IsNot(STRUCTURE)){
 
-	    ElementWeakPtrVectorType& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
+	    auto& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
 
 	    NodalMeanError  = 0;
 	    for(auto& i_nelem : nElements)
             {
-              NodalMeanError += ElementalError[elems_ids[i_nelem.Id()]];
+              NodalMeanError += ElementalError[elems_ids[i_nelem->Id()]];
             }
 
 	    rIds[i_node.Id()]   = id;
@@ -200,15 +197,15 @@ namespace Kratos
           PatchSize  = 0;
           PatchError = 0;
 
-          ElementWeakPtrVectorType& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
+          auto& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
 
           for(auto& i_nelem : nElements)
           {
 
-            Geometry<Node<3> >& rGeometry = i_nelem.GetGeometry();
+            Geometry<Node<3> >& rGeometry = i_nelem->GetGeometry();
 
             Size   = rGeometry.DomainSize();  //Area(); or Volume();
-            Error  = ElementVariable[elems_ids[i_nelem.Id()]] * Size;
+            Error  = ElementVariable[elems_ids[i_nelem->Id()]] * Size;
 
             PatchSize  += Size;
             PatchError += Error;

@@ -40,9 +40,6 @@ namespace Kratos
   ///@{
   typedef PointerVectorSet<Condition, IndexedObject> ConditionContainerType;
 
-  typedef Node<3>::WeakPointer NodeWeakPtrType;
-  
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
    ///@}
 
   ///@name Kratos Globals
@@ -64,11 +61,11 @@ namespace Kratos
   KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, int,                                 RIGID_WALL )
 
   //custom neighbor and masters
-  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, NodeWeakPtrType,                    MASTER_NODE )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, GlobalPointer<Node<3>>,                    MASTER_NODE )
   KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, GlobalPointer<Element>,              MASTER_ELEMENT )
   KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, GlobalPointer<Condition>,          MASTER_CONDITION )
 
-  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, NodeWeakPtrVectorType,             MASTER_NODES )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, GlobalPointersVector<Node<3>>,             MASTER_NODES )
   KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, GlobalPointersVector<Element>,       MASTER_ELEMENTS )
   KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, GlobalPointersVector<Condition>,   MASTER_CONDITIONS )
 
