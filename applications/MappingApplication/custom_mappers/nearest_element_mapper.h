@@ -22,6 +22,7 @@
 
 // Project includes
 #include "interpolative_mapper_base.h"
+#include "custom_utilities/projection_utilities.h"
 
 
 namespace Kratos
@@ -34,16 +35,17 @@ class NearestElementInterfaceInfo : public MapperInterfaceInfo
 public:
 
     /// Default constructor.
-    NearestElementInterfaceInfo() {}
+    explicit NearestElementInterfaceInfo(const double LocalCoordTol=0.0) : mLocalCoordTol(LocalCoordTol) {}
 
     explicit NearestElementInterfaceInfo(const CoordinatesArrayType& rCoordinates,
                                 const IndexType SourceLocalSystemIndex,
-                                const IndexType SourceRank)
-        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank) {}
+                                const IndexType SourceRank,
+                                         const double LocalCoordTol=0.0)
+        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank), mLocalCoordTol(LocalCoordTol) {}
 
     MapperInterfaceInfo::Pointer Create() const override
     {
-        return Kratos::make_shared<NearestElementInterfaceInfo>();
+        return Kratos::make_shared<NearestElementInterfaceInfo>(mLocalCoordTol);
     }
 
     MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
@@ -53,7 +55,8 @@ public:
         return Kratos::make_shared<NearestElementInterfaceInfo>(
             rCoordinates,
             SourceLocalSystemIndex,
-            SourceRank);
+            SourceRank,
+            mLocalCoordTol);
     }
 
     InterfaceObject::ConstructionType GetInterfaceObjectType() const override
@@ -85,11 +88,19 @@ public:
         rValue = mClosestProjectionDistance;
     }
 
+    void GetValue(int& rValue,
+                  const InfoType ValueType) const override
+    {
+        rValue = (int)mPairingIndex;
+    }
+
 private:
 
     std::vector<int> mNodeIds;
     std::vector<double> mShapeFunctionValues;
     double mClosestProjectionDistance = std::numeric_limits<double>::max();
+    ProjectionUtilities::PairingIndex mPairingIndex = ProjectionUtilities::PairingIndex::Unspecified;
+    double mLocalCoordTol; // this is not needed after searching, hence no need to serialize it
 
     friend class Serializer;
 
@@ -99,6 +110,7 @@ private:
         rSerializer.save("NodeIds", mNodeIds);
         rSerializer.save("SFValues", mShapeFunctionValues);
         rSerializer.save("ClosestProjectionDistance", mClosestProjectionDistance);
+        rSerializer.save("PairingIndex", (int)mPairingIndex);
     }
 
     void load(Serializer& rSerializer) override
@@ -107,6 +119,9 @@ private:
         rSerializer.load("NodeIds", mNodeIds);
         rSerializer.load("SFValues", mShapeFunctionValues);
         rSerializer.load("ClosestProjectionDistance", mClosestProjectionDistance);
+        int temp;
+        rSerializer.load("PairingIndex", temp);
+        mPairingIndex = (ProjectionUtilities::PairingIndex)temp;
     }
 
 };
@@ -132,6 +147,7 @@ public:
 
 private:
     NodePointerType mpNode;
+    mutable ProjectionUtilities::PairingIndex mPairingIndex = ProjectionUtilities::PairingIndex::Unspecified;
 
 };
 
@@ -245,7 +261,7 @@ private:
 
     MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const override
     {
-        return Kratos::make_unique<NearestElementInterfaceInfo>();
+        return Kratos::make_unique<NearestElementInterfaceInfo>(mLocalCoordTol);
     }
 
     Parameters GetMapperDefaultSettings() const override
