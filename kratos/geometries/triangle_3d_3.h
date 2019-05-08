@@ -875,24 +875,19 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
-        // The center of the geometry
-        const auto& r_center = this->Center();
-
         // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
-        const CoordinatesArrayType aux_point = ZeroVector(3);
-        const array_1d<double, 3> normal = this->UnitNormal(aux_point);
+        const array_1d<double, 3> normal = this->UnitNormal(this->Center());
 
         // We compute the distance, if it is not in the pane we
         const Point point_to_project(rPoint);
         Point point_projected;
-        const array_1d<double,3> vector_points = rPoint - r_center.Coordinates();
 
-        const double distance = GeometricalProjectionUtilities::FastProjectDirection(*this, point_to_project, point_projected, normal,  vector_points, 0);
+        const double distance = GeometricalProjectionUtilities::FastProjectOnGeometry(*this, point_to_project, point_projected);
 
         // We check if we are on the plane
         if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
             if (std::abs(distance) > 1.0e-6 * Length()) {
-                KRATOS_WARNING_FIRST_N("Triangle3D3", 10) << "The point of coordinates X: " << rPoint[0] << "\tY: " << rPoint[1] << "\tZ: " << rPoint[2] << " it is in a distance: " << std::abs(distance) << std::endl;
+                KRATOS_WARNING_FIRST_N("Triangle3D3", 10) << "The " << rPoint << " is in a distance: " << std::abs(distance) << std::endl;
                 return false;
             }
 
