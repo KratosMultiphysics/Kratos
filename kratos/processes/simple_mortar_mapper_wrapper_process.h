@@ -255,6 +255,8 @@ protected:
         {
             "echo_level"                       : 0,
             "using_average_nodal_normal"       : true,
+            "discontinuous_interface"          : false,
+            "discontinous_interface_factor"    : 1.0e-4,
             "absolute_convergence_tolerance"   : 1.0e-9,
             "relative_convergence_tolerance"   : 1.0e-4,
             "max_number_iterations"            : 10,

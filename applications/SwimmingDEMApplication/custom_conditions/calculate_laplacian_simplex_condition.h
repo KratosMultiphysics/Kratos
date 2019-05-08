@@ -67,7 +67,7 @@ public:
 
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION(ComputeLaplacianSimplexCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ComputeLaplacianSimplexCondition);
 
     typedef Node < 3 > NodeType;
 
@@ -179,7 +179,7 @@ public:
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< ComputeLaplacianSimplexCondition >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< ComputeLaplacianSimplexCondition >(NewId, pGeom, pProperties);
     }
 
     /// Return local contributions of the correct size, filled with zeros (for compatibility with time schemes).

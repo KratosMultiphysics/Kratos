@@ -44,7 +44,7 @@ ConvDiff2D::ConvDiff2D(IndexType NewId, GeometryType::Pointer pGeometry, Propert
 
 Element::Pointer ConvDiff2D::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<ConvDiff2D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<ConvDiff2D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 //************************************************************************************
@@ -52,7 +52,7 @@ Element::Pointer ConvDiff2D::Create(IndexType NewId, NodesArrayType const& ThisN
 
 Element::Pointer ConvDiff2D::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<ConvDiff2D>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<ConvDiff2D>(NewId, pGeom, pProperties);
 }
 
 //************************************************************************************

@@ -13,34 +13,16 @@
 #if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H)
 #define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H
 
-// System includes
-
-// External includes
-
 // Project includes
 #include "includes/element.h"
 #include "includes/kratos_flags.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/enrichment_utilities.h"
+#include "custom_utilities/potential_flow_utilities.h"
+
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -51,7 +33,7 @@ public:
     template <unsigned int TNumNodes, unsigned int TDim>
     struct ElementalData
     {
-        array_1d<double, TNumNodes> phis, distances;
+        array_1d<double, TNumNodes> potentials, distances;
         double vol;
 
         BoundedMatrix<double, TNumNodes, TDim> DN_DX;
@@ -62,11 +44,13 @@ public:
     ///@{
 
     typedef Element BaseType;
+    static constexpr int TNumNodes = NumNodes;
+    static constexpr int TDim = Dim;
 
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of IncompressiblePotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(IncompressiblePotentialFlowElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(IncompressiblePotentialFlowElement);
 
     ///@}
     ///@name Life Cycle
@@ -120,20 +104,10 @@ public:
     ///@{
 
     /// Assignment operator.
-    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement const& rOther)
-    {
-        BaseType::operator=(rOther);
-        Flags::operator=(rOther);
-        return *this;
-    }
+    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement const& rOther) = delete;
 
     /// Move operator.
-    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement&& rOther)
-    {
-        BaseType::operator=(rOther);
-        Flags::operator=(rOther);
-        return *this;
-    }
+    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement&& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -154,6 +128,9 @@ public:
                               ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                 ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override;
@@ -198,50 +175,8 @@ public:
     void PrintData(std::ostream& rOStream) const override;
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
     ///@name Private Operators
     ///@{
 
@@ -260,29 +195,33 @@ private:
     void GetDofListWakeElement(DofsVectorType& rElementalDofList) const;
 
     void CalculateLocalSystemNormalElement(MatrixType& rLeftHandSideMatrix,
-                                           VectorType& rRightHandSideVector);
+                                           VectorType& rRightHandSideVector,
+                                           const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateLocalSystemWakeElement(MatrixType& rLeftHandSideMatrix,
-                                         VectorType& rRightHandSideVector);
+                                         VectorType& rRightHandSideVector,
+                                         const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateLocalSystemSubdividedElement(Matrix& lhs_positive, Matrix& lhs_negative);
+    void CalculateLocalSystemSubdividedElement(BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
+                                               BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
+                                               const ProcessInfo& rCurrentProcessInfo);
 
     void ComputeLHSGaussPointContribution(const double weight,
-                                          Matrix& lhs,
+                                          BoundedMatrix<double, NumNodes, NumNodes>& lhs,
                                           const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLocalSystemSubdividedElement(MatrixType& rLeftHandSideMatrix,
-                                            Matrix& lhs_positive,
-                                            Matrix& lhs_negative,
-                                            Matrix& lhs_total,
+                                            BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
+                                            BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
+                                            BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
                                             const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLocalSystemWakeElement(MatrixType& rLeftHandSideMatrix,
-                                      Matrix& lhs_total,
+                                      BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
                                       const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLocalSystemWakeNode(MatrixType& rLeftHandSideMatrix,
-                                   Matrix& lhs_total,
+                                   BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
                                    const ElementalData<NumNodes, Dim>& data,
                                    unsigned int& row) const;
 
@@ -291,8 +230,6 @@ private:
     void ComputePotentialJump(ProcessInfo& rCurrentProcessInfo);
 
     void ComputeElementInternalEnergy();
-
-    void GetPotentialOnNormalElement(array_1d<double, NumNodes>& phis) const;
 
     void GetPotentialOnWakeElement(Vector& split_element_values,
                                    const array_1d<double, NumNodes>& distances) const;
@@ -324,10 +261,6 @@ private:
     double ComputePressureLowerWakeElement(const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -338,32 +271,10 @@ private:
     void load(Serializer& rSerializer) override;
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
 
 }; // Class IncompressiblePotentialFlowElement
 
 ///@}
-
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
-
-///@}
-
 } // namespace Kratos.
 
 #endif // KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H  defined

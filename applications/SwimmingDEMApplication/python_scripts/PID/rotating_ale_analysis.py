@@ -1,6 +1,6 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
+import KratosMultiphysics as Kratos
+from KratosMultiphysics import Parameters
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import math
 import pre_calculated_fluid_analysis
 BaseAnalysis = pre_calculated_fluid_analysis.PreCalculatedFluidAnalysis
@@ -14,7 +14,7 @@ class RotatingAleAnalysis(BaseAnalysis):
         self.inlet_velocity = - 9.06
 
     def SetRotator(self):
-        self.rotator = MeshRotationUtility(self.project_parameters)
+        self.rotator = SDEM.MeshRotationUtility(self.project_parameters)
 
     def SetBetaParameters(self):
         BaseAnalysis.SetBetaParameters(self)
@@ -53,13 +53,13 @@ class RotatingAleAnalysis(BaseAnalysis):
             steps_per_average_step = self.project_parameters["steps_per_average_step"].GetInt()
 
             averager = average_field.Averager(rotation_axis_initial_point = rotation_axis_initial_point,
-                                            rotation_axis_final_point = rotation_axis_final_point,
-                                            angular_velocity_module = angular_velocity_module,
-                                            dataset_name = dataset_name,
-                                            original_file_name = original_file_name,
-                                            original_file_path = self.main_path,
-                                            initial_time = initial_averaging_time,
-                                            steps_per_average_step = steps_per_average_step)
+                                              rotation_axis_final_point = rotation_axis_final_point,
+                                              angular_velocity_module = angular_velocity_module,
+                                              dataset_name = dataset_name,
+                                              original_file_name = original_file_name,
+                                              original_file_path = self.main_path,
+                                              initial_time = initial_averaging_time,
+                                              steps_per_average_step = steps_per_average_step)
 
             self.fluid_loader = hdf5_io_tools_PID.FluidHDF5LoaderPID(self.project_parameters,
                                                                      self.all_model_parts.Get('FluidPart'),
@@ -86,9 +86,9 @@ class RotatingAleAnalysis(BaseAnalysis):
     def SetInletVelocity(self, time):
         if time <= self.time_full_flow:
             alpha = math.sin(0.5 * math.pi * time / self.time_full_flow)
-            self.fluid_model_part.GetProperties()[self.inlet_group_number][IMPOSED_VELOCITY_Z_VALUE] = alpha * self.inlet_velocity
+            self.fluid_model_part.GetProperties()[self.inlet_group_number][Kratos.IMPOSED_VELOCITY_Z_VALUE] = alpha * self.inlet_velocity
 
             for node in self.fluid_model_part.GetMesh(self.inlet_group_number).Nodes:
-                node.SetSolutionStepValue(VELOCITY_Z, alpha * self.inlet_velocity)
+                node.SetSolutionStepValue(Kratos.VELOCITY_Z, alpha * self.inlet_velocity)
         else:
             pass

@@ -1,5 +1,4 @@
 import KratosMultiphysics
-import KratosMultiphysics.ShallowWaterApplication as KratosShallow
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):

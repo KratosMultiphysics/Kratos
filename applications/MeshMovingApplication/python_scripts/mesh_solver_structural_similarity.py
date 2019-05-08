@@ -10,13 +10,13 @@ import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 from KratosMultiphysics.MeshMovingApplication.mesh_solver_base import MeshSolverBase
 
 
-def CreateSolver(mesh_model_part, custom_settings):
-    return MeshSolverStructuralSimilarity(mesh_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return MeshSolverStructuralSimilarity(model, custom_settings)
 
 
 class MeshSolverStructuralSimilarity(MeshSolverBase):
-    def __init__(self, mesh_model_part, custom_settings):
-        super(MeshSolverStructuralSimilarity, self).__init__(mesh_model_part, custom_settings)
+    def __init__(self, model, custom_settings):
+        super(MeshSolverStructuralSimilarity, self).__init__(model, custom_settings)
         print("::[MeshSolverStructuralSimilarity]:: Construction finished")
 
     def _create_mesh_motion_solving_strategy(self):

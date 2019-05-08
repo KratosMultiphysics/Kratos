@@ -3,14 +3,8 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-
-# Other imports
-import math
-
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return SimplifiedNodalContactProcess(Model, settings["Parameters"])
 

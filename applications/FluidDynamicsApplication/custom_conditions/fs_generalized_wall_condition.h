@@ -103,7 +103,7 @@ public:
 	///@{
 
 	/// Pointer definition of FSGeneralizedWallCondition
-	KRATOS_CLASS_POINTER_DEFINITION(FSGeneralizedWallCondition);
+	KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FSGeneralizedWallCondition);
 
 	typedef Node < 3 > NodeType;
 
@@ -219,7 +219,7 @@ public:
 		NodesArrayType const& ThisNodes,
 		PropertiesType::Pointer pProperties) const override
 	{
-        return Kratos::make_shared<FSGeneralizedWallCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<FSGeneralizedWallCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
 	}
 
 	/// Create a new FSGeneralizedWallCondition object.
@@ -233,7 +233,7 @@ public:
 		GeometryType::Pointer pGeom,
 		PropertiesType::Pointer pProperties) const override
 	{
-		return Kratos::make_shared<FSGeneralizedWallCondition>(NewId, pGeom, pProperties);
+		return Kratos::make_intrusive<FSGeneralizedWallCondition>(NewId, pGeom, pProperties);
     }
 
         /// Find the condition's parent element.
