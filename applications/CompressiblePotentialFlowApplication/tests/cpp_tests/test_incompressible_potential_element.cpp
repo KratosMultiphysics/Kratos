@@ -13,6 +13,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_elements/incompressible_potential_flow_element.h"
