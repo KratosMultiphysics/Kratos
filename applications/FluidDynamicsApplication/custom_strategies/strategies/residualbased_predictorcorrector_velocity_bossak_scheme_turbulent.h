@@ -116,7 +116,7 @@ namespace Kratos {
             unsigned int DomainSize)
         :
           Scheme<TSparseSpace, TDenseSpace>(),
-          mRotationTool(DomainSize,DomainSize+1,IS_STRUCTURE,0.0), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
+          mRotationTool(DomainSize,DomainSize+1,SLIP), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
           mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
           {
             //default values for the Newmark Scheme
@@ -144,7 +144,7 @@ namespace Kratos {
             const Variable<int>& rPeriodicIdVar)
         :
           Scheme<TSparseSpace, TDenseSpace>(),
-          mRotationTool(DomainSize,DomainSize+1,IS_STRUCTURE,0.0), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
+          mRotationTool(DomainSize,DomainSize+1,SLIP), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
           mrPeriodicIdVar(rPeriodicIdVar)
           {
             //default values for the Newmark Scheme
@@ -170,10 +170,10 @@ namespace Kratos {
             double NewAlphaBossak,
             double MoveMeshStrategy,
             unsigned int DomainSize,
-            Variable<double>& rSlipVar)
+            Kratos::Flags& rSlipFlag)
         :
           Scheme<TSparseSpace, TDenseSpace>(),
-          mRotationTool(DomainSize,DomainSize+1,rSlipVar,0.0), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
+          mRotationTool(DomainSize,DomainSize+1,rSlipFlag), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
           mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
           {
             //default values for the Newmark Scheme
@@ -201,7 +201,7 @@ namespace Kratos {
             Process::Pointer pTurbulenceModel)
         :
           Scheme<TSparseSpace, TDenseSpace>(),
-          mRotationTool(DomainSize,DomainSize+1,IS_STRUCTURE,0.0), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs
+          mRotationTool(DomainSize,DomainSize+1,SLIP), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs
           mrPeriodicIdVar(Kratos::Variable<int>::StaticObject()),
           mpTurbulenceModel(pTurbulenceModel)
           {

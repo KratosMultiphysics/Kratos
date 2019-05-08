@@ -704,7 +704,7 @@ protected:
 
 	bool IsSlip(const Node<3>& rNode) const
 	{
-		rNode.Is(mrFlag);
+		return rNode.Is(mrFlag);
 	}
 
 	/// Normalize a vector.
