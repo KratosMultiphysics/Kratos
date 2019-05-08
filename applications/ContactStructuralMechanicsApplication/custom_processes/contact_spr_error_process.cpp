@@ -72,7 +72,8 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
     /* Computation A and b */
     // PART 1: Contributions from the neighboring elements
     auto& neigh_elements = itPatchNode->GetValue(NEIGHBOUR_ELEMENTS);
-    for( WeakElementItType it_elem = neigh_elements.begin(); it_elem != neigh_elements.end(); ++it_elem) {
+    for(auto it_elem : neigh_elements)
+    {
 
         auto& process_info = BaseType::mThisModelPart.GetProcessInfo();
         it_elem->GetValueOnIntegrationPoints(BaseType::mStressVariable,stress_vector, process_info);

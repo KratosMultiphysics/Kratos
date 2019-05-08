@@ -911,7 +911,7 @@ bool DerivativeRecovery<TDim>::SetInitialNeighboursAndWeights(ModelPart& r_model
     unsigned int i = 0;
 
     for (unsigned int i_el = 0; i_el < neigh_elems.size(); ++i_el){
-        Geometry<Node<3> >& geom = neigh_elems[i_el].GetGeometry();
+        Geometry<Node<3> >& geom = neigh_elems[i_el]->GetGeometry();
 
         unsigned int jj = 0; // index of the node in geom corresponding to neighbour neigh_elems[i_el]
         if (geom[jj].Id() == p_node->Id()){ // skipping itself
