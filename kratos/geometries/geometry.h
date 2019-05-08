@@ -209,16 +209,24 @@ public:
      */
     typedef DenseVector<double> NormalType;
 
+	/// data type stores in this container.
+	typedef TDataType data_type;
+	typedef TPointerType value_type;
+	typedef TPointerType pointer;
+	typedef const TPointerType const_pointer;
+	typedef TDataType& reference;
+	typedef const TDataType& const_reference;
+	typedef TContainerType ContainerType;
 
-    typedef typename BaseType::iterator              iterator;
-    typedef typename BaseType::const_iterator          const_iterator;
-    typedef typename BaseType::reverse_iterator        reverse_iterator;
-    typedef typename BaseType::const_reverse_iterator  const_reverse_iterator;
+    typedef typename PointerVector::iterator              iterator;
+    typedef typename PointerVector::const_iterator          const_iterator;
+    typedef typename PointerVector::reverse_iterator        reverse_iterator;
+    typedef typename PointerVector::const_reverse_iterator  const_reverse_iterator;
 
-    typedef typename BaseType::ptr_iterator ptr_iterator;
-    typedef typename BaseType::ptr_const_iterator ptr_const_iterator;
-    typedef typename BaseType::ptr_reverse_iterator ptr_reverse_iterator;
-    typedef typename BaseType::ptr_const_reverse_iterator ptr_const_reverse_iterator;
+    typedef typename PointerVector::ptr_iterator ptr_iterator;
+    typedef typename PointerVector::ptr_const_iterator ptr_const_iterator;
+    typedef typename PointerVector::ptr_reverse_iterator ptr_reverse_iterator;
+    typedef typename PointerVector::ptr_const_reverse_iterator ptr_const_reverse_iterator;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -354,7 +362,7 @@ public:
     */
     Geometry& operator=( const Geometry& rOther )
     {
-        BaseType::operator=( rOther );
+		PointerVector::operator=( rOther );
         mpGeometryData = rOther.mpGeometryData;
 
         return *this;
@@ -509,12 +517,12 @@ public:
 		return *(mpPointerVector.back());
 	}
 
-	size_type size() const
+	SizeType size() const
 	{
 		return mpPointerVector.size();
 	}
 
-	size_type max_size() const
+	SizeType max_size() const
 	{
 		return mpPointerVector.max_size();
 	}
@@ -2894,13 +2902,13 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
+        //KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
 //                 rSerializer.save( "Geometry Data", mpGeometryData );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
+        //KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
         //rSerializer.load( "Geometry Data", const_cast<GeometryData*>( mpGeometryData ) );
     }
 
