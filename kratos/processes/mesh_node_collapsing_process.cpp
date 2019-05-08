@@ -100,9 +100,9 @@ namespace Kratos
 					i_element->Set(TO_ERASE);
 				else
 				{
-					Node<3>::Pointer p_coarse_node =  (*i_coarse_node)->shared_from_this();
-					SwapElementNode(*i_element, rThisNode, p_coarse_node);
+					SwapElementNode(*i_element, rThisNode, *i_coarse_node);
 				}
+			}
 		}
 
 		KRATOS_WATCH("finished")
@@ -145,7 +145,9 @@ namespace Kratos
 		auto& geometry = rElement.GetGeometry();
 		for (std::size_t i = 0; i < number_of_nodes; i++)
 			if (geometry[i].Id() == rThisNode.Id())
-				geometry(i) = Node<3>::Pointer(&*pCoarseNode);
+			{
+				geometry(i) = pCoarseNode->shared_from_this();
+			}
 	}
 
 }  // namespace Kratos.
