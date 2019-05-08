@@ -37,8 +37,6 @@ void AddCustomStrategiesToPython(pybind11::module& m) {
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
     typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
-    typedef LaplacianMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > LaplacianMeshMovingStrategyType;
-    typedef StructuralMeshMovingStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType > StructuralMeshMovingStrategyType;
 
     py::class_<LaplacianMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>,
         LaplacianMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>::Pointer,

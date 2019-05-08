@@ -26,7 +26,8 @@
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "utilities/variable_utils.h"
+
 
 namespace Kratos {
 
@@ -166,7 +167,7 @@ public:
 
     ProcessInfo &rCurrentProcessInfo = (mpmesh_model_part)->GetProcessInfo();
 
-    MoveMeshUtilities::SetMeshToInitialConfiguration(
+    VariableUtils().UpdateCurrentToInitialConfiguration(
         mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
     unsigned int dimension =
