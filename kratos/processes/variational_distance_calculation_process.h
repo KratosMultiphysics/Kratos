@@ -126,11 +126,12 @@ public:
         unsigned int max_iterations = 10,
         Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
         std::string AuxPartName = "RedistanceCalculationPart" )
-        : mr_base_model_part( base_model_part ),
-        mOptions( Options ),
-        mAuxModelPartName( AuxPartName ),
+    :
+        mdistance_part_is_initialized(false),
         mmax_iterations(max_iterations),
-        mdistance_part_is_initialized(false)
+        mr_base_model_part( base_model_part ),
+        mOptions( Options ),
+        mAuxModelPartName( AuxPartName )
     {
         KRATOS_TRY
 
@@ -142,6 +143,41 @@ public:
         auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
         InitializeSolutionStrategy(plinear_solver, p_builder_solver);
+
+        KRATOS_CATCH("")
+    }
+
+    /// Constructor with custom Builder And Solver
+    /** To be used in the trilinos version, since the trilinos builder and
+     *  solver needs additional data (the EpetraComm).
+     *  @param rBaseModelPart Reference ModelPart for distance calculation.
+     *  @param pLinearSolver Linear solver for the distance system.
+     *  @param MaxIterations Maximum number of non-linear optimization iterations.
+     *  @param Options Configuration flags for the procedure.
+     *  @param AuxPartName Name to be used for the internal distance calculation ModelPart.
+     */
+    VariationalDistanceCalculationProcess(
+        ModelPart& rBaseModelPart,
+        typename TLinearSolver::Pointer pLinearSolver,
+        BuilderSolverPointerType pBuilderAndSolver,
+        unsigned int MaxIterations = 10,
+        Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
+        std::string AuxPartName = "RedistanceCalculationPart" )
+    :
+        mdistance_part_is_initialized(false),
+        mmax_iterations(MaxIterations),
+        mr_base_model_part( rBaseModelPart ),
+        mOptions( Options ),
+        mAuxModelPartName( AuxPartName )
+    {
+        KRATOS_TRY
+
+        ValidateInput();
+
+        // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
+        ReGenerateDistanceModelPart(rBaseModelPart);
+
+        InitializeSolutionStrategy(pLinearSolver, pBuilderAndSolver);
 
         KRATOS_CATCH("")
     }
