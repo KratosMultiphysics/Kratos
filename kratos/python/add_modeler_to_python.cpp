@@ -34,7 +34,7 @@ namespace Python
 
 namespace py = pybind11;
 
-void GenerateModelPart(Modeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const char* ElementName, const char* ConditionName)
+void GenerateModelPart(Modeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const std::string ElementName, const std::string ConditionName)
 {
     GM.GenerateModelPart(origin_model_part, destination_model_part,
                          KratosComponents<Element>::Get(ElementName),
@@ -42,7 +42,7 @@ void GenerateModelPart(Modeler& GM, ModelPart& origin_model_part, ModelPart& des
 
 }
 
-void GenerateMesh(Modeler& GM, ModelPart& model_part, const char* ElementName, const char* ConditionName)
+void GenerateMesh(Modeler& GM, ModelPart& model_part, const std::string ElementName, const std::string ConditionName)
 {
     GM.GenerateMesh(model_part,
                     KratosComponents<Element>::Get(ElementName),
@@ -50,7 +50,7 @@ void GenerateMesh(Modeler& GM, ModelPart& model_part, const char* ElementName, c
 
 }
 
-void GeneratePartialModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const char* Name)
+void GeneratePartialModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const std::string Name)
 {
     if (KratosComponents<Element>::Has(Name)) {
         GM.GenerateModelPart(origin_model_part, destination_model_part,
