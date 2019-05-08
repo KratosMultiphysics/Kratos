@@ -10,9 +10,6 @@
 //  Main authors:    Riccardo Rossi
 //
 
-// System includes
-#include <complex>
-
 // External includes
 
 // Project includes
@@ -39,6 +36,9 @@
 
 #include "externalsolvers_application.h"
 #include "includes/standard_linear_solver_factory.h"
+
+// System includes
+#include <complex>
 
 namespace Kratos {
 namespace Python {
