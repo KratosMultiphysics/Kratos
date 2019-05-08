@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_processes/remove_nodes_mesher_process.hpp"
+#include "includes/global_pointer_variables.h"
 
 ///VARIABLES used:
 //Data:     NORMAL, MASTER_NODES, NEIGHBOUR_NODES, NEIGBOUR_ELEMENTS
@@ -52,9 +53,6 @@ class RemoveFluidNodesMesherProcess
   typedef Tree< KDTreePartition<BucketType> >                          KdtreeType; //Kdtree
   typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
 
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-  typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
   ///@}
   ///@name Life Cycle
   ///@{
@@ -189,13 +187,13 @@ class RemoveFluidNodesMesherProcess
 
         unsigned int FreeSurfaceNeighbours=0;
         unsigned int RigidNeighbours=0;
-        NodeWeakPtrVectorType& nNodes = in->GetValue(NEIGHBOUR_NODES);
+        auto& nNodes = in->GetValue(NEIGHBOUR_NODES);
         for(auto& i_nnode : nNodes)
         {
-          if(i_nnode.Is(BLOCKED) || i_nnode.Is(SOLID)){
+          if(i_nnode->Is(BLOCKED) || i_nnode->Is(SOLID)){
             ++RigidNeighbours;
           }
-          if(i_nnode.Is(FREE_SURFACE)){
+          if(i_nnode->Is(FREE_SURFACE)){
             ++FreeSurfaceNeighbours;
           }
         }
@@ -788,20 +786,20 @@ class RemoveFluidNodesMesherProcess
     bool moved_node = false;
     //std::cout<<" Boundary to Move Pre ["<<rNode.Id()<<"] "<<rNode.Coordinates()<<std::endl;
     unsigned int FreeSurfaceNodes = 0;
-    NodeWeakPtrVectorType& nNodes = rNode.GetValue(NEIGHBOUR_NODES);
-    NodeWeakPtrVectorType FreeNeighbours;
-    for(auto i_nnodes(nNodes.begin()); i_nnodes != nNodes.end(); ++i_nnodes)
+    auto& nNodes = rNode.GetValue(NEIGHBOUR_NODES);
+    GlobalPointersVector<Node<3>> FreeNeighbours;
+    for(auto i_nnodes : nNodes)
     {
       if(i_nnodes->Is(FREE_SURFACE) ){
-        FreeNeighbours.push_back(*i_nnodes.base());
+        FreeNeighbours.push_back(i_nnodes);
             ++FreeSurfaceNodes;
       }
     }
 
     if( FreeSurfaceNodes == 2 )
     {
-      array_1d<double,3> MidPoint  = 0.5 * (FreeNeighbours.front().Coordinates()+FreeNeighbours.back().Coordinates());
-      array_1d<double,3> Direction = (FreeNeighbours.front().Coordinates()-FreeNeighbours.back().Coordinates());
+      array_1d<double,3> MidPoint  = 0.5 * (FreeNeighbours.front()->Coordinates()+FreeNeighbours.back()->Coordinates());
+      array_1d<double,3> Direction = (FreeNeighbours.front()->Coordinates()-FreeNeighbours.back()->Coordinates());
 
       if(norm_2(Direction))
         Direction/=norm_2(Direction);
@@ -813,13 +811,13 @@ class RemoveFluidNodesMesherProcess
 
       for(auto& i_fnnodes : FreeNeighbours)
       {
-        noalias(rNode.FastGetSolutionStepValue(VELOCITY))       += i_fnnodes.FastGetSolutionStepValue(VELOCITY);
-        noalias(rNode.FastGetSolutionStepValue(VELOCITY,1))     += i_fnnodes.FastGetSolutionStepValue(VELOCITY,1);
-        noalias(rNode.FastGetSolutionStepValue(ACCELERATION))   += i_fnnodes.FastGetSolutionStepValue(ACCELERATION);
-        noalias(rNode.FastGetSolutionStepValue(ACCELERATION,1)) += i_fnnodes.FastGetSolutionStepValue(ACCELERATION,1);
-        rNode.FastGetSolutionStepValue(PRESSURE)                += i_fnnodes.FastGetSolutionStepValue(PRESSURE);
-        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY)       += i_fnnodes.FastGetSolutionStepValue(PRESSURE_VELOCITY);
-        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1)     += i_fnnodes.FastGetSolutionStepValue(PRESSURE_VELOCITY,1);
+        noalias(rNode.FastGetSolutionStepValue(VELOCITY))       += i_fnnodes->FastGetSolutionStepValue(VELOCITY);
+        noalias(rNode.FastGetSolutionStepValue(VELOCITY,1))     += i_fnnodes->FastGetSolutionStepValue(VELOCITY,1);
+        noalias(rNode.FastGetSolutionStepValue(ACCELERATION))   += i_fnnodes->FastGetSolutionStepValue(ACCELERATION);
+        noalias(rNode.FastGetSolutionStepValue(ACCELERATION,1)) += i_fnnodes->FastGetSolutionStepValue(ACCELERATION,1);
+        rNode.FastGetSolutionStepValue(PRESSURE)                += i_fnnodes->FastGetSolutionStepValue(PRESSURE);
+        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY)       += i_fnnodes->FastGetSolutionStepValue(PRESSURE_VELOCITY);
+        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1)     += i_fnnodes->FastGetSolutionStepValue(PRESSURE_VELOCITY,1);
       }
 
 
@@ -842,15 +840,15 @@ class RemoveFluidNodesMesherProcess
       double quotient = 1.0/double(FreeSurfaceNodes);
       for(auto& i_fnnodes : FreeNeighbours)
       {
-        MidPoint += i_fnnodes.Coordinates();
+        MidPoint += i_fnnodes->Coordinates();
 
-        noalias(rNode.FastGetSolutionStepValue(VELOCITY))       += i_fnnodes.FastGetSolutionStepValue(VELOCITY);
-        noalias(rNode.FastGetSolutionStepValue(VELOCITY,1))     += i_fnnodes.FastGetSolutionStepValue(VELOCITY,1);
-        noalias(rNode.FastGetSolutionStepValue(ACCELERATION))   += i_fnnodes.FastGetSolutionStepValue(ACCELERATION);
-        noalias(rNode.FastGetSolutionStepValue(ACCELERATION,1)) += i_fnnodes.FastGetSolutionStepValue(ACCELERATION,1);
-        rNode.FastGetSolutionStepValue(PRESSURE)                += i_fnnodes.FastGetSolutionStepValue(PRESSURE);
-        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY)       += i_fnnodes.FastGetSolutionStepValue(PRESSURE_VELOCITY);
-        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1)     += i_fnnodes.FastGetSolutionStepValue(PRESSURE_VELOCITY,1);
+        noalias(rNode.FastGetSolutionStepValue(VELOCITY))       += i_fnnodes->FastGetSolutionStepValue(VELOCITY);
+        noalias(rNode.FastGetSolutionStepValue(VELOCITY,1))     += i_fnnodes->FastGetSolutionStepValue(VELOCITY,1);
+        noalias(rNode.FastGetSolutionStepValue(ACCELERATION))   += i_fnnodes->FastGetSolutionStepValue(ACCELERATION);
+        noalias(rNode.FastGetSolutionStepValue(ACCELERATION,1)) += i_fnnodes->FastGetSolutionStepValue(ACCELERATION,1);
+        rNode.FastGetSolutionStepValue(PRESSURE)                += i_fnnodes->FastGetSolutionStepValue(PRESSURE);
+        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY)       += i_fnnodes->FastGetSolutionStepValue(PRESSURE_VELOCITY);
+        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1)     += i_fnnodes->FastGetSolutionStepValue(PRESSURE_VELOCITY,1);
       }
       MidPoint *= quotient;
       array_1d<double,3> Normal = rNode.FastGetSolutionStepValue(NORMAL);
@@ -893,7 +891,7 @@ class RemoveFluidNodesMesherProcess
 
     KRATOS_TRY
 
-    NodeWeakPtrVectorType& nNodes = rNode.GetValue(NEIGHBOUR_NODES);
+    auto& nNodes = rNode.GetValue(NEIGHBOUR_NODES);
     unsigned int NumberOfNeighbourNodes = nNodes.size();
 
     //std::cout<<" Moved Node Pre ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<" Initial Position "<<rNode.GetInitialPosition()<<std::endl;
@@ -902,16 +900,16 @@ class RemoveFluidNodesMesherProcess
 
     for(auto& i_nnode : nNodes)
     {
-      noalias(rNode.Coordinates())                            += i_nnode.Coordinates();
-      noalias(rNode.FastGetSolutionStepValue(DISPLACEMENT))   += i_nnode.FastGetSolutionStepValue(DISPLACEMENT);
-      noalias(rNode.FastGetSolutionStepValue(DISPLACEMENT,1)) += i_nnode.FastGetSolutionStepValue(DISPLACEMENT,1);
-      noalias(rNode.FastGetSolutionStepValue(VELOCITY))       += i_nnode.FastGetSolutionStepValue(VELOCITY);
-      noalias(rNode.FastGetSolutionStepValue(VELOCITY,1))     += i_nnode.FastGetSolutionStepValue(VELOCITY,1);
-      noalias(rNode.FastGetSolutionStepValue(ACCELERATION))   += i_nnode.FastGetSolutionStepValue(ACCELERATION);
-      noalias(rNode.FastGetSolutionStepValue(ACCELERATION,1)) += i_nnode.FastGetSolutionStepValue(ACCELERATION,1);
-      rNode.FastGetSolutionStepValue(PRESSURE)                += i_nnode.FastGetSolutionStepValue(PRESSURE);
-      rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY)       += i_nnode.FastGetSolutionStepValue(PRESSURE_VELOCITY);
-      rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1)     += i_nnode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1);
+      noalias(rNode.Coordinates())                            += i_nnode->Coordinates();
+      noalias(rNode.FastGetSolutionStepValue(DISPLACEMENT))   += i_nnode->FastGetSolutionStepValue(DISPLACEMENT);
+      noalias(rNode.FastGetSolutionStepValue(DISPLACEMENT,1)) += i_nnode->FastGetSolutionStepValue(DISPLACEMENT,1);
+      noalias(rNode.FastGetSolutionStepValue(VELOCITY))       += i_nnode->FastGetSolutionStepValue(VELOCITY);
+      noalias(rNode.FastGetSolutionStepValue(VELOCITY,1))     += i_nnode->FastGetSolutionStepValue(VELOCITY,1);
+      noalias(rNode.FastGetSolutionStepValue(ACCELERATION))   += i_nnode->FastGetSolutionStepValue(ACCELERATION);
+      noalias(rNode.FastGetSolutionStepValue(ACCELERATION,1)) += i_nnode->FastGetSolutionStepValue(ACCELERATION,1);
+      rNode.FastGetSolutionStepValue(PRESSURE)                += i_nnode->FastGetSolutionStepValue(PRESSURE);
+      rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY)       += i_nnode->FastGetSolutionStepValue(PRESSURE_VELOCITY);
+      rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1)     += i_nnode->FastGetSolutionStepValue(PRESSURE_VELOCITY,1);
     }
 
     double quotient = 1.0/double(NumberOfNeighbourNodes+1);

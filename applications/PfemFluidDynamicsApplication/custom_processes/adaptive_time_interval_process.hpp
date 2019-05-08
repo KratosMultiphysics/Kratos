@@ -235,8 +235,8 @@ namespace Kratos
 		  }
 		  double motionInStep=sqrt(NormVelNode)*updatedTimeInterval;
 		  double unsafetyFactor=0;
-		  NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
-		  for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
+		  auto& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
+		  for (auto nn : neighb_nodes)
 		    {
 		      array_1d<double,3>  CoorNeighDifference=itNode->Coordinates()-(nn)->Coordinates();
 		      double squaredDistance=0;

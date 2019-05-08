@@ -20,6 +20,7 @@
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 #include "custom_bounding/spatial_bounding_box.hpp"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -33,7 +34,6 @@ class ManageIsolatedNodesProcess : public Process
 public:
     ///@name Type Definitions
     ///@{
-    typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
 
     /// Pointer definition of ManageIsolatedNodesProcess
     KRATOS_CLASS_POINTER_DEFINITION(ManageIsolatedNodesProcess);
@@ -312,11 +312,11 @@ private:
 
           if( it->Is(FREE_SURFACE) ){
 
-            NodeWeakPtrVectorType& nNodes = it->GetValue(NEIGHBOUR_NODES);
+            auto& nNodes = it->GetValue(NEIGHBOUR_NODES);
             unsigned int rigid = 0;
             for(auto& i_nnodes : nNodes)
 	    {
-              if(i_nnodes.Is(RIGID))
+              if(i_nnodes->Is(RIGID))
                 ++rigid;
 	    }
             if( rigid == nNodes.size() )

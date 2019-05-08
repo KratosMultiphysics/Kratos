@@ -49,8 +49,6 @@ namespace Kratos
   typedef  ModelPart::ElementsContainerType                ElementsContainerType;
   typedef  ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
 
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
 
   ///@}
   ///@name  Enum's
@@ -222,11 +220,11 @@ namespace Kratos
       bool foundedIsolatedWall=false;
       for(unsigned int i=0; i<numNodes; i++)
 	{
-	  NodeWeakPtrVectorType& rN = wallElementNodes[i].GetValue(NEIGHBOUR_NODES);
+	  auto& rN = wallElementNodes[i].GetValue(NEIGHBOUR_NODES);
 	  bool localIsolatedWallNode=true;
 	  for(unsigned int j = 0; j < rN.size(); j++)
 	    {
-	      if(rN[j].IsNot(RIGID)){
+	      if(rN[j]->IsNot(RIGID)){
 		localIsolatedWallNode=false;
 		break;
 	      }

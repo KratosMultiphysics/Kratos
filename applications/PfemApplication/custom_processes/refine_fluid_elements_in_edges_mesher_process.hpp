@@ -44,7 +44,6 @@ class RefineFluidElementsInEdgesMesherProcess
 
   typedef RefineElementsInEdgesMesherProcess    BaseType;
 
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
   ///@}
   ///@name Life Cycle
   ///@{
@@ -170,10 +169,10 @@ class RefineFluidElementsInEdgesMesherProcess
         //   break;
         // }
 
-        NodeWeakPtrVectorType& nNodes = rGeometry[i].GetValue(NEIGHBOUR_NODES);
+        auto& nNodes = rGeometry[i].GetValue(NEIGHBOUR_NODES);
         for(auto& i_nnode : nNodes)
         {
-          if(i_nnode.Is(SOLID) || i_nnode.Is(RIGID))
+          if(i_nnode->Is(SOLID) || i_nnode->Is(RIGID))
           {
             is_full_fluid_boundary = false;
             break;

@@ -47,8 +47,6 @@ namespace Kratos
   typedef  ModelPart::ElementsContainerType                ElementsContainerType;
   typedef  ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
 
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
   ///@}
   ///@name  Enum's
   ///@{
@@ -304,11 +302,11 @@ namespace Kratos
 	}
 
     template<class TDataType> void  AddUniquePointer
-    (WeakPointerVector<TDataType>& v, const typename TDataType::WeakPointer candidate)
+    (GlobalPointersVector<TDataType>& v, const GlobalPointer<TDataType>& candidate)
     {
-      typename WeakPointerVector< TDataType >::iterator i = v.begin();
-      typename WeakPointerVector< TDataType >::iterator endit = v.end();
-      while ( i != endit && (i)->Id() != (candidate.lock())->Id())
+      auto i = v.begin();
+      auto endit = v.end();
+      while ( i != endit && (*i)->Id() != (candidate)->Id())
       {
         i++;
       }
@@ -383,7 +381,7 @@ namespace Kratos
 	  newNode->Y0() = newNode->Y() - displacement[1];
 	  newNode->Z0() = newNode->Z() - displacement[2];
 
-	  NodeWeakPtrVectorType& rN = newNode->GetValue(NEIGHBOUR_NODES);
+	  auto& rN = newNode->GetValue(NEIGHBOUR_NODES);
 	  for(unsigned int spn=0; spn<numNodes; spn++)
 	    {
 	      this->AddUniquePointer< Node<3> >(rN, i_elem->GetGeometry()(spn));
