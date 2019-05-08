@@ -148,11 +148,6 @@ public:
     KRATOS_CATCH("");
   }
 
-  void UpdateReferenceMesh()
-  {
-  MoveMeshUtilities::UpdateReferenceMesh(BaseType::GetModelPart());
-  }
-
   /*@} */
   /**@name Operators
    */
