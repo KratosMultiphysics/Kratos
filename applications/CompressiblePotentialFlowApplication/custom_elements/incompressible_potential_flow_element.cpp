@@ -401,8 +401,8 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNorm
     noalias(rLeftHandSideMatrix) =
         data.vol * free_stream_density * prod(data.DN_DX, trans(data.DN_DX));
 
-    GetPotentialOnNormalElement(data.phis);
-    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
+    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*this);
+    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.potentials);
 }
 
 template <int Dim, int NumNodes>
@@ -624,24 +624,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEn
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnNormalElement(
-    array_1d<double, NumNodes>& phis) const
-{
-    const IncompressiblePotentialFlowElement& r_this = *this;
-    const int kutta = r_this.GetValue(KUTTA);
-
-    if (kutta == 0)
-        for (unsigned int i = 0; i < NumNodes; i++)
-            phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-    else
-        for (unsigned int i = 0; i < NumNodes; i++)
-            if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
-                phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-            else
-                phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-}
-
-template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnWakeElement(
     Vector& split_element_values, const array_1d<double, NumNodes>& distances) const
 {
@@ -717,9 +699,9 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityNormalEle
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    GetPotentialOnNormalElement(data.phis);
+    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*this);
 
-    noalias(velocity) = prod(trans(data.DN_DX), data.phis);
+    noalias(velocity) = prod(trans(data.DN_DX), data.potentials);
 }
 
 template <int Dim, int NumNodes>
@@ -734,9 +716,9 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpperWake
     array_1d<double, NumNodes> distances;
     GetWakeDistances(distances);
 
-    GetPotentialOnUpperWakeElement(data.phis, distances);
+    GetPotentialOnUpperWakeElement(data.potentials, distances);
 
-    noalias(velocity) = prod(trans(data.DN_DX), data.phis);
+    noalias(velocity) = prod(trans(data.DN_DX), data.potentials);
 }
 
 template <int Dim, int NumNodes>
@@ -751,9 +733,9 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLowerWake
     array_1d<double, NumNodes> distances;
     GetWakeDistances(distances);
 
-    GetPotentialOnLowerWakeElement(data.phis, distances);
+    GetPotentialOnLowerWakeElement(data.potentials, distances);
 
-    noalias(velocity) = prod(trans(data.DN_DX), data.phis);
+    noalias(velocity) = prod(trans(data.DN_DX), data.potentials);
 }
 
 template <int Dim, int NumNodes>
