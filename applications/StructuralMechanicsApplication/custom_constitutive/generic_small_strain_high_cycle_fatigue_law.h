@@ -250,10 +250,59 @@ public:
      * @see Parameters
      */
     void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+
     ///@}
-    ///@name Access
+    ///@name Inquiry
     ///@{
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}    
+    ///@name Access
+    ///@{
     double GetFatigueReductionFactor() {return mFatigueReductionFactor;}
     void SetFatigueReductionFactor(const double toFred) {mFatigueReductionFactor = toFred;}
 
@@ -286,54 +335,6 @@ public:
     void SetCycleCounter(const bool tocycle){mHasCountedCycle = tocycle;}
     bool GetCycleCounter() {return mHasCountedCycle;}
     
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
     ///@}
     ///@name Member Variables
     ///@{
