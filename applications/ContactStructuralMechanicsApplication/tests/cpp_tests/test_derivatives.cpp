@@ -595,6 +595,136 @@ namespace Kratos
         }
 
         /**
+         * @brief This method is used to create geometries pairs
+         * @param rModelPart The model part considered
+         * @param PairIndex The current pair generated
+         */
+        template<std::size_t TDim, std::size_t TNumNodes>
+        static inline void GeneratePairs(
+            ModelPart& rModelPart,
+            const std::size_t PairIndex
+            )
+        {
+            if (TDim == 2 && TNumNodes == 2) {
+                if (PairIndex == 1) {
+                    rModelPart.CreateNewNode(1, -1.0,0.0,0.0);
+                    rModelPart.CreateNewNode(2,  1.0,0.0,0.0);
+
+                    rModelPart.CreateNewNode(3,  1.2,0.0,0.0);
+                    rModelPart.CreateNewNode(4, -0.8,0.0,0.0);
+                } else if (PairIndex == 2) {
+                    rModelPart.CreateNewNode(1, -1.0,0.0,0.0);
+                    rModelPart.CreateNewNode(2,  1.0,0.0,0.0);
+
+                    rModelPart.CreateNewNode(3,  1.2,1.0e-3,0.0);
+                    rModelPart.CreateNewNode(4, -0.8,1.0e-3,0.0);
+                } else if (PairIndex == 3) {
+                    rModelPart.CreateNewNode(1, -1.0,0.0,0.0);
+                    rModelPart.CreateNewNode(2,  1.0,5.0e-4,0.0);
+
+                    rModelPart.CreateNewNode(3,  1.2,1.0e-3,0.0);
+                    rModelPart.CreateNewNode(4, -0.8,7.0e-4,0.0);
+                } else if (PairIndex == 4) {
+                    rModelPart.CreateNewNode(1, -1.0,0.0,0.0);
+                    rModelPart.CreateNewNode(2,  1.0,0.5,0.0);
+
+                    rModelPart.CreateNewNode(3,  1.2,0.501,0.0);
+                    rModelPart.CreateNewNode(4, -0.8,0.001,0.0);
+                } else {
+                    KRATOS_ERROR << "NOT IMPLEMENTED YET" << std::endl;
+                }
+            } else if (TDim == 3 && TNumNodes == 3) {
+                if (PairIndex == 1) {
+                    rModelPart.CreateNewNode(1, 0.0,0.0,0.0);
+                    rModelPart.CreateNewNode(2, 1.0,0.0,0.0);
+                    rModelPart.CreateNewNode(3, 0.0,1.0,0.0);
+
+                    rModelPart.CreateNewNode(4, 0.0,1.0,1.0e-3);
+                    rModelPart.CreateNewNode(5, 0.0,0.0,1.0e-3);
+                    rModelPart.CreateNewNode(6, 1.0,0.0,1.0e-3);
+                } else if (PairIndex == 2) {
+                    rModelPart.CreateNewNode(1,-0.1,0.1,1.0e-3);
+                    rModelPart.CreateNewNode(2, 1.1,0.2,0.0);
+                    rModelPart.CreateNewNode(3, 0.1,1.0,0.0);
+
+                    rModelPart.CreateNewNode(4,-0.1,1.3,1.0e-3);
+                    rModelPart.CreateNewNode(5, 0.1,0.2,1.0e-3);
+                    rModelPart.CreateNewNode(6, 1.2,0.2,2.0e-3);
+                } else if (PairIndex == 3) {
+                    rModelPart.CreateNewNode(1,-0.1,0.1,1.0e-3);
+                    rModelPart.CreateNewNode(2, 1.1,0.2,0.0);
+                    rModelPart.CreateNewNode(3, 0.1,1.0,0.0);
+
+                    rModelPart.CreateNewNode(4,-0.1,1.3,1.0e-3);
+                    rModelPart.CreateNewNode(5, 0.1,0.2,1.0e-3);
+                    rModelPart.CreateNewNode(6, 1.2,0.2,2.0e-3);
+                } else if (PairIndex == 4) {
+                    rModelPart.CreateNewNode(1, 0.0,0.0,0.0);
+                    rModelPart.CreateNewNode(2, 1.0,0.0,0.0);
+                    rModelPart.CreateNewNode(3, 0.0,1.0,0.0);
+
+                    rModelPart.CreateNewNode(4, 0.0,1.0,1.0e-3);
+                    rModelPart.CreateNewNode(5, 0.0,0.0,1.0e-3);
+                    rModelPart.CreateNewNode(6, 1.0,0.0,1.0e-3);
+                } else if (PairIndex == 5) {
+                    rModelPart.CreateNewNode(1,-0.1,0.1,1.0e-3);
+                    rModelPart.CreateNewNode(2, 1.1,0.2,0.0);
+                    rModelPart.CreateNewNode(3, 0.1,1.0,0.0);
+
+                    rModelPart.CreateNewNode(4,-0.1,1.3,1.0e-3);
+                    rModelPart.CreateNewNode(5, 0.1,0.2,1.0e-3);
+                    rModelPart.CreateNewNode(6, 1.2,0.2,2.0e-3);
+                } else if (PairIndex == 6) {
+                    rModelPart.CreateNewNode(1, 0.0,0.0,0.0);
+                    rModelPart.CreateNewNode(2, 1.0,0.0,0.0);
+                    rModelPart.CreateNewNode(3, 0.0,1.0,0.0);
+
+                    rModelPart.CreateNewNode(4,-0.1,1.0,1.0e-3);
+                    rModelPart.CreateNewNode(5, 0.0,0.0,1.0e-3);
+                    rModelPart.CreateNewNode(6, 1.0,0.0,1.0e-3);
+                } else {
+                    KRATOS_ERROR << "NOT IMPLEMENTED YET" << std::endl;
+                }
+            } else if (TDim == 3 && TNumNodes == 4) {
+                if (PairIndex == 1) {
+                    rModelPart.CreateNewNode(1, 0.0,0.2,1.0e-3);
+                    rModelPart.CreateNewNode(2, 1.0,0.2,1.0e-3);
+                    rModelPart.CreateNewNode(3, 1.1,1.1,0.0);
+                    rModelPart.CreateNewNode(4, 0.2,1.0,0.0);
+
+                    rModelPart.CreateNewNode(5,-0.1,1.0,1.0e-3);
+                    rModelPart.CreateNewNode(6, 1.0,1.1,1.0e-3);
+                    rModelPart.CreateNewNode(7, 1.0,0.1,2.0e-3);
+                    rModelPart.CreateNewNode(8, 0.0,0.1,2.0e-3);
+                } else if (PairIndex == 2) {
+                    rModelPart.CreateNewNode(1, 0.0,0.0,0.0);
+                    rModelPart.CreateNewNode(2, 1.0,0.0,0.0);
+                    rModelPart.CreateNewNode(3, 1.0,1.0,0.0);
+                    rModelPart.CreateNewNode(4, 0.0,1.0,0.0);
+
+                    rModelPart.CreateNewNode(5,-0.1,1.0,1.0e-3);
+                    rModelPart.CreateNewNode(6, 1.0,1.0,1.0e-3);
+                    rModelPart.CreateNewNode(7, 1.0,0.0,1.0e-3);
+                    rModelPart.CreateNewNode(8, 0.0,0.0,1.0e-3);
+                } else if (PairIndex == 3) {
+                    rModelPart.CreateNewNode(1, 0.0,0.3,2.0e-3);
+                    rModelPart.CreateNewNode(2, 1.0,0.2,1.0e-3);
+                    rModelPart.CreateNewNode(3, 1.2,1.1,0.0);
+                    rModelPart.CreateNewNode(4, 0.2,1.1,0.0);
+
+                    rModelPart.CreateNewNode(5,-0.1,1.0,2.0e-3);
+                    rModelPart.CreateNewNode(6, 1.2,1.1,2.0e-3);
+                    rModelPart.CreateNewNode(7, 1.0,0.1,3.0e-3);
+                    rModelPart.CreateNewNode(8, 0.1,0.1,3.0e-3);
+                } else {
+                    KRATOS_ERROR << "NOT IMPLEMENTED YET" << std::endl;
+                }
+            } else {
+                KRATOS_ERROR << "NOT IMPLEMENTED YET" << std::endl;
+            }
+        }
+
+        /**
          * Checks if the derivatives of the dual shape functions work as expected
          * Case 1 of the Line2D2
          */
@@ -609,18 +739,13 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, -1.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2,  1.0,0.0,0.0);
-
-            auto p_node_3 = r_model_part.CreateNewNode(3,  1.2,0.0,0.0);
-            auto p_node_4 = r_model_part.CreateNewNode(4, -0.8,0.0,0.0);
+            GeneratePairs<2, 2>( r_model_part, 1);
 
             std::vector<IndexType> nodes_perturbed(1, 1);
             std::vector<double> coeff_perturbation(1, -5.0e-2);
 
             GenerateTest<2, 2>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_PHI, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
         }
-
 
         /**
          * Checks if the derivatives of the dual shape functions work as expected
@@ -637,11 +762,7 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, -1.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2,  1.0,0.0,0.0);
-
-            auto p_node_3 = r_model_part.CreateNewNode(3,  1.2,0.0,0.0);
-            auto p_node_4 = r_model_part.CreateNewNode(4, -0.8,0.0,0.0);
+            GeneratePairs<2, 2>( r_model_part, 2);
 
             std::vector<IndexType> nodes_perturbed(1, 1);
             std::vector<double> coeff_perturbation(1, -5.0e-2);
@@ -649,6 +770,29 @@ namespace Kratos
             GenerateTest<2, 2>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_PHI, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
         }
 
+        /**
+         * Checks if the derivatives of the dual shape functions work as expected
+         * Case 3 of the Line2D2
+         */
+        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesLine3, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<2, 2>( r_model_part, 3);
+
+            std::vector<IndexType> nodes_perturbed(1,1);
+            std::vector<double> coeff_perturbation(1,1.0e-1);
+            //nodes_perturbed[0] = 3;
+
+            GenerateTest<2, 2>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_PHI, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
 
         /**
          * Checks if the derivatives of the jacobian work as expected
@@ -665,17 +809,13 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, -1.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2,  1.0,0.0,0.0);
-
-            auto p_node_3 = r_model_part.CreateNewNode(3,  1.2,1.0e-3,0.0);
-            auto p_node_4 = r_model_part.CreateNewNode(4, -0.8,1.0e-3,0.0);
+            GeneratePairs<2, 2>( r_model_part, 1);
 
             std::vector<IndexType> nodes_perturbed(1, 1);
             std::vector<double> coeff_perturbation(1, -5.0e-1);
+
             GenerateTest<2, 2>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 1, DerivateToCheck::CHECK_JACOBIAN, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
         }
-
 
         /**
          * Checks if the derivatives of the jacobian work as expected
@@ -692,17 +832,37 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, -1.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2,  1.0,0.0,0.0);
-
-            auto p_node_3 = r_model_part.CreateNewNode(3,  1.2,1.0e-3,0.0);
-            auto p_node_4 = r_model_part.CreateNewNode(4, -0.8,1.0e-3,0.0);
+            GeneratePairs<2, 2>( r_model_part, 2);
 
             std::vector<IndexType> nodes_perturbed(1, 1);
             std::vector<double> coeff_perturbation(1, -5.0e-2);
+
             GenerateTest<2, 2>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_JACOBIAN, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
         }
 
+        /**
+         * Checks if the derivatives of the jacobian work as expected
+         * Case 3 of the Line2D2
+         */
+        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesLine3, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<2, 2>( r_model_part, 3);
+
+            std::vector<IndexType> nodes_perturbed(1,1);
+            std::vector<double> coeff_perturbation(1,1.0e-1);
+            //nodes_perturbed[0] = 3;
+
+            GenerateTest<2, 2>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_JACOBIAN, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
 
         /**
          * Checks if the derivatives of the normal work as expected
@@ -719,11 +879,7 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, -1.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2,  1.0,0.0,0.0);
-
-            auto p_node_3 = r_model_part.CreateNewNode(3,  1.2,1.0e-3,0.0);
-            auto p_node_4 = r_model_part.CreateNewNode(4, -0.8,1.0e-3,0.0);
+            GeneratePairs<2, 2>( r_model_part, 1);
 
             std::vector<IndexType> nodes_perturbed(1,1);
             std::vector<double> coeff_perturbation(1,1.0e-1);
@@ -731,7 +887,6 @@ namespace Kratos
 
             GenerateTest<2, 2>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_NORMAL, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
         }
-
 
         /**
          * Checks if the derivatives of the normal work as expected
@@ -748,11 +903,31 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, -1.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2,  1.0,5.0e-4,0.0);
+            GeneratePairs<2, 2>( r_model_part, 2);
 
-            auto p_node_3 = r_model_part.CreateNewNode(3,  1.2,1.0e-3,0.0);
-            auto p_node_4 = r_model_part.CreateNewNode(4, -0.8,7.0e-4,0.0);
+            std::vector<IndexType> nodes_perturbed(1,1);
+            std::vector<double> coeff_perturbation(1,1.0e-1);
+            //nodes_perturbed[0] = 3;
+
+            GenerateTest<2, 2>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_NORMAL, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
+
+        /**
+         * Checks if the derivatives of the normal work as expected
+         * Case 3 of the Line2D2
+         */
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesLine3, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<2, 2>( r_model_part, 3);
 
             std::vector<IndexType> nodes_perturbed(1,1);
             std::vector<double> coeff_perturbation(1,1.0e-1);
@@ -776,18 +951,13 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, -1.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2,  1.0,0.0,0.0);
-
-            auto p_node_3 = r_model_part.CreateNewNode(3,  1.2,1.0e-3,0.0);
-            auto p_node_4 = r_model_part.CreateNewNode(4, -0.8,1.0e-3,0.0);
+            GeneratePairs<2, 2>( r_model_part, 1);
 
             std::vector<IndexType> nodes_perturbed(1, 1);
             std::vector<double> coeff_perturbation(1, 5.0e-2);
 
             GenerateTest<2, 2>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_SHAPE_FUNCTION, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
         }
-
 
         /**
          * Checks if the derivatives of the shape functions work as expected
@@ -804,18 +974,13 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, -1.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2,  1.0,0.0,0.0);
-
-            auto p_node_3 = r_model_part.CreateNewNode(3,  1.2,1.0e-3,0.0);
-            auto p_node_4 = r_model_part.CreateNewNode(4, -0.8,1.0e-3,0.0);
+            GeneratePairs<2, 2>( r_model_part, 2);
 
             std::vector<IndexType> nodes_perturbed(1, 4);
             std::vector<double> coeff_perturbation(1, 5.0e-2);
 
             GenerateTest<2, 2>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_SHAPE_FUNCTION, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
         }
-
 
         /**
          * Checks if the derivatives of the shape functions work as expected
@@ -832,18 +997,13 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, -1.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2,  1.0,5.0e-4,0.0);
-
-            auto p_node_3 = r_model_part.CreateNewNode(3,  1.2,1.0e-3,0.0);
-            auto p_node_4 = r_model_part.CreateNewNode(4, -0.8,7.0e-4,0.0);
+            GeneratePairs<2, 2>( r_model_part, 3);
 
             std::vector<IndexType> nodes_perturbed(1, 1);
             std::vector<double> coeff_perturbation(1, 5.0e-2);
 
             GenerateTest<2, 2>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_SHAPE_FUNCTION, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
         }
-
 
         /**
          * Checks if the derivatives of the shape functions work as expected
@@ -860,16 +1020,12 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, -1.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2,  1.0,0.5,0.0);
-
-            auto p_node_3 = r_model_part.CreateNewNode(3,  1.2,0.501,0.0);
-            auto p_node_4 = r_model_part.CreateNewNode(4, -0.8,0.001,0.0);
+            GeneratePairs<2, 2>( r_model_part, 4);
 
             std::vector<IndexType> nodes_perturbed(1, 1);
             std::vector<double> coeff_perturbation(1, 5.0e-2);
 
-            // GenerateTest<2, 2>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_SHAPE_FUNCTION, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE); // FIXME: Now working properly
+//             GenerateTest<2, 2>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_SHAPE_FUNCTION, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE); // FIXME: Not working properly
         }
 
         /**
@@ -887,13 +1043,7 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, 0.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.0,0.0,0.0);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 0.0,1.0,0.0);
-
-            auto p_node_4 = r_model_part.CreateNewNode(4, 0.0,1.0,1.0e-3);
-            auto p_node_5 = r_model_part.CreateNewNode(5, 0.0,0.0,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.0,0.0,1.0e-3);
+            GeneratePairs<3, 3>( r_model_part, 1);
 
             std::vector<IndexType> nodes_perturbed(1, 4);
             std::vector<double> coeff_perturbation(1, -5.0e-1);
@@ -916,13 +1066,7 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1,-0.1,0.1,1.0e-3);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.1,0.2,0.0);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 0.1,1.0,0.0);
-
-            auto p_node_4 = r_model_part.CreateNewNode(4,-0.1,1.3,1.0e-3);
-            auto p_node_5 = r_model_part.CreateNewNode(5, 0.1,0.2,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.2,0.2,2.0e-3);
+            GeneratePairs<3, 3>( r_model_part, 2);
 
             std::vector<IndexType> nodes_perturbed(1, 4);
             std::vector<double> coeff_perturbation(1, -5.0e-3);
@@ -932,9 +1076,9 @@ namespace Kratos
 
         /**
          * Checks if the derivatives of the jacobian work as expected
-         * Case 1 of the Quadrilateral3D4
+         * Case 3 of the Triangle3D3
          */
-        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesQuadrilateral1, KratosContactStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesTriangle3, KratosContactStructuralMechanicsFastSuite)
         {
             Model this_model;
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
@@ -945,20 +1089,87 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, 0.0,0.2,1.0e-3);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.0,0.2,1.0e-3);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 1.1,1.1,0.0);
-            auto p_node_4 = r_model_part.CreateNewNode(4, 0.2,1.0,0.0);
+            GeneratePairs<3, 3>( r_model_part, 3);
 
-            auto p_node_5 = r_model_part.CreateNewNode(5,-0.1,1.0,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.0,1.1,1.0e-3);
-            auto p_node_7 = r_model_part.CreateNewNode(7, 1.0,0.1,2.0e-3);
-            auto p_node_8 = r_model_part.CreateNewNode(8, 0.0,0.1,2.0e-3);
+            std::vector<IndexType> nodes_perturbed(2);
+            std::vector<double> coeff_perturbation(2, 1.0e-1);
+            nodes_perturbed[0] = 4;
+            nodes_perturbed[1] = 5;
 
-            std::vector<IndexType> nodes_perturbed(1, 5);
-            std::vector<double> coeff_perturbation(1, -5.0e-3);
+            GenerateTest<3, 3>( r_model_part, nodes_perturbed, 2, coeff_perturbation, 6, DerivateToCheck::CHECK_JACOBIAN, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
 
-            GenerateTest<3, 4>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_JACOBIAN, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        /**
+         * Checks if the derivatives of the jacobian work as expected
+         * Case 4 of the Triangle3D3
+         */
+        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesTriangle4, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<3, 3>( r_model_part, 4);
+
+            std::vector<IndexType> nodes_perturbed(2);
+            std::vector<double> coeff_perturbation(2);
+            nodes_perturbed[0] = 4;
+            nodes_perturbed[1] = 5;
+            coeff_perturbation[0] = 1.0e-1;
+            coeff_perturbation[1] = 5.0e-2;
+
+            GenerateTest<3, 3>( r_model_part, nodes_perturbed, 2, coeff_perturbation, 6, DerivateToCheck::CHECK_JACOBIAN, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
+
+        /**
+         * Checks if the derivatives of the jacobian work as expected
+         * Case 5 of the Triangle3D3
+         */
+        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesTriangle5, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<3, 3>( r_model_part, 5);
+
+            std::vector<IndexType> nodes_perturbed(1, 1);
+            std::vector<double> coeff_perturbation(1, 5.0e-2);
+
+            GenerateTest<3, 3>( r_model_part, nodes_perturbed, 2, coeff_perturbation, 6, DerivateToCheck::CHECK_JACOBIAN, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
+
+        /**
+         * Checks if the derivatives of the jacobian work as expected
+         * Case 6 of the Triangle3D3
+         */
+        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesTriangle6, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<3, 3>( r_model_part, 6);
+
+            std::vector<IndexType> nodes_perturbed(1, 4);
+            std::vector<double> coeff_perturbation(1, -5.0e-2);
+
+            GenerateTest<3, 3>( r_model_part, nodes_perturbed, 2, coeff_perturbation, 6, DerivateToCheck::CHECK_JACOBIAN, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
         }
 
         /**
@@ -976,13 +1187,7 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, 0.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.0,0.0,0.0);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 0.0,1.0,0.0);
-
-            auto p_node_4 = r_model_part.CreateNewNode(4, 0.0,1.0,1.0e-3);
-            auto p_node_5 = r_model_part.CreateNewNode(5, 0.0,0.0,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.0,0.0,1.0e-3);
+            GeneratePairs<3, 3>( r_model_part, 1);
 
             std::vector<IndexType> nodes_perturbed(1, 4);
             std::vector<double> coeff_perturbation(1, -5.0e-2);
@@ -1005,18 +1210,12 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, 0.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.0,0.0,0.0);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 0.0,1.0,0.0);
-
-            auto p_node_4 = r_model_part.CreateNewNode(4,-0.1,1.0,1.0e-3);
-            auto p_node_5 = r_model_part.CreateNewNode(5, 0.0,0.0,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.0,0.0,1.0e-3);
+            GeneratePairs<3, 3>( r_model_part, 2);
 
             std::vector<IndexType> nodes_perturbed(1, 4);
-            std::vector<double> coeff_perturbation(1, -5.0e-2);
+            std::vector<double> coeff_perturbation(1, -5.0e-3);
 
-            GenerateTest<3, 3>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_SHAPE_FUNCTION, CheckLevel::LEVEL_EXACT);
+            GenerateTest<3, 3>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_SHAPE_FUNCTION, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
         }
 
         /**
@@ -1034,13 +1233,7 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1,-0.1,0.1,1.0e-3);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.1,0.2,0.0);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 0.1,1.0,0.0);
-
-            auto p_node_4 = r_model_part.CreateNewNode(4,-0.1,1.3,1.0e-3);
-            auto p_node_5 = r_model_part.CreateNewNode(5, 0.1,0.2,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.2,0.2,2.0e-3);
+            GeneratePairs<3, 3>( r_model_part, 3);
 
             std::vector<IndexType> nodes_perturbed(1, 4);
             std::vector<double> coeff_perturbation(1, -5.0e-3);
@@ -1063,113 +1256,62 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, 0.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.0,0.0,0.0);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 0.0,1.0,0.0);
+            GeneratePairs<3, 3>( r_model_part, 4);
 
-            auto p_node_4 = r_model_part.CreateNewNode(4, 0.0,1.0,1.0e-3);
-            auto p_node_5 = r_model_part.CreateNewNode(5, 0.0,0.0,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.0,0.0,1.0e-3);
+            std::vector<IndexType> nodes_perturbed(2);
+            std::vector<double> coeff_perturbation(2);
+            nodes_perturbed[0] = 4;
+            nodes_perturbed[1] = 5;
+            coeff_perturbation[0] = 1.0e-1;
+            coeff_perturbation[1] = 5.0e-2;
 
-            std::vector<IndexType> nodes_perturbed(1, 3);
-            std::vector<double> coeff_perturbation(1, -1.0e-3);
-
-            // GenerateTest<3, 3>( r_model_part, nodes_perturbed, 2, coeff_perturbation, 6, DerivateToCheck::CHECK_SHAPE_FUNCTION, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE); // FIXME: Now working properly
+            GenerateTest<3, 3>( r_model_part, nodes_perturbed, 2, coeff_perturbation, 6, DerivateToCheck::CHECK_SHAPE_FUNCTION, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
         }
 
         /**
          * Checks if the derivatives of the shape functions work as expected
-         * Case 1 of the Quadrilateral3D4
+         * Case 5 of the Triangle3D3
          */
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral1, KratosContactStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle5, KratosContactStructuralMechanicsFastSuite)
         {
             Model this_model;
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(ELEMENTAL_DERIVATIVES);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, 0.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.0,0.0,0.0);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 1.0,1.0,0.0);
-            auto p_node_4 = r_model_part.CreateNewNode(4, 0.0,1.0,0.0);
+            GeneratePairs<3, 3>( r_model_part, 5);
 
-            auto p_node_5 = r_model_part.CreateNewNode(5, 0.0,1.0,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.0,1.0,1.0e-3);
-            auto p_node_7 = r_model_part.CreateNewNode(7, 1.0,0.0,1.0e-3);
-            auto p_node_8 = r_model_part.CreateNewNode(8, 0.0,0.0,1.0e-3);
+            std::vector<IndexType> nodes_perturbed(1, 1);
+            std::vector<double> coeff_perturbation(1, 5.0e-2);
 
-            std::vector<IndexType> nodes_perturbed(1, 5);
-            std::vector<double> coeff_perturbation(1, -5.0e-3);
-
-            GenerateTest<3, 4>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_SHAPE_FUNCTION, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+//             GenerateTest<3, 3>( r_model_part, nodes_perturbed, 2, coeff_perturbation, 6, DerivateToCheck::CHECK_SHAPE_FUNCTION, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE); // FIXME: Not working properly
         }
 
         /**
          * Checks if the derivatives of the shape functions work as expected
-         * Case 2 of the Quadrilateral3D4
+         * Case 6 of the Triangle3D3
          */
-
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral2, KratosContactStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle6, KratosContactStructuralMechanicsFastSuite)
         {
             Model this_model;
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(ELEMENTAL_DERIVATIVES);
 
             // Variables addition
             r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, 0.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.0,0.0,0.0);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 1.0,1.0,0.0);
-            auto p_node_4 = r_model_part.CreateNewNode(4, 0.0,1.0,0.0);
+            GeneratePairs<3, 3>( r_model_part, 6);
 
-            auto p_node_5 = r_model_part.CreateNewNode(5,-0.1,1.0,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.0,1.0,1.0e-3);
-            auto p_node_7 = r_model_part.CreateNewNode(7, 1.0,0.0,1.0e-3);
-            auto p_node_8 = r_model_part.CreateNewNode(8, 0.0,0.0,1.0e-3);
+            std::vector<IndexType> nodes_perturbed(1, 4);
+            std::vector<double> coeff_perturbation(1, -5.0e-2);
 
-            std::vector<IndexType> nodes_perturbed(1, 5);
-            std::vector<double> coeff_perturbation(1, -5.0e-3);
-
-            GenerateTest<3, 4>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_SHAPE_FUNCTION, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
-        }
-
-        /**
-         * Checks if the derivatives of the shape functions work as expected
-         * Case 3 of the Quadrilateral3D4
-         */
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral3, KratosContactStructuralMechanicsFastSuite)
-        {
-            Model this_model;
-            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
-
-            // Variables addition
-            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            r_model_part.AddNodalSolutionStepVariable(NORMAL);
-
-            // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, 0.0,0.2,1.0e-3);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.0,0.2,1.0e-3);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 1.1,1.1,0.0);
-            auto p_node_4 = r_model_part.CreateNewNode(4, 0.2,1.0,0.0);
-
-            auto p_node_5 = r_model_part.CreateNewNode(5,-0.1,1.0,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.0,1.1,1.0e-3);
-            auto p_node_7 = r_model_part.CreateNewNode(7, 1.0,0.1,2.0e-3);
-            auto p_node_8 = r_model_part.CreateNewNode(8, 0.0,0.1,2.0e-3);
-
-
-            std::vector<IndexType> nodes_perturbed(1, 5);
-            std::vector<double> coeff_perturbation(1, -5.0e-3);
-
-            GenerateTest<3, 4>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_SHAPE_FUNCTION, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+            GenerateTest<3, 3>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_SHAPE_FUNCTION, CheckLevel::LEVEL_EXACT);
         }
 
         /**
@@ -1187,21 +1329,7 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, 0.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.0,0.0,0.0);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 0.0,1.0,0.0);
-
-            auto p_node_4 = r_model_part.CreateNewNode(4, 0.0,1.0,1.0e-3);
-            auto p_node_5 = r_model_part.CreateNewNode(5, 0.0,0.0,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.0,0.0,1.0e-3);
-
-            r_model_part.CreateNewNode(7, p_node_1->X(), p_node_1->Y(), p_node_1->Z());
-            r_model_part.CreateNewNode(8, p_node_2->X(), p_node_2->Y(), p_node_2->Z());
-            r_model_part.CreateNewNode(9, p_node_3->X(), p_node_3->Y(), p_node_3->Z());
-
-            r_model_part.CreateNewNode(10, p_node_4->X(), p_node_4->Y(), p_node_4->Z());
-            r_model_part.CreateNewNode(11, p_node_5->X(), p_node_5->Y(), p_node_5->Z());
-            r_model_part.CreateNewNode(12, p_node_6->X(), p_node_6->Y(), p_node_6->Z());
+            GeneratePairs<3, 3>( r_model_part, 1);
 
             std::vector<IndexType> nodes_perturbed(1, 4);
             std::vector<double> coeff_perturbation(1, -5.0e-2);
@@ -1224,13 +1352,7 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1,-0.1,0.1,1.0e-3);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.1,0.2,0.0);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 0.1,1.0,0.0);
-
-            auto p_node_4 = r_model_part.CreateNewNode(4,-0.1,1.3,1.0e-3);
-            auto p_node_5 = r_model_part.CreateNewNode(5, 0.1,0.2,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.2,0.2,2.0e-3);
+            GeneratePairs<3, 3>( r_model_part, 2);
 
             std::vector<IndexType> nodes_perturbed(1, 4);
             std::vector<double> coeff_perturbation(1, -5.0e-3);
@@ -1240,9 +1362,9 @@ namespace Kratos
 
         /**
          * Checks if the derivatives of the dual shape functions work as expected
-         * Case 1 of the Quadrilateral3D4
+         * Case 3 of the Triangle3D3
          */
-        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesQuadrilateral1, KratosContactStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesTriangle3, KratosContactStructuralMechanicsFastSuite)
         {
             Model this_model;
             ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
@@ -1253,20 +1375,87 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, 0.0,0.2,1.0e-3);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.0,0.2,1.0e-3);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 1.1,1.1,0.0);
-            auto p_node_4 = r_model_part.CreateNewNode(4, 0.2,1.0,0.0);
+            GeneratePairs<3, 3>( r_model_part, 3);
 
-            auto p_node_5 = r_model_part.CreateNewNode(5,-0.1,1.0,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.0,1.1,1.0e-3);
-            auto p_node_7 = r_model_part.CreateNewNode(7, 1.0,0.1,2.0e-3);
-            auto p_node_8 = r_model_part.CreateNewNode(8, 0.0,0.1,2.0e-3);
+            std::vector<IndexType> nodes_perturbed(2);
+            std::vector<double> coeff_perturbation(2, 1.0e-1);
+            nodes_perturbed[0] = 4;
+            nodes_perturbed[1] = 5;
 
-            std::vector<IndexType> nodes_perturbed(1, 5);
-            std::vector<double> coeff_perturbation(1, -5.0e-3);
+            GenerateTest<3, 3>( r_model_part, nodes_perturbed, 2, coeff_perturbation, 6, DerivateToCheck::CHECK_PHI, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
 
-            GenerateTest<3, 4>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_PHI, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        /**
+         * Checks if the derivatives of the dual shape functions work as expected
+         * Case 4 of the Triangle3D3
+         */
+        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesTriangle4, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<3, 3>( r_model_part, 4);
+
+            std::vector<IndexType> nodes_perturbed(2);
+            std::vector<double> coeff_perturbation(2);
+            nodes_perturbed[0] = 4;
+            nodes_perturbed[1] = 5;
+            coeff_perturbation[0] = 1.0e-1;
+            coeff_perturbation[1] = 5.0e-2;
+
+            GenerateTest<3, 3>( r_model_part, nodes_perturbed, 2, coeff_perturbation, 6, DerivateToCheck::CHECK_PHI, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
+
+        /**
+         * Checks if the derivatives of the dual shape functions work as expected
+         * Case 5 of the Triangle3D3
+         */
+        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesTriangle5, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<3, 3>( r_model_part, 5);
+
+            std::vector<IndexType> nodes_perturbed(1, 1);
+            std::vector<double> coeff_perturbation(1, 5.0e-2);
+
+            GenerateTest<3, 3>( r_model_part, nodes_perturbed, 2, coeff_perturbation, 6, DerivateToCheck::CHECK_PHI, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
+
+        /**
+         * Checks if the derivatives of the dual shape functions work as expected
+         * Case 6 of the Triangle3D3
+         */
+        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesTriangle6, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<3, 3>( r_model_part, 6);
+
+            std::vector<IndexType> nodes_perturbed(1, 4);
+            std::vector<double> coeff_perturbation(1, -5.0e-2);
+
+            GenerateTest<3, 3>( r_model_part, nodes_perturbed, 2, coeff_perturbation, 6, DerivateToCheck::CHECK_PHI, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
         }
 
         /**
@@ -1284,13 +1473,7 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, 0.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.0,0.0,0.0);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 0.0,1.0,0.0);
-
-            auto p_node_4 = r_model_part.CreateNewNode(4, 0.0,1.0,1.0e-3);
-            auto p_node_5 = r_model_part.CreateNewNode(5, 0.0,0.0,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.0,0.0,1.0e-3);
+            GeneratePairs<3, 3>( r_model_part, 1);
 
             std::vector<IndexType> nodes_perturbed(1, 4);
             std::vector<double> coeff_perturbation(1, 5.0e-3);
@@ -1313,13 +1496,7 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, 0.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.0,0.0,0.0);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 0.0,1.0,0.0);
-
-            auto p_node_4 = r_model_part.CreateNewNode(4, 0.0,1.0,1.0e-3);
-            auto p_node_5 = r_model_part.CreateNewNode(5, 0.0,0.0,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.0,0.0,1.0e-3);
+            GeneratePairs<3, 3>( r_model_part, 2);
 
             std::vector<IndexType> nodes_perturbed(1, 3);
             std::vector<double> coeff_perturbation(1, -5.0e-2);
@@ -1331,7 +1508,6 @@ namespace Kratos
          * Checks if the derivatives of the normal work as expected
          * Case 3 of the Triangle3D3
          */
-
         KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle3, KratosContactStructuralMechanicsFastSuite)
         {
             Model this_model;
@@ -1343,13 +1519,7 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, 0.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.0,0.0,0.0);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 0.0,1.0,0.0);
-
-            auto p_node_4 = r_model_part.CreateNewNode(4, 0.0,1.0,1.0e-3);
-            auto p_node_5 = r_model_part.CreateNewNode(5, 0.0,0.0,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.0,0.0,1.0e-3);
+            GeneratePairs<3, 3>( r_model_part, 3);
 
             std::vector<IndexType> nodes_perturbed(2);
             std::vector<double> coeff_perturbation(2, 1.0e-1);
@@ -1374,13 +1544,7 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, 0.0,0.0,0.0);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.0,0.0,0.0);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 0.0,1.0,0.0);
-
-            auto p_node_4 = r_model_part.CreateNewNode(4, 0.0,1.0,1.0e-3);
-            auto p_node_5 = r_model_part.CreateNewNode(5, 0.0,0.0,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.0,0.0,1.0e-3);
+            GeneratePairs<3, 3>( r_model_part, 4);
 
             std::vector<IndexType> nodes_perturbed(2);
             std::vector<double> coeff_perturbation(2);
@@ -1407,18 +1571,242 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1,-0.1,0.1,1.0e-3);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.1,0.2,0.0);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 0.1,1.0,0.0);
-
-            auto p_node_4 = r_model_part.CreateNewNode(4,-0.1,1.3,1.0e-3);
-            auto p_node_5 = r_model_part.CreateNewNode(5, 0.1,0.2,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.2,0.2,2.0e-3);
+            GeneratePairs<3, 3>( r_model_part, 5);
 
             std::vector<IndexType> nodes_perturbed(1, 1);
             std::vector<double> coeff_perturbation(1, 5.0e-2);
 
             GenerateTest<3, 3>( r_model_part, nodes_perturbed, 2, coeff_perturbation, 6, DerivateToCheck::CHECK_NORMAL, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
+
+        /**
+         * Checks if the derivatives of the normal work as expected
+         * Case 6 of the Triangle3D3
+         */
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle6, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<3, 3>( r_model_part, 6);
+
+            std::vector<IndexType> nodes_perturbed(1, 4);
+            std::vector<double> coeff_perturbation(1, -5.0e-2);
+
+            GenerateTest<3, 3>( r_model_part, nodes_perturbed, 2, coeff_perturbation, 6, DerivateToCheck::CHECK_NORMAL, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
+
+        /**
+         * Checks if the derivatives of the jacobian work as expected
+         * Case 1 of the Quadrilateral3D4
+         */
+        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesQuadrilateral1, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<3, 4>( r_model_part, 1);
+
+            std::vector<IndexType> nodes_perturbed(1, 5);
+            std::vector<double> coeff_perturbation(1, -5.0e-3);
+
+            GenerateTest<3, 4>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_JACOBIAN, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
+
+        /**
+         * Checks if the derivatives of the jacobian work as expected
+         * Case 2 of the Quadrilateral3D4
+         */
+        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesQuadrilateral2, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<3, 4>( r_model_part, 2);
+
+            std::vector<IndexType> nodes_perturbed(1, 5);
+            std::vector<double> coeff_perturbation(1, -5.0e-3);
+
+            GenerateTest<3, 4>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_JACOBIAN, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
+
+        /**
+         * Checks if the derivatives of the jacobian work as expected
+         * Case 3 of the Quadrilateral3D4
+         */
+        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesQuadrilateral3, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<3, 4>( r_model_part, 3);
+
+            std::vector<IndexType> nodes_perturbed(1, 5);
+            std::vector<double> coeff_perturbation(1, -5.0e-3);
+
+            GenerateTest<3, 4>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_JACOBIAN, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
+
+        /**
+         * Checks if the derivatives of the shape functions work as expected
+         * Case 1 of the Quadrilateral3D4
+         */
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral1, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<3, 4>( r_model_part, 1);
+
+            std::vector<IndexType> nodes_perturbed(1, 5);
+            std::vector<double> coeff_perturbation(1, -5.0e-3);
+
+            GenerateTest<3, 4>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_SHAPE_FUNCTION, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
+
+        /**
+         * Checks if the derivatives of the shape functions work as expected
+         * Case 2 of the Quadrilateral3D4
+         */
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral2, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<3, 4>( r_model_part, 2);
+
+            std::vector<IndexType> nodes_perturbed(1, 5);
+            std::vector<double> coeff_perturbation(1, -5.0e-3);
+
+            GenerateTest<3, 4>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_SHAPE_FUNCTION, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
+
+        /**
+         * Checks if the derivatives of the shape functions work as expected
+         * Case 3 of the Quadrilateral3D4
+         */
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral3, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<3, 4>( r_model_part, 3);
+
+            std::vector<IndexType> nodes_perturbed(1, 5);
+            std::vector<double> coeff_perturbation(1, -5.0e-3);
+
+            GenerateTest<3, 4>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_SHAPE_FUNCTION, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
+
+        /**
+         * Checks if the derivatives of the dual shape functions work as expected
+         * Case 1 of the Quadrilateral3D4
+         */
+        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesQuadrilateral1, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<3, 4>( r_model_part, 1);
+
+            std::vector<IndexType> nodes_perturbed(1, 5);
+            std::vector<double> coeff_perturbation(1, -5.0e-3);
+
+            GenerateTest<3, 4>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_PHI, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
+
+        /**
+         * Checks if the derivatives of the dual shape functions work as expected
+         * Case 2 of the Quadrilateral3D4
+         */
+        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesQuadrilateral2, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<3, 4>( r_model_part, 2);
+
+            std::vector<IndexType> nodes_perturbed(1, 5);
+            std::vector<double> coeff_perturbation(1, -5.0e-3);
+
+            GenerateTest<3, 4>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_PHI, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
+
+        /**
+         * Checks if the derivatives of the dual shape functions work as expected
+         * Case 3 of the Quadrilateral3D4
+         */
+        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesQuadrilateral3, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<3, 4>( r_model_part, 3);
+
+            std::vector<IndexType> nodes_perturbed(1, 5);
+            std::vector<double> coeff_perturbation(1, -5.0e-3);
+
+            GenerateTest<3, 4>( r_model_part, nodes_perturbed, 1, coeff_perturbation, 6, DerivateToCheck::CHECK_PHI, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
         }
 
          /**
@@ -1436,18 +1824,56 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
             // First we create the nodes
-            auto p_node_1 = r_model_part.CreateNewNode(1, 0.0,0.2,1.0e-3);
-            auto p_node_2 = r_model_part.CreateNewNode(2, 1.0,0.2,1.0e-3);
-            auto p_node_3 = r_model_part.CreateNewNode(3, 1.1,1.1,0.0);
-            auto p_node_4 = r_model_part.CreateNewNode(4, 0.2,1.0,0.0);
-
-            auto p_node_5 = r_model_part.CreateNewNode(5,-0.1,1.0,1.0e-3);
-            auto p_node_6 = r_model_part.CreateNewNode(6, 1.0,1.1,1.0e-3);
-            auto p_node_7 = r_model_part.CreateNewNode(7, 1.0,0.1,2.0e-3);
-            auto p_node_8 = r_model_part.CreateNewNode(8, 0.0,0.1,2.0e-3);
+            GeneratePairs<3, 4>( r_model_part, 1);
 
             std::vector<IndexType> nodes_perturbed(1, 5);
             std::vector<double> coeff_perturbation(1, -5.0e-2);
+
+            GenerateTest<3, 4>( r_model_part, nodes_perturbed, 2, coeff_perturbation, 6, DerivateToCheck::CHECK_NORMAL, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
+
+         /**
+         * Checks if the derivatives of the normal functions work as expected
+         * Case 2 of the Quadrilateral3D4
+         */
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesQuadrilateral2, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<3, 4>( r_model_part, 2);
+
+            std::vector<IndexType> nodes_perturbed(1, 5);
+            std::vector<double> coeff_perturbation(1, -5.0e-3);
+
+            GenerateTest<3, 4>( r_model_part, nodes_perturbed, 2, coeff_perturbation, 6, DerivateToCheck::CHECK_NORMAL, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
+        }
+
+         /**
+         * Checks if the derivatives of the normal functions work as expected
+         * Case 3 of the Quadrilateral3D4
+         */
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesQuadrilateral3, KratosContactStructuralMechanicsFastSuite)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+            r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
+
+            // First we create the nodes
+            GeneratePairs<3, 4>( r_model_part, 3);
+
+            std::vector<IndexType> nodes_perturbed(1, 5);
+            std::vector<double> coeff_perturbation(1, -5.0e-3);
 
             GenerateTest<3, 4>( r_model_part, nodes_perturbed, 2, coeff_perturbation, 6, DerivateToCheck::CHECK_NORMAL, CheckLevel::LEVEL_QUADRATIC_CONVERGENCE);
         }
