@@ -68,8 +68,7 @@ namespace Kratos {
         model by passing a turbulence model as an argument to the constructor.
         This time scheme is intended to be used in combination with elements of type
         ASGS2D, ASGS3D, VMS or derived classes.
-        To use the slip condition, assign IS_STRUCTURE != 0.0 to the non-historic database
-        of the relevant boundary nodes (that is, use SetValue(IS_STRUCTURE,...)). To use
+        To use the slip condition, set the SLIP flag on slip wall nodes. To use
         a wall law in combination with the slip condition, use MonolithicWallCondition to
         mesh the boundary
         @see ASGS2D, ASGS3D, VMS, MonolithicWallConditon
