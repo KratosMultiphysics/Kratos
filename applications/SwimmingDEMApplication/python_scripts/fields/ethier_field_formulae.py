@@ -1,6 +1,7 @@
 import sympy as sp
 from sympy.printing import ccode
 import math
+import time as timer
 
 time = sp.symbols('time')
 coor = list(sp.symbols('coor:3'))
@@ -25,27 +26,34 @@ p = - 0.5 * mA**2 * (exp_ax**2
                    + 2 * sin_aydz * cos_axdy * exp_az * exp_ax
                    + 2 * sin_azdx * cos_aydz * exp_ax * exp_ay) * exp_d2t ** 2
 
-def GetCppCode(formula):
+def GetCppCode(title, formula, elapsed_time):
     code = str(ccode(formula))
+    code = code.replace('coor0', 'coors[0]')
+    code = code.replace('coor1', 'coors[1]')
+    code = code.replace('coor2', 'coors[2]')
     code = code.replace('exp(', 'std::exp(')
     code = code.replace('pow(', 'std::pow(')
     code = code.replace('sin(', 'std::sin(')
     code = code.replace('cos(', 'std::cos(')
-    return code
+    print('Finished formula for ' + title + ' (elapsed time: ', '{:1f}'.format(elapsed_time), 's)', flush=True)
+    return '\n' + title + ' =\n' + code + '\n'
 
-# print('p = ', ccode(sp.simplify(p)))
-# print('dpdt = ', ccode(sp.simplify(sp.diff(p,time))))
-# print('dpd0 = ', GetCppCode(sp.simplify(sp.diff(p,coor[0]))))
-# print('dpd1 = ', GetCppCode(sp.simplify(sp.diff(p,coor[1]))))
-# print('dpd2 = ', GetCppCode(sp.simplify(sp.diff(p,coor[2]))))
-# print('dpdtdt = ', GetCppCode(sp.simplify(sp.diff(p,time,2))))
-# print('dpdtd0 = ', GetCppCode(sp.simplify(sp.diff(p,time,coor[0]))))
-# print('dpdtd1 = ', GetCppCode(sp.simplify(sp.diff(p,time,coor[1]))))
-# print('dpdtd2 = ', GetCppCode(sp.simplify(sp.diff(p,time,coor[2]))))
-# print('dpd0d0 = ', GetCppCode(sp.simplify(sp.diff(p,coor[0], 2))))
-# print('dpd0d1 = ', GetCppCode(sp.simplify(sp.diff(p,coor[0], coor[1]))))
-# print('dpd0d2 = ', GetCppCode(sp.simplify(sp.diff(p,coor[0], coor[2]))))
-# print('dpd1d1 = ', GetCppCode(sp.simplify(sp.diff(p,coor[1], 2))))
-# print('dpd1d2 = ', GetCppCode(sp.simplify(sp.diff(p,coor[1], coor[2]))))
-print('dpd2d2 = ', GetCppCode(sp.simplify(sp.diff(p,coor[2], 2))))
+start = timer.time()
+
+with open('ethier_formulae.flae', 'w') as f:
+    f.write(GetCppCode('p', sp.simplify(p), timer.time() - start))
+    f.write(GetCppCode('dpdt', sp.simplify(sp.diff(p,time)), timer.time() - start))
+    f.write(GetCppCode('dpd0', sp.simplify(sp.diff(p,coor[0])), timer.time() - start))
+    f.write(GetCppCode('dpd1', sp.simplify(sp.diff(p,coor[1])), timer.time() - start))
+    f.write(GetCppCode('dpd2', sp.simplify(sp.diff(p,coor[2])), timer.time() - start))
+    f.write(GetCppCode('dpdtdt', sp.simplify(sp.diff(p,time,2)), timer.time() - start))
+    f.write(GetCppCode('dpdtd0', sp.simplify(sp.diff(p,time,coor[0])), timer.time() - start))
+    f.write(GetCppCode('dpdtd1', sp.simplify(sp.diff(p,time,coor[1])), timer.time() - start))
+    f.write(GetCppCode('dpdtd2', sp.simplify(sp.diff(p,time,coor[2])), timer.time() - start))
+    f.write(GetCppCode('dpd0d0', sp.simplify(sp.diff(p,coor[0], 2)), timer.time() - start))
+    f.write(GetCppCode('dpd0d1', sp.simplify(sp.diff(p,coor[0], coor[1])), timer.time() - start))
+    f.write(GetCppCode('dpd0d2', sp.simplify(sp.diff(p,coor[0], coor[2])), timer.time() - start))
+    f.write(GetCppCode('dpd1d1', sp.simplify(sp.diff(p,coor[1], 2)), timer.time() - start))
+    f.write(GetCppCode('dpd1d2', sp.simplify(sp.diff(p,coor[1], coor[2])), timer.time() - start))
+    f.write(GetCppCode('dpd2d2', sp.simplify(sp.diff(p,coor[2], 2)), timer.time() - start))
 
