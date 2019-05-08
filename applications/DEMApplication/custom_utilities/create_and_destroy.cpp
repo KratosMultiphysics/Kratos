@@ -1310,6 +1310,38 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         KRATOS_CATCH("")
     }
 
+    void ParticleCreatorDestructor::MarkParticlesForErasingGivenCylinder(ModelPart& r_model_part, array_1d<double, 3 > center, array_1d<double, 3 > axis_vector, const double radius) {
+        KRATOS_TRY
+
+        Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+
+        const double radius_squared = radius * radius;
+        const double axis_modulus = DEM_MODULUS_3(axis_vector);
+        array_1d<double, 3 > unitary_axis_vector;
+        noalias(unitary_axis_vector) = axis_vector / axis_modulus;
+
+        #pragma omp parallel for
+        for (int k = 0; k < (int)rElements.size(); k++){
+            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;
+
+            if ((*particle_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
+            if ((*particle_pointer_it)->Is(BLOCKED)) continue;
+
+            const array_1d<double, 3 >& coor = (*particle_pointer_it)->GetGeometry()[0].Coordinates();
+            array_1d<double, 3 > center_to_particle;
+            noalias(center_to_particle) = coor - center;
+            const double center_to_particle_modulus = DEM_MODULUS_3(center_to_particle);
+            double projection_on_axis = center_to_particle[0] * unitary_axis_vector[0] + center_to_particle[1] * unitary_axis_vector[1] + center_to_particle[2] * unitary_axis_vector[2];
+            double distance_squared = center_to_particle_modulus*center_to_particle_modulus - projection_on_axis*projection_on_axis;
+
+            if (distance_squared < radius_squared) {
+                (*particle_pointer_it)->GetGeometry()[0].Set(TO_ERASE);
+                (*particle_pointer_it)->Set(TO_ERASE);
+            }
+        }
+        KRATOS_CATCH("")
+    }
+
     void ParticleCreatorDestructor::MarkContactElementsForErasing(ModelPart& r_model_part, ModelPart& mcontacts_model_part) {
         KRATOS_TRY
 
