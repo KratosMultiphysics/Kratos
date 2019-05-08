@@ -72,19 +72,19 @@ void SkinDetectionProcess<TDim>::Execute()
             for (IndexType i_face = 0; i_face < potential_number_neighbours; ++i_face) {
 
                 /* FACES/EDGES */
-                const SizeType number_nodes = TDim == 2 ? r_geometry.Edges()[i_face].size() : r_geometry.Faces()[i_face].size();
+                const SizeType number_nodes = TDim == 2 ? r_geometry.GenerateEdges()[i_face].size() : r_geometry.Faces()[i_face].size();
                 VectorIndexType vector_ids(number_nodes);
                 VectorIndexType ordered_vector_ids(number_nodes);
 
                 /* FACE/EDGE */
                 if (TDim == 2) {
                     for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
-                        vector_ids[i_node] = r_geometry.Edges()[i_face][i_node].Id();
+                        vector_ids[i_node] = r_geometry.GenerateEdges()[i_face][i_node].Id();
                         ordered_vector_ids[i_node] = vector_ids[i_node];
                     }
                 } else {
                     for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
-                        vector_ids[i_node] = r_geometry.Faces()[i_face][i_node].Id();
+                        vector_ids[i_node] = r_geometry.GenerateFaces()[i_face][i_node].Id();
                         ordered_vector_ids[i_node] = vector_ids[i_node];
                     }
                 }
@@ -122,17 +122,17 @@ void SkinDetectionProcess<TDim>::Execute()
             for (IndexType i_face = 0; i_face < potential_number_neighbours; ++i_face) {
 
                 /* FACES/EDGES */
-                const SizeType number_nodes = TDim == 2 ? r_geometry.Edges()[i_face].size() : r_geometry.Faces()[i_face].size();
+                const SizeType number_nodes = TDim == 2 ? r_geometry.GenerateEdges()[i_face].size() : r_geometry.Faces()[i_face].size();
                 VectorIndexType vector_ids(number_nodes);
 
                 /* FACE/EDGE */
                 if (TDim == 2) {
                     for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
-                        vector_ids[i_node] = r_geometry.Edges()[i_face][i_node].Id();
+                        vector_ids[i_node] = r_geometry.GenerateEdges()[i_face][i_node].Id();
                     }
                 } else {
                     for (IndexType i_node = 0; i_node < number_nodes; ++i_node) {
-                        vector_ids[i_node] = r_geometry.Faces()[i_face][i_node].Id();
+                        vector_ids[i_node] = r_geometry.GenerateFaces()[i_face][i_node].Id();
                     }
                 }
 

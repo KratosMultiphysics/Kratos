@@ -197,13 +197,13 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	unsigned int CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputeEdgesIntersections(
-		Element& rElement1, 
+		Element& rElement1,
 		const PointerVector<GeometricalObject>& rIntersectedObjects,
 		std::vector<unsigned int> &rCutEdgesVector,
       	std::vector<array_1d <double,3> > &rIntersectionPointsArray)
 	{
 		auto &r_geometry = rElement1.GetGeometry();
-		const auto r_edges_container = r_geometry.Edges();
+		const auto r_edges_container = r_geometry.GenerateEdges();
 		const std::size_t n_edges = r_geometry.EdgesNumber();
 
 		// Initialize cut edges and points arrays
@@ -262,9 +262,9 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	int CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputeEdgeIntersection(
-		const Element::GeometryType& rIntObjGeometry, 
-		const Element::NodeType& rEdgePoint1, 
-		const Element::NodeType& rEdgePoint2, 
+		const Element::GeometryType& rIntObjGeometry,
+		const Element::NodeType& rEdgePoint1,
+		const Element::NodeType& rEdgePoint2,
 		Point& rIntersectionPoint)
 	{
 		int intersection_flag = 0;
@@ -304,7 +304,7 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputePlaneApproximation(
-		const Element& rElement1, 
+		const Element& rElement1,
 		const std::vector< array_1d<double,3> >& rPointsCoord,
 		array_1d<double,3>& rPlaneBasePointCoords,
 		array_1d<double,3>& rPlaneNormal)
@@ -375,7 +375,7 @@ namespace Kratos
 	Plane3D CalculateDiscontinuousDistanceToSkinProcess<2>::SetIntersectionPlane(
 		const std::vector<array_1d<double,3>> &rIntPtsVector)
 	{
-		// Since the Plane3D object only works in 3D, in 2D we set the intersection 
+		// Since the Plane3D object only works in 3D, in 2D we set the intersection
 		// plane by extruding the intersection point 0 in the z-direction.
 		array_1d<double,3> z_coord_pt = rIntPtsVector[0];
 		z_coord_pt[2] = 1.0;
