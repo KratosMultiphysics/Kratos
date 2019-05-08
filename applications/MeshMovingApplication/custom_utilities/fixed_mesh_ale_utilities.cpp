@@ -134,12 +134,12 @@ namespace Kratos
     {
         auto virt_nodes_begin = mrVirtualModelPart.NodesBegin();
         auto orig_nodes_begin = mpOriginModelPart->NodesBegin();
-        const int buffer_size = mpOriginModelPart->GetBufferSize();
+        const std::size_t buffer_size = mpOriginModelPart->GetBufferSize();
         #pragma omp parallel for firstprivate(virt_nodes_begin, orig_nodes_begin, buffer_size)
         for (int i_node = 0; i_node < static_cast<int>(mpOriginModelPart->NumberOfNodes()); ++i_node) {
             auto it_virt_node = virt_nodes_begin + i_node;
             const auto it_orig_node = orig_nodes_begin + i_node;
-            for (unsigned int step = 0; step < buffer_size; ++step) {
+            for (std::size_t step = 0; step < buffer_size; ++step) {
                 it_virt_node->FastGetSolutionStepValue(PRESSURE, step) = it_orig_node->FastGetSolutionStepValue(PRESSURE, step);
                 noalias(it_virt_node->FastGetSolutionStepValue(VELOCITY, step)) = it_orig_node->FastGetSolutionStepValue(VELOCITY, step);
             }
