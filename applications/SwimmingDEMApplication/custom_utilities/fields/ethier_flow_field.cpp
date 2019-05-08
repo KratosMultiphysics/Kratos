@@ -366,21 +366,21 @@ double EthierPressureField::UD0(const int i)
 {
     const double time = mTime[i];
     const auto& coors = mCoordinates[i];
-    // The following formula has been obtained with sympy  (see ethier_field_formulae.py):
+    // The following formula has been obtained with sympy (see ethier_field_formulae.py):
     return std::pow(mA, 2)*(-mA*std::exp(2*coors[0]*mA) - mA*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD) - M_SQRT2*mA*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[1]*mA + coors[2]*mD)*std::cos(coors[0]*mA + coors[1]*mD + M_PI_4) - mA*std::exp(mA*(coors[1] + coors[2]))*std::cos(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA) - mD*std::exp(mA*(coors[0] + coors[1]))*std::cos(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD) + mD*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::sin(coors[0]*mD + coors[2]*mA))*std::exp(-2*std::pow(mD, 2)*time);
 }
 double EthierPressureField::UD1(const int i)
 {
     const double time = mTime[i];
     const auto& coors = mCoordinates[i];
-    // The following formula has been obtained with sympy  (see ethier_field_formulae.py):
+    // The following formula has been obtained with sympy (see ethier_field_formulae.py):
     return std::pow(mA, 2)*(-mA*std::exp(2*coors[1]*mA) - M_SQRT2*mA*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD + M_PI_4) - mA*std::exp(mA*(coors[0] + coors[2]))*std::cos(coors[0]*mA + coors[1]*mD)*std::cos(coors[1]*mA + coors[2]*mD) - mA*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA) + mD*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::sin(coors[1]*mA + coors[2]*mD) - mD*std::exp(mA*(coors[1] + coors[2]))*std::cos(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA))*std::exp(-2*std::pow(mD, 2)*time);
 }
 double EthierPressureField::UD2(const int i)
 {
     const double time = mTime[i];
     const auto& coors = mCoordinates[i];
-    // The following formula has been obtained with sympy  (see ethier_field_formulae.py):
+    // The following formula has been obtained with sympy (see ethier_field_formulae.py):
     return std::pow(mA, 2)*(-mA*std::exp(2*coors[2]*mA) - mA*std::exp(mA*(coors[0] + coors[1]))*std::cos(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD) - mA*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[1]*mA + coors[2]*mD)*std::cos(coors[0]*mA + coors[1]*mD) - M_SQRT2*mA*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA + M_PI_4) + mD*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[0]*mD + coors[2]*mA)*std::sin(coors[1]*mA + coors[2]*mD) - mD*std::exp(mA*(coors[0] + coors[2]))*std::cos(coors[0]*mA + coors[1]*mD)*std::cos(coors[1]*mA + coors[2]*mD))*std::exp(-2*std::pow(mD, 2)*time);
 }
 
@@ -391,55 +391,55 @@ double EthierPressureField::UDTDT(const int i){
 double EthierPressureField::UDTD0(const int i){
     const double time = mTime[i];
     const auto& coors = mCoordinates[i];
-    // The following formula has been obtained with sympy  (see ethier_field_formulae.py):
+    // The following formula has been obtained with sympy (see ethier_field_formulae.py):
     return 2.0*std::pow(mA, 2)*std::pow(mD, 2)*(mA*std::exp(2*coors[0]*mA) + mA*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD) + M_SQRT2*mA*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[1]*mA + coors[2]*mD)*std::cos(coors[0]*mA + coors[1]*mD + M_PI_4) + mA*std::exp(mA*(coors[1] + coors[2]))*std::cos(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA) + mD*std::exp(mA*(coors[0] + coors[1]))*std::cos(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD) - mD*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::sin(coors[0]*mD + coors[2]*mA))*std::exp(-2*std::pow(mD, 2)*time);
 }
 double EthierPressureField::UDTD1(const int i){
     const double time = mTime[i];
     const auto& coors = mCoordinates[i];
-    // The following formula has been obtained with sympy  (see ethier_field_formulae.py):
+    // The following formula has been obtained with sympy (see ethier_field_formulae.py):
     return 2.0*std::pow(mA, 2)*std::pow(mD, 2)*(mA*std::exp(2*coors[1]*mA) + M_SQRT2*mA*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD + M_PI_4) + mA*std::exp(mA*(coors[0] + coors[2]))*std::cos(coors[0]*mA + coors[1]*mD)*std::cos(coors[1]*mA + coors[2]*mD) + mA*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA) - mD*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::sin(coors[1]*mA + coors[2]*mD) + mD*std::exp(mA*(coors[1] + coors[2]))*std::cos(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA))*std::exp(-2*std::pow(mD, 2)*time);
 }
 double EthierPressureField::UDTD2(const int i){
     const double time = mTime[i];
     const auto& coors = mCoordinates[i];
-    // The following formula has been obtained with sympy  (see ethier_field_formulae.py):
+    // The following formula has been obtained with sympy (see ethier_field_formulae.py):
     return 2.0*std::pow(mA, 2)*std::pow(mD, 2)*(mA*std::exp(2*coors[2]*mA) + mA*std::exp(mA*(coors[0] + coors[1]))*std::cos(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD) + mA*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[1]*mA + coors[2]*mD)*std::cos(coors[0]*mA + coors[1]*mD) + M_SQRT2*mA*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA + M_PI_4) - mD*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[0]*mD + coors[2]*mA)*std::sin(coors[1]*mA + coors[2]*mD) + mD*std::exp(mA*(coors[0] + coors[2]))*std::cos(coors[0]*mA + coors[1]*mD)*std::cos(coors[1]*mA + coors[2]*mD))*std::exp(-2*std::pow(mD, 2)*time);
 }
 double EthierPressureField::UD0D0(const int i){
     const double time = mTime[i];
     const auto& coors = mCoordinates[i];
-    // The following formula has been obtained with sympy  (see ethier_field_formulae.py):
+    // The following formula has been obtained with sympy (see ethier_field_formulae.py):
     return std::pow(mA, 2)*(-2.0*std::pow(mA, 2)*std::exp(2*coors[0]*mA) - 1.0*std::pow(mA, 2)*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD) + 2.0*std::pow(mA, 2)*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::sin(coors[1]*mA + coors[2]*mD) + 1.0*std::pow(mA, 2)*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA) - 2.0*mA*mD*std::exp(mA*(coors[0] + coors[1]))*std::cos(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD) + 2.0*mA*mD*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mD + coors[2]*mA)*std::cos(coors[0]*mA + coors[1]*mD) + 1.0*std::pow(mD, 2)*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD) + 1.0*std::pow(mD, 2)*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA))*std::exp(-2*std::pow(mD, 2)*time);
 }
 double EthierPressureField::UD0D1(const int i){
     const double time = mTime[i];
     const auto& coors = mCoordinates[i];
-    // The following formula has been obtained with sympy  (see ethier_field_formulae.py):
+    // The following formula has been obtained with sympy (see ethier_field_formulae.py):
     return std::pow(mA, 2)*(std::pow(mA, 2)*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[0]*mD + coors[2]*mA)*std::sin(coors[1]*mA + coors[2]*mD) - std::pow(mA, 2)*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD) + std::pow(mA, 2)*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::cos(coors[1]*mA + coors[2]*mD) - std::pow(mA, 2)*std::exp(mA*(coors[0] + coors[2]))*std::cos(coors[0]*mA + coors[1]*mD)*std::cos(coors[1]*mA + coors[2]*mD) - std::pow(mA, 2)*std::exp(mA*(coors[1] + coors[2]))*std::cos(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA) + mA*mD*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[1]*mA + coors[2]*mD)*std::cos(coors[0]*mD + coors[2]*mA) - mA*mD*std::exp(mA*(coors[0] + coors[1]))*std::cos(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD) + mA*mD*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::sin(coors[1]*mA + coors[2]*mD) + mA*mD*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[1]*mA + coors[2]*mD)*std::cos(coors[0]*mA + coors[1]*mD) + mA*mD*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::sin(coors[0]*mD + coors[2]*mA) + mA*mD*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA) + std::pow(mD, 2)*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mD + coors[2]*mA)*std::cos(coors[0]*mA + coors[1]*mD))*std::exp(-2*std::pow(mD, 2)*time);
 }
 double EthierPressureField::UD0D2(const int i){
     const double time = mTime[i];
     const auto& coors = mCoordinates[i];
-    // The following formula has been obtained with sympy  (see ethier_field_formulae.py):
+    // The following formula has been obtained with sympy (see ethier_field_formulae.py):
     return std::pow(mA, 2)*(-std::pow(mA, 2)*std::exp(mA*(coors[0] + coors[1]))*std::cos(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD) + std::pow(mA, 2)*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::sin(coors[1]*mA + coors[2]*mD) - std::pow(mA, 2)*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[1]*mA + coors[2]*mD)*std::cos(coors[0]*mA + coors[1]*mD) + std::pow(mA, 2)*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mD + coors[2]*mA)*std::cos(coors[0]*mA + coors[1]*mD) - std::pow(mA, 2)*std::exp(mA*(coors[1] + coors[2]))*std::cos(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA) + mA*mD*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[0]*mD + coors[2]*mA)*std::sin(coors[1]*mA + coors[2]*mD) + mA*mD*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD) + mA*mD*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::cos(coors[1]*mA + coors[2]*mD) - mA*mD*std::exp(mA*(coors[0] + coors[2]))*std::cos(coors[0]*mA + coors[1]*mD)*std::cos(coors[1]*mA + coors[2]*mD) + mA*mD*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::sin(coors[0]*mD + coors[2]*mA) + mA*mD*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA) + std::pow(mD, 2)*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[1]*mA + coors[2]*mD)*std::cos(coors[0]*mD + coors[2]*mA))*std::exp(-2*std::pow(mD, 2)*time);
 }
 double EthierPressureField::UD1D1(const int i){
     const double time = mTime[i];
     const auto& coors = mCoordinates[i];
-    // The following formula has been obtained with sympy  (see ethier_field_formulae.py):
+    // The following formula has been obtained with sympy (see ethier_field_formulae.py):
     return std::pow(mA, 2)*(-2.0*std::pow(mA, 2)*std::exp(2*coors[1]*mA) + 2.0*std::pow(mA, 2)*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[0]*mD + coors[2]*mA)*std::sin(coors[1]*mA + coors[2]*mD) + 1.0*std::pow(mA, 2)*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[1]*mA + coors[2]*mD)*std::cos(coors[0]*mA + coors[1]*mD) - 1.0*std::pow(mA, 2)*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA) + 2.0*mA*mD*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::cos(coors[1]*mA + coors[2]*mD) - 2.0*mA*mD*std::exp(mA*(coors[1] + coors[2]))*std::cos(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA) + 1.0*std::pow(mD, 2)*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[1]*mA + coors[2]*mD)*std::cos(coors[0]*mA + coors[1]*mD) + 1.0*std::pow(mD, 2)*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA))*std::exp(-2*std::pow(mD, 2)*time);
 }
 double EthierPressureField::UD1D2(const int i){
     const double time = mTime[i];
     const auto& coors = mCoordinates[i];
-    // The following formula has been obtained with sympy  (see ethier_field_formulae.py):
+    // The following formula has been obtained with sympy (see ethier_field_formulae.py):
     return std::pow(mA, 2)*(std::pow(mA, 2)*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[1]*mA + coors[2]*mD)*std::cos(coors[0]*mD + coors[2]*mA) - std::pow(mA, 2)*std::exp(mA*(coors[0] + coors[1]))*std::cos(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD) - std::pow(mA, 2)*std::exp(mA*(coors[0] + coors[2]))*std::cos(coors[0]*mA + coors[1]*mD)*std::cos(coors[1]*mA + coors[2]*mD) + std::pow(mA, 2)*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::sin(coors[0]*mD + coors[2]*mA) - std::pow(mA, 2)*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA) + mA*mD*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[0]*mD + coors[2]*mA)*std::sin(coors[1]*mA + coors[2]*mD) + mA*mD*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD) + mA*mD*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::sin(coors[1]*mA + coors[2]*mD) + mA*mD*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[1]*mA + coors[2]*mD)*std::cos(coors[0]*mA + coors[1]*mD) + mA*mD*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mD + coors[2]*mA)*std::cos(coors[0]*mA + coors[1]*mD) - mA*mD*std::exp(mA*(coors[1] + coors[2]))*std::cos(coors[0]*mA + coors[1]*mD)*std::cos(coors[0]*mD + coors[2]*mA) + std::pow(mD, 2)*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::cos(coors[1]*mA + coors[2]*mD))*std::exp(-2*std::pow(mD, 2)*time);
 }
 double EthierPressureField::UD2D2(const int i){
     const double time = mTime[i];
     const auto& coors = mCoordinates[i];
-    // The following formula has been obtained with sympy  (see ethier_field_formulae.py):
+    // The following formula has been obtained with sympy (see ethier_field_formulae.py):
     return std::pow(mA, 2)*(-2.0*std::pow(mA, 2)*std::exp(2*coors[2]*mA) + 1.0*std::pow(mA, 2)*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD) - 1.0*std::pow(mA, 2)*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[1]*mA + coors[2]*mD)*std::cos(coors[0]*mA + coors[1]*mD) + 2.0*std::pow(mA, 2)*std::exp(mA*(coors[1] + coors[2]))*std::sin(coors[0]*mA + coors[1]*mD)*std::sin(coors[0]*mD + coors[2]*mA) + 2.0*mA*mD*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[1]*mA + coors[2]*mD)*std::cos(coors[0]*mD + coors[2]*mA) - 2.0*mA*mD*std::exp(mA*(coors[0] + coors[2]))*std::cos(coors[0]*mA + coors[1]*mD)*std::cos(coors[1]*mA + coors[2]*mD) + 1.0*std::pow(mD, 2)*std::exp(mA*(coors[0] + coors[1]))*std::sin(coors[0]*mD + coors[2]*mA)*std::cos(coors[1]*mA + coors[2]*mD) + 1.0*std::pow(mD, 2)*std::exp(mA*(coors[0] + coors[2]))*std::sin(coors[1]*mA + coors[2]*mD)*std::cos(coors[0]*mA + coors[1]*mD))*std::exp(-2*std::pow(mD, 2)*time);
 }
 
