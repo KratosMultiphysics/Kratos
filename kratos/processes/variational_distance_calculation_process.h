@@ -407,17 +407,6 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-    /// Minimal constructor for derived classes
-    VariationalDistanceCalculationProcess(
-        ModelPart &base_model_part,
-        unsigned int max_iterations,
-        Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
-        std::string AuxPartName = "RedistanceCalculationPart")
-        : mr_base_model_part(base_model_part), mOptions(Options), mAuxModelPartName(AuxPartName)
-    {
-        mdistance_part_is_initialized = false;
-        mmax_iterations = max_iterations;
-    }
 
     ///@}
     ///@name Protected member Variables
