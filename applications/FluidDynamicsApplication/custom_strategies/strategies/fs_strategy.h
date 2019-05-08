@@ -195,7 +195,7 @@ public:
                 for (ModelPart::ConditionIterator itCond = CondBegin; itCond != CondEnd; ++itCond)
                 {
                     const bool is_slip = itCond->Is(SLIP);
-                    if (FlagValue != 0.0)
+                    if (is_slip)
                     {
 
                         Condition::GeometryType& rGeom = itCond->GetGeometry();
@@ -829,7 +829,7 @@ protected:
      * @brief Substract wall-normal component of velocity update to ensure that the final velocity satisfies slip conditions.
      * @param rSlipWallFlag If Node.Is(rSlipWallFlag) == true, the node is in the wall.
      */
-    void EnforceSlipCondition(Kratos::Flags& rSlipWallFlag)
+    void EnforceSlipCondition(const Kratos::Flags& rSlipWallFlag)
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
 
@@ -1148,7 +1148,7 @@ private:
                 {
                     const Condition& rCond = *itCond;
                     const bool is_slip = rCond.Is(SLIP);
-                    if (FlagValue != 0.0)
+                    if (is_slip)
                     {
 
                         Condition::GeometryType& rGeom = itCond->GetGeometry();
