@@ -74,24 +74,6 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
 
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(MeshingApplication.METRIC_TENSOR_2D, self.main_model_part.Nodes)
 
-        ''' Defining linear solver to be used by the variational distance process'''
-        from KratosMultiphysics import python_linear_solver_factory #Linear solver for variational distance process
-        linear_solver_settings=KratosMultiphysics.Parameters("""
-        {
-            "solver_type": "amgcl",
-            "max_iteration": 400,
-            "gmres_krylov_space_dimension": 100,
-            "smoother_type":"ilu0",
-            "coarsening_type":"ruge_stuben",
-            "coarse_enough" : 5000,
-            "krylov_type": "lgmres",
-            "tolerance": 1e-9,
-            "verbosity": 0,
-            "scaling": false
-        }""")
-
-        self.linear_solver = python_linear_solver_factory.ConstructSolver(linear_solver_settings)
-
     def Execute(self):
         KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Executing Initialize Geometry')
         self.InitializeSkinModelPart()
@@ -152,17 +134,30 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         ini_time=time.time()
         # Construct the variational distance calculation process
         maximum_iterations = 2 #TODO: Make this user-definable
-        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-            variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
-                self.main_model_part,
-                self.linear_solver,
-                maximum_iterations)
-        else:
-            variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess3D(
-                self.main_model_part,
-                self.linear_solver,
-                maximum_iterations)
+
+        ''' Defining linear solver to be used by the variational distance process'''
+        from KratosMultiphysics import python_linear_solver_factory #Linear solver for variational distance process
+        linear_solver_settings=KratosMultiphysics.Parameters("""
+        {
+            "solver_type": "amgcl",
+            "max_iteration": 200,
+            "gmres_krylov_space_dimension": 100,
+            "smoother_type":"ilu0",
+            "coarsening_type":"ruge_stuben",
+            "coarse_enough" : 5000,
+            "krylov_type": "lgmres",
+            "tolerance": 1e-3,
+            "verbosity": 0,
+            "scaling": false
+        }""")
+
+        linear_solver = python_linear_solver_factory.ConstructSolver(linear_solver_settings)
+        variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
+            self.main_model_part,
+            linear_solver,
+            maximum_iterations)
         variational_distance_process.Execute()
+
         KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Variational distance process time: ',time.time()-ini_time)
 
 
