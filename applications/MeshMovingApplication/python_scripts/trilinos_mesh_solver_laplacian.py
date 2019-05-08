@@ -19,11 +19,11 @@ class TrilinosMeshSolverLaplacian(TrilinosMeshSolverBase):
         super(TrilinosMeshSolverLaplacian, self).__init__(model, custom_settings)
         if custom_settings["buffer_size"].GetInt() < 2:
             raise Exception("A buffer_size of at least 2 is required!")
-        KM.Logger.PrintInfo("::[TrilinosMeshSolverLaplacian]:: Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverLaplacian]:: Construction finished")
 
     @classmethod
     def GetDefaultSettings(cls):
-        this_defaults = KM.Parameters("""{
+        this_defaults = KratosMultiphysics.Parameters("""{
             "buffer_size"           : 2
         }""")
         this_defaults.AddMissingParameters(super(TrilinosMeshSolverLaplacian, cls).GetDefaultSettings())

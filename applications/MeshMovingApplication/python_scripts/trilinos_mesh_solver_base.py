@@ -18,7 +18,7 @@ class TrilinosMeshSolverBase(MeshSolverBase):
 
     @classmethod
     def GetDefaultSettings(cls):
-        this_defaults = KM.Parameters("""{
+        this_defaults = KratosMultiphysics.Parameters("""{
             "linear_solver_settings" : {
                 "solver_type" : "amgcl",
                 "smoother_type":"ilu0",
