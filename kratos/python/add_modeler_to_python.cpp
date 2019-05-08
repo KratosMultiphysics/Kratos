@@ -50,10 +50,19 @@ void GenerateMesh(Modeler& GM, ModelPart& model_part, const char* ElementName, c
 
 }
 
-void GenerateModelPartElementsOnly(ConnectivityPreserveModeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const char* ElementName)
+void GeneratePartialModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const char* Name)
 {
-    GM.GenerateModelPart(origin_model_part, destination_model_part,
-                         KratosComponents<Element>::Get(ElementName));
+    if (KratosComponents<Element>::Has(Name)) {
+        GM.GenerateModelPart(origin_model_part, destination_model_part,
+                             KratosComponents<Element>::Get(Name));
+    }
+    else if (KratosComponents<Condition>::Has(Name)) {
+        GM.GenerateModelPart(origin_model_part, destination_model_part,
+                             KratosComponents<Condition>::Get(Name));
+    }
+    else {
+        KRATOS_ERROR << "Unknown Element/Condition name " << Name << "." << std::endl;
+    }
 }
 
 void  AddModelerToPython(pybind11::module& m)
@@ -68,7 +77,8 @@ void  AddModelerToPython(pybind11::module& m)
 
     py::class_<ConnectivityPreserveModeler,ConnectivityPreserveModeler::Pointer,Modeler>(m,"ConnectivityPreserveModeler")
     .def(py::init< >())
-    .def("GenerateModelPart",&GenerateModelPartElementsOnly)
+    .def("GenerateModelPart",&GenerateModelPart)
+    .def("GenerateModelPart",&GeneratePartialModelPart)
     ;
 
     py::class_< EdgeSwapping2DModeler, EdgeSwapping2DModeler::Pointer, Modeler >(m,"EdgeSwapping2DModeler")

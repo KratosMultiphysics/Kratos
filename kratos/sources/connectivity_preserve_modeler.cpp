@@ -66,6 +66,28 @@ void ConnectivityPreserveModeler::GenerateModelPart(
     KRATOS_CATCH("");
 }
 
+void ConnectivityPreserveModeler::GenerateModelPart(
+    ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart,
+    Condition const& rReferenceCondition)
+{
+    KRATOS_TRY;
+
+    this->CheckVariableLists(rOriginModelPart, rDestinationModelPart);
+
+    this->ResetModelPart(rDestinationModelPart);
+
+    this->CopyCommonData(rOriginModelPart, rDestinationModelPart);
+
+    this->DuplicateConditions(rOriginModelPart, rDestinationModelPart, rReferenceCondition);
+
+    this->DuplicateCommunicatorData(rOriginModelPart,rDestinationModelPart);
+
+    this->DuplicateSubModelParts(rOriginModelPart, rDestinationModelPart);
+
+    KRATOS_CATCH("");
+}
+
 // Private methods /////////////////////////////////////////////////////////////
 void ConnectivityPreserveModeler::CheckVariableLists(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart) const
 {
@@ -228,12 +250,17 @@ ModelPart& rDestinationModelPart) const
         std::vector<ModelPart::IndexType> ids;
         ids.reserve(i_part->Elements().size());
 
-        //adding by index
-        for(auto it=i_part->ElementsBegin(); it!=i_part->ElementsEnd(); ++it)
-            ids.push_back(it->Id());
-        destination_part.AddElements(ids, 0); //adding by index
+        // Execute only if we created elements in the destination
+        if (rDestinationModelPart.NumberOfElements() > 0)
+        {
+            //adding by index
+            for(auto it=i_part->ElementsBegin(); it!=i_part->ElementsEnd(); ++it)
+                ids.push_back(it->Id());
+            destination_part.AddElements(ids, 0); //adding by index
+        }
 
-        if (rDestinationModelPart.NumberOfConditions() > 0) // Note that we may have copied elements only
+        // Execute only if we created conditions in the destination
+        if (rDestinationModelPart.NumberOfConditions() > 0)
         {
             ids.clear();
             for(auto it=i_part->ConditionsBegin(); it!=i_part->ConditionsEnd(); ++it)
