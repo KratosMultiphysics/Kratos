@@ -449,7 +449,7 @@ bool FindIntersectedGeometricalObjectsProcess::HasIntersection3D(
     )
 {
     // Check the intersection of each face against the intersecting object
-    auto faces = rFirstGeometry.Faces();
+    auto faces = rFirstGeometry.GenerateFaces();
     for (auto& face : faces) {
         if (face.HasIntersection(rSecondGeometry)){
             return true;
