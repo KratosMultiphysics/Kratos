@@ -175,6 +175,9 @@ public:
                                     JsonParameters)
     {
         this->Initialize();
+
+        mLocalCoordTol = JsonParameters["local_coord_tolerance"].GetDouble();
+        KRATOS_ERROR_IF(mLocalCoordTol < 0.0) << "The local-coord-tolerance cannot be negative" << std::endl;
     }
 
     /// Destructor.
@@ -221,6 +224,12 @@ public:
     }
 
 private:
+    ///@name Member Variables
+    ///@{
+
+    double mLocalCoordTol;
+
+    ///@}
 
     ///@name Private Operations
     ///@{
