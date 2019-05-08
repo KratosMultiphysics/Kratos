@@ -62,7 +62,7 @@ Condition::Pointer MPMGridSurfaceLoadCondition3D::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<MPMGridSurfaceLoadCondition3D>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMGridSurfaceLoadCondition3D>(NewId, pGeom, pProperties);
 }
 
 //***********************************************************************************
@@ -74,7 +74,7 @@ Condition::Pointer MPMGridSurfaceLoadCondition3D::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<MPMGridSurfaceLoadCondition3D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<MPMGridSurfaceLoadCondition3D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 //******************************* DESTRUCTOR *****************************************
