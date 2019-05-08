@@ -221,7 +221,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
 
     def PrintOutput(self,filename):
         if self.print_output_flag:
-            from gid_output_process import GiDOutputProcess
+            from KratosMultiphyics.gid_output_process import GiDOutputProcess
             gid_output = GiDOutputProcess(self.main_model_part,
                                         filename,
                                         KratosMultiphysics.Parameters("""
