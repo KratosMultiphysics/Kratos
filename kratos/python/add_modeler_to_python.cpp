@@ -34,34 +34,34 @@ namespace Python
 
 namespace py = pybind11;
 
-void GenerateModelPart(Modeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const std::string ElementName, const std::string ConditionName)
+void GenerateModelPart(Modeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const std::string& rElementName, const std::string& rConditionName)
 {
     GM.GenerateModelPart(origin_model_part, destination_model_part,
-                         KratosComponents<Element>::Get(ElementName),
-                         KratosComponents<Condition>::Get(ConditionName));
+                         KratosComponents<Element>::Get(rElementName),
+                         KratosComponents<Condition>::Get(rConditionName));
 
 }
 
-void GenerateMesh(Modeler& GM, ModelPart& model_part, const std::string ElementName, const std::string ConditionName)
+void GenerateMesh(Modeler& GM, ModelPart& model_part, const std::string& rElementName, const std::string& rConditionName)
 {
     GM.GenerateMesh(model_part,
-                    KratosComponents<Element>::Get(ElementName),
-                    KratosComponents<Condition>::Get(ConditionName));
+                    KratosComponents<Element>::Get(rElementName),
+                    KratosComponents<Condition>::Get(rConditionName));
 
 }
 
-void GeneratePartialModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const std::string Name)
+void GeneratePartialModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const std::string& rName)
 {
-    if (KratosComponents<Element>::Has(Name)) {
+    if (KratosComponents<Element>::Has(rName)) {
         GM.GenerateModelPart(origin_model_part, destination_model_part,
-                             KratosComponents<Element>::Get(Name));
+                             KratosComponents<Element>::Get(rName));
     }
-    else if (KratosComponents<Condition>::Has(Name)) {
+    else if (KratosComponents<Condition>::Has(rName)) {
         GM.GenerateModelPart(origin_model_part, destination_model_part,
-                             KratosComponents<Condition>::Get(Name));
+                             KratosComponents<Condition>::Get(rName));
     }
     else {
-        KRATOS_ERROR << "Unknown Element/Condition name " << Name << "." << std::endl;
+        KRATOS_ERROR << "Unknown Element/Condition name " << rName << "." << std::endl;
     }
 }
 
