@@ -20,8 +20,8 @@
 #endif // KRATOS_USE_AMATRIX
 
 // Project includes
-#include "containers/model.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "containers/model.h"
 #include "includes/define_python.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
