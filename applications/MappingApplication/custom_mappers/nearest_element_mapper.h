@@ -193,10 +193,12 @@ public:
                                     rModelPartDestination,
                                     JsonParameters)
     {
-        this->Initialize();
+        this->ValidateInput();
 
         mLocalCoordTol = JsonParameters["local_coord_tolerance"].GetDouble();
         KRATOS_ERROR_IF(mLocalCoordTol < 0.0) << "The local-coord-tolerance cannot be negative" << std::endl;
+
+        this->Initialize();
     }
 
     /// Destructor.
