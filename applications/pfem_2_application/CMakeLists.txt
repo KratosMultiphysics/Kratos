@@ -27,6 +27,8 @@ set( KRATOS_QUIET_WATER_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fixed_pressure_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fixed_pressure_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/autoslip_inlet_3d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/proj_dirichlet_cond3D.cpp	
+
 )
 
 ###############################################################

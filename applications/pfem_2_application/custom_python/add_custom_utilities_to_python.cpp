@@ -74,7 +74,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/mark_fluid_process.h"
 #include "custom_utilities/save_lagrangian_surface_process_p.h"
 #include "custom_utilities/enrichmentutilities.h"
-
+#include "custom_utilities/embedded_utilities.h"
 
 namespace Kratos
 {
@@ -231,11 +231,19 @@ namespace py = pybind11;
    .def("CalculateEnrichedShapeFuncions", &EnrichmentUtilitiesforPFEM2::CalculateEnrichedShapeFuncions)
    .def("CalculateEnrichedShapeFuncionsExtendedmodified", &EnrichmentUtilitiesforPFEM2::CalculateEnrichedShapeFuncionsExtendedmodified)
    .def("CalculateEnrichedShapeFuncionsExtendedmodified_gausspoints", &EnrichmentUtilitiesforPFEM2::CalculateEnrichedShapeFuncionsExtendedmodified_gausspoints)
+   //.def("CalculateEnrichedShapeFuncions_Simplified", &EnrichmentUtilitiesforPFEM2::CalculateEnrichedShapeFuncions_Simplified)
    .def("CalculateEnrichedShapeFuncions", &EnrichmentUtilitiesforPFEM2::CalculateEnrichedShapeFuncions)
    ;
 
 
-
+  py::class_<EmbeddedUtils>(m,"EmbeddedUtils").def(py::init<> ())
+    //class_<EmbeddedUtils > ("EmbeddedUtils", init<>())
+    // .def("SaveInterfaceElemsModelPart", &EmbeddedUtils::SaveInterfaceElemsModelPart)
+    //.def "CreateIntersectionConditions", &EmbeddedUtils::CreateIntersectionConditions)
+    //.def("DisableSubdomain3D", &EmbeddedUtils::DisableSubdomain)
+    .def("CreateIntersConditions", &EmbeddedUtils::CreateIntersConditions)
+    .def("ApplyProjDirichlet", &EmbeddedUtils::ApplyProjDirichlet)
+    ;
 
 }
 
