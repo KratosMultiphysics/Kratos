@@ -164,6 +164,10 @@ public:
     {
     }
 
+    Element::Pointer shared_from_this()
+    {
+        return std::static_pointer_cast<Element>(shared_from_this());
+    }
     ///@}
     ///@name Operators
     ///@{

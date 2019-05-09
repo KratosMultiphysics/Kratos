@@ -56,7 +56,7 @@ namespace Kratos
 /** Detail class definition.
 */
 template< class TDataType >
-class GlobalPointersVector : public std::vector< GlobalPointer<TDataType> >
+class GlobalPointersVector 
 {
 public:
     ///@name Type Definitions
@@ -93,10 +93,10 @@ public:
     ///@{
 
     /// Default constructor.
-    GlobalPointersVector() {}
+    GlobalPointersVector() : mData() {}
 
     GlobalPointersVector(const std::initializer_list<GlobalPointer<TDataType>>& l) 
-        : std::vector< GlobalPointer<TDataType> >(l)
+        : mData(l)
     {} 
 
     /// Destructor.
@@ -153,32 +153,38 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
 
+    GlobalPointersVector& operator=(const GlobalPointersVector& rOther)
+    {
+        mData = rOther.mData;
+        return *this;
+    }
+
     TDataType& operator[](const size_type& i)
     {
-        return *(static_cast<TContainerType>(*this))[i];
+        return *(mData[i]);
     }
 
     TDataType const& operator[](const size_type& i) const
     {
-        return *(static_cast<TContainerType>(*this))[i];
+        return *(mData[i]);
     }
 
     pointer& operator()(const size_type& i)
     {
-        return (static_cast<TContainerType>(*this))[i];
+        return mData[i];
     }
 
     const_pointer& operator()(const size_type& i) const
     {
-        return (static_cast<TContainerType>(*this))[i];
+        return mData[i];
     }
 
-    bool operator==( const GlobalPointersVector<TDataType>& r ) const // nothrow
+    bool operator==( const GlobalPointersVector& r ) const // nothrow
     {
-        if( this->size() != r.size() )
+        if( size() != r.size() )
             return false;
         else
-            return std::equal(this->begin(), this->end(), r.begin(), this->EqualKeyTo());
+            return std::equal(mData.begin(), mData.end(), r.mData.begin(), this->EqualKeyTo());
     }
 
     ///@}
@@ -187,94 +193,125 @@ public:
 
     iterator                   begin()
     {
-        return iterator( (static_cast<TContainerType>(*this)).begin() );
+        return iterator( mData.begin() );
     }
     const_iterator             begin() const
     {
-        return const_iterator( (static_cast<TContainerType>(*this)).begin() );
+        return const_iterator( mData.begin() );
     }
     iterator                   end()
     {
-        return iterator( (static_cast<TContainerType>(*this)).end() );
+        return iterator( mData.end() );
     }
     const_iterator             end() const
     {
-        return const_iterator( (static_cast<TContainerType>(*this)).end() );
+        return const_iterator( mData.end() );
     }
     reverse_iterator           rbegin()
     {
-        return reverse_iterator( (static_cast<TContainerType>(*this)).rbegin() );
+        return reverse_iterator( mData.rbegin() );
     }
     const_reverse_iterator     rbegin() const
     {
-        return const_reverse_iterator( (static_cast<TContainerType>(*this)).rbegin() );
+        return const_reverse_iterator( mData.rbegin() );
     }
     reverse_iterator           rend()
     {
-        return reverse_iterator( (static_cast<TContainerType>(*this)).rend() );
+        return reverse_iterator( mData.rend() );
     }
     const_reverse_iterator     rend() const
     {
-        return const_reverse_iterator( (static_cast<TContainerType>(*this)).rend() );
+        return const_reverse_iterator( mData.rend() );
     }
     ptr_iterator               ptr_begin()
     {
-        return (static_cast<TContainerType>(*this)).begin();
+        return mData.begin();
     }
     ptr_const_iterator         ptr_begin() const
     {
-        return (static_cast<TContainerType>(*this)).cbegin();
+        return mData.begin();
     }
     ptr_iterator               ptr_end()
     {
-        return (static_cast<TContainerType>(*this)).end();
+        return mData.end();
     }
     ptr_const_iterator         ptr_end() const
     {
-        return (static_cast<TContainerType>(*this)).cend();
+        return mData.end();
     }
     ptr_reverse_iterator       ptr_rbegin()
     {
-        return (static_cast<TContainerType>(*this)).rbegin();
+        return mData.rbegin();
     }
     ptr_const_reverse_iterator ptr_rbegin() const
     {
-        return (static_cast<TContainerType>(*this)).rbegin();
+        return mData.rbegin();
     }
     ptr_reverse_iterator       ptr_rend()
     {
-        return (static_cast<TContainerType>(*this)).rend();
+        return mData.rend();
     }
     ptr_const_reverse_iterator ptr_rend() const
     {
-        return (static_cast<TContainerType>(*this)).rend();
+        return mData.rend();
     }
 
     reference        front()       /* nothrow */
     {
-        assert( !this->empty() );
-        return *((static_cast<TContainerType>(*this)).front());
+        assert( !mData.empty() );
+        return *(mData.front());
     }
     const_reference  front() const /* nothrow */
     {
-        assert( !this->empty() );
-        return *((static_cast<TContainerType>(*this)).front());
+        assert( !mData.empty() );
+        return *(mData.front());
     }
     reference        back()        /* nothrow */
     {
-        assert( !this->empty() );
-        return *((static_cast<TContainerType>(*this)).back());
+        assert( !mData.empty() );
+        return *(mData.back());
     }
     const_reference  back() const  /* nothrow */
     {
-        assert( !this->empty() );
-        return *((static_cast<TContainerType>(*this)).back());
+        assert( !mData.empty() );
+        return *(mData.back());
     }
 
+    size_type size() const
+    {
+        return mData.size();
+    }
+
+    size_type max_size() const
+    {
+        return mData.max_size();
+    }
+
+    void swap(GlobalPointersVector& rOther)
+    {
+        mData.swap(rOther.mData);
+    }
+
+    void push_back(TPointerType x)
+    {
+        mData.push_back(x);
+    }
+
+//     template<class TOtherDataType>
+//     void push_back(TOtherDataType const& x)
+//     {
+//         push_back(TPointerType(new TOtherDataType(x)));
+//     }
+/*
+    template<class TOtherDataType>
+    iterator insert(iterator Position, const TOtherDataType& rData)
+    {
+        return iterator(mData.insert(Position, TPointerType(new TOtherDataType(rData))));
+    }*/
 
     iterator insert(iterator Position, const TPointerType pData)
     {
-        return iterator((static_cast<TContainerType>(*this)).insert(Position, pData));
+        return iterator(mData.insert(Position, pData));
     }
 
     template <class InputIterator>
@@ -287,30 +324,53 @@ public:
 
     iterator erase(iterator pos)
     {
-        return iterator((static_cast<TContainerType>(*this)).erase(pos.base()));
+        return iterator(mData.erase(pos.base()));
     }
 
     iterator erase( iterator first, iterator last )
     {
-        return iterator( (static_cast<TContainerType>(*this)).erase( first.base(), last.base() ) );
+        return iterator( mData.erase( first.base(), last.base() ) );
     }
 
+    void clear()
+    {
+        mData.clear();
+    }
+
+    void resize(size_type new_dim) const
+    {
+        return mData.resize(new_dim);
+    }
+    void resize(size_type new_dim)
+    {
+        mData.resize(new_dim);
+    }
+
+    void reserve(int dim)
+    {
+        mData.reserve(dim);
+    }
+
+    int capacity()
+    {
+        return mData.capacity();
+    }
 
 
     ///@}
     ///@name Access
     ///@{
 
-    /** Gives a reference to underly normal container. */
+   /** Gives a reference to underly normal container. */
     TContainerType& GetContainer()
     {
-        return static_cast<TContainerType>(*this);
+        return mData;
     }
 
     /** Gives a constant reference to underly normal container. */
     const TContainerType& GetContainer() const
     {
-        return static_cast<TContainerType>(*this);
+        return mData;
     }
 
 
@@ -366,6 +426,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    TContainerType mData;
 
 
     ///@}
@@ -383,7 +444,7 @@ private:
             data.resize( this->size() * pointer_size);
             for(std::size_t i=0; i<this->size(); ++i)
             {
-                (*this)(i).save(&data[0]+i*pointer_size);
+                mData[i].save(&data[0]+i*pointer_size);
             }
 
             rSerializer.save("Size", this->size());
@@ -392,15 +453,10 @@ private:
         else //SERIALIZING THE POINTER CONTENT TOO
         {
             rSerializer.save("Size", this->size());
-            for(auto it = this->ptr_begin(); it!=this->ptr_end(); ++it)
-            {
-                TPointerType p = *it;
-                rSerializer.save("Gp", p);
-            }
+            for(const auto& item : mData)
+                rSerializer.save("Gp", item);
         }
-    }
-
-
+}
 
     void load(Serializer& rSerializer)
     {
@@ -435,7 +491,7 @@ private:
             }
         }
 
-    }
+}
 
 
     ///@}

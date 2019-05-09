@@ -34,7 +34,7 @@
 #include "utilities/indexed_object.h"
 #include "containers/flags.h"
 #include "intrusive_ptr/intrusive_ptr.hpp"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -90,7 +90,7 @@ public:
 
     /// Pointer definition of Node
     typedef Kratos::intrusive_ptr<NodeType> Pointer;
-    typedef Kratos::intrusive_weak_ptr<NodeType> WeakPointer;
+    typedef Kratos::GlobalPointer<NodeType> WeakPointer;
 
     typedef Point BaseType;
 
@@ -110,7 +110,7 @@ public:
 
     typedef Variable<double> DoubleVariableType;
 
-    typedef WeakPointerVector<NodeType > WeakPointerVectorType;
+    typedef GlobalPointersVector<NodeType > WeakPointerVectorType;
 
 
     ///@}
