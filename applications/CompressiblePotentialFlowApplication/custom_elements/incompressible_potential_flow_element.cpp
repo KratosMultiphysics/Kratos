@@ -539,6 +539,25 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
         }
 
     }
+    double unity1 = 0.0;
+    double unity2 = 0.0;
+    double unity3 = 0.0;
+    for (unsigned int i = 0; i < 3; ++i){
+        unity1 += GPShapeFunctionValues(0,i);
+        unity2 += GPShapeFunctionValues(1,i);
+        unity3 += GPShapeFunctionValues(2,i);
+        KRATOS_WATCH(GPShapeFunctionValues(0,i))
+    }
+
+    double unito1 = 0.0;
+    double unito2 = 0.0;
+    double unito3 = 0.0;
+
+    for (unsigned int i = 0; i < 3; i++){
+        unito3 += negative_side_sh_func(0,i);
+        unito2 += positive_side_sh_func(0,i);
+        unito1 += positive_side_sh_func(1,i);
+    }
 
     double areo = 0.0;
     for (unsigned int i = 0; i < positive_side_sh_func_gradients.size(); ++i){
@@ -547,6 +566,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
     for (unsigned int i = 0; i < negative_side_sh_func_gradients.size(); ++i){
         areo += negative_side_weights(i);
     }
+
     // KRATOS_WATCH(lhs_positive)
     // KRATOS_WATCH(lhs_negative)
     KRATOS_WATCH(data.DN_DX)
@@ -565,6 +585,12 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
     KRATOS_WATCH(GPShapeFunctionValues)
     KRATOS_WATCH(positive_side_sh_func)
     KRATOS_WATCH(negative_side_sh_func)
+    KRATOS_WATCH(unity1)
+    KRATOS_WATCH(unity2)
+    KRATOS_WATCH(unity3)
+    KRATOS_WATCH(unito1)
+    KRATOS_WATCH(unito2)
+    KRATOS_WATCH(unito3)
 }
 
 template <int Dim, int NumNodes>
