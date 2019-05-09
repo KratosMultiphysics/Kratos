@@ -20,7 +20,6 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "includes/define.h"
 #include "meshing_application.h"
 #include "meshing_application_variables.h"
 #include "custom_python/add_meshers_to_python.h"

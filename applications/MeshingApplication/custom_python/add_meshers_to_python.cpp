@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_python/add_meshers_to_python.h"
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "processes/process.h"
 
 #ifdef USE_TETGEN_NONFREE_TPL

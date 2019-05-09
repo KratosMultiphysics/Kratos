@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "includes/define.h"
+#include "includes/define_python.h"
 
 /* Utilities */
 #include "custom_utilities/meshing_utilities.h"
