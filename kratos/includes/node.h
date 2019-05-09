@@ -1195,23 +1195,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-//*********************************************************************************
-//*********************************************************************************
-//*********************************************************************************
-//definition of the NEIGHBOUR_NODES variable
-//*********************************************************************************
-//*********************************************************************************
-//*********************************************************************************
-
-#undef  KRATOS_EXPORT_MACRO
-#define KRATOS_EXPORT_MACRO KRATOS_API
-
-KRATOS_DEFINE_VARIABLE(Node<3>::WeakPointerVectorType, NEIGHBOUR_NODES)
-KRATOS_DEFINE_VARIABLE(Node<3>::WeakPointerVectorType, FATHER_NODES)
-
-#undef  KRATOS_EXPORT_MACRO
-#define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
-
 
 //     namespace Globals
 //     {

@@ -22,7 +22,7 @@
 #include "includes/process_info.h"
 #include "includes/geometrical_object.h"
 #include "includes/constitutive_law.h"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 
 
 namespace Kratos
@@ -1270,7 +1270,7 @@ void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Element
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
 
-KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NEIGHBOUR_ELEMENTS)
+KRATOS_DEFINE_VARIABLE(GlobalPointersVector< Element >, NEIGHBOUR_ELEMENTS)
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT

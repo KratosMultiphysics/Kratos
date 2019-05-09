@@ -21,7 +21,7 @@
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "includes/geometrical_object.h"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 
 
 namespace Kratos
@@ -1246,7 +1246,7 @@ void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Conditi
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
 
-KRATOS_DEFINE_VARIABLE(WeakPointerVector< Condition >, NEIGHBOUR_CONDITIONS)
+KRATOS_DEFINE_VARIABLE(GlobalPointersVector< Condition >, NEIGHBOUR_CONDITIONS)
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
