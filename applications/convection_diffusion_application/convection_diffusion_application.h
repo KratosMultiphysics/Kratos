@@ -29,6 +29,7 @@
 #include "custom_elements/eulerian_diff.h"
 #include "custom_elements/eulerian_conv_diff.h"
 #include "custom_elements/laplacian_element.h"
+#include "custom_elements/conv_diff_3d_enriched.h"
 
 #include "custom_conditions/thermal_face.h"
 #include "custom_conditions/flux_condition.h"
@@ -227,6 +228,7 @@ private:
 
     const ConvDiff2D  mConvDiff2D;
     const ConvDiff3D  mConvDiff3D;
+    const ConvDiff3Denriched  mConvDiff3Denriched;
     const LaplacianElement mLaplacian2D3N;
     const LaplacianElement mLaplacian3D4N;
     const LaplacianElement mLaplacian3D8N;
