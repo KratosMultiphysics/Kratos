@@ -102,8 +102,8 @@ private:
 
     const IncompressiblePotentialFlowElement<2,3> mIncompressiblePotentialFlowElement2D3N;
     const AdjointPotentialFlowElement<IncompressiblePotentialFlowElement<2,3>> mAdjointPotentialFlowElement2D3N;
-	const AdjointAnalyticalIncompressiblePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>> mAdjointAnalyticalIncompressiblePotentialFlowElement2D3N;
-    const EmbeddedIncompressiblePotentialFlowElement<2,3> mEmbeddedIncompressiblePotentialFlowElement2D3N;
+    const AdjointAnalyticalIncompressiblePotentialFlowElement<IncompressiblePotentialFlowElement<2, 3>> mAdjointAnalyticalIncompressiblePotentialFlowElement2D3N;
+    const EmbeddedIncompressiblePotentialFlowElement<2, 3> mEmbeddedIncompressiblePotentialFlowElement2D3N;
 
     const PotentialWallCondition<2,2> mPotentialWallCondition2D2N;
     const PotentialWallCondition<3,3> mPotentialWallCondition3D3N;
