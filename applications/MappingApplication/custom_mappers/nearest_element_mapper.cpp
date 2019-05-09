@@ -20,7 +20,6 @@
 // Project includes
 #include "nearest_element_mapper.h"
 #include "mapping_application_variables.h"
-#include "utilities/stl_io.h"
 
 namespace Kratos {
 
@@ -124,8 +123,7 @@ void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
         KRATOS_ERROR_IF(found_idx == -1) << "Not even an approximation is found, this should not happen!"
             << std::endl; // TODO should this be an error?
 
-        KRATOS_ERROR_IF(mPairingIndex == ProjectionUtilities::PairingIndex::Unspecified) << "Not even an approximation is found (enum), this should not happen!"
-            << std::endl; // TODO should this be an error?
+        KRATOS_ERROR_IF(mPairingIndex == ProjectionUtilities::PairingIndex::Unspecified && mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) << "Not even an approximation is found (enum), this should not happen! " << found_idx << std::endl; // TODO should this be an error?
 
         std::vector<double> sf_values;
 
@@ -144,10 +142,6 @@ void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 
         if (rDestinationIds.size() != 1) rDestinationIds.resize(1);
         rDestinationIds[0] = mpNode->GetValue(INTERFACE_EQUATION_ID);
-
-        if (mpNode->Id() == 38) {
-            KRATOS_INFO_ALL_RANKS("DUMMY") << rLocalMappingMatrix << std::endl << rOriginIds << std::endl << rDestinationIds << std::endl << (int)mPairingIndex << std::endl;
-        }
     }
     else ResizeToZero(rLocalMappingMatrix, rOriginIds, rDestinationIds, rPairingStatus);
 }
