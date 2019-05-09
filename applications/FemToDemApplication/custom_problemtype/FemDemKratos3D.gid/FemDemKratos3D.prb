@@ -57,12 +57,8 @@ HELP: Times the initial radius. In order to use a constant radius, choose the sa
 QUESTION: Min_Radius_Factor
 VALUE: 0.1
 HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
-QUESTION: Reform_Dofs_At_Each_Step#CB#(true,false)
-VALUE: true
 QUESTION: Move_Mesh#CB#(true,false)
 VALUE: false
-QUESTION: Block_Builder#CB#(true,false)
-VALUE: true
 QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,BICGSTABSolver,AMGCL,Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver)
 VALUE: SuperLUSolver
 HELP: OpenMP solvers: SkylineLUFactorizationSolver (Direct), SuperLUSolver (Direct), BICGSTABSolver (Iter.) and AMGCL (Iter.). MPI solvers: Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver.

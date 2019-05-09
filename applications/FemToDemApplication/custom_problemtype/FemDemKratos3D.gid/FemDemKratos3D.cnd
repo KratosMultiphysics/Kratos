@@ -410,8 +410,6 @@ CONDTYPE: over groups
 CONDMESHTYPE: over nodes 
 GROUPALLOW: points lines surfaces
 HELP: Select the nodes/lines to plot the sum of the reaction
-QUESTION: Print_Nodes_Reaction#CB#(true,false)
-VALUE: false
 END CONDITION
 
 CONDITION: list_of_nodes_displacement
@@ -419,8 +417,6 @@ CONDTYPE: over groups
 CONDMESHTYPE: over nodes
 GROUPALLOW: points lines surfaces
 HELP: Select the nodes/lines to plot the sum of the displacement
-QUESTION: Print_Nodes_Displacement#CB#(true,false)
-VALUE: false
 END CONDITION
 
 
