@@ -4,10 +4,9 @@
 
 // External includes
 //NOTE: those two includes should go first in the include list of this file
-#include "includes/define_python.h"
+#include <pybind11/pybind11.h>
 #include "includes/define.h"
 
-#include <pybind11/pybind11.h>
 
 // Project includes
 

@@ -15,10 +15,9 @@
 // External includes
 
 // Project includes
-#include "includes/define_python.h"
+#include "custom_python/add_meshers_to_python.h"
 #include "includes/define.h"
 #include "processes/process.h"
-#include "custom_python/add_meshers_to_python.h"
 
 #ifdef USE_TETGEN_NONFREE_TPL
     #include "external_includes/tetgen_pfem_refine.h"

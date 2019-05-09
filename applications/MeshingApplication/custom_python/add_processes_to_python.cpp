@@ -16,10 +16,9 @@
 // External includes
 
 // Project includes
-#include "includes/define_python.h"
+#include "custom_python/add_processes_to_python.h"
 #include "includes/define.h"
 #include "processes/process.h"
-#include "custom_python/add_processes_to_python.h"
 #include "custom_processes/metric_fast_init_process.h"
 #include "custom_processes/metrics_levelset_process.h"
 #include "custom_processes/metrics_hessian_process.h"
