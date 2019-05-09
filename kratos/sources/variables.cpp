@@ -106,6 +106,8 @@ KRATOS_CREATE_VARIABLE(double, THERMAL_EXPANSION_COEFFICIENT)
 KRATOS_CREATE_VARIABLE(double, STABILIZATION_FACTOR)
 KRATOS_CREATE_VARIABLE(double, DETERMINANT_F)
 
+KRATOS_CREATE_VARIABLE(double, GRADIENT_PENALTY_COEFFICIENT)
+
 //sheme info :: pass to elements
 KRATOS_CREATE_VARIABLE(double, NEWMARK_BETA)
 KRATOS_CREATE_VARIABLE(double, NEWMARK_GAMMA)
@@ -410,9 +412,9 @@ KRATOS_CREATE_VARIABLE(Matrix, INERTIA)
 //for General kratos application:
 KRATOS_CREATE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW)
 //NEIGHBOUR_NODES defined in node.h
-KRATOS_CREATE_VARIABLE(WeakPointerVector<NodeType >, NEIGHBOUR_NODES)
+KRATOS_CREATE_VARIABLE(NodeType::WeakPointerVectorType, NEIGHBOUR_NODES)
 //FATHER_NODES defined in node.h
-KRATOS_CREATE_VARIABLE(WeakPointerVector<NodeType >, FATHER_NODES)
+KRATOS_CREATE_VARIABLE(NodeType::WeakPointerVectorType, FATHER_NODES)
 //NEIGHBOR_ELEMENTS defined in element.h
 KRATOS_CREATE_VARIABLE(WeakPointerVector<Element>, NEIGHBOUR_ELEMENTS)
 //NEIGHBOR_CONDITIONS defined in condition.h
@@ -443,7 +445,7 @@ KRATOS_CREATE_VARIABLE(TableStreamUtility::Pointer, TABLE_UTILITY )
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
-  
+
 void KratosApplication::RegisterVariables() {
     KratosApplication::RegisterDeprecatedVariables();
     KratosApplication::RegisterC2CVariables();      //TODO: move to application
@@ -593,6 +595,7 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_VARIABLE(MATERIAL_STIFFNESS_MATRIX)
     KRATOS_REGISTER_VARIABLE(GEOMETRIC_STIFFNESS_MATRIX)
     KRATOS_REGISTER_VARIABLE(DETERMINANT_F)
+    KRATOS_REGISTER_VARIABLE(GRADIENT_PENALTY_COEFFICIENT)
 
     //STRAIN MEASURES
     KRATOS_REGISTER_VARIABLE(GREEN_LAGRANGE_STRAIN_TENSOR)

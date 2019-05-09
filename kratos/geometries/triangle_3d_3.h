@@ -10,14 +10,16 @@
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
 //                   Felix Nagel
-//  contributors:    Hoang Giang Bui
+//  Contributors:    Hoang Giang Bui
 //                   Josep Maria Carbonell
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_TRIANGLE_3D_3_H_INCLUDED )
 #define  KRATOS_TRIANGLE_3D_3_H_INCLUDED
 
 // System includes
+#include <iomanip>
 
 // External includes
 
@@ -26,6 +28,7 @@
 #include "geometries/line_3d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
+#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
@@ -87,6 +90,11 @@ public:
      * Type of edge geometry
      */
     typedef Line3D2<TPointType> EdgeType;
+
+    /**
+     * Type of face geometry
+     */
+    typedef Triangle3D3<TPointType> FaceType;
 
     /**
      * Pointer definition of Triangle3D3
@@ -865,9 +873,34 @@ public:
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) override
+        ) const override
     {
-        PointLocalCoordinates( rResult, rPoint );
+        // The center of the geometry
+        const auto& r_center = this->Center();
+
+        // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
+        const CoordinatesArrayType aux_point = ZeroVector(3);
+        const array_1d<double, 3> normal = this->UnitNormal(aux_point);
+
+        // We compute the distance, if it is not in the pane we
+        const Point point_to_project(rPoint);
+        Point point_projected;
+        const array_1d<double,3> vector_points = rPoint - r_center.Coordinates();
+
+        const double distance = GeometricalProjectionUtilities::FastProjectDirection(*this, point_to_project, point_projected, normal,  vector_points, 0);
+
+        // We check if we are on the plane
+        if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
+            if (std::abs(distance) > 1.0e-6 * Length()) {
+                KRATOS_WARNING_FIRST_N("Triangle3D3", 10) << "The point of coordinates X: " << rPoint[0] << "\tY: " << rPoint[1] << "\tZ: " << rPoint[2] << " it is in a distance: " << std::abs(distance) << std::endl;
+                return false;
+            }
+
+            // Not in the plane, but allowing certain distance, projecting
+            noalias(point_projected) = rPoint - normal * distance;
+        }
+
+        PointLocalCoordinates( rResult, point_projected );
 
         if ( (rResult[0] >= (0.0-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) ) {
             if ( (rResult[1] >= (0.0-Tolerance)) && (rResult[1] <= (1.0+Tolerance)) ) {
@@ -892,26 +925,16 @@ public:
         ) const override
     {
         // Initialize
-        rResult = ZeroVector(3);
+        noalias(rResult) = ZeroVector(3);
 
         // Tangent vectors
-        const array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
-        const array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
-
-        // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
-        array_1d<double, 3> normal;
-        MathUtils<double>::UnitCrossProduct(normal, tangent_xi, tangent_eta);
+        array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
+        tangent_xi /= norm_2(tangent_xi);
+        array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
+        tangent_eta /= norm_2(tangent_eta);
 
         // The center of the geometry
         const auto& r_center = this->Center();
-
-        // We compute the distance, if it is not in the pane we
-        CoordinatesArrayType point_projected = rPoint;
-        const array_1d<double,3> vector_points = rPoint - r_center.Coordinates();
-        const double distance = inner_prod(vector_points, normal);
-        if (std::abs(distance) > std::numeric_limits<double>::epsilon()) { // Not in the plane, projecting
-            noalias(point_projected) = rPoint - normal * distance;
-        }
 
         // Computation of the rotation matrix
         BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
@@ -922,7 +945,7 @@ public:
 
         // Destination point rotated
         CoordinatesArrayType aux_point_to_rotate, destination_point_rotated;
-        noalias(aux_point_to_rotate) = point_projected - r_center.Coordinates();
+        noalias(aux_point_to_rotate) = rPoint - r_center.Coordinates();
         noalias(destination_point_rotated) = prod(rotation_matrix, aux_point_to_rotate) + r_center.Coordinates();
 
         // Points of the geometry
@@ -948,7 +971,6 @@ public:
 
         rResult(0) = xi;
         rResult(1) = eta;
-        rResult(2) = 0.0;
 
         return rResult;
     }
@@ -1255,35 +1277,35 @@ public:
         return rResult;
     }
 
-    /** EdgesNumber
-    @return SizeType containes number of this geometry edges.
-    */
+    ///@}
+    ///@name Edge
+    ///@{
+
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
+     * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
+     */
     SizeType EdgesNumber() const override
     {
         return 3;
     }
 
-
-    /** FacesNumber
-    @return SizeType containes number of this geometry edges/faces.
-    */
-    SizeType FacesNumber() const override
-    {
-      return EdgesNumber();
-    }
-
-    /** This method gives you all edges of this geometry. This
-    method will gives you all the edges with one dimension less
-    than this geometry. for example a triangle would return
-    three lines as its edges or a tetrahedral would return four
-    triangle as its edges but won't return its six edge
-    lines by this method.
-
-    @return GeometriesArrayType containes this geometry edges.
-    @see EdgesNumber()
-    @see Edge()
-    */
-    GeometriesArrayType Edges( void ) override
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
+     */
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
@@ -1293,6 +1315,37 @@ public:
         return edges;
     }
 
+    ///@}
+    ///@name Face
+    ///@{
+
+    /**
+     * @brief Returns the number of faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @see EdgesNumber
+     * @see Edges
+     * @see Faces
+     */
+    SizeType FacesNumber() const override
+    {
+        return 1;
+    }
+
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    GeometriesArrayType GenerateFaces() const override
+    {
+        GeometriesArrayType faces = GeometriesArrayType();
+
+        faces.push_back( Kratos::make_shared<FaceType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 2 )) );
+        return faces;
+    }
 
     //Connectivities of faces required
     void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override

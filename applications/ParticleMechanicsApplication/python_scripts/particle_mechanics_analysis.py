@@ -79,13 +79,11 @@ class ParticleMechanicsAnalysis(AnalysisStage):
 
             ## Stop solution loop timer
             end_solve_time = time.time()
-            if self.is_printing_rank:
-                KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "SOLVING TIME: ", end_solve_time - start_solve_time, " s]")
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "SOLVING TIME: ", end_solve_time - start_solve_time, " s]")
 
         ## Stop analysis timer
         analysis_end_time = time.time()
-        if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "ANALYSIS TIME: ", analysis_end_time - analysis_start_time, " s]")
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "ANALYSIS TIME: ", analysis_end_time - analysis_start_time, " s]")
 
 
     #### Internal functions ####

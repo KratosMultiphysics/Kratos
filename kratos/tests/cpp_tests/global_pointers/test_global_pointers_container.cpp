@@ -55,9 +55,9 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersUnorderedMapTest , KratosCoreFastSuite)
     ModelPart& mp = current_model.CreateModelPart("test");
     mp.AddNodalSolutionStepVariable(TEMPERATURE); //not to have an empty var list
 
-    GlobalPointer<Node<3>> gp1( mp.CreateNewNode(1,1.0,2.0,3.0));
-    GlobalPointer<Node<3>> gp2( mp.CreateNewNode(2,2.0,2.0,3.0));
-    GlobalPointer<Node<3>> gp3( mp.CreateNewNode(3,3.0,2.0,3.0));
+    GlobalPointer<Node<3>> gp1( mp.CreateNewNode(1,1.0,2.0,3.0).get());
+    GlobalPointer<Node<3>> gp2( mp.CreateNewNode(2,2.0,2.0,3.0).get());
+    GlobalPointer<Node<3>> gp3( mp.CreateNewNode(3,3.0,2.0,3.0).get());
 
     GlobalPointersUnorderedMap<Node<3>, GlobalPointersVector<Node<3>>> global_pointers_map;
     global_pointers_map[ gp1 ] = {gp1};
