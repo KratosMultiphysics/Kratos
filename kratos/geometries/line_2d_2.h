@@ -73,9 +73,6 @@ public:
     typedef Geometry<TPointType> BaseType;
     using Geometry<TPointType>::ShapeFunctionsValues;
 
-    /// Type of edge geometry
-    typedef Line2D2<TPointType> EdgeType;
-
     /// Pointer definition of Line2D2
     KRATOS_CLASS_POINTER_DEFINITION( Line2D2 );
 
