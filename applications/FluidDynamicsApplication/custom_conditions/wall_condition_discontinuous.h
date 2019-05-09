@@ -307,7 +307,7 @@ public:
 //             noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
 //             noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 //
-//             if(this->Is(SLIP) == 0.0 )
+//             if (!this->Is(SLIP))
 //             {
 //                 const double N = 1.0 / static_cast<double>(TNumNodes);
 //                 array_1d<double,3> rNormal;
