@@ -20,7 +20,7 @@ namespace Kratos
     Element::Pointer AdjointAnalyticalIncompressiblePotentialFlowElement<TPrimalElement>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
-          return Kratos::make_shared<AdjointAnalyticalIncompressiblePotentialFlowElement<TPrimalElement>>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+          return Kratos::make_intrusive<AdjointAnalyticalIncompressiblePotentialFlowElement<TPrimalElement>>(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -28,7 +28,7 @@ namespace Kratos
     Element::Pointer AdjointAnalyticalIncompressiblePotentialFlowElement<TPrimalElement>::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
-            return Kratos::make_shared<AdjointAnalyticalIncompressiblePotentialFlowElement<TPrimalElement>>(NewId, pGeom, pProperties);
+            return Kratos::make_intrusive<AdjointAnalyticalIncompressiblePotentialFlowElement<TPrimalElement>>(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
@@ -169,7 +169,7 @@ namespace Kratos
                     x( i_node , 0 ) = GetGeometry()[i_node].X();
                     x( i_node , 1 ) = GetGeometry()[i_node].Y();
             }
-            auto p = PotentialFlow::GetPotentialOnNormalElement<2,3>(*pGetPrimalElement());
+            auto p = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*pGetPrimalElement());
             BoundedMatrix<double, Dim*NumNodes, NumNodes> test = ZeroMatrix(Dim*NumNodes, NumNodes);
 
             const double crOutput0 =             x(0,0) - x(1,0);
