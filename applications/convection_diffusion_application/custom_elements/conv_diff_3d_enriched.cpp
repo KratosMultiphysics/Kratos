@@ -55,13 +55,15 @@ ConvDiff3Denriched::ConvDiff3Denriched(IndexType NewId, GeometryType::Pointer pG
 
 Element::Pointer ConvDiff3Denriched::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<ConvDiff3Denriched>(NewId, GetGeometry().Create(ThisNodes), pProperties);	
+  //return Kratos::make_shared<ConvDiff3Denriched>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<ConvDiff3Denriched>(NewId, GetGeometry().Create(ThisNodes), pProperties);	
     //return Element::Pointer(new ConvDiff3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
 Element::Pointer ConvDiff3Denriched::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<ConvDiff3Denriched>(NewId, pGeom, pProperties);
+  //return Kratos::make_shared<ConvDiff3Denriched>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<ConvDiff3Denriched>(NewId, pGeom, pProperties);
 }
 
 ConvDiff3Denriched::~ConvDiff3Denriched()

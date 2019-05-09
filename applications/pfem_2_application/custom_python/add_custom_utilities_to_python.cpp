@@ -75,6 +75,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/save_lagrangian_surface_process_p.h"
 #include "custom_utilities/enrichmentutilities.h"
 #include "custom_utilities/embedded_utilities.h"
+#include "custom_utilities/streamline.h"
 
 namespace Kratos
 {
@@ -199,6 +200,10 @@ namespace py = pybind11;
    .def("DetectAllOilClusters", &ParticleUtils < 3 > ::DetectAllOilClusters)
    .def("ColorOilClusters", &ParticleUtils < 3 > ::ColorOilClusters)
    .def("TransferToEulerianMesh_2", &ParticleUtils < 3 > ::TransferToEulerianMesh_2)
+   ;
+ py::class_<Streamline < 2 > >(m,"Streamline").def(py::init<>())
+   .def("MoveMesh_StreamlinesTn", &Streamline < 2 > ::MoveMesh_StreamlinesTn)
+   .def("MoveMesh_Streamlines", &Streamline < 2 > ::MoveMesh_Streamlines)
    ;
 
  py::class_<Pfem2ApplyBCProcess, Pfem2ApplyBCProcess::Pointer, Process>(m,"Pfem2ApplyBCProcess").def(py::init<ModelPart&>());

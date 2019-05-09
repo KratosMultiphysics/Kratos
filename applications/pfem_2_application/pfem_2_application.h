@@ -40,6 +40,7 @@
 //#include "custom_elements/vel_enriched_2fluid_2d_nopressure.h"
 #include "custom_elements/qfluid_2d.h"
 #include "custom_elements/qfluid_3d.h"
+#include "custom_elements/FSfluid_2d.h"
 #include "custom_conditions/proj_dirichlet_cond3D.h"
 #include "custom_conditions/fixed_velocity_2d.h" //the condition
 #include "custom_conditions/fixed_velocity_3d.h" //the condition
@@ -277,6 +278,7 @@ namespace Kratos
 
     const QFluid2D mQFluid2D;
     const QFluid3D mQFluid3D;
+    const FSFluid2D mFSFluid2D;
     const ProjDirichletCond3D mProjDirichletCond3D;
 
     const FixedVelocity2D   mFixedVelocity2D;

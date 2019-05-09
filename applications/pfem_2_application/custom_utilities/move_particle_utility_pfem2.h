@@ -145,8 +145,8 @@ namespace Kratos
 			mcalculation_domain_complete_displacement=ZeroVector(3);
 			mcalculation_domain_added_displacement=ZeroVector(3);
 
-            //storing water and air density and their inverses, just in case it is needed for the streamline integration
-            ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+			//storing water and air density and their inverses, just in case it is needed for the streamline integration
+			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
 			mDENSITY_AIR = CurrentProcessInfo[DENSITY_AIR];
 			mDENSITY_WATER = CurrentProcessInfo[DENSITY_WATER];
 
@@ -2742,7 +2742,7 @@ namespace Kratos
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
-					pelement=Element::Pointer(((neighb_elems(i))));
+					//pelement=Element::Pointer(((neighb_elems(i))));
 					return true;
 				}
 		}
@@ -2762,7 +2762,7 @@ namespace Kratos
 
 			if(is_found == true)
 			{
-				pelement=Element::Pointer((*(result_begin+i)));
+				//pelement=Element::Pointer((*(result_begin+i)));
 				return true;
 			}
 		}
@@ -2802,7 +2802,7 @@ namespace Kratos
 			bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],aux_N);
 			if (is_found_2)
 			{
-				pelement=Element::Pointer(((elements_in_trajectory(i))));
+				//pelement=Element::Pointer(((elements_in_trajectory(i))));
 				N=aux_N;
 				check_from_element_number = i+1 ; //now i element matches pelement, so to avoid cheching twice the same element we send the counter to the following element.
 				return true;
@@ -2841,7 +2841,7 @@ namespace Kratos
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
-					pelement=Element::Pointer(((neighb_elems(i))));
+					//pelement=Element::Pointer(((neighb_elems(i))));
 					if (number_of_elements_in_trajectory<20)
 					{
 						elements_in_trajectory(number_of_elements_in_trajectory)=pelement;
@@ -2869,7 +2869,7 @@ namespace Kratos
 
 				if(is_found == true)
 				{
-					pelement=Element::Pointer((*(result_begin+i)));
+					//pelement=Element::Pointer((*(result_begin+i)));
 					if (number_of_elements_in_trajectory<20)
 					{
 					elements_in_trajectory(number_of_elements_in_trajectory)=pelement;
@@ -2920,7 +2920,7 @@ namespace Kratos
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
-					pelement=Element::Pointer(((neighb_elems(i))));
+					//pelement=Element::Pointer(((neighb_elems(i))));
 					return true;
 				}
 		}
@@ -2941,7 +2941,7 @@ namespace Kratos
 
 			if(is_found == true)
 			{
-				pelement=Element::Pointer((*(result_begin+i)));
+				//pelement=Element::Pointer((*(result_begin+i)));
 				return true;
 			}
 		}
