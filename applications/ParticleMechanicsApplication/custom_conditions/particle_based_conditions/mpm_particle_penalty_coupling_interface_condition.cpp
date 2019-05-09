@@ -46,7 +46,7 @@ MPMParticlePenaltyCouplingInterfaceCondition::MPMParticlePenaltyCouplingInterfac
 
 Condition::Pointer MPMParticlePenaltyCouplingInterfaceCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<MPMParticlePenaltyCouplingInterfaceCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMParticlePenaltyCouplingInterfaceCondition>(NewId, pGeom, pProperties);
 }
 
 //************************************************************************************
@@ -54,7 +54,7 @@ Condition::Pointer MPMParticlePenaltyCouplingInterfaceCondition::Create(IndexTyp
 
 Condition::Pointer MPMParticlePenaltyCouplingInterfaceCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared<MPMParticlePenaltyCouplingInterfaceCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<MPMParticlePenaltyCouplingInterfaceCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 //******************************* DESTRUCTOR *****************************************
