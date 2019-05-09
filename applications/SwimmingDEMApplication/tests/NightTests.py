@@ -6,6 +6,7 @@ import TestFactory as TF
 import FluidDEMTestFactory as FDEMTF
 import SPFEMTestFactory as SPFEMTF
 import RecoveryTestFactory as RecTF
+import RecoveryLinearTestFactory as LinRecTF
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -52,6 +53,10 @@ class sdem_pfem_coupling_one_way_test(SPFEMTF.TestFactory):
      file_name = "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test"
      file_parameters = "PFEM-DEM_tests/ProjectParameters.json"
 
+class linear_recovery_test(LinRecTF.TestFactory):
+     file_name = "recovery_tests/ethier"
+     file_parameters = "recovery_tests/EthierProjectParamaters.json"
+
 class ethier_recovery_test(RecTF.TestFactory):
      file_name = "recovery_tests/ethier"
      file_parameters = "recovery_tests/EthierProjectParamaters.json"
@@ -70,6 +75,7 @@ def SetTestSuite(suites):
           interpolation_test_nonlinear_time_no_substepping,
           fluid_dem_coupling_one_way_test,
           sdem_pfem_coupling_one_way_test,
+          linear_recovery_test,
           ethier_recovery_test
           ])
     )
