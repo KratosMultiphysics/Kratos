@@ -1069,11 +1069,11 @@ namespace Kratos {
 
 			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
 			GlobalPointersVector<Element> wpParent1;
-			wpParent1.push_back(modelPart.pGetElement(1));
+			wpParent1.push_back(GlobalPointer<Element>(modelPart.Elements()(1)));
 			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
 
 			GlobalPointersVector<Element> wpParent2;
-			wpParent2.push_back(modelPart.pGetElement(2));
+			wpParent2.push_back(GlobalPointer<Element>(modelPart.Elements()(2)));
 			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
 
             Vector elemRHS1 = ZeroVector(9);
@@ -1363,11 +1363,11 @@ namespace Kratos {
 
 			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
 			GlobalPointersVector<Element> wpParent1;
-			wpParent1.push_back(modelPart.pGetElement(1));
+			wpParent1.push_back(GlobalPointer<Element>(modelPart.Elements()(1)));
 			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
 
 			GlobalPointersVector<Element> wpParent2;
-			wpParent2.push_back(modelPart.pGetElement(3));
+			wpParent2.push_back(GlobalPointer<Element>(modelPart.Elements()(3)));
 			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
 
             Vector elemRHS1 = ZeroVector(9);
@@ -1555,15 +1555,15 @@ namespace Kratos {
 
 			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
 			GlobalPointersVector<Element> wpParent1;
-			wpParent1.push_back(GlobalPointer<Element>(modelPart.pGetElement(3)));
+			wpParent1.push_back(GlobalPointer<Element>(modelPart.Elements()(3)));
 			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
 
 			GlobalPointersVector<Element> wpParent2;
-			wpParent2.push_back(GlobalPointer<Element>(modelPart.pGetElement(2)));
+			wpParent2.push_back(GlobalPointer<Element>(modelPart.Elements()(2)));
 			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
 
 			GlobalPointersVector<Element> wpParent3;
-			wpParent3.push_back(GlobalPointer<Element>(modelPart.pGetElement(1)));
+			wpParent3.push_back(GlobalPointer<Element>(modelPart.Elements()(1)));
 			pCondition3->SetValue( NEIGHBOUR_ELEMENTS, wpParent3 );
 
             Vector elemRHS1 = ZeroVector(16);

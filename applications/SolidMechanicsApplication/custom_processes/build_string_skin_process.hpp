@@ -1215,7 +1215,7 @@ private:
     {
       typename GlobalPointersVector< TDataType >::iterator i = v.begin();
       typename GlobalPointersVector< TDataType >::iterator endit = v.end();
-      while ( i != endit && (i)->Id() != (candidate.lock())->Id())
+      while ( i != endit && (i)->Id() != (candidate)->Id())
       {
         i++;
       }

@@ -952,18 +952,18 @@ bool DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part, 
     ids[p_node->Id()] = p_node->Id();
 
     for (unsigned int i = 0; i < (unsigned int)neigh_nodes.size(); ++i){
-        Node<3>::Pointer p_neigh = neigh_nodes(i).lock();
+        auto p_neigh = neigh_nodes(i);
         ids[p_neigh->Id()] = p_neigh->Id();
     }
 
     const unsigned int n_neigh = neigh_nodes.size();
 
     for (unsigned int i = 0; i < n_neigh; ++i){
-        Node<3>::Pointer p_neigh = neigh_nodes(i).lock();
+        auto p_neigh = neigh_nodes(i);
         GlobalPointersVector<Node<3> >& neigh_neigh_nodes = p_neigh->GetValue(NEIGHBOUR_NODES);
         unsigned int n_new_nodes = 0;
         for (unsigned int j = 0; j < (unsigned int)neigh_neigh_nodes.size(); ++j){
-            Node<3>::Pointer p_neigh_neigh = neigh_neigh_nodes(j).lock();
+            auto p_neigh_neigh = neigh_neigh_nodes(j);
             if (ids.find(p_neigh_neigh->Id()) == ids.end()){
                 neigh_nodes.push_back(p_neigh_neigh);
                 ids[p_neigh_neigh->Id()] = p_neigh_neigh->Id();
