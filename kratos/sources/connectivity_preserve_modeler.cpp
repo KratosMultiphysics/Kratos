@@ -198,19 +198,19 @@ void ConnectivityPreserveModeler::DuplicateCommunicatorData(
     Communicator::Pointer pDestinationComm = rReferenceComm.Create();
     pDestinationComm->SetNumberOfColors( rReferenceComm.GetNumberOfColors() );
     pDestinationComm->NeighbourIndices() = rReferenceComm.NeighbourIndices();
-    pDestinationComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
-    pDestinationComm->InterfaceMesh().SetNodes( rReferenceComm.InterfaceMesh().pNodes() );
-    pDestinationComm->GhostMesh().SetNodes( rReferenceComm.GhostMesh().pNodes() );
-    for (unsigned int i = 0; i < rReferenceComm.GetNumberOfColors(); i++) {
-        pDestinationComm->pLocalMesh(i)->SetNodes( rReferenceComm.pLocalMesh(i)->pNodes() );
-        pDestinationComm->pInterfaceMesh(i)->SetNodes( rReferenceComm.pInterfaceMesh(i)->pNodes() );
-        pDestinationComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
-    }
 
     // This is a dirty hack to detect if the communicator is a Communicator or an MPICommunicator
     // Note that downcasting would not work here because MPICommunicator is not compiled in non-MPI builds
     const bool is_mpi = ( rOriginModelPart.pElements() != rReferenceComm.LocalMesh().pElements() );
     if (is_mpi) {
+        pDestinationComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
+        pDestinationComm->InterfaceMesh().SetNodes( rReferenceComm.InterfaceMesh().pNodes() );
+        pDestinationComm->GhostMesh().SetNodes( rReferenceComm.GhostMesh().pNodes() );
+        for (unsigned int i = 0; i < rReferenceComm.GetNumberOfColors(); i++) {
+            pDestinationComm->pLocalMesh(i)->SetNodes( rReferenceComm.pLocalMesh(i)->pNodes() );
+            pDestinationComm->pInterfaceMesh(i)->SetNodes( rReferenceComm.pInterfaceMesh(i)->pNodes() );
+            pDestinationComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
+        }
         // All elements are passed as local elements to the new communicator
         ModelPart::ElementsContainerType& rDestinationLocalElements = pDestinationComm->LocalMesh().Elements();
         rDestinationLocalElements.clear();
@@ -227,8 +227,7 @@ void ConnectivityPreserveModeler::DuplicateCommunicatorData(
             rDestinationLocalConditions.push_back(*i_cond);
         }
     } else {
-        pDestinationComm->LocalMesh().pElements() = rDestinationModelPart.pElements();
-        pDestinationComm->LocalMesh().pConditions() = rDestinationModelPart.pConditions();
+        pDestinationComm->SetLocalMesh(rDestinationModelPart.pGetMesh());
     }
 
     rDestinationModelPart.SetCommunicator( pDestinationComm );
