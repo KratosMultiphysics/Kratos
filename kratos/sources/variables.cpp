@@ -412,16 +412,16 @@ KRATOS_CREATE_VARIABLE(Matrix, INERTIA)
 //for General kratos application:
 KRATOS_CREATE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW)
 //NEIGHBOUR_NODES defined in node.h
-KRATOS_CREATE_VARIABLE(NodeType::WeakPointerVectorType, NEIGHBOUR_NODES)
+KRATOS_CREATE_VARIABLE(GlobalPointersVector<NodeType>, NEIGHBOUR_NODES)
 //FATHER_NODES defined in node.h
-KRATOS_CREATE_VARIABLE(NodeType::WeakPointerVectorType, FATHER_NODES)
+KRATOS_CREATE_VARIABLE(GlobalPointersVector<NodeType>, FATHER_NODES)
 //NEIGHBOR_ELEMENTS defined in element.h
-KRATOS_CREATE_VARIABLE(WeakPointerVector<Element>, NEIGHBOUR_ELEMENTS)
+KRATOS_CREATE_VARIABLE(GlobalPointersVector<Element>, NEIGHBOUR_ELEMENTS)
 //NEIGHBOR_CONDITIONS defined in condition.h
-KRATOS_CREATE_VARIABLE(WeakPointerVector<Condition>, NEIGHBOUR_CONDITIONS)
+KRATOS_CREATE_VARIABLE(GlobalPointersVector<Condition>, NEIGHBOUR_CONDITIONS)
 
 //for Structural application:
-KRATOS_CREATE_VARIABLE(WeakPointerVector<GeometricalObject>, NEIGHBOUR_EMBEDDED_FACES)
+KRATOS_CREATE_VARIABLE(GlobalPointersVector<GeometricalObject>, NEIGHBOUR_EMBEDDED_FACES)
 KRATOS_CREATE_VARIABLE(ConvectionDiffusionSettings::Pointer, CONVECTION_DIFFUSION_SETTINGS)
 KRATOS_CREATE_VARIABLE(RadiationSettings::Pointer, RADIATION_SETTINGS)
 
