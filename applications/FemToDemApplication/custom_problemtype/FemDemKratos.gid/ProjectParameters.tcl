@@ -38,7 +38,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         puts $FileVar "            \"time_integration_method\":           \"Implicit\","
         puts $FileVar "            \"scheme_type\":                       \"Newmark\","
     }
-	puts $FileVar "            \"echo_level\":                         0,"
+	puts $FileVar "            \"echo_level\":                         1,"
     puts $FileVar "            \"model_import_settings\":              \{"
     puts $FileVar "                 \"input_type\":         \"mdpa\","
     puts $FileVar "                 \"input_filename\":     \"$basename\","
