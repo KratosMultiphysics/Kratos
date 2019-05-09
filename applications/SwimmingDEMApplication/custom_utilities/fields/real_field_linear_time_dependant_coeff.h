@@ -32,13 +32,12 @@ KRATOS_CLASS_POINTER_DEFINITION(LinearRealField);
 
 /// Default constructor.
 
-LinearRealField(const double& a0, const double& b0, const double& c0,
-                RealFunction& fa, RealFunction& fb, RealFunction& fc)
-              : mX0(a0), mY0(b0), mZ0(c0), mpFx(), mpFy(), mpFz()
+LinearRealField(RealFunction::Pointer& rpA0,
+                RealFunction::Pointer& rpA1,
+                RealFunction::Pointer& rpA2,
+                RealFunction::Pointer& rpB)
+              : mA({rpA0, rpA1, rpA2}), mpB(rpB)
 {
-    mpFx.reset(&fa);
-    mpFy.reset(&fb);
-    mpFz.reset(&fc);
 }
 
 /// Destructor.
@@ -150,12 +149,9 @@ private:
 ///@}
 ///@name Member r_variables
 ///@{
-double mX0;
-double mY0;
-double mZ0;
-std::unique_ptr<RealFunction> mpFx;
-std::unique_ptr<RealFunction> mpFy;
-std::unique_ptr<RealFunction> mpFz;
+
+std::vector<RealFunction::Pointer> mA;
+RealFunction::Pointer mpB;
 
 ///@}
 ///@name Private Operators

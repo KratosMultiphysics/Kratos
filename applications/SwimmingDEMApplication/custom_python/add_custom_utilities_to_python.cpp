@@ -174,7 +174,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         ;
 
     py::class_<LinearRealField, LinearRealField::Pointer, RealField > (m, "LinearRealField")
-        .def(py::init<const double&, const double&, const double&, RealFunction&, RealFunction&, RealFunction&>())
+        .def(py::init<RealFunction::Pointer&, RealFunction::Pointer&, RealFunction::Pointer&, RealFunction::Pointer&>())
         ;
 
     py::class_<TimeDependantPorosityField, TimeDependantPorosityField::Pointer, RealField > (m, "TimeDependantPorosityField")

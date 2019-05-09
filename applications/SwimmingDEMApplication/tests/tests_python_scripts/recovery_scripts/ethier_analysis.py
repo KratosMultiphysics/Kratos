@@ -5,7 +5,7 @@ import math
 import numpy as np
 import os
 import sys
-
+import weakref
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 from swimming_DEM_analysis import SwimmingDEMAnalysis
 from swimming_DEM_analysis import Say
@@ -32,12 +32,21 @@ class EthierBenchmarkAnalysis(SwimmingDEMAnalysis):
         self.current_mat_deriv_errors = np.zeros(2)
         self.current_laplacian_errors = np.zeros(2)
         self.current_pressure_gradient_errors = np.zeros(2)
-
         for node in self.fluid_model_part.Nodes:
             vel= Vector(3)
             coor = Vector([node.X, node.Y, node.Z])
             self.flow_field.Evaluate(0.0, coor, vel, 0)
             pressure = self.pressure_field.Evaluate(0.0, coor, 0)
+            node.SetSolutionStepValue(Kratos.VELOCITY, vel)
+            node.SetSolutionStepValue(Kratos.PRESSURE, pressure)
+
+    def InitializeSolutionStep(self):
+        super(EthierBenchmarkAnalysis, self).InitializeSolutionStep()
+        for node in self.fluid_model_part.Nodes:
+            vel= Vector(3)
+            coor = Vector([node.X, node.Y, node.Z])
+            self.flow_field.Evaluate(self.time, coor, vel, 0)
+            pressure = self.pressure_field.Evaluate(self.time, coor, 0)
             node.SetSolutionStepValue(Kratos.VELOCITY, vel)
             node.SetSolutionStepValue(Kratos.PRESSURE, pressure)
 
@@ -48,12 +57,13 @@ class EthierBenchmarkAnalysis(SwimmingDEMAnalysis):
     def GetFieldUtility(self):
         a = math.pi / 4
         d = math.pi / 2
-        c = 1.0
+        b = 1.0
         bx, by, bz = 1.0, 2.0, 5.0
-        self.fx = SDEM.LinearFunction(c, bx)
-        self.fy = SDEM.LinearFunction(0.0, by)
-        self.fz = SDEM.LinearFunction(0.0, bz)
-        self.pressure_field = SDEM.LinearRealField(1.0, 1.0, 1.0, self.fx, self.fy, self.fz)
+        b = SDEM.LinearFunction(15.5, b)
+        a0 = SDEM.LinearFunction(0.0, bx)
+        a1 = SDEM.LinearFunction(0.0, by)
+        a2 = SDEM.LinearFunction(0.0, bz)
+        self.pressure_field = SDEM.LinearRealField(a0, a1, a2, b)
         self.flow_field = SDEM.EthierVelocityField(a, d)
         space_time_set = SDEM.SpaceTimeSet()
         self.field_utility = SDEM.FluidFieldUtility(space_time_set,
@@ -122,7 +132,6 @@ class EthierBenchmarkAnalysis(SwimmingDEMAnalysis):
             max_mat_deriv_error = max(max_mat_deriv_error, module_mat_deriv_error_squared)
             max_laplacian_error = max(max_laplacian_error, module_laplacian_error_squared)
             max_pressure_gradient_error = max(max_pressure_gradient_error, module_pressure_gradient_error_squared)
-
 
         L2_norm_mat_deriv **= 0.5
         L2_norm_mat_deriv /= total_volume ** 0.5
