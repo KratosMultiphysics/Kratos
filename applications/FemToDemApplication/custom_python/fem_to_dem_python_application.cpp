@@ -24,11 +24,10 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <pybind11/pybind11.h>
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "fem_to_dem_application.h"
 #include "fem_to_dem_application_variables.h"
 #include "custom_python/add_custom_strategies_to_python.h"
