@@ -45,7 +45,7 @@ class CoSimulationAnalysis(object):
         while self.time < self.end_time:
             print("")
             self.step += 1
-            self.time = 1
+            self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
             self._GetSolver().SolveSolutionStep()

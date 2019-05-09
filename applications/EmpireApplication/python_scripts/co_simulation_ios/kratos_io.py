@@ -78,10 +78,14 @@ class KratosIO(CoSimulationBaseIO):
 
             model_part = from_client.model[geometry_name]
             kratos_var = self.__GetKratosVariable(var_name)
+                                    # print("WHAT IS KRATOS_VAR !!!", data_definition)
+                                    # print("KRATOS VAR has TYPE of :::::", type(kratos_var))
+                                    # print("KRATOS VAR has TYPE of :::::", model_part.GetValue(kratos_var))
 
             if type(kratos_var) == KratosMultiphysics.DoubleVariable or type(kratos_var) == KratosMultiphysics.Array1DComponentVariable:
                 for node in Nodes(model_part):
                     node.SetSolutionStepValue(kratos_var, value)
+                    print("VVVAAALLLL ----------", value)
                 # KratosMultiphysics.VariableUtils().SetScalarVar(kratos_var, value, Nodes(model_part))
             else:
                 err_msg  = 'Type of variable "' + kratos_var.Name() + '" is not valid\n'
@@ -113,8 +117,6 @@ class KratosIO(CoSimulationBaseIO):
                 if not data_array.size == required_size:
                     # data_array = np.resize(data_array, (1,required_size))
                     data_array.resize(required_size, refcheck=False)
-                KratosMultiphysics.Logger.PrintInfo("Extracting Variables from::: ", model_part)
-                KratosMultiphysics.Logger.PrintInfo("Variables taken for this Model/SubModel are::: ", kratos_var)
                 ExtractData(model_part, kratos_var, data_array, buffer_index)
             elif type(kratos_var) == KratosMultiphysics.Array1DVariable3:
                 domain_size = model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
@@ -330,8 +332,6 @@ class KratosIO(CoSimulationBaseIO):
 
 def ExtractData(model_part, kratos_var, data_array, buffer_index):
     for i, node in enumerate(Nodes(model_part)):
-        KratosMultiphysics.Logger.PrintInfo("EXTRACT DATA IS ENTERED")
-        KratosMultiphysics.Logger.PrintInfo("NODE NUM== ", node)
         data_array[i] = node.GetSolutionStepValue(kratos_var, buffer_index)
 
 def SetData(model_part, kratos_var, data_array):

@@ -71,7 +71,6 @@ class CoSimulationBaseSolver(object):
     def ExportData(self, data_name, to_client):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
-        KratosMultiphysics.Logger.PrintInfo("SOLVER NAME:::: ", data_name)
         self.io.ExportData(data_name, to_client)
     def ExportMesh(self, mesh_name, to_client):
         if not self.io_is_initialized:

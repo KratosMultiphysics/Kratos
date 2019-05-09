@@ -91,7 +91,6 @@ class CoSimulationBaseCouplingSolver(CoSimulationBaseSolver):
 
     def InitializeSolutionStep(self):
         for solver_name in self.solver_names:
-            KratosMultiphysics.Logger.PrintInfo("SOLVER NAME HERE IS::::", solver_name)
             self.solvers[solver_name].InitializeSolutionStep()
 
         if self.predictor is not None:
