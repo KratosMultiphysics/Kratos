@@ -56,9 +56,9 @@ typedef ModelPart::NodesContainerType NodesContainerType;
 typedef ModelPart::ElementsContainerType ElementsContainerType;
 typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
-typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
+typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 ///@}
 ///@name  Enum's
 ///@{
@@ -206,12 +206,15 @@ class BuildModelPartBoundaryProcess
   void CheckMasterElement(int Id, const Element::WeakPointer& old_nelem, const Element::WeakPointer& new_nelem)
   {
     if( mEchoLevel >= 1 ){
-      if(!old_nelem.expired()){
-        if(old_nelem.lock().get()->Id() != new_nelem.lock().get()->Id())
-          std::cout<<"Condition "<<Id<<" WARNING: master elements ("<<old_nelem.lock().get()->Id()<<" != "<<new_nelem.lock().get()->Id()<<")"<<std::endl;
+      //if(!old_nelem.expired())
+      KRATOS_ERROR << "sorry weak pointers are no longer supported" << std::endl;
+      
+      {
+        if(old_nelem.get()->Id() != new_nelem.get()->Id())
+          std::cout<<"Condition "<<Id<<" WARNING: master elements ("<<old_nelem.get()->Id()<<" != "<<new_nelem.get()->Id()<<")"<<std::endl;
       }
       else{
-        std::cout<<"Condition "<<Id<<" WARNING: master elements (expired != "<<new_nelem.lock().get()->Id()<<")"<<std::endl;
+        std::cout<<"Condition "<<Id<<" WARNING: master elements (expired != "<<new_nelem.get()->Id()<<")"<<std::endl;
       }
     }
 
@@ -221,9 +224,11 @@ class BuildModelPartBoundaryProcess
   void CheckMasterNode(int Id, const Node<3>::WeakPointer& old_nnode, const Node<3>::Pointer& new_nnode)
   {
     if( mEchoLevel >= 1 ){
-      if(!old_nnode.expired()){
-        if(old_nnode.lock().get()->Id() != new_nnode->Id())
-          std::cout<<"Condition "<<Id<<" WARNING: master nodes ("<<old_nnode.lock().get()->Id()<<" != "<<new_nnode->Id()<<")"<<std::endl;
+      //if(!old_nnode.expired())
+      KRATOS_ERROR << "sorry weak pointers are no longer supported" << std::endl;
+      {
+        if(old_nnode.get()->Id() != new_nnode->Id())
+          std::cout<<"Condition "<<Id<<" WARNING: master nodes ("<<old_nnode.get()->Id()<<" != "<<new_nnode->Id()<<")"<<std::endl;
       }
       else{
         std::cout<<"Condition "<<Id<<" WARNING: master nodes (expired != "<<new_nnode->Id()<<")"<<std::endl;

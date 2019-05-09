@@ -223,7 +223,7 @@ public:
         for (int i = 0; i < static_cast<int>(mRefinedInterfaceContainer.size()); i++)
         {
             auto refined_node = refined_begin + i;
-            WeakPointerVector<NodeType>& father_nodes = refined_node->GetValue(FATHER_NODES);
+            GlobalPointersVector<NodeType>& father_nodes = refined_node->GetValue(FATHER_NODES);
             IndexType number_of_father_nodes = father_nodes.size();
             std::vector<double> weights = refined_node->GetValue(FATHER_NODES_WEIGHTS);
 

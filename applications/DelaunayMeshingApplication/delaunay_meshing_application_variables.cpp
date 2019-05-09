@@ -9,6 +9,7 @@
 
 #include "delaunay_meshing_application_variables.h"
 #include "utilities/stl_io.h"
+#include "containers/global_pointers_vector.h"
 
 namespace Kratos
 {
@@ -21,9 +22,9 @@ namespace Kratos
   typedef Element::WeakPointer ElementWeakPtrType;
   typedef Condition::WeakPointer ConditionWeakPtrType;
 
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-  typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
+  typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
   ///@}
 
   ///@name Kratos Globals

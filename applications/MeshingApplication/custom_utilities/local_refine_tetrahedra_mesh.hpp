@@ -227,7 +227,7 @@ public:
 	  {
 	      to_be_deleted++;
 
-          WeakPointerVector< Element >& rChildElements = it->GetValue(NEIGHBOUR_ELEMENTS);
+          GlobalPointersVector< Element >& rChildElements = it->GetValue(NEIGHBOUR_ELEMENTS);
           // We will use this flag to identify the element later, when operating on
           // SubModelParts. Note that fully refined elements already have this flag set
           // to true, but this is not the case for partially refined element, so we set it here.
@@ -314,7 +314,7 @@ public:
                   if( iElem->GetValue(SPLIT_ELEMENT) )
                   {
                       to_be_deleted++;
-                      WeakPointerVector< Element >& rChildElements = iElem->GetValue(NEIGHBOUR_ELEMENTS);
+                      GlobalPointersVector< Element >& rChildElements = iElem->GetValue(NEIGHBOUR_ELEMENTS);
 
                       for ( auto iChild = rChildElements.ptr_begin();
                               iChild != rChildElements.ptr_end(); iChild++ )
@@ -393,7 +393,7 @@ public:
 
                     if(create_condition==true)
                     {
-                        WeakPointerVector< Condition >& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
+                        GlobalPointersVector< Condition >& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
                         // We will use this flag to identify the condition later, when operating on
                         // SubModelParts.
                         it->SetValue(SPLIT_ELEMENT,true);
@@ -476,7 +476,7 @@ public:
                         if( iCond->GetValue(SPLIT_ELEMENT) )
                         {
                             to_be_deleted++;
-                            WeakPointerVector< Condition >& rChildConditions = iCond->GetValue(NEIGHBOUR_CONDITIONS);
+                            GlobalPointersVector< Condition >& rChildConditions = iCond->GetValue(NEIGHBOUR_CONDITIONS);
 
                             for ( auto iChild = rChildConditions.ptr_begin();
                                     iChild != rChildConditions.ptr_end(); iChild++ )
