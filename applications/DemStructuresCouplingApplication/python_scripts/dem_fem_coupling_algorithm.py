@@ -73,11 +73,8 @@ class Algorithm(object):
             self.control_module_fem_dem_utility = control_module_fem_dem_utility.ControlModuleFemDemUtility(self.model,self.dem_solution.spheres_model_part)
             self.control_module_fem_dem_utility.ExecuteInitialize()
 
-        # from KratosMultiphysics.DemStructuresCouplingApplication import stress_failure_check_utility
-        # self.stress_failure_check_utility = stress_failure_check_utility.StressFailureCheckUtility(self.dem_solution.spheres_model_part)
-
-        # from KratosMultiphysics.DemStructuresCouplingApplication import stress_failure_check_utility
-        # self.stress_failure_check_utility = stress_failure_check_utility.StressFailureCheckUtility(self.dem_solution.spheres_model_part)
+        from KratosMultiphysics.DemStructuresCouplingApplication import stress_failure_check_utility
+        self.stress_failure_check_utility = stress_failure_check_utility.StressFailureCheckUtility(self.dem_solution.spheres_model_part)
 
         mixed_mp = self.model.CreateModelPart('MixedPart')
         filename = os.path.join(self.dem_solution.post_path, self.dem_solution.DEM_parameters["problem_name"].GetString())
@@ -259,7 +256,7 @@ class Algorithm(object):
                     self.dem_solution.demio.PrintMultifileLists(self.dem_solution.time, self.dem_solution.post_path)
                     self.dem_solution.time_old_print = self.dem_solution.time
 
-                    # self.stress_failure_check_utility.ExecuteFinalizeSolutionStep()
+                    self.stress_failure_check_utility.ExecuteFinalizeSolutionStep()
 
                 self.dem_solution.FinalizeTimeStep(self.dem_solution.time)
 
