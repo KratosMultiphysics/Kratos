@@ -25,6 +25,8 @@
 #include "includes/define.h"
 #include "includes/global_pointer.h"
 #include "includes/serializer.h"
+#include <boost/iterator/indirect_iterator.hpp>
+
 
 namespace Kratos
 {
@@ -62,6 +64,29 @@ public:
 
     /// Pointer definition of GlobalPointersVector
     KRATOS_CLASS_POINTER_DEFINITION(GlobalPointersVector);
+
+    typedef std::vector< GlobalPointer<TDataType> > TContainerType;
+    typedef GlobalPointer<TDataType> TPointerType;
+    typedef TDataType data_type;
+    typedef TPointerType value_type;
+    typedef TPointerType pointer;
+    typedef const TPointerType const_pointer;
+    typedef TDataType& reference;
+    typedef const TDataType& const_reference;
+    typedef TContainerType ContainerType;
+    
+
+    typedef boost::indirect_iterator<typename TContainerType::iterator>                iterator;
+    typedef boost::indirect_iterator<typename TContainerType::const_iterator>          const_iterator;
+    typedef boost::indirect_iterator<typename TContainerType::reverse_iterator>        reverse_iterator;
+    typedef boost::indirect_iterator<typename TContainerType::const_reverse_iterator>  const_reverse_iterator;
+
+    typedef typename TContainerType::size_type size_type;
+    typedef typename TContainerType::iterator ptr_iterator;
+    typedef typename TContainerType::const_iterator ptr_const_iterator;
+    typedef typename TContainerType::reverse_iterator ptr_reverse_iterator;
+    typedef typename TContainerType::const_reverse_iterator ptr_const_reverse_iterator;
+    typedef typename TContainerType::difference_type difference_type;
 
     ///@}
     ///@name Life Cycle
@@ -127,6 +152,166 @@ public:
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
+
+    TDataType& operator[](const size_type& i)
+    {
+        return *(static_cast<TContainerType>(*this))[i];
+    }
+
+    TDataType const& operator[](const size_type& i) const
+    {
+        return *(static_cast<TContainerType>(*this))[i];
+    }
+
+    pointer& operator()(const size_type& i)
+    {
+        return (static_cast<TContainerType>(*this))[i];
+    }
+
+    const_pointer& operator()(const size_type& i) const
+    {
+        return (static_cast<TContainerType>(*this))[i];
+    }
+
+    bool operator==( const GlobalPointersVector<TDataType>& r ) const // nothrow
+    {
+        if( this->size() != r.size() )
+            return false;
+        else
+            return std::equal(this->begin(), this->end(), r.begin(), this->EqualKeyTo());
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    iterator                   begin()
+    {
+        return iterator( (static_cast<TContainerType>(*this)).begin() );
+    }
+    const_iterator             begin() const
+    {
+        return const_iterator( (static_cast<TContainerType>(*this)).begin() );
+    }
+    iterator                   end()
+    {
+        return iterator( (static_cast<TContainerType>(*this)).end() );
+    }
+    const_iterator             end() const
+    {
+        return const_iterator( (static_cast<TContainerType>(*this)).end() );
+    }
+    reverse_iterator           rbegin()
+    {
+        return reverse_iterator( (static_cast<TContainerType>(*this)).rbegin() );
+    }
+    const_reverse_iterator     rbegin() const
+    {
+        return const_reverse_iterator( (static_cast<TContainerType>(*this)).rbegin() );
+    }
+    reverse_iterator           rend()
+    {
+        return reverse_iterator( (static_cast<TContainerType>(*this)).rend() );
+    }
+    const_reverse_iterator     rend() const
+    {
+        return const_reverse_iterator( (static_cast<TContainerType>(*this)).rend() );
+    }
+    ptr_iterator               ptr_begin()
+    {
+        return (static_cast<TContainerType>(*this)).begin();
+    }
+    ptr_const_iterator         ptr_begin() const
+    {
+        return (static_cast<TContainerType>(*this)).cbegin();
+    }
+    ptr_iterator               ptr_end()
+    {
+        return (static_cast<TContainerType>(*this)).end();
+    }
+    ptr_const_iterator         ptr_end() const
+    {
+        return (static_cast<TContainerType>(*this)).cend();
+    }
+    ptr_reverse_iterator       ptr_rbegin()
+    {
+        return (static_cast<TContainerType>(*this)).rbegin();
+    }
+    ptr_const_reverse_iterator ptr_rbegin() const
+    {
+        return (static_cast<TContainerType>(*this)).rbegin();
+    }
+    ptr_reverse_iterator       ptr_rend()
+    {
+        return (static_cast<TContainerType>(*this)).rend();
+    }
+    ptr_const_reverse_iterator ptr_rend() const
+    {
+        return (static_cast<TContainerType>(*this)).rend();
+    }
+
+    reference        front()       /* nothrow */
+    {
+        assert( !this->empty() );
+        return *((static_cast<TContainerType>(*this)).front());
+    }
+    const_reference  front() const /* nothrow */
+    {
+        assert( !this->empty() );
+        return *((static_cast<TContainerType>(*this)).front());
+    }
+    reference        back()        /* nothrow */
+    {
+        assert( !this->empty() );
+        return *((static_cast<TContainerType>(*this)).back());
+    }
+    const_reference  back() const  /* nothrow */
+    {
+        assert( !this->empty() );
+        return *((static_cast<TContainerType>(*this)).back());
+    }
+
+
+    iterator insert(iterator Position, const TPointerType pData)
+    {
+        return iterator((static_cast<TContainerType>(*this)).insert(Position, pData));
+    }
+
+    template <class InputIterator>
+    void insert(InputIterator First, InputIterator Last)
+    {
+        for(; First != Last; ++First)
+            insert(*First);
+    }
+
+
+    iterator erase(iterator pos)
+    {
+        return iterator((static_cast<TContainerType>(*this)).erase(pos.base()));
+    }
+
+    iterator erase( iterator first, iterator last )
+    {
+        return iterator( (static_cast<TContainerType>(*this)).erase( first.base(), last.base() ) );
+    }
+
+
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    /** Gives a reference to underly normal container. */
+    TContainerType& GetContainer()
+    {
+        return static_cast<TContainerType>(*this);
+    }
+
+    /** Gives a constant reference to underly normal container. */
+    const TContainerType& GetContainer() const
+    {
+        return static_cast<TContainerType>(*this);
+    }
 
 
     ///@}
@@ -198,7 +383,7 @@ private:
             data.resize( this->size() * pointer_size);
             for(std::size_t i=0; i<this->size(); ++i)
             {
-                (*this)[i].save(&data[0]+i*pointer_size);
+                (*this)(i).save(&data[0]+i*pointer_size);
             }
 
             rSerializer.save("Size", this->size());
@@ -207,8 +392,11 @@ private:
         else //SERIALIZING THE POINTER CONTENT TOO
         {
             rSerializer.save("Size", this->size());
-            for(const auto& item : *this)
-                rSerializer.save("Gp", item);
+            for(auto it = this->ptr_begin(); it!=this->ptr_end(); ++it)
+            {
+                TPointerType p = *it;
+                rSerializer.save("Gp", p);
+            }
         }
     }
 
