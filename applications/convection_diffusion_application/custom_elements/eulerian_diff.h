@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -98,7 +98,7 @@ public:
     {
         return Kratos::make_intrusive<EulerianDiffusionElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
-    
+
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<EulerianDiffusionElement>(NewId, pGeom, pProperties);
@@ -195,7 +195,7 @@ public:
 
         BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
 
-        bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
+        BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
         for(unsigned int igauss=0; igauss<TDim+1; igauss++)
         {

@@ -34,14 +34,14 @@ Element::Pointer
 RoccoRingElement::Create(IndexType NewId, NodesArrayType const &rThisNodes,
                          PropertiesType::Pointer pProperties) const {
   const GeometryType &rGeom = this->GetGeometry();
-  return Kratos::make_shared<RoccoRingElement>(NewId, rGeom.Create(rThisNodes),
+  return Kratos::make_intrusive<RoccoRingElement>(NewId, rGeom.Create(rThisNodes),
                                                pProperties);
 }
 
 Element::Pointer
 RoccoRingElement::Create(IndexType NewId, GeometryType::Pointer pGeom,
                          PropertiesType::Pointer pProperties) const {
-  return Kratos::make_shared<RoccoRingElement>(NewId, pGeom,
+  return Kratos::make_intrusive<RoccoRingElement>(NewId, pGeom,
                                                pProperties);
 }
 

@@ -36,14 +36,14 @@ Element::Pointer
 RingElement3D::Create(IndexType NewId, NodesArrayType const &rThisNodes,
                          PropertiesType::Pointer pProperties) const {
   const GeometryType &rGeom = this->GetGeometry();
-  return Kratos::make_shared<RingElement3D>(NewId, rGeom.Create(rThisNodes),
+  return Kratos::make_intrusive<RingElement3D>(NewId, rGeom.Create(rThisNodes),
                                                pProperties);
 }
 
 Element::Pointer
 RingElement3D::Create(IndexType NewId, GeometryType::Pointer pGeom,
                          PropertiesType::Pointer pProperties) const {
-  return Kratos::make_shared<RingElement3D>(NewId, pGeom,
+  return Kratos::make_intrusive<RingElement3D>(NewId, pGeom,
                                                pProperties);
 }
 
