@@ -46,15 +46,15 @@ public:
     /**
      * Constructor.
      */
-    explicit AdjointAnalyticalIncompressiblePotentialFlowElement(IndexType NewId = 0)
+    AdjointAnalyticalIncompressiblePotentialFlowElement(IndexType NewId = 0)
      : Element(NewId),
-     mpPrimalElement(std::make_shared<TPrimalElement>(NewId))
+     mpPrimalElement(std::make_intrusive<TPrimalElement>(NewId))
     {};
 
     AdjointAnalyticalIncompressiblePotentialFlowElement(IndexType NewId,
                         GeometryType::Pointer pGeometry)
      : Element(NewId, pGeometry),
-      mpPrimalElement(std::make_shared<TPrimalElement>(NewId, pGeometry))
+      mpPrimalElement(std::make_intrusive<TPrimalElement>(NewId, pGeometry))
     {
     }
 
@@ -62,7 +62,7 @@ public:
                         GeometryType::Pointer pGeometry,
                         PropertiesType::Pointer pProperties)
      : Element(NewId, pGeometry, pProperties),
-      mpPrimalElement(std::make_shared<TPrimalElement>(NewId, pGeometry, pProperties))
+      mpPrimalElement(std::make_intrusive<TPrimalElement>(NewId, pGeometry, pProperties))
     {
     }
     /**
