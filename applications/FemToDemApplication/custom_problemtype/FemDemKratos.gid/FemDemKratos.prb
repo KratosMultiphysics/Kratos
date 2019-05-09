@@ -70,7 +70,7 @@ VALUE: true
 QUESTION: Write_Damage#CB#(true,false)
 VALUE: true
 QUESTION: Stress_Threshold#CB#(true,false)
-VALUE: true
+VALUE: false
 
 QUESTION: GiD_post_mode#CB#(GiD_PostAscii,GiD_PostAsciiZipped,GiD_PostBinary,GiD_PostHDF5)
 VALUE: GiD_PostBinary
