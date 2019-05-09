@@ -215,6 +215,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         }
     }
     else{
+        // To improve stability: use identity matrix to avoid nonzero diagonal LHS matrix
         if ( CalculateStiffnessMatrixFlag == true )
         {
             noalias(rLeftHandSideMatrix) = IdentityMatrix(matrix_size);
