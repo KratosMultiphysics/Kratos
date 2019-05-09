@@ -111,7 +111,7 @@ Element::Pointer SolidShellElementSprism3D6N::Create(
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<SolidShellElementSprism3D6N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<SolidShellElementSprism3D6N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 //************************************************************************************
@@ -122,7 +122,7 @@ Element::Pointer SolidShellElementSprism3D6N::Create(
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<SolidShellElementSprism3D6N>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<SolidShellElementSprism3D6N>(NewId, pGeom, pProperties);
 }
 
 /*********************************** CLONE ******************************************/
@@ -152,7 +152,7 @@ Element::Pointer SolidShellElementSprism3D6N::Clone(
     for(IndexType i = 0; i < mAuxContainer.size(); ++i)
         new_element.mAuxContainer[i] = mAuxContainer[i];
 
-    return Kratos::make_shared<SolidShellElementSprism3D6N>(new_element);
+    return Kratos::make_intrusive<SolidShellElementSprism3D6N>(new_element);
 }
 
 //******************************* GETTING METHODS *********************************//
@@ -3938,12 +3938,12 @@ void SolidShellElementSprism3D6N::CbartoFbar(
     const Matrix C_bar = MathUtils<double>::VectorToSymmetricTensor(rVariables.C);
 
     // Decompose matrix C_bar
-    MathUtils<double>::EigenSystem<3>(C_bar, eigen_vector_matrix, eigen_values_matrix, 1e-24, 100);
+    MathUtils<double>::GaussSeidelEigenSystem(C_bar, eigen_vector_matrix, eigen_values_matrix, 1e-24, 100);
 
     for (IndexType i = 0; i < 3; ++i)
         eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
 
-    const Matrix U_bar = prod( eigen_values_matrix, eigen_vector_matrix );
+    const Matrix U_bar = prod( eigen_values_matrix, trans(eigen_vector_matrix));
 
     /* Decompose F */
     Matrix F = ZeroMatrix(3, 3);

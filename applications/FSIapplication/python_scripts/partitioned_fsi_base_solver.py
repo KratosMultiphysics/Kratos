@@ -115,8 +115,9 @@ class PartitionedFSIBaseSolver(PythonSolver):
         # Get the minimum buffer size between the mesh, fluid and structure solvers
         self._GetAndSetMinimumBufferSize()
         # Fluid and structure solvers PrepareModelPart() call
-        self.fluid_solver.PrepareModelPart()
         self.structure_solver.PrepareModelPart()
+        self.fluid_solver.PrepareModelPart()
+        self.mesh_solver.PrepareModelPart()
 
     def AddDofs(self):
         # Add DOFs structure
@@ -145,14 +146,16 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
     def InitializeSolutionStep(self):
         # Initialize solution step of fluid, structure and coupling solvers
-        self.fluid_solver.InitializeSolutionStep()
         self.structure_solver.InitializeSolutionStep()
+        self.fluid_solver.InitializeSolutionStep()
+        self.mesh_solver.InitializeSolutionStep()
         self._GetConvergenceAccelerator().InitializeSolutionStep()
 
     def Predict(self):
         # Perform fluid and structure solvers predictions
-        self.fluid_solver.Predict()
         self.structure_solver.Predict()
+        self.fluid_solver.Predict()
+        self.mesh_solver.Predict()
 
     def GetComputingModelPart(self):
         err_msg =  'Calling GetComputingModelPart() method in a partitioned solver.\n'
@@ -187,8 +190,10 @@ class PartitionedFSIBaseSolver(PythonSolver):
             self._ComputeMeshPredictionSingleFaced()
 
         ## Non-Linear interface coupling iteration ##
-        for nl_it in range(1,self.max_nl_it+1):
-
+        nl_it = 0
+        is_converged = False
+        while not is_converged:
+            nl_it += 1
             self._PrintInfoOnRankZero("","\tFSI non-linear iteration = ", nl_it)
 
             self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
@@ -213,6 +218,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
             # Check convergence
             if nl_res_norm/sqrt(interface_dofs) < self.nl_tol:
+                is_converged = True
                 self._GetConvergenceAccelerator().FinalizeNonLinearIteration()
                 self._PrintInfoOnRankZero("","\tNon-linear iteration convergence achieved")
                 self._PrintInfoOnRankZero("","\tTotal non-linear iterations: ", nl_it, " |res|/sqrt(nDOFS) = ", nl_res_norm/sqrt(interface_dofs))
@@ -225,6 +231,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
                 if (nl_it == self.max_nl_it):
                     self._PrintWarningOnRankZero("","\tFSI NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED")
+                    break
 
         ## Compute the mesh residual as final testing (it is expected to be 0)
         mesh_res_norm = self.partitioned_fsi_utilities.ComputeInterfaceResidualNorm(
@@ -236,9 +243,12 @@ class PartitionedFSIBaseSolver(PythonSolver):
         self._PrintInfoOnRankZero("","\tNL residual norm: ", nl_res_norm)
         self._PrintInfoOnRankZero("","\tMesh residual norm: ", mesh_res_norm)
 
-        ## Finalize solution step
-        self.fluid_solver.FinalizeSolutionStep()
+        return is_converged
+
+    def FinalizeSolutionStep(self):
         self.structure_solver.FinalizeSolutionStep()
+        self.fluid_solver.FinalizeSolutionStep()
+        self.mesh_solver.FinalizeSolutionStep()
         self._GetConvergenceAccelerator().FinalizeSolutionStep()
 
     def SetEchoLevel(self, structure_echo_level, fluid_echo_level):

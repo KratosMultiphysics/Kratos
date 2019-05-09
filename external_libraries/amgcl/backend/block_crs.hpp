@@ -50,6 +50,7 @@ namespace backend {
  */
 template < typename V, typename C, typename P >
 struct bcrs {
+    typedef V value_type;
     typedef V val_type;
     typedef C col_type;
     typedef P ptr_type;
@@ -220,11 +221,6 @@ struct block_crs {
 //---------------------------------------------------------------------------
 // Specialization of backend interface
 //---------------------------------------------------------------------------
-template < typename V, typename C, typename P >
-struct value_type< bcrs<V, C, P> > {
-    typedef V type;
-};
-
 template < typename V, typename C, typename P >
 struct rows_impl< bcrs<V, C, P> > {
     static size_t get(const bcrs<V, C, P> &A) {

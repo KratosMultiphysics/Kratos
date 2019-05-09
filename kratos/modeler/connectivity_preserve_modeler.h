@@ -27,25 +27,47 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/node.h"
 #include "modeler/modeler.h"
 
 
 namespace Kratos
 {
+///@}
+///@name Kratos Classes
+///@{
 
 /// A tool to generate a copy of a ModelPart, sharing the same nodes as the original.
 class KRATOS_API(KRATOS_CORE) ConnectivityPreserveModeler : public Modeler
 {
 public:
+    ///@name Type Definitions
+    ///@{
 
     KRATOS_CLASS_POINTER_DEFINITION(ConnectivityPreserveModeler);
 
-    /// Constructor
-    ConnectivityPreserveModeler();
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default Constructor
+    ConnectivityPreserveModeler() = default;
+
+    /// Copy constructor.
+    ConnectivityPreserveModeler(ConnectivityPreserveModeler const& rOther) = delete;
 
     /// Destructor.
-    virtual ~ConnectivityPreserveModeler() override;
+    ~ConnectivityPreserveModeler() override = default;
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// Assignment operator.
+    ConnectivityPreserveModeler & operator=(ConnectivityPreserveModeler const& rOther) = delete;
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     /// Generate a copy of rOriginModelPart in rDestinationModelPart, using the given element and condtion types.
     /** This function fills rDestinationModelPart using data obtained from rOriginModelPart. The elements
@@ -58,53 +80,54 @@ public:
      *  @param rReferenceElement The Element type for rDestinationModelPart.
      *  @param rReferenceBoundaryCondition The Condition type for rDestinationModelPart.
      */
-    virtual void GenerateModelPart(
+    void GenerateModelPart(
         ModelPart& OriginModelPart,
         ModelPart& DestinationModelPart,
-        Element const& rReferenceElement,
-        Condition const& rReferenceBoundaryCondition
+        const Element& rReferenceElement,
+        const Condition& rReferenceBoundaryCondition
     ) override;
 
+    ///@}
+
 private:
+    ///@name Private Operations
+    ///@{
 
-    void CheckVariableLists(ModelPart &rOriginModelPart, ModelPart &rDestinationModelPart);
+    void CheckVariableLists(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart) const;
 
-    void ResetModelPart(ModelPart &rDestinationModelPart);
+    void ResetModelPart(ModelPart& rDestinationModelPart) const;
 
     void CopyCommonData(
-        ModelPart &rOriginModelPart,
-        ModelPart &rDestinationModelPart
-    );
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart
+    ) const;
 
     void DuplicateElements(
-        ModelPart &rOriginModelPart,
-        ModelPart &rDestinationModelPart,
-        Element const &rReferenceElement
-    );
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Element& rReferenceElement
+    ) const;
 
     void DuplicateConditions(
-        ModelPart &rOriginModelPart,
-        ModelPart &rDestinationModelPart,
-        Condition const &rReferenceBoundaryCondition
-    );
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Condition& rReferenceBoundaryCondition
+    ) const;
 
     void DuplicateCommunicatorData(
-        ModelPart &rOriginModelPart,
-        ModelPart &rDestinationModelPart
-    );
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart
+    ) const;
 
     void DuplicateSubModelParts(
-        ModelPart &rOriginModelPart,
-        ModelPart &rDestinationModelPart
-    );
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart
+    ) const;
 
-    ConnectivityPreserveModeler & operator=(ConnectivityPreserveModeler const& rOther);
-
-    /// Copy constructor.
-    ConnectivityPreserveModeler(ConnectivityPreserveModeler const& rOther);
-
-
+    ///@}
 };
+
+///@}
 
 } // namespace Kratos.
 

@@ -1,10 +1,10 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
-from json_utilities import *
+from KratosMultiphysics.json_utilities import read_external_json, write_external_json
 
 # Importing the base class
-from json_output_process import JsonOutputProcess
+from KratosMultiphysics.json_output_process import JsonOutputProcess
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -14,9 +14,6 @@ def Factory(settings, Model):
 # All the processes python processes should be derived from "Process"
 
 class ParticleMPMJsonOutputProcess(JsonOutputProcess):
-
-    def __init__(self, model_part, params):
-        super(ParticleMPMJsonOutputProcess, self).__init__(model_part, params)
 
     def ExecuteBeforeSolutionLoop(self):
 

@@ -1240,16 +1240,16 @@ public:
     static inline TMatrixType StressVectorToTensor(const TVector& rStressVector)
     {
         KRATOS_TRY;
-        TMatrixType stress_tensor;
+        
+        const SizeType matrix_size = rStressVector.size() == 3 ? 2 : 3;
+        TMatrixType stress_tensor(matrix_size, matrix_size);
 
         if (rStressVector.size()==3) {
-            stress_tensor.resize(2,2,false);
             stress_tensor(0,0) = rStressVector[0];
             stress_tensor(0,1) = rStressVector[2];
             stress_tensor(1,0) = rStressVector[2];
             stress_tensor(1,1) = rStressVector[1];
         } else if (rStressVector.size()==4) {
-            stress_tensor.resize(3,3,false);
             stress_tensor(0,0) = rStressVector[0];
             stress_tensor(0,1) = rStressVector[3];
             stress_tensor(0,2) = 0.0;
@@ -1260,7 +1260,6 @@ public:
             stress_tensor(2,1) = 0.0;
             stress_tensor(2,2) = rStressVector[2];
         } else if (rStressVector.size()==6) {
-            stress_tensor.resize(3,3,false);
             stress_tensor(0,0) = rStressVector[0];
             stress_tensor(0,1) = rStressVector[3];
             stress_tensor(0,2) = rStressVector[5];
@@ -1293,39 +1292,37 @@ public:
     {
         KRATOS_TRY;
 
-        TMatrixType Tensor;
+        const SizeType matrix_size = rVector.size() == 3 ? 2 : 3;
+        TMatrixType tensor(matrix_size, matrix_size);
 
         if (rVector.size() == 3) {
-            Tensor.resize(2,2,false);
-            Tensor(0,0) = rVector[0];
-            Tensor(0,1) = rVector[2];
-            Tensor(1,0) = rVector[2];
-            Tensor(1,1) = rVector[1];
+            tensor(0,0) = rVector[0];
+            tensor(0,1) = rVector[2];
+            tensor(1,0) = rVector[2];
+            tensor(1,1) = rVector[1];
         } else if (rVector.size() == 4) {
-            Tensor.resize(3,3,false);
-            Tensor(0,0) = rVector[0];
-            Tensor(0,1) = rVector[3];
-            Tensor(0,2) = 0.0;
-            Tensor(1,0) = rVector[3];
-            Tensor(1,1) = rVector[1];
-            Tensor(1,2) = 0.0;
-            Tensor(2,0) = 0.0;
-            Tensor(2,1) = 0.0;
-            Tensor(2,2) = rVector[2];
+            tensor(0,0) = rVector[0];
+            tensor(0,1) = rVector[3];
+            tensor(0,2) = 0.0;
+            tensor(1,0) = rVector[3];
+            tensor(1,1) = rVector[1];
+            tensor(1,2) = 0.0;
+            tensor(2,0) = 0.0;
+            tensor(2,1) = 0.0;
+            tensor(2,2) = rVector[2];
         } else if (rVector.size() == 6) {
-            Tensor.resize(3,3,false);
-            Tensor(0,0) = rVector[0];
-            Tensor(0,1) = rVector[3];
-            Tensor(0,2) = rVector[5];
-            Tensor(1,0) = rVector[3];
-            Tensor(1,1) = rVector[1];
-            Tensor(1,2) = rVector[4];
-            Tensor(2,0) = rVector[5];
-            Tensor(2,1) = rVector[4];
-            Tensor(2,2) = rVector[2];
+            tensor(0,0) = rVector[0];
+            tensor(0,1) = rVector[3];
+            tensor(0,2) = rVector[5];
+            tensor(1,0) = rVector[3];
+            tensor(1,1) = rVector[1];
+            tensor(1,2) = rVector[4];
+            tensor(2,0) = rVector[5];
+            tensor(2,1) = rVector[4];
+            tensor(2,2) = rVector[2];
         }
 
-        return Tensor;
+        return tensor;
 
         KRATOS_CATCH("");
     }
@@ -1360,17 +1357,15 @@ public:
     {
         KRATOS_TRY
 
-        TMatrixType strain_tensor;
+        const SizeType matrix_size = rStrainVector.size() == 3 ? 2 : 3;
+        TMatrixType strain_tensor(matrix_size, matrix_size);
 
         if (rStrainVector.size()==3) {
-            strain_tensor.resize(2,2, false);
-
             strain_tensor(0,0) = rStrainVector[0];
             strain_tensor(0,1) = 0.5*rStrainVector[2];
             strain_tensor(1,0) = 0.5*rStrainVector[2];
             strain_tensor(1,1) = rStrainVector[1];
         } else if (rStrainVector.size()==4) {
-            strain_tensor.resize(3,3, false);
             strain_tensor(0,0) = rStrainVector[0];
             strain_tensor(0,1) = 0.5*rStrainVector[3];
             strain_tensor(0,2) = 0;
@@ -1381,7 +1376,6 @@ public:
             strain_tensor(2,1) = 0;
             strain_tensor(2,2) = rStrainVector[2];
         } else if (rStrainVector.size()==6) {
-            strain_tensor.resize(3,3, false);
             strain_tensor(0,0) = rStrainVector[0];
             strain_tensor(0,1) = 0.5*rStrainVector[3];
             strain_tensor(0,2) = 0.5*rStrainVector[5];
@@ -1391,8 +1385,6 @@ public:
             strain_tensor(2,0) = 0.5*rStrainVector[5];
             strain_tensor(2,1) = 0.5*rStrainVector[4];
             strain_tensor(2,2) = rStrainVector[2];
-
-
         }
 
         return strain_tensor;
@@ -1422,8 +1414,6 @@ public:
     {
         KRATOS_TRY;
 
-        Vector StrainVector;
-
         if(rSize == 0) {
             if(rStrainTensor.size1() == 2) {
                 rSize = 3;
@@ -1431,29 +1421,28 @@ public:
                 rSize = 6;
             }
         }
+        
+        Vector strain_vector(rSize);
 
         if (rSize == 3) {
-            StrainVector.resize(3,false);
-            StrainVector[0] = rStrainTensor(0,0);
-            StrainVector[1] = rStrainTensor(1,1);
-            StrainVector[2] = 2.0*rStrainTensor(0,1);
+            strain_vector[0] = rStrainTensor(0,0);
+            strain_vector[1] = rStrainTensor(1,1);
+            strain_vector[2] = 2.0*rStrainTensor(0,1);
         } else if (rSize == 4) {
-            StrainVector.resize(4,false);
-            StrainVector[0] = rStrainTensor(0,0);
-            StrainVector[1] = rStrainTensor(1,1);
-            StrainVector[2] = rStrainTensor(2,2);
-            StrainVector[3] = 2.0*rStrainTensor(0,1);
+            strain_vector[0] = rStrainTensor(0,0);
+            strain_vector[1] = rStrainTensor(1,1);
+            strain_vector[2] = rStrainTensor(2,2);
+            strain_vector[3] = 2.0*rStrainTensor(0,1);
         } else if (rSize == 6) {
-            StrainVector.resize(6,false);
-            StrainVector[0] = rStrainTensor(0,0);
-            StrainVector[1] = rStrainTensor(1,1);
-            StrainVector[2] = rStrainTensor(2,2);
-            StrainVector[3] = 2.0*rStrainTensor(0,1);
-            StrainVector[4] = 2.0*rStrainTensor(1,2);
-            StrainVector[5] = 2.0*rStrainTensor(0,2);
+            strain_vector[0] = rStrainTensor(0,0);
+            strain_vector[1] = rStrainTensor(1,1);
+            strain_vector[2] = rStrainTensor(2,2);
+            strain_vector[3] = 2.0*rStrainTensor(0,1);
+            strain_vector[4] = 2.0*rStrainTensor(1,2);
+            strain_vector[5] = 2.0*rStrainTensor(0,2);
         }
 
-        return StrainVector;
+        return strain_vector;
 
         KRATOS_CATCH("");
      }
@@ -1480,39 +1469,35 @@ public:
     {
         KRATOS_TRY;
 
-        TVector StressVector;
-
         if(rSize == 0) {
             if(rStressTensor.size1() == 2) {
                 rSize = 3;
-            }
-            else if(rStressTensor.size1() == 3) {
+            } else if(rStressTensor.size1() == 3) {
                 rSize = 6;
             }
         }
+        
+        TVector stress_vector(rSize);
 
         if (rSize == 3) {
-            if (StressVector.size() != 3) StressVector.resize(3,false);
-            StressVector[0] = rStressTensor(0,0);
-            StressVector[1] = rStressTensor(1,1);
-            StressVector[2] = rStressTensor(0,1);
+            stress_vector[0] = rStressTensor(0,0);
+            stress_vector[1] = rStressTensor(1,1);
+            stress_vector[2] = rStressTensor(0,1);
         } else if (rSize == 4) {
-            if (StressVector.size() != 4) StressVector.resize(4,false);
-            StressVector[0] = rStressTensor(0,0);
-            StressVector[1] = rStressTensor(1,1);
-            StressVector[2] = rStressTensor(2,2);
-            StressVector[3] = rStressTensor(0,1);
+            stress_vector[0] = rStressTensor(0,0);
+            stress_vector[1] = rStressTensor(1,1);
+            stress_vector[2] = rStressTensor(2,2);
+            stress_vector[3] = rStressTensor(0,1);
         } else if (rSize == 6) {
-            if (StressVector.size() != 6) StressVector.resize(6,false);
-            StressVector[0] = rStressTensor(0,0);
-            StressVector[1] = rStressTensor(1,1);
-            StressVector[2] = rStressTensor(2,2);
-            StressVector[3] = rStressTensor(0,1);
-            StressVector[4] = rStressTensor(1,2);
-            StressVector[5] = rStressTensor(0,2);
+            stress_vector[0] = rStressTensor(0,0);
+            stress_vector[1] = rStressTensor(1,1);
+            stress_vector[2] = rStressTensor(2,2);
+            stress_vector[3] = rStressTensor(0,1);
+            stress_vector[4] = rStressTensor(1,2);
+            stress_vector[5] = rStressTensor(0,2);
         }
 
-        return StressVector;
+        return stress_vector;
 
         KRATOS_CATCH("");
      }
@@ -1536,8 +1521,6 @@ public:
     {
         KRATOS_TRY;
 
-        Vector vector;
-
         if(rSize == 0) {
             if(rTensor.size1() == 2) {
                 rSize = 3;
@@ -1545,21 +1528,20 @@ public:
                 rSize = 6;
             }
         }
+        
+        Vector vector(rSize);
 
         if (rSize == 3) {
-            vector.resize(3,false);
             vector[0]= rTensor(0,0);
             vector[1]= rTensor(1,1);
             vector[2]= rTensor(0,1);
 
         } else if (rSize==4) {
-            vector.resize(4,false);
             vector[0]= rTensor(0,0);
             vector[1]= rTensor(1,1);
             vector[2]= rTensor(2,2);
             vector[3]= rTensor(0,1);
         } else if (rSize==6) {
-            vector.resize(6);
             vector[0]= rTensor(0,0);
             vector[1]= rTensor(1,1);
             vector[2]= rTensor(2,2);
@@ -1574,45 +1556,150 @@ public:
      }
 
     /**
-     * @brief Calculates the eigenvectors and eigenvalues of given symmetric TDimxTDim matrix
-     * @details The eigenvectors and eigenvalues are calculated using the iterative Gauss-Seidel-method
+     * @brief Calculates the product operation B'DB
+     * @param rA The resulting matrix
+     * @param rD The "center" matrix
+     * @param rB The matrices to be transposed
+     * @tparam TMatrixType1 The type of matrix considered (1)
+     * @tparam TMatrixType2 The type of matrix considered (2)
+     * @tparam TMatrixType3 The type of matrix considered (3)
+     */
+    template<class TMatrixType1, class TMatrixType2, class TMatrixType3>
+    static inline void BtDBProductOperation(
+        TMatrixType1& rA,
+        const TMatrixType2& rD,
+        const TMatrixType3& rB
+        )
+    {
+        // The sizes
+        const SizeType size1 = rB.size2();
+        const SizeType size2 = rB.size2();
+
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        KRATOS_WARNING_IF("BtDBProductOperation", rA.size1() != size1 || rA.size2() != size2) << "BtDBProductOperation has detected an incorrect size of your resulting matrix matrix. Please resize before compute" << std::endl;
+#else
+        if (rA.size1() != size1 || rA.size2() != size2)
+            rA.resize(size1, size2, false);
+#endif // KRATOS_USE_AMATRIX
+
+        // Direct multiplication
+        // noalias(rA) = prod( trans( rB ), MatrixType(prod(rD, rB)));
+
+        // Manual multiplication
+        rA.clear();
+        for(IndexType k = 0; k< rD.size1(); ++k) {
+            for(IndexType l = 0; l < rD.size2(); ++l) {
+                const double Dkl = rD(k, l);
+                for(IndexType j = 0; j < rB.size2(); ++j) {
+                    const double DklBlj = Dkl * rB(l, j);
+                    for(IndexType i = 0; i< rB.size2(); ++i) {
+                        rA(i, j) += rB(k, i) * DklBlj;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @brief Calculates the product operation BDB'
+     * @param rA The resulting matrix
+     * @param rD The "center" matrix
+     * @param rB The matrices to be transposed
+     * @tparam TMatrixType1 The type of matrix considered (1)
+     * @tparam TMatrixType2 The type of matrix considered (2)
+     * @tparam TMatrixType3 The type of matrix considered (3)
+     */
+    template<class TMatrixType1, class TMatrixType2, class TMatrixType3>
+    static inline void BDBtProductOperation(
+        TMatrixType1& rA,
+        const TMatrixType2& rD,
+        const TMatrixType3& rB
+        )
+    {
+        // The sizes
+        const SizeType size1 = rB.size1();
+        const SizeType size2 = rB.size1();
+
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        KRATOS_WARNING_IF("BDBtProductOperation", rA.size1() != size1 || rA.size2() != size2) << "BDBtProductOperation has detected an incorrect size of your resulting matrix matrix. Please resize before compute" << std::endl;
+#else
+        if (rA.size1() != size1 || rA.size2() != size2)
+            rA.resize(size1, size2, false);
+#endif // KRATOS_USE_AMATRIX
+
+        // Direct multiplication
+        // noalias(rA) = prod(rB, MatrixType(prod(rD, trans(rB))));
+
+        // Manual multiplication
+        rA.clear();
+        for(IndexType k = 0; k< rD.size1(); ++k) {
+            for(IndexType l = 0; l < rD.size2(); ++l) {
+                const double Dkl = rD(k,l);
+                for(IndexType j = 0; j < rB.size1(); ++j) {
+                    const double DklBjl = Dkl * rB(j,l);
+                    for(IndexType i = 0; i< rB.size1(); ++i) {
+                        rA(i, j) += rB(i, k) * DklBjl;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @brief Calculates the eigenvectors and eigenvalues of given symmetric matrix
+     * @details The eigenvectors and eigenvalues are calculated using the iterative Gauss-Seidel-method. The resulting decomposition is LDL'
      * @note See https://en.wikipedia.org/wiki/Gauss%E2%80%93Seidel_method
-     * @param A The given symmetric matrix the eigenvectors are to be calculated.
+     * @param rA The given symmetric matrix the eigenvectors are to be calculated.
      * @param rEigenVectorsMatrix The result matrix (will be overwritten with the eigenvectors)
      * @param rEigenValuesMatrix The result diagonal matrix with the eigenvalues
      * @param Tolerance The largest value considered to be zero
      * @param MaxIterations Maximum number of iterations
+     * @tparam TMatrixType1 The type of matrix considered (1)
+     * @tparam TMatrixType2 The type of matrix considered (2)
      */
-    template<SizeType TDim>
-    static inline bool EigenSystem(
-        const BoundedMatrix<TDataType, TDim, TDim>& A,
-        BoundedMatrix<TDataType, TDim, TDim>& rEigenVectorsMatrix,
-        BoundedMatrix<TDataType, TDim, TDim>& rEigenValuesMatrix,
+    template<class TMatrixType1, class TMatrixType2>
+    static inline bool GaussSeidelEigenSystem(
+        const TMatrixType1& rA,
+        TMatrixType2& rEigenVectorsMatrix,
+        TMatrixType2& rEigenValuesMatrix,
         const TDataType Tolerance = 1.0e-18,
         const SizeType MaxIterations = 20
         )
     {
         bool is_converged = false;
-        rEigenValuesMatrix = ZeroMatrix(TDim,TDim);
-        BoundedMatrix<TDataType, TDim, TDim> temp_mat = A;
-        BoundedMatrix<TDataType, TDim, TDim> aux_A;
 
-        const BoundedMatrix<TDataType, TDim, TDim> identity_matrix = IdentityMatrix(TDim);
-        BoundedMatrix<TDataType, TDim, TDim> V_matrix = identity_matrix;
-        BoundedMatrix<TDataType, TDim, TDim> aux_V_matrix;
-        BoundedMatrix<TDataType, TDim, TDim> rotation_matrix;
+        const SizeType size = rA.size1();
+
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        KRATOS_WARNING_IF("EigenSystem", rEigenVectorsMatrix.size1() != size || rEigenVectorsMatrix.size2() != size) << "EigenSystem has detected an incorrect size of your EigenVectorsMatrix matrix. Please resize before compute" << std::endl;
+        KRATOS_WARNING_IF("EigenSystem", rEigenValuesMatrix.size1() != size || rEigenValuesMatrix.size2() != size) << "EigenSystem has detected an incorrect size of your EigenValuesMatrix matrix. Please resize before compute" << std::endl;
+#else
+        if (rEigenVectorsMatrix.size1() != size || rEigenVectorsMatrix.size2() != size)
+            rEigenVectorsMatrix.resize(size, size, false);
+        if (rEigenValuesMatrix.size1() != size || rEigenValuesMatrix.size2() != size)
+            rEigenValuesMatrix.resize(size, size, false);
+#endif // KRATOS_USE_AMATRIX
+
+        const TMatrixType2 identity_matrix = IdentityMatrix(size);
+        noalias(rEigenVectorsMatrix) = identity_matrix;
+        noalias(rEigenValuesMatrix) = rA;
+
+        // Auxiliar values
+        TMatrixType2 aux_A, aux_V_matrix, rotation_matrix;
+        TDataType a, u, c, s, gamma, teta;
+        IndexType index1, index2;
 
         for(IndexType iterations = 0; iterations < MaxIterations; ++iterations) {
             is_converged = true;
 
-            TDataType a = 0.0;
-            IndexType index1 = 0;
-            IndexType index2 = 1;
+            a = 0.0;
+            index1 = 0;
+            index2 = 1;
 
-            for(IndexType i = 0; i < TDim; ++i) {
-                for(IndexType j = (i + 1); j < TDim; ++j) {
-                    if((std::abs(temp_mat(i, j)) > a ) && (std::abs(temp_mat(i, j)) > Tolerance)) {
-                        a = std::abs(temp_mat(i,j));
+            for(IndexType i = 0; i < size; ++i) {
+                for(IndexType j = (i + 1); j < size; ++j) {
+                    if((std::abs(rEigenValuesMatrix(i, j)) > a ) && (std::abs(rEigenValuesMatrix(i, j)) > Tolerance)) {
+                        a = std::abs(rEigenValuesMatrix(i,j));
                         index1 = i;
                         index2 = j;
                         is_converged = false;
@@ -1625,8 +1712,8 @@ public:
             }
 
             // Calculation of Rotation angle
-            const TDataType gamma = (temp_mat(index2, index2)-temp_mat(index1, index1)) / (2 * temp_mat(index1, index2));
-            TDataType u = 1.0;
+            gamma = (rEigenValuesMatrix(index2, index2)-rEigenValuesMatrix(index1, index1)) / (2 * rEigenValuesMatrix(index1, index2));
+            u = 1.0;
 
             if(std::abs(gamma) > Tolerance && std::abs(gamma)< (1.0/Tolerance)) {
                 u = gamma / std::abs(gamma) * 1.0 / (std::abs(gamma) + std::sqrt(1.0 + gamma * gamma));
@@ -1636,51 +1723,78 @@ public:
                 }
             }
 
-            const TDataType c = 1.0 / (std::sqrt(1.0 + u * u));
-            const TDataType s = c * u;
-            const TDataType teta = s / (1.0 + c);
+            c = 1.0 / (std::sqrt(1.0 + u * u));
+            s = c * u;
+            teta = s / (1.0 + c);
 
             // Rotation of the Matrix
-            aux_A = temp_mat;
-            aux_A(index2, index2) = temp_mat(index2,index2) + u * temp_mat(index1, index2);
-            aux_A(index1, index1) = temp_mat(index1,index1) - u * temp_mat(index1, index2);
+            noalias(aux_A) = rEigenValuesMatrix;
+            aux_A(index2, index2) = rEigenValuesMatrix(index2,index2) + u * rEigenValuesMatrix(index1, index2);
+            aux_A(index1, index1) = rEigenValuesMatrix(index1,index1) - u * rEigenValuesMatrix(index1, index2);
             aux_A(index1, index2) = 0.0;
             aux_A(index2, index1) = 0.0;
 
-            for(IndexType i = 0; i < TDim; ++i) {
+            for(IndexType i = 0; i < size; ++i) {
                 if((i!= index1) && (i!= index2)) {
-                    aux_A(index2, i) = temp_mat(index2, i) + s * (temp_mat(index1, i)- teta * temp_mat(index2, i));
-                    aux_A(i, index2) = temp_mat(index2, i) + s * (temp_mat(index1, i)- teta * temp_mat(index2, i));
-                    aux_A(index1, i) = temp_mat(index1, i) - s * (temp_mat(index2, i) + teta * temp_mat(index1, i));
-                    aux_A(i, index1) = temp_mat(index1, i) - s * (temp_mat(index2, i) + teta * temp_mat(index1, i));
+                    aux_A(index2, i) = rEigenValuesMatrix(index2, i) + s * (rEigenValuesMatrix(index1, i)- teta * rEigenValuesMatrix(index2, i));
+                    aux_A(i, index2) = rEigenValuesMatrix(index2, i) + s * (rEigenValuesMatrix(index1, i)- teta * rEigenValuesMatrix(index2, i));
+                    aux_A(index1, i) = rEigenValuesMatrix(index1, i) - s * (rEigenValuesMatrix(index2, i) + teta * rEigenValuesMatrix(index1, i));
+                    aux_A(i, index1) = rEigenValuesMatrix(index1, i) - s * (rEigenValuesMatrix(index2, i) + teta * rEigenValuesMatrix(index1, i));
                 }
             }
 
-            temp_mat = aux_A;
+            noalias(rEigenValuesMatrix) = aux_A;
 
             // Calculation of the eigeneigen vector matrix V
-            rotation_matrix = identity_matrix;
+            noalias(rotation_matrix) = identity_matrix;
             rotation_matrix(index2, index1) = -s;
             rotation_matrix(index1, index2) =  s;
             rotation_matrix(index1, index1) =  c;
             rotation_matrix(index2, index2) =  c;
 
-            aux_V_matrix = ZeroMatrix(TDim, TDim);
+            noalias(aux_V_matrix) = ZeroMatrix(size, size);
 
-            for(IndexType i = 0; i < TDim; ++i) {
-                for(IndexType j = 0; j < TDim; ++j) {
-                    for(IndexType k = 0; k < TDim; ++k) {
-                        aux_V_matrix(i, j) += V_matrix(i, k) * rotation_matrix(k, j);
+            for(IndexType i = 0; i < size; ++i) {
+                for(IndexType j = 0; j < size; ++j) {
+                    for(IndexType k = 0; k < size; ++k) {
+                        aux_V_matrix(i, j) += rEigenVectorsMatrix(i, k) * rotation_matrix(k, j);
                     }
                 }
             }
-            V_matrix = aux_V_matrix;
+            noalias(rEigenVectorsMatrix) = aux_V_matrix;
         }
 
         KRATOS_WARNING_IF("MathUtils::EigenSystem", !is_converged) << "Spectral decomposition not converged " << std::endl;
 
+        return is_converged;
+    }
+
+    /**
+     * @brief Calculates the eigenvectors and eigenvalues of given symmetric TDimxTDim matrix
+     * @details The eigenvectors and eigenvalues are calculated using the iterative Gauss-Seidel-method. The resulting decomposition is L'DL
+     * @note See https://en.wikipedia.org/wiki/Gauss%E2%80%93Seidel_method
+     * @param A The given symmetric matrix the eigenvectors are to be calculated.
+     * @param rEigenVectorsMatrix The result matrix (will be overwritten with the eigenvectors)
+     * @param rEigenValuesMatrix The result diagonal matrix with the eigenvalues
+     * @param Tolerance The largest value considered to be zero
+     * @param MaxIterations Maximum number of iterations
+     * @tparam TDim The size of the bounded matrix
+     * @warning This method is deprecated. Will be removed soon
+     */
+    template<SizeType TDim>
+    KRATOS_DEPRECATED_MESSAGE("Please use GaussSeidelEigenSystem() instead. Note the resulting EigenVectors matrix is transposed respect GaussSeidelEigenSystem()")
+    static inline bool EigenSystem(
+        const BoundedMatrix<TDataType, TDim, TDim>& rA,
+        BoundedMatrix<TDataType, TDim, TDim>& rEigenVectorsMatrix,
+        BoundedMatrix<TDataType, TDim, TDim>& rEigenValuesMatrix,
+        const TDataType Tolerance = 1.0e-18,
+        const SizeType MaxIterations = 20
+        )
+    {
+        const bool is_converged = GaussSeidelEigenSystem(rA, rEigenVectorsMatrix, rEigenValuesMatrix, Tolerance, MaxIterations);
+
+        const BoundedMatrix<TDataType, TDim, TDim> V_matrix = rEigenVectorsMatrix;
         for(IndexType i = 0; i < TDim; ++i) {
-            rEigenValuesMatrix(i, i) = temp_mat(i, i);
             for(IndexType j = 0; j < TDim; ++j) {
                 rEigenVectorsMatrix(i, j) = V_matrix(j, i);
             }

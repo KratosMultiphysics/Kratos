@@ -27,7 +27,7 @@ class KRATOS_API(DEM_APPLICATION) DEMWall : public Condition
 public:
 
     // Counted pointer of DEMWall
-    KRATOS_CLASS_POINTER_DEFINITION( DEMWall );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( DEMWall );
 
 
 	typedef WeakPointerVector<Element> ParticleWeakVectorType;
@@ -105,7 +105,9 @@ public:
      * or that no common error is found.
      * @param r_process_info
      */
-
+    std::vector<SphericParticle*>& GetVectorOfGluedParticles() {
+        return mVectorOfGluedParticles;
+    }
 
 
 protected:
@@ -114,7 +116,7 @@ protected:
 
 private:
     ///@name Static Member Variables
-
+    std::vector<SphericParticle*> mVectorOfGluedParticles;
     /// privat variables
 
 

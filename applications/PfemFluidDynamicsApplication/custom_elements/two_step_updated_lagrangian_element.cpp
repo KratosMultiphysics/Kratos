@@ -263,6 +263,33 @@ namespace Kratos {
   }
 
   template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianElement<TDim>::GetFluidFractionRateValues(Vector& rValues)
+  {
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+
+    if (rValues.size() != NumNodes) rValues.resize(NumNodes);
+
+    for (SizeType i = 0; i < NumNodes; ++i){
+      rValues[i] = rGeom[i].FastGetSolutionStepValue(FLUID_FRACTION_RATE);
+    }
+  }
+
+
+  template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianElement<TDim>::GetFluidFractionRateOldValues(Vector& rValues)
+  {
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+
+    if (rValues.size() != NumNodes) rValues.resize(NumNodes);
+
+    // for (SizeType i = 0; i < NumNodes; ++i){
+    //   rValues[i] = rGeom[i].FastGetSolutionStepValue(FLUID_FRACTION_RATE_OLD);
+    // }
+  }
+
+  template< unsigned int TDim >
   void TwoStepUpdatedLagrangianElement<TDim>::GetDensityValues(Vector& rValues,
 							       const int Step)
   {
@@ -669,17 +696,15 @@ namespace Kratos {
     //Inverse
     rElementalVariables.InvFgrad=ZeroMatrix(dimension,dimension);
     rElementalVariables.DetFgrad=1;
-    MathUtils<double>::InvertMatrix(rElementalVariables.Fgrad,
+    MathUtils<double>::InvertMatrix2(rElementalVariables.Fgrad,
 				    rElementalVariables.InvFgrad,
-				    rElementalVariables.DetFgrad,
-                    -1.0);
+				    rElementalVariables.DetFgrad);
 
-    rElementalVariables.InvFgradVel=ZeroMatrix(dimension,dimension);
-    rElementalVariables.DetFgradVel=1;
-    MathUtils<double>::InvertMatrix(rElementalVariables.FgradVel,
-				    rElementalVariables.InvFgradVel,
-				    rElementalVariables.DetFgradVel,
-                    -1.0);
+    // rElementalVariables.InvFgradVel=ZeroMatrix(dimension,dimension);
+    // rElementalVariables.DetFgradVel=1;
+    // MathUtils<double>::InvertMatrix2(rElementalVariables.FgradVel,
+		// 		    rElementalVariables.InvFgradVel,
+		// 		    rElementalVariables.DetFgradVel);
 
 
     //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
@@ -783,17 +808,15 @@ namespace Kratos {
     //Inverse
     rElementalVariables.InvFgrad=ZeroMatrix(dimension,dimension);
     rElementalVariables.DetFgrad=1;
-    MathUtils<double>::InvertMatrix(rElementalVariables.Fgrad,
+    MathUtils<double>::InvertMatrix3(rElementalVariables.Fgrad,
 				    rElementalVariables.InvFgrad,
-				    rElementalVariables.DetFgrad,
-                    -1.0);
+				    rElementalVariables.DetFgrad);
 
-    rElementalVariables.InvFgradVel=ZeroMatrix(dimension,dimension);
-    rElementalVariables.DetFgradVel=1;
-    MathUtils<double>::InvertMatrix(rElementalVariables.FgradVel,
-				    rElementalVariables.InvFgradVel,
-				    rElementalVariables.DetFgradVel,
-                    -1.0);
+    // rElementalVariables.InvFgradVel=ZeroMatrix(dimension,dimension);
+    // rElementalVariables.DetFgradVel=1;
+    // MathUtils<double>::InvertMatrix3(rElementalVariables.FgradVel,
+		// 		    rElementalVariables.InvFgradVel,
+		// 		    rElementalVariables.DetFgradVel);
 
 
     //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
@@ -928,8 +951,6 @@ namespace Kratos {
     //it computes the material time derivative of the deformation gradient and its jacobian and inverse
     this->CalcVelDefGrad(rDN_DX,
 			 rElementalVariables.FgradVel,
-			 rElementalVariables.InvFgradVel,
-			 rElementalVariables.DetFgradVel,
 			 theta);
 
     //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
@@ -1015,8 +1036,11 @@ namespace Kratos {
     invFgrad=ZeroMatrix(TDim,TDim);
     FJacobian=1;
 
-
-    MathUtils<double>::InvertMatrix( Fgrad, invFgrad, FJacobian, -1.0);
+    if(TDim==2){
+     MathUtils< double>::InvertMatrix2( Fgrad, invFgrad, FJacobian);
+    }else if(TDim==3){
+     MathUtils< double>::InvertMatrix3( Fgrad, invFgrad, FJacobian);
+    }
 
     // Fgrad.resize(2,2);
 
@@ -1053,9 +1077,39 @@ namespace Kratos {
   }
 
 
-
   template < unsigned int TDim>
   void TwoStepUpdatedLagrangianElement<TDim>::CalcVelDefGrad(const ShapeFunctionDerivativesType& rDN_DX,
+							     MatrixType &FgradVel,
+							     const double theta)
+  {
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = TDim*NumNodes;
+    VectorType VelocityValues = ZeroVector(LocalSize);
+    VectorType RHSVelocities = ZeroVector(LocalSize);
+    this->GetVelocityValues(RHSVelocities,0);
+    RHSVelocities*=theta;
+    this->GetVelocityValues(VelocityValues,1);
+    RHSVelocities+=VelocityValues*(1.0-theta);
+
+    FgradVel.resize(TDim,TDim,false);
+
+    FgradVel=ZeroMatrix(TDim,TDim);
+    for (SizeType i = 0; i < TDim; i++)
+      {
+	for (SizeType j = 0; j < TDim; j++)
+	  {
+	    for (SizeType k = 0; k < NumNodes; k++)
+	      {
+		FgradVel(i,j)+= RHSVelocities[TDim*k+i]*rDN_DX(k,j);
+	      }
+	  }
+      }
+
+  }
+
+  template < unsigned int TDim>
+  void TwoStepUpdatedLagrangianElement<TDim>::CalcVelDefGradAndInverse(const ShapeFunctionDerivativesType& rDN_DX,
 							     MatrixType &FgradVel,
 							     MatrixType &invFgradVel,
 							     double &FVelJacobian,
@@ -1091,8 +1145,11 @@ namespace Kratos {
     invFgradVel=ZeroMatrix(TDim,TDim);
     FVelJacobian=1;
 
-    MathUtils<double>::InvertMatrix( FgradVel, invFgradVel, FVelJacobian, -1.0);
-
+    if(TDim==2){
+     MathUtils< double>::InvertMatrix2( FgradVel, invFgradVel, FVelJacobian);
+    }else if(TDim==3){
+     MathUtils< double>::InvertMatrix3( FgradVel, invFgradVel, FVelJacobian);
+    }
 
   }
 

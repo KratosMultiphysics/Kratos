@@ -41,6 +41,7 @@
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_solid_element.h"
 #include "custom_elements/updated_lagrangian_V_implicit_solid_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_DEM_coupling_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_fluid_element.h"
 #include "custom_elements/two_step_updated_lagrangian_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_explicit_element.h"
@@ -273,6 +274,14 @@ namespace Kratos
     /// 3D two step v-p fluid element
     const TwoStepUpdatedLagrangianVPImplicitFluidElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidElement3D;
     const TwoStepUpdatedLagrangianVPImplicitFluidElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidElement3Dquadratic;
+    
+    /// 2D two step v-p fluid DEMcoupling element
+    const TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement2D;
+    const TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement2Dquadratic;
+
+    /// 3D two step v-p fluid DEMcoupling element
+    const TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement3D;
+    const TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement3Dquadratic;
 
     /// 2D two step v-p fluid element
     const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<2> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement2D;

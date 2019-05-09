@@ -286,7 +286,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         #}
         #""")
 
-        #out = json_output_process.JsonOutputProcess(model, out_parameters)
+        #out = json_output_process.JsonOutputProcess(current_model, out_parameters)
         #out.ExecuteInitialize()
         #out.ExecuteBeforeSolutionLoop()
         #out.ExecuteFinalizeSolutionStep()

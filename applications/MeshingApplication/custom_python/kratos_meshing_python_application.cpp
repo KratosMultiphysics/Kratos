@@ -22,6 +22,7 @@
 #include "includes/define.h"
 #include "includes/define_python.h"
 #include "meshing_application.h"
+#include "meshing_application_variables.h"
 #include "custom_python/add_meshers_to_python.h"
 #include "custom_python/add_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -55,6 +56,8 @@ PYBIND11_MODULE(KratosMeshingApplication,m)
     //for ULF (surface_tension) application:
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TRIPLE_POINT)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONTACT_ANGLE)
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SUBSCALE_INDEX)
 }
 
 }  // namespace Python.
@@ -62,6 +65,3 @@ PYBIND11_MODULE(KratosMeshingApplication,m)
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined
-
-
-

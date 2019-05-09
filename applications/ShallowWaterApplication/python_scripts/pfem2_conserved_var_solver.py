@@ -3,11 +3,8 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 ## Import base class file
-from pfem2_primitive_var_solver import Pfem2PrimitiveVarSolver
+from KratosMultiphysics.ShallowWaterApplication.pfem2_primitive_var_solver import Pfem2PrimitiveVarSolver
 
 def CreateSolver(model, custom_settings):
     return Pfem2ConservedVarSolver(model, custom_settings)
@@ -33,7 +30,7 @@ class Pfem2ConservedVarSolver(Pfem2PrimitiveVarSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Y, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(Shallow.HEIGHT, self.main_model_part)
 
-        self.print_on_rank_zero("::[Pfem2ConservedVarSolver]::", "Shallow water solver DOFs added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("::[Pfem2ConservedVarSolver]::", "Shallow water solver DOFs added correctly.")
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
@@ -45,5 +42,9 @@ class Pfem2ConservedVarSolver(Pfem2PrimitiveVarSolver):
             self.ShallowVariableUtils.ComputeFreeSurfaceElevation()
             # If water height is negative or close to zero, reset values
             self.ShallowVariableUtils.CheckDryConservedVariables()
+            if self.print_particles:
+                self.lagrangian_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+                self.lagrangian_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+                self.moveparticles.ExecuteParticlesPrintingTool(self.lagrangian_model_part, self.filter_factor)
 
             return is_converged
