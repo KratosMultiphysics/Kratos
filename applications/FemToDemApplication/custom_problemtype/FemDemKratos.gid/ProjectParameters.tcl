@@ -25,6 +25,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"time_step\":            [GiD_AccessValue get gendata Delta_Time],"
 	puts $FileVar "        \"echo_level\":           0"
     puts $FileVar "    \},"
+    puts $FileVar "  \"pressure_load_extrapolation\":     [GiD_AccessValue get gendata Extrapolate_Pressure_Load],"
+    puts $FileVar "  \"displacement_perturbed_tangent\":  [GiD_AccessValue get gendata Displacement_Perturbed_Tangent_Computation]"
     
     ## solver_settings
     puts $FileVar "   \"solver_settings\": \{"

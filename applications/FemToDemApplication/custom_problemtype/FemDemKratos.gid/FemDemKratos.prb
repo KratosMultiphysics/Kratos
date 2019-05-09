@@ -17,6 +17,12 @@ VALUE: Plane_Stress
 QUESTION: Activate_MMG_Remeshing_Technique#CB#(true,false)
 VALUE: false
 HELP: Enables the adaptative meshing technique
+QUESTION: Extrapolate_Pressure_Load#CB#(true,false)
+VALUE: false
+HELP: Enables the blast loading extrapolation
+QUESTION: Displacement_Perturbed_Tangent_Computation#CB#(true,false)
+VALUE: false
+HELP: Enables the adaptative meshing technique
 
 TITLE:Solver_Settings
 QUESTION: Solution_Type#CB#(Static,Dynamic)
