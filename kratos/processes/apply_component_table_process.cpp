@@ -91,7 +91,7 @@ void ApplyComponentTableProcess<ComponentVariableType>::ExecuteInitialize()
 /***********************************************************************************/
 /***********************************************************************************/
 template<>
-void ApplyDoubleTableProcess<DoubleVariableType>::ExecuteInitialize()
+void ApplyComponentTableProcess<DoubleVariableType>::ExecuteInitialize()
 {
     KRATOS_TRY
     
@@ -138,7 +138,7 @@ void ApplyComponentTableProcess<ComponentVariableType>::ExecuteInitializeSolutio
 /***********************************************************************************/
 /***********************************************************************************/
 template<>
-void ApplyDoubleTableProcess<DoubleVariableType>::ExecuteInitializeSolutionStep()
+void ApplyComponentTableProcess<DoubleVariableType>::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
 
@@ -160,7 +160,7 @@ void ApplyDoubleTableProcess<DoubleVariableType>::ExecuteInitializeSolutionStep(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class ApplyDoubleTableProcess<DoubleVariableType>;
 template class ApplyDoubleTableProcess<ComponentVariableType>;
+template class ApplyDoubleTableProcess<DoubleVariableType>;
 
 } // namespace Kratos
