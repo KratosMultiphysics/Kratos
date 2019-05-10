@@ -682,19 +682,45 @@ protected:
 
         noalias(rLeftHandSideMatrix) += auxLeftHandSideMatrix;
 
-        // RHS penalty contribution assembly
-        if (this->Has(EMBEDDED_VELOCITY)) {
-            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-            array_1d<double, MatrixSize> aux_embedded_vel = ZeroVector(MatrixSize);
+        // Compute the level set MESH_VELOCITY contribution
+        const auto &r_geom = this->GetGeometry();
+        for (unsigned int i_gauss = 0; i_gauss < n_gauss_total; ++i_gauss) {
+            // Current Gauss pt. intersection data
+            const auto N_cut = row(rData.N_pos_int, i_gauss);
+            const double weight = rData.w_gauss_pos_int(i_gauss);
 
-            for (unsigned int i=0; i<TNumNodes; i++) {
-                for (unsigned int comp=0; comp<TDim; comp++) {
-                    aux_embedded_vel(i*BlockSize+comp) = embedded_vel(comp);
-                }
+            // Current Gauss pt. MESH_VELOCITY
+            array_1d<double, 3> aux_v_mesh = ZeroVector(3);
+            for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+                aux_v_mesh += N_cut(i_node) * r_geom[i_node].FastGetSolutionStepValue(MESH_VELOCITY);
             }
 
-            noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix, aux_embedded_vel);
+            // Assemble current Gauss pt. contribution
+            for (unsigned int i = 0; i < TNumNodes; ++i) {
+                for (unsigned int j = 0; j < TNumNodes; ++j) {
+                    const double aux = pen_coef * weight * N_cut(i) * N_cut(j);
+                    // const auto &r_aux_v_mesh = r_geom[j].FastGetSolutionStepValue(MESH_VELOCITY);
+                    for (unsigned int dim = 0; dim < TDim; ++dim) {
+                        // rRightHandSideVector(i * BlockSize + dim) += aux * r_aux_v_mesh(dim);
+                        rRightHandSideVector(i * BlockSize + dim) += aux * aux_v_mesh(dim);
+                    }
+                }
+            }
         }
+
+        // // RHS penalty contribution assembly
+        // if (this->Has(EMBEDDED_VELOCITY)) {
+        //     const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
+        //     array_1d<double, MatrixSize> aux_embedded_vel = ZeroVector(MatrixSize);
+
+        //     for (unsigned int i=0; i<TNumNodes; i++) {
+        //         for (unsigned int comp=0; comp<TDim; comp++) {
+        //             aux_embedded_vel(i*BlockSize+comp) = embedded_vel(comp);
+        //         }
+        //     }
+
+        //     noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix, aux_embedded_vel);
+        // }
 
         noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix, prev_sol); // Residual contribution assembly
     }
@@ -784,32 +810,58 @@ protected:
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
         noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix, prev_sol);
 
-        // Compute f_gamma if level set velocity is not 0
-        if (this->Has(EMBEDDED_VELOCITY)) {
-            auxLeftHandSideMatrix.clear();
+        // Compute the level set MESH_VELOCITY contribution
+        const auto &r_geom = this->GetGeometry();
+        for (unsigned int i_gauss = 0; i_gauss < n_gauss_total; ++i_gauss) {
+            // Current Gauss pt. intersection data
+            const auto N_cut = row(rData.N_pos_int, i_gauss);
+            const double weight = rData.w_gauss_pos_int(i_gauss);
 
-            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-            array_1d<double, MatrixSize> aux_embedded_vel = ZeroVector(MatrixSize);
-
-            for (unsigned int i=0; i<TNumNodes; i++) {
-                aux_embedded_vel(i*BlockSize) = embedded_vel(0);
-                aux_embedded_vel(i*BlockSize+1) = embedded_vel(1);
-                aux_embedded_vel(i*BlockSize+2) = embedded_vel(2);
+            // Current Gauss pt. MESH_VELOCITY
+            array_1d<double, 3> aux_v_mesh = ZeroVector(3);
+            for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+                aux_v_mesh += N_cut(i_node) * r_geom[i_node].FastGetSolutionStepValue(MESH_VELOCITY);
             }
 
-            // Asemble the RHS f_gamma contribution
-            for (unsigned int i=0; i<rData.n_neg; i++) {
-                unsigned int out_node_row_id = rData.out_vec_identifiers[i];
-
-                for (unsigned int j=0; j<TNumNodes; j++) {
-                    for (unsigned int comp = 0; comp<TDim; comp++) {
-                        auxLeftHandSideMatrix(out_node_row_id*BlockSize+comp, j*BlockSize+comp) = f_gamma(i,j);
+            // Assemble current Gauss pt. contribution
+            for (unsigned int i = 0; i < rData.n_neg; ++i) {
+                const unsigned int i_out_node_id = rData.out_vec_identifiers[i];
+                for (unsigned int j = 0; j < TNumNodes; ++j) {
+                    const double aux = weight * N_cut(i_out_node_id) * N_cut(j);
+                    // const auto &r_aux_v_mesh = r_geom[j].FastGetSolutionStepValue(MESH_VELOCITY);
+                    for (unsigned int dim = 0; dim < TDim; ++dim) {
+                        // rRightHandSideVector(i_out_node_id * BlockSize + dim) += aux * r_aux_v_mesh(dim);
+                        rRightHandSideVector(i_out_node_id * BlockSize + dim) += aux * aux_v_mesh(dim);
                     }
                 }
             }
-
-            noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix, aux_embedded_vel);
         }
+
+        // if (this->Has(EMBEDDED_VELOCITY)) {
+        //     auxLeftHandSideMatrix.clear();
+
+        //     const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
+        //     array_1d<double, MatrixSize> aux_embedded_vel = ZeroVector(MatrixSize);
+
+        //     for (unsigned int i=0; i<TNumNodes; i++) {
+        //         aux_embedded_vel(i*BlockSize) = embedded_vel(0);
+        //         aux_embedded_vel(i*BlockSize+1) = embedded_vel(1);
+        //         aux_embedded_vel(i*BlockSize+2) = embedded_vel(2);
+        //     }
+
+        //     // Asemble the RHS f_gamma contribution
+        //     for (unsigned int i=0; i<rData.n_neg; i++) {
+        //         unsigned int out_node_row_id = rData.out_vec_identifiers[i];
+
+        //         for (unsigned int j=0; j<TNumNodes; j++) {
+        //             for (unsigned int comp = 0; comp<TDim; comp++) {
+        //                 auxLeftHandSideMatrix(out_node_row_id*BlockSize+comp, j*BlockSize+comp) = f_gamma(i,j);
+        //             }
+        //         }
+        //     }
+
+        //     noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix, aux_embedded_vel);
+        // }
     }
 
     /**
