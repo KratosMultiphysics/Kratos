@@ -1,19 +1,18 @@
-import KratosMultiphysics
-import KratosMultiphysics.ShallowWaterApplication as Shallow
+import KratosMultiphysics as KM
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if(type(settings) != KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return SetBathymetryProcess(Model, settings["Parameters"])
 
 ## This process sets the value of a scalar variable using the AssignScalarVariableProcess.
-class SetBathymetryProcess(KratosMultiphysics.Process):
+class SetBathymetryProcess(KM.Process):
 
     def __init__(self, Model, settings):
 
-        KratosMultiphysics.Process.__init__(self)
+        KM.Process.__init__(self)
 
-        default_settings = KratosMultiphysics.Parameters("""
+        default_settings = KM.Parameters("""
             {
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",

@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-import KratosMultiphysics
-import KratosMultiphysics.ShallowWaterApplication as Shallow
+import KratosMultiphysics as KM
+import KratosMultiphysics.ShallowWaterApplication as SW
 
 ## Import base class file
 from KratosMultiphysics.ShallowWaterApplication.pfem2_primitive_var_solver import Pfem2PrimitiveVarSolver
@@ -23,14 +23,14 @@ class Pfem2ConservedVarSolver(Pfem2PrimitiveVarSolver):
 
     def AddVariables(self):
         super(Pfem2ConservedVarSolver,self).AddVariables()
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENTUM)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.MOMENTUM)
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_X, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Y, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(Shallow.HEIGHT, self.main_model_part)
+        KM.VariableUtils().AddDof(KM.MOMENTUM_X, self.main_model_part)
+        KM.VariableUtils().AddDof(KM.MOMENTUM_Y, self.main_model_part)
+        KM.VariableUtils().AddDof(SW.HEIGHT, self.main_model_part)
 
-        KratosMultiphysics.Logger.PrintInfo("::[Pfem2ConservedVarSolver]::", "Shallow water solver DOFs added correctly.")
+        KM.Logger.PrintInfo("::[Pfem2ConservedVarSolver]::", "Shallow water solver DOFs added correctly.")
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():

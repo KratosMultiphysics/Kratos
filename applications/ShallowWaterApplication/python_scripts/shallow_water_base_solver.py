@@ -1,11 +1,11 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
-import KratosMultiphysics
+import KratosMultiphysics as KM
 from KratosMultiphysics.python_solver import PythonSolver
 
 # Import applications
-import KratosMultiphysics.ShallowWaterApplication as Shallow
+import KratosMultiphysics.ShallowWaterApplication as SW
 
 def CreateSolver(model, custom_settings):
     return ShallowWaterBaseSolver(model, custom_settings)
@@ -37,7 +37,7 @@ class ShallowWaterBaseSolver(PythonSolver):
             self.main_model_part = self.model.CreateModelPart(model_part_name)
 
         domain_size = self.settings["domain_size"].GetInt()
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+        self.main_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, domain_size)
 
         ## Construct the linear solver
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
@@ -45,22 +45,22 @@ class ShallowWaterBaseSolver(PythonSolver):
 
     def AddVariables(self):
         # Primitive variables
-        self.main_model_part.AddNodalSolutionStepVariable(Shallow.HEIGHT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.HEIGHT)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
         # Physic problem parameters
-        self.main_model_part.AddNodalSolutionStepVariable(Shallow.FREE_SURFACE_ELEVATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.GRAVITY)
-        self.main_model_part.AddNodalSolutionStepVariable(Shallow.BATHYMETRY)
-        self.main_model_part.AddNodalSolutionStepVariable(Shallow.MANNING)
-        self.main_model_part.AddNodalSolutionStepVariable(Shallow.RAIN)
-        self.main_model_part.AddNodalSolutionStepVariable(Shallow.TOPOGRAPHY_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.FREE_SURFACE_ELEVATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.GRAVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.BATHYMETRY)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.MANNING)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.RAIN)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.TOPOGRAPHY_GRADIENT)
         # Auxiliary variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.IS_STRUCTURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.MESH_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H)
 
     def AddDofs(self):
         raise Exception("Calling the base class instead of the derived one")
@@ -96,12 +96,12 @@ class ShallowWaterBaseSolver(PythonSolver):
             raise Exception("unknown water height scale")
 
         # Set ProcessInfo variables
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Z, gravity * time_unit_converter**2)
-        self.main_model_part.ProcessInfo.SetValue(Shallow.TIME_UNIT_CONVERTER, time_unit_converter)
-        self.main_model_part.ProcessInfo.SetValue(Shallow.WATER_HEIGHT_UNIT_CONVERTER, water_height_unit_converter)
+        self.main_model_part.ProcessInfo.SetValue(KM.STEP, 0)
+        self.main_model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, gravity * time_unit_converter**2)
+        self.main_model_part.ProcessInfo.SetValue(SW.TIME_UNIT_CONVERTER, time_unit_converter)
+        self.main_model_part.ProcessInfo.SetValue(SW.WATER_HEIGHT_UNIT_CONVERTER, water_height_unit_converter)
 
-        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+        if not self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
             ## Replace default elements and conditions
             self._ReplaceElementsAndConditions()
             ## Executes the check and prepare model process (Create computing_model_part)
@@ -117,25 +117,25 @@ class ShallowWaterBaseSolver(PythonSolver):
 
     def Initialize(self):
         # The time step utility needs the NODAL_H
-        KratosMultiphysics.FindNodalHProcess(self.GetComputingModelPart()).Execute()
-        self.EstimateDeltaTimeUtility = Shallow.EstimateDtShallow(self.GetComputingModelPart(), self.settings["time_stepping"])
+        KM.FindNodalHProcess(self.GetComputingModelPart()).Execute()
+        self.EstimateDeltaTimeUtility = SW.EstimateDtShallow(self.GetComputingModelPart(), self.settings["time_stepping"])
 
         # Initialize shallow water variables utility
-        self.ShallowVariableUtils = Shallow.ShallowWaterVariablesUtility(self.main_model_part, self.settings["dry_height"].GetDouble())
+        self.ShallowVariableUtils = SW.ShallowWaterVariablesUtility(self.main_model_part, self.settings["dry_height"].GetDouble())
 
         # Creating the solution strategy for the mesh stage
-        self.conv_criteria = KratosMultiphysics.DisplacementCriteria(self.settings["relative_tolerance"].GetDouble(),
+        self.conv_criteria = KM.DisplacementCriteria(self.settings["relative_tolerance"].GetDouble(),
                                                                      self.settings["absolute_tolerance"].GetDouble())
         (self.conv_criteria).SetEchoLevel(self.echo_level)
 
-        self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        # domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        # self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(domain_size,   # DomainSize
-        #                                                                                      domain_size+1) # BlockSize
+        self.time_scheme = KM.ResidualBasedIncrementalUpdateStaticScheme()
+        # domain_size = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
+        # self.time_scheme = KM.ResidualBasedIncrementalUpdateStaticSchemeSlip(domain_size,   # DomainSize
+        #                                                                      domain_size+1) # BlockSize
 
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+        builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
-        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.GetComputingModelPart(),
+        self.solver = KM.ResidualBasedNewtonRaphsonStrategy(self.GetComputingModelPart(),
                                                                             self.time_scheme,
                                                                             self.linear_solver,
                                                                             self.conv_criteria,
@@ -145,21 +145,21 @@ class ShallowWaterBaseSolver(PythonSolver):
                                                                             self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                             self.settings["move_mesh_flag"].GetBool())
 
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KM.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
 
         (self.solver).SetEchoLevel(max(0, self.echo_level-1))
         (self.solver).Check()
 
         (self.solver).Initialize()
 
-        KratosMultiphysics.Logger.PrintInfo("::[ShallowWaterBaseSolver]::", "Mesh stage solver initialization finished")
+        KM.Logger.PrintInfo("::[ShallowWaterBaseSolver]::", "Mesh stage solver initialization finished")
 
     def AdvanceInTime(self, current_time):
         dt = self._ComputeDeltaTime()
         new_time = current_time + dt
 
         self.main_model_part.CloneTimeStep(new_time)
-        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+        self.main_model_part.ProcessInfo[KM.STEP] += 1
 
         return new_time
 
@@ -193,19 +193,19 @@ class ShallowWaterBaseSolver(PythonSolver):
 
     def _TimeBufferIsInitialized(self):
         # We always have one extra old step (step 0, read from input)
-        return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
+        return self.main_model_part.ProcessInfo[KM.STEP] + 1 >= self.GetMinimumBufferSize()
 
     def _ComputeDeltaTime(self):
         delta_time = self.EstimateDeltaTimeUtility.EstimateDt()
 
         # Move particles utility needs to read delta_time
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, delta_time)
+        self.main_model_part.ProcessInfo.SetValue(KM.DELTA_TIME, delta_time)
 
         return delta_time
 
     def _ValidateSettings(self, settings):
         ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
+        default_settings = KM.Parameters("""
         {
             "solver_type"              : "shallow_water_base_solver",
             "model_part_name"          : "main_model_part",
@@ -254,7 +254,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         ## Get number of nodes and domain size
         elem_num_nodes = self._GetElementNumNodes()
         cond_num_nodes = self._GetConditionNumNodes()
-        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        domain_size = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
 
         ## Complete the element name
         if (self.element_name is not None):
@@ -269,12 +269,12 @@ class ShallowWaterBaseSolver(PythonSolver):
             raise Exception("There is no condition name. Define the self.condition_name string variable in your derived solver.")
 
         ## Set the element and condition names in the Json parameters
-        self.settings.AddValue("element_replace_settings", KratosMultiphysics.Parameters("""{}"""))
+        self.settings.AddValue("element_replace_settings", KM.Parameters("""{}"""))
         self.settings["element_replace_settings"].AddEmptyValue("element_name").SetString(new_elem_name)
         self.settings["element_replace_settings"].AddEmptyValue("condition_name").SetString(new_cond_name)
 
         ## Call the replace elements and conditions process
-        KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
+        KM.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
 
     def _GetElementNumNodes(self):
         if self.main_model_part.NumberOfElements() != 0:
