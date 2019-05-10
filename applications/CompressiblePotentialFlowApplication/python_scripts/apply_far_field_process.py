@@ -66,12 +66,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
 
         if(self.initialize_flow_field):
             for node in self.fluid_model_part.Nodes:
-                # Computing distance to reference
-                dx = node.X - reference_inlet_node.X
-                dy = node.Y - reference_inlet_node.Y
-                dz = node.Z - reference_inlet_node.Z
-
-                initial_potential = dx*self.free_stream_velocity[0] + dy*self.free_stream_velocity[1] + dz*self.free_stream_velocity[2]
+                initial_potential = DotProduct( node - reference_inlet_node, self.free_stream_velocity)
                 node.SetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL,0,initial_potential + self.inlet_potential_0)
                 node.SetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL,0,initial_potential + self.inlet_potential_0)
 
