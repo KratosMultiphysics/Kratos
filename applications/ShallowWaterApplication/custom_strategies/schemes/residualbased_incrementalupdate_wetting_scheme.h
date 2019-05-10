@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_RESIDUALBASED_INCREMENTALUPDATE_DRYWETTING_SCHEME_H_INCLUDED
-#define KRATOS_RESIDUALBASED_INCREMENTALUPDATE_DRYWETTING_SCHEME_H_INCLUDED
+#ifndef KRATOS_RESIDUALBASED_INCREMENTALUPDATE_WETTING_SCHEME_H_INCLUDED
+#define KRATOS_RESIDUALBASED_INCREMENTALUPDATE_WETTING_SCHEME_H_INCLUDED
 
 
 // System includes
@@ -54,16 +54,18 @@ namespace Kratos
 /** Detail class definition.
 */
 template<class TSparseSpace, class TDenseSpace >
-class ResidualBasedIncrementalUpdateDryWettingScheme : public ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>
+class ResidualBasedIncrementalUpdateWettingScheme : public ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ResidualBasedIncrementalUpdateDryWettingScheme
-    KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedIncrementalUpdateDryWettingScheme);
+    /// Pointer definition of ResidualBasedIncrementalUpdateWettingScheme
+    KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedIncrementalUpdateWettingScheme);
 
     typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace> BaseType;
+
+    typedef typename BaseType::DofsArrayType DofsArrayType;
 
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
 
@@ -74,24 +76,24 @@ public:
     ///@{
 
     /// @brief Default constructor.
-    ResidualBasedIncrementalUpdateDryWettingScheme()
+    ResidualBasedIncrementalUpdateWettingScheme()
         : BaseType()
     {}
 
     /// @brief Constructor with wetting drying model.
-    ResidualBasedIncrementalUpdateDryWettingScheme(Process::Pointer pDryWettingModel)
+    ResidualBasedIncrementalUpdateWettingScheme(Process::Pointer pWettingModel)
         : BaseType()
-        , mpDryWettingModel(pDryWettingModel)
+        , mpWettingModel(pWettingModel)
     {}
 
     /// @brief Copy constructor.
-    explicit ResidualBasedIncrementalUpdateDryWettingScheme(ResidualBasedIncrementalUpdateDryWettingScheme& rOther)
+    explicit ResidualBasedIncrementalUpdateWettingScheme(ResidualBasedIncrementalUpdateWettingScheme& rOther)
         :BaseType(rOther)
     {
     }
 
     /// Destructor.
-    virtual ~ResidualBasedIncrementalUpdateDryWettingScheme(){}
+    virtual ~ResidualBasedIncrementalUpdateWettingScheme(){}
 
     ///@}
     ///@name Operators
@@ -103,23 +105,25 @@ public:
     ///@{
 
     /**
-     * @brief It initializes a non-linear iteration
-     * @param rModelPart The model of the problem to solve
+     * @brief Function called once at the beginning of each solution step.
+     * @details The basic operations to be carried in there are the following:
+     * - managing variables to be kept constant over the time step (for example time-Scheme constants depending on the actual time step)
+     * @param rModelPart The model part of the problem to solve
      * @param rA LHS matrix
      * @param rDx Incremental update of primary variables
      * @param rb RHS Vector
      */
-    void InitializeNonLinIteration(
+    void InitializeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& rA,
         TSystemVectorType& rDx,
         TSystemVectorType& rb
         ) override
     {
-        if (mpDryWettingModel != 0) {
-            mpDryWettingModel->Execute();
+        if (mpWettingModel != 0) {
+            mpWettingModel->ExecuteInitializeSolutionStep();
         }
-        BaseType::InitializeNonLinIteration(rModelPart, rA, rDx, rb);
+        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
     }
 
     /**
@@ -136,10 +140,10 @@ public:
         TSystemVectorType& rb
         ) override
     {
-        if (mpDryWettingModel != 0) {
-            mpDryWettingModel->ExecuteFinalizeSolutionStep();
-        }
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
+        if (mpWettingModel != 0) {
+            mpWettingModel->ExecuteFinalizeSolutionStep();
+        }
     }
 
     ///@}
@@ -159,7 +163,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ResidualBasedIncrementalUpdateDryWettingScheme";
+        return "ResidualBasedIncrementalUpdateWettingScheme";
     }
 
     /// Print information about this object.
@@ -190,7 +194,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    Process::Pointer mpDryWettingModel;
+    Process::Pointer mpWettingModel;
 
     ///@}
     ///@name Private Operators
@@ -218,7 +222,7 @@ private:
 
     ///@}
 
-}; // Class ResidualBasedIncrementalUpdateDryWettingScheme
+}; // Class ResidualBasedIncrementalUpdateWettingScheme
 
 ///@}
 
@@ -237,6 +241,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_RESIDUALBASED_INCREMENTALUPDATE_DRYWETTING_SCHEME_H_INCLUDED  defined
+#endif // KRATOS_RESIDUALBASED_INCREMENTALUPDATE_WETTING_SCHEME_H_INCLUDED  defined
 
 

@@ -21,7 +21,7 @@
 #include "spaces/ublas_space.h"
 
 // Schemes
-#include "custom_strategies/schemes/residualbased_incrementalupdate_drywetting_scheme.h"
+#include "custom_strategies/schemes/residualbased_incrementalupdate_wetting_scheme.h"
 
 
 namespace Kratos
@@ -40,12 +40,12 @@ namespace Python
     // Schemes
     typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
 
-    typedef ResidualBasedIncrementalUpdateDryWettingScheme<SparseSpaceType, LocalSpaceType> ResidualBasedIncrementalUpdateDryWettingScheme;
+    typedef ResidualBasedIncrementalUpdateWettingScheme<SparseSpaceType, LocalSpaceType> ResidualBasedIncrementalUpdateWettingScheme;
     py::class_<
-        ResidualBasedIncrementalUpdateDryWettingScheme,
-        typename ResidualBasedIncrementalUpdateDryWettingScheme::Pointer,
+        ResidualBasedIncrementalUpdateWettingScheme,
+        typename ResidualBasedIncrementalUpdateWettingScheme::Pointer,
         BaseSchemeType>
-        (m, "ResidualBasedIncrementalUpdateDryWettingScheme")
+        (m, "ResidualBasedIncrementalUpdateWettingScheme")
         .def(py::init<>())
         .def(py::init<Process::Pointer>())
         ;

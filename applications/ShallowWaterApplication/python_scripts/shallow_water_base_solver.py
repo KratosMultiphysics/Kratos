@@ -130,7 +130,7 @@ class ShallowWaterBaseSolver(PythonSolver):
                                                                      self.settings["absolute_tolerance"].GetDouble())
         (self.conv_criteria).SetEchoLevel(self.echo_level)
 
-        self.time_scheme = Shallow.ResidualBasedIncrementalUpdateDryWettingScheme(self._GetWetDryModel())
+        self.time_scheme = Shallow.ResidualBasedIncrementalUpdateWettingScheme(self._GetWettingModel())
         # domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         # self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(domain_size,   # DomainSize
         #                                                                                      domain_size+1) # BlockSize
@@ -166,8 +166,11 @@ class ShallowWaterBaseSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            self.solver.InitializeSolutionStep()
+        """ The wetting model is called here.
+        It should be executed even if the buffer is not initialized, otherwise 
+        the previous time step wouldn't be modified by the wetting model
+        """
+        self.solver.InitializeSolutionStep()
 
     def Predict(self):
         if self._TimeBufferIsInitialized():
@@ -194,8 +197,8 @@ class ShallowWaterBaseSolver(PythonSolver):
         return self._is_printing_rank
 
     def _TimeBufferIsInitialized(self):
-        # We always have one extra old step (step 0, read from input)
-        return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
+        # We always have one extra old step (step 0, read from input), but the wetting model should modify this extra step
+        return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.GetMinimumBufferSize()
 
     def _ComputeDeltaTime(self):
         delta_time = self.EstimateDeltaTimeUtility.EstimateDt()
@@ -304,12 +307,12 @@ class ShallowWaterBaseSolver(PythonSolver):
     def _ExecuteCheckAndPrepare(self):
         pass
 
-    def _GetWetDryModel(self):
+    def _GetWettingModel(self):
         if not hasattr(self, "_dry_wet_model"):
-            self._wet_dry_model = self._CreateWetDryModel()
+            self._wet_dry_model = self._CreateWettingModel()
         return self._wet_dry_model 
 
-    def _CreateWetDryModel(self):
+    def _CreateWettingModel(self):
         if self.settings["wetting_drying_model"].Has("model_name"):
             if self.settings["wetting_drying_model"]["model_name"].GetString() == "rough_porous_layer":
                 wet_dry_module = Shallow.RoughPorousLayerWettingModel(self.GetComputingModelPart(), self.settings["wetting_drying_model"])
