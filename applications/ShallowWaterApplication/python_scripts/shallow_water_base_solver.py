@@ -136,14 +136,14 @@ class ShallowWaterBaseSolver(PythonSolver):
         builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
         self.solver = KM.ResidualBasedNewtonRaphsonStrategy(self.GetComputingModelPart(),
-                                                                            self.time_scheme,
-                                                                            self.linear_solver,
-                                                                            self.conv_criteria,
-                                                                            builder_and_solver,
-                                                                            self.settings["maximum_iterations"].GetInt(),
-                                                                            self.settings["compute_reactions"].GetBool(),
-                                                                            self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                            self.settings["move_mesh_flag"].GetBool())
+                                                            self.time_scheme,
+                                                            self.linear_solver,
+                                                            self.conv_criteria,
+                                                            builder_and_solver,
+                                                            self.settings["maximum_iterations"].GetInt(),
+                                                            self.settings["compute_reactions"].GetBool(),
+                                                            self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                            self.settings["move_mesh_flag"].GetBool())
 
         self.main_model_part.ProcessInfo.SetValue(KM.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
 
@@ -175,6 +175,8 @@ class ShallowWaterBaseSolver(PythonSolver):
         if self._TimeBufferIsInitialized():
             is_converged = self.solver.SolveSolutionStep()
             return is_converged
+        else:
+            return True
 
     def FinalizeSolutionStep(self):
         if self._TimeBufferIsInitialized():
