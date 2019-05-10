@@ -753,8 +753,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     KRATOS_TRY;
 
     // Calculate the mean of the normal in all the nodes
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mOriginModelPart);
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mDestinationModelPart);
+    MortarUtilities::ComputeNodesMeanNormalModelPart(mOriginModelPart, mOptions.Is(ORIGIN_CONDITIONS));
+    MortarUtilities::ComputeNodesMeanNormalModelPart(mDestinationModelPart, mOptions.Is(DESTINATION_CONDITIONS));
 
     // Defining tolerance
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
@@ -916,8 +916,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     KRATOS_TRY;
 
     // Calculate the mean of the normal in all the nodes
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mOriginModelPart);
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mDestinationModelPart);
+    MortarUtilities::ComputeNodesMeanNormalModelPart(mOriginModelPart, mOptions.Is(ORIGIN_CONDITIONS));
+    MortarUtilities::ComputeNodesMeanNormalModelPart(mDestinationModelPart, mOptions.Is(DESTINATION_CONDITIONS));
 
     // Defining tolerance
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
