@@ -28,7 +28,7 @@ class EulerianPrimitiveVarSolver(ShallowWaterBaseSolver):
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
             # If all the nodes of an element are dry, set ACTIVE flag False
-            self.ShallowVariableUtils.SetDryWetState()
+            # self.ShallowVariableUtils.SetDryWetState()
             # Solve equations on the mesh
             is_converged = self.solver.SolveSolutionStep()
             # Compute free surface
