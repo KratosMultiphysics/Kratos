@@ -550,7 +550,7 @@ public:
         return mpPointVector->max_size();
     }
 
-    void swap(Geometry& rOther)
+    void swap(GeometryType& rOther)
     {
         mpPointVector->swap(rOther.mpPointVector);
     }
@@ -632,6 +632,11 @@ public:
         return Pointer( new Geometry( ThisPoints, mpGeometryData ) );
     }
 
+    virtual Pointer Create(GeometryType const& ThisGeometry) const
+    {
+        return Pointer(new GeometryType((*ThisGeometry.mpPointVector), mpGeometryData));
+    }
+
     /** This methods will create a duplicate of all its points and
     substitute them with its points. */
     void ClonePoints()
@@ -640,26 +645,26 @@ public:
             *i = typename PointType::Pointer( new PointType( **i ) );
     }
 
-    // virtual Kratos::shared_ptr< Geometry< Point > > Clone() const
-    // {
-    //     Geometry< Point >::PointsArrayType NewPoints;
+     //virtual Kratos::shared_ptr< Geometry< Point > > Clone() const
+     //{
+     //    Geometry< Point >::PointsArrayType NewPoints;
 
-    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+     //    //making a copy of the nodes TO POINTS (not Nodes!!!)
 
-    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-    //     {
-    //         NewPoints.push_back(Kratos::make_shared< Point >((*this)[i]));
-    //     }
+     //    for ( IndexType i = 0 ; i < this->size() ; i++ )
+     //    {
+     //        NewPoints.push_back(Kratos::make_shared< Point >((*mpPointVector)[i]));
+     //    }
 
-    //     //NewPoints[i] = typename Point::Pointer(new Point(*mPoints[i]));
+     //    //NewPoints[i] = typename Point::Pointer(new Point(*mPoints[i]));
 
-    //     //creating a geometry with the new points
-    //     Geometry< Point >::Pointer p_clone( new Geometry< Point >( NewPoints ) );
+     //    //creating a geometry with the new points
+     //    Geometry< Point >::Pointer p_clone( new Geometry< Point >( NewPoints ) );
 
-    //     p_clone->ClonePoints();
+     //    p_clone->ClonePoints();
 
-    //     return p_clone;
-    // }
+     //    return p_clone;
+     //}
 
     /**
      * @brief Lumping factors for the calculation of the lumped mass matrix
