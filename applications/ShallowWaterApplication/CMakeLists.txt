@@ -16,6 +16,7 @@ set( KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/nothing_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/estimate_dt_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/post_process_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shallow_water_utilities.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/replicate_model_part_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/id_renumbering_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/initial_perturbation_process.cpp
