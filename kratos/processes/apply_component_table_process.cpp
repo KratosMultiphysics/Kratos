@@ -12,21 +12,13 @@
 //
 
 #include "processes/apply_component_table_process.h"
-#include "utilities/variable_utils.h"
+
 
 namespace Kratos
 {
 
 ///@name Kratos Classes
 ///@{
-
-/**
- * @class ApplyComponentTableProcess
- * @ingroup KratosCore
- * @brief This class assings a value to the BC or loads according to a table defined in the .mdpa
- * @author Ignasi de Pouplana
- * @author Alejandro Cornejo
-*/
 template<class TVariableType>
 ApplyComponentTableProcess<TVariableType>::ApplyComponentTableProcess(
     ModelPart& rModelPart, 
@@ -65,7 +57,7 @@ ApplyComponentTableProcess<TVariableType>::ApplyComponentTableProcess(
     unsigned int TableId = rParameters["table"].GetInt();
     mpTable = rModelPart.pGetTable(TableId);
 
-    KRATOS_CATCH("");
+	KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -99,11 +91,11 @@ void ApplyComponentTableProcess<ComponentVariableType>::ExecuteInitialize()
 /***********************************************************************************/
 /***********************************************************************************/
 template<>
-void ApplyDoubleTableProcess<Variable<double>>::ExecuteInitialize()
+void ApplyDoubleTableProcess<DoubleVariableType>::ExecuteInitialize()
 {
     KRATOS_TRY;
     
-    Variable<double> variable = KratosComponents<DoubleVariableType>::Get(mVariableName);
+	DoubleVariableType variable = KratosComponents<DoubleVariableType>::Get(mVariableName);
     const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
 
     if (nnodes != 0) {
@@ -124,14 +116,12 @@ void ApplyDoubleTableProcess<Variable<double>>::ExecuteInitialize()
 /***********************************************************************************/
 /***********************************************************************************/
 template<>
-void ApplyComponentTableProcess<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::ExecuteInitializeSolutionStep()
+void ApplyComponentTableProcess<ComponentVariableType>::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
     
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> component_type;
-    typedef Variable<double> double_var;
-    const component_type& variable_component = KratosComponents<component_type>::Get(mVariableName);
-    double_var time_var_component = KratosComponents<double_var>::Get(mTimeVariableName);
+    const ComponentVariableType& variable_component = KratosComponents<ComponentVariableType>::Get(mVariableName);
+	DoubleVariableType time_var_component = KratosComponents<DoubleVariableType>::Get(mTimeVariableName);
     
     const double time = mrModelPart.GetProcessInfo()[time_var_component];
     const double value = mpTable->GetValue(time);
@@ -140,7 +130,7 @@ void ApplyComponentTableProcess<VariableComponent<VectorComponentAdaptor<array_1
 
     if (nnodes != 0) {
         auto& r_nodes_array = mrModelPart.Nodes();
-        VariableUtils().SetScalarVar<component_type>(variable_component, value, r_nodes_array);
+        VariableUtils().SetScalarVar<ComponentVariableType>(variable_component, value, r_nodes_array);
     }
     KRATOS_CATCH("")
 }
@@ -148,9 +138,9 @@ void ApplyComponentTableProcess<VariableComponent<VectorComponentAdaptor<array_1
 /***********************************************************************************/
 /***********************************************************************************/
 template<>
-void ApplyDoubleTableProcess<Variable<double>>::ExecuteInitializeSolutionStep()
+void ApplyDoubleTableProcess<ComponentVariableType>::ExecuteInitializeSolutionStep()
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     Variable<double> variable = KratosComponents<DoubleVariableType>::Get(mVariableName);
 	typedef Variable<double> double_var;
@@ -165,12 +155,13 @@ void ApplyDoubleTableProcess<Variable<double>>::ExecuteInitializeSolutionStep()
         auto& r_nodes_array = mrModelPart.Nodes();
         VariableUtils().SetScalarVar<double_var>(variable, value, r_nodes_array);
     }
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }  
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class ApplyDoubleTableProcess<Variable<double>>;
-template class ApplyDoubleTableProcess<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>;
+template class ApplyDoubleTableProcess<DoubleVariableType>;
+template class ApplyDoubleTableProcess<ComponentVariableType>;
+
 } // namespace Kratos

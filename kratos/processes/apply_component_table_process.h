@@ -24,6 +24,7 @@
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -46,11 +47,17 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyComponentTableProcess);
     
     /// Defining a table with double argument and result type as table type.
-    typedef Table<double,double> TableType;
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double,3>>> ComponentVariableType;
-    typedef Variable<double> DoubleVariableType;
+    typedef Table<double,double>                                                       TableType;
+
+    // Variables types
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>  ComponentVariableType;
+    typedef Variable<double>                                                  DoubleVariableType;
     
-    /// Constructor
+    /**
+     * @brief Default constructor.
+     * @param rModelPart The model part where the search of neighbours is performed
+     * @param ThisParameters The parameters of configuration
+     */
 	ApplyComponentTableProcess(ModelPart& rModelPart, Parameters rParameters);
    
     /// Destructor
