@@ -28,7 +28,7 @@
             },
             "time_order" : 2,
             "reform_dofs_each_step" : false,
-            "echo_level": 1
+            "echo_level": 0
         },
 
         "fluid_solver_settings"  :{
@@ -99,6 +99,24 @@
                 "create_output_file": true
             }
         },{
+            "python_module" : "fix_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                "variable_name"   : "MESH_DISPLACEMENT",
+                "constrained"      : [true, true, true]
+            }
+        },{
+            "python_module" : "fix_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Body2D_Body",
+                "variable_name"   : "MESH_DISPLACEMENT",
+                "constrained"      : [true, true, true]
+            }
+        },{
             "python_module" : "placeholder_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "PlaceholderProcess",
@@ -128,16 +146,20 @@
             }
         },{
             "kratos_module"   : "KratosMultiphysics",
-            "python_module"   : "json_output_process",
+            "python_module"   : "point_output_process",
             "help"            : "",
-            "process_name"    : "JsonOutputProcess",
+            "process_name"    : "PointOutputProcess",
             "Parameters" : {
+                "position"         : [0.49032, -0.00891, 0.0],
+                "entity_type"      : "node",
                 "model_part_name"  : "FluidModelPart",
-                "sub_model_part_name" : "Body2D_Body",
-                "output_file_name" : "naca0012_REACTION",
-                "output_variables" : ["REACTION"]
-            }
-         }]
+                "output_file_settings": {
+                    "file_name"  : "naca0012_mesh_movement_Y.dat"
+                },
+                "output_variables" : [
+                    "MESH_DISPLACEMENT_Y"]
+                }
+            }]
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -148,13 +170,13 @@
                 "MultiFileFlag"         : "SingleFile"
             },
             "file_label"          : "time",
-            "output_control_type" : "time",
-            "output_frequency"    : 0.5,
+            "output_control_type" : "step",
+            "output_frequency"    : 10,
             "body_output"         : true,
             "node_output"         : true,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["MESH_DISPLACEMENT","REACTION"],
+            "nodal_results"       : ["MESH_DISPLACEMENT","REACTION","VELOCITY","PRESSURE"],
             "nodal_nonhistorical_results": [],
             "gauss_point_results" : ["PRESSURE","VELOCITY"]
         },

@@ -12,7 +12,6 @@ from co_simulation_tools import solverprint, bold, red
 
 class KratosBaseFieldSolver(CoSimulationBaseSolver):
     def __init__(self, cosim_solver_settings, level):
-        KratosMultiphysics.Logger.PrintInfo("__init__ KratosBaseFieldSolver Starts HERE")
         super(KratosBaseFieldSolver, self).__init__(cosim_solver_settings, level)
         self.model = KratosMultiphysics.Model()
 
@@ -24,19 +23,12 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         self.project_parameters = KratosMultiphysics.Parameters(parameters)
-        KratosMultiphysics.Logger.PrintInfo("KRATOSBASEFIELDSOLVER __INIT__ Done")
 
     def Initialize(self):
         self._GetAnalysisStage().Initialize()
 
     def Finalize(self):
         self._GetAnalysisStage().Finalize()
-
-    def AdvanceInTime(self, current_time):
-        new_time = self._GetAnalysisStage()._GetSolver().AdvanceInTime(current_time)
-        self._GetAnalysisStage().time = new_time # only needed to print the time correctly
-        self.delta_time = new_time - current_time
-        return new_time
 
     def Predict(self):
         self._GetAnalysisStage()._GetSolver().Predict()
@@ -51,17 +43,11 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
         self._GetAnalysisStage().OutputSolutionStep()
 
     def SolveSolutionStep(self):
-        KratosMultiphysics.Logger.PrintInfo("AAAAAAAAAAAAAAAAAAAA", self._GetAnalysisStage()._GetSolver())
         self._GetAnalysisStage()._GetSolver().SolveSolutionStep()
 
     def GetBufferSize(self):
         model_part_name = self.project_parameters["solver_settings"]["model_part_name"].GetString()
         return self.model[model_part_name].GetBufferSize()
-
-    def GetDeltaTime(self):
-        if not hasattr(self, 'delta_time'):
-            raise Exception("DeltaTime can only be querried after it has been computed at least once")
-        return self.delta_time
 
     def _GetAnalysisStage(self):
         if not hasattr(self, '_analysis_stage'):

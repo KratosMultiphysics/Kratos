@@ -10,11 +10,11 @@
     {
         "solver_type" : "simple_steady_coupling",
         "echo_level" : 0,
-        "num_coupling_iterations" : 2,
+        "num_coupling_iterations" : 1,
         "start_coupling_time" : 0.0,
         "predictor_settings" :
         {
-            "predictor_type" : "linear_derivative_based",
+            "predictor_type" : "linear_derivative_based_static",
             "data_list"      :
             [
                 {
@@ -102,7 +102,7 @@
             },
             "structure" :
             {
-                "solver_type" : "sdof",
+                "solver_type" : "sdof_static",
                 "input_file"  : "ProjectParametersSDoF",
                 "data" : {
                     "disp_y" : {

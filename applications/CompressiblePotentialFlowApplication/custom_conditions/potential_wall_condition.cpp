@@ -131,7 +131,6 @@ int PotentialWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPr
         // Check that all required variables have been registered
         KRATOS_CHECK_VARIABLE_KEY(VELOCITY_POTENTIAL);
         KRATOS_CHECK_VARIABLE_KEY(AUXILIARY_VELOCITY_POTENTIAL);
-        KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
 
         // Checks on nodes
 
@@ -142,8 +141,6 @@ int PotentialWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPr
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_POTENTIAL,
                                                 this->GetGeometry()[i]);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(AUXILIARY_VELOCITY_POTENTIAL,
-                                                this->GetGeometry()[i]);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,
                                                 this->GetGeometry()[i]);
 
             return Check;
@@ -175,10 +172,6 @@ void PotentialWallCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& Conditi
     for (unsigned int i = 0; i < TNumNodes; i++)
         ConditionDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
 
-    std::vector<double> rValues;
-    ElementPointerType pElem = pGetElement();
-    pElem->GetValueOnIntegrationPoints(PRESSURE, rValues, CurrentProcessInfo);
-    this->SetValue(PRESSURE, rValues[0]);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -186,21 +179,9 @@ void PotentialWallCondition<TDim, TNumNodes>::FinalizeNonLinearIteration(Process
 {
     std::vector<double> rValues;
     ElementPointerType pElem = pGetElement();
-    pElem->GetValueOnIntegrationPoints(PRESSURE, rValues, rCurrentProcessInfo);
-    this->SetValue(PRESSURE, rValues[0]);
+    pElem->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT, rValues, rCurrentProcessInfo);
+    this->SetValue(PRESSURE_COEFFICIENT, rValues[0]);
 }
-// void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-//             std::vector<double>& rValues,
-//             const ProcessInfo& rCurrentProcessInfo) override
-//     {
-//         if(rValues.size() != 1) rValues.resize(1);
-
-//         if (rVariable == PRESSURE)
-//         {
-//             double p = ComputePressure(rCurrentProcessInfo);
-//             rValues[0] = p;
-//         }
-//     }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Input and output
