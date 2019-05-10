@@ -24,9 +24,6 @@ class ParticleMPMSolver(PythonSolver):
         # Default settings
         self.min_buffer_size = 2
 
-        # There is only a single rank in OpenMP, we always print
-        self.is_printing_rank = True
-
         # Default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -400,6 +397,3 @@ class ParticleMPMSolver(PythonSolver):
 
     def _check(self):
         self.solver.Check()
-
-    def _is_printing_rank(self):
-        return self.is_printing_rank

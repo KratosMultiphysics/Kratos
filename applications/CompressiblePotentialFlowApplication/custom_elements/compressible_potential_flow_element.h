@@ -20,10 +20,8 @@
 // Project includes
 #include "includes/element.h"
 #include "includes/kratos_flags.h"
-#include "compressible_potential_flow_application_variables.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/enrichment_utilities.h"
-#include "includes/cfd_variables.h"
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -52,7 +50,7 @@ public:
     template <unsigned int TNumNodes, unsigned int TDim>
     struct ElementalData
     {
-        array_1d<double, TNumNodes> phis, distances;
+        array_1d<double, TNumNodes> potentials, distances;
         double vol;
 
         BoundedMatrix<double, TNumNodes, TDim> DN_DX;
@@ -266,8 +264,6 @@ private:
     void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
     void ComputeElementInternalEnergy();
-
-    void GetPotentialOnNormalElement(array_1d<double, NumNodes>& rPotentials) const;
 
     void GetPotentialOnWakeElement(Vector& split_element_values,
                                    const array_1d<double, NumNodes>& distances) const;

@@ -52,7 +52,7 @@ Element::Pointer EmbeddedFluidElementDiscontinuous<TBaseElement>::Create(
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<EmbeddedFluidElementDiscontinuous>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<EmbeddedFluidElementDiscontinuous>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
@@ -62,7 +62,7 @@ Element::Pointer EmbeddedFluidElementDiscontinuous<TBaseElement>::Create(
     Geometry<NodeType>::Pointer pGeom,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<EmbeddedFluidElementDiscontinuous>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<EmbeddedFluidElementDiscontinuous>(NewId, pGeom, pProperties);
 }
 
 template <class TBaseElement>

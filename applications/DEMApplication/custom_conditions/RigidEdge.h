@@ -23,7 +23,7 @@ class KRATOS_API(DEM_APPLICATION) RigidEdge3D : public DEMWall
 {
 public:
     // Counted pointer of RigidEdge3D
-    KRATOS_CLASS_POINTER_DEFINITION(RigidEdge3D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RigidEdge3D);
 
 	typedef WeakPointerVector<Element> ParticleWeakVectorType;
 	typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
