@@ -14,6 +14,7 @@
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
+#include "compressible_potential_flow_application_variables.h"
 #include "custom_elements/compressible_potential_flow_element.h"
 
 namespace Kratos {
@@ -32,18 +33,19 @@ namespace Kratos {
       Properties::Pointer pElemProp = rModelPart.CreateNewProperties(0);
       BoundedVector<double, 3> v_inf = ZeroVector(3);
       v_inf(0) = 34.0;
-      pElemProp->SetValue(VELOCITY_INFINITY,v_inf);
-      pElemProp->SetValue(DENSITY_INFINITY,1.225);
-      pElemProp->SetValue(MACH_INFINITY,0.1);
-      pElemProp->SetValue(HEAT_CAPACITY_RATIO,1.4);
-      pElemProp->SetValue(SOUND_VELOCITY,340.0);
+
+      rModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY] = v_inf;
+      rModelPart.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.225;
+      rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.1;
+      rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
+      rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.0;
 
       // Geometry creation
       rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
       rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
       rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
       std::vector<ModelPart::IndexType> elemNodes{ 1, 2, 3 };
-      rModelPart.CreateNewElement("IncompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
+      rModelPart.CreateNewElement("CompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
     }
 
     /** Checks the IncompressiblePotentialFlowElement element.
