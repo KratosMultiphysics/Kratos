@@ -146,6 +146,18 @@ public:
         }
     }
 
+    template< class TFunctorType >
+    GlobalPointerCommunicator(DataCommunicator& rComm, TFunctorType& rFunctor):
+        mrDataCommunicator(rComm)
+    {
+        if(mrDataCommunicator.IsDistributed())
+        {
+            auto gps = rFunctor(rComm);
+            GlobalPointerCommunicator(rComm, gps.begin(), gps.end() );
+        }
+    }
+
+
     /// Destructor.
     virtual ~GlobalPointerCommunicator() {}
 
