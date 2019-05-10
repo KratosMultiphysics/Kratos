@@ -10,21 +10,8 @@ import KratosMultiphysics.MeshMovingApplication.python_solvers_wrapper_mesh_moti
 
 class AleFluidSolver(PythonSolver):
     def __init__(self, model, solver_settings, parallelism):
-        default_settings = KM.Parameters("""{
-            "solver_type"                 : "ale_fluid",
-            "echo_level"                  : 0,
-            "start_fluid_solution_time"   : 0.0,
-            "ale_boundary_parts"          : [ ],
-            "mesh_motion_parts"           : [ ],
-            "fluid_solver_settings"       : { },
-            "mesh_motion_solver_settings" : { },
-            "mesh_velocity_calculation"   : { }
-        }""")
 
-        # cannot recursively validate because validation of fluid- and
-        # mesh-motion-settings is done in corresponding solvers
-        solver_settings.ValidateAndAssignDefaults(default_settings)
-
+        self._validate_settings_in_baseclass=True # To be removed eventually
         super(AleFluidSolver, self).__init__(model, solver_settings)
 
         self.start_fluid_solution_time = self.settings["start_fluid_solution_time"].GetDouble()
@@ -100,6 +87,20 @@ class AleFluidSolver(PythonSolver):
               KM.GetMinimumBufferSize(self.time_int_helper) ] )
 
         KM.Logger.PrintInfo("::[AleFluidSolver]::", "Construction finished")
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KM.Parameters("""{
+            "solver_type"                 : "ale_fluid",
+            "start_fluid_solution_time"   : 0.0,
+            "ale_boundary_parts"          : [ ],
+            "mesh_motion_parts"           : [ ],
+            "fluid_solver_settings"       : { },
+            "mesh_motion_solver_settings" : { },
+            "mesh_velocity_calculation"   : { }
+        }""")
+        this_defaults.AddMissingParameters(super(AleFluidSolver, cls).GetDefaultSettings())
+        return this_defaults
 
     def AddVariables(self):
         self.mesh_motion_solver_full_mesh.AddVariables()

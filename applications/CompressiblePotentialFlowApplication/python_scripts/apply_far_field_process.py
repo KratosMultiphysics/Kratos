@@ -21,7 +21,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "speed_of_sound": 340,
                 "heat_capacity_ratio": 1.4,
                 "inlet_phi": 1.0,
-                "velocity_infinity": [1.0,0.0,0]
+                "free_stream_velocity": [1.0,0.0,0]
             }  """ );
 
 
@@ -39,13 +39,13 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
 
         # Computing free stream velocity
         self.u_inf = self.free_stream_mach * self.free_stream_speed_of_sound
-        self.velocity_infinity = KratosMultiphysics.Vector(3)
-        self.velocity_infinity[0] = round(self.u_inf*math.cos(self.angle_of_attack),8)
-        self.velocity_infinity[1] = round(self.u_inf*math.sin(self.angle_of_attack),8)
-        self.velocity_infinity[2] = 0.0
+        self.free_stream_velocity = KratosMultiphysics.Vector(3)
+        self.free_stream_velocity[0] = round(self.u_inf*math.cos(self.angle_of_attack),8)
+        self.free_stream_velocity[1] = round(self.u_inf*math.sin(self.angle_of_attack),8)
+        self.free_stream_velocity[2] = 0.0
 
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_MACH,self.free_stream_mach)
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_VELOCITY,self.velocity_infinity)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_VELOCITY,self.free_stream_velocity)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_DENSITY,self.density_inf)
         self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY,self.free_stream_speed_of_sound)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.HEAT_CAPACITY_RATIO,self.heat_capacity_ratio)
@@ -53,7 +53,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
     def Execute(self):
         #KratosMultiphysics.VariableUtils().SetVectorVar(CPFApp.FREE_STREAM_VELOCITY, self.velocity_infinity, self.model_part.Conditions)
         for cond in self.model_part.Conditions:
-            cond.SetValue(CPFApp.FREE_STREAM_VELOCITY, self.velocity_infinity)
+            cond.SetValue(CPFApp.FREE_STREAM_VELOCITY, self.free_stream_velocity)
 
         #select the first node
         for node in self.model_part.Nodes:
@@ -71,7 +71,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             dy = node.Y - y0
             dz = node.Z - z0
 
-            tmp = dx*self.velocity_infinity[0] + dy*self.velocity_infinity[1] + dz*self.velocity_infinity[2]
+            tmp = dx*self.free_stream_velocity[0] + dy*self.free_stream_velocity[1] + dz*self.free_stream_velocity[2]
 
             if(tmp < pos):
                 pos = tmp
@@ -81,7 +81,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             dy = node.Y - y0
             dz = node.Z - z0
 
-            tmp = dx*self.velocity_infinity[0] + dy*self.velocity_infinity[1] + dz*self.velocity_infinity[2]
+            tmp = dx*self.free_stream_velocity[0] + dy*self.free_stream_velocity[1] + dz*self.free_stream_velocity[2]
 
             if(tmp < pos+1e-9):
                 node.Fix(CPFApp.VELOCITY_POTENTIAL)
