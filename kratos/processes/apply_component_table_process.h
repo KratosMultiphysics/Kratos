@@ -32,6 +32,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+// Variables types
+typedef VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>  ComponentVariableType;
+typedef Variable<double>                                                  DoubleVariableType;
+
 /// The base class for all processes in Kratos.
 /** This function applies a table value to a component
 */
@@ -47,11 +51,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyComponentTableProcess);
     
     /// Defining a table with double argument and result type as table type.
-    typedef Table<double,double>                                                       TableType;
-
-    // Variables types
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>  ComponentVariableType;
-    typedef Variable<double>                                                  DoubleVariableType;
+    typedef Table<double,double> TableType;
     
     /**
      * @brief Default constructor.

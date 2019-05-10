@@ -93,7 +93,7 @@ void ApplyComponentTableProcess<ComponentVariableType>::ExecuteInitialize()
 template<>
 void ApplyDoubleTableProcess<DoubleVariableType>::ExecuteInitialize()
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     
 	DoubleVariableType variable = KratosComponents<DoubleVariableType>::Get(mVariableName);
     const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
