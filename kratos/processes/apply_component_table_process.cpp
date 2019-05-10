@@ -69,8 +69,7 @@ ApplyComponentTableProcess::ApplyComponentTableProcess(
 
 /***********************************************************************************/
 /***********************************************************************************/
-/// this function is designed for being called at the beginning of the computations
-/// right after reading the model and the groups
+
 void ApplyComponentTableProcess::ExecuteInitialize()
 {
     KRATOS_TRY
@@ -94,16 +93,15 @@ void ApplyComponentTableProcess::ExecuteInitialize()
             it->FastGetSolutionStepValue(var_component) = mInitialValue;
         }
     }
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-/// this function will be executed at every time step BEFORE performing the solve phase
 void ApplyComponentTableProcess::ExecuteInitializeSolutionStep()
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> component_type;
     typedef Variable<double> double_var;
@@ -119,7 +117,7 @@ void ApplyComponentTableProcess::ExecuteInitializeSolutionStep()
         auto& r_nodes_array = mrModelPart.Nodes();
         VariableUtils().SetScalarVar<component_type>(var_component, value, r_nodes_array);
     }
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
