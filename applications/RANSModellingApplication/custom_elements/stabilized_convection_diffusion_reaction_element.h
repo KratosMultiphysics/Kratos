@@ -1011,15 +1011,15 @@ private:
             velocity[d] = rVelocity[d];
         Vector temp(dim);
         noalias(temp) = prod(rContravariantMetricTensor, velocity);
-        const double stab_convection = inner_prod(velocity, temp);
-        const double stab_diffusion = std::pow(3.0 * effective_kinematic_viscosity, 2) *
-                                      norm_frobenius(rContravariantMetricTensor);
-        const double stab_dynamics = std::pow(2.0 / delta_time, 2);
+        const double velocity_norm = norm_2(rVelocity);
+        element_length = 2.0 * velocity_norm / std::sqrt(inner_prod(velocity, temp));
+
+        const double stab_convection = std::pow(2.0 * norm_2(rVelocity) / element_length, 2);
+        const double stab_diffusion = std::pow(12.0 * effective_kinematic_viscosity / (element_length * element_length), 2);
+        const double stab_dynamics = std::pow((1 - alpha) / (gamma * delta_time), 2);
         const double stab_reaction = std::pow(reaction, 2);
 
-        const double velocity_norm = norm_2(rVelocity);
         tau = 1.0 / std::sqrt(stab_dynamics + stab_convection + stab_diffusion + stab_reaction);
-        element_length = 2.0 * velocity_norm / std::sqrt(stab_convection);
     }
 
     double CalculatePsiOne(const double velocity_norm, const double tau, const double reaction_tilde)
