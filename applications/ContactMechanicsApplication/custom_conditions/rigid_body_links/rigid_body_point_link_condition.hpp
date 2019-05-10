@@ -60,7 +60,7 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyPointLinkCondition
   typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
   ///@{
   // Counted pointer of RigidBodyPointLinkCondition
-  KRATOS_CLASS_POINTER_DEFINITION( RigidBodyPointLinkCondition );
+  KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( RigidBodyPointLinkCondition );
   ///@}
 
  protected:

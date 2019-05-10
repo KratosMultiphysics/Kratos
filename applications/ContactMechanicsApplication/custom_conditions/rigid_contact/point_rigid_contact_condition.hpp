@@ -63,7 +63,7 @@ public:
     typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
     ///@{
     // Counted pointer of PointRigidContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PointRigidContactCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PointRigidContactCondition );
     ///@}
 
 protected:

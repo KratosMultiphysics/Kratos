@@ -55,7 +55,7 @@ public:
     typedef GeometryData::SizeType SizeType;
 
     // Counted pointer of LoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( LoadCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LoadCondition );
 
     ///@}
     ///@name Life Cycle

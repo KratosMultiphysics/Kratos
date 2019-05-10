@@ -102,7 +102,7 @@ namespace Kratos
         ///@{
 
         /// Pointer definition of WallCondition
-        KRATOS_CLASS_POINTER_DEFINITION(WallCondition);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(WallCondition);
 
         typedef Node < 3 > NodeType;
 
@@ -208,13 +208,13 @@ namespace Kratos
           */
         Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
         {
-            return Kratos::make_shared<WallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+            return Kratos::make_intrusive<WallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
         }
 
 
         Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
         {
-            return Kratos::make_shared<WallCondition>(NewId, pGeom, pProperties);
+            return Kratos::make_intrusive<WallCondition>(NewId, pGeom, pProperties);
         }
 
         /**

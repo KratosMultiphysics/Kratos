@@ -69,7 +69,20 @@ namespace Testing {
     */
     KRATOS_TEST_CASE_IN_SUITE(Line3D2EdgesNumber, KratosCoreGeometriesFastSuite) {
         Geometry<Point>::Pointer p_geom = GeneratePointsUnitXDirectionLine3D2();
-        KRATOS_CHECK_EQUAL(p_geom->EdgesNumber(), 2);
+        KRATOS_CHECK_EQUAL(p_geom->EdgesNumber(), 1);
+    }
+
+    /** Checks if the edges are correct.
+    * Checks if the edges are correct.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2Edges, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GeneratePointsUnitXDirectionLine3D2();
+
+        const auto& r_edges = p_geom->GenerateEdges();
+        KRATOS_CHECK_NEAR((r_edges[0])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[0].Y(), (p_geom->pGetPoint(0))->Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[1].X(), (p_geom->pGetPoint(1))->X(), TOLERANCE);
+        KRATOS_CHECK_NEAR((r_edges[0])[1].Y(), (p_geom->pGetPoint(1))->Y(), TOLERANCE);
     }
 
     /** Checks if the number of faces is correct.
@@ -77,7 +90,7 @@ namespace Testing {
     */
     KRATOS_TEST_CASE_IN_SUITE(Line3D2FacesNumber, KratosCoreGeometriesFastSuite) {
         Geometry<Point>::Pointer p_geom = GeneratePointsUnitXDirectionLine3D2();
-        KRATOS_CHECK_EQUAL(p_geom->FacesNumber(), 2);
+        KRATOS_CHECK_EQUAL(p_geom->FacesNumber(), 0);
     }
 
     /** Checks if the length of the line is calculated correctly.
@@ -308,8 +321,8 @@ namespace Testing {
         KRATOS_CHECK_NEAR(p_geom->ShapeFunctionValue(1, coord), 5.0/6.0, TOLERANCE);
         auto& r_geom = *p_geom;
         Geometry<Node<3>>::Pointer p_geom_nodes = Kratos::make_shared<Line3D2<Node<3>>>(
-        Kratos::make_shared<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
-        Kratos::make_shared<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
+        Kratos::make_intrusive<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
+        Kratos::make_intrusive<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
         );
         CrossCheckShapeFunctionsValues(*p_geom_nodes);
     }
@@ -349,8 +362,8 @@ namespace Testing {
         Geometry<Point>::Pointer p_geom = GeneratePointsDiagonalLine3D2();
         auto& r_geom = *p_geom;
         Geometry<Node<3>>::Pointer p_geom_nodes = Kratos::make_shared<Line3D2<Node<3>>>(
-        Kratos::make_shared<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
-        Kratos::make_shared<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
+        Kratos::make_intrusive<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
+        Kratos::make_intrusive<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
         );
         TestAllShapeFunctionsLocalGradients(*p_geom_nodes);
     }
