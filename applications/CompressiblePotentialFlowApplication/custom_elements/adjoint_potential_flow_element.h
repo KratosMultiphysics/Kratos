@@ -36,7 +36,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of AdjointPotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointPotentialFlowElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointPotentialFlowElement);
 
     ///@}
     ///@name Life Cycle
@@ -45,15 +45,15 @@ public:
     /**
      * Constructor.
      */
-    AdjointPotentialFlowElement(IndexType NewId = 0) 
+    AdjointPotentialFlowElement(IndexType NewId = 0)
      : Element(NewId),
-     mpPrimalElement(std::make_shared<TPrimalElement>(NewId))
+     mpPrimalElement(std::make_intrusive<TPrimalElement>(NewId))
     {};
 
     AdjointPotentialFlowElement(IndexType NewId,
                         GeometryType::Pointer pGeometry)
      : Element(NewId, pGeometry),
-      mpPrimalElement(std::make_shared<TPrimalElement>(NewId, pGeometry))
+      mpPrimalElement(std::make_intrusive<TPrimalElement>(NewId, pGeometry))
     {
     }
 
@@ -61,7 +61,7 @@ public:
                         GeometryType::Pointer pGeometry,
                         PropertiesType::Pointer pProperties)
      : Element(NewId, pGeometry, pProperties),
-      mpPrimalElement(std::make_shared<TPrimalElement>(NewId, pGeometry, pProperties))
+      mpPrimalElement(std::make_intrusive<TPrimalElement>(NewId, pGeometry, pProperties))
     {
     }
     /**
@@ -117,7 +117,7 @@ public:
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
             const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
             std::vector< array_1d<double,3> >& rValues,
             const ProcessInfo& rCurrentProcessInfo) override;
@@ -168,4 +168,4 @@ private:
 
 } // namespace Kratos.
 
-#endif 
+#endif

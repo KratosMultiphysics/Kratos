@@ -54,7 +54,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
 
 
   /// Counted pointer of ThermalElement
-  KRATOS_CLASS_POINTER_DEFINITION(ThermalElement);
+  KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ThermalElement);
 
 
  protected:

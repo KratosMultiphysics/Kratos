@@ -31,10 +31,10 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "FarFieldProcess",
             "Parameters"    : {
-                "mesh_id"           : 0,
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
-                "inlet_phi"         : 1.0,
-                "velocity_infinity" : [10.0,0.0,0.0]
+                "angle_of_attack": 0.0,
+                "mach_infinity": 0.02941176471,
+                "inlet_phi"         : 1.0
             }
         },{
             "python_module" : "define_wake_process_2d",
@@ -51,8 +51,7 @@
             "process_name"  : "ComputeLiftProcess3D",
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.Body2D_Body",
-                "velocity_infinity" : [10.0,0.0,0.0],
-                "create_output_file": false
+                "moment_reference_point" : [0.0,0.0,0.0]
             }
         }],
         "list_other_processes" :[{
@@ -65,7 +64,7 @@
                 "file_settings" : {
                     "file_access_mode" : "truncate"
                 },
-                
+
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY_POTENTIAL", "AUXILIARY_VELOCITY_POTENTIAL"]
                 },
@@ -73,6 +72,19 @@
                     "step_frequency": 1
                 }
             }
-        }]    
+        },{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["VELOCITY_POTENTIAL"],
+                "input_file_name"  : "incompressible_velocity_potential_flow_field_test_results.json",
+                "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
+                "tolerance"            : 1e-9,
+                "relative_tolerance"   : 1e-12,
+                "time_frequency"   : -2
+            }
+        }]
     }
 }

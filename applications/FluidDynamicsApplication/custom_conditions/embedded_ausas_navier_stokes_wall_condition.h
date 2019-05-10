@@ -100,7 +100,7 @@ public:
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     /// Pointer definition of EmbeddedAusasNavierStokesWallCondition
-    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedAusasNavierStokesWallCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EmbeddedAusasNavierStokesWallCondition);
 
     struct ConditionDataStruct
     {
@@ -199,7 +199,7 @@ public:
       @param pProperties Pointer to the element's properties
       */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override {
-        return Kratos::make_shared<EmbeddedAusasNavierStokesWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<EmbeddedAusasNavierStokesWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     /// Create a new EmbeddedAusasNavierStokesWallCondition object.
@@ -209,7 +209,7 @@ public:
       @param pProperties Pointer to the element's properties
       */
     Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override {
-        return Kratos::make_shared< EmbeddedAusasNavierStokesWallCondition >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< EmbeddedAusasNavierStokesWallCondition >(NewId, pGeom, pProperties);
     }
 
     /**

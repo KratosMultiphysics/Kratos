@@ -28,9 +28,8 @@
 #include "processes/find_conditions_neighbours_process.h"
 #include "processes/find_elements_neighbours_process.h"
 #include "processes/calculate_nodal_area_process.h"
-#include "processes/node_erase_process.h"
-#include "processes/element_erase_process.h"
-#include "processes/condition_erase_process.h"
+#include "processes/node_erase_process.h" // TODO: To be removed
+#include "processes/entity_erase_process.h"
 #include "processes/eliminate_isolated_nodes_process.h"
 #include "processes/calculate_signed_distance_to_3d_skin_process.h"
 #include "processes/calculate_embedded_signed_distance_to_3d_skin_process.h"
@@ -166,20 +165,25 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, std::size_t>())
     ;
 
+//     py::class_<EntitiesEraseProcess<Node<3>>, EntitiesEraseProcess<Node<3>>::Pointer, Process>(m,"NodeEraseProcess") // TODO: Replace when the remainings of NodeEraseProcess have been cleaned up
     py::class_<NodeEraseProcess, NodeEraseProcess::Pointer, Process>(m,"NodeEraseProcess")
-            .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&>())
     ;
 
-    py::class_<ElementEraseProcess, ElementEraseProcess::Pointer, Process>(m,"ElementEraseProcess")
-            .def(py::init<ModelPart&>())
+    py::class_<EntitiesEraseProcess<Element>, EntitiesEraseProcess<Element>::Pointer, Process>(m,"ElementEraseProcess")
+    .def(py::init<ModelPart&>())
     ;
 
-    py::class_<ConditionEraseProcess, ConditionEraseProcess::Pointer, Process>(m,"ConditionEraseProcess")
-            .def(py::init<ModelPart&>())
+    py::class_<EntitiesEraseProcess<Condition>, EntitiesEraseProcess<Condition>::Pointer, Process>(m,"ConditionEraseProcess")
+    .def(py::init<ModelPart&>())
+    ;
+
+    py::class_<EntitiesEraseProcess<MasterSlaveConstraint>, EntitiesEraseProcess<MasterSlaveConstraint>::Pointer, Process>(m,"MasterSlaveConstraintEraseProcess")
+    .def(py::init<ModelPart&>())
     ;
 
     py::class_<EliminateIsolatedNodesProcess, EliminateIsolatedNodesProcess::Pointer, Process>(m,"EliminateIsolatedNodesProcess")
-            .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&>())
     ;
 
     py::class_<CalculateSignedDistanceTo3DSkinProcess, CalculateSignedDistanceTo3DSkinProcess::Pointer, Process>(m,"CalculateSignedDistanceTo3DSkinProcess")
@@ -338,14 +342,16 @@ void  AddProcessesToPython(pybind11::module& m)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
 
-    // Calculate embedded variable from skin processes
+//     // Calculate embedded variable from skin processes
     py::class_<CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>, CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(
         m, "CalculateEmbeddedNodalVariableFromSkinProcessDouble")
-        .def(py::init<ModelPart&, ModelPart&, const Variable<double>&, const Variable<double>&, const std::string, const std::string>());
+        .def(py::init<Model &, Parameters>())
+        .def("Clear", &CalculateEmbeddedNodalVariableFromSkinProcess<double, SparseSpaceType, LocalSpaceType, LinearSolverType>::Clear);
 
-    py::class_<CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>, CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double,3>, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(
+    py::class_<CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>, CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer, Process>(
         m, "CalculateEmbeddedNodalVariableFromSkinProcessArray")
-        .def(py::init<ModelPart&, ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, const std::string, const std::string>());
+        .def(py::init<Model &, Parameters>())
+        .def("Clear", &CalculateEmbeddedNodalVariableFromSkinProcess<array_1d<double, 3>, SparseSpaceType, LocalSpaceType, LinearSolverType>::Clear);
 
     py::class_<ReorderAndOptimizeModelPartProcess, ReorderAndOptimizeModelPartProcess::Pointer, Process>(m,"ReorderAndOptimizeModelPartProcess")
             .def(py::init<ModelPart&, Parameters>())
