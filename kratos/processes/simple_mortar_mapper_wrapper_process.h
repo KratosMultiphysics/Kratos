@@ -94,8 +94,8 @@ public:
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         // The condition iterators
-        auto& r_geometry_origin = rOriginModelPart.NumberOfElements() > 0 ? rOriginModelPart.Elements().begin()->GetGeometry() : rOriginModelPart.Conditions().begin()->GetGeometry();
-        auto& r_geometry_destination = rDestinationModelPart.NumberOfElements() > 0 ? rDestinationModelPart.Elements().begin()->GetGeometry() : rDestinationModelPart.Conditions().begin()->GetGeometry();
+        auto& r_geometry_origin = ThisParameters["origin_are_conditions"].GetBool() ? rOriginModelPart.Conditions().begin()->GetGeometry() : rOriginModelPart.Elements().begin()->GetGeometry();
+        auto& r_geometry_destination = ThisParameters["destination_are_conditions"].GetBool() ? rDestinationModelPart.Conditions().begin()->GetGeometry() : rDestinationModelPart.Elements().begin()->GetGeometry();
 
         // The dimensions
         const SizeType dimension = r_geometry_origin.WorkingSpaceDimension();
@@ -269,7 +269,9 @@ protected:
             "origin_variable"                  : "TEMPERATURE",
             "destination_variable"             : "",
             "origin_variable_historical"       : true,
+            "origin_are_conditions"            : true,
             "destination_variable_historical"  : true,
+            "destination_are_conditions"       : true,
             "update_interface"                 : false,
             "search_parameters"                : {
                 "allocation_size"                  : 1000,
