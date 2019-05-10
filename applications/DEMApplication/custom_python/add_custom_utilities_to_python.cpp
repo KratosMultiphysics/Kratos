@@ -4,8 +4,8 @@
 
 // External includes
 //NOTE: those two includes should go first in the include list of this file
-#include "includes/define.h"
 #include "includes/define_python.h"
+#include "includes/define.h"
 
 #include <pybind11/pybind11.h>
 
@@ -154,6 +154,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("MarkParticlesForErasingGivenBoundingBox", &ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox)
         .def("MarkParticlesForErasingGivenScalarVariableValue", &ParticleCreatorDestructor::MarkParticlesForErasingGivenScalarVariableValue)
         .def("MarkParticlesForErasingGivenVectorVariableModulus", &ParticleCreatorDestructor::MarkParticlesForErasingGivenVectorVariableModulus)
+        .def("MarkParticlesForErasingGivenCylinder", &ParticleCreatorDestructor::MarkParticlesForErasingGivenCylinder)
         .def("GetHighNode", &ParticleCreatorDestructor::GetHighNode)
         .def("GetLowNode", &ParticleCreatorDestructor::GetLowNode)
         .def("GetDiameter", &ParticleCreatorDestructor::GetDiameter)
