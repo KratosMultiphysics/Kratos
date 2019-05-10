@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ignasi de Pouplana
-//  Collaborator:    Alejandro Cornejo
+//                   Alejandro Cornejo
 //
 
 // System includes
@@ -17,6 +17,7 @@
 
 // Project includes
 #include "processes/apply_double_table_process.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -49,7 +50,6 @@ void ApplyDoubleTableProcess::ExecuteInitialize()
     KRATOS_TRY;
     
     Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
-    
     const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
 
     if (nnodes != 0) {
@@ -75,7 +75,6 @@ void ApplyDoubleTableProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY;
 
-	typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> component_type;
     Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
 	typedef Variable<double> double_var;
 	double_var time_var_component = KratosComponents<double_var>::Get(mTimeVariableName);
@@ -86,13 +85,8 @@ void ApplyDoubleTableProcess::ExecuteInitializeSolutionStep()
     const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
 
     if (nnodes != 0) {
-        ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
-
-        #pragma omp parallel for
-        for (int i = 0; i < nnodes; i++) {
-            ModelPart::NodesContainerType::iterator it = it_begin + i;
-            it->FastGetSolutionStepValue(var) = value;
-        }
+        auto& r_nodes_array = mrModelPart.Nodes();
+        VariableUtils().SetScalarVar<double_var>(var, value, r_nodes_array);
     }
     KRATOS_CATCH("");
 }

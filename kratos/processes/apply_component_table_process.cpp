@@ -8,10 +8,11 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ignasi de Pouplana
-//  Collaborator:    Alejandro Cornejo
+//                   Alejandro Cornejo
 //
 
 #include "processes/apply_component_table_process.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -106,7 +107,7 @@ void ApplyComponentTableProcess::ExecuteInitializeSolutionStep()
     
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> component_type;
     typedef Variable<double> double_var;
-    component_type var_component = KratosComponents<component_type>::Get(mVariableName);
+    const component_type& var_component = KratosComponents<component_type>::Get(mVariableName);
     double_var time_var_component = KratosComponents<double_var>::Get(mTimeVariableName);
     
     const double time = mrModelPart.GetProcessInfo()[time_var_component];
@@ -115,13 +116,8 @@ void ApplyComponentTableProcess::ExecuteInitializeSolutionStep()
     const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
 
     if (nnodes != 0) {
-        ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
-
-        #pragma omp parallel for
-        for (int i = 0; i < nnodes; i++) {
-            ModelPart::NodesContainerType::iterator it = it_begin + i;
-            it->FastGetSolutionStepValue(var_component) = value;
-        }
+        auto& r_nodes_array = mrModelPart.Nodes();
+        VariableUtils().SetScalarVar<component_type>(var_component, value, r_nodes_array);
     }
     KRATOS_CATCH("");
 }
