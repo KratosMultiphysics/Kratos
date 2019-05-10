@@ -33,6 +33,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
 
         free_stream_velocity = self.body_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
         free_stream_density = self.body_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_DENSITY)
+
         free_stream_velocity_norm = free_stream_velocity.norm_2()
         dynamic_pressure = 0.5*free_stream_density*free_stream_velocity_norm**2
 
