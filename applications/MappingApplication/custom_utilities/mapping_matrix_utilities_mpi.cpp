@@ -221,7 +221,8 @@ void BuildMappingMatrix<SparseSpaceType, DenseSpaceType>(
         << "Error code: " << ierr << std::endl;
 
     if (EchoLevel > 2) {
-        SparseSpaceType::WriteMatrixMarketMatrix("TrilinosMappingMatrix.mm", *p_Mdo, false);
+        const std::string file_name = "TrilinosMappingMatrix_O_" + rModelPartOrigin.Name() + "__D_" + rModelPartDestination.Name() +".mm";
+        SparseSpaceType::WriteMatrixMarketMatrix(file_name.c_str(), *p_Mdo, false);
     }
 
     rpMappingMatrix.swap(p_Mdo);

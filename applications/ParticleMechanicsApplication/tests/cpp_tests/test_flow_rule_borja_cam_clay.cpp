@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "includes/process_info.h"
 #include "testing/testing.h"
 
 // Application includes
