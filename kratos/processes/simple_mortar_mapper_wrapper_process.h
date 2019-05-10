@@ -93,6 +93,10 @@ public:
         Parameters default_parameters = GetDefaultParameters();
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
+        // Automatic detect the entities
+        if (rOriginModelPart.NumberOfElements() > 0) ThisParameters["origin_are_conditions"].SetBool(false);
+        if (rDestinationModelPart.NumberOfElements() > 0) ThisParameters["destination_are_conditions"].SetBool(false);
+
         // The condition iterators
         auto& r_geometry_origin = ThisParameters["origin_are_conditions"].GetBool() ? rOriginModelPart.Conditions().begin()->GetGeometry() : rOriginModelPart.Elements().begin()->GetGeometry();
         auto& r_geometry_destination = ThisParameters["destination_are_conditions"].GetBool() ? rDestinationModelPart.Conditions().begin()->GetGeometry() : rDestinationModelPart.Elements().begin()->GetGeometry();
