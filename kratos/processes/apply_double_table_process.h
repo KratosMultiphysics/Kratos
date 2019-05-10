@@ -11,8 +11,8 @@
 //  Collaborator:    Alejandro Cornejo
 //
 
-#if !defined(KRATOS_APPLY_DOUBLE_TABLE_PROCESS)
-#define  KRATOS_APPLY_DOUBLE_TABLE_PROCESS
+#if !defined(KRATOS_APPLY_DOUBLE_TABLE_PROCESS_H_INCLUDED)
+#define  KRATOS_APPLY_DOUBLE_TABLE_PROCESS_H_INCLUDED
 
 // System includes
 
@@ -27,7 +27,7 @@ namespace Kratos
 /// The base class for all processes in Kratos.
 /** This function applies a value according to a table defined in the mdpa
 */
-class ApplyDoubleTableProcess : public ApplyComponentTableProcess
+class KRATOS_API(KRATOS_CORE) ApplyDoubleTableProcess : public ApplyComponentTableProcess
 {
     
 public:
@@ -43,7 +43,12 @@ public:
 
     
     /// Destructor
-    ~ApplyDoubleTableProcess() override {}
+    virtual ~ApplyDoubleTableProcess() override {}
+
+    void operator()()
+    {
+        Execute();
+    }
 
     /// Execute method is used to execute the ApplyDoubleTableProcess algorithms.
     void Execute() override

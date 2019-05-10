@@ -11,8 +11,8 @@
 //  Collaborator:    Alejandro Cornejo
 //
 
-#if !defined(KRATOS_APPLY_COMPONENT_TABLE_PROCESS)
-#define  KRATOS_APPLY_COMPONENT_TABLE_PROCESS
+#if !defined(KRATOS_APPLY_COMPONENT_TABLE_PROCESS_H_INCLUDED)
+#define  KRATOS_APPLY_COMPONENT_TABLE_PROCESS_H_INCLUDED
 
 // System includes
 
@@ -34,7 +34,7 @@ namespace Kratos
 /// The base class for all processes in Kratos.
 /** This function applies a table value to a component
 */
-class ApplyComponentTableProcess : public Process
+class KRATOS_API(KRATOS_CORE) ApplyComponentTableProcess : public Process
 {
 
 public:
@@ -51,7 +51,12 @@ public:
 	ApplyComponentTableProcess(ModelPart& rModelPart, Parameters rParameters);
    
     /// Destructor
-    ~ApplyComponentTableProcess() override {}
+    virtual ~ApplyComponentTableProcess() override {}
+
+    void operator()()
+    {
+        Execute();
+    }
 
     /// Execute method is used to execute the ApplyComponentTableProcess algorithms.
     void Execute() override
@@ -86,15 +91,15 @@ public:
 
 protected:
 
+    /// Copy constructor.
+    ApplyComponentTableProcess(ApplyComponentTableProcess const& rOther);
+
     /// Member Variables
     ModelPart& mrModelPart;
     std::string mVariableName;
     bool mIsFixed;
     double mInitialValue;
     TableType::Pointer mpTable;
-
-    /// Copy constructor.
-    ApplyComponentTableProcess(ApplyComponentTableProcess const& rOther);
     
 private:
 
