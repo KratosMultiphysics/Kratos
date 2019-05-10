@@ -28,7 +28,7 @@ class LinearDerivativeBasedPredictor(CosimulationBasePredictor):
             cs_tools.ImportArrayFromSolver(solver, deriv_data_name, self.derivative_data_arrays[i], 1)
             cs_tools.ImportArrayFromSolver(solver, data_name, self.data_arrays[i], 1)
 
-            # self.data_arrays[i] += solver.GetDeltaTime() * self.derivative_data_arrays[i]
+            self.data_arrays[i] += solver.GetDeltaTime() * self.derivative_data_arrays[i]
 
         self._UpdateData(self.data_arrays)
 

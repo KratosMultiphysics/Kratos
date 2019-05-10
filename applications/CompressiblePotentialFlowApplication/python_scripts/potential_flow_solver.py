@@ -41,11 +41,7 @@ class PotentialFlowSolver(FluidSolver):
             "volume_model_part_name": "volume_model_part",
             "skin_parts":[""],
             "no_skin_parts": [""],
-            "move_mesh_flag": false,
-            "time_stepping"                   : {
-                "automatic_time_step" : false,
-                "time_step"           : 0.05
-            }
+            "move_mesh_flag": false
         }''')
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -102,27 +98,6 @@ class PotentialFlowSolver(FluidSolver):
 
     def Predict(self):
         self.solver.Predict()
-
-    def AdvanceInTime(self, current_time):
-        dt = self._ComputeDeltaTime()
-        new_time = current_time + dt
-        print("ADVANCE IN TIME PFS TURNS OUT TO BE     ", current_time)
-
-        # super(PotentialFlowSolver, self).AdvanceInTime(current_time)
-        return new_time
-        # raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
-
-    def _ComputeDeltaTime(self):
-        # Automatic time step computation according to user defined CFL number
-        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            delta_time = self.EstimateDeltaTimeUtility.EstimateDt()
-        # User-defined delta time
-        else:
-            print("FEEEEEETTTT")
-            print(self.settings["time_stepping"]["time_step"].GetDouble())
-            delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
-
-        return delta_time
 
     def FinalizeSolutionStep(self):
         # if self._TimeBufferIsInitialized():
