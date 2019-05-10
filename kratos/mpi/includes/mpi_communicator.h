@@ -1033,8 +1033,7 @@ public:
      **/
     bool TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects) override
     {
-        Kratos::MpiSerializer serializer;
-        AsyncSendAndReceiveObjects<NodesContainerType>(SendObjects,RecvObjects,serializer);
+        AsyncSendAndReceiveObjects<NodesContainerType>(SendObjects,RecvObjects);
         return true;
     }
 
@@ -1045,8 +1044,7 @@ public:
     **/
     bool TransferObjects(std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType>& RecvObjects) override
     {
-        Kratos::MpiSerializer serializer;
-        AsyncSendAndReceiveObjects<ElementsContainerType>(SendObjects,RecvObjects,serializer);
+        AsyncSendAndReceiveObjects<ElementsContainerType>(SendObjects,RecvObjects);
         return true;
     }
 
@@ -1057,8 +1055,7 @@ public:
     **/
     bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects) override
     {
-        Kratos::MpiSerializer serializer;
-        AsyncSendAndReceiveObjects<ConditionsContainerType>(SendObjects,RecvObjects,serializer);
+        AsyncSendAndReceiveObjects<ConditionsContainerType>(SendObjects,RecvObjects);
         return true;
     }
 
@@ -1069,7 +1066,7 @@ public:
      **/
     bool TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects,Kratos::Serializer& particleSerializer) override
     {
-        AsyncSendAndReceiveObjects<NodesContainerType>(SendObjects,RecvObjects,particleSerializer);
+        AsyncSendAndReceiveObjects<NodesContainerType>(SendObjects,RecvObjects);
         return true;
     }
 
@@ -1080,7 +1077,7 @@ public:
     **/
     bool TransferObjects(std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType>& RecvObjects,Kratos::Serializer& particleSerializer) override
     {
-        AsyncSendAndReceiveObjects<ElementsContainerType>(SendObjects,RecvObjects,particleSerializer);
+        AsyncSendAndReceiveObjects<ElementsContainerType>(SendObjects,RecvObjects);
         return true;
     }
 
@@ -1091,7 +1088,7 @@ public:
     **/
     bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects,Kratos::Serializer& particleSerializer) override
     {
-        AsyncSendAndReceiveObjects<ConditionsContainerType>(SendObjects,RecvObjects,particleSerializer);
+        AsyncSendAndReceiveObjects<ConditionsContainerType>(SendObjects,RecvObjects);
         return true;
     }
 
@@ -1297,7 +1294,7 @@ private:
     }
 
     template<class TObjectType>
-    bool AsyncSendAndReceiveObjects(std::vector<TObjectType>& SendObjects, std::vector<TObjectType>& RecvObjects, Kratos::Serializer& externParticleSerializer)
+    bool AsyncSendAndReceiveObjects(std::vector<TObjectType>& SendObjects, std::vector<TObjectType>& RecvObjects)
     {
         int mpi_rank = mrDataCommunicator.Rank();
         int mpi_size = mrDataCommunicator.Size();
