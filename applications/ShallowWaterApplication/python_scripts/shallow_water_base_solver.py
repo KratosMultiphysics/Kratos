@@ -167,7 +167,7 @@ class ShallowWaterBaseSolver(PythonSolver):
 
     def InitializeSolutionStep(self):
         """ The wetting model is called here.
-        It should be executed even if the buffer is not initialized, otherwise 
+        It should be executed even if the buffer is not initialized, otherwise
         the previous time step wouldn't be modified by the wetting model
         """
         self.solver.InitializeSolutionStep()
@@ -309,8 +309,8 @@ class ShallowWaterBaseSolver(PythonSolver):
 
     def _GetWettingModel(self):
         if not hasattr(self, "_dry_wet_model"):
-            self._wet_dry_model = self._CreateWettingModel()
-        return self._wet_dry_model 
+            self._wetting_model = self._CreateWettingModel()
+        return self._wetting_model
 
     def _CreateWettingModel(self):
         if self.settings["wetting_drying_model"].Has("model_name"):
