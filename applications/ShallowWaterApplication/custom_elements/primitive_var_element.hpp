@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#if !defined(KRATOS_PRIMITIVE_VAR_ELEM_H_INCLUDED)
-#define  KRATOS_PRIMITIVE_VAR_ELEM_H_INCLUDED
+#ifndef KRATOS_PRIMITIVE_VAR_ELEM_H_INCLUDED
+#define KRATOS_PRIMITIVE_VAR_ELEM_H_INCLUDED
 
 // System includes
 
