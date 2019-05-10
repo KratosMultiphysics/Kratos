@@ -2,7 +2,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
 
 def Factory(settings, Model):
-    if(type(settings) != KM.Parameters):
+    if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return SetInitialWaterLevelProcess(Model, settings["Parameters"])
 
