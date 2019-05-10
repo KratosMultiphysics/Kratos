@@ -14,7 +14,8 @@
 #include "containers/model.h"
 #include "includes/parallel_environment.h"
 #include "utilities/global_pointer_utilities.h"
-#include "mpi/utilities/pointer_communicator.h"
+#include "utilities/pointer_communicator.h"
+
 #include "testing/testing.h"
 
 namespace Kratos

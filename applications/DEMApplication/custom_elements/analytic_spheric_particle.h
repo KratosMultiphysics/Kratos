@@ -20,7 +20,7 @@ class KRATOS_API(DEM_APPLICATION) AnalyticSphericParticle : public SphericPartic
 public:
 
 /// Pointer definition of AnalyticSphericParticle
-KRATOS_CLASS_POINTER_DEFINITION(AnalyticSphericParticle);
+KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AnalyticSphericParticle);
 
 typedef WeakPointerVector<Condition> ConditionWeakVectorType;
 typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;

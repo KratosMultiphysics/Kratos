@@ -37,7 +37,7 @@ namespace Kratos
     public:
       
         /// Pointer definition of ThermalSphericParticle
-        KRATOS_CLASS_POINTER_DEFINITION(ThermalSphericParticle);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ThermalSphericParticle);
 
         typedef WeakPointerVector<Element> ParticleWeakVectorType;
         typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;

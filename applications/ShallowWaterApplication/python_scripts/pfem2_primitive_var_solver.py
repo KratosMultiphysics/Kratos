@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 
 ## Import base class file
-from shallow_water_base_solver import ShallowWaterBaseSolver
+from KratosMultiphysics.ShallowWaterApplication.shallow_water_base_solver import ShallowWaterBaseSolver
 
 def CreateSolver(model, custom_settings):
     return Pfem2PrimitiveVarSolver(model, custom_settings)
@@ -24,8 +24,11 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
         self.settings["pfem2_settings"].AddEmptyValue("convection_scalar_variable").SetString("HEIGHT")
         self.settings["pfem2_settings"].AddEmptyValue("convection_vector_variable").SetString("VELOCITY")
         self.settings["pfem2_settings"].AddEmptyValue("maximum_number_of_particles").SetInt(8*domain_size)
-        # self.settings["pfem2_settings"].AddEmptyValue("minimum_pre_reseed").SetInt(1*domain_size)
-        # self.settings["pfem2_settings"].AddEmptyValue("minimum_post_reseed").SetInt(2*domain_size)
+
+        self.print_particles = False # By default we don't print the particles, it is expensive
+        if self.print_particles:
+            self.lagrangian_model_part = model.CreateModelPart("pfem2_particles")
+            self.filter_factor = 1
 
     def AddVariables(self):
         super(Pfem2PrimitiveVarSolver, self).AddVariables()
@@ -43,7 +46,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(Shallow.HEIGHT, self.main_model_part)
 
-        self.print_on_rank_zero("::[Pfem2PrimitiveVarSolver]::", "Shallow water solver DOFs added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("::[Pfem2PrimitiveVarSolver]::", "Shallow water solver DOFs added correctly.")
 
     def Initialize(self):
         super(Pfem2PrimitiveVarSolver, self).Initialize()
@@ -60,7 +63,9 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
         # Creating the solution strategy for the particle stage
         self.moveparticles = Shallow.MoveShallowWaterParticleUtility(self.main_model_part, self.settings["pfem2_settings"])
         self.moveparticles.MountBin()
-        self.print_on_rank_zero("::[Pfem2PrimitiveVarSolver]::", "Pfem2 stage initialization finished")
+        if self.print_particles:
+            self.moveparticles.ExecuteParticlesPrintingTool(self.lagrangian_model_part, self.filter_factor)
+        KratosMultiphysics.Logger.PrintInfo("::[Pfem2PrimitiveVarSolver]::", "Pfem2 stage initialization finished")
 
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
@@ -90,6 +95,10 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
             self.ShallowVariableUtils.ComputeFreeSurfaceElevation()
             # If water height is negative or close to zero, reset values
             # self.ShallowVariableUtils.CheckDryPrimitiveVariables()
+            if self.print_particles:
+                self.lagrangian_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+                self.lagrangian_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+                self.moveparticles.ExecuteParticlesPrintingTool(self.lagrangian_model_part, self.filter_factor)
 
             return is_converged
 

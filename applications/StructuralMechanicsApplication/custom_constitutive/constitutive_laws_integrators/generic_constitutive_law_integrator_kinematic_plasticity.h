@@ -815,7 +815,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         double& rHardeningParameter
         )
     {
-        rHardeningParameter = -SlopeThreshold;
+        rHardeningParameter = SlopeThreshold;
         double aux = 0.0;
 
         for (IndexType i = 0; i < VoigtSize; ++i) {

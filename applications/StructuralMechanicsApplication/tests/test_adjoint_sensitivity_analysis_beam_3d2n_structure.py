@@ -145,9 +145,13 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
             adjoint_analysis.Run()
 
         # Check sensitivity for the parameter POINT_LOAD
-        reference_values = -0.31249774999397384
-        sensitivity_to_check = model_adjoint.GetModelPart(model_part_name).Conditions[1].GetValue(POINT_LOAD_SENSITIVITY)[2]
-        self.assertAlmostEqual(reference_values, sensitivity_to_check, 4)
+        reference_values = [-0.31249774999397384, -1.249]
+        sensitivities_to_check = []
+        sensitivities_to_check.append(model_adjoint.GetModelPart(model_part_name).Conditions[1].GetValue(POINT_LOAD_SENSITIVITY)[2])
+        sensitivities_to_check.append(model_adjoint.GetModelPart(model_part_name).Elements[10].GetValue(I22_SENSITIVITY))
+
+        self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 4)
+        self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 2)
 
     # called only once for this class, opposed of tearDown()
     @classmethod

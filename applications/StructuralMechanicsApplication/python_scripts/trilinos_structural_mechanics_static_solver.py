@@ -2,21 +2,17 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.mpi as KratosMPI
 
 # Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
 # Import base class file
-import trilinos_structural_mechanics_solver
-
+from KratosMultiphysics.StructuralMechanicsApplication.trilinos_structural_mechanics_solver import TrilinosMechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return TrilinosStaticMechanicalSolver(model, custom_settings)
 
-
-class TrilinosStaticMechanicalSolver(trilinos_structural_mechanics_solver.TrilinosMechanicalSolver):
+class TrilinosStaticMechanicalSolver(TrilinosMechanicalSolver):
     """The trilinos structural mechanics static solver.
 
     For more information see:
@@ -26,7 +22,7 @@ class TrilinosStaticMechanicalSolver(trilinos_structural_mechanics_solver.Trilin
     def __init__(self, model, custom_settings):
         # Construct the base solver.
         super(TrilinosStaticMechanicalSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[TrilinosStaticMechanicalSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosStaticMechanicalSolver]:: ", "Construction finished")
 
     def _create_solution_scheme(self):
         return TrilinosApplication.TrilinosResidualBasedIncrementalUpdateStaticScheme()

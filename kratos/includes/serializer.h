@@ -33,6 +33,7 @@
 #include "containers/array_1d.h"
 #include "containers/weak_pointer_vector.h"
 #include "input_output/logger.h"
+
 //#include "containers/model.h"
 // #include "containers/variable.h"
 
@@ -254,6 +255,49 @@ public:
     }
 
     template<class TDataType>
+    void load(std::string const & rTag, Kratos::intrusive_ptr<TDataType>& pValue)
+    {
+        PointerType pointer_type = SP_INVALID_POINTER;
+        void* p_pointer;
+        read(pointer_type);
+
+        if(pointer_type != SP_INVALID_POINTER)
+        {
+            read(p_pointer);
+            LoadedPointersContainerType::iterator i_pointer = mLoadedPointers.find(p_pointer);
+            if(i_pointer == mLoadedPointers.end())
+            {
+                if(pointer_type == SP_BASE_CLASS_POINTER)
+                {
+                    if(!pValue)
+                        pValue = Kratos::intrusive_ptr<TDataType>(new TDataType);
+                    load(rTag, *pValue);
+                }
+                else if(pointer_type == SP_DERIVED_CLASS_POINTER)
+                {
+                    std::string object_name;
+                    read(object_name);
+                    typename RegisteredObjectsContainerType::iterator i_prototype =  msRegisteredObjects.find(object_name);
+
+                    KRATOS_ERROR_IF(i_prototype == msRegisteredObjects.end())
+                        << "There is no object registered in Kratos with name : "
+                        << object_name << std::endl;
+
+                    if(!pValue)
+                        pValue = Kratos::intrusive_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
+
+                    load(rTag, *pValue);
+
+                }
+                mLoadedPointers[p_pointer]=&pValue;
+            }
+            else
+                pValue = *static_cast<Kratos::intrusive_ptr<TDataType>*>((i_pointer->second));
+        }
+    }
+
+
+    template<class TDataType>
     void load(std::string const & rTag, Kratos::unique_ptr<TDataType>& pValue)
     {
         PointerType pointer_type = SP_INVALID_POINTER;
@@ -347,6 +391,13 @@ public:
 
     void load(std::string const & rTag, Kratos::shared_ptr<ModelPart>& pValue);
 
+    template<class TDataType>
+    void load(std::string const & rTag, Kratos::intrusive_weak_ptr<TDataType>& pValue)
+    {
+        // This is for testing. I have to change it. Pooyan.
+        //KRATOS_ERROR << "The serialization for weak_ptrs is not implemented yet" << std::endl;
+//    read(*pValue);
+    }
 
     template<class TDataType>
     void load(std::string const & rTag, Kratos::weak_ptr<TDataType>& pValue)
@@ -561,6 +612,19 @@ public:
     void save(std::string const & rTag, Kratos::shared_ptr<TDataType> pValue)
     {
         save(rTag, pValue.get());
+    }
+
+    template<class TDataType>
+    void save(std::string const & rTag, Kratos::intrusive_ptr<TDataType> pValue)
+    {
+        save(rTag, pValue.get());
+    }
+
+    template<class TDataType>
+    void save(std::string const & rTag, Kratos::intrusive_weak_ptr<TDataType> pValue)
+    {
+        //no implementaion for now... 
+        //save(rTag, pValue.lock().get());
     }
 
     template<class TDataType>
