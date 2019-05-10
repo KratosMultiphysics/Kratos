@@ -85,7 +85,7 @@ public:
     ///@{
 
     /// @brief The scheme calls this method on every non linear iteration
-    void Execute() override;
+    void ExecuteInitializeSolutionStep() override;
 
     ///@brief The scheme calls this method after convergence is reached in an iterative process
     void ExecuteFinalizeSolutionStep() override;

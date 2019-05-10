@@ -45,7 +45,7 @@ RoughPorousLayerWettingModel::RoughPorousLayerWettingModel(ModelPart& rModelPart
     mRoughnessFactor = RoughnessFactor;
 }
 
-void RoughPorousLayerWettingModel::Execute()
+void RoughPorousLayerWettingModel::ExecuteInitializeSolutionStep()
 {
     // Definition of the first node iterator
     auto it_node_begin = mrModelPart.NodesBegin();
@@ -55,12 +55,16 @@ void RoughPorousLayerWettingModel::Execute()
     for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
     {
         auto it_node = it_node_begin + i;
-        const double free_surface = it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
         const double topography = it_node->FastGetSolutionStepValue(TOPOGRAPHY);
         const double manning = it_node->FastGetSolutionStepValue(MANNING);
+        double& height = it_node->FastGetSolutionStepValue(HEIGHT);
         double& bathymetry = it_node->FastGetSolutionStepValue(BATHYMETRY);
         double& equivalent_manning = it_node->FastGetSolutionStepValue(EQUIVALENT_MANNING);
 
+        // 1. Getting the free surface from the last iteration
+        const double free_surface = height - bathymetry;
+
+        // 2. Moving the bathymetry
         double equivalent_topography = topography + mLayerThickness;
         if (equivalent_topography < free_surface) // Wet domain
         {
@@ -70,13 +74,16 @@ void RoughPorousLayerWettingModel::Execute()
         else if (topography < free_surface) // Transition domain
         {
             bathymetry = -free_surface + mLayerThickness;
-            equivalent_manning = manning;
+            equivalent_manning = manning + mRoughnessFactor * (mLayerThickness + topography - free_surface) / mLayerThickness;
         }
         else // Dry domain
         {
             bathymetry = -free_surface + mLayerThickness;
-            equivalent_manning = manning;
+            equivalent_manning = manning + mRoughnessFactor;
         }
+
+        // 3. Updating the water height after moving the bathymetry
+        height = free_surface + bathymetry;
     }
 }
 
