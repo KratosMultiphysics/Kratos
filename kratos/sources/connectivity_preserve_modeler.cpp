@@ -199,9 +199,6 @@ void ConnectivityPreserveModeler::DuplicateCommunicatorData(
     pDestinationComm->SetNumberOfColors( rReferenceComm.GetNumberOfColors() );
     pDestinationComm->NeighbourIndices() = rReferenceComm.NeighbourIndices();
 
-    // This is a dirty hack to detect if the communicator is a Communicator or an MPICommunicator
-    // Note that downcasting would not work here because MPICommunicator is not compiled in non-MPI builds
-    const bool is_mpi = ( rOriginModelPart.pElements() != rReferenceComm.LocalMesh().pElements() );
     if (rReferenceComm.IsDistributed()) {
         pDestinationComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
         pDestinationComm->InterfaceMesh().SetNodes( rReferenceComm.InterfaceMesh().pNodes() );
