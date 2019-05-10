@@ -23,7 +23,6 @@ class SimpleSteadyCouplingSolver(CoSimulationBaseCouplingSolver):
         self.convergence_criteria.SetEchoLevel(self.echo_level)
 
         self.num_coupling_iterations = self.cosim_solver_settings["num_coupling_iterations"]
-        KratosMultiphysics.Logger.PrintInfo("INIT inside the SimpleSteadyCouplingSolver IS CALLED HERE")
 
 
 

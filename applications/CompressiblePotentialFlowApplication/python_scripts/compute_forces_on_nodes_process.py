@@ -15,8 +15,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "",
-            "create_output_file": false,
-            "output_variables" : []
+            "create_output_file": false
         }''')
 
         settings.ValidateAndAssignDefaults(default_parameters)

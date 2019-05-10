@@ -15,9 +15,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         # Call the base Kratos process constructor
         KratosMultiphysics.Process.__init__(self)
 
-        # print("debug - model as seen from define wake process 2d:\n", Model)
-        print("debug - model as seen from define wake process 2d:\n")
-
         # Check default settings
         default_settings_wake = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "",
@@ -27,7 +24,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings_wake)
 
         # Extract and check data from custom settings
-        # self.wake_direction = settings["wake_direction"].GetVector()
         self.wake_direction = settings["wake_direction"].GetVector()
 
         if(self.wake_direction.Size() != 3):
@@ -82,8 +78,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.MarkKuttaElements()
         # Mark the trailing edge element that is further downstream as wake
         self.MarkWakeTEElement()
-        # Having a trial
-        # self.CleanMarking()
 
     def SaveTrailingEdgeNode(self):
         # This function finds and saves the trailing edge for further computations

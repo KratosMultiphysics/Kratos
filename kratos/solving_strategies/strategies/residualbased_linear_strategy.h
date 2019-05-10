@@ -624,13 +624,12 @@ public:
         if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
         p_scheme->FinalizeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
-        std::cout << "!!FinalizeNonLinearIteration has been called!!" << std::endl;
 
         // Calculate reactions if required
-        if (mCalculateReactionsFlag == true) {
+        if (mCalculateReactionsFlag == true)
             p_builder_and_solver->CalculateReactions(p_scheme,
                                                      BaseType::GetModelPart(),
-                                                     rA, rDx, rb);}
+                                                     rA, rDx, rb);
 
         return true;
     }

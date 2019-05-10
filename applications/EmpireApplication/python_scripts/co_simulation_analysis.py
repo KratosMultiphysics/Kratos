@@ -18,7 +18,6 @@ class CoSimulationAnalysis(object):
 
         problem_data = cosim_settings["problem_data"]
         self.cosim_settings = cosim_settings
-        KratosMultiphysics.Logger.PrintInfo("PROBABLY Here")
         cs_tools.PRINT_COLORS = problem_data["print_colors"]
 
         parallel_type = problem_data["parallel_type"]
@@ -58,7 +57,6 @@ class CoSimulationAnalysis(object):
     def Initialize(self):
         self._GetSolver().Initialize()
         self._GetSolver().Check()
-        KratosMultiphysics.Logger.PrintInfo("SOLVER INITIALIZED:::::", self._GetSolver())
 
         if self.echo_level > 0:
             self._GetSolver().PrintInfo()
