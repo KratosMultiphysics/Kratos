@@ -178,8 +178,8 @@ void PotentialWallCondition<TDim, TNumNodes>::FinalizeSolutionStep(ProcessInfo& 
 {
     std::vector<double> rValues;
     ElementPointerType pElem = pGetElement();
-    pElem->GetValueOnIntegrationPoints(PRESSURE, rValues, rCurrentProcessInfo);
-    this->SetValue(PRESSURE, rValues[0]);
+    pElem->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT, rValues, rCurrentProcessInfo);
+    this->SetValue(PRESSURE_COEFFICIENT, rValues[0]);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
