@@ -18,13 +18,6 @@ namespace Kratos
   typedef array_1d<double,3> Vector3;
   typedef array_1d<double,6> Vector6;
 
-  typedef Node<3>::WeakPointer NodeWeakPtrType;
-  typedef Element::WeakPointer ElementWeakPtrType;
-  typedef Condition::WeakPointer ConditionWeakPtrType;
-
-  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
-  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
-  typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
   ///@}
 
   ///@name Kratos Globals
@@ -46,7 +39,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(int,                                 RIGID_WALL )
 
   //custom neighbor and masters
-  KRATOS_CREATE_VARIABLE(NodeWeakPtrType,                    MASTER_NODE )
+  KRATOS_CREATE_VARIABLE(GlobalPointer<Node<3>>,                    MASTER_NODE )
   KRATOS_CREATE_VARIABLE(ElementWeakPtrType,              MASTER_ELEMENT )
   KRATOS_CREATE_VARIABLE(ConditionWeakPtrType,          MASTER_CONDITION )
 
