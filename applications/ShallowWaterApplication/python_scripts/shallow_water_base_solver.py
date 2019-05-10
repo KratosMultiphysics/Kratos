@@ -230,23 +230,14 @@ class ShallowWaterBaseSolver(PythonSolver):
             "reform_dofs_at_each_step" : false,
             "calculate_norm_dx"        : true,
             "move_mesh_flag"           : false,
-            "volume_model_part_name"   : "volume_model_part",
-            "skin_parts"               : [""],
-            "no_skin_parts"            : [""],
             "linear_solver_settings"   : {
-                "solver_type"              : "AMGCL",
-                "smoother_type"            : "ilu0",
-                "krylov_type"              : "gmres",
-                "coarsening_type"          : "aggregation",
-                "max_iteration"            : 100,
-                "tolerance"                : 1.0e-6,
-                "scaling"                  : false
+                "solver_type"              : "amgcl"
             },
             "time_stepping"            : {
                 "automatic_time_step"      : false,
                 "time_step"                : 0.01
             },
-            "multigrid_settings"   : {}
+            "multigrid_settings"       : {}
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
