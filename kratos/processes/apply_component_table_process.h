@@ -95,12 +95,12 @@ protected:
     ApplyComponentTableProcess(ApplyComponentTableProcess const& rOther);
 
     /// Member Variables
-    ModelPart& mrModelPart;
-    std::string mVariableName;
-    std::string mTimeVariableName;
-    bool mIsFixed;
-    double mInitialValue;
-    TableType::Pointer mpTable;
+    ModelPart& mrModelPart;  // The main model part
+    std::string mVariableName;  // The variable to be fixed with the value of the table
+    std::string mTimeVariableName;  // The variable that represents "time"
+    bool mIsFixed;  // Boolean var to know wether the DoF is fixed
+    double mInitialValue;  // Initial value of the variable
+    TableType::Pointer mpTable;  // Table containing all the information
     
 private:
 
