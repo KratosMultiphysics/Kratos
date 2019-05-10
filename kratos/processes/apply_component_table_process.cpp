@@ -160,7 +160,7 @@ void ApplyComponentTableProcess<DoubleVariableType>::ExecuteInitializeSolutionSt
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class ApplyDoubleTableProcess<ComponentVariableType>;
-template class ApplyDoubleTableProcess<DoubleVariableType>;
+template class ApplyComponentTableProcess<ComponentVariableType>;
+template class ApplyComponentTableProcess<DoubleVariableType>;
 
 } // namespace Kratos
