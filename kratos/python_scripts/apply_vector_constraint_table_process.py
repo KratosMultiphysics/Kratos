@@ -5,7 +5,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyVectorConstraintTableProcess(Model, settings["Parameters"])
 
-## All the processes python should be derived from "Process"
+## This class applies a value to a component according to the value af a table
 class ApplyVectorConstraintTableProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
