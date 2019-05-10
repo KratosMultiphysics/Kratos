@@ -141,7 +141,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>:: Exe
 
     // We apply the coeffcient if different of one
     if (mMappingCoefficient != 1.0) {
-        NodesArrayType& r_nodes_array = mDestinationModelPart.Nodes();
+        auto& r_nodes_array = mDestinationModelPart.Nodes();
 
         if (mDestinationHistorical) {
             #pragma omp parallel for
@@ -169,10 +169,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
 {
     // First we check if search already exists
     bool search_exists = true;
+
     // Iterate in the conditions
-    ConditionsArrayType& destination_conditions_array = mDestinationModelPart.Conditions();
-    for(IndexType i = 0; i < destination_conditions_array.size(); ++i) {
-        auto it_cond = destination_conditions_array.begin() + i;
+    auto& r_destination_conditions_array = mDestinationModelPart.Conditions();
+    for(IndexType i = 0; i < r_destination_conditions_array.size(); ++i) {
+        auto it_cond = r_destination_conditions_array.begin() + i;
 
         if (!(it_cond->Has( INDEX_SET ) || it_cond->Has( INDEX_MAP ))) {
             search_exists = false;
@@ -181,12 +182,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
     }
 
     // Now we perform the corresponding search
-    if (search_exists == false) {
+    if (!search_exists) {
 
         // We create the variable INDEX_SET
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(destination_conditions_array.size()); ++i) {
-            auto it_cond = destination_conditions_array.begin() + i;
+        for(int i = 0; i < static_cast<int>(r_destination_conditions_array.size()); ++i) {
+            auto it_cond = r_destination_conditions_array.begin() + i;
             if (it_cond->Has(INDEX_SET) == false)
                 it_cond->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
         }
@@ -196,15 +197,15 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
         point_list_destination.clear();
 
         // Iterate in the conditions
-        ConditionsArrayType& origin_conditions_array = mOriginModelPart.Conditions();
+        auto& r_origin_conditions_array = mOriginModelPart.Conditions();
 
         #pragma omp parallel
         {
             PointVector points_buffer;
 
             #pragma omp for
-            for(int i = 0; i < static_cast<int>(origin_conditions_array.size()); ++i) {
-                auto it_cond = origin_conditions_array.begin() + i;
+            for(int i = 0; i < static_cast<int>(r_origin_conditions_array.size()); ++i) {
+                auto it_cond = r_origin_conditions_array.begin() + i;
 
                 const PointTypePointer& p_point = PointTypePointer(new PointMapperType((*it_cond.base())));
                 (points_buffer).push_back(p_point);
@@ -231,14 +232,14 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
         // Copying the list is required because the tree will reorder it for efficiency
         KDTreeType tree_points(point_list_destination.begin(), point_list_destination.end(), bucket_size);
 
-        for(IndexType i = 0; i < destination_conditions_array.size(); ++i) {
-            auto it_cond = destination_conditions_array.begin() + i;
+        for(IndexType i = 0; i < r_destination_conditions_array.size(); ++i) {
+            auto it_cond = r_destination_conditions_array.begin() + i;
 
             // Initialize values
             PointVector points_found(allocation_size);
 
-            GeometryType& geometry = it_cond->GetGeometry();
-            const Point& center = geometry.Center();
+            GeometryType& r_geometry = it_cond->GetGeometry();
+            const Point center = r_geometry.Center();
 
             double radius = 0.0;
             for(IndexType i_node = 0; i_node < it_cond->GetGeometry().PointsNumber(); ++i_node)  {
@@ -255,8 +256,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
                 IndexSet::Pointer indexes_set = it_cond->GetValue(INDEX_SET);
 
                 for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
-                    Condition::Pointer p_cond_master = points_found[i_point]->GetCondition();
-                    indexes_set->AddId(p_cond_master->Id());
+                    auto p_geometrical_object_master = points_found[i_point]->GetGeometricalObject();
+                    indexes_set->AddId(p_geometrical_object_master->Id());
                 }
             }
         }
@@ -269,7 +270,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
 template< SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster >
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::ResetNodalArea()
 {
-    NodesArrayType& r_nodes_array = mDestinationModelPart.Nodes();
+    auto& r_nodes_array = mDestinationModelPart.Nodes();
 
     // We set to zero
     #pragma omp parallel for
@@ -286,7 +287,7 @@ template< SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNum
 double SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::GetReferenceArea()
 {
     double ref_area = 0.0;
-    ConditionsArrayType& r_conditions_array_origin = mOriginModelPart.Conditions();
+    auto& r_conditions_array_origin = mOriginModelPart.Conditions();
 
     // We look for the max area in the origin model part
     for(int i = 0; i < static_cast<int>(r_conditions_array_origin.size()); ++i) {
@@ -295,11 +296,11 @@ double SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Ge
         if (current_area > ref_area) ref_area = current_area;
     }
 
-    ConditionsArrayType& conditions_array_destination = mDestinationModelPart.Conditions();
+    auto& r_conditions_array_destination = mDestinationModelPart.Conditions();
 
     // We look for the max area in the destination model part
-    for(int i = 0; i < static_cast<int>(conditions_array_destination.size()); ++i) {
-        auto it_cond = conditions_array_destination.begin() + i;
+    for(int i = 0; i < static_cast<int>(r_conditions_array_destination.size()); ++i) {
+        auto it_cond = r_conditions_array_destination.begin() + i;
         const double current_area = it_cond->GetGeometry().Area();
         if (current_area > ref_area) ref_area = current_area;
     }
@@ -510,7 +511,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
     // Initialize the value
     rSizeSystem = 0;
 
-    NodesArrayType& r_nodes_array = mDestinationModelPart.Nodes();
+    auto& r_nodes_array = mDestinationModelPart.Nodes();
 
     // We create the database
     for(IndexType i = 0; i < r_nodes_array.size(); ++i) {
@@ -726,7 +727,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         MortarUtilities::ResetAuxiliarValue<TVarType>(mOriginModelPart);
         MortarUtilities::ResetAuxiliarValue<TVarType>(mDestinationModelPart);
 
-        ConditionsArrayType& r_conditions_array = mDestinationModelPart.Conditions();
+        auto& r_conditions_array = mDestinationModelPart.Conditions();
         const int num_conditions = static_cast<int>(r_conditions_array.size());
         const auto it_cond_begin = r_conditions_array.begin();
 
@@ -750,7 +751,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             r_root_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
         }
 
-        NodesArrayType& r_nodes_array = mDestinationModelPart.Nodes();
+        auto& r_nodes_array = mDestinationModelPart.Nodes();
         const int num_nodes = static_cast<int>(r_nodes_array.size());
 
         // We compute the residual norm
@@ -859,7 +860,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
                 b[i_size] = zero_vector;
 
         // Conditions array
-        ConditionsArrayType& r_conditions_array = mDestinationModelPart.Conditions();
+        auto& r_conditions_array = mDestinationModelPart.Conditions();
         const int num_conditions = static_cast<int>(r_conditions_array.size());
         const auto it_cond_begin = r_conditions_array.begin();
 
@@ -915,7 +916,7 @@ template< SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNum
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::CreateInverseDatabase()
 {
     // First we clear database
-    ConditionsArrayType& r_master_conditions_array = mOriginModelPart.Conditions();
+    auto& r_master_conditions_array = mOriginModelPart.Conditions();
     const int num_origin_conditions = static_cast<int>(r_master_conditions_array.size());
     const auto it_cond_origin_begin = r_master_conditions_array.begin();
 
@@ -930,7 +931,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
     }
 
     // Conditions array
-    ConditionsArrayType& r_conditions_array = mDestinationModelPart.Conditions();
+    auto& r_conditions_array = mDestinationModelPart.Conditions();
     const int num_conditions = static_cast<int>(r_conditions_array.size());
     const auto it_cond_begin = r_conditions_array.begin();
 

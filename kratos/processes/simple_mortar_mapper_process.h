@@ -85,32 +85,32 @@ public:
     /// Default constructors
     PointMapper():
         BaseType(),
-        mpOriginCond(nullptr)
+        mpOriginGeometricalObject(nullptr)
     {}
 
     PointMapper(const array_1d<double, 3>& Coords)
         :BaseType(Coords),
-         mpOriginCond(nullptr)
+         mpOriginGeometricalObject(nullptr)
     {}
 
-    PointMapper(Condition::Pointer pCond):
-        mpOriginCond(pCond)
+    PointMapper(GeometricalObject::Pointer pGeometricalObject):
+        mpOriginGeometricalObject(pGeometricalObject)
     {
         UpdatePoint();
     }
 
     PointMapper(
         const array_1d<double, 3>& Coords,
-        Condition::Pointer pCond
+        GeometricalObject::Pointer pGeometricalObject
     ):
         BaseType(Coords),
-        mpOriginCond(pCond)
+        mpOriginGeometricalObject(pGeometricalObject)
     {}
 
     ///Copy constructor  (not really required)
     PointMapper(const PointMapper& rhs):
         BaseType(rhs),
-        mpOriginCond(rhs.mpOriginCond)
+        mpOriginGeometricalObject(rhs.mpOriginGeometricalObject)
     {
     }
 
@@ -142,21 +142,21 @@ public:
 
     /**
      * @brief Sets the condition associated to the point
-     * @param pCond The pointer to the condition
+     * @param pGeometricalObject The pointer to the condition
      */
-    void SetCondition(Condition::Pointer pCond)
+    void SetCondition(GeometricalObject::Pointer pGeometricalObject)
     {
-        mpOriginCond = pCond;
+        mpOriginGeometricalObject = pGeometricalObject;
     }
 
     /**
      * @brief Returns the condition associated to the point
-     * @return mpOriginCond The pointer to the condition associated to the point
+     * @return mpOriginGeometricalObject The pointer to the condition associated to the point
      */
-    Condition::Pointer GetCondition()
+    GeometricalObject::Pointer GetGeometricalObject()
     {
-        KRATOS_DEBUG_ERROR_IF(mpOriginCond.get() == nullptr) << "Condition no initialized in the PointMapper class" << std::endl;
-        return mpOriginCond;
+        KRATOS_DEBUG_ERROR_IF(mpOriginGeometricalObject.get() == nullptr) << "GeometricalObject no initialized in the PointMapper class" << std::endl;
+        return mpOriginGeometricalObject;
     }
 
     /**
@@ -168,7 +168,7 @@ public:
 
         auto aux_coord = Kratos::make_shared<array_1d<double, 3>>(this->Coordinates());
         KRATOS_ERROR_IF(!aux_coord) << "Coordinates no initialized in the PointMapper class" << std::endl;
-        KRATOS_ERROR_IF(mpOriginCond.use_count() == 0) << "Condition no initialized in the PointMapper class" << std::endl;
+        KRATOS_ERROR_IF(mpOriginGeometricalObject.use_count() == 0) << "GeometricalObject no initialized in the PointMapper class" << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -179,16 +179,16 @@ public:
     void UpdatePoint()
     {
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates();
+        this->Coordinates() = mpOriginGeometricalObject->GetGeometry().Center().Coordinates();
 #else
-        noalias(this->Coordinates()) = mpOriginCond->GetGeometry().Center().Coordinates();
+        noalias(this->Coordinates()) = mpOriginGeometricalObject->GetGeometry().Center().Coordinates();
 #endif // ifdef KRATOS_USE_AMATRIX
     }
 
 private:
     ///@name Member Variables
     ///@{
-    Condition::Pointer mpOriginCond; /// Condition pointer
+    GeometricalObject::Pointer mpOriginGeometricalObject; /// GeometricalObject pointer
     ///@}
 
 }; // Class PointMapper
