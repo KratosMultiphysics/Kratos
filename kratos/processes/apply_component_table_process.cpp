@@ -27,7 +27,8 @@ namespace Kratos
  * @author Ignasi de Pouplana
  * @author Alejandro Cornejo
 */
-ApplyComponentTableProcess::ApplyComponentTableProcess(
+template<class TVariableType>
+ApplyComponentTableProcess<TVariableType>::ApplyComponentTableProcess(
     ModelPart& rModelPart, 
     Parameters rParameters) 
     : Process(Flags()), 
@@ -69,13 +70,12 @@ ApplyComponentTableProcess::ApplyComponentTableProcess(
 
 /***********************************************************************************/
 /***********************************************************************************/
-
-void ApplyComponentTableProcess::ExecuteInitialize()
+template<>
+void ApplyComponentTableProcess<ComponentVariableType>::ExecuteInitialize()
 {
     KRATOS_TRY
-    
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3>>> component_type;
-    component_type var_component = KratosComponents<component_type>::Get(mVariableName);
+
+	ComponentVariableType variable_component = KratosComponents<ComponentVariableType>::Get(mVariableName);
     
     const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
 
@@ -87,10 +87,10 @@ void ApplyComponentTableProcess::ExecuteInitialize()
             ModelPart::NodesContainerType::iterator it = it_begin + i;
 
             if (mIsFixed) {
-                it->Fix(var_component);
+                it->Fix(variable_component);
             }
 
-            it->FastGetSolutionStepValue(var_component) = mInitialValue;
+            it->FastGetSolutionStepValue(variable_component) = mInitialValue;
         }
     }
     KRATOS_CATCH("")
@@ -98,14 +98,39 @@ void ApplyComponentTableProcess::ExecuteInitialize()
 
 /***********************************************************************************/
 /***********************************************************************************/
+template<>
+void ApplyDoubleTableProcess<Variable<double>>::ExecuteInitialize()
+{
+    KRATOS_TRY;
+    
+    Variable<double> variable = KratosComponents<DoubleVariableType>::Get(mVariableName);
+    const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
 
-void ApplyComponentTableProcess::ExecuteInitializeSolutionStep()
+    if (nnodes != 0) {
+        ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for (int i = 0; i < nnodes; i++) {
+            ModelPart::NodesContainerType::iterator it = it_begin + i;
+            if (mIsFixed) {
+                it->Fix(variable);
+            }
+            it->FastGetSolutionStepValue(variable) = mInitialValue;
+        }
+    }
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<>
+void ApplyComponentTableProcess<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
     
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> component_type;
     typedef Variable<double> double_var;
-    const component_type& var_component = KratosComponents<component_type>::Get(mVariableName);
+    const component_type& variable_component = KratosComponents<component_type>::Get(mVariableName);
     double_var time_var_component = KratosComponents<double_var>::Get(mTimeVariableName);
     
     const double time = mrModelPart.GetProcessInfo()[time_var_component];
@@ -115,12 +140,37 @@ void ApplyComponentTableProcess::ExecuteInitializeSolutionStep()
 
     if (nnodes != 0) {
         auto& r_nodes_array = mrModelPart.Nodes();
-        VariableUtils().SetScalarVar<component_type>(var_component, value, r_nodes_array);
+        VariableUtils().SetScalarVar<component_type>(variable_component, value, r_nodes_array);
     }
     KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
+template<>
+void ApplyDoubleTableProcess<Variable<double>>::ExecuteInitializeSolutionStep()
+{
+    KRATOS_TRY;
+
+    Variable<double> variable = KratosComponents<DoubleVariableType>::Get(mVariableName);
+	typedef Variable<double> double_var;
+	double_var time_var_component = KratosComponents<double_var>::Get(mTimeVariableName);
     
+    const double time = mrModelPart.GetProcessInfo()[time_var_component];
+    const double value = mpTable->GetValue(time);
+    
+    const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
+
+    if (nnodes != 0) {
+        auto& r_nodes_array = mrModelPart.Nodes();
+        VariableUtils().SetScalarVar<double_var>(variable, value, r_nodes_array);
+    }
+    KRATOS_CATCH("");
+}  
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class ApplyDoubleTableProcess<Variable<double>>;
+template class ApplyDoubleTableProcess<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>;
 } // namespace Kratos

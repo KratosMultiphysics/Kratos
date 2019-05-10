@@ -57,7 +57,6 @@
 #include "processes/apply_periodic_boundary_condition_process.h"
 #include "processes/integration_values_extrapolation_to_nodes_process.h"
 #include "processes/apply_component_table_process.h"
-#include "processes/apply_double_table_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -556,11 +555,11 @@ void  AddProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, Parameters>())
         ;
 
-    py::class_<ApplyComponentTableProcess, ApplyComponentTableProcess::Pointer, Process> (m, "ApplyComponentTableProcess")
+    py::class_<ApplyComponentTableProcess<component_type>, ApplyComponentTableProcess<component_type>::Pointer, Process> (m, "ApplyComponentTableProcess")
         .def( py::init< ModelPart&, Parameters>())
         ;
 
-    py::class_<ApplyDoubleTableProcess, ApplyDoubleTableProcess::Pointer, Process> (m, "ApplyDoubleTableProcess")
+    py::class_<ApplyComponentTableProcess<Variable<double>>, ApplyComponentTableProcess<Variable<double>>::Pointer, Process> (m, "ApplyDoubleTableProcess")
         .def( py::init< ModelPart&, Parameters>())
         ;
 }

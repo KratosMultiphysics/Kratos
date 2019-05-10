@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ignasi de Pouplana
-//  Collaborator:    Alejandro Cornejo
+//                   Alejandro Cornejo
 //
 
 #if !defined(KRATOS_APPLY_COMPONENT_TABLE_PROCESS_H_INCLUDED)
@@ -34,6 +34,7 @@ namespace Kratos
 /// The base class for all processes in Kratos.
 /** This function applies a table value to a component
 */
+template<class TVariableType>
 class KRATOS_API(KRATOS_CORE) ApplyComponentTableProcess : public Process
 {
 
@@ -46,6 +47,8 @@ public:
     
     /// Defining a table with double argument and result type as table type.
     typedef Table<double,double> TableType;
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double,3>>> ComponentVariableType;
+    typedef Variable<double> DoubleVariableType;
     
     /// Constructor
 	ApplyComponentTableProcess(ModelPart& rModelPart, Parameters rParameters);
@@ -53,7 +56,7 @@ public:
     /// Destructor
     virtual ~ApplyComponentTableProcess() override {}
     
-    /// this function is designed for being called at the beginning of the computations
+    /// This function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
     void ExecuteInitialize() override;
 
@@ -100,12 +103,14 @@ private:
 }; // Class ApplyComponentTableProcess
 
 /// input stream function
+template<class TVariableType>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  ApplyComponentTableProcess& rThis);
+                                  ApplyComponentTableProcess<TVariableType>& rThis);
 
 /// output stream function
+template<class TVariableType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ApplyComponentTableProcess& rThis)
+                                  const ApplyComponentTableProcess<TVariableType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
