@@ -36,7 +36,7 @@ namespace Kratos
 typedef VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>  ComponentVariableType;
 typedef Variable<double>                                                  DoubleVariableType;
 
-/// The base class for all processes in Kratos.
+/// This class applies a value from a table to a BC o load
 /** This function applies a table value to a component
 */
 template<class TVariableType>
