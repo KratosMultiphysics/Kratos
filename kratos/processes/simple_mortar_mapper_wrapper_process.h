@@ -94,26 +94,26 @@ public:
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         // The condition iterators
-        auto it_cond_origin_begin = rOriginModelPart.Conditions().begin();
-        auto it_cond_destination_begin = rDestinationModelPart.Conditions().begin();
+        auto& r_geometry_origin = rOriginModelPart.NumberOfElements() > 0 ? rOriginModelPart.Elements().begin()->GetGeometry() : rOriginModelPart.Conditions().begin()->GetGeometry();
+        auto& r_geometry_destination = rDestinationModelPart.NumberOfElements() > 0 ? rDestinationModelPart.Elements().begin()->GetGeometry() : rDestinationModelPart.Conditions().begin()->GetGeometry();
 
         // The dimensions
-        const SizeType dimension = it_cond_origin_begin->GetGeometry().WorkingSpaceDimension();
-        const SizeType size_1 = it_cond_origin_begin->GetGeometry().size();
-        const SizeType size_2 = it_cond_destination_begin->GetGeometry().size();
+        const SizeType dimension = r_geometry_origin.WorkingSpaceDimension();
+        const SizeType size_1 = r_geometry_origin.size();
+        const SizeType size_2 = r_geometry_destination.size();
 
         // The variable names
-        const std::string& origin_variable_name = ThisParameters["origin_variable"].GetString();
-        const std::string& destination_variable_name = ThisParameters["destination_variable"].GetString();
+        const std::string& r_origin_variable_name = ThisParameters["origin_variable"].GetString();
+        const std::string& r_destination_variable_name = ThisParameters["destination_variable"].GetString();
 
         bool double_variable = true;
-        if(KratosComponents<Variable<double>>::Has(origin_variable_name)) {
-            if (destination_variable_name != "" && !(KratosComponents<Variable<double>>::Has(destination_variable_name))) {
+        if(KratosComponents<Variable<double>>::Has(r_origin_variable_name)) {
+            if (r_destination_variable_name != "" && !(KratosComponents<Variable<double>>::Has(r_destination_variable_name))) {
                 KRATOS_ERROR << "The destination variable is not the same type (double) as the origin" << std::endl;
             }
-        } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(origin_variable_name)) {
+        } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(r_origin_variable_name)) {
             double_variable = false;
-            if (destination_variable_name != "" && !(KratosComponents<Variable<array_1d< double, 3>>>::Has(destination_variable_name)))
+            if (r_destination_variable_name != "" && !(KratosComponents<Variable<array_1d< double, 3>>>::Has(r_destination_variable_name)))
                 KRATOS_ERROR << "The destination variable is not the same type (array_1d< double, 3>) as the origin" << std::endl;
         } else {
             KRATOS_ERROR << "The types of the variables are not supported array_1d< double, 3> or double" << std::endl;
@@ -153,6 +153,8 @@ public:
                 } else {
                     mpMapperProcess = Kratos::make_shared<SimpleMortarMapperProcess<3, 4, Variable<array_1d< double, 3>>, 3>>(rOriginModelPart, rDestinationModelPart, ThisParameters, pThisLinearSolver);
                 }
+            } else {
+                KRATOS_ERROR << "Combination of dimensions and sizes not compatible. Dimension: " << dimension << " Size Origin: " << size_1 << " Size Destination: " << size_2 << std::endl;
             }
         }
     }
