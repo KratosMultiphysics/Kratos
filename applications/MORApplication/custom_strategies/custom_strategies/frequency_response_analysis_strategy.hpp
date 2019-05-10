@@ -611,42 +611,6 @@ class FrequencyResponseAnalysisStrategy
         return mb;
     }
 
-    TSystemMatrixType &GetMr()
-    {
-        TSystemMatrixType &mMr = *mpMr;
-
-        return mMr;
-    };
-
-    TSystemMatrixType &GetAr()
-    {
-        TSystemMatrixType &mAr = *mpAr;
-
-        return mAr;
-    };
-
-    TSystemMatrixType &GetSr()
-    {
-        TSystemMatrixType &mSr = *mpSr;
-
-        return mSr;
-    };
-
-    TSystemVectorType& GetRHSr()
-    {
-        
-        TSystemVectorType& mb = *mpRHSr;
-
-        return mb;
-    };
-
-    TSystemMatrixType &GetBasis()
-    {
-        TSystemMatrixType &mBasis = *mpBasis;
-
-        return mBasis;
-    };
-
     ///@}
     ///@name Inquiry
     ///@{
