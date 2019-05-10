@@ -52,16 +52,6 @@ public:
    
     /// Destructor
     virtual ~ApplyComponentTableProcess() override {}
-
-    void operator()()
-    {
-        Execute();
-    }
-
-    /// Execute method is used to execute the ApplyComponentTableProcess algorithms.
-    void Execute() override
-    {
-    }
     
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups

@@ -44,16 +44,6 @@ public:
     
     /// Destructor
     virtual ~ApplyDoubleTableProcess() override {}
-
-    void operator()()
-    {
-        Execute();
-    }
-
-    /// Execute method is used to execute the ApplyDoubleTableProcess algorithms.
-    void Execute() override
-    {
-    }
     
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
