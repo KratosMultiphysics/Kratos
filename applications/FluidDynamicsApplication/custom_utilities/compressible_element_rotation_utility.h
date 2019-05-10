@@ -75,7 +75,7 @@ public:
 	 */
 	CompressibleElementRotationUtility(
         const unsigned int DomainSize,
-		const Kratos::Flags& rFlag):
+		const Kratos::Flags& rFlag = SLIP):
     CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize,DomainSize+2,rFlag)
 	{}
 

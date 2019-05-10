@@ -79,7 +79,7 @@ public:
 	 */
 	CoordinateTransformationUtils(const unsigned int DomainSize,
 			const unsigned int NumRowsPerNode,
-			const Kratos::Flags& rSelectionFlag):
+			const Kratos::Flags& rSelectionFlag = SLIP):
 	mDomainSize(DomainSize),
 	mBlockSize(NumRowsPerNode),
 	mrFlag(rSelectionFlag)
