@@ -48,7 +48,7 @@ void ApplyDoubleTableProcess::ExecuteInitialize()
 {
     KRATOS_TRY;
     
-    Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+    Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
     
     const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
 
@@ -74,11 +74,14 @@ void ApplyDoubleTableProcess::ExecuteInitialize()
 void ApplyDoubleTableProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY;
+
+	typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> component_type;
+    Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+	typedef Variable<double> double_var;
+	double_var time_var_component = KratosComponents<double_var>::Get(mTimeVariableName);
     
-    Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
-    
-    const double time = mrModelPart.GetProcessInfo()[TIME];
-    double value = mpTable->GetValue(time);
+    const double time = mrModelPart.GetProcessInfo()[time_var_component];
+    const double value = mpTable->GetValue(time);
     
     const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
 

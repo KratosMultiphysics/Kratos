@@ -15,6 +15,7 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name",settings["model_part_name"])
         params.AddValue("variable_name",settings["variable_name"])
+        params.AddValue("time_variable_name",settings["time_variable_name"])
         if settings.Has("is_fixed"):
             params.AddValue("is_fixed",settings["is_fixed"])
         

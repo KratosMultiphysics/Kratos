@@ -87,6 +87,7 @@ protected:
     /// Member Variables
     ModelPart& mrModelPart;
     std::string mVariableName;
+    std::string mTimeVariableName;
     bool mIsFixed;
     double mInitialValue;
     TableType::Pointer mpTable;

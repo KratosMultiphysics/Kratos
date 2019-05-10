@@ -18,6 +18,7 @@ class ApplyVectorConstraintTableProcess(KratosMultiphysics.Process):
         if settings["active"][0].GetBool() == True:
             x_params = KratosMultiphysics.Parameters("{}")
             x_params.AddValue("model_part_name",settings["model_part_name"])
+            x_params.AddValue("time_variable_name",settings["time_variable_name"])
             if settings.Has("is_fixed"):
                 x_params.AddValue("is_fixed",settings["is_fixed"][0])
             x_params.AddValue("value",settings["value"][0])
@@ -31,6 +32,7 @@ class ApplyVectorConstraintTableProcess(KratosMultiphysics.Process):
         if settings["active"][1].GetBool() == True:
             y_params = KratosMultiphysics.Parameters("{}")
             y_params.AddValue("model_part_name",settings["model_part_name"])
+            x_params.AddValue("time_variable_name",settings["time_variable_name"])
             if settings.Has("is_fixed"):
                 y_params.AddValue("is_fixed",settings["is_fixed"][1])
             y_params.AddValue("value",settings["value"][1])
@@ -44,6 +46,7 @@ class ApplyVectorConstraintTableProcess(KratosMultiphysics.Process):
         if settings["active"][2].GetBool() == True:
             z_params = KratosMultiphysics.Parameters("{}")
             z_params.AddValue("model_part_name",settings["model_part_name"])
+            x_params.AddValue("time_variable_name",settings["time_variable_name"])
             if settings.Has("is_fixed"):
                 z_params.AddValue("is_fixed",settings["is_fixed"][2])
             z_params.AddValue("value",settings["value"][2])

@@ -39,6 +39,7 @@ ApplyComponentTableProcess::ApplyComponentTableProcess(
         {
             "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
             "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
+            "time_variable_name" : "TIME",
             "is_fixed": false,
             "value" : 1.0,
             "table" : 1
@@ -49,11 +50,13 @@ ApplyComponentTableProcess::ApplyComponentTableProcess(
     rParameters["table"];
     rParameters["variable_name"];
     rParameters["model_part_name"];
+    rParameters["time_variable_name"];
 
     // Now validate agains defaults -- this also ensures no type mismatch
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
     mVariableName = rParameters["variable_name"].GetString();
+    mTimeVariableName = rParameters["time_variable_name"].GetString();
     mIsFixed = rParameters["is_fixed"].GetBool();
     mInitialValue = rParameters["value"].GetDouble();
     
@@ -72,7 +75,7 @@ void ApplyComponentTableProcess::ExecuteInitialize()
     KRATOS_TRY
     
     typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3>>> component_type;
-    component_type var_component = KratosComponents<component_type >::Get(mVariableName);
+    component_type var_component = KratosComponents<component_type>::Get(mVariableName);
     
     const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
 
@@ -102,9 +105,11 @@ void ApplyComponentTableProcess::ExecuteInitializeSolutionStep()
     KRATOS_TRY;
     
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> component_type;
+    typedef Variable<double> double_var;
     component_type var_component = KratosComponents<component_type>::Get(mVariableName);
+    double_var time_var_component = KratosComponents<double_var>::Get(mTimeVariableName);
     
-    const double time = mrModelPart.GetProcessInfo()[TIME];
+    const double time = mrModelPart.GetProcessInfo()[time_var_component];
     const double value = mpTable->GetValue(time);
     
     const int nnodes = static_cast<int>(mrModelPart.Nodes().size());

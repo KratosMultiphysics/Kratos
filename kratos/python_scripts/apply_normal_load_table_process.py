@@ -18,6 +18,7 @@ class ApplyNormalLoadTableProcess(KratosMultiphysics.Process):
             normal_params = KratosMultiphysics.Parameters("{}")
             normal_params.AddValue("model_part_name",settings["model_part_name"])
             normal_params.AddValue("variable_name",settings["variable_name"])
+            normal_params.AddValue("time_variable_name",settings["time_variable_name"])
 
             normal_params.AddValue("value",settings["value"][0])
             if settings["table"][0].GetInt() == 0:
