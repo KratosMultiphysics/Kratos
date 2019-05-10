@@ -6,7 +6,7 @@
         "parallel_type": "OpenMP",
         "echo_level": 0,
         "start_time": 0.0,
-        "end_time": 0.1
+        "end_time": 1.0
     },
     "output_configuration": {
         "result_file_configuration": {
@@ -46,7 +46,7 @@
         "domain_size": 2,
         "echo_level": 0,
         "compute_reactions": true,
-        "maximum_iterations": 10,
+        "maximum_iterations": 100,
         "relative_velocity_tolerance": 0.001,
         "absolute_velocity_tolerance": 1e-5,
         "relative_pressure_tolerance": 0.001,
@@ -71,7 +71,7 @@
         "no_skin_parts": [],
         "time_stepping": {
             "automatic_time_step": false,
-            "time_step": 0.01
+            "time_step": 0.1
         },
         "formulation": {
             "element_type": "vms",
@@ -141,7 +141,7 @@
                     }
                 },
                 "flow_parameters": {
-                    "ramp_up_time": 0.07
+                    "ramp_up_time": 0.5
                 },
                 "coupling_settings": {
                     "relative_tolerance": 1e-3,
@@ -162,7 +162,7 @@
             "Parameters": {
                 "model_part_name": "MainModelPart.AutomaticInlet2D_Inlet",
                 "variable_name": "VELOCITY",
-                "modulus": "50.0 * (1.0 - exp((log(1-0.99) * t / 0.05))) * (-4.0 * y * y + 4.0 * y)",
+                "modulus": "50.0 * (1.0 - exp((log(1-0.99) * t / 0.5))) * (-4.0 * y * y + 4.0 * y)",
                 "direction": "automatic_inwards_normal",
                 "interval": [
                     0.0,
