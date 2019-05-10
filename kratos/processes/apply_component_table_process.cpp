@@ -138,13 +138,12 @@ void ApplyComponentTableProcess<ComponentVariableType>::ExecuteInitializeSolutio
 /***********************************************************************************/
 /***********************************************************************************/
 template<>
-void ApplyDoubleTableProcess<ComponentVariableType>::ExecuteInitializeSolutionStep()
+void ApplyDoubleTableProcess<DoubleVariableType>::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
 
-    Variable<double> variable = KratosComponents<DoubleVariableType>::Get(mVariableName);
-	typedef Variable<double> double_var;
-	double_var time_var_component = KratosComponents<double_var>::Get(mTimeVariableName);
+	DoubleVariableType variable   = KratosComponents<DoubleVariableType>::Get(mVariableName);
+	DoubleVariableType time_var_component = KratosComponents<DoubleVariableType>::Get(mTimeVariableName);
     
     const double time = mrModelPart.GetProcessInfo()[time_var_component];
     const double value = mpTable->GetValue(time);
@@ -153,7 +152,7 @@ void ApplyDoubleTableProcess<ComponentVariableType>::ExecuteInitializeSolutionSt
 
     if (nnodes != 0) {
         auto& r_nodes_array = mrModelPart.Nodes();
-        VariableUtils().SetScalarVar<double_var>(variable, value, r_nodes_array);
+        VariableUtils().SetScalarVar<DoubleVariableType>(variable, value, r_nodes_array);
     }
     KRATOS_CATCH("")
 }  

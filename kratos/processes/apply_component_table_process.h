@@ -40,7 +40,8 @@ typedef Variable<double>                                                  Double
 /** This function applies a table value to a component
 */
 template<class TVariableType>
-class KRATOS_API(KRATOS_CORE) ApplyComponentTableProcess : public Process
+class KRATOS_API(KRATOS_CORE) ApplyComponentTableProcess 
+    : public Process
 {
 
 public:
