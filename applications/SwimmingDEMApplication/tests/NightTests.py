@@ -5,7 +5,7 @@ import InterpolationTestFactory as InterpolationTF
 import TestFactory as TF
 import FluidDEMTestFactory as FDEMTF
 import SPFEMTestFactory as SPFEMTF
-import RecoveryTestFactory as RecTF
+import RecoveryEthierTestFactory as EthierRecTF
 import RecoveryLinearTestFactory as LinRecTF
 
 # Import KratosUnittest
@@ -57,7 +57,7 @@ class linear_recovery_test(LinRecTF.TestFactory):
      file_name = "recovery_tests/ethier"
      file_parameters = "recovery_tests/EthierProjectParamaters.json"
 
-class ethier_recovery_test(RecTF.TestFactory):
+class ethier_recovery_test(EthierRecTF.TestFactory):
      file_name = "recovery_tests/ethier"
      file_parameters = "recovery_tests/EthierProjectParamaters.json"
 

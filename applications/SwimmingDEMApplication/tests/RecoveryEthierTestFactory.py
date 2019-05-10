@@ -5,7 +5,7 @@ from KratosMultiphysics import Model, Parameters, Logger
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from tests_python_scripts.recovery_scripts.ethier_analysis import EthierBenchmarkAnalysis
+from tests_python_scripts.recovery_scripts.ethier_standard_test import EthierStandardTestAnalysis
 
 # This utility will control the execution scope
 class controlledExecutionScope:
@@ -33,9 +33,9 @@ class TestFactory(KratosUnittest.TestCase):
             model = Model()
 
             # To avoid too many prints
-            Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
+            Logger.GetDefaultOutput().SetSeverity(Logger.Severity.DETAIL)
 
-            self.test = EthierBenchmarkAnalysis(model, parameters)
+            self.test = EthierStandardTestAnalysis(model, parameters)
 
     def test_execution(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):

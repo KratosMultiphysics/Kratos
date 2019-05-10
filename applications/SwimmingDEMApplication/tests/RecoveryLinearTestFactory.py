@@ -5,7 +5,7 @@ from KratosMultiphysics import Model, Parameters, Logger
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from tests_python_scripts.recovery_scripts.recovery_test_analysis import RecoveryTestAnalysis
+from tests_python_scripts.recovery_scripts.linear_standard_test import LinearStandardTestAnalysis
 
 # This utility will control the execution scope
 class controlledExecutionScope:
@@ -35,7 +35,7 @@ class TestFactory(KratosUnittest.TestCase):
             # To avoid too many prints
             Logger.GetDefaultOutput().SetSeverity(Logger.Severity.DETAIL)
 
-            self.test = RecoveryTestAnalysis(model, parameters)
+            self.test = LinearStandardTestAnalysis(model, parameters)
 
     def test_execution(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
