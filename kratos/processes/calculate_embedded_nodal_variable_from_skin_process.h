@@ -547,14 +547,14 @@ protected:
                         // Check the edge intersection against all the candidates
                         for (auto &r_int_obj : r_int_obj_vect[i_elem]) {
                             Point intersection_point;
-                            const int is_intersected = this->ComputeEdgeIntersection(
+                            const bool is_intersected = this->ComputeEdgeIntersection(
                                 r_int_obj.GetGeometry(),
                                 r_i_edge_geom[0],
                                 r_i_edge_geom[1],
                                 intersection_point);
 
                             // Compute the variable value in the intersection point
-                            if (is_intersected == 1) {
+                            if (is_intersected) {
                                 n_int_obj++;
                                 Vector int_obj_N;
                                 array_1d<double,3> local_coords;
@@ -704,20 +704,26 @@ private:
         mpFindIntersectedGeometricalObjectsProcess->Clear();
     }
 
-	int ComputeEdgeIntersection(
+	bool ComputeEdgeIntersection(
 		const Element::GeometryType& rIntObjGeometry,
 		const Element::NodeType& rEdgePoint1,
 		const Element::NodeType& rEdgePoint2,
 		Point& rIntersectionPoint) const
 	{
-		int intersection_flag = 0;
+		bool intersection_flag = false;
 		const unsigned int work_dim = rIntObjGeometry.WorkingSpaceDimension();
 		if (work_dim == 2){
-			intersection_flag = IntersectionUtilities::ComputeLineLineIntersection<Element::GeometryType>(
+			const unsigned int intersection_status = IntersectionUtilities::ComputeLineLineIntersection<Element::GeometryType>(
 				rIntObjGeometry, rEdgePoint1.Coordinates(), rEdgePoint2.Coordinates(), rIntersectionPoint.Coordinates());
+            if (intersection_status == 1 || intersection_status == 3) {
+                intersection_flag = true;
+            }
 		} else if (work_dim == 3){
-			intersection_flag = IntersectionUtilities::ComputeTriangleLineIntersection<Element::GeometryType>(
+			const unsigned int intersection_status = IntersectionUtilities::ComputeTriangleLineIntersection<Element::GeometryType>(
 				rIntObjGeometry, rEdgePoint1.Coordinates(), rEdgePoint2.Coordinates(), rIntersectionPoint.Coordinates());
+            if (intersection_status == 1) {
+                intersection_flag = true;
+            }
 		} else {
 			KRATOS_ERROR << "Working space dimension value equal to " << work_dim << ". Check your skin geometry implementation." << std::endl;
 		}
