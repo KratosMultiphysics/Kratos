@@ -161,11 +161,11 @@ void MarkBrokenSpheres(ModelPart& dem_model_part) {
 
 void ComputeSandProductionWithDepthFirstSearch(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {
 
-    const std::string filename = "sand_production_graph.txt";
+    const std::string filename = "sand_production_graph_with_chunks.txt";
     std::ifstream ifile(filename.c_str());
     static bool first_time_entered = true;
     if ((bool) ifile && first_time_entered) {
-        std::remove("sand_production_graph.txt");
+        std::remove("sand_production_graph_with_chunks.txt");
         first_time_entered = false;
     }
 
@@ -189,7 +189,7 @@ void ComputeSandProductionWithDepthFirstSearch(ModelPart& dem_model_part, ModelP
         }
     }
 
-    KRATOS_WATCH(chunks_masses.size())
+    //KRATOS_WATCH(chunks_masses.size())
     const double max_mass_of_a_single_chunck = *std::max_element(chunks_masses.begin(), chunks_masses.end());
     const double current_total_mass_in_grams = max_mass_of_a_single_chunck;
     static const double initial_total_mass_in_grams = current_total_mass_in_grams;
@@ -198,7 +198,7 @@ void ComputeSandProductionWithDepthFirstSearch(ModelPart& dem_model_part, ModelP
     ModelPart::ConditionsContainerType::iterator condition_begin = outer_walls_model_part.ConditionsBegin();
     const double face_pressure_in_psi = condition_begin->GetValue(POSITIVE_FACE_PRESSURE) * 0.000145;
 
-    static std::ofstream sand_prod_file("sand_production_graph.txt", std::ios_base::out | std::ios_base::app);
+    static std::ofstream sand_prod_file("sand_production_graph_with_chunks.txt", std::ios_base::out | std::ios_base::app);
     sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
     sand_prod_file.flush();
 }
