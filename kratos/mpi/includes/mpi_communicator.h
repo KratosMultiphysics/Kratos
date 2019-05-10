@@ -28,7 +28,7 @@
 #include "includes/data_communicator.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/stream_serializer.h"
+#include "includes/mpi_serializer.h"
 #include "mpi/mpi_environment.h"
 #include "mpi/includes/mpi_data_communicator.h"
 
@@ -1033,8 +1033,8 @@ public:
      **/
     bool TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects) override
     {
-        Kratos::StreamSerializer particleSerializer;
-        AsyncSendAndReceiveObjects<NodesContainerType>(SendObjects,RecvObjects,particleSerializer);
+        Kratos::MpiSerializer serializer;
+        AsyncSendAndReceiveObjects<NodesContainerType>(SendObjects,RecvObjects,serializer);
         return true;
     }
 
@@ -1045,8 +1045,8 @@ public:
     **/
     bool TransferObjects(std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType>& RecvObjects) override
     {
-        Kratos::StreamSerializer particleSerializer;
-        AsyncSendAndReceiveObjects<ElementsContainerType>(SendObjects,RecvObjects,particleSerializer);
+        Kratos::MpiSerializer serializer;
+        AsyncSendAndReceiveObjects<ElementsContainerType>(SendObjects,RecvObjects,serializer);
         return true;
     }
 
@@ -1057,8 +1057,8 @@ public:
     **/
     bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects) override
     {
-        Kratos::StreamSerializer particleSerializer;
-        AsyncSendAndReceiveObjects<ConditionsContainerType>(SendObjects,RecvObjects,particleSerializer);
+        Kratos::MpiSerializer serializer;
+        AsyncSendAndReceiveObjects<ConditionsContainerType>(SendObjects,RecvObjects,serializer);
         return true;
     }
 
@@ -1320,12 +1320,12 @@ private:
         {
             if(mpi_rank != i)
             {
-                Kratos::StreamSerializer particleSerializer;
+                Kratos::MpiSerializer serializer;
 
-                particleSerializer.save("VariableList",mpVariables_list);
-                particleSerializer.save("ObjectList",SendObjects[i].GetContainer());
+                serializer.save("VariableList",mpVariables_list);
+                serializer.save("ObjectList",SendObjects[i].GetContainer());
 
-                std::stringstream * stream = (std::stringstream *)particleSerializer.pGetBuffer();
+                std::stringstream * stream = (std::stringstream *)serializer.pGetBuffer();
                 const std::string & stream_str = stream->str();
                 const char * cstr = stream_str.c_str();
 
@@ -1376,21 +1376,21 @@ private:
         {
             if (i != mpi_rank && msgRecvSize[i])
             {
-                Kratos::StreamSerializer particleSerializer;
+                Kratos::MpiSerializer serializer;
                 std::stringstream * serializer_buffer;
 
-                serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
+                serializer_buffer = (std::stringstream *)serializer.pGetBuffer();
                 serializer_buffer->write(message[i], msgRecvSize[i]);
 
                 VariablesList* tmp_mpVariables_list = NULL;
 
-                particleSerializer.load("VariableList",tmp_mpVariables_list);
+                serializer.load("VariableList",tmp_mpVariables_list);
 
                 if(tmp_mpVariables_list != NULL)
                   delete tmp_mpVariables_list;
                 tmp_mpVariables_list = mpVariables_list;
 
-                particleSerializer.load("ObjectList",RecvObjects[i].GetContainer());
+                serializer.load("ObjectList",RecvObjects[i].GetContainer());
             }
 
             mrDataCommunicator.Barrier();
