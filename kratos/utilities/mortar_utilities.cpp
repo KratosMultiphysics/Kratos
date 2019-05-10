@@ -106,7 +106,7 @@ void RotatePoint(
 /***********************************************************************************/
 /***********************************************************************************/
 
-array_1d<double,3> GaussPointUnitNormalNor(
+array_1d<double,3> GaussPointUnitNormal(
     const Vector& rN,
     const GeometryType& rGeometry
     ) {
