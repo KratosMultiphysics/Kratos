@@ -54,15 +54,14 @@ namespace Kratos
  * @details Derives from IndexedObject, so it has an ID, and from Flags
  * @author Pooyan Dadvand
 */
-class GeometricalObject
-    : public IndexedObject, public Flags
+class GeometricalObject : public IndexedObject, public Flags, public std::intrusive_base<GeometricalObject>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of GeometricalObject
-    KRATOS_CLASS_POINTER_DEFINITION(GeometricalObject);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeometricalObject);
 
     /// Definition of the node type
     typedef Node <3> NodeType;

@@ -61,9 +61,6 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         model_part_io = KratosMultiphysics.ModelPartIO(mpi_input_filename)
         model_part_io.ReadModelPart(main_model_part)
 
-        ## Construct and execute the MPICommunicator
-        KratosMetis.SetMPICommunicatorProcess(main_model_part).Execute()
-
         ## Construct and execute the Parallel fill communicator
         ParallelFillCommunicator = KratosTrilinos.ParallelFillCommunicator(main_model_part.GetRootModelPart())
         ParallelFillCommunicator.Execute()
