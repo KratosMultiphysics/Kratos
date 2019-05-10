@@ -31,14 +31,14 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
 
         sub_project_parameters = self.project_parameters["processes"]["boundary_conditions_process_list"]
 
-        self.wake_process = DefineWakeProcess2D(self.model, sub_project_parameters[1]["Parameters"])
+        for i in range(sub_project_parameters.size()):
+            if sub_project_parameters[i]["python_module"].GetString() == "define_wake_process_2d":
+                self.wake_process = DefineWakeProcess2D(self.model, sub_project_parameters[i]["Parameters"])
+                if not hasattr(self, "wake_process"):
+                    raise Exception("potential flow requires specification of a process for the wake (currently specifically using 'define_wake_process_2d')")
 
-        if not hasattr(self, "wake_process"):
-            raise Exception("potential flow requires specification of a process for the wake (currently specifically using 'define_wake_process_2d')")
-        self.conversion_process = ComputeForcesOnNodesProcess(self.model, sub_project_parameters[4]["Parameters"])
-
-        # KratosMultiphysics.Logger.PrintInfo("REACTIONS for this case are == ", KratosMultiphysics.REACTION)
-        # self.conversion_process.Execute()
+            if sub_project_parameters[i]["python_module"].GetString() == "compute_forces_on_nodes_process":
+                self.conversion_process = ComputeForcesOnNodesProcess(self.model, sub_project_parameters[i]["Parameters"])
 
     def SolveSolutionStep(self):
         self.wake_process.FindWakeElements()
@@ -47,14 +47,6 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
 
         self.conversion_process.ExecuteFinalizeSolutionStep()
         self.wake_process.CleanMarking()
-
-    def FinalizeSolutionStep(self):
-        # self.wake_process.FindWakeElements()
-        # self.conversion_process.ExecuteFinalizeSolutionStep()
-        super(KratosPotentialFlowSolver, self).FinalizeSolutionStep()
-
-
-        # self.wake_process.CleanMarking()
 
     def _GetParallelType(self):
         return self.project_parameters["problem_data"]["parallel_type"].GetString()

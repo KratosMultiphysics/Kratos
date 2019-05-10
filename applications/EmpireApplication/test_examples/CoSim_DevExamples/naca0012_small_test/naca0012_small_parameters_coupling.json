@@ -4,7 +4,7 @@
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,
         "start_time"      : 0.0,
-        "end_time"        : 10.0
+        "end_time"        : 1.0
     },
     "solver_settings"                  : {
         "solver_type"            : "ale_potential_flow",
@@ -39,7 +39,7 @@
                 "input_type"     : "mdpa",
                 "input_filename" : "naca0012_small"
             },
-            "maximum_iterations"     : 1,
+            "maximum_iterations"     : 5,
             "echo_level"             : 0,
             "linear_solver_settings"  : {
                     "solver_type"             : "ExternalSolversApplication.super_lu",
@@ -47,11 +47,7 @@
             },
             "volume_model_part_name" : "Parts_Parts_Auto1",
             "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
-            "no_skin_parts"          : [],
-            "time_stepping"                   : {
-                "automatic_time_step" : false,
-                "time_step"           : 0.05
-            }
+            "no_skin_parts"          : []
         }
     },
     "processes" : {

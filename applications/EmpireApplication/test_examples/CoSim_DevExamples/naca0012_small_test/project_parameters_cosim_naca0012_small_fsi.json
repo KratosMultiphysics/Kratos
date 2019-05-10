@@ -2,7 +2,7 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 10.0,
+        "end_time" : 1.0,
         "echo_level" : 0,
         "print_colors" : true
     },
@@ -14,7 +14,7 @@
         "start_coupling_time" : 0.0,
         "predictor_settings" :
         {
-            "predictor_type" : "linear_derivative_based",
+            "predictor_type" : "linear_derivative_based_static",
             "data_list"      :
             [
                 {
@@ -102,7 +102,7 @@
             },
             "structure" :
             {
-                "solver_type" : "sdof",
+                "solver_type" : "sdof_static",
                 "input_file"  : "ProjectParametersSDoF",
                 "data" : {
                     "disp_y" : {
