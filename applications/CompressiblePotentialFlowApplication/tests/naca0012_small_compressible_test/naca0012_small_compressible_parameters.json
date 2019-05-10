@@ -37,7 +37,7 @@
             "process_name"  : "FarFieldProcess",
             "Parameters"    : {
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
-                "density_infinity"  : 1.225,
+                "free_stream_density"  : 1.225,
                 "mach_infinity": 0.6,
                 "heat_capacity_ratio": 1.4
             }
@@ -53,8 +53,7 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "ComputeLiftProcess3D",
             "Parameters"    : {
-                "model_part_name" : "MainModelPart.Body2D_Body",
-                "create_output_file": true
+                "model_part_name" : "MainModelPart.Body2D_Body"
             }
         }],
         "auxiliar_process_list" :[{
