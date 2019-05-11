@@ -99,9 +99,7 @@ class CoSimulationBaseCouplingSolver(CoSimulationBaseSolver):
     def FinalizeSolutionStep(self):
         for solver_name in self.solver_names:
             self.solvers[solver_name].FinalizeSolutionStep()
-            KratosMultiphysics.Logger.PrintInfo("MY SOLVER TYPE", self.solvers[solver_name])
         if self.predictor is not None:
-            KratosMultiphysics.Logger.PrintInfo("MY PREDICTOR TYPE", self.predictor)
             self.predictor.FinalizeSolutionStep()
 
     def OutputSolutionStep(self):
