@@ -52,7 +52,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicator, KratosMPICoreFastSuite)
 
     GlobalPointerCommunicator< Node<3>> pointer_comm(r_default_comm, gp_list.begin(), gp_list.end());
 
-    auto double_proxy = pointer_comm.Apply<double>( 
+    auto double_proxy = pointer_comm.Apply( 
         [](GlobalPointer< Node<3> >& gp)->double
             {return gp->GetValue(TEMPERATURE);} 
         );
@@ -68,7 +68,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicator, KratosMPICoreFastSuite)
     //now let's try to retrieve at once TEMPERATURE, and Coordinates of the node
     typedef std::pair<double, array_1d<double,3>> return_type;
 
-    auto pair_proxy = pointer_comm.Apply<return_type>( 
+    auto pair_proxy = pointer_comm.Apply( 
         [](GlobalPointer< Node<3> >& gp)-> return_type
             {return std::make_pair(gp->GetValue(TEMPERATURE), gp->Coordinates() );} 
         );
@@ -141,7 +141,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicatorConstructByFunctor, KratosMPICo
     auto my_functor = TestFunctor(gp_list);
     GlobalPointerCommunicator< Node<3>> pointer_comm(r_default_comm, my_functor );
 
-    auto double_proxy = pointer_comm.Apply<double>( 
+    auto double_proxy = pointer_comm.Apply( 
         [](GlobalPointer< Node<3> >& gp)->double
             {return gp->GetValue(TEMPERATURE);} 
         );
@@ -157,7 +157,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicatorConstructByFunctor, KratosMPICo
     //now let's try to retrieve at once TEMPERATURE, and Coordinates of the node
     typedef std::pair<double, array_1d<double,3>> return_type;
 
-    auto pair_proxy = pointer_comm.Apply<return_type>( 
+    auto pair_proxy = pointer_comm.Apply( 
         [](GlobalPointer< Node<3> >& gp)-> return_type
             {return std::make_pair(gp->GetValue(TEMPERATURE), gp->Coordinates() );} 
         );

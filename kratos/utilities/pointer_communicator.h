@@ -18,7 +18,7 @@
 // System includes
 #include <string>
 #include <iostream>
-
+#include <type_traits>
 
 // External includes
 
@@ -56,17 +56,20 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-template< class TPointerDataType, class TSendType >
+template< class TPointerDataType, class TFunctorType >
 class ResultsProxy
 {
 public:
 
+    typedef typename std::result_of< TFunctorType(GlobalPointer<TPointerDataType>&)>::type TSendType;
+    //typedef typename TFunctorType::result_type TSendType;
+
     ResultsProxy(
         int current_rank,
         GlobalPointersUnorderedMap< TPointerDataType, TSendType > NonLocalData,
-        std::function< TSendType(GlobalPointer<TPointerDataType>&) > user_function
+        TFunctorType user_functor
     ):
-        mCurrentRank(current_rank), mNonLocalData(NonLocalData), mUserFunction(user_function)
+        mCurrentRank(current_rank), mNonLocalData(NonLocalData), mUserFunctor(user_functor)
     {}
 
     /// Destructor.
@@ -78,7 +81,7 @@ public:
     TSendType Get(GlobalPointer<TPointerDataType>& gp)
     {
         if(gp.GetRank() == mCurrentRank)
-            return mUserFunction(gp);
+            return mUserFunctor(gp);
         else
             return mNonLocalData[gp];
     }
@@ -86,7 +89,7 @@ public:
 private:
     const int mCurrentRank;
     GlobalPointersUnorderedMap< TPointerDataType, TSendType > mNonLocalData;
-    std::function< TSendType(GlobalPointer<TPointerDataType>&) > mUserFunction;
+    TFunctorType mUserFunctor;
 
 };
 
@@ -116,14 +119,7 @@ public:
 
         if(mrDataCommunicator.IsDistributed())
         {
-            //compute communication plan
-            std::vector<int> send_list;
-            send_list.reserve( mNonLocalPointers.size() );
-            for(auto& it : mNonLocalPointers)
-                send_list.push_back( it.first );
-
-            std::sort(send_list.begin(), send_list.end());
-            mColors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, mrDataCommunicator);
+            ComputeCommunicationPlan();
         }
     }
 
@@ -135,14 +131,7 @@ public:
 
         if(mrDataCommunicator.IsDistributed())
         {
-            //compute communication plan
-            std::vector<int> send_list;
-            send_list.reserve( mNonLocalPointers.size() );
-            for(auto& it : mNonLocalPointers)
-                send_list.push_back( it.first );
-
-            std::sort(send_list.begin(), send_list.end());
-            mColors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, mrDataCommunicator);
+            ComputeCommunicationPlan();
         }
     }
 
@@ -150,10 +139,11 @@ public:
     GlobalPointerCommunicator(DataCommunicator& rComm, TFunctorType& rFunctor):
         mrDataCommunicator(rComm)
     {
-        if(mrDataCommunicator.IsDistributed())
+        if(rComm.IsDistributed())
         {
             auto gps = rFunctor(rComm);
-            GlobalPointerCommunicator(rComm, gps.begin(), gps.end() );
+            AddPointers(gps.begin(), gps.end());
+            ComputeCommunicationPlan();
         }
     }
 
@@ -164,15 +154,21 @@ public:
     /**this function applies the input function onto the remote data
      * and retrieves the result to the caller rank
      */
-    template< class TSendType >
-    ResultsProxy<TPointerDataType, TSendType> Apply(std::function< TSendType(GlobalPointer<TPointerDataType>&) > user_function)
+    // template< class TSendType >
+    // ResultsProxy<TPointerDataType, TSendType> Apply(std::function< TSendType(GlobalPointer<TPointerDataType>&) > user_function)
+    template< class TFunctorType >
+    ResultsProxy<
+            TPointerDataType, 
+            TFunctorType //unfortunately this is deprecated in c++17, so we will have to change this call in the future
+        > Apply(TFunctorType user_functor)
     {
+        typedef typename ResultsProxy<TPointerDataType, TFunctorType >::TSendType SendType;
+        
         if(mrDataCommunicator.IsDistributed())
         {
             const int current_rank = mrDataCommunicator.Rank();
 
-            GlobalPointersUnorderedMap< TPointerDataType, TSendType > non_local_data;
-
+            GlobalPointersUnorderedMap< TPointerDataType, SendType > non_local_data;
 
             //sendrecv data
             for(auto color : mColors)
@@ -185,9 +181,9 @@ public:
 
                     auto recv_global_pointers = SendRecv(gps_to_be_sent, color, color );
 
-                    std::vector< TSendType > locally_gathered_data; //this is local but needs to be sent to the remote node
+                    std::vector< SendType > locally_gathered_data; //this is local but needs to be sent to the remote node
                     for(auto& gp : recv_global_pointers)
-                        locally_gathered_data.push_back( user_function(gp) );
+                        locally_gathered_data.push_back( user_functor(gp) );
 
                     auto remote_data = SendRecv(locally_gathered_data, color, color );
 
@@ -196,12 +192,12 @@ public:
                 }
             }
 
-            return ResultsProxy<TPointerDataType, TSendType>(current_rank,non_local_data,user_function );
+            return ResultsProxy<TPointerDataType, TFunctorType>(current_rank,non_local_data,user_functor );
         }
         else
         {
-            GlobalPointersUnorderedMap< TPointerDataType, TSendType > non_local_data;
-            return ResultsProxy<TPointerDataType, TSendType>(0,non_local_data,user_function );
+            GlobalPointersUnorderedMap< TPointerDataType, SendType > non_local_data;
+            return ResultsProxy<TPointerDataType, TFunctorType>(0,non_local_data,user_functor );
         }
 
     }
@@ -278,6 +274,17 @@ protected:
                 if(it->GetRank() != current_rank)
                     mNonLocalPointers[it->GetRank()].push_back(*it);
         }
+    }
+
+    void ComputeCommunicationPlan()
+    {
+        std::vector<int> send_list;
+        send_list.reserve( mNonLocalPointers.size() );
+        for(auto& it : mNonLocalPointers)
+            send_list.push_back( it.first );
+
+        std::sort(send_list.begin(), send_list.end());
+        mColors = MPIColoringUtilities::ComputeCommunicationScheduling(send_list, mrDataCommunicator);
     }
 
     ///@}

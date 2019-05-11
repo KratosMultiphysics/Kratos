@@ -126,7 +126,7 @@ std::unordered_map<int, std::vector<int> > GetNeighbourIds(
     gp_list.Unique();
 
     GlobalPointerCommunicator<Node<3>> pointer_comm(rComm, gp_list);
-    auto result_proxy = pointer_comm.Apply<int>(
+    auto result_proxy = pointer_comm.Apply(
             [](GlobalPointer<Node<3>>& gp){return gp->Id();}
     );
 
