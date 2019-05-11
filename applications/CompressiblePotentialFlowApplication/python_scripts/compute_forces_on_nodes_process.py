@@ -22,7 +22,6 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
 
         self.body_model_part = Model[settings["model_part_name"].GetString()]
         self.create_output_file = settings["create_output_file"].GetBool()
-        self.output_variables = settings["output_variables"]
 
     def ExecuteFinalizeSolutionStep(self):
         self.Execute()
@@ -41,7 +40,7 @@ class ComputeForcesOnNodesProcess(KratosMultiphysics.Process):
 
         for cond in self.body_model_part.Conditions:
             condition_normal = cond.GetGeometry().Normal()
-            pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE)
+            pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
 
             for node in cond.GetNodes():
 
