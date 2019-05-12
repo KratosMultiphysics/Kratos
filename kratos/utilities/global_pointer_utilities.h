@@ -60,13 +60,11 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-template< class TContainerType >
 class GlobalPointerUtilities
 {
 public:
     ///@name Type Definitions
     ///@{
-    typedef GlobalPointer<typename TContainerType::value_type> GPType;
 
     /// Pointer definition of GlobalPointerUtilities
     KRATOS_CLASS_POINTER_DEFINITION(GlobalPointerUtilities);
@@ -82,12 +80,14 @@ public:
     /// Destructor.
     virtual ~GlobalPointerUtilities() {}
 
-
-    std::unordered_map< int, GPType > RetrieveGlobalIndexedPointersMap(
+    template< class TContainerType >
+    static std::unordered_map< int, GlobalPointer<typename TContainerType::value_type> > RetrieveGlobalIndexedPointersMap(
         const TContainerType& container,
         const std::vector<int>& id_list,
         const DataCommunicator& rDataCommunicator)
     {
+        typedef GlobalPointer<typename TContainerType::value_type> GPType;
+
         std::unordered_map< int, GPType > global_pointers_list, empty_gp_list;
         const int current_rank = rDataCommunicator.Rank();
         const int world_size = rDataCommunicator.Size();
@@ -244,13 +244,13 @@ public:
 
     }
 
-    GlobalPointersVector< typename TContainerType::value_type > RetrieveGlobalIndexedPointers(
+    template< class TContainerType >
+    static GlobalPointersVector< typename TContainerType::value_type > RetrieveGlobalIndexedPointers(
         const TContainerType& container,
         const std::vector<int>& id_list,
         const DataCommunicator& rDataCommunicator
     )
     {
-
         auto global_pointers_list = RetrieveGlobalIndexedPointersMap(container, id_list, rDataCommunicator);
 
         int current_rank = rDataCommunicator.Rank();
@@ -365,13 +365,13 @@ private:
     ///@{
 
     template< class TIteratorType >
-    bool IteratorIsLocal(TIteratorType& it, const int CurrentRank)
+    static bool IteratorIsLocal(TIteratorType& it, const int CurrentRank)
     {
         return true; //if the iterator was found, then it is local!
     }
 
     //particularizing to the case of nodes
-    bool IteratorIsLocal(ModelPart::NodesContainerType::iterator& it, const int CurrentRank)
+    static bool IteratorIsLocal(ModelPart::NodesContainerType::iterator& it, const int CurrentRank)
     {
         if(it->FastGetSolutionStepValue(PARTITION_INDEX) == CurrentRank)
             return true;
@@ -383,7 +383,7 @@ private:
     ///@name Private Operators
     ///@{
     template< class TType>
-    TType SendRecv(TType& send_buffer, int send_rank, int recv_rank,
+    static TType SendRecv(TType& send_buffer, int send_rank, int recv_rank,
                    const DataCommunicator& rDataCommunicator)
     {
         MpiSerializer send_serializer;
@@ -399,7 +399,8 @@ private:
         return recv_data;
     }
 
-    std::unordered_map< int, GPType > ExtractById(
+    template< class GPType >
+    static std::unordered_map< int, GPType > ExtractById(
         std::unordered_map< int, GPType >& gp_list,
         const std::vector<int>& ids)
     {
@@ -412,12 +413,13 @@ private:
         return extracted_list;
     }
 
-    std::unordered_map< int, GPType > ComputeGpMap(
+    template< class TContainerType >
+    static std::unordered_map< int, GlobalPointer<typename TContainerType::value_type> > ComputeGpMap(
         const TContainerType& container,
         const std::vector<int>& ids,
         int current_rank)
     {
-        std::unordered_map< int, GPType > extracted_list;
+        std::unordered_map< int, GlobalPointer<typename TContainerType::value_type> > extracted_list;
         for(auto id : ids)
         {
             const auto it = container.find(id);
@@ -425,7 +427,7 @@ private:
             {
                 //if(it->FastGetSolutionStepValue(PARTITION_INDEX) == current_rank)
                 if(IteratorIsLocal(it, current_rank))
-                    extracted_list.emplace(id, GPType(&*it, current_rank));
+                    extracted_list.emplace(id, GlobalPointer<typename TContainerType::value_type>(&*it, current_rank));
             }
         }
         return extracted_list;
@@ -472,17 +474,15 @@ private:
 
 
 /// input stream function
-template< class TPointerDataType >
 inline std::istream& operator >> (std::istream& rIStream,
-                                  GlobalPointerUtilities<TPointerDataType>& rThis)
+                                  GlobalPointerUtilities& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template< class TPointerDataType >
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const GlobalPointerUtilities<TPointerDataType>& rThis)
+                                  const GlobalPointerUtilities& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

@@ -225,8 +225,7 @@ public:
             auto last = std::unique(all_ids.begin(), all_ids.end());
             all_ids.erase(last, all_ids.end());
 
-            GlobalPointerUtilities<ModelPart::NodesContainerType> gp_utility;
-            auto all_gps_map = gp_utility.RetrieveGlobalIndexedPointersMap(mr_model_part.Nodes(), all_ids, mrComm);
+            auto all_gps_map = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(mr_model_part.Nodes(), all_ids, mrComm);
 
             //now construct the list of GlobalPointers - here neighbours are ok for locally owned nodes
             for(const auto& item : neighbours_ids[current_rank])

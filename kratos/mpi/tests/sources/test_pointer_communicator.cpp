@@ -38,9 +38,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicator, KratosMPICoreFastSuite)
     auto pnode = mp.CreateNewNode(current_rank+1, current_rank,current_rank,current_rank); //the node is equal to the current rank;
     pnode->FastGetSolutionStepValue(PARTITION_INDEX) = current_rank;
     pnode->SetValue(TEMPERATURE, current_rank );
-    //GlobalPointer< Node<3> > gp(pnode, pnode->FastGetSolutionStepValue(PARTITION_INDEX));
-
-    GlobalPointerUtilities<ModelPart::NodesContainerType> gp_utility;
 
     //we will gather on every node the global pointers of the nodes with index from
     //current_rank(+1) to world_size
@@ -48,7 +45,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicator, KratosMPICoreFastSuite)
     for(int i=current_rank+1; i<=world_size; ++i)
         indices.push_back(i);
 
-    auto gp_list = gp_utility.RetrieveGlobalIndexedPointers(mp.Nodes(), indices, r_default_comm );
+    auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(mp.Nodes(), indices, r_default_comm );
 
     GlobalPointerCommunicator< Node<3>> pointer_comm(r_default_comm, gp_list.begin(), gp_list.end());
 
@@ -100,9 +97,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicatorConstructByFunctor, KratosMPICo
     auto pnode = mp.CreateNewNode(current_rank+1, current_rank,current_rank,current_rank); //the node is equal to the current rank;
     pnode->FastGetSolutionStepValue(PARTITION_INDEX) = current_rank;
     pnode->SetValue(TEMPERATURE, current_rank );
-    //GlobalPointer< Node<3> > gp(pnode, pnode->FastGetSolutionStepValue(PARTITION_INDEX));
-
-    GlobalPointerUtilities<ModelPart::NodesContainerType> gp_utility;
 
     //we will gather on every node the global pointers of the nodes with index from
     //current_rank(+1) to world_size
@@ -123,8 +117,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicatorConstructByFunctor, KratosMPICo
 
         std::vector<GlobalPointer<Node<3>>> operator()(const DataCommunicator& rComm) const
         {
-            GlobalPointerUtilities<ModelPart::NodesContainerType> gp_utility;
-            return gp_utility.RetrieveGlobalIndexedPointers(mrModelPart.Nodes(), mIndices, rComm );
+            return GlobalPointerUtilities::RetrieveGlobalIndexedPointers(mrModelPart.Nodes(), mIndices, rComm );
         }
 
     private:
@@ -154,7 +147,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicatorConstructByFunctor, KratosMPICo
 
     auto pair_proxy = pointer_comm.Apply(
                           [](GlobalPointer< Node<3> >& gp)-> return_type
-    {return std::make_pair(gp->GetValue(TEMPERATURE), gp->Coordinates() );}
+                            {return std::make_pair(gp->GetValue(TEMPERATURE), gp->Coordinates() );}
                       );
 
     for(unsigned int i=0; i<indices.size(); ++i)
