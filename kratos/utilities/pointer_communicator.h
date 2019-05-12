@@ -136,7 +136,7 @@ public:
     }
 
     template< class TFunctorType >
-    GlobalPointerCommunicator(DataCommunicator& rComm, TFunctorType& rFunctor):
+    GlobalPointerCommunicator(DataCommunicator& rComm, TFunctorType&& rFunctor):
         mrDataCommunicator(rComm)
     {
         if(rComm.IsDistributed())
@@ -158,12 +158,12 @@ public:
     // ResultsProxy<TPointerDataType, TSendType> Apply(std::function< TSendType(GlobalPointer<TPointerDataType>&) > user_function)
     template< class TFunctorType >
     ResultsProxy<
-            TPointerDataType, 
-            TFunctorType //unfortunately this is deprecated in c++17, so we will have to change this call in the future
-        > Apply(TFunctorType user_functor)
+    TPointerDataType,
+    TFunctorType //unfortunately this is deprecated in c++17, so we will have to change this call in the future
+    > Apply(TFunctorType user_functor)
     {
         typedef typename ResultsProxy<TPointerDataType, TFunctorType >::TSendType SendType;
-        
+
         if(mrDataCommunicator.IsDistributed())
         {
             const int current_rank = mrDataCommunicator.Rank();
