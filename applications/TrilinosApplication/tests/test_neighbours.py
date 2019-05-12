@@ -12,7 +12,7 @@ if "--using-mpi" in sys.argv:
 def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
 
-class TestNeighbors(KratosUnittest.TestCase):
+class TestNeighbours(KratosUnittest.TestCase):
 
     def tearDown(self):
         kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
