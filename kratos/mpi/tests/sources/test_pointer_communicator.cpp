@@ -142,18 +142,24 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicatorConstructByFunctor, KratosMPICo
         KRATOS_CHECK_EQUAL(double_proxy.Get(gp), expected_id-1);
     }
 
-    //now let's try to retrieve at once TEMPERATURE, and Coordinates of the node
-    typedef std::pair<double, array_1d<double,3>> return_type;
 
-    auto pair_proxy = pointer_comm.Apply(
-                          [](GlobalPointer< Node<3> >& gp)-> return_type
-                            {return std::make_pair(gp->GetValue(TEMPERATURE), gp->Coordinates() );}
-                      );
+    //now let's try to retrieve at once TEMPERATURE, and Coordinates of the node
+    //here i define a simple_functor to return the data, even though this is easily achieved by a lambda
+    class ResultFunctor
+    {
+        public:
+            std::pair<double, array_1d<double,3>> operator()(GlobalPointer< Node<3> >& gp)
+            {
+                return std::make_pair(gp->GetValue(TEMPERATURE), gp->Coordinates() );
+            }
+    };
+
+    auto pair_proxy = pointer_comm.Apply(ResultFunctor());
 
     for(unsigned int i=0; i<indices.size(); ++i)
     {
         auto& gp = gp_list_reference[i];
-        return_type result = pair_proxy.Get(gp); //this is now a pair
+        auto result = pair_proxy.Get(gp); //this is now a pair
 
         KRATOS_CHECK_EQUAL(result.first, gp.GetRank());
 

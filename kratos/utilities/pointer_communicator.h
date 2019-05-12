@@ -160,7 +160,7 @@ public:
     ResultsProxy<
     TPointerDataType,
     TFunctorType //unfortunately this is deprecated in c++17, so we will have to change this call in the future
-    > Apply(TFunctorType user_functor)
+    > Apply(TFunctorType&& user_functor)
     {
         typedef typename ResultsProxy<TPointerDataType, TFunctorType >::TSendType SendType;
 
