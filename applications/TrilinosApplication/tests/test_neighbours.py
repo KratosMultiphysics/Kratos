@@ -1,10 +1,13 @@
 ﻿from __future__ import print_function, absolute_import, division
 
+import os
+import sys
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
-import os
+if "--using-mpi" in sys.argv:
+    import KratosMultiphysics.mpi
 
 def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
