@@ -219,7 +219,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<FindIntersectedGeometricalObjectsWithOBBForSearchProcess, FindIntersectedGeometricalObjectsWithOBBForSearchProcess::Pointer, Process>(m,"FindIntersectedGeometricalObjectsWithOBBForSearchProcess")
     .def(py::init<ModelPart&,ModelPart&>())
     .def(py::init<ModelPart&,ModelPart&, const double>())
-    .def(py::init<ModelPart&,ModelPart&, const double, const bool>())
     .def(py::init<Model&, Parameters>())
     ;
 }

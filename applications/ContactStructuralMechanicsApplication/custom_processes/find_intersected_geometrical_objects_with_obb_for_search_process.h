@@ -103,9 +103,7 @@ public:
         ModelPart& rPart1,
         ModelPart& rPart2,
         const double BoundingBoxFactor = -1.0,
-        const bool DebugOBB = false,
-        OBBHasIntersectionType IntersectionType = OBBHasIntersectionType::SeparatingAxisTheorem,
-        const Flags Options = FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS|FindIntersectedGeometricalObjectsProcess::NOT_INTERSECTING_ELEMENTS|FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS|FindIntersectedGeometricalObjectsProcess::NOT_INTERSECTED_ELEMENTS
+        const Flags Options = FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS|FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS|FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS|FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS|FindIntersectedGeometricalObjectsWithOBBProcess::NOT_DEBUG_OBB|FindIntersectedGeometricalObjectsWithOBBProcess::SEPARATING_AXIS_THEOREM
         );
 
     /**

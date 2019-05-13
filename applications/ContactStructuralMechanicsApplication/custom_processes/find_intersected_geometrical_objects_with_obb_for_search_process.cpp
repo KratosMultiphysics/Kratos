@@ -22,10 +22,8 @@ FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersectedGeometr
     ModelPart& rPart1,
     ModelPart& rPart2,
     const double BoundingBoxFactor,
-    const bool DebugOBB,
-    const OBBHasIntersectionType IntersectionType,
     const Flags Options
-    ) : BaseType(rPart1, rPart2, BoundingBoxFactor, DebugOBB, IntersectionType, Options)
+    ) : BaseType(rPart1, rPart2, BoundingBoxFactor, Options)
 {
 }
 
@@ -70,18 +68,20 @@ FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersectedGeometr
         this->Set(BOUNDARY, false);
 
     // If we debug OBB
-    mDebugOBB = BaseType::mThisParameters["debug_obb"].GetBool();
+    BaseProcessType::mOptions.Set(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB, mThisParameters["debug_obb"].GetBool());
 
     // The intersection type
-    mIntersectionType = BaseType::ConvertInter(BaseType::mThisParameters["OBB_intersection_type"].GetString());
+    ConvertIntersection(mThisParameters["OBB_intersection_type"].GetString());
 
     // We create new properties for debugging
-    if (BaseType::mDebugOBB) {
+#ifdef  KRATOS_DEBUG
+    if (BaseProcessType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB)) {
         this->GetModelPart1().CreateNewProperties(1001);
         this->GetModelPart1().CreateSubModelPart(this->GetModelPart1().Name() + "_AUXILIAR_DEBUG_OBB");
         this->GetModelPart2().CreateNewProperties(1002);
         this->GetModelPart2().CreateSubModelPart(this->GetModelPart2().Name() + "_AUXILIAR_DEBUG_OBB");
     }
+#endif
 
     mLowerBBCoefficient = ThisParameters["lower_bounding_box_coefficient"].GetDouble();
     mHigherBBCoefficient = ThisParameters["higher_bounding_box_coefficient"].GetDouble();
