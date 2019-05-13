@@ -249,7 +249,7 @@ namespace Kratos {
 
         }
         //Synch this var.
-        r_model_part.GetCommunicator().MaxAll(r_process_info[SEARCH_CONTROL]);
+        r_process_info[SEARCH_CONTROL] = r_model_part.GetCommunicator().GetDataCommunicator().MaxAll(r_process_info[SEARCH_CONTROL]);
     }
 
     void ContinuumExplicitSolverStrategy::MarkNewSkinParticles() {
@@ -466,7 +466,7 @@ namespace Kratos {
         ModelPart& r_model_part = GetModelPart();
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        unsigned int total_contacts = 0;
+        int total_contacts = 0;
         const int number_of_particles = (int) mListOfSphericParticles.size();
         std::vector<int> neighbour_counter;
         std::vector<int> sum;
@@ -491,10 +491,8 @@ namespace Kratos {
             total_sum += sum[i];
         }
 
-        int global_total_contacts = total_contacts;
-        r_model_part.GetCommunicator().SumAll(global_total_contacts);
-        int global_number_of_elements = (int) pElements.size();
-        r_model_part.GetCommunicator().SumAll(global_number_of_elements);
+        int global_total_contacts = r_model_part.GetCommunicator().GetDataCommunicator().SumAll(total_contacts);
+        int global_number_of_elements = r_model_part.GetCommunicator().GetDataCommunicator().SumAll((int) pElements.size());
 
         double coord_number = double(global_total_contacts) / double(global_number_of_elements);
 
@@ -597,8 +595,7 @@ namespace Kratos {
         DestroyMarkedParticlesRebuildLists();
 
         //KRATOS_WARNING("DEM") << "Mesh repair complete. In MPI node " <<GetModelPart().GetCommunicator().MyPID()<<". "<< particle_counter << " particles were removed. " << "\n" << std::endl;
-        double total_spheres_removed = particle_counter;
-        GetModelPart().GetCommunicator().SumAll(total_spheres_removed);
+        int total_spheres_removed = GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(particle_counter);
 
         if(GetModelPart().GetCommunicator().MyPID() == 0) {
             KRATOS_WARNING("DEM") << "A total of "<<total_spheres_removed<<" spheres were removed due to excessive overlapping." << std::endl;
