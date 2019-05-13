@@ -1609,7 +1609,7 @@ namespace Kratos
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
-					pelement=Element::Pointer(((neighb_elems(i))));
+					pelement=neighb_elems(i).lock();
 					return true;
 				}
 		}
@@ -1669,7 +1669,7 @@ namespace Kratos
 			bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],aux_N);
 			if (is_found_2)
 			{
-				pelement=Element::Pointer(((elements_in_trajectory(i))));
+				pelement=elements_in_trajectory(i).lock();
 				N=aux_N;
 				check_from_element_number = i+1 ; //now i element matches pelement, so to avoid cheching twice the same element we send the counter to the following element.
 				return true;
@@ -1678,7 +1678,7 @@ namespace Kratos
 		}
 
 		//now we check the neighbour elements:
-		WeakPointerVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
+		auto& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
 		//the first we check is the one that has negative shape function, because it means it went outside in this direction:
 		//commented, it is not faster than simply checking all the neighbours (branching)
 		/*
@@ -1708,7 +1708,7 @@ namespace Kratos
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
-					pelement=Element::Pointer(((neighb_elems(i))));
+					pelement=neighb_elems(i).lock();
 					if (number_of_elements_in_trajectory<20)
 					{
 						elements_in_trajectory(number_of_elements_in_trajectory)=pelement;

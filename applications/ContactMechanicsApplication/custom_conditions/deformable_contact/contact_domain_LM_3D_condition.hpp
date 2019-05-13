@@ -72,7 +72,7 @@ public:
     typedef ContactDomainUtilities::SurfaceBase           SurfaceBase;
 
     /// Counted pointer of ContactDomainLM3DCondition
-    KRATOS_CLASS_POINTER_DEFINITION( ContactDomainLM3DCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( ContactDomainLM3DCondition );
 
     ///@}
     ///@name Life Cycle

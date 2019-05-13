@@ -65,7 +65,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointSolidElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointSolidElement);
 
     ///@}
     ///@name Life Cycle

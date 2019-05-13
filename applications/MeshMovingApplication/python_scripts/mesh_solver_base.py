@@ -23,13 +23,40 @@ class MeshSolverBase(PythonSolver):
     mesh_model_part -- the mesh motion model part.
     """
     def __init__(self, model, custom_settings):
+        self._validate_settings_in_baseclass=True # To be removed eventually
         super(MeshSolverBase,self).__init__(model, custom_settings)
 
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "solver_type"           : "mesh_solver_structural_similarity",
+        if custom_settings["calculate_mesh_velocities"].GetBool():
+            from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+            warn_msg  = '"calculate_mesh_velocities" is set to true for the Solver\n'
+            warn_msg += 'This feature was moved to MeshMovingApplication.MeshVelocityCalculation and will soon be removed\n'
+            warn_msg += 'from the solver. Please update your code'
+            IssueDeprecationWarning("MeshSolverBase", warn_msg)
+
+        # Either retrieve the model part from the model or create a new one
+        model_part_name = self.settings["model_part_name"].GetString()
+
+        if model_part_name == "":
+            raise Exception('Please provide the model part name as the "model_part_name" (string) parameter!')
+
+        if self.model.HasModelPart(model_part_name):
+            self.mesh_model_part = self.model.GetModelPart(model_part_name)
+        else:
+            self.mesh_model_part = model.CreateModelPart(model_part_name)
+
+        domain_size = self.settings["domain_size"].GetInt()
+        if domain_size == -1:
+            raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
+
+        self.mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+
+        KratosMultiphysics.Logger.PrintInfo("::[MeshSolverBase]:: Construction finished")
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "solver_type"           : "mesh_solver_base",
             "buffer_size"           : 1,
-            "echo_level"            : 0,
             "domain_size"           : -1,
             "model_part_name"       : "",
             "time_stepping"         : { },
@@ -57,34 +84,8 @@ class MeshSolverBase(PythonSolver):
             "compute_reactions"         : false,
             "calculate_mesh_velocities" : true
         }""")
-
-        self.settings.ValidateAndAssignDefaults(default_settings)
-
-        if custom_settings["calculate_mesh_velocities"].GetBool():
-            from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
-            warn_msg  = '"calculate_mesh_velocities" is set to true for the Solver\n'
-            warn_msg += 'This feature was moved to MeshMovingApplication.MeshVelocityCalculation and will soon be removed\n'
-            warn_msg += 'from the solver. Please update your code'
-            IssueDeprecationWarning("MeshSolverBase", warn_msg)
-
-        # Either retrieve the model part from the model or create a new one
-        model_part_name = self.settings["model_part_name"].GetString()
-
-        if model_part_name == "":
-            raise Exception('Please provide the model part name as the "model_part_name" (string) parameter!')
-
-        if self.model.HasModelPart(model_part_name):
-            self.mesh_model_part = self.model.GetModelPart(model_part_name)
-        else:
-            self.mesh_model_part = model.CreateModelPart(model_part_name)
-
-        domain_size = self.settings["domain_size"].GetInt()
-        if domain_size == -1:
-            raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
-
-        self.mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-
-        KratosMultiphysics.Logger.PrintInfo("::[MeshSolverBase]:: Construction finished")
+        this_defaults.AddMissingParameters(super(MeshSolverBase, cls).GetDefaultSettings())
+        return this_defaults
 
     #### Public user interface functions ####
 

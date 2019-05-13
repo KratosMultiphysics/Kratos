@@ -29,7 +29,7 @@ namespace Kratos {
     public:
 
         /// Pointer definition of BondingSphericContinuumParticle
-        KRATOS_CLASS_POINTER_DEFINITION(BondingSphericContinuumParticle);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(BondingSphericContinuumParticle);
 
         typedef WeakPointerVector<Element> ParticleWeakVectorType;
         typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;

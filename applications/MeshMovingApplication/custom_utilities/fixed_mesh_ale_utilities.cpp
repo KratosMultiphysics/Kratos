@@ -276,7 +276,7 @@ namespace Kratos
             auto p_new_geom = r_orig_geom.Create(new_nodes_array);
 
             // Create a structural mesh moving element with the same Id() but the virtual mesh nodes
-            auto p_elem = Kratos::make_shared<StructuralMeshMovingElement>(elem.Id(), p_new_geom, elem.pGetProperties());
+            auto p_elem = Kratos::make_intrusive<StructuralMeshMovingElement>(elem.Id(), p_new_geom, elem.pGetProperties());
             new_elements_container.push_back(p_elem);
         }
         mrVirtualModelPart.AddElements(new_elements_container.begin(), new_elements_container.end());
