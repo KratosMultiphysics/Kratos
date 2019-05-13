@@ -1,4 +1,5 @@
 from __future__ import print_function, absolute_import, division
+import KratosMultiphysics
 from KratosMultiphysics import Logger
 
 from unittest import * # needed to make all functions available to the tests using this file

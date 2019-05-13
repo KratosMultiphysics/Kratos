@@ -21,15 +21,15 @@
 #include "input_output/logger.h"
 
 namespace Kratos {
-Kernel::Kernel() : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
-                std::string("KratosMultiphysics"))) {
+Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
+                std::string("KratosMultiphysics"))), mIsDistributedRun(IsDistributedRun) {
     KRATOS_INFO("") << " |  /           |\n"
                     << " ' /   __| _` | __|  _ \\   __|\n"
                     << " . \\  |   (   | |   (   |\\__ \\\n"
                     << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/\n"
                     << "           Multi-Physics " << KRATOS_VERSION << std::endl;
 
-    if (!IsImported("KratosMultiphysics")) {      
+    if (!IsImported("KratosMultiphysics")) {
         this->ImportApplication(mpKratosCoreApplication);
     }
 }
@@ -45,6 +45,10 @@ bool Kernel::IsImported(std::string ApplicationName) const {
         return true;
     else
         return false;
+}
+
+bool Kernel::IsDistributedRun() const {
+    return mIsDistributedRun;
 }
 
 void Kernel::ImportApplication(KratosApplication::Pointer pNewApplication) {

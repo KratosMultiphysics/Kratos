@@ -22,7 +22,8 @@ def __ModuleInitDetail():
     and the parallel DataCommunicator are initialized when the Kernel is built.
     It is defined as a function to avoid polluting the Kratos namespace with local variables.
     """
-    if "--using-mpi" in sys.argv[1:]:
+    using_mpi = "--using-mpi" in sys.argv[1:]
+    if using_mpi:
         try:
             import KratosMultiphysics.mpi
         except ModuleNotFoundError:
@@ -34,10 +35,9 @@ def __ModuleInitDetail():
             ]
             Logger.PrintWarning("KRATOS INITIALIZATION WARNING:", "".join(msg))
 
-__ModuleInitDetail()
+    return kratos_globals.KratosGlobalsImpl(Kernel(using_mpi), KratosPaths.kratos_applications)
 
-KratosGlobals = kratos_globals.KratosGlobalsImpl(
-    Kernel(), KratosPaths.kratos_applications)
+KratosGlobals = __ModuleInitDetail()
 
 # adding the scripts in "kratos/python_scripts" such that they are treated as a regular python-module
 __path__.append(KratosPaths.kratos_scripts)
@@ -70,3 +70,5 @@ def CheckRegisteredApplications(*applications):
     warn_msg += 'It does nothing any more'
     Logger.PrintWarning('DEPRECATION', warn_msg)
 
+def IsDistributedRun():
+    return KratosGlobals.Kernel.IsDistributedRun()

@@ -16,6 +16,9 @@ class KratosGlobalsImpl(object):
         print("Kernel:", self.Kernel)
         print("Kratos Applications base folder:", self.ApplicationsRoot)
 
+    def UsingMPI(self):
+        return self.Kernel.UsingMPI()
+
     def GetFlag(self, FlagName):
         """ This method returns the flag with the given name
 
