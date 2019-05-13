@@ -17,6 +17,7 @@
 // Project includes
 #include "geometries/plane_3d.h"
 #include "processes/calculate_distance_to_skin_process.h"
+#include "processes/apply_ray_casting_process.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/intersection_utilities.h"
 
@@ -188,17 +189,8 @@ namespace Kratos
 	template<std::size_t TDim>
 	void CalculateDistanceToSkinProcess<TDim>::CalculateRayDistances()
 	{
-		ModelPart& ModelPart1 = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess).GetModelPart1();
-
-		#pragma omp parallel for
-		for(int k = 0 ; k < static_cast<int>(ModelPart1.NumberOfNodes()); ++k) {
-			auto it_node = ModelPart1.NodesBegin() + k;
-			double &node_distance = it_node->GetSolutionStepValue(DISTANCE);
-			const double ray_distance = this->DistancePositionInSpace(*it_node);
-			if (ray_distance * node_distance < 0.0) {
-				node_distance = -node_distance;
-			}
-        }
+		ApplyRayCastingProcess<TDim> ray_casting_process(CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess, mExtraRaysEpsilon);
+		ray_casting_process.Execute();
 	}
 
 	template<std::size_t TDim>
