@@ -40,8 +40,6 @@ FindIntersectedGeometricalObjectsWithOBBProcess::FindIntersectedGeometricalObjec
     else
         this->Set(BOUNDARY, false);
 
-    KRATOS_WATCH(BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB))
-
 #ifdef  KRATOS_DEBUG
     // We create new properties for debugging
     if (BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB)) {
