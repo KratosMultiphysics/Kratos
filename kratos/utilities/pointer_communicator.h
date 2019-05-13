@@ -30,7 +30,7 @@
 #include "includes/mpi_serializer.h"
 #include "containers/global_pointers_vector.h"
 #include "containers/global_pointers_unordered_map.h"
-
+#include "includes/parallel_environment.h"
 #include "utilities/mpi_coloring_utilities.h"
 
 namespace Kratos
@@ -156,6 +156,10 @@ public:
         }
     }
 
+    template< class TFunctorType >
+    GlobalPointerCommunicator(TFunctorType&& rFunctor)
+        : GlobalPointerCommunicator(ParallelEnvironment::GetDefaultDataCommunicator(), rFunctor)
+    {}
 
     /// Destructor.
     virtual ~GlobalPointerCommunicator() {}
@@ -163,8 +167,6 @@ public:
     /**this function applies the input function onto the remote data
      * and retrieves the result to the caller rank
      */
-    // template< class TSendType >
-    // ResultsProxy<TPointerDataType, TSendType> Apply(std::function< TSendType(GlobalPointer<TPointerDataType>&) > user_function)
     template< class TFunctorType >
     ResultsProxy<
     TPointerDataType,
@@ -173,43 +175,16 @@ public:
     {
         typedef typename ResultsProxy<TPointerDataType, TFunctorType >::TSendType SendType;
 
+        const int current_rank = mrDataCommunicator.Rank();
+
+        GlobalPointersUnorderedMap< TPointerDataType, SendType > non_local_data;
+
         if(mrDataCommunicator.IsDistributed())
         {
-            const int current_rank = mrDataCommunicator.Rank();
-
-            GlobalPointersUnorderedMap< TPointerDataType, SendType > non_local_data;
-
             Update(UserFunctor, non_local_data);
-
-            // //sendrecv data
-            // for(auto color : mColors)
-            // {
-            //     if(color >= 0) //-1 would imply no communication
-            //     {
-            //         auto& gps_to_be_sent = mNonLocalPointers[color];
-
-            //         //TODO: pass Unique to the mNonLocalPointers[recv_rank]
-
-            //         auto recv_global_pointers = SendRecv(gps_to_be_sent, color, color );
-
-            //         std::vector< SendType > locally_gathered_data; //this is local but needs to be sent to the remote node
-            //         for(auto& gp : recv_global_pointers)
-            //             locally_gathered_data.push_back( user_functor(gp) );
-
-            //         auto remote_data = SendRecv(locally_gathered_data, color, color );
-
-            //         for(unsigned int i=0; i<remote_data.size(); ++i)
-            //             non_local_data[gps_to_be_sent[i]] = remote_data[i];
-            //     }
-            // }
-
-            return ResultsProxy<TPointerDataType, TFunctorType>(current_rank,non_local_data,UserFunctor, this );
         }
-        else
-        {
-            GlobalPointersUnorderedMap< TPointerDataType, SendType > non_local_data;
-            return ResultsProxy<TPointerDataType, TFunctorType>(0,non_local_data,UserFunctor, this );
-        }
+        
+        return ResultsProxy<TPointerDataType, TFunctorType>(current_rank,non_local_data,UserFunctor, this );
     }
 
     template< class TFunctorType >
@@ -223,8 +198,6 @@ public:
             if(color >= 0) //-1 would imply no communication
             {
                 auto& gps_to_be_sent = mNonLocalPointers[color];
-
-                //TODO: pass Unique to the mNonLocalPointers[recv_rank]
 
                 auto recv_global_pointers = SendRecv(gps_to_be_sent, color, color );
 
@@ -313,8 +286,16 @@ protected:
         {
             const int current_rank = mrDataCommunicator.Rank();
             for(auto it = begin; it != end; ++it)
+            {
                 if(it->GetRank() != current_rank)
+                {
                     mNonLocalPointers[it->GetRank()].push_back(*it);
+                }
+            }
+
+            //ensure that no repeated info is stored
+            for(auto& non_local : mNonLocalPointers)
+                non_local.second.Unique();
         }
     }
 
