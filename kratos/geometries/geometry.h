@@ -226,7 +226,8 @@ public:
 
     /// data type stores in this container.
     //typedef PointerVector::value_type value_type;
-    typedef std::shared_ptr<PointType> PointPointerType;
+    //typedef std::shared_ptr<PointType> PointPointerType;
+    typedef typename PointType::Pointer PointPointerType;
     typedef const PointPointerType ConstPointPointerType;
     typedef TPointType& PointReferenceType;
     typedef const TPointType& ConstPointReferenceType;
@@ -236,21 +237,12 @@ public:
     typedef typename PointerVector<TPointType>::const_iterator const_iterator;
     typedef typename PointerVector<TPointType>::reverse_iterator reverse_iterator;
     typedef typename PointerVector<TPointType>::const_reverse_iterator const_reverse_iterator;
-    //typedef boost::indirect_iterator<typename PointPointerContainerType::iterator>                iterator;
-    //typedef boost::indirect_iterator<typename PointPointerContainerType::const_iterator>          const_iterator;
-    //typedef boost::indirect_iterator<typename PointPointerContainerType::reverse_iterator>        reverse_iterator;
-    //typedef boost::indirect_iterator<typename PointPointerContainerType::const_reverse_iterator>  const_reverse_iterator;
 
     typedef typename PointerVector<TPointType>::iterator ptr_iterator;
     typedef typename PointerVector<TPointType>::const_iterator ptr_const_iterator;
     typedef typename PointerVector<TPointType>::reverse_iterator ptr_reverse_iterator;
     typedef typename PointerVector<TPointType>::const_reverse_iterator ptr_const_reverse_iterator;
     typedef typename PointerVector<TPointType>::difference_type difference_type;
-
-    //typedef typename PointerVector::ptr_iterator               ptr_iterator;
-    //typedef typename PointerVector::ptr_const_iterator         ptr_const_iterator;
-    //typedef typename PointerVector::ptr_reverse_iterator       ptr_reverse_iterator;
-    //typedef typename PointerVector::ptr_const_reverse_iterator ptr_const_reverse_iterator;
 
     ///@}
     ///@name Life Cycle
@@ -387,8 +379,8 @@ public:
     */
     Geometry& operator=( const Geometry& rOther )
     {
-        PointerVector::operator=( rOther );
         mpGeometryData = rOther.mpGeometryData;
+        mpPointVector = rOther.mpPointVector;
 
         return *this;
     }
@@ -605,13 +597,13 @@ public:
     ///** Gives a reference to underly normal container. */
     PointPointerContainerType& GetContainer()
     {
-        return mpPointVector.GetContainer();
+        return mpPointVector->GetContainer();
     }
 
     /** Gives a constant reference to underly normal container. */
     const PointPointerContainerType& GetContainer() const
     {
-        return mpPointVector.GetContainer();
+        return mpPointVector->GetContainer();
     }
 
     ///@}
@@ -2667,9 +2659,12 @@ public:
 
 
     ///@}
-    ///@name Friends
+    ///@name Members
     ///@{
 
+    GeometryData const* mpGeometryData;
+
+    std::shared_ptr<PointerVector<TPointType>> mpPointVector;
 
     ///@}
 
@@ -2916,9 +2911,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    GeometryData const* mpGeometryData;
-
-    std::shared_ptr<PointerVector<TPointType>> mpPointVector;
 
     ///@}
     ///@name Serialization

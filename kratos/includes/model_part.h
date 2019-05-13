@@ -976,6 +976,14 @@ public:
         KRATOS_CATCH("")
     }
 
+    ModelPart::ElementType::Pointer CreateNewElement(std::string ElementName,
+        ModelPart::IndexType Id, Geometry< Node < 3 > > ThisGeometry,
+        ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex);
+
+    ElementType::Pointer CreateNewElement(std::string ElementName,
+        ModelPart::IndexType Id, Geometry< Node < 3 > >::Pointer pGeometry,
+        ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex);
+
     /** Inserts an element in the current mesh.
      */
     ElementType::Pointer CreateNewElement(std::string ElementName, IndexType Id, std::vector<IndexType> ElementNodeIds, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);

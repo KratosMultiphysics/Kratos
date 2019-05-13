@@ -255,6 +255,23 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+    * @brief It creates a new element pointer and clones the previous element data
+    * @param NewId the ID of the new element
+    * @param ThisNodes the nodes of the new element
+    * @param pProperties the properties assigned to the new element
+    * @return a Pointer to the new element
+    */
+    virtual Pointer Clone(IndexType NewId, GeometryType const& ThisGeometry) const
+    {
+        KRATOS_TRY
+            KRATOS_WARNING("Element") << " Call base class element Clone " << std::endl;
+        Element::Pointer p_new_elem = Kratos::make_intrusive<Element>(NewId, GetGeometry().Create(ThisGeometry), pGetProperties());
+        p_new_elem->SetData(this->GetData());
+        p_new_elem->Set(Flags(*this));
+        return p_new_elem;
+        KRATOS_CATCH("");
+    }
 
     /**
      * ELEMENTS inherited from this class have to implement next

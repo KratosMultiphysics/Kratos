@@ -295,12 +295,12 @@ public:
 					int position = this_model_part.Nodes().find(geom[i].Id()) - it_begin_node_old;  //the id of the node minus one is the position in the Condition_Node array (position0 = node1)
 					triangle_nodes[i]=Condition_Nodes[position]; // saving the i nodeId
 				} //nodes id saved. now we have to create the element.
-				Triangle3D3<Node<3> > geometry(
+                Triangle3D3<Node<3> >::Pointer ptr_geom = Kratos::make_shared<Triangle3D3<Node<3> >>(
 					new_model_part.Nodes()(triangle_nodes[0]),  //condition to be added
 					new_model_part.Nodes()(triangle_nodes[1]),
 					new_model_part.Nodes()(triangle_nodes[2])
 				);
-				Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1, geometry, properties); //está bien? acá la verdad ni idea. sobre todo number_of_triangles (la posición). o debe ser un puntero de elemento en vez de un entero?
+				Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1, ptr_geom, properties); //está bien? acá la verdad ni idea. sobre todo number_of_triangles (la posición). o debe ser un puntero de elemento en vez de un entero?
 				new_model_part.Conditions().push_back(p_condition);
 				++number_of_triangles;
 			}
@@ -767,13 +767,13 @@ public:
                 }
 
                 //generate new Elements
-                Triangle3D3<Node<3> > geom(
+                Triangle3D3<Node<3> >::Pointer ptr_geom = Kratos::make_shared<Triangle3D3<Node<3> >>(
                     new_model_part.Nodes()(TriangleNodesArray[0]),
                     new_model_part.Nodes()(TriangleNodesArray[1]),
                     new_model_part.Nodes()(TriangleNodesArray[2])
                 );
 
-                Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1+first_element, geom, properties); //creating the element using the reference element. notice we are using the first element to avoid overriting nodes created by other cutting planes
+                Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1+first_element, ptr_geom, properties); //creating the element using the reference element. notice we are using the first element to avoid overriting nodes created by other cutting planes
                 new_model_part.Conditions().push_back(p_condition);
                 ++number_of_triangles;
 
@@ -905,13 +905,13 @@ public:
                         nodes_for_2triang[index*3+1] =  temp_int;
                     }
 
-                    Triangle3D3<Node<3> > geom(
+                    Triangle3D3<Node<3> >::Pointer ptr_geom = Kratos::make_shared<Triangle3D3<Node<3> >>(
                         new_model_part.Nodes()(nodes_for_2triang[index*3+0]),
                         new_model_part.Nodes()(nodes_for_2triang[index*3+1]),
                         new_model_part.Nodes()(nodes_for_2triang[index*3+2])
                     );
 
-                    Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1+first_element, geom, properties);
+                    Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1+first_element, ptr_geom, properties);
 
                     new_model_part.Conditions().push_back(p_condition);
                     ++number_of_triangles;

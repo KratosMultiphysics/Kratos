@@ -853,6 +853,64 @@ void ModelPart::AddElements(std::vector<IndexType> const& ElementIds, IndexType 
 /** Inserts an element in the mesh with ThisIndex.
 */
 ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementName,
+    ModelPart::IndexType Id, Geometry< Node < 3 > > ThisGeometry,
+    ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
+{
+    Geometry<Node<3>>::Pointer ptr_geometry = Kratos::make_shared<Geometry<Node<3>>>(ThisGeometry);
+
+    if (IsSubModelPart())
+    {
+        ElementType::Pointer p_new_element = mpParentModelPart->CreateNewElement(ElementName, Id, ptr_geometry, pProperties, ThisIndex);
+        GetMesh(ThisIndex).AddElement(p_new_element);
+        return p_new_element;
+    }
+
+    auto existing_element_iterator = GetMesh(ThisIndex).Elements().find(Id);
+    KRATOS_ERROR_IF(existing_element_iterator != GetMesh(ThisIndex).ElementsEnd())
+        << "trying to construct an element with ID " << Id << " however an element with the same Id already exists";
+
+
+    //create the new element
+    ElementType const& r_clone_element = KratosComponents<ElementType>::Get(ElementName);
+    Element::Pointer p_element = r_clone_element.Create(Id, ptr_geometry, pProperties);
+
+    //add the new element
+    GetMesh(ThisIndex).AddElement(p_element);
+
+    return p_element;
+}
+
+/** Inserts an element in the mesh with ThisIndex.
+*/
+ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementName,
+    ModelPart::IndexType Id, Geometry< Node < 3 > >::Pointer pGeometry,
+    ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
+{
+    if (IsSubModelPart())
+    {
+        ElementType::Pointer p_new_element = mpParentModelPart->CreateNewElement(ElementName, Id, pGeometry, pProperties, ThisIndex);
+        GetMesh(ThisIndex).AddElement(p_new_element);
+        return p_new_element;
+    }
+
+    auto existing_element_iterator = GetMesh(ThisIndex).Elements().find(Id);
+    KRATOS_ERROR_IF(existing_element_iterator != GetMesh(ThisIndex).ElementsEnd())
+        << "trying to construct an element with ID " << Id << " however an element with the same Id already exists";
+
+
+    //create the new element
+    ElementType const& r_clone_element = KratosComponents<ElementType>::Get(ElementName);
+    Element::Pointer p_element = r_clone_element.Create(Id, pGeometry, pProperties);
+
+    //add the new element
+    GetMesh(ThisIndex).AddElement(p_element);
+
+    return p_element;
+}
+
+/** Inserts an element in the mesh with ThisIndex.
+*/
+ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementName,
         ModelPart::IndexType Id, std::vector<ModelPart::IndexType> ElementNodeIds,
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {

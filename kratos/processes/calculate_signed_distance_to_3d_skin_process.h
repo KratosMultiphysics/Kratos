@@ -1586,11 +1586,11 @@ public:
 
                     // ######## ADDING NEW CONDITION #########
                     //form a triangle
-                    Triangle3D3< Node<3> > triangle(pnode1, pnode2, pnode3);
+                    Triangle3D3<Node<3> >::Pointer ptr_geom = Kratos::make_shared<Triangle3D3<Node<3> >>(pnode1, pnode2, pnode3);
 
                     Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
                     Properties::Pointer properties = mrNewSkinModelPart.rProperties()(0);
-                    Condition::Pointer p_condition = rReferenceCondition.Create(id_condition++, triangle, properties);
+                    Condition::Pointer p_condition = rReferenceCondition.Create(id_condition++, ptr_geom, properties);
 
                     mrNewSkinModelPart.Conditions().push_back(p_condition);
                 }
@@ -1656,8 +1656,8 @@ public:
 
                     // ######## ADDING NEW CONDITION #########
                     //form two triangles
-                    Triangle3D3< Node<3> > triangle1(pnode1, pnode2, pnode3);
-                    Triangle3D3< Node<3> > triangle2(pnode1, pnode3, pnode4);
+                    Triangle3D3<Node<3> >::Pointer triangle1 = Kratos::make_shared<Triangle3D3<Node<3> >>(pnode1, pnode2, pnode3);
+                    Triangle3D3<Node<3> >::Pointer triangle2 = Kratos::make_shared<Triangle3D3<Node<3> >>(pnode1, pnode3, pnode4);
 
                     Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
                  

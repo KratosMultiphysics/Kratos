@@ -180,6 +180,11 @@ public:
         BaseType::Points().push_back( pSecondPoint );
     }
 
+    Line2D2( const Geometry& rOther )
+        : BaseType(rOther)
+    {
+    }
+
 
     explicit Line2D2( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
@@ -277,6 +282,11 @@ public:
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
         return typename BaseType::Pointer( new Line2D2( ThisPoints ) );
+    }
+
+    typename BaseType::Pointer Create(Geometry<TPointType> const& ThisGeometry) const override
+    {
+        return typename BaseType::Pointer(new Line2D2(ThisGeometry) );
     }
 
     // Geometry< Point<3> >::Pointer Clone() const override

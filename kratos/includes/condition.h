@@ -254,7 +254,27 @@ public:
     {
         KRATOS_TRY
         KRATOS_WARNING("Condition") << " Call base class condition Clone " << std::endl;
-        Condition::Pointer p_new_cond = Kratos::make_intrusive<Condition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+        Condition::Pointer p_new_cond = Kratos::make_intrusive<Condition>(
+            NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+        p_new_cond->SetData(this->GetData());
+        p_new_cond->Set(Flags(*this));
+        return p_new_cond;
+        KRATOS_CATCH("");
+    }
+
+    /**
+    * @brief It creates a new condition pointer and clones the previous condition data
+    * @param NewId the ID of the new condition
+    * @param ThisNodes the nodes of the new condition
+    * @param pProperties the properties assigned to the new condition
+    * @return a Pointer to the new condition
+    */
+    virtual Pointer Clone(IndexType NewId, GeometryType const& ThisGeometry) const
+    {
+        KRATOS_TRY
+        KRATOS_WARNING("Condition") << " Call base class condition Clone " << std::endl;
+        Condition::Pointer p_new_cond = Kratos::make_intrusive<Condition>(
+            NewId, GetGeometry().Create(ThisGeometry), pGetProperties());
         p_new_cond->SetData(this->GetData());
         p_new_cond->Set(Flags(*this));
         return p_new_cond;
