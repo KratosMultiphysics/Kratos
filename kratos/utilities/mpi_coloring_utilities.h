@@ -51,7 +51,7 @@ namespace Kratos
 ///@{
 
 /// This class provides elementary function for computing the recv list and to define a coloring for communications
-class MPIColoringUtilities
+class KRATOS_API(KRATOS_CORE) MPIColoringUtilities
 {
 public:
     ///@name Type Definitions
