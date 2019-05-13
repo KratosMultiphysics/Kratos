@@ -83,43 +83,17 @@
                 "relative_tolerance"    : 1e-12
             }
         },{
-            "python_module"   : "compare_two_files_check_process",
-            "kratos_module"   : "KratosMultiphysics",
-            "help"            : "",
-            "process_name"    : "CompareTwoFilesCheckProcess",
-            "Parameters" :{
-                "output_file_name"    : "cl.dat",
-                "reference_file_name" : "cl_ref.dat",
-                "comparison_type"     : "dat_file",
-                "remove_output_file"    : true,
-                "tolerance"             : 1e-9,
-                "relative_tolerance"    : 1e-9
-            }
-        },{
-            "python_module"   : "compare_two_files_check_process",
-            "kratos_module"   : "KratosMultiphysics",
-            "help"            : "",
-            "process_name"    : "CompareTwoFilesCheckProcess",
-            "Parameters" :{
-                "output_file_name"    : "moment.dat",
-                "reference_file_name" : "moment_ref.dat",
-                "comparison_type"     : "dat_file",
-                "remove_output_file"    : true,
-                "tolerance"             : 1e-9,
-                "relative_tolerance"    : 1e-9
-            }
-        },{
-            "python_module"   : "compare_two_files_check_process",
-            "kratos_module"   : "KratosMultiphysics",
-            "help"            : "",
-            "process_name"    : "CompareTwoFilesCheckProcess",
-            "Parameters" :{
-                "output_file_name"    : "cl_jump.dat",
-                "reference_file_name" : "cl_jump_ref.dat",
-                "comparison_type"     : "dat_file",
-                "remove_output_file"    : true,
-                "tolerance"             : 1e-9,
-                "relative_tolerance"    : 1e-9
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["VELOCITY_POTENTIAL"],
+                "input_file_name"  : "compressible_velocity_potential_flow_field_test_results.json",
+                "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
+                "tolerance"            : 1e-9,
+                "relative_tolerance"   : 1e-12,
+                "time_frequency"   : -2
             }
         }]
     }

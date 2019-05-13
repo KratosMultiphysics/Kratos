@@ -63,6 +63,9 @@ class PotentialFlowTests(UnitTest.TestCase):
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.4968313580730855, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.1631792300021498, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.4876931961465126, 0.0, 1e-9)
 
             for file_name in os.listdir():
                 if file_name.endswith(".time"):
