@@ -69,6 +69,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/fields/fluid_field_utility.h"
 #include "custom_utilities/fields/vector_field.h"
 #include "custom_utilities/fields/velocity_field.h"
+#include "custom_utilities/fields/vector_field.h"
+#include "custom_utilities/fields/linear_vector_field.h"
 #include "custom_utilities/fields/constant_velocity_field.h"
 #include "custom_utilities/fields/cellular_flow_field.h"
 #include "custom_utilities/fields/ethier_flow_field.h"
@@ -181,46 +183,50 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def(py::init<const double&>())
         ;
 
-    py::class_<VectorField<2>, VectorField<2>::Pointer> (m, "VectorField2D").def(py::init<>())
-        ;
-
-    py::class_<VectorField<3>, VectorField<3>::Pointer> (m, "VectorField3D").def(py::init<>())
-        ;
-
-    typedef void (VelocityField::*Evaluate)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
-    Evaluate EvaluateVector = &VelocityField::Evaluate;
+    typedef void (VectorField3::*Evaluate)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
+    Evaluate EvaluateVector = &VectorField3::Evaluate;
 
     typedef void (VelocityField::*CalculateTimeDerivative)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
     CalculateTimeDerivative CalculateTimeDerivativeVector = &VelocityField::CalculateTimeDerivative;
 
     typedef void (VelocityField::*CalculateGradient)(const double,
-                                                     const array_1d<double, 3>&,
-                                                     DenseVector< double>&,
-                                                     DenseVector< double>&,
-                                                     DenseVector< double>&,
-                                                     const int);
+                                                    const array_1d<double, 3>&,
+                                                    DenseVector< double>&,
+                                                    DenseVector< double>&,
+                                                    DenseVector< double>&,
+                                                    const int);
+
     CalculateGradient CalculateGradientVector = &VelocityField::CalculateGradient;
 
-    typedef double (VelocityField::*CalculateDivergence)(const double, const DenseVector<double>&, const int);
-    CalculateDivergence CalculateDivergenceVector = &VelocityField::CalculateDivergence;
+    typedef double (VectorField3::*CalculateDivergence)(const double, const DenseVector<double>&, const int);
+    CalculateDivergence CalculateDivergenceVector = &VectorField3::CalculateDivergence;
 
-    typedef void (VelocityField::*CalculateRotational)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
-    CalculateRotational CalculateRotationalVector = &VelocityField::CalculateRotational;
+    typedef void (VectorField3::*CalculateRotational)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
+    CalculateRotational CalculateRotationalVector = &VectorField3::CalculateRotational;
 
-    typedef void (VelocityField::*CalculateLaplacian)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
-    CalculateLaplacian CalculateLaplacianVector = &VelocityField::CalculateLaplacian;
+    typedef void (VectorField3::*CalculateLaplacian)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
+    CalculateLaplacian CalculateLaplacianVector = &VectorField3::CalculateLaplacian;
 
     typedef void (VelocityField::*CalculateMaterialAcceleration)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
     CalculateMaterialAcceleration CalculateMaterialAccelerationVector = &VelocityField::CalculateMaterialAcceleration;
 
-    py::class_<VelocityField, VelocityField::Pointer, VectorField<3>> (m, "VelocityField")
+    py::class_<VectorField3, VectorField3::Pointer> (m, "VectorField3D")
         .def(py::init<>())
         .def("Evaluate", EvaluateVector)
-        .def("CalculateTimeDerivative", CalculateTimeDerivativeVector)
-        .def("CalculateGradient", CalculateGradientVector)
         .def("CalculateDivergence", CalculateDivergenceVector)
         .def("CalculateRotational", CalculateRotationalVector)
         .def("CalculateLaplacian", CalculateLaplacianVector)
+        ;
+
+    py::class_<LinearVectorField, LinearVectorField::Pointer, VectorField3 > (m, "LinearVectorField")
+        .def(py::init<>())
+        .def(py::init<Parameters>())
+        ;
+
+    py::class_<VelocityField, VelocityField::Pointer,VectorField3> (m, "VelocityField")
+        .def(py::init<>())
+        .def("CalculateTimeDerivative", CalculateTimeDerivativeVector)
+        .def("CalculateGradient", CalculateGradientVector)
         .def("CalculateMaterialAcceleration", CalculateMaterialAccelerationVector)
         ;
 
@@ -249,7 +255,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def(py::init<>())
         ;
 
-    py::class_<TimeDependantForceField, TimeDependantForceField::Pointer, VectorField<3>> (m, "TimeDependantForceField")
+    py::class_<TimeDependantForceField, TimeDependantForceField::Pointer, VectorField3> (m, "TimeDependantForceField")
         .def(py::init<const double&>())
         .def("Evaluate", &TimeDependantForceField::Evaluate)
         .def("GetPorosityField", &TimeDependantForceField::GetPorosityField)
@@ -297,13 +303,13 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     // next we do what is needed to define the overloaded function 'VectorFieldUtility::ImposeFieldOnNodes'
 
     typedef double (VectorFieldUtility::*EvaluateDoubleFieldAtPoint)(const double&, const array_1d<double, 3>&, RealField::Pointer);
-    typedef array_1d<double, 3> (VectorFieldUtility::*EvaluateVectorFieldAtPoint)(const double&, const array_1d<double, 3>&, VectorField<3>::Pointer);
+    typedef array_1d<double, 3> (VectorFieldUtility::*EvaluateVectorFieldAtPoint)(const double&, const array_1d<double, 3>&, VectorField3::Pointer);
 
     EvaluateDoubleFieldAtPoint EvaluateDoubleField = &VectorFieldUtility::EvaluateFieldAtPoint;
     EvaluateVectorFieldAtPoint EvaluateVectorField = &VectorFieldUtility::EvaluateFieldAtPoint;
 
     typedef void (VectorFieldUtility::*ImposeDoubleFieldOnNodes)(Variable<double>&, const double, RealField::Pointer, ModelPart&, const ProcessInfo&, const bool);
-    typedef void (VectorFieldUtility::*ImposeVectorFieldOnNodes)(Variable<array_1d<double, 3> >&, const array_1d<double, 3>, VectorField<3>::Pointer, ModelPart&, const ProcessInfo&, const bool);
+    typedef void (VectorFieldUtility::*ImposeVectorFieldOnNodes)(Variable<array_1d<double, 3> >&, const array_1d<double, 3>, VectorField3::Pointer, ModelPart&, const ProcessInfo&, const bool);
     typedef void (VectorFieldUtility::*ImposeVelocityFieldOnNodes)(ModelPart&, const VariablesList&);
     typedef void (VectorFieldUtility::*ImposeFieldOnNodes)(ModelPart&, const Variable<array_1d<double, 3> >&);
 
@@ -313,7 +319,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     ImposeFieldOnNodes ImposeField = &VectorFieldUtility::ImposeFieldOnNodes;
 
     py::class_<VectorFieldUtility, VectorFieldUtility::Pointer> (m, "VectorFieldUtility")
-        .def(py::init<SpaceTimeSet&, VectorField<3>& >())
+        .def(py::init<SpaceTimeSet&, VectorField3& >())
         .def("EvaluateFieldAtPoint", EvaluateDoubleField)
         .def("EvaluateFieldAtPoint", EvaluateVectorField)
         .def("ImposeFieldOnNodes", ImposeDoubleField)

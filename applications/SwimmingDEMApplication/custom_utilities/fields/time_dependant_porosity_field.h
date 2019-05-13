@@ -191,7 +191,7 @@ class TimeDependantPorosityField: public RealField
 
     }; // Class TimeDependantPorosityField
 
-class TimeDependantForceField: public VectorField<3>
+class TimeDependantForceField: public VectorField3
 {
 
 public:

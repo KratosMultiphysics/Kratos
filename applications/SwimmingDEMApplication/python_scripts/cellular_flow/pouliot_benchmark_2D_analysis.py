@@ -15,7 +15,7 @@ class PouliotBenchmark2DAnalysis(BaseAnalysis):
         os.chdir(self.main_path)
         model_part_io_fluid.ReadModelPart(self._GetFluidAnalysis().fluid_model_part)
 
-    def GetFieldUtility(self):
+    def SetFieldsToImpose(self):
         self.flow_field = SDEM.PouliotFlowField2D()
         space_time_set = SDEM.SpaceTimeSet()
         self.field_utility = SDEM.FluidFieldUtility(space_time_set, self.flow_field, 1000.0, 1e-6)

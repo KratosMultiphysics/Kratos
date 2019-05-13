@@ -14,7 +14,7 @@ class EthierStandardTestAnalysis(RecoveryTestAnalysis):
         self.vector_operator_names = ['gradient', 'material_derivative']
         self.vars_man.fluid_vars += [SDEM.PRESSURE_GRADIENT_ERROR, SDEM.MATERIAL_ACCELERATION_ERROR]
 
-    def GetFieldUtility(self):
+    def SetFieldsToImpose(self):
         import math
         a = math.pi / 4
         d = math.pi / 2

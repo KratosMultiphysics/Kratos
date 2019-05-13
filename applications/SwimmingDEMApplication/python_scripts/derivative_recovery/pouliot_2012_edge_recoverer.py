@@ -8,7 +8,7 @@ import parameters_tools as PT
 import sys
 
 class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
-    def GetFieldUtility(self):
+    def SetFieldsToImpose(self):
         from math import pi
         a = pi / 4
         d = pi / 2*0
@@ -27,7 +27,7 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         self.calculate_vorticity = (project_parameters["vorticity_calculation_type"].GetInt() > 0
                                     or PT.RecursiveFindParametersWithCondition(project_parameters["properties"],
                                                                                'vorticity_induced_lift_parameters'))
-        self.GetFieldUtility()
+        self.SetFieldsToImpose()
         self.CreateCPluPlusStrategies()
 
     def FillUpModelPart(self, element_type):

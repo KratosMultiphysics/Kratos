@@ -20,23 +20,22 @@
 
 namespace Kratos
 {
-template<std::size_t TDim>
-class VectorField
+class VectorField3
 {
 public:
 
-KRATOS_CLASS_POINTER_DEFINITION(VectorField);
+KRATOS_CLASS_POINTER_DEFINITION(VectorField3);
 
 /// Default constructor.
 
-VectorField():
+VectorField3():
 mUx(LinearFunction(0, 0)), mUy(LinearFunction(0, 0)), mUz(LinearFunction(0, 0)){}
 
-VectorField(RealFunction& u_x, RealFunction& u_y, RealFunction& u_z):
+VectorField3(RealFunction& u_x, RealFunction& u_y, RealFunction& u_z):
 mUx(u_x), mUy(u_y), mUz(u_z){}
 /// Destructor.
 
-virtual ~VectorField(){}
+virtual ~VectorField3(){}
 
 
 //***************************************************************************************************************
@@ -192,12 +191,12 @@ RealFunction mUz;
 ///@{
 
 /// Assignment operator.
-VectorField & operator=(VectorField const& rOther);
+VectorField3 & operator=(VectorField3 const& rOther);
 
 
 ///@}
 
-}; // Class VectorField
+}; // Class VectorField3
 
 ///@}
 

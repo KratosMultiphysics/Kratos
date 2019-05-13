@@ -12,7 +12,7 @@ class ProductOfSinesBenchmarkAnalysis(BaseAnalysis):
         Add = self.project_parameters.AddEmptyValue
         Add("field_period").SetDouble(1.0)
 
-    def GetFieldUtility(self):
+    def SetFieldsToImpose(self):
         period = self.project_parameters["field_period"].GetDouble()
         self.flow_field = SDEM.ProductOfSines(period)
         space_time_set = SDEM.SpaceTimeSet()

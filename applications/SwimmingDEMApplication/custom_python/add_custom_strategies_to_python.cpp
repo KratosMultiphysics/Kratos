@@ -68,6 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //schemes
 #include "../DEMApplication/custom_strategies/schemes/dem_integration_scheme.h"
+#include "../DEMApplication/custom_strategies/schemes/symplectic_euler_scheme.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "add_custom_utilities_to_python.h"
 #include "custom_strategies/schemes/hybrid_bashforth_scheme.h"

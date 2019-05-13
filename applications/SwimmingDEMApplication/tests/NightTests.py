@@ -66,17 +66,17 @@ def SetTestSuite(suites):
 
     night_suite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-          candelier_no_history_test,
-          candelier_no_history_with_lift_test,
-          candelier_no_history_non_inertial_test,
-          candelier_with_history_test,
-          candelier_with_history_hinsberg_test,
-          interpolation_test_linear,
-          interpolation_test_nonlinear_time_no_substepping,
-          fluid_dem_coupling_one_way_test,
-          sdem_pfem_coupling_one_way_test,
+          # candelier_no_history_test,
+          # candelier_no_history_with_lift_test,
+          # candelier_no_history_non_inertial_test,
+          # candelier_with_history_test,
+          # candelier_with_history_hinsberg_test,
+          # interpolation_test_linear,
+          # interpolation_test_nonlinear_time_no_substepping,
+          # fluid_dem_coupling_one_way_test,
+          # sdem_pfem_coupling_one_way_test,
           linear_recovery_test,
-          ethier_recovery_test
+          # ethier_recovery_test
           ])
     )
 

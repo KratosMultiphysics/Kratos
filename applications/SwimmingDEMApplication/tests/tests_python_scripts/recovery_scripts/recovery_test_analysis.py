@@ -19,11 +19,15 @@ class RecoveryTestAnalysis(SwimmingDEMAnalysis):
         self.project_parameters["custom_fluid"]["fluid_already_calculated"].SetBool(True)
         self.project_parameters.AddEmptyValue("load_derivatives").SetBool(False)
         self.SetOperators()
+        self.operator_names = self.scalar_operator_names + self.vector_operator_names
 
     def SetOperators(self):
         self.scalar_operator_names = []
-        self.vector_operator_names = ['gradient', 'material_derivative']
-        self.vars_man.fluid_vars += [SDEM.PRESSURE_GRADIENT_ERROR, SDEM.MATERIAL_ACCELERATION_ERROR]
+        self.vector_operator_names = ['scalar_gradient', 'material_derivative']
+        self.vars_man.fluid_vars += [SDEM.PRESSURE_GRADIENT_ERROR,
+                                     SDEM.MATERIAL_ACCELERATION_ERROR,
+                                     SDEM.VELOCITY_DIVERGENCE_ERROR,
+                                     SDEM.VELOCITY_DIVERGENCE]
 
     def GetEmbeddedCounter(self):
         return SDP.Counter(is_dead=True)
@@ -32,29 +36,26 @@ class RecoveryTestAnalysis(SwimmingDEMAnalysis):
         return SDP.Counter(self.project_parameters["debug_tool_cycle"].GetInt(), 1, is_dead = 1)
 
     def PerformZeroStepInitializations(self):
-        self.local_scalar_exact_values = dict()
-        self.local_scalar_calculated_values = dict()
-        self.scalar_average_modules = dict()
-        self.scalar_average_errors = dict()
-        self.scalar_max_errors = dict()
+        self.local_exact_values = dict()
+        self.local_calculated_values = dict()
+        self.average_modules = dict()
+        self.average_errors = dict()
+        self.max_errors = dict()
 
         for name in self.scalar_operator_names:
-            self.scalar_average_modules[name] = 0.0
-            self.scalar_average_errors[name] = 0.0
-            self.scalar_max_errors[name] = 0.0
-
-        self.local_vector_exact_values = dict()
-        self.local_vector_calculated_values = dict()
-        self.vector_average_modules = dict()
-        self.vector_average_errors = dict()
-        self.vector_max_errors = dict()
+            self.local_exact_values[name] = 0.0
+            self.local_calculated_values[name] = 0.0
+            self.max_errors[name] = 0.0
 
         for name in self.vector_operator_names:
-            self.local_vector_exact_values[name] = Vector([0.0]*3)
-            self.local_vector_calculated_values[name] = Vector([0.0]*3)
-            self.vector_average_modules[name] = Vector([0.0]*3)
-            self.vector_average_errors[name] = 0.0
-            self.vector_max_errors[name] = 0.0
+            self.local_exact_values[name] = Vector([0.0]*3)
+            self.local_calculated_values[name] = Vector([0.0]*3)
+            self.average_errors[name] = Vector([0.0]*3)
+
+        for name in self.operator_names:
+            self.average_modules[name] = 0.0
+            self.average_errors[name] = 0.0
+            self.max_errors[name] = 0.0
 
         self.ImposeField()
 
@@ -75,7 +76,7 @@ class RecoveryTestAnalysis(SwimmingDEMAnalysis):
         super(RecoveryTestAnalysis, self).FinalizeSolutionStep()
         self.CalculateRecoveryErrors(self.time)
 
-    def GetFieldUtility(self):
+    def SetFieldsToImpose(self):
         a = math.pi / 4
         d = math.pi / 2
         b = 1.0
@@ -97,6 +98,15 @@ class RecoveryTestAnalysis(SwimmingDEMAnalysis):
     def GetRecoveryCounter(self):
         return SDP.Counter(1, 1, self.project_parameters["coupling"]["coupling_level_type"].GetInt() or self.project_parameters.print_PRESSURE_GRADIENT_option)
 
+    @staticmethod
+    def Module(calculated_value):
+        if isinstance(calculated_value, float) or isinstance(calculated_value, int):
+            return abs(calculated_value)
+        elif isinstance(calculated_value, Vector):
+            return calculated_value.norm_2()
+        else:
+            return sum(v**2 for v in list(v)) ** 0.5
+
     def CalculateRecoveryErrors(self, time):
         total_volume = 0.
 
@@ -110,38 +120,44 @@ class RecoveryTestAnalysis(SwimmingDEMAnalysis):
             for i, v in enumerate((node.X, node.Y, node.Z)):
                 coor[i] = v
 
-            for name in self.vector_operator_names:
+            for name in self.operator_names:
 
-                if name == 'gradient':
-                    self.pressure_field.CalculateGradient(self.time, coor, self.local_vector_exact_values[name], 0)
-                    self.local_vector_calculated_values[name] = node.GetSolutionStepValue(Kratos.PRESSURE_GRADIENT)
-                    error = self.local_vector_calculated_values[name] - self.local_vector_exact_values[name]
+                if name == 'scalar_gradient':
+                    self.pressure_field.CalculateGradient(self.time, coor, self.local_exact_values[name], 0)
+                    self.local_calculated_values[name] = node.GetSolutionStepValue(Kratos.PRESSURE_GRADIENT)
+                    error = self.local_calculated_values[name] - self.local_exact_values[name]
                     node.SetSolutionStepValue(SDEM.PRESSURE_GRADIENT_ERROR, error)
                 elif name == 'material_derivative':
-                    self.flow_field.CalculateMaterialAcceleration(self.time, coor, self.local_vector_exact_values[name], 0)
-                    self.local_vector_calculated_values[name] = node.GetSolutionStepValue(Kratos.MATERIAL_ACCELERATION)
-                    error = self.local_vector_calculated_values[name] - self.local_vector_exact_values[name]
+                    self.flow_field.CalculateMaterialAcceleration(self.time, coor, self.local_exact_values[name], 0)
+                    self.local_calculated_values[name] = node.GetSolutionStepValue(Kratos.MATERIAL_ACCELERATION)
+                    error = self.local_calculated_values[name] - self.local_exact_values[name]
                     node.SetSolutionStepValue(SDEM.MATERIAL_ACCELERATION_ERROR, error)
                 elif name == 'laplacian':
-                    self.flow_field.CalculateLaplacian(0., coor, self.local_vector_exact_values[name], 0)
-                    self.local_vector_calculated_values[name] = node.GetSolutionStepValue(Kratos.VELOCITY_LAPLACIAN)
-                    error = self.local_vector_calculated_values[name] - self.local_vector_exact_values[name]
+                    self.flow_field.CalculateLaplacian(0., coor, self.local_exact_values[name], 0)
+                    self.local_calculated_values[name] = node.GetSolutionStepValue(Kratos.VELOCITY_LAPLACIAN)
+                    error = self.local_calculated_values[name] - self.local_exact_values[name]
                     node.SetSolutionStepValue(SDEM.VELOCITY_LAPLACIAN_ERROR, error)
+                elif name == 'divergence':
+                    self.local_exact_values[name] = self.flow_field.CalculateDivergence(self.time, coor, 0)
+                    self.local_calculated_values[name] = node.GetSolutionStepValue(Kratos.VELOCITY_DIVERGENCE)
+                    error = self.local_calculated_values[name] - self.local_exact_values[name]
+                    node.SetSolutionStepValue(SDEM.VELOCITY_DIVERGENCE_ERROR, error)
 
-                error_norm = error.norm_2()
-                self.vector_average_modules[name] += self.local_vector_exact_values[name].norm_2()  * nodal_volume
-                self.vector_average_errors[name] += error_norm  * nodal_volume
-                self.vector_max_errors[name] = max(self.vector_max_errors[name], error_norm)
+                error_norm = RecoveryTestAnalysis.Module(error)
+                self.average_modules[name] += RecoveryTestAnalysis.Module(self.local_exact_values[name])  * nodal_volume
+                self.average_errors[name] += error_norm  * nodal_volume
+                self.max_errors[name] = max(self.max_errors[name], error_norm)
 
-        self.vector_average_errors[name] /= total_volume
-        self.vector_average_modules[name] /= total_volume
+        for name in self.operator_names:
+            self.average_errors[name] /= total_volume
+            self.average_modules[name] /= total_volume
 
     def Finalize(self):
         text_width = 45
         super(RecoveryTestAnalysis, self).Finalize()
         Say('\n' + '-.' * text_width)
-        for name in self.vector_operator_names:
-            if self.vector_average_errors[name] > 0:
-                Say(str('Average error for the ' + name).ljust(text_width), self.vector_average_errors[name])
-                Say(str('Max. error for the ' + name).ljust(text_width), self.vector_max_errors[name])
+        for name in self.operator_names:
+            if self.average_errors[name] > 0:
+                Say(str('Average error for the ' + name).ljust(text_width), self.average_errors[name])
+                Say(str('Max. error for the ' + name).ljust(text_width), self.max_errors[name])
         Say('-.' * text_width + '\n')

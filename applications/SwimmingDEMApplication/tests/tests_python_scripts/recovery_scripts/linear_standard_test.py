@@ -10,14 +10,15 @@ class LinearStandardTestAnalysis(RecoveryTestAnalysis):
         super(LinearStandardTestAnalysis, self).__init__(model, varying_parameters)
 
     def SetOperators(self):
-        self.scalar_operator_names = []
-        self.vector_operator_names = ['gradient', 'material_derivative']
-        self.vars_man.fluid_vars += [SDEM.PRESSURE_GRADIENT_ERROR, SDEM.MATERIAL_ACCELERATION_ERROR]
+        self.scalar_operator_names = ['divergence']
+        self.vector_operator_names = []
+        self.vars_man.fluid_vars += [SDEM.PRESSURE_GRADIENT_ERROR,
+                                     SDEM.MATERIAL_ACCELERATION_ERROR,
+                                     SDEM.VELOCITY_DIVERGENCE_ERROR,
+                                     SDEM.VELOCITY_DIVERGENCE]
 
-    def GetFieldUtility(self):
-        import math
-        a = math.pi / 4
-        d = math.pi / 2
+    def SetFieldsToImpose(self):
+
         b = 1.0
         bx, by, bz = 1.0, 2.0, 5.0
         b = SDEM.LinearFunction(15.5, b)
@@ -25,11 +26,11 @@ class LinearStandardTestAnalysis(RecoveryTestAnalysis):
         a1 = SDEM.LinearFunction(0.0, by)
         a2 = SDEM.LinearFunction(0.0, bz)
         self.pressure_field = SDEM.LinearRealField(a0, a1, a2, b)
-        self.flow_field = SDEM.EthierVelocityField(a, d)
+        field_parameters = Parameters(
+            """{
+                "A" : [[1,0,0], [0,2,0], [-1,-2,-3]],
+                "b" : [1, 0, 0]
+                }""")
+
+        self.flow_field = SDEM.LinearVectorField(field_parameters)
         space_time_set = SDEM.SpaceTimeSet()
-        self.field_utility = SDEM.FluidFieldUtility(space_time_set,
-                                                    self.pressure_field,
-                                                    self.flow_field,
-                                                    1000.0,
-                                                    1e-6)
-        return self.field_utility

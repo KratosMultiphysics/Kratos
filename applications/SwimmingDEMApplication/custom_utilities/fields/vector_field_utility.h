@@ -34,7 +34,7 @@ KRATOS_CLASS_POINTER_DEFINITION(VectorFieldUtility);
 
 /// Default constructor.
 
-VectorFieldUtility(SpaceTimeSet& rDomain, VectorField<3>& rField):
+VectorFieldUtility(SpaceTimeSet& rDomain, VectorField3& rField):
     mrDomain(rDomain), mrVectorField(rField){}
 
 /// Destructor.
@@ -81,7 +81,7 @@ double EvaluateFieldAtPoint(const double& time,
 
 array_1d<double, 3> EvaluateFieldAtPoint(const double& time,
                                       const array_1d<double, 3>& coor,
-                                      VectorField<3>::Pointer formula)
+                                      VectorField3::Pointer formula)
 {
     if (mrDomain.IsIn(time, coor[0], coor[1], coor[2])){
         array_1d<double, 3> value;
@@ -132,7 +132,7 @@ virtual void ImposeFieldOnNodes(Variable<double>& destination_variable,
 
 virtual void ImposeFieldOnNodes(Variable<array_1d<double, 3> >& destination_variable,
                      const array_1d<double, 3> default_value,
-                     VectorField<3>::Pointer formula,
+                     VectorField3::Pointer formula,
                      ModelPart& r_model_part,
                      const ProcessInfo& r_current_process_info,
                      const bool recalculate_domain)
@@ -217,7 +217,7 @@ protected:
 ///@{ template<class T, std::size_t dim>
 
 SpaceTimeSet& mrDomain;
-VectorField<3>& mrVectorField;
+VectorField3& mrVectorField;
 std::vector<bool> mIsInArray;
 ///@}
 ///@name Protected Operators

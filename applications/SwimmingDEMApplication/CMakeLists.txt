@@ -115,6 +115,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/derivative_recovery.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/derivative_recovery_meshing_tools.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/vector_field_utility.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/linear_vector_field.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/scalar_field_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/inlets/bentonite_force_based_inlet.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/fluid_field_utility.cpp

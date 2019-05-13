@@ -17,7 +17,7 @@ class MarineRainAnalysis(BaseAnalysis):
         self.project_parameters.k = 2.72
         self.project_parameters.omega = math.pi
 
-    def GetFieldUtility(self):
+    def SetFieldsToImpose(self):
         self.flow_field = SDEM.CellularFlowField(self.project_parameters.L, self.project_parameters.U, self.project_parameters.k, self.project_parameters.omega)
         space_time_set = SDEM.SpaceTimeSet()
         self.field_utility = SDEM.FluidFieldUtility(space_time_set, self.flow_field, 1000.0, 1e-6)

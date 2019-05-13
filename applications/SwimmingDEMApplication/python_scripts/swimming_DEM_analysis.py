@@ -693,7 +693,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
                             number_of_quadrature_steps_in_window)
                             break
 
-    def GetFieldUtility(self):
+    def SetFieldsToImpose(self):
         return None
 
     def ApplyForwardCoupling(self, alpha='None'):
@@ -749,7 +749,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         import swimming_DEM_solver
         return swimming_DEM_solver.SwimmingDEMSolver(self.model,
                                                      self.project_parameters,
-                                                     self.GetFieldUtility(),
+                                                     self.SetFieldsToImpose(),
                                                      self._GetFluidAnalysis()._GetSolver(),
                                                      self._GetDEMAnalysis()._GetSolver(),
                                                      self.vars_man)

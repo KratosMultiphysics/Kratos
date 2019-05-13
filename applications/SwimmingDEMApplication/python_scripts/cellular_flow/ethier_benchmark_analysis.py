@@ -63,7 +63,7 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
     def GetPrintCounter(self):
         return SDP.Counter(is_dead=True)
 
-    def GetFieldUtility(self):
+    def SetFieldsToImpose(self):
         a = math.pi / 4
         d = math.pi / 2
 

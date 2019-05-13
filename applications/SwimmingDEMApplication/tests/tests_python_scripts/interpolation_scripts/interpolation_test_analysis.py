@@ -20,7 +20,7 @@ class InterpolationTestAnalysis(SwimmingDEMAnalysis):
         import interpolation_test_solver as sdem_solver
         return sdem_solver.InterpolationTestSolver(self.model,
                                                    self.project_parameters,
-                                                   self.GetFieldUtility(),
+                                                   self.SetFieldsToImpose(),
                                                    self._GetFluidAnalysis()._GetSolver(),
                                                    self._GetDEMAnalysis()._GetSolver(),
                                                    self.vars_man)

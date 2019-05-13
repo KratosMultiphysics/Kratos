@@ -28,7 +28,7 @@
 
 namespace Kratos
 {
-class KRATOS_API(SWIMMING_DEM_APPLICATION) VelocityField : public VectorField<3>
+class KRATOS_API(SWIMMING_DEM_APPLICATION) VelocityField : public VectorField3
 {
 public:
 
@@ -36,7 +36,7 @@ KRATOS_CLASS_POINTER_DEFINITION(VelocityField);
 
 /// Default constructor.
 
-VelocityField():VectorField<3>(){}
+VelocityField(): VectorField3(){}
 /// Destructor.
 
 virtual ~VelocityField(){}
