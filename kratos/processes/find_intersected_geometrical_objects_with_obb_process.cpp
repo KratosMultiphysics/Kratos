@@ -19,17 +19,20 @@
 
 namespace Kratos
 {
+/// Local Flags
+KRATOS_CREATE_LOCAL_FLAG(FindIntersectedGeometricalObjectsWithOBBProcess, DEBUG_OBB, 4);
+KRATOS_CREATE_LOCAL_FLAG(FindIntersectedGeometricalObjectsWithOBBProcess, SEPARATING_AXIS_THEOREM, 5);
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 FindIntersectedGeometricalObjectsWithOBBProcess::FindIntersectedGeometricalObjectsWithOBBProcess(
     ModelPart& rModelPartIntersected,
     ModelPart& rModelPartIntersecting,
     const double BoundingBoxFactor,
-    const bool DebugOBB,
-    const OBBHasIntersectionType IntersectionType,
     const Flags Options
     ) : BaseType(rModelPartIntersected, rModelPartIntersecting, Options),
-        mBoundingBoxFactor(BoundingBoxFactor),
-        mDebugOBB(DebugOBB),
-        mIntersectionType(IntersectionType)
+        mBoundingBoxFactor(BoundingBoxFactor)
 {
     // In case we consider the bounding box we set the BOUNDARY flag
     if (mBoundingBoxFactor > 0.0)
@@ -37,13 +40,17 @@ FindIntersectedGeometricalObjectsWithOBBProcess::FindIntersectedGeometricalObjec
     else
         this->Set(BOUNDARY, false);
 
+    KRATOS_WATCH(BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB))
+
+#ifdef  KRATOS_DEBUG
     // We create new properties for debugging
-    if (mDebugOBB) {
+    if (BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB)) {
         rModelPartIntersected.CreateNewProperties(10001);
         rModelPartIntersected.CreateSubModelPart(rModelPartIntersected.Name() + "_AUXILIAR_DEBUG_OBB");
         rModelPartIntersecting.CreateNewProperties(10002);
         rModelPartIntersecting.CreateSubModelPart(rModelPartIntersecting.Name() + "_AUXILIAR_DEBUG_OBB");
     }
+#endif
 }
 
 /***********************************************************************************/
@@ -87,18 +94,20 @@ FindIntersectedGeometricalObjectsWithOBBProcess::FindIntersectedGeometricalObjec
         this->Set(BOUNDARY, false);
 
     // If we debug OBB
-    mDebugOBB = mThisParameters["debug_obb"].GetBool();
+    BaseType::mOptions.Set(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB, mThisParameters["debug_obb"].GetBool());
 
     // The intersection type
-    mIntersectionType = ConvertInter(mThisParameters["OBB_intersection_type"].GetString());
+    ConvertIntersection(mThisParameters["OBB_intersection_type"].GetString());
 
     // We create new properties for debugging
-    if (mDebugOBB) {
+#ifdef  KRATOS_DEBUG
+    if (BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB)) {
         this->GetModelPart1().CreateNewProperties(1001);
         this->GetModelPart1().CreateSubModelPart(this->GetModelPart1().Name() + "_AUXILIAR_DEBUG_OBB");
         this->GetModelPart2().CreateNewProperties(1002);
         this->GetModelPart2().CreateSubModelPart(this->GetModelPart2().Name() + "_AUXILIAR_DEBUG_OBB");
     }
+#endif
 }
 
 /***********************************************************************************/
@@ -222,11 +231,13 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection2D(
 
         OrientedBoundingBox<2> first_obb(r_edge_1, mBoundingBoxFactor);
 
+    #ifdef  KRATOS_DEBUG
         // We create new elements for debugging
-        if (mDebugOBB) {
+        if (BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB)) {
             auto p_prop = this->GetModelPart1().pGetProperties(1001);
             CreateDebugOBB2D(this->GetModelPart1(), p_prop, first_obb);
         }
+    #endif
 
         // Second geometry
         for (std::size_t i_2 = 0; i_2 < number_of_edges_2; ++i_2) {
@@ -234,14 +245,16 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection2D(
 
             OrientedBoundingBox<2> second_obb(r_edge_2, mBoundingBoxFactor);
 
+        #ifdef  KRATOS_DEBUG
             // We create new elements for debugging
-            if (mDebugOBB) {
+            if (BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB)) {
                 auto p_prop = this->GetModelPart2().pGetProperties(1002);
                 CreateDebugOBB2D(this->GetModelPart2(), p_prop, second_obb);
             }
+        #endif
 
             // Computing intersection OBB
-            if (first_obb.HasIntersection(second_obb, mIntersectionType)){
+            if (first_obb.HasIntersection(second_obb, GetOBBHasIntersectionType())){
                 return true;
             }
         }
@@ -261,23 +274,27 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasDirectIntersection2D(
     // First geometry
     OrientedBoundingBox<2> first_obb(rFirstGeometry, mBoundingBoxFactor);
 
+#ifdef  KRATOS_DEBUG
     // We create new elements for debugging
-    if (mDebugOBB) {
+    if (BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB)) {
         auto p_prop = this->GetModelPart1().pGetProperties(1001);
         CreateDebugOBB2D(this->GetModelPart1(), p_prop, first_obb);
     }
+#endif
 
     // Second geometry
     OrientedBoundingBox<2> second_obb(rSecondGeometry, mBoundingBoxFactor);
 
+#ifdef  KRATOS_DEBUG
     // We create new elements for debugging
-    if (mDebugOBB) {
+    if (BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB)) {
         auto p_prop = this->GetModelPart2().pGetProperties(1002);
         CreateDebugOBB2D(this->GetModelPart2(), p_prop, second_obb);
     }
+#endif
 
     // Computing intersection OBB
-    if (first_obb.HasIntersection(second_obb, mIntersectionType)){
+    if (first_obb.HasIntersection(second_obb, GetOBBHasIntersectionType())){
         return true;
     }
 
@@ -306,11 +323,13 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection3D(
         // Creating OBB
         OrientedBoundingBox<3> first_obb(r_face_1, mBoundingBoxFactor);
 
+    #ifdef  KRATOS_DEBUG
         // We create new elements for debugging
-        if (mDebugOBB) {
+        if (BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB)) {
             auto p_prop = this->GetModelPart1().pGetProperties(1001);
             CreateDebugOBB3D(this->GetModelPart1(), p_prop, first_obb);
         }
+    #endif
 
         // Second geometry
         for (std::size_t i_2 = 0; i_2 < number_of_faces_2; ++i_2) {
@@ -318,14 +337,16 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection3D(
 
             OrientedBoundingBox<3> second_obb(r_face_2, mBoundingBoxFactor);
 
+        #ifdef  KRATOS_DEBUG
             // We create new elements for debugging
-            if (mDebugOBB) {
+            if (BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB)) {
                 auto p_prop = this->GetModelPart2().pGetProperties(1002);
                 CreateDebugOBB3D(this->GetModelPart2(), p_prop, second_obb);
             }
+        #endif
 
             // Computing intersection OBB
-            if (first_obb.HasIntersection(second_obb, mIntersectionType)){
+            if (first_obb.HasIntersection(second_obb, GetOBBHasIntersectionType())){
                 return true;
             }
         }
@@ -345,23 +366,27 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasDirectIntersection3D(
     // First geometry
     OrientedBoundingBox<3> first_obb(rFirstGeometry, mBoundingBoxFactor);
 
+#ifdef  KRATOS_DEBUG
     // We create new elements for debugging
-    if (mDebugOBB) {
+    if (BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB)) {
         auto p_prop = this->GetModelPart1().pGetProperties(1001);
         CreateDebugOBB3D(this->GetModelPart1(), p_prop, first_obb);
     }
+#endif
 
     // Second geometry
     OrientedBoundingBox<3> second_obb(rSecondGeometry, mBoundingBoxFactor);
 
+#ifdef  KRATOS_DEBUG
     // We create new elements for debugging
-    if (mDebugOBB) {
+    if (BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB)) {
         auto p_prop = this->GetModelPart2().pGetProperties(1002);
         CreateDebugOBB3D(this->GetModelPart2(), p_prop, second_obb);
     }
+#endif
 
     // Computing intersection OBB
-    if (first_obb.HasIntersection(second_obb, mIntersectionType)){
+    if (first_obb.HasIntersection(second_obb, GetOBBHasIntersectionType())){
         return true;
     }
 

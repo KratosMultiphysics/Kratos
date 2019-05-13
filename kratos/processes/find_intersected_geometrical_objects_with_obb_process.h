@@ -7,9 +7,7 @@
 //  License:         BSD License
 //                     Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
-//  Collaborators:   Ruben Zorrilla Martinez
-//                   Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_FIND_INTERSECTED_GEOMETRICAL_OBJECTS_WITH_OBB_PROCESS_H_INCLUDED )
@@ -62,6 +60,10 @@ public:
     /// Pointer definition of FindIntersectedGeometricalObjectsWithOBBProcess
     KRATOS_CLASS_POINTER_DEFINITION(FindIntersectedGeometricalObjectsWithOBBProcess);
 
+    /// Local Flags
+    KRATOS_DEFINE_LOCAL_FLAG( DEBUG_OBB );
+    KRATOS_DEFINE_LOCAL_FLAG( SEPARATING_AXIS_THEOREM );
+
     /// Definition of the index type
     typedef std::size_t IndexType;
 
@@ -102,9 +104,7 @@ public:
         ModelPart& rModelPartIntersected,
         ModelPart& rModelPartIntersecting,
         const double BoundingBoxFactor = -1.0,
-        const bool DebugOBB = false,
-        OBBHasIntersectionType IntersectionType = OBBHasIntersectionType::SeparatingAxisTheorem,
-        const Flags Options = FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS|FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS|FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS|FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS
+        const Flags Options = FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS|FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS|FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS|FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS|FindIntersectedGeometricalObjectsWithOBBProcess::NOT_DEBUG_OBB|FindIntersectedGeometricalObjectsWithOBBProcess::SEPARATING_AXIS_THEOREM
         );
 
     /**
@@ -160,8 +160,6 @@ protected:
     ///@{
 
     double mBoundingBoxFactor = -1.0;         /// The factor to be consider when computing the bounding box (if negative not considered)
-    bool mDebugOBB = false;                   /// If we debug the boxes
-    OBBHasIntersectionType mIntersectionType; /// Intersection type
     Parameters mThisParameters;               /// The configuration parameters
 
     ///@}
@@ -252,18 +250,30 @@ protected:
         );
 
     /**
-     * @brief This converts the interpolation string to an enum
-     * @param Str The string that you want to comvert in the equivalent enum
+     * @brief This sets the interesection flag
+     * @param rString The string that you want to comvert in the equivalent enum
      * @return OBBHasIntersectionType: The equivalent enum (this requires less memmory than a std::string)
      */
-    OBBHasIntersectionType ConvertInter(const std::string& Str)
+    void ConvertIntersection(const std::string& rString)
     {
-        if(Str == "Direct" || Str == "direct")
-            return OBBHasIntersectionType::Direct;
-        else if(Str == "SeparatingAxisTheorem" || Str == "separating_axis_theorem")
+        if (rString == "Direct" || rString == "direct")
+            BaseType::mOptions.Set(FindIntersectedGeometricalObjectsWithOBBProcess::SEPARATING_AXIS_THEOREM, false);
+        else if (rString == "SeparatingAxisTheorem" || rString == "separating_axis_theorem")
+            BaseType::mOptions.Set(FindIntersectedGeometricalObjectsWithOBBProcess::SEPARATING_AXIS_THEOREM, true);
+        else
+            BaseType::mOptions.Set(FindIntersectedGeometricalObjectsWithOBBProcess::SEPARATING_AXIS_THEOREM, true);
+    }
+
+    /**
+     * @brief This returns the interesection type from the flag
+     * @return OBBHasIntersectionType: The equivalent enum (this requires less memmory than a std::string)
+     */
+    OBBHasIntersectionType GetOBBHasIntersectionType()
+    {
+        if (BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::SEPARATING_AXIS_THEOREM))
             return OBBHasIntersectionType::SeparatingAxisTheorem;
         else
-            return OBBHasIntersectionType::SeparatingAxisTheorem;
+            return OBBHasIntersectionType::Direct;
     }
 
     ///@}
