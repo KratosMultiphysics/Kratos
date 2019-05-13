@@ -2,6 +2,7 @@
 from co_simulation_solvers.co_simulation_base_coupling_solver import CoSimulationBaseCouplingSolver
 import KratosMultiphysics
 # Other imports
+from co_simulation_convergence_accelerators.co_simulation_convergence_accelerator_factory import CreateConvergenceAccelerator
 from co_simulation_convergence_criteria.co_simulation_convergence_criteria_factory import CreateConvergenceCriteria
 from co_simulation_tools import couplingsolverprint, red, green, cyan, bold
 
@@ -16,6 +17,11 @@ class SimpleSteadyCouplingSolver(CoSimulationBaseCouplingSolver):
 
         super(SimpleSteadyCouplingSolver, self).__init__(cosim_solver_settings, level)
         self.time = self.cosim_solver_settings["start_coupling_time"]
+
+        self.convergence_accelerator = CreateConvergenceAccelerator(
+            self.cosim_solver_settings["convergence_accelerator_settings"],
+            self.solvers, self.lvl)
+        self.convergence_accelerator.SetEchoLevel(self.echo_level)
 
         self.convergence_criteria = CreateConvergenceCriteria(
             self.cosim_solver_settings["convergence_criteria_settings"],
@@ -33,8 +39,24 @@ class SimpleSteadyCouplingSolver(CoSimulationBaseCouplingSolver):
                 couplingsolverprint(self.lvl, self._Name(),
                                     cyan("Coupling iteration:"), bold(str(k+1)+" / " + str(self.num_coupling_iterations)))
 
+            self.convergence_accelerator.InitializeNonLinearIteration()
+            self.convergence_criteria.InitializeNonLinearIteration()
+
             for solver_name in self.solver_names:
                 solver = self.solvers[solver_name]
                 self._SynchronizeInputData(solver, solver_name)
                 solver.SolveSolutionStep()
                 self._SynchronizeOutputData(solver, solver_name)
+
+            self.convergence_accelerator.FinalizeNonLinearIteration()
+            self.convergence_criteria.FinalizeNonLinearIteration()
+
+            if self.convergence_criteria.IsConverged():
+                if self.echo_level > 0:
+                    couplingsolverprint(self.lvl, self._Name(), green("### CONVERGENCE WAS ACHIEVED ###"))
+                break
+            else:
+                self.convergence_accelerator.ComputeUpdate()
+
+            if k+1 >= self.num_coupling_iterations and self.echo_level > 0:
+                couplingsolverprint(self.lvl, self._Name(), red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))

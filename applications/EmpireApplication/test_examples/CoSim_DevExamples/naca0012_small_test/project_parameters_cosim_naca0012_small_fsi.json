@@ -3,28 +3,15 @@
     {
         "start_time" : 0.0,
         "end_time" : 1.0,
-        "echo_level" : 0,
+        "echo_level" : 2,
         "print_colors" : true
     },
     "solver_settings" :
     {
         "solver_type" : "simple_steady_coupling",
-        "echo_level" : 0,
-        "num_coupling_iterations" : 1,
+        "echo_level" : 1,
+        "num_coupling_iterations" : 10,
         "start_coupling_time" : 0.0,
-        "predictor_settings" :
-        {
-            "predictor_type" : "linear_derivative_based_static",
-            "data_list"      :
-            [
-                {
-                    "solver": "fluid",
-                    "data_name"  : "disp_y",
-                    "derivative_data_name"  : "vel_y"
-                }
-
-            ]
-        },
         "convergence_accelerator_settings" :
         {
             "type"          : "aitken",

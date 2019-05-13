@@ -15,3 +15,5 @@ class LinearDerivativeBasedStaticPredictor(CosimulationBasePredictor):
     def Predict(self):
         pass
 
+    def _Name(self):
+        return self.__class__.__name__
