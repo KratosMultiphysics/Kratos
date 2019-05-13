@@ -1651,9 +1651,73 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_Y))
             self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_Z))
 
-def test_apply_component_table_process(self):
-    
+    def test_apply_component_table_process(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_processes"))
+        model_part_io.ReadModelPart(model_part)
 
+        settings = KratosMultiphysics.Parameters("""{
+            "process_list" : [{
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics",
+                "Parameters":    {
+                    "model_part_name": "Main",
+                    "variable_name":   "DISPLACEMENT",
+                    "time_variable_name" : "TIME",
+                    "active":          [true,true,true],
+                    "is_fixed":        [true,true,true],
+                    "value":           [0.0, 0.0, 0.0],
+                    "table":           [1, 0, 0]
+                }
+            }]
+        }""")
+
+        # Reset all data
+        for node in model_part.Nodes:
+            node.Free(KratosMultiphysics.DISPLACEMENT_X)
+            node.Free(KratosMultiphysics.DISPLACEMENT_Y)
+            node.Free(KratosMultiphysics.DISPLACEMENT_Z)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0, 0.0)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, 0.0)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, 0, 0.0)
+
+        import process_factory
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses(settings["process_list"])
+
+        for node in model_part.Nodes:
+            self.assertFalse(node.IsFixed(KratosMultiphysics.DISPLACEMENT_X))
+            self.assertFalse(node.IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
+            self.assertFalse(node.IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
+
+        model_part.CloneTimeStep(0.09)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        # Verify the result
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), 0.109)
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 0.0)
+            self.assertFalse(node.IsFixed(KratosMultiphysics.DISPLACEMENT_X))
+            self.assertFalse(node.IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
+            self.assertFalse(node.IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
+
+        model_part.CloneTimeStep(10.0)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        # Verify the result
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), 0.2)
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 0.0)
+            self.assertFalse(node.IsFixed(KratosMultiphysics.DISPLACEMENT_X))
+            self.assertFalse(node.IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
+            self.assertFalse(node.IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
 
 def SetNodalValuesForPointOutputProcesses(model_part):
     time = model_part.ProcessInfo[KratosMultiphysics.TIME]
