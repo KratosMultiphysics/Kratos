@@ -72,19 +72,8 @@ public:
             const TContainerType& rContainer,
             const std::vector<int>& rIndices
             )
-            : mrContainer(rContainer), mIndices(rIndices)
+            : mrContainer(rContainer), mrIndices(rIndices)
     {}
-
-    template<class TIteratorType>
-    RetrieveGlobalPointersByIndex(
-            const TContainerType& rContainer,
-            TIteratorType begin,
-            TIteratorType end
-            )
-            : 
-            mrContainer(rContainer),
-            mIndices(begin,end)
-    {}    
 
     /// Destructor.
     virtual ~RetrieveGlobalPointersByIndex(){}
@@ -94,7 +83,7 @@ public:
     ///@{
     GlobalPointersVector<typename TContainerType::value_type> operator()(const DataCommunicator& rComm) const
     {
-        return GlobalPointerUtilities::RetrieveGlobalIndexedPointers(mrContainer, mIndices, rComm );
+        return GlobalPointerUtilities::RetrieveGlobalIndexedPointers(mrContainer, mrIndices, rComm );
     }
 
 
@@ -184,7 +173,7 @@ private:
     ///@name Member Variables
     ///@{
     const TContainerType& mrContainer;
-    const std::vector<int> mIndices;
+    const std::vector<int>& mrIndices; //note that A REFERENCE is stored
 
 
     ///@}
