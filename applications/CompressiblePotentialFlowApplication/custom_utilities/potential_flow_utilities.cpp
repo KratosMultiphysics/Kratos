@@ -10,6 +10,7 @@
 //  Main authors:    Inigo Lopez
 
 #include "custom_utilities/potential_flow_utilities.h"
+#include "compressible_potential_flow_application_variables.h"
 
 namespace Kratos {
 namespace PotentialFlowUtilities {

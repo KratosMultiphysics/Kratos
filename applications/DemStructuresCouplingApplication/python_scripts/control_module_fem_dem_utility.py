@@ -25,7 +25,7 @@ class ControlModuleFemDemUtility(object):
             "compression_length" : 0.00381,
             "young_modulus" : 7.0e9,
             "start_time" : 0.0,
-            "face_area": 8.0617e-3
+            "face_area": 0.00806
         }  """ )
 
         self.components_utility_list.append(DemFem.ControlModuleFemDemUtilities(self.top_fem_model_part,self.top_dem_model_part,top_settings))
@@ -48,7 +48,7 @@ class ControlModuleFemDemUtility(object):
             "compression_length" : 0.00381,
             "young_modulus" : 7.0e9,
             "start_time" : 0.0,
-            "face_area": 8.0617e-3
+            "face_area": 0.00806
         }  """ )
 
         self.components_utility_list.append(DemFem.ControlModuleFemDemUtilities(self.bot_fem_model_part,self.bot_dem_model_part,bot_settings))
