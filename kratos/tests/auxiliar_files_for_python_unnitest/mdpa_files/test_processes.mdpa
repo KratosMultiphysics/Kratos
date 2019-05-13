@@ -2,6 +2,12 @@ Begin ModelPartData
 //  VARIABLE_NAME value
 End ModelPartData
 
+Begin Table 1 TIME DISPLACEMENT_X
+  0.0 0.1
+  1.0 0.2
+  10 0.2
+End Table
+
 Begin Properties 0
 End Properties
 
@@ -67,6 +73,9 @@ Begin Conditions Condition3D2N// GUI group identifier: Skin
 End Conditions
 
 Begin SubModelPart Main_domain
+    Begin SubModelPartTables
+		1
+	End SubModelPartTables
     Begin SubModelPartNodes
          1
          2
