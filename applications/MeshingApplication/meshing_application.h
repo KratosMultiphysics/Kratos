@@ -41,6 +41,26 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
+    /**
+     * @brief This enum defines the type of MMG libray used
+     */
+    enum class MMGLibrary
+    {
+        MMG2D = 0,
+        MMG3D = 1,
+        MMGS  = 2
+    };
+
+    /**
+     * @brief This enums allows to differentiate the working framework
+     */
+    enum class FrameworkEulerLagrange {EULERIAN = 0, LAGRANGIAN = 1, ALE = 2};
+
+    /**
+     * @brief This enums allows to differentiate the discretization options
+     */
+    enum class DiscretizationOption {STANDARD = 0, LAGRANGIAN = 1, ISOSURFACE = 2};
+
 ///@}
 ///@name  Functions
 ///@{

@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import Logger
 
-from unittest import *
+from unittest import * # needed to make all functions available to the tests using this file
 from contextlib import contextmanager
 
 import getopt
@@ -90,6 +90,13 @@ def Usage():
     for l in lines:
         Logger.PrintInfo(l) # using the logger to only print once in MPI
 
+def main():
+    # this deliberately overiddes the function "unittest.main",
+    # because it cannot parse extra command line arguments
+    if "--using-mpi" in sys.argv:
+        sys.argv.remove("--using-mpi") # has to be removed bcs unittest cannot parse it
+    import unittest
+    unittest.main()
 
 def runTests(tests):
     verbose_values = [0, 1, 2]
@@ -150,13 +157,13 @@ def runTests(tests):
 
 
 KratosSuites = {
-    'small': TestSuite(),
-    'nightly': TestSuite(),
-    'all': TestSuite(),
-    'validation': TestSuite(),
-    'mpi_small': TestSuite(),
-    'mpi_nightly': TestSuite(),
-    'mpi_all': TestSuite(),
+    'small':          TestSuite(),
+    'nightly':        TestSuite(),
+    'all':            TestSuite(),
+    'validation':     TestSuite(),
+    'mpi_small':      TestSuite(),
+    'mpi_nightly':    TestSuite(),
+    'mpi_all':        TestSuite(),
     'mpi_validation': TestSuite(),
 }
 

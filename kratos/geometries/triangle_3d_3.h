@@ -92,6 +92,11 @@ public:
     typedef Line3D2<TPointType> EdgeType;
 
     /**
+     * Type of face geometry
+     */
+    typedef Triangle3D3<TPointType> FaceType;
+
+    /**
      * Pointer definition of Triangle3D3
      */
     KRATOS_CLASS_POINTER_DEFINITION( Triangle3D3 );
@@ -870,24 +875,20 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
-        // The center of the geometry
-        const auto& r_center = this->Center();
-
         // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
-        const CoordinatesArrayType aux_point = ZeroVector(3);
-        const array_1d<double, 3> normal = this->UnitNormal(aux_point);
+        const auto center = this->Center();
+        const array_1d<double, 3> normal = this->UnitNormal(center);
 
-        // We compute the distance, if it is not in the pane we
+        // We compute the distance, if it is not in the plane we project
         const Point point_to_project(rPoint);
-        Point point_projected;
-        const array_1d<double,3> vector_points = rPoint - r_center.Coordinates();
-
-        const double distance = GeometricalProjectionUtilities::FastProjectDirection(*this, point_to_project, point_projected, normal,  vector_points, 0);
+        double distance;
+        CoordinatesArrayType point_projected;
+        point_projected = GeometricalProjectionUtilities::FastProject( center, point_to_project, normal, distance);
 
         // We check if we are on the plane
         if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
             if (std::abs(distance) > 1.0e-6 * Length()) {
-                KRATOS_WARNING_FIRST_N("Triangle3D3", 10) << "The point of coordinates X: " << rPoint[0] << "\tY: " << rPoint[1] << "\tZ: " << rPoint[2] << " it is in a distance: " << std::abs(distance) << std::endl;
+                KRATOS_WARNING_FIRST_N("Triangle3D3", 10) << "The " << rPoint << " is in a distance: " << std::abs(distance) << std::endl;
                 return false;
             }
 
@@ -929,7 +930,7 @@ public:
         tangent_eta /= norm_2(tangent_eta);
 
         // The center of the geometry
-        const auto& r_center = this->Center();
+        const auto center = this->Center();
 
         // Computation of the rotation matrix
         BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
@@ -940,14 +941,14 @@ public:
 
         // Destination point rotated
         CoordinatesArrayType aux_point_to_rotate, destination_point_rotated;
-        noalias(aux_point_to_rotate) = rPoint - r_center.Coordinates();
-        noalias(destination_point_rotated) = prod(rotation_matrix, aux_point_to_rotate) + r_center.Coordinates();
+        noalias(aux_point_to_rotate) = rPoint - center.Coordinates();
+        noalias(destination_point_rotated) = prod(rotation_matrix, aux_point_to_rotate) + center.Coordinates();
 
         // Points of the geometry
         array_1d<CoordinatesArrayType, 3> points_rotated;
         for (IndexType i = 0; i < 3; ++i) {
-            noalias(aux_point_to_rotate) = this->GetPoint(i).Coordinates() - r_center.Coordinates();
-            noalias(points_rotated[i]) = prod(rotation_matrix, aux_point_to_rotate) + r_center.Coordinates();
+            noalias(aux_point_to_rotate) = this->GetPoint(i).Coordinates() - center.Coordinates();
+            noalias(points_rotated[i]) = prod(rotation_matrix, aux_point_to_rotate) + center.Coordinates();
         }
 
         // Compute the Jacobian matrix and its determinant
@@ -1272,35 +1273,35 @@ public:
         return rResult;
     }
 
-    /** EdgesNumber
-    @return SizeType containes number of this geometry edges.
-    */
+    ///@}
+    ///@name Edge
+    ///@{
+
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
+     * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
+     */
     SizeType EdgesNumber() const override
     {
         return 3;
     }
 
-
-    /** FacesNumber
-    @return SizeType containes number of this geometry edges/faces.
-    */
-    SizeType FacesNumber() const override
-    {
-      return EdgesNumber();
-    }
-
-    /** This method gives you all edges of this geometry. This
-    method will gives you all the edges with one dimension less
-    than this geometry. for example a triangle would return
-    three lines as its edges or a tetrahedral would return four
-    triangle as its edges but won't return its six edge
-    lines by this method.
-
-    @return GeometriesArrayType containes this geometry edges.
-    @see EdgesNumber()
-    @see Edge()
-    */
-    GeometriesArrayType Edges( void ) override
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
+     */
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
@@ -1310,6 +1311,37 @@ public:
         return edges;
     }
 
+    ///@}
+    ///@name Face
+    ///@{
+
+    /**
+     * @brief Returns the number of faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @see EdgesNumber
+     * @see Edges
+     * @see Faces
+     */
+    SizeType FacesNumber() const override
+    {
+        return 1;
+    }
+
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    GeometriesArrayType GenerateFaces() const override
+    {
+        GeometriesArrayType faces = GeometriesArrayType();
+
+        faces.push_back( Kratos::make_shared<FaceType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 2 )) );
+        return faces;
+    }
 
     //Connectivities of faces required
     void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override

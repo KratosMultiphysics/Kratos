@@ -20,7 +20,7 @@ class KRATOS_API(DEM_APPLICATION) ContactInfoSphericParticle : public SphericPar
 public:
 
 /// Pointer definition of ContactInfoSphericParticle
-KRATOS_CLASS_POINTER_DEFINITION(ContactInfoSphericParticle);
+KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ContactInfoSphericParticle);
 
 // typedef WeakPointerVector<Condition> ConditionWeakVectorType;
 // typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
