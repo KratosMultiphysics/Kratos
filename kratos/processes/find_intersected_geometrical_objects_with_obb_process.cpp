@@ -154,8 +154,8 @@ void FindIntersectedGeometricalObjectsWithOBBProcess::SetOctreeBoundingBox()
         const std::size_t dimension = BaseType::mrModelPartIntersected.GetProcessInfo()[DOMAIN_SIZE];
         for(IndexType i = 0 ; i < dimension; i++) {
             if (std::abs(high[i] - low[i]) < mBoundingBoxFactor) {
-//                 low[i] -= mBoundingBoxFactor;
-                high[i] += mBoundingBoxFactor;
+                low[i] -= 1.0/3.0 * mBoundingBoxFactor;
+                high[i] += 2.0/3.0 * mBoundingBoxFactor;
             }
         }
     }
