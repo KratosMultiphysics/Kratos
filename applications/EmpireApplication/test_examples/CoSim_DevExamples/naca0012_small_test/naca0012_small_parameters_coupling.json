@@ -2,7 +2,7 @@
     "problem_data"                     : {
         "problem_name"    : "naca0012",
         "parallel_type"   : "OpenMP",
-        "echo_level"      : 0,
+        "echo_level"      : 1,
         "start_time"      : 0.0,
         "end_time"        : 1.0
     },
@@ -28,7 +28,7 @@
             },
             "time_order" : 2,
             "reform_dofs_each_step" : false,
-            "echo_level": 0
+            "echo_level": 1
         },
 
         "fluid_solver_settings"  :{
@@ -40,7 +40,7 @@
                 "input_filename" : "naca0012_small"
             },
             "maximum_iterations"     : 5,
-            "echo_level"             : 0,
+            "echo_level"             : 1,
             "linear_solver_settings"  : {
                     "solver_type"             : "ExternalSolversApplication.super_lu",
                     "verbosity"               : 0
@@ -158,6 +158,19 @@
                 },
                 "output_variables" : [
                     "MESH_DISPLACEMENT_Y"]
+                }
+            },{
+                "python_module"   : "compare_two_files_check_process",
+                "kratos_module"   : "KratosMultiphysics",
+                "help"            : "",
+                "process_name"    : "CompareTwoFilesCheckProcess",
+                "Parameters" :{
+                    "output_file_name"    : "naca0012_mesh_movement_Y.dat",
+                    "reference_file_name" : "naca0012_mesh_movement_Y_ref.dat",
+                    "comparison_type"     : "dat_file",
+                    "remove_output_file"    : true,
+                    "tolerance"             : 1e-9,
+                    "relative_tolerance"    : 1e-9
                 }
             }]
     },
