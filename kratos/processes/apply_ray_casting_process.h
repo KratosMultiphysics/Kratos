@@ -57,31 +57,31 @@ public:
     ///@name Life Cycle
     ///@{
 
-    // /**
-    //  * @brief Construct a new ApplyRayCastingProcess object using volume and skin model parts
-    //  * Constructor without user defined extra rays epsilon, used to 
-    //  * generate the extra rays when voting is required for coloring
-    //  * @param rVolumePart model part containing the volume elements
-    //  * @param rSkinPart model part containing the skin to compute 
-    //  * the distance to as conditions
-    //  */
-    // ApplyRayCastingProcess(
-    //     ModelPart& rVolumePart,
-    //     ModelPart& rSkinPart);
+    /**
+     * @brief Construct a new ApplyRayCastingProcess object using volume and skin model parts
+     * Constructor without user defined extra rays epsilon, used to 
+     * generate the extra rays when voting is required for coloring
+     * @param rVolumePart model part containing the volume elements
+     * @param rSkinPart model part containing the skin to compute 
+     * the distance to as conditions
+     */
+    ApplyRayCastingProcess(
+        ModelPart& rVolumePart,
+        ModelPart& rSkinPart);
 
-    // /**
-    //  * @brief Construct a new ApplyRayCastingProcess object using volume and skin model parts
-    //  * Constructor with user defined extra rays epsilon, used to 
-    //  * generate the extra rays when voting is required for coloring
-    //  * @param rVolumePart model part containing the volume elements
-    //  * @param rSkinPart model part containing the skin to compute 
-    //  * the distance to as conditions
-    //  * @param ExtraRaysEpsilon user-defined extra rays epsilon
-    //  */
-    // ApplyRayCastingProcess(
-    //     ModelPart& rVolumePart,
-    //     ModelPart& rSkinPart,
-    //     const double ExtraRaysEpsilon);
+    /**
+     * @brief Construct a new ApplyRayCastingProcess object using volume and skin model parts
+     * Constructor with user defined extra rays epsilon, used to 
+     * generate the extra rays when voting is required for coloring
+     * @param rVolumePart model part containing the volume elements
+     * @param rSkinPart model part containing the skin to compute 
+     * the distance to as conditions
+     * @param ExtraRaysEpsilon user-defined extra rays epsilon
+     */
+    ApplyRayCastingProcess(
+        ModelPart& rVolumePart,
+        ModelPart& rSkinPart,
+        const double ExtraRaysEpsilon);
 
     /**
      * @brief Construct a new ApplyRayCastingProcess object using an already created search structure

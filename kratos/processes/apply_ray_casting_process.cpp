@@ -23,21 +23,21 @@
 namespace Kratos
 {
 
-	// template<std::size_t TDim>
-	// ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
-	// 	ModelPart& rVolumePart, 
-	// 	ModelPart& rSkinPart) : mFindIntersectedObjectsProcess(rVolumePart, rSkinPart)
-	// {
-	// }
+	template<std::size_t TDim>
+	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
+		ModelPart& rVolumePart, 
+		ModelPart& rSkinPart) : mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)), mIsSearchStructureAllocated(true)
+	{
+	}
 
-	// template<std::size_t TDim>
-	// ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
-	// 	ModelPart& rVolumePart, 
-	// 	ModelPart& rSkinPart,
-	// 	const double ExtraRaysEpsilon)
-	// 	: mExtraRaysEpsilon(ExtraRaysEpsilon), mFindIntersectedObjectsProcess(rVolumePart, rSkinPart)
-	// {
-	// }
+	template<std::size_t TDim>
+	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
+		ModelPart& rVolumePart, 
+		ModelPart& rSkinPart,
+		const double ExtraRaysEpsilon)
+		: mExtraRaysEpsilon(ExtraRaysEpsilon), mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)), mIsSearchStructureAllocated(true)
+	{
+	}
 
 	template<std::size_t TDim>
 	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
