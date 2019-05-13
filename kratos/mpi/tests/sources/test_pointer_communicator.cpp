@@ -114,10 +114,10 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicatorConstructByFunctor, KratosMPICo
     //define the pointer communicator - note that a functor is employed here, so to avoid boilerplate
     GlobalPointerCommunicator< Node<3>> pointer_comm(
                                             r_default_comm, 
-                                            RetrieveGlobalPointersByIndex<ModelPart::NodesContainerType>(mp.Nodes(), indices) 
-                                        );
+                                            RetrieveGlobalPointersByIndex<ModelPart::NodesContainerType>(mp.Nodes(), indices)  //if we eventually evolve to c++17 the type will be deduced
+                                        ); 
 
-    auto temperature_proxy = pointer_comm.Apply( GetValueFunctor<Variable<double>>(TEMPERATURE) );
+    auto temperature_proxy = pointer_comm.Apply( GetValueFunctor<Variable<double>>(TEMPERATURE) ); //note that if we eventually evolve to c++17 the template parameter in the functor will be deduced
 
     for(unsigned int i=0; i<indices.size(); ++i)
     {
