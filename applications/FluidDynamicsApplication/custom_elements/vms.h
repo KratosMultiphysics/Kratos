@@ -107,7 +107,7 @@ public:
     ///@{
 
     /// Pointer definition of VMS
-    KRATOS_CLASS_POINTER_DEFINITION(VMS);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(VMS);
 
     ///base type: an IndexedObject that automatically has a unique number
     typedef IndexedObject BaseType;
@@ -211,14 +211,14 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< VMS<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive< VMS<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     Element::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< VMS<TDim, TNumNodes> >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< VMS<TDim, TNumNodes> >(NewId, pGeom, pProperties);
     }
 
     /// Provides local contributions from body forces and OSS projection terms

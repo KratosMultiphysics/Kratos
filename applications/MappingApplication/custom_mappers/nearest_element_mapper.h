@@ -128,7 +128,7 @@ public:
     }
 
     /// Turn back information as a string.
-    std::string PairingInfo(const int EchoLevel, const int CommRank) const override;
+    std::string PairingInfo(const int EchoLevel) const override;
 
 private:
     NodePointerType mpNode;
@@ -217,6 +217,7 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
+        BaseType::PrintData(rOStream);
     }
 
 private:
@@ -236,6 +237,15 @@ private:
     MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const override
     {
         return Kratos::make_unique<NearestElementInterfaceInfo>();
+    }
+
+    Parameters GetMapperDefaultSettings() const override
+    {
+        return Parameters( R"({
+            "search_radius"            : -1.0,
+            "search_iterations"        : 3,
+            "echo_level"               : 0
+        })");
     }
 
     ///@}

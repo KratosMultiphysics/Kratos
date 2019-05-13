@@ -32,6 +32,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/process_info.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/oriented_bounding_box.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/simple_mortar_mapper_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp;
@@ -60,6 +61,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_nodal_area_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/skin_detection_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/replace_elements_and_condition_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/entity_erase_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_variable_to_entities_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedral_mesh_orientation_check.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/integration_values_extrapolation_to_nodes_process.cpp

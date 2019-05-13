@@ -188,9 +188,13 @@ class NavierStokesSolverFractionalStep(FluidSolver):
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
-            self.solver.SolveSolutionStep()
+            is_converged = super(NavierStokesSolverFractionalStep,self).SolveSolutionStep()
             if self.compute_reactions:
                 self.solver.CalculateReactions()
+
+            return is_converged
+        else:
+            return True
 
 
     def _set_physical_properties(self):
