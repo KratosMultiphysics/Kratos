@@ -578,11 +578,6 @@ public:
         return true;
     }
 
-    virtual bool SynchronizeVariable(Variable<bool> const& rThisVariable)
-    {
-        return true;
-    }
-
     virtual bool SynchronizeVariable(Variable<array_1d<double, 3 > > const& rThisVariable)
     {
         // #if defined(KRATOS_USING_MPI )
@@ -633,11 +628,6 @@ public:
     }
 
     virtual bool SynchronizeNonHistoricalVariable(Variable<double> const& rThisVariable)
-    {
-        return true;
-    }
-
-    virtual bool SynchronizeNonHistoricalVariable(Variable<bool> const& rThisVariable)
     {
         return true;
     }
