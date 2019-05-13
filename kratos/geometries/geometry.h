@@ -872,7 +872,10 @@ public:
     /**
     * @brief TO BE DONE
     */
-    virtual array_1d<double, 3> Normal(array_1d<double, 3>& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const
+    virtual array_1d<double, 3> Normal(
+        array_1d<double, 3>& rResult,
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const
     {
         const unsigned int local_space_dimension = this->LocalSpaceDimension();
         const unsigned int dimension = this->WorkingSpaceDimension();
@@ -925,7 +928,9 @@ public:
     /**
     * @brief 
     */
-    virtual array_1d<double, 3> UnitNormal(array_1d<double, 3>& rResult, IndexType IntegrationPointIndex) const
+    virtual array_1d<double, 3> UnitNormal(
+        array_1d<double, 3>& rResult,
+        IndexType IntegrationPointIndex) const
     {
         UnitNormal(rResult, IntegrationPointIndex, mpGeometryData->DefaultIntegrationMethod());
         return rResult;
@@ -934,13 +939,68 @@ public:
     /**
     * @brief
     */
-    virtual array_1d<double, 3> UnitNormal(array_1d<double, 3>& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const
+    virtual array_1d<double, 3> UnitNormal(
+        array_1d<double, 3>& rResult,
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const
     {
         array_1d<double, 3> normal = Normal(rResult, IntegrationPointIndex);
         const double rResult = norm_2(normal);
         if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
-        else KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;
+        else
+            KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: "
+            << norm_normal << std::endl;
         return rResult;
+    }
+
+    /** This method calculates and returns the tangent vectors
+    * t_1 and t_2 of the embedded objects of this geometry.
+    *
+    * @return Matrix value contains row(0) t_1 being the normal
+    * layinng on the surface and row(1) being t_2 the tangential
+    * laying on the surface.
+    */
+    virtual Matrix Tangents(
+        const CoordinatesArrayType& rPointLocalCoordinates) const
+    {
+        KRATOS_ERROR 
+            << "Calling base class 'Tangents' method instead of derived class one. Please check the definition of derived class. "
+            << *this << std::endl;
+        return 0.0;
+    }
+
+    /** This method calculates and returns the tangent vectors
+    * t_1 and t_2 of the embedded objects of this geometry.
+    *
+    * @return Matrix value contains row(0) t_1 being the normal
+    * layinng on the surface and row(1) being t_2 the tangential
+    * laying on the surface.
+    */
+    virtual Matrix Tangents(
+        Matrix& rResult,
+        IndexType IntegrationPointIndex) const
+    {
+        Tangents(
+            rResult,
+            IntegrationPointIndex,
+            mpGeometryData->DefaultIntegrationMethod());
+        return rResult;
+    }
+
+    /** This method calculates and returns the tangent vectors
+    * t_1 and t_2 of the embedded objects of this geometry.
+    *
+    * @return Matrix value contains row(0) t_1 being the normal
+    * layinng on the surface and row(1) being t_2 the tangential
+    * laying on the surface.
+    */
+    virtual Matrix Tangents(
+        Matrix& rResult,
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const 
+    {
+        KRATOS_ERROR << "Calling base class 'Tangents' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
     /** Calculates the quality of the geometry according to a given criteria.

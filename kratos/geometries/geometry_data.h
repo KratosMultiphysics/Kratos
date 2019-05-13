@@ -506,6 +506,10 @@ public:
     ///@name Shape Function
     ///@{
 
+    const ShapeFunctionsDerivativesVectorType& ShapeFunctionsDerivativesAll() const
+    {
+        return mShapeFunctionsDerivativesContainer[mDefaultMethod];
+    }
 
     const ShapeFunctionsDerivativesIntegrationPointsType& ShapeFunctionsDerivativesIntegrationPoints(IndexType DerivativeOrder) const
     {

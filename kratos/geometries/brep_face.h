@@ -4,28 +4,23 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                   Janosch Stascheit
-//                   Felix Nagel
-//  contributors:    Hoang Giang Bui
-//                   Josep Maria Carbonell
+//  Main authors:    Tobias Teschemacher
+//  contributors:    Pooyan Dadvand
+//                   Philipp Bucher
 //
 
-#if !defined(KRATOS_TRIANGLE_3D_3_H_INCLUDED )
-#define  KRATOS_TRIANGLE_3D_3_H_INCLUDED
+#if !defined(KRATOS_BREP_FACE_3D_H_INCLUDED )
+#define  KRATOS_BREP_FACE_3D_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "geometries/plane_3d.h"
-#include "geometries/line_3d_2.h"
-#include "integration/triangle_gauss_legendre_integration_points.h"
-#include "integration/triangle_collocation_integration_points.h"
+
 
 namespace Kratos
 {
@@ -63,163 +58,45 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /**
-     * Geometry as base class.
-     */
     typedef Geometry<TPointType> BaseType;
-
     typedef Geometry<TPointType> GeometryType;
 
-    ///**
-    // * Type of edge geometry
-    // */
-    //typedef Line3D2<TPointType> EdgeType;
-
-    /**
-     * Pointer definition of BrepFace
-     */
+    /** Pointer definition of BrepFace */
     KRATOS_CLASS_POINTER_DEFINITION( BrepFace );
 
-    /**
-     * Integration methods implemented in geometry.
-     */
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-
-    /**
-     * A Vector of counted pointers to Geometries.
-     * Used for returning edges of the geometry.
-     */
-    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
-
-    /**
-     * Redefinition of template parameter TPointType.
-     */
     typedef TPointType PointType;
 
-    /**
-     * Type used for indexing in geometry class.
-     * std::size_t used for indexing
-     * point or integration point access methods and also all other
-     * methods which need point or integration point index.
-     */
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
     typedef typename BaseType::IndexType IndexType;
-
-    /**
-     * This type is used to return size or dimension in
-     * geometry. Dimension, WorkingDimension, PointsNumber and
-     * ... return this type as their results.
-     */
     typedef typename BaseType::SizeType SizeType;
-
-    /**
-     * Array of counted pointers to point.
-     * This type used to hold geometry's points.
-     */
-    typedef  typename BaseType::PointsArrayType PointsArrayType;
-
-    /**
-     * Array of coordinates. Can be Nodes, Points or IntegrationPoints
-     */
+    typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
-    /**
-     * This type used for representing an integration point in geometry.
-     * This integration point is a point with an additional weight component.
-     */
     typedef typename BaseType::IntegrationPointType IntegrationPointType;
-
-    /**
-     * A Vector of IntegrationPointType which used to hold
-     * integration points related to an integration
-     * method.
-     * IntegrationPoints functions used this type to return
-     * their results.
-     */
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
-
-    /**
-     * A Vector of IntegrationPointsArrayType which used to hold
-     * integration points related to different integration method
-     * implemented in geometry.
-     */
     typedef typename BaseType::IntegrationPointsContainerType IntegrationPointsContainerType;
 
-    /**
-     * A third order tensor used as shape functions' values
-     * container.
-     */
     typedef typename BaseType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
-
-    /**
-     * A fourth order tensor used as shape functions' local
-     * gradients container in geometry.
-     */
     typedef typename BaseType::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
-
-    /**
-     * A third order tensor to hold jacobian matrices evaluated at
-     * integration points. Jacobian and InverseOfJacobian functions
-     * return this type as their result.
-     */
-    typedef typename BaseType::JacobiansType JacobiansType;
-
-    /**
-     * A third order tensor to hold shape functions' local
-     * gradients. ShapefunctionsLocalGradients function return this
-     * type as its result.
-     */
     typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+    typedef typename BaseType::ShapeFunctionsSecondDerivativesType ShapeFunctionsSecondDerivativesType;
+    typedef typename BaseType::ShapeFunctionsThirdDerivativesType ShapeFunctionsThirdDerivativesType;
 
-    /**
-     * A third order tensor to hold shape functions' local second derivatives.
-     * ShapefunctionsLocalGradients function return this
-     * type as its result.
-     */
-    typedef typename BaseType::ShapeFunctionsSecondDerivativesType
-    ShapeFunctionsSecondDerivativesType;
-
-    /**
-    * A third order tensor to hold shape functions' local third derivatives.
-    * ShapefunctionsLocalGradients function return this
-    * type as its result.
-    */
-    typedef typename BaseType::ShapeFunctionsThirdDerivativesType
-    ShapeFunctionsThirdDerivativesType;
-
-    /**
-     * Type of the normal vector used for normal to edges in geomety.
-     */
+    typedef typename BaseType::JacobiansType JacobiansType;
     typedef typename BaseType::NormalType NormalType;
 
     // New Shape function typedefs
-
-    /**
-    * Derivative type of any order of derivative. Also for shape functions.
-    * The matrix is (derivative direction, corresponding)
-    */
     typedef GeometryData::ShapeFunctionsDerivativesType ShapeFunctionsDerivativesType;
-
-    /**
-    * Derivative type of any order of derivative. Also for shape functions.
-    * DenseVector: each respective integration point is accessed.
-    *  Matrix: (derivative direction, corresponding)
-    */
     typedef GeometryData::ShapeFunctionsDerivativesIntegrationPointsType ShapeFunctionsDerivativesIntegrationPointsType;
-
-    /**
-    * Vector of derivatives until any order of derivative, including for shape functions.
-    * In the first DenseVector the order of derivative is adressed.
-    * Within the second DenseVector each respective integration point is accessed.
-    * The matrix is (derivative direction, corresponding)
-    */
     typedef GeometryData::ShapeFunctionsDerivativesVectorType ShapeFunctionsDerivativesVectorType;
 
     // Own typedefs
-
     /**
     * Type of one brep loop.
     */
-    typedef typename std::vector<BrepEdge::Pointer> BrepLoopType;
+    typedef typename std::vector<BrepFaceEdge::Pointer> BrepTrimmingLoopType;
 
 
     ///@}
@@ -230,7 +107,7 @@ public:
         typename NurbsSurface::Pointer pSurface,
         typename BrepLoopType InnerBrepLoopVector,
         typename BrepLoopType OuterBrepLoopVector)
-        : BaseType( PointsArrayType(), nullptr ),
+        : BaseType(pSurface->mPointerVector(), nullptr ),
         mpNurbsSurface(pSurface),
         mInnerLoops(InnerBrepLoopVector),
         mOuterLoops(OuterBrepLoopVector)
@@ -369,6 +246,8 @@ public:
         const CoordinatesArrayType& rPoint
     ) const
     {
+        // ONLY PART OF THE UTILITY
+
         // This function would be better with a true false return
 
         // Get initial guess from any point on surface - see the point list.
@@ -430,7 +309,7 @@ public:
     ///@name Input and output
     ///@{
 
-    std::vector<geometry> GetIntegrationPointGeomtries()
+    std::vector<geometry::Pointer> GetIntegrationPointGeomtries()
     {
         if (!mIsGeometryDataInitialized)
             ComputeGeometryData();
@@ -513,9 +392,20 @@ protected:
      * There are no protected members in class BrepFace
      */
 
+    BPolygonGetBoundaryPolygon()
+    {
+        if (!mIsBoundaryPolygonInitialized) {
+            this->InitializeBoundaryPolygon();
+        }
+
+            )
+}
+
 private:
     ///@name Static Member Variables
     ///@{
+
+    static const GeometryData msGeometryData;
 
     NurbsSurfacePointer mpNurbsSurface;
 
@@ -678,7 +568,16 @@ template<class TPointType> inline std::ostream& operator << (
     return rOStream;
 }
 
+template<class TPointType>
+const GeometryData BrepCurve<TPointType>::msGeometryData(2,
+    3,
+    2,
+    GeometryData::GI_GAUSS_1,
+    {},
+    {},
+    {});
+
 ///@}
 }// namespace Kratos.
 
-#endif // KRATOS_QUADRILATERAL_3D_4_H_INCLUDED  defined
+#endif // KRATOS_BREP_FACE_3D_H_INCLUDED  defined
