@@ -98,7 +98,7 @@ public:
                               NodesArrayType const& ThisNodes,
                               typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointSemiAnalyticSurfaceLoadCondition<TPrimalCondition>>(
+        return Kratos::make_intrusive<AdjointSemiAnalyticSurfaceLoadCondition<TPrimalCondition>>(
             NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
@@ -106,7 +106,7 @@ public:
                               typename GeometryType::Pointer pGeometry,
                               typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointSemiAnalyticSurfaceLoadCondition<TPrimalCondition>>(
+        return Kratos::make_intrusive<AdjointSemiAnalyticSurfaceLoadCondition<TPrimalCondition>>(
             NewId, pGeometry, pProperties);
     }
 

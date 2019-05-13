@@ -127,7 +127,7 @@ namespace Kratos
 
         Vector displacement = ZeroVector(vec_size);
         Vector displacement_previous_step = ZeroVector(vec_size);
-        double delta = rAdjointCondition.GetValue(PERTURBATION_SIZE);
+        double delta = rProcessInfo[PERTURBATION_SIZE];
         Vector RHS;
 
         // This ensures that stored RHS equals zero at the initial time step
@@ -318,8 +318,7 @@ namespace Kratos
         if (rSensitivityGradient.size() != mat_size)
             rSensitivityGradient.resize(mat_size, false);
 
-        double Delta = rAdjointCondition.GetValue(PERTURBATION_SIZE);
-
+        double Delta = rProcessInfo[PERTURBATION_SIZE];
         Vector displacement = ZeroVector(mat_size);
         Vector displacement_previous_step = ZeroVector(mat_size);
         Vector RHS;

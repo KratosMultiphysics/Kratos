@@ -107,7 +107,7 @@ namespace Kratos
         const SizeType number_of_nodes = this->GetGeometry().size();
         const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
         const SizeType vec_size = number_of_nodes * dimension;
-        double delta = this->GetValue(PERTURBATION_SIZE);
+        double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
         rOutput = ZeroMatrix(vec_size, vec_size);
         Vector RHS;
 

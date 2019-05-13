@@ -44,7 +44,7 @@ namespace Kratos
             if (current_name == "AdjointFiniteDifferencingShellThinElement3D3N")
             {
                 auto p_adjoint_element = dynamic_pointer_cast<AdjointFiniteDifferencingBaseElement<ShellThinElement3D3N>>(*it.base());
-                if (p_adjoint_element != nullptr)
+                if (p_adjoint_element.get() != nullptr)
                 {
                     p_adjoint_element->SetPrimalElement(p_it_loaded_element);
                 }

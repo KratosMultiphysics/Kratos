@@ -217,22 +217,22 @@ class AdjointSensitivityNonlinearTruss(KratosUnittest.TestCase):
 
         ## Testing the Implementation
         self.assertAlmostEqual(node_sensitivity[0][0], 0.11103597470787194, 5)
-        self.assertAlmostEqual(node_sensitivity[0][1], 0.43866198490768604, 5)
-        self.assertAlmostEqual(node_sensitivity[0][2], 0.27514421409649337, 5)
-        self.assertAlmostEqual(node_sensitivity[1][2],  0.22171521858225285, 5)
+        self.assertAlmostEqual(node_sensitivity[0][1], 0.43866198490768604, 4)
+        self.assertAlmostEqual(node_sensitivity[0][2], 0.27514421409649337, 4)
+        self.assertAlmostEqual(node_sensitivity[1][2],  0.22171521858225285, 4)
 
         self.assertAlmostEqual(node_sensitivity[2][0], -0.09996784337216753, 5)
-        self.assertAlmostEqual(node_sensitivity[2][1], 0.40379398660077026, 5)
-        self.assertAlmostEqual(node_sensitivity[2][2], 0.2306230957482736, 5)
+        self.assertAlmostEqual(node_sensitivity[2][1], 0.40379398660077026, 4)
+        self.assertAlmostEqual(node_sensitivity[2][2], 0.2306230957482736, 4)
 
-        self.assertAlmostEqual(node_sensitivity[3][1], -0.2956722449688707, 5)
-        self.assertAlmostEqual(node_sensitivity[3][2], -0.3135344440155797, 5)
+        self.assertAlmostEqual(node_sensitivity[3][1], -0.2956722449688707, 4)
+        self.assertAlmostEqual(node_sensitivity[3][2], -0.3135344440155797, 4)
 
-        self.assertAlmostEqual(node_sensitivity[4][1], -0.296582114991923, 5)
-        self.assertAlmostEqual(node_sensitivity[4][2], -0.21369097199038822, 5)
+        self.assertAlmostEqual(node_sensitivity[4][1], -0.296582114991923, 4)
+        self.assertAlmostEqual(node_sensitivity[4][2], -0.21369097199038822, 4)
 
-        self.assertAlmostEqual(node_sensitivity[5][1], -0.31173182957715273, 5)
-        self.assertAlmostEqual(node_sensitivity[5][2], -0.3433681880518615, 5)
+        self.assertAlmostEqual(node_sensitivity[5][1], -0.31173182957715273, 4)
+        self.assertAlmostEqual(node_sensitivity[5][2], -0.3433681880518615, 4)
 
 
 

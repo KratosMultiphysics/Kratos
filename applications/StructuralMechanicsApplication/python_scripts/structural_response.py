@@ -447,7 +447,7 @@ class NonlinearAdjointStrainEnergy(AdjointResponseFunction):
             ProjectParametersPrimal = Parameters( parameter_file.read() )
 
         self.primal_model_part = _GetModelPart(model, ProjectParametersPrimal["solver_settings"])
-        self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
+        self.primal_analysis = StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
         self.response_value = 0
 
         # Create the adjoint solver
@@ -460,7 +460,7 @@ class NonlinearAdjointStrainEnergy(AdjointResponseFunction):
         self.adjoint_model_part = _GetModelPart(adjoint_model, ProjectParametersAdjoint["solver_settings"])
 
         # TODO find out why it is not possible to use the same model_part
-        self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(adjoint_model, ProjectParametersAdjoint)
+        self.adjoint_analysis = StructuralMechanicsAnalysis(adjoint_model, ProjectParametersAdjoint)
 
     def Initialize(self):
         self.primal_analysis.Initialize()
