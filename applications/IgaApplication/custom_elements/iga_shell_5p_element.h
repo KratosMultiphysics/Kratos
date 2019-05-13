@@ -180,9 +180,10 @@ private:
 
         /**
         * The default constructor
-        * @param Dimension: The size of working space dimension
+        * @param rWorkingSpaceDimension: The size of working space dimension
+        * @param rStrainSize: The size of the StrainVector
         */
-        MetricVariables(const unsigned int& rWorkingSpaceDimension = 3, const unsigned int& rStrainSize = 6)
+        MetricVariables(const unsigned int& rWorkingSpaceDimension = 3, const unsigned int& rStrainSize = 5)
         {
             gab = ZeroVector(rWorkingSpaceDimension);
             gab_con = ZeroVector(rWorkingSpaceDimension);
@@ -232,7 +233,6 @@ private:
     {
         Matrix B11;
         Matrix B22;
-        Matrix B33;
         Matrix B12;
         Matrix B23;
         Matrix B13;
@@ -245,14 +245,38 @@ private:
         {
             B11 = ZeroMatrix(mat_size, mat_size);
             B22 = ZeroMatrix(mat_size, mat_size);
-            B33 = ZeroMatrix(mat_size, mat_size);
             B12 = ZeroMatrix(mat_size, mat_size);
             B23 = ZeroMatrix(mat_size, mat_size);
             B13 = ZeroMatrix(mat_size, mat_size);
         }
+
+        /**
+         * operator for addition (+)
+         */
+        SecondVariations operator+ (const SecondVariations& rSecondVariations)
+        {
+            KRATOS_TRY
+
+            if (B11.size1() != rSecondVariations.B11.size1()){
+                KRATOS_WATCH("Addition of SecondVariations of different size.")     // ML
+                KRATOS_ERROR << "Addition of SecondVariations of different size." << std::endl;
+            }
+            
+            unsigned int mat_size = B11.size1();
+            SecondVariations second_variations(mat_size);
+            second_variations.B11 = B11 + rSecondVariations.B11;
+            second_variations.B22 = B22 + rSecondVariations.B22;
+            second_variations.B12 = B12 + rSecondVariations.B12;
+            second_variations.B23 = B23 + rSecondVariations.B23;
+            second_variations.B13 = B13 + rSecondVariations.B13;
+
+            return second_variations;
+
+            KRATOS_CATCH("")
+        }
     };
 
-    MetricVariables mInitialMetric = MetricVariables(3, 6);
+    MetricVariables mInitialMetric = MetricVariables(3, 5);
     ///@}
     ///@name Operations
     ///@{
@@ -277,6 +301,18 @@ private:
         const double& rIntegrationWeight);
 
     void CalculateMetric( MetricVariables& rMetric );
+    
+    /**
+     * @brief Function determines the values of the shear dofs w_1 and w_2 and calculates the shear difference vector
+     * @detail Reissner-Mindlin shell with hierarchic rotations (Oesterle 2018)
+     */
+    void CalculateShearDifferenceVector(
+        Vector& rShearDifferenceVector,
+        Vector& rDw_D1,
+        Vector& rDw_D2,
+        Vector& rw_alpha,
+        Matrix& rDw_alpha_Dbeta,
+        const MetricVariables& rActualMetric);
 
     /**
     * This functions updates the constitutive variables
@@ -294,8 +330,6 @@ private:
         const Vector& rDw_D2,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
-        ConstitutiveVariables& rThisConstitutiveVariablesHRMembrane,
-        ConstitutiveVariables& rThisConstitutiveVariablesHRCurvature,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure);
 
@@ -306,18 +340,6 @@ private:
     void CalculateCurvature(
         Vector& rCurvatureVector,
         const Vector& rCurvature);
-    
-    /**
-     * @brief Function determines the values of the shear dofs w_1 and w_2 and calculates the shear difference vector
-     * @detail Reissner-Mindlin shell with hierarchic rotations (Oesterle 2018)
-     */
-    void CalculateShearDifferenceVector(
-        Vector& rShearDifferenceVector,
-        Vector& rDw_D1,
-        Vector& rDw_D2,
-        Vector& rw_alpha,
-        Matrix& rDw_alpha_Dbeta,
-        const MetricVariables& rActualMetric);
 
     void CalculateStrainRM(
         Vector& rStrainVectorRM,
@@ -332,6 +354,10 @@ private:
         const Vector& rg1,
         const Vector& rg2);
 
+    void TransformationCurvilinearStrainSize5ToCartesianStrainSize6(
+        const Vector rCurvilinearStrain,
+        Vector rCartesianStrain);
+
 	void CalculateBMembrane(
 		Matrix& rB,
 		const MetricVariables& rMetric);
@@ -341,31 +367,9 @@ private:
 		const MetricVariables& rMetric);
 
     void CalculateSecondVariationStrainCurvature(
-        SecondVariations& rSecondVariationsStrain,
+        SecondVariations& rSecondVariationsMembrane,
         SecondVariations& rSecondVariationsCurvature,
         const MetricVariables& rMetric);
-    
-    void CalculateBMembraneRM(
-        Matrix& rB,
-        const Vector& rShearDifferenceVector,
-        const Vector& rw_alpha,
-        const Vector& rg1,
-        const Vector& rg2);    
-    
-    void CalculateBCurvatureRM(
-        Matrix& rB,
-        const Vector& rw_alpha,
-        const Matrix& rDw_alpha_Dbeta,
-        const Vector& rDw_D1,
-        const Vector& rDw_D2,
-        const MetricVariables& rActualMetric);    
-        
-    void CalculateSecondVariationStrainCurvatureRM(
-        SecondVariations& rSecondVariationsMembraneRM,
-        SecondVariations& rSecondVariationsCurvatureRM,
-        const Vector& rw_alpha,
-        const Matrix& rDw_alpha_Dbeta,
-        const MetricVariables& rActualMetric);
 
     void CalculateVariationsRM(        
         Matrix& rBMembraneRM,
@@ -379,6 +383,14 @@ private:
         const Matrix& rDw_alpha_Dbeta,
         const MetricVariables& rActualMetric,
         const bool& rCalculateStiffnessMatrixFlag);
+    
+    /**
+     * @brief Stress recovery
+     */
+    void Calculate(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo);
     ///@}
 
     ///@}

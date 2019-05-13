@@ -129,6 +129,7 @@ namespace IgaIntegrationUtilities
                         Vector shape_function(shape.NonzeroPoleIndices().size());
                         Matrix shape_function_derivative(shape.NonzeroPoleIndices().size(), 2);
                         Matrix shape_function_second_derivative(shape.NonzeroPoleIndices().size(), 3);
+                        Matrix shape_function_third_derivative(shape.NonzeroPoleIndices().size(), 4);
 
                         array_1d<double, 3> location = ZeroVector(3);
                         for (int n = 0; n < shape.NonzeroPoleIndices().size(); ++n)
@@ -152,6 +153,13 @@ namespace IgaIntegrationUtilities
                                 shape_function_second_derivative(n, 0) = shape(3, indexU, indexV);
                                 shape_function_second_derivative(n, 1) = shape(5, indexU, indexV);
                                 shape_function_second_derivative(n, 2) = shape(4, indexU, indexV);
+                            }
+                            if (ShapeFunctionDerivativesOrder > 2)
+                            {
+                                shape_function_third_derivative(n, 0) = shape(6, indexU, indexV);
+                                shape_function_third_derivative(n, 1) = shape(7, indexU, indexV);
+                                shape_function_third_derivative(n, 2) = shape(8, indexU, indexV);
+                                shape_function_third_derivative(n, 3) = shape(9, indexU, indexV);
                             }
 
                             location += non_zero_control_points.back().Coordinates()*shape_function(n);
@@ -178,6 +186,12 @@ namespace IgaIntegrationUtilities
                             element->SetValue(
                                 SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES,
                                 shape_function_second_derivative);
+                        }
+                        if (ShapeFunctionDerivativesOrder > 2)
+                        {
+                            element->SetValue(
+                                SHAPE_FUNCTION_LOCAL_THIRD_DERIVATIVES,
+                                shape_function_third_derivative);
                         }
                         element->SetValue(
                             INTEGRATION_WEIGHT,
@@ -216,6 +230,7 @@ namespace IgaIntegrationUtilities
                             Vector shape_function(number_of_non_zero_cps);
                             Matrix shape_function_derivative(number_of_non_zero_cps, 2);
                             Matrix shape_function_second_derivative(number_of_non_zero_cps, 3);
+                            Matrix shape_function_third_derivative(number_of_non_zero_cps, 4);
 
                             array_1d<double, 3> location = ZeroVector(3);
                             for (int n = 0; n < number_of_non_zero_cps; ++n)
@@ -239,6 +254,13 @@ namespace IgaIntegrationUtilities
                                     shape_function_second_derivative(n, 0) = shape(3, indexU, indexV);
                                     shape_function_second_derivative(n, 1) = shape(5, indexU, indexV);
                                     shape_function_second_derivative(n, 2) = shape(4, indexU, indexV);
+                                }
+                                if (ShapeFunctionDerivativesOrder > 2)
+                                {
+                                    shape_function_third_derivative(n, 0) = shape(6, indexU, indexV);
+                                    shape_function_third_derivative(n, 1) = shape(7, indexU, indexV);
+                                    shape_function_third_derivative(n, 2) = shape(8, indexU, indexV);
+                                    shape_function_third_derivative(n, 3) = shape(9, indexU, indexV);
                                 }
 
                                 location += non_zero_control_points.back().Coordinates()*shape_function(n);
@@ -265,6 +287,12 @@ namespace IgaIntegrationUtilities
                                 element->SetValue(
                                     SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES,
                                     shape_function_second_derivative);
+                            }
+                            if (ShapeFunctionDerivativesOrder > 2)
+                            {
+                                element->SetValue(
+                                    SHAPE_FUNCTION_LOCAL_THIRD_DERIVATIVES,
+                                    shape_function_third_derivative);
                             }
                             element->SetValue(
                                 INTEGRATION_WEIGHT,
@@ -370,6 +398,7 @@ namespace IgaIntegrationUtilities
                     Vector shape_function(number_of_non_zero_cps_1);
                     Matrix shape_function_derivative(number_of_non_zero_cps_1, 2);
                     Matrix shape_function_second_derivative(number_of_non_zero_cps_1,3);
+                    Matrix shape_function_third_derivative(number_of_non_zero_cps_1, 4);
 
                     //KRATOS_WATCH(number_of_non_zero_cps_1)
 
@@ -396,6 +425,13 @@ namespace IgaIntegrationUtilities
                             shape_function_second_derivative(n, 0) = shape_1(3, indexU, indexV);
                             shape_function_second_derivative(n, 1) = shape_1(5, indexU, indexV);
                             shape_function_second_derivative(n, 2) = shape_1(4, indexU, indexV);
+                        }
+                        if (ShapeFunctionDerivativesOrder > 2)
+                        {
+                            shape_function_third_derivative(n, 0) = shape_1(6, indexU, indexV);
+                            shape_function_third_derivative(n, 1) = shape_1(7, indexU, indexV);
+                            shape_function_third_derivative(n, 2) = shape_1(8, indexU, indexV);
+                            shape_function_third_derivative(n, 3) = shape_1(9, indexU, indexV);
                         }
 
                         location += non_zero_control_points.back().Coordinates()*shape_function(n);
@@ -465,6 +501,10 @@ namespace IgaIntegrationUtilities
                     if (ShapeFunctionDerivativesOrder > 1)
                     {
                         element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, shape_function_second_derivative);
+                    }
+                    if (ShapeFunctionDerivativesOrder > 2)
+                    {
+                        element->SetValue(SHAPE_FUNCTION_LOCAL_THIRD_DERIVATIVES, shape_function_third_derivative);
                     }
 
                     if (ShapeFunctionDerivativesOrder > -1)

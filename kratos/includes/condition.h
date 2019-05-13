@@ -1001,33 +1001,33 @@ public:
 
     PropertiesType::Pointer pGetProperties()
     {
-        KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
-            << "Tryining to get the properties of " << Info()
-            << ", which are uninitialized." << std::endl;
+        // KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
+        //     << "Tryining to get the properties of " << Info()
+        //     << ", which are uninitialized." << std::endl;
         return mpProperties;
     }
 
     const PropertiesType::Pointer pGetProperties() const
     {
-        KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
-            << "Tryining to get the properties of " << Info()
-            << ", which are uninitialized." << std::endl;
+        // KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
+        //     << "Tryining to get the properties of " << Info()
+        //     << ", which are uninitialized." << std::endl;
         return mpProperties;
     }
 
     PropertiesType& GetProperties()
     {
-        KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
-            << "Tryining to get the properties of " << Info()
-            << ", which are uninitialized." << std::endl;
+        // KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
+        //     << "Tryining to get the properties of " << Info()
+        //     << ", which are uninitialized." << std::endl;
         return *mpProperties;
     }
 
     PropertiesType const& GetProperties() const
     {
-        KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
-            << "Tryining to get the properties of " << Info()
-            << ", which are uninitialized." << std::endl;
+        // KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
+        //     << "Tryining to get the properties of " << Info()
+        //     << ", which are uninitialized." << std::endl;
         return *mpProperties;
     }
 

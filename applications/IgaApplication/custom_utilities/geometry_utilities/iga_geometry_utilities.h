@@ -71,11 +71,34 @@ namespace IgaGeometryUtilities
                 for (int j = 0; j < rWorkingSpaceDimension; ++j)
                 {   
                     // rHessian(i, j): second derivative of coordinate i w.r.t. curvilinear coordinates j
-                    // (j = 1 -> 11, j = 2 -> 22, j = 3 -> 12)
+                    // (j = 0 -> 11, j = 1 -> 22, j = 2 -> 12)
                     rHessian(i, j) += rDDN_DDe(k, j) * coords[i];
                 }
             }
         }
+    }
+
+    /**
+     * @brief Function computes the second derivatives of the curvilinear base vectors
+     */
+    static void CalculateSecondDerivativesOfBaseVectors(const Element::GeometryType& rGeometry,
+        const Matrix& rDDDN_DDDe,
+        array_1d<double, 3> rDDg1_DD11,
+        array_1d<double, 3> rDDg1_DD12,
+        array_1d<double, 3> rDDg2_DD21,
+        array_1d<double, 3> rDDg2_DD22)
+    {
+        const unsigned int number_of_nodes = rGeometry.size();
+        
+        for (int k = 0; k < number_of_nodes; k++)
+        {
+            const array_1d<double, 3> coords = rGeometry[k].Coordinates();
+
+            rDDg1_DD11 += rDDDN_DDDe(k, 0) * coords;
+            rDDg1_DD12 += rDDDN_DDDe(k, 1) * coords;
+            rDDg2_DD21 += rDDDN_DDDe(k, 2) * coords;
+            rDDg2_DD22 += rDDDN_DDDe(k, 3) * coords;
+        }        
     }
 
 }

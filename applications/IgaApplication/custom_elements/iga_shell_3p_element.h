@@ -152,10 +152,17 @@ private:
         double  detJ;
         Vector g1; //base vector 1
         Vector g2; //base vector 2
-        Vector g3; //base vector 3 (not normalized!!)
+        Vector g3; //base vector 3
+        Vector g3_notnorm; // unnormalized base vector 3, in Kiendl (2011) a_3_tilde
         double dA; //differential area
+        Vector DDg1_DD11;  // second derivative of base vector 1 w.r.t. theta1
+        Vector DDg1_DD12;  // second derivative of base vector 1 w.r.t. theta1 and theta2
+        Vector DDg2_DD21;  // second derivative of base vector 2 w.r.t. theta1 and theta2
+        Vector DDg2_DD22;  // second derivative of base vector 2 w.r.t. theta2
         Matrix H; //Hessian
-        Matrix Q; //Transformation matrix Q from contravariant to cartesian basis
+        Matrix Q; //Transformation matrix Q from contravariant to local Cartesian basis (only for strains!!!)
+        Matrix TransCartToCov; // Transformation matrix from local Cartesian to covariant basis
+        Matrix TransCovToCart; // Transformation matrix from covariant to local Cartesian basis
 
         /**
         * The default constructor
@@ -177,8 +184,15 @@ private:
 
             dA = 1.0;
 
+            DDg1_DD11 = ZeroVector(Dimension);
+            DDg1_DD12 = ZeroVector(Dimension);
+            DDg2_DD21 = ZeroVector(Dimension);
+            DDg2_DD22 = ZeroVector(Dimension);
+
             H = ZeroMatrix(3, 3);
             Q = ZeroMatrix(3, 3);
+            TransCartToCov = ZeroMatrix(3, 3);
+            TransCovToCart = ZeroMatrix(3, 3);
         }
     };
 
@@ -280,6 +294,31 @@ private:
         SecondVariations& rSecondVariationsStrain,
         SecondVariations& rSecondVariationsCurvature,
         const MetricVariables& rMetric);
+    
+    /**
+     * @brief Stress recovery
+     */
+    void Calculate(
+        const Variable<double>& rVariable,
+        double& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Calculation of the shear force, shear force = derivative of moment
+     * @detail based on Carat ElementShell_NURBS_KL.cpp
+     */
+    void CalculateShearForce(
+        array_1d<double, 2>& rq, 
+        const MetricVariables& rActualMetric,
+        const ConstitutiveVariables& rConstitutiveVariablesCurvature);
+
+    void CalculateVariationDerivativeCurvature(
+        std::vector<array_1d<double, 3>>& rdk_cu, 
+        const MetricVariables& rActualMetric);
+
+    void IgaShell3pElement::CalculateDerivativeTransformationMatrices(
+        std::vector<Matrix>& rDQ_Dalpha_init,
+        std::vector<Matrix>& rDTransCartToCov_Dalpha_init);
     ///@}
 
     ///@}
