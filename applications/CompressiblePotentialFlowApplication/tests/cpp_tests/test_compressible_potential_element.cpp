@@ -74,11 +74,11 @@ namespace Kratos {
 
       pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
-      // Check the RHS values (the RHS is computed as the LHS x previous_solution,
-      // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      KRATOS_CHECK_NEAR(RHS(0), 0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(1), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(2), -0.6125, 1e-7);
+      std::vector<double> reference({0.615562, 0.0, -0.615562});
+
+      for (unsigned int i = 0; i < RHS.size(); i++) {
+        KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-5);
+      }
     }
 
     /** Checks the IncompressiblePotentialFlowElement element.
@@ -107,14 +107,23 @@ namespace Kratos {
 
       pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
-      // Check the RHS values (the RHS is computed as the LHS x previous_solution,
-      // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      KRATOS_CHECK_NEAR(LHS(0,0), 0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(0,1), -0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(0,2), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(1,1), 1.225, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(1,2), -0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(2,2), 0.6125, 1e-7);
+      Matrix reference = ZeroMatrix(3,3);
+
+      reference(0,0) = 0.615556;
+      reference(0,1) = -0.615562;
+
+      reference(1,0) = -0.615562;
+      reference(1,1) = 1.23112;
+      reference(1,2) = -0.615562;
+
+      reference(2,1) = -0.615562;
+      reference(2,2) = 0.615556;
+
+      for (unsigned int i = 0; i < reference.size1(); i++) {
+        for (unsigned int j = 0; j < reference.size1(); j++) {
+          KRATOS_CHECK_NEAR(LHS(i,j), reference(i,j), 1e-5);
+        }
+      }
     }
 
     KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementRHSWake, CompressiblePotentialApplicationFastSuite)
@@ -158,14 +167,11 @@ namespace Kratos {
 
       pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
-      // Check the RHS values (the RHS is computed as the LHS x previous_solution,
-      // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      KRATOS_CHECK_NEAR(RHS(0), 0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(1), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(2), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(3), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(4), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(RHS(5), -0.6125, 1e-7);
+      std::vector<double> reference({0.615562, 0.0, 0.0, 0.0, 0.0, -0.615562});
+
+      for (unsigned int i = 0; i < RHS.size(); i++) {
+        KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-5);
+      }
     }
 
     KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHSWake, CompressiblePotentialApplicationFastSuite)
@@ -211,47 +217,40 @@ namespace Kratos {
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      KRATOS_CHECK_NEAR(LHS(0,0), 0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(0,1), -0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(0,2), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(0,3), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(0,4), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(0,5), 0.0, 1e-7);
+      Matrix reference = ZeroMatrix(6,6);
 
-      KRATOS_CHECK_NEAR(LHS(1,0), -0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(1,1), 1.225, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(1,2), -0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(1,3), 0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(1,4), -1.225, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(1,5), 0.6125, 1e-7);
+      reference(0,0) = 0.615556;
+      reference(0,1) = -0.615562;
 
-      KRATOS_CHECK_NEAR(LHS(2,0), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(2,1), -0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(2,2), 0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(2,3), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(2,4), 0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(2,5), -0.6125, 1e-7);
+      reference(1,0) = -0.615562;
+      reference(1,1) = 1.23112;
+      reference(1,2) = -0.615562;
+      reference(1,3) = 0.615562;
+      reference(1,4) = -1.23112;
+      reference(1,5) = 0.615562;
 
-      KRATOS_CHECK_NEAR(LHS(3,0), -0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(3,1), 0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(3,2), 0, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(3,3), 0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(3,4), -0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(3,5), 0.0, 1e-7);
+      reference(2,1) = -0.615562;
+      reference(2,2) = 0.615556;
+      reference(2,4) = 0.615562;
+      reference(2,5) = -0.615556;
 
-      KRATOS_CHECK_NEAR(LHS(4,0), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(4,1), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(4,2), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(4,3), -0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(4,4), 1.225, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(4,5), -0.6125, 1e-7);
+      reference(3,0) = -0.615556;
+      reference(3,1) = 0.615562;
+      reference(3,3) = 0.615556;
+      reference(3,4) = -0.615562;
 
-      KRATOS_CHECK_NEAR(LHS(5,0), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(5,1), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(5,2), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(5,3), 0.0, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(5,4), -0.6125, 1e-7);
-      KRATOS_CHECK_NEAR(LHS(5,5), 0.6125, 1e-7);
+      reference(4,3) = -0.615562;
+      reference(4,4) = 1.23112;
+      reference(4,5) = -0.615562;
+
+      reference(5,4) = -0.615562;
+      reference(5,5) = 0.615556;
+
+      for (unsigned int i = 0; i < reference.size1(); i++) {
+        for (unsigned int j = 0; j < reference.size1(); j++) {
+          KRATOS_CHECK_NEAR(LHS(i,j), reference(i,j), 1e-5);
+        }
+      }
     }
 
     /** Checks the IncompressiblePotentialFlowElement element.
