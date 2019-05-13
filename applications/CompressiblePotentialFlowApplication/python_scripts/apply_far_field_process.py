@@ -71,7 +71,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 node.SetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL,0,initial_potential + self.inlet_potential_0)
 
     def _FindFarthestUpstreamBoundaryNode(self):
-        # The farthes upstream boundary node is the node with smallest
+        # The farthest upstream boundary node is the node with smallest
         # projection of its position vector onto the free stream velocity.
 
         # Find the farthest upstream boundary node
