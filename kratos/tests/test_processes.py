@@ -1651,6 +1651,10 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_Y))
             self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_Z))
 
+def test_apply_component_table_process(self):
+    
+
+
 def SetNodalValuesForPointOutputProcesses(model_part):
     time = model_part.ProcessInfo[KratosMultiphysics.TIME]
     vec = KratosMultiphysics.Vector(3)
