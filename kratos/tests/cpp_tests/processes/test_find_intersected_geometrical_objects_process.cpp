@@ -300,7 +300,7 @@ namespace Kratos {
             r_skin_part.CreateNewCondition("SurfaceCondition3D3N", number_of_conditions + 1, {{ 9, 10, 11 }}, p_properties_1);
             r_skin_part.CreateNewCondition("SurfaceCondition3D3N", number_of_conditions + 2, {{ 10, 11, 12 }}, p_properties_1);
 
-            FindIntersectedGeometricalObjectsWithOBBProcess find_intersections(r_surface_part, r_skin_part, 0.1, false);
+            FindIntersectedGeometricalObjectsWithOBBProcess find_intersections(r_surface_part, r_skin_part, 0.1);
             find_intersections.Execute();
 
 //             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
@@ -356,7 +356,7 @@ namespace Kratos {
             r_skin_part.CreateNewCondition("SurfaceCondition3D3N", 3, {{ 5, 6, 7 }}, p_properties_1);
             r_skin_part.CreateNewCondition("SurfaceCondition3D3N", 4, {{ 7, 8, 5 }}, p_properties_1);
 
-            FindIntersectedGeometricalObjectsWithOBBProcess find_intersections(r_surface_part, r_skin_part, 0.1, false);
+            FindIntersectedGeometricalObjectsWithOBBProcess find_intersections(r_surface_part, r_skin_part, 0.1);
             find_intersections.Execute();
 
 //             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
@@ -400,7 +400,7 @@ namespace Kratos {
             // Now we create the "conditions"
             r_skin_part.CreateNewCondition("SurfaceCondition3D4N", 2, {{ 5, 6, 7, 8 }}, p_properties_1);
 
-            FindIntersectedGeometricalObjectsWithOBBProcess find_intersections(r_surface_part, r_skin_part, 0.1, false);
+            FindIntersectedGeometricalObjectsWithOBBProcess find_intersections(r_surface_part, r_skin_part, 0.1);
             find_intersections.Execute();
 
 //             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
@@ -444,7 +444,7 @@ namespace Kratos {
             r_skin_part.CreateNewCondition("SurfaceCondition3D3N", 2, {{ 5, 6, 7 }}, p_properties_1);
             r_skin_part.CreateNewCondition("SurfaceCondition3D3N", 3, {{ 7, 8, 5 }}, p_properties_1);
 
-            FindIntersectedGeometricalObjectsWithOBBProcess find_intersections(r_surface_part, r_skin_part, 0.1, false);
+            FindIntersectedGeometricalObjectsWithOBBProcess find_intersections(r_surface_part, r_skin_part, 0.1);
             find_intersections.Execute();
 
 //             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
@@ -488,7 +488,7 @@ namespace Kratos {
             // Now we create the "conditions"
             r_skin_part.CreateNewCondition("SurfaceCondition3D4N", 3, {{ 5, 6, 7, 8 }}, p_properties_1);
 
-            FindIntersectedGeometricalObjectsWithOBBProcess find_intersections(r_surface_part, r_skin_part, 0.1, false);
+            FindIntersectedGeometricalObjectsWithOBBProcess find_intersections(r_surface_part, r_skin_part, 0.1);
             find_intersections.Execute();
 
 //             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
