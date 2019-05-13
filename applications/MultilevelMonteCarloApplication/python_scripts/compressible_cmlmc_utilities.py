@@ -479,7 +479,7 @@ class MultilevelMonteCarlo(object):
             if (self.batches_launched[batch] is not True):
                 self.batches_launched[batch] = True
                 # batch_results = []
-                for level in range(self.current_number_levels+1):
+                for level in range(len(self.batches_number_samples[batch])):
                     batch_results = []
                     for instance in range (self.batches_number_samples[batch][level]):
                         self.running_number_samples[level] = self.running_number_samples[level] + 1
