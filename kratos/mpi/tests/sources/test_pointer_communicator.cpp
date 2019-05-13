@@ -167,6 +167,19 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicatorConstructByFunctor, KratosMPICo
             KRATOS_CHECK_EQUAL(result.second[k], gp.GetRank());
     }
 
+    //here we check if Update works correctly
+    pair_proxy.Update();
+    for(unsigned int i=0; i<indices.size(); ++i)
+    {
+        auto& gp = gp_list_reference[i];
+        auto result = pair_proxy.Get(gp); //this is now a pair
+
+        KRATOS_CHECK_EQUAL(result.first, gp.GetRank());
+
+        for(unsigned int k=0; k<3; ++k)
+            KRATOS_CHECK_EQUAL(result.second[k], gp.GetRank());
+    }   
+
 };
 
 
