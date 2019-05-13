@@ -79,7 +79,7 @@ class PotentialFlowSolver(FluidSolver):
 
         # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE,self.main_model_part)
 
-        KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Fluid solver DOFs added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("PotentialFlowSolver", "Fluid solver DOFs added correctly.")
 
     def Initialize(self):
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
