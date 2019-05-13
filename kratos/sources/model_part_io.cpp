@@ -572,12 +572,22 @@ namespace Kratos
             if(mpStream->eof())
                 break;
             ReadBlockName(word);
-            if (word == "Elements")
+            if (word == "Nodes") {
+                // This call does nothing useful for ModelPartIO itself
+                // but, if a derived class reorders nodes, it gives
+                // a chance to the derived class to process and renumber
+                // the nodes before reading elements/conditions.
+                ScanNodeBlock();
+            }
+            else if (word == "Elements") {
                 FillNodalConnectivitiesFromElementBlock(rAuxConnectivities);
-            else if (word == "Conditions")
+            }
+            else if (word == "Conditions") {
                 FillNodalConnectivitiesFromConditionBlock(rAuxConnectivities);
-            else
+            }
+            else {
                 SkipBlock(word);
+            }
         }
 
         // Check that node indices are consecutive
@@ -4706,6 +4716,26 @@ namespace Kratos
         partitions[NumberOfThreads] = number_of_rows;
         for(unsigned int i = 1; i<NumberOfThreads; i++)
             partitions[i] = partitions[i-1] + partition_size ;
+    }
+
+    void ModelPartIO::ScanNodeBlock()
+    {
+        std::string word;
+        SizeType node_id;
+        while(!mpStream->eof())
+        {
+            ReadWord(word);
+            if(CheckEndBlock("Nodes", word))
+                break;
+
+            ExtractValue(word, node_id);
+            // Pass read id to reordering ("initialize" the reordering for this node)
+            ReorderedNodeId(node_id);
+
+            ReadWord(word); // skip X coordinate
+            ReadWord(word); // skip Y
+            ReadWord(word); // skip Z
+        }
     }
 
     /// Unaccessible assignment operator.

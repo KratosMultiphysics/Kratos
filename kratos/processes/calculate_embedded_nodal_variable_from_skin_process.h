@@ -155,7 +155,7 @@ inline void EmbeddedNodalVariableFromSkinTypeHelperClass<array_1d<double, 3>>::A
 }
 
 template <class TVarType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class KRATOS_API(KRATOS_CORE) CalculateEmbeddedNodalVariableFromSkinProcess : public Process
+class CalculateEmbeddedNodalVariableFromSkinProcess : public Process
 {
 public:
 
@@ -215,6 +215,7 @@ public:
             "embedded_nodal_variable_name": "",
             "level_set_type": "",
             "buffer_position": 0,
+            "gradient_penalty_coefficient": 0.0,
             "aux_model_part_name": "IntersectedElementsModelPart",
             "linear_solver_settings": {
                 "preconditioner_type": "amg",
@@ -268,6 +269,7 @@ public:
         Parameters LinearSolverSettings,
         const Variable<TVarType> &rSkinVariable,
         const Variable<TVarType> &rEmbeddedNodalVariable,
+        const double GradientPenaltyCoefficient = 0.0,
         const std::string LevelSetType = "continuous",
         const unsigned int BufferPosition = 0,
         const std::string AuxPartName = "IntersectedElementsModelPart")
@@ -275,6 +277,7 @@ public:
           mLevelSetType(LevelSetType),
           mBufferPosition(BufferPosition),
           mAuxModelPartName(AuxPartName),
+          mGradientPenaltyCoefficient(GradientPenaltyCoefficient),
           mrBaseModelPart(rBaseModelPart),
           mrSkinModelPart(rSkinModelPart),
           mrSkinVariable(rSkinVariable),
@@ -420,6 +423,7 @@ protected:
     const std::string mLevelSetType;
     const unsigned int mBufferPosition;
     const std::string mAuxModelPartName;
+    const double mGradientPenaltyCoefficient;
 
     ModelPart& mrBaseModelPart;
     ModelPart& mrSkinModelPart;
@@ -462,7 +466,9 @@ protected:
 
         r_int_elems_model_part.SetBufferSize(1);
         r_int_elems_model_part.CreateNewProperties(0, 0);
-        r_int_elems_model_part.SetProcessInfo(mrBaseModelPart.pGetProcessInfo());
+
+        // Set the gradient penalty coefficient in the auxiliary model part process info
+        r_int_elems_model_part.GetProcessInfo()[GRADIENT_PENALTY_COEFFICIENT] = mGradientPenaltyCoefficient;
 
         // Add the minimization problem auxiliary variables
         this->AddIntersectedElementsVariables(r_int_elems_model_part);
@@ -571,7 +577,7 @@ protected:
                                 this->AddEdgeNodes(r_i_edge_geom, rModelPart);
 
                                 // Create a new element with the intersected edge geometry and fake properties
-                                auto p_element = Kratos::make_shared<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(
+                                Element::Pointer p_element = Kratos::make_intrusive<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(
                                     new_elem_id,
                                     this->pSetEdgeElementGeometry(rModelPart, r_i_edge_geom, i_edge_pair),
                                     rModelPart.pGetProperties(0));
@@ -657,6 +663,7 @@ protected:
             rSettings["linear_solver_settings"],
             KratosComponents<Variable<TVarType>>::Get(rSettings["skin_variable_name"].GetString()),
             KratosComponents<Variable<TVarType>>::Get(rSettings["embedded_nodal_variable_name"].GetString()),
+            rSettings["gradient_penalty_coefficient"].GetDouble(),
             rSettings["level_set_type"].GetString(),
             rSettings["buffer_position"].GetInt(),
             rSettings["aux_model_part_name"].GetString())

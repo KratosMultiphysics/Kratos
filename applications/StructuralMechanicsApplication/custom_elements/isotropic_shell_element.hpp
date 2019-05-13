@@ -56,7 +56,7 @@ public:
     ///@{
 
     /// Counted pointer of IsotropicShellElement
-    KRATOS_CLASS_POINTER_DEFINITION( IsotropicShellElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( IsotropicShellElement );
 
     ///@}
     ///@name Life Cycle

@@ -8,6 +8,7 @@
 //
 
 #include "delaunay_meshing_application_variables.h"
+#include "utilities/stl_io.h"
 
 namespace Kratos
 {
@@ -16,9 +17,9 @@ namespace Kratos
   typedef array_1d<double,3> Vector3;
   typedef array_1d<double,6> Vector6;
 
-  typedef Kratos::weak_ptr<Node<3> > NodeWeakPtrType;
-  typedef Kratos::weak_ptr<Element> ElementWeakPtrType;
-  typedef Kratos::weak_ptr<Condition> ConditionWeakPtrType;
+  typedef Node<3>::WeakPointer NodeWeakPtrType;
+  typedef Element::WeakPointer ElementWeakPtrType;
+  typedef Condition::WeakPointer ConditionWeakPtrType;
 
   typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
   typedef WeakPointerVector<Element> ElementWeakPtrVectorType;

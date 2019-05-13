@@ -33,7 +33,7 @@ class KRATOS_API(DEM_APPLICATION) SphericParticle : public DiscreteElement
 public:
 
 /// Pointer definition of SphericParticle
-KRATOS_CLASS_POINTER_DEFINITION(SphericParticle);
+KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SphericParticle);
 
 typedef WeakPointerVector<Condition> ConditionWeakVectorType;
 typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;

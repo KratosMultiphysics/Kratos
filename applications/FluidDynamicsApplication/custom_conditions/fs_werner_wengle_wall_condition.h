@@ -105,7 +105,7 @@ public:
 	///@{
 
 	/// Pointer definition of FSWernerWengleWallCondition
-	KRATOS_CLASS_POINTER_DEFINITION(FSWernerWengleWallCondition);
+	KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FSWernerWengleWallCondition);
 
 	typedef Node < 3 > NodeType;
 
@@ -220,7 +220,7 @@ public:
 			NodesArrayType const& ThisNodes,
 			PropertiesType::Pointer pProperties) const override
 	{
-		return Kratos::make_shared<FSWernerWengleWallCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
+		return Kratos::make_intrusive<FSWernerWengleWallCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
 	}
 
 	/// Create a new FSWernerWengleWallCondition object.
@@ -234,7 +234,7 @@ public:
 		GeometryType::Pointer pGeom,
 		PropertiesType::Pointer pProperties) const override
 	{
-		return Kratos::make_shared<FSWernerWengleWallCondition>(NewId, pGeom, pProperties);
+		return Kratos::make_intrusive<FSWernerWengleWallCondition>(NewId, pGeom, pProperties);
     }
 
 	/// Find the condition's parent element.
