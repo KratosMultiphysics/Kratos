@@ -65,16 +65,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         self.mesh = self.model_part.GetMesh(settings["mesh_id"].GetInt())
         self.is_fixed = settings["constrained"].GetBool()
 
-        self.value_is_numeric = False
-        if settings["value"].IsNumber():
-            self.value_is_numeric = True
-            self.value = settings["value"].GetDouble()
-        else:
-            self.function_string = settings["value"].GetString()
-            self.aux_function = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string, settings["local_axes"])
-
-            if self.aux_function.DependsOnSpace():
-                self.cpp_apply_function_utility = KratosMultiphysics.ApplyFunctionToNodesUtility(self.mesh.Nodes, self.aux_function )
+        self._InitializeMembers(settings)
 
         # Construct a variable_utils object to speedup fixing
         self.variable_utils = KratosMultiphysics.VariableUtils()
@@ -103,14 +94,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             if self.is_fixed:
                 self.variable_utils.ApplyFixity(self.variable, self.is_fixed, self.mesh.Nodes)
 
-            if self.value_is_numeric:
-                self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
-            else:
-                if self.aux_function.DependsOnSpace() == False: #depends on time only
-                    self.value = self.aux_function.CallFunction(0.0,0.0,0.0,current_time)
-                    self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
-                else: #most general case - space varying function (possibly also time varying)
-                    self.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
+            self._SetVariableValue()
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -125,3 +109,25 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
                 self.variable_utils.ApplyFixity(self.variable, fixity_status, self.mesh.Nodes)
 
         self.step_is_active = False
+
+    def _InitializeMembers(self, settings):
+        self.value_is_numeric = False
+        if settings["value"].IsNumber():
+            self.value_is_numeric = True
+            self.value = settings["value"].GetDouble()
+        else:
+            self.function_string = settings["value"].GetString()
+            self.aux_function = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string, settings["local_axes"])
+
+            if self.aux_function.DependsOnSpace():
+                self.cpp_apply_function_utility = KratosMultiphysics.ApplyFunctionToNodesUtility(self.mesh.Nodes, self.aux_function )
+
+    def _SetVariableValue(self):
+        if self.value_is_numeric:
+            self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
+        else:
+            if self.aux_function.DependsOnSpace() == False: #depends on time only
+                self.value = self.aux_function.CallFunction(0.0,0.0,0.0,current_time)
+                self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
+            else: #most general case - space varying function (possibly also time varying)
+                self.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
