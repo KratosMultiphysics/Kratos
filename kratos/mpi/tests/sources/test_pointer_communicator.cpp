@@ -15,6 +15,8 @@
 #include "includes/parallel_environment.h"
 #include "utilities/global_pointer_utilities.h"
 #include "utilities/pointer_communicator.h"
+#include "utilities/retrieve_global_pointers_by_index_functor.h"
+#include "utilities/get_value_functor.h"
 
 #include "testing/testing.h"
 
@@ -104,81 +106,37 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicatorConstructByFunctor, KratosMPICo
     for(int i=current_rank+1; i<=world_size; ++i)
         indices.push_back(i);
 
-    //hide the utility in a functor
-    class GatherNodesByIdFunctor
-    {
-    public:
+    //here i obtain the reference list
+    auto gp_list_reference = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(mp.Nodes(), indices, r_default_comm );
 
-        GatherNodesByIdFunctor(
-            const ModelPart& rModelPart,
-            const std::vector<int>& Indices)
-            : mrModelPart(rModelPart), mIndices(Indices)
-        {}
 
-        std::vector<GlobalPointer<Node<3>>> operator()(const DataCommunicator& rComm) const
-        {
-            return GlobalPointerUtilities::RetrieveGlobalIndexedPointers(mrModelPart.Nodes(), mIndices, rComm );
-        }
+    //************************** VERSION WITH MINIMAL BOILERPLATE ***********************************
+    //define the pointer communicator - note that a functor is employed here, so to avoid boilerplate
+    GlobalPointerCommunicator< Node<3>> pointer_comm(
+                                            r_default_comm, 
+                                            RetrieveGlobalPointersByIndex<ModelPart::NodesContainerType>(mp.Nodes(), indices) 
+                                        );
 
-    private:
-        const ModelPart& mrModelPart;
-        const std::vector<int> mIndices;
-    };
-
-    GlobalPointerCommunicator< Node<3>> pointer_comm(r_default_comm, GatherNodesByIdFunctor(mp, indices) );
-
-    auto double_proxy = pointer_comm.Apply(
-                            [](GlobalPointer< Node<3> >& gp)->double
-    {return gp->GetValue(TEMPERATURE);}
-                        );
-
-    auto gp_list_reference = GatherNodesByIdFunctor(mp, indices)(r_default_comm);
+    auto temperature_proxy = pointer_comm.Apply( GetValueFunctor<Variable<double>>(TEMPERATURE) );
 
     for(unsigned int i=0; i<indices.size(); ++i)
     {
-        int expected_id = indices[i];
         auto& gp = gp_list_reference[i];
-        KRATOS_CHECK_EQUAL(double_proxy.Get(gp), gp.GetRank());
-        KRATOS_CHECK_EQUAL(double_proxy.Get(gp), expected_id-1);
+        KRATOS_CHECK_EQUAL(temperature_proxy.Get(gp), gp.GetRank());
+        KRATOS_CHECK_EQUAL(temperature_proxy.Get(gp), indices[i]-1);
+    }
+    //**********************************************************************************************
+
+
+    //just checking that update works (check is simply repeated after update)
+    temperature_proxy.Update();
+    for(unsigned int i=0; i<indices.size(); ++i)
+    {
+        auto& gp = gp_list_reference[i];
+        KRATOS_CHECK_EQUAL(temperature_proxy.Get(gp), gp_list_reference[i].GetRank());
+        KRATOS_CHECK_EQUAL(temperature_proxy.Get(gp), indices[i]-1);
     }
 
-
-    //now let's try to retrieve at once TEMPERATURE, and Coordinates of the node
-    //here i define a simple_functor to return the data, even though this is easily achieved by a lambda
-    class ResultFunctor
-    {
-        public:
-            std::pair<double, array_1d<double,3>> operator()(GlobalPointer< Node<3> >& gp)
-            {
-                return std::make_pair(gp->GetValue(TEMPERATURE), gp->Coordinates() );
-            }
-    };
-
-    auto pair_proxy = pointer_comm.Apply(ResultFunctor());
-
-    for(unsigned int i=0; i<indices.size(); ++i)
-    {
-        auto& gp = gp_list_reference[i];
-        auto result = pair_proxy.Get(gp); //this is now a pair
-
-        KRATOS_CHECK_EQUAL(result.first, gp.GetRank());
-
-        for(unsigned int k=0; k<3; ++k)
-            KRATOS_CHECK_EQUAL(result.second[k], gp.GetRank());
-    }
-
-    //here we check if Update works correctly
-    pair_proxy.Update();
-    for(unsigned int i=0; i<indices.size(); ++i)
-    {
-        auto& gp = gp_list_reference[i];
-        auto result = pair_proxy.Get(gp); //this is now a pair
-
-        KRATOS_CHECK_EQUAL(result.first, gp.GetRank());
-
-        for(unsigned int k=0; k<3; ++k)
-            KRATOS_CHECK_EQUAL(result.second[k], gp.GetRank());
-    }   
 
 };
 
