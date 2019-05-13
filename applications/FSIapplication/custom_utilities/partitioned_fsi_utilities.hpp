@@ -141,8 +141,7 @@ public:
         double A; // Fake double to check the type from
         unsigned int block_size = typeid(TValueType).hash_code() == typeid(A).hash_code() ? 1 : TDim;
         int local_number_of_nodes = (rInterfaceModelPart.GetCommunicator().LocalMesh().NumberOfNodes()) * block_size;
-        rInterfaceModelPart.GetCommunicator().SumAll(local_number_of_nodes);
-        return local_number_of_nodes;
+        return rInterfaceModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_number_of_nodes);
     }
 
     /**
@@ -163,9 +162,7 @@ public:
             interface_area += rGeom.Length();
         }
 
-        rInterfaceModelPart.GetCommunicator().SumAll(interface_area);
-
-        return interface_area;
+        return rInterfaceModelPart.GetCommunicator().GetDataCommunicator().SumAll(interface_area);
     }
 
     /**
@@ -410,16 +407,20 @@ public:
             uz_mesh_norm += std::pow(it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT_Z), 2);
         }
 
-        rInterfaceModelPart.GetCommunicator().SumAll(p_norm);
-        rInterfaceModelPart.GetCommunicator().SumAll(vx_norm);
-        rInterfaceModelPart.GetCommunicator().SumAll(vy_norm);
-        rInterfaceModelPart.GetCommunicator().SumAll(vz_norm);
-        rInterfaceModelPart.GetCommunicator().SumAll(rx_norm);
-        rInterfaceModelPart.GetCommunicator().SumAll(ry_norm);
-        rInterfaceModelPart.GetCommunicator().SumAll(rz_norm);
-        rInterfaceModelPart.GetCommunicator().SumAll(ux_mesh_norm);
-        rInterfaceModelPart.GetCommunicator().SumAll(uy_mesh_norm);
-        rInterfaceModelPart.GetCommunicator().SumAll(uz_mesh_norm);
+        std::vector<double> local_data = {p_norm, vx_norm, vy_norm, vz_norm, rx_norm, ry_norm, rz_norm, ux_mesh_norm, uy_mesh_norm, uz_mesh_norm};
+        std::vector<double> global_sum = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        rInterfaceModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_data, global_sum);
+
+        p_norm       = global_sum[0];
+        vx_norm      = global_sum[1];
+        vy_norm      = global_sum[2];
+        vz_norm      = global_sum[3];
+        rx_norm      = global_sum[4];
+        ry_norm      = global_sum[5];
+        rz_norm      = global_sum[6];
+        ux_mesh_norm = global_sum[7];
+        uy_mesh_norm = global_sum[8];
+        uz_mesh_norm = global_sum[9];
 
         if (rInterfaceModelPart.GetCommunicator().MyPID() == 0)
         {
@@ -461,9 +462,13 @@ public:
             uz_norm += std::pow(disp[2], 2);
         }
 
-        rInterfaceModelPart.GetCommunicator().SumAll(ux_norm);
-        rInterfaceModelPart.GetCommunicator().SumAll(uy_norm);
-        rInterfaceModelPart.GetCommunicator().SumAll(uz_norm);
+        std::vector<double> local_data = {ux_norm, uy_norm, uz_norm};
+        std::vector<double> global_sum = {0, 0, 0};
+        rInterfaceModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_data, global_sum);
+
+        ux_norm = global_sum[0];
+        uy_norm = global_sum[1];
+        uz_norm = global_sum[2];
 
         if (rInterfaceModelPart.GetCommunicator().MyPID() == 0)
         {
