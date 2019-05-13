@@ -46,7 +46,7 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
         super(KratosPotentialFlowSolver, self).SolveSolutionStep()
 
         self.conversion_process.ExecuteFinalizeSolutionStep()
-        self.wake_process.CleanMarking()
+        # self.wake_process.CleanMarking()
 
     def _GetParallelType(self):
         return self.project_parameters["problem_data"]["parallel_type"].GetString()

@@ -58,8 +58,8 @@
             "process_name"  : "FarFieldProcess",
             "Parameters"    : {
                 "model_part_name"   : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
-                "inlet_phi"         : 1.0,
-                "velocity_infinity" : [10.0,0.0,0.0],
+                "inlet_potential"         : 1.0,
+                "free_stream_velocity" : [10.0,0.0,0.0],
                 "free_stream_density": 1.225
             }
         },{
@@ -76,19 +76,7 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "ComputeLiftProcess3D",
             "Parameters"    : {
-                "model_part_name" : "FluidModelPart.Body2D_Body",
-                "velocity_infinity" : [10.0,0.0,0.0],
-                "create_output_file": true
-            }
-        },{
-            "python_module" : "compute_moment_process",
-            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
-            "process_name"  : "ComputeMomentProcess3D",
-            "Parameters"    : {
-                "reference_point" : [0.0,0.0,0.0],
-                "model_part_name" : "FluidModelPart.Body2D_Body",
-                "velocity_infinity" : [10.0,0.0,0.0],
-                "create_output_file": true
+                "model_part_name" : "FluidModelPart.Body2D_Body"
             }
         },{
             "python_module" : "compute_forces_on_nodes_process",
