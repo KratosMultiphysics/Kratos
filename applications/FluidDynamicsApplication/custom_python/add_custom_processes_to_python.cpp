@@ -38,6 +38,7 @@
 #include "custom_processes/mass_conservation_check_process.h"
 #include "custom_processes/move_rotor_process.h"
 #include "custom_processes/two_fluids_inlet_process.h"
+#include "custom_processes/divergence_calculation_process.h"
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/linear_solver.h"
@@ -140,6 +141,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
     (m,"TwoFluidsInletProcess")
     .def(py::init< ModelPart&, Parameters&, Process::Pointer >())
     .def("SmoothDistanceField", &TwoFluidsInletProcess::SmoothDistanceField)
+    ;
+
+    py::class_<DivergenceCalculationProcess, DivergenceCalculationProcess::Pointer, Process >
+        (m, "DivergenceCalculationProcess")
+        .def(py::init<ModelPart&>())
     ;
 }
 
