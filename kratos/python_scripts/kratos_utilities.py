@@ -62,7 +62,7 @@ def IsMPIAvailable():
     """Check if the KratosMPI module (the MPI core) is available.
     """
     kratos_path = GetKratosMultiphysicsPath()
-    import os, re
+    import os
 
     return "mpi" in os.listdir(kratos_path)
 
