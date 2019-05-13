@@ -153,14 +153,15 @@ namespace Kratos
         int n_nodes_local = rNewNodesVect.size();
         int n_conds_local = rNewCondsVect.size();
         int n_nodes_local_scansum, n_conds_local_scansum;
-        mrModelPart.GetCommunicator().ScanSum(n_nodes_local, n_nodes_local_scansum);
-        mrModelPart.GetCommunicator().ScanSum(n_conds_local, n_conds_local_scansum);
+        const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
+        n_nodes_local_scansum = r_comm.ScanSum(n_nodes_local);
+        n_conds_local_scansum = r_comm.ScanSum(n_conds_local);
 
         // Origin model part number of entities
         int n_nodes_orig = mrModelPart.NumberOfNodes();
         int n_conds_orig = mrModelPart.NumberOfConditions();
-        mrModelPart.GetCommunicator().SumAll(n_nodes_orig);
-        mrModelPart.GetCommunicator().SumAll(n_conds_orig);
+        n_nodes_orig = r_comm.SumAll(n_nodes_orig);
+        n_conds_orig = r_comm.SumAll(n_nodes_orig);
 
         // Initialize the new ids. values
         std::size_t new_node_id(n_nodes_orig + n_nodes_local_scansum - n_nodes_local + 1);
@@ -186,7 +187,7 @@ namespace Kratos
         mrSkinModelPart.AddConditions(rNewCondsVect.begin(), rNewCondsVect.end());
 
         // Wait for all nodes to renumber its nodes
-        mrModelPart.GetCommunicator().Barrier();
+        r_comm.Barrier();
     }
 
     template<std::size_t TDim>
