@@ -276,11 +276,6 @@ private:
 
     MmgUtilities<TMMGLibrary> mMmmgUtilities;    /// The MMG utilities class
 
-    FrameworkEulerLagrange mFramework;           /// The framework
-
-    DiscretizationOption mDiscretization;        /// The discretization option
-    bool mRemoveRegions;                         /// Cuttig-out specified regions during surface remeshing
-
     std::unordered_map<IndexType,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
 
     ///@}
@@ -298,7 +293,6 @@ private:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "save_mdpa_file"                       : false,
             "echo_level"                           : 0
         })" );
 

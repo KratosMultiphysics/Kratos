@@ -95,7 +95,28 @@ void MmgIO<TMMGLibrary>::WriteModelPart(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
+    // The auxiliar color maps
+    ColorsMapType aux_ref_cond, aux_ref_elem;
 
+    // We initialize the mesh data with the given modelpart
+    mMmmgUtilities.GenerateMeshDataFromModelPart(rModelPart, mColors, aux_ref_cond, aux_ref_elem);
+
+    // We initialize the solution data with the given modelpart
+    mMmmgUtilities.GenerateSolDataFromModelPart(rModelPart);
+
+    // Check if the number of given entities match with mesh size
+    mMmmgUtilities.CheckMeshData();
+
+    // Retrieving current step
+    const IndexType step = rModelPart.GetProcessInfo()[STEP];
+
+    // Automatically save the mesh
+    mMmmgUtilities.OutputMesh(mFilename, false, step);
+
+    // Automatically save the solution
+    mMmmgUtilities.OutputSol(mFilename, false, step);
+
+    // TODO: Write the colors to a JSON
 
     KRATOS_CATCH("");
 }
