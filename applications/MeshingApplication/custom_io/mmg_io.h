@@ -161,13 +161,6 @@ public:
         const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR|IO::SKIP_TIMER
         );
 
-    /// Constructor with stream.
-    MmgIO(
-        Kratos::shared_ptr<std::iostream> pStream,
-        Parameters ThisParameters = Parameters(R"({})"),
-        const Flags Options = IO::NOT_IGNORE_VARIABLES_ERROR|IO::SKIP_TIMER
-        );
-
     /// Destructor.
     ~MmgIO() override = default;
 
@@ -278,8 +271,6 @@ private:
     std::string mFilename;                       /// The name of the file
     Parameters mThisParameters;                  /// The parameters (can be used for general pourposes)
     Flags mOptions;                              /// Configuration flags
-
-    Kratos::shared_ptr<std::iostream> mpStream;  /// Pointer to the stream
 
     IndexType mEchoLevel = 0;                    /// The echo level
 

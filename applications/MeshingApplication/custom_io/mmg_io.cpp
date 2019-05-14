@@ -58,62 +58,15 @@ MmgIO<TMMGLibrary>::MmgIO(
     , mThisParameters(ThisParameters)
     , mOptions(Options)
 {
-    Kratos::shared_ptr<std::fstream> pFile = Kratos::make_shared<std::fstream>();
-    std::fstream::openmode OpenMode;
-
     Parameters default_parameters = GetDefaultParameters();
     mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
-    // Set the mode
-    if (mOptions.Is(IO::READ)) {
-        OpenMode = std::fstream::in;
-    } else if (mOptions.Is(IO::APPEND)) {
-        OpenMode = std::fstream::in | std::fstream::app;
-    } else if (mOptions.Is(IO::WRITE)) {
-        OpenMode = std::fstream::out;
-    } else {
-        // If none of the READ, WRITE or APPEND are defined we will take READ as
-        // default.
-        OpenMode = std::fstream::in;
+    // Check the mode
+    if (mOptions.Is(IO::APPEND)) {
+        KRATOS_ERROR << "APPEND not compatible with MmgIO" << std::endl;
     }
 
-    pFile->open(mFilename.c_str(), OpenMode);
-
-    KRATOS_ERROR_IF_NOT(pFile->is_open()) << "Error opening mdpa file : " << mFilename.c_str() << std::endl;
-
-    // Store the pointer as a regular std::iostream
-    mpStream = pFile;
-
     if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOuputFile(rFilename + ".time");
-
-    /* We restart the MMG mesh and solution */
-    mEchoLevel = mThisParameters["echo_level"].GetInt();
-    mMmmgUtilities.SetEchoLevel(mEchoLevel);
-    mMmmgUtilities.InitMesh();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<MMGLibrary TMMGLibrary>
-MmgIO<TMMGLibrary>::MmgIO(
-    Kratos::shared_ptr<std::iostream> Stream,
-    Parameters ThisParameters,
-    const Flags Options
-    )
-    : mThisParameters(ThisParameters)
-     ,mOptions(Options)
-{
-    Parameters default_parameters = GetDefaultParameters();
-    mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-
-    // Check if the pointer is valid
-    KRATOS_ERROR_IF(Stream == nullptr) << "Error: ModelPartIO Stream is invalid " << std::endl;
-
-    // Check if the pointer was .reset() or never initialized and if its a NULL pointer)
-    KRATOS_ERROR_IF(Stream == nullptr || Stream == Kratos::shared_ptr<std::iostream>(NULL)) << "Error: ModelPartIO Stream is invalid " << std::endl;
-
-    mpStream = Stream;
 
     /* We restart the MMG mesh and solution */
     mEchoLevel = mThisParameters["echo_level"].GetInt();
