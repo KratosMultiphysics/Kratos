@@ -29,83 +29,82 @@
 namespace Kratos
 {
 
-    class IgaEdgeCableElement
-        : public IgaBaseElement
+class IgaEdgeCableElement
+    : public IgaBaseElement
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION( IgaEdgeCableElement );
+
+    IgaEdgeCableElement(IndexType NewId, GeometryType::Pointer pGeometry)
+        : IgaBaseElement(NewId, pGeometry)
+    {};
+
+    // Constructor using an array of nodes with properties
+    IgaEdgeCableElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+        : IgaBaseElement(NewId, pGeometry, pProperties)
+    {};
+
+    // default constructor necessary for serialization
+    IgaEdgeCableElement() : IgaBaseElement() {};
+
+    ~IgaEdgeCableElement() override
     {
-    public:
-        KRATOS_CLASS_POINTER_DEFINITION(IgaEdgeCableElement);
-
-        /// Default constructor.
-        // Constructor using an array of nodes
-        IgaEdgeCableElement(IndexType NewId, GeometryType::Pointer pGeometry)
-            : IgaBaseElement(NewId, pGeometry)
-        {};
-
-        // Constructor using an array of nodes with properties
-        IgaEdgeCableElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-            : IgaBaseElement(NewId, pGeometry, pProperties)
-        {};
-
-        // default constructor necessary for serialization
-        IgaEdgeCableElement() : IgaBaseElement() {};
-
-        ~IgaEdgeCableElement() override
-        {
-        };
-
-        /**
-        * @brief Creates a new element
-        * @param NewId The Id of the new created element
-        * @param pGeom The pointer to the geometry of the element
-        * @param pProperties The pointer to property
-        * @return The pointer to the created element
-        */
-        Element::Pointer Create(
-            IndexType NewId,
-            GeometryType::Pointer pGeom,
-            PropertiesType::Pointer pProperties
-        ) const override
-        {
-            return Kratos::make_shared<IgaEdgeCableElement>(
-                NewId, pGeom, pProperties);
-        };
-
-        Element::Pointer Create(
-            IndexType NewId,
-            NodesArrayType const& ThisNodes,
-            PropertiesType::Pointer pProperties
-        ) const override
-        {
-            return Kratos::make_shared< IgaEdgeCableElement >(
-                NewId, GetGeometry().Create(ThisNodes), pProperties);
-        };
-
-        void GetDofList(
-            DofsVectorType& rElementalDofList,
-            ProcessInfo& rCurrentProcessInfo) override;
-
-        void EquationIdVector(
-            EquationIdVectorType& rResult,
-            ProcessInfo& rCurrentProcessInfo) override;
-
-        void Initialize() override;
-
-        void CalculateAll(
-            MatrixType& rLeftHandSideMatrix,
-            VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo,
-            const bool ComputeLeftHandSide,
-            const bool ComputeRightHandSide) override;
-
-        void PrintInfo(std::ostream& rOStream) const override;
-
-    private:
-        array_1d<double, 3> mReferenceBaseVector;
-
-        //Vector3 GetReferenceBaseVector() const;
-
-        array_1d<double, 3> GetActualBaseVector() const;
     };
+
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const override;
+
+    /**
+	* @brief Creates a new element
+	* @param NewId The Id of the new created element
+	* @param pGeom The pointer to the geometry of the element
+	* @param pProperties The pointer to property
+	* @return The pointer to the created element
+	*/
+	Element::Pointer Create(
+		IndexType NewId,
+		GeometryType::Pointer pGeom,
+		PropertiesType::Pointer pProperties
+	) const override
+	{
+		return Kratos::make_shared<IgaEdgeCableElement>(
+			NewId, pGeom, pProperties);
+	};
+
+    void GetDofList(
+        DofsVectorType& rElementalDofList,
+        ProcessInfo& rCurrentProcessInfo) override;
+
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        ProcessInfo& rCurrentProcessInfo) override;
+
+    void Initialize() override;
+
+    void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        const bool ComputeLeftHandSide,
+        const bool ComputeRightHandSide) override;
+
+    void PrintInfo(std::ostream& rOStream) const override;
+
+     void Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+private:
+    array_1d<double, 3> mReferenceBaseVector;
+
+    //Vector3 GetReferenceBaseVector() const;
+
+    array_1d<double, 3> GetActualBaseVector() const;
+};
 
 } // namespace Kratos
 

@@ -147,7 +147,13 @@ namespace Kratos
                         if (geometry_type == "GeometrySurface")
                         {
                             auto brep_face = GetBrepFace(brep_id);
-
+                            //brep_face.GetGeometryIntegrationTrimmed(
+                            //    sub_model_part,
+                            //     type,
+                            //     name,
+                            //     shape_function_derivatives_order, 
+                            //     variable_list);
+                            
                             auto element_vector = IgaIntegrationUtilities::GetIntegrationDomainGeometrySurface(
                                 brep_face.GetSurface(),
                                 brep_face.GetSurfaceClipper(0.001, 0.00001),
@@ -175,6 +181,8 @@ namespace Kratos
                                 IgaIntegrationUtilities::ChangeConditionType(
                                     element_vector, sub_model_part, name, id);
                             }
+
+                            KRATOS_WATCH(sub_model_part)
                         }
                         if (geometry_type == "SurfaceEdge")
                         {

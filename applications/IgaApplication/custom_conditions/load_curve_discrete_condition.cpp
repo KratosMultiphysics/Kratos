@@ -102,6 +102,8 @@ namespace Kratos
         //KRATOS_WATCH(rRightHandSideVector)
 
         noalias(rRightHandSideVector) += f_loads;
+
+        KRATOS_WATCH(rRightHandSideVector)
     }
 
     void LoadCurveDiscreteCondition::EquationIdVector(
