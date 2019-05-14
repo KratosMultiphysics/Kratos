@@ -57,6 +57,9 @@ namespace Kratos
 	template<std::size_t TDim>
 	void ApplyRayCastingProcess<TDim>::Execute()
 	{
+        if(mIsSearchStructureAllocated) // we have not initialized it yet
+            mpFindIntersectedObjectsProcess->Initialize();
+            
 		ModelPart& ModelPart1 = mpFindIntersectedObjectsProcess->GetModelPart1();
 
 		#pragma omp parallel for
