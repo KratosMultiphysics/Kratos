@@ -59,7 +59,7 @@ namespace Kratos
 	{
         if(mIsSearchStructureAllocated) // we have not initialized it yet
             mpFindIntersectedObjectsProcess->Initialize();
-            
+
 		ModelPart& ModelPart1 = mpFindIntersectedObjectsProcess->GetModelPart1();
 
 		#pragma omp parallel for
@@ -430,29 +430,6 @@ namespace Kratos
 		}
 
 		return is_intersected;
-	}
-
-	template<>
-	double inline ApplyRayCastingProcess<2>::CalculatePointDistance(
-		const Element::GeometryType &rIntObjGeom,
-		const Point &rDistancePoint)
-	{
-		return GeometryUtils::PointDistanceToLineSegment3D(
-			rIntObjGeom[0],
-			rIntObjGeom[1],
-			rDistancePoint);
-	}
-
-	template<>
-	double inline ApplyRayCastingProcess<3>::CalculatePointDistance(
-		const Element::GeometryType &rIntObjGeom,
-		const Point &rDistancePoint)
-	{
-		return GeometryUtils::PointDistanceToTriangle3D(
-			rIntObjGeom[0],
-			rIntObjGeom[1],
-			rIntObjGeom[2],
-			rDistancePoint);
 	}
 
 	/// Turn back information as a string.
