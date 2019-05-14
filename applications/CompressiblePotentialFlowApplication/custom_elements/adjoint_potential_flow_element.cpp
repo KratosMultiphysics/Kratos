@@ -20,7 +20,7 @@ namespace Kratos
     Element::Pointer AdjointPotentialFlowElement<TPrimalElement>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const 
     {
         KRATOS_TRY
-          return Kratos::make_shared<AdjointPotentialFlowElement<TPrimalElement>>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+          return Kratos::make_intrusive<AdjointPotentialFlowElement<TPrimalElement>>(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -28,7 +28,7 @@ namespace Kratos
     Element::Pointer AdjointPotentialFlowElement<TPrimalElement>::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const 
     {
         KRATOS_TRY
-            return Kratos::make_shared<AdjointPotentialFlowElement<TPrimalElement>>(NewId, pGeom, pProperties);
+            return Kratos::make_intrusive<AdjointPotentialFlowElement<TPrimalElement>>(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 

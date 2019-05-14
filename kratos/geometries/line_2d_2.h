@@ -76,6 +76,9 @@ public:
     /// Pointer definition of Line2D2
     KRATOS_CLASS_POINTER_DEFINITION( Line2D2 );
 
+    /// Type of edge geometry
+    typedef Line2D2<TPointType> EdgeType;
+
     /** Integration methods implemented in geometry.
     */
     typedef GeometryData::IntegrationMethod IntegrationMethod;
@@ -633,22 +636,55 @@ public:
         return rResult;
     }
 
+    ///@}
+    ///@name Edge
+    ///@{
+
     /**
-     * EdgesNumber
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
      * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
      */
     SizeType EdgesNumber() const override
     {
-        return 2;
+        return 1;
     }
 
     /**
-     * FacesNumber
-     * @return SizeType containes number of this geometry edges/faces.
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
+     */
+    GeometriesArrayType GenerateEdges() const override
+    {
+        GeometriesArrayType edges = GeometriesArrayType();
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
+        return edges;
+    }
+
+    ///@}
+    ///@name Face
+    ///@{
+
+    /**
+     * @brief Returns the number of faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @see EdgesNumber
+     * @see Edges
+     * @see Faces
      */
     SizeType FacesNumber() const override
     {
-      return EdgesNumber();
+        return 0;
     }
 
     //Connectivities of faces required
@@ -887,7 +923,7 @@ public:
         // We compute the distance, if it is not in the pane we
         const Point point_to_project(rPoint);
         Point point_projected;
-        const double distance = GeometricalProjectionUtilities::FastProjectOnLine(*this, point_to_project, point_projected);
+        const double distance = GeometricalProjectionUtilities::FastProjectOnLine2D(*this, point_to_project, point_projected);
 
         // We check if we are on the plane
         if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {

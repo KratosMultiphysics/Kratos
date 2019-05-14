@@ -15,9 +15,9 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
 
     def __base_test_mapping(self, input_filename, num_nodes, master_num_nodes, pure_implicit, inverted, discontinuous):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-        self.StructureModel = KratosMultiphysics.Model()
+        self.model = KratosMultiphysics.Model()
 
-        self.main_model_part = self.StructureModel.CreateModelPart("Structure",2)
+        self.main_model_part = self.model.CreateModelPart("Main",2)
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
@@ -86,7 +86,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         {
             "check_variables"      : ["TEMPERATURE","DISPLACEMENT"],
             "input_file_name"      : "",
-            "model_part_name"      : "Structure",
+            "model_part_name"      : "Main",
             "sub_model_part_name"  : "Parts_Parts_Auto1"
         }
         """)
@@ -96,7 +96,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         else:
             check_parameters["input_file_name"].SetString(input_filename+".json")
 
-        check = from_json_check_result_process.FromJsonCheckResultProcess(self.StructureModel, check_parameters)
+        check = from_json_check_result_process.FromJsonCheckResultProcess(self.model, check_parameters)
         check.ExecuteInitialize()
         check.ExecuteBeforeSolutionLoop()
         check.ExecuteFinalizeSolutionStep()
@@ -108,7 +108,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         #{
             #"output_variables"     : ["TEMPERATURE","DISPLACEMENT"],
             #"output_file_name"     : "",
-            #"model_part_name"      : "Structure",
+            #"model_part_name"      : "Main",
             #"sub_model_part_name"  : "Parts_Parts_Auto1"
         #}
         #""")
@@ -118,7 +118,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         #else:
             #out_parameters["output_file_name"].SetString(input_filename+".json")
 
-        #out = json_output_process.JsonOutputProcess(self.StructureModel, out_parameters)
+        #out = json_output_process.JsonOutputProcess(self.model, out_parameters)
         #out.ExecuteInitialize()
         #out.ExecuteBeforeSolutionLoop()
         #out.ExecuteFinalizeSolutionStep()
@@ -155,32 +155,51 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/mortar_mapper_python_tests/test_double_curvature_integration_triangle_quadrilateral"
         self._mapper_tests(input_filename, 3, 4, False, True)
 
-    def __post_process(self):
-        from gid_output_process import GiDOutputProcess
-        self.gid_output = GiDOutputProcess(self.main_model_part,
-                                    "gid_output",
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditionsOnly",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "nodal_results"       : ["DISPLACEMENT","NORMAL","TEMPERATURE"],
-                                                "nodal_nonhistorical_results": ["NODAL_AREA","NODAL_MAUX","NODAL_VAUX"]
-                                            }
-                                        }
-                                        """)
-                                    )
+    def __post_process(self, debug = "GiD"):
 
-        self.gid_output.ExecuteInitialize()
-        self.gid_output.ExecuteBeforeSolutionLoop()
-        self.gid_output.ExecuteInitializeSolutionStep()
-        self.gid_output.PrintOutput()
-        self.gid_output.ExecuteFinalizeSolutionStep()
-        self.gid_output.ExecuteFinalize()
+        if debug == "GiD":
+            from gid_output_process import GiDOutputProcess
+            self.gid_output = GiDOutputProcess(self.main_model_part,
+                                        "gid_output",
+                                        KratosMultiphysics.Parameters("""
+                                            {
+                                                "result_file_configuration" : {
+                                                    "gidpost_flags": {
+                                                        "GiDPostMode": "GiD_PostBinary",
+                                                        "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                        "WriteConditionsFlag": "WriteConditionsOnly",
+                                                        "MultiFileFlag": "SingleFile"
+                                                    },
+                                                    "nodal_results"       : ["DISPLACEMENT","NORMAL","TEMPERATURE"],
+                                                    "nodal_nonhistorical_results": ["NODAL_AREA","NODAL_MAUX","NODAL_VAUX"]
+                                                }
+                                            }
+                                            """)
+                                        )
+
+            self.gid_output.ExecuteInitialize()
+            self.gid_output.ExecuteBeforeSolutionLoop()
+            self.gid_output.ExecuteInitializeSolutionStep()
+            self.gid_output.PrintOutput()
+            self.gid_output.ExecuteFinalizeSolutionStep()
+            self.gid_output.ExecuteFinalize()
+        elif debug == "VTK":
+            from vtk_output_process import VtkOutputProcess
+            self.vtk_output_process = VtkOutputProcess(self.model,
+                                        KratosMultiphysics.Parameters("""{
+                                                "model_part_name"                    : "Main",
+                                                "nodal_solution_step_data_variables" : ["DISPLACEMENT","NORMAL","TEMPERATURE"],
+                                                "nodal_data_value_variables": ["NODAL_AREA","NODAL_MAUX","NODAL_VAUX"]
+                                            }
+                                            """)
+                                        )
+
+            self.vtk_output_process.ExecuteInitialize()
+            self.vtk_output_process.ExecuteBeforeSolutionLoop()
+            self.vtk_output_process.ExecuteInitializeSolutionStep()
+            self.vtk_output_process.PrintOutput()
+            self.vtk_output_process.ExecuteFinalizeSolutionStep()
+            self.vtk_output_process.ExecuteFinalize()
 
     def __generate_discontinous_case(self, inverted):
         counter_nodes = 0

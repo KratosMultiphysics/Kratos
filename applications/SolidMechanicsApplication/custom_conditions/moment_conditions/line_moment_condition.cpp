@@ -44,7 +44,7 @@ namespace Kratos
   //***********************************************************************************
   Condition::Pointer LineMomentCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<LineMomentCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<LineMomentCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -59,7 +59,7 @@ namespace Kratos
     NewCondition.SetFlags(this->GetFlags());
 
     //-----------//
-    return Kratos::make_shared<LineMomentCondition>(NewCondition);
+    return Kratos::make_intrusive<LineMomentCondition>(NewCondition);
 
   }
 

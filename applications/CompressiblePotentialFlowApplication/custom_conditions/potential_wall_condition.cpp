@@ -22,7 +22,7 @@ Condition::Pointer PotentialWallCondition<TDim, TNumNodes>::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Condition::Pointer(Kratos::make_shared<PotentialWallCondition>(
+    return Condition::Pointer(Kratos::make_intrusive<PotentialWallCondition>(
         NewId, GetGeometry().Create(ThisNodes), pProperties));
     KRATOS_CATCH("");
 }
@@ -32,7 +32,7 @@ Condition::Pointer PotentialWallCondition<TDim, TNumNodes>::Create(
     IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
     return Condition::Pointer(
-        Kratos::make_shared<PotentialWallCondition>(NewId, pGeom, pProperties));
+        Kratos::make_intrusive<PotentialWallCondition>(NewId, pGeom, pProperties));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -178,8 +178,8 @@ void PotentialWallCondition<TDim, TNumNodes>::FinalizeSolutionStep(ProcessInfo& 
 {
     std::vector<double> rValues;
     ElementPointerType pElem = pGetElement();
-    pElem->GetValueOnIntegrationPoints(PRESSURE, rValues, rCurrentProcessInfo);
-    this->SetValue(PRESSURE, rValues[0]);
+    pElem->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT, rValues, rCurrentProcessInfo);
+    this->SetValue(PRESSURE_COEFFICIENT, rValues[0]);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -256,7 +256,7 @@ void PotentialWallCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
 template <unsigned int TDim, unsigned int TNumNodes>
 inline Element::Pointer PotentialWallCondition<TDim, TNumNodes>::pGetElement() const
 {
-    KRATOS_ERROR_IF_NOT(mpElement.lock() != 0)
+    KRATOS_ERROR_IF(!mpElement.lock())
         << "No element found for condition #" << this->Id() << std::endl;
     return mpElement.lock();
 }

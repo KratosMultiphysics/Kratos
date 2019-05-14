@@ -179,7 +179,8 @@ void BuildMappingMatrix<SparseSpaceType, DenseSpaceType>(
     BuildMatrix(rpMappingMatrix, rMapperLocalSystems);
 
     if (EchoLevel > 2) {
-        SparseSpaceType::WriteMatrixMarketMatrix("MappingMatrix.mm", *rpMappingMatrix, false);
+        const std::string file_name = "MappingMatrix_O_" + rModelPartOrigin.Name() + "__D_" + rModelPartDestination.Name() +".mm";
+        SparseSpaceType::WriteMatrixMarketMatrix(file_name.c_str(), *rpMappingMatrix, false);
     }
 
     InitializeSystemVector(rpInterfaceVectorOrigin, num_nodes_origin);
