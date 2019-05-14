@@ -1,8 +1,8 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
+//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
+//        | |  | | |___ ___) |  _  || || |\  | |_| |
+//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "includes/global_pointer_variables.h"
 #include "uniform_refinement_utility.h"
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
 

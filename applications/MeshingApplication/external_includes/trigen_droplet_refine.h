@@ -670,7 +670,7 @@ public:
             {
                 int index = out2.neighborlist[base+i];
                 if(index > 0)
-                    neighb(i) = *((el_begin + index-1).base());
+                    neighb(i) = GlobalPointer<Element>(&*(el_begin + index-1));
                 else
                     neighb(i) = Element::WeakPointer();
             }

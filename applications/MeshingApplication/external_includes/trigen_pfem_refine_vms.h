@@ -27,6 +27,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/global_pointer_variables.h"
 #include "geometries/triangle_2d_3.h"
 #include "meshing_application_variables.h"
 #include "processes/node_erase_process.h"
@@ -539,7 +540,7 @@ public:
             {
                 int index = out2.neighborlist[base+i];
                 if(index > 0)
-                    neighb(i) = *((el_begin + index-1).base());
+                    neighb(i) = GlobalPointer<Element>(&*(el_begin + index-1));
                 else
                     neighb(i) = Element::WeakPointer();
             }
