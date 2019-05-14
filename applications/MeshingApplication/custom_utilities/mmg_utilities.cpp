@@ -2957,22 +2957,19 @@ void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
     // Iterate in the nodes
     auto& r_nodes_array = rModelPart.Nodes();
 
-    // Set size of the solution
-    SetSolSizeTensor(r_nodes_array.size());
-
     const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_" + std::to_string(Dimension)+"D");
 
-    #pragma omp parallel for
+    // Auxilia metric
+    TensorArrayType metric;
+
+    #pragma omp parallel for firstprivate(metric)
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
         auto it_node = r_nodes_array.begin() + i;
 
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
-
         // We get the metric
-        TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
+        GetMetricTensor(metric);
 
-        // We get the metric
-        GetMetricTensor(r_metric);
+        it_node->SetValue(r_tensor_variable, metric);
     }
 }
 

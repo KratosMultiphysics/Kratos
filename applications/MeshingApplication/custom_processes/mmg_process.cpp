@@ -415,8 +415,8 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     // Writing the new mesh data on the model part
     mMmmgUtilities.WriteMeshDataToModelPart(mrThisModelPart, mColors, mDofs, mmg_mesh_info, mpRefCondition, mpRefElement);
 
-//     // Writing the new solution data on the model part
-//     mMmmgUtilities.WriteSolDataToModelPart(mrThisModelPart);
+    // Writing the new solution data on the model part
+    mMmmgUtilities.WriteSolDataToModelPart(mrThisModelPart);
 
 //     /* Free memory */
 //     FreeMemory();
