@@ -49,17 +49,17 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicator, KratosMPICoreFastSuite)
 
     auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(mp.Nodes(), indices, r_default_comm );
 
-    GlobalPointerCommunicator< Node<3>> pointer_comm(r_default_comm, gp_list.begin(), gp_list.end());
+    GlobalPointerCommunicator< Node<3>> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
 
     auto double_proxy = pointer_comm.Apply(
-                            [](GlobalPointer< Node<3> >& gp)->double
-    {return gp->GetValue(TEMPERATURE);}
-                        );
+        [](GlobalPointer< Node<3> >& gp)->double
+        {return gp->GetValue(TEMPERATURE);}
+    );
 
     for(unsigned int i=0; i<indices.size(); ++i)
     {
         int expected_id = indices[i];
-        auto& gp = gp_list[i];
+        auto& gp = gp_list(i);
         KRATOS_CHECK_EQUAL(double_proxy.Get(gp), gp.GetRank());
         KRATOS_CHECK_EQUAL(double_proxy.Get(gp), expected_id-1);
     }
@@ -74,7 +74,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicator, KratosMPICoreFastSuite)
 
     for(unsigned int i=0; i<indices.size(); ++i)
     {
-        auto& gp = gp_list[i];
+        auto& gp = gp_list(i);
         return_type result = pair_proxy.Get(gp); //this is now a pair
 
         KRATOS_CHECK_EQUAL(result.first, gp.GetRank());
@@ -117,11 +117,11 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicatorConstructByFunctor, KratosMPICo
                                             RetrieveGlobalPointersByIndex<ModelPart::NodesContainerType>(mp.Nodes(), indices)  //if we eventually evolve to c++17 the type will be deduced
                                         ); 
 
-    auto temperature_proxy = pointer_comm.Apply( GetValueFunctor<Variable<double>>(TEMPERATURE) ); //note that if we eventually evolve to c++17 the template parameter in the functor will be deduced
+    auto temperature_proxy = pointer_comm.Apply( GetValueFunctor<Variable<double>>(TEMPERATURE) ); //if we eventually evolve to c++17 the template parameter in the functor will be deduced
 
     for(unsigned int i=0; i<indices.size(); ++i)
     {
-        auto& gp = gp_list_reference[i];
+        auto& gp = gp_list_reference(i);
         KRATOS_CHECK_EQUAL(temperature_proxy.Get(gp), gp.GetRank());
         KRATOS_CHECK_EQUAL(temperature_proxy.Get(gp), indices[i]-1);
     }
@@ -132,8 +132,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointerCommunicatorConstructByFunctor, KratosMPICo
     temperature_proxy.Update();
     for(unsigned int i=0; i<indices.size(); ++i)
     {
-        auto& gp = gp_list_reference[i];
-        KRATOS_CHECK_EQUAL(temperature_proxy.Get(gp), gp_list_reference[i].GetRank());
+        auto& gp = gp_list_reference(i);
+        KRATOS_CHECK_EQUAL(temperature_proxy.Get(gp), gp.GetRank());
         KRATOS_CHECK_EQUAL(temperature_proxy.Get(gp), indices[i]-1);
     }
 

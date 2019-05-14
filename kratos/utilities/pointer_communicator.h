@@ -124,7 +124,7 @@ public:
     GlobalPointerCommunicator(const DataCommunicator& rComm, GlobalPointersVector< TPointerDataType >& rGpList ):
         mrDataCommunicator(rComm)
     {
-        AddPointers(rGpList.begin(),rGpList.end());
+        AddPointers(rGpList.ptr_begin(),rGpList.ptr_end());
 
         if(mrDataCommunicator.IsDistributed())
         {
@@ -151,7 +151,7 @@ public:
         if(rComm.IsDistributed())
         {
             auto gps = rFunctor(rComm);
-            AddPointers(gps.begin(), gps.end());
+            AddPointers(gps.ptr_begin(), gps.ptr_end());
             ComputeCommunicationPlan();
         }
     }
@@ -202,13 +202,13 @@ public:
                 auto recv_global_pointers = SendRecv(gps_to_be_sent, color, color );
 
                 std::vector< typename ResultsProxy<TPointerDataType, TFunctorType >::TSendType > locally_gathered_data; //this is local but needs to be sent to the remote node
-                for(auto& gp : recv_global_pointers)
+                for(auto& gp : recv_global_pointers.GetContainer())
                     locally_gathered_data.push_back( rUserFunctor(gp) );
 
                 auto remote_data = SendRecv(locally_gathered_data, color, color );
 
                 for(unsigned int i=0; i<remote_data.size(); ++i)
-                    rNonLocalData[gps_to_be_sent[i]] = remote_data[i];
+                    rNonLocalData[gps_to_be_sent(i)] = remote_data[i];
             }
         }
 
@@ -287,9 +287,10 @@ protected:
             const int current_rank = mrDataCommunicator.Rank();
             for(auto it = begin; it != end; ++it)
             {
-                if(it->GetRank() != current_rank)
+                auto& gp = *it;
+                if(gp.GetRank() != current_rank)
                 {
-                    mNonLocalPointers[it->GetRank()].push_back(*it);
+                    mNonLocalPointers[gp.GetRank()].push_back(gp);
                 }
             }
 

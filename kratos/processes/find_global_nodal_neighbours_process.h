@@ -116,7 +116,7 @@ public:
         //and empties the old entries
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
-            auto& rN = in->GetValue(GLOBAL_NEIGHBOUR_NODES);
+            auto& rN = in->GetValue(NEIGHBOUR_NODES);
             rN = GlobalPointersVector< Node<3> >();
         }
 
@@ -133,7 +133,7 @@ public:
                         if( j != i )
                         {
                             auto gp = GlobalPointer<Node<3>>(rgeom(j),0);
-                            AddUniqueGlobalPointer< Node<3> >(rgeom[i].GetValue(GLOBAL_NEIGHBOUR_NODES), gp);
+                            AddUniqueGlobalPointer< Node<3> >(rgeom[i].GetValue(NEIGHBOUR_NODES), gp);
                         }
                     }
                 }
@@ -144,13 +144,13 @@ public:
             for(int i=0; i<static_cast<int>(mr_model_part.Nodes().size()); ++i)
             {
                 auto it = mr_model_part.NodesBegin() + i;
-                auto& neighbours = it->GetValue(GLOBAL_NEIGHBOUR_NODES);
+                auto& neighbours = it->GetValue(NEIGHBOUR_NODES);
                 neighbours.shrink_to_fit();
-                std::sort(neighbours.begin(), neighbours.end(),
+                std::sort(neighbours.ptr_begin(), neighbours.ptr_end(),
                           [](GlobalPointer<Node<3>>& gp1, GlobalPointer<Node<3>>& gp2)
-                {
-                    return gp1->Id() < gp2->Id();
-                }
+                            {
+                                return gp1->Id() < gp2->Id();
+                            }
                          );
 
             }
@@ -232,7 +232,7 @@ public:
             {
                 auto node_id = item.first;
                 auto& r_node = mr_model_part.Nodes()[node_id];
-                auto& neighbours = r_node.GetValue(GLOBAL_NEIGHBOUR_NODES);
+                auto& neighbours = r_node.GetValue(NEIGHBOUR_NODES);
                 neighbours.reserve(item.second.size());
 
                 for(int id : item.second)
@@ -255,13 +255,13 @@ public:
 
                     for(auto id : non_local_node_ids[color])
                     {
-                        neighbours_to_send[id] = mr_model_part.Nodes()[id].GetValue(GLOBAL_NEIGHBOUR_NODES);
+                        neighbours_to_send[id] = mr_model_part.Nodes()[id].GetValue(NEIGHBOUR_NODES);
                     }
                     auto received_neighbours = SendRecv(neighbours_to_send, color, color );
                     for(auto& item : received_neighbours)
                     {
                         auto& r_node = mr_model_part.Nodes()[item.first];
-                        r_node.SetValue(GLOBAL_NEIGHBOUR_NODES, item.second);
+                        r_node.SetValue(NEIGHBOUR_NODES, item.second);
                     }
                 }
             }
@@ -276,7 +276,7 @@ public:
         NodesContainerType& rNodes = mr_model_part.Nodes();
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
-            auto& rN = in->GetValue(GLOBAL_NEIGHBOUR_NODES);
+            auto& rN = in->GetValue(NEIGHBOUR_NODES);
             rN.erase(rN.begin(),rN.end() );
             rN.shrink_to_fit();
         }
@@ -321,7 +321,7 @@ public:
 
         GlobalPointersVector< Node<3> > gp_list;
         for(auto& node : rNodes)
-            for(auto& gp : node.GetValue(GLOBAL_NEIGHBOUR_NODES))
+            for(auto& gp : node.GetValue(NEIGHBOUR_NODES).GetContainer())
                 gp_list.push_back(gp);
         gp_list.Unique();
 
@@ -332,11 +332,11 @@ public:
 
         for(auto& node : rNodes)
         {
-            auto& neighbours = node.GetValue(GLOBAL_NEIGHBOUR_NODES);
+            auto& neighbours = node.GetValue(NEIGHBOUR_NODES);
             std::vector<int> tmp(neighbours.size());
             for(unsigned int i=0; i<neighbours.size(); ++i)
             {
-                tmp[i] = result_proxy.Get(neighbours[i]);
+                tmp[i] = result_proxy.Get(neighbours(i));
             }
             output[node.Id()] = tmp;   
         }
@@ -428,7 +428,7 @@ private:
     (GlobalPointersVector< TDataType >& v, const GlobalPointer< TDataType >& candidate)
     {
         bool found = false;
-        for(auto& gp : v)
+        for(auto& gp : v.GetContainer())
         {
             if(&(*gp) == &(*candidate) && gp.GetRank() == candidate.GetRank())
             {
