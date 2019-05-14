@@ -25,6 +25,7 @@
 #include "derivative_recovery_utility.h"
 #include "standard_recovery_utility.h"
 
+#include "swimming_dem_application_variables.h"
 namespace Kratos
 {
 
@@ -32,6 +33,7 @@ using Vector3 = StandardRecoveryUtility::Vector3;
 using DoubleVarType = StandardRecoveryUtility::DoubleVarType;
 using ComponentVarType = StandardRecoveryUtility::ComponentVarType;
 using ArrayVarType = StandardRecoveryUtility::ArrayVarType;
+using TensorComponentVarType = StandardRecoveryUtility::ArrayVarType;
 
 StandardRecoveryUtility::StandardRecoveryUtility(
     ModelPart& rModelPart,
@@ -80,11 +82,26 @@ void StandardRecoveryUtility::CalculateGradient(const DoubleVarType& rScalarVari
 {
     this->CalculateScalarGradient<DoubleVarType>(rScalarVariable, rGradientVariable);
 }
-// void StandardRecoveryUtility::CalculateGradient(const ArrayVarType& rVectorVariable,
-//                                                 const ArrayVarType& rComponent0GradientVariable,
-//                                                 const ArrayVarType& rComponent1GradientVariable,
-//                                                 const ArrayVarType& rComponent2GradientVariable)
-// {
+
+void StandardRecoveryUtility::CalculateGradient(const ArrayVarType& rVectorVariable, const Tensor3 rGradientVariable)
+{
+    for (auto comp_i : {"X", "Y", "Z"}){
+        const auto& variable_i = dynamic_cast<ComponentVarType&>(KratosComponents<VariableData>::Get(rVectorVariable.Name() + "_" + comp_i));
+        this->CalculateScalarGradient<ComponentVarType>(variable_i, SCALAR_GRADIENT);
+        int j = 0;
+
+        for (auto inode = mrModelPart.NodesBegin(); inode != mrModelPart.NodesEnd(); ++inode){
+            const auto& component_gradient = inode->FastGetSolutionStepValue(SCALAR_GRADIENT);
+            j = 0;
+            for (auto comp_j : {"X", "Y", "Z"}){
+                const auto& variable_ij = dynamic_cast<TensorComponentVarType&>(KratosComponents<VariableData>::Get(rVectorVariable.Name() + "_" + comp_i + comp_j));
+                auto& vector_gradient_ij = inode->FastGetSolutionStepValue(variable_ij);
+                vector_gradient_ij = component_gradient[j];
+                ++j;
+            }
+        }
+    }
+}
 
 // }
 

@@ -243,8 +243,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.derivative_recovery_counter.Activate(self.time > self.interaction_start_time and self.calculating_fluid_in_current_step)
 
         if self.derivative_recovery_counter.Tick():
-            self.recovery.Recover()
-            #self.derivative_recoverer.Recover()
+            self.derivative_recoverer.Recover()
 
         # Solving the disperse-phase component
         Say('Solving DEM... (', self.dem_solver.spheres_model_part.NumberOfElements(0), 'elements )')

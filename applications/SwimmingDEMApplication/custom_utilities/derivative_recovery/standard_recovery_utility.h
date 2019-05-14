@@ -59,6 +59,7 @@ public:
     ///@{
     using DoubleVarType = DerivativeRecoveryUtility::DoubleVarType;
     using ComponentVarType = DerivativeRecoveryUtility::ComponentVarType;
+    using TensorComponentVarType = DerivativeRecoveryUtility::TensorComponentVarType;
     using ArrayVarType = DerivativeRecoveryUtility::ArrayVarType;
 
     /// Pointer definition of StandardRecoveryUtility
@@ -133,6 +134,7 @@ void AddPartialTimeDerivative(const ArrayVarType& rVectorVariable, const ArrayVa
 
 void CalculateGradient(const DoubleVarType& rScalarVariable, const ArrayVarType& rGradientVariable) override;
 
+void CalculateGradient(const ArrayVarType& rVectorVariable, const Tensor3 rGradientVariable) override;
 // void CalculateGradient(const VariableData& rVariable, const VariableData& rGradientVariable) override;
 
 // // void CalculateGradient(const ArrayVarType& rVariable

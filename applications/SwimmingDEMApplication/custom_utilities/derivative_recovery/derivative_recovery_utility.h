@@ -104,8 +104,10 @@ public:
     ///@name Type Definitions
     ///@{
     typedef array_1d<double, 3> Vector3;
+    typedef array_1d<double, 9> Tensor3;
     typedef Variable<double> DoubleVarType;
     typedef VariableComponent<VectorComponentAdaptor<Vector3> > ComponentVarType;
+    typedef VariableComponent<VectorComponentAdaptor<Tensor3> > TensorComponentVarType;
     typedef Variable<Vector3> ArrayVarType;
 
     /// Pointer definition of DerivativeRecoveryUtility
@@ -188,10 +190,7 @@ protected:
 
     virtual void CalculateGradient(const ComponentVarType& rScalarComponent, const ArrayVarType& rGradientVariable){}
 
-    // // virtual void CalculateGradient(const ArrayVarType& rVectorVariable,
-    // //                                const ArrayVarType& rComponent0GradientVariable,
-    // //                                const ArrayVarType& rComponent1GradientVariable,
-    // //                                const ArrayVarType& rComponent2GradientVariable){}
+    virtual void CalculateGradient(const ArrayVarType& rVectorVariable, const Tensor3 rGradientVariable){}
 
     virtual void CalculateDivergence(const ArrayVarType& rVectorVariable, const DoubleVarType& rDivergenceVariable){}
 
