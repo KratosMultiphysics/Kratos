@@ -25,7 +25,7 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(
-		ModelPart& rVolumePart, 
+		ModelPart& rVolumePart,
 		ModelPart& rSkinPart)
 		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart)
 	{
@@ -33,7 +33,7 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(
-		ModelPart& rVolumePart, 
+		ModelPart& rVolumePart,
 		ModelPart& rSkinPart,
 		const double ExtraRaysEpsilon)
 		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart),
@@ -93,7 +93,7 @@ namespace Kratos
 		#pragma omp parallel for schedule(dynamic)
 		for (int i = 0; i < number_of_elements; ++i) {
 			Element &r_element = *(r_elements[i]);
-			PointerVector<GeometricalObject>& r_element_intersections = rIntersectedObjects[i]; 
+			PointerVector<GeometricalObject>& r_element_intersections = rIntersectedObjects[i];
 
 			// Check if the element has intersections
 			if (r_element_intersections.empty()) {
@@ -287,7 +287,7 @@ namespace Kratos
 			for (unsigned int i_ray = 0; i_ray < extra_ray_origs.size(); ++i_ray) {
 				// Creating the ray
 				array_1d<double,3> aux_ray = extra_ray_origs[i_ray];
-				double ray[3] = {aux_ray[0], aux_ray[1], aux_ray[2]};				
+				double ray[3] = {aux_ray[0], aux_ray[1], aux_ray[2]};
 				p_octree->NormalizeCoordinates(ray);
 				ray[i_direction] = 0; // Starting from the lower extreme
 				this->CorrectExtraRayOrigin(ray); // Avoid extra ray normalized coordinates to be larger than 1 or 0
@@ -501,7 +501,7 @@ namespace Kratos
         const double* pRayPoint2,
         double* pIntersectionPoint)
 	{
-		// Auxiliar arrays 
+		// Auxiliar arrays
 		array_1d<double,3> ray_pt_1;
 		array_1d<double,3> ray_pt_2;
 		for (unsigned int i = 0; i < 3; ++i){
@@ -511,7 +511,7 @@ namespace Kratos
 
 		// Call the line - line intersection util
 		array_1d<double,3> int_pt = ZeroVector(3);
-		const double tolerance = 1.0e-6*rGeometry.Length();
+		const double tolerance = 1.0e-12*rGeometry.Length();
 		const int is_intersected =  IntersectionUtilities::ComputeLineLineIntersection(
 			rGeometry,
 			ray_pt_1,
@@ -534,7 +534,7 @@ namespace Kratos
         const double* pRayPoint2,
         double* pIntersectionPoint)
 	{
-		// Auxiliar arrays 
+		// Auxiliar arrays
 		array_1d<double,3> ray_pt_1;
 		array_1d<double,3> ray_pt_2;
 		for (unsigned int i = 0; i < 3; ++i){
@@ -544,7 +544,7 @@ namespace Kratos
 
 		// Call the line - triangle intersection util
 		array_1d<double,3> int_pt = ZeroVector(3);
-		const double tolerance = 1.0e-6*std::sqrt(rGeometry.Length());
+		const double tolerance = 1.0e-12*std::sqrt(rGeometry.Length());
 		const int is_intersected = IntersectionUtilities::ComputeTriangleLineIntersection(
 			rGeometry,
 			ray_pt_1,
