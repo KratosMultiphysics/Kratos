@@ -88,8 +88,17 @@ void MmgIO<TMMGLibrary>::ReadModelPart(ModelPart& rModelPart)
     // Automatically read the solution
     mMmmgUtilities.InputSol(mFilename);
 
-    // TODO: Read JSON of colors
+    // Read JSON of colors
     std::unordered_map<IndexType,std::vector<std::string>> colors;  /// Where the sub model parts IDs are stored
+    std::ifstream infile(mFilename + ".json");
+    KRATOS_ERROR_IF_NOT(infile.good()) << "Materials file: " << mFilename  + ".json" << " cannot be found" << std::endl;
+    std::stringstream buffer;
+    buffer << infile.rdbuf();
+    Parameters json_text(buffer.str());
+    for (auto it_param = json_text.begin(); it_param != json_text.end(); ++it_param) {
+        const std::vector<std::string>& r_sub_model_part_names = it_param->GetStringArray();
+        colors.insert(std::pair<IndexType,std::vector<std::string>>({std::stoi(it_param.name()), r_sub_model_part_names}));
+    }
 
     // Some information
     MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
