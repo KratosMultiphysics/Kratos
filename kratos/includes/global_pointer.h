@@ -182,6 +182,8 @@ public:
 
   friend class Serializer;
 
+
+
   void save(Serializer& rSerializer) const
   {
       if(rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION))

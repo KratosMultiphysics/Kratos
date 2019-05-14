@@ -112,6 +112,25 @@ public:
         }
     }
 
+    void Sort()
+    {
+        std::sort(mData.begin(), mData.end(), GlobalPointerComparor<TDataType>());
+    }
+
+    void Unique()
+    {
+        Sort();
+        auto end_it = mData.end();
+        auto new_end_it = std::unique(mData.begin(), mData.end(), GlobalPointerComparor<TDataType>());
+        this->erase(new_end_it, end_it);
+    }
+
+    void shrink_to_fit()
+    {
+        mData.shrink_to_fit();
+    }
+
+
     ///@}
     ///@name Operators
     ///@{
