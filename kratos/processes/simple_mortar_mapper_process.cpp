@@ -262,7 +262,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
                 for(int i = 0; i < static_cast<int>(r_origin_conditions_array.size()); ++i) {
                     auto it_cond = r_origin_conditions_array.begin() + i;
 
-                    const PointTypePointer p_point = PointTypePointer(new PointMapperType((*it_cond.base())));
+                    const PointTypePointer p_point = Kratos::make_unique<PointMapperType>(*it_cond.base());
                     (points_buffer).push_back(p_point);
                 }
 
@@ -284,7 +284,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
                 for(int i = 0; i < static_cast<int>(r_origin_elements_array.size()); ++i) {
                     auto it_elem = r_origin_elements_array.begin() + i;
 
-                    const PointTypePointer p_point = PointTypePointer(new PointMapperType((*it_elem.base())));
+                    const PointTypePointer p_point = Kratos::make_unique<PointMapperType>(*it_cond.base());
                     (points_buffer).push_back(p_point);
                 }
 
