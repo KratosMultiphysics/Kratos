@@ -57,8 +57,6 @@ namespace Kratos {
         double id = element1->GetId();
         srand(id);
         double internal_fricc = rand_normal(DEM_KDEM::GetInternalFricc(element1), element1->GetProperties()[KDEM_STANDARD_DEVIATION_FRICTION]);
-        KRATOS_WATCH(id)
-        KRATOS_WATCH(internal_fricc)
         return internal_fricc;
     }
 
