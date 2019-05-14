@@ -650,7 +650,7 @@ void VtkOutput::WriteFlagContainerVariable(
     const std::string& rFlagName,
     std::ofstream& rFileStream) const
 {
-//     mrModelPart.GetCommunicator().SynchronizeFlag(Flag); // TODO: Add syncronization of flags to communicator
+    mrModelPart.GetCommunicator().SynchronizeAndNodalFlags(Flag); // NOTE: Could be SynchronizeOrNodalFlags
 
     rFileStream << rFlagName << " 1 "
                 << rContainer.size() << "  float\n";
