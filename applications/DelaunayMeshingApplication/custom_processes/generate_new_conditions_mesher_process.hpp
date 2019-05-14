@@ -44,9 +44,9 @@ typedef Node<3>::WeakPointer NodeWeakPtrType;
 typedef Element::WeakPointer ElementWeakPtrType;
 typedef Condition::WeakPointer ConditionWeakPtrType;
 
-typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
+typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 
 ///@}
 ///@name  Enum's

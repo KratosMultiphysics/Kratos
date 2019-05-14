@@ -708,7 +708,7 @@ void MmgUtilities<MMGLibrary::MMGS>::BlockElement(const IndexType iElement)
 /***********************************************************************************/
 
 template<>
-NodeType::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
+Node<3>::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -729,7 +729,7 @@ NodeType::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
 /***********************************************************************************/
 
 template<>
-NodeType::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
+Node<3>::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -750,7 +750,7 @@ NodeType::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
 /***********************************************************************************/
 
 template<>
-NodeType::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateNode(
+Node<3>::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,

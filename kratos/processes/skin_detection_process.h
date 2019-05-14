@@ -87,8 +87,8 @@ public:
     typedef ElementsArrayType::iterator          ElementsIteratorType;
 
     // Weak pointers vectors types
-    typedef WeakPointerVector<NodeType> NodePointerVector;
-    typedef WeakPointerVector<Element> ElementPointerVector;
+    typedef GlobalPointersVector<NodeType> NodePointerVector;
+    typedef GlobalPointersVector<Element> ElementPointerVector;
 
     /// Definition of the vector indexes considered
     typedef std::vector<IndexType> VectorIndexType;

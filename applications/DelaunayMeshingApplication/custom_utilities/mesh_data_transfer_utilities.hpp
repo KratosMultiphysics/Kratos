@@ -63,9 +63,9 @@ namespace Kratos
     typedef Kratos::weak_ptr<Element> ElementWeakPtrType;
     typedef Kratos::weak_ptr<Condition> ConditionWeakPtrType;
 
-    typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-    typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-    typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+    typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
+    typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 
     /**
      * Flags related to the meshing parameters

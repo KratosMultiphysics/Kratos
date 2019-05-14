@@ -19,6 +19,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/fsi_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/mat_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/legacy_structural_app_vars.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/global_pointer_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_application.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/integration_rules.cpp;
