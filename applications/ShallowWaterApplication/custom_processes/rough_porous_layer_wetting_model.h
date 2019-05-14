@@ -84,7 +84,7 @@ public:
     ///@name Operations
     ///@{
 
-    /// @brief The scheme calls this method on every non linear iteration
+    /// @brief The scheme calls this method at the begining of the non-linear loop
     void ExecuteInitializeSolutionStep() override;
 
     ///@brief The scheme calls this method after convergence is reached in an iterative process
