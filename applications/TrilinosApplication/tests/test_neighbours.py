@@ -69,7 +69,7 @@ class TestNeighbours(KratosUnittest.TestCase):
         neighbour_finder.Execute()
 
         #obtain the ids of all the neighbours
-        found_ids = neighbour_finder.GetNeighbourIds(kratos_comm, main_model_part.Nodes)
+        found_ids = neighbour_finder.GetNeighbourIds(main_model_part.Nodes)
 
         reference_ids = {
             1 : [2,4,5],
