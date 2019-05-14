@@ -214,12 +214,12 @@ public:
     ///@{
 
     // DEFINITION OF FLAGS TO CONTROL THE BEHAVIOUR
-    KRATOS_DEFINE_LOCAL_FLAG(AVERAGE_NORMAL);         /// If using average normal
-    KRATOS_DEFINE_LOCAL_FLAG(DISCONTINOUS_INTERFACE); /// If interface is discontinous
-    KRATOS_DEFINE_LOCAL_FLAG(ORIGIN_HISTORICAL);      /// If the origin variables is historical
-    KRATOS_DEFINE_LOCAL_FLAG(DESTINATION_HISTORICAL); /// If the destination variables is historical
-    KRATOS_DEFINE_LOCAL_FLAG(ORIGIN_CONDITIONS);      /// If  the entities to take into account on the origin model part are the conditions, otherwise we will take elements into consideration
-    KRATOS_DEFINE_LOCAL_FLAG(DESTINATION_CONDITIONS); /// If  the entities to take into account on the destination model part are the conditions, otherwise we will take elements into consideration
+    KRATOS_DEFINE_LOCAL_FLAG(AVERAGE_NORMAL);                      /// If using average normal
+    KRATOS_DEFINE_LOCAL_FLAG(DISCONTINOUS_INTERFACE);              /// If interface is discontinous
+    KRATOS_DEFINE_LOCAL_FLAG(ORIGIN_IS_HISTORICAL);                /// If the origin variables is historical
+    KRATOS_DEFINE_LOCAL_FLAG(DESTINATION_IS_HISTORICAL);           /// If the destination variables is historical
+    KRATOS_DEFINE_LOCAL_FLAG(ORIGIN_SKIN_IS_CONDITION_BASED);      /// If  the entities to take into account on the origin model part are the conditions, otherwise we will take elements into consideration
+    KRATOS_DEFINE_LOCAL_FLAG(DESTINATION_SKIN_IS_CONDITION_BASED); /// If  the entities to take into account on the destination model part are the conditions, otherwise we will take elements into consideration
 
     /// Pointer definition of SimpleMortarMapperProcess
     KRATOS_CLASS_POINTER_DEFINITION(SimpleMortarMapperProcess);
@@ -693,7 +693,7 @@ private:
         for (auto it_pair = pIndexesPairs->begin(); it_pair != pIndexesPairs->end(); ++it_pair ) {
             const IndexType master_id = pIndexesPairs->GetId(it_pair); // MASTER
 
-            const auto& r_master_geometry = mOptions.Is(ORIGIN_CONDITIONS) ? mOriginModelPart.pGetCondition(master_id)->GetGeometry() : mOriginModelPart.pGetElement(master_id)->GetGeometry();
+            const auto& r_master_geometry = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? mOriginModelPart.pGetCondition(master_id)->GetGeometry() : mOriginModelPart.pGetElement(master_id)->GetGeometry();
             r_master_geometry.PointLocalCoordinates(aux_coords, r_master_geometry.Center());
             const array_1d<double, 3> master_normal = r_master_geometry.UnitNormal(aux_coords);
 
@@ -761,12 +761,12 @@ private:
                                 const auto& r_slave_node_coordinates = r_slave_geometry[i_node].Coordinates();
 
                                 // Iterating over other paired geometrical objects
-                                const auto& r_index_masp_master = mOptions.Is(ORIGIN_CONDITIONS) ? mOriginModelPart.pGetCondition(master_id)->GetValue(INDEX_SET) : mOriginModelPart.pGetElement(master_id)->GetValue(INDEX_SET);
+                                const auto& r_index_masp_master = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? mOriginModelPart.pGetCondition(master_id)->GetValue(INDEX_SET) : mOriginModelPart.pGetElement(master_id)->GetValue(INDEX_SET);
                                 for (auto it_master_pair = r_index_masp_master->begin(); it_master_pair != r_index_masp_master->end(); ++it_master_pair ) {
 
                                     const IndexType auxiliar_slave_id = r_index_masp_master->GetId(it_master_pair);
                                     if (pGeometricalObject->Id() != auxiliar_slave_id) {
-                                        GeometryType& r_auxiliar_slave_geometry =  mOptions.Is(DESTINATION_CONDITIONS) ? mDestinationModelPart.pGetCondition(auxiliar_slave_id)->GetGeometry() : mDestinationModelPart.pGetElement(auxiliar_slave_id)->GetGeometry();
+                                        GeometryType& r_auxiliar_slave_geometry =  mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED) ? mDestinationModelPart.pGetCondition(auxiliar_slave_id)->GetGeometry() : mDestinationModelPart.pGetElement(auxiliar_slave_id)->GetGeometry();
 
                                         for (IndexType j_node = 0; j_node < TNumNodes; ++j_node) {
                                             // The auxiliar node coordinates
@@ -798,7 +798,7 @@ private:
 
         // Clear indexes
         for (IndexType i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove) {
-            if (mOptions.Is(ORIGIN_CONDITIONS)) {
+            if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
                 for (auto& id : geometrical_objects_to_erase ) {
                     auto p_cond = r_root_model_part.pGetElement(id);
                     p_cond->Set(TO_ERASE, true);

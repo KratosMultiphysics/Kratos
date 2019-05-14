@@ -33,21 +33,21 @@ const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNod
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
 const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_DISCONTINOUS_INTERFACE(Kratos::Flags::Create(1, false));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::ORIGIN_HISTORICAL(Kratos::Flags::Create(2));
+const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::ORIGIN_IS_HISTORICAL(Kratos::Flags::Create(2));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_ORIGIN_HISTORICAL(Kratos::Flags::Create(2, false));
+const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_ORIGIN_IS_HISTORICAL(Kratos::Flags::Create(2, false));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::DESTINATION_HISTORICAL(Kratos::Flags::Create(3));
+const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::DESTINATION_IS_HISTORICAL(Kratos::Flags::Create(3));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_DESTINATION_HISTORICAL(Kratos::Flags::Create(3, false));
+const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_DESTINATION_IS_HISTORICAL(Kratos::Flags::Create(3, false));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::ORIGIN_CONDITIONS(Kratos::Flags::Create(4));
+const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::ORIGIN_SKIN_IS_CONDITION_BASED(Kratos::Flags::Create(4));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_ORIGIN_CONDITIONS(Kratos::Flags::Create(4, false));
+const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_ORIGIN_SKIN_IS_CONDITION_BASED(Kratos::Flags::Create(4, false));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::DESTINATION_CONDITIONS(Kratos::Flags::Create(5));
+const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::DESTINATION_SKIN_IS_CONDITION_BASED(Kratos::Flags::Create(5));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_DESTINATION_CONDITIONS(Kratos::Flags::Create(5, false));
+const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_DESTINATION_SKIN_IS_CONDITION_BASED(Kratos::Flags::Create(5, false));
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -72,10 +72,10 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     // Setting flags
     mOptions.Set(AVERAGE_NORMAL, mThisParameters["using_average_nodal_normal"].GetBool());
     mOptions.Set(DISCONTINOUS_INTERFACE, mThisParameters["discontinuous_interface"].GetBool());
-    mOptions.Set(ORIGIN_HISTORICAL, mThisParameters["origin_variable_historical"].GetBool());
-    mOptions.Set(DESTINATION_HISTORICAL, mThisParameters["destination_variable_historical"].GetBool());
-    mOptions.Set(ORIGIN_CONDITIONS, mThisParameters["origin_are_conditions"].GetBool());
-    mOptions.Set(DESTINATION_CONDITIONS, mThisParameters["destination_are_conditions"].GetBool());
+    mOptions.Set(ORIGIN_IS_HISTORICAL, mThisParameters["origin_variable_historical"].GetBool());
+    mOptions.Set(DESTINATION_IS_HISTORICAL, mThisParameters["destination_variable_historical"].GetBool());
+    mOptions.Set(ORIGIN_SKIN_IS_CONDITION_BASED, mThisParameters["origin_are_conditions"].GetBool());
+    mOptions.Set(DESTINATION_SKIN_IS_CONDITION_BASED, mThisParameters["destination_are_conditions"].GetBool());
 
     // We set some values
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
@@ -106,10 +106,10 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     // Setting flags
     mOptions.Set(AVERAGE_NORMAL, mThisParameters["using_average_nodal_normal"].GetBool());
     mOptions.Set(DISCONTINOUS_INTERFACE, mThisParameters["discontinuous_interface"].GetBool());
-    mOptions.Set(ORIGIN_HISTORICAL, mThisParameters["origin_variable_historical"].GetBool());
-    mOptions.Set(DESTINATION_HISTORICAL, mThisParameters["destination_variable_historical"].GetBool());
-    mOptions.Set(ORIGIN_CONDITIONS, mThisParameters["origin_are_conditions"].GetBool());
-    mOptions.Set(DESTINATION_CONDITIONS, mThisParameters["destination_are_conditions"].GetBool());
+    mOptions.Set(ORIGIN_IS_HISTORICAL, mThisParameters["origin_variable_historical"].GetBool());
+    mOptions.Set(DESTINATION_IS_HISTORICAL, mThisParameters["destination_variable_historical"].GetBool());
+    mOptions.Set(ORIGIN_SKIN_IS_CONDITION_BASED, mThisParameters["origin_are_conditions"].GetBool());
+    mOptions.Set(DESTINATION_SKIN_IS_CONDITION_BASED, mThisParameters["destination_are_conditions"].GetBool());
 
     // We set some values
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
@@ -141,10 +141,10 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     // Setting flags
     mOptions.Set(AVERAGE_NORMAL, mThisParameters["using_average_nodal_normal"].GetBool());
     mOptions.Set(DISCONTINOUS_INTERFACE, mThisParameters["discontinuous_interface"].GetBool());
-    mOptions.Set(ORIGIN_HISTORICAL, mThisParameters["origin_variable_historical"].GetBool());
-    mOptions.Set(DESTINATION_HISTORICAL, mThisParameters["destination_variable_historical"].GetBool());
-    mOptions.Set(ORIGIN_CONDITIONS, mThisParameters["origin_are_conditions"].GetBool());
-    mOptions.Set(DESTINATION_CONDITIONS, mThisParameters["destination_are_conditions"].GetBool());
+    mOptions.Set(ORIGIN_IS_HISTORICAL, mThisParameters["origin_variable_historical"].GetBool());
+    mOptions.Set(DESTINATION_IS_HISTORICAL, mThisParameters["destination_variable_historical"].GetBool());
+    mOptions.Set(ORIGIN_SKIN_IS_CONDITION_BASED, mThisParameters["origin_are_conditions"].GetBool());
+    mOptions.Set(DESTINATION_SKIN_IS_CONDITION_BASED, mThisParameters["destination_are_conditions"].GetBool());
 
     // We set some values
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
@@ -174,7 +174,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>:: Exe
     if (mMappingCoefficient != 1.0) {
         auto& r_nodes_array = mDestinationModelPart.Nodes();
 
-        if (mOptions.Is(DESTINATION_HISTORICAL)) {
+        if (mOptions.Is(DESTINATION_IS_HISTORICAL)) {
             #pragma omp parallel for
             for (int k = 0; k< static_cast<int> (r_nodes_array.size()); ++k) {
                 auto it_node = r_nodes_array.begin() + k;
@@ -202,7 +202,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
     bool search_exists = true;
 
     // Iterate in the conditions and elements
-    if (mOptions.Is(DESTINATION_CONDITIONS)) {
+    if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
         auto& r_destination_conditions_array = mDestinationModelPart.Conditions();
         for(IndexType i = 0; i < r_destination_conditions_array.size(); ++i) {
             auto it_cond = r_destination_conditions_array.begin() + i;
@@ -250,7 +250,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
         PointVector point_list_destination;
         point_list_destination.clear();
 
-        if (mOptions.Is(ORIGIN_CONDITIONS)) {
+        if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
             // Iterate in the conditions
             auto& r_origin_conditions_array = mOriginModelPart.Conditions();
 
@@ -310,7 +310,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
         // Copying the list is required because the tree will reorder it for efficiency
         KDTreeType tree_points(point_list_destination.begin(), point_list_destination.end(), bucket_size);
 
-        if (mOptions.Is(DESTINATION_CONDITIONS)) {
+        if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
             auto& r_destination_conditions_array = mDestinationModelPart.Conditions();
 
             // Iterate over conditions
@@ -357,7 +357,7 @@ double SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Ge
     double ref_area = 0.0;
 
     // We look for the max area in the origin model part
-    if (mOptions.Is(ORIGIN_CONDITIONS)) {
+    if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
         auto& r_conditions_array_origin = mOriginModelPart.Conditions();
 
         for(int i = 0; i < static_cast<int>(r_conditions_array_origin.size()); ++i) {
@@ -376,7 +376,7 @@ double SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Ge
     }
 
     // We look for the max area in the destination model part
-    if (mOptions.Is(DESTINATION_CONDITIONS)) {
+    if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
         auto& r_conditions_array_destination = mDestinationModelPart.Conditions();
 
         for(int i = 0; i < static_cast<int>(r_conditions_array_destination.size()); ++i) {
@@ -664,12 +664,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Comp
 {
     const SizeType size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
     Matrix var_origin_matrix(TNumNodesMaster, size_to_compute);
-    if (mOptions.Is(ORIGIN_HISTORICAL))
+    if (mOptions.Is(ORIGIN_IS_HISTORICAL))
         MortarUtilities::MatrixValue<TVarType, Historical>(MasterGeometry, mOriginVariable, var_origin_matrix);
     else
         MortarUtilities::MatrixValue<TVarType, NonHistorical>(MasterGeometry, mOriginVariable, var_origin_matrix);
     Matrix var_destination_matrix(TNumNodes, size_to_compute);
-    if (mOptions.Is(DESTINATION_HISTORICAL))
+    if (mOptions.Is(DESTINATION_IS_HISTORICAL))
         MortarUtilities::MatrixValue<TVarType, Historical>(SlaveGeometry, mDestinationVariable, var_destination_matrix);
     else
         MortarUtilities::MatrixValue<TVarType, NonHistorical>(SlaveGeometry, mDestinationVariable, var_destination_matrix);
@@ -753,8 +753,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     KRATOS_TRY;
 
     // Calculate the mean of the normal in all the nodes
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mOriginModelPart, mOptions.Is(ORIGIN_CONDITIONS));
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mDestinationModelPart, mOptions.Is(DESTINATION_CONDITIONS));
+    MortarUtilities::ComputeNodesMeanNormalModelPart(mOriginModelPart, mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED));
+    MortarUtilities::ComputeNodesMeanNormalModelPart(mDestinationModelPart, mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED));
 
     // Defining tolerance
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
@@ -765,7 +765,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     IndexType iteration = 0;
 
     // We set to zero the variables
-    if (mOptions.Is(DESTINATION_HISTORICAL))
+    if (mOptions.Is(DESTINATION_IS_HISTORICAL))
         MortarUtilities::ResetValue<TVarType, Historical>(mDestinationModelPart, mDestinationVariable);
     else
         MortarUtilities::ResetValue<TVarType, NonHistorical>(mDestinationModelPart, mDestinationVariable);
@@ -816,7 +816,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         MortarUtilities::ResetAuxiliarValue<TVarType>(mOriginModelPart);
         MortarUtilities::ResetAuxiliarValue<TVarType>(mDestinationModelPart);
 
-        if (mOptions.Is(DESTINATION_CONDITIONS)) {
+        if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
             // Iterate over conditions
             auto& r_conditions_array = mDestinationModelPart.Conditions();
             const int num_conditions = static_cast<int>(r_conditions_array.size());
@@ -859,7 +859,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         // We remove the not used conditions
         if (remove_isolated_conditions) {
             ModelPart& r_root_model_part = mOriginModelPart.GetRootModelPart();
-            if (mOptions.Is(ORIGIN_CONDITIONS)) {
+            if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
                 r_root_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
             } else {
                 r_root_model_part.RemoveElementsFromAllLevels(TO_ERASE);
@@ -875,7 +875,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         for(int i = 0; i < num_nodes; ++i) {
             auto it_node = r_nodes_array.begin() + i;
             NodeType::Pointer pnode = *(it_node.base());
-            if (mOptions.Is(DESTINATION_HISTORICAL))
+            if (mOptions.Is(DESTINATION_IS_HISTORICAL))
                 MortarUtilities::AddAreaWeightedNodalValue<TVarType, Historical>(pnode, mDestinationVariable, ref_area);
             else
                 MortarUtilities::AddAreaWeightedNodalValue<TVarType, NonHistorical>(pnode, mDestinationVariable, ref_area);
@@ -916,8 +916,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     KRATOS_TRY;
 
     // Calculate the mean of the normal in all the nodes
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mOriginModelPart, mOptions.Is(ORIGIN_CONDITIONS));
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mDestinationModelPart, mOptions.Is(DESTINATION_CONDITIONS));
+    MortarUtilities::ComputeNodesMeanNormalModelPart(mOriginModelPart, mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED));
+    MortarUtilities::ComputeNodesMeanNormalModelPart(mDestinationModelPart, mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED));
 
     // Defining tolerance
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
@@ -928,7 +928,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     IndexType iteration = 0;
 
     // We set to zero the variables
-    if (mOptions.Is(DESTINATION_HISTORICAL))
+    if (mOptions.Is(DESTINATION_IS_HISTORICAL))
         MortarUtilities::ResetValue<TVarType, Historical>(mDestinationModelPart,  mDestinationVariable);
     else
         MortarUtilities::ResetValue<TVarType, NonHistorical>(mDestinationModelPart, mDestinationVariable);
@@ -974,7 +974,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             for (IndexType i_size = 0; i_size < variable_size; ++i_size)
                 b[i_size] = zero_vector;
 
-        if (mOptions.Is(DESTINATION_CONDITIONS)) {
+        if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
             // Iterate over conditions
             auto& r_conditions_array = mDestinationModelPart.Conditions();
             const int num_conditions = static_cast<int>(r_conditions_array.size());
@@ -1015,7 +1015,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         // We remove the not used conditions
         if (remove_isolated_conditions) {
             ModelPart& r_root_model_part = mOriginModelPart.GetRootModelPart();
-            if (mOptions.Is(ORIGIN_CONDITIONS)) {
+            if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
                 r_root_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
             } else {
                 r_root_model_part.RemoveElementsFromAllLevels(TO_ERASE);
@@ -1025,7 +1025,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         // Finally we solve the system
         for (IndexType i_size = 0; i_size < variable_size; ++i_size) {
             mpThisLinearSolver->Solve(A, Dx, b[i_size]);
-            if (mOptions.Is(DESTINATION_HISTORICAL))
+            if (mOptions.Is(DESTINATION_IS_HISTORICAL))
                 MortarUtilities::UpdateDatabase<TVarType, Historical>(mDestinationModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
             else
                 MortarUtilities::UpdateDatabase<TVarType, NonHistorical>(mDestinationModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
@@ -1054,7 +1054,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::CreateInverseDatabase()
 {
-    if (mOptions.Is(ORIGIN_CONDITIONS)) {
+    if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
         /* Conditions */
         // First we clear database
         auto& r_master_conditions_array = mOriginModelPart.Conditions();
@@ -1088,7 +1088,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
         }
     }
 
-    if (mOptions.Is(DESTINATION_CONDITIONS)) {
+    if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
         // Conditions array
         auto& r_conditions_array = mDestinationModelPart.Conditions();
         const int num_conditions = static_cast<int>(r_conditions_array.size());
@@ -1149,7 +1149,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::UpdateInterface()
 {
-    if (mOptions.Is(DESTINATION_CONDITIONS)) {
+    if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
         // Iterate in the conditions
         auto& r_destination_conditions_array = mDestinationModelPart.Conditions();
         #pragma omp parallel for
