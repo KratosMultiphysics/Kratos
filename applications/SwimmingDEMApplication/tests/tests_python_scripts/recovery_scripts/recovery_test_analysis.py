@@ -21,13 +21,26 @@ class RecoveryTestAnalysis(SwimmingDEMAnalysis):
         self.SetOperators()
         self.operator_names = self.scalar_operator_names + self.vector_operator_names
 
+    @staticmethod
+    def GetVariableByName(var_name):
+        if hasattr(Kratos, var_name):
+            return getattr(Kratos, var_name)
+        elif hasattr(SDEM, var_name):
+            return getattr(SDEM, var_name)
+        else:
+            raise Exception('Variable '+ var_name + 'has not been adequately added.')
+
+
     def SetOperators(self):
         self.scalar_operator_names = []
         self.vector_operator_names = ['scalar_gradient', 'material_derivative']
-        self.vars_man.fluid_vars += [SDEM.PRESSURE_GRADIENT_ERROR,
-                                     SDEM.MATERIAL_ACCELERATION_ERROR,
-                                     SDEM.VELOCITY_DIVERGENCE_ERROR,
-                                     SDEM.VELOCITY_DIVERGENCE]
+        GetVariable = RecoveryTestAnalysis.GetVariableByName
+        self.vars_man.fluid_vars += [GetVariable('PRESSURE_GRADIENT_ERROR'),
+                                     GetVariable('MATERIAL_ACCELERATION_ERROR'),
+                                     GetVariable('VELOCITY_DIVERGENCE_ERROR'),
+                                     GetVariable('VELOCITY_DIVERGENCE'),
+                                     GetVariable('VORTICITY_ERROR'),
+                                     GetVariable('VORTICITY')]
 
     def GetEmbeddedCounter(self):
         return SDP.Counter(is_dead=True)
@@ -112,6 +125,7 @@ class RecoveryTestAnalysis(SwimmingDEMAnalysis):
 
         coor = Vector(3)
         error = Vector(3)
+        GetVariable = RecoveryTestAnalysis.GetVariableByName
 
         for node in self.fluid_model_part.Nodes:
             nodal_volume = node.GetSolutionStepValue(Kratos.NODAL_AREA)
@@ -124,24 +138,30 @@ class RecoveryTestAnalysis(SwimmingDEMAnalysis):
 
                 if name == 'scalar_gradient':
                     self.pressure_field.CalculateGradient(self.time, coor, self.local_exact_values[name], 0)
-                    self.local_calculated_values[name] = node.GetSolutionStepValue(Kratos.PRESSURE_GRADIENT)
+                    self.local_calculated_values[name] = node.GetSolutionStepValue(GetVariable('PRESSURE_GRADIENT'))
                     error = self.local_calculated_values[name] - self.local_exact_values[name]
-                    node.SetSolutionStepValue(SDEM.PRESSURE_GRADIENT_ERROR, error)
+                    node.SetSolutionStepValue(GetVariable('PRESSURE_GRADIENT_ERROR'), error)
                 elif name == 'material_derivative':
                     self.flow_field.CalculateMaterialAcceleration(self.time, coor, self.local_exact_values[name], 0)
-                    self.local_calculated_values[name] = node.GetSolutionStepValue(Kratos.MATERIAL_ACCELERATION)
+                    self.local_calculated_values[name] = node.GetSolutionStepValue(GetVariable('MATERIAL_ACCELERATION'))
                     error = self.local_calculated_values[name] - self.local_exact_values[name]
-                    node.SetSolutionStepValue(SDEM.MATERIAL_ACCELERATION_ERROR, error)
+                    node.SetSolutionStepValue(GetVariable('MATERIAL_ACCELERATION_ERROR'), error)
                 elif name == 'laplacian':
                     self.flow_field.CalculateLaplacian(0., coor, self.local_exact_values[name], 0)
-                    self.local_calculated_values[name] = node.GetSolutionStepValue(Kratos.VELOCITY_LAPLACIAN)
+                    self.local_calculated_values[name] = node.GetSolutionStepValue(GetVariable('VELOCITY_LAPLACIAN'))
                     error = self.local_calculated_values[name] - self.local_exact_values[name]
-                    node.SetSolutionStepValue(SDEM.VELOCITY_LAPLACIAN_ERROR, error)
+                    node.SetSolutionStepValue(GetVariable('VELOCITY_LAPLACIAN_ERROR'), error)
                 elif name == 'divergence':
                     self.local_exact_values[name] = self.flow_field.CalculateDivergence(self.time, coor, 0)
-                    self.local_calculated_values[name] = node.GetSolutionStepValue(SDEM.VELOCITY_DIVERGENCE)
+                    self.local_calculated_values[name] = node.GetSolutionStepValue(GetVariable('VELOCITY_DIVERGENCE'))
                     error = self.local_calculated_values[name] - self.local_exact_values[name]
-                    node.SetSolutionStepValue(SDEM.VELOCITY_DIVERGENCE_ERROR, error)
+                    node.SetSolutionStepValue(GetVariable('VELOCITY_DIVERGENCE_ERROR'), error)
+                elif name == 'rotational':
+                    self.flow_field.CalculateRotational(self.time, coor, self.local_exact_values[name], 0)
+                    self.local_calculated_values[name] = node.GetSolutionStepValue(GetVariable('VORTICITY'))
+                    error = self.local_calculated_values[name] - self.local_exact_values[name]
+
+                    node.SetSolutionStepValue(GetVariable('VORTICITY_ERROR'), error)
 
                 error_norm = RecoveryTestAnalysis.Module(error)
                 self.average_modules[name] += RecoveryTestAnalysis.Module(self.local_exact_values[name])  * nodal_volume
@@ -153,11 +173,13 @@ class RecoveryTestAnalysis(SwimmingDEMAnalysis):
             self.average_modules[name] /= total_volume
 
     def Finalize(self):
-        text_width = 45
+        text_width = 30
         super(RecoveryTestAnalysis, self).Finalize()
-        Say('\n' + '-.' * text_width)
+        text_summary = ''
+        text_summary += '\n' + '--' * text_width + '\n'
         for name in self.operator_names:
-            if self.average_errors[name] > 0:
-                Say(str('Average error for the ' + name).ljust(text_width), self.average_errors[name])
-                Say(str('Max. error for the ' + name).ljust(text_width), self.max_errors[name])
-        Say('-.' * text_width + '\n')
+            text_summary += str(name + ': average modulus').ljust(text_width) + str(self.average_errors[name]) + '\n'
+            text_summary += str(name + ': average error').ljust(text_width) + str(self.average_errors[name]) + '\n'
+            text_summary += str(name + ': max. error').ljust(text_width) + str(self.max_errors[name]) + '\n'
+            text_summary += '--' * text_width + '\n'
+        Say(text_summary)

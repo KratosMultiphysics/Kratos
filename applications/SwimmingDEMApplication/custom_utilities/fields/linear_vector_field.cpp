@@ -46,9 +46,9 @@ void LinearVectorField::CalculateRotational(const double time,
                                             array_1d<double, 3>& rot,
                                             const int i_thread)
 {
-    rot[1] = mA(3, 2) - mA(2, 3);
-    rot[2] = mA(1, 3) - mA(3, 1);
-    rot[3] = mA(2, 1) - mA(1, 2);
+    rot[0] = mA(2, 1) - mA(1, 2);
+    rot[1] = mA(0, 2) - mA(2, 0);
+    rot[2] = mA(1, 0) - mA(0, 1);
 }
 
 void LinearVectorField::CalculateRotational(const double time,
@@ -56,9 +56,9 @@ void LinearVectorField::CalculateRotational(const double time,
                                             DenseVector<double>& rot,
                                             const int i_thread)
 {
-    rot[1] = mA(3, 2) - mA(2, 3);
-    rot[2] = mA(1, 3) - mA(3, 1);
-    rot[3] = mA(2, 1) - mA(1, 2);
+    rot[0] = mA(2, 1) - mA(1, 2);
+    rot[1] = mA(0, 2) - mA(2, 0);
+    rot[2] = mA(1, 0) - mA(0, 1);
 }
 
 } // namespace Kratos.

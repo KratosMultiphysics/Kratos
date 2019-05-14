@@ -11,11 +11,12 @@ class LinearStandardTestAnalysis(RecoveryTestAnalysis):
 
     def SetOperators(self):
         self.scalar_operator_names = ['divergence']
-        self.vector_operator_names = []
-        self.vars_man.fluid_vars += [SDEM.PRESSURE_GRADIENT_ERROR,
-                                     SDEM.MATERIAL_ACCELERATION_ERROR,
-                                     SDEM.VELOCITY_DIVERGENCE_ERROR,
-                                     SDEM.VELOCITY_DIVERGENCE]
+        self.vector_operator_names = ['rotational']
+        GetVariable = RecoveryTestAnalysis.GetVariableByName
+        self.vars_man.fluid_vars += [GetVariable('VELOCITY_DIVERGENCE_ERROR'),
+                                     GetVariable('VELOCITY_DIVERGENCE'),
+                                     GetVariable('VORTICITY_ERROR'),
+                                     GetVariable('VORTICITY')]
 
     def SetFieldsToImpose(self):
 
@@ -28,7 +29,7 @@ class LinearStandardTestAnalysis(RecoveryTestAnalysis):
         self.pressure_field = SDEM.LinearRealField(a0, a1, a2, b)
         field_parameters = Parameters(
             """{
-                "A" : [[1,0,0], [0,2,0], [-1,-2,-3]],
+                "A" : [[0.5,1,1], [0,5,-8], [-1,-2,-3]],
                 "b" : [1, 0, 0]
                 }""")
 
