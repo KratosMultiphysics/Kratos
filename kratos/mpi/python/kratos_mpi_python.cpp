@@ -29,18 +29,13 @@ PYBIND11_MODULE(KratosMPI, m)
 {
     namespace py = pybind11;
 
+    MPIEnvironment& mpi_environment = MPIEnvironment::Instance();
+
     // Initialize MPI when loading this module
-    MPIEnvironment::Initialize();
+    mpi_environment.Initialize();
+
     // Configure Kratos::ParallelEnvironment for MPI runs on module load
-    MPIEnvironment::InitializeKratosParallelEnvironment();
-
-    // Define a callback to finalize MPI on module cleanup
-    auto cleanup_callback = []() {
-        MPIEnvironment::Finalize();
-        ParallelEnvironment::SetDefaultDataCommunicator("Serial");
-    };
-
-    m.add_object("_cleanup", py::capsule(cleanup_callback));
+    mpi_environment.InitializeKratosParallelEnvironment();
 
     AddMPICommunicatorToPython(m);
     AddMPIDataCommunicatorToPython(m);

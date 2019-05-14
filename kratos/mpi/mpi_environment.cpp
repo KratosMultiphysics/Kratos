@@ -12,6 +12,9 @@
 
 // System includes
 #include <mpi.h>
+#ifdef _OPENMP
+#include "omp.h"
+#endif
 
 // Project includes
 #include "input_output/logger.h"
@@ -22,6 +25,26 @@
 #include "mpi/includes/mpi_data_communicator.h"
 
 namespace Kratos {
+
+MPIEnvironment& MPIEnvironment::Instance()
+{
+    // Using double-checked locking to ensure thread safety in the first creation of the singleton.
+    if (mpInstance == nullptr)
+    {
+        #ifdef _OPENMP
+        #pragma omp critical
+        if (mpInstance == nullptr)
+        {
+        #endif
+            KRATOS_ERROR_IF(mDestroyed) << "Accessing MPIEnvironment after its destruction" << std::endl;
+            Create();
+        #ifdef _OPENMP
+        }
+        #endif
+    }
+
+    return *mpInstance;
+}
 
 void MPIEnvironment::Initialize()
 {
@@ -65,7 +88,7 @@ void MPIEnvironment::Finalize()
     {
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        KRATOS_DETAIL("MPIEnvironment") << "MPI finalize called in rank " << rank << "." << std::endl;
+        //KRATOS_DETAIL("MPIEnvironment") << "MPI finalize called in rank " << rank << "." << std::endl;
         MPI_Finalize();
     }
 
@@ -103,5 +126,24 @@ void MPIEnvironment::InitializeKratosParallelEnvironment()
     // Define the World DataCommunicator as a wrapper for MPI_COMM_WORLD and make it the default.
     ParallelEnvironment::RegisterDataCommunicator("World", MPIDataCommunicator(MPI_COMM_WORLD), ParallelEnvironment::MakeDefault);
 }
+
+MPIEnvironment::MPIEnvironment() {}
+
+MPIEnvironment::~MPIEnvironment()
+{
+    auto& r_instance = Instance();
+    r_instance.Finalize();
+    mpInstance = nullptr;
+    mDestroyed = true;
+}
+
+void MPIEnvironment::Create()
+{
+    static MPIEnvironment mpi_environment;
+    mpInstance = &mpi_environment;
+}
+
+MPIEnvironment* MPIEnvironment::mpInstance = nullptr;
+bool MPIEnvironment::mDestroyed = false;
 
 }
