@@ -18,7 +18,6 @@
 // Project includes
 #include "custom_processes/mmg_process.h"
 #include "containers/model.h"
-#include "utilities/assign_unique_model_part_collection_tag_utility.h"
 // We indlude the internal variable interpolation process
 #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
@@ -256,180 +255,21 @@ void MmgProcess<TMMGLibrary>::operator()()
 template<MMGLibrary TMMGLibrary>
 void MmgProcess<TMMGLibrary>::InitializeMeshData()
 {
-    // We create a list of submodelparts to later reassign flags after remesh
-    mMmmgUtilities.CreateAuxiliarSubModelPartForFlags(mrThisModelPart);
+    // The auxiliar color maps
+    ColorsMapType aux_ref_cond, aux_ref_elem;
 
-    // Before computing colors we do some check and throw a warning to get the user informed
-    const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(mrThisModelPart);
-
-    for (auto sub_model_part_name : sub_model_part_names) {
-        ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
-
-        KRATOS_WARNING_IF("MmgProcess", mEchoLevel > 0 && (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
-        "The submodelpart: " << sub_model_part_name << " contains only nodes and no geometries (conditions/elements)." << std::endl <<
-        "It is not guaranteed that the submodelpart will be preserved." << std::endl <<
-        "PLEASE: Add some \"dummy\" conditions to the submodelpart to preserve it" << std::endl;
-    }
-
-    // First we compute the colors
-    mColors.clear();
-    ColorsMapType nodes_colors, cond_colors, elem_colors;
-    AssignUniqueModelPartCollectionTagUtility model_part_collections(mrThisModelPart);
-    model_part_collections.ComputeTags(nodes_colors, cond_colors, elem_colors, mColors);
-
-    /////////* MESH FILE */////////
-    // Build mesh in MMG5 format //
+    // We initialize the mesh data with the given modelpart
+    mMmmgUtilities.GenerateMeshDataFromModelPart(mrThisModelPart, mColors, aux_ref_cond, aux_ref_elem, mFramework);
 
     // Iterate over components
-    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
-    ConditionsArrayType& r_conditions_array = mrThisModelPart.Conditions();
-    ElementsArrayType& r_elements_array = mrThisModelPart.Elements();
+    auto& r_nodes_array = mrThisModelPart.Nodes();
+    auto& r_conditions_array = mrThisModelPart.Conditions();
+    auto& r_elements_array = mrThisModelPart.Elements();
 
-    /* Manually set of the mesh */
-    MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
-    if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
-        mmg_mesh_info.NumberOfLines = r_conditions_array.size();
-        mmg_mesh_info.NumberOfTriangles = r_elements_array.size();
-    } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
-        /* Conditions */
-        std::size_t num_tri = 0, num_quad = 0;
-        #pragma omp parallel for reduction(+:num_tri,num_quad)
-        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-            auto it_cond = r_conditions_array.begin() + i;
-
-            if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) { // Triangles
-                num_tri += 1;
-            } else if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) { // Quadrilaterals
-                num_quad += 1;
-            } else
-                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
-        }
-
-        mmg_mesh_info.NumberOfTriangles = num_tri;
-        mmg_mesh_info.NumberOfQuadrilaterals = num_quad;
-
-        KRATOS_INFO_IF("MmgProcess", ((num_tri + num_quad) < r_conditions_array.size()) && mEchoLevel > 0) <<
-        "Number of Conditions: " << r_conditions_array.size() << " Number of Triangles: " << num_tri << " Number of Quadrilaterals: " << num_quad << std::endl;
-
-        /* Elements */
-        std::size_t num_tetra = 0, num_prisms = 0;
-        #pragma omp parallel for reduction(+:num_tetra,num_prisms)
-        for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
-            auto it_elem = r_elements_array.begin() + i;
-
-            if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) { // Tetrahedron
-                num_tetra += 1;
-            } else if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) { // Prisms
-                num_prisms += 1;
-            } else
-                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
-        }
-
-        mmg_mesh_info.NumberOfTetrahedra = num_tetra;
-        mmg_mesh_info.NumberOfPrism = num_prisms;
-
-        KRATOS_INFO_IF("MmgProcess", ((num_tetra + num_prisms) < r_elements_array.size()) && mEchoLevel > 0) <<
-        "Number of Elements: " << r_elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_prisms << std::endl;
-    } else { // Surfaces
-        mmg_mesh_info.NumberOfLines = r_conditions_array.size();
-        mmg_mesh_info.NumberOfTriangles = r_elements_array.size();
-    }
-
-    mmg_mesh_info.NumberOfNodes = r_nodes_array.size();
-    mMmmgUtilities.SetMeshSize(mmg_mesh_info);
-
-    /* Nodes */
     // We copy the DOF from the first node (after we release, to avoid problem with previous conditions)
     mDofs = r_nodes_array.begin()->GetDofs();
-    for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
+    for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
         it_dof->FreeDof();
-
-    if (mFramework == FrameworkEulerLagrange::LAGRANGIAN){ // NOTE: The code is repeated due to performance reasons
-        #pragma omp parallel for firstprivate(nodes_colors)
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = r_nodes_array.begin() + i;
-
-            mMmmgUtilities.SetNodes(it_node->X0(), it_node->Y0(), it_node->Z0(), nodes_colors[it_node->Id()], i + 1);
-
-            bool blocked = false;
-            if (it_node->IsDefined(BLOCKED))
-                blocked = it_node->Is(BLOCKED);
-            if (blocked)
-                mMmmgUtilities.BlockNode(i + 1);
-
-            // RESETING THE ID OF THE NODES (important for non consecutive meshes)
-            it_node->SetId(i + 1);
-        }
-    }
-    else {
-        #pragma omp parallel for firstprivate(nodes_colors)
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = r_nodes_array.begin() + i;
-
-            mMmmgUtilities.SetNodes(it_node->X(), it_node->Y(), it_node->Z(), nodes_colors[it_node->Id()], i + 1);
-
-            bool blocked = false;
-            if (it_node->IsDefined(BLOCKED))
-                blocked = it_node->Is(BLOCKED);
-            if (blocked)
-                mMmmgUtilities.BlockNode(i + 1);
-
-            // RESETING THE ID OF THE NODES (important for non consecutive meshes)
-            it_node->SetId(i + 1);
-        }
-    }
-
-    /* Conditions */
-    #pragma omp parallel for firstprivate(cond_colors)
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)  {
-        auto it_cond = r_conditions_array.begin() + i;
-
-        mMmmgUtilities.SetConditions(it_cond->GetGeometry(), cond_colors[it_cond->Id()], i + 1);
-
-        bool blocked = false;
-        if (it_cond->IsDefined(BLOCKED))
-            blocked = it_cond->Is(BLOCKED);
-        if (blocked)
-            mMmmgUtilities.BlockCondition(i + 1);
-
-        // RESETING THE ID OF THE CONDITIONS (important for non consecutive meshes)
-        it_cond->SetId(i + 1);
-    }
-
-    /* Elements */
-    #pragma omp parallel for firstprivate(elem_colors)
-    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
-        auto it_elem = r_elements_array.begin() + i;
-
-        mMmmgUtilities.SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], i + 1);
-
-        bool blocked = false;
-        if (it_elem->IsDefined(BLOCKED))
-            blocked = it_elem->Is(BLOCKED);
-        if (blocked)
-            mMmmgUtilities.BlockElement(i + 1);
-
-        // RESETING THE ID OF THE ELEMENTS (important for non consecutive meshes)
-        it_elem->SetId(i + 1);
-    }
-
-    // Create auxiliar colors maps
-    ColorsMapType aux_ref_cond;
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)  {
-        auto it_cond = r_conditions_array.begin() + i;
-        const IndexType cond_id = it_cond->Id();
-        const IndexType color = cond_colors[cond_id];
-        if (!(aux_ref_cond.find(color) != aux_ref_cond.end()))
-            aux_ref_cond.insert (IndexPairType(color,cond_id));
-    }
-    ColorsMapType aux_ref_elem;
-    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
-        auto it_elem = r_elements_array.begin() + i;
-        const IndexType elem_id = it_elem->Id();
-        const IndexType color = elem_colors[elem_id];
-        if (!(aux_ref_elem.find(color) != aux_ref_elem.end()))
-            aux_ref_elem.insert (IndexPairType(color,elem_id));
-    }
 
     /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition) */
     // First we add the main model part

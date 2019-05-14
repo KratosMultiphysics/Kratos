@@ -2375,11 +2375,11 @@ void MmgUtilities<MMGLibrary::MMGS>::SetMetricScalar(
 
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::SetMetricVector(
-    const array_1d<double, 2>& Metric,
+    const array_1d<double, 2>& rMetric,
     const IndexType NodeId
     )
 {
-    KRATOS_ERROR_IF( MMG2D_Set_vectorSol(mMmgSol, Metric[0], Metric[1], NodeId) != 1 ) << "Unable to set vector metric" << std::endl;
+    KRATOS_ERROR_IF( MMG2D_Set_vectorSol(mMmgSol, rMetric[0], rMetric[1], NodeId) != 1 ) << "Unable to set vector metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -2387,11 +2387,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetMetricVector(
 
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::SetMetricVector(
-    const array_1d<double, 3>& Metric,
+    const array_1d<double, 3>& rMetric,
     const IndexType NodeId
     )
 {
-    KRATOS_ERROR_IF( MMG3D_Set_vectorSol(mMmgSol, Metric[0], Metric[1], Metric[2], NodeId) != 1 ) << "Unable to set vector metric" << std::endl;
+    KRATOS_ERROR_IF( MMG3D_Set_vectorSol(mMmgSol, rMetric[0], rMetric[1], rMetric[2], NodeId) != 1 ) << "Unable to set vector metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -2399,11 +2399,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetMetricVector(
 
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::SetMetricVector(
-    const array_1d<double, 3>& Metric,
+    const array_1d<double, 3>& rMetric,
     const IndexType NodeId
     )
 {
-    KRATOS_ERROR_IF( MMGS_Set_vectorSol(mMmgSol, Metric[0], Metric[1], Metric[2], NodeId) != 1 ) << "Unable to set vector metric" << std::endl;
+    KRATOS_ERROR_IF( MMGS_Set_vectorSol(mMmgSol, rMetric[0], rMetric[1], rMetric[2], NodeId) != 1 ) << "Unable to set vector metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -2411,12 +2411,12 @@ void MmgUtilities<MMGLibrary::MMGS>::SetMetricVector(
 
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::SetMetricTensor(
-    const array_1d<double, 3>& Metric,
+    const array_1d<double, 3>& rMetric,
     const IndexType NodeId
     )
 {
     // The order is XX, XY, YY
-    KRATOS_ERROR_IF( MMG2D_Set_tensorSol(mMmgSol, Metric[0], Metric[2], Metric[1], NodeId) != 1 ) << "Unable to set tensor metric" << std::endl;
+    KRATOS_ERROR_IF( MMG2D_Set_tensorSol(mMmgSol, rMetric[0], rMetric[2], rMetric[1], NodeId) != 1 ) << "Unable to set tensor metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -2424,12 +2424,12 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetMetricTensor(
 
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::SetMetricTensor(
-    const array_1d<double, 6>& Metric,
+    const array_1d<double, 6>& rMetric,
     const IndexType NodeId
     )
 {
     // The order is XX, XY, XZ, YY, YZ, ZZ
-    KRATOS_ERROR_IF( MMG3D_Set_tensorSol(mMmgSol, Metric[0], Metric[3], Metric[5], Metric[1], Metric[4], Metric[2], NodeId) != 1 ) << "Unable to set tensor metric" << std::endl;
+    KRATOS_ERROR_IF( MMG3D_Set_tensorSol(mMmgSol, rMetric[0], rMetric[3], rMetric[5], rMetric[1], rMetric[4], rMetric[2], NodeId) != 1 ) << "Unable to set tensor metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -2437,12 +2437,192 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetMetricTensor(
 
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::SetMetricTensor(
-    const array_1d<double, 6>& Metric,
+    const array_1d<double, 6>& rMetric,
     const IndexType NodeId
     )
 {
     // The order is XX, XY, XZ, YY, YZ, ZZ
-    KRATOS_ERROR_IF( MMGS_Set_tensorSol(mMmgSol, Metric[0], Metric[3], Metric[5], Metric[1], Metric[4], Metric[2], NodeId) != 1 ) << "Unable to set tensor metric" << std::endl;
+    KRATOS_ERROR_IF( MMGS_Set_tensorSol(mMmgSol, rMetric[0], rMetric[3], rMetric[5], rMetric[1], rMetric[4], rMetric[2], NodeId) != 1 ) << "Unable to set tensor metric" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
+    ModelPart& rModelPart,
+    std::unordered_map<IndexType,std::vector<std::string>>& rColors,
+    ColorsMapType& rColorMapCondition,
+    ColorsMapType& rColorMapElement,
+    const FrameworkEulerLagrange Framework
+    )
+{
+    // We create a list of submodelparts to later reassign flags after remesh
+    CreateAuxiliarSubModelPartForFlags(rModelPart);
+
+    // Before computing colors we do some check and throw a warning to get the user informed
+    const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(rModelPart);
+
+    for (auto sub_model_part_name : sub_model_part_names) {
+        ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
+
+        KRATOS_WARNING_IF("MmgProcess", mEchoLevel > 0 && (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
+        "The submodelpart: " << sub_model_part_name << " contains only nodes and no geometries (conditions/elements)." << std::endl <<
+        "It is not guaranteed that the submodelpart will be preserved." << std::endl <<
+        "PLEASE: Add some \"dummy\" conditions to the submodelpart to preserve it" << std::endl;
+    }
+
+    // First we compute the colors
+    rColors.clear();
+    ColorsMapType nodes_colors, cond_colors, elem_colors;
+    AssignUniqueModelPartCollectionTagUtility model_part_collections(rModelPart);
+    model_part_collections.ComputeTags(nodes_colors, cond_colors, elem_colors, rColors);
+
+    /////////* MESH FILE */////////
+    // Build mesh in MMG5 format //
+
+    // Iterate over components
+    auto& r_nodes_array = rModelPart.Nodes();
+    auto& r_conditions_array = rModelPart.Conditions();
+    auto& r_elements_array = rModelPart.Elements();
+
+    /* Manually set of the mesh */
+    MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
+    if (TMMGLibrary == MMGLibrary::MMG2D) { // 2D
+        mmg_mesh_info.NumberOfLines = r_conditions_array.size();
+        mmg_mesh_info.NumberOfTriangles = r_elements_array.size();
+    } else if (TMMGLibrary == MMGLibrary::MMG3D) { // 3D
+        /* Conditions */
+        std::size_t num_tri = 0, num_quad = 0;
+        #pragma omp parallel for reduction(+:num_tri,num_quad)
+        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+            auto it_cond = r_conditions_array.begin() + i;
+
+            if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) { // Triangles
+                num_tri += 1;
+            } else if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) { // Quadrilaterals
+                num_quad += 1;
+            } else
+                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
+        }
+
+        mmg_mesh_info.NumberOfTriangles = num_tri;
+        mmg_mesh_info.NumberOfQuadrilaterals = num_quad;
+
+        KRATOS_INFO_IF("MmgProcess", ((num_tri + num_quad) < r_conditions_array.size()) && mEchoLevel > 0) <<
+        "Number of Conditions: " << r_conditions_array.size() << " Number of Triangles: " << num_tri << " Number of Quadrilaterals: " << num_quad << std::endl;
+
+        /* Elements */
+        std::size_t num_tetra = 0, num_prisms = 0;
+        #pragma omp parallel for reduction(+:num_tetra,num_prisms)
+        for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+            auto it_elem = r_elements_array.begin() + i;
+
+            if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) { // Tetrahedron
+                num_tetra += 1;
+            } else if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) { // Prisms
+                num_prisms += 1;
+            } else
+                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
+        }
+
+        mmg_mesh_info.NumberOfTetrahedra = num_tetra;
+        mmg_mesh_info.NumberOfPrism = num_prisms;
+
+        KRATOS_INFO_IF("MmgProcess", ((num_tetra + num_prisms) < r_elements_array.size()) && mEchoLevel > 0) <<
+        "Number of Elements: " << r_elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_prisms << std::endl;
+    } else { // Surfaces
+        mmg_mesh_info.NumberOfLines = r_conditions_array.size();
+        mmg_mesh_info.NumberOfTriangles = r_elements_array.size();
+    }
+
+    mmg_mesh_info.NumberOfNodes = r_nodes_array.size();
+    SetMeshSize(mmg_mesh_info);
+
+    /* Nodes */
+    if (Framework == FrameworkEulerLagrange::LAGRANGIAN){ // NOTE: The code is repeated due to performance reasons
+        #pragma omp parallel for firstprivate(nodes_colors)
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = r_nodes_array.begin() + i;
+
+            SetNodes(it_node->X0(), it_node->Y0(), it_node->Z0(), nodes_colors[it_node->Id()], i + 1);
+
+            bool blocked = false;
+            if (it_node->IsDefined(BLOCKED))
+                blocked = it_node->Is(BLOCKED);
+            if (blocked)
+                BlockNode(i + 1);
+
+            // RESETING THE ID OF THE NODES (important for non consecutive meshes)
+            it_node->SetId(i + 1);
+        }
+    } else {
+        #pragma omp parallel for firstprivate(nodes_colors)
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = r_nodes_array.begin() + i;
+
+            SetNodes(it_node->X(), it_node->Y(), it_node->Z(), nodes_colors[it_node->Id()], i + 1);
+
+            bool blocked = false;
+            if (it_node->IsDefined(BLOCKED))
+                blocked = it_node->Is(BLOCKED);
+            if (blocked)
+                BlockNode(i + 1);
+
+            // RESETING THE ID OF THE NODES (important for non consecutive meshes)
+            it_node->SetId(i + 1);
+        }
+    }
+
+    /* Conditions */
+    #pragma omp parallel for firstprivate(cond_colors)
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)  {
+        auto it_cond = r_conditions_array.begin() + i;
+
+        SetConditions(it_cond->GetGeometry(), cond_colors[it_cond->Id()], i + 1);
+
+        bool blocked = false;
+        if (it_cond->IsDefined(BLOCKED))
+            blocked = it_cond->Is(BLOCKED);
+        if (blocked)
+            BlockCondition(i + 1);
+
+        // RESETING THE ID OF THE CONDITIONS (important for non consecutive meshes)
+        it_cond->SetId(i + 1);
+    }
+
+    /* Elements */
+    #pragma omp parallel for firstprivate(elem_colors)
+    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+        auto it_elem = r_elements_array.begin() + i;
+
+        SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], i + 1);
+
+        bool blocked = false;
+        if (it_elem->IsDefined(BLOCKED))
+            blocked = it_elem->Is(BLOCKED);
+        if (blocked)
+            BlockElement(i + 1);
+
+        // RESETING THE ID OF THE ELEMENTS (important for non consecutive meshes)
+        it_elem->SetId(i + 1);
+    }
+
+    // Create auxiliar colors maps
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)  {
+        auto it_cond = r_conditions_array.begin() + i;
+        const IndexType cond_id = it_cond->Id();
+        const IndexType color = cond_colors[cond_id];
+        if (!(rColorMapCondition.find(color) != rColorMapCondition.end()))
+            rColorMapCondition.insert (IndexPairType(color,cond_id));
+    }
+    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+        auto it_elem = r_elements_array.begin() + i;
+        const IndexType elem_id = it_elem->Id();
+        const IndexType color = elem_colors[elem_id];
+        if (!(rColorMapElement.find(color) != rColorMapElement.end()))
+            rColorMapElement.insert (IndexPairType(color,elem_id));
+    }
 }
 
 /***********************************************************************************/

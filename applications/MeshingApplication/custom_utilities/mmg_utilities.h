@@ -23,6 +23,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/variable_utils.h"
+#include "utilities/assign_unique_model_part_collection_tag_utility.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 
 // NOTE: The following contains the license of the MMG library
@@ -151,6 +152,12 @@ public:
 
     /// Index vector map
     typedef std::unordered_map<IndexVectorType, IndexType, KeyHasherRange<IndexVectorType>, KeyComparorRange<IndexVectorType> > IndexVectorMapType;
+
+    /// Colors map
+    typedef std::unordered_map<IndexType,IndexType> ColorsMapType;
+
+    /// Index pair
+    typedef std::pair<IndexType,IndexType> IndexPairType;
 
     ///@}
     ///@name  Enum's
@@ -518,22 +525,39 @@ public:
 
     /**
      * @brief This function is used to compute the metric vector (x, y, z)
-     * @param[in] Metric This array contains the components of the metric vector
+     * @param[in] rMetric This array contains the components of the metric vector
      * @param[in] NodeId The id of the node
      */
     void SetMetricVector(
-        const array_1d<double, Dimension>& Metric,
+        const array_1d<double, Dimension>& rMetric,
         const IndexType NodeId
         );
 
     /**
      * @brief This function is used to compute the Hessian metric tensor, note that when using the Hessian, more than one metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
-     * @param[in] Metric This array contains the components of the metric tensor in the MMG defined order
+     * @param[in] rMetric This array contains the components of the metric tensor in the MMG defined order
      * @param[in] NodeId The id of the node
      */
     void SetMetricTensor(
-        const TensorArrayType& Metric,
+        const TensorArrayType& rMetric,
         const IndexType NodeId
+        );
+
+    /**
+     * @brief This method generates mesh data from an existing model part
+     * @param[in,out] rModelPart The model part of interest to study
+     * @param[in,out] rColors Where the sub model parts IDs are stored
+     * @param[in,out] rColorMapCondition Auxiliar color map for conditions
+     * @param[in,out] rColorMapElement Auxiliar color map for elements
+     * @param[in] Framework The framework considered
+     *
+     */
+    void GenerateMeshDataFromModelPart(
+        ModelPart& rModelPart,
+        std::unordered_map<IndexType,std::vector<std::string>>& rColors,
+        ColorsMapType& rColorMapCondition,
+        ColorsMapType& rColorMapElement,
+        const FrameworkEulerLagrange Framework = FrameworkEulerLagrange::EULERIAN
         );
 
     /**
