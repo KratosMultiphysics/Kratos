@@ -83,7 +83,7 @@ namespace Kratos
             rResult.resize(3 * number_of_control_points, false);
 
         for (unsigned int i = 0; i < number_of_control_points; ++i) {
-            const unsigned int index = i * 5;
+            const unsigned int index = i * 3;
             rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
@@ -196,6 +196,8 @@ namespace Kratos
         double thickness = this->GetProperties().GetValue(THICKNESS);
 
         Vector S_prestress = this->GetProperties().GetValue(PRESTRESS);
+        //if (this->Id() == 1) { KRATOS_WATCH(S_prestress) };
+
         /*Vector S_prestress_nichttransformiert = this->GetProperties().GetValue(PRESTRESS);
         PrestresstransVariables prestresstrans_variables(3);
         CalculateTransformationmatrixPrestress(
@@ -206,6 +208,8 @@ namespace Kratos
         //constitutive_variables_membrane.S = ZeroVector(3);
         Vector S_total = constitutive_variables_membrane.S + S_prestress * thickness;
         //Vector S_total = S_prestress;
+
+        KRATOS_WATCH(S_total)
 
         //KRATOS_WATCH(thickness)
         /*if(this->Id() == 0){KRATOS_WATCH(S_prestress)};
@@ -254,11 +258,11 @@ namespace Kratos
         if(this->Id() == 0){KRATOS_WATCH(second_variations_strain.B11)};
         if(this->Id() == 0){KRATOS_WATCH(second_variations_strain.B22)};
         if(this->Id() == 0){KRATOS_WATCH(second_variations_strain.B12)};*/
-        if (this->Id() == 0) { KRATOS_WATCH(NumberOfNodes()) };
-        if (this->Id() == 0) { KRATOS_WATCH(NumberOfDofs()) };
-        /*if(this->Id() == 0){KRATOS_WATCH(rLeftHandSideMatrix)};
-        if(this->Id() == 0){KRATOS_WATCH(rRightHandSideVector)};
-        if(this->Id() == 0){KRATOS_WATCH(S_total)};*/
+        //if (this->Id() == 1) { KRATOS_WATCH(NumberOfNodes()) };
+        //if (this->Id() == 1) { KRATOS_WATCH(NumberOfDofs()) };
+        //if(this->Id() == 1){KRATOS_WATCH(rLeftHandSideMatrix)};
+        //if(this->Id() == 1){KRATOS_WATCH(rRightHandSideVector)};
+        //if(this->Id() == 1){KRATOS_WATCH(S_total)};
 
 
         KRATOS_CATCH("");

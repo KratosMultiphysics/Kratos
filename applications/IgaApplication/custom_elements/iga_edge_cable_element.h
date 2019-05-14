@@ -53,11 +53,6 @@ namespace Kratos
         {
         };
 
-        Element::Pointer Create(
-            IndexType NewId,
-            NodesArrayType const& ThisNodes,
-            PropertiesType::Pointer pProperties) const override;
-
         /**
         * @brief Creates a new element
         * @param NewId The Id of the new created element
@@ -73,6 +68,16 @@ namespace Kratos
         {
             return Kratos::make_shared<IgaEdgeCableElement>(
                 NewId, pGeom, pProperties);
+        };
+
+        Element::Pointer Create(
+            IndexType NewId,
+            NodesArrayType const& ThisNodes,
+            PropertiesType::Pointer pProperties
+        ) const override
+        {
+            return Kratos::make_shared< IgaEdgeCableElement >(
+                NewId, GetGeometry().Create(ThisNodes), pProperties);
         };
 
         void GetDofList(

@@ -21,17 +21,6 @@
 
 namespace Kratos {
 
-    Element::Pointer IgaEdgeCableElement::Create(
-        IndexType NewId,
-        NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties) const
-    {
-        auto geometry = GetGeometry().Create(ThisNodes);
-
-        return Kratos::make_shared<IgaEdgeCableElement>(NewId, geometry,
-            pProperties);
-    }
-
     void IgaEdgeCableElement::EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo
@@ -45,7 +34,7 @@ namespace Kratos {
             rResult.resize(3 * number_of_control_points, false);
 
         for (unsigned int i = 0; i < number_of_control_points; ++i) {
-            const unsigned int index = i * 5;
+            const unsigned int index = i * 3;
             rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
