@@ -89,10 +89,41 @@ void MmgIO<TMMGLibrary>::ReadModelPart(ModelPart& rModelPart)
     mMmmgUtilities.InputSol(mFilename);
 
     // TODO: Read JSON of colors
+    std::unordered_map<IndexType,std::vector<std::string>> colors;  /// Where the sub model parts IDs are stored
 
     // Some information
     MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
     mMmmgUtilities.PrintAndGetMmgMeshInfo(mmg_mesh_info);
+
+    // Creating auxiliar maps of pointers
+    std::unordered_map<IndexType,Condition::Pointer> ref_condition; /// Reference condition
+    std::unordered_map<IndexType,Element::Pointer> ref_element;     /// Reference element
+
+    // Getting auxiliar properties
+    auto p_auxiliar_prop = rModelPart.CreateNewProperties(0);
+
+    // Fill the maps
+    /* Conditions */
+    const std::string condition_type_name = (Dimension == 2) ? "Condition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "SurfaceCondition3D3N" : "Condition3D2N";
+    Condition const& r_clone_condition = KratosComponents<Condition>::Get(condition_type_name);
+    ref_condition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), p_auxiliar_prop);
+    for (auto& r_color : colors)
+        ref_condition[r_color.first] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), p_auxiliar_prop);
+
+    /* Elements */
+    const std::string element_type_name = (Dimension == 2) ? "Element2D3N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "Element3D4N" : "Element3D3N";
+    Element const& r_clone_element = KratosComponents<Element>::Get(element_type_name);
+    ref_element[0] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
+    for (auto& r_color : colors)
+        ref_element[r_color.first] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
+
+
+    // Writing the new mesh data on the model part
+    NodeType::DofsContainerType empty_dofs;
+    mMmmgUtilities.WriteMeshDataToModelPart(rModelPart, colors, empty_dofs, mmg_mesh_info, ref_condition, ref_element);
+
+    // Writing the new solution data on the model part
+    mMmmgUtilities.WriteSolDataToModelPart(rModelPart);
 
     /* After that we reorder nodes, conditions and elements: */
     mMmmgUtilities.ReorderAllIds(rModelPart);
@@ -115,7 +146,8 @@ void MmgIO<TMMGLibrary>::WriteModelPart(ModelPart& rModelPart)
     ColorsMapType aux_ref_cond, aux_ref_elem;
 
     // We initialize the mesh data with the given modelpart
-    mMmmgUtilities.GenerateMeshDataFromModelPart(rModelPart, mColors, aux_ref_cond, aux_ref_elem);
+    std::unordered_map<IndexType,std::vector<std::string>> colors;  /// Where the sub model parts IDs are stored
+    mMmmgUtilities.GenerateMeshDataFromModelPart(rModelPart, colors, aux_ref_cond, aux_ref_elem);
 
     // We initialize the solution data with the given modelpart
     mMmmgUtilities.GenerateSolDataFromModelPart(rModelPart);
@@ -132,7 +164,23 @@ void MmgIO<TMMGLibrary>::WriteModelPart(ModelPart& rModelPart)
     // Automatically save the solution
     mMmmgUtilities.OutputSol(mFilename, false, step);
 
-    // TODO: Write the colors to a JSON
+    // Writing the colors to a JSON
+    Parameters color_json;
+    for (auto& r_color : colors) {
+        Parameters names_array;
+        for (auto& r_model_part_name : r_color.second) {
+            names_array.Append(r_model_part_name);
+        }
+        color_json.AddValue(std::to_string(r_color.first), names_array);
+    }
+
+    const std::string& r_json_text = color_json.PrettyPrintJsonString();
+
+    std::filebuf buffer;
+    buffer.open(mFilename + ".json",std::ios::out);
+    std::ostream os(&buffer);
+    os << r_json_text;
+    buffer.close();
 
     KRATOS_CATCH("");
 }

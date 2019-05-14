@@ -276,8 +276,6 @@ private:
 
     MmgUtilities<TMMGLibrary> mMmmgUtilities;    /// The MMG utilities class
 
-    std::unordered_map<IndexType,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
-
     ///@}
     ///@name Private Operators
     ///@{
