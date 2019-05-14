@@ -27,6 +27,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOp
 ## generate variables with the sources
 set( KRATOS_MESHING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/meshing_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/meshing_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/uniform_refinement_utility.cpp
@@ -45,6 +46,7 @@ set( KRATOS_MESHING_APPLICATION_CORE
 set(KRATOS_MESHING_APPLICATION_CORE_MMG "")
 if(${INCLUDE_MMG} MATCHES ON)
 set( KRATOS_MESHING_APPLICATION_CORE_MMG ${KRATOS_MESHING_APPLICATION_CORE_MMG}
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mmg_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp
 )
 endif(${INCLUDE_MMG} MATCHES ON)
