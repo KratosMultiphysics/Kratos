@@ -102,7 +102,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     void RegisterFSIVariables();                  //TODO: move to application
     void RegisterMATVariables();                  //TODO: move to application
     void RegisterLegacyStructuralAppVariables();  //TODO: move to application
-    void RegisterGlobalPointerVariables();  
+    void RegisterGlobalPointerVariables();
 
     const std::string& Name() const { return mApplicationName; }
 

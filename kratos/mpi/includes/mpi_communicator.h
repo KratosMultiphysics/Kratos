@@ -878,7 +878,6 @@ public:
         return true;
     }
 
-    // This function is for test and will be changed. Pooyan.
     bool SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable) override
     {
         constexpr MeshAccess<DistributedType::Local> local_meshes;
@@ -892,6 +891,23 @@ public:
 
         // Synchronize result on ghost copies
         TransferDistributedValues(local_meshes, ghost_meshes, nodal_solution_step_access, replace);
+
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalDataToMin(Variable<double> const& ThisVariable) override
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        constexpr Operation<OperationType::Replace> replace;
+        constexpr Operation<OperationType::MinValues> min;
+        MPIInternals::NodalDataAccess<double> nodal_data_access(ThisVariable);
+
+        // Calculate min on owner rank
+        TransferDistributedValues(ghost_meshes, local_meshes, nodal_data_access, min);
+
+        // Synchronize result on ghost copies
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_data_access, replace);
 
         return true;
     }

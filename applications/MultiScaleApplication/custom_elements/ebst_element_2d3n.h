@@ -232,7 +232,7 @@ protected:
 
     virtual bool HasNeighbour(unsigned int index, const Node < 3 > & neighb);
 
-    virtual unsigned int NumberOfActiveNeighbours(WeakPointerVector< Node < 3 > >& neighbs);
+    virtual unsigned int NumberOfActiveNeighbours(GlobalPointersVector< Node < 3 > >& neighbs);
 
     virtual void CalculateAll(
         MatrixType& rLeftHandSideMatrix,

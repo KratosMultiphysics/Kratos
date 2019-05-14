@@ -32,7 +32,9 @@ private:
 
 public:
 
-   /** Default constructor
+  typedef TDataType element_type;
+
+ /** Default constructor
 	* Default constructor
 	* This should never be called as we need a local pointer to exists
 	*/
@@ -121,6 +123,10 @@ public:
    * Default Destructor.
    */
   ~GlobalPointer() {
+  }
+
+  TDataType* get() {
+	  return mDataPointer;
   }
 
   /** Pointer Operator
