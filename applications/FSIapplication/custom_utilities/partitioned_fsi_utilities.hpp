@@ -108,8 +108,8 @@ public:
     /*@{ */
 
     void CreateCouplingElementBasedSkin(
-        const ModelPart& rOriginInterfaceModelPart,
-        ModelPart& rDestinationInterfaceModelPart)
+        const ModelPart &rOriginInterfaceModelPart,
+        ModelPart &rDestinationInterfaceModelPart)
     {
         // Check the origin interface model part
         KRATOS_ERROR_IF(rOriginInterfaceModelPart.NumberOfNodes() == 0) << "Origin model part has no nodes." << std::endl;
@@ -134,11 +134,14 @@ public:
                 points_array.push_back(rDestinationInterfaceModelPart.pGetNode(r_node.Id()));
             }
 
-            // Clone the geometry
-            auto p_new_geom = (r_cond.GetGeometry()).Create(points_array);
+            // Set the element nodes vector
+            std::vector<ModelPart::IndexType> nodes_vect;
+            for (auto &r_node : r_cond.GetGeometry()) {
+                nodes_vect.push_back(r_node.Id());
+            }
 
             // Create the new skin element
-            rDestinationInterfaceModelPart.CreateNewElement(this->GetSkinElementName(), r_cond.Id(), p_new_geom, p_fake_prop);
+            rDestinationInterfaceModelPart.CreateNewElement(this->GetSkinElementName(), r_cond.Id(), nodes_vect, p_fake_prop);
         }
     }
 
@@ -867,10 +870,10 @@ public:
             // If the structure skin is found, interpolate the POSITIVE_FACE_PRESSURE from the PRESSURE
             if (found) {
                 const auto &r_geom = p_elem->GetGeometry();
-                double &r_pos_face_pres = it_node->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-                r_pos_face_pres = 0.0;
+                double &r_pres = it_node->FastGetSolutionStepValue(PRESSURE);
+                r_pres = 0.0;
                 for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-                    r_pos_face_pres += N[i_node] * r_geom[i_node].FastGetSolutionStepValue(PRESSURE);
+                    r_pres += N[i_node] * r_geom[i_node].FastGetSolutionStepValue(PRESSURE);
                 }
             }
         }

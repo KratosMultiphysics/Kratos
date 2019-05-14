@@ -30,7 +30,7 @@ class FSICouplingInterface():
 
         return settings
 
-    def __init__(self, model, convergence_accelerator, settings):
+    def __init__(self, model, settings, convergence_accelerator = None):
 
         # Validate settings
         settings = self._ValidateSettings(settings)
@@ -55,22 +55,24 @@ class FSICouplingInterface():
         # Set the interface (residual size)
         residual_size = self._get_partitioned_fsi_utilities().GetInterfaceResidualSize(self.GetInterfaceModelPart())
 
-        # Get the output variable from the father model part
-        self._get_values_from_father_model_part(self.output_variable)
-
-        # Set and fill the iteration value vector with the output variable
+        # Set and fill the iteration value vector with the current output variable values
+        # Note that these are the ones of the previous non-linear iteration
         iteration_value = KratosMultiphysics.Vector(residual_size)
         self._get_partitioned_fsi_utilities().InitializeInterfaceVector(
             self.GetInterfaceModelPart(),
             self.output_variable,
             iteration_value)
 
+        # Get the output variable from the father model part
+        # Note that these is to obtain the current non-linear iteration unrelaxed values
+        self.GetValuesFromFatherModelPart(self.output_variable)
+
         # Compute the interface residual using the output variable
         output_variable_residual = KratosMultiphysics.Vector(residual_size)
         self._get_partitioned_fsi_utilities().ComputeInterfaceResidualVector(
             self.GetInterfaceModelPart(),
-            KratosMultiphysics.VECTOR_PROJECTED,
             self.output_variable,
+            KratosMultiphysics.VECTOR_PROJECTED,
             KratosMultiphysics.FSI_INTERFACE_RESIDUAL,
             output_variable_residual,
             "nodal",
@@ -85,36 +87,54 @@ class FSICouplingInterface():
             self.output_variable,
             iteration_value)
 
+        # And save it for the next residual computation
+        self._get_partitioned_fsi_utilities().UpdateInterfaceValues(
+            self.GetInterfaceModelPart(),
+            KratosMultiphysics.VECTOR_PROJECTED,
+            iteration_value)
+
         # Return the current interface residual norm
         return self.GetInterfaceModelPart().ProcessInfo[KratosMultiphysics.FSI_INTERFACE_RESIDUAL_NORM]
 
-    def _create_fsi_interface_model_part(self):
-        # Add the FSI coupling interface to the model
-        fsi_interface_model_part = self.model.CreateModelPart(self.model_part_name)
+    def UpdatePosition(self):
+        for node in self.GetInterfaceModelPart().Nodes:
+            aux_disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+            node.X = node.X0 + aux_disp[0]
+            node.Y = node.Y0 + aux_disp[1]
+            node.Z = node.Z0 + aux_disp[2]
 
-        # Add the required variables to the FSI coupling interface model part
-        fsi_interface_model_part.AddNodalSolutionStepVariable(self.output_variable)
-        fsi_interface_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
-        fsi_interface_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL)
-
-        # Set the FSI coupling interface entities (nodes and elements)
-        self._get_partitioned_fsi_utilities().CreateCouplingElementBasedSkin(
-            self.GetFatherModelPart,
-            self.GetInterfaceModelPart)
-
-        return fsi_interface_model_part
-
-    def _get_values_from_father_model_part(self, variable):
+    def GetValuesFromFatherModelPart(self, variable):
+        buffer_step = 0
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
             variable,
             self.GetFatherModelPart(),
-            self.GetInterfaceModelPart())
+            self.GetInterfaceModelPart(),
+            buffer_step)
 
-    def _transfer_values_to_father_model_part(self, variable):
+    def TransferValuesToFatherModelPart(self, variable):
+        buffer_step = 0
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
             variable,
             self.GetInterfaceModelPart(),
-            self.GetFatherModelPart())
+            self.GetFatherModelPart(),
+            buffer_step)
+
+    def _create_fsi_interface_model_part(self):
+        # Add the FSI coupling interface to the model
+        self._fsi_interface_model_part = self.model.CreateModelPart(self.model_part_name)
+
+        # Add the required variables to the FSI coupling interface model part
+        self._fsi_interface_model_part.AddNodalSolutionStepVariable(self.input_variable)
+        self._fsi_interface_model_part.AddNodalSolutionStepVariable(self.output_variable)
+        self._fsi_interface_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
+        self._fsi_interface_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL)
+
+        # Set the FSI coupling interface entities (nodes and elements)
+        self._get_partitioned_fsi_utilities().CreateCouplingElementBasedSkin(
+            self.GetFatherModelPart(),
+            self._fsi_interface_model_part)
+
+        return self._fsi_interface_model_part
 
     def _get_convergence_accelerator(self):
         return self.convergence_accelerator

@@ -46,9 +46,6 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         return project_parameters
 
     def __init__(self, model, project_parameters):
-
-        self.riccardo = open("riccardo.txt","w")
-
         # Validate settings
         project_parameters = self._ValidateSettings(project_parameters)
 
@@ -60,7 +57,6 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         coupling_settings = self.settings["coupling_settings"]
         self.max_nl_it = coupling_settings["nl_max_it"].GetInt()
         self.nl_tol = coupling_settings["nl_tol"].GetDouble()
-        self.fluid_interface_submodelpart_name = coupling_settings["fluid_interfaces_list"][0].GetString()
         self.structure_interface_submodelpart_name = coupling_settings["structure_interfaces_list"][0].GetString()
 
         # Construct the structure solver
@@ -117,7 +113,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
         #TODO: REMOVE THIS CALL AFTER DEBUGGING
         self.domain_size = self._GetDomainSize()
-        self._get_embedded_skin_utility()
+        # self._get_embedded_skin_utility()
 
     def AddDofs(self):
         # Add DOFs structure
@@ -129,12 +125,14 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Get the domain size
         self.domain_size = self._GetDomainSize()
 
-        # Initialize the distance field
-        update_distance_process = True
-        self._get_distance_to_skin_process(update_distance_process).Execute()
+        # Coupling utility initialization
+        # The _get_convergence_accelerator is supposed to construct the convergence accelerator in here
+        self._get_convergence_accelerator().Initialize()
 
-        # Initialize the embedded intersections model part
-        self._get_embedded_skin_utility().GenerateSkin()
+        # FSI interface coupling interfaces initialization
+        # The _get_fsi_coupling_interface_structure is supposed to construct the FSI coupling structure interface in here
+        self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart()
+        self._get_fsi_coupling_interface_structure().GetInterfaceModelPart()
 
         # Python structure solver initialization
         self.structure_solver.Initialize()
@@ -148,17 +146,19 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Initialize the iteration value vector
         self._initialize_iteration_value_vector()
 
-        # Coupling utility initialization
-        # The _get_convergence_accelerator is supposed to construct the convergence accelerator in here
-        self._get_convergence_accelerator().Initialize()
+        # Initialize the distance field
+        update_distance_process = True
+        self._get_distance_to_skin_process(update_distance_process).Execute()
 
-        # FSI interface coupling initialization
-        # The _get_fsi_coupling_interface_structure is supposed to construct the FSI coupling structure interface in here
-        self._get_fsi_coupling_interface_structure()
+        # Initialize the embedded intersections model part
+        # self._get_embedded_skin_utility().GenerateSkin()
 
     def AdvanceInTime(self, current_time):
         fluid_new_time = self.fluid_solver.AdvanceInTime(current_time)
         structure_new_time = self.structure_solver.AdvanceInTime(current_time)
+
+        self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(fluid_new_time)
+        self._get_fsi_coupling_interface_structure().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(structure_new_time)
 
         # TODO: REMOVE AFTER DEBUGGING
         self.GetStructureIntersectionsModelPart().GetRootModelPart().CloneTimeStep(fluid_new_time)
@@ -187,7 +187,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self.structure_solver.Predict()
 
         # # Update the level set position
-        # self._update_level_set()
+        self._update_level_set()
 
         # Fluid solver prediction
         self.fluid_solver.Predict()
@@ -257,153 +257,171 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
             self._get_convergence_accelerator().InitializeNonLinearIteration()
 
-            # print("")
-            # print("BEFORE THE FLUID SOLVE")
-            # self._get_partitioned_fsi_utilities().ComputeAndCheckEmbeddedInterfacePower(
-            #     self.fluid_solver.GetComputingModelPart(),
-            #     self._GetStructureInterfaceSubmodelPart())
+            # Map the DISPLACEMENT from the structure FSI coupling interface to fluid FSI coupling interface
+            # TODO: THIS SHOULD BE A MAPPER. NOW WE ASSUME THAT THE EMBEDDED FLUID INTERFACE COINCIDES WITH THE STRUCTURE ONE
+            buffer_step = 0
+            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
+                KratosMultiphysics.DISPLACEMENT,
+                self._get_fsi_coupling_interface_structure().GetInterfaceModelPart(),
+                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart(),
+                buffer_step)
+
+            # TODO: REMOVE AFTER DEBUGGING (FAKE DISPLACEMENT FIELD)
+            # t = self.fluid_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
+            # for node in self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart().Nodes:
+            #     aux_disp = 1e-3 * t * node.Y ** 2
+            #     node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, [aux_disp, 0.0, 0.0])
+
+            # Update the fluid FSI coupling interface position
+            self._get_fsi_coupling_interface_fluid().UpdatePosition()
 
             # Update the EMBEDDED_VELOCITY and solve the fluid problem
             self._solve_fluid()
 
-            print("")
-            print("BEFORE THE STRUCTURE SOLVE")
-            self._get_partitioned_fsi_utilities().ComputeAndCheckEmbeddedInterfacePower(
-                self.fluid_solver.GetComputingModelPart(),
-                self._GetStructureInterfaceSubmodelPart())
+            # Interpolate the pressure to the fluid FSI coupling interface
+            self._get_partitioned_fsi_utilities().EmbeddedPressureToPositiveFacePressureInterpolator(
+                self.GetFluidComputingModelPart(),
+                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart())
+
+            # Map PRESSURE from fluid FSI coupling interface to structure FSI coupling interface
+            # TODO: THIS SHOULD BE A MAPPER. NOW WE ASSUME THAT THE EMBEDDED FLUID INTERFACE COINCIDES WITH THE STRUCTURE ONE
+            for node_orig, node_dest in zip(
+                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart().Nodes,
+                self._get_fsi_coupling_interface_structure().GetInterfaceModelPart().Nodes):
+                aux_pres = node_orig.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
+                # t = self.fluid_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
+                # aux_pres = 0.5 * t * node_dest.Y
+                node_dest.SetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE, aux_pres)
+
+            # Transfer PRESSURE to structure FSI coupling interface father model part
+            self._get_fsi_coupling_interface_structure().TransferValuesToFatherModelPart(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
 
             # Update the PRESSURE load and solve the structure problem
             self._solve_structure()
 
-            node = self.fluid_solver.GetComputingModelPart().Nodes[77427]
-            self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 0)) + " ")
-            self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 1)) + " ")
-            self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 2)) + " ")
-            self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 0)) + " ")
-            self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)) + " ")
-            self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 2)) + " ")
-            self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 0)) + " ")
-            self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 1)) + " ")
-            self.riccardo.write(str(node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 2)) + " ")
-            self.riccardo.write("\n")
-            self.riccardo.flush()
+            # fluid_gid_output = gid_output_process.GiDOutputProcess(
+            #     self.fluid_solver.GetComputingModelPart(),
+            #     "fluid_step_" + str(self.fluid_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP]) + "_it_" + str(nl_it),
+            #     KratosMultiphysics.Parameters("""{
+            #         "result_file_configuration": {
+            #             "gidpost_flags": {
+            #                 "GiDPostMode": "GiD_PostBinary",
+            #                 "WriteDeformedMeshFlag": "WriteDeformed",
+            #                 "WriteConditionsFlag": "WriteConditions",
+            #                 "MultiFileFlag": "SingleFile"
+            #             },
+            #             "file_label": "time",
+            #             "output_control_type": "step",
+            #             "output_frequency": 1.0,
+            #             "body_output": true,
+            #             "node_output": false,
+            #             "skin_output": false,
+            #             "plane_output": [],
+            #             "nodal_results": ["VELOCITY","PRESSURE","MESH_VELOCITY","REACTION","DISTANCE","EMBEDDED_WET_VELOCITY","MESH_DISPLACEMENT","DISPLACEMENT","TEMPERATURE","TEMPERATURE_OLD_IT","LINEAR_MOMENTUM","ANGULAR_MOMENTUM"],
+            #             "nodal_nonhistorical_results": ["EMBEDDED_IS_ACTIVE"],
+            #             "elemental_conditional_flags_results": ["ACTIVE","INTERFACE","TO_SPLIT"],
+            #             "gauss_point_results": ["EMBEDDED_VELOCITY"]
+            #         }
+            #     }""")
+            # )
+            # fluid_gid_output.ExecuteInitialize()
+            # fluid_gid_output.ExecuteBeforeSolutionLoop()
+            # fluid_gid_output.ExecuteInitializeSolutionStep()
+            # fluid_gid_output.PrintOutput()
+            # fluid_gid_output.ExecuteFinalizeSolutionStep()
+            # fluid_gid_output.ExecuteFinalize()
 
-            fluid_gid_output = gid_output_process.GiDOutputProcess(
-                self.fluid_solver.GetComputingModelPart(),
-                "fluid_step_" + str(self.fluid_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP]) + "_it_" + str(nl_it),
-                KratosMultiphysics.Parameters("""{
-                    "result_file_configuration": {
-                        "gidpost_flags": {
-                            "GiDPostMode": "GiD_PostBinary",
-                            "WriteDeformedMeshFlag": "WriteDeformed",
-                            "WriteConditionsFlag": "WriteConditions",
-                            "MultiFileFlag": "SingleFile"
-                        },
-                        "file_label": "time",
-                        "output_control_type": "step",
-                        "output_frequency": 1.0,
-                        "body_output": true,
-                        "node_output": false,
-                        "skin_output": false,
-                        "plane_output": [],
-                        "nodal_results": ["VELOCITY","PRESSURE","MESH_VELOCITY","REACTION","DISTANCE","EMBEDDED_WET_VELOCITY","MESH_DISPLACEMENT","DISPLACEMENT","TEMPERATURE","TEMPERATURE_OLD_IT","LINEAR_MOMENTUM","ANGULAR_MOMENTUM"],
-                        "nodal_nonhistorical_results": ["EMBEDDED_IS_ACTIVE"],
-                        "elemental_conditional_flags_results": ["ACTIVE","INTERFACE","TO_SPLIT"],
-                        "gauss_point_results": ["EMBEDDED_VELOCITY"]
-                    }
-                }""")
-            )
-            fluid_gid_output.ExecuteInitialize()
-            fluid_gid_output.ExecuteBeforeSolutionLoop()
-            fluid_gid_output.ExecuteInitializeSolutionStep()
-            fluid_gid_output.PrintOutput()
-            fluid_gid_output.ExecuteFinalizeSolutionStep()
-            fluid_gid_output.ExecuteFinalize()
+            # virtual_fluid_gid_output = gid_output_process.GiDOutputProcess(
+            #     self.model.GetModelPart("VirtualModelPart"),
+            #     "virtual_fluid_step_" + str(self.model.GetModelPart("VirtualModelPart").ProcessInfo[KratosMultiphysics.STEP]) + "_it_" + str(nl_it),
+            #     KratosMultiphysics.Parameters("""{
+            #         "result_file_configuration": {
+            #             "gidpost_flags": {
+            #                 "GiDPostMode": "GiD_PostBinary",
+            #                 "WriteDeformedMeshFlag": "WriteDeformed",
+            #                 "WriteConditionsFlag": "WriteConditions",
+            #                 "MultiFileFlag": "SingleFile"
+            #             },
+            #             "file_label": "time",
+            #             "output_control_type": "step",
+            #             "output_frequency": 1.0,
+            #             "body_output": true,
+            #             "node_output": false,
+            #             "skin_output": false,
+            #             "plane_output": [],
+            #             "nodal_results": ["VELOCITY","PRESSURE","MESH_VELOCITY","MESH_DISPLACEMENT"]
+            #         }
+            #     }""")
+            # )
+            # virtual_fluid_gid_output.ExecuteInitialize()
+            # virtual_fluid_gid_output.ExecuteBeforeSolutionLoop()
+            # virtual_fluid_gid_output.ExecuteInitializeSolutionStep()
+            # virtual_fluid_gid_output.PrintOutput()
+            # virtual_fluid_gid_output.ExecuteFinalizeSolutionStep()
+            # virtual_fluid_gid_output.ExecuteFinalize()
 
-            virtual_fluid_gid_output = gid_output_process.GiDOutputProcess(
-                self.model.GetModelPart("VirtualModelPart"),
-                "virtual_fluid_step_" + str(self.model.GetModelPart("VirtualModelPart").ProcessInfo[KratosMultiphysics.STEP]) + "_it_" + str(nl_it),
-                KratosMultiphysics.Parameters("""{
-                    "result_file_configuration": {
-                        "gidpost_flags": {
-                            "GiDPostMode": "GiD_PostBinary",
-                            "WriteDeformedMeshFlag": "WriteDeformed",
-                            "WriteConditionsFlag": "WriteConditions",
-                            "MultiFileFlag": "SingleFile"
-                        },
-                        "file_label": "time",
-                        "output_control_type": "step",
-                        "output_frequency": 1.0,
-                        "body_output": true,
-                        "node_output": false,
-                        "skin_output": false,
-                        "plane_output": [],
-                        "nodal_results": ["VELOCITY","PRESSURE","MESH_VELOCITY","MESH_DISPLACEMENT"]
-                    }
-                }""")
-            )
-            virtual_fluid_gid_output.ExecuteInitialize()
-            virtual_fluid_gid_output.ExecuteBeforeSolutionLoop()
-            virtual_fluid_gid_output.ExecuteInitializeSolutionStep()
-            virtual_fluid_gid_output.PrintOutput()
-            virtual_fluid_gid_output.ExecuteFinalizeSolutionStep()
-            virtual_fluid_gid_output.ExecuteFinalize()
+            # structure_gid_output = gid_output_process.GiDOutputProcess(
+            #     self.structure_solver.GetComputingModelPart(),
+            #     "structure_step_" + str(self.structure_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP]) + "_it_" + str(nl_it),
+            #     KratosMultiphysics.Parameters("""{
+            #         "result_file_configuration": {
+            #             "gidpost_flags": {
+            #                 "GiDPostMode": "GiD_PostBinary",
+            #                 "WriteDeformedMeshFlag": "WriteDeformed",
+            #                 "WriteConditionsFlag": "WriteConditions",
+            #                 "MultiFileFlag": "SingleFile"
+            #             },
+            #             "file_label": "time",
+            #             "output_control_type": "step",
+            #             "output_frequency": 1.0,
+            #             "body_output": true,
+            #             "node_output": false,
+            #             "skin_output": false,
+            #             "plane_output": [],
+            #             "nodal_results": ["DISPLACEMENT","VELOCITY","STRUCTURE_VELOCITY","ACCELERATION","REACTION","POSITIVE_FACE_PRESSURE","VECTOR_PROJECTED","FSI_INTERFACE_RESIDUAL"],
+            #             "gauss_point_results": []
+            #         }
+            #     }""")
+            # )
+            # structure_gid_output.ExecuteInitialize()
+            # structure_gid_output.ExecuteBeforeSolutionLoop()
+            # structure_gid_output.ExecuteInitializeSolutionStep()
+            # structure_gid_output.PrintOutput()
+            # structure_gid_output.ExecuteFinalizeSolutionStep()
+            # structure_gid_output.ExecuteFinalize()
 
-            structure_gid_output = gid_output_process.GiDOutputProcess(
-                self.structure_solver.GetComputingModelPart(),
-                "structure_step_" + str(self.structure_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP]) + "_it_" + str(nl_it),
-                KratosMultiphysics.Parameters("""{
-                    "result_file_configuration": {
-                        "gidpost_flags": {
-                            "GiDPostMode": "GiD_PostBinary",
-                            "WriteDeformedMeshFlag": "WriteDeformed",
-                            "WriteConditionsFlag": "WriteConditions",
-                            "MultiFileFlag": "SingleFile"
-                        },
-                        "file_label": "time",
-                        "output_control_type": "step",
-                        "output_frequency": 1.0,
-                        "body_output": true,
-                        "node_output": false,
-                        "skin_output": false,
-                        "plane_output": [],
-                        "nodal_results": ["DISPLACEMENT","VELOCITY","STRUCTURE_VELOCITY","ACCELERATION","REACTION","POSITIVE_FACE_PRESSURE","VECTOR_PROJECTED","FSI_INTERFACE_RESIDUAL"],
-                        "gauss_point_results": []
-                    }
-                }""")
-            )
-            structure_gid_output.ExecuteInitialize()
-            structure_gid_output.ExecuteBeforeSolutionLoop()
-            structure_gid_output.ExecuteInitializeSolutionStep()
-            structure_gid_output.PrintOutput()
-            structure_gid_output.ExecuteFinalizeSolutionStep()
-            structure_gid_output.ExecuteFinalize()
+            # Compute the residual and perform the update
+            dis_residual_norm = self._get_fsi_coupling_interface_structure().Update()
 
-            # Compute the structure interface VELOCITY residual vector
-            dis_residual = self._compute_displacement_residual()
-
-            print("")
-            print("BEFORE THE UPDATE")
-            self._get_partitioned_fsi_utilities().ComputeAndCheckEmbeddedInterfacePower(
-                self.fluid_solver.GetComputingModelPart(),
-                self._GetStructureInterfaceSubmodelPart())
+            # End the FSI non-linear iteration
+            self._get_convergence_accelerator().FinalizeNonLinearIteration()
 
             # Check convergence
-            nl_res_norm = self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.FSI_INTERFACE_RESIDUAL_NORM]
-            interface_dofs = self._get_partitioned_fsi_utilities().GetInterfaceResidualSize(self._GetStructureInterfaceSubmodelPart())
-            if nl_res_norm/sqrt(interface_dofs) < self.nl_tol:
-                self._get_convergence_accelerator().FinalizeNonLinearIteration()
-                KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', '\tNon-linear iteration convergence achieved')
-                KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', '\tTotal non-linear iterations: ' + str(nl_it) + ' |res|/sqrt(nDOFS) = ' + str(nl_res_norm/sqrt(interface_dofs)))
-                break
-            else:
-                # If convergence is not achieved, perform the correction of the prediction
-                KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', '\tResidual computation finished. |res|/sqrt(nDOFS) = ' + str(nl_res_norm/sqrt(interface_dofs)))
-                self._get_convergence_accelerator().UpdateSolution(dis_residual, self.iteration_value)
-                self._get_convergence_accelerator().FinalizeNonLinearIteration()
+            is_converged = self._check_FSI_convergence(dis_residual_norm)
+            if (is_converged):
+                return True
 
-                if (nl_it == self.max_nl_it):
-                    KratosMultiphysics.Logger.PrintWarning('PartitionedEmbeddedFSIBaseSolver', '\tFSI NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED')
+            # Compute the structure interface VELOCITY residual vector
+            # dis_residual = self._compute_displacement_residual()
+
+            # # Check convergence
+            # nl_res_norm = self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.FSI_INTERFACE_RESIDUAL_NORM]
+            # interface_dofs = self._get_partitioned_fsi_utilities().GetInterfaceResidualSize(self._GetStructureInterfaceSubmodelPart())
+            # if nl_res_norm/sqrt(interface_dofs) < self.nl_tol:
+            #     self._get_convergence_accelerator().FinalizeNonLinearIteration()
+            #     KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', '\tNon-linear iteration convergence achieved')
+            #     KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', '\tTotal non-linear iterations: ' + str(nl_it) + ' |res|/sqrt(nDOFS) = ' + str(nl_res_norm/sqrt(interface_dofs)))
+            #     break
+            # else:
+            #     # If convergence is not achieved, perform the correction of the prediction
+            #     KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', '\tResidual computation finished. |res|/sqrt(nDOFS) = ' + str(nl_res_norm/sqrt(interface_dofs)))
+            #     self._get_convergence_accelerator().UpdateSolution(dis_residual, self.iteration_value)
+            #     self._get_convergence_accelerator().FinalizeNonLinearIteration()
+
+            #     if (nl_it == self.max_nl_it):
+            #         KratosMultiphysics.Logger.PrintWarning('PartitionedEmbeddedFSIBaseSolver', '\tFSI NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED')
+
+        return False
 
     def FinalizeSolutionStep(self):
         # Finalize solution step
@@ -448,13 +466,26 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         if self.domain_size == 2:
             return KratosMultiphysics.CalculateDistanceToSkinProcess2D(
                 self.GetFluidComputingModelPart(),
-                self.GetStructureSkinElementBasedModelPart())
+                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart())
         elif self.domain_size == 3:
             return KratosMultiphysics.CalculateDistanceToSkinProcess3D(
                 self.GetFluidComputingModelPart(),
-                self.GetStructureSkinElementBasedModelPart())
+                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart())
         else:
             raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
+
+    # def _create_distance_to_skin_process(self):
+    #     # Set the distance computation process
+    #     if self.domain_size == 2:
+    #         return KratosMultiphysics.CalculateDistanceToSkinProcess2D(
+    #             self.GetFluidComputingModelPart(),
+    #             self.GetStructureSkinElementBasedModelPart())
+    #     elif self.domain_size == 3:
+    #         return KratosMultiphysics.CalculateDistanceToSkinProcess3D(
+    #             self.GetFluidComputingModelPart(),
+    #             self.GetStructureSkinElementBasedModelPart())
+    #     else:
+    #         raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
 
     def _get_variational_distance_process(self):
         if not hasattr(self, '_variational_distance_process'):
@@ -499,25 +530,25 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         distance_modification_settings["model_part_name"].SetString("Parts_Fluid")
         return KratosFluid.DistanceModificationProcess(self.model, distance_modification_settings)
 
-    def _get_embedded_skin_utility(self):
-        if not hasattr(self, '_embedded_skin_utility'):
-            self._embedded_skin_utility = self._create_embedded_skin_utility()
-        return self._embedded_skin_utility
+    # def _get_embedded_skin_utility(self):
+    #     if not hasattr(self, '_embedded_skin_utility'):
+    #         self._embedded_skin_utility = self._create_embedded_skin_utility()
+    #     return self._embedded_skin_utility
 
-    def _create_embedded_skin_utility(self):
-        level_set_type = "continuous"
-        if self.domain_size == 2:
-            return KratosMultiphysics.EmbeddedSkinUtility2D(
-                self.GetFluidComputingModelPart(),
-                self.GetStructureIntersectionsModelPart(),
-                level_set_type)
-        elif self.domain_size == 3:
-            return KratosMultiphysics.EmbeddedSkinUtility3D(
-                self.GetFluidComputingModelPart(),
-                self.GetStructureIntersectionsModelPart(),
-                level_set_type)
-        else:
-            raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
+    # def _create_embedded_skin_utility(self):
+    #     level_set_type = "continuous"
+    #     if self.domain_size == 2:
+    #         return KratosMultiphysics.EmbeddedSkinUtility2D(
+    #             self.GetFluidComputingModelPart(),
+    #             self.GetStructureIntersectionsModelPart(),
+    #             level_set_type)
+    #     elif self.domain_size == 3:
+    #         return KratosMultiphysics.EmbeddedSkinUtility3D(
+    #             self.GetFluidComputingModelPart(),
+    #             self.GetStructureIntersectionsModelPart(),
+    #             level_set_type)
+    #     else:
+    #         raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
 
     def _get_structure_interface_model_part_name(self):
         str_int_list = self.settings["coupling_settings"]["structure_interfaces_list"]
@@ -561,27 +592,9 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self._get_distance_modification_process().Execute()
 
         # Recompute the new embedded intersections model part
-        self._get_embedded_skin_utility().GenerateSkin()
+        # self._get_embedded_skin_utility().GenerateSkin()
 
     def _solve_fluid(self):
-        # Update the structure displacement (as VECTOR_PROJECTED) and position
-        self._get_partitioned_fsi_utilities().UpdateInterfaceValues(
-            self._GetStructureInterfaceSubmodelPart(),
-            KratosMultiphysics.VECTOR_PROJECTED,
-            self.iteration_value)
-
-        tmp = {}
-        for node in self._GetStructureInterfaceSubmodelPart().Nodes:
-            new_disp = node.GetSolutionStepValue(KratosMultiphysics.VECTOR_PROJECTED)
-            real_disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
-            tmp[node.Id] = real_disp
-            # Update displacement for FM-ALE
-            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, new_disp)
-            # Correct skin for level-set computation
-            node.X = node.X0 + new_disp[0]
-            node.Y = node.Y0 + new_disp[1]
-            node.Z = node.Z0 + new_disp[2]
-
         # Update the current iteration level-set position
         self._update_level_set()
 
@@ -604,14 +617,6 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Solve fluid problem
         self.fluid_solver.SolveSolutionStep() # This contains the FM-ALE operations
 
-        # Reset displacement
-        for node in self._GetStructureInterfaceSubmodelPart().Nodes:
-            real_disp = tmp[node.Id]
-            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, real_disp)
-            node.X = node.X0 + real_disp[0]
-            node.Y = node.Y0 + real_disp[1]
-            node.Z = node.Z0 + real_disp[2]
-
         # Undo the FM-ALE virtual mesh movement
         self.fluid_solver._get_mesh_moving_util().UndoMeshMovement()
 
@@ -625,7 +630,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         #     KratosMultiphysics.PRESSURE)
 
         # Map the intersections model part PRESSURE values to the structure skin
-        self._map_pressure_to_positive_face_pressure()
+        # self._map_pressure_to_positive_face_pressure()
 
         # Solve the structure problem
         self.structure_solver.SolveSolutionStep()
@@ -657,9 +662,14 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
         return dis_residual
 
-    # This method is to be overwritten in the MPI solver
-    def _PrintWarningOnRankZero(self, *args):
-        KratosMultiphysics.Logger.PrintWarning(" ".join(map(str, args)))
+    def _check_FSI_convergence(self, residual_norm):
+        interface_dofs = self._get_partitioned_fsi_utilities().GetInterfaceResidualSize(self._GetStructureInterfaceSubmodelPart())
+        normalised_residual = residual_norm/sqrt(interface_dofs)
+        KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', '\t|res|/sqrt(nDOFS) = ' + str(normalised_residual))
+        if normalised_residual < self.nl_tol:
+            return True
+        else:
+            return False
 
     # This method returns the convergence accelerator.
     # If it is not created yet, it calls the _create_convergence_accelerator first
@@ -683,22 +693,49 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Set auxiliary settings
         aux_settings = KratosMultiphysics.Parameters(
         """{
-            "model_part_name": "",
-            "father_model_part_name": "FSICouplingInterfaceStructure",
+            "model_part_name": "FSICouplingInterfaceStructure",
+            "father_model_part_name": "",
             "input_variable_name": "POSITIVE_FACE_PRESSURE",
             "output_variable_name": "DISPLACEMENT"
         }""")
-        aux_settings["model_part_name"].SetString(self.structure_interface_submodelpart_name)
+        aux_settings["father_model_part_name"].SetString(self.structure_interface_submodelpart_name)
 
         # Construct the FSI coupling interface
         fsi_coupling_interface_structure = fsi_coupling_interface.FSICouplingInterface(
             self.model,
-            self._get_convergence_accelerator(),
-            aux_settings)
+            aux_settings,
+            self._get_convergence_accelerator())
 
         KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', 'Structure FSI coupling interface created')
 
         return fsi_coupling_interface_structure
+
+    def _get_fsi_coupling_interface_fluid(self):
+        if not hasattr(self, '_fsi_coupling_interface_fluid'):
+            self._fsi_coupling_interface_fluid = self._create_fsi_coupling_interface_fluid()
+        return self._fsi_coupling_interface_fluid
+
+    def _create_fsi_coupling_interface_fluid(self):
+        # Set auxiliary settings
+        # Note that in the embedded case, the fluid interface is identical to the structure one
+        # This is intentionally done, since this copy will be used in the level set computation
+        aux_settings = KratosMultiphysics.Parameters(
+        """{
+            "model_part_name": "FSICouplingInterfaceFluid",
+            "father_model_part_name": "",
+            "input_variable_name": "DISPLACEMENT",
+            "output_variable_name": "PRESSURE"
+        }""")
+        aux_settings["father_model_part_name"].SetString(self.structure_interface_submodelpart_name)
+
+        # Construct the FSI coupling interface
+        fsi_coupling_interface_fluid = fsi_coupling_interface.FSICouplingInterface(
+            self.model,
+            aux_settings)
+
+        KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', 'Fluid FSI coupling interface created')
+
+        return fsi_coupling_interface_fluid
 
     # This method finds the maximum buffer size between mesh,
     # fluid and structure solvers and sets it to all the solvers.
