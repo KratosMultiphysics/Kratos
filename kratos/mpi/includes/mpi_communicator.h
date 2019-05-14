@@ -815,12 +815,6 @@ public:
         return true;
     }
 
-    bool SynchronizeNonHistoricalVariable(Variable<bool> const& rThisVariable) override
-    {
-        SynchronizeNonHistoricalVariable<bool,bool>(rThisVariable);
-        return true;
-    }
-
     bool SynchronizeNonHistoricalVariable(Variable<int> const& rThisVariable) override
     {
         MPIInternals::NodalDataAccess<int> nodal_data_access(rThisVariable);
