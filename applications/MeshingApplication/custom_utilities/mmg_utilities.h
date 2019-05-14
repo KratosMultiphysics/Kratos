@@ -98,22 +98,22 @@ struct MMGMeshInfo
     /**
      * @brief It returns the number of the first type of conditions
      */
-    SizeType NumberFirstTypeConditions();
+    const SizeType NumberFirstTypeConditions() const;
 
     /**
      * @brief It returns the number of the second type of conditions
      */
-    SizeType NumberSecondTypeConditions();
+    const SizeType NumberSecondTypeConditions() const;
 
     /**
      * @brief It returns the number of the first type of elements
      */
-    SizeType NumberFirstTypeElements();
+    const SizeType NumberFirstTypeElements() const;
 
     /**
      * @brief It returns the number of the second type of elements
      */
-    SizeType NumberSecondTypeElements();
+    const SizeType NumberSecondTypeElements() const;
 };
 
 /**
@@ -514,7 +514,7 @@ public:
         );
 
     /**
-     * @brief This function is used to compute the metric scalar
+     * @brief This function is used to set the metric scalar
      * @param[in] Metric The inverse of the size node
      * @param[in] NodeId The id of the node
      */
@@ -524,7 +524,7 @@ public:
         );
 
     /**
-     * @brief This function is used to compute the metric vector (x, y, z)
+     * @brief This function is used to set the metric vector (x, y, z)
      * @param[in] rMetric This array contains the components of the metric vector
      * @param[in] NodeId The id of the node
      */
@@ -534,7 +534,7 @@ public:
         );
 
     /**
-     * @brief This function is used to compute the Hessian metric tensor, note that when using the Hessian, more than one metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
+     * @brief This function is used to set the Hessian metric tensor, note that when using the Hessian, more than one metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
      * @param[in] rMetric This array contains the components of the metric tensor in the MMG defined order
      * @param[in] NodeId The id of the node
      */
@@ -542,6 +542,24 @@ public:
         const TensorArrayType& rMetric,
         const IndexType NodeId
         );
+
+    /**
+     * @brief This function is used to retrieve the metric scalar
+     * @param[in,out] rMetric The inverse of the size node
+     */
+    void GetMetricScalar(double& rMetric);
+
+    /**
+     * @brief This function is used to retrieve the metric vector (x, y, z)
+     * @param[in,out] rMetric This array contains the components of the metric vector
+     */
+    void GetMetricVector(array_1d<double, Dimension>& rMetric);
+
+    /**
+     * @brief This function is used to retrieve the Hessian metric tensor, note that when using the Hessian, more than one metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
+     * @param[in,out] rMetric This array contains the components of the metric tensor in the MMG defined order
+     */
+    void GetMetricTensor(TensorArrayType& rMetric);
 
     /**
      * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
@@ -570,6 +588,30 @@ public:
      * @param[in,out] rModelPart The model part of interest to study
      */
     void GenerateSolDataFromModelPart(ModelPart& rModelPart);
+
+    /**
+     * @brief This method writes mesh data to an existing model part
+     * @param[in,out] rModelPart The model part of interest to study
+     * @param[in] rColors Where the sub model parts IDs are stored
+     * @param[in] rDofs Storage for the dof of the node
+     * @param[in] rMMGMeshInfo The resulting mesh data
+     * @param[in] rMapPointersRefCondition The map of the conditions by reference (color)
+     * @param[in] rMapPointersRefElement The map of the elements by reference (color)
+     */
+    void WriteMeshDataToModelPart(
+        ModelPart& rModelPart,
+        const std::unordered_map<IndexType,std::vector<std::string>>& rColors,
+        const NodeType::DofsContainerType& rDofs,
+        const MMGMeshInfo<TMMGLibrary>& rMMGMeshInfo,
+        std::unordered_map<IndexType,Condition::Pointer>& rMapPointersRefCondition,
+        std::unordered_map<IndexType,Element::Pointer>& rMapPointersRefElement
+        );
+
+    /**
+     * @brief This method writes sol data to an existing model part
+     * @param[in,out] rModelPart The model part of interest to study
+     */
+    void WriteSolDataToModelPart(ModelPart& rModelPart);
 
     /**
      * @brief This function generates a list of submodelparts to be able to reassign flags after remesh
