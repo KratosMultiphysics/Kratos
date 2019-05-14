@@ -42,12 +42,14 @@
 
 //#include "custom_utilities/solver_settings.h"
 
+#define pi 3.14159265
 #ifdef _OPENMP
 #include "omp.h"
 #endif
 
-#define QCOMP
-
+//#define QCOMP
+#define BODY_FORCE 
+//#define STRANG
 namespace Kratos
 {
 
@@ -237,10 +239,10 @@ namespace Kratos
 	Dp_norm = IterativeSolve();
 #else
 	//multifluids
-	AssignInitialStepValues();
+	//AssignInitialStepValues();
 
 	double Dp_norm = 1.00;
-	//int iteration = 0;
+	int iteration = 0;
 	//int MaxPressureIterations = this->mMaxPressIterations;
 	Dp_norm = IterativeSolve();
 #endif
@@ -255,7 +257,7 @@ namespace Kratos
 	KRATOS_TRY
 
 	//ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-	this->SolveStep7(); //pold=pn+1
+	//this->SolveStep7(); //pold=pn+1
 	double Dp_norm = this->SolveStep2();
       	return Dp_norm;
 
@@ -269,21 +271,34 @@ namespace Kratos
 	Timer::Start("Solve_ambos");
 
 	double Dp_norm = 1.00;
+	int iteration = 0;
 	ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+	ModelPart& model_part=BaseType::GetModelPart();
+	const double dt = model_part.GetProcessInfo()[DELTA_TIME];
+	double cal_time = model_part.GetProcessInfo()[TIME];
+	double cal_timetn = cal_time-dt;
+	//double time_evaluation = model_part.GetProcessInfo()[TIME];
+
+	#if defined(BODY_FORCE)
+	  Force(cal_time);
+	  Forcetn(cal_timetn);
+	#endif
 	//KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 	rCurrentProcessInfo[VISCOSITY] = 1.0;
-
+      /*
 	for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();i != BaseType::GetModelPart().NodesEnd(); ++i)
 	  {
 	    i->FastGetSolutionStepValue(VELOCITY_X,1) =  i->FastGetSolutionStepValue(VELOCITY_X);
 	    i->FastGetSolutionStepValue(VELOCITY_Y,1) =  i->FastGetSolutionStepValue(VELOCITY_Y);
 	    i->FastGetSolutionStepValue(VELOCITY_Z,1) =  i->FastGetSolutionStepValue(VELOCITY_Z);
-	  }
+      
+	  }*/
 
 #if defined(QCOMP)
 	this->SolveStep1(this->mvelocity_toll, this->mMaxVelIterations);
 #else
-	this->SolveStep3();
+	//this->SolveStep3();
+	this->SolveStep1(this->mvelocity_toll, this->mMaxVelIterations);
 #endif
         //double p_norm=0.0;
 #if defined(QCOMP)
@@ -292,23 +307,32 @@ namespace Kratos
 	this->SolveStepaux();
 	//int MaxPressureIterations = this->mMaxPressIterations;
 	//int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-	//double p_norm = SavePressureIteration();
+	double p_norm = SavePressureIteration();
 	Dp_norm = 1.0;
 	//Timer::Stop("Solve_ambos");
 	//KRATOS_WATCH(time)
 #else
-	int iteration = 0;
-	while (  iteration++ < 3)
+	//while (  iteration++ < 3)   
+	//  {
+
+	/*
+	for(ModelPart::NodesContainerType::iterator in = model_part.NodesBegin() ; in != model_part.NodesEnd() ; ++in)
 	  {
+	    if(in->X()<0.00001) in->FastGetSolutionStepValue(PRESSURE)=0.0;
+	    if(in->X()>0.99999) in->FastGetSolutionStepValue(PRESSURE)=100.0;	
+	    if(in->X()<0.00001) in->FastGetSolutionStepValue(PRESSURE,1)=0.0;
+	    if(in->X()>0.99999) in->FastGetSolutionStepValue(PRESSURE,1)=100.0;	
+	    
+	  }*/
 	    Dp_norm = SolvePressure();
  	    double p_norm = SavePressureIteration();
-	    if (fabs(p_norm) > 1e-10){
-	      Dp_norm /= p_norm;
-	    }
-	    else
-	      Dp_norm = 1.0;
+	    //if (fabs(p_norm) > 1e-10){
+	    //  Dp_norm /= p_norm;
+	   // }
+	    //else
+	    //  Dp_norm = 1.0;
 	    this->SolveStep4();
-	  }
+	  //}
 #endif
 	this->Clear();
 	return Dp_norm;
@@ -352,10 +376,10 @@ namespace Kratos
 	const double dt = model_part.GetProcessInfo()[DELTA_TIME];
 
 	for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();i != BaseType::GetModelPart().NodesEnd(); ++i)
-	  {
-	    (i)->FastGetSolutionStepValue(PRESSURE_OLD_IT) = 0.0;
-	    (i)->FastGetSolutionStepValue(PRESSURE) = 0.0;
-	    (i)->FastGetSolutionStepValue(PRESSURE,1) = 0.0;
+	  {	    
+	    //(i)->FastGetSolutionStepValue(PRESSURE_OLD_IT) = 0.0;
+	    //(i)->FastGetSolutionStepValue(PRESSURE) = 0.0;
+	    //(i)->FastGetSolutionStepValue(PRESSURE,1) = 0.0;
 	  }
 	KRATOS_CATCH("");
       }
@@ -412,13 +436,17 @@ namespace Kratos
         Timer time;
         Timer::Start("paso_4");
 
+	ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+	ModelPart& model_part=BaseType::GetModelPart();
+	double dt = model_part.GetProcessInfo()[DELTA_TIME];
         array_1d<double, 3 > zero = ZeroVector(3);
 
-//#ifdef _OPENMP
-//        int number_of_threads = omp_get_max_threads();
-//#else
-//        int number_of_threads = 1;
-//#endif
+	int number_of_threads=0;
+#ifdef _OPENMP
+        number_of_threads = omp_get_max_threads();
+#else
+        number_of_threads = 1;
+#endif
 
         //ModelPart& model_part=BaseType::GetModelPart();
 
@@ -432,14 +460,14 @@ namespace Kratos
 	    nodal_mass = 0.0;
 	  }
 
- 	ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+ 	//ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 	rCurrentProcessInfo[FRACTIONAL_STEP] = 6;
 	for (ModelPart::ElementIterator i = BaseType::GetModelPart().ElementsBegin(); i != BaseType::GetModelPart().ElementsEnd(); ++i)
 	  {
             (i)->InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
 	  }
 
-	for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();i != BaseType::GetModelPart().NodesEnd(); ++i)
+	/*for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();i != BaseType::GetModelPart().NodesEnd(); ++i)
 	  {
 	    array_1d<double,3>& force_temp = i->FastGetSolutionStepValue(FORCE);
 	    double A = (i)->FastGetSolutionStepValue(NODAL_MASS);
@@ -449,34 +477,95 @@ namespace Kratos
 
 	    double dt_Minv = 0.005  / A ;
 	    //dt_Minv=1.0;
-	    force_temp *= dt_Minv;
+	    force_temp *= dt_Minv;*/
 
 	  //KRATOS_WATCH(force_temp);
-	    if(!i->IsFixed(VELOCITY_X)) //FRACT_VEL_X
-	      {
-		i->FastGetSolutionStepValue(VELOCITY_X) += force_temp[0] ;
-	      }
-	    if(!i->IsFixed(VELOCITY_Y))
-	      {
-		i->FastGetSolutionStepValue(VELOCITY_Y) +=force_temp[1];
-	      }
-	    if(!i->IsFixed(VELOCITY_Z))
-	      {
-		i->FastGetSolutionStepValue(VELOCITY_Z) +=force_temp[2] ;
-	      }
-	    if(i->IsFixed(VELOCITY_X))
-	      {
-		i->FastGetSolutionStepValue(VELOCITY_X)=0.0; //i->FastGetSolutionStepValue(VELOCITY_X,1);
-	      }
-	    if(i->IsFixed(VELOCITY_Y))
-	      {
-		i->FastGetSolutionStepValue(VELOCITY_Y)= 0.0; //i->FastGetSolutionStepValue(VELOCITY_Y,1) ;
-	      }
-	    if(i->IsFixed(VELOCITY_Z))
-	      {
-		i->FastGetSolutionStepValue(VELOCITY_Z)=0.0; //i->FastGetSolutionStepValue(VELOCITY_Z,1) ;
-	      }
-	  }
+	  /////////////////////
+          boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+          array_1d<double,3> N;
+          //array_1d<double,3> aux0, aux1, aux2; //this are sized to 3 even in 2D!!
+          //double lumping_factor = 0.33333333333333;
+
+
+            //calculate the velocity correction and store it in AUX_VECTOR
+            for (ModelPart::ElementIterator it = BaseType::GetModelPart().ElementsBegin(); it != BaseType::GetModelPart().ElementsEnd(); ++it)
+            {
+                //get the list of nodes of the element
+                Geometry< Node<3> >& geom = it->GetGeometry();
+                 
+                double volume;
+                GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);
+		// OLD VERSION PAVEL'S IMPLEMENTATION
+                array_1d<double,3> pres_inc;
+                pres_inc[0] = geom[0].FastGetSolutionStepValue(PRESSURE)-geom[0].FastGetSolutionStepValue(PRESSURE,1);
+                pres_inc[1] = geom[1].FastGetSolutionStepValue(PRESSURE)-geom[1].FastGetSolutionStepValue(PRESSURE,1);
+			    pres_inc[2] = geom[2].FastGetSolutionStepValue(PRESSURE)-geom[2].FastGetSolutionStepValue(PRESSURE,1);
+
+		//pres_inc*=one_sixth;
+		pres_inc*=0.5;
+
+
+                array_1d<double,3> aux=ZeroVector(2);
+
+ 		double p_avg = N[0]*pres_inc[0]
+                       + N[1]*pres_inc[1]
+                       + N[2]*pres_inc[2];
+		
+		p_avg *= volume;
+
+		array_1d<double,6> aaa=ZeroVector(6);
+
+	        aaa[0] += DN_DX(0, 0) * p_avg;
+        	aaa[1] += DN_DX(0, 1) * p_avg;
+	        aaa[2] += DN_DX(1, 0) * p_avg;
+        	aaa[3] += DN_DX(1, 1) * p_avg;
+	        aaa[4] += DN_DX(2, 0) * p_avg;
+        	aaa[5] += DN_DX(2, 1) * p_avg;
+
+		//KRATOS_WATCH(aaa)
+
+                geom[0].FastGetSolutionStepValue(FORCE_X) += aaa[0];
+                geom[0].FastGetSolutionStepValue(FORCE_Y) += aaa[1];
+                
+                geom[1].FastGetSolutionStepValue(FORCE_X) += aaa[2];
+                geom[1].FastGetSolutionStepValue(FORCE_Y) += aaa[3];
+
+		geom[2].FastGetSolutionStepValue(FORCE_X) += aaa[4];
+                geom[2].FastGetSolutionStepValue(FORCE_Y) += aaa[5];
+                //reusing aux for the third node
+	
+		}
+
+
+
+	for (ModelPart::NodeIterator it = BaseType::GetModelPart().NodesBegin();it != BaseType::GetModelPart().NodesEnd(); ++it)
+        {
+            //VELOCITY = VELOCITY + dt * Minv * AUX_VECTOR
+
+	      #if defined(STRANG)
+              dt *=0.5;
+              #endif
+
+            double dt_Minv = dt / it->FastGetSolutionStepValue(NODAL_MASS);
+
+            array_1d<double,3>& temp = it->FastGetSolutionStepValue(FORCE);
+            if(!it->IsFixed(VELOCITY_X))
+            {
+                it->FastGetSolutionStepValue(VELOCITY_X)+= dt_Minv*temp[0];
+
+
+            }
+            if(!it->IsFixed(VELOCITY_Y))
+            {
+                it->FastGetSolutionStepValue(VELOCITY_Y)+= dt_Minv*temp[1];
+            }
+            if(!it->IsFixed(VELOCITY_Z))
+            {
+                it->FastGetSolutionStepValue(VELOCITY_Z)+= dt_Minv*temp[2];
+            }
+	    	
+        }
+
 	KRATOS_CATCH("");
     }
 
@@ -847,8 +936,162 @@ namespace Kratos
 	  return 0.0;
       }
 
+	void Force( double time)
+	{
+	  
+        KRATOS_TRY
+	ModelPart& model_part=BaseType::GetModelPart();
 
+	for(ModelPart::NodesContainerType::iterator in = model_part.NodesBegin() ; in != model_part.NodesEnd() ; ++in)
+		{
 
+		double nu=0.001;
+
+		double fx=(in->X()*in->X()) * ( (1.0-in->X())*(1.0-in->X())); 
+
+		double dfx= 2.0*in->X()*( (1.0-in->X()) *(1.0-in->X())) - 2.0*(in->X() * in->X() )*(1.0-in->X()); 
+
+		double d2fx = 2.0*( (1.0-in->X())*(1.0-in->X()) ) - 8.0*in->X()*(1.0-in->X()) + 2.0*(in->X() * in->X()); 
+
+		double fy = (in->Y()*in->Y()) * ( (1.0-in->Y())* (1.0-in->Y()) ); 
+
+		double dfy = 2.0*in->Y()*( (1.0-in->Y())*(1.0-in->Y()) ) - 2.0*(in->Y()*in->Y())*(1.0-in->Y()); 
+
+		double d2fy = 2.0*( (1.0-in->Y())*(1.0-in->Y()) ) - 8.0*in->Y()*(1.0-in->Y()) + 2.0*(in->Y()*in->Y());
+
+		double d3fx = -12.0*(1.0-in->X()) + 12.0*in->X(); 
+ 
+		double d3fy =-12.0*(1.0-in->Y()) + 12.0*in->Y(); 
+
+		double ht = cos( pi * time * 4.0) * exp(-time);
+
+		double dht = - 4.0 *pi * sin( pi * time * 4.0) * exp(-time) - cos( pi * time * 4.0) * exp(-time); 
+
+		double ux =  100.0 * ht * fx * dfy; 
+		double uy = -100.0 * ht * dfx * fy; 
+
+		double duxdx = 100.0 * ht * dfx * dfy;
+		double duxdy = 100.0 * ht * fx * d2fy; 
+		double duydx = -100.0 * ht * d2fx * fy; 
+		double duydy = -100.0 * ht * dfx * dfy;
+
+		double d2uxdx2 = 100.0 * ht * ( d2fx * dfy );
+		double d2uxdy2 = 100.0 * ht * ( fx * d3fy );
+		double d2uydx2 = -100.0 * ht * ( d3fx * fy );
+		double d2uydy2 = -100.0 * ht * ( dfx * d2fy );
+
+		double d2uxdxdy = 100.0 * ht * dfx * d2fy;
+                double d2uydxdy = -100.0 * ht * d2fx * dfy;
+
+		double dpx = 200.0*in->X();
+		double dpy = 0.0;
+ 		//1. dynamic term
+		double Fx = 100.0*dht*fx*dfy;
+		double Fy = -100.0*dht*fy*dfx;
+		// 2. convective term
+    		//SHOULD BE ZERO FOR LAGRANGIAN MODELS
+		Fx += ux * duxdx + uy * duxdy;
+		Fy += ux * duydx + uy * duydy;
+		//3. viscous term
+		//Fx -= nu * ( d2uxdx2 + d2uxdy2 );
+		//Fy -= nu * ( d2uydx2 + d2uydy2 );
+    /*pavel's implementation
+		Fx -= nu * ( d2uxdx2 + 0.5*(d2uydxdy + d2uxdy2));
+		Fy -= nu * ( d2uydy2 + 0.5*(d2uxdxdy + d2uydx2));
+    */
+	        Fx -= nu * ( d2uxdx2 + d2uxdy2);
+		Fy -= nu * ( d2uydy2 + d2uydx2);
+
+		//4. pressure gradient
+		Fx += dpx;
+		Fy += dpy;
+	
+
+		in->FastGetSolutionStepValue(BODY_FORCE_X)=Fx;
+		in->FastGetSolutionStepValue(BODY_FORCE_Y)=Fy;
+		//KRATOS_WATCH(in->FastGetSolutionStepValue(BODY_FORCE));
+
+		}
+	KRATOS_CATCH("")
+	}
+	void Forcetn( double time)
+	{
+	  
+        KRATOS_TRY
+	ModelPart& model_part=BaseType::GetModelPart();
+
+	for(ModelPart::NodesContainerType::iterator in = model_part.NodesBegin() ; in != model_part.NodesEnd() ; ++in)
+		{
+
+		double nu=0.001;
+
+		double fx=(in->X()*in->X()) * ( (1.0-in->X())*(1.0-in->X())); 
+
+		double dfx= 2.0*in->X()*( (1.0-in->X()) *(1.0-in->X())) - 2.0*(in->X() * in->X() )*(1.0-in->X()); 
+
+		double d2fx = 2.0*( (1.0-in->X())*(1.0-in->X()) ) - 8.0*in->X()*(1.0-in->X()) + 2.0*(in->X() * in->X()); 
+
+		double fy = (in->Y()*in->Y()) * ( (1.0-in->Y())* (1.0-in->Y()) ); 
+
+		double dfy = 2.0*in->Y()*( (1.0-in->Y())*(1.0-in->Y()) ) - 2.0*(in->Y()*in->Y())*(1.0-in->Y()); 
+
+		double d2fy = 2.0*( (1.0-in->Y())*(1.0-in->Y()) ) - 8.0*in->Y()*(1.0-in->Y()) + 2.0*(in->Y()*in->Y());
+
+		double d3fx = -12.0*(1.0-in->X()) + 12.0*in->X(); 
+ 
+		double d3fy =-12.0*(1.0-in->Y()) + 12.0*in->Y(); 
+
+		double ht = cos( pi * time * 4.0) * exp(-time);
+
+		double dht = - 4.0 *pi * sin( pi * time * 4.0) * exp(-time) - cos( pi * time * 4.0) * exp(-time); 
+
+		double ux =  100.0 * ht * fx * dfy; 
+		double uy = -100.0 * ht * dfx * fy; 
+
+		double duxdx = 100.0 * ht * dfx * dfy;
+		double duxdy = 100.0 * ht * fx * d2fy; 
+		double duydx = -100.0 * ht * d2fx * fy; 
+		double duydy = -100.0 * ht * dfx * dfy;
+
+		double d2uxdx2 = 100.0 * ht * ( d2fx * dfy );
+		double d2uxdy2 = 100.0 * ht * ( fx * d3fy );
+		double d2uydx2 = -100.0 * ht * ( d3fx * fy );
+		double d2uydy2 = -100.0 * ht * ( dfx * d2fy );
+
+		double d2uxdxdy = 100.0 * ht * dfx * d2fy;
+                double d2uydxdy = -100.0 * ht * d2fx * dfy;
+
+		double dpx = 200.0*in->X();
+		double dpy = 0.0;
+ 		//1. dynamic term
+		double Fx = 100.0*dht*fx*dfy;
+		double Fy = -100.0*dht*fy*dfx;
+		// 2. convective term
+    		//SHOULD BE ZERO FOR LAGRANGIAN MODELS
+		Fx += ux * duxdx + uy * duxdy;
+		Fy += ux * duydx + uy * duydy;
+		//3. viscous term
+		//Fx -= nu * ( d2uxdx2 + d2uxdy2 );
+		//Fy -= nu * ( d2uydx2 + d2uydy2 );
+    /*pavel's implementation
+		Fx -= nu * ( d2uxdx2 + 0.5*(d2uydxdy + d2uxdy2));
+		Fy -= nu * ( d2uydy2 + 0.5*(d2uxdxdy + d2uydx2));
+    */
+	        Fx -= nu * ( d2uxdx2 + d2uxdy2);
+		Fy -= nu * ( d2uydy2 + d2uydx2);
+
+		//4. pressure gradient
+		Fx += dpx;
+		Fy += dpy;
+	
+
+		in->FastGetSolutionStepValue(BODY_FORCE_X,1)=Fx;
+		in->FastGetSolutionStepValue(BODY_FORCE_Y,1)=Fy;
+		//KRATOS_WATCH(in->FastGetSolutionStepValue(BODY_FORCE));
+
+		}
+	KRATOS_CATCH("")
+	}
       /*@} */
       /**@name Operators
        */

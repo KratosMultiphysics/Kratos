@@ -676,7 +676,7 @@ private:
             n_points_in_radius = nodes_tree1.SearchInRadius(work_point, radius, res.begin(),res_distances.begin(), max_results);
             if (n_points_in_radius>1)
             {
-                if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
+                if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0 && in->FastGetSolutionStepValue(FLAG_VARIABLE)==0.0)
                 {
                     //look if we are already erasing any of the other nodes
                     double erased_nodes = 0;

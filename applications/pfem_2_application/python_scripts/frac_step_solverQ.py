@@ -142,6 +142,7 @@ class FracStepSolver:
         self.velocity_linear_solver =  SuperLUSolver()
 
         self.pressure_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
+        self.velocity_linear_solver =  CGSolver(1e-4, 5000,pDiagPrecond)
 
         self.dynamic_tau = 0.001
         self.activate_tau2 = False
@@ -152,13 +153,9 @@ class FracStepSolver:
         self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
         self.compute_reactions=False
         self.timer=Timer()    
-        #self.particle_utils = ParticleUtils2D()
+ 
 
-        #self.normal=NormalCalculationUtils()
-        #self.actnormal=NormalToWallCalculationUtils()
         self.Mesher1 = TriGenPFEMModeler()
-
-        #self.PfemUtils = PfemUtils()
 
         self.node_erase_process = NodeEraseProcess(model_part);
 
@@ -167,7 +164,7 @@ class FracStepSolver:
         self.mark_outer_nodes_process = MarkOuterNodesProcess(model_part);
         
         if(domain_size == 2):
-            self.particle_utils = ParticleUtils2D()	
+            #self.particle_utils = ParticleUtils2D()	
             self.Mesher = TriGenPFEMModeler()
             
             self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
@@ -220,39 +217,37 @@ class FracStepSolver:
 
         
     def Solve(self):
-	
-
         (self.solver).Solve()
 
-    def solve3(self):
+    #def solve3(self):
 	
 
-        (self.solver).SolveStep3(1.0)
+    #    (self.solver).SolveStep3(1.0)
 
-    def solve5(self):
+    #def solve5(self):
 	
 
-        (self.solver).SolveStep5(1.0)
+    #    (self.solver).SolveStep5(1.0)
 
-    def solve4(self):
+    #def solve4(self):
 	
 
-        (self.solver).SolveStep4(1.0)
+    #    (self.solver).SolveStep4(1.0)
 
-    def solve5(self):
+    #def solve5(self):
 	
 
-        (self.solver).SolveStep5(1.0)
+    #    (self.solver).SolveStep5(1.0)
 
 
-    def Projections(self):
+    #def Projections(self):
 	
-        (self.solver).SolveStep5()
+    #    (self.solver).SolveStep5()
 
-    def Reactions(self):
+    #def Reactions(self):
 
 
-        (self.solver).Compute()
+    #    (self.solver).Compute()
 
 
     def Clear(self):
@@ -260,19 +255,19 @@ class FracStepSolver:
         self.slip_conditions_initialized = True
 
 
-    def Remesh2(self):
+    #def Remesh2(self):
 	
-        h_factor=1.0;
-        alpha_shape=1.2;
+    #    h_factor=1.0;
+    #    alpha_shape=1.2;
 
 
-        self.node_erase_process = NodeEraseProcess(self.model_part);
+    #    self.node_erase_process = NodeEraseProcess(self.model_part);
 
-        (self.Mesher).ReGenerateMesh("Fluid3DGLS","Condition3D", self.model_part, self.node_erase_process,False, False, alpha_shape, h_factor)
+    #    (self.Mesher).ReGenerateMesh("Fluid3DGLS","Condition3D", self.model_part, self.node_erase_process,False, False, alpha_shape, h_factor)
 
 
-        (self.fluid_neigh_finder).Execute();
-        (self.condition_neigh_finder).Execute();
+    #    (self.fluid_neigh_finder).Execute();
+    #    (self.condition_neigh_finder).Execute();
 
 
     def RemeshAux(self):
@@ -284,47 +279,25 @@ class FracStepSolver:
         
         for node in (self.model_part).Nodes:
             node.Set(TO_ERASE, False)
-        #dambreak
+
         for node in (self.model_part).Nodes: 
             node.SetSolutionStepValue(NODAL_H,0,0.0011) 
-            node.SetSolutionStepValue(NODAL_H,0,0.075)
+
+        if(self.domain_size == 2):
+
+            for node in (self.model_part).Nodes: 
+                node.SetSolutionStepValue(NODAL_H,0,0.005) 
         
         self.node_erase_process = NodeEraseProcess(self.model_part);
-        ##box_corner1 = Vector(3); 
-        ##box_corner2 = Vector(3); 
 
         
+
+        if(self.domain_size == 2):
         
-        ##box_corner1[0]=-0.014653
-        ##box_corner1[1]=-0.16#0.31315#-0.1689
-        ##box_corner1[1]=-0.15#0.31315#-0.1689
-        ##box_corner1[2]=-10.0
-        ##box_corner2[0]=0.015702
-        ##box_corner2[1]=0.01189
-        ##box_corner2[2]=10.0
-
-
-
-
-        ##box_corner1[0]=-10.0
-        ##box_corner1[1]=-10.0#0.31315#-0.1689
-        ##box_corner1[2]=-10.0
-        ##box_corner2[0]=10.0
-        ##box_corner2[1]=10.0
-        ##box_corner2[2]=10.0
-
-        #for node in (self.model_part).Nodes: 
-        #    node.SetSolutionStepValue(NODAL_H,0,0.15) 
-
-
-        ##self.box_corner1 = box_corner1
-        ##self.box_corner2 = box_corner2
+            h_factor=0.30 
+            alpha_shape=5.0;
 
         self.Pfem2Utils.MarkLonelyNodesForErasing(self.model_part)
-
-        print (self.box_corner1)
-
-        print (self.box_corner2)
 
         
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
@@ -333,7 +306,7 @@ class FracStepSolver:
         
 
         if (self.domain_size == 2):
-            (self.Mesher).ReGenerateMesh("QFluid2D","Condition2D", self.model_part, self.node_erase_process, True, False, alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMesh("FSFluid2D","Condition2D", self.model_part, self.node_erase_process, True, False, alpha_shape, h_factor)
         elif (self.domain_size == 3):
             
             (self.Mesher).ReGenerateMesh("QFluid3D","Condition3D", self.model_part, self.node_erase_process, True, False, alpha_shape, h_factor)            
@@ -373,132 +346,8 @@ class FracStepSolver:
         new_restart_utilities.PrintRestart_ScalarVariable(ENTHALPY,"ENTHALPY",self.model_part.Nodes,restart_file)
         restart_file.close() 
 
+     
 
-
-    def CalculateDistanceAndDiviedSet(self,domain_size):
-        
-        (self.neigh_finder).Execute();
-        distance_tools = ElemBasedDistanceUtilities(self.model_part)
-        distance_calculator = BodyDistanceCalculationUtils()
-
-        #assign IS_VISITED1 to elem with DISTANCE>=0 and change DSITANCE to posetive for external ones
-        ##Assign Zero distance to interface nodes
-        for node in (self.model_part).Nodes:
-           
-            node.SetSolutionStepValue(DISTANCE,0,0.0)
-            node.SetValue(IS_VISITED,0.0)
-            
-        for node in (self.model_part).Nodes:
-            if(node.GetSolutionStepValue(IS_INTERFACE)== 1.0):
-                
-                node.SetSolutionStepValue(DISTANCE,0,0.0)
-                node.SetValue(IS_VISITED,1.0)
-
-            else:
-                node.SetValue(IS_VISITED,0.0)
-
-
-
-        ##        distance_tools.MarkExternalAndMixedNodes()
-        ##        distance_tools.ChangeSignToDistance()
-
-        #calculate distances towards the interior of the domain
-        if(domain_size == 2):
-            distance_calculator.CalculateDistances2D((self.model_part).Elements,DISTANCE, True);
-        else:
-            distance_calculator.CalculateDistances3D((self.model_part).Elements,DISTANCE, True);
-
-        #change sign 
-        distance_tools.ChangeSignToDistance()
-
-        #mark as visited all of the nodes inside the fluid domain
-        ####        distance_tools.MarkInternalAndMixedNodes()
-        print ((self.model_part).Elements).Size()
-
-        
-    def DistToH(self):
-         
-         for node in (self.model_part).Nodes: 
-             node.SetSolutionStepValue(NODAL_H,0,0.05)
-
-    def DistToH1(self):
-         
-         for node in (self.model_part).Nodes: 
-             current_dist = node.GetSolutionStepValue(DISTANCE,0)
-             if(abs(current_dist) <= 0.03):
-                 node.SetSolutionStepValue(NODAL_H,0,0.02)
-             if(0.03<abs(current_dist) and abs(current_dist)<0.09):
-                 node_H = 0.03 #+ slope*abs(current_dist)0.005
-                 node.SetSolutionStepValue(NODAL_H,0,0.012)
-             else:
-                 node.SetSolutionStepValue(NODAL_H,0,0.012)
-
-         
-
-
-         for node in (self.model_part).Nodes:
-             if node.GetSolutionStepValue(IS_INTERFACE) == 1.0:
-                 node.SetSolutionStepValue(NODAL_H,0,0.020)
-
-    def DistToH2(self):
-         #possible_h = self.CalculateRadius()
-         #print possible_h
-
-         
-         for node in (self.model_part).Nodes: 
-             current_dist = node.GetSolutionStepValue(DISTANCE,0)
-             if(abs(current_dist) <= 0.06): #0.15
-                 node.SetSolutionStepValue(NODAL_H,0,0.20)
-             #if(0.06<abs(current_dist) and abs(current_dist)<0.3):
-             #    node_H = 0.03 #+ slope*abs(current_dist)0.005
-             #    node.SetSolutionStepValue(NODAL_H,0,0.20)
-             else:
-                 node.SetSolutionStepValue(NODAL_H,0,0.012)
-
-         
-
-
-         for node in (self.model_part).Nodes:
-             if node.GetSolutionStepValue(IS_INTERFACE) == 1.0:
-                 node.SetSolutionStepValue(NODAL_H,0,0.20)
-
-
-    def DistToH4(self):
-         for node in (self.model_part).Nodes: 
-             current_dist = node.GetSolutionStepValue(DISTANCE,0)
-             if(abs(current_dist) <= 0.06): #0.15
-                 node.SetSolutionStepValue(NODAL_H,0,0.010)
-             #if(0.06<abs(current_dist) and abs(current_dist)<0.3):
-             #    node_H = 0.03 #+ slope*abs(current_dist)0.005
-             #    node.SetSolutionStepVale(NODAL_H,0,0.20)
-             else:
-                 node.SetSolutionStepValue(NODAL_H,0,0.010)
-
-         
-
-
-         for node in (self.model_part).Nodes:
-             if node.GetSolutionStepValue(IS_INTERFACE) == 1.0:
-                 node.SetSolutionStepValue(NODAL_H,0,0.012)
-
-    def CalculateRadius(self):             
-        max_radi = 0.0
-        for node in (self.model_part).Nodes:
-            if node.GetSolutionStepValue(IS_INTERFACE) == 1.0:
-                X_ref = node.X
-                Y_ref = node.Y
-
-        for node in (self.model_part).Nodes:
-            if node.GetSolutionStepValue(IS_INTERFACE) == 1.0:
-                radi = pow(node.X-X_ref , 2)+pow(node.Y-Y_ref , 2)
-                if(radi>max_radi):
-                    max_radi = radi
-
-        max_radi = pow(max_radi,0.5)
-
-        if (max_radi == 0.0):
-            max_radi = 0.076
-        return max_radi
 
 
 

@@ -138,8 +138,8 @@ namespace Kratos
 			  }
 			
 	
-			//noalias(current_position) += small_dt*veulerian + 0.5 * small_dt * small_dt * acc_particle;
- 			noalias(current_position) += small_dt*veulerian + 0.5 * dt * small_dt * acc_particle;
+			noalias(current_position) += small_dt*veulerian + 0.5 * small_dt * small_dt * acc_particle;
+ 			//noalias(current_position) += small_dt*veulerian + 0.5 * dt * small_dt * acc_particle;
 			pparticle->Set(TO_ERASE, false);
 
 			iparticle->FastGetSolutionStepValue(DISTANCE) += small_dt;
@@ -237,8 +237,8 @@ void MoveMesh_StreamlinesTn(ModelPart& rModelPart, unsigned int substeps)
 
 			  }
 			
-//			noalias(current_position) += small_dt*veulerian + 0.5 * small_dt * small_dt * acc_particle;
-			noalias(current_position) += small_dt*veulerian + 0.5 * dt * small_dt * acc_particle;
+			noalias(current_position) += small_dt*veulerian + 0.5 * small_dt * small_dt * acc_particle;
+			//noalias(current_position) += small_dt*veulerian + 0.5 * dt * small_dt * acc_particle;
 			pparticle->Set(TO_ERASE, false);
 			iparticle->FastGetSolutionStepValue(DISTANCE) += small_dt;
 		      }
