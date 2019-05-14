@@ -379,11 +379,6 @@ private:
     void ExecuteRemeshing();
 
     /**
-     * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
-     */
-    void ReorderAllIds();
-
-    /**
      * @brief After we have transfer the information from the previous modelpart we initilize the elements and conditions
      */
     void InitializeElementsAndConditions();

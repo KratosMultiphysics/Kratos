@@ -357,7 +357,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
     // We initialize some values
     const SizeType step_data_size = mrThisModelPart.GetNodalSolutionStepDataSize();
-    const SizeType buffer_size   = mrThisModelPart.NodesBegin()->GetBufferSize();
+    const SizeType buffer_size = mrThisModelPart.NodesBegin()->GetBufferSize();
 
     mThisParameters["step_data_size"].SetInt(step_data_size);
     mThisParameters["buffer_size"].SetInt(buffer_size);
@@ -388,7 +388,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     ModelPart& r_old_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old", mrThisModelPart.GetBufferSize());
 
     // First we empty the model part
-    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
+    auto& r_nodes_array = mrThisModelPart.Nodes();
 
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i)
@@ -396,7 +396,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     r_old_model_part.AddNodes( mrThisModelPart.NodesBegin(), mrThisModelPart.NodesEnd() );
     mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
 
-    ConditionsArrayType& r_conditions_array = mrThisModelPart.Conditions();
+    auto& r_conditions_array = mrThisModelPart.Conditions();
 
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)
@@ -404,7 +404,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     r_old_model_part.AddConditions( mrThisModelPart.ConditionsBegin(), mrThisModelPart.ConditionsEnd() );
     mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 
-    ElementsArrayType& r_elements_array = mrThisModelPart.Elements();
+    auto& r_elements_array = mrThisModelPart.Elements();
 
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i)
@@ -556,26 +556,26 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
         std::unordered_set<IndexType> node_ids;
 
-        ConditionsArrayType& sub_conditions_array = r_sub_model_part.Conditions();
-        const SizeType sub_num_conditions = sub_conditions_array.end() - sub_conditions_array.begin();
+        auto& r_sub_conditions_array = r_sub_model_part.Conditions();
+        const SizeType sub_num_conditions = r_sub_conditions_array.end() - r_sub_conditions_array.begin();
 
         for(IndexType i = 0; i < sub_num_conditions; ++i)  {
-            auto it_cond = sub_conditions_array.begin() + i;
-            auto& cond_geom = it_cond->GetGeometry();
+            auto it_cond = r_sub_conditions_array.begin() + i;
+            auto& r_cond_geom = it_cond->GetGeometry();
 
-            for (SizeType i_node = 0; i_node < cond_geom.size(); ++i_node)
-                node_ids.insert(cond_geom[i_node].Id());
+            for (SizeType i_node = 0; i_node < r_cond_geom.size(); ++i_node)
+                node_ids.insert(r_cond_geom[i_node].Id());
         }
 
-        ElementsArrayType& sub_elements_array = r_sub_model_part.Elements();
-        const SizeType sub_num_elements = sub_elements_array.end() - sub_elements_array.begin();
+        auto& r_sub_elements_array = r_sub_model_part.Elements();
+        const SizeType sub_num_elements = r_sub_elements_array.end() - r_sub_elements_array.begin();
 
         for(IndexType i = 0; i < sub_num_elements; ++i) {
-            auto it_elem = sub_elements_array.begin() + i;
-            auto& elem_geom = it_elem->GetGeometry();
+            auto it_elem = r_sub_elements_array.begin() + i;
+            auto& r_elem_geom = it_elem->GetGeometry();
 
-            for (SizeType i_node = 0; i_node < elem_geom.size(); ++i_node)
-                node_ids.insert(elem_geom[i_node].Id());
+            for (SizeType i_node = 0; i_node < r_elem_geom.size(); ++i_node)
+                node_ids.insert(r_elem_geom[i_node].Id());
         }
 
         IndexVectorType vector_ids;
@@ -587,7 +587,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     //FreeMemory();
 
     /* After that we reorder nodes, conditions and elements: */
-    ReorderAllIds();
+    mMmmgUtilities.ReorderAllIds(mrThisModelPart);
 
     /* We assign flags and clear the auxiliar model parts created to reassing the flags */
     mMmmgUtilities.AssignAndClearAuxiliarSubModelPartForFlags(mrThisModelPart);
@@ -662,31 +662,6 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     if (mFramework == FrameworkEulerLagrange::EULERIAN) {
         ClearConditionsDuplicatedGeometries();
     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::ReorderAllIds()
-{
-    // Iterate over nodes
-    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
-    for(IndexType i = 0; i < r_nodes_array.size(); ++i)
-        (it_node_begin + i)->SetId(i + 1);
-
-    // Iterate over conditions
-    ConditionsArrayType& r_conditions_array = mrThisModelPart.Conditions();
-    const auto it_cond_begin = r_conditions_array.begin();
-    for(IndexType i = 0; i < r_conditions_array.size(); ++i)
-        (it_cond_begin + i)->SetId(i + 1);
-
-    // Iterate over elements
-    ElementsArrayType& r_elements_array = mrThisModelPart.Elements();
-    const auto it_elem_begin = r_elements_array.begin();
-    for(IndexType i = 0; i < r_elements_array.size(); ++i)
-        (it_elem_begin + i)->SetId(i + 1);
 }
 
 /***********************************************************************************/

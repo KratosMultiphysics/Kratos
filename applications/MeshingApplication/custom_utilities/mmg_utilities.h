@@ -544,6 +544,12 @@ public:
         );
 
     /**
+     * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
+     * @param[in,out] rModelPart The model part of interest to study
+     */
+    void ReorderAllIds(ModelPart& rModelPart);
+
+    /**
      * @brief This method generates mesh data from an existing model part
      * @param[in,out] rModelPart The model part of interest to study
      * @param[in,out] rColors Where the sub model parts IDs are stored

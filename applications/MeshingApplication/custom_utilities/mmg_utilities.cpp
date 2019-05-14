@@ -2449,6 +2449,31 @@ void MmgUtilities<MMGLibrary::MMGS>::SetMetricTensor(
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::ReorderAllIds(ModelPart& rModelPart)
+{
+    // Iterate over nodes
+    auto& r_nodes_array = rModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
+    for(IndexType i = 0; i < r_nodes_array.size(); ++i)
+        (it_node_begin + i)->SetId(i + 1);
+
+    // Iterate over conditions
+    auto& r_conditions_array = rModelPart.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
+    for(IndexType i = 0; i < r_conditions_array.size(); ++i)
+        (it_cond_begin + i)->SetId(i + 1);
+
+    // Iterate over elements
+    auto& r_elements_array = rModelPart.Elements();
+    const auto it_elem_begin = r_elements_array.begin();
+    for(IndexType i = 0; i < r_elements_array.size(); ++i)
+        (it_elem_begin + i)->SetId(i + 1);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     ModelPart& rModelPart,
     std::unordered_map<IndexType,std::vector<std::string>>& rColors,
