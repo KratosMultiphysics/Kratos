@@ -966,6 +966,15 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             double DeltDisp[3] = {0.0};
             double DeltVel [3] = {0.0};
 
+
+            std::cout << "//////////////////////////////////////////////////////////" << std::endl;
+            KRATOS_WATCH(indentation);
+            KRATOS_WATCH(DistPToB);
+            KRATOS_WATCH(GetInteractionRadius());
+            KRATOS_WATCH(ini_delta);
+            KRATOS_WATCH(velocity);
+            KRATOS_WATCH(wall_velocity_at_contact_point);
+
             DeltVel[0] = velocity[0] - wall_velocity_at_contact_point[0];
             DeltVel[1] = velocity[1] - wall_velocity_at_contact_point[1];
             DeltVel[2] = velocity[2] - wall_velocity_at_contact_point[2];
@@ -974,6 +983,9 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
 
             // For translation movement delta displacement
             const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+            KRATOS_WATCH(delta_displ);
+            KRATOS_WATCH(wall_delta_disp_at_contact_point);
+            std::cout << "//////////////////////////////////////////////////////////" << std::endl;
             DeltDisp[0] = delta_displ[0] - wall_delta_disp_at_contact_point[0];
             DeltDisp[1] = delta_displ[1] - wall_delta_disp_at_contact_point[1];
             DeltDisp[2] = delta_displ[2] - wall_delta_disp_at_contact_point[2];

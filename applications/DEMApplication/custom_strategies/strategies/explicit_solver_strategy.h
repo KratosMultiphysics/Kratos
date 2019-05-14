@@ -387,7 +387,7 @@ namespace Kratos {
 
                 r_node_i.FastGetSolutionStepValue(VELOCITY)               =     p_particle_i->mVelOld;
                 r_node_i.FastGetSolutionStepValue(DISPLACEMENT)           =     p_particle_i->mDispOld;
-                r_node_i.FastGetSolutionStepValue(DELTA_DISPLACEMENT)     =     p_particle_i->mDeltaDispOld;
+                //r_node_i.FastGetSolutionStepValue(DELTA_DISPLACEMENT)     =     p_particle_i->mDeltaDispOld;
                 r_node_i.Coordinates()                                    =     p_particle_i->mCoordOld;
                 r_node_i.GetInitialPosition()                             =     p_particle_i->mCoordInitOld;
                 r_node_i.FastGetSolutionStepValue(TOTAL_FORCES)           =     p_particle_i->mForceOld;
