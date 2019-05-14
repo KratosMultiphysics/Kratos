@@ -105,11 +105,9 @@ public:
     typedef Node <3>                                                   NodeType;
     // Geometry definition
     typedef Geometry<NodeType>                                     GeometryType;
-    /// Properties definition
-    typedef Properties                                           PropertiesType;
 
     /// Mesh definition
-    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
+    typedef Mesh<NodeType, Properties, Element, Condition>             MeshType;
     /// Properties container definition
     typedef MeshType::PropertiesContainerType           PropertiesContainerType;
     /// Nodes container definition
