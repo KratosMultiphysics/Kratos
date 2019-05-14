@@ -82,7 +82,15 @@ void MmgIO<TMMGLibrary>::ReadModelPart(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
+    // Automatically read the mesh
+    mMmmgUtilities.InputMesh(mFilename);
 
+    // Automatically read the solution
+    mMmmgUtilities.InputSol(mFilename);
+
+    // TODO: Read JSON of colors
+
+    // TODO: Override model part
 
     KRATOS_CATCH("");
 }
