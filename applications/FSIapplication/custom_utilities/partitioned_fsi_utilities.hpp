@@ -407,8 +407,8 @@ public:
             uz_mesh_norm += std::pow(it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT_Z), 2);
         }
 
-        std::vector<double> local_data = {p_norm, vx_norm, vy_norm, vz_norm, rx_norm, ry_norm, rz_norm, ux_mesh_norm, uy_mesh_norm, uz_mesh_norm};
-        std::vector<double> global_sum = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        std::vector<double> local_data{p_norm, vx_norm, vy_norm, vz_norm, rx_norm, ry_norm, rz_norm, ux_mesh_norm, uy_mesh_norm, uz_mesh_norm};
+        std::vector<double> global_sum{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         rInterfaceModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_data, global_sum);
 
         p_norm       = global_sum[0];
@@ -462,8 +462,8 @@ public:
             uz_norm += std::pow(disp[2], 2);
         }
 
-        std::vector<double> local_data = {ux_norm, uy_norm, uz_norm};
-        std::vector<double> global_sum = {0, 0, 0};
+        std::vector<double> local_data{ux_norm, uy_norm, uz_norm};
+        std::vector<double> global_sum{0, 0, 0};
         rInterfaceModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_data, global_sum);
 
         ux_norm = global_sum[0];
