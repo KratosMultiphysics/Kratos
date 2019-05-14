@@ -14,12 +14,12 @@
 //
 
 // System includes
+#include <unordered_map>
 
 // External includes
 
 // Project includes
 #include "local_refine_geometry_mesh.hpp"
-#include <unordered_map>
 
 namespace Kratos
 {

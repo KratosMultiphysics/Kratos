@@ -319,7 +319,7 @@ public:
                       for ( auto iChild = rChildElements.ptr_begin();
                               iChild != rChildElements.ptr_end(); iChild++ )
                       {
-                          NewElements.push_back( (*iChild).lock() );
+                          NewElements.push_back((*iChild)->shared_from_this());
                       }
                   }
               }
@@ -481,7 +481,7 @@ public:
                             for ( auto iChild = rChildConditions.ptr_begin();
                                     iChild != rChildConditions.ptr_end(); iChild++ )
                             {
-                                NewConditions.push_back( (*iChild).lock() );
+                                NewConditions.push_back((*iChild)->shared_from_this());
                             }
                         }
                     }
