@@ -173,14 +173,13 @@ protected:
     Plane3D SetIntersectionPlane(const std::vector<array_1d<double,3>> &rIntPtsVector);
 
     ///@}
-protected:
+private:
     ///@name Member Variables
     ///@{
 
     ModelPart& mrSkinPart;
     ModelPart& mrVolumePart;
 
-private:
     ///@}
     ///@name Private Operations
     ///@{
