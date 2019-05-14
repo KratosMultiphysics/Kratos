@@ -22,7 +22,6 @@
 // We indlude the internal variable interpolation process
 #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
-#include "processes/fast_transfer_between_model_parts_process.h"
 // Include the point locator
 #include "utilities/binbased_fast_point_locator.h"
 // Include the spatial containers needed for search
@@ -258,7 +257,7 @@ template<MMGLibrary TMMGLibrary>
 void MmgProcess<TMMGLibrary>::InitializeMeshData()
 {
     // We create a list of submodelparts to later reassign flags after remesh
-    CreateAuxiliarSubModelPartForFlags();
+    mMmmgUtilities.CreateAuxiliarSubModelPartForFlags(mrThisModelPart);
 
     // Before computing colors we do some check and throw a warning to get the user informed
     const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(mrThisModelPart);
@@ -771,7 +770,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     ReorderAllIds();
 
     /* We assign flags and clear the auxiliar model parts created to reassing the flags */
-    AssignAndClearAuxiliarSubModelPartForFlags();
+    mMmmgUtilities.AssignAndClearAuxiliarSubModelPartForFlags(mrThisModelPart);
 
     /* Unmoving the original mesh to be able to interpolate */
     if (mFramework == FrameworkEulerLagrange::LAGRANGIAN) {
@@ -935,55 +934,6 @@ void MmgProcess<TMMGLibrary>::OutputMdpa()
     std::ofstream output_file;
     ModelPartIO model_part_io("output", IO::WRITE);
     model_part_io.WriteModelPart(mrThisModelPart);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::CreateAuxiliarSubModelPartForFlags()
-{
-    ModelPart& r_auxiliar_model_part = mrThisModelPart.CreateSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
-
-    const auto& flags = KratosComponents<Flags>::GetComponents();
-
-    for (auto& flag : flags) {
-        const std::string name_sub_model = "FLAG_"+flag.first;
-        if (name_sub_model.find("NOT") == std::string::npos) { // Avoiding inactive flags
-            r_auxiliar_model_part.CreateSubModelPart(name_sub_model);
-            ModelPart& auxiliar_sub_model_part = r_auxiliar_model_part.GetSubModelPart(name_sub_model);
-            FastTransferBetweenModelPartsProcess transfer_process = FastTransferBetweenModelPartsProcess(auxiliar_sub_model_part, mrThisModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, *(flag.second));
-            transfer_process.Execute();
-            // If the number of elements transfered is 0 we remove the model part
-            if (auxiliar_sub_model_part.NumberOfNodes() == 0
-            && auxiliar_sub_model_part.NumberOfElements() == 0
-            && auxiliar_sub_model_part.NumberOfConditions() == 0) {
-                r_auxiliar_model_part.RemoveSubModelPart(name_sub_model);
-            }
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::AssignAndClearAuxiliarSubModelPartForFlags()
-{
-    const auto& flags = KratosComponents<Flags>::GetComponents();
-
-    ModelPart& auxiliar_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
-    for (auto& flag : flags) {
-        const std::string name_sub_model = "FLAG_"+flag.first;
-        if (auxiliar_model_part.HasSubModelPart(name_sub_model)) {
-            ModelPart& auxiliar_sub_model_part = auxiliar_model_part.GetSubModelPart(name_sub_model);
-            VariableUtils().SetFlag(*(flag.second), true, auxiliar_sub_model_part.Nodes());
-            VariableUtils().SetFlag(*(flag.second), true, auxiliar_sub_model_part.Conditions());
-            VariableUtils().SetFlag(*(flag.second), true, auxiliar_sub_model_part.Elements());
-        }
-    }
-
-    mrThisModelPart.RemoveSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
 }
 
 /***********************************************************************************/

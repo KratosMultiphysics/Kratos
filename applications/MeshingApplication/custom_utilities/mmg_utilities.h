@@ -22,6 +22,8 @@
 #include "includes/key_hash.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/variable_utils.h"
+#include "processes/fast_transfer_between_model_parts_process.h"
 
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
@@ -533,6 +535,18 @@ public:
         const TensorArrayType& Metric,
         const IndexType NodeId
         );
+
+    /**
+     * @brief This function generates a list of submodelparts to be able to reassign flags after remesh
+     * @param[in,out] rModelPart The model part of interest to study
+     */
+    void CreateAuxiliarSubModelPartForFlags(ModelPart& rModelPart);
+
+    /**
+     * @brief This function assigns the flags and clears the auxiliar sub model part for flags
+     * @param[in,out] rModelPart The model part of interest to study
+     */
+    void AssignAndClearAuxiliarSubModelPartForFlags(ModelPart& rModelPart);
 
     ///@}
     ///@name Access
