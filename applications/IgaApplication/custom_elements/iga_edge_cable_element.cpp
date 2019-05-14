@@ -312,4 +312,44 @@ void IgaEdgeCableElement::PrintInfo(std::ostream& rOStream) const
     rOStream << "\"IgaEdgeCableElement\" #" << Id();
 }
 
+//********************************************************************************************************************
+//********************************************************************************************************************
+//********************************************************************************************************************
+
+void IgaEdgeCableElement::Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput, 
+        const ProcessInfo& rCurrentProcessInfo
+        )// override;
+    {
+        if (rVariable == CABLE_STRESS)
+        {
+        const double& integration_weight = GetValue(INTEGRATION_WEIGHT);
+        Matrix& shape_derivatives = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+        const Vector& t = GetValue(TANGENTS);
+        
+        const auto& properties = GetProperties();
+
+        const double E = properties[YOUNG_MODULUS];
+        const double A = properties[CROSS_AREA];
+        const double prestress = properties[PRESTRESS_CAUCHY];
+
+        const Vector3 actual_base_vector = GetActualBaseVector();
+        const double reference_a = norm_2(mReferenceBaseVector);
+        const double actual_a = norm_2(actual_base_vector);
+
+        const double actual_aa = actual_a * actual_a;
+        const double reference_aa = reference_a * reference_a;
+
+        // green-lagrange strain
+        const double e11_membrane = 0.5 * (actual_aa - reference_aa);
+
+        // normal forcereference_aa
+        double principal_stress = prestress * A + e11_membrane * A * E / inner_prod(mReferenceBaseVector,mReferenceBaseVector); 
+        //double principal_stress = e11_membrane * A * E / inner_prod(mReferenceBaseVector,mReferenceBaseVector); 
+
+        rOutput = principal_stress;
+        } 
+    }  
+
 } // namespace Kratos

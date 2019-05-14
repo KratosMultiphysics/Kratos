@@ -195,24 +195,48 @@ KRATOS_WATCH(rLeftHandSideMatrix)
         KRATOS_WATCH(rSecondVariationStrain.B11)
         KRATOS_WATCH(rSecondVariationStrain.B22)
         KRATOS_WATCH(rSecondVariationStrain.B12)
-*/
+
+*/      //*************************
         // Define Prestress
         double thickness = this->GetProperties().GetValue(THICKNESS);
         
-        Vector S_prestress = this->GetProperties().GetValue(PRESTRESS);
-        /*Vector S_prestress_nichttransformiert = this->GetProperties().GetValue(PRESTRESS);
+       //Vector S_prestress = this->GetProperties().GetValue(PRESTRESS)*thickness;
+       //if(this->Id() == 0){KRATOS_WATCH(S_prestress)};
+       
+        Vector S_prestress_nichttransformiert = this->GetProperties().GetValue(PRESTRESS)*thickness;
         PrestresstransVariables prestresstrans_variables(3);
         CalculateTransformationmatrixPrestress(
             actual_metric,
             prestresstrans_variables 
-        );*/
-        //Vector S_prestress = prod(prestresstrans_variables.Tpre, S_prestress_nichttransformiert); //* thickness; */
+        );
+        Vector S_prestress = prod(prestresstrans_variables.Tpre, S_prestress_nichttransformiert); //* thickness; 
+        if(this->Id() == 0){KRATOS_WATCH(S_prestress)};
         //constitutive_variables_membrane.S = ZeroVector(3);
-        Vector S_total = constitutive_variables_membrane.S + S_prestress*thickness;
+
+        Vector S_total = constitutive_variables_membrane.S + S_prestress;
+         
+        //S_prestress *= thickness;
+      /*  Vector S_prestress_zwei= ZeroVector(3);
+        
+        S_prestress_zwei[0] = S_prestress[0]*actual_metric.gab[0];
+        S_prestress_zwei[1] = S_prestress[1]*actual_metric.gab[1];
+        S_prestress_zwei[2] = S_prestress[2]*sqrt(actual_metric.gab[0])*sqrt(actual_metric.gab[1]);
+        if(this->Id() == 0){KRATOS_WATCH(S_prestress_zwei)};
+        Vector S_prestress_result = ZeroVector(3);
+        S_prestress_result = prod(actual_metric.Qn, S_prestress_zwei);*/
+        //KRATOS_WATCH(S_prestress_result);
+       /* Vector S_prestress_result;
+        trans_prestress(
+            actual_metric,
+            S_prestress_result);*/
+       // if(this->Id() == 0){KRATOS_WATCH(S_prestress_result)};
+        //Vector S_total = constitutive_variables_membrane.S + S_prestress_result;//S_prestress*thickness;
+        //KRATOS_WATCH(S_prestress);
+        //KRATOS_WATCH(S_prestress_result);
         //Vector S_total = S_prestress;
 
         //KRATOS_WATCH(thickness)
-        /*if(this->Id() == 0){KRATOS_WATCH(S_prestress)};
+       /* if(this->Id() == 0){KRATOS_WATCH(S_prestress)};
         if(this->Id() == 0){KRATOS_WATCH(constitutive_variables_membrane.E)};
         if(this->Id() == 0){KRATOS_WATCH(constitutive_variables_membrane.S)};
         if(this->Id() == 0){KRATOS_WATCH(constitutive_variables_membrane.D)};
@@ -345,7 +369,6 @@ void IgaMembraneElement::CalculateMetric(
         metric.gab_con[2] = -invdetGab*metric.gab[2];
         metric.gab_con[1] = invdetGab*metric.gab[0];
 
-
         array_1d<double, 3> g_con_1 = metric.g1*metric.gab_con[0] + metric.g2*metric.gab_con[2];
         array_1d<double, 3> g_con_2 = metric.g1*metric.gab_con[2] + metric.g2*metric.gab_con[1];
 
@@ -374,6 +397,21 @@ void IgaMembraneElement::CalculateMetric(
         metric.Q(2, 0) = 2.00 * mG(0, 0) * mG(1, 0);
         metric.Q(2, 1) = 2.00 * mG(0, 1)*mG(1, 1);
         metric.Q(2, 2) = 2.00 * (mG(0, 0) * mG(1, 1) + mG(0, 1)*mG(1, 0));
+
+        //*******************************************
+        metric.Qn = ZeroMatrix(3, 3);
+        metric.Qn(0, 0) = pow(mG(0, 0), 2);
+        metric.Qn(0, 1) = pow(mG(0, 1), 2);
+        metric.Qn(0, 2) = 2.00*mG(0, 0)*mG(0, 1);
+
+        metric.Qn(1, 0) = pow(mG(1, 0), 2);
+        metric.Qn(1, 1) = pow(mG(1, 1), 2);
+        metric.Qn(1, 2) = 2.00*mG(1, 0) * mG(1, 1);
+
+        metric.Qn(2, 0) = mG(0, 0) * mG(1, 0);
+        metric.Qn(2, 1) = mG(0, 1)*mG(1, 1);
+        metric.Qn(2, 2) = mG(0, 0) * mG(1, 1) + mG(0, 1)*mG(1, 0);
+        /***************************************
 
         //Matrix T_G_E = ZeroMatrix(3, 3);
         //Transformation matrix T from contravariant to local cartesian basis
@@ -465,7 +503,7 @@ void IgaMembraneElement::CalculateMetric(
         rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.Q, strain_vector); //geändert Q->T
         }*/
         CalculateStrain(strain_vector, rActualMetric.gab, mInitialMetric.gab);
-        rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.Q, strain_vector); //HIER
+        rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.Q, strain_vector); //HIER 123
 
        /* if (this->Id() == 0) {KRATOS_WATCH(rActualMetric.gab)}
         if (this->Id() == 0) {KRATOS_WATCH(mInitialMetric.gab)}*/
@@ -474,8 +512,7 @@ void IgaMembraneElement::CalculateMetric(
         rValues.SetStrainVector(rThisConstitutiveVariablesMembrane.E); //this is the input parameter
         rValues.SetStressVector(rThisConstitutiveVariablesMembrane.S);    //this is an ouput parameter
         rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesMembrane.D); //this is an ouput parameter
-        
-        
+      
         //rValues.CheckAllParameters();
         mConstitutiveLaw->CalculateMaterialResponse(rValues, ThisStressMeasure);//SPANNUNG [0]
         //KRATOS_WATCH(rThisConstitutiveVariablesMembrane.D)
@@ -486,7 +523,9 @@ void IgaMembraneElement::CalculateMetric(
         //Local Cartesian Forces and Moments
         rThisConstitutiveVariablesMembrane.S = prod(
            trans(rThisConstitutiveVariablesMembrane.D), rThisConstitutiveVariablesMembrane.E); //TRANS
-           // rThisConstitutiveVariablesMembrane.D, rThisConstitutiveVariablesMembrane.E);
+           // rThisConstitutiveVariablesMembrane.D, rThisConstitutiveVariablesMembrane.E);  
+        
+        if (this->Id() == 0) {KRATOS_WATCH(rThisConstitutiveVariablesMembrane.D)};   
     }
 
 
@@ -616,23 +655,47 @@ void IgaMembraneElement::CalculateSecondVariationStrain(
     {
     //Creation of T1==>Projection of A on the tangential plane
     //t1=cross_prod(mInitialMetric.g2,metric.g3);
-    Vector t1;
-    MathUtils<double>::CrossProduct(t1, mInitialMetric.g2, metric.g3); //REF
+  /*  Vector t1 = ZeroVector(3);
+    if(this->Id() == 0){KRATOS_WATCH(mInitialMetric.g2)};
+    if(this->Id() == 0){KRATOS_WATCH(metric.g3)};
+    MathUtils<double>::CrossProduct(t1, mInitialMetric.g1, metric.g3); //REF
+    if(this->Id() == 0){KRATOS_WATCH(t1)};*/
     //The frame must be orthogonal so T3==G3
     //t3 == metric.g3;
+//********
+    Vector t3_unten = ZeroVector(3);
+    t3_unten[0] = 0;
+    t3_unten[1] = 1;
+    t3_unten[2] = 0;
+    if(this->Id() == 0){KRATOS_WATCH(t3_unten)};
+    if(this->Id() == 0){KRATOS_WATCH(metric.g3)};
+    Vector t1_z = ZeroVector(3);
+    MathUtils<double>::CrossProduct(t1_z, t3_unten, metric.g3);
+    if(this->Id() == 0){KRATOS_WATCH(t3_unten)};
+    if(this->Id() == 0){KRATOS_WATCH(t1_z)}; 
+    //Vector t1_n = t1_z/norm_2(t1_z);
+
+    //********************************
+
+
 
     //Then T2can only be the cross product between T1 and T3
     //t2=cross_prod(t3,t1);
-    Vector t2;
-    MathUtils<double>::CrossProduct(t2, metric.g3, t1); //t3 == metric.g3; //REF
+    Vector t2 = ZeroVector(3);
+    MathUtils<double>::CrossProduct(t2, metric.g3, t1_z); //t3 == metric.g3; //REF
     //Normalization of the vectors
-    Vector t1_n = t1/norm_2(t1); //REF
+    Vector t1_n = t1_z/norm_2(t1_z); //REF
     Vector t2_n = t2/norm_2(t2); //REF
     Vector t3_n = metric.g3/norm_2(metric.g3); //t3 == metric.g3; //REF
+    if(this->Id() == 0){KRATOS_WATCH(t1_n)};
+    if(this->Id() == 0){KRATOS_WATCH(t2_n)};
+    if(this->Id() == 0){KRATOS_WATCH(t3_n)};
 
 
-        //array_1d<double, 3> g_con_1 = metric.g1*metric.gab_con[0] + metric.g2*metric.gab_con[2];
-        Vector g_con_2 = metric.g1*metric.gab_con[2] + metric.g2*metric.gab_con[1]; //REF
+    array_1d<double, 3> g_con_1 = metric.g1*metric.gab_con[0] + metric.g2*metric.gab_con[2];
+    array_1d<double, 3> g_con_2 = metric.g1*metric.gab_con[2] + metric.g2*metric.gab_con[1]; //REF
+    if(this->Id() == 0){KRATOS_WATCH(g_con_1)};
+    if(this->Id() == 0){KRATOS_WATCH(g_con_2)};
 
     //local cartesian coordinates oriented along the 1st base vector in the ref. config.
     //e1 = metric.g1/norm_2(metric.g1);
@@ -641,13 +704,28 @@ void IgaMembraneElement::CalculateSecondVariationStrain(
         array_1d<double, 3> e1 = metric.g1 / lg1;//REF
         double lg_con2 = norm_2(g_con_2); 
         array_1d<double, 3> e2 = g_con_2 / lg_con2;
+        if(this->Id() == 0){KRATOS_WATCH(e1)};
+        if(this->Id() == 0){KRATOS_WATCH(e2)};
+        
 
     //Transformation matrix from the projected basis T to the local cartesian basis
    
-    double eG11 = inner_prod(e1,t1);
-    double eG12 = inner_prod(e1,t2);
-    double eG21 = inner_prod(e2,t1);
-    double eG22 = inner_prod(e2,t2);
+    double eG11 = inner_prod(e1,t1_n);
+    double eG12 = inner_prod(e1,t2_n);
+    double eG21 = inner_prod(e2,t1_n);
+    double eG22 = inner_prod(e2,t2_n);
+
+    //VARIANTE 3
+    /*double eG11 = inner_prod(g_con_1,t1);
+    double eG12 = inner_prod(g_con_1,t2);
+    double eG21 = inner_prod(g_con_2,t1);
+    double eG22 = inner_prod(g_con_2,t2);*/
+
+    //VARIANTE 4
+    /*double eG11 = inner_prod(t1,g_con_1);
+    double eG12 = inner_prod(t1,g_con_2);
+    double eG21 = inner_prod(t2,g_con_1);
+    double eG22 = inner_prod(t2,g_con_2);*/
 
     Prestresstrans.Tpre = ZeroMatrix(3, 3);
     Prestresstrans.Tpre(0,0) = eG11*eG11;
@@ -661,6 +739,26 @@ void IgaMembraneElement::CalculateSecondVariationStrain(
     Prestresstrans.Tpre(2,0) = eG11*eG21;
     Prestresstrans.Tpre(2,1) = eG12*eG22;
     Prestresstrans.Tpre(2,2) = eG11*eG22+eG12*eG21;
+    }
+
+    void IgaMembraneElement::trans_prestress(
+        const MetricVariables& metric,
+        Vector S_prestress_resulteins//transPreVariables& transPre
+    )
+    {
+        if(this->Id() == 0){std::cout << "trans prestress" << std::endl;};
+        double thickness = this->GetProperties().GetValue(THICKNESS);
+        
+        Vector S_prestress = this->GetProperties().GetValue(PRESTRESS);
+        
+        Vector S_prestress_zwei;
+        S_prestress *= thickness;
+        S_prestress_zwei[0] = S_prestress[0]*metric.gab[0];
+        S_prestress_zwei[1] = S_prestress[1]*metric.gab[1];
+        S_prestress_zwei[2] = S_prestress[2]*sqrt(metric.gab[0])*sqrt(metric.gab[1]);
+
+        //Vector S_prestress_result;
+        S_prestress_resulteins = prod(mInitialMetric.Qn, S_prestress_zwei);
     }
 
 //************************************************************************
@@ -815,8 +913,8 @@ void IgaMembraneElement::Calculate(
         //set up properties for Constitutive Law
         ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
         Values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-        Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
-        Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
         MetricVariables actual_metric(3);
         CalculateMetric(actual_metric);
@@ -842,11 +940,46 @@ void IgaMembraneElement::Calculate(
     {
         rPrestressTensor.resize(3);
 
-        //const Vector prestress_variable = GetProperties()[MEMBRANE_PRESTRESS_TENSOR_PK2];
-        const Vector prestress_variable = GetProperties()[PRESTRESS];
+        //onst Vector prestress_variable = GetProperties()[MEMBRANE_PRESTRESS_TENSOR_PK2];
+        /*const Vector prestress_variable = GetProperties()[PRESTRESS];
         const double thickness = GetProperties()[THICKNESS];
 
-        rPrestressTensor = prestress_variable * thickness;
+        rPrestressTensor = prestress_variable * thickness;*/
+
+        //************************
+     /*   MetricVariables actual_metric(3);
+        CalculateMetric(actual_metric);
+        
+        double thickness = this->GetProperties().GetValue(THICKNESS);
+        
+        Vector S_prestress = this->GetProperties().GetValue(PRESTRESS);
+        Vector S_prestress_zwei= ZeroVector(3);
+        //KRATOS_WATCH(S_prestress_zwei);
+        S_prestress_zwei[0] = S_prestress[0]*actual_metric.gab[0];
+        S_prestress_zwei[1] = S_prestress[1]*actual_metric.gab[1];
+        S_prestress_zwei[2] = S_prestress[2]*sqrt(actual_metric.gab[0])*sqrt(actual_metric.gab[1]);
+        if(this->Id() == 0){KRATOS_WATCH(S_prestress_zwei)};
+        Vector S_prestress_result = ZeroVector(3);
+        S_prestress_result = prod(actual_metric.Qn, S_prestress_zwei);
+
+        rPrestressTensor = S_prestress_result * thickness;*/
+
+        //******************************************************
+
+        double thickness = this->GetProperties().GetValue(THICKNESS);
+
+        MetricVariables actual_metric(3);
+        CalculateMetric(actual_metric);
+       
+        Vector S_prestress_nichttransformiert = this->GetProperties().GetValue(PRESTRESS);
+        PrestresstransVariables prestresstrans_variables(3);
+        CalculateTransformationmatrixPrestress(
+            actual_metric,
+            prestresstrans_variables 
+        );
+        Vector S_prestress = prod(prestresstrans_variables.Tpre, S_prestress_nichttransformiert); 
+
+        rPrestressTensor = S_prestress * thickness;
     }
 
 

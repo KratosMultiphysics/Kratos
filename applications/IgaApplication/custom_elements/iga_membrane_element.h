@@ -64,6 +64,7 @@ protected: //aus surface_base_element.h übernommen
         Matrix H; //Hessian
         Matrix Q; //Transformation matrix Q from contravariant to cartesian basis
         Matrix T; //Transformation matrix T from contravariant to local cartesian basis
+        Matrix Qn;
         //Matrix R; //.R
 
         MetricVariables(const unsigned int& Dimension)
@@ -85,6 +86,7 @@ protected: //aus surface_base_element.h übernommen
             Matrix H = ZeroMatrix(3, 3);
             Matrix Q = ZeroMatrix(3, 3);
             Matrix T = ZeroMatrix(3, 3);
+            Matrix Qn = ZeroMatrix(3, 3);
             //Matrix R = ZeroMatrix(3, 3);//.R
         }
 
@@ -136,6 +138,17 @@ struct PrestresstransVariables
         {
            Matrix Tpre = ZeroMatrix(3, 3);
         }
+    };
+
+struct transPreVariables
+    {
+        Vector S_prestress_result;
+
+         transPreVariables(const unsigned int& Dimension)
+        {
+            Vector S_prestress_result = ZeroVector(Dimension);
+        }
+
     };
     
 
@@ -297,6 +310,12 @@ void CalculateTransformationmatrixPrestress(
         double& eG22,*/
         PrestresstransVariables& Prestresstrans
          );
+
+void IgaMembraneElement::trans_prestress(
+        const MetricVariables& metric,
+        Vector S_prestress_result// transPreVariables& transPre
+    );
+
 /*
 static void IgaGeometryUtilities::CalculateJacobian(    //aus iga_geometry_utilities.h
         const Element::GeometryType& rGeometry,

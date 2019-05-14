@@ -82,6 +82,12 @@ public:
 
     void PrintInfo(std::ostream& rOStream) const override;
 
+     void Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
 private:
     Vector3 mReferenceBaseVector;
 
