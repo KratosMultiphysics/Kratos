@@ -112,13 +112,6 @@ public:
     ///@{
 
     /**
-     * @brief Initialize method
-     * This method calls the base discontinuous distance process initialize method 
-     * and the method that initializes the nodal (continuous) distance values
-     */
-    void Initialize();
-
-    /**
      * @brief Computes the raycasting distance for a node
      * This method computes the raycasting distance for a given node. It casts a ray
      * in the x and y (as well as z in 3D) directions and computes the distance from 
@@ -204,17 +197,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief Calculates the distance to an intersecting object
-     * This method computes the distance from a point to an intersecting object
-     * @param rIntObjGeom reference to the intersecting object
-     * @param rDistancePoint point to compute the distance to
-     * @return double obtained distance value
-     */
-    double inline CalculatePointDistance(
-        const Element::GeometryType &rIntObjGeom,
-        const Point &rDistancePoint);
 
     /**
      * @brief Checks if a ray intersects an intersecting geometry candidate
