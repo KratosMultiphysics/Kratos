@@ -616,7 +616,7 @@ void UniformRefinementUtility::CalculateNodalStepData(
             new_node_data[variable] = 0.5 * node_data_0[variable] + 0.5 * node_data_1[variable];
     }
 
-    WeakPointerVector<NodeType>& r_new_father_nodes = pNewNode->GetValue(FATHER_NODES);
+    GlobalPointersVector<NodeType>& r_new_father_nodes = pNewNode->GetValue(FATHER_NODES);
     r_new_father_nodes.clear();
     r_new_father_nodes = pNode0->GetValue(FATHER_NODES);
 
@@ -652,7 +652,7 @@ void UniformRefinementUtility::CalculateNodalStepData(
                                       0.25 * node_data_2[variable] + 0.25 * node_data_3[variable];
     }
 
-    WeakPointerVector<NodeType>& r_new_father_nodes = pNewNode->GetValue(FATHER_NODES);
+    GlobalPointersVector<NodeType>& r_new_father_nodes = pNewNode->GetValue(FATHER_NODES);
     r_new_father_nodes.clear();
     r_new_father_nodes = pNode0->GetValue(FATHER_NODES);
 
@@ -691,9 +691,9 @@ void UniformRefinementUtility::CalculateNodalStepData(
 
 /// Add the father nodes which does not exist in the current father nodes
 void UniformRefinementUtility::AddOtherFatherNodes(
-    WeakPointerVector<NodeType>& rThisFatherNodes,
+    GlobalPointersVector<NodeType>& rThisFatherNodes,
     std::vector<double>& rThisFatherWeights,
-    WeakPointerVector<NodeType>& rOtherFatherNodes,
+    GlobalPointersVector<NodeType>& rOtherFatherNodes,
     const std::vector<double>& rOtherFatherWeights,
     const double& rWeight
 )
@@ -701,13 +701,13 @@ void UniformRefinementUtility::AddOtherFatherNodes(
     for (auto& weight : rThisFatherWeights)
         weight *= (1-rWeight);
 
-    WeakPointerVector<NodeType>::iterator other_nodes_begin = rOtherFatherNodes.begin();
+    GlobalPointersVector<NodeType>::iterator other_nodes_begin = rOtherFatherNodes.begin();
     for (IndexType o = 0; o < rOtherFatherNodes.size(); o++)
     {
         auto other_node = other_nodes_begin + o;
         bool other_not_found = true;
 
-        WeakPointerVector<NodeType>::iterator this_nodes_begin = rThisFatherNodes.begin();
+        GlobalPointersVector<NodeType>::iterator this_nodes_begin = rThisFatherNodes.begin();
         for (IndexType t = 0; (t < rThisFatherNodes.size()) && (other_not_found); t++)
         {
             auto this_node = this_nodes_begin + t;

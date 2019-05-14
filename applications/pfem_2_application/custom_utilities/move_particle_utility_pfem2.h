@@ -181,10 +181,10 @@ namespace Kratos
 					array_1d<double,3> position_node;
 					double distance=0.0;
 					position_node = pnode->Coordinates();
-					WeakPointerVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
+					GlobalPointersVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
 					//we loop all the nodes to check all the edges
 					const double number_of_neighbours = double(rneigh.size());
-					for( WeakPointerVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
+					for( GlobalPointersVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
 					{
 						array_1d<double,3> position_difference;
 						position_difference = inode->Coordinates() - position_node;
@@ -975,7 +975,7 @@ namespace Kratos
 			  const array_1d<double,3> mesh_displacement = mcalculation_domain_added_displacement; //if it is a standard problem, displacements are zero and therefore nothing is added.
 			  ResultContainerType results(max_results);
 
-			  WeakPointerVector< Element > elements_in_trajectory;
+			  GlobalPointersVector< Element > elements_in_trajectory;
 			  elements_in_trajectory.resize(20);
 
 			  for(unsigned int ielem=element_partition[kkk]; ielem<element_partition[kkk+1]; ielem++)
@@ -1528,10 +1528,10 @@ namespace Kratos
 
 
 		template< class TDataType > void  AddUniqueWeakPointer
-			(WeakPointerVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
+			(GlobalPointersVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
 		{
-			typename WeakPointerVector< TDataType >::iterator i = v.begin();
-			typename WeakPointerVector< TDataType >::iterator endit = v.end();
+			typename GlobalPointersVector< TDataType >::iterator i = v.begin();
+			typename GlobalPointersVector< TDataType >::iterator endit = v.end();
 			while ( i != endit && (i)->Id() != (candidate.lock())->Id())
 			{
 				i++;
@@ -2261,7 +2261,7 @@ namespace Kratos
 	///of Dt
 	void MoveParticle(  PFEM_Particle_Fluid & pparticle,
 						 Element::Pointer & pelement,
-						 WeakPointerVector< Element >& elements_in_trajectory,
+						 GlobalPointersVector< Element >& elements_in_trajectory,
 						 unsigned int & number_of_elements_in_trajectory,
 						 ResultIteratorType result_begin,
 						 const unsigned int MaxNumberOfResults,
@@ -2712,7 +2712,7 @@ namespace Kratos
 		}
 
 		//to begin with we check the neighbour elements; it is a bit more expensive
-		WeakPointerVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
+		GlobalPointersVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
 		//the first we check is the one that has negative shape function, because it means it went outside in this direction:
 		//commented, it is not faster than simply checking all the neighbours (branching)
 		/*
@@ -2777,7 +2777,7 @@ namespace Kratos
 		bool FindNodeOnMesh( array_1d<double,3>& position,
 						 array_1d<double,TDim+1>& N,
 						 Element::Pointer & pelement,
-						 WeakPointerVector< Element >& elements_in_trajectory,
+						 GlobalPointersVector< Element >& elements_in_trajectory,
 						 unsigned int & number_of_elements_in_trajectory,
 						 unsigned int & check_from_element_number,
 						 ResultIteratorType result_begin,
@@ -2811,7 +2811,7 @@ namespace Kratos
 		}
 
 		//now we check the neighbour elements:
-		WeakPointerVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
+		GlobalPointersVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
 		//the first we check is the one that has negative shape function, because it means it went outside in this direction:
 		//commented, it is not faster than simply checking all the neighbours (branching)
 		/*
@@ -2912,7 +2912,7 @@ namespace Kratos
 		}
 
 		//to begin with we check the neighbour elements:
-		WeakPointerVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
+		GlobalPointersVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
 		for (unsigned int i=0;i!=(neighb_elems.size());i++)
 		{
 

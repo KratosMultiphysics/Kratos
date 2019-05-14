@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
-import KratosMultiphysics
+import KratosMultiphysics 
 
 # Import applications
 import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
@@ -18,7 +18,7 @@ class TrilinosMeshSolverBase(MeshSolverBase):
 
     @classmethod
     def GetDefaultSettings(cls):
-        this_defaults = KM.Parameters("""{
+        this_defaults = KratosMultiphysics.Parameters("""{
             "linear_solver_settings" : {
                 "solver_type" : "amgcl",
                 "smoother_type":"ilu0",

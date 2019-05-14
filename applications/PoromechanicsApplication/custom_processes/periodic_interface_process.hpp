@@ -141,7 +141,7 @@ public:
                 rGeom[0].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = 0;
                 rGeom[1].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = 0;
 
-                WeakPointerVector<Element>& rE = rGeom[0].GetValue(NEIGHBOUR_ELEMENTS);
+                GlobalPointersVector<Element>& rE = rGeom[0].GetValue(NEIGHBOUR_ELEMENTS);
                 for(unsigned int ie = 0; ie < rE.size(); ie++)
                 {
                     #pragma omp critical
