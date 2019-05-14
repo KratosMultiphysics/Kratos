@@ -434,10 +434,10 @@ void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofst
 
         // Writing element_flags
         for (IndexType entry = 0; entry < element_flags.size(); ++entry) {
-            // write nodal results variable header
+            // Write elemental flags results variable header
             const std::string& r_element_result_name = element_flags[entry].GetString();
             const Flags flag = KratosComponents<Flags>::Get(r_element_result_name);
-            WriteFlagContainerVariable(rModelPart.Elements(), flag, r_element_result_name, rFileStream);
+            WriteFlagContainerVariable(r_local_mesh.Elements(), flag, r_element_result_name, rFileStream);
         }
     }
 }
@@ -468,10 +468,10 @@ void VtkOutput::WriteConditionResultsToFile(const ModelPart& rModelPart, std::of
 
         // Writing condition_flags
         for (IndexType entry = 0; entry < condition_flags.size(); ++entry) {
-            // write nodal results variable header
+            // Write conditional flags results variable header
             const std::string& r_condition_result_name = condition_flags[entry].GetString();
             const Flags flag = KratosComponents<Flags>::Get(r_condition_result_name);
-            WriteFlagContainerVariable(rModelPart.Conditions(), flag, r_condition_result_name, rFileStream);
+            WriteFlagContainerVariable(r_local_mesh.Conditions(), flag, r_condition_result_name, rFileStream);
         }
     }
 }
