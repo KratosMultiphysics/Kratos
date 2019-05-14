@@ -550,7 +550,6 @@ public:
      * @param[in,out] rColorMapCondition Auxiliar color map for conditions
      * @param[in,out] rColorMapElement Auxiliar color map for elements
      * @param[in] Framework The framework considered
-     *
      */
     void GenerateMeshDataFromModelPart(
         ModelPart& rModelPart,
@@ -559,6 +558,12 @@ public:
         ColorsMapType& rColorMapElement,
         const FrameworkEulerLagrange Framework = FrameworkEulerLagrange::EULERIAN
         );
+
+    /**
+     * @brief This method generates solution (metric) data from an existing model part
+     * @param[in,out] rModelPart The model part of interest to study
+     */
+    void GenerateSolDataFromModelPart(ModelPart& rModelPart);
 
     /**
      * @brief This function generates a list of submodelparts to be able to reassign flags after remesh

@@ -299,28 +299,8 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
 template<MMGLibrary TMMGLibrary>
 void MmgProcess<TMMGLibrary>::InitializeSolDataMetric()
 {
-    ////////* SOLUTION FILE *////////
-
-    // Iterate in the nodes
-    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
-
-    // Set size of the solution
-    mMmmgUtilities.SetSolSizeTensor(r_nodes_array.size());
-
-    const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(Dimension)+"D");
-
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = r_nodes_array.begin() + i;
-
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
-
-        // We get the metric
-        const TensorArrayType& metric = it_node->GetValue(r_tensor_variable);
-
-        // We set the metric
-        mMmmgUtilities.SetMetricTensor(metric, i + 1);
-    }
+    // We initialize the solution data with the given modelpart
+    mMmmgUtilities.GenerateSolDataFromModelPart(mrThisModelPart);
 }
 
 /***********************************************************************************/

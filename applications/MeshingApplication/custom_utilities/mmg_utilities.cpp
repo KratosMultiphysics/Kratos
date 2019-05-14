@@ -2629,6 +2629,34 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPart)
+{
+    // Iterate in the nodes
+    NodesArrayType& r_nodes_array = rModelPart.Nodes();
+
+    // Set size of the solution
+    SetSolSizeTensor(r_nodes_array.size());
+
+    const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_" + std::to_string(Dimension)+"D");
+
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = r_nodes_array.begin() + i;
+
+        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
+
+        // We get the metric
+        const TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
+
+        // We set the metric
+        SetMetricTensor(r_metric, i + 1);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::CreateAuxiliarSubModelPartForFlags(ModelPart& rModelPart)
 {
     ModelPart& r_auxiliar_model_part = rModelPart.CreateSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
