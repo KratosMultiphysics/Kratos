@@ -90,7 +90,15 @@ void MmgIO<TMMGLibrary>::ReadModelPart(ModelPart& rModelPart)
 
     // TODO: Read JSON of colors
 
-    // TODO: Override model part
+    // Some information
+    MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
+    mMmmgUtilities.PrintAndGetMmgMeshInfo(mmg_mesh_info);
+
+    /* After that we reorder nodes, conditions and elements: */
+    mMmmgUtilities.ReorderAllIds(rModelPart);
+
+    /* We assign flags and clear the auxiliar model parts created to reassing the flags */
+    mMmmgUtilities.AssignAndClearAuxiliarSubModelPartForFlags(rModelPart);
 
     KRATOS_CATCH("");
 }
