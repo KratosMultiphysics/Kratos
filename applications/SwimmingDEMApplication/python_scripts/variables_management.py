@@ -28,6 +28,16 @@ class VariablesManager:
         for var in variable_list:
             model_part.AddNodalSolutionStepVariable(var)
 
+    @staticmethod
+    def GetVariableByName(var_name):
+        if hasattr(Kratos, var_name):
+            return getattr(Kratos, var_name)
+        elif hasattr(SDEM, var_name):
+            return getattr(SDEM, var_name)
+        else:
+            raise Exception('Variable '+ var_name + 'has not been adequately added.')
+
+
     def __init__(self, parameters):
         self.project_parameters = parameters
         self.SetOptions(parameters)
@@ -294,21 +304,23 @@ class VariablesManager:
         self.rigid_faces_printing_vars = []
         self.time_filtered_vars = []
 
-        for variable in self.nodal_results:
-            self.fluid_printing_vars += [eval('Kratos.' + variable)]
+        GetVariable = VariablesManager.GetVariableByName
 
-        for variable in self.dem_nodal_results:
-            self.dem_printing_vars += [eval('Kratos.' + variable)]
+        for var in self.nodal_results:
+            self.fluid_printing_vars += [GetVariable(var)]
 
-        for variable in self.clusters_nodal_results:
-            self.clusters_printing_vars += [eval('Kratos.' + variable)]
+        for var in self.dem_nodal_results:
+            self.dem_printing_vars += [GetVariable(var)]
 
-        for variable in self.rigid_faces_nodal_results:
-            self.rigid_faces_printing_vars += [eval('Kratos.' + variable)]
+        for var in self.clusters_nodal_results:
+            self.clusters_printing_vars += [GetVariable(var)]
 
-        for variable in self.mixed_nodal_results:
-            self.dem_printing_vars += [eval('Kratos.' + variable)]
-            self.fluid_printing_vars += [eval('Kratos.' + variable)]
+        for var in self.rigid_faces_nodal_results:
+            self.rigid_faces_printing_vars += [GetVariable(var)]
+
+        for var in self.mixed_nodal_results:
+            self.dem_printing_vars += [GetVariable(var)]
+            self.fluid_printing_vars += [GetVariable(var)]
 
         for var in self.mixed_nodal_results:
 

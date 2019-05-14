@@ -7,6 +7,12 @@ def Factory(settings, Model):
     return DerivativeRecoveryProcess(Model, settings["Parameters"])
 
 class DerivativeRecoveryProcess(KratosMultiphysics.Process):
+    @staticmethod
+    def SDEMGetClassByName(name):
+        if hasattr(SDEM, name):
+            return getattr(SDEM, name)
+        else:
+            raise Exception('No python class or function called ' + name + 'found in SwimmingDEMApplication.')
 
     def __init__(self, Model, settings):
 
@@ -24,7 +30,8 @@ class DerivativeRecoveryProcess(KratosMultiphysics.Process):
         self.list_of_recoverers = []
 
         for recoverer in settings["recoverers"].values():
-            recoverer_instance = eval('SDEM.' + recoverer["recoverer_name"].GetString() + '(self.fluid_model_part, recoverer)')
+            recovery_class = DerivativeRecoveryProcess.SDEMGetClassByName(recoverer["recoverer_name"].GetString())
+            recoverer_instance = recovery_class(self.fluid_model_part, recoverer)
             self.list_of_recoverers.append(recoverer_instance)
 
     def ExecuteInitialize(self):

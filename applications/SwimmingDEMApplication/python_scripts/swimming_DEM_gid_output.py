@@ -3,6 +3,7 @@ import os
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import MultiFileFlag
 from KratosMultiphysics import GiDPostMode
+from KratosMultiphysics import SwimmingDEMApplication as SDEM
 import gid_output
 
 
@@ -87,6 +88,14 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
             full_string_to_write = os.path.join(folder_name,self.filename+"_"+"%.12g"%step_label+ext)
             listfile.write(full_string_to_write+"\n")
 
+    @staticmethod
+    def GetVariableByName(var_name):
+        if hasattr(Kratos, var_name):
+            return getattr(Kratos, var_name)
+        elif hasattr(SDEM, var_name):
+            return getattr(SDEM, var_name)
+        else:
+            raise Exception('Variable '+ var_name + 'has not been adequately added.')
 
     def write_swimming_DEM_results(self, label,
                                   fluid_model_part,
@@ -117,29 +126,25 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
             self.io.FinalizeMesh()
             self.io.InitializeResults(label, mixed_model_part.GetMesh())
 
+        GetVariable = SwimmingDEMGiDOutput.GetVariableByName
+
         for var in fluid_nodal_variables:
-            kratos_variable = eval('Kratos.' + var)
-            self._write_nodal_results(label, fluid_model_part, kratos_variable)
+            self._write_nodal_results(label, fluid_model_part, GetVariable(var))
 
         for var in DEM_nodal_variables:
-            kratos_variable = eval('Kratos.' + var)
-            self._write_nodal_results(label, DEM_model_part, kratos_variable)
+            self._write_nodal_results(label, DEM_model_part, GetVariable(var))
 
         for var in cluster_variables:
-            kratos_variable = eval('Kratos.' + var)
-            self._write_nodal_results(label, clusters_model_part, kratos_variable)
+            self._write_nodal_results(label, clusters_model_part, GetVariable(var))
 
         for var in rigid_faces_variables:
-            kratos_variable = eval('Kratos.' + var)
-            self._write_nodal_results(label, rigid_faces_model_part, kratos_variable)
+            self._write_nodal_results(label, rigid_faces_model_part, GetVariable(var))
 
         for var in mixed_nodal_variables:
-            kratos_variable = eval('Kratos.' + var)
-            self._write_nodal_results(label, mixed_model_part, kratos_variable)
+            self._write_nodal_results(label, mixed_model_part, GetVariable(var))
 
         for var in fluid_gp_variables:
-            kratos_variable = eval('Kratos.' + var)
-            self._write_gp_results(label, fluid_model_part, kratos_variable)
+            self._write_gp_results(label, fluid_model_part, GetVariable(var))
 
         if self.multi_file == MultiFileFlag.MultipleFiles:
             self._finalize_results()

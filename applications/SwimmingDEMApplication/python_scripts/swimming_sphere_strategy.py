@@ -9,8 +9,11 @@ BaseStrategy = ExplicitStrategy
 class SwimmingStrategy(BaseStrategy):
 
     @staticmethod
-    def SDEMEvaluateString(name):
-        return eval('SDEM.' + name)
+    def SDEMGetClassByName(name):
+        if hasattr(SDEM, name):
+            return getattr(SDEM, name)
+        else:
+            raise Exception('No python class or function called ' + name + 'found in SwimmingDEMApplication.')
 
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, parameters, procedures):
         self.project_parameters = parameters
@@ -63,14 +66,14 @@ class SwimmingStrategy(BaseStrategy):
         try:
             translational_scheme = super(SwimmingStrategy, self).GetTranslationalSchemeInstance(class_name)
         except Exception:
-            translational_scheme = SwimmingStrategy.SDEMEvaluateString(class_name)()
+            translational_scheme = SwimmingStrategy.SDEMGetClassByName(class_name)()
         return translational_scheme
 
     def GetRotationalSchemeInstance(self, class_name):
         try:
             rotational_scheme = super(SwimmingStrategy, self).GetRotationalSchemeInstance(class_name)
         except Exception:
-            rotational_scheme = SwimmingStrategy.SDEMEvaluateString(class_name)()
+            rotational_scheme = SwimmingStrategy.SDEMGetClassByName(class_name)()
         return rotational_scheme
 
     def GetHydrodynamicLawParametersIfItExists(self, properties):
@@ -84,55 +87,55 @@ class SwimmingStrategy(BaseStrategy):
     def CreateHydrodynamicLaw(properties, hydrodynamic_law_parameters):
 
         hydrodynamic_name = hydrodynamic_law_parameters['name'].GetString()
-        HydrodynamicInteractionLaw = SwimmingStrategy.SDEMEvaluateString(hydrodynamic_name)(properties, hydrodynamic_law_parameters)
+        HydrodynamicInteractionLaw = SwimmingStrategy.SDEMGetClassByName(hydrodynamic_name)(properties, hydrodynamic_law_parameters)
 
         if hydrodynamic_law_parameters.Has('buoyancy_parameters'):
             buoyancy_parameters = hydrodynamic_law_parameters['buoyancy_parameters']
             buoyancy_name = buoyancy_parameters['name'].GetString()
             if not buoyancy_name == 'default':
-                buoyancy_law = SwimmingStrategy.SDEMEvaluateString(buoyancy_name)(buoyancy_parameters)
+                buoyancy_law = SwimmingStrategy.SDEMGetClassByName(buoyancy_name)(buoyancy_parameters)
                 HydrodynamicInteractionLaw.SetBuoyancyLaw(buoyancy_law)
 
         if hydrodynamic_law_parameters.Has('inviscid_force_parameters'):
             inviscid_force_parameters = hydrodynamic_law_parameters['inviscid_force_parameters']
             inviscid_force_name = inviscid_force_parameters['name'].GetString()
             if not inviscid_force_name == 'default':
-                inviscid_force_law = SwimmingStrategy.SDEMEvaluateString(inviscid_force_name)(inviscid_force_parameters)
+                inviscid_force_law = SwimmingStrategy.SDEMGetClassByName(inviscid_force_name)(inviscid_force_parameters)
                 HydrodynamicInteractionLaw.SetInviscidForceLaw(inviscid_force_law)
 
         if hydrodynamic_law_parameters.Has('drag_parameters'):
             drag_parameters = hydrodynamic_law_parameters['drag_parameters']
             drag_name = drag_parameters['name'].GetString()
             if not drag_name == 'default':
-                drag_law = SwimmingStrategy.SDEMEvaluateString(drag_name)(drag_parameters)
+                drag_law = SwimmingStrategy.SDEMGetClassByName(drag_name)(drag_parameters)
                 HydrodynamicInteractionLaw.SetDragLaw(drag_law)
 
         if hydrodynamic_law_parameters.Has('history_force_parameters'):
             history_force_parameters = hydrodynamic_law_parameters['history_force_parameters']
             history_force_name = history_force_parameters['name'].GetString()
             if not history_force_name == 'default':
-                history_force_law = SwimmingStrategy.SDEMEvaluateString(history_force_name)(history_force_parameters)
+                history_force_law = SwimmingStrategy.SDEMGetClassByName(history_force_name)(history_force_parameters)
                 HydrodynamicInteractionLaw.SetHistoryForceLaw(history_force_law)
 
         if hydrodynamic_law_parameters.Has('vorticity_induced_lift_parameters'):
             vorticity_induced_lift_parameters = hydrodynamic_law_parameters['vorticity_induced_lift_parameters']
             vorticity_induced_lift_name = vorticity_induced_lift_parameters['name'].GetString()
             if not vorticity_induced_lift_name == 'default':
-                vorticity_induced_lift_law = SwimmingStrategy.SDEMEvaluateString(vorticity_induced_lift_name)(vorticity_induced_lift_parameters)
+                vorticity_induced_lift_law = SwimmingStrategy.SDEMGetClassByName(vorticity_induced_lift_name)(vorticity_induced_lift_parameters)
                 HydrodynamicInteractionLaw.SetVorticityInducedLiftLaw(vorticity_induced_lift_law)
 
         if hydrodynamic_law_parameters.Has('rotation_induced_lift_parameters'):
             rotation_induced_lift_parameters = hydrodynamic_law_parameters['rotation_induced_lift_parameters']
             rotation_induced_lift_name = rotation_induced_lift_parameters['name'].GetString()
             if not rotation_induced_lift_name == 'default':
-                rotation_induced_lift_law = SwimmingStrategy.SDEMEvaluateString(rotation_induced_lift_name)(rotation_induced_lift_parameters)
+                rotation_induced_lift_law = SwimmingStrategy.SDEMGetClassByName(rotation_induced_lift_name)(rotation_induced_lift_parameters)
                 HydrodynamicInteractionLaw.SetRotationInducedLiftLaw(rotation_induced_lift_law)
 
         if hydrodynamic_law_parameters.Has('steady_viscous_torque_parameters'):
             steady_viscous_torque_parameters = hydrodynamic_law_parameters['steady_viscous_torque_parameters']
             steady_viscous_torque_name = steady_viscous_torque_parameters['name'].GetString()
             if not steady_viscous_torque_name == 'default':
-                steady_viscous_torque_law = SwimmingStrategy.SDEMEvaluateString(steady_viscous_torque_name)(steady_viscous_torque_parameters)
+                steady_viscous_torque_law = SwimmingStrategy.SDEMGetClassByName(steady_viscous_torque_name)(steady_viscous_torque_parameters)
                 HydrodynamicInteractionLaw.SetSteadyViscousTorqueLaw(steady_viscous_torque_law)
 
         HydrodynamicInteractionLaw.SetHydrodynamicInteractionLawInProperties(properties, True)

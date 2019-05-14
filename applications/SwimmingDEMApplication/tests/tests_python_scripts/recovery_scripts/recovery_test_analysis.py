@@ -139,7 +139,7 @@ class RecoveryTestAnalysis(SwimmingDEMAnalysis):
                     node.SetSolutionStepValue(SDEM.VELOCITY_LAPLACIAN_ERROR, error)
                 elif name == 'divergence':
                     self.local_exact_values[name] = self.flow_field.CalculateDivergence(self.time, coor, 0)
-                    self.local_calculated_values[name] = node.GetSolutionStepValue(Kratos.VELOCITY_DIVERGENCE)
+                    self.local_calculated_values[name] = node.GetSolutionStepValue(SDEM.VELOCITY_DIVERGENCE)
                     error = self.local_calculated_values[name] - self.local_exact_values[name]
                     node.SetSolutionStepValue(SDEM.VELOCITY_DIVERGENCE_ERROR, error)
 
