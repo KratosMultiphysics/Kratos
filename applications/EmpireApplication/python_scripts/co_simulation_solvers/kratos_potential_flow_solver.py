@@ -17,6 +17,7 @@ from kratos_base_field_solver import KratosBaseFieldSolver
 from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_analysis import PotentialFlowAnalysis
 from KratosMultiphysics.CompressiblePotentialFlowApplication.compute_forces_on_nodes_process import ComputeForcesOnNodesProcess
 from KratosMultiphysics.CompressiblePotentialFlowApplication.define_wake_process_2d import DefineWakeProcess2D
+from KratosMultiphysics.CompressiblePotentialFlowApplication.compute_lift_process import ComputeLiftProcess
 
 def CreateSolver(cosim_solver_settings, level):
     return KratosPotentialFlowSolver(cosim_solver_settings, level)
@@ -39,6 +40,9 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
 
             if sub_project_parameters[i]["python_module"].GetString() == "compute_forces_on_nodes_process":
                 self.conversion_process = ComputeForcesOnNodesProcess(self.model, sub_project_parameters[i]["Parameters"])
+            if sub_project_parameters[i]["python_module"].GetString() == "compute_lift_process":
+                self.lift_process = ComputeLiftProcess(self.model, sub_project_parameters[i]["Parameters"])
+        self.wake_process.FindWakeElements()
 
     def SolveSolutionStep(self):
         self.wake_process.FindWakeElements()
@@ -46,7 +50,9 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
         super(KratosPotentialFlowSolver, self).SolveSolutionStep()
 
         self.conversion_process.ExecuteFinalizeSolutionStep()
-        # self.wake_process.CleanMarking()
+        self.lift_process.ExecuteFinalizeSolutionStep()
+        self.wake_process.CleanMarking()
+        print("SOLVING NOW")
 
     def _GetParallelType(self):
         return self.project_parameters["problem_data"]["parallel_type"].GetString()

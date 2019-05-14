@@ -78,6 +78,9 @@ class SDoFStaticSolver(CoSimulationBaseSolver):
         b = self.force
         self.x = b/self.stiffness
 
+        print('force = ', b)
+        print('displacement = ', self.x)
+
     def GetBufferSize(self):
         return self.buffer_size
 

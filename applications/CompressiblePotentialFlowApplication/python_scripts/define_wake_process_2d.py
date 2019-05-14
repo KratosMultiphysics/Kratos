@@ -115,6 +115,8 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,distances_to_wake[counter])
                         counter += 1
 
+            # print("WAKE ELEMENTS >>>>>>>>>", elem.Id)
+
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements finished...')
 
     def MarkTrailingEdgeElements(self, elem):
@@ -126,6 +128,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             if(elnode.GetValue(CPFApp.TRAILING_EDGE)):
                 elem.SetValue(CPFApp.TRAILING_EDGE, True)
                 self.trailing_edge_model_part.Elements.append(elem)
+                print("TRAILING EDGE ELEMENTS >>>>>>>", elem.Id)
                 break
 
     def SelectPotentiallyWakeElements(self, elem):
@@ -233,10 +236,14 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         for elem in self.fluid_model_part.Elements:
             elem.SetValue(CPFApp.WAKE, False)
             elem.SetValue(CPFApp.KUTTA, False)
+            elem.Reset(KratosMultiphysics.STRUCTURE)
+
+        for elem in self.trailing_edge_model_part.Elements:
             elem.SetValue(CPFApp.TRAILING_EDGE, False)
             elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, KratosMultiphysics.Vector(3))
-            elem.Reset(KratosMultiphysics.STRUCTURE)
 
         for node in self.body_model_part.Nodes:
             node.SetValue(CPFApp.TRAILING_EDGE, False)
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0.0)
+
+        print("CLEAN AGAIN")

@@ -100,12 +100,12 @@ class PotentialFlowSolver(FluidSolver):
         self.solver.Predict()
 
     def FinalizeSolutionStep(self):
-        # if self._TimeBufferIsInitialized():
         (self.solver).FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
-        # print(self._TimeBufferIsInitialized, "\n")
+        print("AAAAAAAAAAAAAAAAAAA")
         is_converged = self.solver.SolveSolutionStep()
+        print("BBBBBBBBBBBBBBBBB")
         if not is_converged:
             msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
             msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"

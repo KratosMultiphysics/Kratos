@@ -1102,7 +1102,9 @@ protected:
                         const IndexType i_global = slave_equation_ids[i];
 
                         // Assemble matrix row
+                        std::cout << "ASSEMBLING ROW START1" << std::endl;
                         AssembleRowContribution(mT, transformation_matrix, i_global, i, master_equation_ids);
+                        std::cout << "ASSEMBLING ROW END1" << std::endl;
 
                         // Assemble constant vector
                         const double constant_value = constant_vector[i];
@@ -1300,7 +1302,9 @@ protected:
             #pragma omp atomic
             r_a += v_a;
 
+            std::cout << "ASSEMBLING ROW START2" << std::endl;
             AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);
+            std::cout << "ASSEMBLING ROW END2" << std::endl;
         }
     }
 

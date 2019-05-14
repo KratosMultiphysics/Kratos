@@ -31,6 +31,25 @@ class SimpleSteadyCouplingSolver(CoSimulationBaseCouplingSolver):
         self.num_coupling_iterations = self.cosim_solver_settings["num_coupling_iterations"]
 
 
+    def Initialize(self):
+        super(SimpleSteadyCouplingSolver, self).Initialize()
+        self.convergence_accelerator.Initialize()
+        self.convergence_criteria.Initialize()
+
+    def Finalize(self):
+        super(SimpleSteadyCouplingSolver, self).Finalize()
+        self.convergence_accelerator.Finalize()
+        self.convergence_criteria.Finalize()
+
+    def InitializeSolutionStep(self):
+        super(SimpleSteadyCouplingSolver, self).InitializeSolutionStep()
+        self.convergence_accelerator.InitializeSolutionStep()
+        self.convergence_criteria.InitializeSolutionStep()
+
+    def FinalizeSolutionStep(self):
+        super(SimpleSteadyCouplingSolver, self).FinalizeSolutionStep()
+        self.convergence_accelerator.FinalizeSolutionStep()
+        self.convergence_criteria.FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
 
