@@ -40,7 +40,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, domain_size)
 
         ## Construct the linear solver
-        import KM.python_linear_solver_factory as linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
     def AddVariables(self):
@@ -197,7 +197,7 @@ class ShallowWaterBaseSolver(PythonSolver):
 
     def _TimeBufferIsInitialized(self):
         # We always have one extra old step (step 0, read from input), but the wetting model should modify this extra step
-        return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.GetMinimumBufferSize()
+        return self.main_model_part.ProcessInfo[KM.STEP] >= self.GetMinimumBufferSize()
 
     def _ComputeDeltaTime(self):
         delta_time = self.EstimateDeltaTimeUtility.EstimateDt()

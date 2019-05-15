@@ -65,7 +65,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
         self.moveparticles.MountBin()
         if self.print_particles:
             self.moveparticles.ExecuteParticlesPrintingTool(self.lagrangian_model_part, self.filter_factor)
-        KratosMultiphysics.Logger.PrintInfo("::[Pfem2PrimitiveVarSolver]::", "Pfem2 stage initialization finished")
+        KM.Logger.PrintInfo("::[Pfem2PrimitiveVarSolver]::", "Pfem2 stage initialization finished")
 
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():

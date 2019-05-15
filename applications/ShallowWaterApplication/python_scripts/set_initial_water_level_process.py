@@ -34,6 +34,6 @@ class SetInitialWaterLevelProcess(KM.Process):
     def ExecuteInitialize(self):
         self.process.ExecuteInitializeSolutionStep()
         if self.variable == "HEIGHT":
-            KratosShallow.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.model_part)
+            SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.model_part)
         elif self.variable == "FREE_SURFACE_ELEVATION":
-            KratosShallow.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.model_part)
+            SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.model_part)
