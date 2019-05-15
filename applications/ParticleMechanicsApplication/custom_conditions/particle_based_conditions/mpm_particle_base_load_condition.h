@@ -58,47 +58,23 @@ public:
     ///@{
 
     /// Counted pointer of MPMParticleBaseLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MPMParticleBaseLoadCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMParticleBaseLoadCondition );
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
+    // Constructor void
+    MPMParticleBaseLoadCondition()
+    {};
 
-    /// Default constructor.
-    MPMParticleBaseLoadCondition(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry
-        );
+    // Constructor using an array of nodes
+    MPMParticleBaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry ):MPMParticleBaseCondition(NewId,pGeometry)
+    {};
 
-    MPMParticleBaseLoadCondition(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties
-        );
+    // Constructor using an array of nodes with properties
+    MPMParticleBaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):MPMParticleBaseCondition(NewId,pGeometry,pProperties)
+    {};
 
-    /// Destructor.
-    ~MPMParticleBaseLoadCondition() override;
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    Condition::Pointer Create(
-        IndexType NewId,
-        GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties
-        ) const override;
-
-    Condition::Pointer Create(
-        IndexType NewId,
-        NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties
-        ) const override;
+    // Destructor
+    ~MPMParticleBaseLoadCondition() override
+    {};
 
     ///@}
     ///@name Access
@@ -132,53 +108,6 @@ public:
     ///@}
 
 protected:
-
-    /**
-     * Parameters to be used in the Element as they are. Direct interface to Parameters Struct
-     */
-
-    struct GeneralVariables
-    {
-    private:
-
-        // Variables including all integration points
-        const Matrix* pDN_De;
-        const Vector* pNcontainer;
-
-    public:
-
-
-        // General variables for large displacement use
-        Vector  N;
-
-        // Variables including all integration points
-        Matrix DeltaPosition;
-        Matrix CurrentDisp;
-        Matrix PreviousDisp;
-
-        /**
-         * sets the value of a specified pointer variable
-         */
-
-        void SetShapeFunctions(const Vector& rNcontainer)
-        {
-            pNcontainer=&rNcontainer;
-        };
-
-
-        /**
-         * returns the value of a specified pointer variable
-         */
-
-        const Vector& GetShapeFunctions()
-        {
-            return *pNcontainer;
-        };
-
-
-    };
-
-protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -207,13 +136,7 @@ protected:
      * Calculate Shape Function Values in a given point
      */
 
-    Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint);
-
-    /**
-     * Calculation of the Current Displacement
-     */
-    Matrix& CalculateCurrentDisp(Matrix & rCurrentDisp, const ProcessInfo& rCurrentProcessInfo);
-
+    Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint) override;
 
     ///@}
     ///@name Protected  Access
@@ -227,9 +150,6 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
-    // A protected default constructor necessary for serialization
-    MPMParticleBaseLoadCondition() {};
 
     ///@}
 

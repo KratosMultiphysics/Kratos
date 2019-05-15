@@ -117,18 +117,6 @@ public:
     ///@{
 
     /**
-     * Called at the beginning of each solution step
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Called at the end of each solution step
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
      * Sets on rResult the ID's of the element degrees of freedom
      * @param rResult The vector containing the equation id
      * @param rCurrentProcessInfo The current process info instance
