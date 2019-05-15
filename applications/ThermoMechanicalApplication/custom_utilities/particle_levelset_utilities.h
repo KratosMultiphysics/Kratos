@@ -837,7 +837,7 @@ private:
         const int nelements = rEulerianModelPart.Elements().size();
 	const int nparticles = rLagrangianModelPart.Nodes().size();
 
-	std::vector< WeakPointerVector< Node< 3> > > particle_of_element(nelements);
+	std::vector< GlobalPointersVector< Node< 3> > > particle_of_element(nelements);
 // 	particle_of_element.reserve(nelements);
 
 	std::vector< unsigned int > num_ptr_in_elem(nelements,0);
@@ -877,7 +877,7 @@ private:
 	    std::sort(particle_of_element[ii].ptr_begin(), particle_of_element[ii].ptr_end(), RadiusCompare() );
 
 	    //delete extra nodes
-	    WeakPointerVector< Node< 3> >::iterator ele_pt_ptr = particle_of_element[ii].begin();
+	    GlobalPointersVector< Node< 3> >::iterator ele_pt_ptr = particle_of_element[ii].begin();
 	    const unsigned int this_ele_ptr = particle_of_element[ii].size();
 	    int aux_ptr_elem_size = this_ele_ptr;
 

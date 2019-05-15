@@ -27,6 +27,7 @@ namespace Kratos {
                 .def("CheckProvidedProperties", &DemStructuresCouplingUtilities::CheckProvidedProperties)
                 .def("SmoothLoadTrasferredToFem", &DemStructuresCouplingUtilities::SmoothLoadTrasferredToFem)
                 .def("ComputeSandProduction", &DemStructuresCouplingUtilities::ComputeSandProduction)
+                .def("ComputeSandProductionWithDepthFirstSearch", &DemStructuresCouplingUtilities::ComputeSandProductionWithDepthFirstSearch)
                 .def("ComputeTriaxialSandProduction", &DemStructuresCouplingUtilities::ComputeTriaxialSandProduction)
                 .def("MarkBrokenSpheres", &DemStructuresCouplingUtilities::MarkBrokenSpheres)
             ;

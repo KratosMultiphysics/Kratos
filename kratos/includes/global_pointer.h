@@ -32,11 +32,16 @@ private:
 
 public:
 
+  typedef TDataType element_type;
+
  /** Default constructor
 	* Default constructor
 	* This should never be called as we need a local pointer to exists
 	*/
-	GlobalPointer() = delete;
+	GlobalPointer() {
+    mDataPointer = nullptr;
+    this->mRank = 0;  
+  };
 
   /** Constructor by Data
    * Constructor by Data
@@ -58,6 +63,15 @@ public:
    * @param DataPointer Boost Shared Pointer to the Data.
    */
   GlobalPointer(Kratos::shared_ptr<TDataType> DataPointer, int Rank = 0)
+    : mDataPointer(DataPointer.get())
+    , mRank(Rank) {
+  }
+
+  /** Constructor by Kratos::shared_ptr
+   * Constructor by Kratos::shared_ptr
+   * @param DataPointer Boost Shared Pointer to the Data.
+   */
+  GlobalPointer(Kratos::intrusive_ptr<TDataType>& DataPointer, int Rank = 0)
     : mDataPointer(DataPointer.get())
     , mRank(Rank) {
   }
@@ -109,6 +123,10 @@ public:
    * Default Destructor.
    */
   ~GlobalPointer() {
+  }
+
+  TDataType* get() {
+	  return mDataPointer;
   }
 
   /** Pointer Operator
@@ -163,6 +181,8 @@ public:
   private: 
 
   friend class Serializer;
+
+
 
   void save(Serializer& rSerializer) const
   {
@@ -231,6 +251,23 @@ struct GlobalPointerComparor
         return ( &(*pGp1) == &(*pGp2)  &&  pGp1.GetRank() == pGp2.GetRank()  );
     }
 };
+
+/// input stream function
+template< class TDataType >
+inline std::istream& operator >> (std::istream& rIStream,
+                                  GlobalPointer<TDataType>& rThis)
+                                  {return rIStream;};
+
+/// output stream function
+template< class TDataType >
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const GlobalPointer<TDataType>& rThis)
+{
+    
+    rOStream << reinterpret_cast<const std::size_t>(&*rThis) << " : " << rThis.GetRank();
+
+    return rOStream;
+}
 
 } // namespace Kratos
 

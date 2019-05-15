@@ -68,7 +68,7 @@ class Algorithm(object):
 
         self.sandwich_simulation = False
 
-        if False: #not self.sandwich_simulation:
+        if not self.sandwich_simulation:
             import control_module_fem_dem_utility
             self.control_module_fem_dem_utility = control_module_fem_dem_utility.ControlModuleFemDemUtility(self.model,self.dem_solution.spheres_model_part)
             self.control_module_fem_dem_utility.ExecuteInitialize()
@@ -165,7 +165,7 @@ class Algorithm(object):
             self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
 
             self.structural_solution.InitializeSolutionStep()
-            if False: #not self.sandwich_simulation:
+            if not self.sandwich_simulation:
                 self.control_module_fem_dem_utility.ExecuteInitializeSolutionStep()
             self.structural_solution._GetSolver().Predict()
             self.structural_solution._GetSolver().SolveSolutionStep()
@@ -181,6 +181,8 @@ class Algorithm(object):
             DemFem.ComputeDEMFaceLoadUtility().ClearDEMFaceLoads(self.skin_mp)
 
             self.outer_walls_model_part = self.model["Structure.SurfacePressure3D_lateral_pressure"]
+
+            DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearch(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
             DemFem.DemStructuresCouplingUtilities().ComputeSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
 
             '''self.outer_walls_model_part_1 = self.model["Structure.SurfacePressure3D_sigmaXpos"]
@@ -214,7 +216,7 @@ class Algorithm(object):
                 specimen_radius_small = 0.0036195; #95% of the real hole. This is for the CTW16 specimen (smaller inner radius)
                 specimen_radius_large = 0.012065; #95% of the real hole. This is for the CTW10 specimen (larger inner radius)
                 blind_radius = 0.036195; #95% of the real hole
-                radius = 0.01
+                radius = specimen_radius_small
 
                 self.dem_solution.creator_destructor.MarkParticlesForErasingGivenCylinder(self.dem_solution.spheres_model_part, center, axis, radius)
 
@@ -262,7 +264,7 @@ class Algorithm(object):
 
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
             # TODO: Should control_module_fem_dem_utility.ExecuteFinalizeSolutionStep be done before or after RestoreStructuralSolution ?
-            if False: #not self.sandwich_simulation:
+            if not self.sandwich_simulation:
                 self.control_module_fem_dem_utility.ExecuteFinalizeSolutionStep()
 
     def ReadDemModelParts(self,

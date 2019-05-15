@@ -103,7 +103,7 @@ public:
 
         for (ModelPart::NodesContainerType::iterator it = mrModelPart.NodesBegin(); it != mrModelPart.NodesEnd(); it++)
         {
-            WeakPointerVector<Node < 3 > >& nodal_neighb = it->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector<Node < 3 > >& nodal_neighb = it->GetValue(NEIGHBOUR_NODES);
             int nn = (nodal_neighb).size();
             if (nn == 0)
                 KRATOS_THROW_ERROR(std::logic_error, "isolated node found, or neighbours not calculated, ID= ", it->Id());
@@ -128,11 +128,11 @@ public:
         int row_counter = 0;
         for (ModelPart::NodesContainerType::iterator it = mrModelPart.NodesBegin(); it != mrModelPart.NodesEnd(); it++)
         {
-            WeakPointerVector<Node < 3 > >& nodal_neighb = it->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector<Node < 3 > >& nodal_neighb = it->GetValue(NEIGHBOUR_NODES);
 
             xadj[row_counter++] = counter;
 
-            for (WeakPointerVector<Node < 3 > >::iterator iii = nodal_neighb.begin(); iii != nodal_neighb.end(); iii++)
+            for (GlobalPointersVector<Node < 3 > >::iterator iii = nodal_neighb.begin(); iii != nodal_neighb.end(); iii++)
             {
                 if (iii->Id() != it->Id())
                     adjncy[counter++] = iii->Id() - 1;

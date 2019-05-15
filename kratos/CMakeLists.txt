@@ -19,6 +19,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/fsi_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/mat_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/legacy_structural_app_vars.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/global_pointer_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_application.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/integration_rules.cpp;
@@ -100,6 +101,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/conditions/mesh_condition.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/apply_periodic_boundary_condition_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers/amgcl_solver_impl.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/communication_coloring_utilities.cpp
 )
 
 ## Kratos python interface code
@@ -149,6 +151,7 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_constraint_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_data_communicator_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_parallel_environment_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_global_pointers_to_python.cpp
 )
 
 ## Kratos testing engine soruces
