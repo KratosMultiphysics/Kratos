@@ -25,7 +25,18 @@ class LegacyMPICommInterface(object):
 
     def GetWithDeprecationWarning(self, func_name):
         if not self.comm:
-            self.comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator(self.comm_name)
+            if KratosMultiphysics.ParallelEnvironment.HasDataCommunicator(self.comm_name):
+                self.comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator(self.comm_name)
+            else:
+                msg = [
+                    "DataCommunicator \"",
+                    self.comm_name,
+                    "\" is not registered in ParallelEnvironment.\n",
+                    "If the missing communicator is \"World\", ",
+                    "the most likely cause of this error is trying to run a ",
+                    "MPI case without passing the --using-mpi command line flag.\n"
+                ]
+                raise Exception("".join(msg))
         if self.comm.Rank() == 0:
             msg = [
                 "Calling the legacy MPI Python interface function ",
