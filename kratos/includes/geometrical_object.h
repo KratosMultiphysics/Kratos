@@ -83,14 +83,16 @@ public:
     explicit GeometricalObject(IndexType NewId = 0)
         : IndexedObject(NewId),
           Flags(),
-          mpGeometry()
+          mpGeometry(),
+          mReferenceCounter(0)
     {}
 
     /// Default constructor.
     GeometricalObject(IndexType NewId, GeometryType::Pointer pGeometry)
         : IndexedObject(NewId),
           Flags(),
-          mpGeometry(pGeometry)
+          mpGeometry(pGeometry),
+          mReferenceCounter(0)
     {}
 
     /// Destructor.
@@ -100,7 +102,8 @@ public:
     GeometricalObject(GeometricalObject const& rOther)
         : IndexedObject(rOther.Id()),
           Flags(rOther),
-          mpGeometry(rOther.mpGeometry)
+          mpGeometry(rOther.mpGeometry),
+          mReferenceCounter(0)
     {}
 
 
@@ -272,7 +275,7 @@ public:
 
     unsigned int use_count() const noexcept
     {
-        return refcount_;
+        return mReferenceCounter;
     }
     //*********************************************
 
@@ -337,16 +340,16 @@ private:
     
     //*********************************************
     //this block is needed for refcounting
-    mutable std::atomic<int> refcount_;
+    mutable std::atomic<int> mReferenceCounter;
 
     friend void intrusive_ptr_add_ref(const GeometricalObject* x)
     {
-        x->refcount_.fetch_add(1, std::memory_order_relaxed);
+        x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
     }
 
     friend void intrusive_ptr_release(const GeometricalObject* x)
     {
-        if (x->refcount_.fetch_sub(1, std::memory_order_release) == 1) {
+        if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
         std::atomic_thread_fence(std::memory_order_acquire);
         delete x;
         }

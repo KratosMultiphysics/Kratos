@@ -131,6 +131,7 @@ public:
 #ifdef _OPENMP
         , mNodeLock()
 #endif
+        , mReferenceCounter(0)
     {
 
         CreateSolutionStepData();
@@ -155,6 +156,7 @@ public:
 #ifdef _OPENMP
         , mNodeLock()
 #endif
+        , mReferenceCounter(0)
     {
         KRATOS_ERROR <<  "Calling the default constructor for the node ... illegal operation!!" << std::endl;
         CreateSolutionStepData();
@@ -173,6 +175,7 @@ public:
 #ifdef _OPENMP
         , mNodeLock()
 #endif
+        , mReferenceCounter(0)
     {
 #ifdef _OPENMP
         omp_init_lock(&mNodeLock);
@@ -193,6 +196,7 @@ public:
 #ifdef _OPENMP
         , mNodeLock()
 #endif
+        , mReferenceCounter(0)
     {
 #ifdef _OPENMP
         omp_init_lock(&mNodeLock);
@@ -213,6 +217,7 @@ public:
 #ifdef _OPENMP
         , mNodeLock()
 #endif
+        , mReferenceCounter(0)
     {
         CreateSolutionStepData();
 // 	mDofs.SetMaxBufferSize(0);
@@ -235,7 +240,8 @@ public:
         , mInitialPosition(rThisPoint)
 #ifdef _OPENMP
         , mNodeLock()
-#endif
+#endif  
+        , mReferenceCounter(0)
     {
 
         CreateSolutionStepData();
@@ -320,6 +326,7 @@ public:
 #ifdef _OPENMP
         , mNodeLock()
 #endif
+        , mReferenceCounter(0)
     {
 // 	mDofs.SetMaxBufferSize(0);
 #ifdef _OPENMP
@@ -362,7 +369,7 @@ public:
     }
     unsigned int use_count() const noexcept
     {
-        return refcount_;
+        return mReferenceCounter;
     }
     //*********************************************
 
@@ -1121,16 +1128,16 @@ private:
     ///@{
     //*********************************************
     //this block is needed for refcounting
-    mutable std::atomic<int> refcount_;
+    mutable std::atomic<int> mReferenceCounter = 0;
 
     friend void intrusive_ptr_add_ref(const NodeType* x)
     {
-        x->refcount_.fetch_add(1, std::memory_order_relaxed);
+        x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
     }
 
     friend void intrusive_ptr_release(const NodeType* x)
     {
-        if (x->refcount_.fetch_sub(1, std::memory_order_release) == 1) {
+        if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
         std::atomic_thread_fence(std::memory_order_acquire);
         delete x;
         }
