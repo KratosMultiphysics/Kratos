@@ -86,8 +86,6 @@ ConstitutiveLaw::Pointer SmallStrainIsotropicPlasticityFactory::Create(Kratos::P
     } else if (yield == "MohrCoulomb") {
         if (potential == "VonMises") {
             return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
-        } else if (potential == "ModifiedMohrCoulomb") {
-            return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>().Clone();
         } else if (potential == "Tresca") {
             return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>().Clone();
         } else if (potential == "DruckerPrager") {
