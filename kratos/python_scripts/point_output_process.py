@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 # other imports
-from time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
+from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
