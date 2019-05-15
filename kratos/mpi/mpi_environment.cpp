@@ -88,7 +88,6 @@ void MPIEnvironment::Finalize()
     {
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        //KRATOS_DETAIL("MPIEnvironment") << "MPI finalize called in rank " << rank << "." << std::endl;
         MPI_Finalize();
     }
 
