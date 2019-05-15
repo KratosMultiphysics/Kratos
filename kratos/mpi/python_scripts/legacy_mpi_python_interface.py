@@ -48,11 +48,11 @@ class LegacyMPIPythonInterface(object):
 
     @property
     def rank(self):
-        return world.GetWithDeprecationWarning("rank").Rank()
+        return self.world.GetWithDeprecationWarning("rank").Rank()
 
     @property
     def size(self):
-        return world.GetWithDeprecationWarning("size").Size()
+        return self.world.GetWithDeprecationWarning("size").Size()
 
     def broadcast_double(self, comm_wrapper, value, source_rank):
         return comm_wrapper.GetWithDeprecationWarning("broadcast_double").Broadcast(value, source_rank)
