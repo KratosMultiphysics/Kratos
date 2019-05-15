@@ -26,7 +26,7 @@ namespace Kratos
 	template<std::size_t TDim>
 	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
 		ModelPart& rVolumePart, 
-		ModelPart& rSkinPart) : mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)), mIsSearchStructureAllocated(true)
+		ModelPart& rSkinPart) : mExtraRaysEpsilon(std::numeric_limits<double>::epsilon()), mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)), mIsSearchStructureAllocated(true), mCharactresticLength(1.00)
 	{
 	}
 
@@ -35,7 +35,7 @@ namespace Kratos
 		ModelPart& rVolumePart, 
 		ModelPart& rSkinPart,
 		const double ExtraRaysEpsilon)
-		: mExtraRaysEpsilon(ExtraRaysEpsilon), mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)), mIsSearchStructureAllocated(true)
+		: mExtraRaysEpsilon(ExtraRaysEpsilon), mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)), mIsSearchStructureAllocated(true), mCharactresticLength(1.00)
 	{
 	}
 
@@ -43,7 +43,7 @@ namespace Kratos
 	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
 		FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
 		const double ExtraRaysEpsilon)
-		: mExtraRaysEpsilon(ExtraRaysEpsilon), mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess), mIsSearchStructureAllocated(false)
+		: mExtraRaysEpsilon(ExtraRaysEpsilon), mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess), mIsSearchStructureAllocated(false), mCharactresticLength(1.00)
 	{
 	}
 
@@ -59,6 +59,8 @@ namespace Kratos
 	{
         if(mIsSearchStructureAllocated) // we have not initialized it yet
             mpFindIntersectedObjectsProcess->Initialize();
+
+        CalculateCharacteristicLength();
 
 		ModelPart& ModelPart1 = mpFindIntersectedObjectsProcess->GetModelPart1();
 
@@ -451,6 +453,31 @@ namespace Kratos
 	void ApplyRayCastingProcess<TDim>::PrintData(std::ostream& rOStream) const
 	{
 	}
+
+	template<std::size_t TDim>
+	void ApplyRayCastingProcess<TDim>::CalculateCharacteristicLength() 
+	{
+
+		ModelPart& model_part1 = mpFindIntersectedObjectsProcess->GetModelPart1();
+        Point min_point(0.00, 0.00, 0.00);
+        Point max_point(0.00, 0.00, 0.00);
+
+        for(auto& node : model_part1.Nodes()){
+            for(std::size_t i = 0; i<3; i++)
+            {
+                min_point[i]  =  (min_point[i]  >  node[i] ) ?  node[i] : min_point[i];
+                max_point[i] =  (max_point[i] <  node[i] ) ?  node[i] : max_point[i];
+            }            
+        }
+
+        double distance = norm_2(max_point - min_point);
+        if (distance > std::numeric_limits<double>::epsilon())
+            mCharactresticLength = distance;
+
+        KRATOS_WATCH(mCharactresticLength);
+	}
+
+    
 
 	template class Kratos::ApplyRayCastingProcess<2>;
 	template class Kratos::ApplyRayCastingProcess<3>;
