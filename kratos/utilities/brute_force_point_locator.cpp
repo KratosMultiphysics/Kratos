@@ -83,6 +83,11 @@ void BruteForcePointLocator::FindObject(const TObjectType& rObjects,
     int local_object_found = 0;
     array_1d<double, 3> local_coordinates;
 
+    const auto& r_data_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
+    const int global_num_objects = r_data_comm.SumAll(static_cast<int>(rObjects.size()));
+
+    KRATOS_WARNING_IF("BruteForcePointLocator", global_num_objects == 0) << r_data_comm << "No " << rObjectName << " in ModelPart \"" << mrModelPart.Name() << std::endl;
+
     // note that this cannot be omp bcs breaking is not allowed in omp
     for (auto& r_object : rObjects) {
         const bool is_inside = r_object.GetGeometry().IsInside(rThePoint, local_coordinates, LocalCoordTol);
