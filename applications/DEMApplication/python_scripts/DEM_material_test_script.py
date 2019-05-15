@@ -370,6 +370,7 @@ class MaterialTest(object):
         total_force_bts += force_node_y
 
       self.total_stress_bts = 2.0*total_force_bts/(3.14159*self.height*self.diameter*1e6)
+      self.total_force_bts = total_force_bts
       self.strain_bts += -100*2*self.LoadingVelocity*dt/self.diameter
     else:
 
@@ -427,7 +428,7 @@ class MaterialTest(object):
 
       if(self.test_type == "BTS"):
 
-        self.bts_export.write(str("%.8g"%time).rjust(12) +"  "+ str("%.6g"%self.total_stress_bts).rjust(13)+'\n')
+        self.bts_export.write(str("%.8g"%time).rjust(12) +"  "+ str("%.6g"%self.total_stress_bts).rjust(13) +"  "+ str("%.6g"%self.total_force_bts).rjust(13)+'\n')
         self.Flush(self.bts_export)
 
       else:

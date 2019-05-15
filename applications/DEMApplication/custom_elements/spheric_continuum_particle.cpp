@@ -408,6 +408,7 @@ namespace Kratos {
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR) /*&& (i < mContinuumInitialNeighborsSize)*/) {
                 AddNeighbourContributionToStressTensor(TotalGlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, radius_sum, this);
+                AddNeighbourContributionToStrainTensor(data_buffer.mLocalCoordSystem[2], LocalDeltDisp, data_buffer.mpOtherParticle);
             }
 
             AddContributionToRepresentativeVolume(data_buffer.mDistance, radius_sum, calculation_area);

@@ -281,6 +281,7 @@ array_1d<double, 3> mContactMoment; //SLS
 
 BoundedMatrix<double, 3, 3>* mStressTensor;
 BoundedMatrix<double, 3, 3>* mSymmStressTensor;
+BoundedMatrix<double, 3, 3>* mStrainTensor;
 double mPartialRepresentativeVolume;
 
 std::vector<int> mFemOldNeighbourIds;
@@ -425,6 +426,10 @@ virtual void AddNeighbourContributionToStressTensor(const double GlobalElasticCo
                                                     const double radius_sum,
                                                     SphericParticle* element);
 
+virtual void AddNeighbourContributionToStrainTensor(const double other_to_me_vect[3],
+                                                    double LocalDeltDisp[3],
+                                                    SphericParticle* Otherelement);
+
 virtual void AddWallContributionToStressTensor(const double GlobalElasticContactForce[3],
                                                const double other_to_me_vect[3],
                                                const double distance,
@@ -476,6 +481,8 @@ virtual void load(Serializer& rSerializer) override
         *mStressTensor = ZeroMatrix(3,3);
         mSymmStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mSymmStressTensor = ZeroMatrix(3,3);
+        mStrainTensor  = new BoundedMatrix<double, 3, 3>(3,3);
+        *mStrainTensor = ZeroMatrix(3,3);
         rSerializer.load("mSymmStressTensor", mSymmStressTensor);
     }
 }

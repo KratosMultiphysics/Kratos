@@ -33,6 +33,7 @@ SphericParticle::SphericParticle()
     mRadius = 0;
     mRealMass = 0;
     mStressTensor = NULL;
+    mStrainTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
@@ -44,6 +45,7 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
     mRadius = 0;
     mRealMass = 0;
     mStressTensor = NULL;
+    mStrainTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
@@ -56,6 +58,7 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
     mRadius = 0;
     mRealMass = 0;
     mStressTensor = NULL;
+    mStrainTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
@@ -68,6 +71,7 @@ SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNode
     mRadius = 0;
     mRealMass = 0;
     mStressTensor = NULL;
+    mStrainTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
     mpRotationalIntegrationScheme = NULL;
@@ -86,6 +90,10 @@ SphericParticle::~SphericParticle(){
         mStressTensor = NULL;
         delete mSymmStressTensor;
         mSymmStressTensor = NULL;
+    }
+    if (mStrainTensor!=NULL) {
+        delete mStrainTensor;
+        mStrainTensor = NULL;
     }
     if (mpTranslationalIntegrationScheme!=NULL) {
         if(mpTranslationalIntegrationScheme != mpRotationalIntegrationScheme) delete mpTranslationalIntegrationScheme;
@@ -134,6 +142,14 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
 
         mStressTensor     = NULL;
         mSymmStressTensor = NULL;
+    }
+
+    if(rOther.mStrainTensor != NULL) {
+        mStrainTensor  = new BoundedMatrix<double, 3, 3>(3,3);
+        *mStrainTensor = *rOther.mStrainTensor;
+    }
+    else {
+        mStrainTensor     = NULL;
     }
 
     mFastProperties = rOther.mFastProperties; //This might be unsafe
@@ -857,6 +873,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
                 AddNeighbourContributionToStressTensor(GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, data_buffer.mRadiusSum, this);
+                AddNeighbourContributionToStrainTensor(data_buffer.mLocalCoordSystem[2], LocalDeltDisp, data_buffer.mpOtherParticle);
             }
 
             if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) { //TODO: we should avoid calling a processinfo for each neighbour. We can put it once per time step in the buffer??
@@ -1391,6 +1408,7 @@ void SphericParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 (*mStressTensor)(i,j) = 0.0;
+                (*mStrainTensor)(i,j) = 0.0;
             }
         }
     }
@@ -1421,6 +1439,30 @@ void SphericParticle::AddNeighbourContributionToStressTensor(const double Force[
         }
     }
     KRATOS_CATCH("")
+}
+
+void SphericParticle::AddNeighbourContributionToStrainTensor(const double other_to_me_vect[3],
+                                                             double LocalDeltDisp[3],
+                                                             SphericParticle* Otherelement) {
+
+    array_1d<double, 3> normal_vector_on_contact;
+    normal_vector_on_contact[0] = - other_to_me_vect[0]; //outwards
+    normal_vector_on_contact[1] = - other_to_me_vect[1]; //outwards
+    normal_vector_on_contact[2] = - other_to_me_vect[2]; //outwards
+
+    double other_radius         = Otherelement->GetInteractionRadius();
+
+    //update: (*mStrainTensor)(i,j) /= rRepresentative_Volume; in finalizeStep
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            if (i==j) {
+                (*mStrainTensor)(i,i) += LocalDeltDisp[i] * normal_vector_on_contact[i] * 4*other_radius*other_radius;
+            }
+            else{
+                (*mStrainTensor)(i,j) += (LocalDeltDisp[i] * normal_vector_on_contact[j] + LocalDeltDisp[j] * normal_vector_on_contact[i]) * 4*other_radius*other_radius;
+            }
+        }
+    }
 }
 
 void SphericParticle::AddWallContributionToStressTensor(const double Force[3],
@@ -1485,6 +1527,11 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
                 (*mStressTensor)(i,j) /= rRepresentative_Volume;
             }
             //(*mStressTensor)(i,i) += GeometryFunctions::sign( (*mStressTensor)(i,i) ) * GetRadius() * fabs(reaction_force[i]) / rRepresentative_Volume;
+        }
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                (*mStrainTensor)(i,j) /= rRepresentative_Volume;
+            }
         }
         /*if( this->Is(DEMFlags::HAS_ROTATION) ) { //THIS IS GIVING STABILITY PROBLEMS WHEN USING THE EXTRA TERMS FOR CONTINUUM
             const array_1d<double, 3>& reaction_moment=this->GetGeometry()[0].FastGetSolutionStepValue(MOMENT_REACTION);
@@ -1553,6 +1600,7 @@ void SphericParticle::PrepareForPrinting(ProcessInfo& r_process_info){
 
     if (this->Is(DEMFlags::PRINT_STRESS_TENSOR)) {
         this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_TENSOR) = (*mSymmStressTensor);
+        this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRAIN_TENSOR) = (*mStrainTensor);
     }
 }
 
@@ -1709,11 +1757,15 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
 
         mSymmStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mSymmStressTensor = ZeroMatrix(3,3);
+
+        mStrainTensor  = new BoundedMatrix<double, 3, 3>(3,3);
+        *mStrainTensor = ZeroMatrix(3,3);
     }
     else {
 
         mStressTensor     = NULL;
         mSymmStressTensor = NULL;
+        mStrainTensor     = NULL;
     }
 
     mGlobalDamping = r_process_info[GLOBAL_DAMPING];
