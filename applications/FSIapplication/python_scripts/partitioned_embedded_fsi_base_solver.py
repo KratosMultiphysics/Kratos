@@ -244,7 +244,114 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
     def SolveSolutionStep(self):
         ## TODO: REMOVE AFTER DEBUGGING
-        import gid_output_process
+        # import gid_output_process
+
+        # fluid_gid_output = gid_output_process.GiDOutputProcess(
+        #     self.fluid_solver.GetComputingModelPart(),
+        #     "fluid_step_" + str(self.fluid_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP]),
+        #     KratosMultiphysics.Parameters("""{
+        #         "result_file_configuration": {
+        #             "gidpost_flags": {
+        #                 "GiDPostMode": "GiD_PostBinary",
+        #                 "WriteDeformedMeshFlag": "WriteDeformed",
+        #                 "WriteConditionsFlag": "WriteConditions",
+        #                 "MultiFileFlag": "SingleFile"
+        #             },
+        #             "file_label": "time",
+        #             "output_control_type": "step",
+        #             "output_frequency": 1.0,
+        #             "body_output": true,
+        #             "node_output": false,
+        #             "skin_output": false,
+        #             "plane_output": [],
+        #             "nodal_results": ["VELOCITY","PRESSURE","MESH_VELOCITY","REACTION","DISTANCE","EMBEDDED_WET_VELOCITY","MESH_DISPLACEMENT","DISPLACEMENT","TEMPERATURE","TEMPERATURE_OLD_IT","LINEAR_MOMENTUM","ANGULAR_MOMENTUM"],
+        #             "nodal_nonhistorical_results": ["EMBEDDED_IS_ACTIVE"],
+        #             "elemental_conditional_flags_results": ["ACTIVE","INTERFACE","TO_SPLIT"],
+        #             "gauss_point_results": ["EMBEDDED_VELOCITY"]
+        #         }
+        #     }""")
+        # )
+
+        # virtual_fluid_gid_output = gid_output_process.GiDOutputProcess(
+        #     self.model.GetModelPart("VirtualModelPart"),
+        #     "virtual_fluid_step_" + str(self.model.GetModelPart("VirtualModelPart").ProcessInfo[KratosMultiphysics.STEP]),
+        #     KratosMultiphysics.Parameters("""{
+        #         "result_file_configuration": {
+        #             "gidpost_flags": {
+        #                 "GiDPostMode": "GiD_PostBinary",
+        #                 "WriteDeformedMeshFlag": "WriteDeformed",
+        #                 "WriteConditionsFlag": "WriteConditions",
+        #                 "MultiFileFlag": "SingleFile"
+        #             },
+        #             "file_label": "time",
+        #             "output_control_type": "step",
+        #             "output_frequency": 1.0,
+        #             "body_output": true,
+        #             "node_output": false,
+        #             "skin_output": false,
+        #             "plane_output": [],
+        #             "nodal_results": ["VELOCITY","PRESSURE","MESH_VELOCITY","MESH_DISPLACEMENT"]
+        #         }
+        #     }""")
+        # )
+
+        # structure_gid_output = gid_output_process.GiDOutputProcess(
+        #     self.structure_solver.GetComputingModelPart(),
+        #     "structure_step_" + str(self.structure_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP]),
+        #     KratosMultiphysics.Parameters("""{
+        #         "result_file_configuration": {
+        #             "gidpost_flags": {
+        #                 "GiDPostMode": "GiD_PostBinary",
+        #                 "WriteDeformedMeshFlag": "WriteDeformed",
+        #                 "WriteConditionsFlag": "WriteConditions",
+        #                 "MultiFileFlag": "SingleFile"
+        #             },
+        #             "file_label": "time",
+        #             "output_control_type": "step",
+        #             "output_frequency": 1.0,
+        #             "body_output": true,
+        #             "node_output": false,
+        #             "skin_output": false,
+        #             "plane_output": [],
+        #             "nodal_results": ["DISPLACEMENT","VELOCITY","STRUCTURE_VELOCITY","ACCELERATION","REACTION","POSITIVE_FACE_PRESSURE","VECTOR_PROJECTED","FSI_INTERFACE_RESIDUAL"],
+        #             "gauss_point_results": ["NORMAL"]
+        #         }
+        #     }""")
+        # )
+
+        # structure_skin_gid_output = gid_output_process.GiDOutputProcess(
+        #     self.model.GetModelPart("FSICouplingInterfaceStructure"),
+        #     "structure_coupling_interface_step_" + str(self.structure_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP]),
+        #     KratosMultiphysics.Parameters("""{
+        #         "result_file_configuration": {
+        #             "gidpost_flags": {
+        #                 "GiDPostMode": "GiD_PostBinary",
+        #                 "WriteDeformedMeshFlag": "WriteDeformed",
+        #                 "WriteConditionsFlag": "WriteConditions",
+        #                 "MultiFileFlag": "SingleFile"
+        #             },
+        #             "file_label": "time",
+        #             "output_control_type": "step",
+        #             "output_frequency": 1.0,
+        #             "body_output": true,
+        #             "node_output": false,
+        #             "skin_output": false,
+        #             "plane_output": [],
+        #             "nodal_results": ["DISPLACEMENT","RELAXED_DISP","OLD_RELAXED_DISP","FSI_INTERFACE_RESIDUAL"],
+        #             "gauss_point_results": []
+        #         }
+        #     }""")
+        # )
+
+        # fluid_gid_output.ExecuteInitialize()
+        # virtual_fluid_gid_output.ExecuteInitialize()
+        # structure_gid_output.ExecuteInitialize()
+        # structure_skin_gid_output.ExecuteInitialize()
+
+        # fluid_gid_output.ExecuteBeforeSolutionLoop()
+        # virtual_fluid_gid_output.ExecuteBeforeSolutionLoop()
+        # structure_gid_output.ExecuteBeforeSolutionLoop()
+        # structure_skin_gid_output.ExecuteBeforeSolutionLoop()
 
         ## Wall non-linear coupling iteration ##
         nl_it = 0
@@ -257,47 +364,20 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
             self._get_convergence_accelerator().InitializeNonLinearIteration()
 
-            # Map the DISPLACEMENT from the structure FSI coupling interface to fluid FSI coupling interface
+            # Map the RELAXED_DISP from the structure FSI coupling interface to fluid FSI coupling interface
+            # This RELAXED_DISP is intended to be used to update the skin position before the level set update
             # TODO: THIS SHOULD BE A MAPPER. NOW WE ASSUME THAT THE EMBEDDED FLUID INTERFACE COINCIDES WITH THE STRUCTURE ONE
-            buffer_step = 0
-            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
-                KratosMultiphysics.DISPLACEMENT,
-                self._get_fsi_coupling_interface_structure().GetInterfaceModelPart(),
-                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart(),
-                buffer_step)
-
-            # TODO: REMOVE AFTER DEBUGGING (FAKE DISPLACEMENT FIELD)
-            # t = self.fluid_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
-            # for node in self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart().Nodes:
-            #     aux_disp = 1e-3 * t * node.Y ** 2
-            #     node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, [aux_disp, 0.0, 0.0])
+            for node_str_fsi_int, node_fl_fsi_int in zip(
+                self._get_fsi_coupling_interface_structure().GetInterfaceModelPart().Nodes,
+                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart().Nodes):
+                relaxed_disp = node_str_fsi_int.GetSolutionStepValue(KratosMultiphysics.RELAXED_DISP)
+                node_fl_fsi_int.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, relaxed_disp)
 
             # Update the fluid FSI coupling interface position
             self._get_fsi_coupling_interface_fluid().UpdatePosition()
 
             # Update the EMBEDDED_VELOCITY and solve the fluid problem
             self._solve_fluid()
-
-            # Interpolate the pressure to the fluid FSI coupling interface
-            self._get_partitioned_fsi_utilities().EmbeddedPressureToPositiveFacePressureInterpolator(
-                self.GetFluidComputingModelPart(),
-                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart())
-
-            # Map PRESSURE from fluid FSI coupling interface to structure FSI coupling interface
-            # TODO: THIS SHOULD BE A MAPPER. NOW WE ASSUME THAT THE EMBEDDED FLUID INTERFACE COINCIDES WITH THE STRUCTURE ONE
-            for node_orig, node_dest in zip(
-                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart().Nodes,
-                self._get_fsi_coupling_interface_structure().GetInterfaceModelPart().Nodes):
-                aux_pres = node_orig.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
-                # t = self.fluid_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
-                # aux_pres = 0.5 * t * node_dest.Y
-                node_dest.SetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE, aux_pres)
-
-            # Transfer PRESSURE to structure FSI coupling interface father model part
-            self._get_fsi_coupling_interface_structure().TransferValuesToFatherModelPart(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-
-            # Update the PRESSURE load and solve the structure problem
-            self._solve_structure()
 
             # fluid_gid_output = gid_output_process.GiDOutputProcess(
             #     self.fluid_solver.GetComputingModelPart(),
@@ -317,19 +397,23 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             #             "node_output": false,
             #             "skin_output": false,
             #             "plane_output": [],
-            #             "nodal_results": ["VELOCITY","PRESSURE","MESH_VELOCITY","REACTION","DISTANCE","EMBEDDED_WET_VELOCITY","MESH_DISPLACEMENT","DISPLACEMENT","TEMPERATURE","TEMPERATURE_OLD_IT","LINEAR_MOMENTUM","ANGULAR_MOMENTUM"],
+            #             "nodal_results": ["VELOCITY","PRESSURE","MESH_VELOCITY","REACTION","DISTANCE","EMBEDDED_WET_VELOCITY","MESH_DISPLACEMENT","DISPLACEMENT","TEMPERATURE","TEMPERATURE_OLD_IT","RELAXED_DISP","ANGULAR_MOMENTUM"],
             #             "nodal_nonhistorical_results": ["EMBEDDED_IS_ACTIVE"],
             #             "elemental_conditional_flags_results": ["ACTIVE","INTERFACE","TO_SPLIT"],
             #             "gauss_point_results": ["EMBEDDED_VELOCITY"]
             #         }
             #     }""")
             # )
-            # fluid_gid_output.ExecuteInitialize()
-            # fluid_gid_output.ExecuteBeforeSolutionLoop()
+
+            # aux = self.fluid_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
+            # self.fluid_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = nl_it
+            # # fluid_gid_output.ExecuteInitialize()
+            # # fluid_gid_output.ExecuteBeforeSolutionLoop()
             # fluid_gid_output.ExecuteInitializeSolutionStep()
             # fluid_gid_output.PrintOutput()
             # fluid_gid_output.ExecuteFinalizeSolutionStep()
-            # fluid_gid_output.ExecuteFinalize()
+            # # fluid_gid_output.ExecuteFinalize()
+            # self.fluid_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = aux
 
             # virtual_fluid_gid_output = gid_output_process.GiDOutputProcess(
             #     self.model.GetModelPart("VirtualModelPart"),
@@ -353,12 +437,35 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             #         }
             #     }""")
             # )
-            # virtual_fluid_gid_output.ExecuteInitialize()
-            # virtual_fluid_gid_output.ExecuteBeforeSolutionLoop()
+            # self.model.GetModelPart("VirtualModelPart").ProcessInfo[KratosMultiphysics.TIME] = nl_it
+            # # virtual_fluid_gid_output.ExecuteInitialize()
+            # # virtual_fluid_gid_output.ExecuteBeforeSolutionLoop()
             # virtual_fluid_gid_output.ExecuteInitializeSolutionStep()
             # virtual_fluid_gid_output.PrintOutput()
             # virtual_fluid_gid_output.ExecuteFinalizeSolutionStep()
-            # virtual_fluid_gid_output.ExecuteFinalize()
+            # # virtual_fluid_gid_output.ExecuteFinalize()
+            # self.model.GetModelPart("VirtualModelPart").ProcessInfo[KratosMultiphysics.TIME] = aux
+
+            # Interpolate the pressure to the fluid FSI coupling interface
+            self._get_partitioned_fsi_utilities().EmbeddedPressureToPositiveFacePressureInterpolator(
+                self.GetFluidComputingModelPart(),
+                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart())
+
+            # Map PRESSURE from fluid FSI coupling interface to structure FSI coupling interface
+            # TODO: THIS SHOULD BE A MAPPER. NOW WE ASSUME THAT THE EMBEDDED FLUID INTERFACE COINCIDES WITH THE STRUCTURE ONE
+            for node_orig, node_dest in zip(
+                self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart().Nodes,
+                self._get_fsi_coupling_interface_structure().GetInterfaceModelPart().Nodes):
+                aux_pres = node_orig.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
+                # t = self.fluid_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
+                # aux_pres = 0.5 * t * node_dest.Y
+                node_dest.SetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE, aux_pres)
+
+            # Transfer PRESSURE to structure FSI coupling interface father model part
+            self._get_fsi_coupling_interface_structure().TransferValuesToFatherModelPart(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
+
+            # Update the PRESSURE load and solve the structure problem
+            self._solve_structure()
 
             # structure_gid_output = gid_output_process.GiDOutputProcess(
             #     self.structure_solver.GetComputingModelPart(),
@@ -383,12 +490,14 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             #         }
             #     }""")
             # )
-            # structure_gid_output.ExecuteInitialize()
-            # structure_gid_output.ExecuteBeforeSolutionLoop()
+            # self.structure_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = nl_it
+            # # structure_gid_output.ExecuteInitialize()
+            # # structure_gid_output.ExecuteBeforeSolutionLoop()
             # structure_gid_output.ExecuteInitializeSolutionStep()
             # structure_gid_output.PrintOutput()
             # structure_gid_output.ExecuteFinalizeSolutionStep()
-            # structure_gid_output.ExecuteFinalize()
+            # # structure_gid_output.ExecuteFinalize()
+            # self.structure_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = aux
 
             # Compute the residual and perform the update
             dis_residual_norm = self._get_fsi_coupling_interface_structure().Update()
@@ -396,9 +505,45 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             # End the FSI non-linear iteration
             self._get_convergence_accelerator().FinalizeNonLinearIteration()
 
+            # structure_skin_gid_output = gid_output_process.GiDOutputProcess(
+            #     self.model.GetModelPart("FSICouplingInterfaceStructure"),
+            #     "structure_coupling_interface_step_" + str(self.structure_solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP]) + "_it_" + str(nl_it),
+            #     KratosMultiphysics.Parameters("""{
+            #         "result_file_configuration": {
+            #             "gidpost_flags": {
+            #                 "GiDPostMode": "GiD_PostBinary",
+            #                 "WriteDeformedMeshFlag": "WriteDeformed",
+            #                 "WriteConditionsFlag": "WriteConditions",
+            #                 "MultiFileFlag": "SingleFile"
+            #             },
+            #             "file_label": "time",
+            #             "output_control_type": "step",
+            #             "output_frequency": 1.0,
+            #             "body_output": true,
+            #             "node_output": false,
+            #             "skin_output": false,
+            #             "plane_output": [],
+            #             "nodal_results": ["DISPLACEMENT","RELAXED_DISP","ANGULAR_MOMENTUM"],
+            #             "gauss_point_results": []
+            #         }
+            #     }""")
+            # )
+            # self.model.GetModelPart("FSICouplingInterfaceStructure").ProcessInfo[KratosMultiphysics.TIME] = nl_it
+            # # structure_skin_gid_output.ExecuteInitialize()
+            # # structure_skin_gid_output.ExecuteBeforeSolutionLoop()
+            # structure_skin_gid_output.ExecuteInitializeSolutionStep()
+            # structure_skin_gid_output.PrintOutput()
+            # structure_skin_gid_output.ExecuteFinalizeSolutionStep()
+            # # structure_skin_gid_output.ExecuteFinalize()
+            # self.model.GetModelPart("FSICouplingInterfaceStructure").ProcessInfo[KratosMultiphysics.TIME] = aux
+
             # Check convergence
             is_converged = self._check_FSI_convergence(dis_residual_norm)
             if (is_converged):
+                # fluid_gid_output.ExecuteFinalize()
+                # virtual_fluid_gid_output.ExecuteFinalize()
+                # structure_gid_output.ExecuteFinalize()
+                # structure_skin_gid_output.ExecuteFinalize()
                 return True
 
             # Compute the structure interface VELOCITY residual vector
