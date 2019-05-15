@@ -92,13 +92,14 @@ void BruteForcePointLocator::CheckResults(const std::string& rObjectName,
                                           const Point& rThePoint,
                                           const int LocalObjectFound) const
 {
-    int global_objects_found = LocalObjectFound;
-    mrModelPart.GetCommunicator().SumAll(global_objects_found);
+    const auto& r_data_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
+
+    int global_objects_found = r_data_comm.SumAll(LocalObjectFound);
 
     if (global_objects_found > 1) {
-        KRATOS_WARNING_IF_ALL_RANKS("BruteForcePointLocator", LocalObjectFound == 1) << "More than one " << rObjectName << " found for Point:" << rThePoint << std::endl; // TODO pass data-comm from the modelpart to the logger once available
+        KRATOS_WARNING_IF_ALL_RANKS("BruteForcePointLocator", LocalObjectFound == 1) << r_data_comm << "More than one " << rObjectName << " found for Point:" << rThePoint << std::endl;
     } else if (global_objects_found == 0) {
-        KRATOS_WARNING("BruteForcePointLocator") << "No " << rObjectName << " found for Point: " << rThePoint << std::endl;
+        KRATOS_WARNING("BruteForcePointLocator") << r_data_comm << "No " << rObjectName << " found for Point: " << rThePoint << std::endl;
     }
 }
 
