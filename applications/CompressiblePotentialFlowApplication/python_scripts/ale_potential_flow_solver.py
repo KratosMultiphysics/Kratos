@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.MeshMovingApplication as KMM
 
 # other imports
 from KratosMultiphysics.MeshMovingApplication.ale_fluid_solver import AleFluidSolver
@@ -21,13 +22,16 @@ class AlePotentialFlowSolver(AleFluidSolver):
         return potential_flow_solver.CreateSolver(self.model, solver_settings)
 
     def SolveSolutionStep(self):
-        for mesh_solver in self.mesh_motion_solvers:
-            mesh_solver.SolveSolutionStep()
-        print("!!!!EXITED THE MESH SOLVERS!!!!")
-        print(self.fluid_solver)
-        self.fluid_solver.SolveSolutionStep()
+        is_converged = True
 
-    def FinalizeSolutionStep(self):
         for mesh_solver in self.mesh_motion_solvers:
-            mesh_solver.FinalizeSolutionStep()
-        self.fluid_solver.FinalizeSolutionStep()
+            is_converged &= mesh_solver.SolveSolutionStep()
+
+            is_converged = self.fluid_solver.SolveSolutionStep()
+
+        return is_converged
+
+    # def FinalizeSolutionStep(self):
+    #     for mesh_solver in self.mesh_motion_solvers:
+    #         mesh_solver.FinalizeSolutionStep()
+    #     self.fluid_solver.FinalizeSolutionStep()

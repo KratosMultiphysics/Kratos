@@ -130,6 +130,8 @@ class SDoFSolver(CoSimulationBaseSolver):
         #external load only for testing
         b += self.load_vector
         self.dx = np.linalg.solve(self.LHS, b)
+        print('force = ', b)
+        print('displacement = ', self.dx)
 
     def GetBufferSize(self):
         return self.buffer_size

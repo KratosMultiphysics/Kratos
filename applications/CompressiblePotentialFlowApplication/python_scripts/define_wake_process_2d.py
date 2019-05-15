@@ -123,7 +123,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         # This function marks the elements touching the trailing
         # edge and saves them in the trailing_edge_model_part for
         # further computations
-        self.trailing_edge_model_part
+        # self.trailing_edge_model_part
         for elnode in elem.GetNodes():
             if(elnode.GetValue(CPFApp.TRAILING_EDGE)):
                 elem.SetValue(CPFApp.TRAILING_EDGE, True)

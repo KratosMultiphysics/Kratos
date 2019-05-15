@@ -117,17 +117,22 @@ class MeshSolverBase(PythonSolver):
 
     def InitializeSolutionStep(self):
         self.get_mesh_motion_solving_strategy().InitializeSolutionStep()
+        print("+++++  Initialize Solution Step has been Entered ++++++")
 
     def FinalizeSolutionStep(self):
         self.get_mesh_motion_solving_strategy().FinalizeSolutionStep()
+        print("+++++  Finalize Solution Step has been Entered ++++++")
 
     def Predict(self):
         self.get_mesh_motion_solving_strategy().Predict()
+        print("+++++  Predictor has been Entered ++++++")
 
     def SolveSolutionStep(self):
         # Calling Solve bcs this is what is currently implemented in the MeshSolverStrategies
         # explicit bool conversion is only needed bcs "Solve" returns a double
         return bool(self.get_mesh_motion_solving_strategy().Solve())
+        print("+++++  Solve Solution Step has been Entered ++++++")
+        print(self.get_mesh_motion_solving_strategy)
 
     def SetEchoLevel(self, level):
         self.get_mesh_motion_solving_strategy().SetEchoLevel(level)
@@ -137,6 +142,7 @@ class MeshSolverBase(PythonSolver):
 
     def Clear(self):
         self.get_mesh_motion_solving_strategy().Clear()
+        print("+++++  Clearing Mesh Moving has been Entered ++++++")
 
     def GetMinimumBufferSize(self):
         buffer_size = 0
@@ -153,28 +159,37 @@ class MeshSolverBase(PythonSolver):
     def MoveMesh(self):
         # move local and ghost nodes
         KMM.MoveMesh(self.mesh_model_part.Nodes)
+        print("+++++  Moving the MESH has been Entered ++++++")
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
         self._ImportModelPart(self.mesh_model_part,self.settings["model_import_settings"])
+        print("+++++  Importing Model Part has been Entered ++++++")
 
     def PrepareModelPart(self):
         if not self.mesh_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             self._set_and_fill_buffer()
+        print("+++++  Preparing Model PArt has been Entered ++++++")
 
     def GetComputingModelPart(self):
         return self.mesh_model_part
+        print("+++++  Get Computing Model Part has been Entered ++++++")
+        print(self.mesh_model_part)
 
     #### Specific internal functions ####
 
     def get_linear_solver(self):
         if not hasattr(self, '_linear_solver'):
             self._linear_solver = self._create_linear_solver()
+        print("+++++  get linear_solver has been Entered ++++++")
+        print(self._linear_solver)
         return self._linear_solver
 
     def get_mesh_motion_solving_strategy(self):
         if not hasattr(self, '_mesh_motion_solving_strategy'):
             self._mesh_motion_solving_strategy = self._create_mesh_motion_solving_strategy()
+        print("+++++  get mesh moving_strategy has been Entered ++++++")
+        print(self._mesh_motion_solving_strategy)
         return self._mesh_motion_solving_strategy
 
     #### Private functions ####

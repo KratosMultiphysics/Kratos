@@ -42,16 +42,16 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
                 self.conversion_process = ComputeForcesOnNodesProcess(self.model, sub_project_parameters[i]["Parameters"])
             if sub_project_parameters[i]["python_module"].GetString() == "compute_lift_process":
                 self.lift_process = ComputeLiftProcess(self.model, sub_project_parameters[i]["Parameters"])
-        self.wake_process.FindWakeElements()
+        # self.wake_process.FindWakeElements()
 
     def SolveSolutionStep(self):
+        self.wake_process.CleanMarking()
         self.wake_process.FindWakeElements()
 
         super(KratosPotentialFlowSolver, self).SolveSolutionStep()
 
         self.conversion_process.ExecuteFinalizeSolutionStep()
         self.lift_process.ExecuteFinalizeSolutionStep()
-        self.wake_process.CleanMarking()
         print("SOLVING NOW")
 
     def _GetParallelType(self):
