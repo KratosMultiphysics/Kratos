@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
-import KratosMultiphysics
+import KratosMultiphysics as KM
 
 # Import applications
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
@@ -16,14 +16,18 @@ def CreateSolver(model, custom_settings):
 
 class TrilinosMeshSolverLaplacian(TrilinosMeshSolverBase):
     def __init__(self, model, custom_settings):
-        if custom_settings.Has("buffer_size"):
-            buffer_size = custom_settings["buffer_size"].GetInt()
-            if buffer_size < 2:
-                raise Exception("A buffer_size of at least 2 is required!")
-        else: # overwritting baseclass-default
-            custom_settings.AddEmptyValue("buffer_size").SetInt(2)
         super(TrilinosMeshSolverLaplacian, self).__init__(model, custom_settings)
-        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverLaplacian]:: Construction finished")
+        if custom_settings["buffer_size"].GetInt() < 2:
+            raise Exception("A buffer_size of at least 2 is required!")
+        KM.Logger.PrintInfo("::[TrilinosMeshSolverLaplacian]:: Construction finished")
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KM.Parameters("""{
+            "buffer_size"           : 2
+        }""")
+        this_defaults.AddMissingParameters(super(TrilinosMeshSolverLaplacian, cls).GetDefaultSettings())
+        return this_defaults
 
     #### Private functions ####
 

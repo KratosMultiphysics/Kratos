@@ -42,5 +42,9 @@ class Pfem2ConservedVarSolver(Pfem2PrimitiveVarSolver):
             self.ShallowVariableUtils.ComputeFreeSurfaceElevation()
             # If water height is negative or close to zero, reset values
             self.ShallowVariableUtils.CheckDryConservedVariables()
+            if self.print_particles:
+                self.lagrangian_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+                self.lagrangian_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+                self.moveparticles.ExecuteParticlesPrintingTool(self.lagrangian_model_part, self.filter_factor)
 
             return is_converged

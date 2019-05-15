@@ -140,7 +140,7 @@ public:
     Condition::Pointer GetCondition()
     {
     #ifdef KRATOS_DEBUG
-        KRATOS_ERROR_IF(mpOriginCond == nullptr) << "Condition no initialized in the PointItem class" << std::endl;
+        KRATOS_ERROR_IF(mpOriginCond.get() == nullptr) << "Condition no initialized in the PointItem class" << std::endl;
     #endif
         return mpOriginCond;
     }
@@ -155,7 +155,7 @@ public:
         
         auto aux_coord = std::make_shared<array_1d<double, 3>>(this->Coordinates());
         KRATOS_ERROR_IF(!aux_coord) << "Coordinates no initialized in the PointItem class" << std::endl;
-        KRATOS_ERROR_IF(mpOriginCond == nullptr) << "Condition no initialized in the PointItem class" << std::endl;
+        KRATOS_ERROR_IF(mpOriginCond.get() == nullptr) << "Condition no initialized in the PointItem class" << std::endl;
         
         KRATOS_CATCH("Error checking the PointItem");
     }

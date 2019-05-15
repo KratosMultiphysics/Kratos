@@ -80,7 +80,7 @@ public:
     typedef BaseType::NodesArrayType NodesArrayType;
 
     /// Counted pointer of LineLoadCondition2D
-    KRATOS_CLASS_POINTER_DEFINITION( LineLoadCondition2D );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LineLoadCondition2D );
 
     ///@}
     ///@name Life Cycle

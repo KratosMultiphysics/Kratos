@@ -139,10 +139,10 @@ public:
                 array_1d<double,3> position_node;
                 double distance=0.0;
                 position_node = pnode->Coordinates();
-                WeakPointerVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
+                GlobalPointersVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
                 //we loop all the nodes to check all the edges
                 const double number_of_neighbours = static_cast<double>(rneigh.size());
-                for( WeakPointerVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
+                for( GlobalPointersVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
                 {
                     array_1d<double,3> position_difference;
                     position_difference = inode->Coordinates() - position_node;
@@ -567,7 +567,7 @@ public:
         {
             ResultContainerType results(max_results);
 
-            WeakPointerVector< Element > elements_in_trajectory;
+            GlobalPointersVector< Element > elements_in_trajectory;
             elements_in_trajectory.resize(20);
 
             for(unsigned int ielem = element_partition[kkk]; ielem<element_partition[kkk+1]; ielem++)
@@ -859,10 +859,10 @@ public:
     /// AddUniqueWeakPointer
     template< class TDataType >
     void AddUniqueWeakPointer
-        (WeakPointerVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
+        (GlobalPointersVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
     {
-        typename WeakPointerVector< TDataType >::iterator i = v.begin();
-        typename WeakPointerVector< TDataType >::iterator endit = v.end();
+        typename GlobalPointersVector< TDataType >::iterator i = v.begin();
+        typename GlobalPointersVector< TDataType >::iterator endit = v.end();
         while ( i != endit && (i)->Id() != (candidate.lock())->Id())
         {
             i++;
@@ -1204,7 +1204,7 @@ private:
      */
     void MoveParticle(ShallowParticle & pParticle,
                       Element::Pointer & pElement,
-                      WeakPointerVector< Element >& rElementsInTrajectory,
+                      GlobalPointersVector< Element >& rElementsInTrajectory,
                       unsigned int & rNumberOfElementsInTrajectory,
                       ResultIteratorType ResultBegin,
                       const unsigned int MaxNumberOfResults)
@@ -1467,7 +1467,7 @@ private:
         }
 
         // To begin with we check the neighbour elements; it is a bit more expensive
-        WeakPointerVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
+        GlobalPointersVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i=0;i!=(neighb_elems.size());i++)
         {
             Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();
@@ -1530,7 +1530,7 @@ private:
     bool FindNodeOnMesh( const array_1d<double,3>& rPosition,
                          array_1d<double,TDim+1>& N,
                          Element::Pointer & pElement,
-                         WeakPointerVector< Element >& rElementsInTrajectory,
+                         GlobalPointersVector< Element >& rElementsInTrajectory,
                          unsigned int & rNumberOfElementsInTrajectory,
                          unsigned int & rCheckFromElementNumber,
                          ResultIteratorType ResultBegin,
@@ -1563,7 +1563,7 @@ private:
         }
 
         // Now we check the neighbour elements:
-        WeakPointerVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
+        GlobalPointersVector< Element >& neighb_elems = pElement->GetValue(NEIGHBOUR_ELEMENTS);
         for (unsigned int i=0;i!=(neighb_elems.size());i++)
         {
             Geometry<Node<3> >& geom = neighb_elems[i].GetGeometry();

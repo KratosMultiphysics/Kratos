@@ -350,7 +350,7 @@ class VariablesManager:
         if parameters["coupling"]["coupling_level_type"].GetInt() >= 1:
             self.coupling_fluid_vars += [Kratos.HYDRODYNAMIC_REACTION]
 
-        if parameters["coupling"]["coupling_level_type"].GetInt() >= 1 and parameters["coupling"]["time_averaging_type"].GetInt() > 0:
+        if parameters["coupling"]["coupling_level_type"].GetInt() >= 1 and parameters["coupling"]["forward_coupling"]["time_averaging_type"].GetInt() > 0:
             self.coupling_fluid_vars += [Kratos.MEAN_HYDRODYNAMIC_REACTION]
 
         if parameters["non_newtonian_fluid"]["non_newtonian_option"].GetBool():
@@ -418,6 +418,8 @@ class VariablesManager:
 
 
     def ChangeListOfFluidNodalResultsToPrint(self, parameters):
+        fluid_list = self.project_parameters["fluid_nodal_results"]
+        self.nodal_results.extend(key for key in fluid_list.keys() if fluid_list[key].GetBool())
 
         if parameters["store_full_gradient_option"].GetBool() and 'VELOCITY_GRADIENT' in self.nodal_results:
             self.nodal_results += ["VELOCITY_X_GRADIENT"]

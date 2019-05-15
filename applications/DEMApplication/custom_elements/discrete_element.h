@@ -27,7 +27,7 @@
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "utilities/indexed_object.h"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 #include "includes/constitutive_law.h"
 
 //Cfeng,RigidFace
@@ -37,7 +37,7 @@ namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DiscreteElement : public Element {
     public:
-        KRATOS_CLASS_POINTER_DEFINITION(DiscreteElement);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(DiscreteElement);
         DiscreteElement(IndexType NewId = 0) : Element(NewId) {}
         DiscreteElement(IndexType NewId, const NodesArrayType& ThisNodes) : Element(NewId, ThisNodes) {}
         DiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry) {}

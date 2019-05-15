@@ -31,11 +31,10 @@ class SetInitialWaterLevelProcess(KM.Process):
 
         from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
         self.process = AssignScalarVariableProcess(Model, settings)
-        self.variables_utility = SW.ShallowWaterVariablesUtility(self.model_part)
 
     def ExecuteInitialize(self):
         self.process.ExecuteInitializeSolutionStep()
         if self.variable == "HEIGHT":
-            self.variables_utility.ComputeFreeSurfaceElevation()
+            KratosShallow.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.model_part)
         elif self.variable == "FREE_SURFACE_ELEVATION":
-            self.variables_utility.ComputeHeightFromFreeSurface()
+            KratosShallow.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.model_part)

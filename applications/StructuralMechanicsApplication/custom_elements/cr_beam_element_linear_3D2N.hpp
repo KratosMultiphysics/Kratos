@@ -37,7 +37,7 @@ class CrBeamElementLinear3D2N : public CrBeamElement3D2N
 {
 
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(CrBeamElementLinear3D2N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CrBeamElementLinear3D2N);
 
     CrBeamElementLinear3D2N() {};
     CrBeamElementLinear3D2N(IndexType NewId, GeometryType::Pointer pGeometry);

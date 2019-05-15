@@ -65,7 +65,7 @@ public:
     ///@{
 
     /// Pointer definition of PotentialWallCondition
-    KRATOS_CLASS_POINTER_DEFINITION(PotentialWallCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(PotentialWallCondition);
 
     static constexpr int NumNodes = TNumNodes;
     static constexpr int Dim = TDim;
@@ -294,14 +294,14 @@ private:
 
     inline ElementPointerType pGetElement() const;
 
-    void GetElementCandidates(WeakPointerVector<Element>& ElementCandidates,
+    void GetElementCandidates(GlobalPointersVector<Element>& ElementCandidates,
                               const GeometryType& rGeom) const;
 
     void GetSortedIds(std::vector<IndexType>& Ids, const GeometryType& rGeom) const;
 
     void FindParentElement(std::vector<IndexType>& NodeIds,
                            std::vector<IndexType>& ElementNodeIds,
-                           WeakPointerVector<Element> ElementCandidates);
+                           GlobalPointersVector<Element> ElementCandidates);
 
     ///@}
     ///@name Private Operations
