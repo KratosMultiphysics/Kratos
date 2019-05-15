@@ -33,7 +33,9 @@ class PythonSolver(object):
 
         # TODO remove the check once the derived solvers implement this
         if hasattr(self, '_validate_settings_in_baseclass'):
-            self.settings.ValidateAndAssignDefaults(self.GetDefaultSettings())
+            default_settings = self.GetDefaultSettings()
+            default_settings.RecursivelyAddMissingParameters(self.settings)
+            self.settings.RecursivelyValidateAndAssignDefaults(default_settings)
         else:
             from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
             IssueDeprecationWarning('PythonSolver', 'the settings are not validated in the baseclass for solver "%s", please implement it' %(self.__class__.__name__))

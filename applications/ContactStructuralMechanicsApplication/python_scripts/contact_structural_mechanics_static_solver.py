@@ -28,22 +28,18 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
     """
     def __init__(self, model, custom_settings):
 
-        ## Settings string in json format
-        contact_settings = auxiliar_methods_solvers.AuxiliarContactSettings()
+        self._validate_settings_in_baseclass=True # To be removed eventually
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.validate_and_transfer_matching_settings(self.settings, contact_settings)
-        self.contact_settings = contact_settings["contact_settings"]
+        # Construct the base solver.
+        super(ContactStaticMechanicalSolver, self).__init__(model, custom_settings)
+
+        self.contact_settings = self.settings["contact_settings"]
 
         # Linear solver settings
         if self.settings.Has("linear_solver_settings"):
             self.linear_solver_settings = self.settings["linear_solver_settings"]
         else:
             self.linear_solver_settings = KM.Parameters("""{}""")
-
-        # Construct the base solver.
-        super(ContactStaticMechanicalSolver, self).__init__(model, self.settings)
 
         # Setting default configurations true by default
         auxiliar_methods_solvers.AuxiliarSetSettings(self.settings, self.contact_settings)
@@ -187,3 +183,9 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         self.mechanical_convergence_criterion = self.get_convergence_criterion()
         self.builder_and_solver = self.get_builder_and_solver()
         return auxiliar_methods_solvers.AuxiliarNewton(computing_model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = auxiliar_methods_solvers.AuxiliarContactSettings()
+        this_defaults.RecursivelyAddMissingParameters(super(ContactStaticMechanicalSolver, cls).GetDefaultSettings())
+        return this_defaults
