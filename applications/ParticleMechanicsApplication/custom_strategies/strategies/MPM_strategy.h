@@ -393,17 +393,17 @@ public:
     {
         // Initialize zero the variables needed
         array_1d<double,3> xg = ZeroVector(3);
-        array_1d<double,3> MP_Displacement = ZeroVector(3);
-        array_1d<double,3> MP_Velocity = ZeroVector(3);
-        array_1d<double,3> MP_Acceleration = ZeroVector(3);
-        array_1d<double,3> MP_Volume_Acceleration = ZeroVector(3);
+        array_1d<double,3> mp_displacement = ZeroVector(3);
+        array_1d<double,3> mp_velocity = ZeroVector(3);
+        array_1d<double,3> mp_acceleration = ZeroVector(3);
+        array_1d<double,3> mp_volume_acceleration = ZeroVector(3);
 
-        Vector MP_Cauchy_Stress_Vector = ZeroVector(6);
-        Vector MP_Almansi_Strain_Vector = ZeroVector(6);
-        double MP_Pressure = 0.0;
+        Vector mp_cauchy_stress_vector = ZeroVector(6);
+        Vector mp_almansi_strain_vector = ZeroVector(6);
+        double mp_pressure = 0.0;
 
-        double MP_Mass;
-        double MP_Volume;
+        double mp_mass;
+        double mp_volume;
 
         // Determine element index: This convention is done in order for the purpose of visualization in GiD
         const unsigned int number_elements = mr_grid_model_part.NumberOfElements() + mr_initial_model_part.NumberOfElements();
@@ -518,12 +518,12 @@ public:
                     const double area = rGeom.Area();
                     if(TDim == 2 && i->GetProperties().Has( THICKNESS )){
 						const double thickness = i->GetProperties()[THICKNESS];
-						MP_Mass = area * thickness * density / integration_point_per_elements;
+						mp_mass = area * thickness * density / integration_point_per_elements;
 					}
 					else {
-                        MP_Mass = area * density / integration_point_per_elements;
+                        mp_mass = area * density / integration_point_per_elements;
                     }
-                    MP_Volume = area / integration_point_per_elements;
+                    mp_volume = area / integration_point_per_elements;
 
                     // Loop over the material points that fall in each grid element
                     unsigned int new_element_id = 0;
@@ -550,19 +550,19 @@ public:
                         // Setting particle element's initial condition
                         p_element->SetValue(MP_MATERIAL_ID, MP_Material_Id);
                         p_element->SetValue(MP_DENSITY, MP_Density);
-                        p_element->SetValue(MP_MASS, MP_Mass);
-                        p_element->SetValue(MP_VOLUME, MP_Volume);
+                        p_element->SetValue(MP_MASS, mp_mass);
+                        p_element->SetValue(MP_VOLUME, mp_volume);
                         p_element->SetValue(MP_COORD, xg);
-                        p_element->SetValue(MP_DISPLACEMENT, MP_Displacement);
-                        p_element->SetValue(MP_VELOCITY, MP_Velocity);
-                        p_element->SetValue(MP_ACCELERATION, MP_Acceleration);
-                        p_element->SetValue(MP_VOLUME_ACCELERATION, MP_Volume_Acceleration);
-                        p_element->SetValue(MP_CAUCHY_STRESS_VECTOR, MP_Cauchy_Stress_Vector);
-                        p_element->SetValue(MP_ALMANSI_STRAIN_VECTOR, MP_Almansi_Strain_Vector);
+                        p_element->SetValue(MP_DISPLACEMENT, mp_displacement);
+                        p_element->SetValue(MP_VELOCITY, mp_velocity);
+                        p_element->SetValue(MP_ACCELERATION, mp_acceleration);
+                        p_element->SetValue(MP_VOLUME_ACCELERATION, mp_volume_acceleration);
+                        p_element->SetValue(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector);
+                        p_element->SetValue(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector);
 
                         if(IsMixedFormulation)
                         {
-                            p_element->SetValue(MP_PRESSURE, MP_Pressure);
+                            p_element->SetValue(MP_PRESSURE, mp_pressure);
                         }
 
                         // Add the MP Element to the model part
@@ -882,12 +882,16 @@ public:
                             p_condition->SetValue(MPC_DISPLACEMENT, mpc_displacement);
                             p_condition->SetValue(MPC_VELOCITY, mpc_velocity);
                             p_condition->SetValue(MPC_ACCELERATION, mpc_acceleration);
-                            p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
-                            p_condition->SetValue(POINT_LOAD, point_load);
-                            if (is_slip)
-                                p_condition->Set(SLIP);
-                            if (is_contact)
-                                p_condition->Set(CONTACT);
+
+                            if (is_neumann_condition)
+                                p_condition->SetValue(POINT_LOAD, point_load);
+                            else{
+                                p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
+                                if (is_slip)
+                                    p_condition->Set(SLIP);
+                                if (is_contact)
+                                    p_condition->Set(CONTACT);
+                            }
 
                             // Add the MP Condition to the model part
                             mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
@@ -924,12 +928,16 @@ public:
                             p_condition->SetValue(MPC_DISPLACEMENT, mpc_displacement);
                             p_condition->SetValue(MPC_VELOCITY, mpc_velocity);
                             p_condition->SetValue(MPC_ACCELERATION, mpc_acceleration);
-                            p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
-                            p_condition->SetValue(POINT_LOAD, point_load);
-                            if (is_slip)
-                                p_condition->Set(SLIP);
-                            if (is_contact)
-                                p_condition->Set(CONTACT);
+
+                            if (is_neumann_condition)
+                                p_condition->SetValue(POINT_LOAD, point_load);
+                            else{
+                                p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
+                                if (is_slip)
+                                    p_condition->Set(SLIP);
+                                if (is_contact)
+                                    p_condition->Set(CONTACT);
+                            }
 
                             // Add the MP Condition to the model part
                             mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
