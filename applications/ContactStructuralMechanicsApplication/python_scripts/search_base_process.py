@@ -5,7 +5,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 def Factory(settings, Model):
-    if(type(settings) != KM.Parameters):
+    if not isinstance(settings, KM.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return SearchBaseProcess(Model, settings["Parameters"])
 

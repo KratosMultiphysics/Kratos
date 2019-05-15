@@ -44,7 +44,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerTest, KratosCoreFastSuite)
 
     for(std::size_t i=0; i<global_pointers_container.size(); ++i)
     {
-        KRATOS_CHECK_EQUAL(&*new_global_pointers[i], &*global_pointers_container[i]);
+        KRATOS_CHECK_EQUAL(&new_global_pointers[i], &global_pointers_container[i]);
     }
     
 

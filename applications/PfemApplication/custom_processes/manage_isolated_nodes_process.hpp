@@ -33,7 +33,7 @@ class ManageIsolatedNodesProcess : public Process
 public:
     ///@name Type Definitions
     ///@{
-    typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
 
     /// Pointer definition of ManageIsolatedNodesProcess
     KRATOS_CLASS_POINTER_DEFINITION(ManageIsolatedNodesProcess);
