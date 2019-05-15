@@ -25,6 +25,7 @@
 #include "custom_elements/cluster3D.h"
 #include "custom_elements/rigid_body_element.h"
 #include "custom_elements/ship_element.h"
+#include "custom_elements/contact_info_spheric_particle.h"
 #include "custom_elements/thermal_spheric_particle.h"
 #include "custom_elements/sintering_spheric_continuum_particle.h"
 #include "custom_elements/bonding_spheric_continuum_particle.h"
@@ -104,6 +105,7 @@ private:
     const RigidEdge3D  mRigidEdge3D2N;
     const RigidBodyElement3D mRigidBodyElement3D;
     const ShipElement3D mShipElement3D;
+    const ContactInfoSphericParticle mContactInfoSphericParticle3D;
     const Cluster3D  mCluster3D;
     const SingleSphereCluster3D  mSingleSphereCluster3D;
     const MAPcond    mMapCon3D3N;

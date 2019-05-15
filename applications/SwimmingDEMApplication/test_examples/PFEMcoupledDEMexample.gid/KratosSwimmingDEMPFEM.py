@@ -9,17 +9,18 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import sys
 
 # Kratos
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
-from KratosMultiphysics.PfemApplication import *
-from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.PfemSolidMechanicsApplication import *
-from KratosMultiphysics.PfemFluidDynamicsApplication import *
-from KratosMultiphysics.ContactMechanicsApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
+import KratosMultiphysics as KratosMultiphysics
+from KratosMultiphysics import Model, Parameters
+import KratosMultiphysics.FluidDynamicsApplication
+import KratosMultiphysics.IncompressibleFluidApplication
+import KratosMultiphysics.DEMApplication
+import KratosMultiphysics.SwimmingDEMApplication
+import KratosMultiphysics.PfemApplication
+import KratosMultiphysics.SolidMechanicsApplication
+import KratosMultiphysics.PfemSolidMechanicsApplication
+import KratosMultiphysics.PfemFluidDynamicsApplication
+import KratosMultiphysics.ContactMechanicsApplication
+import KratosMultiphysics.ExternalSolversApplication
 
 
 class Solution:

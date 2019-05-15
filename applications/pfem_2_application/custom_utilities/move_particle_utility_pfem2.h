@@ -135,7 +135,7 @@ namespace Kratos
 		MoveParticleUtilityPFEM2(ModelPart& model_part, int maximum_number_of_particles)
 			: mr_model_part(model_part) , mmaximum_number_of_particles(maximum_number_of_particles)
 		{
-			std::cout << "initializing moveparticle utility" << std::endl;
+            KRATOS_INFO("MoveParticleUtilityPfem2") << "Initializing utility" << std::endl;
 
 			Check();
 
@@ -181,10 +181,10 @@ namespace Kratos
 					array_1d<double,3> position_node;
 					double distance=0.0;
 					position_node = pnode->Coordinates();
-					WeakPointerVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
+					GlobalPointersVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
 					//we loop all the nodes to check all the edges
 					const double number_of_neighbours = double(rneigh.size());
-					for( WeakPointerVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
+					for( GlobalPointersVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
 					{
 						array_1d<double,3> position_difference;
 						position_difference = inode->Coordinates() - position_node;
@@ -255,7 +255,7 @@ namespace Kratos
             int particle_id=0;
 			mnelems = mr_model_part.Elements().size();
 
-			std::cout << "about to resize vectors" << std::endl;
+            KRATOS_INFO("MoveParticleUtilityPfem2") << "About to resize vectors" << std::endl;
 
 
 			//setting the right size to the vector containing the particles assigned to each element
@@ -272,19 +272,16 @@ namespace Kratos
 			//each element will have a list of pointers to all the particles that are inside.
 			//this vector contains the pointers to the vector of (particle) pointers of each element.
 			mpointers_to_particle_pointers_vectors.resize(mnelems);
-            //int artz;
-            //std::cin >> artz;
-			int i_int=0; //careful! it's not the id, but the position inside the array!
-			std::cout << "about to create particles" << std::endl;
+            KRATOS_INFO("MoveParticleUtilityPfem2") << "About to create particles" << std::endl;
 			//now we seed: LOOP IN ELEMENTS
 			//using loop index, DO NOT paralelize this! change lines : mparticles_in_elems_pointers((ii*mmaximum_number_of_particles)+mparticles_in_elems_integers(ii)) = pparticle; and the next one
 
 			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-				(ielem->GetValue(FLUID_PARTICLE_POINTERS)) = ParticlePointerVector( mmaximum_number_of_particles*2);//, &firstparticle );
-				ParticlePointerVector&  particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
-				//now we link the mpointers_to_particle_pointers_vectors to the corresponding element
+				ielem->SetValue(FLUID_PARTICLE_POINTERS, ParticlePointerVector( mmaximum_number_of_particles*2) );//, &firstparticle );
+				ParticlePointerVector&  particle_pointers = ielem->GetValue(FLUID_PARTICLE_POINTERS);
+                //now we link the mpointers_to_particle_pointers_vectors to the corresponding element
 				mpointers_to_particle_pointers_vectors(ii) = &particle_pointers;
 				//now we resize the vector of particle pointers. it is double sized because we move the particles from an initial position (first half) to a final position (second half).
 				//for(int j=0; j<(mmaximum_number_of_particles*2); j++)
@@ -302,7 +299,7 @@ namespace Kratos
 				{
 					++particle_id;
 
-					PFEM_Particle_Fluid& pparticle =mparticles_vector[particle_id-1];
+					PFEM_Particle_Fluid& pparticle = mparticles_vector[particle_id-1];
 					pparticle.X()=pos(j,0);
 					pparticle.Y()=pos(j,1);
 					pparticle.Z()=pos(j,2);
@@ -310,9 +307,9 @@ namespace Kratos
 					pparticle.GetEraseFlag()=false;
 
 					array_1d<float, 3 > & vel = pparticle.GetVelocity();
-					float & distance= pparticle.GetDistance();
+					float & distance = pparticle.GetDistance();
 					noalias(vel) = ZeroVector(3);
-					distance=0.0;
+					distance = 0.0;
 
                     for (unsigned int k = 0; k < (TDim+1); k++)
                     {
@@ -320,27 +317,14 @@ namespace Kratos
 						distance +=  N(j, k) * geom[k].FastGetSolutionStepValue(DISTANCE);
 					}
 
-					if(	ii % 100000 == 0)
-						KRATOS_WATCH(particle_id);
-
-					if (distance<=0.0)
-					{
-						distance=-1.0;
-					}
-					//else if(distance<2.0)
-					//{
-					//	distance=1.0;
-					//}
+					if (distance <= 0.0)
+						distance = -1.0;
 					else
-					{
-						distance=1.0;
-					}
+						distance = 1.0;
 
 					particle_pointers(j) = &pparticle;
-					 number_of_particles++ ;
-
+					number_of_particles++;
 				}
-				++i_int;
 			}
 
 
@@ -367,10 +351,8 @@ namespace Kratos
 
 
 			m_nparticles=particle_id; //we save the last particle created as the total number of particles we have. For the moment this is true.
-			KRATOS_WATCH(m_nparticles);
-			//KRATOS_WATCH(mlast_elem_id);
+            KRATOS_INFO("MoveParticleUtilityPfem2") << "Number of particles created : " << m_nparticles << std::endl;
 			mparticle_printing_tool_initialized=false;
-			//std::cin >> artz;
 		}
 
 
@@ -392,7 +374,7 @@ namespace Kratos
 			paux.swap(mpBinsObjectDynamic);
 			//BinsObjectDynamic<Configure>  mpBinsObjectDynamic(it_begin, it_end );
 
-			std::cout << "finished mounting Bins" << std::endl;
+            KRATOS_INFO("MoveParticleUtilityPfem2") << "Finished mounting Bins" << std::endl;
 
 			KRATOS_CATCH("")
 		}
@@ -597,19 +579,11 @@ namespace Kratos
 							 mparticles_vector[freeparticle] =  pparticle;
 							 element_particle_pointers(offset+number_of_particles_in_elem) = &mparticles_vector[freeparticle];
 							number_of_particles_in_elem++;
-							//KRATOS_WATCH(number_of_particles_in_elem);
-							//KRATOS_WATCH(mparticles_vector[freeparticle])
-							//KRATOS_WATCH(geom)
 
-						  }
-					  }
-				  }
+                        }
+                    }
+                }
 			}
-
-
-
-
-
 
 			KRATOS_CATCH("")
 
@@ -989,7 +963,7 @@ namespace Kratos
 			else
 				muse_mesh_velocity_to_convect = false; //otherwise, we can avoid reading the values since we know it is zero everywhere (to save time!)
 
-			std::cout << "convecting particles" << std::endl;
+            KRATOS_INFO("MoveParticleUtilityPfem2") << "Convecting particles" << std::endl;
             //We move the particles across the fixed mesh and saving change data into them (using the function MoveParticle)
 
 			const bool local_use_mesh_velocity_to_convect = muse_mesh_velocity_to_convect;
@@ -1001,7 +975,7 @@ namespace Kratos
 			  const array_1d<double,3> mesh_displacement = mcalculation_domain_added_displacement; //if it is a standard problem, displacements are zero and therefore nothing is added.
 			  ResultContainerType results(max_results);
 
-			  WeakPointerVector< Element > elements_in_trajectory;
+			  GlobalPointersVector< Element > elements_in_trajectory;
 			  elements_in_trajectory.resize(20);
 
 			  for(unsigned int ielem=element_partition[kkk]; ielem<element_partition[kkk+1]; ielem++)
@@ -1100,7 +1074,7 @@ namespace Kratos
 			const double threshold= 0.0/(double(TDim)+1.0);
 
 
-			std::cout << "projecting info to mesh" << std::endl;
+            KRATOS_INFO("MoveParticleUtilityPfem2") << "Projecting info to mesh" << std::endl;
 
 
 			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
@@ -1554,10 +1528,10 @@ namespace Kratos
 
 
 		template< class TDataType > void  AddUniqueWeakPointer
-			(WeakPointerVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
+			(GlobalPointersVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
 		{
-			typename WeakPointerVector< TDataType >::iterator i = v.begin();
-			typename WeakPointerVector< TDataType >::iterator endit = v.end();
+			typename GlobalPointersVector< TDataType >::iterator i = v.begin();
+			typename GlobalPointersVector< TDataType >::iterator endit = v.end();
 			while ( i != endit && (i)->Id() != (candidate.lock())->Id())
 			{
 				i++;
@@ -2272,7 +2246,6 @@ namespace Kratos
 	void Check()
 	{
 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(DISTANCE) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing DISTANCE variable on solution step data","");
-		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(PRESS_PROJ) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESS_PROJ variable on solution step data","");
 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(VELOCITY) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data","");
 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(PRESSURE) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE variable on solution step data","");
 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(PROJECTED_VELOCITY) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing PROJECTED_VELOCITY variable on solution step data","");
@@ -2280,7 +2253,6 @@ namespace Kratos
 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(MESH_VELOCITY) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data","");
 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(YP) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing YP variable on solution step data","");
 		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(NORMAL) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing NORMAL variable on solution step data","");
-		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(NODAL_AREA) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing NODAL_AREA variable on solution step data","");
 	}
 
 
@@ -2289,7 +2261,7 @@ namespace Kratos
 	///of Dt
 	void MoveParticle(  PFEM_Particle_Fluid & pparticle,
 						 Element::Pointer & pelement,
-						 WeakPointerVector< Element >& elements_in_trajectory,
+						 GlobalPointersVector< Element >& elements_in_trajectory,
 						 unsigned int & number_of_elements_in_trajectory,
 						 ResultIteratorType result_begin,
 						 const unsigned int MaxNumberOfResults,
@@ -2740,7 +2712,7 @@ namespace Kratos
 		}
 
 		//to begin with we check the neighbour elements; it is a bit more expensive
-		WeakPointerVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
+		GlobalPointersVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
 		//the first we check is the one that has negative shape function, because it means it went outside in this direction:
 		//commented, it is not faster than simply checking all the neighbours (branching)
 		/*
@@ -2770,7 +2742,7 @@ namespace Kratos
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
-					pelement=Element::Pointer(((neighb_elems(i))));
+					pelement=neighb_elems(i).lock();
 					return true;
 				}
 		}
@@ -2805,7 +2777,7 @@ namespace Kratos
 		bool FindNodeOnMesh( array_1d<double,3>& position,
 						 array_1d<double,TDim+1>& N,
 						 Element::Pointer & pelement,
-						 WeakPointerVector< Element >& elements_in_trajectory,
+						 GlobalPointersVector< Element >& elements_in_trajectory,
 						 unsigned int & number_of_elements_in_trajectory,
 						 unsigned int & check_from_element_number,
 						 ResultIteratorType result_begin,
@@ -2830,7 +2802,7 @@ namespace Kratos
 			bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],aux_N);
 			if (is_found_2)
 			{
-				pelement=Element::Pointer(((elements_in_trajectory(i))));
+				pelement=elements_in_trajectory(i).lock();
 				N=aux_N;
 				check_from_element_number = i+1 ; //now i element matches pelement, so to avoid cheching twice the same element we send the counter to the following element.
 				return true;
@@ -2839,7 +2811,7 @@ namespace Kratos
 		}
 
 		//now we check the neighbour elements:
-		WeakPointerVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
+		GlobalPointersVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
 		//the first we check is the one that has negative shape function, because it means it went outside in this direction:
 		//commented, it is not faster than simply checking all the neighbours (branching)
 		/*
@@ -2869,7 +2841,7 @@ namespace Kratos
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
-					pelement=Element::Pointer(((neighb_elems(i))));
+					pelement=neighb_elems(i).lock();
 					if (number_of_elements_in_trajectory<20)
 					{
 						elements_in_trajectory(number_of_elements_in_trajectory)=pelement;
@@ -2940,7 +2912,7 @@ namespace Kratos
 		}
 
 		//to begin with we check the neighbour elements:
-		WeakPointerVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
+		GlobalPointersVector< Element >& neighb_elems = pelement->GetValue(NEIGHBOUR_ELEMENTS);
 		for (unsigned int i=0;i!=(neighb_elems.size());i++)
 		{
 
@@ -2948,7 +2920,7 @@ namespace Kratos
 				bool is_found_2 = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
 				if (is_found_2)
 				{
-					pelement=Element::Pointer(((neighb_elems(i))));
+					pelement=neighb_elems(i).lock();
 					return true;
 				}
 		}

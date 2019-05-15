@@ -46,7 +46,7 @@ MPMParticlePenaltyDirichletCondition::MPMParticlePenaltyDirichletCondition( Inde
 
 Condition::Pointer MPMParticlePenaltyDirichletCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<MPMParticlePenaltyDirichletCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMParticlePenaltyDirichletCondition>(NewId, pGeom, pProperties);
 }
 
 //************************************************************************************
@@ -54,7 +54,7 @@ Condition::Pointer MPMParticlePenaltyDirichletCondition::Create(IndexType NewId,
 
 Condition::Pointer MPMParticlePenaltyDirichletCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared<MPMParticlePenaltyDirichletCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<MPMParticlePenaltyDirichletCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 //******************************* DESTRUCTOR *****************************************
@@ -201,11 +201,18 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         }
 
         // Calculate LHS Matrix and RHS Vector
-        noalias(rLeftHandSideMatrix)  += prod(trans(shape_function), shape_function);
-        noalias(rRightHandSideVector) -= prod(prod(trans(shape_function), shape_function), gap_function);
+        if ( CalculateStiffnessMatrixFlag == true )
+        {
+            noalias(rLeftHandSideMatrix)  += prod(trans(shape_function), shape_function);
+            rLeftHandSideMatrix  *= penalty_factor * this->GetIntegrationWeight();
+        }
 
-        rLeftHandSideMatrix  *= penalty_factor * this->GetIntegrationWeight();
-        rRightHandSideVector *= penalty_factor * this->GetIntegrationWeight();
+        if ( CalculateResidualVectorFlag == true )
+        {
+            noalias(rRightHandSideVector) -= prod(prod(trans(shape_function), shape_function), gap_function);
+            rRightHandSideVector *= penalty_factor * this->GetIntegrationWeight();
+        }
+
     }
 
     KRATOS_CATCH( "" )

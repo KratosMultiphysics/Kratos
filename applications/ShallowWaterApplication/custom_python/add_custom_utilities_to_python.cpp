@@ -17,10 +17,12 @@
 
 
 // Project includes
-#include "includes/define_python.h"
-#include "custom_python/add_custom_utilities_to_python.h"
+#include "add_custom_utilities_to_python.h"
 #include "custom_utilities/move_shallow_water_particle_utility.h"
 #include "custom_utilities/shallow_water_variables_utility.h"
+#include "custom_utilities/estimate_dt_utility.h"
+#include "custom_utilities/replicate_model_part_utility.h"
+#include "custom_utilities/post_process_utilities.h"
 
 
 namespace Kratos
@@ -32,10 +34,6 @@ namespace Python
   void  AddCustomUtilitiesToPython(pybind11::module& m)
   {
     namespace py = pybind11;
-
-    //~ typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    //~ typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    //~ typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     py::class_< MoveShallowWaterParticleUtility<2> > (m, "MoveShallowWaterParticleUtility")
         .def(py::init<ModelPart& , Parameters >())
@@ -62,12 +60,37 @@ namespace Python
         .def("CheckDryConservedVariables", &ShallowWaterVariablesUtility::CheckDryConservedVariables)
         .def("CheckDryPrimitiveVariables", &ShallowWaterVariablesUtility::CheckDryPrimitiveVariables)
         .def("SetDryWetState", &ShallowWaterVariablesUtility::SetDryWetState)
-        .def("DefineDryProperties", &ShallowWaterVariablesUtility::DefineDryProperties)
-        .def("AssignDryWetProperties", &ShallowWaterVariablesUtility::AssignDryWetProperties)
-        .def("ResetMeshPosition", &ShallowWaterVariablesUtility::ResetMeshPosition)
-        .def("SetMeshPosition", &ShallowWaterVariablesUtility::SetMeshPosition)
-        .def("SetElementsActive", &ShallowWaterVariablesUtility::SetElementsActive)
+        .def("DeactivateDryElements", &ShallowWaterVariablesUtility::DeactivateDryElements)
         ;
+
+    py::class_< EstimateDtShallow > (m, "EstimateDtShallow")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("EstimateDt", &EstimateDtShallow::EstimateDt)
+        ;
+
+    py::class_< ReplicateModelPartUtility > (m, "ReplicateModelPartUtility")
+        .def(py::init<ModelPart&, ModelPart&>())
+        .def(py::init<ModelPart&, ModelPart&, bool>())
+        .def("Replicate", &ReplicateModelPartUtility::Replicate)
+        .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<Variable<double>>)
+        .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<Variable<array_1d<double, 3>>>)
+        .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<double>>)
+        .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<array_1d<double, 3>>>)
+        .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SetOriginMeshZCoordinate", py::overload_cast<>(&ReplicateModelPartUtility::SetOriginMeshZCoordinate))
+        .def("SetOriginMeshZCoordinate", py::overload_cast<Variable<double>&>(&ReplicateModelPartUtility::SetOriginMeshZCoordinate))
+        .def("SetDestinationMeshZCoordinate", py::overload_cast<>(&ReplicateModelPartUtility::SetDestinationMeshZCoordinate))
+        .def("SetDestinationMeshZCoordinate", py::overload_cast<Variable<double>&>(&ReplicateModelPartUtility::SetDestinationMeshZCoordinate))
+        ;
+
+    py::class_< PostProcessUtilities > (m, "PostProcessUtilities")
+        .def(py::init<ModelPart&>())
+        .def("DefineAuxiliaryProperties", &PostProcessUtilities::DefineAuxiliaryProperties)
+        .def("AssignDryWetProperties", &PostProcessUtilities::AssignDryWetProperties)
+        .def("RestoreDryWetProperties", &PostProcessUtilities::RestoreDryWetProperties)
+        ;
+
   }
 
 }  // namespace Python.

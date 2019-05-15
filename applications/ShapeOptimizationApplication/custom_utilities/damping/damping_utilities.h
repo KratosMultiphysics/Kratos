@@ -90,7 +90,8 @@ public:
     DampingUtilities( ModelPart& modelPartToDamp, pybind11::dict subModelPartsForDamping, Parameters DampingSettings )
         : mrModelPartToDamp( modelPartToDamp ),
           mrDampingRegions( subModelPartsForDamping ),
-          mDampingSettings( DampingSettings["damping_regions"] )
+          mDampingSettings( DampingSettings ),
+          mMaxNeighborNodes( DampingSettings["max_neighbor_nodes"].GetInt() )
     {
         BuiltinTimer timer;
         std::cout << "\n> Creating search tree to perform damping..." << std::endl;
@@ -154,14 +155,14 @@ public:
         // Loop over all regions for which damping is to be applied
         for (unsigned int regionNumber = 0; regionNumber < len(mrDampingRegions); regionNumber++)
         {
-            std::string dampingRegionSubModelPartName = mDampingSettings[regionNumber]["sub_model_part_name"].GetString();
+            std::string dampingRegionSubModelPartName = mDampingSettings["damping_regions"][regionNumber]["sub_model_part_name"].GetString();
             ModelPart& dampingRegion = pybind11::cast<ModelPart&>( mrDampingRegions[pybind11::str(dampingRegionSubModelPartName)] );
 
-            bool dampX = mDampingSettings[regionNumber]["damp_X"].GetBool();
-            bool dampY = mDampingSettings[regionNumber]["damp_Y"].GetBool();
-            bool dampZ = mDampingSettings[regionNumber]["damp_Z"].GetBool();
-            std::string dampingFunctionType = mDampingSettings[regionNumber]["damping_function_type"].GetString();
-            double dampingRadius = mDampingSettings[regionNumber]["damping_radius"].GetDouble();
+            bool dampX = mDampingSettings["damping_regions"][regionNumber]["damp_X"].GetBool();
+            bool dampY = mDampingSettings["damping_regions"][regionNumber]["damp_Y"].GetBool();
+            bool dampZ = mDampingSettings["damping_regions"][regionNumber]["damp_Z"].GetBool();
+            std::string dampingFunctionType = mDampingSettings["damping_regions"][regionNumber]["damping_function_type"].GetString();
+            double dampingRadius = mDampingSettings["damping_regions"][regionNumber]["damping_radius"].GetDouble();
 
             DampingFunction::Pointer mpDampingFunction = CreateDampingFunction( dampingFunctionType, dampingRadius );
 

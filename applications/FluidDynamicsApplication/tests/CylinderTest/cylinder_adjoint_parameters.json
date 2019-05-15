@@ -102,12 +102,11 @@
             "Parameters" : {
                 "model_part_name" : "MainModelPart",
                 "file_settings" : {
-                    "file_access_mode" : "read_only"
+                    "file_name" : "primal_output-<time>"
                 },
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
-                },
-                "file_name" : "primal_output"
+                }
             }
         },{
             "kratos_module"   : "KratosMultiphysics",

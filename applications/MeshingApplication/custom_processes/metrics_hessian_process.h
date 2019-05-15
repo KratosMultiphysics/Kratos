@@ -14,7 +14,7 @@
 #define KRATOS_HESSIAN_METRICS_PROCESS
 
 // Project includes
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
@@ -268,11 +268,11 @@ private:
      */
     Interpolation ConvertInter(const std::string& Str)
     {
-        if(Str == "Constant" || Str == "CONSTANT")
+        if(Str == "Constant" || Str == "CONSTANT" || Str == "constant")
             return Interpolation::CONSTANT;
-        else if(Str == "Linear" || Str == "LINEAR")
+        else if(Str == "Linear" || Str == "LINEAR"  || Str == "linear")
             return Interpolation::LINEAR;
-        else if(Str == "Exponential" || Str == "EXPONENTIAL")
+        else if(Str == "Exponential" || Str == "EXPONENTIAL"  || Str == "exponential")
             return Interpolation::EXPONENTIAL;
         else
             return Interpolation::LINEAR;

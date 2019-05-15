@@ -32,6 +32,7 @@
 #include "fluid_dynamics_application_variables.h"
 #include "includes/deprecated_variables.h"
 #include "includes/cfd_variables.h"
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -70,7 +71,7 @@ public:
     ///@{
 
     /// Pointer definition of StokesWallCondition
-    KRATOS_CLASS_POINTER_DEFINITION(StokesWallCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StokesWallCondition);
 
     typedef Node < 3 > NodeType;
 
@@ -176,7 +177,7 @@ public:
       */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<StokesWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<StokesWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
 
@@ -187,7 +188,7 @@ public:
       @param pProperties Pointer to the element's properties
       */
     Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override {
-        return Kratos::make_shared< StokesWallCondition >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< StokesWallCondition >(NewId, pGeom, pProperties);
     }
 
 
@@ -210,6 +211,11 @@ public:
 
         noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+        if( this->Is(OUTLET) )
+        {
+            ApplyNeumannCondition(rLeftHandSideMatrix,rRightHandSideVector);
+        }
     }
 
     /// Return a matrix of the correct size, filled with zeros (for compatibility with time schemes).
@@ -242,6 +248,12 @@ public:
             rRightHandSideVector.resize(LocalSize);
 
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+        if( this->Is(OUTLET) )
+        {
+            Matrix tmp;
+            ApplyNeumannCondition(tmp,rRightHandSideVector);
+        }
     }
 
 
