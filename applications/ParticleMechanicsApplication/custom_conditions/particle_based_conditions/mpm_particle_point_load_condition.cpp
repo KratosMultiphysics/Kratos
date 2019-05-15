@@ -45,7 +45,7 @@ namespace Kratos
 
     Condition::Pointer MPMParticlePointLoadCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
     {
-        return Kratos::make_shared<MPMParticlePointLoadCondition>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<MPMParticlePointLoadCondition>(NewId, pGeom, pProperties);
     }
 
     //************************************************************************************
@@ -53,7 +53,7 @@ namespace Kratos
 
     Condition::Pointer MPMParticlePointLoadCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
     {
-        return Kratos::make_shared<MPMParticlePointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+        return Kratos::make_intrusive<MPMParticlePointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
     }
 
     //******************************* DESTRUCTOR *****************************************
