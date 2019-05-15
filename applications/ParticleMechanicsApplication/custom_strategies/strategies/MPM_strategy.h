@@ -680,22 +680,9 @@ public:
                             }
 
                             if(is_neumann_condition){
-
-                                if (TDim==2){
-                                    if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3)
-                                        condition_type_name = "MPMParticlePointLoadCondition2D3N";
-                                    else if (rBackgroundGeoType == GeometryData::Kratos_Quadrilateral2D4)
-                                        condition_type_name = "MPMParticlePointLoadCondition2D4N";
-                                }
-                                else if (TDim==3){
-                                    if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4)
-                                        condition_type_name = "MPMParticlePointLoadCondition3D4N";
-                                    else if (rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
-                                        condition_type_name = "MPMParticlePointLoadCondition3D8N";
-                                }
-
                                 if( i->Has( POINT_LOAD ) )
                                     point_load = i->GetValue( POINT_LOAD );
+                                particles_per_condition = 0;
                             }
 
                         }
@@ -732,7 +719,8 @@ public:
                             }
 
                             if(is_neumann_condition)
-                                KRATOS_ERROR << "Particle line load condition is not yet implemented." << std::endl;
+                                if( i->Has( LINE_LOAD ) )
+                                    point_load = i->GetValue( LINE_LOAD );
 
                         }
                         else if(rGeoType == GeometryData::Kratos_Triangle3D3)
@@ -771,7 +759,8 @@ public:
                             }
 
                             if(is_neumann_condition)
-                                KRATOS_ERROR << "Particle surface load condition is not yet implemented." << std::endl;
+                                if( i->Has( SURFACE_LOAD ) )
+                                    point_load = i->GetValue( SURFACE_LOAD );
 
                         }
                         else if(rGeoType == GeometryData::Kratos_Quadrilateral3D4)
@@ -804,7 +793,8 @@ public:
                             }
 
                             if(is_neumann_condition)
-                                KRATOS_ERROR << "Particle surface load condition is not yet implemented." << std::endl;
+                                if( i->Has( SURFACE_LOAD ) )
+                                    point_load = i->GetValue( SURFACE_LOAD );
 
                         }
                         else{
@@ -819,7 +809,8 @@ public:
 
                         // Evaluation of geometric length/area
                         const double area = rGeom.Area();
-                        mpc_area = area / (rGeom.size() + integration_point_per_conditions);
+                        mpc_area = area / (1 + integration_point_per_conditions);
+                        const double mpc_nodal_area = mpc_area / rGeom.size();
 
                         // Check condition variables
                         if (i->Has(DISPLACEMENT))
@@ -849,6 +840,23 @@ public:
                                     condition_type_name = "MPMParticlePenaltyDirichletCondition3D8N";
                             }
                         }
+
+                        // If neumann boundary
+                        if(is_neumann_condition){
+
+                                if (TDim==2){
+                                    if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3)
+                                        condition_type_name = "MPMParticlePointLoadCondition2D3N";
+                                    else if (rBackgroundGeoType == GeometryData::Kratos_Quadrilateral2D4)
+                                        condition_type_name = "MPMParticlePointLoadCondition2D4N";
+                                }
+                                else if (TDim==3){
+                                    if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4)
+                                        condition_type_name = "MPMParticlePointLoadCondition3D4N";
+                                    else if (rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
+                                        condition_type_name = "MPMParticlePointLoadCondition3D8N";
+                                }
+                            }
 
                         // Get new condition
                         const Condition& new_condition = KratosComponents<Condition>::Get(condition_type_name);
@@ -919,7 +927,7 @@ public:
                             // TODO: If any variable is added or remove here, please add and remove also at the first loop above
                             p_condition->SetValue(MPC_CONDITION_ID, mpc_condition_id);
                             p_condition->SetValue(MPC_COORD, mpc_xg);
-                            p_condition->SetValue(MPC_AREA, mpc_area);
+                            p_condition->SetValue(MPC_AREA, mpc_nodal_area);
                             p_condition->SetValue(MPC_NORMAL, mpc_normal);
                             p_condition->SetValue(MPC_DISPLACEMENT, mpc_displacement);
                             p_condition->SetValue(MPC_VELOCITY, mpc_velocity);
