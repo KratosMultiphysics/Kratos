@@ -42,24 +42,28 @@ int BruteForcePointLocator::FindNode(const Point& rThePoint,
 }
 
 int BruteForcePointLocator::FindElement(const Point& rThePoint,
-                                        Vector& rShapeFunctionValues) const
+                                        Vector& rShapeFunctionValues,
+                                        const double LocalCoordTol) const
 {
     int found_element_id = -1; // if no element is found this will be returned
     const auto& r_elements = mrModelPart.GetCommunicator().LocalMesh().Elements();
     FindObject(r_elements, "Element",
                 rThePoint, found_element_id,
-                rShapeFunctionValues);
+                rShapeFunctionValues,
+                LocalCoordTol);
     return found_element_id;
 }
 
 int BruteForcePointLocator::FindCondition(const Point& rThePoint,
-                                          Vector& rShapeFunctionValues) const
+                                          Vector& rShapeFunctionValues,
+                                          const double LocalCoordTol) const
 {
     int found_condition_id = -1; // if no condition is found this will be returned
     const auto& r_conditions = mrModelPart.GetCommunicator().LocalMesh().Conditions();
     FindObject(r_conditions, "Condition",
                 rThePoint, found_condition_id,
-                rShapeFunctionValues);
+                rShapeFunctionValues,
+                LocalCoordTol);
     return found_condition_id;
 }
 
@@ -68,14 +72,15 @@ void BruteForcePointLocator::FindObject(const TObjectType& rObjects,
                                         const std::string& rObjectName,
                                         const Point& rThePoint,
                                         int& rObjectId,
-                                        Vector& rShapeFunctionValues) const
+                                        Vector& rShapeFunctionValues,
+                                        const double LocalCoordTol) const
 {
     int local_object_found = 0;
     array_1d<double, 3> local_coordinates;
 
     // note that this cannot be omp bcs breaking is not allowed in omp
     for (auto& r_object : rObjects) {
-        const bool is_inside = r_object.GetGeometry().IsInside(rThePoint, local_coordinates);
+        const bool is_inside = r_object.GetGeometry().IsInside(rThePoint, local_coordinates, LocalCoordTol);
         if (is_inside) {
             local_object_found = 1;
             rObjectId = r_object.Id();
@@ -105,7 +110,7 @@ void BruteForcePointLocator::CheckResults(const std::string& rObjectName,
 
 bool BruteForcePointLocator::NodeIsCloseEnough(const Node<3>& rNode,
                                                const Point& rThePoint,
-                                               double DistanceThreshold) const
+                                               const double DistanceThreshold) const
 {
     const double distance = std::sqrt( std::pow(rNode.X0() - rThePoint.X(),2)
                                      + std::pow(rNode.Y0() - rThePoint.Y(),2)
