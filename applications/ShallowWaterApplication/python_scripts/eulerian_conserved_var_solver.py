@@ -31,15 +31,11 @@ class EulerianConservedVarSolver(ShallowWaterBaseSolver):
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized:
-            # If a node and it's neighbours are dry, set ACTIVE flag to false
-            self.ShallowVariableUtils.SetDryWetState()
             # Solve equations
             is_converged = self.solver.SolveSolutionStep()
             # Compute free surface
-            self.ShallowVariableUtils.ComputeFreeSurfaceElevation()
+            SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)
             # Compute velocity
-            self.ShallowVariableUtils.ComputeVelocity()
-            # If water height is negative or close to zero, reset values
-            self.ShallowVariableUtils.CheckDryConservedVariables()
+            SW.ShallowWaterUtilities().ComputeVelocity(self.main_model_part)
 
             return is_converged

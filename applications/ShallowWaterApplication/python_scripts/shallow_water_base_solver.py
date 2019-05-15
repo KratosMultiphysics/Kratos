@@ -122,9 +122,6 @@ class ShallowWaterBaseSolver(PythonSolver):
         KM.FindNodalHProcess(self.GetComputingModelPart()).Execute()
         self.EstimateDeltaTimeUtility = SW.EstimateDtShallow(self.GetComputingModelPart(), self.settings["time_stepping"])
 
-        # Initialize shallow water variables utility
-        self.ShallowVariableUtils = SW.ShallowWaterVariablesUtility(self.main_model_part, self.settings["dry_height"].GetDouble())
-
         # Creating the solution strategy for the mesh stage
         self.conv_criteria = KM.DisplacementCriteria(self.settings["relative_tolerance"].GetDouble(),
                                                                      self.settings["absolute_tolerance"].GetDouble())
@@ -227,7 +224,6 @@ class ShallowWaterBaseSolver(PythonSolver):
             "echo_level"               : 0,
             "buffer_size"              : 2,
             "dynamic_tau"              : 0.005,
-            "dry_height"               : 0.01,
             "relative_tolerance"       : 1e-6,
             "absolute_tolerance"       : 1e-9,
             "maximum_iterations"       : 20,

@@ -72,7 +72,6 @@ class WaveGeneratorProcess(KM.Process):
 
         self.free_surface_process = SW.ApplySinusoidalFunctionToScalar(self.model_part, SW.FREE_SURFACE_ELEVATION, free_surface_parameters)
         self.velocity_process = SW.ApplySinusoidalFunctionToScalar(self.model_part, SW.FREE_SURFACE_ELEVATION, velocity_parameters)
-        self.variables_utility = SW.ShallowWaterVariablesUtility(self.model_part)
 
     def ExecuteInitializeSolutionStep(self):
         if self._IsInInterval():
@@ -85,11 +84,11 @@ class WaveGeneratorProcess(KM.Process):
                 self.velocity_process.ExecuteInitializeSolutionStep()
             
             # Compute the free surface
-            self.variables_utility.ComputeHeightFromFreeSurface()
+            SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.model_part)
 
             # Compute the momentum if needed
             if self.formulation == SW.Formulation.CONSERVED_VARIABLES:
-                self.variables_utility.ComputeMomentum()
+                SW.ShallowWaterUtilities().ComputeMomentum(self.model_part)
 
             # Fix the free surface if needed
             if self.variables == SW.Variables.FREE_SURFACE_VARIABLE or self.variables == SW.Variables.FREE_SURFACE_AND_VELOCITY:

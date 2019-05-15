@@ -55,11 +55,9 @@ class InitialPerturbationProcess(KM.Process):
         else:
             raise Exception("InitialPerturbationProcess: unknown source type")
 
-        self.variables_utility = SW.ShallowWaterVariablesUtility(self.model_part)
-
     def ExecuteInitialize(self):
         self.perturbation_process.Execute()
         if self.variable_name == "HEIGHT":
-            self.variables_utility.ComputeFreeSurfaceElevation()
+            SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.model_part)
         elif self.variable_name == "FREE_SURFACE_ELEVATION":
-            self.variables_utility.ComputeHeightFromFreeSurface()
+            SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.model_part)

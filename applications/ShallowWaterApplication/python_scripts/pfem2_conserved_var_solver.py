@@ -34,14 +34,13 @@ class Pfem2ConservedVarSolver(Pfem2PrimitiveVarSolver):
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
-            # If a node and it's neighbours are dry, set ACTIVE flag to false
-            self.ShallowVariableUtils.SetDryWetState()
             # Solve equations on mesh
             is_converged = self.solver.SolveSolutionStep()
             # Compute free surface
-            self.ShallowVariableUtils.ComputeFreeSurfaceElevation()
-            # If water height is negative or close to zero, reset values
-            self.ShallowVariableUtils.CheckDryConservedVariables()
+            SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)
+            # Compute velocity
+            SW.ShallowWaterUtilities().ComputeVelocity(self.main_model_part)
+            # Print particles if needed
             if self.print_particles:
                 self.lagrangian_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
                 self.lagrangian_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
