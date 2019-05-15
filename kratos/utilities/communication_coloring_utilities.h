@@ -24,7 +24,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/serializer.h"
-#include "mpi/includes/mpi_data_communicator.h"
+#include "includes/data_communicator.h"
 
 namespace Kratos
 {
@@ -51,7 +51,7 @@ namespace Kratos
 ///@{
 
 /// This class provides elementary function for computing the recv list and to define a coloring for communications
-class MPIColoringUtilities
+class KRATOS_API(KRATOS_CORE) MPIColoringUtilities
 {
 public:
     ///@name Type Definitions
@@ -81,7 +81,7 @@ public:
      */
     static std::vector<int> ComputeRecvList(
         const std::vector<int>& rLocalDestinationIds,
-        MPIDataCommunicator& rComm
+        const DataCommunicator& rComm
     );
 
     /** This function colors communications so to allow syncronous mpi communications
@@ -101,7 +101,7 @@ public:
      */
     static std::vector<int> ComputeCommunicationScheduling(
         const std::vector<int>& rLocalDestinationIds,
-        MPIDataCommunicator& rComm
+        const DataCommunicator& rComm
     );
 
 

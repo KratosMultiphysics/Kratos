@@ -55,7 +55,7 @@ public:
     ///@{
 
     // Counted pointer of MPMBaseLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MPMBaseLoadCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMBaseLoadCondition );
 
     ///@}
     ///@name Life Cycle
