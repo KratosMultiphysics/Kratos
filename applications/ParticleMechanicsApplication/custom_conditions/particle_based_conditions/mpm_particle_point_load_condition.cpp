@@ -152,7 +152,8 @@ namespace Kratos
 
     double MPMParticlePointLoadCondition::GetPointLoadIntegrationWeight()
     {
-        return 1.0;
+        KRATOS_WATCH(this->GetValue(MPC_AREA));
+        return this->GetValue(MPC_AREA);
     }
 
     void MPMParticlePointLoadCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
