@@ -59,9 +59,7 @@ void MPIEnvironment::Initialize()
         #if MPI_VERSION < 2
         MPI_Init(&argc, &argv);
 
-        int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        if (rank == 0) KRATOS_DETAIL("MPIEnvironment") << "MPI version older than 2, no support for MPI_THREAD_MULTIPLE is provided." << std::endl;
+        KRATOS_DETAIL("MPIEnvironment") << "MPI version older than 2, no support for MPI_THREAD_MULTIPLE is provided." << std::endl;
 
         #else
         int provided;
@@ -69,17 +67,13 @@ void MPIEnvironment::Initialize()
 
         if (provided < MPI_THREAD_MULTIPLE)
         {
-            int rank;
-            MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-            if (rank == 0) KRATOS_DETAIL("MPIEnvironment") << "MPI initialized without MPI_THREAD_MULTIPLE (not provided)." << std::endl;
+            KRATOS_DETAIL("MPIEnvironment") << "MPI initialized without MPI_THREAD_MULTIPLE (not provided)." << std::endl;
         }
 
         #endif
     }
 
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    KRATOS_DETAIL("MPIEnvironment") << "MPI initialize called in rank " << rank << "." << std::endl;
+    KRATOS_DETAIL_ALL_RANKS("MPIEnvironment") << "MPI initialize called." << std::endl;
 }
 
 void MPIEnvironment::Finalize()
