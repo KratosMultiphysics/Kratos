@@ -1,32 +1,30 @@
-import KratosMultiphysics
-import KratosMultiphysics.ShallowWaterApplication as KratosShallow
+import KratosMultiphysics as KM
+import KratosMultiphysics.ShallowWaterApplication as SW
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return SetInitialWaterLevelProcess(Model, settings["Parameters"])
+    return SetTopographyProcess(Model, settings["Parameters"])
 
 ## This process sets the value of a scalar variable using the AssignScalarVariableProcess.
-class SetInitialWaterLevelProcess(KratosMultiphysics.Process):
+class SetTopographyProcess(KM.Process):
 
     def __init__(self, Model, settings):
 
-        KratosMultiphysics.Process.__init__(self)
+        KM.Process.__init__(self)
 
-        default_settings = KratosMultiphysics.Parameters("""
+        default_settings = KM.Parameters("""
             {
-                "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "interval"             : [0.0, 1e30],
-                "variable_name"        : "HEIGHT",
                 "constrained"          : false,
-                "value"                : "1.0"
+                "value"                : "z"
             }
             """
             )
         settings.ValidateAndAssignDefaults(default_settings)
+        settings.AddEmptyValue("variable_name").SetString("TOPOGRAPHY")
 
-        self.variable = settings["variable_name"].GetString()
         self.model_part = Model[settings["model_part_name"].GetString()]
 
         from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
@@ -34,7 +32,4 @@ class SetInitialWaterLevelProcess(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
         self.process.ExecuteInitializeSolutionStep()
-        if self.variable == "HEIGHT":
-            KratosShallow.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.model_part)
-        elif self.variable == "FREE_SURFACE_ELEVATION":
-            KratosShallow.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.model_part)
+        SW.ShallowWaterUtilities().FlipScalarVariable(SW.TOPOGRAPHY, SW.BATHYMETRY, self.model_part)
