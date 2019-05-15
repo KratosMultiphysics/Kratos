@@ -188,6 +188,7 @@ private:
     const double mExtraRaysEpsilon = 1.0e-8;
     FindIntersectedGeometricalObjectsProcess* mpFindIntersectedObjectsProcess;
     bool mIsSearchStructureAllocated;
+    double mCharactresticLength;
 
     ///@}
     ///@name Private Operators
@@ -226,6 +227,8 @@ private:
         const double RayPerturbation,
         const array_1d<double,3> &rCoords,
         array_1d<double,TDim> &rDistances);
+
+    void CalculateCharacteristicLength();
 
     ///@}
     ///@name Private  Access
