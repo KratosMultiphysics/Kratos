@@ -40,12 +40,6 @@ public:
     /** returns false if MPI_Finalized would return 0, true otherwise. */
     bool IsFinalized();
 
-    /// Helper function to obtain the underlying MPI_Comm for a data communicator.
-    /** If the data communicator is serial, MPI_COMM_SELF is returned.
-     *  @param rDataCommunicator The DataCommunicator whose MPI_Comm we want to get.
-     */
-    static MPI_Comm GetMPICommunicator(const DataCommunicator& rDataCommunicator);
-
     /// Set up Kratos for an MPI run.
     /** This initializes the "World" DataCommunicator (a wrapper for MPI_COMM_WOLRD)
      *  and makes it the default communicator for Kratos.

@@ -52,10 +52,10 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommRetrieval, KratosMPICoreFastSuite)
     MPIDataCommunicator mpi_self_communicator(MPI_COMM_SELF);
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
-    KRATOS_CHECK_EQUAL(MPIEnvironment::GetMPICommunicator(serial_communicator), MPI_COMM_SELF);
-    KRATOS_CHECK_EQUAL(MPIEnvironment::GetMPICommunicator(mpi_self_communicator), MPI_COMM_SELF);
-    KRATOS_CHECK_EQUAL(MPIEnvironment::GetMPICommunicator(mpi_world_communicator), MPI_COMM_WORLD);
-    KRATOS_CHECK_NOT_EQUAL(MPIEnvironment::GetMPICommunicator(mpi_world_communicator), MPI_COMM_SELF);
+    KRATOS_CHECK_EQUAL(MPIDataCommunicator::GetMPICommunicator(serial_communicator), MPI_COMM_SELF);
+    KRATOS_CHECK_EQUAL(MPIDataCommunicator::GetMPICommunicator(mpi_self_communicator), MPI_COMM_SELF);
+    KRATOS_CHECK_EQUAL(MPIDataCommunicator::GetMPICommunicator(mpi_world_communicator), MPI_COMM_WORLD);
+    KRATOS_CHECK_NOT_EQUAL(MPIDataCommunicator::GetMPICommunicator(mpi_world_communicator), MPI_COMM_SELF);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFromKratosComponents, KratosMPICoreFastSuite)
