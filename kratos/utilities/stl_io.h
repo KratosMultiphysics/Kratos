@@ -79,17 +79,6 @@ std::ostream& operator <<(std::ostream& rOStream, const Kratos::intrusive_ptr<T>
   return rOStream;
 }
 
-template<class T>
-std::ostream& operator <<(std::ostream& rOStream, const Kratos::intrusive_weak_ptr<T>& rData) {
-
-  if(!rData.expired())
-    rOStream << *rData.lock().get();
-  else
-    rOStream <<" expired weak_ptr ";
-
-  return rOStream;
-}
-
 } //namespace Kratos
 
 

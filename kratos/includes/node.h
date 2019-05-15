@@ -69,7 +69,7 @@ class Element;
 /** The node class from Kratos is defined in this class
 */
 template<std::size_t TDimension, class TDofType = Dof<double> >
-class Node : public Point,  public IndexedObject, public Flags, public std::intrusive_base<Node<TDimension,TDofType> >
+class Node : public Point,  public IndexedObject, public Flags
 {
     class GetDofKey : public std::unary_function<TDofType, VariableData::KeyType>
     {
@@ -79,6 +79,8 @@ class Node : public Point,  public IndexedObject, public Flags, public std::intr
             return This.GetVariable().Key();
         }
     };
+
+
 
 public:
     ///@name Type Definitions
@@ -351,6 +353,18 @@ public:
         omp_destroy_lock(&mNodeLock);
 #endif
     }
+
+    //*********************************************
+    //public API of intrusive_ptr  
+    typename NodeType::Pointer shared_from_this()
+    {
+        return typename NodeType::Pointer(this);
+    }
+    unsigned int use_count() const noexcept
+    {
+        return refcount_;
+    }
+    //*********************************************
 
     void SetId(IndexType NewId) override
     {
@@ -1105,7 +1119,23 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+    //*********************************************
+    //this block is needed for refcounting
+    mutable std::atomic<int> refcount_;
 
+    friend void intrusive_ptr_add_ref(const NodeType* x)
+    {
+        x->refcount_.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    friend void intrusive_ptr_release(const NodeType* x)
+    {
+        if (x->refcount_.fetch_sub(1, std::memory_order_release) == 1) {
+        std::atomic_thread_fence(std::memory_order_acquire);
+        delete x;
+        }
+    }
+    //*********************************************
 
 
     ///@}

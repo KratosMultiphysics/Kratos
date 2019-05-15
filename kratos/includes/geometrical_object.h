@@ -54,7 +54,7 @@ namespace Kratos
  * @details Derives from IndexedObject, so it has an ID, and from Flags
  * @author Pooyan Dadvand
 */
-class GeometricalObject : public IndexedObject, public Flags, public std::intrusive_base<GeometricalObject>
+class GeometricalObject : public IndexedObject, public Flags
 {
 public:
     ///@name Type Definitions
@@ -263,6 +263,19 @@ public:
     {
     }
 
+    //*********************************************
+    //public API of intrusive_ptr
+    GeometricalObject::Pointer shared_from_this()
+    {
+        return GeometricalObject::Pointer(this);
+    }    
+
+    unsigned int use_count() const noexcept
+    {
+        return refcount_;
+    }
+    //*********************************************
+
     ///@}
     ///@name Friends
     ///@{
@@ -321,6 +334,24 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+    
+    //*********************************************
+    //this block is needed for refcounting
+    mutable std::atomic<int> refcount_;
+
+    friend void intrusive_ptr_add_ref(const GeometricalObject* x)
+    {
+        x->refcount_.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    friend void intrusive_ptr_release(const GeometricalObject* x)
+    {
+        if (x->refcount_.fetch_sub(1, std::memory_order_release) == 1) {
+        std::atomic_thread_fence(std::memory_order_acquire);
+        delete x;
+        }
+    }
+    //*********************************************
 
 
     ///@}
