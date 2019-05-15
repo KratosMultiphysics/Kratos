@@ -11,8 +11,8 @@
 //
 
 
-#if !defined(KRATOS_MPM_PARTICLE_BASE_DIRICHLET_CONDITION_3D_H_INCLUDED )
-#define      KRATOS_MPM_PARTICLE_BASE_DIRICHLET_CONDITION_3D_H_INCLUDED
+#if !defined(KRATOS_MPM_PARTICLE_BASE_CONDITION_3D_H_INCLUDED )
+#define      KRATOS_MPM_PARTICLE_BASE_CONDITION_3D_H_INCLUDED
 
 // System includes
 
@@ -20,7 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/particle_based_conditions/mpm_particle_base_condition.h"
+#include "includes/condition.h"
 #include "particle_mechanics_application_variables.h"
 
 namespace Kratos
@@ -45,8 +45,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class MPMParticleBaseDirichletCondition
-    : public MPMParticleBaseCondition
+class MPMParticleBaseCondition
+    : public Condition
 {
 
 protected:
@@ -84,27 +84,27 @@ public:
     typedef std::size_t SizeType;
     ///@{
 
-    // Counted pointer of MPMParticleBaseDirichletCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMParticleBaseDirichletCondition );
+    // Counted pointer of MPMParticleBaseCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMParticleBaseCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    MPMParticleBaseDirichletCondition()
+    MPMParticleBaseCondition()
     {};
 
     // Constructor using an array of nodes
-    MPMParticleBaseDirichletCondition( IndexType NewId, GeometryType::Pointer pGeometry ):MPMParticleBaseCondition(NewId,pGeometry)
+    MPMParticleBaseCondition( IndexType NewId, GeometryType::Pointer pGeometry ):Condition(NewId,pGeometry)
     {};
 
     // Constructor using an array of nodes with properties
-    MPMParticleBaseDirichletCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):MPMParticleBaseCondition(NewId,pGeometry,pProperties)
+    MPMParticleBaseCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Condition(NewId,pGeometry,pProperties)
     {};
 
     // Destructor
-    ~MPMParticleBaseDirichletCondition() override
+    ~MPMParticleBaseCondition() override
     {};
 
     ///@}
@@ -371,15 +371,15 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticleBaseCondition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticleBaseCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
     }
 
-}; // class MPMParticleBaseDirichletCondition.
+}; // class MPMParticleBaseCondition.
 
 ///@}
 ///@name Type Definitions
