@@ -12,8 +12,7 @@ class ApplySlipProcess(KM.Process):
 
         default_parameters = KM.Parameters("""
             {
-                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0
+                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME"
             }
             """
             )

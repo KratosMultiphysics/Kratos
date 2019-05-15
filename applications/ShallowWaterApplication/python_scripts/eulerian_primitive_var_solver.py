@@ -30,6 +30,6 @@ class EulerianPrimitiveVarSolver(ShallowWaterBaseSolver):
             # Solve equations on the mesh
             is_converged = self.solver.SolveSolutionStep()
             # Computing the free surface
-            Shallow.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.GetComputingModelPart())
+            SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.GetComputingModelPart())
 
             return is_converged
