@@ -26,6 +26,7 @@ def __ModuleInitDetail():
     if using_mpi:
         try:
             import KratosMultiphysics.mpi
+            mpi.InitializeMPIParallelRun()
         except ModuleNotFoundError:
             msg = [
                 "\nRequesting MPI support through the \"--using-mpi\" command line option, ",

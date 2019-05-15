@@ -25,17 +25,22 @@
 namespace Kratos {
 namespace Python {
 
+void InitializeMPIParallelRun()
+{
+    MPIEnvironment& mpi_environment = MPIEnvironment::Instance();
+
+    // Initialize MPI
+    mpi_environment.Initialize();
+
+    // SetUp the default communicator to MPI comm world
+    mpi_environment.InitializeKratosParallelEnvironment();
+}
+
 PYBIND11_MODULE(KratosMPI, m)
 {
     namespace py = pybind11;
 
-    MPIEnvironment& mpi_environment = MPIEnvironment::Instance();
-
-    // Initialize MPI when loading this module
-    mpi_environment.Initialize();
-
-    // Configure Kratos::ParallelEnvironment for MPI runs on module load
-    mpi_environment.InitializeKratosParallelEnvironment();
+    m.def("InitializeMPIParallelRun",&InitializeMPIParallelRun,"Initialitze MPI and set up Kratos for a parallel run.");
 
     AddMPICommunicatorToPython(m);
     AddMPIDataCommunicatorToPython(m);
