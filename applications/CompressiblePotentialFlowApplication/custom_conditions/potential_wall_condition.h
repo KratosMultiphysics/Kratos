@@ -292,7 +292,7 @@ private:
     ///@name Private Operators
     ///@{
 
-    inline ElementPointerType pGetElement() const;
+    inline ElementPointerType pGetElement();
 
     void GetElementCandidates(GlobalPointersVector<Element>& ElementCandidates,
                               const GeometryType& rGeom) const;
