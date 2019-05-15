@@ -163,6 +163,7 @@ public:
                                      rModelPartDestination,
                                      JsonParameters)
     {
+        this->ValidateInput();
         this->Initialize();
     }
 
