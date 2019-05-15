@@ -107,12 +107,6 @@ bool MPIEnvironment::IsFinalized()
     return (bool)mpi_is_finalized;
 }
 
-void MPIEnvironment::InitializeKratosParallelEnvironment()
-{
-    // Define the World DataCommunicator as a wrapper for MPI_COMM_WORLD and make it the default.
-    ParallelEnvironment::RegisterDataCommunicator("World", MPIDataCommunicator(MPI_COMM_WORLD), ParallelEnvironment::MakeDefault);
-}
-
 MPIEnvironment::MPIEnvironment() {}
 
 MPIEnvironment::~MPIEnvironment()

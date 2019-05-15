@@ -40,12 +40,6 @@ public:
     /** returns false if MPI_Finalized would return 0, true otherwise. */
     bool IsFinalized();
 
-    /// Set up Kratos for an MPI run.
-    /** This initializes the "World" DataCommunicator (a wrapper for MPI_COMM_WOLRD)
-     *  and makes it the default communicator for Kratos.
-     */
-    void InitializeKratosParallelEnvironment();
-
 private:
 
     MPIEnvironment();
