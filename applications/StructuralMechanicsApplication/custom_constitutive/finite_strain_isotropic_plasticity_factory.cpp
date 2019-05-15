@@ -100,8 +100,79 @@ ConstitutiveLaw::Pointer FiniteStrainIsotropicPlasticityFactory::Create(Kratos::
         } else {
             KRATOS_ERROR << "The combination of the yield surface <" << yield << "> with the plastic potential <" << potential << "> is not available" << std::endl;
         }
+    } else if (elastic_behaviour == "HyperElasticIsotropicKirchhoff3D") {
+        if (yield == "VonMises") {
+            if (potential == "VonMises") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
+            } else if (potential == "ModifiedMohrCoulomb") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>().Clone();
+            } else if (potential == "Tresca") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<TrescaPlasticPotential<6>>>>().Clone();
+            } else if (potential == "DruckerPrager") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>>().Clone();
+            } else if (potential == "MohrCoulomb") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<MohrCoulombPlasticPotential<6>>>>().Clone();
+            } else {
+                KRATOS_ERROR << "The combination of the yield surface <" << yield << "> with the plastic potential <" << potential << "> is not available" << std::endl;
+            }
+        } else if (yield == "ModifiedMohrCoulomb") {
+            if (potential == "VonMises") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
+            } else if (potential == "ModifiedMohrCoulomb") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>().Clone();
+            } else if (potential == "Tresca") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>().Clone();
+            } else if (potential == "DruckerPrager") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>().Clone();
+            } else {
+                KRATOS_ERROR << "The combination of the yield surface <" << yield << "> with the plastic potential <" << potential << "> is not available" << std::endl;
+            }
+        } else if (yield == "Tresca") {
+            if (potential == "VonMises") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
+            } else if (potential == "ModifiedMohrCoulomb") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>().Clone();
+            } else if (potential == "Tresca") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential<6>>>>().Clone();
+            } else if (potential == "DruckerPrager") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<DruckerPragerPlasticPotential<6>>>>().Clone();
+            } else if (potential == "MohrCoulomb") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<MohrCoulombPlasticPotential<6>>>>().Clone();
+            } else {
+                KRATOS_ERROR << "The combination of the yield surface <" << yield << "> with the plastic potential <" << potential << "> is not available" << std::endl;
+            }
+        } else if (yield == "DruckerPrager") {
+            if (potential == "VonMises") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
+            } else if (potential == "ModifiedMohrCoulomb") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>().Clone();
+            } else if (potential == "Tresca") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential<6>>>>().Clone();
+            } else if (potential == "DruckerPrager") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>>().Clone();
+            } else if (potential == "MohrCoulomb") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>>().Clone();
+            } else {
+                KRATOS_ERROR << "The combination of the yield surface <" << yield << "> with the plastic potential <" << potential << "> is not available" << std::endl;
+            }
+        } else if (yield == "MohrCoulomb") {
+            if (potential == "VonMises") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
+            } else if (potential == "Tresca") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>().Clone();
+            } else if (potential == "DruckerPrager") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>().Clone();
+            } else if (potential == "MohrCoulomb") {
+                return GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>>>().Clone();
+            } else {
+                KRATOS_ERROR << "The combination of the yield surface <" << yield << "> with the plastic potential <" << potential << "> is not available" << std::endl;
+            }
+        } else {
+            KRATOS_ERROR << "The combination of the yield surface <" << yield << "> with the plastic potential <" << potential << "> is not available" << std::endl;
+        }
+    } else {
+        KRATOS_ERROR << "The elastic behaviour  <" << elastic_behaviour << "> is not available" << std::endl;
     }
-
 }
 
 } // namespace Kratos
