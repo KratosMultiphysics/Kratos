@@ -161,7 +161,7 @@ namespace Kratos
         int n_nodes_orig = mrModelPart.NumberOfNodes();
         int n_conds_orig = mrModelPart.NumberOfConditions();
         n_nodes_orig = r_comm.SumAll(n_nodes_orig);
-        n_conds_orig = r_comm.SumAll(n_nodes_orig);
+        n_conds_orig = r_comm.SumAll(n_conds_orig);
 
         // Initialize the new ids. values
         std::size_t new_node_id(n_nodes_orig + n_nodes_local_scansum - n_nodes_local + 1);
