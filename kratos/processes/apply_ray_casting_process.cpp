@@ -26,7 +26,7 @@ namespace Kratos
 	template<std::size_t TDim>
 	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
 		ModelPart& rVolumePart, 
-		ModelPart& rSkinPart) : mExtraRaysEpsilon(std::numeric_limits<double>::epsilon()), mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)), mIsSearchStructureAllocated(true), mCharactresticLength(1.00)
+		ModelPart& rSkinPart) : mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)), mIsSearchStructureAllocated(true), mCharactresticLength(1.00)
 	{
 	}
 
