@@ -31,7 +31,7 @@
 #include "containers/global_pointers_vector.h"
 #include "containers/global_pointers_unordered_map.h"
 #include "includes/parallel_environment.h"
-#include "utilities/mpi_coloring_utilities.h"
+#include "utilities/communication_coloring_utilities.h"
 
 namespace Kratos
 {
