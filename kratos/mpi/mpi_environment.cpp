@@ -80,8 +80,6 @@ void MPIEnvironment::Finalize()
 {
     if (!MPIEnvironment::IsFinalized())
     {
-        int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         MPI_Finalize();
     }
 
