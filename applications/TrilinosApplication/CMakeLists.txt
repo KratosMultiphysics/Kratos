@@ -64,12 +64,12 @@ set( KRATOS_TRILINOS_APPLICATION_PYTHON_INTERFACE
 
 add_library(KratosTrilinosCore SHARED ${KRATOS_TRILINOS_APPLICATION_CORE} ${KRATOS_TRILINOS_TEST_SOURCES})
 if (HAVE_PASTIX)
-    target_link_libraries(KratosTrilinosCore PUBLIC KratosCore KratosMPICore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES} )
+    target_link_libraries(KratosTrilinosCore PUBLIC KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES} )
     install(FILES ${PASTIX_LIBRARIES} DESTINATION libs )
 
     message("Linking PASTIX in the AMGCL lib")
 else(HAVE_PASTIX)
-    target_link_libraries(KratosTrilinosCore PUBLIC KratosCore KratosMPICore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} )
+    target_link_libraries(KratosTrilinosCore PUBLIC KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} )
 endif(HAVE_PASTIX)
 set_target_properties(KratosTrilinosCore PROPERTIES COMPILE_DEFINITIONS "TRILINOS_APPLICATION=EXPORT,API")
 
