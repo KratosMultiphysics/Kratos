@@ -63,7 +63,7 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/borja_cam_clay_plastic_flow_rule.cpp
 
 	###conditions
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_base_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/grid_based_conditions/mpm_grid_base_load_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/grid_based_conditions/mpm_grid_point_load_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/grid_based_conditions/mpm_grid_axisym_point_load_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/grid_based_conditions/mpm_grid_line_load_condition_2d.cpp

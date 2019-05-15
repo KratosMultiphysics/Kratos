@@ -27,7 +27,7 @@ namespace Kratos
     //************************************************************************************
 
     MPMParticleBaseLoadCondition::MPMParticleBaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry )
-        : MPMBaseLoadCondition( NewId, pGeometry )
+        : MPMGridBaseLoadCondition( NewId, pGeometry )
     {
         //DO NOT ADD DOFS HERE!!!
     }
@@ -36,7 +36,7 @@ namespace Kratos
     //************************************************************************************
 
     MPMParticleBaseLoadCondition::MPMParticleBaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
-        : MPMBaseLoadCondition( NewId, pGeometry, pProperties )
+        : MPMGridBaseLoadCondition( NewId, pGeometry, pProperties )
     {
     }
 

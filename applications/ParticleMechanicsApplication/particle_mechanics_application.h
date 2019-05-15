@@ -34,7 +34,7 @@
 #include "containers/flags.h"
 
 /* CONDITIONS */
-#include "custom_conditions/mpm_base_load_condition.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_base_load_condition.h"
 #include "custom_conditions/grid_based_conditions/mpm_grid_point_load_condition.h"
 #include "custom_conditions/grid_based_conditions/mpm_grid_axisym_point_load_condition.h"
 #include "custom_conditions/grid_based_conditions/mpm_grid_line_load_condition_2d.h"
