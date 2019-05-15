@@ -10,8 +10,8 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SMALL_STRAIN_ISOTROPIC_PLASTICITY_FACTORY_H_INCLUDED)
-#define KRATOS_SMALL_STRAIN_ISOTROPIC_PLASTICITY_FACTORY_H_INCLUDED
+#if !defined(KRATOS_SMALL_STRAIN_KINEMATIC_PLASTICITY_FACTORY_H_INCLUDED)
+#define KRATOS_SMALL_STRAIN_KINEMATIC_PLASTICITY_FACTORY_H_INCLUDED
 
 // System includes
 
@@ -21,7 +21,7 @@
 #include "includes/constitutive_law.h"
 
 // Integrators
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
+#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_kinematic_plasticity.h"
 
 // Yield surfaces
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
@@ -60,12 +60,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class SmallStrainIsotropicPlasticityFactory
+ * @class SmallStrainKinematicPlasticityFactory
  * @ingroup StructuralMechanicsApplication
  * @brief Dummy class to register, only implements create()
  * @author Alejandro Cornejo & Lucia Barbu
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicPlasticityFactory
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainKinematicPlasticityFactory
     : public ConstitutiveLaw
 {
   public:
@@ -73,7 +73,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicPlasticit
     ///@{
 
     /// Counted pointer of GenericYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainIsotropicPlasticityFactory);
+    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainKinematicPlasticityFactory);
 
     ///@}
     ///@name Life Cycle
@@ -82,14 +82,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicPlasticit
     /**
     * Default constructor.
     */
-    SmallStrainIsotropicPlasticityFactory()
+    SmallStrainKinematicPlasticityFactory()
     {
     }
 
     /**
     * Destructor.
     */
-    ~SmallStrainIsotropicPlasticityFactory() override
+    ~SmallStrainKinematicPlasticityFactory() override
     {
     }
 

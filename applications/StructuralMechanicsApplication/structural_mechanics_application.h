@@ -105,6 +105,7 @@
 
 // Advanced Constitutive laws
 #include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
+#include "custom_constitutive/small_strain_kinematic_plasticity_factory.h"
 #include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
 #include "custom_constitutive/generic_small_strain_kinematic_plasticity.h"
 #include "custom_constitutive/finite_strain_isotropic_plasticity_factory.h"
@@ -473,6 +474,7 @@ private:
 
     // Damage and plasticity laws
     const SmallStrainIsotropicPlasticityFactory mSmallStrainIsotropicPlasticityFactory;
+    const SmallStrainKinematicPlasticityFactory mSmallStrainKinematicPlasticityFactory;
     const FiniteStrainIsotropicPlasticityFactory mFiniteStrainIsotropicPlasticityFactory;
     const SmallStrainIsotropicDamageFactory mSmallStrainIsotropicDamageFactory;
     const ViscousGeneralizedKelvin<ElasticIsotropic3D> mViscousGeneralizedKelvin3D;
