@@ -26,6 +26,11 @@ int BruteForcePointLocator::FindNode(const Point& rThePoint,
     int found_node_id = -1; // if no node is found this will be returned
     int local_node_found = 0;
 
+    const auto& r_data_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
+    const int global_num_nodes = r_data_comm.SumAll(static_cast<int>(mrModelPart.GetCommunicator().LocalMesh().NumberOfNodes()));
+
+    KRATOS_WARNING_IF("BruteForcePointLocator", global_num_nodes == 0) << r_data_comm << "No Nodes in ModelPart \"" << mrModelPart.Name() << std::endl;
+
     // note that this cannot be omp bcs breaking is not allowed in omp
     for (auto& r_node : mrModelPart.GetCommunicator().LocalMesh().Nodes()) {
         const bool is_close_enough = NodeIsCloseEnough(r_node, rThePoint, DistanceThreshold);
