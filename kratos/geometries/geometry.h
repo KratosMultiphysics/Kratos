@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -66,7 +66,7 @@ namespace Kratos
  * @see GeometryAndFormulationElement
  */
 template<class TPointType>
-class Geometry : public PointerVector<TPointType>
+class Geometry
 {
 public:
     ///@}
@@ -110,12 +110,6 @@ public:
         DIAGONAL_SCALING,
         QUADRATURE_ON_NODES
     };
-
-
-    /** Base type for geometry.
-    */
-    typedef PointerVector<TPointType> BaseType;
-
 
     /** The bounding box */
     /*typedef BoundingBox<TPointType, GeometryType>  BoundingBoxType; */
@@ -209,16 +203,24 @@ public:
      */
     typedef DenseVector<double> NormalType;
 
+    /// data type stores in this container.
+    typedef typename PointType::Pointer PointPointerType;
+    typedef const PointPointerType ConstPointPointerType;
+    typedef TPointType& PointReferenceType;
+    typedef const TPointType& ConstPointReferenceType;
+    typedef std::vector<PointPointerType> PointPointerContainerType;
 
-    typedef typename BaseType::iterator              iterator;
-    typedef typename BaseType::const_iterator          const_iterator;
-    typedef typename BaseType::reverse_iterator        reverse_iterator;
-    typedef typename BaseType::const_reverse_iterator  const_reverse_iterator;
+    typedef typename PointsArrayType::iterator iterator;
+    typedef typename PointsArrayType::const_iterator const_iterator;
+    typedef typename PointsArrayType::reverse_iterator reverse_iterator;
+    typedef typename PointsArrayType::const_reverse_iterator const_reverse_iterator;
 
-    typedef typename BaseType::ptr_iterator ptr_iterator;
-    typedef typename BaseType::ptr_const_iterator ptr_const_iterator;
-    typedef typename BaseType::ptr_reverse_iterator ptr_reverse_iterator;
-    typedef typename BaseType::ptr_const_reverse_iterator ptr_const_reverse_iterator;
+    typedef typename PointsArrayType::iterator ptr_iterator;
+    typedef typename PointsArrayType::const_iterator ptr_const_iterator;
+    typedef typename PointsArrayType::reverse_iterator ptr_reverse_iterator;
+    typedef typename PointsArrayType::const_reverse_iterator ptr_const_reverse_iterator;
+    typedef typename PointsArrayType::difference_type difference_type;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -288,16 +290,10 @@ public:
     */
     Geometry(const PointsArrayType &ThisPoints,
              GeometryData const *pThisGeometryData = &GeometryDataInstance())
-        : BaseType(ThisPoints), mpGeometryData(pThisGeometryData)
+        : mpGeometryData(pThisGeometryData)
     {
+        mpPointVector = Kratos::make_shared<PointsArrayType>(ThisPoints);
     }
-
-//       Geometry(const PointsArrayType& ThisPoints,
-//         GeometryData const& ThisGeometryData= msEmptyGeometryData)
-//  : BaseType(ThisPoints)
-//  , mGeometryData(ThisGeometryData)
-//  {
-//  }
 
     /** Copy constructor.
     Construct this geometry as a copy of given geometry.
@@ -308,8 +304,8 @@ public:
     source geometry's points too.
     */
     Geometry( const Geometry& rOther )
-        : BaseType( rOther )
-        , mpGeometryData( rOther.mpGeometryData )
+        : mpGeometryData( rOther.mpGeometryData ),
+          mpPointVector( rOther.mpPointVector )
     {
     }
 
@@ -326,13 +322,13 @@ public:
     source geometry's points too.
     */
     template<class TOtherPointType> Geometry( Geometry<TOtherPointType> const & rOther )
-        : BaseType( rOther.begin(), rOther.end() )
-        , mpGeometryData( rOther.mpGeometryData )
+        : mpGeometryData(rOther.mpGeometryData),
+          mpPointVector(rOther.begin(), rOther.end())
     {
     }
 
     /// Destructor. Do nothing!!!
-    ~Geometry() override {}
+    virtual ~Geometry() = default;
 
     virtual GeometryData::KratosGeometryFamily GetGeometryFamily() const
     {
@@ -360,8 +356,8 @@ public:
     */
     Geometry& operator=( const Geometry& rOther )
     {
-        BaseType::operator=( rOther );
         mpGeometryData = rOther.mpGeometryData;
+        mpPointVector = rOther.mpPointVector;
 
         return *this;
     }
@@ -389,6 +385,218 @@ public:
         return *this;
     }
 
+     operator PointsArrayType&()
+    {
+        return *mpPointVector;
+    }
+
+    ///@}
+    ///@name PointerVector Operators
+    ///@{
+
+    TPointType& operator[](const SizeType& i)
+    {
+        return (*mpPointVector)[i];
+    }
+
+    TPointType const& operator[](const SizeType& i) const
+    {
+        return (*mpPointVector)[i];
+    }
+
+    PointPointerType& operator()(const SizeType& i)
+    {
+        return (*mpPointVector)(i);
+    }
+
+    ConstPointPointerType& operator()(const SizeType& i) const
+    {
+        return (*mpPointVector)(i);
+    }
+
+    //bool operator==(const Geometry& r) const // nothrow
+    //{
+    //    if (size() != r.size())
+    //        return false;
+    //    else
+    //        return std::equal(
+    //            (*mpPointVector).begin(),
+    //            (*mpPointVector).end(),
+    //            (*r.mpPointVector).begin(),
+    //            this->EqualKeyTo());
+    //}
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    iterator                   begin()
+    {
+        return iterator(mpPointVector->begin());
+    }
+    const_iterator             begin() const
+    {
+        return const_iterator(mpPointVector->begin());
+    }
+    iterator                   end()
+    {
+        return iterator(mpPointVector->end());
+    }
+    const_iterator             end() const
+    {
+        return const_iterator(mpPointVector->end());
+    }
+    reverse_iterator           rbegin()
+    {
+        return reverse_iterator(mpPointVector->rbegin());
+    }
+    const_reverse_iterator     rbegin() const
+    {
+        return const_reverse_iterator(mpPointVector->rbegin());
+    }
+    reverse_iterator           rend()
+    {
+        return reverse_iterator(mpPointVector->rend());
+    }
+    const_reverse_iterator     rend() const
+    {
+        return const_reverse_iterator(mpPointVector->rend());
+    }
+    ptr_iterator               ptr_begin()
+    {
+        return mpPointVector->begin();
+    }
+    ptr_const_iterator         ptr_begin() const
+    {
+        return mpPointVector->begin();
+    }
+    ptr_iterator               ptr_end()
+    {
+        return mpPointVector->end();
+    }
+    ptr_const_iterator         ptr_end() const
+    {
+        return mpPointVector->end();
+    }
+    ptr_reverse_iterator       ptr_rbegin()
+    {
+        return mpPointVector->rbegin();
+    }
+    ptr_const_reverse_iterator ptr_rbegin() const
+    {
+        return mpPointVector->rbegin();
+    }
+    ptr_reverse_iterator       ptr_rend()
+    {
+        return mpPointVector->rend();
+    }
+    ptr_const_reverse_iterator ptr_rend() const
+    {
+        return mpPointVector->rend();
+    }
+    PointReferenceType        front()       /* nothrow */
+    {
+        assert(!empty());
+        return *(mpPointVector->front());
+    }
+    ConstPointReferenceType  front() const /* nothrow */
+    {
+        assert(!empty());
+        return *(mpPointVector->front());
+    }
+    PointReferenceType        back()        /* nothrow */
+    {
+        assert(!empty());
+        return *(mpPointVector->back());
+    }
+    ConstPointReferenceType  back() const  /* nothrow */
+    {
+        assert(!empty());
+        return *(mpPointVector->back());
+    }
+
+    SizeType size() const
+    {
+        return mpPointVector->size();
+    }
+    SizeType max_size() const
+    {
+        return mpPointVector->max_size();
+    }
+
+    void swap(GeometryType& rOther)
+    {
+        mpPointVector->swap(rOther.mpPointVector);
+    }
+
+    void push_back(TPointType x)
+    {
+        mpPointVector->push_back(x);
+    }
+
+    iterator insert(iterator Position, const TPointType pData)
+    {
+        return iterator(mpPointVector->insert(Position, pData));
+    }
+
+    //template <class InputIterator>
+    //void insert(InputIterator First, InputIterator Last)
+    //{
+    //    for (; First != Last; ++First)
+    //        insert(*First);
+    //}
+
+
+    iterator erase(iterator pos)
+    {
+        return iterator(mpPointVector->erase(pos.base()));
+    }
+
+    iterator erase(iterator first, iterator last)
+    {
+        return iterator(mpPointVector->erase(first.base(), last.base()));
+    }
+
+    void clear()
+    {
+        mpPointVector->clear();
+    }
+
+    void reserve(int dim)
+    {
+        mpPointVector->reserve(dim);
+    }
+
+    int capacity()
+    {
+        return mpPointVector->capacity();
+    }
+
+    /////@}
+    /////@name Access
+    /////@{
+
+    ///** Gives a reference to underly normal container. */
+    PointPointerContainerType& GetContainer()
+    {
+        return mpPointVector->GetContainer();
+    }
+
+    /** Gives a constant reference to underly normal container. */
+    const PointPointerContainerType& GetContainer() const
+    {
+        return mpPointVector->GetContainer();
+    }
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    bool empty() const
+    {
+        return mpPointVector->empty();
+    }
+
     ///@}
     ///@name Operations
     ///@{
@@ -406,26 +614,26 @@ public:
             *i = typename PointType::Pointer( new PointType( **i ) );
     }
 
-    // virtual Kratos::shared_ptr< Geometry< Point > > Clone() const
-    // {
-    //     Geometry< Point >::PointsArrayType NewPoints;
+     // virtual Kratos::shared_ptr< Geometry< Point > > Clone() const
+     // {
+     //     Geometry< Point >::PointsArrayType NewPoints;
 
-    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
 
-    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-    //     {
-    //         NewPoints.push_back(Kratos::make_shared< Point >((*this)[i]));
-    //     }
+     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+     //     {
+     //        NewPoints.push_back(Kratos::make_shared< Point >((*mpPointVector)[i]));
+     //     }
 
-    //     //NewPoints[i] = typename Point::Pointer(new Point(*mPoints[i]));
+     //     //NewPoints[i] = typename Point::Pointer(new Point(*mPoints[i]));
 
-    //     //creating a geometry with the new points
-    //     Geometry< Point >::Pointer p_clone( new Geometry< Point >( NewPoints ) );
+     //     //creating a geometry with the new points
+     //     Geometry< Point >::Pointer p_clone( new Geometry< Point >( NewPoints ) );
 
-    //     p_clone->ClonePoints();
+     //     p_clone->ClonePoints();
 
-    //     return p_clone;
-    // }
+     //     return p_clone;
+     // }
 
     /**
      * @brief Lumping factors for the calculation of the lumped mass matrix
@@ -930,7 +1138,7 @@ public:
     */
     const PointsArrayType& Points() const
     {
-        return *this;
+        return *mpPointVector;
     }
 
     /** An access method to the Vector of the points stored in
@@ -941,7 +1149,7 @@ public:
     */
     PointsArrayType& Points()
     {
-        return *this;
+        return *mpPointVector;
     }
 
     /** A constant access method to the i'th points stored in
@@ -953,8 +1161,8 @@ public:
     const typename TPointType::Pointer pGetPoint( const int Index ) const
     {
         KRATOS_TRY
-        return ( *this )( Index );
-        KRATOS_CATCH( *this )
+        return ( *mpPointVector)( Index );
+        KRATOS_CATCH( *mpPointVector)
     }
 
     /** An access method to the i'th points stored in
@@ -966,8 +1174,8 @@ public:
     typename TPointType::Pointer pGetPoint( const int Index )
     {
         KRATOS_TRY
-        return ( *this )( Index );
-        KRATOS_CATCH( *this );
+        return ( *mpPointVector )( Index );
+        KRATOS_CATCH( *mpPointVector);
     }
 
     /** A constant access method to the i'th points stored in
@@ -979,8 +1187,8 @@ public:
     TPointType const& GetPoint( const int Index ) const
     {
         KRATOS_TRY
-        return ( *this )[Index];
-        KRATOS_CATCH( *this );
+        return ( *mpPointVector)[Index];
+        KRATOS_CATCH( *mpPointVector);
     }
 
 
@@ -993,8 +1201,8 @@ public:
     TPointType& GetPoint( const int Index )
     {
         KRATOS_TRY
-        return ( *this )[Index];
-        KRATOS_CATCH( *this );
+        return ( *mpPointVector)[Index];
+        KRATOS_CATCH( *mpPointVector);
     }
 
     /**
@@ -2325,7 +2533,7 @@ public:
      *
      * @see Name()
      */
-    std::string Info() const override {
+    virtual std::string Info() const {
       std::stringstream buffer;
       buffer << Dimension() << " dimensional geometry in " << WorkingSpaceDimension() << "D space";
 
@@ -2355,7 +2563,7 @@ public:
      * @see PrintName()
      * @see PrintData()
      */
-    void PrintInfo(std::ostream& rOStream) const override {
+    virtual void PrintInfo(std::ostream& rOStream) const {
       rOStream << Dimension()  << " dimensional geometry in " << WorkingSpaceDimension() << "D space";
     }
 
@@ -2380,7 +2588,7 @@ public:
      * @see PrintInfo()
      * @see PrintName()
      */
-    void PrintData( std::ostream& rOStream ) const override {
+    virtual void PrintData( std::ostream& rOStream ) const {
       if(mpGeometryData) {
         mpGeometryData->PrintData( rOStream );
       }
@@ -2390,7 +2598,7 @@ public:
 
       for (unsigned int i = 0; i < this->size(); ++i) {
         rOStream << "\tPoint " << i + 1 << "\t : ";
-        (*this)[i].PrintData(rOStream);
+        (*mpPointVector)[i].PrintData(rOStream);
         rOStream << std::endl;
       }
 
@@ -2679,6 +2887,7 @@ private:
 
     GeometryData const* mpGeometryData;
 
+    Kratos::shared_ptr<PointsArrayType> mpPointVector;
 
     ///@}
     ///@name Serialization
@@ -2686,16 +2895,14 @@ private:
 
     friend class Serializer;
 
-    void save( Serializer& rSerializer ) const override
+    virtual void save( Serializer& rSerializer ) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
-//                 rSerializer.save( "Geometry Data", mpGeometryData );
+        rSerializer.save( "Points", mpPointVector );
     }
 
-    void load( Serializer& rSerializer ) override
+    virtual void load( Serializer& rSerializer )
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
-        //rSerializer.load( "Geometry Data", const_cast<GeometryData*>( mpGeometryData ) );
+        rSerializer.load( "Points", mpPointVector );
     }
 
 
