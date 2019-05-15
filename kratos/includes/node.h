@@ -1128,7 +1128,7 @@ private:
     ///@{
     //*********************************************
     //this block is needed for refcounting
-    mutable std::atomic<int> mReferenceCounter = 0;
+    mutable std::atomic<int> mReferenceCounter;
 
     friend void intrusive_ptr_add_ref(const NodeType* x)
     {
