@@ -28,7 +28,8 @@ namespace Kratos
 	CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(
 		ModelPart& rVolumePart, 
 		ModelPart& rSkinPart)
-		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart)
+		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart),
+		mExtraRaysEpsilon(std::numeric_limits<double>::epsilon())
 	{
 	}
 
