@@ -51,7 +51,6 @@
             "process_name"  : "DefineWakeProcess",
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.Body2D_Body",
-                "wake_direction"  : [1.0,0.0,0.0],
                 "epsilon"         : 1e-9
             }
         }],
