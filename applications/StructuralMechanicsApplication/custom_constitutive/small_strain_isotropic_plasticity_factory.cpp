@@ -26,11 +26,16 @@ ConstitutiveLaw::Pointer SmallStrainIsotropicPlasticityFactory::Create(Kratos::P
     const std::string& yield = NewParameters["yield_surface"].GetString();
     const std::string& potential = NewParameters["plastic_potential"].GetString();
 
-    KRATOS_ERROR_IF(yield == "SimoJu") << "SimoJu yield surface not available in plasticity " << yield << std::endl;
+    KRATOS_ERROR_IF(yield == "SimoJu") << "SimoJu yield surface not available in plasticity "   << yield << std::endl;
     KRATOS_ERROR_IF(yield == "Rankine") << "Rankine yield surface not available in plasticity " << yield << std::endl;
 
-    const std::string name = "SmallStrainIsotropicPlasticity" + law_type + yield + potential;
-    return KratosComponents<ConstitutiveLaw>::Get(name).Clone();
+    // const std::string name = "SmallStrainIsotropicPlasticity" + law_type + yield + potential;
+    // return KratosComponents<ConstitutiveLaw>::Get(name).Clone();
+
+
+    if (yield == "VonMises" && potential == "VonMises") {
+        return GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>().Clone();
+    }
 }
 
 } // namespace Kratos
