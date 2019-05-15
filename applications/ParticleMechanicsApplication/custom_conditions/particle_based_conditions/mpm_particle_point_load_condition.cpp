@@ -75,7 +75,7 @@ namespace Kratos
 
         // Get imposed displacement and normal vector
         const array_1d<double, 3 > & xg_c = this->GetValue(MPC_COORD);
-        const array_1d<double, 3 > & Point_Load = this->GetValue (POINT_LOAD);
+        const array_1d<double, 3 > & point_load = this->GetValue (POINT_LOAD);
 
         // Prepare variables
         GeneralVariables Variables;
@@ -88,7 +88,7 @@ namespace Kratos
         {
             for (unsigned int j = 0; j < dimension; j++)
             {
-                rNodalForce(j,i) = Variables.N[i] * Point_Load[j];
+                rNodalForce(j,i) = Variables.N[i] * point_load[j];
             }
         }
 
@@ -132,9 +132,9 @@ namespace Kratos
             noalias( rRightHandSideVector ) = ZeroVector( matrix_size ); //resetting RHS
         }
 
-        Matrix Nodal_Force = ZeroMatrix(3,number_of_nodes);
+        Matrix nodal_force = ZeroMatrix(3,number_of_nodes);
 
-        Nodal_Force = CalculateNodalForce(Nodal_Force, rCurrentProcessInfo);
+        nodal_force = CalculateNodalForce(nodal_force, rCurrentProcessInfo);
 
         for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
         {
@@ -142,7 +142,7 @@ namespace Kratos
 
             for(unsigned int k = 0; k < dimension; ++k)
             {
-                rRightHandSideVector[base + k] += GetPointLoadIntegrationWeight() * Nodal_Force(k,ii);
+                rRightHandSideVector[base + k] += GetPointLoadIntegrationWeight() * nodal_force(k,ii);
             }
         }
         KRATOS_CATCH( "" )
