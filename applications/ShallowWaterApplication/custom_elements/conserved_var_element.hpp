@@ -20,12 +20,7 @@
 
 
 // Project includes
-#include "includes/define.h"
-#include "includes/element.h"
-#include "includes/variables.h"
-#include "includes/serializer.h"
-#include "includes/ublas_interface.h"
-#include "custom_elements/primitive_var_element.hpp"
+#include "primitive_var_element.hpp"
 
 namespace Kratos
 {

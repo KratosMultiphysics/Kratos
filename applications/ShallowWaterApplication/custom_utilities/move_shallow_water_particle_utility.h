@@ -57,7 +57,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/point.h"
 
-#include "shallow_water_application.h"
+#include "shallow_water_application_variables.h"
 #include "shallow_water_particle.h"
 
 #include "utilities/openmp_utils.h"

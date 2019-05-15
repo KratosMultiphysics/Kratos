@@ -14,8 +14,7 @@
 #define KRATOS_ELEMENTAL_REFINING_CRITERIA_PROCESS_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
+
 
 // External includes
 
