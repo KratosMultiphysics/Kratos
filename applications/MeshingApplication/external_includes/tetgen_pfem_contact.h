@@ -259,9 +259,9 @@ public:
             {
                 int index = out_shell.neighborlist[base+i];
                 if(index > 0)
-                    neighb(i) = *((el_begin + index-1).base());
+                    neighb(i) = GlobalPointer<Element>(&*(el_begin + index-1));
                 else
-                    neighb(i) = *(iii.base());
+                    neighb(i) = GlobalPointer<Element>(&*(iii));
             }
         }
         std::cout << "time for adding neigbours" << adding_neighb.elapsed() << std::endl;;
