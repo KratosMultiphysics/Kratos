@@ -82,7 +82,7 @@ namespace Kratos
 		array_1d<double,TDim> distances;
 		unsigned int n_ray_pos(0), n_ray_neg(0);
         IntersectionsContainerType intersections;
-		const array_1d<double,3> &r_coords = rNode.Coordinates();
+		const auto &r_coords = rNode.Coordinates();
 
 		// Loop the x,y and z (3D) ray directions
         for (unsigned int i_direction = 0; i_direction < TDim; i_direction++){
