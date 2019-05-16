@@ -22,6 +22,7 @@
 #include "custom_utilities/shallow_water_variables_utility.h"
 #include "custom_utilities/estimate_dt_utility.h"
 #include "custom_utilities/replicate_model_part_utility.h"
+#include "custom_utilities/shallow_water_utilities.h"
 #include "custom_utilities/post_process_utilities.h"
 
 
@@ -61,6 +62,15 @@ namespace Python
         .def("CheckDryPrimitiveVariables", &ShallowWaterVariablesUtility::CheckDryPrimitiveVariables)
         .def("SetDryWetState", &ShallowWaterVariablesUtility::SetDryWetState)
         .def("DeactivateDryElements", &ShallowWaterVariablesUtility::DeactivateDryElements)
+        ;
+
+    py::class_< ShallowWaterUtilities > (m, "ShallowWaterUtilities")
+        .def(py::init<>())
+        .def("ComputeFreeSurfaceElevation", &ShallowWaterUtilities::ComputeFreeSurfaceElevation)
+        .def("ComputeHeightFromFreeSurface", &ShallowWaterUtilities::ComputeHeightFromFreeSurface)
+        .def("ComputeVelocity", &ShallowWaterUtilities::ComputeVelocity)
+        .def("ComputeMomentum", &ShallowWaterUtilities::ComputeMomentum)
+        .def("FlipScalarVariable", &ShallowWaterUtilities::FlipScalarVariable)
         ;
 
     py::class_< EstimateDtShallow > (m, "EstimateDtShallow")

@@ -368,7 +368,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreatePointList
         for(IndexType i = 0; i < r_conditions_array.size(); ++i) {
             auto it_cond = it_cond_begin + i;
             if (it_cond->Is(MASTER) == !mInvertedSearch || !mPredefinedMasterSlave) {
-                mPointListDestination.push_back(Kratos::make_shared<PointItem>((*it_cond.base())));
+                mPointListDestination.push_back(Kratos::make_shared<PointType>((*it_cond.base())));
             }
         }
 
@@ -628,7 +628,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
 
                     for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
                         // Master condition
-                        Condition::Pointer p_cond_master = points_found[i_point]->GetCondition();
+                        Condition::Pointer p_cond_master = points_found[i_point]->GetEntity();
 
                         // Checking with OBB
                         if (with_obb) {
