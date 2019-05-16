@@ -155,6 +155,11 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_global_pointers_to_python.cpp
 )
 
+## Kratos Version
+set( KRATOS_VERSION_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_version.cpp
+)
+
 ## Kratos testing engine soruces
 file(GLOB_RECURSE KRATOS_CORE_TESTING_ENGINE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/testing/*.cpp)
 
@@ -166,10 +171,25 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
+## Define KratosVersion object
+add_library(KratosVersion OBJECT ${KRATOS_VERSION_SOURCES})
+set_target_properties(KratosVersion PROPERTIES COMPILE_DEFINITIONS "KRATOS_VERSION=IMPORT,API")
+target_compile_definitions(KratosVersion PRIVATE
+    KRATOS_MAJOR_VERSION=${KratosMultiphysics_MAJOR_VERSION}
+    KRATOS_MINOR_VERSION=${KratosMultiphysics_MINOR_VERSION}
+    KRATOS_PATCH_VERSION=${KratosMultiphysics_PATCH_VERSION}
+    KRATOS_SHA1_NUMBER="${KratosMultiphysics_SHA1_NUMBER}"
+    KRATOS_BUILD_TYPE="${CMAKE_BUILD_TYPE}"
+)
+
 ## Define library KratosCore to be included in all of the others
-add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_TEST_SOURCES})
-target_link_libraries(KratosCore PUBLIC gidpost) #${Boost_LIBRARIES} ${PYTHON_LIBRARIES} gidpost )
+add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_TEST_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
+target_link_libraries(KratosCore PUBLIC gidpost)
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
+target_compile_definitions(KratosCore PRIVATE 
+    KRATOS_MAJOR_VERSION=${KratosMultiphysics_MAJOR_VERSION}
+    KRATOS_MINOR_VERSION=${KratosMultiphysics_MINOR_VERSION}
+)
 
 if (${AMGCL_GPGPU} MATCHES ON)
     add_subdirectory(
@@ -198,6 +218,7 @@ if(USE_COTIRE MATCHES ON)
     SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j2")
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/utilities/mortar_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    cotire(KratosVersion)
     cotire(KratosCore)
     if(${KRATOS_BUILD_TESTING} MATCHES ON)
         cotire(KratosTests)

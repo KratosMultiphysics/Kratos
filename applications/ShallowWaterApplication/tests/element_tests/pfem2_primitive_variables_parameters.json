@@ -77,7 +77,6 @@
             "python_module"   : "set_initial_water_level_process",
             "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
             "Parameters"      : {
-                "mesh_id"         : 0,
                 "model_part_name" : "main_model_part.Initial_water_level-auto-1",
                 "variable_name"   : "HEIGHT",
                 "value"           : "5"
