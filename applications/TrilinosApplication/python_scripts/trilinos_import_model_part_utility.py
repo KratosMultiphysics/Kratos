@@ -91,7 +91,7 @@ class TrilinosImportModelPartUtility():
                 if (KratosMPI.mpi.rank == 0):
                     KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis partitioning not executed.")
 
-            KratosMPI.mpi.world.barrier()
+            KratosMultiphysics.DataCommunicator.GetDefault().Barrier()
 
             ## Reset as input file name the obtained Metis partition one
             if is_single_process_run:
