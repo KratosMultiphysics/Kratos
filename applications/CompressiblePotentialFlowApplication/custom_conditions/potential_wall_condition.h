@@ -272,6 +272,7 @@ private:
     ///@{
 
     bool mInitializeWasPerformed = false;
+
     GlobalPointer<Element> mpElement;
 
     void CalculateNormal2D(array_1d<double, 3>& An) const;
@@ -292,7 +293,7 @@ private:
     ///@name Private Operators
     ///@{
 
-    inline GlobalPointer<Element> pGetElement();
+    inline GlobalPointer<Element> pGetElement() const;
 
     void GetElementCandidates(GlobalPointersVector<Element>& ElementCandidates,
                               const GeometryType& rGeom) const;

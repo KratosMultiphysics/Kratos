@@ -254,7 +254,7 @@ void PotentialWallCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
 // private operators
 
 template <unsigned int TDim, unsigned int TNumNodes>
-inline GlobalPointer<Element> PotentialWallCondition<TDim, TNumNodes>::pGetElement()
+inline GlobalPointer<Element> PotentialWallCondition<TDim, TNumNodes>::pGetElement() const
 {
     KRATOS_ERROR_IF(mpElement.get() == nullptr)
         << "No element found for condition #" << this->Id() << std::endl;
