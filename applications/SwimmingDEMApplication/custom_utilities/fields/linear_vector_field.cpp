@@ -27,6 +27,18 @@ void LinearVectorField::CalculateGradient(const double time,
 
 }
 
+void LinearVectorField::CalculateGradient(const double time,
+                                          const DenseVector<double>& coor,
+                                          DenseMatrix<double>& gradient,
+                                          const int i_thread)
+{
+    for (auto i = 0; i < 3; ++i){
+        for (auto j = 0; j < 3; ++j){
+            gradient(i, j) = mA(i, j);
+        }
+    }
+}
+
 double LinearVectorField::CalculateDivergence(const double time,
                                               const array_1d<double, 3>& coor,
                                               const int i_thread)

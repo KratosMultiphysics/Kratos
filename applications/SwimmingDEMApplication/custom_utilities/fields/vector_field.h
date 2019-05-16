@@ -67,6 +67,8 @@ virtual void Evaluate(const double time, const DenseVector<double>& coor, DenseV
 
 virtual void CalculateTimeDerivative(const double time, const DenseVector<double>& coor, DenseVector<double>& result, const int i_thread = 0){}
 
+virtual void CalculateGradient(const double time, const DenseVector<double>& coor, DenseMatrix<double>& gradient, const int i_thread = 0){}
+
 virtual double CalculateDivergence(const double time, const DenseVector<double>& coor, const int i_thread = 0){return 0.0;}
 
 virtual void CalculateRotational(const double time, const DenseVector<double>& coor, DenseVector<double>& result, const int i_thread = 0){}

@@ -189,14 +189,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     typedef void (VelocityField::*CalculateTimeDerivative)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
     CalculateTimeDerivative CalculateTimeDerivativeVector = &VelocityField::CalculateTimeDerivative;
 
-    typedef void (VelocityField::*CalculateGradient)(const double,
-                                                    const array_1d<double, 3>&,
-                                                    DenseVector< double>&,
-                                                    DenseVector< double>&,
-                                                    DenseVector< double>&,
-                                                    const int);
-
-    CalculateGradient CalculateGradientVector = &VelocityField::CalculateGradient;
+    typedef void (VectorField3::*CalculateGradient)(const double, const DenseVector<double>&, DenseMatrix<double>&, const int);
+    CalculateGradient CalculateGradientVector = &VectorField3::CalculateGradient;
 
     typedef double (VectorField3::*CalculateDivergence)(const double, const DenseVector<double>&, const int);
     CalculateDivergence CalculateDivergenceVector = &VectorField3::CalculateDivergence;
@@ -213,6 +207,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     py::class_<VectorField3, VectorField3::Pointer> (m, "VectorField3D")
         .def(py::init<>())
         .def("Evaluate", EvaluateVector)
+        .def("CalculateGradient", CalculateGradientVector)
         .def("CalculateDivergence", CalculateDivergenceVector)
         .def("CalculateRotational", CalculateRotationalVector)
         .def("CalculateLaplacian", CalculateLaplacianVector)
@@ -226,7 +221,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     py::class_<VelocityField, VelocityField::Pointer,VectorField3> (m, "VelocityField")
         .def(py::init<>())
         .def("CalculateTimeDerivative", CalculateTimeDerivativeVector)
-        .def("CalculateGradient", CalculateGradientVector)
         .def("CalculateMaterialAcceleration", CalculateMaterialAccelerationVector)
         ;
 

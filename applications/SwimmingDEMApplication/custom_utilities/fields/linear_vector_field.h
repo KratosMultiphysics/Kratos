@@ -86,6 +86,11 @@ void CalculateGradient(const double time,
                        array_1d< array_1d<double, 3>, 3>& gradient,
                        const int i_thread = 0) override;
 
+void CalculateGradient(const double time,
+                       const DenseVector<double>& coor,
+                       DenseMatrix<double>& gradient,
+                       const int i_thread = 0) override;
+
 double CalculateDivergence(const double time,
                            const array_1d<double, 3>& coor,
                            const int i_thread = 0) override;
