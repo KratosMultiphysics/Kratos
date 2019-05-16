@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/define_python.h"
 #include "shallow_water_application.h"
+#include "shallow_water_application_variables.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"

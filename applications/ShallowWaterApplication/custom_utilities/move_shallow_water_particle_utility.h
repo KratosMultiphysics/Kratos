@@ -11,8 +11,8 @@
 //                   Pablo Becker
 //
 
-#if !defined(KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED)
-#define  KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
+#ifndef KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
+#define KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
 
 ///@defgroup MoveShallowWaterParticleUtility
 ///@brief Utility to move particles on the eulerian mesh with an
@@ -57,7 +57,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/point.h"
 
-#include "shallow_water_application.h"
+#include "shallow_water_application_variables.h"
 #include "shallow_water_particle.h"
 
 #include "utilities/openmp_utils.h"

@@ -21,9 +21,8 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/point_2d.h"
-#include "includes/define.h"
-#include "includes/variables.h"
 #include "shallow_water_application.h"
+#include "shallow_water_application_variables.h"
 
 
 namespace Kratos
