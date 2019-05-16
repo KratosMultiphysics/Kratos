@@ -397,12 +397,20 @@ public:
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rMassMatrix,b);
         this->ApplyDirichletConditions(rMassMatrix, 1.0);
 
+        if (BaseType::GetEchoLevel() == 4) {
+            TSparseSpace::WriteMatrixMarketMatrix("MassMatrix.mm", rMassMatrix, false);
+        }
+
         // Generate rhs matrix. the factor -1 is chosen to make
         // Eigenvalues corresponding to fixed dofs negative
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
         TSparseSpace::SetToZero(rStiffnessMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStiffnessMatrix,b);
         ApplyDirichletConditions(rStiffnessMatrix,-1.0);
+
+        if (BaseType::GetEchoLevel() == 4) {
+            TSparseSpace::WriteMatrixMarketMatrix("StiffnessMatrix.mm", rStiffnessMatrix, false);
+        }
 
         // Eigenvector matrix and eigenvalue vector are initialized by the solver
         DenseVectorType Eigenvalues;
