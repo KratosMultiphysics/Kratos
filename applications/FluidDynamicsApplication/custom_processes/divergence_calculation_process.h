@@ -94,39 +94,71 @@ public:
     {
         KRATOS_TRY;
 
-        // Declare auxiliar doubles
-        double divergence_avg;
-        int number_elements;
-        int number_nodes;
-        double time_step_previous;
-        double time_step_current;
+        // Extract time information
+        const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+    	const double& time_step_current  = rCurrentProcessInfo[TIME];
+	    const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousTimeStepInfo();
+        const double& time_step_previous = rPreviousProcessInfo[TIME];
 
         // Check and set number of elements
+        int number_elements;
         KRATOS_ERROR_IF(mrModelPart.Elements().size() == 0) << "the number of elements in the domain is zero. divergence calculation cannot be applied"<< std::endl;
         number_elements = mrModelPart.Elements().size();
-        KRATOS_WATCH(number_elements);
 
         // Check and set number of nodes
+        int number_nodes;
         KRATOS_ERROR_IF(mrModelPart.Nodes().size() == 0) << "the number of nodes in the domain is zero. divergence calculation cannot be applied" << std::endl;
         number_nodes = mrModelPart.Nodes().size();
-        KRATOS_WATCH(number_nodes);
 
         // Geometry information
         const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
-        KRATOS_WATCH(dimension)
 
         // Initialize auxiliar variables
         array_1d<double, 3> aux_zero_vector = ZeroVector(3);
-        for(int i_node = 0; i_node < number_nodes; ++i_node) {
+        for(int i_node=0; i_node < number_nodes; ++i_node) {
             auto it_node = mrModelPart.NodesBegin() + i_node;
             it_node->SetValue(NODAL_AREA, 0.0);
-            it_node->SetValue(AUXILIAR_GRADIENT, aux_zero_vector);
+            it_node->SetValue(AUXILIAR_GRADIENT_X, aux_zero_vector);
+            it_node->SetValue(AUXILIAR_GRADIENT_Y, aux_zero_vector);
+            it_node->SetValue(AUXILIAR_GRADIENT_Z, aux_zero_vector);
         }
 
         // Compute gradient VELOCITY_X
-        auto gradient_process = ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(mrModelPart, VELOCITY_X, AUXILIAR_GRADIENT, NODAL_AREA);
-        gradient_process.Execute();
-        // Store gradient into auxiliary array
+        auto gradient_process_x = ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(mrModelPart, VELOCITY_X, AUXILIAR_GRADIENT_X, NODAL_AREA);
+        gradient_process_x.Execute();
+
+        // Compute gradient VELOCITY_Y
+        for(int i_node = 0; i_node < number_nodes; ++i_node) {
+            auto it_node = mrModelPart.NodesBegin() + i_node;
+            it_node->SetValue(NODAL_AREA, 0.0);
+        }
+        auto gradient_process_y = ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(mrModelPart, VELOCITY_Y, AUXILIAR_GRADIENT_Y, NODAL_AREA);
+        gradient_process_y.Execute();
+
+        // Compute gradient VELOCITY_Z
+        for(int i_node = 0; i_node < number_nodes; ++i_node) {
+            auto it_node = mrModelPart.NodesBegin() + i_node;
+            it_node->SetValue(NODAL_AREA, 0.0);
+        }
+        auto gradient_process_z = ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(mrModelPart, VELOCITY_Z, AUXILIAR_GRADIENT_Z, NODAL_AREA);
+        gradient_process_z.Execute();
+
+        for(int i_node = 0; i_node < number_nodes; ++i_node){
+            auto it_node = mrModelPart.NodesBegin() + i_node;
+            auto aux_gradient_x = it_node->GetValue(AUXILIAR_GRADIENT_X);
+            auto aux_gradient_y = it_node->GetValue(AUXILIAR_GRADIENT_Y);
+            auto aux_gradient_z = it_node->GetValue(AUXILIAR_GRADIENT_Z);
+            auto divergence_old_avg = it_node->GetValue(DIVERGENCE);
+            // KRATOS_WATCH(time_step_current);
+            // KRATOS_WATCH(time_step_previous);
+            // KRATOS_WATCH(it_node->GetValue(DIVERGENCE));
+            auto divergence_current = aux_gradient_x[0] + aux_gradient_y[1] + aux_gradient_z[2];
+            // Compute divergence weighetd in time average
+            auto divergence_current_avg = (time_step_previous*divergence_old_avg +(time_step_current-time_step_previous)*divergence_current)/(time_step_current);
+            it_node->SetValue(DIVERGENCE,divergence_current_avg);
+            // KRATOS_WATCH(divergence_current);
+            // KRATOS_WATCH(it_node->GetValue(DIVERGENCE));
+        }
 
         KRATOS_CATCH("");
     }
