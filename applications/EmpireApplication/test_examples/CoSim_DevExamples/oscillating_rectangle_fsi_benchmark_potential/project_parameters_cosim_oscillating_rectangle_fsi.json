@@ -10,7 +10,7 @@
     {
         "solver_type" : "simple_steady_coupling",
         "echo_level" : 1,
-        "num_coupling_iterations" : 2,
+        "num_coupling_iterations" : 5,
         "start_coupling_time" : 0.0,
         "convergence_accelerator_settings" :
         {
