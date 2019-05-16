@@ -98,7 +98,7 @@ namespace Kratos
             this->GetRayIntersections(ray, i_direction, intersections);
 
             int ray_color = 1;
-            std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
+            auto i_intersection = intersections.begin();
             while (i_intersection != intersections.end()) {
                 double int_d = r_coords[i_direction] - i_intersection->first; // Octree ray intersection distance
                 if (int_d > epsilon) {
