@@ -31,7 +31,7 @@
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/global_pointer_variables.h"
-#include "utilities/mpi_coloring_utilities.h"
+#include "utilities/communication_coloring_utilities.h"
 #include "utilities/pointer_communicator.h"
 #include "includes/mpi_serializer.h"
 #include "utilities/global_pointer_utilities.h"

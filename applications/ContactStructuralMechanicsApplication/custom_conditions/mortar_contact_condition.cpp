@@ -90,8 +90,6 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 
     BaseType::Initialize();
 
-    mIntegrationOrder = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
-
     // We reset the ISOLATED flag
     this->Set(ISOLATED, false);
 
@@ -246,7 +244,8 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 {
     KRATOS_TRY;
 
-    MortarExplicitContributionUtilities<TDim, TNumNodes, FrictionalCase::FRICTIONLESS_PENALTY, TNormalVariation, TNumNodesMaster>::AddExplicitContributionOfMortarCondition(this, rCurrentProcessInfo, mIntegrationOrder, IsAxisymmetric(), false);
+    const IndexType integration_order = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
+    MortarExplicitContributionUtilities<TDim, TNumNodes, FrictionalCase::FRICTIONLESS_PENALTY, TNormalVariation, TNumNodesMaster>::AddExplicitContributionOfMortarCondition(this, rCurrentProcessInfo, integration_order, IsAxisymmetric(), false);
 
     KRATOS_CATCH( "" );
 }
@@ -313,8 +312,9 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
     MortarConditionMatrices mortar_operators;
 
     // We call the exact integration utility
+    const IndexType integration_order = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
     const double distance_threshold = rCurrentProcessInfo[DISTANCE_THRESHOLD];
-    IntegrationUtility integration_utility = IntegrationUtility (mIntegrationOrder, distance_threshold);
+    IntegrationUtility integration_utility = IntegrationUtility (integration_order, distance_threshold);
 
     // The master geometry
     const GeometryType& r_master_geometry = this->GetPairedGeometry();
