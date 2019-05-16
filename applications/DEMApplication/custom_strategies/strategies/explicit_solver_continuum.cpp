@@ -644,6 +644,35 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
+    void ContinuumExplicitSolverStrategy::BreakAlmostBrokenSpheres() {
+
+        KRATOS_TRY
+
+        const unsigned int maximum_allowed_number_of_intact_bonds = (unsigned int) GetModelPart().GetProcessInfo()[MAX_NUMBER_OF_INTACT_BONDS_TO_CONSIDER_A_SPHERE_BROKEN];
+
+        //#pragma omp parallel for
+        for (unsigned int i = 0; i < mListOfSphericContinuumParticles.size(); i++) {
+
+            unsigned int number_of_intact_bonds = 0;
+
+            for (unsigned int j = 0; j < mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize; j++) {
+
+                if (!mListOfSphericContinuumParticles[i]->mIniNeighbourFailureId[j]) number_of_intact_bonds++;
+                if (number_of_intact_bonds > maximum_allowed_number_of_intact_bonds) break;
+            }
+
+            if (number_of_intact_bonds <= maximum_allowed_number_of_intact_bonds) {
+
+                for (unsigned int j = 0; j < mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize; j++) {
+
+                    if (!mListOfSphericContinuumParticles[i]->mIniNeighbourFailureId[j]) mListOfSphericContinuumParticles[i]->mIniNeighbourFailureId[j] = 8;
+                }
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
     void ContinuumExplicitSolverStrategy::SetInitialDemContacts() {
         KRATOS_TRY
 
@@ -703,6 +732,8 @@ namespace Kratos {
                 }
             }
         }
+
+        BreakAlmostBrokenSpheres();
     }
 
     void ContinuumExplicitSolverStrategy::FinalizeSolutionStepFEM() {
