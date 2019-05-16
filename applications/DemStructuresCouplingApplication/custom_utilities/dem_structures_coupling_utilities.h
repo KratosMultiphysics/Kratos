@@ -159,6 +159,36 @@ void MarkBrokenSpheres(ModelPart& dem_model_part) {
     }
 }
 
+void BreakAlmostBrokenSpheres(ModelPart& dem_model_part) {
+
+    ModelPart::ElementsContainerType& pElements = dem_model_part.GetCommunicator().LocalMesh().Elements();
+
+    unsigned int number_of_intact_bonds = 0;
+    const unsigned int maximum_allowed_number_of_intact_bonds = 1; //2; //TODO Get this from json
+
+    for (unsigned int k = 0; k < pElements.size(); k++) {
+
+        ModelPart::ElementsContainerType::iterator it = pElements.ptr_begin() + k;
+        Element* raw_p_element = &(*it);
+        SphericContinuumParticle* p_sphere = dynamic_cast<SphericContinuumParticle*>(raw_p_element);
+        number_of_intact_bonds = 0;
+
+        for (unsigned int i = 0; i < p_sphere->mContinuumInitialNeighborsSize; i++) {
+
+            if (!p_sphere->mIniNeighbourFailureId[i]) number_of_intact_bonds++;
+            if (number_of_intact_bonds > maximum_allowed_number_of_intact_bonds) break;
+        }
+
+        if (number_of_intact_bonds <= maximum_allowed_number_of_intact_bonds) {
+
+            for (unsigned int i = 0; i < p_sphere->mContinuumInitialNeighborsSize; i++) {
+
+                if (!p_sphere->mIniNeighbourFailureId[i]) p_sphere->mIniNeighbourFailureId[i] = 15;
+            }
+        }
+    }
+}
+
 void ComputeSandProductionWithDepthFirstSearch(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {
 
     const std::string filename = "sand_production_graph_with_chunks.txt";
@@ -210,8 +240,9 @@ void DepthFirstSearchVisit(SphericContinuumParticle* p_sphere, double& this_chun
     this_chunk_mass += (4.0/3.0) * Globals::Pi * particle_density * particle_radius * particle_radius * particle_radius * 1000.0;
     for (size_t i=0; i<p_sphere->mContinuumInitialNeighborsSize; i++) {
         SphericParticle* p_neighbour_sphere = p_sphere->mNeighbourElements[i];
-        if(p_neighbour_sphere==NULL) continue;
-        if(p_neighbour_sphere->IsNot(VISITED)) {
+        if (p_neighbour_sphere==NULL) continue;
+        if (p_sphere->mIniNeighbourFailureId[i]) continue;
+        if (p_neighbour_sphere->IsNot(VISITED)) {
             SphericContinuumParticle* p_neigh_cont_sphere = dynamic_cast<SphericContinuumParticle*>(p_neighbour_sphere);
             DepthFirstSearchVisit(p_neigh_cont_sphere, this_chunk_mass);
         }
