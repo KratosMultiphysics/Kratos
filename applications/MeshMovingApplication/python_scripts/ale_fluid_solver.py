@@ -81,13 +81,6 @@ class AleFluidSolver(PythonSolver):
         else:
             mesh_motion_solver_settings.AddValue("domain_size", fluid_solver_settings["domain_size"])
 
-        # TODO remove this once the mesh-vel-computation is removed from the mesh-solver!
-        # We use the new utility, therefore explicitly setting it to false!
-        if mesh_motion_solver_settings.Has("calculate_mesh_velocities"):
-            mesh_motion_solver_settings["calculate_mesh_velocities"].SetBool(False)
-        else:
-            mesh_motion_solver_settings.AddEmptyValue("calculate_mesh_velocities").SetBool(False)
-
         # Constructing the mesh-solver with the entire mesh
         # if no submodelparts are specified then this is used for the computation of the mesh-motion
         # otherwise it only adds the dofs and the variables (to the entire ModelPart!)

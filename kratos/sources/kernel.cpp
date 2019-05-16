@@ -27,7 +27,7 @@ Kernel::Kernel() : mpKratosCoreApplication(Kratos::make_shared<KratosApplication
                     << " ' /   __| _` | __|  _ \\   __|\n"
                     << " . \\  |   (   | |   (   |\\__ \\\n"
                     << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/\n"
-                    << "           Multi-Physics " << KRATOS_VERSION << std::endl;
+                    << "           Multi-Physics " << GetVersionString() << std::endl;
 
     if (!IsImported("KratosMultiphysics")) {      
         this->ImportApplication(mpKratosCoreApplication);
@@ -80,12 +80,14 @@ void Kernel::PrintData(std::ostream& rOStream) const {
         rOStream << "  " << *it << std::endl;
 }
 
+// To be removed with the new entry points
 std::string Kernel::BuildType() {
-    return KRATOS_BUILD_TYPE;
+    return GetBuildType();
 }
 
+// To be removed with the new entry points
 std::string Kernel::Version() {
-    return KRATOS_VERSION;
+    return GetVersionString();
 }
 
 }

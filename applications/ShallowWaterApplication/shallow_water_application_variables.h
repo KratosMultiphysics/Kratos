@@ -20,9 +20,8 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/kratos_application.h"
-#include "includes/variables.h"
-#include "includes/cfd_variables.h"
+#include "containers/variable_component.h"
+#include "containers/vector_component_adaptor.h"
 
 namespace Kratos
 {
