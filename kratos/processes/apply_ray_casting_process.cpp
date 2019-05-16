@@ -26,7 +26,7 @@ namespace Kratos
 	template<std::size_t TDim>
 	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
 		ModelPart& rVolumePart, 
-		ModelPart& rSkinPart) : mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)), mIsSearchStructureAllocated(true), mCharactresticLength(1.00)
+		ModelPart& rSkinPart) : mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)), mIsSearchStructureAllocated(true), mCharacteristicLength(1.00)
 	{
 	}
 
@@ -35,7 +35,7 @@ namespace Kratos
 		ModelPart& rVolumePart, 
 		ModelPart& rSkinPart,
 		const double ExtraRaysEpsilon)
-		: mExtraRaysEpsilon(ExtraRaysEpsilon), mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)), mIsSearchStructureAllocated(true), mCharactresticLength(1.00)
+		: mExtraRaysEpsilon(ExtraRaysEpsilon), mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)), mIsSearchStructureAllocated(true), mCharacteristicLength(1.00)
 	{
 	}
 
@@ -43,7 +43,7 @@ namespace Kratos
 	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
 		FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
 		const double ExtraRaysEpsilon)
-		: mExtraRaysEpsilon(ExtraRaysEpsilon), mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess), mIsSearchStructureAllocated(false), mCharactresticLength(1.00)
+		: mExtraRaysEpsilon(ExtraRaysEpsilon), mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess), mIsSearchStructureAllocated(false), mCharacteristicLength(1.00)
 	{
 	}
 
@@ -147,7 +147,7 @@ namespace Kratos
         array_1d<double,TDim> &rDistances)
 	{
 		// Set the extra ray origins
-		std::vector<array_1d<double,3>> extra_ray_origs;
+		array_1d<array_1d<double,3>, (TDim == 3) ? 9 : 5> extra_ray_origs;
 		this->GetExtraRayOrigins(RayPerturbation, rCoords, extra_ray_origs);
 
 		// Get the pointer to the base Octree binary
@@ -203,7 +203,7 @@ namespace Kratos
 	void ApplyRayCastingProcess<2>::GetExtraRayOrigins(
         const double RayEpsilon,
         const array_1d<double,3> &rCoords,
-		std::vector<array_1d<double,3>> &rExtraRayOrigs)
+		array_1d<array_1d<double,3>, 5> &rExtraRayOrigs)
 	{
 		if (rExtraRayOrigs.size() != 5) {
 			rExtraRayOrigs.resize(5);
@@ -226,7 +226,7 @@ namespace Kratos
 	void ApplyRayCastingProcess<3>::GetExtraRayOrigins(
         const double RayEpsilon,
         const array_1d<double,3> &rCoords,
-		std::vector<array_1d<double,3>> &rExtraRayOrigs)
+		array_1d<array_1d<double,3>,9> &rExtraRayOrigs)
 	{
 		if (rExtraRayOrigs.size() != 9) {
 			rExtraRayOrigs.resize(9);
@@ -472,9 +472,9 @@ namespace Kratos
 
         double distance = norm_2(max_point - min_point);
         if (distance > std::numeric_limits<double>::epsilon())
-            mCharactresticLength = distance;
+            mCharacteristicLength = distance;
 
-        KRATOS_WATCH(mCharactresticLength);
+        KRATOS_WATCH(mCharacteristicLength);
 	}
 
     

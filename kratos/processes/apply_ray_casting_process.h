@@ -225,7 +225,7 @@ private:
     void GetExtraRayOrigins(
         const double RayEpsilon,
         const array_1d<double,3> &rCoords,
-        std::vector<array_1d<double,3>> &rExtraRayOrigs);
+        array_1d<array_1d<double,3>, (TDim == 3) ? 9 : 5> &rExtraRayOrigs);
 
 
     /**
