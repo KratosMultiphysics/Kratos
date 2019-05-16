@@ -1,4 +1,5 @@
-#pragma once
+#if !defined(KRATOS_INTRUSIVE_PTR_H_INCLUDED )
+#define  KRATOS_INTRUSIVE_PTR_H_INCLUDED
 
 #include <cstddef>
 #include <functional>
@@ -295,3 +296,6 @@ template< class T > std::size_t hash_value( Kratos::intrusive_ptr<T> const & p )
 }
 
 }
+
+#endif // KRATOS_INTRUSIVE_PTR_H_INCLUDED  defined
+
