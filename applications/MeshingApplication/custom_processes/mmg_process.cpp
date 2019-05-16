@@ -255,6 +255,9 @@ void MmgProcess<TMMGLibrary>::operator()()
 template<MMGLibrary TMMGLibrary>
 void MmgProcess<TMMGLibrary>::InitializeMeshData()
 {
+    // We create a list of submodelparts to later reassign flags after remesh
+    mMmmgUtilities.CreateAuxiliarSubModelPartForFlags(mrThisModelPart);
+
     // The auxiliar color maps
     ColorsMapType aux_ref_cond, aux_ref_elem;
 

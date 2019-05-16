@@ -2567,9 +2567,6 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     const FrameworkEulerLagrange Framework
     )
 {
-    // We create a list of submodelparts to later reassign flags after remesh
-    CreateAuxiliarSubModelPartForFlags(rModelPart);
-
     // Before computing colors we do some check and throw a warning to get the user informed
     const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(rModelPart);
 
