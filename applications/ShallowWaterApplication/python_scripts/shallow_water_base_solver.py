@@ -51,7 +51,9 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(Shallow.FREE_SURFACE_ELEVATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.GRAVITY)
         self.main_model_part.AddNodalSolutionStepVariable(Shallow.BATHYMETRY)
+        self.main_model_part.AddNodalSolutionStepVariable(Shallow.TOPOGRAPHY)
         self.main_model_part.AddNodalSolutionStepVariable(Shallow.MANNING)
+        self.main_model_part.AddNodalSolutionStepVariable(Shallow.EQUIVALENT_MANNING)
         self.main_model_part.AddNodalSolutionStepVariable(Shallow.RAIN)
         self.main_model_part.AddNodalSolutionStepVariable(Shallow.TOPOGRAPHY_GRADIENT)
         # Auxiliary variables
@@ -128,7 +130,7 @@ class ShallowWaterBaseSolver(PythonSolver):
                                                                      self.settings["absolute_tolerance"].GetDouble())
         (self.conv_criteria).SetEchoLevel(self.echo_level)
 
-        self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        self.time_scheme = Shallow.ResidualBasedIncrementalUpdateWettingScheme(self._GetWettingModel())
         # domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         # self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(domain_size,   # DomainSize
         #                                                                                      domain_size+1) # BlockSize
@@ -164,8 +166,11 @@ class ShallowWaterBaseSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            self.solver.InitializeSolutionStep()
+        """ The wetting model is called here.
+        It should be executed even if the buffer is not initialized, otherwise
+        the previous time step wouldn't be modified by the wetting model
+        """
+        self.solver.InitializeSolutionStep()
 
     def Predict(self):
         if self._TimeBufferIsInitialized():
@@ -192,8 +197,8 @@ class ShallowWaterBaseSolver(PythonSolver):
         return self._is_printing_rank
 
     def _TimeBufferIsInitialized(self):
-        # We always have one extra old step (step 0, read from input)
-        return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
+        # We always have one extra old step (step 0, read from input), but the wetting model should modify this extra step
+        return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.GetMinimumBufferSize()
 
     def _ComputeDeltaTime(self):
         delta_time = self.EstimateDeltaTimeUtility.EstimateDt()
@@ -231,6 +236,11 @@ class ShallowWaterBaseSolver(PythonSolver):
             "volume_model_part_name"   : "volume_model_part",
             "skin_parts"               : [""],
             "no_skin_parts"            : [""],
+            "wetting_drying_model"     : {
+                "model_name"               : "rough_porous_layer",
+                "layer_thickness"          : 1.0,
+                "roughness_factor"         : 0.1
+            },
             "linear_solver_settings"   : {
                 "solver_type"              : "AMGCL",
                 "smoother_type"            : "ilu0",
@@ -296,3 +306,20 @@ class ShallowWaterBaseSolver(PythonSolver):
 
     def _ExecuteCheckAndPrepare(self):
         pass
+
+    def _GetWettingModel(self):
+        if not hasattr(self, "_dry_wet_model"):
+            self._wetting_model = self._CreateWettingModel()
+        return self._wetting_model
+
+    def _CreateWettingModel(self):
+        if self.settings["wetting_drying_model"].Has("model_name"):
+            if self.settings["wetting_drying_model"]["model_name"].GetString() == "rough_porous_layer":
+                wet_dry_module = Shallow.RoughPorousLayerWettingModel(self.GetComputingModelPart(), self.settings["wetting_drying_model"])
+                return wet_dry_module
+            else:
+                msg = "Requested wetting drying model: " + self.settings["wetting_drying_model"]["model_name"].GetString() +"\n"
+                msg += "Available options are: \"rough_porous_layer\""
+                raise Exception(msg)
+        else:
+            return None

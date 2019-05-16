@@ -176,7 +176,7 @@ PairingIndex ProjectIntoVolume(const GeometryType& rGeometry,
     array_1d<double, 3> local_coords;
     PairingIndex pairing_index;
 
-    if (rGeometry.IsInside(rPointToProject, local_coords)) {
+    if (rGeometry.IsInside(rPointToProject, local_coords, 1e-14)) {
         pairing_index = PairingIndex::Volume_Inside;
         rGeometry.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
         FillEquationIdVector(rGeometry, rEquationIds);
