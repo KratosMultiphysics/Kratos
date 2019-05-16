@@ -16,6 +16,7 @@
 #define  KRATOS_GEOMETRICAL_OBJECT_H_INCLUDED
 
 // System includes
+#include <atomic>
 
 // External includes
 
