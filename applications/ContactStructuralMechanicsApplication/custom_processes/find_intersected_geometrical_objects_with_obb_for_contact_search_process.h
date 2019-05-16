@@ -41,21 +41,21 @@ namespace Kratos
 ///@{
 
 /**
- * @class FindIntersectedGeometricalObjectsWithOBBForSearchProcess
+ * @class FindIntersectedGeometricalObjectsWithOBBContactSearchProcess
  * @ingroup ContactStructuralMechanicsApplication
  * @brief This class is a modification of FindIntersectedGeometricalObjectsWithOBBProcess for contact search
  * @details Fills the serach set. Only works for Conditions
  * @author Vicente Mataix Ferrandiz
 */
-class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) FindIntersectedGeometricalObjectsWithOBBForSearchProcess
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) FindIntersectedGeometricalObjectsWithOBBContactSearchProcess
     : public FindIntersectedGeometricalObjectsWithOBBProcess
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of FindIntersectedGeometricalObjectsWithOBBForSearchProcess
-    KRATOS_CLASS_POINTER_DEFINITION(FindIntersectedGeometricalObjectsWithOBBForSearchProcess);
+    /// Pointer definition of FindIntersectedGeometricalObjectsWithOBBContactSearchProcess
+    KRATOS_CLASS_POINTER_DEFINITION(FindIntersectedGeometricalObjectsWithOBBContactSearchProcess);
 
     /// Definition of the index type
     typedef std::size_t IndexType;
@@ -92,14 +92,14 @@ public:
      * @brief Default constructor.
      * @details Removed
      */
-    FindIntersectedGeometricalObjectsWithOBBForSearchProcess() = delete;
+    FindIntersectedGeometricalObjectsWithOBBContactSearchProcess() = delete;
 
     /**
      * @brief Constructor to be used.
      * @param rPart1 First model part (the one to compute the intersection)
      * @param rPart2 Second model part (the "skin" model part)
      */
-    FindIntersectedGeometricalObjectsWithOBBForSearchProcess(
+    FindIntersectedGeometricalObjectsWithOBBContactSearchProcess(
         ModelPart& rPart1,
         ModelPart& rPart2,
         const double BoundingBoxFactor = -1.0,
@@ -111,16 +111,16 @@ public:
      * @param rModel The model containing all model parts
      * @param ThisParameters The configuration parameters
      */
-    FindIntersectedGeometricalObjectsWithOBBForSearchProcess(
+    FindIntersectedGeometricalObjectsWithOBBContactSearchProcess(
         Model& rModel,
         Parameters ThisParameters
         );
 
     /// Copy constructor.
-    FindIntersectedGeometricalObjectsWithOBBForSearchProcess(FindIntersectedGeometricalObjectsWithOBBForSearchProcess const& rOther) = delete;
+    FindIntersectedGeometricalObjectsWithOBBContactSearchProcess(FindIntersectedGeometricalObjectsWithOBBContactSearchProcess const& rOther) = delete;
 
     /// Destructor.
-    ~FindIntersectedGeometricalObjectsWithOBBForSearchProcess() override {}
+    ~FindIntersectedGeometricalObjectsWithOBBContactSearchProcess() override {}
 
     ///@name Member Variables
     ///@{
@@ -135,7 +135,7 @@ public:
 
     /// Turn back information as a string.
     std::string Info() const override {
-        return "FindIntersectedGeometricalObjectsWithOBBForSearchProcess";
+        return "FindIntersectedGeometricalObjectsWithOBBContactSearchProcess";
     }
 
     /// Print information about this object.
@@ -220,12 +220,12 @@ private:
     ///@{
 
     /// Assignment operator.
-    FindIntersectedGeometricalObjectsWithOBBForSearchProcess& operator=(FindIntersectedGeometricalObjectsWithOBBForSearchProcess const& rOther);
+    FindIntersectedGeometricalObjectsWithOBBContactSearchProcess& operator=(FindIntersectedGeometricalObjectsWithOBBContactSearchProcess const& rOther);
 
 
     ///@}
 
-}; // Class FindIntersectedGeometricalObjectsWithOBBForSearchProcess
+}; // Class FindIntersectedGeometricalObjectsWithOBBContactSearchProcess
 
 ///@}
 
@@ -240,7 +240,7 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                FindIntersectedGeometricalObjectsWithOBBForSearchProcess& rThis);
+                FindIntersectedGeometricalObjectsWithOBBContactSearchProcess& rThis);
 
 ///@}
 

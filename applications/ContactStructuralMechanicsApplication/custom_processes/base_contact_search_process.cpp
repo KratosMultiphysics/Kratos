@@ -23,7 +23,7 @@
 /* Custom utilities */
 #include "custom_utilities/contact_utilities.h"
 #include "custom_processes/base_contact_search_process.h"
-#include "custom_processes/find_intersected_geometrical_objects_with_obb_for_search_process.h"
+#include "custom_processes/find_intersected_geometrical_objects_with_obb_for_contact_search_process.h"
 
 namespace Kratos
 {
@@ -678,11 +678,11 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
     octree_parameters["bounding_box_factor"].SetDouble(bounding_box_factor * h_mean);
 
     // Creating the process
-    FindIntersectedGeometricalObjectsWithOBBForSearchProcess octree_search_process(mrMainModelPart.GetModel(), octree_parameters);
+    FindIntersectedGeometricalObjectsWithOBBContactSearchProcess octree_search_process(mrMainModelPart.GetModel(), octree_parameters);
     octree_search_process.ExecuteInitialize();
 
     // Definition of the leaves of the tree
-    FindIntersectedGeometricalObjectsWithOBBForSearchProcess::OtreeCellVectorType leaves;
+    FindIntersectedGeometricalObjectsWithOBBContactSearchProcess::OtreeCellVectorType leaves;
 
     // Auxiliar model parts and components
     const array_1d<double, 3> zero_array = ZeroVector(3);

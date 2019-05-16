@@ -14,11 +14,11 @@
 // External includes
 
 // Project includes
-#include "custom_processes/find_intersected_geometrical_objects_with_obb_for_search_process.h"
+#include "custom_processes/find_intersected_geometrical_objects_with_obb_for_contact_search_process.h"
 
 namespace Kratos
 {
-FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersectedGeometricalObjectsWithOBBForSearchProcess(
+FindIntersectedGeometricalObjectsWithOBBContactSearchProcess::FindIntersectedGeometricalObjectsWithOBBContactSearchProcess(
     ModelPart& rPart1,
     ModelPart& rPart2,
     const double BoundingBoxFactor,
@@ -30,7 +30,7 @@ FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersectedGeometr
 /***********************************************************************************/
 /***********************************************************************************/
 
-FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersectedGeometricalObjectsWithOBBForSearchProcess(
+FindIntersectedGeometricalObjectsWithOBBContactSearchProcess::FindIntersectedGeometricalObjectsWithOBBContactSearchProcess(
     Model& rModel,
     Parameters ThisParameters
     ) : BaseType(rModel.GetModelPart(ThisParameters["intersected_model_part_name"].GetString()),
@@ -90,7 +90,7 @@ FindIntersectedGeometricalObjectsWithOBBForSearchProcess::FindIntersectedGeometr
 /***********************************************************************************/
 /***********************************************************************************/
 
-void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::SetOctreeBoundingBox()
+void FindIntersectedGeometricalObjectsWithOBBContactSearchProcess::SetOctreeBoundingBox()
 {
     // Getting first iterators
     const auto it_node_begin_1 = BaseType::mrModelPartIntersected.NodesBegin();
@@ -150,7 +150,7 @@ void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::SetOctreeBounding
 /***********************************************************************************/
 /***********************************************************************************/
 
-void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::MarkIfIntersected(
+void FindIntersectedGeometricalObjectsWithOBBContactSearchProcess::MarkIfIntersected(
     GeometricalObject& rIntersectedGeometricalObject,
     OtreeCellVectorType& rLeaves
     )
@@ -193,7 +193,7 @@ void FindIntersectedGeometricalObjectsWithOBBForSearchProcess::MarkIfIntersected
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters FindIntersectedGeometricalObjectsWithOBBForSearchProcess::GetDefaultParameters()
+Parameters FindIntersectedGeometricalObjectsWithOBBContactSearchProcess::GetDefaultParameters()
 {
     Parameters default_parameters = Parameters(R"(
     {
