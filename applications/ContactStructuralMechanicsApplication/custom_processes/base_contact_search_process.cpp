@@ -602,7 +602,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
                 if (mCheckGap == CheckGap::MappingCheck) {
                     for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
                         // Master condition
-                        Condition::Pointer p_cond_master = points_found[i_point]->GetCondition();
+                        Condition::Pointer p_cond_master = points_found[i_point]->GetEntity();
 
                         // Checking with OBB
                         if (with_obb) {
