@@ -100,6 +100,16 @@ void MmgIO<TMMGLibrary>::ReadModelPart(ModelPart& rModelPart)
         colors.insert(std::pair<IndexType,std::vector<std::string>>({std::stoi(it_param.name()), r_sub_model_part_names}));
     }
 
+    // Create the submodelparts
+    const std::string& r_main_name = rModelPart.Name();
+    for (auto& r_color : colors) {
+        for (auto& r_name : r_color.second) {
+            if (!rModelPart.HasSubModelPart(r_name) && r_main_name != r_name) {
+                rModelPart.CreateSubModelPart(r_name);
+            }
+        }
+    }
+
     // Some information
     MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
     mMmmgUtilities.PrintAndGetMmgMeshInfo(mmg_mesh_info);
