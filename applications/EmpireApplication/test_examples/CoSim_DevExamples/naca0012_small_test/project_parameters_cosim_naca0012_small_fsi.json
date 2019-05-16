@@ -49,7 +49,7 @@
                         "from_solver" : "fluid",
                         "data_name"   : "force_y",
                         "io_settings"   : {
-                            "io_options" : ["swap_sign"]
+                            "io_options" : []
                         }
 
                     }
