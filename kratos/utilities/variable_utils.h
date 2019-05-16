@@ -270,6 +270,36 @@ public:
     }
 
     /**
+     * @brief Sets the nodal value of any variable to zero
+     * @param rVariable reference to the scalar variable to be set
+     * @param rNodes reference to the objective node set
+     */
+    template< class TType , class TContainerType>
+    void SetNonHistoricalVariableToZero(
+        const Variable< TType >& rVariable,
+        TContainerType& rContainer)
+    {
+        KRATOS_TRY
+        this->SetNonHistoricalVariable(rVariable, rVariable.Zero(), rContainer);
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Sets the nodal value of any variable to zero
+     * @param rVariable reference to the scalar variable to be set
+     * @param rNodes reference to the objective node set
+     */
+    template< class TType >
+    void SetHistoricalVariableToZero(
+        const Variable< TType >& rVariable,
+        NodesContainerType& rNodes)
+    {
+        KRATOS_TRY
+        this->SetVariable(rVariable, rVariable.Zero(), rNodes);
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Sets the nodal value of a scalar variable (considering flag)
      * @param rVariable reference to the scalar variable to be set
      * @param Value Value to be set
@@ -536,26 +566,6 @@ public:
     void CopyScalarVar(
         const DoubleVarType& OriginVariable,
         const DoubleVarType& DestinationVariable,
-        NodesContainerType& rNodes
-        );
-
-    /**
-     * @brief In a node set, sets a vector variable to zero
-     * @param Variable reference to the vector variable to be set to 0
-     * @param rNodes reference to the objective node set
-     */
-    void SetToZero_VectorVar(
-        const ArrayVarType& Variable,
-        NodesContainerType& rNodes
-        );
-
-    /**
-     * @brief In a node set, sets a double variable to zero
-     * @param Variable reference to the double variable to be set to 0
-     * @param rNodes reference to the objective node set
-     */
-    void SetToZero_ScalarVar(
-        const DoubleVarType& Variable,
         NodesContainerType& rNodes
         );
 

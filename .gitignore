@@ -19,9 +19,6 @@ libs/*
 runkratos
 script.py
 
-# Version
-kratos/includes/kratos_version.h
-
 # Times files
 *.time
 

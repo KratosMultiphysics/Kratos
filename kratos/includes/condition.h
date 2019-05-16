@@ -22,8 +22,7 @@
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "includes/geometrical_object.h"
-#include "containers/flags.h"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 
 
 namespace Kratos
@@ -57,14 +56,14 @@ namespace Kratos
  * not all of them have to be implemented if they are not needed for
  * the actual problem
  */
-class Condition : public GeometricalObject, public Flags
+class Condition : public GeometricalObject
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of Condition
-    KRATOS_CLASS_POINTER_DEFINITION(Condition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Condition);
 
     ///definition of condition type
     typedef Condition ConditionType;
@@ -122,7 +121,6 @@ public:
      */
     explicit Condition(IndexType NewId = 0)
         : BaseType(NewId)
-        , Flags()
         , mpProperties(nullptr)
     {
     }
@@ -132,7 +130,6 @@ public:
      */
     Condition(IndexType NewId, const NodesArrayType& ThisNodes)
         : BaseType(NewId,GeometryType::Pointer(new GeometryType(ThisNodes)))
-        , Flags()
         , mpProperties(nullptr)
     {
     }
@@ -142,7 +139,6 @@ public:
      */
     Condition(IndexType NewId, GeometryType::Pointer pGeometry)
         : BaseType(NewId,pGeometry)
-        , Flags()
         , mpProperties(nullptr)
     {
     }
@@ -152,7 +148,6 @@ public:
      */
     Condition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseType(NewId,pGeometry)
-        , Flags()
         , mpProperties(pProperties)
     {
     }
@@ -161,7 +156,6 @@ public:
 
     Condition(Condition const& rOther)
         : BaseType(rOther)
-        , Flags(rOther)
         , mData(rOther.mData)
         , mpProperties(rOther.mpProperties)
     {
@@ -171,6 +165,11 @@ public:
 
     ~Condition() override
     {
+    }
+
+    Condition::Pointer shared_from_this()
+    {
+        return std::static_pointer_cast<Condition>(GeometricalObject::shared_from_this());
     }
 
 
@@ -188,7 +187,6 @@ public:
     Condition & operator=(Condition const& rOther)
     {
         BaseType::operator=(rOther);
-        Flags::operator =(rOther);
         mpProperties = rOther.mpProperties;
 
         return *this;
@@ -230,7 +228,7 @@ public:
     {
         KRATOS_TRY
         KRATOS_ERROR << "Please implement the First Create method in your derived Condition" << Info() << std::endl;
-        return Kratos::make_shared<Condition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<Condition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -247,7 +245,7 @@ public:
     {
         KRATOS_TRY
         KRATOS_ERROR << "Please implement the Second Create method in your derived Condition" << Info() << std::endl;
-        return Kratos::make_shared<Condition>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<Condition>(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
@@ -262,7 +260,7 @@ public:
     {
         KRATOS_TRY
         KRATOS_WARNING("Condition") << " Call base class condition Clone " << std::endl;
-        Condition::Pointer p_new_cond = Kratos::make_shared<Condition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+        Condition::Pointer p_new_cond = Kratos::make_intrusive<Condition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
         p_new_cond->SetData(this->GetData());
         p_new_cond->Set(Flags(*this));
         return p_new_cond;
@@ -323,6 +321,9 @@ public:
      */
     virtual void GetValuesVector(Vector& values, int Step = 0)
     {
+        if (values.size() != 0) {
+            values.resize(0, false);
+        }
     }
 
     /**
@@ -330,6 +331,9 @@ public:
      */
     virtual void GetFirstDerivativesVector(Vector& values, int Step = 0)
     {
+        if (values.size() != 0) {
+            values.resize(0, false);
+        }
     }
 
     /**
@@ -337,6 +341,9 @@ public:
      */
     virtual void GetSecondDerivativesVector(Vector& values, int Step = 0)
     {
+        if (values.size() != 0) {
+            values.resize(0, false);
+        }
     }
 
     /**
@@ -475,6 +482,9 @@ public:
                     const std::vector< Variable< MatrixType > >& rLHSVariables,
                     ProcessInfo& rCurrentProcessInfo)
     {
+        if (rLeftHandSideMatrices.size() != 0) {
+            rLeftHandSideMatrices.resize(0);
+        }
     }
 
     /**
@@ -501,6 +511,9 @@ public:
                     const std::vector< Variable< VectorType > >& rRHSVariables,
                     ProcessInfo& rCurrentProcessInfo)
     {
+        if (rRightHandSideVectors.size() != 0) {
+            rRightHandSideVectors.resize(0);
+        }
     }
 
 
@@ -1097,24 +1110,6 @@ public:
     {
         return mData.GetValue(rThisVariable);
     }
-    ///@}
-    ///@name Flags
-    ///@{
-
-    Flags& GetFlags()
-      {
-    return *this;
-      }
-
-    Flags const& GetFlags() const
-    {
-      return *this;
-    }
-
-    void SetFlags(Flags const& rThisFlags)
-    {
-      Flags::operator=(rThisFlags);
-    }
 
     ///@}
     ///@name Inquiry
@@ -1213,7 +1208,6 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeometricalObject );
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
         rSerializer.save("Data", mData);
         rSerializer.save("Properties", mpProperties);
     }
@@ -1221,7 +1215,6 @@ private:
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeometricalObject );
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
         rSerializer.load("Data", mData);
         rSerializer.load("Properties", mpProperties);
     }
@@ -1274,7 +1267,7 @@ void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Conditi
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
 
-KRATOS_DEFINE_VARIABLE(WeakPointerVector< Condition >, NEIGHBOUR_CONDITIONS)
+KRATOS_DEFINE_VARIABLE(GlobalPointersVector< Condition >, NEIGHBOUR_CONDITIONS)
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT

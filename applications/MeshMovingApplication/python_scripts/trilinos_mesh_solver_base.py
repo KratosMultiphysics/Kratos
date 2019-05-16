@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
-import KratosMultiphysics
+import KratosMultiphysics 
 
 # Import applications
 import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
@@ -13,8 +13,13 @@ from KratosMultiphysics.MeshMovingApplication.mesh_solver_base import MeshSolver
 
 class TrilinosMeshSolverBase(MeshSolverBase):
     def __init__(self, model, custom_settings):
-        if not custom_settings.Has("mesh_motion_linear_solver_settings"): # Override defaults in the base class.
-            linear_solver_settings = KratosMultiphysics.Parameters("""{
+        super(TrilinosMeshSolverBase, self).__init__(model, custom_settings)
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]:: Construction finished")
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "linear_solver_settings" : {
                 "solver_type" : "amgcl",
                 "smoother_type":"ilu0",
                 "krylov_type": "gmres",
@@ -28,10 +33,10 @@ class TrilinosMeshSolverBase(MeshSolverBase):
                 "block_size": 1,
                 "use_block_matrices_if_possible" : true,
                 "coarse_enough" : 5000
-            }""")
-            custom_settings.AddValue("mesh_motion_linear_solver_settings", linear_solver_settings)
-        super(TrilinosMeshSolverBase, self).__init__(model, custom_settings)
-        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]:: Construction finished")
+            }
+        }""")
+        this_defaults.AddMissingParameters(super(TrilinosMeshSolverBase, cls).GetDefaultSettings())
+        return this_defaults
 
     #### Public user interface functions ####
 
