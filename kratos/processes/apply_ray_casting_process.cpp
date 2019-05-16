@@ -67,7 +67,7 @@ namespace Kratos
 		#pragma omp parallel for
 		for(int k = 0 ; k < static_cast<int>(ModelPart1.NumberOfNodes()); ++k) {
 			auto it_node = ModelPart1.NodesBegin() + k;
-			double &node_distance = it_node->GetSolutionStepValue(DISTANCE);
+			double &r_node_distance = it_node->GetSolutionStepValue(DISTANCE);
 			const double ray_distance = this->DistancePositionInSpace(*it_node);
 			if (ray_distance * node_distance < 0.0) {
 				node_distance = -node_distance;
