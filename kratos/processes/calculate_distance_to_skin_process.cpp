@@ -17,6 +17,7 @@
 // Project includes
 #include "geometries/plane_3d.h"
 #include "processes/calculate_distance_to_skin_process.h"
+#include "processes/apply_ray_casting_process.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/intersection_utilities.h"
 
