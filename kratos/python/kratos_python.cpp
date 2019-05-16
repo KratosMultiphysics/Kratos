@@ -66,6 +66,7 @@
 #include "add_response_functions_to_python.h"
 #include "add_data_communicator_to_python.h"
 #include "add_parallel_environment_to_python.h"
+#include "add_global_pointers_to_python.h"
 
 namespace Kratos
 {
@@ -76,7 +77,7 @@ namespace Python
 char const* greet()
 {
 	std::stringstream header;
-	header << "Hello, I am Kratos Multi-Physics " << KRATOS_VERSION <<" ;-)";
+	header << "Hello, I am Kratos Multi-Physics " << GetVersionString() <<" ;-)";
     return header.str().c_str();
 }
 
@@ -103,7 +104,7 @@ PYBIND11_MODULE(Kratos, m)
     AddMappingVariablesToPython(m);
     AddMATVariablesToPython(m);
     AddDeprecatedVariablesToPython(m);
-
+    AddGlobalPointersToPython(m);
 
 
 //     //  AddQuadraturesToPython();

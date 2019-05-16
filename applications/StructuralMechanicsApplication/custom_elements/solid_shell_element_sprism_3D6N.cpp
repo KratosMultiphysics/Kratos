@@ -20,6 +20,7 @@
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_elements/solid_shell_element_sprism_3D6N.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -1422,7 +1423,7 @@ int  SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo)
 
     /* Check the neighbours have been calculated */
     // Neighbour elements
-    const WeakPointerVector< Element >& p_neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);
+    const GlobalPointersVector< Element >& p_neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);
     KRATOS_ERROR_IF(p_neighbour_elements.size() == 0) << "The neighbour elements are not calculated" << std::endl;
 
     // Neighbour nodes

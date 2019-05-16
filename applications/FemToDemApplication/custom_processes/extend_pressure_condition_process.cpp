@@ -54,7 +54,7 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads2Nodes(
     auto& r_geom = (*itElem)->GetGeometry();
 
     // We check some things...
-    WeakPointerVector<Element>& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
+    GlobalPointersVector<Element>& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
     if (r_elem_neigb[NonWetLocalIdNode].Id() == (*itElem)->Id()) {
         const IndexType id_1 = NonWetLocalIdNode == 0 ? 0 : NonWetLocalIdNode == 1 ? 1 : 2;
         const IndexType id_2 = NonWetLocalIdNode == 0 ? 1 : NonWetLocalIdNode == 1 ? 2 : 0;
@@ -96,7 +96,7 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
     ModelPart::PropertiesType::Pointer p_properties = r_sub_model_part.pGetProperties(1);
 
     // We get the neighbour elements
-    WeakPointerVector<Element>& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
+    GlobalPointersVector<Element>& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
 
     IndexType alone_edge_local_id = 10;
     int number_of_free_edges = 0, non_free_edge;
