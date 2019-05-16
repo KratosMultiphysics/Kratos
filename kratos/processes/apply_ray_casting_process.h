@@ -214,20 +214,47 @@ private:
         const double* pRayPoint2,
         double* pIntersectionPoint);
 
+    /**
+     * @brief Creates the start point in space for new extra rays around current ray
+     * This method is used to create extra rays when the original one hits border of 
+     * a goemetry
+     * @param RayEpsilon Distance between this original ray and extra one around it
+     * @param rCoords coordinate of the original ray
+     * @param rExtraRayOrigs obtained extra rays
+     */
     void GetExtraRayOrigins(
         const double RayEpsilon,
         const array_1d<double,3> &rCoords,
         std::vector<array_1d<double,3>> &rExtraRayOrigs);
 
 
+    /**
+     * @brief Trims the extra rays to bounding box
+     */
     void CorrectExtraRayOrigin(double* ExtraRayCoords);
 
+    /**
+     * @brief Creates extra rays around the current one and determine the color by voting
+     * When a ray hits border of a geometry this method is called to determine if  
+     * the ray is penetrating the object or not. The idea is to lunch several rays 
+     * around the original one and check the pentration by voting between them.
+     * @param Epsilon To be used for intersection detection
+     * @param RayPerturbation Distance between this original ray and extra one around it
+     * @param rCoords coordinate of the original ray
+     * @param rDistances obtain distances in different directions using extra rays
+     */
     void ComputeExtraRayColors(
         const double Epsilon,
         const double RayPerturbation,
         const array_1d<double,3> &rCoords,
         array_1d<double,TDim> &rDistances);
 
+
+    /**
+     * @brief Calculate the mCharacterisiticLength variable using bounding box of the domain to be used in scaling the epsilons
+     * The actual version calcuates the bonding box and takes the distance between max and min 
+     * points as characteristic length.
+     */
     void CalculateCharacteristicLength();
 
     ///@}
