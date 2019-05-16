@@ -171,7 +171,7 @@ namespace Kratos
 				int ray_color = 1;
 				auto i_intersection = intersections.begin();
 				while (i_intersection != intersections.end()) {
-					double int_d = extra_ray_origs[i_ray][i_direction] - i_intersection->first; // Octree ray intersection distance
+					const double int_d = extra_ray_origs[i_ray][i_direction] - i_intersection->first; // Octree ray intersection distance
 					if (int_d > Epsilon) {
 						ray_color = -ray_color;
 					} else if (int_d > -Epsilon) {
