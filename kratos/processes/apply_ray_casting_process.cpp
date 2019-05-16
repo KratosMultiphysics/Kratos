@@ -67,10 +67,10 @@ namespace Kratos
 		#pragma omp parallel for
 		for(int k = 0 ; k < static_cast<int>(ModelPart1.NumberOfNodes()); ++k) {
 			auto it_node = ModelPart1.NodesBegin() + k;
-			double &node_distance = it_node->GetSolutionStepValue(DISTANCE);
+			double &r_node_distance = it_node->GetSolutionStepValue(DISTANCE);
 			const double ray_distance = this->DistancePositionInSpace(*it_node);
-			if (ray_distance * node_distance < 0.0) {
-				node_distance = -node_distance;
+			if (ray_distance * r_node_distance < 0.0) {
+				r_node_distance = -r_node_distance;
 			}
         }
 	}
@@ -82,7 +82,7 @@ namespace Kratos
 		array_1d<double,TDim> distances;
 		unsigned int n_ray_pos(0), n_ray_neg(0);
         IntersectionsContainerType intersections;
-		const array_1d<double,3> &r_coords = rNode.Coordinates();
+		const auto &r_coords = rNode.Coordinates();
 
 		// Loop the x,y and z (3D) ray directions
         for (unsigned int i_direction = 0; i_direction < TDim; i_direction++){
@@ -91,14 +91,14 @@ namespace Kratos
 
             // Creating the ray
             double ray[3] = {r_coords[0], r_coords[1], r_coords[2]};
-			OctreeType* pOctree = mpFindIntersectedObjectsProcess->GetOctreePointer();
+			auto pOctree = mpFindIntersectedObjectsProcess->GetOctreePointer();
             pOctree->NormalizeCoordinates(ray);
             ray[i_direction] = 0; // Starting from the lower extreme
 
             this->GetRayIntersections(ray, i_direction, intersections);
 
             int ray_color = 1;
-            std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
+            auto i_intersection = intersections.begin();
             while (i_intersection != intersections.end()) {
                 double int_d = r_coords[i_direction] - i_intersection->first; // Octree ray intersection distance
                 if (int_d > epsilon) {
@@ -151,7 +151,7 @@ namespace Kratos
 		this->GetExtraRayOrigins(RayPerturbation, rCoords, extra_ray_origs);
 
 		// Get the pointer to the base Octree binary
-		OctreeType* p_octree = mpFindIntersectedObjectsProcess->GetOctreePointer();
+		auto p_octree = mpFindIntersectedObjectsProcess->GetOctreePointer();
 
 		// Loop the extra rays to compute its color
 		unsigned int n_ray_pos = 0; // Positive rays counter
