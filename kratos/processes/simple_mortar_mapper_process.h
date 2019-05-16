@@ -235,7 +235,7 @@ public:
     /// Auxiliar geometries
     typedef Line2D2<PointType>                            LineType;
     typedef Triangle3D3<PointType>                    TriangleType;
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompType;
+    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
 
     /// Component type
     typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
