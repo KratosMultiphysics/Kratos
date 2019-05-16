@@ -14,8 +14,8 @@ cmake .. -G "Visual Studio 15 2017 Win64"                                       
 -DSOLID_MECHANICS_APPLICATION=OFF                                                ^
 -DCONSTITUTIVE_MODELS_APPLICATION=OFF                                            ^
 -DDELAUNAY_MESHING_APPLICATION=OFF                                               ^
--DCONTACT_MECHANICS_APPLICATION=ON                                              ^
--DPFEM_APPLICATION=ON                                                           ^
+-DCONTACT_MECHANICS_APPLICATION=OFF                                              ^
+-DPFEM_APPLICATION=OFF                                                           ^
 -DPFEM_SOLID_MECHANICS_APPLICATION=OFF                                           ^
 -DPFEM_FLUID_DYNAMICS_APPLICATION=OFF                                            ^
 -DMETIS_APPLICATION=OFF                                                         ^
