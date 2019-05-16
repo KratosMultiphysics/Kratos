@@ -309,7 +309,7 @@ namespace Kratos
             // Sort
             std::sort(rIntersections.begin(), rIntersections.end());
             // Unique
-            std::vector<std::pair<double, Element::GeometryType*> >::iterator i_begin = rIntersections.begin();
+            auto i_begin = rIntersections.begin();
             auto i_intersection = rIntersections.begin();
             while (++i_begin != rIntersections.end()) {
                 // considering the very near points as the same points
