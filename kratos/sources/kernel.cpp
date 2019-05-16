@@ -23,11 +23,24 @@
 namespace Kratos {
 Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
                 std::string("KratosMultiphysics"))), mIsDistributedRun(IsDistributedRun) {
+    std::stringstream distributed_mode;
+    if (IsDistributedRun)
+    {
+        distributed_mode << " -- MPI parallel run";
+    }
+    else {
+        #ifdef _OPENMP
+        distributed_mode << " -- OpenMP parallel run";
+        #else
+        distributed_mode << " -- Serial run";
+        #endif
+    }
+
     KRATOS_INFO("") << " |  /           |\n"
                     << " ' /   __| _` | __|  _ \\   __|\n"
                     << " . \\  |   (   | |   (   |\\__ \\\n"
                     << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/\n"
-                    << "           Multi-Physics " << KRATOS_VERSION << std::endl;
+                    << "           Multi-Physics " << KRATOS_VERSION << distributed_mode.str() << std::endl;
 
     if (!IsImported("KratosMultiphysics")) {
         this->ImportApplication(mpKratosCoreApplication);
