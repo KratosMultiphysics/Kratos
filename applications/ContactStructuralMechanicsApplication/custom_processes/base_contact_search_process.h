@@ -285,6 +285,12 @@ protected:
     ///@{
 
     /**
+     * @brief This method cleans the model part
+     * @param rModelPart The model part of interest
+     */
+    virtual void CleanModelPart(ModelPart& rModelPart);
+
+    /**
      * @brief This method checks the pairing
      * @param rComputingModelPart The modelpart  used in the assemble of the system
      * @param rConditionId The ID of the new condition to be created

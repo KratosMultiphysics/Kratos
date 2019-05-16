@@ -64,9 +64,7 @@ BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearchPro
             r_computing_contact_model_part.CreateSubModelPart(sub_computing_model_part_name);
         } else { // We clean the existing modelpart
             ModelPart& r_sub_computing_contact_model_part = !mMultipleSearchs ? r_computing_contact_model_part : r_computing_contact_model_part.GetSubModelPart(sub_computing_model_part_name);
-            ConditionsArrayType& r_conditions_array = r_sub_computing_contact_model_part.Conditions();
-            VariableUtils().SetFlag(TO_ERASE, true, r_conditions_array);
-            mrMainModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+            CleanModelPart(r_computing_contact_model_part);
         }
     }
 
@@ -1099,6 +1097,18 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
 
     if (at_least_one_node_potential_contact)
         AddPairing(rComputingModelPart, rConditionId, pCondSlave, rSlaveNormal, pCondMaster, rMasterNormal, pIndexesPairs, pProperties);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CleanModelPart(ModelPart& rModelPart)
+{
+    // We clean only the conditions
+    ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
+    VariableUtils().SetFlag(TO_ERASE, true, r_conditions_array);
+    mrMainModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 }
 
 /***********************************************************************************/
