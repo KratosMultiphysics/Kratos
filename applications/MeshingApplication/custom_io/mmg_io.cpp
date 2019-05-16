@@ -139,9 +139,6 @@ void MmgIO<TMMGLibrary>::ReadModelPart(ModelPart& rModelPart)
     /* After that we reorder nodes, conditions and elements: */
     mMmmgUtilities.ReorderAllIds(rModelPart);
 
-    /* We assign flags and clear the auxiliar model parts created to reassing the flags */
-    mMmmgUtilities.AssignAndClearAuxiliarSubModelPartForFlags(rModelPart);
-
     KRATOS_CATCH("");
 }
 
