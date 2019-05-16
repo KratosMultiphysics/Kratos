@@ -70,7 +70,7 @@ namespace Kratos
 			double &r_node_distance = it_node->GetSolutionStepValue(DISTANCE);
 			const double ray_distance = this->DistancePositionInSpace(*it_node);
 			if (ray_distance * r_node_distance < 0.0) {
-				node_distance = -node_distance;
+				r_node_distance = -r_node_distance;
 			}
         }
 	}
