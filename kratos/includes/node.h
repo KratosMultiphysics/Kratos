@@ -20,6 +20,7 @@
 #include <iostream>
 #include <sstream>
 #include <cstddef>
+#include <atomic>
 
 
 // External includes
