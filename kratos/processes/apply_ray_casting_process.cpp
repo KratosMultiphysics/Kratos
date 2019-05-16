@@ -151,7 +151,7 @@ namespace Kratos
 		this->GetExtraRayOrigins(RayPerturbation, rCoords, extra_ray_origs);
 
 		// Get the pointer to the base Octree binary
-		OctreeType* p_octree = mpFindIntersectedObjectsProcess->GetOctreePointer();
+		auto p_octree = mpFindIntersectedObjectsProcess->GetOctreePointer();
 
 		// Loop the extra rays to compute its color
 		unsigned int n_ray_pos = 0; // Positive rays counter
