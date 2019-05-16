@@ -31,7 +31,6 @@ class FSICouplingInterface():
         return settings
 
     def __init__(self, model, settings, convergence_accelerator = None):
-
         # Validate settings
         settings = self._ValidateSettings(settings)
 
@@ -56,10 +55,10 @@ class FSICouplingInterface():
         # Note that this are the current non-linear iteration unrelaxed values (\tilde{u}^{k+1})
         self.GetValuesFromFatherModelPart(self.output_variable)
 
-        # Save the previously existent RELAXED_DISP in OLD_RELAXED_DISP before doing the update
+        # Save the previously existent RELAXED_DISPLACEMENT in OLD_RELAXED_DISPLACEMENT before doing the update
         for node in self.GetInterfaceModelPart().Nodes:
-            relaxed_disp = node.GetSolutionStepValue(KratosMultiphysics.RELAXED_DISP)
-            node.SetSolutionStepValue(KratosMultiphysics.OLD_RELAXED_DISP, relaxed_disp)
+            relaxed_disp = node.GetSolutionStepValue(KratosMultiphysics.RELAXED_DISPLACEMENT)
+            node.SetSolutionStepValue(KratosMultiphysics.OLD_RELAXED_DISPLACEMENT, relaxed_disp)
 
         # Get the interface residual size
         residual_size = self._get_partitioned_fsi_utilities().GetInterfaceResidualSize(self.GetInterfaceModelPart())
@@ -68,7 +67,7 @@ class FSICouplingInterface():
         iteration_value_vector = KratosMultiphysics.Vector(residual_size)
         self._get_partitioned_fsi_utilities().InitializeInterfaceVector(
             self.GetInterfaceModelPart(),
-            KratosMultiphysics.OLD_RELAXED_DISP,
+            KratosMultiphysics.OLD_RELAXED_DISPLACEMENT,
             iteration_value_vector)
 
         # Compute the current non-linear iteration interface residual using the output variable
@@ -77,7 +76,7 @@ class FSICouplingInterface():
         self._get_partitioned_fsi_utilities().ComputeInterfaceResidualVector(
             self.GetInterfaceModelPart(),
             self.output_variable,
-            KratosMultiphysics.OLD_RELAXED_DISP,
+            KratosMultiphysics.OLD_RELAXED_DISPLACEMENT,
             KratosMultiphysics.FSI_INTERFACE_RESIDUAL,
             output_variable_residual_vector,
             "nodal",
@@ -89,7 +88,7 @@ class FSICouplingInterface():
         # Apply the corrected solution to the FSI coupling interface nodes
         self._get_partitioned_fsi_utilities().UpdateInterfaceValues(
             self.GetInterfaceModelPart(),
-            KratosMultiphysics.RELAXED_DISP,
+            KratosMultiphysics.RELAXED_DISPLACEMENT,
             iteration_value_vector)
 
         # Return the current interface residual norm
@@ -100,8 +99,8 @@ class FSICouplingInterface():
 
         # # Set the existent relaxed displacement as old relaxed displacement before doing the update
         # for node in self.GetInterfaceModelPart().Nodes:
-        #     old_relaxed_disp = node.GetSolutionStepValue(KratosMultiphysics.RELAXED_DISP)
-        #     node.SetSolutionStepValue(KratosMultiphysics.OLD_RELAXED_DISP, old_relaxed_disp)
+        #     old_relaxed_disp = node.GetSolutionStepValue(KratosMultiphysics.RELAXED_DISPLACEMENT)
+        #     node.SetSolutionStepValue(KratosMultiphysics.OLD_RELAXED_DISPLACEMENT, old_relaxed_disp)
 
         # w = 0.01
         # # w = 0.414388
@@ -109,10 +108,10 @@ class FSICouplingInterface():
         # for node in self.GetInterfaceModelPart().Nodes:
         #     # Get the nodal displacements
         #     unrelaxed_disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT) # this is u_k_1_hat (what we get from structure before correcting)
-        #     old_relaxed_disp = node.GetSolutionStepValue(KratosMultiphysics.OLD_RELAXED_DISP) # this is u_k (what we use to solve the fluid)
+        #     old_relaxed_disp = node.GetSolutionStepValue(KratosMultiphysics.OLD_RELAXED_DISPLACEMENT) # this is u_k (what we use to solve the fluid)
         #     # Relax the provided displacement
         #     relaxed_disp = w * unrelaxed_disp + (1.0 - w) * old_relaxed_disp
-        #     node.SetSolutionStepValue(KratosMultiphysics.RELAXED_DISP, relaxed_disp)
+        #     node.SetSolutionStepValue(KratosMultiphysics.RELAXED_DISPLACEMENT, relaxed_disp)
         #     # Add the current node residual norm to the total residual
         #     node_res = unrelaxed_disp - old_relaxed_disp
         #     res_norm += node_res[0]**2 + node_res[1]**2
@@ -150,9 +149,9 @@ class FSICouplingInterface():
         # Add the required variables to the FSI coupling interface model part
         self._fsi_interface_model_part.AddNodalSolutionStepVariable(self.input_variable)
         self._fsi_interface_model_part.AddNodalSolutionStepVariable(self.output_variable)
-        self._fsi_interface_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.RELAXED_DISP) # Relaxed displacement
-        self._fsi_interface_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.OLD_RELAXED_DISP) # Previous iteration relaxed displacement
-        self._fsi_interface_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL) # Interface residual
+        self._fsi_interface_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.RELAXED_DISPLACEMENT)
+        self._fsi_interface_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.OLD_RELAXED_DISPLACEMENT)
+        self._fsi_interface_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL)
 
         # Set the FSI coupling interface entities (nodes and elements)
         self._get_partitioned_fsi_utilities().CreateCouplingElementBasedSkin(
