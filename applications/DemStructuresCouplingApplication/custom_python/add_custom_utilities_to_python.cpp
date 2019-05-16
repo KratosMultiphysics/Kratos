@@ -30,7 +30,6 @@ namespace Kratos {
                 .def("ComputeSandProductionWithDepthFirstSearch", &DemStructuresCouplingUtilities::ComputeSandProductionWithDepthFirstSearch)
                 .def("ComputeTriaxialSandProduction", &DemStructuresCouplingUtilities::ComputeTriaxialSandProduction)
                 .def("MarkBrokenSpheres", &DemStructuresCouplingUtilities::MarkBrokenSpheres)
-                .def("BreakAlmostBrokenSpheres", &DemStructuresCouplingUtilities::BreakAlmostBrokenSpheres)
             ;
 
             class_<ComputeDEMFaceLoadUtility> (m, "ComputeDEMFaceLoadUtility")
