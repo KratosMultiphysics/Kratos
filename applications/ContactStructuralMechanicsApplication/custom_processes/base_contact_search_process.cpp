@@ -64,7 +64,7 @@ BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearchPro
             r_computing_contact_model_part.CreateSubModelPart(sub_computing_model_part_name);
         } else { // We clean the existing modelpart
             ModelPart& r_sub_computing_contact_model_part = !mMultipleSearchs ? r_computing_contact_model_part : r_computing_contact_model_part.GetSubModelPart(sub_computing_model_part_name);
-            CleanModelPart(r_computing_contact_model_part);
+            CleanModelPart(r_sub_computing_contact_model_part);
         }
     }
 
@@ -738,7 +738,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
+bool BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId,
     GeometricalObject::Pointer pCondSlave,
@@ -764,6 +764,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
         p_auxiliar_condition->Initialize();
         // TODO: Check this!!
     }
+
+    return true;
 }
 
 /***********************************************************************************/

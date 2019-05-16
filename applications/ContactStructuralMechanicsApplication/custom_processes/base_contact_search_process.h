@@ -185,12 +185,12 @@ public:
     /**
      * @brief This function clears the mortar conditions already created
      */
-    void ClearMortarConditions();
+    virtual void ClearMortarConditions();
 
     /**
      * @brief This method checks that the contact model part is unique (so the model parts contain unique contact pairs)
      */
-    void CheckContactModelParts();
+    virtual void CheckContactModelParts();
 
     /**
      * @brief This function creates a lists  points ready for the Mortar method
@@ -220,7 +220,7 @@ public:
     /**
      * @brief This resets the contact operators
      */
-    void ResetContactOperators();
+     virtual void ResetContactOperators();
 
     ///@}
     ///@name Access
@@ -322,6 +322,28 @@ protected:
      * @param ItNode The node iterator to set
      */
     virtual void SetInactiveNode(NodesArrayType::iterator ItNode);
+
+    /**
+     * @brief This method add a new pair to the computing model part
+     * @param rComputingModelPart The modelpart  used in the assemble of the system
+     * @param rConditionId The ID of the new condition to be created
+     * @param pCondSlave The pointer to the slave condition
+     * @param rSlaveNormal The normal of the slave condition
+     * @param pCondMaster The pointer to the master condition
+     * @param rMasterNormal The normal of the master condition
+     * @param pIndexesPairs The map of indexes considered
+     * @param pProperties The pointer to the Properties of the condition
+     */
+    virtual bool AddPairing(
+        ModelPart& rComputingModelPart,
+        IndexType& rConditionId,
+        GeometricalObject::Pointer pCondSlave,
+        const array_1d<double, 3>& rSlaveNormal,
+        GeometricalObject::Pointer pCondMaster,
+        const array_1d<double, 3>& rMasterNormal,
+        IndexMap::Pointer pIndexesPairs,
+        Properties::Pointer pProperties
+        );
 
     /**
      * @brief This converts the framework string to an enum
@@ -475,28 +497,6 @@ private:
         Properties::Pointer pProperties,
         const double ActiveCheckFactor,
         const bool FrictionalProblem
-        );
-
-    /**
-     * @brief This method add a new pair to the computing model part
-     * @param rComputingModelPart The modelpart  used in the assemble of the system
-     * @param rConditionId The ID of the new condition to be created
-     * @param pCondSlave The pointer to the slave condition
-     * @param rSlaveNormal The normal of the slave condition
-     * @param pCondMaster The pointer to the master condition
-     * @param rMasterNormal The normal of the master condition
-     * @param pIndexesPairs The map of indexes considered
-     * @param pProperties The pointer to the Properties of the condition
-     */
-    inline void AddPairing(
-        ModelPart& rComputingModelPart,
-        IndexType& rConditionId,
-        GeometricalObject::Pointer pCondSlave,
-        const array_1d<double, 3>& rSlaveNormal,
-        GeometricalObject::Pointer pCondMaster,
-        const array_1d<double, 3>& rMasterNormal,
-        IndexMap::Pointer pIndexesPairs,
-        Properties::Pointer pProperties
         );
 
     /**
