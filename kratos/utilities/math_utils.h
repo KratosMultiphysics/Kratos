@@ -24,7 +24,6 @@
 /* External includes */
 
 /* External includes */
-#include "includes/define_deprecated.h"
 #include "input_output/logger.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"

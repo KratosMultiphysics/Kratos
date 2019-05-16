@@ -24,6 +24,7 @@
 #include "includes/kratos_export_api.h"
 #include "includes/shared_pointers.h"
 #include "includes/exception.h"
+#include "includes/kratos_version.h"
 
 
 #if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
@@ -561,6 +562,24 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_REGISTER_CONSTITUTIVE_LAW(name, reference) \
     KratosComponents<ConstitutiveLaw >::Add(name, reference); \
     Serializer::Register(name, reference);
+
+#if __cplusplus >= 201402L
+#define KRATOS_DEPRECATED [[deprecated]]
+#define KRATOS_DEPRECATED_MESSAGE(deprecated_message) [[deprecated(deprecated_message)]]
+#elif __GNUC__
+#define KRATOS_DEPRECATED __attribute__((deprecated))
+#define KRATOS_DEPRECATED_MESSAGE(deprecated_message) KRATOS_DEPRECATED
+#elif defined(_MSC_VER)
+#define KRATOS_DEPRECATED __declspec(deprecated)
+#define KRATOS_DEPRECATED_MESSAGE(deprecated_message) KRATOS_DEPRECATED
+#else
+#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+#define KRATOS_DEPRECATED
+#define KRATOS_DEPRECATED_MESSAGE(deprecated_message)
+#endif
+
+#define KRATOS_VERSION_AS_INT (KRATOS_MAJOR_VERSION*10+KRATOS_MINOR_VERSION)
+#define KRATOS_TO_BE_REMOVED_IN_VERSION(major_version, minor_version) static_assert((major_version*10+minor_version) > KRATOS_VERSION_AS_INT, "This method is deprecated for the current version. Please remove");
 
 // The following block defines the macro KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
 // If written in a file, for the following lines of code the compiler will not print warnings of type 'deprecated function'.

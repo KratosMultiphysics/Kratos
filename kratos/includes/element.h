@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include "includes/define_deprecated.h"
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "includes/geometrical_object.h"

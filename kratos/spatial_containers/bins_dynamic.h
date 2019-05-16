@@ -15,15 +15,10 @@
 #if !defined(KRATOS_BINS_DYNAMIC_CONTAINER_H_INCLUDE)
 #define KRATOS_BINS_DYNAMIC_CONTAINER_H_INCLUDE
 
-// System includes
 #include <array>
 #include <cmath>
 #include <algorithm>
 
-// External includes
-
-// Project includes
-#include "includes/define_deprecated.h"
 #include "tree.h"
 
 namespace Kratos

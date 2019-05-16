@@ -24,7 +24,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/define_deprecated.h"
 #include "includes/node.h"
 
 #include "spatial_containers/spatial_containers.h"
@@ -186,7 +185,7 @@ public:
         const double Tolerance = 1.0e-5
         )
     {
-        KRATOS_TO_BE_REMOVED_IN_VERSION(7, 1, 0)
+        KRATOS_TO_BE_REMOVED_IN_VERSION(7, 1)
 
         // Ask to the container for the list of candidate entities
         SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(PointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);

@@ -22,7 +22,6 @@
 
 /* Project includes */
 #include "includes/define.h"
-#include "includes/define_deprecated.h"
 #include "includes/model_part.h"
 #include "includes/checks.h"
 
@@ -341,8 +340,6 @@ public:
         )
     {
         KRATOS_TRY
-
-        KRATOS_TO_BE_REMOVED_IN_VERSION(7, 1, 0)
 
         #pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
