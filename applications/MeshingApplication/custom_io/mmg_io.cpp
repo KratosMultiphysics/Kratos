@@ -116,15 +116,17 @@ void MmgIO<TMMGLibrary>::ReadModelPart(ModelPart& rModelPart)
     const std::string condition_type_name = (Dimension == 2) ? "Condition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "SurfaceCondition3D3N" : "Condition3D2N";
     Condition const& r_clone_condition = KratosComponents<Condition>::Get(condition_type_name);
     ref_condition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), p_auxiliar_prop);
-    for (auto& r_color : colors)
+    for (auto& r_color : colors) {
         ref_condition[r_color.first] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), p_auxiliar_prop);
+    }
 
     /* Elements */
     const std::string element_type_name = (Dimension == 2) ? "Element2D3N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "Element3D4N" : "Element3D3N";
     Element const& r_clone_element = KratosComponents<Element>::Get(element_type_name);
     ref_element[0] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
-    for (auto& r_color : colors)
+    for (auto& r_color : colors) {
         ref_element[r_color.first] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
+    }
 
 
     // Writing the new mesh data on the model part
@@ -177,10 +179,11 @@ void MmgIO<TMMGLibrary>::WriteModelPart(ModelPart& rModelPart)
     Parameters color_json;
     for (auto& r_color : colors) {
         Parameters names_array;
+        names_array.AddEmptyArray("model_part_names");
         for (auto& r_model_part_name : r_color.second) {
-            names_array.Append(r_model_part_name);
+            names_array["model_part_names"].Append(r_model_part_name);
         }
-        color_json.AddValue(std::to_string(r_color.first), names_array);
+        color_json.AddValue(std::to_string(r_color.first), names_array["model_part_names"]);
     }
 
     const std::string& r_json_text = color_json.PrettyPrintJsonString();
