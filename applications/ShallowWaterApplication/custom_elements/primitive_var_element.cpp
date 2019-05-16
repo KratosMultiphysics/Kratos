@@ -200,7 +200,7 @@ namespace Kratos
 
         // Build RHS
         // Source term (bathymetry contribution)
-        noalias(rRightHandSideVector)  = -sign * variables.gravity * prod(aux_w_grad_h, variables.depth);
+        noalias(rRightHandSideVector)  = sign * variables.gravity * prod(aux_w_grad_h, variables.depth);
         
         // Source term (rain contribution)
         noalias(rRightHandSideVector) += prod(mass_matrix, variables.rain);
@@ -209,7 +209,7 @@ namespace Kratos
         noalias(rRightHandSideVector) += variables.dt_inv * prod(mass_matrix, variables.proj_unk);
 
         // Substracting the botton diffusion due to stabilization (eta = h + H)
-        noalias(rRightHandSideVector) -= (k_dc + tau_h) * prod(aux_h_diffus, variables.depth);
+        noalias(rRightHandSideVector) += (k_dc + tau_h) * prod(aux_h_diffus, variables.depth);
 
         // Substracting the Dirichlet term (since we use a residualbased approach)
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, variables.unknown);
@@ -250,8 +250,17 @@ namespace Kratos
         rVariables.lumping_factor = 1.0 / static_cast<double>(TNumNodes);
         rVariables.dyn_tau = rCurrentProcessInfo[DYNAMIC_TAU];
         rVariables.gravity = rCurrentProcessInfo[GRAVITY_Z];
-        rVariables.manning2 = std::pow( GetProperties()[MANNING], 2);
+        rVariables.manning2 = 0.0;//std::pow( GetProperties()[MANNING], 2);
         rVariables.height_units = rCurrentProcessInfo[WATER_HEIGHT_UNIT_CONVERTER];
+
+        GeometryType& rGeom = GetGeometry();
+        for (unsigned int i = 0; i < TNumNodes; i++)
+        {
+            rVariables.manning2 += rGeom[i].FastGetSolutionStepValue(EQUIVALENT_MANNING);
+        }
+        rVariables.manning2 *= rVariables.lumping_factor;
+        rVariables.manning2 = std::pow(rVariables.manning2, 2);
+
     }
 
 //----------------------------------------------------------------------

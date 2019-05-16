@@ -33,8 +33,8 @@ class PreUtilities
 
     typedef ModelPart::ElementsContainerType                         ElementsArrayType;
     typedef ModelPart::NodesContainerType::ContainerType             NodesContainerType;
-    typedef WeakPointerVector<Element>                               ParticleWeakVectorType;
-    typedef WeakPointerVector<Element>::iterator                     ParticleWeakIteratorType;
+    typedef GlobalPointersVector<Element>                               ParticleWeakVectorType;
+    typedef GlobalPointersVector<Element>::iterator                     ParticleWeakIteratorType;
 
     KRATOS_CLASS_POINTER_DEFINITION(PreUtilities);
 

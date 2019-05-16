@@ -59,7 +59,7 @@ void PotentialWallCondition<TDim, TNumNodes>::Initialize()
     mInitializeWasPerformed = true;
 
     const GeometryType& rGeom = this->GetGeometry();
-    WeakPointerVector<Element> ElementCandidates;
+    GlobalPointersVector<Element> ElementCandidates;
     GetElementCandidates(ElementCandidates, rGeom);
 
     std::vector<IndexType> NodeIds, ElementNodeIds;
@@ -264,11 +264,11 @@ inline Element::Pointer PotentialWallCondition<TDim, TNumNodes>::pGetElement() c
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::GetElementCandidates(
-    WeakPointerVector<Element>& ElementCandidates, const GeometryType& rGeom) const
+    GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom) const
 {
     for (SizeType i = 0; i < TDim; i++)
     {
-        const WeakPointerVector<Element>& rNodeElementCandidates =
+        const GlobalPointersVector<Element>& rNodeElementCandidates =
             rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
         for (SizeType j = 0; j < rNodeElementCandidates.size(); j++)
             ElementCandidates.push_back(rNodeElementCandidates(j));
@@ -289,7 +289,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::FindParentElement(
     std::vector<IndexType>& NodeIds,
     std::vector<IndexType>& ElementNodeIds,
-    WeakPointerVector<Element> ElementCandidates)
+    GlobalPointersVector<Element> ElementCandidates)
 {
     for (SizeType i = 0; i < ElementCandidates.size(); i++)
     {

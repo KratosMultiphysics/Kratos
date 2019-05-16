@@ -1,7 +1,7 @@
 {
     "system_parameters":{
         "mass": 35.75e-3,
-        "stiffness" : 10069.48,
+        "stiffness" : 69.48,
         "damping": 0.0039
     },
     "time_integration_parameters":{

@@ -59,7 +59,7 @@ public:
     typedef Point2D<ModelPart::NodeType>       Point2DType;
     typedef Point3D<ModelPart::NodeType>       Point3DType;
 
-    typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+    typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
     ///@}
     ///@name Life Cycle
     ///@{
