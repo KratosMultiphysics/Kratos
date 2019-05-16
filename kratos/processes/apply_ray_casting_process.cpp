@@ -160,7 +160,7 @@ namespace Kratos
 		for (unsigned int i_direction = 0; i_direction < TDim; ++i_direction) {
 			for (unsigned int i_ray = 0; i_ray < extra_ray_origs.size(); ++i_ray) {
 				// Creating the ray
-				array_1d<double,3> aux_ray = extra_ray_origs[i_ray];
+				const auto aux_ray = extra_ray_origs[i_ray];
 				double ray[3] = {aux_ray[0], aux_ray[1], aux_ray[2]};				
 				p_octree->NormalizeCoordinates(ray);
 				ray[i_direction] = 0; // Starting from the lower extreme
