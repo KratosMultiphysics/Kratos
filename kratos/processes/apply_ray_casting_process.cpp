@@ -288,7 +288,7 @@ namespace Kratos
 
         // Getting the entrance cell from lower extreme
         OctreeType::key_type cell_key[3];
-        OctreeType::cell_type* cell = pOctree->pGetCell(ray_key);
+        auto cell = pOctree->pGetCell(ray_key);
         while (cell) {
 			// Get the current cell intersections
             const int cell_int = this->GetCellIntersections(cell, ray, ray_key, direction, rIntersections);
