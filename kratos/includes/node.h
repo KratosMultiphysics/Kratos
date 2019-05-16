@@ -86,13 +86,12 @@ public:
     ///@name Type Definitions
     ///@{
 
-    //KRATOS_CLASS_POINTER_DEFINITION(Node);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Node);
 
     typedef Node<TDimension, TDofType> NodeType;
 
     /// Pointer definition of Node
-    typedef Kratos::intrusive_ptr<NodeType> Pointer;
-    typedef Kratos::GlobalPointer<NodeType> WeakPointer;
+
 
     typedef Point BaseType;
 
@@ -363,10 +362,6 @@ public:
 
     //*********************************************
     //public API of intrusive_ptr  
-    typename NodeType::Pointer shared_from_this()
-    {
-        return typename NodeType::Pointer(this);
-    }
     unsigned int use_count() const noexcept
     {
         return mReferenceCounter;

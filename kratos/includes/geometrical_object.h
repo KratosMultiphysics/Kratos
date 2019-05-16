@@ -268,11 +268,6 @@ public:
 
     //*********************************************
     //public API of intrusive_ptr
-    GeometricalObject::Pointer shared_from_this()
-    {
-        return GeometricalObject::Pointer(this);
-    }    
-
     unsigned int use_count() const noexcept
     {
         return mReferenceCounter;

@@ -166,12 +166,6 @@ public:
     {
     }
 
-    Condition::Pointer shared_from_this()
-    {
-        return Condition::Pointer(this);
-    }
-
-
     ///@}
     ///@name Operators
     ///@{

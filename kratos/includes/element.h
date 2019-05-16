@@ -164,10 +164,6 @@ public:
     {
     }
 
-    Element::Pointer shared_from_this()
-    {
-        return Element::Pointer(this);
-    }
     ///@}
     ///@name Operators
     ///@{
