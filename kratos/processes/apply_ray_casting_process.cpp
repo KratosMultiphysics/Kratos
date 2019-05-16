@@ -344,7 +344,7 @@ namespace Kratos
 		double ray_point2[3] = {ray[0], ray[1], ray[2]};
 		double normalized_coordinate;
 
-		OctreeType* pOctree = mpFindIntersectedObjectsProcess->GetOctreePointer();
+		auto pOctree = mpFindIntersectedObjectsProcess->GetOctreePointer();
 		pOctree->CalculateCoordinateNormalized(ray_key[direction], normalized_coordinate);
 		ray_point1[direction] = normalized_coordinate;
 		ray_point2[direction] = ray_point1[direction] + pOctree->CalcSizeNormalized(cell);
