@@ -91,7 +91,7 @@ namespace Kratos
 
             // Creating the ray
             double ray[3] = {r_coords[0], r_coords[1], r_coords[2]};
-			OctreeType* pOctree = mpFindIntersectedObjectsProcess->GetOctreePointer();
+			auto pOctree = mpFindIntersectedObjectsProcess->GetOctreePointer();
             pOctree->NormalizeCoordinates(ray);
             ray[i_direction] = 0; // Starting from the lower extreme
 
