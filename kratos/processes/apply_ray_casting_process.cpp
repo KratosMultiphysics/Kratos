@@ -281,7 +281,7 @@ namespace Kratos
         rIntersections.clear();
 
 		// Get the octree from the parent discontinuous distance process
-        OctreeType* pOctree = mpFindIntersectedObjectsProcess->GetOctreePointer();
+        auto pOctree = mpFindIntersectedObjectsProcess->GetOctreePointer();
 
 		// Compute the normalized ray key
         OctreeType::key_type ray_key[3] = {pOctree->CalcKeyNormalized(ray[0]), pOctree->CalcKeyNormalized(ray[1]), pOctree->CalcKeyNormalized(ray[2])};
