@@ -163,14 +163,11 @@ void MmgIO<TMMGLibrary>::WriteModelPart(ModelPart& rModelPart)
     // Check if the number of given entities match with mesh size
     mMmmgUtilities.CheckMeshData();
 
-    // Retrieving current step
-    const IndexType step = rModelPart.GetProcessInfo()[STEP];
-
     // Automatically save the mesh
-    mMmmgUtilities.OutputMesh(mFilename, false, step);
+    mMmmgUtilities.OutputMesh(mFilename);
 
     // Automatically save the solution
-    mMmmgUtilities.OutputSol(mFilename, false, step);
+    mMmmgUtilities.OutputSol(mFilename);
 
     // Writing the colors to a JSON
     Parameters color_json;

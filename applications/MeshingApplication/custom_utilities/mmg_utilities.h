@@ -442,8 +442,8 @@ public:
      */
     void OutputMesh(
         const std::string& rOutputName,
-        const bool PostOutput,
-        const IndexType Step
+        const bool PostOutput = false,
+        const int Step = -1
         );
 
     /**
@@ -454,8 +454,8 @@ public:
      */
     void OutputSol(
         const std::string& rOutputName,
-        const bool PostOutput,
-        const IndexType Step
+        const bool PostOutput = false,
+        const int Step = -1
         );
 
     /**

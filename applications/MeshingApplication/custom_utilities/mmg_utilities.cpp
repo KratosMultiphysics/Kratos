@@ -1636,10 +1636,10 @@ template<>
 void MmgUtilities<MMGLibrary::MMG2D>::OutputMesh(
     const std::string& rOutputName,
     const bool PostOutput,
-    const IndexType Step
+    const int Step
     )
 {
-    const std::string mesh_name = rOutputName + "_step=" + std::to_string(Step) + (PostOutput ? ".o" : "") + ".mesh";
+    const std::string mesh_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
     // a)  Give the ouptut mesh name using MMG2D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
@@ -1656,10 +1656,10 @@ template<>
 void MmgUtilities<MMGLibrary::MMG3D>::OutputMesh(
     const std::string& rOutputName,
     const bool PostOutput,
-    const IndexType Step
+    const int Step
     )
 {
-    const std::string mesh_name = rOutputName + "_step=" + std::to_string(Step) + (PostOutput ? ".o" : "") + ".mesh";
+    const std::string mesh_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
     // a)  Give the ouptut mesh name using MMG3D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
@@ -1676,10 +1676,10 @@ template<>
 void MmgUtilities<MMGLibrary::MMGS>::OutputMesh(
     const std::string& rOutputName,
     const bool PostOutput,
-    const IndexType Step
+    const int Step
     )
 {
-    const std::string mesh_name = rOutputName + "_step=" + std::to_string(Step) + (PostOutput ? ".o" : "") + ".mesh";
+    const std::string mesh_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
     // a)  Give the ouptut mesh name using MMGS_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
@@ -1696,10 +1696,10 @@ template<>
 void MmgUtilities<MMGLibrary::MMG2D>::OutputSol(
     const std::string& rOutputName,
     const bool PostOutput,
-    const IndexType Step
+    const int Step
     )
 {
-    const std::string sol_name = rOutputName + "_step=" + std::to_string(Step) + (PostOutput ? ".o" : "") + ".sol";
+    const std::string sol_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".sol";
     const char* sol_file = sol_name.c_str();
 
     // a)  Give the ouptut sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
@@ -1716,10 +1716,10 @@ template<>
 void MmgUtilities<MMGLibrary::MMG3D>::OutputSol(
     const std::string& rOutputName,
     const bool PostOutput,
-    const IndexType Step
+    const int Step
     )
 {
-    const std::string sol_name = rOutputName + "_step=" + std::to_string(Step) + (PostOutput ? ".o" : "") + ".sol";
+    const std::string sol_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".sol";
     const char* sol_file = sol_name.c_str();
 
     // a)  Give the ouptut sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
@@ -1736,10 +1736,10 @@ template<>
 void MmgUtilities<MMGLibrary::MMGS>::OutputSol(
     const std::string& rOutputName,
     const bool PostOutput,
-    const IndexType Step
+    const int Step
     )
 {
-    const std::string sol_name = rOutputName + "_step=" + std::to_string(Step) + (PostOutput ? ".o" : "") + ".sol";
+    const std::string sol_name = rOutputName + (Step >= 0 ? "_step=" + std::to_string(Step) : "") + (PostOutput ? ".o" : "") + ".sol";
     const char* sol_file = sol_name.c_str();
 
     // a)  Give the ouptut sol name using MMGS_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file

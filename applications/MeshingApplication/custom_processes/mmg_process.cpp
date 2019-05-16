@@ -531,7 +531,7 @@ void MmgProcess<TMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
 {
     /* GET RESULTS */
 
-    const IndexType step = mrThisModelPart.GetProcessInfo()[STEP];
+    const int step = mrThisModelPart.GetProcessInfo()[STEP];
 
     // Automatically save the mesh
     mMmmgUtilities.OutputMesh(mFilename, PostOutput, step);
