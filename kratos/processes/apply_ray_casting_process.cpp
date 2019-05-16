@@ -332,7 +332,7 @@ namespace Kratos
 		//ray is of dimension (3) normalized in (0,1)^3 space
 		// direction can be 0,1,2 which are x,y and z respectively
 		typedef OctreeType::cell_type::object_container_type object_container_type;
-		object_container_type* objects = (cell->pGetObjects());
+		auto objects = (cell->pGetObjects());
 
 		// There are no intersection in empty cells
 		if (objects->empty()){
