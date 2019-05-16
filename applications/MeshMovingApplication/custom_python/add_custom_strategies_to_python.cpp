@@ -14,6 +14,7 @@
 // System includes
 
 // External includes
+#include "includes/define_python.h"
 #include "boost/numeric/ublas/vector.hpp"
 
 // Project includes

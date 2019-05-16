@@ -119,14 +119,14 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesPointerType pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_shared< EulerPrimVarElement <TNumNodes> >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+        return Kratos::make_intrusive< EulerPrimVarElement <TNumNodes> >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("")
     }
 
     Element::Pointer Create(IndexType NewId, GeometryPointerType pGeom, PropertiesPointerType pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_shared< EulerPrimVarElement <TNumNodes> >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< EulerPrimVarElement <TNumNodes> >(NewId, pGeom, pProperties);
         KRATOS_CATCH("")
     }
 

@@ -82,7 +82,7 @@ public:
     typedef std::size_t                                           IndexType;
 
     /// Type definitions for the tree
-    typedef PointItem                                             PointType;
+    typedef PointItem<Condition>                                  PointType;
     typedef PointType::Pointer                             PointTypePointer;
     typedef std::vector<PointTypePointer>                       PointVector;
     typedef PointVector::iterator                             PointIterator;
