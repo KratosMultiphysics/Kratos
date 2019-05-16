@@ -37,6 +37,7 @@ typedef Node<3> NodeType;
 /**
     * Check the correct calculation of the integrated stress with the CL's
     */
+/*
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureTensionTest, KratosStructuralMechanicsFastSuite)
 {
     ConstitutiveLaw::Parameters cl_parameters;
@@ -247,6 +248,6 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosStructuralM
     }
 }
 
-
+*/
 } // namespace Testing
 } // namespace Kratos
