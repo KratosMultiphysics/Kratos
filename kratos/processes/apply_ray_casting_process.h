@@ -188,7 +188,7 @@ private:
     const double mExtraRaysEpsilon = 1.0e-8;
     FindIntersectedGeometricalObjectsProcess* mpFindIntersectedObjectsProcess;
     bool mIsSearchStructureAllocated;
-    double mCharactresticLength;
+    double mCharacteristicLength;
 
     ///@}
     ///@name Private Operators
