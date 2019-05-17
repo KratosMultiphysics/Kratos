@@ -30,26 +30,40 @@ namespace Kratos
         const bool CalculateResidualVectorFlag)
     {
         KRATOS_TRY
+        const double penalty = GetProperties()[PENALTY_FACTOR];
 
         const auto& r_geometry_master = GetGeometry();
-        const auto& r_geometry_slave = r_geometry_master.GetSlaveGeometry();
+        const auto& r_geometry_slave = r_geometry_master.GetGeometryPart(1);
 
+        // Size definitions
         const int number_of_nodes_master = r_geometry_master.size();
         const int number_of_nodes_slave = r_geometry_slave.size();
 
         const int mat_size = 3 * (number_of_nodes_master + number_of_nodes_slave);
 
+        // Memory allocation
+        if (CalculateStiffnessMatrixFlag) {
+            if (rLeftHandSideMatrix.size1() != mat_size) {
+                rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+            }
+            noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+        }
+        if (CalculateResidualVectorFlag) {
+            if (rRightHandSideVector.size() != mat_size) {
+                rRightHandSideVector.resize(mat_size, false);
+            }
+            rRightHandSideVector = ZeroVector(mat_size);
+        }
+
+        // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry_master.IntegrationPoints(integration_method);
-
-        const double Penalty = GetProperties()[PENALTY_FACTOR];
-
         for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
         {
             Matrix N_master = r_geometry_master.ShapeFunctionsValues(integration_method);
             Matrix N_slave = r_geometry_slave.ShapeFunctionsValues(integration_method);
 
             //FOR DISPLACEMENTS
-            Matrix Hcomplete = ZeroMatrix(3, mat_size);
+            Matrix H = ZeroMatrix(3, mat_size);
             for (unsigned int i = 0; i < number_of_nodes_master; i++)
             {
                 int index = 3 * i;
@@ -65,38 +79,45 @@ namespace Kratos
             {
                 int index = 3 * i + number_of_nodes_master;
                 if (Is(IgaFlags::FIX_DISPLACEMENT_X))
-                    H(0, index) = N_slave[i];
+                    H(0, index) = -N_slave[i];
                 if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
-                    H(1, index + 1) = N_slave[i];
+                    H(1, index + 1) = -N_slave[i];
                 if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
-                    H(2, index + 2) = N_slave[i];
+                    H(2, index + 2) = -N_slave[i];
             }
 
-            Vector TDisplacements(mat_size);
-            for (unsigned int i = 0; i < number_of_nodes_master; i++)
-            {
-                const array_1d<double, 3> disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-                int index = 3 * i;
-                TDisplacements[index] = disp[0];
-                TDisplacements[index + 1] = disp[1];
-                TDisplacements[index + 2] = disp[2];
-            }
-            for (unsigned int i = 0; i < number_of_nodes_slave; i++)
-            {
-                const array_1d<double, 3> disp = GetGeometry().GetSlaveGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-                int index = 3 * i + number_of_nodes_master;
-                TDisplacements[index] = disp[0];
-                TDisplacements[index + 1] = disp[1];
-                TDisplacements[index + 2] = disp[2];
-            }
-
+            // Differential area
             const double integration_weight = integration_points[point_number].Weight();
             const double determinat_jacobian = GetGeometry().DeterminatJacobian(point_number);
 
-            noalias(rLeftHandSideMatrix) += prod(trans(Hcomplete), Hcomplete)
-                * integration_weight * determinat_jacobian * Penalty;
-            noalias(rRightHandSideVector) -= prod(prod(trans(Hcomplete), Hcomplete), TDisplacements)
-                * integration_weight * determinat_jacobian * Penalty;
+            // Assembly
+            if (CalculateStiffnessMatrixFlag) {
+                noalias(rLeftHandSideMatrix) += prod(trans(H), H)
+                    * integration_weight * determinat_jacobian * penalty;
+            }
+            if (CalculateResidualVectorFlag) {
+
+                Vector u(mat_size);
+                for (unsigned int i = 0; i < number_of_nodes_master; i++)
+                {
+                    const array_1d<double, 3> disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+                    int index = 3 * i;
+                    u[index]     = disp[0];
+                    u[index + 1] = disp[1];
+                    u[index + 2] = disp[2];
+                }
+                for (unsigned int i = 0; i < number_of_nodes_slave; i++)
+                {
+                    const array_1d<double, 3> disp = GetGeometry().GetSlaveGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+                    int index = 3 * i + number_of_nodes_master;
+                    u[index]     = disp[0];
+                    u[index + 1] = disp[1];
+                    u[index + 2] = disp[2];
+                }
+
+                noalias(rRightHandSideVector) -= prod(prod(trans(H), H), u)
+                    * integration_weight * determinat_jacobian * penalty;
+            }
         }
 
         KRATOS_CATCH("")
