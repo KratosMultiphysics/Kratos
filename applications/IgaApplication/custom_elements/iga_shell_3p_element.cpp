@@ -216,24 +216,6 @@ namespace Kratos
         //normalized basis vector g3
         rMetric.g3 = rMetric.g3_notnorm / rMetric.dA;
 
-        // second derivatives of the base vectors w.r.t. the curvilinear coords.
-        if (Has(SHAPE_FUNCTION_LOCAL_THIRD_DERIVATIVES)){
-            const Matrix& DDDN_DDDe = GetValue(SHAPE_FUNCTION_LOCAL_THIRD_DERIVATIVES);
-            // KRATOS_WATCH(DDDN_DDDe(0, 0))
-            IgaGeometryUtilities::CalculateSecondDerivativesOfBaseVectors(
-                GetGeometry(),
-                DDDN_DDDe,
-                rMetric.DDg1_DD11,
-                rMetric.DDg1_DD12,
-                rMetric.DDg2_DD21,
-                rMetric.DDg2_DD22);
-			const Vector& N = GetValue(SHAPE_FUNCTION_VALUES);
-			KRATOS_WATCH(N)
-			KRATOS_WATCH(DN_De)
-			KRATOS_WATCH(DDN_DDe)
-			KRATOS_WATCH(DDDN_DDDe)
-        }
-
         //GetCovariantMetric
         rMetric.gab[0] = pow(rMetric.g1[0], 2) + pow(rMetric.g1[1], 2) + pow(rMetric.g1[2], 2);
         rMetric.gab[1] = pow(rMetric.g2[0], 2) + pow(rMetric.g2[1], 2) + pow(rMetric.g2[2], 2);
@@ -245,9 +227,50 @@ namespace Kratos
             3,
             rMetric.H);
 
+        // curvature
         rMetric.curvature[0] = rMetric.H(0, 0) * rMetric.g3[0] + rMetric.H(1, 0) * rMetric.g3[1] + rMetric.H(2, 0) * rMetric.g3[2];
         rMetric.curvature[1] = rMetric.H(0, 1) * rMetric.g3[0] + rMetric.H(1, 1) * rMetric.g3[1] + rMetric.H(2, 1) * rMetric.g3[2];
         rMetric.curvature[2] = rMetric.H(0, 2) * rMetric.g3[0] + rMetric.H(1, 2) * rMetric.g3[1] + rMetric.H(2, 2) * rMetric.g3[2];
+
+        if (Has(SHAPE_FUNCTION_LOCAL_THIRD_DERIVATIVES))
+        {
+            // second derivatives of the base vectors w.r.t. the curvilinear coords.
+            const Matrix& DDDN_DDDe = GetValue(SHAPE_FUNCTION_LOCAL_THIRD_DERIVATIVES);
+            IgaGeometryUtilities::CalculateSecondDerivativesOfBaseVectors(
+                GetGeometry(),
+                DDDN_DDDe,
+                rMetric.DDg1_DD11,
+                rMetric.DDg1_DD12,
+                rMetric.DDg2_DD21,
+                rMetric.DDg2_DD22);
+            
+            // derivative of the curvature
+            array_1d<double, 3> cross1;
+            array_1d<double, 3> cross2;
+            array_1d<double, 3> Dg1_D1;
+            array_1d<double, 3> Dg2_D2;
+            array_1d<double, 3> Dg1_D2;
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                Dg1_D1[i] = rMetric.H(i, 0);
+                Dg2_D2[i] = rMetric.H(i, 1);
+                Dg1_D2[i] = rMetric.H(i, 2);
+            }
+            MathUtils<double>::CrossProduct(cross1, Dg1_D1, rMetric.g2);
+            MathUtils<double>::CrossProduct(cross2, rMetric.g1, Dg1_D2);
+            array_1d<double, 3> Dg3_D1 = (rMetric.dA * (cross1 + cross2) - rMetric.g3_notnorm * norm_2(cross1 + cross2)) 
+                / pow(rMetric.dA, 2);
+            MathUtils<double>::CrossProduct(cross1, Dg1_D2, rMetric.g2);
+            MathUtils<double>::CrossProduct(cross2, rMetric.g1, Dg2_D2);
+            array_1d<double, 3> Dg3_D2 = (rMetric.dA * (cross1 + cross2) - rMetric.g3_notnorm * norm_2(cross1 + cross2))
+                / pow(rMetric.dA, 2);
+            rMetric.Dcurvature_D1[0] = inner_prod(rMetric.DDg1_DD11, rMetric.g3) + inner_prod(Dg1_D1, Dg3_D1);
+            rMetric.Dcurvature_D1[1] = inner_prod(rMetric.DDg2_DD21, rMetric.g3) + inner_prod(Dg2_D2, Dg3_D1);
+            rMetric.Dcurvature_D1[2] = inner_prod(rMetric.DDg1_DD12, rMetric.g3) + inner_prod(Dg1_D2, Dg3_D1);
+            rMetric.Dcurvature_D2[0] = inner_prod(rMetric.DDg1_DD12, rMetric.g3) + inner_prod(Dg1_D1, Dg3_D2);
+            rMetric.Dcurvature_D2[1] = inner_prod(rMetric.DDg2_DD22, rMetric.g3) + inner_prod(Dg2_D2, Dg3_D2);
+            rMetric.Dcurvature_D2[2] = inner_prod(rMetric.DDg2_DD21, rMetric.g3) + inner_prod(Dg1_D2, Dg3_D2);
+        }
 
         //contravariant rMetric gab_con and base vectors g_con
         //Vector gab_con = ZeroVector(3);
@@ -300,12 +323,6 @@ namespace Kratos
         rMetric.TransCovToCart(1, 1) = pow(mG_11, 2);
         rMetric.TransCovToCart(2, 1) = mG_01 * mG_11;
         rMetric.TransCovToCart(2, 2) = mG_00 * mG_11;
-
-        // if (Id() == 4){
-        //     KRATOS_WATCH(rMetric.Q)
-        //     KRATOS_WATCH(rMetric.TransCartToCov)
-        //     KRATOS_WATCH(rMetric.TransCovToCart)
-        // }
     }
 
     void IgaShell3pElement::CalculateConstitutiveVariables(
@@ -591,10 +608,16 @@ namespace Kratos
     void IgaShell3pElement::Calculate(
         const Variable<double>& rVariable,
         double& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo)
     {
-            // KRATOS_WATCH("start: Calculate")
+        // const unsigned int number_of_nodes = GetGeometry().size();
+        // const unsigned int pos = GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
+        // for (unsigned int i = 0; i < number_of_nodes; ++i) {
+        //     KRATOS_WATCH(GetGeometry()[i].GetDof(DISPLACEMENT_X, pos).GetSolutionStepValue())
+        //     KRATOS_WATCH(GetGeometry()[i].GetDof(DISPLACEMENT_Y, pos + 1).GetSolutionStepValue())
+        //     KRATOS_WATCH(GetGeometry()[i].GetDof(DISPLACEMENT_Z, pos + 2).GetSolutionStepValue())
+        // }
+        // KRATOS_WATCH("start: Calculate")
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
             // Set constitutive law flags:
@@ -635,7 +658,6 @@ namespace Kratos
             // stresses at the bottom (negative theta_3 direction)
             array_1d<double, 3> stress_cau_cart_bottom = membrane_stress_cau_cart - thickness / 2 * bending_stress_cau_cart;
 
-
             if (rVariable == STRESS_CAUCHY_11)
                 rValues = membrane_stress_cau_cart[0];
             else if (rVariable == STRESS_CAUCHY_22)
@@ -668,6 +690,7 @@ namespace Kratos
                 rValues = m[1];
             //shear force
             else if (Has(SHAPE_FUNCTION_LOCAL_THIRD_DERIVATIVES)){
+                KRATOS_WATCH(GetValue(LOCAL_COORDINATES))
                 array_1d<double, 2> q = ZeroVector(2);
                 CalculateShearForce(q, actual_metric, constitutive_variables_curvature);
 				if (rVariable == SHEAR_FORCE_1)
@@ -684,13 +707,12 @@ namespace Kratos
         const MetricVariables& rActualMetric,
         const ConstitutiveVariables& rConstitutiveVariablesCurvature)
     {
-        // derivative of the curvature
         std::vector<array_1d<double, 3>> dk_cu(2);
-        CalculateVariationDerivativeCurvature(dk_cu, rActualMetric);
+        dk_cu[0] = mInitialMetric.Dcurvature_D1 - rActualMetric.Dcurvature_D1;
+        dk_cu[1] = mInitialMetric.Dcurvature_D2 - rActualMetric.Dcurvature_D2;
 
         Vector k_cu = ZeroVector(3);
         CalculateCurvature(k_cu, rActualMetric.curvature);
-
         array_1d<double, 3> m_ca = prod(rConstitutiveVariablesCurvature.D, k_cu);
         array_1d<double, 3> m_cu = prod(mInitialMetric.TransCartToCov, m_ca);
 
@@ -710,44 +732,15 @@ namespace Kratos
         dm_cu[0] = prod(mInitialMetric.TransCartToCov, dm_ca[0]) + prod(DTransCartToCov_Dalpha_init[0], m_ca);
         dm_cu[1] = prod(mInitialMetric.TransCartToCov, dm_ca[1]) + prod(DTransCartToCov_Dalpha_init[1], m_ca);
 
-        // 1st Christoffel symbols
-        array_1d<double, 3> Dg1_D1_init;
-        array_1d<double, 3> Dg1_D2_init;
-        array_1d<double, 3> Dg2_D2_init;
-        for (unsigned int i = 0; i < 3; i++)
-        {
-            Dg1_D1_init[i] = mInitialMetric.H(i, 0);
-            Dg2_D2_init[i] = mInitialMetric.H(i, 1);
-            Dg1_D2_init[i] = mInitialMetric.H(i, 2);
-        }
-        array_1d<double, 3> g1_con = mInitialMetric.g1 * mInitialMetric.gab_con[0] + mInitialMetric.g2 * mInitialMetric.gab_con[2];
-        array_1d<double, 3> g2_con = mInitialMetric.g1 * mInitialMetric.gab_con[2] + mInitialMetric.g2 * mInitialMetric.gab_con[1];
-        double gamma1_11 = inner_prod(Dg1_D1_init, g1_con);
-        double gamma1_12 = inner_prod(Dg1_D2_init, g1_con);
-        double gamma1_22 = inner_prod(Dg2_D2_init, g1_con);
-        double gamma2_11 = inner_prod(Dg1_D1_init, g2_con);
-        double gamma2_12 = inner_prod(Dg1_D2_init, g2_con);
-        double gamma2_22 = inner_prod(Dg2_D2_init, g2_con);
-        
-        // if (Id()==4){
-        //   KRATOS_WATCH(m_cu)
-        //     KRATOS_WATCH(gamma1_11)
-        //     KRATOS_WATCH(gamma1_12)
-        //     KRATOS_WATCH(gamma1_22)
-        //     KRATOS_WATCH(gamma2_12)
-        // }
-        // shear forces (from Carat ElementShell_NURBS_KL::get_var_of_trans_shear_forces_nln)
         array_1d<double, 2> q_pk2_cov;
-        q_pk2_cov(0) = dm_cu[0](0) + dm_cu[1](2) + m_cu(0) * (gamma1_11 + gamma2_12) + m_cu(2) * (gamma1_12 + gamma2_22) 
-            + m_cu(0)*gamma1_11 + m_cu(1)*gamma1_22 + m_cu(2)*gamma1_12 + m_cu(2)*gamma1_12;
-        q_pk2_cov(1) = dm_cu[0](2) + dm_cu[1](1) + m_cu(2) * (gamma1_11 + gamma2_12) + m_cu(1) * (gamma1_12 + gamma2_22) 
-            + m_cu(0)*gamma2_11 + m_cu(1)*gamma2_22 + m_cu(2)*gamma2_12 + m_cu(2)*gamma2_12;
+        q_pk2_cov[0] = dm_cu[0](0) / sqrt(rActualMetric.gab[0]) + dm_cu[1](2) / sqrt(rActualMetric.gab[1]);
+        q_pk2_cov[1] = dm_cu[1](1) / sqrt(rActualMetric.gab[1]) + dm_cu[0](2) / sqrt(rActualMetric.gab[0]);
         double detF = rActualMetric.dA / mInitialMetric.dA; // should be checked (ML)
         array_1d<double, 2> q_cau_cov = q_pk2_cov / detF;
-        
+
         // transformation actual covariant basis to local Cartesian basis
-        g1_con = rActualMetric.g1 * rActualMetric.gab_con[0] + rActualMetric.g2 * rActualMetric.gab_con[2];
-        g2_con = rActualMetric.g1 * rActualMetric.gab_con[2] + rActualMetric.g2 * rActualMetric.gab_con[1];
+        array_1d<double, 3> g1_con = rActualMetric.g1 * rActualMetric.gab_con[0] + rActualMetric.g2 * rActualMetric.gab_con[2];
+        array_1d<double, 3> g2_con = rActualMetric.g1 * rActualMetric.gab_con[2] + rActualMetric.g2 * rActualMetric.gab_con[1];
         //local cartesian coordinates
         double lg1 = norm_2(rActualMetric.g1);
         array_1d<double, 3> e1 = rActualMetric.g1 / lg1;
@@ -755,68 +748,7 @@ namespace Kratos
         array_1d<double, 3> e2 = g2_con / lg_con2;
         rq[0] = inner_prod(e1, g1_con) * q_cau_cov[0];
         rq[1] = inner_prod(e2, g1_con) * q_cau_cov[0] + inner_prod(e2, g2_con) * q_cau_cov[1];
-        // if (Id()==4){
-        //     KRATOS_WATCH(rq)
-        //     KRATOS_WATCH(detF)
-        // }
-    }
-
-    void IgaShell3pElement::CalculateVariationDerivativeCurvature(
-        std::vector<array_1d<double, 3>>& rdk_cu, 
-        const MetricVariables& rActualMetric)
-    {
-        Vector Dg1_D1_init = ZeroVector(3);
-        Vector Dg1_D2_init = ZeroVector(3);
-        Vector Dg2_D2_init = ZeroVector(3);
-        Vector Dg1_D1_act = ZeroVector(3);
-        Vector Dg1_D2_act = ZeroVector(3);
-        Vector Dg2_D2_act = ZeroVector(3);
-        for (unsigned int i = 0; i < 3; i++)
-        {
-            Dg1_D1_init[i] = mInitialMetric.H(i, 0);
-            Dg2_D2_init[i] = mInitialMetric.H(i, 1);
-            Dg1_D2_init[i] = mInitialMetric.H(i, 2);
-            Dg1_D1_act[i] = rActualMetric.H(i, 0);
-            Dg2_D2_act[i] = rActualMetric.H(i, 1);
-            Dg1_D2_act[i] = rActualMetric.H(i, 2);
         }
-        Vector cross1 = ZeroVector(3);
-        Vector cross2 = ZeroVector(3);
-        MathUtils<double>::CrossProduct(cross1, Dg1_D1_init, mInitialMetric.g2);
-        MathUtils<double>::CrossProduct(cross2, mInitialMetric.g1, Dg1_D2_init);
-        array_1d<double, 3> tilde_Dg3_Dalpha = cross1 + cross2;
-        array_1d<double, 3> Dg3_D1_init = tilde_Dg3_Dalpha / mInitialMetric.dA 
-            - mInitialMetric.g3 * inner_prod(mInitialMetric.g3, tilde_Dg3_Dalpha) / mInitialMetric.dA;
-        MathUtils<double>::CrossProduct(cross1, Dg1_D2_init, mInitialMetric.g2);
-        MathUtils<double>::CrossProduct(cross2, mInitialMetric.g1, Dg2_D2_init);
-        tilde_Dg3_Dalpha = cross1 + cross2;
-        array_1d<double, 3> Dg3_D2_init = tilde_Dg3_Dalpha / mInitialMetric.dA
-            - mInitialMetric.g3 * inner_prod(mInitialMetric.g3, tilde_Dg3_Dalpha) / mInitialMetric.dA;
-        MathUtils<double>::CrossProduct(cross1, Dg1_D1_act, rActualMetric.g2);
-        MathUtils<double>::CrossProduct(cross2, rActualMetric.g1, Dg1_D2_act);
-        tilde_Dg3_Dalpha = cross1 + cross2;
-        array_1d<double, 3> Dg3_D1_act = tilde_Dg3_Dalpha / rActualMetric.dA 
-            - rActualMetric.g3 * inner_prod(rActualMetric.g3, tilde_Dg3_Dalpha) / rActualMetric.dA;
-        MathUtils<double>::CrossProduct(cross1, Dg1_D2_act, rActualMetric.g2);
-        MathUtils<double>::CrossProduct(cross2, rActualMetric.g1, Dg2_D2_act);
-        tilde_Dg3_Dalpha = cross1 + cross2;
-        array_1d<double, 3> Dg3_D2_act = tilde_Dg3_Dalpha / rActualMetric.dA
-            - rActualMetric.g3 * inner_prod(rActualMetric.g3, tilde_Dg3_Dalpha) / rActualMetric.dA;
-        
-        rdk_cu[0](0) = inner_prod(mInitialMetric.DDg1_DD11,mInitialMetric.g3) + inner_prod(Dg1_D1_init, Dg3_D1_init) 
-            - inner_prod(rActualMetric.DDg1_DD11, rActualMetric.g3) - inner_prod(Dg1_D1_act, Dg3_D1_act);
-        rdk_cu[0](1) = inner_prod(mInitialMetric.DDg2_DD21, mInitialMetric.g3) + inner_prod(Dg2_D2_init, Dg3_D1_init) 
-            - inner_prod(rActualMetric.DDg2_DD21, rActualMetric.g3) - inner_prod(Dg2_D2_act, Dg3_D1_act);
-        rdk_cu[0](2) = inner_prod(mInitialMetric.DDg1_DD12, mInitialMetric.g3) + inner_prod(Dg1_D2_init, Dg3_D1_init) 
-            - inner_prod(rActualMetric.DDg1_DD12, rActualMetric.g3) - inner_prod(Dg1_D2_act, Dg3_D1_act);
-
-        rdk_cu[1](0) = inner_prod(mInitialMetric.DDg1_DD12, mInitialMetric.g3) + inner_prod(Dg1_D1_init, Dg3_D2_init) 
-            - inner_prod(rActualMetric.DDg1_DD12, rActualMetric.g3) - inner_prod(Dg1_D1_act, Dg3_D2_act);
-        rdk_cu[1](1) = inner_prod(mInitialMetric.DDg2_DD22, mInitialMetric.g3) + inner_prod(Dg2_D2_init, Dg3_D2_init) 
-            - inner_prod(rActualMetric.DDg2_DD22, rActualMetric.g3) - inner_prod(Dg2_D2_act, Dg3_D2_act);
-        rdk_cu[1](2) = inner_prod(mInitialMetric.DDg2_DD21, mInitialMetric.g3) + inner_prod(Dg1_D2_init, Dg3_D2_init) 
-            - inner_prod(rActualMetric.DDg2_DD21, rActualMetric.g3) - inner_prod(Dg1_D2_act, Dg3_D2_act);
-    }
 
     void IgaShell3pElement::CalculateDerivativeTransformationMatrices(
         std::vector<Matrix>& rDQ_Dalpha_init,
@@ -943,11 +875,6 @@ namespace Kratos
         rDTransCartToCov_Dalpha_init[1](2,0) = eG11_d2*eG12 + eG11*eG12_d2;
         rDTransCartToCov_Dalpha_init[1](2,1) = eG21_d2*eG22 + eG21*eG22_d2;
         rDTransCartToCov_Dalpha_init[1](2,2) = eG11_d2*eG22 + eG21_d2*eG12 + eG11*eG22_d2 + eG21*eG12_d2;
-        // if (Id() == 4)
-        // {
-        //     KRATOS_WATCH(rDTransCartToCov_Dalpha_init)
-        //     KRATOS_WATCH(rDQ_Dalpha_init)
-        // }
     }
 
     int IgaShell3pElement::Check(const ProcessInfo& rCurrentProcessInfo)

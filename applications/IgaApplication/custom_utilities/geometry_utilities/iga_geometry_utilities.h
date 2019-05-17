@@ -83,14 +83,14 @@ namespace IgaGeometryUtilities
      */
     static void CalculateSecondDerivativesOfBaseVectors(const Element::GeometryType& rGeometry,
         const Matrix& rDDDN_DDDe,
-        array_1d<double, 3> rDDg1_DD11,
-        array_1d<double, 3> rDDg1_DD12,
-        array_1d<double, 3> rDDg2_DD21,
-        array_1d<double, 3> rDDg2_DD22)
+        Vector& rDDg1_DD11,
+        Vector& rDDg1_DD12,
+        Vector& rDDg2_DD21,
+        Vector& rDDg2_DD22)
     {
         const unsigned int number_of_nodes = rGeometry.size();
         
-        for (int k = 0; k < number_of_nodes; k++)
+        for (unsigned int k = 0; k < number_of_nodes; k++)
         {
             const array_1d<double, 3> coords = rGeometry[k].Coordinates();
 

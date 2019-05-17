@@ -287,7 +287,7 @@ private:
         MatrixType& rLeftHandSideMatrix,
         const Matrix& B,
         const Matrix& D,
-        const double IntegrationWeight );
+        const double& rIntegrationWeight );
 
     /**
      * @brief The method calculates and adds the non-linear part of the stiffness matrix
@@ -356,7 +356,7 @@ private:
 
     void TransformationCurvilinearStrainSize5ToCartesianStrainSize6(
         const Vector rCurvilinearStrain,
-        Vector rCartesianStrain);
+        Vector& rCartesianStrain);
 
 	void CalculateBMembrane(
 		Matrix& rB,

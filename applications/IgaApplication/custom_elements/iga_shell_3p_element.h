@@ -159,6 +159,8 @@ private:
         Vector DDg1_DD12;  // second derivative of base vector 1 w.r.t. theta1 and theta2
         Vector DDg2_DD21;  // second derivative of base vector 2 w.r.t. theta1 and theta2
         Vector DDg2_DD22;  // second derivative of base vector 2 w.r.t. theta2
+        Vector Dcurvature_D1;   // derivative of curvature w.r.t. theta1
+        Vector Dcurvature_D2;   // derivative of curvature w.r.t. theta2
         Matrix H; //Hessian
         Matrix Q; //Transformation matrix Q from contravariant to local Cartesian basis (only for strains!!!)
         Matrix TransCartToCov; // Transformation matrix from local Cartesian to covariant basis
@@ -188,6 +190,9 @@ private:
             DDg1_DD12 = ZeroVector(Dimension);
             DDg2_DD21 = ZeroVector(Dimension);
             DDg2_DD22 = ZeroVector(Dimension);
+
+            Dcurvature_D1 = ZeroVector(Dimension);
+            Dcurvature_D2 = ZeroVector(Dimension);
 
             H = ZeroMatrix(3, 3);
             Q = ZeroMatrix(3, 3);
@@ -312,11 +317,7 @@ private:
         const MetricVariables& rActualMetric,
         const ConstitutiveVariables& rConstitutiveVariablesCurvature);
 
-    void CalculateVariationDerivativeCurvature(
-        std::vector<array_1d<double, 3>>& rdk_cu, 
-        const MetricVariables& rActualMetric);
-
-    void IgaShell3pElement::CalculateDerivativeTransformationMatrices(
+    void CalculateDerivativeTransformationMatrices(
         std::vector<Matrix>& rDQ_Dalpha_init,
         std::vector<Matrix>& rDTransCartToCov_Dalpha_init);
     ///@}
