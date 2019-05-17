@@ -67,6 +67,14 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
 
     def ExecuteInitialize(self):
+        print("9999999999999999999999999999999999")
+        self.SaveTrailingEdgeNode()
+        self.MarkWakeElements()
+        self.MarkKuttaElements()
+        self.MarkWakeTEElement()
+
+    def SolveSolutionStep(self):
+        print("55555555555555555")
         self.FindWakeElements()
 
     def FindWakeElements(self):
@@ -78,6 +86,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.MarkKuttaElements()
         # Mark the trailing edge element that is further downstream as wake
         self.MarkWakeTEElement()
+        self.CleanMarking()
 
     def SaveTrailingEdgeNode(self):
         # This function finds and saves the trailing edge for further computations
@@ -114,8 +123,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                     for node in elem.GetNodes():
                         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,distances_to_wake[counter])
                         counter += 1
-
-            # print("WAKE ELEMENTS >>>>>>>>>", elem.Id)
 
         KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements finished...')
 
@@ -224,6 +231,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
         for elem in self.trailing_edge_model_part.Elements:
             if (elem.GetValue(CPFApp.WAKE)):
+                print("WAKE ELEMENTS", elem.Id)
                 if(self.CheckIfElemIsCutByWake(elem)): #TE Element
                     elem.Set(KratosMultiphysics.STRUCTURE)
                     elem.SetValue(CPFApp.KUTTA, False)
@@ -237,6 +245,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             elem.SetValue(CPFApp.WAKE, False)
             elem.SetValue(CPFApp.KUTTA, False)
             elem.Reset(KratosMultiphysics.STRUCTURE)
+            elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, KratosMultiphysics.Vector(3))
 
         for elem in self.trailing_edge_model_part.Elements:
             elem.SetValue(CPFApp.TRAILING_EDGE, False)

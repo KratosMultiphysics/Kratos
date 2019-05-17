@@ -45,13 +45,13 @@ class KratosPotentialFlowSolver(KratosBaseFieldSolver):
         # self.wake_process.FindWakeElements()
 
     def SolveSolutionStep(self):
-        self.wake_process.CleanMarking()
-        self.wake_process.FindWakeElements()
 
         super(KratosPotentialFlowSolver, self).SolveSolutionStep()
-
+        self.wake_process.CleanMarking()
         self.conversion_process.ExecuteFinalizeSolutionStep()
-        self.lift_process.ExecuteFinalizeSolutionStep()
+
+        # self.lift_process.ExecuteFinalizeSolutionStep()
+        self.wake_process.SolveSolutionStep()
         print("SOLVING NOW")
 
     def _GetParallelType(self):

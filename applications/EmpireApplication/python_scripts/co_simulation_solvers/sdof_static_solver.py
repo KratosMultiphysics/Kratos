@@ -54,7 +54,7 @@ class SDoFStaticSolver(CoSimulationBaseSolver):
         self.output_file_name = parameters["output_parameters"]["file_name"]
 
     def Initialize(self):
-        self.x = np.zeros((1, self.buffer_size))
+        self.x = 0.0
 
         initial_values = self.initial_displacement
         self.dx = initial_values
@@ -74,25 +74,29 @@ class SDoFStaticSolver(CoSimulationBaseSolver):
         pass
 
     def SolveSolutionStep(self):
-
+        self.x_old = self.x
         b = self.force
         self.x = b/self.stiffness
 
+        self.dx = self.x - self.x_old
+        self.dx_old = self.dx
+        # self.dx = 2
         print('force = ', b)
-        print('displacement = ', self.x)
+        print('displacement Change = ', self.dx)
+        print('displacement Change = ', self.x)
 
     def GetBufferSize(self):
         return self.buffer_size
 
     def GetSolutionStepValue(self, identifier, buffer_idx=0):
         if identifier == "DISPLACEMENT":
-            return self.x
+            return self.dx
         else:
             raise Exception("Identifier is unknown!")
 
     def SetSolutionStepValue(self, identifier, value, buffer_idx=0):
         if identifier == "DISPLACEMENT":
-            self.x= value
+            self.dx= value
         else:
             raise Exception("Identifier is unknown!")
 

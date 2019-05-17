@@ -52,7 +52,6 @@
                 "use_block_matrices_if_possible" : true,
                 "coarse_enough" : 5000
             },
-            "time_order" : 2,
             "reform_dofs_each_step" : false
         },
         "fluid_solver_settings"        :{

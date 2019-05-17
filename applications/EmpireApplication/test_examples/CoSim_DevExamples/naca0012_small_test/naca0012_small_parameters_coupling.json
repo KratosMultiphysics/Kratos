@@ -26,7 +26,9 @@
                 "use_block_matrices_if_possible" : true,
                 "coarse_enough" : 5000
             },
-            "time_order" : 2,
+            "time_stepping" :{
+                "time_step" :2
+            },
             "reform_dofs_each_step" : false,
             "echo_level": 1
         },

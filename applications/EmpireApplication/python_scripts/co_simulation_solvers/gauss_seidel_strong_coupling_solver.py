@@ -17,6 +17,7 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
             raise Exception("Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
 
         super(GaussSeidelStrongCouplingSolver, self).__init__(cosim_solver_settings, level)
+        self.time = 1.0#self.cosim_solver_settings["start_coupling_time"]
 
         self.convergence_accelerator = CreateConvergenceAccelerator(
             self.cosim_solver_settings["convergence_accelerator_settings"],
@@ -60,6 +61,7 @@ class GaussSeidelStrongCouplingSolver(CoSimulationBaseCouplingSolver):
             self.convergence_criteria.InitializeNonLinearIteration()
 
             for solver_name in self.solver_names:
+                print('solver_name', solver_name)
                 solver = self.solvers[solver_name]
                 self._SynchronizeInputData(solver, solver_name)
                 solver.SolveSolutionStep()

@@ -62,6 +62,7 @@ class SimpleSteadyCouplingSolver(CoSimulationBaseCouplingSolver):
             self.convergence_criteria.InitializeNonLinearIteration()
 
             for solver_name in self.solver_names:
+                print('solver_name', solver_name)
                 solver = self.solvers[solver_name]
                 self._SynchronizeInputData(solver, solver_name)
                 solver.SolveSolutionStep()
@@ -79,3 +80,28 @@ class SimpleSteadyCouplingSolver(CoSimulationBaseCouplingSolver):
 
             if k+1 >= self.num_coupling_iterations and self.echo_level > 0:
                 couplingsolverprint(self.lvl, self._Name(), red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
+
+    def _SynchronizeInputData(self, solver, solver_name):
+
+        input_data_list = self.cosim_solver_details[solver_name]["input_data_list"]
+
+        for input_data in input_data_list:
+            from_solver = self.solvers[input_data["from_solver"]]
+            data_name = input_data["data_name"]
+            data_definition = from_solver.GetDataDefinition(data_name)
+            data_settings = { "data_format" : data_definition["data_format"],
+                            "data_name"   : data_name,
+                            "io_settings" : input_data["io_settings"] }
+            solver.ImportData(data_settings, from_solver)
+
+    def _SynchronizeOutputData(self, solver, solver_name):
+        output_data_list = self.cosim_solver_details[solver_name]["output_data_list"]
+
+        for output_data in output_data_list:
+            to_solver = self.solvers[output_data["to_solver"]]
+            data_name = output_data["data_name"]
+            data_definition = to_solver.GetDataDefinition(data_name)
+            data_settings = { "data_format" : data_definition["data_format"],
+                            "data_name"   : data_name,
+                            "io_settings" : output_data["io_settings"] }
+            solver.ExportData(data_settings, to_solver)
