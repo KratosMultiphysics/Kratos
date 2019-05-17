@@ -32,6 +32,10 @@ namespace Kratos
 /// Penalty factor based coupling condition.
 /** This condition can be used to apply continuity between different
 *   discretizations with the penalty approach.
+*
+*   The aproach is described in https://doi.org/10.1186/s40323-018-0109-4
+*   Eq 15 ff
+*
 *   The condition needs a PENALTY as parameter in the Properties.
 *   The Geometry needs to be of type CouplingMasterSlave and must have
 *   at least one slave geometry.
