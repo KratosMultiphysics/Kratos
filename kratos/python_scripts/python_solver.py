@@ -34,7 +34,11 @@ class PythonSolver(object):
         # TODO remove the check once the derived solvers implement this
         if hasattr(self, '_validate_settings_in_baseclass'):
             default_settings = self.GetDefaultSettings()
+
             default_settings.RecursivelyAddMissingParameters(self.settings)
+            for parameter_to_revert in self.ListOfParametersNotRecursivelyValidated():
+                default_settings.RemoveValue(parameter_to_revert)
+                default_settings.AddValue(parameter_to_revert,self.settings[parameter_to_revert])
             self.settings.RecursivelyValidateAndAssignDefaults(default_settings)
         else:
             from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
@@ -49,6 +53,11 @@ class PythonSolver(object):
         return KratosMultiphysics.Parameters("""{
             "echo_level" : 0
         }""")
+
+    def ListOfParametersNotRecursivelyValidated(self):
+        """This function skips the
+        """
+        return []
 
     def AddVariables(self):
         """This function add the Variables needed by this PythonSolver to the the ModelPart
