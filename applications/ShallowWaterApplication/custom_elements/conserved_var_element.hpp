@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#if !defined(KRATOS_CONSERVED_VAR_ELEM_H_INCLUDED)
-#define  KRATOS_CONSERVED_VAR_ELEM_H_INCLUDED
+#ifndef KRATOS_CONSERVED_VAR_ELEM_H_INCLUDED
+#define KRATOS_CONSERVED_VAR_ELEM_H_INCLUDED
 
 // System includes
 
@@ -20,12 +20,7 @@
 
 
 // Project includes
-#include "includes/define.h"
-#include "includes/element.h"
-#include "includes/variables.h"
-#include "includes/serializer.h"
-#include "includes/ublas_interface.h"
-#include "custom_elements/primitive_var_element.hpp"
+#include "primitive_var_element.hpp"
 
 namespace Kratos
 {

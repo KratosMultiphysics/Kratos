@@ -22,7 +22,7 @@
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "shallow_water_application_variables.h"
-#include "custom_elements/primitive_var_element.hpp"
+#include "primitive_var_element.hpp"
 
 namespace Kratos
 {

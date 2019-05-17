@@ -66,7 +66,7 @@ void PotentialWallCondition<TDim, TNumNodes>::Initialize()
     GetSortedIds(NodeIds, rGeom);
     FindParentElement(NodeIds, ElementNodeIds, ElementCandidates);
 
-    KRATOS_ERROR_IF(!mpElement.lock())
+    KRATOS_ERROR_IF(mpElement.get() == nullptr)
         << "error in condition # " << this->Id() << "\n"
         << "Condition cannot find parent element" << std::endl;
     KRATOS_CATCH("");
@@ -177,7 +177,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     std::vector<double> rValues;
-    ElementPointerType pElem = pGetElement();
+    GlobalPointer<Element> pElem = pGetElement();
     pElem->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT, rValues, rCurrentProcessInfo);
     this->SetValue(PRESSURE_COEFFICIENT, rValues[0]);
 }
@@ -254,11 +254,11 @@ void PotentialWallCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
 // private operators
 
 template <unsigned int TDim, unsigned int TNumNodes>
-inline Element::Pointer PotentialWallCondition<TDim, TNumNodes>::pGetElement() const
+inline GlobalPointer<Element> PotentialWallCondition<TDim, TNumNodes>::pGetElement() const
 {
-    KRATOS_ERROR_IF(!mpElement.lock())
+    KRATOS_ERROR_IF(mpElement.get() == nullptr)
         << "No element found for condition #" << this->Id() << std::endl;
-    return mpElement.lock();
+    return mpElement;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
