@@ -733,6 +733,24 @@ public:
 
     /**
      * @brief This function is designed to verify that the parameters under testing match the form prescribed by the rDefaultParameters.
+     * @details This methods does not throw any error, only check
+     * This version of the function only walks one level, without descending in the branches
+     * @param rDefaultParameters Parameters of reference which we use to check
+     * @return Returns true if everything is OK, and false otherwise
+     */
+    bool CheckDefaults(const Parameters& rDefaultParameters);
+
+    /**
+     * @brief This function is designed to verify that the parameters under testing match the form prescribed by the rDefaultParameters.
+     * @details This methods does not throw any error, only check
+     * This version walks and validates the entire json tree below the point at which the function is called
+     * @param rDefaultParameters Parameters of reference which we use to check
+     * @return Returns true if everything is OK, and false otherwise
+     */
+    bool RecursivelyCheckDefaults(const Parameters& rDefaultParameters);
+
+    /**
+     * @brief This function is designed to verify that the parameters under testing match the form prescribed by the rDefaultParameters.
      * @details If the parameters contain values that do not appear in the rDefaultParameters, an error is thrown, whereas if a parameter is found in the rDefaultParameters but not in the Parameters been tested, it is copied to the parameters.
      * This version of the function only walks one level, without descending in the branches
      * @param rDefaultParameters Parameters of reference which we use to check

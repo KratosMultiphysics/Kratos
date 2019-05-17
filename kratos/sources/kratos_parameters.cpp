@@ -1017,6 +1017,54 @@ bool Parameters::HasSameKeysAndTypeOfValuesAs(Parameters& rParameters)
 /***********************************************************************************/
 /***********************************************************************************/
 
+bool Parameters::CheckDefaults(const Parameters& rDefaultParameters)
+{
+    KRATOS_TRY
+
+    // Verifies that all the entries in the current parameters have a correspondance in the rDefaultParameters.
+    for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
+        const std::string& r_item_name = itr.key();
+        if(!rDefaultParameters.Has(r_item_name) ) {
+            return false;
+        }
+    }
+
+    return true;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool Parameters::RecursivelyCheckDefaults(const Parameters& rDefaultParameters)
+{
+    KRATOS_TRY
+
+    // Verifies that all the entries in the current parameters have a correspondance in the rDefaultParameters.
+    for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
+        const std::string& r_item_name = itr.key();
+        if(!rDefaultParameters.Has(r_item_name) ) {
+            return false;
+        }
+
+        // Now walk the tree recursively
+        if(itr->is_object()) {
+            Parameters subobject = (*this)[r_item_name];
+            Parameters defaults_subobject = rDefaultParameters[r_item_name];
+            const bool all_ok = subobject.RecursivelyCheckDefaults(defaults_subobject);
+            if (!all_ok) return false;
+        }
+    }
+
+    return true;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Parameters::ValidateAndAssignDefaults(const Parameters& rDefaultParameters)
 {
     KRATOS_TRY
@@ -1121,7 +1169,6 @@ void Parameters::RecursivelyValidateDefaults(const Parameters& rDefaultParameter
     // If it is not the case throw an error
     for (auto itr = this->mpValue->cbegin(); itr != this->mpValue->cend(); ++itr) {
         const std::string& r_item_name = itr.key();
-
         if(!rDefaultParameters.Has(r_item_name) ) {
             std::stringstream msg;
             msg << "The item with name \"" << r_item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
