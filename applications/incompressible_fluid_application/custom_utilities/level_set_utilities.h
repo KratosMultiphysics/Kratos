@@ -197,13 +197,13 @@ public:
         			//KRATOS_WATCH("	ENTRAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA		********");
         			if( inode->FastGetSolutionStepValue(IS_BOUNDARY) == 1.0)
         			{
-        				WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+        				GlobalPointersVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
 
-        				WeakPointerVector< Node<3> >::iterator extrapolation_node = neighb_nodes.begin();
+        				GlobalPointersVector< Node<3> >::iterator extrapolation_node = neighb_nodes.begin();
         				double min_dist = extrapolation_node->FastGetSolutionStepValue(DISTANCE);
 
         				//find the node farther inside the domain
-        				for( WeakPointerVector< Node<3> >::iterator ineigh =	neighb_nodes.begin(); ineigh != neighb_nodes.end(); ineigh++)
+        				for( GlobalPointersVector< Node<3> >::iterator ineigh =	neighb_nodes.begin(); ineigh != neighb_nodes.end(); ineigh++)
         				{
         					double dist = extrapolation_node->FastGetSolutionStepValue(DISTANCE);
 
@@ -439,8 +439,8 @@ public:
                     //if they are not is_structure node
                     double n_fluid_neigh = 0.0;
                     noalias(aux) = ZeroVector(3);
-                    WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                    for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                    GlobalPointersVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                    for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                     {
                         if(i->FastGetSolutionStepValue(IS_STRUCTURE) != 1)
                         {
@@ -503,8 +503,8 @@ public:
 // 					//make an average of the velocity of the closest nodes and of its neighbours
 // 					noalias(aux_vect) = (p_closest)->FastGetSolutionStepValue(rVelVar);
 //
-// 					WeakPointerVector< Node<3> >& neighb_nodes =(*p_closest)->GetValue(NEIGHBOUR_NODES);
-// 					for( WeakPointerVector< Node<3> >::iterator ineigh =	neighb_nodes.begin(); ineigh != neighb_nodes.end(); ineigh++)
+// 					GlobalPointersVector< Node<3> >& neighb_nodes =(*p_closest)->GetValue(NEIGHBOUR_NODES);
+// 					for( GlobalPointersVector< Node<3> >::iterator ineigh =	neighb_nodes.begin(); ineigh != neighb_nodes.end(); ineigh++)
 // 					{
 // 						if(ineigh->FastGetSolutionStepValue(IS_BOUNDARY) == 1)
 // 							noalias(aux_vect) += ineigh->FastGetSolutionStepValue(rVelVar);
@@ -795,8 +795,8 @@ public:
                 //make the average of the velocity of the neighbouring fluid nodes
                 double n_fluid_neigh = 0.0;
                 noalias(aux) = ZeroVector(3);
-                WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                GlobalPointersVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                 {
                     if(i->FastGetSolutionStepValue(IS_STRUCTURE) != 1)
                     {
@@ -1103,8 +1103,8 @@ public:
                     //make the average of the velocity of the neighbouring fluid nodes
                     double n_fluid_neigh = 0.0;
                     noalias(aux) = ZeroVector(3);
-                    WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                    for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                    GlobalPointersVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                    for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                     {
                         if(i->FastGetSolutionStepValue(IS_STRUCTURE) != 1)
                         {
@@ -1145,8 +1145,8 @@ public:
         {
             for( PointIterator iii=(layers[il]).begin(); iii!=(layers[il]).end(); iii++)
             {
-                WeakPointerVector< Node<3> >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                for(WeakPointerVector< Node<3> >::iterator jjj=neighb_nodes.begin(); jjj !=neighb_nodes.end(); jjj++)
+                GlobalPointersVector< Node<3> >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                for(GlobalPointersVector< Node<3> >::iterator jjj=neighb_nodes.begin(); jjj !=neighb_nodes.end(); jjj++)
                 {
 
                     if( jjj->FastGetSolutionStepValue(IS_FLUID) == 0 &&
@@ -1173,8 +1173,8 @@ public:
                 noalias(aux) = ZeroVector(3);
                 double avg_number = 0.0;
 
-                WeakPointerVector< Node<3> >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                for(WeakPointerVector< Node<3> >::iterator i=neighb_nodes.begin(); 				i !=neighb_nodes.end(); i++)
+                GlobalPointersVector< Node<3> >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                for(GlobalPointersVector< Node<3> >::iterator i=neighb_nodes.begin(); 				i !=neighb_nodes.end(); i++)
                 {
                     if(i->GetValue(IS_VISITED) < il+1 && i->GetValue(IS_VISITED) > 0)
                     {
@@ -1246,8 +1246,8 @@ public:
                     }
 
                     //add its neighbours to the work array and mark them
-                    WeakPointerVector< Node<3> >& neighb_nodes = (work_array.begin()+aux_index)->GetValue(NEIGHBOUR_NODES);
-                    for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                    GlobalPointersVector< Node<3> >& neighb_nodes = (work_array.begin()+aux_index)->GetValue(NEIGHBOUR_NODES);
+                    for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                     {
                         if(i->GetValue(IS_VISITED) == 0.0)
                         {

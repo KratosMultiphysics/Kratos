@@ -280,7 +280,7 @@ public:
             // loop for the rest of shell nodes
             if(nodes_num == dim)
             {
-                WeakPointerVector< Node < 3 > >& neighb = it->GetValue(NEIGHBOUR_NODES);
+                GlobalPointersVector< Node < 3 > >& neighb = it->GetValue(NEIGHBOUR_NODES);
                 unsigned int ngh_num=0;
 
                 for (unsigned int ind = 0; ind < 3; ind++)

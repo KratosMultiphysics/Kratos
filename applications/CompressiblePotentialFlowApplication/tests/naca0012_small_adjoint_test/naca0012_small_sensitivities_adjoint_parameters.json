@@ -76,7 +76,7 @@
             "Parameters"            : {
                 "check_variables" : ["SHAPE_SENSITIVITY"],
                 "input_file_name" : "shape_sensitivity_test_results.json",
-                "model_part_name"  : "Body2D_Body",
+                "model_part_name"  : "MainModelPart.Body2D_Body",
                 "time_frequency"   : -2
             }
         }],

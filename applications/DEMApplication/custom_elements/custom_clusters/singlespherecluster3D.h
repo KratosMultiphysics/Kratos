@@ -22,7 +22,7 @@
 #include "geometries/geometry.h"
 #include "includes/properties.h"
 #include "utilities/indexed_object.h"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 #include "includes/constitutive_law.h"
 #include "custom_utilities/create_and_destroy.h"
 

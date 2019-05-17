@@ -17,18 +17,18 @@
 /* Mortar includes */
 #include "custom_conditions/DALM_frictionless_mortar_contact_condition.h"
 
-namespace Kratos 
+namespace Kratos
 {
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
 
 template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-Condition::Pointer DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Create( 
+Condition::Pointer DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Create(
     IndexType NewId,
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return Kratos::make_shared< DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive< DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -40,7 +40,7 @@ Condition::Pointer DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondi
     GeometryPointerType pGeom,
     PropertiesPointerType pProperties) const
 {
-    return Kratos::make_shared<  DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<  DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
@@ -53,7 +53,7 @@ Condition::Pointer DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondi
     PropertiesType::Pointer pProperties,
     GeometryType::Pointer pMasterGeom) const
 {
-    return Kratos::make_shared<  DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, pGeom, pProperties, pMasterGeom );
+    return Kratos::make_intrusive<  DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, pGeom, pProperties, pMasterGeom );
 }
 
 /************************************* DESTRUCTOR **********************************/
@@ -68,17 +68,17 @@ DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes
 
 template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
 void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::CalculateLocalLHS(
-    Matrix& rLocalLHS, 
+    Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
     const IndexType rActiveInactive,
     const ProcessInfo& rCurrentProcessInfo
-    ) 
+    )
 {
     BaseType::CalculateLocalLHS(rLocalLHS, rMortarConditionMatrices, rDerivativeData, rActiveInactive);
-    
+
     constexpr std::size_t initial_index = TDim * (TNumNodes + TNumNodes);
-    
+
     // Initialize the zero values
     for (std::size_t i = 0; i < TDim * (TNumNodes + TNumNodes) + TNumNodes; ++i) {
         for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -89,7 +89,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNum
     for (std::size_t i = TDim * (TNumNodes + TNumNodes) + TNumNodes; i < TDim * (TNumNodes + TNumNodes) + 2 * TNumNodes; ++i)
         for (std::size_t j = TDim * (TNumNodes + TNumNodes) + TNumNodes; j < TDim * (TNumNodes + TNumNodes) + 2 * TNumNodes; ++j)
             rLocalLHS(j, j) = 0.0;
-        
+
     // Double ALM contribution
     CalculateLocalLHSDALM(rLocalLHS, rMortarConditionMatrices, rDerivativeData, rActiveInactive);
 }
@@ -99,22 +99,22 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNum
 
 template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
 void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::CalculateLocalRHS(
-    Vector& rLocalRHS, 
+    Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
     const IndexType rActiveInactive,
     const ProcessInfo& rCurrentProcessInfo
-    ) 
+    )
 {
     BaseType::CalculateLocalRHS(rLocalRHS, rMortarConditionMatrices, rDerivativeData, rActiveInactive);
-    
+
     constexpr std::size_t initial_index = TDim * (TNumNodes + TNumNodes);
-    
+
     // We iterate over the nodes
     for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
         rLocalRHS[initial_index + TNumNodes + i_node] = 0.0;
     }
-    
+
     // Double ALM contribution
     CalculateLocalRHSDALM(rLocalRHS, rMortarConditionMatrices, rDerivativeData, rActiveInactive);
 }
@@ -136,14 +136,14 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, fals
     // const BoundedMatrix<double, 2, 2>& u2 = rDerivativeData.u2;
     // const BoundedMatrix<double, 2, 2>& X1 = rDerivativeData.X1;
     // const BoundedMatrix<double, 2, 2>& X2 = rDerivativeData.X2;
-    
+
     const array_1d<double, 2> LMSlaveNormal = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 2> LMMasterNormal = MortarUtilities::GetVariableVector<2>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     // The ALM parameters
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     // const array_1d<double, 2>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
@@ -153,7 +153,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, fals
 
     if (rActiveInactive == 0 )
     {
-    
+
     }
     else if (rActiveInactive == 2 )
     {
@@ -161,7 +161,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, fals
         const double clhs1 =     MOperator(1,1); // MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double clhs2 =     DOperator(1,0); // DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double clhs3 =     DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
-    
+
         rLocalLHS(9,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[4](1,0) + LMMasterNormal[1]*DeltaMOperator[4](1,1) - LMSlaveNormal[0]*DeltaDOperator[4](1,0) - LMSlaveNormal[1]*DeltaDOperator[4](1,1));
         rLocalLHS(9,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[5](1,0) + LMMasterNormal[1]*DeltaMOperator[5](1,1) - LMSlaveNormal[0]*DeltaDOperator[5](1,0) - LMSlaveNormal[1]*DeltaDOperator[5](1,1));
         rLocalLHS(9,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[6](1,0) + LMMasterNormal[1]*DeltaMOperator[6](1,1) - LMSlaveNormal[0]*DeltaDOperator[6](1,0) - LMSlaveNormal[1]*DeltaDOperator[6](1,1));
@@ -181,7 +181,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, fals
         const double clhs1 =     MOperator(0,1); // MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double clhs2 =     DOperator(0,0); // DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double clhs3 =     DOperator(0,1); // DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
-    
+
         rLocalLHS(8,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[4](0,0) + LMMasterNormal[1]*DeltaMOperator[4](0,1) - LMSlaveNormal[0]*DeltaDOperator[4](0,0) - LMSlaveNormal[1]*DeltaDOperator[4](0,1));
         rLocalLHS(8,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[5](0,0) + LMMasterNormal[1]*DeltaMOperator[5](0,1) - LMSlaveNormal[0]*DeltaDOperator[5](0,0) - LMSlaveNormal[1]*DeltaDOperator[5](0,1));
         rLocalLHS(8,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[6](0,0) + LMMasterNormal[1]*DeltaMOperator[6](0,1) - LMSlaveNormal[0]*DeltaDOperator[6](0,0) - LMSlaveNormal[1]*DeltaDOperator[6](0,1));
@@ -205,7 +205,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, fals
         const double clhs5 =     MOperator(1,1); // MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double clhs6 =     DOperator(1,0); // DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double clhs7 =     DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
-    
+
         rLocalLHS(8,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[4](0,0) + LMMasterNormal[1]*DeltaMOperator[4](0,1) - LMSlaveNormal[0]*DeltaDOperator[4](0,0) - LMSlaveNormal[1]*DeltaDOperator[4](0,1));
         rLocalLHS(8,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[5](0,0) + LMMasterNormal[1]*DeltaMOperator[5](0,1) - LMSlaveNormal[0]*DeltaDOperator[5](0,0) - LMSlaveNormal[1]*DeltaDOperator[5](0,1));
         rLocalLHS(8,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[6](0,0) + LMMasterNormal[1]*DeltaMOperator[6](0,1) - LMSlaveNormal[0]*DeltaDOperator[6](0,0) - LMSlaveNormal[1]*DeltaDOperator[6](0,1));
@@ -252,14 +252,14 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
     // const BoundedMatrix<double, 3, 3>& u2 = rDerivativeData.u2;
     // const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     // const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
-    
+
     const array_1d<double, 3> LMSlaveNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 3> LMMasterNormal = MortarUtilities::GetVariableVector<3>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     // The ALM parameters
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     // const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
@@ -269,7 +269,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
 
     if (rActiveInactive == 0 )
     {
-    
+
     }
     else if (rActiveInactive == 4 )
     {
@@ -279,7 +279,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
         const double clhs3 =     DOperator(2,0); // DOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs4 =     DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs5 =     DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-    
+
         rLocalLHS(20,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[9](2,0) + LMMasterNormal[1]*DeltaMOperator[9](2,1) + LMMasterNormal[2]*DeltaMOperator[9](2,2) - LMSlaveNormal[0]*DeltaDOperator[9](2,0) - LMSlaveNormal[1]*DeltaDOperator[9](2,1) - LMSlaveNormal[2]*DeltaDOperator[9](2,2));
         rLocalLHS(20,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[10](2,0) + LMMasterNormal[1]*DeltaMOperator[10](2,1) + LMMasterNormal[2]*DeltaMOperator[10](2,2) - LMSlaveNormal[0]*DeltaDOperator[10](2,0) - LMSlaveNormal[1]*DeltaDOperator[10](2,1) - LMSlaveNormal[2]*DeltaDOperator[10](2,2));
         rLocalLHS(20,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[11](2,0) + LMMasterNormal[1]*DeltaMOperator[11](2,1) + LMMasterNormal[2]*DeltaMOperator[11](2,2) - LMSlaveNormal[0]*DeltaDOperator[11](2,0) - LMSlaveNormal[1]*DeltaDOperator[11](2,1) - LMSlaveNormal[2]*DeltaDOperator[11](2,2));
@@ -313,7 +313,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
         const double clhs3 =     DOperator(1,0); // DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs4 =     DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs5 =     DOperator(1,2); // DOPERATOR(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-    
+
         rLocalLHS(19,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[9](1,0) + LMMasterNormal[1]*DeltaMOperator[9](1,1) + LMMasterNormal[2]*DeltaMOperator[9](1,2) - LMSlaveNormal[0]*DeltaDOperator[9](1,0) - LMSlaveNormal[1]*DeltaDOperator[9](1,1) - LMSlaveNormal[2]*DeltaDOperator[9](1,2));
         rLocalLHS(19,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[10](1,0) + LMMasterNormal[1]*DeltaMOperator[10](1,1) + LMMasterNormal[2]*DeltaMOperator[10](1,2) - LMSlaveNormal[0]*DeltaDOperator[10](1,0) - LMSlaveNormal[1]*DeltaDOperator[10](1,1) - LMSlaveNormal[2]*DeltaDOperator[10](1,2));
         rLocalLHS(19,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[11](1,0) + LMMasterNormal[1]*DeltaMOperator[11](1,1) + LMMasterNormal[2]*DeltaMOperator[11](1,2) - LMSlaveNormal[0]*DeltaDOperator[11](1,0) - LMSlaveNormal[1]*DeltaDOperator[11](1,1) - LMSlaveNormal[2]*DeltaDOperator[11](1,2));
@@ -353,7 +353,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
         const double clhs9 =     DOperator(2,0); // DOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs10 =     DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs11 =     DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-    
+
         rLocalLHS(19,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[9](1,0) + LMMasterNormal[1]*DeltaMOperator[9](1,1) + LMMasterNormal[2]*DeltaMOperator[9](1,2) - LMSlaveNormal[0]*DeltaDOperator[9](1,0) - LMSlaveNormal[1]*DeltaDOperator[9](1,1) - LMSlaveNormal[2]*DeltaDOperator[9](1,2));
         rLocalLHS(19,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[10](1,0) + LMMasterNormal[1]*DeltaMOperator[10](1,1) + LMMasterNormal[2]*DeltaMOperator[10](1,2) - LMSlaveNormal[0]*DeltaDOperator[10](1,0) - LMSlaveNormal[1]*DeltaDOperator[10](1,1) - LMSlaveNormal[2]*DeltaDOperator[10](1,2));
         rLocalLHS(19,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[11](1,0) + LMMasterNormal[1]*DeltaMOperator[11](1,1) + LMMasterNormal[2]*DeltaMOperator[11](1,2) - LMSlaveNormal[0]*DeltaDOperator[11](1,0) - LMSlaveNormal[1]*DeltaDOperator[11](1,1) - LMSlaveNormal[2]*DeltaDOperator[11](1,2));
@@ -411,7 +411,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
         const double clhs3 =     DOperator(0,0); // DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs4 =     DOperator(0,1); // DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs5 =     DOperator(0,2); // DOPERATOR(0,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-    
+
         rLocalLHS(18,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[9](0,0) + LMMasterNormal[1]*DeltaMOperator[9](0,1) + LMMasterNormal[2]*DeltaMOperator[9](0,2) - LMSlaveNormal[0]*DeltaDOperator[9](0,0) - LMSlaveNormal[1]*DeltaDOperator[9](0,1) - LMSlaveNormal[2]*DeltaDOperator[9](0,2));
         rLocalLHS(18,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[10](0,0) + LMMasterNormal[1]*DeltaMOperator[10](0,1) + LMMasterNormal[2]*DeltaMOperator[10](0,2) - LMSlaveNormal[0]*DeltaDOperator[10](0,0) - LMSlaveNormal[1]*DeltaDOperator[10](0,1) - LMSlaveNormal[2]*DeltaDOperator[10](0,2));
         rLocalLHS(18,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[11](0,0) + LMMasterNormal[1]*DeltaMOperator[11](0,1) + LMMasterNormal[2]*DeltaMOperator[11](0,2) - LMSlaveNormal[0]*DeltaDOperator[11](0,0) - LMSlaveNormal[1]*DeltaDOperator[11](0,1) - LMSlaveNormal[2]*DeltaDOperator[11](0,2));
@@ -451,7 +451,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
         const double clhs9 =     DOperator(2,0); // DOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs10 =     DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs11 =     DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-    
+
         rLocalLHS(18,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[9](0,0) + LMMasterNormal[1]*DeltaMOperator[9](0,1) + LMMasterNormal[2]*DeltaMOperator[9](0,2) - LMSlaveNormal[0]*DeltaDOperator[9](0,0) - LMSlaveNormal[1]*DeltaDOperator[9](0,1) - LMSlaveNormal[2]*DeltaDOperator[9](0,2));
         rLocalLHS(18,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[10](0,0) + LMMasterNormal[1]*DeltaMOperator[10](0,1) + LMMasterNormal[2]*DeltaMOperator[10](0,2) - LMSlaveNormal[0]*DeltaDOperator[10](0,0) - LMSlaveNormal[1]*DeltaDOperator[10](0,1) - LMSlaveNormal[2]*DeltaDOperator[10](0,2));
         rLocalLHS(18,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[11](0,0) + LMMasterNormal[1]*DeltaMOperator[11](0,1) + LMMasterNormal[2]*DeltaMOperator[11](0,2) - LMSlaveNormal[0]*DeltaDOperator[11](0,0) - LMSlaveNormal[1]*DeltaDOperator[11](0,1) - LMSlaveNormal[2]*DeltaDOperator[11](0,2));
@@ -515,7 +515,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
         const double clhs9 =     DOperator(1,0); // DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs10 =     DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs11 =     DOperator(1,2); // DOPERATOR(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-    
+
         rLocalLHS(18,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[9](0,0) + LMMasterNormal[1]*DeltaMOperator[9](0,1) + LMMasterNormal[2]*DeltaMOperator[9](0,2) - LMSlaveNormal[0]*DeltaDOperator[9](0,0) - LMSlaveNormal[1]*DeltaDOperator[9](0,1) - LMSlaveNormal[2]*DeltaDOperator[9](0,2));
         rLocalLHS(18,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[10](0,0) + LMMasterNormal[1]*DeltaMOperator[10](0,1) + LMMasterNormal[2]*DeltaMOperator[10](0,2) - LMSlaveNormal[0]*DeltaDOperator[10](0,0) - LMSlaveNormal[1]*DeltaDOperator[10](0,1) - LMSlaveNormal[2]*DeltaDOperator[10](0,2));
         rLocalLHS(18,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[11](0,0) + LMMasterNormal[1]*DeltaMOperator[11](0,1) + LMMasterNormal[2]*DeltaMOperator[11](0,2) - LMSlaveNormal[0]*DeltaDOperator[11](0,0) - LMSlaveNormal[1]*DeltaDOperator[11](0,1) - LMSlaveNormal[2]*DeltaDOperator[11](0,2));
@@ -585,7 +585,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
         const double clhs15 =     DOperator(2,0); // DOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs16 =     DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs17 =     DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-    
+
         rLocalLHS(18,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[9](0,0) + LMMasterNormal[1]*DeltaMOperator[9](0,1) + LMMasterNormal[2]*DeltaMOperator[9](0,2) - LMSlaveNormal[0]*DeltaDOperator[9](0,0) - LMSlaveNormal[1]*DeltaDOperator[9](0,1) - LMSlaveNormal[2]*DeltaDOperator[9](0,2));
         rLocalLHS(18,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[10](0,0) + LMMasterNormal[1]*DeltaMOperator[10](0,1) + LMMasterNormal[2]*DeltaMOperator[10](0,2) - LMSlaveNormal[0]*DeltaDOperator[10](0,0) - LMSlaveNormal[1]*DeltaDOperator[10](0,1) - LMSlaveNormal[2]*DeltaDOperator[10](0,2));
         rLocalLHS(18,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[11](0,0) + LMMasterNormal[1]*DeltaMOperator[11](0,1) + LMMasterNormal[2]*DeltaMOperator[11](0,2) - LMSlaveNormal[0]*DeltaDOperator[11](0,0) - LMSlaveNormal[1]*DeltaDOperator[11](0,1) - LMSlaveNormal[2]*DeltaDOperator[11](0,2));
@@ -680,14 +680,14 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
     // const BoundedMatrix<double, 4, 3>& u2 = rDerivativeData.u2;
     // const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     // const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
-    
+
     const array_1d<double, 4> LMSlaveNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 4> LMMasterNormal = MortarUtilities::GetVariableVector<4>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     // The ALM parameters
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     // const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
@@ -697,7 +697,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
 
     if (rActiveInactive == 0 )
     {
-    
+
     }
     else if (rActiveInactive == 8 )
     {
@@ -709,7 +709,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
         const double clhs5 =     DOperator(3,1); // DOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs6 =     DOperator(3,2); // DOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs7 =     DOperator(3,3); // DOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(27,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](3,0) + LMMasterNormal[1]*DeltaMOperator[12](3,1) + LMMasterNormal[2]*DeltaMOperator[12](3,2) + LMMasterNormal[3]*DeltaMOperator[12](3,3) - LMSlaveNormal[0]*DeltaDOperator[12](3,0) - LMSlaveNormal[1]*DeltaDOperator[12](3,1) - LMSlaveNormal[2]*DeltaDOperator[12](3,2) - LMSlaveNormal[3]*DeltaDOperator[12](3,3));
         rLocalLHS(27,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](3,0) + LMMasterNormal[1]*DeltaMOperator[13](3,1) + LMMasterNormal[2]*DeltaMOperator[13](3,2) + LMMasterNormal[3]*DeltaMOperator[13](3,3) - LMSlaveNormal[0]*DeltaDOperator[13](3,0) - LMSlaveNormal[1]*DeltaDOperator[13](3,1) - LMSlaveNormal[2]*DeltaDOperator[13](3,2) - LMSlaveNormal[3]*DeltaDOperator[13](3,3));
         rLocalLHS(27,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](3,0) + LMMasterNormal[1]*DeltaMOperator[14](3,1) + LMMasterNormal[2]*DeltaMOperator[14](3,2) + LMMasterNormal[3]*DeltaMOperator[14](3,3) - LMSlaveNormal[0]*DeltaDOperator[14](3,0) - LMSlaveNormal[1]*DeltaDOperator[14](3,1) - LMSlaveNormal[2]*DeltaDOperator[14](3,2) - LMSlaveNormal[3]*DeltaDOperator[14](3,3));
@@ -753,7 +753,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
         const double clhs5 =     DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs6 =     DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs7 =     DOperator(2,3); // DOPERATOR(2,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(26,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](2,0) + LMMasterNormal[1]*DeltaMOperator[12](2,1) + LMMasterNormal[2]*DeltaMOperator[12](2,2) + LMMasterNormal[3]*DeltaMOperator[12](2,3) - LMSlaveNormal[0]*DeltaDOperator[12](2,0) - LMSlaveNormal[1]*DeltaDOperator[12](2,1) - LMSlaveNormal[2]*DeltaDOperator[12](2,2) - LMSlaveNormal[3]*DeltaDOperator[12](2,3));
         rLocalLHS(26,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](2,0) + LMMasterNormal[1]*DeltaMOperator[13](2,1) + LMMasterNormal[2]*DeltaMOperator[13](2,2) + LMMasterNormal[3]*DeltaMOperator[13](2,3) - LMSlaveNormal[0]*DeltaDOperator[13](2,0) - LMSlaveNormal[1]*DeltaDOperator[13](2,1) - LMSlaveNormal[2]*DeltaDOperator[13](2,2) - LMSlaveNormal[3]*DeltaDOperator[13](2,3));
         rLocalLHS(26,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](2,0) + LMMasterNormal[1]*DeltaMOperator[14](2,1) + LMMasterNormal[2]*DeltaMOperator[14](2,2) + LMMasterNormal[3]*DeltaMOperator[14](2,3) - LMSlaveNormal[0]*DeltaDOperator[14](2,0) - LMSlaveNormal[1]*DeltaDOperator[14](2,1) - LMSlaveNormal[2]*DeltaDOperator[14](2,2) - LMSlaveNormal[3]*DeltaDOperator[14](2,3));
@@ -805,7 +805,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
         const double clhs13 =     DOperator(3,1); // DOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs14 =     DOperator(3,2); // DOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs15 =     DOperator(3,3); // DOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(26,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](2,0) + LMMasterNormal[1]*DeltaMOperator[12](2,1) + LMMasterNormal[2]*DeltaMOperator[12](2,2) + LMMasterNormal[3]*DeltaMOperator[12](2,3) - LMSlaveNormal[0]*DeltaDOperator[12](2,0) - LMSlaveNormal[1]*DeltaDOperator[12](2,1) - LMSlaveNormal[2]*DeltaDOperator[12](2,2) - LMSlaveNormal[3]*DeltaDOperator[12](2,3));
         rLocalLHS(26,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](2,0) + LMMasterNormal[1]*DeltaMOperator[13](2,1) + LMMasterNormal[2]*DeltaMOperator[13](2,2) + LMMasterNormal[3]*DeltaMOperator[13](2,3) - LMSlaveNormal[0]*DeltaDOperator[13](2,0) - LMSlaveNormal[1]*DeltaDOperator[13](2,1) - LMSlaveNormal[2]*DeltaDOperator[13](2,2) - LMSlaveNormal[3]*DeltaDOperator[13](2,3));
         rLocalLHS(26,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](2,0) + LMMasterNormal[1]*DeltaMOperator[14](2,1) + LMMasterNormal[2]*DeltaMOperator[14](2,2) + LMMasterNormal[3]*DeltaMOperator[14](2,3) - LMSlaveNormal[0]*DeltaDOperator[14](2,0) - LMSlaveNormal[1]*DeltaDOperator[14](2,1) - LMSlaveNormal[2]*DeltaDOperator[14](2,2) - LMSlaveNormal[3]*DeltaDOperator[14](2,3));
@@ -881,7 +881,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
         const double clhs5 =     DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs6 =     DOperator(1,2); // DOPERATOR(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs7 =     DOperator(1,3); // DOPERATOR(1,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(25,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](1,0) + LMMasterNormal[1]*DeltaMOperator[12](1,1) + LMMasterNormal[2]*DeltaMOperator[12](1,2) + LMMasterNormal[3]*DeltaMOperator[12](1,3) - LMSlaveNormal[0]*DeltaDOperator[12](1,0) - LMSlaveNormal[1]*DeltaDOperator[12](1,1) - LMSlaveNormal[2]*DeltaDOperator[12](1,2) - LMSlaveNormal[3]*DeltaDOperator[12](1,3));
         rLocalLHS(25,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](1,0) + LMMasterNormal[1]*DeltaMOperator[13](1,1) + LMMasterNormal[2]*DeltaMOperator[13](1,2) + LMMasterNormal[3]*DeltaMOperator[13](1,3) - LMSlaveNormal[0]*DeltaDOperator[13](1,0) - LMSlaveNormal[1]*DeltaDOperator[13](1,1) - LMSlaveNormal[2]*DeltaDOperator[13](1,2) - LMSlaveNormal[3]*DeltaDOperator[13](1,3));
         rLocalLHS(25,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](1,0) + LMMasterNormal[1]*DeltaMOperator[14](1,1) + LMMasterNormal[2]*DeltaMOperator[14](1,2) + LMMasterNormal[3]*DeltaMOperator[14](1,3) - LMSlaveNormal[0]*DeltaDOperator[14](1,0) - LMSlaveNormal[1]*DeltaDOperator[14](1,1) - LMSlaveNormal[2]*DeltaDOperator[14](1,2) - LMSlaveNormal[3]*DeltaDOperator[14](1,3));
@@ -933,7 +933,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
         const double clhs13 =     DOperator(3,1); // DOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs14 =     DOperator(3,2); // DOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs15 =     DOperator(3,3); // DOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(25,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](1,0) + LMMasterNormal[1]*DeltaMOperator[12](1,1) + LMMasterNormal[2]*DeltaMOperator[12](1,2) + LMMasterNormal[3]*DeltaMOperator[12](1,3) - LMSlaveNormal[0]*DeltaDOperator[12](1,0) - LMSlaveNormal[1]*DeltaDOperator[12](1,1) - LMSlaveNormal[2]*DeltaDOperator[12](1,2) - LMSlaveNormal[3]*DeltaDOperator[12](1,3));
         rLocalLHS(25,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](1,0) + LMMasterNormal[1]*DeltaMOperator[13](1,1) + LMMasterNormal[2]*DeltaMOperator[13](1,2) + LMMasterNormal[3]*DeltaMOperator[13](1,3) - LMSlaveNormal[0]*DeltaDOperator[13](1,0) - LMSlaveNormal[1]*DeltaDOperator[13](1,1) - LMSlaveNormal[2]*DeltaDOperator[13](1,2) - LMSlaveNormal[3]*DeltaDOperator[13](1,3));
         rLocalLHS(25,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](1,0) + LMMasterNormal[1]*DeltaMOperator[14](1,1) + LMMasterNormal[2]*DeltaMOperator[14](1,2) + LMMasterNormal[3]*DeltaMOperator[14](1,3) - LMSlaveNormal[0]*DeltaDOperator[14](1,0) - LMSlaveNormal[1]*DeltaDOperator[14](1,1) - LMSlaveNormal[2]*DeltaDOperator[14](1,2) - LMSlaveNormal[3]*DeltaDOperator[14](1,3));
@@ -1017,7 +1017,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
         const double clhs13 =     DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs14 =     DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs15 =     DOperator(2,3); // DOPERATOR(2,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(25,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](1,0) + LMMasterNormal[1]*DeltaMOperator[12](1,1) + LMMasterNormal[2]*DeltaMOperator[12](1,2) + LMMasterNormal[3]*DeltaMOperator[12](1,3) - LMSlaveNormal[0]*DeltaDOperator[12](1,0) - LMSlaveNormal[1]*DeltaDOperator[12](1,1) - LMSlaveNormal[2]*DeltaDOperator[12](1,2) - LMSlaveNormal[3]*DeltaDOperator[12](1,3));
         rLocalLHS(25,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](1,0) + LMMasterNormal[1]*DeltaMOperator[13](1,1) + LMMasterNormal[2]*DeltaMOperator[13](1,2) + LMMasterNormal[3]*DeltaMOperator[13](1,3) - LMSlaveNormal[0]*DeltaDOperator[13](1,0) - LMSlaveNormal[1]*DeltaDOperator[13](1,1) - LMSlaveNormal[2]*DeltaDOperator[13](1,2) - LMSlaveNormal[3]*DeltaDOperator[13](1,3));
         rLocalLHS(25,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](1,0) + LMMasterNormal[1]*DeltaMOperator[14](1,1) + LMMasterNormal[2]*DeltaMOperator[14](1,2) + LMMasterNormal[3]*DeltaMOperator[14](1,3) - LMSlaveNormal[0]*DeltaDOperator[14](1,0) - LMSlaveNormal[1]*DeltaDOperator[14](1,1) - LMSlaveNormal[2]*DeltaDOperator[14](1,2) - LMSlaveNormal[3]*DeltaDOperator[14](1,3));
@@ -1109,7 +1109,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
         const double clhs21 =     DOperator(3,1); // DOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs22 =     DOperator(3,2); // DOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs23 =     DOperator(3,3); // DOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(25,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](1,0) + LMMasterNormal[1]*DeltaMOperator[12](1,1) + LMMasterNormal[2]*DeltaMOperator[12](1,2) + LMMasterNormal[3]*DeltaMOperator[12](1,3) - LMSlaveNormal[0]*DeltaDOperator[12](1,0) - LMSlaveNormal[1]*DeltaDOperator[12](1,1) - LMSlaveNormal[2]*DeltaDOperator[12](1,2) - LMSlaveNormal[3]*DeltaDOperator[12](1,3));
         rLocalLHS(25,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](1,0) + LMMasterNormal[1]*DeltaMOperator[13](1,1) + LMMasterNormal[2]*DeltaMOperator[13](1,2) + LMMasterNormal[3]*DeltaMOperator[13](1,3) - LMSlaveNormal[0]*DeltaDOperator[13](1,0) - LMSlaveNormal[1]*DeltaDOperator[13](1,1) - LMSlaveNormal[2]*DeltaDOperator[13](1,2) - LMSlaveNormal[3]*DeltaDOperator[13](1,3));
         rLocalLHS(25,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](1,0) + LMMasterNormal[1]*DeltaMOperator[14](1,1) + LMMasterNormal[2]*DeltaMOperator[14](1,2) + LMMasterNormal[3]*DeltaMOperator[14](1,3) - LMSlaveNormal[0]*DeltaDOperator[14](1,0) - LMSlaveNormal[1]*DeltaDOperator[14](1,1) - LMSlaveNormal[2]*DeltaDOperator[14](1,2) - LMSlaveNormal[3]*DeltaDOperator[14](1,3));
@@ -1217,7 +1217,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
         const double clhs5 =     DOperator(0,1); // DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs6 =     DOperator(0,2); // DOPERATOR(0,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs7 =     DOperator(0,3); // DOPERATOR(0,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(24,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](0,0) + LMMasterNormal[1]*DeltaMOperator[12](0,1) + LMMasterNormal[2]*DeltaMOperator[12](0,2) + LMMasterNormal[3]*DeltaMOperator[12](0,3) - LMSlaveNormal[0]*DeltaDOperator[12](0,0) - LMSlaveNormal[1]*DeltaDOperator[12](0,1) - LMSlaveNormal[2]*DeltaDOperator[12](0,2) - LMSlaveNormal[3]*DeltaDOperator[12](0,3));
         rLocalLHS(24,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](0,0) + LMMasterNormal[1]*DeltaMOperator[13](0,1) + LMMasterNormal[2]*DeltaMOperator[13](0,2) + LMMasterNormal[3]*DeltaMOperator[13](0,3) - LMSlaveNormal[0]*DeltaDOperator[13](0,0) - LMSlaveNormal[1]*DeltaDOperator[13](0,1) - LMSlaveNormal[2]*DeltaDOperator[13](0,2) - LMSlaveNormal[3]*DeltaDOperator[13](0,3));
         rLocalLHS(24,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](0,0) + LMMasterNormal[1]*DeltaMOperator[14](0,1) + LMMasterNormal[2]*DeltaMOperator[14](0,2) + LMMasterNormal[3]*DeltaMOperator[14](0,3) - LMSlaveNormal[0]*DeltaDOperator[14](0,0) - LMSlaveNormal[1]*DeltaDOperator[14](0,1) - LMSlaveNormal[2]*DeltaDOperator[14](0,2) - LMSlaveNormal[3]*DeltaDOperator[14](0,3));
@@ -1269,7 +1269,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
         const double clhs13 =     DOperator(3,1); // DOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs14 =     DOperator(3,2); // DOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs15 =     DOperator(3,3); // DOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(24,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](0,0) + LMMasterNormal[1]*DeltaMOperator[12](0,1) + LMMasterNormal[2]*DeltaMOperator[12](0,2) + LMMasterNormal[3]*DeltaMOperator[12](0,3) - LMSlaveNormal[0]*DeltaDOperator[12](0,0) - LMSlaveNormal[1]*DeltaDOperator[12](0,1) - LMSlaveNormal[2]*DeltaDOperator[12](0,2) - LMSlaveNormal[3]*DeltaDOperator[12](0,3));
         rLocalLHS(24,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](0,0) + LMMasterNormal[1]*DeltaMOperator[13](0,1) + LMMasterNormal[2]*DeltaMOperator[13](0,2) + LMMasterNormal[3]*DeltaMOperator[13](0,3) - LMSlaveNormal[0]*DeltaDOperator[13](0,0) - LMSlaveNormal[1]*DeltaDOperator[13](0,1) - LMSlaveNormal[2]*DeltaDOperator[13](0,2) - LMSlaveNormal[3]*DeltaDOperator[13](0,3));
         rLocalLHS(24,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](0,0) + LMMasterNormal[1]*DeltaMOperator[14](0,1) + LMMasterNormal[2]*DeltaMOperator[14](0,2) + LMMasterNormal[3]*DeltaMOperator[14](0,3) - LMSlaveNormal[0]*DeltaDOperator[14](0,0) - LMSlaveNormal[1]*DeltaDOperator[14](0,1) - LMSlaveNormal[2]*DeltaDOperator[14](0,2) - LMSlaveNormal[3]*DeltaDOperator[14](0,3));
@@ -1353,7 +1353,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
         const double clhs13 =     DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs14 =     DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs15 =     DOperator(2,3); // DOPERATOR(2,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(24,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](0,0) + LMMasterNormal[1]*DeltaMOperator[12](0,1) + LMMasterNormal[2]*DeltaMOperator[12](0,2) + LMMasterNormal[3]*DeltaMOperator[12](0,3) - LMSlaveNormal[0]*DeltaDOperator[12](0,0) - LMSlaveNormal[1]*DeltaDOperator[12](0,1) - LMSlaveNormal[2]*DeltaDOperator[12](0,2) - LMSlaveNormal[3]*DeltaDOperator[12](0,3));
         rLocalLHS(24,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](0,0) + LMMasterNormal[1]*DeltaMOperator[13](0,1) + LMMasterNormal[2]*DeltaMOperator[13](0,2) + LMMasterNormal[3]*DeltaMOperator[13](0,3) - LMSlaveNormal[0]*DeltaDOperator[13](0,0) - LMSlaveNormal[1]*DeltaDOperator[13](0,1) - LMSlaveNormal[2]*DeltaDOperator[13](0,2) - LMSlaveNormal[3]*DeltaDOperator[13](0,3));
         rLocalLHS(24,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](0,0) + LMMasterNormal[1]*DeltaMOperator[14](0,1) + LMMasterNormal[2]*DeltaMOperator[14](0,2) + LMMasterNormal[3]*DeltaMOperator[14](0,3) - LMSlaveNormal[0]*DeltaDOperator[14](0,0) - LMSlaveNormal[1]*DeltaDOperator[14](0,1) - LMSlaveNormal[2]*DeltaDOperator[14](0,2) - LMSlaveNormal[3]*DeltaDOperator[14](0,3));
@@ -1445,7 +1445,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
         const double clhs21 =     DOperator(3,1); // DOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs22 =     DOperator(3,2); // DOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs23 =     DOperator(3,3); // DOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(24,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](0,0) + LMMasterNormal[1]*DeltaMOperator[12](0,1) + LMMasterNormal[2]*DeltaMOperator[12](0,2) + LMMasterNormal[3]*DeltaMOperator[12](0,3) - LMSlaveNormal[0]*DeltaDOperator[12](0,0) - LMSlaveNormal[1]*DeltaDOperator[12](0,1) - LMSlaveNormal[2]*DeltaDOperator[12](0,2) - LMSlaveNormal[3]*DeltaDOperator[12](0,3));
         rLocalLHS(24,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](0,0) + LMMasterNormal[1]*DeltaMOperator[13](0,1) + LMMasterNormal[2]*DeltaMOperator[13](0,2) + LMMasterNormal[3]*DeltaMOperator[13](0,3) - LMSlaveNormal[0]*DeltaDOperator[13](0,0) - LMSlaveNormal[1]*DeltaDOperator[13](0,1) - LMSlaveNormal[2]*DeltaDOperator[13](0,2) - LMSlaveNormal[3]*DeltaDOperator[13](0,3));
         rLocalLHS(24,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](0,0) + LMMasterNormal[1]*DeltaMOperator[14](0,1) + LMMasterNormal[2]*DeltaMOperator[14](0,2) + LMMasterNormal[3]*DeltaMOperator[14](0,3) - LMSlaveNormal[0]*DeltaDOperator[14](0,0) - LMSlaveNormal[1]*DeltaDOperator[14](0,1) - LMSlaveNormal[2]*DeltaDOperator[14](0,2) - LMSlaveNormal[3]*DeltaDOperator[14](0,3));
@@ -1561,7 +1561,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
         const double clhs13 =     DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs14 =     DOperator(1,2); // DOPERATOR(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs15 =     DOperator(1,3); // DOPERATOR(1,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(24,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](0,0) + LMMasterNormal[1]*DeltaMOperator[12](0,1) + LMMasterNormal[2]*DeltaMOperator[12](0,2) + LMMasterNormal[3]*DeltaMOperator[12](0,3) - LMSlaveNormal[0]*DeltaDOperator[12](0,0) - LMSlaveNormal[1]*DeltaDOperator[12](0,1) - LMSlaveNormal[2]*DeltaDOperator[12](0,2) - LMSlaveNormal[3]*DeltaDOperator[12](0,3));
         rLocalLHS(24,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](0,0) + LMMasterNormal[1]*DeltaMOperator[13](0,1) + LMMasterNormal[2]*DeltaMOperator[13](0,2) + LMMasterNormal[3]*DeltaMOperator[13](0,3) - LMSlaveNormal[0]*DeltaDOperator[13](0,0) - LMSlaveNormal[1]*DeltaDOperator[13](0,1) - LMSlaveNormal[2]*DeltaDOperator[13](0,2) - LMSlaveNormal[3]*DeltaDOperator[13](0,3));
         rLocalLHS(24,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](0,0) + LMMasterNormal[1]*DeltaMOperator[14](0,1) + LMMasterNormal[2]*DeltaMOperator[14](0,2) + LMMasterNormal[3]*DeltaMOperator[14](0,3) - LMSlaveNormal[0]*DeltaDOperator[14](0,0) - LMSlaveNormal[1]*DeltaDOperator[14](0,1) - LMSlaveNormal[2]*DeltaDOperator[14](0,2) - LMSlaveNormal[3]*DeltaDOperator[14](0,3));
@@ -1653,7 +1653,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
         const double clhs21 =     DOperator(3,1); // DOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs22 =     DOperator(3,2); // DOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs23 =     DOperator(3,3); // DOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(24,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](0,0) + LMMasterNormal[1]*DeltaMOperator[12](0,1) + LMMasterNormal[2]*DeltaMOperator[12](0,2) + LMMasterNormal[3]*DeltaMOperator[12](0,3) - LMSlaveNormal[0]*DeltaDOperator[12](0,0) - LMSlaveNormal[1]*DeltaDOperator[12](0,1) - LMSlaveNormal[2]*DeltaDOperator[12](0,2) - LMSlaveNormal[3]*DeltaDOperator[12](0,3));
         rLocalLHS(24,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](0,0) + LMMasterNormal[1]*DeltaMOperator[13](0,1) + LMMasterNormal[2]*DeltaMOperator[13](0,2) + LMMasterNormal[3]*DeltaMOperator[13](0,3) - LMSlaveNormal[0]*DeltaDOperator[13](0,0) - LMSlaveNormal[1]*DeltaDOperator[13](0,1) - LMSlaveNormal[2]*DeltaDOperator[13](0,2) - LMSlaveNormal[3]*DeltaDOperator[13](0,3));
         rLocalLHS(24,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](0,0) + LMMasterNormal[1]*DeltaMOperator[14](0,1) + LMMasterNormal[2]*DeltaMOperator[14](0,2) + LMMasterNormal[3]*DeltaMOperator[14](0,3) - LMSlaveNormal[0]*DeltaDOperator[14](0,0) - LMSlaveNormal[1]*DeltaDOperator[14](0,1) - LMSlaveNormal[2]*DeltaDOperator[14](0,2) - LMSlaveNormal[3]*DeltaDOperator[14](0,3));
@@ -1777,7 +1777,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
         const double clhs21 =     DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs22 =     DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs23 =     DOperator(2,3); // DOPERATOR(2,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(24,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](0,0) + LMMasterNormal[1]*DeltaMOperator[12](0,1) + LMMasterNormal[2]*DeltaMOperator[12](0,2) + LMMasterNormal[3]*DeltaMOperator[12](0,3) - LMSlaveNormal[0]*DeltaDOperator[12](0,0) - LMSlaveNormal[1]*DeltaDOperator[12](0,1) - LMSlaveNormal[2]*DeltaDOperator[12](0,2) - LMSlaveNormal[3]*DeltaDOperator[12](0,3));
         rLocalLHS(24,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](0,0) + LMMasterNormal[1]*DeltaMOperator[13](0,1) + LMMasterNormal[2]*DeltaMOperator[13](0,2) + LMMasterNormal[3]*DeltaMOperator[13](0,3) - LMSlaveNormal[0]*DeltaDOperator[13](0,0) - LMSlaveNormal[1]*DeltaDOperator[13](0,1) - LMSlaveNormal[2]*DeltaDOperator[13](0,2) - LMSlaveNormal[3]*DeltaDOperator[13](0,3));
         rLocalLHS(24,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](0,0) + LMMasterNormal[1]*DeltaMOperator[14](0,1) + LMMasterNormal[2]*DeltaMOperator[14](0,2) + LMMasterNormal[3]*DeltaMOperator[14](0,3) - LMSlaveNormal[0]*DeltaDOperator[14](0,0) - LMSlaveNormal[1]*DeltaDOperator[14](0,1) - LMSlaveNormal[2]*DeltaDOperator[14](0,2) - LMSlaveNormal[3]*DeltaDOperator[14](0,3));
@@ -1909,7 +1909,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
         const double clhs29 =     DOperator(3,1); // DOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs30 =     DOperator(3,2); // DOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs31 =     DOperator(3,3); // DOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(24,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](0,0) + LMMasterNormal[1]*DeltaMOperator[12](0,1) + LMMasterNormal[2]*DeltaMOperator[12](0,2) + LMMasterNormal[3]*DeltaMOperator[12](0,3) - LMSlaveNormal[0]*DeltaDOperator[12](0,0) - LMSlaveNormal[1]*DeltaDOperator[12](0,1) - LMSlaveNormal[2]*DeltaDOperator[12](0,2) - LMSlaveNormal[3]*DeltaDOperator[12](0,3));
         rLocalLHS(24,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](0,0) + LMMasterNormal[1]*DeltaMOperator[13](0,1) + LMMasterNormal[2]*DeltaMOperator[13](0,2) + LMMasterNormal[3]*DeltaMOperator[13](0,3) - LMSlaveNormal[0]*DeltaDOperator[13](0,0) - LMSlaveNormal[1]*DeltaDOperator[13](0,1) - LMSlaveNormal[2]*DeltaDOperator[13](0,2) - LMSlaveNormal[3]*DeltaDOperator[13](0,3));
         rLocalLHS(24,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](0,0) + LMMasterNormal[1]*DeltaMOperator[14](0,1) + LMMasterNormal[2]*DeltaMOperator[14](0,2) + LMMasterNormal[3]*DeltaMOperator[14](0,3) - LMSlaveNormal[0]*DeltaDOperator[14](0,0) - LMSlaveNormal[1]*DeltaDOperator[14](0,1) - LMSlaveNormal[2]*DeltaDOperator[14](0,2) - LMSlaveNormal[3]*DeltaDOperator[14](0,3));
@@ -2060,14 +2060,14 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, true
     // const BoundedMatrix<double, 2, 2>& u2 = rDerivativeData.u2;
     // const BoundedMatrix<double, 2, 2>& X1 = rDerivativeData.X1;
     // const BoundedMatrix<double, 2, 2>& X2 = rDerivativeData.X2;
-    
+
     const array_1d<double, 2> LMSlaveNormal = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 2> LMMasterNormal = MortarUtilities::GetVariableVector<2>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     // The ALM parameters
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     // const array_1d<double, 2>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
@@ -2077,7 +2077,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, true
 
     if (rActiveInactive == 0 )
     {
-    
+
     }
     else if (rActiveInactive == 2 )
     {
@@ -2085,7 +2085,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, true
         const double clhs1 =     MOperator(1,1); // MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double clhs2 =     DOperator(1,0); // DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double clhs3 =     DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
-    
+
         rLocalLHS(9,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[4](1,0) + LMMasterNormal[1]*DeltaMOperator[4](1,1) - LMSlaveNormal[0]*DeltaDOperator[4](1,0) - LMSlaveNormal[1]*DeltaDOperator[4](1,1));
         rLocalLHS(9,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[5](1,0) + LMMasterNormal[1]*DeltaMOperator[5](1,1) - LMSlaveNormal[0]*DeltaDOperator[5](1,0) - LMSlaveNormal[1]*DeltaDOperator[5](1,1));
         rLocalLHS(9,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[6](1,0) + LMMasterNormal[1]*DeltaMOperator[6](1,1) - LMSlaveNormal[0]*DeltaDOperator[6](1,0) - LMSlaveNormal[1]*DeltaDOperator[6](1,1));
@@ -2105,7 +2105,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, true
         const double clhs1 =     MOperator(0,1); // MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double clhs2 =     DOperator(0,0); // DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double clhs3 =     DOperator(0,1); // DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
-    
+
         rLocalLHS(8,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[4](0,0) + LMMasterNormal[1]*DeltaMOperator[4](0,1) - LMSlaveNormal[0]*DeltaDOperator[4](0,0) - LMSlaveNormal[1]*DeltaDOperator[4](0,1));
         rLocalLHS(8,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[5](0,0) + LMMasterNormal[1]*DeltaMOperator[5](0,1) - LMSlaveNormal[0]*DeltaDOperator[5](0,0) - LMSlaveNormal[1]*DeltaDOperator[5](0,1));
         rLocalLHS(8,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[6](0,0) + LMMasterNormal[1]*DeltaMOperator[6](0,1) - LMSlaveNormal[0]*DeltaDOperator[6](0,0) - LMSlaveNormal[1]*DeltaDOperator[6](0,1));
@@ -2129,7 +2129,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, true
         const double clhs5 =     MOperator(1,1); // MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double clhs6 =     DOperator(1,0); // DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double clhs7 =     DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
-    
+
         rLocalLHS(8,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[4](0,0) + LMMasterNormal[1]*DeltaMOperator[4](0,1) - LMSlaveNormal[0]*DeltaDOperator[4](0,0) - LMSlaveNormal[1]*DeltaDOperator[4](0,1));
         rLocalLHS(8,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[5](0,0) + LMMasterNormal[1]*DeltaMOperator[5](0,1) - LMSlaveNormal[0]*DeltaDOperator[5](0,0) - LMSlaveNormal[1]*DeltaDOperator[5](0,1));
         rLocalLHS(8,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[6](0,0) + LMMasterNormal[1]*DeltaMOperator[6](0,1) - LMSlaveNormal[0]*DeltaDOperator[6](0,0) - LMSlaveNormal[1]*DeltaDOperator[6](0,1));
@@ -2176,14 +2176,14 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
     // const BoundedMatrix<double, 3, 3>& u2 = rDerivativeData.u2;
     // const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     // const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
-    
+
     const array_1d<double, 3> LMSlaveNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 3> LMMasterNormal = MortarUtilities::GetVariableVector<3>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     // The ALM parameters
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     // const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
@@ -2193,7 +2193,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
 
     if (rActiveInactive == 0 )
     {
-    
+
     }
     else if (rActiveInactive == 4 )
     {
@@ -2203,7 +2203,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
         const double clhs3 =     DOperator(2,0); // DOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs4 =     DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs5 =     DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-    
+
         rLocalLHS(20,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[9](2,0) + LMMasterNormal[1]*DeltaMOperator[9](2,1) + LMMasterNormal[2]*DeltaMOperator[9](2,2) - LMSlaveNormal[0]*DeltaDOperator[9](2,0) - LMSlaveNormal[1]*DeltaDOperator[9](2,1) - LMSlaveNormal[2]*DeltaDOperator[9](2,2));
         rLocalLHS(20,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[10](2,0) + LMMasterNormal[1]*DeltaMOperator[10](2,1) + LMMasterNormal[2]*DeltaMOperator[10](2,2) - LMSlaveNormal[0]*DeltaDOperator[10](2,0) - LMSlaveNormal[1]*DeltaDOperator[10](2,1) - LMSlaveNormal[2]*DeltaDOperator[10](2,2));
         rLocalLHS(20,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[11](2,0) + LMMasterNormal[1]*DeltaMOperator[11](2,1) + LMMasterNormal[2]*DeltaMOperator[11](2,2) - LMSlaveNormal[0]*DeltaDOperator[11](2,0) - LMSlaveNormal[1]*DeltaDOperator[11](2,1) - LMSlaveNormal[2]*DeltaDOperator[11](2,2));
@@ -2237,7 +2237,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
         const double clhs3 =     DOperator(1,0); // DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs4 =     DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs5 =     DOperator(1,2); // DOPERATOR(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-    
+
         rLocalLHS(19,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[9](1,0) + LMMasterNormal[1]*DeltaMOperator[9](1,1) + LMMasterNormal[2]*DeltaMOperator[9](1,2) - LMSlaveNormal[0]*DeltaDOperator[9](1,0) - LMSlaveNormal[1]*DeltaDOperator[9](1,1) - LMSlaveNormal[2]*DeltaDOperator[9](1,2));
         rLocalLHS(19,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[10](1,0) + LMMasterNormal[1]*DeltaMOperator[10](1,1) + LMMasterNormal[2]*DeltaMOperator[10](1,2) - LMSlaveNormal[0]*DeltaDOperator[10](1,0) - LMSlaveNormal[1]*DeltaDOperator[10](1,1) - LMSlaveNormal[2]*DeltaDOperator[10](1,2));
         rLocalLHS(19,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[11](1,0) + LMMasterNormal[1]*DeltaMOperator[11](1,1) + LMMasterNormal[2]*DeltaMOperator[11](1,2) - LMSlaveNormal[0]*DeltaDOperator[11](1,0) - LMSlaveNormal[1]*DeltaDOperator[11](1,1) - LMSlaveNormal[2]*DeltaDOperator[11](1,2));
@@ -2277,7 +2277,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
         const double clhs9 =     DOperator(2,0); // DOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs10 =     DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs11 =     DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-    
+
         rLocalLHS(19,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[9](1,0) + LMMasterNormal[1]*DeltaMOperator[9](1,1) + LMMasterNormal[2]*DeltaMOperator[9](1,2) - LMSlaveNormal[0]*DeltaDOperator[9](1,0) - LMSlaveNormal[1]*DeltaDOperator[9](1,1) - LMSlaveNormal[2]*DeltaDOperator[9](1,2));
         rLocalLHS(19,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[10](1,0) + LMMasterNormal[1]*DeltaMOperator[10](1,1) + LMMasterNormal[2]*DeltaMOperator[10](1,2) - LMSlaveNormal[0]*DeltaDOperator[10](1,0) - LMSlaveNormal[1]*DeltaDOperator[10](1,1) - LMSlaveNormal[2]*DeltaDOperator[10](1,2));
         rLocalLHS(19,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[11](1,0) + LMMasterNormal[1]*DeltaMOperator[11](1,1) + LMMasterNormal[2]*DeltaMOperator[11](1,2) - LMSlaveNormal[0]*DeltaDOperator[11](1,0) - LMSlaveNormal[1]*DeltaDOperator[11](1,1) - LMSlaveNormal[2]*DeltaDOperator[11](1,2));
@@ -2335,7 +2335,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
         const double clhs3 =     DOperator(0,0); // DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs4 =     DOperator(0,1); // DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs5 =     DOperator(0,2); // DOPERATOR(0,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-    
+
         rLocalLHS(18,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[9](0,0) + LMMasterNormal[1]*DeltaMOperator[9](0,1) + LMMasterNormal[2]*DeltaMOperator[9](0,2) - LMSlaveNormal[0]*DeltaDOperator[9](0,0) - LMSlaveNormal[1]*DeltaDOperator[9](0,1) - LMSlaveNormal[2]*DeltaDOperator[9](0,2));
         rLocalLHS(18,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[10](0,0) + LMMasterNormal[1]*DeltaMOperator[10](0,1) + LMMasterNormal[2]*DeltaMOperator[10](0,2) - LMSlaveNormal[0]*DeltaDOperator[10](0,0) - LMSlaveNormal[1]*DeltaDOperator[10](0,1) - LMSlaveNormal[2]*DeltaDOperator[10](0,2));
         rLocalLHS(18,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[11](0,0) + LMMasterNormal[1]*DeltaMOperator[11](0,1) + LMMasterNormal[2]*DeltaMOperator[11](0,2) - LMSlaveNormal[0]*DeltaDOperator[11](0,0) - LMSlaveNormal[1]*DeltaDOperator[11](0,1) - LMSlaveNormal[2]*DeltaDOperator[11](0,2));
@@ -2375,7 +2375,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
         const double clhs9 =     DOperator(2,0); // DOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs10 =     DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs11 =     DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-    
+
         rLocalLHS(18,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[9](0,0) + LMMasterNormal[1]*DeltaMOperator[9](0,1) + LMMasterNormal[2]*DeltaMOperator[9](0,2) - LMSlaveNormal[0]*DeltaDOperator[9](0,0) - LMSlaveNormal[1]*DeltaDOperator[9](0,1) - LMSlaveNormal[2]*DeltaDOperator[9](0,2));
         rLocalLHS(18,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[10](0,0) + LMMasterNormal[1]*DeltaMOperator[10](0,1) + LMMasterNormal[2]*DeltaMOperator[10](0,2) - LMSlaveNormal[0]*DeltaDOperator[10](0,0) - LMSlaveNormal[1]*DeltaDOperator[10](0,1) - LMSlaveNormal[2]*DeltaDOperator[10](0,2));
         rLocalLHS(18,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[11](0,0) + LMMasterNormal[1]*DeltaMOperator[11](0,1) + LMMasterNormal[2]*DeltaMOperator[11](0,2) - LMSlaveNormal[0]*DeltaDOperator[11](0,0) - LMSlaveNormal[1]*DeltaDOperator[11](0,1) - LMSlaveNormal[2]*DeltaDOperator[11](0,2));
@@ -2439,7 +2439,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
         const double clhs9 =     DOperator(1,0); // DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs10 =     DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs11 =     DOperator(1,2); // DOPERATOR(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-    
+
         rLocalLHS(18,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[9](0,0) + LMMasterNormal[1]*DeltaMOperator[9](0,1) + LMMasterNormal[2]*DeltaMOperator[9](0,2) - LMSlaveNormal[0]*DeltaDOperator[9](0,0) - LMSlaveNormal[1]*DeltaDOperator[9](0,1) - LMSlaveNormal[2]*DeltaDOperator[9](0,2));
         rLocalLHS(18,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[10](0,0) + LMMasterNormal[1]*DeltaMOperator[10](0,1) + LMMasterNormal[2]*DeltaMOperator[10](0,2) - LMSlaveNormal[0]*DeltaDOperator[10](0,0) - LMSlaveNormal[1]*DeltaDOperator[10](0,1) - LMSlaveNormal[2]*DeltaDOperator[10](0,2));
         rLocalLHS(18,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[11](0,0) + LMMasterNormal[1]*DeltaMOperator[11](0,1) + LMMasterNormal[2]*DeltaMOperator[11](0,2) - LMSlaveNormal[0]*DeltaDOperator[11](0,0) - LMSlaveNormal[1]*DeltaDOperator[11](0,1) - LMSlaveNormal[2]*DeltaDOperator[11](0,2));
@@ -2509,7 +2509,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
         const double clhs15 =     DOperator(2,0); // DOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs16 =     DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
         const double clhs17 =     DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
-    
+
         rLocalLHS(18,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[9](0,0) + LMMasterNormal[1]*DeltaMOperator[9](0,1) + LMMasterNormal[2]*DeltaMOperator[9](0,2) - LMSlaveNormal[0]*DeltaDOperator[9](0,0) - LMSlaveNormal[1]*DeltaDOperator[9](0,1) - LMSlaveNormal[2]*DeltaDOperator[9](0,2));
         rLocalLHS(18,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[10](0,0) + LMMasterNormal[1]*DeltaMOperator[10](0,1) + LMMasterNormal[2]*DeltaMOperator[10](0,2) - LMSlaveNormal[0]*DeltaDOperator[10](0,0) - LMSlaveNormal[1]*DeltaDOperator[10](0,1) - LMSlaveNormal[2]*DeltaDOperator[10](0,2));
         rLocalLHS(18,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[11](0,0) + LMMasterNormal[1]*DeltaMOperator[11](0,1) + LMMasterNormal[2]*DeltaMOperator[11](0,2) - LMSlaveNormal[0]*DeltaDOperator[11](0,0) - LMSlaveNormal[1]*DeltaDOperator[11](0,1) - LMSlaveNormal[2]*DeltaDOperator[11](0,2));
@@ -2604,14 +2604,14 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
     // const BoundedMatrix<double, 4, 3>& u2 = rDerivativeData.u2;
     // const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     // const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
-    
+
     const array_1d<double, 4> LMSlaveNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 4> LMMasterNormal = MortarUtilities::GetVariableVector<4>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     // The ALM parameters
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     // const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
@@ -2621,7 +2621,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
 
     if (rActiveInactive == 0 )
     {
-    
+
     }
     else if (rActiveInactive == 8 )
     {
@@ -2633,7 +2633,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
         const double clhs5 =     DOperator(3,1); // DOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs6 =     DOperator(3,2); // DOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs7 =     DOperator(3,3); // DOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(27,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](3,0) + LMMasterNormal[1]*DeltaMOperator[12](3,1) + LMMasterNormal[2]*DeltaMOperator[12](3,2) + LMMasterNormal[3]*DeltaMOperator[12](3,3) - LMSlaveNormal[0]*DeltaDOperator[12](3,0) - LMSlaveNormal[1]*DeltaDOperator[12](3,1) - LMSlaveNormal[2]*DeltaDOperator[12](3,2) - LMSlaveNormal[3]*DeltaDOperator[12](3,3));
         rLocalLHS(27,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](3,0) + LMMasterNormal[1]*DeltaMOperator[13](3,1) + LMMasterNormal[2]*DeltaMOperator[13](3,2) + LMMasterNormal[3]*DeltaMOperator[13](3,3) - LMSlaveNormal[0]*DeltaDOperator[13](3,0) - LMSlaveNormal[1]*DeltaDOperator[13](3,1) - LMSlaveNormal[2]*DeltaDOperator[13](3,2) - LMSlaveNormal[3]*DeltaDOperator[13](3,3));
         rLocalLHS(27,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](3,0) + LMMasterNormal[1]*DeltaMOperator[14](3,1) + LMMasterNormal[2]*DeltaMOperator[14](3,2) + LMMasterNormal[3]*DeltaMOperator[14](3,3) - LMSlaveNormal[0]*DeltaDOperator[14](3,0) - LMSlaveNormal[1]*DeltaDOperator[14](3,1) - LMSlaveNormal[2]*DeltaDOperator[14](3,2) - LMSlaveNormal[3]*DeltaDOperator[14](3,3));
@@ -2677,7 +2677,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
         const double clhs5 =     DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs6 =     DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs7 =     DOperator(2,3); // DOPERATOR(2,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(26,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](2,0) + LMMasterNormal[1]*DeltaMOperator[12](2,1) + LMMasterNormal[2]*DeltaMOperator[12](2,2) + LMMasterNormal[3]*DeltaMOperator[12](2,3) - LMSlaveNormal[0]*DeltaDOperator[12](2,0) - LMSlaveNormal[1]*DeltaDOperator[12](2,1) - LMSlaveNormal[2]*DeltaDOperator[12](2,2) - LMSlaveNormal[3]*DeltaDOperator[12](2,3));
         rLocalLHS(26,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](2,0) + LMMasterNormal[1]*DeltaMOperator[13](2,1) + LMMasterNormal[2]*DeltaMOperator[13](2,2) + LMMasterNormal[3]*DeltaMOperator[13](2,3) - LMSlaveNormal[0]*DeltaDOperator[13](2,0) - LMSlaveNormal[1]*DeltaDOperator[13](2,1) - LMSlaveNormal[2]*DeltaDOperator[13](2,2) - LMSlaveNormal[3]*DeltaDOperator[13](2,3));
         rLocalLHS(26,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](2,0) + LMMasterNormal[1]*DeltaMOperator[14](2,1) + LMMasterNormal[2]*DeltaMOperator[14](2,2) + LMMasterNormal[3]*DeltaMOperator[14](2,3) - LMSlaveNormal[0]*DeltaDOperator[14](2,0) - LMSlaveNormal[1]*DeltaDOperator[14](2,1) - LMSlaveNormal[2]*DeltaDOperator[14](2,2) - LMSlaveNormal[3]*DeltaDOperator[14](2,3));
@@ -2729,7 +2729,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
         const double clhs13 =     DOperator(3,1); // DOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs14 =     DOperator(3,2); // DOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs15 =     DOperator(3,3); // DOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(26,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](2,0) + LMMasterNormal[1]*DeltaMOperator[12](2,1) + LMMasterNormal[2]*DeltaMOperator[12](2,2) + LMMasterNormal[3]*DeltaMOperator[12](2,3) - LMSlaveNormal[0]*DeltaDOperator[12](2,0) - LMSlaveNormal[1]*DeltaDOperator[12](2,1) - LMSlaveNormal[2]*DeltaDOperator[12](2,2) - LMSlaveNormal[3]*DeltaDOperator[12](2,3));
         rLocalLHS(26,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](2,0) + LMMasterNormal[1]*DeltaMOperator[13](2,1) + LMMasterNormal[2]*DeltaMOperator[13](2,2) + LMMasterNormal[3]*DeltaMOperator[13](2,3) - LMSlaveNormal[0]*DeltaDOperator[13](2,0) - LMSlaveNormal[1]*DeltaDOperator[13](2,1) - LMSlaveNormal[2]*DeltaDOperator[13](2,2) - LMSlaveNormal[3]*DeltaDOperator[13](2,3));
         rLocalLHS(26,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](2,0) + LMMasterNormal[1]*DeltaMOperator[14](2,1) + LMMasterNormal[2]*DeltaMOperator[14](2,2) + LMMasterNormal[3]*DeltaMOperator[14](2,3) - LMSlaveNormal[0]*DeltaDOperator[14](2,0) - LMSlaveNormal[1]*DeltaDOperator[14](2,1) - LMSlaveNormal[2]*DeltaDOperator[14](2,2) - LMSlaveNormal[3]*DeltaDOperator[14](2,3));
@@ -2805,7 +2805,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
         const double clhs5 =     DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs6 =     DOperator(1,2); // DOPERATOR(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs7 =     DOperator(1,3); // DOPERATOR(1,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(25,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](1,0) + LMMasterNormal[1]*DeltaMOperator[12](1,1) + LMMasterNormal[2]*DeltaMOperator[12](1,2) + LMMasterNormal[3]*DeltaMOperator[12](1,3) - LMSlaveNormal[0]*DeltaDOperator[12](1,0) - LMSlaveNormal[1]*DeltaDOperator[12](1,1) - LMSlaveNormal[2]*DeltaDOperator[12](1,2) - LMSlaveNormal[3]*DeltaDOperator[12](1,3));
         rLocalLHS(25,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](1,0) + LMMasterNormal[1]*DeltaMOperator[13](1,1) + LMMasterNormal[2]*DeltaMOperator[13](1,2) + LMMasterNormal[3]*DeltaMOperator[13](1,3) - LMSlaveNormal[0]*DeltaDOperator[13](1,0) - LMSlaveNormal[1]*DeltaDOperator[13](1,1) - LMSlaveNormal[2]*DeltaDOperator[13](1,2) - LMSlaveNormal[3]*DeltaDOperator[13](1,3));
         rLocalLHS(25,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](1,0) + LMMasterNormal[1]*DeltaMOperator[14](1,1) + LMMasterNormal[2]*DeltaMOperator[14](1,2) + LMMasterNormal[3]*DeltaMOperator[14](1,3) - LMSlaveNormal[0]*DeltaDOperator[14](1,0) - LMSlaveNormal[1]*DeltaDOperator[14](1,1) - LMSlaveNormal[2]*DeltaDOperator[14](1,2) - LMSlaveNormal[3]*DeltaDOperator[14](1,3));
@@ -2857,7 +2857,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
         const double clhs13 =     DOperator(3,1); // DOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs14 =     DOperator(3,2); // DOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs15 =     DOperator(3,3); // DOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(25,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](1,0) + LMMasterNormal[1]*DeltaMOperator[12](1,1) + LMMasterNormal[2]*DeltaMOperator[12](1,2) + LMMasterNormal[3]*DeltaMOperator[12](1,3) - LMSlaveNormal[0]*DeltaDOperator[12](1,0) - LMSlaveNormal[1]*DeltaDOperator[12](1,1) - LMSlaveNormal[2]*DeltaDOperator[12](1,2) - LMSlaveNormal[3]*DeltaDOperator[12](1,3));
         rLocalLHS(25,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](1,0) + LMMasterNormal[1]*DeltaMOperator[13](1,1) + LMMasterNormal[2]*DeltaMOperator[13](1,2) + LMMasterNormal[3]*DeltaMOperator[13](1,3) - LMSlaveNormal[0]*DeltaDOperator[13](1,0) - LMSlaveNormal[1]*DeltaDOperator[13](1,1) - LMSlaveNormal[2]*DeltaDOperator[13](1,2) - LMSlaveNormal[3]*DeltaDOperator[13](1,3));
         rLocalLHS(25,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](1,0) + LMMasterNormal[1]*DeltaMOperator[14](1,1) + LMMasterNormal[2]*DeltaMOperator[14](1,2) + LMMasterNormal[3]*DeltaMOperator[14](1,3) - LMSlaveNormal[0]*DeltaDOperator[14](1,0) - LMSlaveNormal[1]*DeltaDOperator[14](1,1) - LMSlaveNormal[2]*DeltaDOperator[14](1,2) - LMSlaveNormal[3]*DeltaDOperator[14](1,3));
@@ -2941,7 +2941,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
         const double clhs13 =     DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs14 =     DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs15 =     DOperator(2,3); // DOPERATOR(2,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(25,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](1,0) + LMMasterNormal[1]*DeltaMOperator[12](1,1) + LMMasterNormal[2]*DeltaMOperator[12](1,2) + LMMasterNormal[3]*DeltaMOperator[12](1,3) - LMSlaveNormal[0]*DeltaDOperator[12](1,0) - LMSlaveNormal[1]*DeltaDOperator[12](1,1) - LMSlaveNormal[2]*DeltaDOperator[12](1,2) - LMSlaveNormal[3]*DeltaDOperator[12](1,3));
         rLocalLHS(25,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](1,0) + LMMasterNormal[1]*DeltaMOperator[13](1,1) + LMMasterNormal[2]*DeltaMOperator[13](1,2) + LMMasterNormal[3]*DeltaMOperator[13](1,3) - LMSlaveNormal[0]*DeltaDOperator[13](1,0) - LMSlaveNormal[1]*DeltaDOperator[13](1,1) - LMSlaveNormal[2]*DeltaDOperator[13](1,2) - LMSlaveNormal[3]*DeltaDOperator[13](1,3));
         rLocalLHS(25,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](1,0) + LMMasterNormal[1]*DeltaMOperator[14](1,1) + LMMasterNormal[2]*DeltaMOperator[14](1,2) + LMMasterNormal[3]*DeltaMOperator[14](1,3) - LMSlaveNormal[0]*DeltaDOperator[14](1,0) - LMSlaveNormal[1]*DeltaDOperator[14](1,1) - LMSlaveNormal[2]*DeltaDOperator[14](1,2) - LMSlaveNormal[3]*DeltaDOperator[14](1,3));
@@ -3033,7 +3033,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
         const double clhs21 =     DOperator(3,1); // DOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs22 =     DOperator(3,2); // DOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs23 =     DOperator(3,3); // DOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(25,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](1,0) + LMMasterNormal[1]*DeltaMOperator[12](1,1) + LMMasterNormal[2]*DeltaMOperator[12](1,2) + LMMasterNormal[3]*DeltaMOperator[12](1,3) - LMSlaveNormal[0]*DeltaDOperator[12](1,0) - LMSlaveNormal[1]*DeltaDOperator[12](1,1) - LMSlaveNormal[2]*DeltaDOperator[12](1,2) - LMSlaveNormal[3]*DeltaDOperator[12](1,3));
         rLocalLHS(25,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](1,0) + LMMasterNormal[1]*DeltaMOperator[13](1,1) + LMMasterNormal[2]*DeltaMOperator[13](1,2) + LMMasterNormal[3]*DeltaMOperator[13](1,3) - LMSlaveNormal[0]*DeltaDOperator[13](1,0) - LMSlaveNormal[1]*DeltaDOperator[13](1,1) - LMSlaveNormal[2]*DeltaDOperator[13](1,2) - LMSlaveNormal[3]*DeltaDOperator[13](1,3));
         rLocalLHS(25,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](1,0) + LMMasterNormal[1]*DeltaMOperator[14](1,1) + LMMasterNormal[2]*DeltaMOperator[14](1,2) + LMMasterNormal[3]*DeltaMOperator[14](1,3) - LMSlaveNormal[0]*DeltaDOperator[14](1,0) - LMSlaveNormal[1]*DeltaDOperator[14](1,1) - LMSlaveNormal[2]*DeltaDOperator[14](1,2) - LMSlaveNormal[3]*DeltaDOperator[14](1,3));
@@ -3141,7 +3141,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
         const double clhs5 =     DOperator(0,1); // DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs6 =     DOperator(0,2); // DOPERATOR(0,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs7 =     DOperator(0,3); // DOPERATOR(0,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(24,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](0,0) + LMMasterNormal[1]*DeltaMOperator[12](0,1) + LMMasterNormal[2]*DeltaMOperator[12](0,2) + LMMasterNormal[3]*DeltaMOperator[12](0,3) - LMSlaveNormal[0]*DeltaDOperator[12](0,0) - LMSlaveNormal[1]*DeltaDOperator[12](0,1) - LMSlaveNormal[2]*DeltaDOperator[12](0,2) - LMSlaveNormal[3]*DeltaDOperator[12](0,3));
         rLocalLHS(24,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](0,0) + LMMasterNormal[1]*DeltaMOperator[13](0,1) + LMMasterNormal[2]*DeltaMOperator[13](0,2) + LMMasterNormal[3]*DeltaMOperator[13](0,3) - LMSlaveNormal[0]*DeltaDOperator[13](0,0) - LMSlaveNormal[1]*DeltaDOperator[13](0,1) - LMSlaveNormal[2]*DeltaDOperator[13](0,2) - LMSlaveNormal[3]*DeltaDOperator[13](0,3));
         rLocalLHS(24,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](0,0) + LMMasterNormal[1]*DeltaMOperator[14](0,1) + LMMasterNormal[2]*DeltaMOperator[14](0,2) + LMMasterNormal[3]*DeltaMOperator[14](0,3) - LMSlaveNormal[0]*DeltaDOperator[14](0,0) - LMSlaveNormal[1]*DeltaDOperator[14](0,1) - LMSlaveNormal[2]*DeltaDOperator[14](0,2) - LMSlaveNormal[3]*DeltaDOperator[14](0,3));
@@ -3193,7 +3193,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
         const double clhs13 =     DOperator(3,1); // DOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs14 =     DOperator(3,2); // DOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs15 =     DOperator(3,3); // DOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(24,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](0,0) + LMMasterNormal[1]*DeltaMOperator[12](0,1) + LMMasterNormal[2]*DeltaMOperator[12](0,2) + LMMasterNormal[3]*DeltaMOperator[12](0,3) - LMSlaveNormal[0]*DeltaDOperator[12](0,0) - LMSlaveNormal[1]*DeltaDOperator[12](0,1) - LMSlaveNormal[2]*DeltaDOperator[12](0,2) - LMSlaveNormal[3]*DeltaDOperator[12](0,3));
         rLocalLHS(24,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](0,0) + LMMasterNormal[1]*DeltaMOperator[13](0,1) + LMMasterNormal[2]*DeltaMOperator[13](0,2) + LMMasterNormal[3]*DeltaMOperator[13](0,3) - LMSlaveNormal[0]*DeltaDOperator[13](0,0) - LMSlaveNormal[1]*DeltaDOperator[13](0,1) - LMSlaveNormal[2]*DeltaDOperator[13](0,2) - LMSlaveNormal[3]*DeltaDOperator[13](0,3));
         rLocalLHS(24,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](0,0) + LMMasterNormal[1]*DeltaMOperator[14](0,1) + LMMasterNormal[2]*DeltaMOperator[14](0,2) + LMMasterNormal[3]*DeltaMOperator[14](0,3) - LMSlaveNormal[0]*DeltaDOperator[14](0,0) - LMSlaveNormal[1]*DeltaDOperator[14](0,1) - LMSlaveNormal[2]*DeltaDOperator[14](0,2) - LMSlaveNormal[3]*DeltaDOperator[14](0,3));
@@ -3277,7 +3277,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
         const double clhs13 =     DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs14 =     DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs15 =     DOperator(2,3); // DOPERATOR(2,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(24,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](0,0) + LMMasterNormal[1]*DeltaMOperator[12](0,1) + LMMasterNormal[2]*DeltaMOperator[12](0,2) + LMMasterNormal[3]*DeltaMOperator[12](0,3) - LMSlaveNormal[0]*DeltaDOperator[12](0,0) - LMSlaveNormal[1]*DeltaDOperator[12](0,1) - LMSlaveNormal[2]*DeltaDOperator[12](0,2) - LMSlaveNormal[3]*DeltaDOperator[12](0,3));
         rLocalLHS(24,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](0,0) + LMMasterNormal[1]*DeltaMOperator[13](0,1) + LMMasterNormal[2]*DeltaMOperator[13](0,2) + LMMasterNormal[3]*DeltaMOperator[13](0,3) - LMSlaveNormal[0]*DeltaDOperator[13](0,0) - LMSlaveNormal[1]*DeltaDOperator[13](0,1) - LMSlaveNormal[2]*DeltaDOperator[13](0,2) - LMSlaveNormal[3]*DeltaDOperator[13](0,3));
         rLocalLHS(24,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](0,0) + LMMasterNormal[1]*DeltaMOperator[14](0,1) + LMMasterNormal[2]*DeltaMOperator[14](0,2) + LMMasterNormal[3]*DeltaMOperator[14](0,3) - LMSlaveNormal[0]*DeltaDOperator[14](0,0) - LMSlaveNormal[1]*DeltaDOperator[14](0,1) - LMSlaveNormal[2]*DeltaDOperator[14](0,2) - LMSlaveNormal[3]*DeltaDOperator[14](0,3));
@@ -3369,7 +3369,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
         const double clhs21 =     DOperator(3,1); // DOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs22 =     DOperator(3,2); // DOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs23 =     DOperator(3,3); // DOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(24,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](0,0) + LMMasterNormal[1]*DeltaMOperator[12](0,1) + LMMasterNormal[2]*DeltaMOperator[12](0,2) + LMMasterNormal[3]*DeltaMOperator[12](0,3) - LMSlaveNormal[0]*DeltaDOperator[12](0,0) - LMSlaveNormal[1]*DeltaDOperator[12](0,1) - LMSlaveNormal[2]*DeltaDOperator[12](0,2) - LMSlaveNormal[3]*DeltaDOperator[12](0,3));
         rLocalLHS(24,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](0,0) + LMMasterNormal[1]*DeltaMOperator[13](0,1) + LMMasterNormal[2]*DeltaMOperator[13](0,2) + LMMasterNormal[3]*DeltaMOperator[13](0,3) - LMSlaveNormal[0]*DeltaDOperator[13](0,0) - LMSlaveNormal[1]*DeltaDOperator[13](0,1) - LMSlaveNormal[2]*DeltaDOperator[13](0,2) - LMSlaveNormal[3]*DeltaDOperator[13](0,3));
         rLocalLHS(24,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](0,0) + LMMasterNormal[1]*DeltaMOperator[14](0,1) + LMMasterNormal[2]*DeltaMOperator[14](0,2) + LMMasterNormal[3]*DeltaMOperator[14](0,3) - LMSlaveNormal[0]*DeltaDOperator[14](0,0) - LMSlaveNormal[1]*DeltaDOperator[14](0,1) - LMSlaveNormal[2]*DeltaDOperator[14](0,2) - LMSlaveNormal[3]*DeltaDOperator[14](0,3));
@@ -3485,7 +3485,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
         const double clhs13 =     DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs14 =     DOperator(1,2); // DOPERATOR(1,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs15 =     DOperator(1,3); // DOPERATOR(1,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(24,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](0,0) + LMMasterNormal[1]*DeltaMOperator[12](0,1) + LMMasterNormal[2]*DeltaMOperator[12](0,2) + LMMasterNormal[3]*DeltaMOperator[12](0,3) - LMSlaveNormal[0]*DeltaDOperator[12](0,0) - LMSlaveNormal[1]*DeltaDOperator[12](0,1) - LMSlaveNormal[2]*DeltaDOperator[12](0,2) - LMSlaveNormal[3]*DeltaDOperator[12](0,3));
         rLocalLHS(24,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](0,0) + LMMasterNormal[1]*DeltaMOperator[13](0,1) + LMMasterNormal[2]*DeltaMOperator[13](0,2) + LMMasterNormal[3]*DeltaMOperator[13](0,3) - LMSlaveNormal[0]*DeltaDOperator[13](0,0) - LMSlaveNormal[1]*DeltaDOperator[13](0,1) - LMSlaveNormal[2]*DeltaDOperator[13](0,2) - LMSlaveNormal[3]*DeltaDOperator[13](0,3));
         rLocalLHS(24,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](0,0) + LMMasterNormal[1]*DeltaMOperator[14](0,1) + LMMasterNormal[2]*DeltaMOperator[14](0,2) + LMMasterNormal[3]*DeltaMOperator[14](0,3) - LMSlaveNormal[0]*DeltaDOperator[14](0,0) - LMSlaveNormal[1]*DeltaDOperator[14](0,1) - LMSlaveNormal[2]*DeltaDOperator[14](0,2) - LMSlaveNormal[3]*DeltaDOperator[14](0,3));
@@ -3577,7 +3577,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
         const double clhs21 =     DOperator(3,1); // DOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs22 =     DOperator(3,2); // DOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs23 =     DOperator(3,3); // DOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(24,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](0,0) + LMMasterNormal[1]*DeltaMOperator[12](0,1) + LMMasterNormal[2]*DeltaMOperator[12](0,2) + LMMasterNormal[3]*DeltaMOperator[12](0,3) - LMSlaveNormal[0]*DeltaDOperator[12](0,0) - LMSlaveNormal[1]*DeltaDOperator[12](0,1) - LMSlaveNormal[2]*DeltaDOperator[12](0,2) - LMSlaveNormal[3]*DeltaDOperator[12](0,3));
         rLocalLHS(24,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](0,0) + LMMasterNormal[1]*DeltaMOperator[13](0,1) + LMMasterNormal[2]*DeltaMOperator[13](0,2) + LMMasterNormal[3]*DeltaMOperator[13](0,3) - LMSlaveNormal[0]*DeltaDOperator[13](0,0) - LMSlaveNormal[1]*DeltaDOperator[13](0,1) - LMSlaveNormal[2]*DeltaDOperator[13](0,2) - LMSlaveNormal[3]*DeltaDOperator[13](0,3));
         rLocalLHS(24,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](0,0) + LMMasterNormal[1]*DeltaMOperator[14](0,1) + LMMasterNormal[2]*DeltaMOperator[14](0,2) + LMMasterNormal[3]*DeltaMOperator[14](0,3) - LMSlaveNormal[0]*DeltaDOperator[14](0,0) - LMSlaveNormal[1]*DeltaDOperator[14](0,1) - LMSlaveNormal[2]*DeltaDOperator[14](0,2) - LMSlaveNormal[3]*DeltaDOperator[14](0,3));
@@ -3701,7 +3701,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
         const double clhs21 =     DOperator(2,1); // DOPERATOR(2,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs22 =     DOperator(2,2); // DOPERATOR(2,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs23 =     DOperator(2,3); // DOPERATOR(2,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(24,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](0,0) + LMMasterNormal[1]*DeltaMOperator[12](0,1) + LMMasterNormal[2]*DeltaMOperator[12](0,2) + LMMasterNormal[3]*DeltaMOperator[12](0,3) - LMSlaveNormal[0]*DeltaDOperator[12](0,0) - LMSlaveNormal[1]*DeltaDOperator[12](0,1) - LMSlaveNormal[2]*DeltaDOperator[12](0,2) - LMSlaveNormal[3]*DeltaDOperator[12](0,3));
         rLocalLHS(24,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](0,0) + LMMasterNormal[1]*DeltaMOperator[13](0,1) + LMMasterNormal[2]*DeltaMOperator[13](0,2) + LMMasterNormal[3]*DeltaMOperator[13](0,3) - LMSlaveNormal[0]*DeltaDOperator[13](0,0) - LMSlaveNormal[1]*DeltaDOperator[13](0,1) - LMSlaveNormal[2]*DeltaDOperator[13](0,2) - LMSlaveNormal[3]*DeltaDOperator[13](0,3));
         rLocalLHS(24,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](0,0) + LMMasterNormal[1]*DeltaMOperator[14](0,1) + LMMasterNormal[2]*DeltaMOperator[14](0,2) + LMMasterNormal[3]*DeltaMOperator[14](0,3) - LMSlaveNormal[0]*DeltaDOperator[14](0,0) - LMSlaveNormal[1]*DeltaDOperator[14](0,1) - LMSlaveNormal[2]*DeltaDOperator[14](0,2) - LMSlaveNormal[3]*DeltaDOperator[14](0,3));
@@ -3833,7 +3833,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
         const double clhs29 =     DOperator(3,1); // DOPERATOR(3,1)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs30 =     DOperator(3,2); // DOPERATOR(3,2)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
         const double clhs31 =     DOperator(3,3); // DOPERATOR(3,3)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
-    
+
         rLocalLHS(24,0)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[12](0,0) + LMMasterNormal[1]*DeltaMOperator[12](0,1) + LMMasterNormal[2]*DeltaMOperator[12](0,2) + LMMasterNormal[3]*DeltaMOperator[12](0,3) - LMSlaveNormal[0]*DeltaDOperator[12](0,0) - LMSlaveNormal[1]*DeltaDOperator[12](0,1) - LMSlaveNormal[2]*DeltaDOperator[12](0,2) - LMSlaveNormal[3]*DeltaDOperator[12](0,3));
         rLocalLHS(24,1)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[13](0,0) + LMMasterNormal[1]*DeltaMOperator[13](0,1) + LMMasterNormal[2]*DeltaMOperator[13](0,2) + LMMasterNormal[3]*DeltaMOperator[13](0,3) - LMSlaveNormal[0]*DeltaDOperator[13](0,0) - LMSlaveNormal[1]*DeltaDOperator[13](0,1) - LMSlaveNormal[2]*DeltaDOperator[13](0,2) - LMSlaveNormal[3]*DeltaDOperator[13](0,3));
         rLocalLHS(24,2)+=ScaleFactor*(LMMasterNormal[0]*DeltaMOperator[14](0,0) + LMMasterNormal[1]*DeltaMOperator[14](0,1) + LMMasterNormal[2]*DeltaMOperator[14](0,2) + LMMasterNormal[3]*DeltaMOperator[14](0,3) - LMSlaveNormal[0]*DeltaDOperator[14](0,0) - LMSlaveNormal[1]*DeltaDOperator[14](0,1) - LMSlaveNormal[2]*DeltaDOperator[14](0,2) - LMSlaveNormal[3]*DeltaDOperator[14](0,3));
@@ -3992,25 +3992,25 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, fals
     // const BoundedMatrix<double, 2, 2>& u2 = rDerivativeData.u2;
     // const BoundedMatrix<double, 2, 2>& X1 = rDerivativeData.X1;
     // const BoundedMatrix<double, 2, 2>& X2 = rDerivativeData.X2;
-    
+
     const array_1d<double, 2> LMSlaveNormal = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 2> LMMasterNormal = MortarUtilities::GetVariableVector<2>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     // The ALM parameters
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     // const array_1d<double, 2>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
     if (rActiveInactive == 0 )
     {
-    
+
     }
     else if (rActiveInactive == 2 )
     {
-    
+
         rLocalRHS[9]+=// DOperator(1,1)
     // MOperator(1,0)
     // MOperator(1,1)
@@ -4018,7 +4018,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, fals
     }
     else if (rActiveInactive == 1 )
     {
-    
+
         rLocalRHS[8]+=// DOperator(0,1)
     // MOperator(0,0)
     // MOperator(0,1)
@@ -4026,7 +4026,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, fals
     }
     else if (rActiveInactive == 3 )
     {
-    
+
         rLocalRHS[8]+=// DOperator(0,1)
     // MOperator(0,0)
     // MOperator(0,1)
@@ -4057,25 +4057,25 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
     // const BoundedMatrix<double, 3, 3>& u2 = rDerivativeData.u2;
     // const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     // const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
-    
+
     const array_1d<double, 3> LMSlaveNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 3> LMMasterNormal = MortarUtilities::GetVariableVector<3>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     // The ALM parameters
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     // const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
     if (rActiveInactive == 0 )
     {
-    
+
     }
     else if (rActiveInactive == 4 )
     {
-    
+
         rLocalRHS[20]+=// DOperator(2,1)
     // DOperator(2,2)
     // MOperator(2,0)
@@ -4085,7 +4085,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
     }
     else if (rActiveInactive == 2 )
     {
-    
+
         rLocalRHS[19]+=// DOperator(1,1)
     // DOperator(1,2)
     // MOperator(1,0)
@@ -4095,7 +4095,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
     }
     else if (rActiveInactive == 6 )
     {
-    
+
         rLocalRHS[19]+=// DOperator(1,1)
     // DOperator(1,2)
     // MOperator(1,0)
@@ -4111,7 +4111,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
     }
     else if (rActiveInactive == 1 )
     {
-    
+
         rLocalRHS[18]+=// DOperator(0,1)
     // DOperator(0,2)
     // MOperator(0,0)
@@ -4121,7 +4121,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
     }
     else if (rActiveInactive == 5 )
     {
-    
+
         rLocalRHS[18]+=// DOperator(0,1)
     // DOperator(0,2)
     // MOperator(0,0)
@@ -4137,7 +4137,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
     }
     else if (rActiveInactive == 3 )
     {
-    
+
         rLocalRHS[18]+=// DOperator(0,1)
     // DOperator(0,2)
     // MOperator(0,0)
@@ -4153,7 +4153,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
     }
     else if (rActiveInactive == 7 )
     {
-    
+
         rLocalRHS[18]+=// DOperator(0,1)
     // DOperator(0,2)
     // MOperator(0,0)
@@ -4194,25 +4194,25 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
     // const BoundedMatrix<double, 4, 3>& u2 = rDerivativeData.u2;
     // const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     // const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
-    
+
     const array_1d<double, 4> LMSlaveNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 4> LMMasterNormal = MortarUtilities::GetVariableVector<4>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     // The ALM parameters
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     // const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
     if (rActiveInactive == 0 )
     {
-    
+
     }
     else if (rActiveInactive == 8 )
     {
-    
+
         rLocalRHS[27]+=// DOperator(3,1)
     // DOperator(3,2)
     // DOperator(3,3)
@@ -4224,7 +4224,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
     }
     else if (rActiveInactive == 4 )
     {
-    
+
         rLocalRHS[26]+=// DOperator(2,1)
     // DOperator(2,2)
     // DOperator(2,3)
@@ -4236,7 +4236,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
     }
     else if (rActiveInactive == 12 )
     {
-    
+
         rLocalRHS[26]+=// DOperator(2,1)
     // DOperator(2,2)
     // DOperator(2,3)
@@ -4256,7 +4256,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
     }
     else if (rActiveInactive == 2 )
     {
-    
+
         rLocalRHS[25]+=// DOperator(1,1)
     // DOperator(1,2)
     // DOperator(1,3)
@@ -4268,7 +4268,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
     }
     else if (rActiveInactive == 10 )
     {
-    
+
         rLocalRHS[25]+=// DOperator(1,1)
     // DOperator(1,2)
     // DOperator(1,3)
@@ -4288,7 +4288,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
     }
     else if (rActiveInactive == 6 )
     {
-    
+
         rLocalRHS[25]+=// DOperator(1,1)
     // DOperator(1,2)
     // DOperator(1,3)
@@ -4308,7 +4308,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
     }
     else if (rActiveInactive == 14 )
     {
-    
+
         rLocalRHS[25]+=// DOperator(1,1)
     // DOperator(1,2)
     // DOperator(1,3)
@@ -4336,7 +4336,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
     }
     else if (rActiveInactive == 1 )
     {
-    
+
         rLocalRHS[24]+=// DOperator(0,1)
     // DOperator(0,2)
     // DOperator(0,3)
@@ -4348,7 +4348,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
     }
     else if (rActiveInactive == 9 )
     {
-    
+
         rLocalRHS[24]+=// DOperator(0,1)
     // DOperator(0,2)
     // DOperator(0,3)
@@ -4368,7 +4368,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
     }
     else if (rActiveInactive == 5 )
     {
-    
+
         rLocalRHS[24]+=// DOperator(0,1)
     // DOperator(0,2)
     // DOperator(0,3)
@@ -4388,7 +4388,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
     }
     else if (rActiveInactive == 13 )
     {
-    
+
         rLocalRHS[24]+=// DOperator(0,1)
     // DOperator(0,2)
     // DOperator(0,3)
@@ -4416,7 +4416,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
     }
     else if (rActiveInactive == 3 )
     {
-    
+
         rLocalRHS[24]+=// DOperator(0,1)
     // DOperator(0,2)
     // DOperator(0,3)
@@ -4436,7 +4436,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
     }
     else if (rActiveInactive == 11 )
     {
-    
+
         rLocalRHS[24]+=// DOperator(0,1)
     // DOperator(0,2)
     // DOperator(0,3)
@@ -4464,7 +4464,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
     }
     else if (rActiveInactive == 7 )
     {
-    
+
         rLocalRHS[24]+=// DOperator(0,1)
     // DOperator(0,2)
     // DOperator(0,3)
@@ -4492,7 +4492,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
     }
     else if (rActiveInactive == 15 )
     {
-    
+
         rLocalRHS[24]+=// DOperator(0,1)
     // DOperator(0,2)
     // DOperator(0,3)
@@ -4547,25 +4547,25 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, true
     // const BoundedMatrix<double, 2, 2>& u2 = rDerivativeData.u2;
     // const BoundedMatrix<double, 2, 2>& X1 = rDerivativeData.X1;
     // const BoundedMatrix<double, 2, 2>& X2 = rDerivativeData.X2;
-    
+
     const array_1d<double, 2> LMSlaveNormal = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 2> LMMasterNormal = MortarUtilities::GetVariableVector<2>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     // The ALM parameters
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     // const array_1d<double, 2>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
     if (rActiveInactive == 0 )
     {
-    
+
     }
     else if (rActiveInactive == 2 )
     {
-    
+
         rLocalRHS[9]+=// DOperator(1,1)
     // MOperator(1,0)
     // MOperator(1,1)
@@ -4573,7 +4573,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, true
     }
     else if (rActiveInactive == 1 )
     {
-    
+
         rLocalRHS[8]+=// DOperator(0,1)
     // MOperator(0,0)
     // MOperator(0,1)
@@ -4581,7 +4581,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, true
     }
     else if (rActiveInactive == 3 )
     {
-    
+
         rLocalRHS[8]+=// DOperator(0,1)
     // MOperator(0,0)
     // MOperator(0,1)
@@ -4612,25 +4612,25 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
     // const BoundedMatrix<double, 3, 3>& u2 = rDerivativeData.u2;
     // const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     // const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
-    
+
     const array_1d<double, 3> LMSlaveNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 3> LMMasterNormal = MortarUtilities::GetVariableVector<3>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     // The ALM parameters
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     // const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
     if (rActiveInactive == 0 )
     {
-    
+
     }
     else if (rActiveInactive == 4 )
     {
-    
+
         rLocalRHS[20]+=// DOperator(2,1)
     // DOperator(2,2)
     // MOperator(2,0)
@@ -4640,7 +4640,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
     }
     else if (rActiveInactive == 2 )
     {
-    
+
         rLocalRHS[19]+=// DOperator(1,1)
     // DOperator(1,2)
     // MOperator(1,0)
@@ -4650,7 +4650,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
     }
     else if (rActiveInactive == 6 )
     {
-    
+
         rLocalRHS[19]+=// DOperator(1,1)
     // DOperator(1,2)
     // MOperator(1,0)
@@ -4666,7 +4666,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
     }
     else if (rActiveInactive == 1 )
     {
-    
+
         rLocalRHS[18]+=// DOperator(0,1)
     // DOperator(0,2)
     // MOperator(0,0)
@@ -4676,7 +4676,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
     }
     else if (rActiveInactive == 5 )
     {
-    
+
         rLocalRHS[18]+=// DOperator(0,1)
     // DOperator(0,2)
     // MOperator(0,0)
@@ -4692,7 +4692,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
     }
     else if (rActiveInactive == 3 )
     {
-    
+
         rLocalRHS[18]+=// DOperator(0,1)
     // DOperator(0,2)
     // MOperator(0,0)
@@ -4708,7 +4708,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
     }
     else if (rActiveInactive == 7 )
     {
-    
+
         rLocalRHS[18]+=// DOperator(0,1)
     // DOperator(0,2)
     // MOperator(0,0)
@@ -4749,25 +4749,25 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
     // const BoundedMatrix<double, 4, 3>& u2 = rDerivativeData.u2;
     // const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     // const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
-    
+
     const array_1d<double, 4> LMSlaveNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 4> LMMasterNormal = MortarUtilities::GetVariableVector<4>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     // The ALM parameters
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     // const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
     if (rActiveInactive == 0 )
     {
-    
+
     }
     else if (rActiveInactive == 8 )
     {
-    
+
         rLocalRHS[27]+=// DOperator(3,1)
     // DOperator(3,2)
     // DOperator(3,3)
@@ -4779,7 +4779,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
     }
     else if (rActiveInactive == 4 )
     {
-    
+
         rLocalRHS[26]+=// DOperator(2,1)
     // DOperator(2,2)
     // DOperator(2,3)
@@ -4791,7 +4791,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
     }
     else if (rActiveInactive == 12 )
     {
-    
+
         rLocalRHS[26]+=// DOperator(2,1)
     // DOperator(2,2)
     // DOperator(2,3)
@@ -4811,7 +4811,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
     }
     else if (rActiveInactive == 2 )
     {
-    
+
         rLocalRHS[25]+=// DOperator(1,1)
     // DOperator(1,2)
     // DOperator(1,3)
@@ -4823,7 +4823,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
     }
     else if (rActiveInactive == 10 )
     {
-    
+
         rLocalRHS[25]+=// DOperator(1,1)
     // DOperator(1,2)
     // DOperator(1,3)
@@ -4843,7 +4843,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
     }
     else if (rActiveInactive == 6 )
     {
-    
+
         rLocalRHS[25]+=// DOperator(1,1)
     // DOperator(1,2)
     // DOperator(1,3)
@@ -4863,7 +4863,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
     }
     else if (rActiveInactive == 14 )
     {
-    
+
         rLocalRHS[25]+=// DOperator(1,1)
     // DOperator(1,2)
     // DOperator(1,3)
@@ -4891,7 +4891,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
     }
     else if (rActiveInactive == 1 )
     {
-    
+
         rLocalRHS[24]+=// DOperator(0,1)
     // DOperator(0,2)
     // DOperator(0,3)
@@ -4903,7 +4903,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
     }
     else if (rActiveInactive == 9 )
     {
-    
+
         rLocalRHS[24]+=// DOperator(0,1)
     // DOperator(0,2)
     // DOperator(0,3)
@@ -4923,7 +4923,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
     }
     else if (rActiveInactive == 5 )
     {
-    
+
         rLocalRHS[24]+=// DOperator(0,1)
     // DOperator(0,2)
     // DOperator(0,3)
@@ -4943,7 +4943,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
     }
     else if (rActiveInactive == 13 )
     {
-    
+
         rLocalRHS[24]+=// DOperator(0,1)
     // DOperator(0,2)
     // DOperator(0,3)
@@ -4971,7 +4971,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
     }
     else if (rActiveInactive == 3 )
     {
-    
+
         rLocalRHS[24]+=// DOperator(0,1)
     // DOperator(0,2)
     // DOperator(0,3)
@@ -4991,7 +4991,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
     }
     else if (rActiveInactive == 11 )
     {
-    
+
         rLocalRHS[24]+=// DOperator(0,1)
     // DOperator(0,2)
     // DOperator(0,3)
@@ -5019,7 +5019,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
     }
     else if (rActiveInactive == 7 )
     {
-    
+
         rLocalRHS[24]+=// DOperator(0,1)
     // DOperator(0,2)
     // DOperator(0,3)
@@ -5047,7 +5047,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
     }
     else if (rActiveInactive == 15 )
     {
-    
+
         rLocalRHS[24]+=// DOperator(0,1)
     // DOperator(0,2)
     // DOperator(0,3)
@@ -5092,19 +5092,19 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
 template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
 void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo 
+    ProcessInfo& rCurrentProcessInfo
     )
 {
-    KRATOS_TRY;   
-    
+    KRATOS_TRY;
+
     if (rResult.size() != MatrixSize)
         rResult.resize( MatrixSize, false );
-    
+
     IndexType index = 0;
-    
+
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
     GeometryType& current_master = this->GetPairedGeometry();
-    
+
     // Master Nodes Displacement Equation IDs
     for ( IndexType i_master = 0; i_master < TNumNodes; ++i_master ) { // NOTE: Assuming same number of nodes for master and slave
         NodeType& master_node = current_master[i_master];
@@ -5126,13 +5126,13 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNum
         NodeType& slave_node = this->GetGeometry()[ i_slave ];
         rResult[index++] = slave_node.GetDof( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE ).EquationId( );
     }
-    
+
     // Master Nodes  Lambda Equation IDs
     for ( IndexType i_master = 0; i_master < TNumNodes; ++i_master ) {
         NodeType& master_node = current_master[i_master];
         rResult[index++] = master_node.GetDof( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE ).EquationId( );
     }
-    
+
     KRATOS_CATCH( "" );
 }
 
@@ -5142,16 +5142,16 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNum
 template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
 void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::GetDofList(
     DofsVectorType& rConditionalDofList,
-    ProcessInfo& rCurrentProcessInfo 
+    ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
-    
+
     if (rConditionalDofList.size() != MatrixSize)
         rConditionalDofList.resize( MatrixSize );
-    
+
     IndexType index = 0;
-    
+
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
     GeometryType& current_master = this->GetPairedGeometry();;
 
@@ -5176,13 +5176,13 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNum
         NodeType& slave_node = this->GetGeometry()[ i_slave ];
         rConditionalDofList[index++] = slave_node.pGetDof( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE );
     }
-    
+
     // Master Nodes Lambda Equation IDs
-    for ( IndexType i_master = 0; i_master < TNumNodes; ++i_master ) { 
+    for ( IndexType i_master = 0; i_master < TNumNodes; ++i_master ) {
         NodeType& master_node = current_master[i_master];
         rConditionalDofList[index++] = master_node.pGetDof( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE );
     }
-    
+
     KRATOS_CATCH( "" );
 }
 
@@ -5255,7 +5255,7 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNum
 {
     rRightHandSideVector = ZeroVector( MatrixSize );
 }
-    
+
 /***********************************************************************************/
 /***********************************************************************************/
 

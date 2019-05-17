@@ -21,12 +21,11 @@
 /* Project includes */
 #include "custom_elements/structural_meshmoving_element.h"
 #include "custom_utilities/move_mesh_utilities.h"
-#include "includes/model_part.h"
 #include "containers/model.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "utilities/variable_utils.h"
 
 #include "includes/mesh_moving_variables.h"
 
@@ -130,19 +129,12 @@ public:
   double Solve() override {
     KRATOS_TRY;
 
-    MoveMeshUtilities::SetMeshToInitialConfiguration(
+    VariableUtils().UpdateCurrentToInitialConfiguration(
         mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
     // Solve for the mesh movement
     mstrategy->Solve();
 
-    // Update FEM-base
-    const double delta_time =
-        BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
-
-    if (mcalculate_mesh_velocities == true)
-        MoveMeshUtilities::CalculateMeshVelocities(mpmesh_model_part, mtime_order,
-                                                   delta_time);
     MoveMeshUtilities::MoveMesh(
         mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
@@ -153,11 +145,6 @@ public:
     return 0.0;
 
     KRATOS_CATCH("");
-  }
-
-  void UpdateReferenceMesh()
-  {
-  MoveMeshUtilities::UpdateReferenceMesh(BaseType::GetModelPart());
   }
 
   /*@} */
