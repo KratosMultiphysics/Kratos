@@ -133,7 +133,7 @@ Element::Pointer EvmKElement<TDim, TNumNodes>::Create(IndexType NewId,
                                                       PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<EvmKElement>(
+    return Kratos::make_intrusive<EvmKElement>(
         NewId, Element::GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
@@ -151,7 +151,7 @@ Element::Pointer EvmKElement<TDim, TNumNodes>::Create(IndexType NewId,
                                                       PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<EvmKElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<EvmKElement>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
@@ -167,7 +167,7 @@ Element::Pointer EvmKElement<TDim, TNumNodes>::Clone(IndexType NewId,
                                                      NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<EvmKElement>(
+    return Kratos::make_intrusive<EvmKElement>(
         NewId, Element::GetGeometry().Create(ThisNodes), Element::pGetProperties());
     KRATOS_CATCH("");
 }

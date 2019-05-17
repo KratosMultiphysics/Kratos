@@ -216,7 +216,7 @@ public:
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
         KRATOS_TRY
-        return Kratos::make_shared<StabilizedConvectionDiffusionReactionElement>(
+        return Kratos::make_intrusive<StabilizedConvectionDiffusionReactionElement>(
             NewId, GetGeometry().Create(ThisNodes), pGetProperties());
         KRATOS_CATCH("");
     }
