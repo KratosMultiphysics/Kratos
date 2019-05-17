@@ -894,6 +894,11 @@ public:
         return true;
     }
 
+    virtual bool SynchronizeNodalFlags()
+    {
+        return true;
+    }
+
     void Clear()
     {
         mNumberOfColors = 0;

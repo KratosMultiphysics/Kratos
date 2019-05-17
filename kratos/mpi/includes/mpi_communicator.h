@@ -1144,6 +1144,17 @@ public:
         return true;
     }
 
+    bool SynchronizeNodalFlags() override
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        MPIInternals::NodalFlagsAccess nodal_flags_access(Flags::AllDefined());
+        constexpr Operation<OperationType::Replace> replace;
+
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_flags_access, replace);
+        return true;
+    }
+
     bool SynchronizeElementalFlags() override
     {
         constexpr MeshAccess<DistributedType::Local> local_meshes;
