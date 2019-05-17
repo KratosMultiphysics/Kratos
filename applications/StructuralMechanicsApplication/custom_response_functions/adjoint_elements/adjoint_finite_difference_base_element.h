@@ -436,10 +436,10 @@ public:
         return mpPrimalElement;
     }
 
-    TPrimalElement& GetPrimalElement()
+    /*TPrimalElement& GetPrimalElement()
     {
         return mPrimalElement;
-    }
+    }*/
     ///@}
 
     ///@name Public specialized Access - Temporary
@@ -536,7 +536,7 @@ protected:
      */
     Element::Pointer mpPrimalElement;
     bool mHasRotationDofs = false;
-    TPrimalElement mPrimalElement;
+    //TPrimalElement mPrimalElement;
 
     ///@}
 

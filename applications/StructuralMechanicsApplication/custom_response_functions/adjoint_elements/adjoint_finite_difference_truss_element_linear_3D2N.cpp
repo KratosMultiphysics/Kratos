@@ -33,9 +33,9 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::Calculate(const 
 
         KRATOS_ERROR_IF(rOutput.size() != element_size) << "Size of particular solution does not fit!" << std::endl;
 
-        //TrussElement3D2N::Pointer p_primal_beam_element = dynamic_pointer_cast<TrussElement3D2N>(this->pGetPrimalElement());
+        TrussElement3D2N::Pointer p_primal_beam_element = dynamic_pointer_cast<TrussElement3D2N>(this->pGetPrimalElement());
         BoundedMatrix<double, element_size, element_size> transformation_matrix = ZeroMatrix(element_size, element_size);
-        this->GetPrimalElement().CreateTransformationMatrix(transformation_matrix);
+        p_primal_beam_element->CreateTransformationMatrix(transformation_matrix);
 
         rOutput = prod(transformation_matrix, rOutput);
     }

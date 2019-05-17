@@ -35,8 +35,8 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::Calculate(const Varia
 
         KRATOS_ERROR_IF(rOutput.size() != element_size) << "Size of particular solution does not fit!" << std::endl;
 
-        //CrBeamElement3D2N::Pointer p_primal_beam_element = dynamic_pointer_cast<CrBeamElement3D2N>(this->pGetPrimalElement());
-        BoundedMatrix<double, element_size, element_size> transformation_matrix = this->GetPrimalElement().CalculateInitialLocalCS();
+        CrBeamElement3D2N::Pointer p_primal_beam_element = dynamic_pointer_cast<CrBeamElement3D2N>(this->pGetPrimalElement());
+        BoundedMatrix<double, element_size, element_size> transformation_matrix = p_primal_beam_element->CalculateInitialLocalCS();
         rOutput = prod(transformation_matrix, rOutput);
     }
 
