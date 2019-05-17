@@ -292,7 +292,7 @@ public:
              GeometryData const *pThisGeometryData = &GeometryDataInstance())
         : mpGeometryData(pThisGeometryData)
     {
-        PointsArrayType* mpPointVector = new PointsArrayType(ThisPoints);
+        mpPointVector = new PointsArrayType(ThisPoints);
     }
 
     /** Copy constructor.
@@ -324,7 +324,7 @@ public:
     template<class TOtherPointType> Geometry( Geometry<TOtherPointType> const & rOther )
         : mpGeometryData(rOther.mpGeometryData)
     {
-        PointsArrayType* mpPointVector = new PointsArrayType(rOther.begin(), rOther.end());
+        mpPointVector = new PointsArrayType(rOther.begin(), rOther.end());
     }
 
     /// Destructor. Do nothing!!!
