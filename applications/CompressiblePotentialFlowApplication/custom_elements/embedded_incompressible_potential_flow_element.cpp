@@ -88,7 +88,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
         positive_side_sh_func,
         positive_side_sh_func_gradients,
         positive_side_weights,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::GI_GAUSS_1);
 
     BoundedMatrix<double,NumNodes,Dim> DN_DX;
     for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
