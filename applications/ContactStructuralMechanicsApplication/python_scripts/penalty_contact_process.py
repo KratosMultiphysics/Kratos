@@ -51,11 +51,11 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
             "interval"                    : [0.0,"End"],
             "normal_variation"            : "no_derivatives_computation",
             "frictional_law"              : "Coulomb",
-            "tangent_factor"              : 1.0e-1,
+            "tangent_factor"              : 1.0e-3,
             "integration_order"           : 2,
             "clear_inactive_for_post"     : true,
             "search_parameters" : {
-                "type_search"                         : "in_radius",
+                "type_search"                         : "in_radius_with_obb",
                 "simple_search"                       : false,
                 "adapt_search"                        : false,
                 "search_factor"                       : 3.5,
@@ -68,7 +68,21 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
-                "check_gap"                           : "check_mapping"
+                "check_gap"                           : "check_mapping",
+                "octree_search_parameters" : {
+                    "bounding_box_factor"             : 0.1,
+                    "debug_obb"                       : false,
+                    "OBB_intersection_type"           : "SeparatingAxisTheorem",
+                    "lower_bounding_box_coefficient"  : 0.0,
+                    "higher_bounding_box_coefficient" : 1.0
+                }
+            },
+            "advance_explicit_parameters"  : {
+                "manual_max_gap_theshold"  : false,
+                "automatic_gap_factor"     : 1.0e-1,
+                "max_gap_threshold"        : 5.0e-2,
+                "max_gap_factor"           : 1.0e2,
+                "logistic_exponent_factor" : 6.0
             },
             "advance_ALM_parameters" : {
                 "manual_ALM"                  : false,
@@ -78,7 +92,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
                 "penalty"                     : 1.0e16,
                 "scale_factor"                : 1.0e0,
                 "adapt_penalty"               : false,
-                "max_gap_factor"              : 1.0e-3
+                "max_gap_factor"              : 5.0e-4
             },
             "alternative_formulations" : {
                 "axisymmetric"                : false
@@ -86,12 +100,12 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         }
         """)
 
-        # Construct the base process.
-        super(PenaltyContactProcess, self).__init__(Model, settings)
-
         # Overwrite the default settings with user-provided parameters
         self.contact_settings = settings
         self.contact_settings.RecursivelyValidateAndAssignDefaults(default_parameters)
+
+        # Construct the base process.
+        super(PenaltyContactProcess, self).__init__(Model, self.contact_settings)
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process

@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-
-import KratosMultiphysics as Kratos
+from KratosMultiphysics import Model, Parameters
 import KratosMultiphysics.PfemFluidDynamicsApplication
 
 from pfem_fluid_dynamics_analysis import PfemFluidDynamicsAnalysis
@@ -27,10 +26,10 @@ class DEMCoupledPFEMFluidDynamicsAnalysis(PfemFluidDynamicsAnalysis):
         self.fluid_model_part = self._GetSolver().main_model_part
 
     def Initialize(self):
-        self.AddFluidVariablesBySwimmingDEMAlgorithm()
+        self.AddFluidVariablesForSwimmingDEM()
         super(DEMCoupledPFEMFluidDynamicsAnalysis, self).Initialize()
 
-    def AddFluidVariablesBySwimmingDEMAlgorithm(self):
+    def AddFluidVariablesForSwimmingDEM(self):
         self.vars_man.AddNodalVariables(self.fluid_model_part, self.vars_man.fluid_vars)
 
     def RunSingleTimeStep(self):
@@ -58,8 +57,8 @@ if __name__ == '__main__':
         parameter_file_name = "ProjectParameters.json"
 
     with open(parameter_file_name,'r') as parameter_file:
-        parameters = Kratos.Parameters(parameter_file.read())
+        parameters = Parameters(parameter_file.read())
 
-    model = Kratos.Model()
+    model = Model()
     simulation = DEMCoupledFluidDynamicsAnalysis(model,parameters)
     simulation.Run()

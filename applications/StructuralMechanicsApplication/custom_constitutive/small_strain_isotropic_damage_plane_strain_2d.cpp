@@ -44,10 +44,11 @@ SmallStrainIsotropicDamagePlaneStrain2D::~SmallStrainIsotropicDamagePlaneStrain2
 //************************************************************************************
 
 void SmallStrainIsotropicDamagePlaneStrain2D::CalculateElasticMatrix(
-    const Properties &rMaterialProperties, Matrix &rElasticMatrix)
+        Matrix &rElasticMatrix, Parameters &rValues)
 {
-    const double E = rMaterialProperties[YOUNG_MODULUS];
-    const double nu = rMaterialProperties[POISSON_RATIO];
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double E = r_material_properties[YOUNG_MODULUS];
+    const double nu = r_material_properties[POISSON_RATIO];
     const double Ebar = E / (1. - nu * nu);
     const double nubar = nu / (1. - nu);
 
