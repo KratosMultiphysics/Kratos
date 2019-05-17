@@ -12,8 +12,8 @@
 //                   Philipp Bucher
 //
 
-#if !defined(KRATOS_BREP_CURVE_3D_H_INCLUDED )
-#define  KRATOS_BREP_CURVE_3D_H_INCLUDED
+#if !defined(KRATOS_COUPLING_MASTER_SLAVE_H_INCLUDED )
+#define  KRATOS_COUPLING_MASTER_SLAVE_H_INCLUDED
 
 // System includes
 
@@ -44,13 +44,13 @@ namespace Kratos
 ///@{
 
 /**
- * @class BrepCurve
+ * @class CouplingMasterSlave
  * @ingroup KratosCore
- * @brief The BrepCurve acts as topology for faces having a pointer
+ * @brief The CouplingMasterSlave acts as topology for faces having a pointer
  *        to a surface geometry and a list of BrepEdge s. Those edges
  *        define the trimming of the respective surface.
  */
-template<class TPointType> class BrepCurve
+template<class TPointType> class CouplingMasterSlave
     : public Geometry<TPointType>
 {
 public:
@@ -65,9 +65,9 @@ public:
     typedef Geometry<TPointType> GeometryType;
 
     /**
-     * Pointer definition of BrepCurve
+     * Pointer definition of CouplingMasterSlave
      */
-    KRATOS_CLASS_POINTER_DEFINITION( BrepCurve );
+    KRATOS_CLASS_POINTER_DEFINITION( CouplingMasterSlave );
 
     typedef TPointType PointType;
 
@@ -97,29 +97,35 @@ public:
     typedef GeometryData::ShapeFunctionsDerivativesIntegrationPointsType ShapeFunctionsDerivativesIntegrationPointsType;
     typedef GeometryData::ShapeFunctionsDerivativesVectorType ShapeFunctionsDerivativesVectorType;
 
-    // Own typedefs
-    /**
-    * Type of one brep loop.
-    */
-    typedef typename std::vector<BrepEdge::Pointer> BrepLoopType;
-
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    BrepCurve( 
-        typename NurbsSurface::Pointer pSurface,
-        typename BrepLoopType InnerBrepLoopVector,
-        typename BrepLoopType OuterBrepLoopVector)
-        : BaseType(pSurface->mPointerVector(), nullptr ),
-        mpNurbsSurface(pSurface),
-        mInnerLoops(InnerBrepLoopVector),
-        mOuterLoops(OuterBrepLoopVector)
+    CouplingMasterSlave(
+        typename GeometryType::Pointer pMasterGeometry,
+        typename GeometryType::Pointer pSlaveGeometry,
+        IsGeometryDataInitialized = false)
+        : BaseType((*pMasterGeometry)(), &(pMasterGeometry->msGeometryData)),
+        mIsGeometryDataInitialized(IsGeometryDataInitialized)
     {
-        mIsGeometryDataInitialized = false;
-        mIsBoundaryPolygonInitialized = false;
-        mIsSurfacePointCloudInitialized = false;
+        KRATOS_ERROR_IF(pMasterGeometry->Dimension() != pSlaveGeometry->Dimension())
+            << "Geometries of different dimensional size!" << std::endl;
+
+        mpGeometries.resize(2);
+
+        mpGeometries[0] = pMasterGeometry;
+        mpGeometries[1] = pSlaveGeometry;
+    }
+
+    CouplingMasterSlave(
+        typename std::vector<GeometryType::Pointer> pGeometries,
+        IsGeometryDataInitialized = false)
+        : BaseType((*pGeometries[0])(), &pGeometries[0]msGeometry),
+        mpGeometries(pGeometries),
+        mIsGeometryDataInitialized(IsGeometryDataInitialized)
+    {
+        //Maybe some checks
     }
 
     /**
@@ -131,7 +137,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    BrepCurve( BrepCurve const& rOther )
+    CouplingMasterSlave( CouplingMasterSlave const& rOther )
         : BaseType( rOther )
     {
     }
@@ -148,7 +154,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> explicit BrepCurve( BrepCurve<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit CouplingMasterSlave( CouplingMasterSlave<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -156,7 +162,7 @@ public:
     /**
      * Destructor. Does nothing!!!
      */
-    ~BrepCurve() override {}
+    ~CouplingMasterSlave() override {}
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
@@ -183,7 +189,7 @@ public:
      * @see Clone
      * @see ClonePoints
      */
-    BrepCurve& operator=( const BrepCurve& rOther )
+    CouplingMasterSlave& operator=( const CouplingMasterSlave& rOther )
     {
         BaseType::operator=( rOther );
         return *this;
@@ -201,7 +207,7 @@ public:
      * @see ClonePoints
      */
     template<class TOtherPointType>
-    BrepCurve& operator=( BrepCurve<TOtherPointType> const & rOther )
+    CouplingMasterSlave& operator=( CouplingMasterSlave<TOtherPointType> const & rOther )
     {
         BaseType::operator=( rOther );
         return *this;
@@ -213,83 +219,10 @@ public:
 
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
-        return typename BaseType::Pointer( new BrepCurve( ThisPoints ) );
+        return typename BaseType::Pointer( new CouplingMasterSlave( ThisPoints ) );
     }
 
     ///@}
-
-    /**
-    * @brief Calculates the boundingbox of the geometry.
-    * @details Corresponds with the highest and lowest point in space
-    * @param rLowPoint  Lower point of the boundingbox.
-    * @param rHighPoint Higher point of the boundingbox.
-    */
-    override void BoundingBox(
-        TPointType& rLowPoint,
-        TPointType& rHighPoint
-    ) const
-    {
-        const SizeType dim = WorkingSpaceDimension();
-
-        for (each point in mBoundaryPolygon and mSurfacePointCloud) { //The first node is already assigned, so we can start from 1
-            const auto& r_point = this->GetPoint(point);
-            for (IndexType i = 0; i < dim; ++i) {
-                rHighPoint[i] = (rHighPoint[i] < r_point[i]) ? r_point[i] : rHighPoint[i];
-                rLowPoint[i] = (rLowPoint[i]  > r_point[i]) ? r_point[i] : rLowPoint[i];
-            }
-        }
-    }
-
-    /**
-    * @brief Returns the local coordinates of a given arbitrary point
-    * @param rResult The vector containing the local coordinates of the point
-    * @param rPoint The point in global coordinates
-    * @return The vector containing the local coordinates of the point
-    */
-    virtual CoordinatesArrayType& PointLocalCoordinates(
-        CoordinatesArrayType& rResult,
-        const CoordinatesArrayType& rPoint
-    ) const
-    {
-        // ONLY PART OF THE UTILITY
-
-        // This function would be better with a true false return
-
-        // Get initial guess from any point on surface - see the point list.
-
-        //external utility
-        iga_surface_utilities::NewtonRaphson(
-            const std::shared_ptr<NodeSurfaceGeometry3D>& pSurface,
-            const array_1d<double, 3>& rPoint,
-            const double InitialU,
-            const double InitialV,
-            double& rU,
-            double& rV,
-            const double Accuracy,
-            const double Tolerance,
-            const double MaxIterations
-        );
-    }
-
-    /**
-    * Returns whether given arbitrary point is inside the Geometry and the respective
-    * local point for the given global point
-    * @param rPoint The point to be checked if is inside o note in global coordinates
-    * @param rResult The local coordinates of the point
-    * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
-    * @return True if the point is inside, false otherwise
-    */
-    virtual bool IsInside(
-        const CoordinatesArrayType& rPoint,
-        CoordinatesArrayType& rResult,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-    )
-    {
-        // boundarypolygon should be used. Boost can do that, there are more libraries...
-
-        KRATOS_ERROR << "Calling base class IsInside method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-        return false;
-    }
 
     ///@name Shape Function
     ///@{
@@ -299,7 +232,7 @@ public:
         Vector &rResult,
         const CoordinatesArrayType& rCoordinates) const
     {
-        return pSurface->ShapeFunctionsDerivative(DerivativeOrder, rCoordinates);
+        return mpGeometries[0]->ShapeFunctionsDerivative(DerivativeOrder, rCoordinates);
     }
 
     override ShapeFunctionsDerivativesVectorType& ShapeFunctionsDerivatives(
@@ -307,37 +240,55 @@ public:
         Vector &rResult,
         const CoordinatesArrayType& rCoordinates) const
     {
-        return pSurface->ShapeFunctionsDerivatives(DerivativeOrder, rCoordinates);
+        return mpGeometries[0]->ShapeFunctionsDerivatives(DerivativeOrder, rCoordinates);
     }
 
     ///@}
     ///@name Input and output
     ///@{
 
-    std::vector<geometry::Pointer> GetIntegrationPointGeomtries()
+    override GeometryType::Pointer GetGeometryPart(IndexType Index)
+    {
+        KRATOS_ERROR_IF(mpGeometries.size() < Index) << "Index out of range: "
+            << Index << " composite contains only of: "
+            << mpGeometries.size() << " geometries." << std::endl;
+
+        return mpGeometries[Index];
+    }
+
+    override SizeType GetNumberOfGeometryParts()
+    {
+        return mpGeometries.size();
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    std::vector<GeometryType::Pointer> GetIntegrationPointGeomtries()
     {
         if (!mIsGeometryDataInitialized)
             ComputeGeometryData();
 
-        SizeType number_of_integration_points = mpGeometryData->IntegrationPointsNumber();
+        //SizeType number_of_integration_points = mpGeometryData->IntegrationPointsNumber();
 
-        IntegrationPointsArrayType integration_points = mpGeometryData->IntegrationPoints();
-        ShapeFunctionsDerivativesVectorType shape_functions_derivatives_all = mpGeometryData->ShapeFunctionsDerivativesAll();
+        //IntegrationPointsArrayType integration_points = mpGeometryData->IntegrationPoints();
+        //ShapeFunctionsDerivativesVectorType shape_functions_derivatives_all = mpGeometryData->ShapeFunctionsDerivativesAll();
 
-        SizeType number_of_derivatives = shape_functions_derivatives_all.size();
+        //SizeType number_of_derivatives = shape_functions_derivatives_all.size();
 
-        std::vector<geometry> IntegrationPointList(number_of_integration_points);
-        for (i = 0.0; i < number_of_integration_points; ++i)
-        {
-            ShapeFunctionsDerivativesVectorType shape_functions_derivatives_all_one_integration_point(number_of_derivatives);
+        //std::vector<geometry> IntegrationPointList(number_of_integration_points);
+        //for (i = 0.0; i < number_of_integration_points; ++i)
+        //{
+        //    ShapeFunctionsDerivativesVectorType shape_functions_derivatives_all_one_integration_point(number_of_derivatives);
 
-            for (j = 0.0; j < number_of_integration_points; ++j)
-            {
-                shape_functions_derivatives_all_one_integration_point[j] = shape_functions_derivatives_all[j][i];
-            }
+        //    for (j = 0.0; j < number_of_integration_points; ++j)
+        //    {
+        //        shape_functions_derivatives_all_one_integration_point[j] = shape_functions_derivatives_all[j][i];
+        //    }
 
-            IntegrationPointSurface3d(integration_points[i], shape_functions_derivatives_all_one_integration_point);
-        }
+        //    IntegrationPointSurface3d(integration_points[i], shape_functions_derivatives_all_one_integration_point);
+        //}
     }
 
     /**
@@ -349,7 +300,7 @@ public:
      */
     std::string Info() const override
     {
-        return "2 dimensional triangle with three nodes in 3D space";
+        return "Composite geometry that holds a master and a set of slave geometries.";
     }
 
     /**
@@ -360,7 +311,7 @@ public:
      */
     void PrintInfo( std::ostream& rOStream ) const override
     {
-        rOStream << "2 dimensional triangle with three nodes in 3D space";
+        rOStream << "Composite geometry that holds a master and a set of slave geometries.";
     }
 
     /**
@@ -394,37 +345,16 @@ public:
 
 protected:
     /**
-     * There are no protected members in class BrepCurve
+     * There are no protected members in class CouplingMasterSlave
      */
-
-    BPolygonGetBoundaryPolygon()
-    {
-        if (!mIsBoundaryPolygonInitialized) {
-            this->InitializeBoundaryPolygon();
-        }
-
-            )
-}
 
 private:
     ///@name Static Member Variables
     ///@{
 
-    static const GeometryData msGeometryData;
-
-    NurbsSurfacePointer mpNurbsSurface;
-
-    BrepLoopVectorType mInnerLoops;
-    BrepLoopVectorType mOuterLoops;
+    std::vector<GeometryType::Pointer> mpGeometries;
 
     bool mIsGeometryDataInitialized;
-    GeometryData mGeometryData;
-
-    bool mIsBoundaryPolygonInitialized;
-    BoundaryPolygon mBoundaryPolygon;
-
-    bool mIsSurfacePointCloudInitialized;
-    SurfaceCload mSurfacePointCloud;
 
     ///@}
     ///@name Serialization
@@ -442,7 +372,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }
 
-    BrepCurve(): BaseType( PointsArrayType(), &mGeometryData ) {}
+    CouplingMasterSlave(): BaseType( PointsArrayType(), &mGeometryData ) {}
 
     ///@}
     ///@name Member Variables
@@ -460,63 +390,6 @@ private:
 
     void ComputeGeometryData(IntegrationMethod)
     {
-        if (mIsBoundaryPolygonInitialized)
-            CreateBoundaryPolygon();
-
-        //Make Clipper or equal
-
-        //Create Integration Points
-
-        int degree_u = pSurface->DegreeU();
-        int degree_v = pSurface->DegreeV();
-
-        int integration_degree = std::max(degree_u, degree_v) + 1;
-
-        for (int i = 0; i < rClipper.NbSpansU(); ++i)
-        {
-            for (int j = 0; j < rClipper.NbSpansU(); ++j)
-            {
-                if (rClipper.SpanTrimType(i, j) == ANurbs::Empty)
-                {
-                    continue;
-                }
-                else if (rClipper.SpanTrimType(i, j) == ANurbs::Full)
-                {
-                    auto integration_points = ANurbs::IntegrationPoints<double>::Points2(
-                        degree_u + 1,
-                        degree_v + 1,
-                        rClipper.SpanU(i),
-                        rClipper.SpanV(j));
-
-                    for (int i = 0; i < integration_points.size(); ++i)
-                    {
-                        mpNurbsSurface->Compute(
-                            integration_point_polygon.IntegrationPoint(i).u,
-                            integration_point_polygon.IntegrationPoint(i).v);
-                    }
-                }
-                else if (rClipper.SpanTrimType(i, j) == ANurbs::Trimmed)
-                {
-                    auto polygons = rClipper.SpanPolygons(i, j);
-
-                    for (int p = 0; p < polygons.size(); ++p)
-                    {
-                        auto integration_point_polygon = ANurbs::PolygonIntegrationPoints<Kratos::array_1d<double, 2>>();
-
-                        integration_point_polygon.Compute(degree, polygons[p]);
-
-                        for (int i = 0; i < integration_point_polygon.NbIntegrationPoints(); ++i)
-                        {
-                            mpNurbsSurface->Compute(
-                                integration_point_polygon.IntegrationPoint(i).u,
-                                integration_point_polygon.IntegrationPoint(i).v);
-
-                            int number_of_non_zero_cps = shape.NonzeroPoleIndices().size();
-                        }
-                    }
-                }
-            }
-        }
         mGeometryData.SetData(...);
     }
 
@@ -535,7 +408,7 @@ private:
     ///@name Private Friends
     ///@{
 
-    template<class TOtherPointType> friend class BrepCurve;
+    template<class TOtherPointType> friend class CouplingMasterSlave;
 
     ///@}
     ///@name Un accessible methods
@@ -559,13 +432,13 @@ private:
  */
 template<class TPointType> inline std::istream& operator >> (
     std::istream& rIStream,
-    BrepCurve<TPointType>& rThis );
+    CouplingMasterSlave<TPointType>& rThis );
 /**
  * output stream functions
  */
 template<class TPointType> inline std::ostream& operator << (
     std::ostream& rOStream,
-    const BrepCurve<TPointType>& rThis )
+    const CouplingMasterSlave<TPointType>& rThis )
 {
     rThis.PrintInfo( rOStream );
     rOStream << std::endl;
@@ -573,16 +446,7 @@ template<class TPointType> inline std::ostream& operator << (
     return rOStream;
 }
 
-template<class TPointType>
-const GeometryData BrepCurve<TPointType>::msGeometryData(1,
-    3,
-    1,
-    GeometryData::GI_GAUSS_1,
-    {},
-    {},
-    {});
-
 ///@}
 }// namespace Kratos.
 
-#endif // KRATOS_BREP_CURVE_3D_H_INCLUDED  defined
+#endif // KRATOS_COUPLING_MASTER_SLAVE_H_INCLUDED  defined
