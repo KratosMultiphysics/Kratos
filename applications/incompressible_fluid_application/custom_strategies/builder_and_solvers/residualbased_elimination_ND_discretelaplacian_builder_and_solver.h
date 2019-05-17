@@ -235,7 +235,7 @@ public:
             }
         }
 
-        WeakPointerVector<Node<3> > aux;
+        GlobalPointersVector<Node<3> > aux;
         aux.resize(mActiveNodes.size());
 
         //getting the dof position
@@ -367,7 +367,7 @@ public:
         const Vector& BDFcoeffs = r_model_part.GetProcessInfo()[BDF_COEFFICIENTS];
 
         //resetting the nodal area and the TAU
-        for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin();
+        for(GlobalPointersVector< Node<3> >::iterator in = mActiveNodes.begin();
                 in!=mActiveNodes.end(); in++)
         {
             in->FastGetSolutionStepValue(NODAL_MASS) = 0.00;
@@ -554,7 +554,7 @@ public:
 
 // 			////adding pold term
 // 			// RHS += Gtrans*diag*G* pold BUT no other terms added to the LHS
-// 			for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin();
+// 			for(GlobalPointersVector< Node<3> >::iterator in = mActiveNodes.begin();
 // 				in!=mActiveNodes.end(); in++)
 // 			{
 // 				int index_i = in->GetDof(PRESSURE,dof_position).EquationId();
@@ -567,7 +567,7 @@ public:
 //
 // 			////applying dirichlet contributions
 // 			// RHS -= Gtrans*diag*G* p
-// 			for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin();
+// 			for(GlobalPointersVector< Node<3> >::iterator in = mActiveNodes.begin();
 // 				in!=mActiveNodes.end(); in++)
 // 			{
 // 				//int index_i = in->GetValue(AUX_INDEX);
@@ -650,7 +650,7 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    WeakPointerVector<Node<3> > mActiveNodes;
+    GlobalPointersVector<Node<3> > mActiveNodes;
     unsigned int mActiveSize;
     unsigned int mestimated_number_of_second_neighb;
     /*@} */
@@ -684,16 +684,16 @@ private:
         //building up the matrix graph row by row
         int total_size = 0;
         int row_number = 0;
-        for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin();
+        for(GlobalPointersVector< Node<3> >::iterator in = mActiveNodes.begin();
                 in!=mActiveNodes.end(); in++)
         {
             int index_i = in->GetDof(PRESSURE,dof_position).EquationId();
 
-            WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
             //filling the first neighbours list
             work_array.push_back(index_i);
-            for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+            for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
                     i != neighb_nodes.end(); i++)
             {
                 int index_j = i->GetDof(PRESSURE,dof_position).EquationId();
@@ -701,11 +701,11 @@ private:
             }
 
             //adding the second neighbours
-            for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+            for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
                     i != neighb_nodes.end(); i++)
             {
-                WeakPointerVector< Node<3> >& second_neighbours = i->GetValue(NEIGHBOUR_NODES);
-                for( WeakPointerVector< Node<3> >::iterator jjj =	second_neighbours.begin();
+                GlobalPointersVector< Node<3> >& second_neighbours = i->GetValue(NEIGHBOUR_NODES);
+                for( GlobalPointersVector< Node<3> >::iterator jjj =	second_neighbours.begin();
                         jjj != second_neighbours.end(); jjj++)
                 {
                     int second_neighb_index = (jjj->GetDof(PRESSURE,dof_position)).EquationId();
@@ -767,7 +767,7 @@ private:
 
         //calculate total size of G
         int tot_size = 0;
-        for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin();
+        for(GlobalPointersVector< Node<3> >::iterator in = mActiveNodes.begin();
                 in!=mActiveNodes.end(); in++)
         {
             tot_size += (in->GetValue(NEIGHBOUR_NODES)).size();
@@ -777,17 +777,17 @@ private:
         G.reserve(tot_size,false);
 
         int row_number = 0;
-        for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin();
+        for(GlobalPointersVector< Node<3> >::iterator in = mActiveNodes.begin();
                 in!=mActiveNodes.end(); in++)
         {
 
             int index_i = in->GetDof(PRESSURE,dof_position).EquationId();
             work_array.push_back(index_i);
 
-            WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
             //filling the first neighbours list
-            for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+            for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
                     i != neighb_nodes.end(); i++)
             {
                 int index_j = i->GetDof(PRESSURE,dof_position).EquationId();
@@ -877,7 +877,7 @@ private:
         typedef  unsigned int size_type;
 //         typedef  double value_type;
 
-        for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin();
+        for(GlobalPointersVector< Node<3> >::iterator in = mActiveNodes.begin();
                 in!=mActiveNodes.end(); in++)
         {
             int index_i = in->GetDof(PRESSURE,dof_position).EquationId();
@@ -968,7 +968,7 @@ private:
         //Minv_dt = (dt/(density*Area))
         if(TDim == 2)
         {
-            for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin();
+            for(GlobalPointersVector< Node<3> >::iterator in = mActiveNodes.begin();
                     in!=mActiveNodes.end(); in++)
             {
                 //double density = in->FastGetSolutionStepValue(DENSITY);
@@ -1017,7 +1017,7 @@ private:
         }
         else if (TDim == 3)
         {
-            for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin();
+            for(GlobalPointersVector< Node<3> >::iterator in = mActiveNodes.begin();
                     in!=mActiveNodes.end(); in++)
             {
                 //double density = in->FastGetSolutionStepValue(DENSITY);
@@ -1097,7 +1097,7 @@ private:
 
         ////adding pold term
         // RHS += Gtrans*diag*G* pold BUT no other terms added to the LHS
-        for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin();
+        for(GlobalPointersVector< Node<3> >::iterator in = mActiveNodes.begin();
                 in!=mActiveNodes.end(); in++)
         {
             int index_i = in->GetDof(PRESSURE,dof_position).EquationId();

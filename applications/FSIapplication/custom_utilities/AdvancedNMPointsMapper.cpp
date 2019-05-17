@@ -116,7 +116,7 @@ void GaussPointItem::GetProjectedValue(const Variable<double> & rOriginVar,
 
     if (mProjStatus == 1) // Get Interpolated value from origin condition
     {
-        GeometryType& rOriginGeom = (mpOriginCond.lock())->GetGeometry();
+        GeometryType& rOriginGeom = (mpOriginCond)->GetGeometry();
         const unsigned int dimension = rOriginGeom.WorkingSpaceDimension();
 
         // Shape functions values in the projected Gauss pt.
@@ -132,7 +132,7 @@ void GaussPointItem::GetProjectedValue(const Variable<double> & rOriginVar,
     }
     else if (mProjStatus == 2)   // Get Value from origin node
     {
-        Value = (mpOriginNode.lock())->FastGetSolutionStepValue(rOriginVar);
+        Value = (mpOriginNode)->FastGetSolutionStepValue(rOriginVar);
     }
 }
 
@@ -145,7 +145,7 @@ void GaussPointItem::GetProjectedValue(const Variable<array_1d<double,3> >& rOri
                                        array_1d<double,3>& Value)
 {
     Value = ZeroVector(3);    // Value initialization (if mProjStatus == 2 it will remain as 0.0)
-    GeometryType& rOriginGeom = (mpOriginCond.lock())->GetGeometry();
+    GeometryType& rOriginGeom = (mpOriginCond)->GetGeometry();
     const unsigned int dimension = rOriginGeom.WorkingSpaceDimension();
 
     if (mProjStatus == 1) // Get Interpolated value from origin condition
@@ -166,7 +166,7 @@ void GaussPointItem::GetProjectedValue(const Variable<array_1d<double,3> >& rOri
     }
     else if (mProjStatus == 2)   // Get Value from origin node
     {
-        Value = (mpOriginNode.lock())->FastGetSolutionStepValue(rOriginVar);
+        Value = (mpOriginNode)->FastGetSolutionStepValue(rOriginVar);
     }
 }
 
@@ -546,7 +546,7 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(const Variable<double> & rO
     const double sign = (sign_pos == false) ? -1.0 : 1.0;
 
     // Initialize destination variable
-    VariableUtils().SetToZero_VectorVar(rDestVar, mrDestinationModelPart.Nodes());
+    VariableUtils().SetHistoricalVariableToZero(rDestVar, mrDestinationModelPart.Nodes());
 
     // Compute nodal lengths/areas (NODAL_MAUX) in both origin and destination modelparts
     ComputeNodalLengthArea();
@@ -855,7 +855,7 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap(const Variable<array_1d<dou
     const double sign = (sign_pos == false) ? -1.0 : 1.0;
 
     // Initialize destination variable
-    VariableUtils().SetToZero_ScalarVar(rDestVar, mrDestinationModelPart.Nodes());
+    VariableUtils().SetHistoricalVariableToZero(rDestVar, mrDestinationModelPart.Nodes());
 
     // Compute nodal lengths/areas (NODAL_MAUX) in both origin and destination modelparts
     ComputeNodalLengthArea();
@@ -1214,7 +1214,7 @@ void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar,
     const double sign = (sign_pos == false) ? -1.0 : 1.0;
 
     // Initialize destination variable
-    VariableUtils().SetToZero_ScalarVar(rDestVar, mrDestinationModelPart.Nodes());
+    VariableUtils().SetHistoricalVariableToZero(rDestVar, mrDestinationModelPart.Nodes());
 
     // Compute nodal lengths/areas (NODAL_MAUX) in both origin and destination modelparts
     ComputeNodalLengthArea();
@@ -1488,7 +1488,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
     const double sign = (sign_pos == false) ? -1.0 : 1.0;
 
     // Initialize destination variable
-    VariableUtils().SetToZero_VectorVar(rDestVar, mrDestinationModelPart.Nodes());
+    VariableUtils().SetHistoricalVariableToZero(rDestVar, mrDestinationModelPart.Nodes());
 
     // Compute nodal lengths/areas (NODAL_MAUX) in both origin and destination modelparts
     ComputeNodalLengthArea();

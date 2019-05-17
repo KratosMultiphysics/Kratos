@@ -4,7 +4,7 @@
 #include <sstream>
 #include <regex>
 #include <utility>
-#include <type_traits>
+#include <array>
 #include "includes/kratos_parameters.h"
 #include "utilities/builtin_timer.h"
 #include "input_output/logger.h"
@@ -37,23 +37,75 @@ std::vector<std::string> Split(const std::string& rPath, char Delimiter)
     return splitted;
 }
 
-template <class TScalar>
-hid_t GetScalarDataType()
+hid_t GetScalarDataType(const Vector<int>&)
 {
-    hid_t type_id;
-    constexpr bool is_int_type = std::is_same<int, TScalar>::value;
-    constexpr bool is_double_type = std::is_same<double, TScalar>::value;
-    if (is_int_type)
-        type_id = H5T_NATIVE_INT;
-    else if (is_double_type)
-        type_id = H5T_NATIVE_DOUBLE;
-    else
-        static_assert(is_int_type || is_double_type,
-                      "Unsupported scalar data type.");
-
-    return type_id;
+    return H5T_NATIVE_INT;
 }
 
+hid_t GetScalarDataType(const Vector<double>&)
+{
+    return H5T_NATIVE_DOUBLE;
+}
+
+hid_t GetScalarDataType(const Vector<array_1d<double, 3>>&)
+{
+    return H5T_NATIVE_DOUBLE;
+}
+
+hid_t GetScalarDataType(const Matrix<int>&)
+{
+    return H5T_NATIVE_INT;
+}
+
+hid_t GetScalarDataType(const Matrix<double>&)
+{
+    return H5T_NATIVE_DOUBLE;
+}
+
+hid_t GetScalarDataType(int)
+{
+    return H5T_NATIVE_INT;
+}
+
+hid_t GetScalarDataType(double)
+{
+    return H5T_NATIVE_DOUBLE;
+}
+
+std::vector<hsize_t> GetDataDimensions(const Vector<int>& rData)
+{
+    return std::vector<hsize_t>{rData.size()};
+}
+
+std::vector<hsize_t> GetDataDimensions(const Vector<double>& rData)
+{
+    return std::vector<hsize_t>{rData.size()};
+}
+
+std::vector<hsize_t> GetDataDimensions(const Vector<array_1d<double, 3>>& rData)
+{
+    return std::vector<hsize_t>{rData.size(), 3};
+}
+
+std::vector<hsize_t> GetDataDimensions(const Matrix<int>& rData)
+{
+    return std::vector<hsize_t>{rData.size1(), rData.size2()};
+}
+
+std::vector<hsize_t> GetDataDimensions(const Matrix<double>& rData)
+{
+    return std::vector<hsize_t>{rData.size1(), rData.size2()};
+}
+
+std::vector<hsize_t> GetDataDimensions(const File& rFile, const std::string& rPath)
+{
+    const std::vector<unsigned> dims = rFile.GetDataDimensions(rPath);
+    std::vector<hsize_t> h5_dims;
+    h5_dims.reserve(dims.size());
+    std::for_each(dims.begin(), dims.end(),
+                  [&h5_dims](unsigned d) { h5_dims.push_back(d); });
+    return h5_dims;
+}
 } // namespace Internals.
 
 File::File(Parameters Settings)
@@ -191,8 +243,16 @@ bool File::HasAttribute(const std::string& rObjectPath, const std::string& rName
     KRATOS_TRY;
     htri_t status =
         H5Aexists_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), H5P_DEFAULT);
-    KRATOS_ERROR_IF(status < 0) << "H5Aexists_by_name failed" << std::endl;
+    KRATOS_ERROR_IF(status < 0) << "H5Aexists_by_name failed." << std::endl;
     return (status > 0);
+    KRATOS_CATCH("");
+}
+
+void File::DeleteAttribute(const std::string& rObjectPath, const std::string& rName)
+{
+    KRATOS_TRY;
+    KRATOS_ERROR_IF(H5Adelete_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), H5P_DEFAULT) < 0)
+        << "H5Adelete_by_name failed.";
     KRATOS_CATCH("");
 }
 
@@ -305,8 +365,11 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     KRATOS_TRY;
     BuiltinTimer timer;
     hid_t type_id, space_id, attr_id;
-
-    type_id = Internals::GetScalarDataType<TScalar>();
+    if (HasAttribute(rObjectPath, rName))
+    {
+        DeleteAttribute(rObjectPath, rName);
+    }
+    type_id = Internals::GetScalarDataType(Value);
     space_id = H5Screate(H5S_SCALAR);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
     attr_id = H5Acreate_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), type_id,
@@ -327,8 +390,11 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     KRATOS_TRY;
     BuiltinTimer timer;
     hid_t type_id, space_id, attr_id;
-
-    type_id = Internals::GetScalarDataType<TScalar>();
+    if (HasAttribute(rObjectPath, rName))
+    {
+        DeleteAttribute(rObjectPath, rName);
+    }
+    type_id = Internals::GetScalarDataType(rValue);
     const hsize_t dim = rValue.size();
     space_id = H5Screate_simple(1, &dim, nullptr);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
@@ -350,13 +416,13 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     KRATOS_TRY;
     BuiltinTimer timer;
     hid_t type_id, space_id, attr_id;
-
-    type_id = Internals::GetScalarDataType<TScalar>();
-    const unsigned ndims = 2;
-    hsize_t dims[ndims];
-    dims[0] = rValue.size1();
-    dims[1] = rValue.size2();
-    space_id = H5Screate_simple(ndims, dims, nullptr);
+    if (HasAttribute(rObjectPath, rName))
+    {
+        DeleteAttribute(rObjectPath, rName);
+    }
+    type_id = Internals::GetScalarDataType(rValue);
+    const std::array<hsize_t, 2> dims = {rValue.size1(), rValue.size2()};
+    space_id = H5Screate_simple(dims.size(), dims.data(), nullptr);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
     attr_id = H5Acreate_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), type_id,
                                 space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -375,12 +441,13 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     KRATOS_TRY;
     BuiltinTimer timer;
     hid_t type_id, space_id, attr_id;
-
+    if (HasAttribute(rObjectPath, rName))
+    {
+        DeleteAttribute(rObjectPath, rName);
+    }
     type_id = H5T_NATIVE_CHAR;
-    const unsigned ndims = 1;
-    hsize_t dims[ndims];
-    dims[0] = rValue.size();
-    space_id = H5Screate_simple(ndims, dims, nullptr);
+    const std::array<hsize_t, 1> dims = {rValue.size()};
+    space_id = H5Screate_simple(dims.size(), dims.data(), nullptr);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
     attr_id = H5Acreate_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), type_id,
                                 space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -578,7 +645,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     hid_t mem_type_id, attr_type_id, space_id, attr_id;
     int ndims;
 
-    mem_type_id = Internals::GetScalarDataType<TScalar>();
+    mem_type_id = Internals::GetScalarDataType(rValue);
     attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
@@ -617,7 +684,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     int ndims;
     hsize_t dims[1];
 
-    mem_type_id = Internals::GetScalarDataType<TScalar>();
+    mem_type_id = Internals::GetScalarDataType(rValue);
     attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
@@ -658,7 +725,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     int ndims;
     hsize_t dims[2];
 
-    mem_type_id = Internals::GetScalarDataType<TScalar>();
+    mem_type_id = Internals::GetScalarDataType(rValue);
     attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
@@ -882,9 +949,6 @@ template void File::ReadAttribute(const std::string& rObjectPath, const std::str
 template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, Vector<double>& rValue);
 template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, Matrix<int>& rValue);
 template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, Matrix<double>& rValue);
-
-template hid_t Internals::GetScalarDataType<int>();
-template hid_t Internals::GetScalarDataType<double>();
 
 } // namespace HDF5.
 } // namespace Kratos.
