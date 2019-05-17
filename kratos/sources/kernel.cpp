@@ -18,29 +18,21 @@
 // Project includes
 #include "includes/kernel.h"
 #include "includes/kratos_version.h"
+#include "includes/data_communicator.h"
+#include "includes/parallel_environment.h"
 #include "input_output/logger.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos {
 Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
                 std::string("KratosMultiphysics"))), mIsDistributedRun(IsDistributedRun) {
-    std::stringstream distributed_mode;
-    if (IsDistributedRun)
-    {
-        distributed_mode << " -- MPI parallel run";
-    }
-    else {
-        #ifdef _OPENMP
-        distributed_mode << " -- OpenMP parallel run";
-        #else
-        distributed_mode << " -- Serial run";
-        #endif
-    }
-
     KRATOS_INFO("") << " |  /           |\n"
                     << " ' /   __| _` | __|  _ \\   __|\n"
                     << " . \\  |   (   | |   (   |\\__ \\\n"
                     << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/\n"
-                    << "           Multi-Physics " << GetVersionString() << distributed_mode.str() << std::endl;
+                    << "           Multi-Physics " << GetVersionString() << std::endl;
+
+    PrintParallelismSupportInfo();
 
     if (!IsImported("KratosMultiphysics")) {
         this->ImportApplication(mpKratosCoreApplication);
@@ -105,6 +97,53 @@ std::string Kernel::BuildType() {
 // To be removed with the new entry points
 std::string Kernel::Version() {
     return GetVersionString();
+}
+
+void Kernel::PrintParallelismSupportInfo() const
+{
+    #ifdef _OPENMP
+    constexpr bool openmp_support = true;
+    #else
+    constexpr bool openmp_support = false;
+    #endif
+
+    #ifdef KRATOS_USING_MPI
+    constexpr bool mpi_support = true;
+    #else
+    constexpr bool mpi_support = false;
+    #endif
+
+    Logger logger("");
+    logger << LoggerMessage::Severity::INFO;
+
+    if (openmp_support) {
+        if (mpi_support) {
+            logger << "Compiled with OpenMP and MPI support." << std::endl;
+        }
+        else {
+            logger << "Compiled with OpenMP support." << std::endl;
+        }
+    }
+    else if (mpi_support) {
+        logger << "Compiled with MPI support." << std::endl;
+    }
+    else {
+        logger << "Serial compilation." << std::endl;
+    }
+
+    if (openmp_support) {
+        logger << "Maximum OpenMP threads: " << OpenMPUtils::GetNumThreads() << "." << std::endl;
+    }
+
+    if (mpi_support) {
+        if (mIsDistributedRun) {
+            const DataCommunicator& r_world = ParallelEnvironment::GetDataCommunicator("World");
+            logger << "MPI world size:         " << r_world.Size() << "." << std::endl;
+        }
+        else {
+            logger << "Running without MPI." << std::endl;
+        }
+    }
 }
 
 }

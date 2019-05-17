@@ -133,6 +133,8 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     static std::string BuildType();
 
+    void PrintParallelismSupportInfo() const;
+
     ///@}
    protected:
    private:
