@@ -29,7 +29,6 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                 "skin_model_part_name": "insert_skin_model_part",
                 "geometry_parameter": 0.0,
                 "maximum_iterations": 1,
-                "print_output": false,
                 "remeshing_flag": false,
                 "initial_point": [0,0],
                 "metric_parameters":  {
@@ -175,8 +174,6 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         metric_process = MeshingApplication.ComputeLevelSetSolMetricProcess2D(self.main_model_part,  KratosMultiphysics.DISTANCE_GRADIENT, self.metric_parameters)
         metric_process.Execute()
 
-        self.PrintOutput('metric_output'+str(self.step))
-
         mmg_parameters = KratosMultiphysics.Parameters("""
         {
             "discretization_type"                  : "STANDARD",
@@ -212,35 +209,6 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         '''
         KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.GEOMETRY_DISTANCE, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.DISTANCE, self.main_model_part.Nodes)
-
-    def PrintOutput(self,filename):
-        if self.print_output_flag:
-            from KratosMultiphyics.gid_output_process import GiDOutputProcess
-            gid_output = GiDOutputProcess(self.main_model_part,
-                                        filename,
-                                        KratosMultiphysics.Parameters("""
-                                            {
-                                                "result_file_configuration" : {
-                                                    "gidpost_flags": {
-                                                        "GiDPostMode": "GiD_PostBinary",
-                                                        "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                        "WriteConditionsFlag": "WriteConditions",
-                                                        "MultiFileFlag": "SingleFile"
-                                                    },
-                                                    "nodal_results" : ["DISTANCE"],
-                                                    "nodal_nonhistorical_results": ["METRIC_TENSOR_2D"]
-
-                                                }
-                                            }
-                                            """)
-                                        )
-
-            gid_output.ExecuteInitialize()
-            gid_output.ExecuteBeforeSolutionLoop()
-            gid_output.ExecuteInitializeSolutionStep()
-            gid_output.PrintOutput()
-            gid_output.ExecuteFinalizeSolutionStep()
-            gid_output.ExecuteFinalize()
 
 
 
