@@ -292,7 +292,7 @@ public:
              GeometryData const *pThisGeometryData = &GeometryDataInstance())
         : mpGeometryData(pThisGeometryData)
     {
-        mpPointVector = Kratos::make_shared<PointsArrayType>(ThisPoints);
+        PointsArrayType* mpPointVector = new PointsArrayType(ThisPoints);
     }
 
     /** Copy constructor.
@@ -305,7 +305,7 @@ public:
     */
     Geometry( const Geometry& rOther )
         : mpGeometryData( rOther.mpGeometryData ),
-          mpPointVector( rOther.mpPointVector )
+        mpPointVector(rOther.mpPointVector)
     {
     }
 
@@ -322,13 +322,16 @@ public:
     source geometry's points too.
     */
     template<class TOtherPointType> Geometry( Geometry<TOtherPointType> const & rOther )
-        : mpGeometryData(rOther.mpGeometryData),
-          mpPointVector(rOther.begin(), rOther.end())
+        : mpGeometryData(rOther.mpGeometryData)
     {
+        PointsArrayType* mpPointVector = new PointsArrayType(rOther.begin(), rOther.end());
     }
 
     /// Destructor. Do nothing!!!
-    virtual ~Geometry() = default;
+    virtual ~Geometry()
+    {
+        delete mpPointVector;
+    };
 
     virtual GeometryData::KratosGeometryFamily GetGeometryFamily() const
     {
@@ -2887,7 +2890,7 @@ private:
 
     GeometryData const* mpGeometryData;
 
-    Kratos::shared_ptr<PointsArrayType> mpPointVector;
+    PointsArrayType* mpPointVector;
 
     ///@}
     ///@name Serialization
