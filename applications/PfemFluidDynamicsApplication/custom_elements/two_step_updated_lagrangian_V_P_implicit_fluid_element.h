@@ -108,7 +108,7 @@ namespace Kratos
 
       typedef typename BaseType::ElementalVariables ElementalVariables;
 
-      typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+      typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
       ///@}
       ///@name Life Cycle
       ///@{

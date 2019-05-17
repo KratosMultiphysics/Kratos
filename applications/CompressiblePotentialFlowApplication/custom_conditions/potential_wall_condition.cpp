@@ -59,14 +59,14 @@ void PotentialWallCondition<TDim, TNumNodes>::Initialize()
     mInitializeWasPerformed = true;
 
     const GeometryType& rGeom = this->GetGeometry();
-    WeakPointerVector<Element> ElementCandidates;
+    GlobalPointersVector<Element> ElementCandidates;
     GetElementCandidates(ElementCandidates, rGeom);
 
     std::vector<IndexType> NodeIds, ElementNodeIds;
     GetSortedIds(NodeIds, rGeom);
     FindParentElement(NodeIds, ElementNodeIds, ElementCandidates);
 
-    KRATOS_ERROR_IF(!mpElement.lock())
+    KRATOS_ERROR_IF(mpElement.get() == nullptr)
         << "error in condition # " << this->Id() << "\n"
         << "Condition cannot find parent element" << std::endl;
     KRATOS_CATCH("");
@@ -177,7 +177,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     std::vector<double> rValues;
-    ElementPointerType pElem = pGetElement();
+    GlobalPointer<Element> pElem = pGetElement();
     pElem->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT, rValues, rCurrentProcessInfo);
     this->SetValue(PRESSURE_COEFFICIENT, rValues[0]);
 }
@@ -254,20 +254,20 @@ void PotentialWallCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
 // private operators
 
 template <unsigned int TDim, unsigned int TNumNodes>
-inline Element::Pointer PotentialWallCondition<TDim, TNumNodes>::pGetElement() const
+inline GlobalPointer<Element> PotentialWallCondition<TDim, TNumNodes>::pGetElement() const
 {
-    KRATOS_ERROR_IF(!mpElement.lock())
+    KRATOS_ERROR_IF(mpElement.get() == nullptr)
         << "No element found for condition #" << this->Id() << std::endl;
-    return mpElement.lock();
+    return mpElement;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::GetElementCandidates(
-    WeakPointerVector<Element>& ElementCandidates, const GeometryType& rGeom) const
+    GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom) const
 {
     for (SizeType i = 0; i < TDim; i++)
     {
-        const WeakPointerVector<Element>& rNodeElementCandidates =
+        const GlobalPointersVector<Element>& rNodeElementCandidates =
             rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
         for (SizeType j = 0; j < rNodeElementCandidates.size(); j++)
             ElementCandidates.push_back(rNodeElementCandidates(j));
@@ -288,7 +288,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void PotentialWallCondition<TDim, TNumNodes>::FindParentElement(
     std::vector<IndexType>& NodeIds,
     std::vector<IndexType>& ElementNodeIds,
-    WeakPointerVector<Element> ElementCandidates)
+    GlobalPointersVector<Element> ElementCandidates)
 {
     for (SizeType i = 0; i < ElementCandidates.size(); i++)
     {
