@@ -35,7 +35,8 @@ class AutomaticDirichletConditionsProcess(KM.Process):
         self.model = model
 
     def ExecuteInitialize(self):
-        model_part = self.model[self.settings["model_part_name"].GetString()]
+        model_part_name = self.settings["model_part_name"].GetString()
+        model_part = self.model[model_part_name]
 
         skin_detection_settings = KM.Parameters()
         skin_detection_settings.AddValue("name_auxiliar_model_part", self.settings["auxiliary_model_part_name"])
@@ -43,16 +44,18 @@ class AutomaticDirichletConditionsProcess(KM.Process):
         skin_detection_settings.AddValue("list_model_parts_to_assign_conditions", self.settings["skin_parts_to_exclude"])
         KM.SkinDetectionProcess2D(model_part, skin_detection_settings).Execute()
 
-        skin_model_part_name = self.settings["model_part_name"].GetString() + '.'
-        skin_model_part_name += self.settings["auxiliary_model_part_name"].GetString()
+        skin_model_part_name = model_part_name + '.' + self.settings["auxiliary_model_part_name"].GetString()
         skin_model_part = self.model[skin_model_part_name]
 
         # We remove the new interface condition from the bondaries with other conditions
         for name in self.settings["skin_parts_to_exclude"].GetStringArray():
-            self.model[name].RemoveConditionFromAllLevels(KM.INTERFACE)
+            skin_to_exclude = model_part_name + '.' + name
+            self.model[skin_to_exclude].RemoveConditionsFromAllLevels(KM.INTERFACE)
+            KM.VariableUtils().SetFlag(KM.INTERFACE, False, self.model[skin_to_exclude].Nodes)
+        skin_model_part.RemoveNodes(KM.NOT_INTERFACE)
 
         # Here we exclude the interface which will has an outward flow
-        if self.settings["allow_outwards_flow_on_land"]:
+        if self.settings["allow_outwards_flow_on_land"].GetBool():
             dimension = 2
             KM.NormalCalculationUtils().CalculateOnSimplex(skin_model_part, dimension)
             KM.ComputeNodalGradientProcess(model_part, SW.TOPOGRAPHY, SW.TOPOGRAPHY_GRADIENT, KM.NODAL_AREA).Execute()
@@ -60,8 +63,8 @@ class AutomaticDirichletConditionsProcess(KM.Process):
             skin_model_part.RemoveNodes(KM.NOT_SOLID)
             skin_model_part.RemoveConditionsFromAllLevels(KM.NOT_SOLID)
         else:
-            KM.VariableUtils().SetFlag(Km.SOLID, True, skin_model_part.Nodes())
-            KM.VariableUtils().SetFlag(Km.SOLID, True, skin_model_part.Conditions())
+            KM.VariableUtils().SetFlag(KM.SOLID, True, skin_model_part.Nodes)
+            KM.VariableUtils().SetFlag(KM.SOLID, True, skin_model_part.Conditions)
 
         self.processes = []
 
@@ -82,8 +85,6 @@ class AutomaticDirichletConditionsProcess(KM.Process):
             vector_settings.AddValue("value", self.settings["vector_value"])
             vector_settings.AddValue("constrained", self.settings["vector_constraint"])
             self.processes.append(AssignVectorVariableProcess(self.model, vector_settings))
-
-        print(self.processes)
 
     def ExecuteBeforeSolutionLoop(self):
         for process in self.processes:
