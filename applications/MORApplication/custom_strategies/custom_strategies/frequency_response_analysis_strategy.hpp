@@ -139,13 +139,14 @@ class FrequencyResponseAnalysisStrategy
         // Set flags to start correcty the calculations
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
+        mReformDofSetAtEachStep = false;
 
         // Tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(false);
 
         // Tells to the Builder And Solver if the system matrix and vectors need to
         // be reshaped at each step or not
-        // GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
 
         // Set EchoLevel to the default value (only time is displayed)
         SetEchoLevel(1);
@@ -154,9 +155,11 @@ class FrequencyResponseAnalysisStrategy
         this->SetRebuildLevel(0);
 
         mpA = TSparseSpace::CreateEmptyMatrixPointer();
-        mpS = TSparseSpace::CreateEmptyMatrixPointer();
+        mpK = TSparseSpace::CreateEmptyMatrixPointer();
+        mpC = TSparseSpace::CreateEmptyMatrixPointer();
         mpM = TSparseSpace::CreateEmptyMatrixPointer();
         mpRHS = TSparseSpace::CreateEmptyVectorPointer();
+        mpDx = TSparseSpace::CreateEmptyVectorPointer();
 
         KRATOS_CATCH("");
     }
@@ -269,7 +272,6 @@ class FrequencyResponseAnalysisStrategy
         if (mInitializeWasPerformed == false)
         {
 
-            std::cout << "This is the frequency response strategy !!" << std::endl;
             //pointers needed in the solution
             typename TSchemeType::Pointer p_scheme = GetScheme();
 
@@ -306,12 +308,16 @@ class FrequencyResponseAnalysisStrategy
 
         if (mpA != nullptr)
             SparseSpaceType::Clear(mpA);
+        if (mpK != nullptr)
+            SparseSpaceType::Clear(mpK);
         if (mpM != nullptr)
             SparseSpaceType::Clear(mpM);
+        if (mpC != nullptr)
+            SparseSpaceType::Clear(mpC);
         if (mpRHS != nullptr)
             SparseSpaceType::Clear(mpRHS);
-        if (mpS != nullptr)
-            SparseSpaceType::Clear(mpRHS);
+        if (mpDx != nullptr)
+            SparseSpaceType::Clear(mpDx);
 
         //setting to zero the internal flag to ensure that the dof sets are recalculated
         GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
@@ -334,15 +340,19 @@ class FrequencyResponseAnalysisStrategy
 
         if (mSolutionStepIsInitialized == false)
         {
-            
-            
-
             typename TSchemeType::Pointer p_scheme = GetScheme();
             typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
             const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
             //set up the system, operation performed just once unless it is required
             //to reform the dof set at each iteration
+            TSystemMatrixType& rA  = *mpA;
+            TSystemMatrixType& rK  = *mpK;
+            TSystemMatrixType& rM = *mpM;
+            TSystemMatrixType& rC  = *mpC;
+            TSystemVectorType& rRHS  = *mpRHS;
+            TSystemVectorType& rDx  = *mpDx;
+
             BuiltinTimer system_construction_time;
             if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false ||
                 mReformDofSetAtEachStep == true)
@@ -361,34 +371,47 @@ class FrequencyResponseAnalysisStrategy
 
                 //setting up the Vectors involved to the correct size
                 BuiltinTimer system_matrix_resize_time;
-                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpRHS, mpRHS,
+                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpRHS,
                                                                  BaseType::GetModelPart());
-                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpM, mpRHS, mpRHS,
+                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpK, mpDx, mpRHS,
+                                                                 BaseType::GetModelPart());
+                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpM, mpDx, mpRHS,
                                                                  BaseType::GetModelPart()); 
-                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpS, mpRHS, mpRHS,
+                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpC, mpDx, mpRHS,
                                                                  BaseType::GetModelPart()); 
 
                 KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
+
+                //set up system matrices
+                TSystemVectorType tmp(rK.size1(), 0.0);
+
+                p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), rK, tmp);
+                p_builder_and_solver->ApplyDirichletConditions(p_scheme, BaseType::GetModelPart(), rK, tmp, rRHS);
+
+                p_builder_and_solver->BuildMassMatrix(p_scheme, BaseType::GetModelPart(), rM, tmp);
+                p_builder_and_solver->ApplyDirichletConditionsForMassMatrix(p_scheme, BaseType::GetModelPart(), rM);
+
+                p_builder_and_solver->BuildDampingMatrix(p_scheme, BaseType::GetModelPart(), rC, tmp);
+                p_builder_and_solver->ApplyDirichletConditionsForDampingMatrix(p_scheme, BaseType::GetModelPart(), rC);
+
+                p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), rRHS);
             }
 
             KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                 << system_construction_time.ElapsedSeconds() << std::endl;
 
-            TSystemMatrixType& rA  = *mpA;
-            TSystemMatrixType& rM = *mpM;
-            TSystemMatrixType& rS  = *mpS;
-            TSystemVectorType& rRHS  = *mpRHS;
+            //initial operations ... things that are constant over the Solution Step
+            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rA, rDx, rRHS);
+            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rK, rDx, rRHS);
+            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rM, rDx, rRHS);
+            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rC, rDx, rRHS);
 
             //initial operations ... things that are constant over the Solution Step
-            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rA, rRHS, rRHS);
-            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rM, rRHS, rRHS);
-            p_builder_and_solver->InitializeSolutionStep(BaseType::GetModelPart(), rS, rRHS, rRHS);
-
-            //initial operations ... things that are constant over the Solution Step
-            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rA, rRHS, rRHS);
-            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rM, rRHS, rRHS);
-            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rS, rRHS, rRHS);
+            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rA, rDx, rRHS);
+            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rK, rDx, rRHS);
+            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rM, rDx, rRHS);
+            p_scheme->InitializeSolutionStep(BaseType::GetModelPart(), rC, rDx, rRHS);
 
             mSolutionStepIsInitialized = true;
         }
@@ -408,22 +431,24 @@ class FrequencyResponseAnalysisStrategy
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
         TSystemMatrixType& rA  = *mpA;
+        TSystemMatrixType& rK  = *mpK;
         TSystemMatrixType& rM = *mpM;
+        TSystemMatrixType& rC  = *mpC;
         TSystemVectorType& rRHS  = *mpRHS;
-        TSystemMatrixType& rS  = *mpS;
+        TSystemVectorType& rDx  = *mpDx;
 
         //Finalisation of the solution step,
         //operations to be done after achieving convergence, for example the
         //Final Residual Vector (mb) has to be saved in there
         //to avoid error accumulation
-
-        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), rA, rRHS, rRHS);
-        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), rM, rRHS, rRHS);
-        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), rA, rRHS, rRHS);
-        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), rM, rRHS, rRHS);
-
-        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), rS, rRHS, rRHS);
-        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), rS, rRHS, rRHS);
+        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), rA, rDx, rRHS);
+        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), rK, rDx, rRHS);
+        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), rM, rDx, rRHS);
+        p_scheme->FinalizeSolutionStep(BaseType::GetModelPart(), rC, rDx, rRHS);
+        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), rA, rDx, rRHS);
+        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), rK, rDx, rRHS);
+        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), rM, rDx, rRHS);
+        p_builder_and_solver->FinalizeSolutionStep(BaseType::GetModelPart(), rC, rDx, rRHS);
 
         //Cleaning memory after the solution
         p_scheme->Clean();
@@ -434,9 +459,11 @@ class FrequencyResponseAnalysisStrategy
         if (mReformDofSetAtEachStep == true) //deallocate the systemvectors
         {
             SparseSpaceType::Clear(mpA);
-            SparseSpaceType::Clear(mpRHS);
+            SparseSpaceType::Clear(mpK);
             SparseSpaceType::Clear(mpM);
-            SparseSpaceType::Clear(mpS);
+            SparseSpaceType::Clear(mpC);
+            SparseSpaceType::Clear(mpRHS);
+            SparseSpaceType::Clear(mpDx);
 
             this->Clear();
         }
@@ -473,69 +500,22 @@ class FrequencyResponseAnalysisStrategy
         KRATOS_TRY;
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
-        TSystemMatrixType& rA  = *mpA;
+        TSystemMatrixType& rA = *mpA;
+        TSystemMatrixType& rK = *mpK;
         TSystemMatrixType& rM = *mpM;
-        TSystemMatrixType& rS  = *mpS;
-        TSystemVectorType& rRHS  = *mpRHS;
-        SparseSpaceType::Set(rRHS,0.0); //why??
-
-        TSystemVectorType tmp(rA.size1(), 0.0);
-
-        p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), rA, tmp);
-
-        // Applying the Dirichlet Boundary conditions
-        p_builder_and_solver->ApplyDirichletConditions(p_scheme, BaseType::GetModelPart(), rA, tmp, rRHS);  
-
-        p_builder_and_solver->BuildMassMatrix(p_scheme, BaseType::GetModelPart(), rM, tmp);
-
-        p_builder_and_solver->ApplyDirichletConditionsForMassMatrix(p_scheme, BaseType::GetModelPart(), rM);
-
-        p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), rRHS);
-
-        p_builder_and_solver->BuildDampingMatrix(p_scheme, BaseType::GetModelPart(), rS, tmp);
-
-        p_builder_and_solver->ApplyDirichletConditionsForDampingMatrix(p_scheme, BaseType::GetModelPart(), rS);
+        // TSystemMatrixType& rC  = *mpC;
+        TSystemVectorType& rRHS = *mpRHS;
+        TSystemVectorType& rDx = *mpDx;
         
-
-
-        const unsigned int system_size = p_builder_and_solver->GetEquationSystemSize();
-
-        //initialize sb, As, AAs vectors
-        auto s = SparseSpaceType::CreateEmptyVectorPointer();
-        auto& rs = *s;
-        SparseSpaceType::Resize(rs,system_size);
-        SparseSpaceType::Set(rs,0.0);
-
-        
-        /*ComplexMatrixType Damping_matrix;
-        Damping_matrix.resize(system_size, system_size,false);
-
-        ComplexMatrixType System_matrix;
-        System_matrix.resize(system_size, system_size,false);
-
-        
-        //test = ZeroMatrix(system_size,system_size);
-
-        Damping_matrix = rS;*/
-
-        auto kdyn = SparseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_kdyn = *kdyn;
-        SparseSpaceType::Resize(r_kdyn, system_size, system_size);
-
         auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
-        double excitation_frequency = r_process_info[TIME];
+        double excitation_frequency = r_process_info[FREQUENCY];
 
-        //Building the system matrix
-        r_kdyn = rA - ( std::pow(excitation_frequency, 2.0 ) * rM );  
-        p_builder_and_solver->GetLinearSystemSolver()->Solve( r_kdyn, rs, rRHS );
-
-        TSystemVectorType displacement;
-        displacement.resize( system_size, false );
-        displacement = ZeroVector( system_size );
+        //Building the dynamic stiffnes matrix
+        rA = rK - ( std::pow(excitation_frequency, 2.0 ) * rM );  
+        p_builder_and_solver->GetLinearSystemSolver()->Solve( rA, rDx, rRHS );
 
         //assigning the computed displacement
-        displacement = rs;
-        AssignVariables(displacement);
+        AssignVariables(rDx);
 
 		return true;
         KRATOS_CATCH("");
@@ -581,7 +561,7 @@ class FrequencyResponseAnalysisStrategy
      */
     TSystemMatrixType &GetSystemMatrix()
     {
-        TSystemMatrixType &mA = *mpA;
+        TSystemMatrixType &mA = *mpK;
 
         return mA;
     }
@@ -595,7 +575,7 @@ class FrequencyResponseAnalysisStrategy
 
     TSystemMatrixType &GetDampingMatrix()
     {
-        TSystemMatrixType &mS = *mpS;
+        TSystemMatrixType &mS = *mpC;
 
         return mS;
     }
@@ -662,12 +642,12 @@ class FrequencyResponseAnalysisStrategy
     typename TSchemeType::Pointer mpScheme; /// The pointer to the time scheme employed
     typename TBuilderAndSolverType::Pointer mpBuilderAndSolver; /// The pointer to the builder and solver employe
 
-    TSystemVectorPointerType mpRHS; /// The RHS vector of the system of equations
-    TSystemMatrixPointerType mpA; /// The Stiffness matrix of the system of equations
-    TSystemMatrixPointerType mpM; /// The Mass matrix of the system of equations
-    TSystemMatrixPointerType mpS; /// The Damping matrix of the system of equations
-
-    double omega;  //excitation frequency
+    TSystemVectorPointerType mpRHS; /// The RHS vector
+    TSystemVectorPointerType mpDx; /// The solution vector
+    TSystemMatrixPointerType mpA; /// The system matrix
+    TSystemMatrixPointerType mpK; /// The stiffness matrix
+    TSystemMatrixPointerType mpM; /// The mass matrix
+    TSystemMatrixPointerType mpC; /// The damping matrix
 
     bool mReformDofSetAtEachStep;
 
@@ -685,10 +665,10 @@ class FrequencyResponseAnalysisStrategy
      */
     virtual void EchoInfo(const unsigned int IterationNumber)
     {
-        TSystemMatrixType& rA  = *mpA;
+        TSystemMatrixType& rK  = *mpK;
         TSystemMatrixType& rM = *mpM;
         TSystemVectorType& rRHS  = *mpRHS;
-        TSystemMatrixType& rS  = *mpS;
+        TSystemMatrixType& rC  = *mpC;
 
         if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
         {
@@ -696,22 +676,22 @@ class FrequencyResponseAnalysisStrategy
         }
         else if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
         {
-            KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
-            KRATOS_INFO("Dx")  << "Mass Matrix = " << mpM << std::endl;
-            KRATOS_INFO("Sx")  << "Damping Matrix = " << mpS << std::endl;
+            KRATOS_INFO("K") << "SystemMatrix = " << rK << std::endl;
+            KRATOS_INFO("M")  << "Mass Matrix = " << mpM << std::endl;
+            KRATOS_INFO("C")  << "Damping Matrix = " << mpC << std::endl;
             KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
         }
         std::stringstream matrix_market_name;
-        matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rA, false);
+        matrix_market_name << "K_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rK, false);
 
         std::stringstream matrix_market_mass_name;
         matrix_market_mass_name << "M_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
         TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mass_name.str()).c_str(), rM, false);   
 
         std::stringstream matrix_market_damping_name;
-        matrix_market_name << "S_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
-        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_damping_name.str()).c_str(), rS, false);        
+        matrix_market_name << "C_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_damping_name.str()).c_str(), rC, false);        
 
         std::stringstream matrix_market_vectname;
         matrix_market_vectname << "RHS_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
