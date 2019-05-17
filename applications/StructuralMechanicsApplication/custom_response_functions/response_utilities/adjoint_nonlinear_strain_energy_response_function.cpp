@@ -226,20 +226,17 @@ namespace Kratos
 
         Vector response_gradient_0;
         Vector response_gradient_1;
+        double l2_norm_1;
+        double l2_norm_0;
         double scaling_factor = 0;
         response_gradient_0 = mResponseGradient_0[rAdjointCondition.Id()];
         response_gradient_1 = mResponseGradient_1[rAdjointCondition.Id()];
         const double tolerance = 1e-5;
 
-        // Here a scalar value is calculated (lambda_1 / lambda_0)
-        for (IndexType i = 0; i < response_gradient_1.size(); i++)
-        {
-            if( std::abs(response_gradient_0[i]) > tolerance )
-            {
-                scaling_factor = response_gradient_1[i] / response_gradient_0[i];
-                break;
-            }
-        }
+        l2_norm_1 = norm_2(response_gradient_1);
+        l2_norm_0 = norm_2(response_gradient_0);
+        scaling_factor = l2_norm_1 / l2_norm_0;
+
         mResponseGradient_0[rAdjointCondition.Id()] = response_gradient_1;
         return scaling_factor;
 
