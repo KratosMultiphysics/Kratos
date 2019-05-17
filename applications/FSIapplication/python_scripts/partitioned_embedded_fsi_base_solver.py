@@ -364,7 +364,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             for node_str_fsi_int, node_fl_fsi_int in zip(
                 self._get_fsi_coupling_interface_structure().GetInterfaceModelPart().Nodes,
                 self._get_fsi_coupling_interface_fluid().GetInterfaceModelPart().Nodes):
-                relaxed_disp = node_str_fsi_int.GetSolutionStepValue(KratosMultiphysics.RELAXED_DISP)
+                relaxed_disp = node_str_fsi_int.GetSolutionStepValue(KratosMultiphysics.RELAXED_DISPLACEMENT)
                 node_fl_fsi_int.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, relaxed_disp)
 
             # Update the fluid FSI coupling interface position

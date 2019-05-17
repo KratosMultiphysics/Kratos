@@ -463,8 +463,8 @@ namespace Kratos
     {
         // Initialize the DISPLACEMENT variable values
         #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(mpOriginModelPart->NumberOfNodes()); ++i_node) {
-            auto it_node = mpOriginModelPart->NodesBegin() + i_node;
+        for (int i_node = 0; i_node < static_cast<int>(mrVirtualModelPart.NumberOfNodes()); ++i_node) {
+            auto it_node = mrVirtualModelPart.NodesBegin() + i_node;
             it_node->FastGetSolutionStepValue(DISPLACEMENT, 0) = ZeroVector(3);
             it_node->FastGetSolutionStepValue(DISPLACEMENT, 1) = ZeroVector(3);
         }
@@ -482,7 +482,7 @@ namespace Kratos
         // Compute the DISPLACEMENT increment from the structure model part and save it in the origin mesh MESH_DISPLACEMENT
         const unsigned int buff_pos_0 = 0;
         FixedMeshALEUtilities::EmbeddedNodalVariableProcessArrayType emb_nod_var_from_skin_proc_array_0(
-            *mpOriginModelPart,
+            mrVirtualModelPart,
             mrStructureModelPart,
             mEmbeddedNodalVariableSettings["linear_solver_settings"],
             DISPLACEMENT,
@@ -494,7 +494,7 @@ namespace Kratos
 
         const unsigned int buff_pos_1 = 1;
         FixedMeshALEUtilities::EmbeddedNodalVariableProcessArrayType emb_nod_var_from_skin_proc_array_1(
-            *mpOriginModelPart,
+            mrVirtualModelPart,
             mrStructureModelPart,
             mEmbeddedNodalVariableSettings["linear_solver_settings"],
             DISPLACEMENT,
@@ -506,18 +506,20 @@ namespace Kratos
 
         // In the intersected elements, set the MESH_DISPLACEMENT as the increment of displacement and fix it
         // Note that this assumes that the flag INTERFACE has been set by the embedded nodal variable process
-        for (int i_elem = 0; i_elem < static_cast<int>(mpOriginModelPart->NumberOfElements()); ++i_elem) {
-            auto it_elem = mpOriginModelPart->ElementsBegin() + i_elem;
+        for (int i_elem = 0; i_elem < static_cast<int>(mrVirtualModelPart.NumberOfElements()); ++i_elem) {
+            auto it_elem = mrVirtualModelPart.ElementsBegin() + i_elem;
             if (it_elem->Is(INTERFACE)) {
-                const auto &r_geom = it_elem->GetGeometry();
-                auto &r_virt_geom = (mrVirtualModelPart.ElementsBegin() + i_elem)->GetGeometry();
-                for (unsigned int i_node = 0; i_node < r_virt_geom.PointsNumber(); ++i_node) {
-                    const auto &r_d_0 = r_geom[i_node].FastGetSolutionStepValue(DISPLACEMENT, 0);
-                    const auto &r_d_1 = r_geom[i_node].FastGetSolutionStepValue(DISPLACEMENT, 1);
-                    noalias(r_virt_geom[i_node].FastGetSolutionStepValue(MESH_DISPLACEMENT, 0)) = r_d_0 - r_d_1;
-                    r_virt_geom[i_node].Fix(MESH_DISPLACEMENT_X);
-                    r_virt_geom[i_node].Fix(MESH_DISPLACEMENT_Y);
-                    r_virt_geom[i_node].Fix(MESH_DISPLACEMENT_Z);
+                auto &r_geom = it_elem->GetGeometry();
+                for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+                    auto &r_node = r_geom[i_node];
+                    if (r_node.Is(VISITED)) {
+                        const auto &r_d_0 = r_node.FastGetSolutionStepValue(DISPLACEMENT, 0);
+                        const auto &r_d_1 = r_node.FastGetSolutionStepValue(DISPLACEMENT, 1);
+                        noalias(r_node.FastGetSolutionStepValue(MESH_DISPLACEMENT, 0)) = r_d_0 - r_d_1;
+                        r_node.Fix(MESH_DISPLACEMENT_X);
+                        r_node.Fix(MESH_DISPLACEMENT_Y);
+                        r_node.Fix(MESH_DISPLACEMENT_Z);
+                    }
                 }
             }
         }
