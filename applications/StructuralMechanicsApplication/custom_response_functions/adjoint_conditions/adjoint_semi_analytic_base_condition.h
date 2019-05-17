@@ -65,13 +65,13 @@ public:
 
     AdjointSemiAnalyticBaseCondition(IndexType NewId = 0)
     : Condition(NewId),
-      mpPrimalCondition(std::make_intrusive<TPrimalCondition>(NewId, pGetGeometry()))
+      mpPrimalCondition(Kratos::make_intrusive<TPrimalCondition>(NewId, pGetGeometry()))
     {
     }
 
     AdjointSemiAnalyticBaseCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : Condition(NewId, pGeometry),
-      mpPrimalCondition(std::make_intrusive<TPrimalCondition>(NewId, pGeometry))
+      mpPrimalCondition(Kratos::make_intrusive<TPrimalCondition>(NewId, pGeometry))
     {
     }
 
@@ -79,7 +79,7 @@ public:
                         GeometryType::Pointer pGeometry,
                         PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties),
-      mpPrimalCondition(std::make_intrusive<TPrimalCondition>(NewId, pGeometry, pProperties))
+      mpPrimalCondition(Kratos::make_intrusive<TPrimalCondition>(NewId, pGeometry, pProperties))
     {
     }
 
