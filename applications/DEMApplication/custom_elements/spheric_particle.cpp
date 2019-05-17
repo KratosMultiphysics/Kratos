@@ -1307,8 +1307,6 @@ void SphericParticle::ComputeWear(double LocalRelVel[3],
         DEM_MULTIPLY_BY_SCALAR_3(normal_to_wall, dot_product);
 
         inner_point = sphere_center + normal_to_wall;
-        //if (dot_product <= 0.0) inner_point = sphere_center + normal_to_wall;
-        //else                    inner_point = sphere_center - normal_to_wall;
 
     } else {
         // Projection on a line element
