@@ -134,7 +134,7 @@ void AddPartialTimeDerivative(const ArrayVarType& rVectorVariable, const ArrayVa
 
 void CalculateGradient(const DoubleVarType& rScalarVariable, const ArrayVarType& rGradientVariable) override;
 
-void CalculateGradient(const ArrayVarType& rVectorVariable, const Tensor3 rGradientVariable) override;
+void CalculateGradient(const ArrayVarType& rVectorVariable, const TensorVarType& rGradientVariable) override;
 // void CalculateGradient(const VariableData& rVariable, const VariableData& rGradientVariable) override;
 
 // // void CalculateGradient(const ArrayVarType& rVariable
@@ -147,7 +147,7 @@ void CalculateGradient(const ArrayVarType& rVectorVariable, const Tensor3 rGradi
 // //                        const ArrayVarType& rComponent1GradientVariable,
 // //                        const ArrayVarType& rComponent2GradientVariable) override;
 
-// void CalculateDivergence(const VariableData& rVectorVariable, const VariableData& rDivergenceVariable) override;
+void CalculateDivergence(const ArrayVarType& rVectorVariable, const DoubleVarType& rDivergenceVariable) override;
 
 // void CalculateLaplacian(const VariableData& rVariable, const VariableData& rLaplacianVariable) override;
 
@@ -163,7 +163,7 @@ void CalculateMaterialDerivative(const DoubleVarType& rVariable, const DoubleVar
 
 void CalculateMaterialDerivative(const ArrayVarType& rScalarComponent, const ArrayVarType& rMaterialDerivativeVariable) override;
 
-// void CalculateRotational(const VariableData rVariable, const VariableData& rRotationalVariable) override;
+void CalculateRotational(const ArrayVarType rVectorVariable, const ArrayVarType& rRotationalVariable) override;
 
 // // void CalculateRotational(const ArrayVarType rVectorVariable, const ArrayVarType& rRotationalVariable) override;
 
@@ -174,7 +174,10 @@ void CheckDefaultsAndSettings(Parameters rParameters) override;
 private:
     ///@name Static Member Variables
     ///@{
-
+    static int GetVectorizedMatrixIndex(const unsigned int i, const unsigned int j) {
+        // Following the Kratos convention
+        return 3 * i + j;
+    }
     ///@}
     ///@name Member Variables
     ///@{

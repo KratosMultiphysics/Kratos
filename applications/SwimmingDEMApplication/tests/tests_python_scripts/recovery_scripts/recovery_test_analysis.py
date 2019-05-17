@@ -81,11 +81,10 @@ class Operator:
 
     def SetLocalMatrixValue(self, matrix_value):
         self.local_calculated_value = Matrix(3,3)
-
         # According to the Kratos convention:
         for i in range(3):
             for j in range(3):
-                self.local_calculated_value[(i, j)] = matrix_value[i + j]
+                self.local_calculated_value[(i, j)] = matrix_value[i * 3 + j]
 
     def GetError(self):
         if self.derivative_type in {'scalar', 'vector'}:
@@ -94,7 +93,8 @@ class Operator:
             error = Matrix(3,3)
             for i in range(3):
                 for j in range(3):
-                    error[(i,j)] = self.local_calculated_value[(i,j)] - self.local_exact_value[(i,j)]
+                    error[(i, j)] = self.local_calculated_value[(i, j)] - self.local_exact_value[(i, j)]
+
         return error
 
     def InitializeVectors(self):
@@ -134,14 +134,7 @@ class RecoveryTestAnalysis(SwimmingDEMAnalysis):
 
     def SetOperators(self):
         self.scalar_variable_operator_names = []
-        self.vector_variable_operator_names = ['gradient', 'material_derivative']
-        GetVariable = RecoveryTestAnalysis.GetVariableByName
-        self.vars_man.fluid_vars += [GetVariable('PRESSURE_GRADIENT_ERROR'),
-                                     GetVariable('MATERIAL_ACCELERATION_ERROR'),
-                                     GetVariable('VELOCITY_DIVERGENCE_ERROR'),
-                                     GetVariable('VELOCITY_DIVERGENCE'),
-                                     GetVariable('VORTICITY_ERROR'),
-                                     GetVariable('VORTICITY')]
+        self.vector_variable_operator_names = []
 
     def GetEmbeddedCounter(self):
         return SDP.Counter(is_dead=True)
@@ -170,30 +163,14 @@ class RecoveryTestAnalysis(SwimmingDEMAnalysis):
         self.CalculateRecoveryErrors(self.time)
 
     def SetFieldsToImpose(self):
-        a = math.pi / 4
-        d = math.pi / 2
-        b = 1.0
-        bx, by, bz = 1.0, 2.0, 5.0
-        b = SDEM.LinearFunction(15.5, b)
-        a0 = SDEM.LinearFunction(0.0, bx)
-        a1 = SDEM.LinearFunction(0.0, by)
-        a2 = SDEM.LinearFunction(0.0, bz)
-        self.pressure_field = SDEM.LinearRealField(a0, a1, a2, b)
-        self.flow_field = SDEM.EthierVelocityField(a, d)
-        space_time_set = SDEM.SpaceTimeSet()
-        self.field_utility = SDEM.FluidFieldUtility(space_time_set,
-                                                    self.pressure_field,
-                                                    self.flow_field,
-                                                    1000.0,
-                                                    1e-6)
-        return self.field_utility
+        return None
 
     def GetRecoveryCounter(self):
         return SDP.Counter(1, 1, self.project_parameters["coupling"]["coupling_level_type"].GetInt() or self.project_parameters.print_PRESSURE_GRADIENT_option)
 
 
     def CalculateRecoveryErrors(self, time):
-        total_volume = 0.
+        total_volume = 0.00
 
         coor = Vector(3)
         error = Vector(3)
@@ -243,22 +220,22 @@ class RecoveryTestAnalysis(SwimmingDEMAnalysis):
                     node.SetSolutionStepValue(GetVariable('VORTICITY_ERROR'), error)
 
                 error_norm = operator.CalculateErrorNorm()
-                operator.average_module += operator.CalculateExactValueNorm()  * nodal_volume
+                operator.average_module += operator.CalculateExactValueNorm() * nodal_volume
                 operator.average_error += error_norm * nodal_volume
                 operator.max_error = max(operator.max_error, error_norm)
 
         for name in self.operators:
-            operator.average_error /= total_volume
             operator.average_module /= total_volume
+            operator.average_error /= total_volume
 
     def Finalize(self):
-        text_width = 30
+        text_width = 40
         super(RecoveryTestAnalysis, self).Finalize()
         text_summary = ''
         text_summary += '\n' + '--' * text_width + '\n'
         for operator in self.operators:
-            text_summary += str(operator.name + ': average modulus').ljust(text_width) + str(operator.average_error) + '\n'
-            text_summary += str(operator.name + ': average error').ljust(text_width) + str(operator.average_error) + '\n'
-            text_summary += str(operator.name + ': max. error').ljust(text_width) + str(operator.max_error) + '\n'
+            text_summary += str(operator.name + ' of a ' + operator.type + ': average modulus').ljust(text_width) + str(operator.average_error) + '\n'
+            text_summary += str(operator.name + ' of a ' + operator.type + ': average error').ljust(text_width) + str(operator.average_error) + '\n'
+            text_summary += str(operator.name + ' of a ' + operator.type + ': max. error').ljust(text_width) + str(operator.max_error) + '\n'
             text_summary += '--' * text_width + '\n'
         Say(text_summary)

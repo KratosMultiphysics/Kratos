@@ -132,10 +132,17 @@ class SwimmingDEMSolver(PythonSolver):
                 "settings" : {},
                 "variables_for_recovery" : {
                     "gradient" : {
-                        "PRESSURE" : "PRESSURE_GRADIENT"
+                        "PRESSURE" : "PRESSURE_GRADIENT",
+                        "VELOCITY" : "VECTOR_GRADIENT"
+                    },
+                    "divergence" : {
+                        "VELOCITY" : "VELOCITY_DIVERGENCE"
                     },
                     "material_derivative" : {
                         "VELOCITY" : "MATERIAL_ACCELERATION"
+                    },
+                    "rotational" : {
+                        "VELOCITY" : "VORTICITY"
                     }
                 }
         }""")
@@ -243,6 +250,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.derivative_recovery_counter.Activate(self.time > self.interaction_start_time and self.calculating_fluid_in_current_step)
 
         if self.derivative_recovery_counter.Tick():
+            #self.recovery.Recover()
             self.derivative_recoverer.Recover()
 
         # Solving the disperse-phase component

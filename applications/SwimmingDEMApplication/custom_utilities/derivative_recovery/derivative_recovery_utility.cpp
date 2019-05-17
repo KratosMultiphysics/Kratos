@@ -54,6 +54,8 @@ DerivativeRecoveryUtility::DerivativeRecoveryUtility(
 void DerivativeRecoveryUtility::ReadAllVariablePairs(Parameters rVariablesForRecovery)
 {
     this->ReadVariablePairs("gradient", rVariablesForRecovery);
+    this->ReadVariablePairs("divergence", rVariablesForRecovery);
+    this->ReadVariablePairs("rotational", rVariablesForRecovery);
     this->ReadVariablePairs("material_derivative", rVariablesForRecovery);
 }
 
@@ -125,9 +127,11 @@ void DerivativeRecoveryUtility::CalculateGradient(const std::string VariableName
 {
     bool was_able_to_recover = this->CalculateGradientIfPossible<DoubleVarType, ArrayVarType>(VariableName, DerivativeVariableName);
     if (! was_able_to_recover){
-        was_able_to_recover = this->CalculateGradientIfPossible<ComponentVarType, ArrayVarType>( VariableName, DerivativeVariableName);
+        was_able_to_recover = this->CalculateGradientIfPossible<ComponentVarType, ArrayVarType>(VariableName, DerivativeVariableName);
     }
-
+    if (! was_able_to_recover){
+        was_able_to_recover = this->CalculateGradientIfPossible<ArrayVarType, TensorVarType>(VariableName, DerivativeVariableName);
+    }
     if (! was_able_to_recover) {
         KRATOS_THROW_ERROR(std::invalid_argument, VariableName, " is not registered as any type of compatible variable: DOUBLE or SCALAR COMPONENT");
     }

@@ -34,7 +34,7 @@ void LinearVectorField::CalculateGradient(const double time,
 {
     for (auto i = 0; i < 3; ++i){
         for (auto j = 0; j < 3; ++j){
-            gradient(i, j) = mA(i, j);
+            gradient(i, j) = mA(j, i);
         }
     }
 }

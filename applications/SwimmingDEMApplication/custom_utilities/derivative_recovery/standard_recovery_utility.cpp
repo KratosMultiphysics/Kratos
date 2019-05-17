@@ -73,53 +73,47 @@ void StandardRecoveryUtility::AddPartialTimeDerivative(const ArrayVarType& rVari
     }
 }
 
-// void StandardRecoveryUtility::CalculateGradient(const VariableData& rVariable, const VariableData& rGradientVariable)
-// {
-//     //this->CalculateScalarGradient<rVariable.StaticObject(), rGradientVariable.StaticObject()>(rScalarVariable, rGradientVariable);
-// }
+void StandardRecoveryUtility::CalculateDivergence(const ArrayVarType& rVectorVariable, const DoubleVarType& rDivergenceVariable)
+{
+    this->CalculateGradient(rVectorVariable, VECTOR_GRADIENT);
+    constexpr auto &GetIndex = StandardRecoveryUtility::GetVectorizedMatrixIndex;
+
+    for (auto inode = mrModelPart.NodesBegin(); inode != mrModelPart.NodesEnd(); ++inode){
+        const auto& vector_gradient = inode->FastGetSolutionStepValue(VECTOR_GRADIENT);
+        auto& divergence = inode->FastGetSolutionStepValue(rDivergenceVariable);
+        divergence = 0.0;
+        for (int i = 0; i < 3; ++i){
+            divergence += vector_gradient[GetIndex(i, i)];
+        }
+    }
+}
 
 void StandardRecoveryUtility::CalculateGradient(const DoubleVarType& rScalarVariable, const ArrayVarType& rGradientVariable)
 {
     this->CalculateScalarGradient<DoubleVarType>(rScalarVariable, rGradientVariable);
 }
 
-void StandardRecoveryUtility::CalculateGradient(const ArrayVarType& rVectorVariable, const Tensor3 rGradientVariable)
+void StandardRecoveryUtility::CalculateGradient(const ArrayVarType& rVectorVariable, const TensorVarType& rGradientVariable)
 {
-    for (auto comp_i : {"X", "Y", "Z"}){
-        const auto& variable_i = dynamic_cast<ComponentVarType&>(KratosComponents<VariableData>::Get(rVectorVariable.Name() + "_" + comp_i));
-        this->CalculateScalarGradient<ComponentVarType>(variable_i, SCALAR_GRADIENT);
-        int j = 0;
+    // dvj/dxi = (dv0/dx | dv1/dx | dv2/dx )_ij
+    for (auto comp_j : {"X", "Y", "Z"}){
+        const auto& variable_j = dynamic_cast<ComponentVarType&>(KratosComponents<VariableData>::Get(rVectorVariable.Name() + "_" + comp_j));
+
+        this->CalculateScalarGradient<ComponentVarType>(variable_j, SCALAR_GRADIENT);
 
         for (auto inode = mrModelPart.NodesBegin(); inode != mrModelPart.NodesEnd(); ++inode){
             const auto& component_gradient = inode->FastGetSolutionStepValue(SCALAR_GRADIENT);
-            j = 0;
-            for (auto comp_j : {"X", "Y", "Z"}){
-                const auto& variable_ij = dynamic_cast<TensorComponentVarType&>(KratosComponents<VariableData>::Get(rVectorVariable.Name() + "_" + comp_i + comp_j));
+            int i = 0;
+            for (auto comp_i : {"X", "Y", "Z"}){
+                const auto& variable_ij = dynamic_cast<TensorComponentVarType&>(KratosComponents<VariableData>::Get(rGradientVariable.Name() + "_" + comp_i + comp_j));
                 auto& vector_gradient_ij = inode->FastGetSolutionStepValue(variable_ij);
-                vector_gradient_ij = component_gradient[j];
-                ++j;
+                vector_gradient_ij = component_gradient[i];
+                ++i;
             }
         }
     }
 }
 
-// }
-
-// void StandardRecoveryUtility::CalculateDivergence(const VariableData& rVectorVariable, const VariableData& rDivergenceVariable)
-// {
-// }
-// void StandardRecoveryUtility::CalculateLaplacian(const VariableData& rVariable, const VariableData& rLaplacianVariable)
-// {
-//     // this->CalculateScalarLaplacian<rVariable.StaticObject(), rLaplacianVariable.StaticObject()>(rScalarVariable, rLaplacianVariable);
-// }
-// // void StandardRecoveryUtility::CalculateLaplacian(const ComponentVarType& rScalarComponent, const DoubleVarType& rLaplacianVariable)
-// // {
-// //     this->CalculateScalarLaplacian<rVariable.StaticObject(), rLaplacianVariable.StaticObject()>(rScalarComponent, rLaplacianVariable);
-// // }
-// // void StandardRecoveryUtility::CalculateLaplacian(const ArrayVarType& rVectorComponent, const ArrayVarType& rLaplacianVariable)
-// // {
-
-// // }
 void StandardRecoveryUtility::CalculateMaterialDerivative(const DoubleVarType& rVariable, const DoubleVarType& rMaterialDerivativeVariable)
 {
     this->CalculateScalarMaterialDerivative<double>(rVariable, rMaterialDerivativeVariable);
@@ -226,10 +220,19 @@ void StandardRecoveryUtility::CalculateMaterialDerivative(const ArrayVarType& rV
 //     this->CalculateScalarMaterialDerivative<ComponentVarType>(rScalarComponent, rMaterialDerivativeVariable);
 // }
 
-// void StandardRecoveryUtility::CalculateRotational(const VariableData rVectorVariable, const VariableData& rRotationalVariable)
-// {
+void StandardRecoveryUtility::CalculateRotational(const ArrayVarType rVectorVariable, const ArrayVarType& rRotationalVariable)
+{
+    this->CalculateGradient(rVectorVariable, VECTOR_GRADIENT);
+    constexpr auto &GetIndex = StandardRecoveryUtility::GetVectorizedMatrixIndex;
 
-// }
+    for (auto inode = mrModelPart.NodesBegin(); inode != mrModelPart.NodesEnd(); ++inode){
+        const auto& vector_gradient = inode->FastGetSolutionStepValue(VECTOR_GRADIENT);
+        auto& rotational = inode->FastGetSolutionStepValue(rRotationalVariable);
+        rotational[0] = vector_gradient[GetIndex(1, 2)] - vector_gradient[GetIndex(2, 1)];
+        rotational[1] = vector_gradient[GetIndex(2, 0)] - vector_gradient[GetIndex(0, 2)];
+        rotational[2] = vector_gradient[GetIndex(0, 1)] - vector_gradient[GetIndex(1, 0)];
+    }
+}
 
 /* Private functions ****************************************************/
 

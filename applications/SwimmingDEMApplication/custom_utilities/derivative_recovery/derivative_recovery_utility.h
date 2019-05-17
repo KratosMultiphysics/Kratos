@@ -109,6 +109,8 @@ public:
     typedef VariableComponent<VectorComponentAdaptor<Vector3> > ComponentVarType;
     typedef VariableComponent<VectorComponentAdaptor<Tensor3> > TensorComponentVarType;
     typedef Variable<Vector3> ArrayVarType;
+    typedef Variable<Tensor3> TensorVarType;
+
 
     /// Pointer definition of DerivativeRecoveryUtility
     KRATOS_CLASS_POINTER_DEFINITION(DerivativeRecoveryUtility);
@@ -190,7 +192,7 @@ protected:
 
     virtual void CalculateGradient(const ComponentVarType& rScalarComponent, const ArrayVarType& rGradientVariable){}
 
-    virtual void CalculateGradient(const ArrayVarType& rVectorVariable, const Tensor3 rGradientVariable){}
+    virtual void CalculateGradient(const ArrayVarType& rVectorVariable, const TensorVarType& rGradientVariable){}
 
     virtual void CalculateDivergence(const ArrayVarType& rVectorVariable, const DoubleVarType& rDivergenceVariable){}
 

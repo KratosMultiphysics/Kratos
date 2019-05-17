@@ -62,6 +62,7 @@ LinearVectorField(Parameters rParameters)
     const auto b = rParameters["b"].GetVector();
 
     noalias(mb) = b;
+
     for (auto i = 0; i < 3; ++i){
         for (auto j = 0; j < 3; ++j){
             mA(i, j) = A(i, j);
