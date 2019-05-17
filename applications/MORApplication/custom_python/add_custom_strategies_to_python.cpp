@@ -29,7 +29,6 @@
 // Strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/custom_strategies/linear_mor_matrix_output_strategy.hpp"
-#include "custom_strategies/custom_strategies/mor_offline_strategy.hpp"
 #include "custom_strategies/custom_strategies/mor_offline_second_order_strategy.hpp"
 #include "custom_strategies/custom_strategies/mor_online_strategy.hpp"
 #include "custom_strategies/custom_strategies/frequency_response_analysis_strategy.hpp"
@@ -61,12 +60,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Custom strategy types
     typedef LinearMorMatrixOutputStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > LinearMorMatrixOutputStrategyType;
     typedef MorOnlineStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType > MorOnlineStrategyType;
-	typedef MorOfflineStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOfflineStrategyType;
     typedef FrequencyResponseAnalysisStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType > FrequencyResponseAnalysisStrategyType;
     typedef MorOnlineStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOnlineStrategyType;
     typedef MorOfflineSecondOrderStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOfflineSecondOrderStrategyType;
 
-    typedef MorOfflineStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOfflineStrategyType;
     typedef MorSecondOrderKrylovStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorSecondOrderKrylovStrategyType;
 
     // Custom builder and solver types
@@ -90,10 +87,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_< MorSecondOrderKrylovStrategyType, typename MorSecondOrderKrylovStrategyType::Pointer, MorOfflineSecondOrderStrategyType >(m,"MorSecondOrderKrylovStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, vector<double>, bool >())
-        ;
-
-    py::class_< MorOfflineStrategyType, typename MorOfflineStrategyType::Pointer, MorOfflineSecondOrderStrategyType >(m,"MorOfflineStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, vector<double>, bool >())
         ;
     
