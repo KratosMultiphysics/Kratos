@@ -25,7 +25,8 @@
 
 namespace Kratos {
 Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
-                std::string("KratosMultiphysics"))), mIsDistributedRun(IsDistributedRun) {
+                std::string("KratosMultiphysics"))) {
+    mIsDistributedRun = IsDistributedRun;
     KRATOS_INFO("") << " |  /           |\n"
                     << " ' /   __| _` | __|  _ \\   __|\n"
                     << " . \\  |   (   | |   (   |\\__ \\\n"
@@ -52,7 +53,7 @@ bool Kernel::IsImported(std::string ApplicationName) const {
         return false;
 }
 
-bool Kernel::IsDistributedRun() const {
+bool Kernel::IsDistributedRun() {
     return mIsDistributedRun;
 }
 
@@ -145,5 +146,7 @@ void Kernel::PrintParallelismSupportInfo() const
         }
     }
 }
+
+bool Kernel::mIsDistributedRun = false;
 
 }

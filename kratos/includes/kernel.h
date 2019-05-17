@@ -111,7 +111,7 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     bool IsImported(std::string ApplicationName) const;
 
-    bool IsDistributedRun() const;
+    static bool IsDistributedRun();
 
     ///@}
     ///@name Input and output
@@ -143,11 +143,11 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
         KratosApplication::Pointer mpKratosCoreApplication;
 
+    static bool mIsDistributedRun;
+
     ///@}
     ///@name Member Variables
     ///@{
-
-    bool mIsDistributedRun;
 
     ///@}
     ///@name Private Operations
