@@ -107,7 +107,7 @@ public:
         typename NurbsSurface::Pointer pSurface,
         typename BrepLoopType InnerBrepLoopVector,
         typename BrepLoopType OuterBrepLoopVector)
-        : BaseType(pSurface->mPointerVector(), nullptr ),
+        : BaseType((*pSurface)(), &msGeometryData),
         mpNurbsSurface(pSurface),
         mInnerLoops(InnerBrepLoopVector),
         mOuterLoops(OuterBrepLoopVector)
@@ -406,6 +406,10 @@ private:
     ///@{
 
     static const GeometryData msGeometryData;
+
+    ///@}
+    ///@name Private Member Variables
+    ///@{
 
     NurbsSurfacePointer mpNurbsSurface;
 

@@ -99,12 +99,8 @@ public:
         const PointsArrayType& ThisPoints,
         const IntgrationPoint& rIntegrationPoint,
         ShapeFunctionsDerivativesVectorType& rShapeFunctionsDerivativesVector)
-        : BaseType(ThisPoints, nullptr)
+        : BaseType(ThisPoints, &msGeometryData)
     {
-        msGeometryData = GeometryData(3, 3, 2);
-
-        mpGeometryData = &mGeometryData;
-
         IntegrationPointsContainerType IntegrationPoints = IntegrationPointsContainerType(1);
         IntegrationPoints[0] = rIntegrationPoint;
 
@@ -284,32 +280,30 @@ public:
         Matrix J;
         this->Jacobian(J, IntegrationPointIndex, ThisMethod);
 
-        array_1d<double, 3> a_1 = row(J, 0);
-        array_1d<double, 3> a_2 = row(J, 1);
+        array_1d<double, 3> a1 = row(J, 0);
+        array_1d<double, 3> a2 = row(J, 1);
 
-        return std::norm_2(a_1 * mTangents[0] + a_2 * mTangents[1]);
+        return std::norm_2(a1 * mTangents[0] + a2 * mTangents[1]);
     }
 
-    /** Determinant of jacobian in given point. This method calculate determinant of jacobian
-    matrix in given point.
+    /** Tangents in global space of the curve defined on the surface.
 
-    @param rPoint point which determinant of jacobians has to
+    The tangential integration weight is already applied to the
+    length of the line segment.
+
+    @param IntegrationPointIndex index of integration point which jacobians has to
     be calculated in it.
 
-    @return Determinamt of jacobian matrix \f$ |J| \f$ in given
-    point.
+    @param IntegrationPointIndex index of integration point
+    which determinant of jacobians has to be calculated in it.
 
-    @see DeterminantOfJacobian
+    @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$
+    i \f$ is the given integration point index of given
+    integration method.
+
+    @see Jacobian
     @see InverseOfJacobian
     */
-    override double DeterminantOfJacobian(const CoordinatesArrayType& rPoint) const
-    {
-        return DeterminantOfJacobian(
-            0,
-            mpGeometryData->DefaultIntegrationMethod());
-    }
-
-
     virtual Matrix Tangents(
         Matrix& rResult,
         IndexType IntegrationPointIndex,
@@ -321,7 +315,9 @@ public:
         array_1d<double, 3> a_1 = row(J, 0);
         array_1d<double, 3> a_2 = row(J, 1);
 
-        // To Be done: rResult =
+        Matrix Tangents = ZeroMatrix(3, 2);
+        row(Tangents, 0) = Tangents(1)*a_1 + Tangents(0)*a_2;
+        row(Tangents, 1) = Tangents(0)*a_1 + Tangents(1)*a_2
 
         return rResult;
     }
@@ -373,7 +369,12 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    GeometryData mGeometryData;
+
+    static const GeometryData msGeometryData;
+
+    ///@}
+    ///@name Private Member Variables
+    ///@{
 
     array_1d<double, 2> mTangents;
 
@@ -429,6 +430,15 @@ template<class TPointType> inline std::ostream& operator << (
     rThis.PrintData( rOStream );
     return rOStream;
 }
+
+template<class TPointType>
+const GeometryData BrepCurve<TPointType>::msGeometryData(2,
+    3,
+    2,
+    GeometryData::GI_GAUSS_1,
+    {},
+    {},
+    {});
 
 }  // namespace Kratos.
 

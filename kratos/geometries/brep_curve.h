@@ -112,7 +112,7 @@ public:
         typename NurbsSurface::Pointer pSurface,
         typename BrepLoopType InnerBrepLoopVector,
         typename BrepLoopType OuterBrepLoopVector)
-        : BaseType(pSurface->mPointerVector(), nullptr ),
+        : BaseType((*pSurface)(), &msGeometryData),
         mpNurbsSurface(pSurface),
         mInnerLoops(InnerBrepLoopVector),
         mOuterLoops(OuterBrepLoopVector)
@@ -314,7 +314,7 @@ public:
     ///@name Input and output
     ///@{
 
-    std::vector<geometry::Pointer> GetIntegrationPointGeomtries()
+    std::vector<GeometryType::Pointer> GetIntegrationPointGeomtries()
     {
         if (!mIsGeometryDataInitialized)
             ComputeGeometryData();
@@ -373,10 +373,6 @@ public:
      * @see PrintInfo()
      * @see Info()
      */
-    /**
-     * :TODO: needs to be reviewed because it is not properly implemented yet
-     * (comment by janosch)
-     */
     void PrintData( std::ostream& rOStream ) const override
     {
         BaseType::PrintData( rOStream );
@@ -402,9 +398,7 @@ protected:
         if (!mIsBoundaryPolygonInitialized) {
             this->InitializeBoundaryPolygon();
         }
-
-            )
-}
+    }
 
 private:
     ///@name Static Member Variables
@@ -412,19 +406,15 @@ private:
 
     static const GeometryData msGeometryData;
 
-    NurbsSurfacePointer mpNurbsSurface;
+    NurbsCurvePointer mpNurbsCurve;
 
-    BrepLoopVectorType mInnerLoops;
-    BrepLoopVectorType mOuterLoops;
+    Vector mLimits;
 
     bool mIsGeometryDataInitialized;
     GeometryData mGeometryData;
 
-    bool mIsBoundaryPolygonInitialized;
-    BoundaryPolygon mBoundaryPolygon;
-
-    bool mIsSurfacePointCloudInitialized;
-    SurfaceCload mSurfacePointCloud;
+    bool mIsCuvePointCloudInitialized;
+    CurveCload mCurvePointCloud;
 
     ///@}
     ///@name Serialization

@@ -100,7 +100,7 @@ public:
     BrepFaceEdge( 
         typename NurbsSurface::Pointer pSurface,
         typename NurbsCurve<2>::Pointer pEdge)
-        : BaseType(pSurface->mPointerVector(), nullptr ),
+        : BaseType((*pSurface)(), &msGeometryData),
         mpNurbsSurface(pSurface),
         mpNurbsEdge(pEdge)
     {
@@ -405,6 +405,10 @@ private:
     ///@{
 
     static const GeometryData msGeometryData;
+
+    ///@}
+    ///@name Private Member Variables
+    ///@{
 
     NurbsSurfacePointer mpNurbsSurface;
 
