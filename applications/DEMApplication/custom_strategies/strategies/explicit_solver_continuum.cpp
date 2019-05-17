@@ -650,7 +650,7 @@ namespace Kratos {
 
         const unsigned int maximum_allowed_number_of_intact_bonds = (unsigned int) GetModelPart().GetProcessInfo()[MAX_NUMBER_OF_INTACT_BONDS_TO_CONSIDER_A_SPHERE_BROKEN];
 
-        //#pragma omp parallel for
+        #pragma omp parallel for
         for (unsigned int i = 0; i < mListOfSphericContinuumParticles.size(); i++) {
 
             unsigned int number_of_intact_bonds = 0;
