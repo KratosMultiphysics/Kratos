@@ -76,9 +76,7 @@
         "initial_conditions_process_list"   : [{
             "python_module"   : "set_initial_water_level_process",
             "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
-            "process_name"    : "SetInitialWaterLevelProcess",
             "Parameters"      : {
-                "mesh_id"         : 0,
                 "model_part_name" : "main_model_part.Initial_water_level-auto-1",
                 "variable_name"   : "HEIGHT",
                 "value"           : "5"
@@ -110,12 +108,10 @@
             }
         }],
         "bathymetry_process_list"     : [{
-            "python_module"   : "set_bathymetry_process",
+            "python_module"   : "set_topography_process",
             "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
-            "process_name"    : "SetBathymetryProcess",
             "Parameters"      : {
                 "model_part_name" : "main_model_part.Body_Part-auto-1",
-                "variable_name"   : "BATHYMETRY",
                 "value"           : "z"
             }
         }],

@@ -58,7 +58,7 @@ public:
     ///@{
 
     /// Counted pointer of MPMParticlePenaltyDirichletCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MPMParticlePenaltyDirichletCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMParticlePenaltyDirichletCondition );
 
     ///@}
     ///@name Life Cycle
