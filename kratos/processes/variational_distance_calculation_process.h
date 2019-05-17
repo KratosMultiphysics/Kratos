@@ -496,6 +496,8 @@ protected:
         // Generate
         ModelPart& r_distance_model_part = current_model.CreateModelPart( mAuxModelPartName );
 
+        r_distance_model_part.GetNodalSolutionStepVariablesList() = r_base_model_part.GetNodalSolutionStepVariablesList();
+
         Element::Pointer p_distance_element = Kratos::make_intrusive<DistanceCalculationElementSimplex<TDim> >();
 
         ConnectivityPreserveModeler modeler;
