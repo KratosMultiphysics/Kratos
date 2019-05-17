@@ -403,6 +403,9 @@ void VtkOutput::WriteNodalResultsToFile(const ModelPart& rModelPart, std::ofstre
     }
 
     // Writing nodal_flags
+    if (nodal_flags.size() > 0) {
+        mrModelPart.GetCommunicator().SynchronizeNodalFlags();
+    }
     for (IndexType entry = 0; entry < nodal_flags.size(); ++entry) {
         // write nodal results variable header
         const std::string& r_nodal_result_name = nodal_flags[entry].GetString();
@@ -433,6 +436,9 @@ void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofst
         }
 
         // Writing element_flags
+        if (element_flags.size() > 0) {
+            mrModelPart.GetCommunicator().SynchronizeElementalFlags();
+        }
         for (IndexType entry = 0; entry < element_flags.size(); ++entry) {
             // Write elemental flags results variable header
             const std::string& r_element_result_name = element_flags[entry].GetString();
@@ -467,6 +473,9 @@ void VtkOutput::WriteConditionResultsToFile(const ModelPart& rModelPart, std::of
         }
 
         // Writing condition_flags
+        if (condition_flags.size() > 0) {
+            // mrModelPart.GetCommunicator().SynchronizeConditionFlags(); // TODO implement this if at some point ghost-conditions are used
+        }
         for (IndexType entry = 0; entry < condition_flags.size(); ++entry) {
             // Write conditional flags results variable header
             const std::string& r_condition_result_name = condition_flags[entry].GetString();
@@ -650,8 +659,6 @@ void VtkOutput::WriteFlagContainerVariable(
     const std::string& rFlagName,
     std::ofstream& rFileStream) const
 {
-    mrModelPart.GetCommunicator().SynchronizeAndNodalFlags(Flag); // NOTE: Could be SynchronizeOrNodalFlags
-
     rFileStream << rFlagName << " 1 "
                 << rContainer.size() << "  float\n";
 
