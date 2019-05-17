@@ -34,6 +34,10 @@ class AutomaticDirichletConditionsProcess(KM.Process):
         self.settings = settings
         self.model = model
 
+        self._CheckIfParameterIsRelativeSubModelPartName(self.settings["auxiliary_model_part_name"])
+        for item in self.settings["skin_parts_to_exclude"]:
+            self._CheckIfParameterIsRelativeSubModelPartName(item)
+
     def ExecuteInitialize(self):
         model_part_name = self.settings["model_part_name"].GetString()
         model_part = self.model[model_part_name]
@@ -97,3 +101,17 @@ class AutomaticDirichletConditionsProcess(KM.Process):
     def ExecuteFinalizeSolutionStep(self):
         for process in self.processes:
             process.ExecuteFinalizeSolutionStep()
+
+    @staticmethod
+    def _CheckIfParameterIsRelativeSubModelPartName(param):
+        name = param.GetString()
+        search = name.find('.')
+        if search != -1:
+            items = name.split('.')
+            msg = "AutomaticDirichletConditionsProcess"
+            msg += 'Please, specify the sub model part with the relative name\n'
+            msg += '\tWrite : \"' + items[-1] + '\"\n'
+            msg += '\tinstead of : \"' +  name + '\"\n'
+            param.SetString(name)
+            # The parameters are passed by value, we shall throw an error
+            raise Exception(msg)
