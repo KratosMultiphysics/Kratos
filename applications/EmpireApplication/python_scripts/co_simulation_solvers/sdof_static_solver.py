@@ -77,13 +77,13 @@ class SDoFStaticSolver(CoSimulationBaseSolver):
     def SolveSolutionStep(self):
         # self.x_old = self.x
         # b = self.force
-        self.x = self.force/self.stiffness
+        self.x = self.force/self.stiffness - self.x_old
 
-        self.dx = self.x - self.x_old
+        # self.dx = self.x - self.x_old
         self.x_old = self.x
         # self.dx = 2
         print('force = ', self.force)
-        print('displacement Change = ', self.dx)
+        print('stiffness = ', self.stiffness)
         print('displacement = ', self.x)
 
     def GetBufferSize(self):
@@ -109,7 +109,7 @@ class SDoFStaticSolver(CoSimulationBaseSolver):
 
     def SetData(self, identifier, data):
         if identifier == "LOAD":
-            # self.force = data
+            self.force = data
             print("WHAT IS LOAD SET VALUE", data)
         elif identifier == "DISPLACEMENT":
             self.SetSolutionStepValue("DISPLACEMENT", data,0)
