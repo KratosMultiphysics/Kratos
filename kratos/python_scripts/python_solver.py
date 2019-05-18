@@ -54,7 +54,8 @@ class PythonSolver(object):
             "echo_level" : 0
         }""")
 
-    def ListOfParametersNotRecursivelyValidated(self):
+    @classmethod
+    def ListOfParametersNotRecursivelyValidated(cls):
         """This function skips the
         """
         return []

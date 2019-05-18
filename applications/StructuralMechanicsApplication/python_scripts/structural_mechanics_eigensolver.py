@@ -39,7 +39,8 @@ class EigenSolver(MechanicalSolver):
         this_defaults.AddMissingParameters(super(EigenSolver, cls).GetDefaultSettings())
         return this_defaults
 
-    def ListOfParametersNotRecursivelyValidated(self):
+    @classmethod
+    def ListOfParametersNotRecursivelyValidated(cls):
         return ["eigensolver_settings"]
 
     #### Private functions ####
