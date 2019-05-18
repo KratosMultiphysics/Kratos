@@ -625,7 +625,7 @@ public:
                     //getting the global index of the node
                     i_node = static_cast<unsigned int> (node_it->FastGetSolutionStepValue(AUX_INDEX));
                     //determining its neighbours
-                    WeakPointerVector< Node < 3 > >& neighb_nodes = node_it->GetValue(NEIGHBOUR_NODES);
+                    GlobalPointersVector< Node < 3 > >& neighb_nodes = node_it->GetValue(NEIGHBOUR_NODES);
                     //number of neighbours of node i determines row start index for the following node
                     unsigned int n_neighbours = neighb_nodes.size();
                     //DIAGONAL TERMS
@@ -638,7 +638,7 @@ public:
                     //work_array.push_back(i_node);
 
                     //nested loop over the neighbouring nodes
-                    for (WeakPointerVector< Node < 3 > >::iterator neighb_it = neighb_nodes.begin(); neighb_it != neighb_nodes.end(); neighb_it++)
+                    for (GlobalPointersVector< Node < 3 > >::iterator neighb_it = neighb_nodes.begin(); neighb_it != neighb_nodes.end(); neighb_it++)
                     {
                         //getting global index of the neighbouring node
                         work_array.push_back(static_cast<unsigned int> (neighb_it->FastGetSolutionStepValue(AUX_INDEX)));

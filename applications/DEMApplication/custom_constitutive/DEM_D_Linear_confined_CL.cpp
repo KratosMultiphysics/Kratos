@@ -4,8 +4,6 @@
 
 namespace Kratos {
 
-    //void DEM_D_Linear_confined::Initialize(const ProcessInfo& r_process_info) {}
-
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_Linear_confined::Clone() const {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_Linear_confined(*this));
         return p_clone;
