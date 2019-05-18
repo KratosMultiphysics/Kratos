@@ -44,6 +44,8 @@ class TikZOutputProcess(KratosMultiphysics.Process):
             "include_elements_label"             : true,
             "include_axis"                       : true,
             "include_grid"                       : true,
+            "landscape_mode"                     : true,
+            "include_caption"                    : false,
             "prefix_nodes"                       : "",
             "prefix_elements"                    : ""
         }
@@ -97,8 +99,10 @@ class TikZOutputProcess(KratosMultiphysics.Process):
         include_elements_label = self.settings["include_elements_label"].GetBool()
         include_axis = self.settings["include_axis"].GetBool()
         include_grid = self.settings["include_grid"].GetBool()
+        landscape_mode = self.settings["landscape_mode"].GetBool()
+        include_caption = self.settings["include_caption"].GetBool()
         cmyk_colors_fill = self.settings["cmyk_colors_fill"].GetVector()
-        template_string = GetTemplateString(self.model_part, cmyk_colors_fill, include_nodes_label, include_elements_label, include_axis, include_grid)
+        template_string = GetTemplateString(self.model_part, cmyk_colors_fill, include_nodes_label, include_elements_label, include_axis, include_grid, landscape_mode, include_caption)
 
         # Generate nodal data
         prefix_nodes = self.settings["prefix_nodes"].GetString()
@@ -184,8 +188,12 @@ class TikZOutputProcess(KratosMultiphysics.Process):
         else:
             return ( self.step_count >= self.next_output )
 
-def GetTemplateString(model_part, cmyk_colors_fill, include_nodes_label = True, include_elements_label = True, include_axis = True, include_grid = True):
-    template_string = "\documentclass{article}\n\\usepackage{tikz,listofitems,readarray,filecontents}\n\\usepackage{xcolor}\n\\usetikzlibrary{calc}\n\\begin{filecontents*}{nodedata.dat}\n%%REPLACE_NODE_DATA\n\end{filecontents*}\n\\begin{filecontents*}{elementdata.dat}\n%%REPLACE_ELEMENT_DATA\n\end{filecontents*}\n\n\definecolor{CustomColor}{cmyk}{" + str(cmyk_colors_fill[0]) + "," + str(cmyk_colors_fill[1]) + "," + str(cmyk_colors_fill[2]) + "," + str(cmyk_colors_fill[3]) + "}\n\n\\newcommand\coord[2][]{%\n  \edef\comparenode{#2}%\n  \\foreachitem\zzz\in\\noddat[]{%\n    \edef\\testnode{\\noddat[\zzzcnt,1]}%\n    \ifx\\testnode\comparenode\n      \\xaddtomacro\\tmp{(\\noddat[\zzzcnt,2]#1,\\noddat[\zzzcnt,3]#1)}\\fi\n  }%\n}\n\n\makeatletter\let\\addtomacro\g@addto@macro\makeatother\n\\newcommand\\xaddtomacro[2]{%\n  \edef\\xtmp{#2}%\n  \expandafter\\addtomacro\expandafter#1\expandafter{\\xtmp}%\n}\n\n\\newcommand\drawmesh[1][{\\filldraw[fill=CustomColor,fill opacity=0.1]}]{%\n  \def\\tmp{}%\n  \\foreachitem\z\in\eledat[]{%\n    \\addtomacro\\tmp{#1}%\n    \\foreachitem\zz\in\eledat[\zcnt]{%\n      \ifnum\zzcnt=1\\relax\else\n        \ifnum\zzcnt<\listlen\eledat[\zcnt]\\relax\n          \ifnum\zzcnt=2\\relax\coord{\zz}\\fi\n          \\addtomacro\\tmp{--}%\n          \coord{\eledat[\zcnt,\\the\\numexpr\zzcnt+1\\relax]}%\n        \else\n          \\addtomacro\\tmp{--}%\n          \coord{\eledat[\zcnt,2]}%\n        \\fi\n      \\fi\n    }%\n    \\addtomacro\\tmp{;}%\n  }%\n  \\tmp%\n}\n\n\\newcommand\labelnodes[1][\\node at]{%\n  \\foreachitem\z\in\\noddat[]{%\n    #1 (\\noddat[\zcnt,2],\\noddat[\zcnt,3]){%\n%% ALTERNATIVE 1\n%      \\textcolor{red}{$\\noddat[\zcnt,1]$}};\n%% ALTERNATIVE 2\n      \\fboxsep=0pt\\relax\n      \colorbox{white}{\color{red}$\\noddat[\zcnt,1]$}};\n%%\n  }%\n}\n\n\\newcommand\labelelements[1][\\node at]{%\n  \\foreachitem\z\in\eledat[]{%\n    \def\\tmp{#1 }%\n    \\addtomacro\\tmp{($}\n    \\foreachitem\zz\in\eledat[\zcnt]{%\n      \ifnum\zzcnt=1\\relax\else\n        \ifnum\zzcnt=2\\relax\else\\addtomacro\\tmp{ + }\\fi%\n        \coord[{/\\the\\numexpr\listlen\eledat[\zcnt]-1\\relax}]{%\n          \eledat[\zcnt,\zzcnt]}%\n      \\fi\n    }%\n    \\addtomacro\\tmp{$)}%\n    \\xaddtomacro\\tmp{{\\noexpand\\textcolor{blue!70!green}{$\eledat[\zcnt,1]$}};}%\n   \\tmp\n  }%\n}\n\n\\newcommand\\readmesh[2]{%\n  \ignoreemptyitems%\n  \\readarraysepchar{,}%\n  \ifx\\relax#1\\relax\else\\readdef{#1}\\nodedata\\fi\n  \ifx\\relax#2\\relax\else\\readdef{#2}\elementdata\\fi\n  \setsepchar{,/ }%\n  \\readlist*\\noddat{\\nodedata}%\n  \\readlist*\eledat{\elementdata}%\n}\n\\begin{document}\n%% FILE INPUT\n\\readmesh{nodedata.dat}{elementdata.dat}\n\n\\begin{figure}[ht]\n\centering\n\\begin{tikzpicture}[scale=1.5]\n  \drawmesh"
+def GetTemplateString(model_part, cmyk_colors_fill, include_nodes_label = True, include_elements_label = True, include_axis = True, include_grid = True, landscape_mode = True, include_caption = False):
+    template_string = "\documentclass{article}\n\\usepackage{tikz,listofitems,readarray,filecontents}\n\\usepackage{pdflscape}\n\\pagenumbering{gobble}\n\\usepackage{xcolor}\n\\usetikzlibrary{calc}\n\\begin{filecontents*}{nodedata.dat}\n%%REPLACE_NODE_DATA\n\end{filecontents*}\n\\begin{filecontents*}{elementdata.dat}\n%%REPLACE_ELEMENT_DATA\n\end{filecontents*}\n\n\definecolor{CustomColor}{cmyk}{" + str(cmyk_colors_fill[0]) + "," + str(cmyk_colors_fill[1]) + "," + str(cmyk_colors_fill[2]) + "," + str(cmyk_colors_fill[3]) + "}\n\n\\newcommand\coord[2][]{%\n  \edef\comparenode{#2}%\n  \\foreachitem\zzz\in\\noddat[]{%\n    \edef\\testnode{\\noddat[\zzzcnt,1]}%\n    \ifx\\testnode\comparenode\n      \\xaddtomacro\\tmp{(\\noddat[\zzzcnt,2]#1,\\noddat[\zzzcnt,3]#1)}\\fi\n  }%\n}\n\n\makeatletter\let\\addtomacro\g@addto@macro\makeatother\n\\newcommand\\xaddtomacro[2]{%\n  \edef\\xtmp{#2}%\n  \expandafter\\addtomacro\expandafter#1\expandafter{\\xtmp}%\n}\n\n\\newcommand\drawmesh[1][{\\filldraw[fill=CustomColor,fill opacity=0.1]}]{%\n  \def\\tmp{}%\n  \\foreachitem\z\in\eledat[]{%\n    \\addtomacro\\tmp{#1}%\n    \\foreachitem\zz\in\eledat[\zcnt]{%\n      \ifnum\zzcnt=1\\relax\else\n        \ifnum\zzcnt<\listlen\eledat[\zcnt]\\relax\n          \ifnum\zzcnt=2\\relax\coord{\zz}\\fi\n          \\addtomacro\\tmp{--}%\n          \coord{\eledat[\zcnt,\\the\\numexpr\zzcnt+1\\relax]}%\n        \else\n          \\addtomacro\\tmp{--}%\n          \coord{\eledat[\zcnt,2]}%\n        \\fi\n      \\fi\n    }%\n    \\addtomacro\\tmp{;}%\n  }%\n  \\tmp%\n}\n\n\\newcommand\labelnodes[1][\\node at]{%\n  \\foreachitem\z\in\\noddat[]{%\n    #1 (\\noddat[\zcnt,2],\\noddat[\zcnt,3]){%\n%% ALTERNATIVE 1\n%      \\textcolor{red}{$\\noddat[\zcnt,1]$}};\n%% ALTERNATIVE 2\n      \\fboxsep=0pt\\relax\n      \colorbox{white}{\color{red}$\\noddat[\zcnt,1]$}};\n%%\n  }%\n}\n\n\\newcommand\labelelements[1][\\node at]{%\n  \\foreachitem\z\in\eledat[]{%\n    \def\\tmp{#1 }%\n    \\addtomacro\\tmp{($}\n    \\foreachitem\zz\in\eledat[\zcnt]{%\n      \ifnum\zzcnt=1\\relax\else\n        \ifnum\zzcnt=2\\relax\else\\addtomacro\\tmp{ + }\\fi%\n        \coord[{/\\the\\numexpr\listlen\eledat[\zcnt]-1\\relax}]{%\n          \eledat[\zcnt,\zzcnt]}%\n      \\fi\n    }%\n    \\addtomacro\\tmp{$)}%\n    \\xaddtomacro\\tmp{{\\noexpand\\textcolor{blue!70!green}{$\eledat[\zcnt,1]$}};}%\n   \\tmp\n  }%\n}\n\n\\newcommand\\readmesh[2]{%\n  \ignoreemptyitems%\n  \\readarraysepchar{,}%\n  \ifx\\relax#1\\relax\else\\readdef{#1}\\nodedata\\fi\n  \ifx\\relax#2\\relax\else\\readdef{#2}\elementdata\\fi\n  \setsepchar{,/ }%\n  \\readlist*\\noddat{\\nodedata}%\n  \\readlist*\eledat{\elementdata}%\n}\n\\begin{document}\n%% FILE INPUT\n\\readmesh{nodedata.dat}{elementdata.dat}"
+
+    if landscape_mode:
+        template_string += "\n\\begin{landscape}"
+    template_string += "\n\n\\begin{figure}[ht]\n\centering\n\\begin{tikzpicture}[scale=1.5]\n  \drawmesh"
     if include_nodes_label:
         template_string += "\n  \labelnodes"
     if include_elements_label:
@@ -222,7 +230,13 @@ def GetTemplateString(model_part, cmyk_colors_fill, include_nodes_label = True, 
         template_string += "\n  \draw[thick,->] (0,0) -- (0," + str(max_y) + ");\n  \draw[thick,->] (0,0) -- (" + str(max_x) + ",0) node[anchor=north west] {x axis};\n  \draw[thick,->] (0,0) -- (0," + str(max_y) + ") node[anchor=south east] {y axis};\n  \\foreach \\x in {0," + str(separation_x) + "," + str(2 * separation_x) + "," + str(3 * separation_x) + "," + str(4 * separation_x) + "}\n  \draw (\\x cm,1pt) -- (\\x cm,-1pt) node[anchor=north] {$\\x$};\n  \\foreach \y in {0," + str(separation_y) + "," + str(2 * separation_y) + "," + str(3 * separation_y) + "," + str(4 * separation_y) + "}\n  \draw (1pt,\y cm) -- (-1pt,\y cm) node[anchor=east] {$\y$};"
     if include_grid:
         template_string += "\n  \draw[step=" + str(minor_speration) + "cm,gray,very thin] (" + str(min_x) + "," + str(min_y) + ") grid (" + str(max_x) + "," + str(max_y) + ");"
-    template_string += "\n\end{tikzpicture}\n\caption{Finite element mesh}\n\end{figure}\n\end{document}"
+    template_string += "\n\end{tikzpicture}"
+    if include_caption:
+        template_string += "\n\caption{Finite element mesh}"
+    template_string += "\n\end{figure}"
+    if landscape_mode:
+        template_string += "\n\\end{landscape}"
+    template_string += "\n\end{document}"
     return template_string
 
 def GetPrettyTime(time):
