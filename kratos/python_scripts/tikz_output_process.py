@@ -141,13 +141,14 @@ class TikZOutputProcess(KratosMultiphysics.Process):
         name_file = os.path.join(folder_name, model_part_name)
         if self.output_control == "time":
             time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-            output = open(name_file + "_TIME_" + str(time) + ".tex",'w')
+            with open(name_file + "_TIME_" + str(time) + ".tex", 'w') as output:
+                output.write(outputstring)
+                output.close()
         else:
             step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
-            output = open(name_file + "_STEP_" + str(step) + ".tex",'w')
-
-        output.write(outputstring)
-        output.close()
+            with open(name_file + "_STEP_" + str(step) + ".tex", 'w') as output:
+                output.write(outputstring)
+                output.close()
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
