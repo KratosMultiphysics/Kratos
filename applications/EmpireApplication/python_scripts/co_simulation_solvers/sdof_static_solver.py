@@ -58,6 +58,7 @@ class SDoFStaticSolver(CoSimulationBaseSolver):
 
         initial_values = self.initial_displacement
         self.dx = initial_values
+        self.x_old = 0.0
 
         #x contain: displacement and dx is not used here
 
@@ -74,29 +75,29 @@ class SDoFStaticSolver(CoSimulationBaseSolver):
         pass
 
     def SolveSolutionStep(self):
-        self.x_old = self.x
-        b = self.force
-        self.x = b/self.stiffness
+        # self.x_old = self.x
+        # b = self.force
+        self.x = self.force/self.stiffness
 
         self.dx = self.x - self.x_old
-        self.dx_old = self.dx
+        self.x_old = self.x
         # self.dx = 2
-        print('force = ', b)
+        print('force = ', self.force)
         print('displacement Change = ', self.dx)
-        print('displacement Change = ', self.x)
+        print('displacement = ', self.x)
 
     def GetBufferSize(self):
         return self.buffer_size
 
     def GetSolutionStepValue(self, identifier, buffer_idx=0):
         if identifier == "DISPLACEMENT":
-            return self.dx
+            return self.x
         else:
             raise Exception("Identifier is unknown!")
 
     def SetSolutionStepValue(self, identifier, value, buffer_idx=0):
         if identifier == "DISPLACEMENT":
-            self.dx= value
+            self.x= value
         else:
             raise Exception("Identifier is unknown!")
 
@@ -108,16 +109,20 @@ class SDoFStaticSolver(CoSimulationBaseSolver):
 
     def SetData(self, identifier, data):
         if identifier == "LOAD":
-            self.force = data
+            # self.force = data
+            print("WHAT IS LOAD SET VALUE", data)
         elif identifier == "DISPLACEMENT":
             self.SetSolutionStepValue("DISPLACEMENT", data,0)
+            print("WHAT IS DISPLACEMENT SET VALUE", data)
         else:
             raise Exception("Identifier is unknown!")
 
     def GetData(self, identifier):
         if identifier == "LOAD":
+            print("WHAT IS LOAD GET VALUE", self.force)
             return self.force
         elif identifier == "DISPLACEMENT":
+            print("WHAT IS DISPLACEMENT GET VALUE", self.GetSolutionStepValue("DISPLACEMENT",0))
             return self.GetSolutionStepValue("DISPLACEMENT",0)
         else:
             raise Exception("Identifier is unknown!")
