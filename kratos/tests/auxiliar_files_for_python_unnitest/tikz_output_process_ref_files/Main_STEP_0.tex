@@ -1,5 +1,7 @@
 \documentclass{article}
 \usepackage{tikz,listofitems,readarray,filecontents}
+\usepackage{pdflscape}
+\pagenumbering{gobble}
 \usepackage{xcolor}
 \usetikzlibrary{calc}
 \begin{filecontents*}{nodedata.dat}
@@ -112,6 +114,7 @@
 \begin{document}
 %% FILE INPUT
 \readmesh{nodedata.dat}{elementdata.dat}
+\begin{landscape}
 
 \begin{figure}[ht]
 \centering
@@ -128,6 +131,6 @@
   \draw (1pt,\y cm) -- (-1pt,\y cm) node[anchor=east] {$\y$};
   \draw[step=0.25cm,gray,very thin] (0.0,0.0) grid (2.6,1.3);
 \end{tikzpicture}
-\caption{Finite element mesh}
 \end{figure}
+\end{landscape}
 \end{document}
