@@ -50,7 +50,7 @@ class SearchBaseProcess(KM.Process):
             "interval"                    : [0.0,"End"],
             "integration_order"           : 2,
             "search_parameters" : {
-                "type_search"                         : "in_radius",
+                "type_search"                         : "in_radius_with_obb",
                 "simple_search"                       : false,
                 "adapt_search"                        : false,
                 "search_factor"                       : 3.5,
@@ -63,7 +63,14 @@ class SearchBaseProcess(KM.Process):
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
-                "check_gap"                           : "check_mapping"
+                "check_gap"                           : "check_mapping",
+                "octree_search_parameters" : {
+                    "bounding_box_factor"             : 0.1,
+                    "debug_obb"                       : false,
+                    "OBB_intersection_type"           : "SeparatingAxisTheorem",
+                    "lower_bounding_box_coefficient"  : 0.0,
+                    "higher_bounding_box_coefficient" : 1.0
+                }
             }
         }
         """)
