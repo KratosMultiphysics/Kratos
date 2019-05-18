@@ -12,10 +12,12 @@ def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestTikZOutputProcess(KratosUnittest.TestCase):
-    def test_ascii_tikz_output_2D(self):
+    @classmethod
+    def test_ascii_tikz_output_2D(cls):
         ExecuteBasicTikZoutputProcessCheck()
 
-    def tearDown(self):
+    @classmethod
+    def tearDown(cls):
         kratos_utils.DeleteDirectoryIfExisting("test_tikz_output")
 
 def SetupModelPart2D(model_part):
@@ -92,18 +94,19 @@ def ExecuteBasicTikZoutputProcessCheck():
 
     tikz_output_parameters = KratosMultiphysics.Parameters("""{
         "Parameters" : {
-            "model_part_name"                    : "Main",
-            "folder_name"                        : "test_tikz_output"
+            "model_part_name" : "Main",
+            "folder_name"     : "test_tikz_output"
         }
     }""")
 
     tikz_output_parameters["Parameters"]["model_part_name"].SetString(model_part_name)
     tikz_output_process = SetupTikZOutputProcess(current_model, tikz_output_parameters)
 
-    time = 0.0
-    dt = 0.2
+    # NOTE: Once postprocess works, activate this
+    #time = 0.0
+    #dt = 0.2
     step = 0
-    end_time = 0.1
+    #end_time = 0.1
     tikz_output_process.ExecuteInitialize()
     tikz_output_process.ExecuteBeforeSolutionLoop()
 
