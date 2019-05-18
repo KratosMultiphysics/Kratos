@@ -348,7 +348,7 @@ def AssembleTestSuites():
             #TComponentsALMThreeDPatchComplexGeomTestContact,
             #TComponentsALMTThreeDPatchMatchingTestContact,
             #TComponentsALMThreeDPatchNotMatchingTestContact,
-            #TALMHyperSimplePatchFrictionalTestContact,
+            ##TALMHyperSimplePatchFrictionalTestContact,  # FIXME
             #TPenaltyNoFrictionHyperSimplePatchFrictionalTestContact,
             #TPenaltyPerfectStickHyperSimplePatchFrictionalTestContact,
             #TPenaltyThresholdSlipHyperSimplePatchFrictionalTestContact,

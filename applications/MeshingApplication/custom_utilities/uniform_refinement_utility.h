@@ -423,9 +423,9 @@ private:
      * @param rOtherFatherNodes the father nodes to insert
      */
     void AddOtherFatherNodes(
-        WeakPointerVector<NodeType>& rThisFatherNodes,
+        GlobalPointersVector<NodeType>& rThisFatherNodes,
         std::vector<double>& rThisFatherWeights,
-        WeakPointerVector<NodeType>& rOtherFatherNodes,
+        GlobalPointersVector<NodeType>& rOtherFatherNodes,
         const std::vector<double>& rOtherFatherWeights,
         const double& rWeight = 0.5
         );

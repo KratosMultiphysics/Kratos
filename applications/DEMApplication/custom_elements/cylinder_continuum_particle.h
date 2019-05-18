@@ -23,9 +23,9 @@ namespace Kratos
 
       KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CylinderContinuumParticle);
 
-      typedef WeakPointerVector<Element> ParticleWeakVectorType;  //M: l'he afegit jo.. esta be aquesta?
+      typedef GlobalPointersVector<Element> ParticleWeakVectorType;  //M: l'he afegit jo.. esta be aquesta?
       typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-      typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+      typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
 
       CylinderContinuumParticle( IndexType NewId, GeometryType::Pointer pGeometry );
       CylinderContinuumParticle( IndexType NewId, NodesArrayType const& ThisNodes);

@@ -18,7 +18,7 @@
 #include "custom_utilities/mortar_explicit_contribution_utilities.h"
 #include "custom_conditions/ALM_frictional_mortar_contact_condition.h"
 
-namespace Kratos 
+namespace Kratos
 {
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
@@ -29,7 +29,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionalMortarContactCondition<TDi
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return Kratos::make_shared< AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation > >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive< AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation > >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -157,19 +157,19 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
 template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
 void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& CurrentProcessInfo 
+    ProcessInfo& CurrentProcessInfo
     )
 {
-    KRATOS_TRY;   
-    
+    KRATOS_TRY;
+
     if (rResult.size() != MatrixSize)
         rResult.resize( MatrixSize, false );
-    
+
     IndexType index = 0;
-    
+
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
     GeometryType& current_master = this->GetPairedGeometry();;
-    
+
     // Master Nodes Displacement Equation IDs
     for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) { // NOTE: Assuming same number of nodes for master and slave
         NodeType& master_node = current_master[i_master];
@@ -193,7 +193,7 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
         rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Y ).EquationId( );
         if (TDim == 3) rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Z ).EquationId( );
     }
-    
+
     KRATOS_CATCH( "" );
 }
 
@@ -203,16 +203,16 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
 template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
 void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::GetDofList(
     DofsVectorType& rConditionalDofList,
-    ProcessInfo& rCurrentProcessInfo 
+    ProcessInfo& rCurrentProcessInfo
 )
 {
     KRATOS_TRY;
-    
+
     if (rConditionalDofList.size() != MatrixSize)
         rConditionalDofList.resize( MatrixSize );
-    
+
     IndexType index = 0;
-    
+
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
     GeometryType& current_master = this->GetPairedGeometry();;
 
@@ -239,7 +239,7 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
         rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Y );
         if (TDim == 3) rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Z );
     }
-    
+
     KRATOS_CATCH( "" );
 }
 

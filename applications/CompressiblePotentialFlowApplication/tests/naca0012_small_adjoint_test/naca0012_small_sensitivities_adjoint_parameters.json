@@ -43,7 +43,7 @@
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "angle_of_attack": 0.0,
                 "mach_infinity": 0.02941176471,
-                "inlet_phi"         : 1.0
+                "inlet_potential"         : 1.0
             }
         },{
             "python_module" : "define_wake_process_2d",
@@ -51,7 +51,6 @@
             "process_name"  : "DefineWakeProcess",
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.Body2D_Body",
-                "wake_direction"  : [1.0,0.0,0.0],
                 "epsilon"         : 1e-9
             }
         }],
@@ -77,7 +76,7 @@
             "Parameters"            : {
                 "check_variables" : ["SHAPE_SENSITIVITY"],
                 "input_file_name" : "shape_sensitivity_test_results.json",
-                "model_part_name"  : "Body2D_Body",
+                "model_part_name"  : "MainModelPart.Body2D_Body",
                 "time_frequency"   : -2
             }
         }],

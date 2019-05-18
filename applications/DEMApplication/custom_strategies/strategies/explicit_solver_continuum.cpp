@@ -195,7 +195,6 @@ namespace Kratos {
         const int time_step = r_process_info[TIME_STEPS];
         const double time = r_process_info[TIME];
         const bool is_time_to_search_neighbours = (time_step + 1) % GetNStepSearch() == 0 && (time_step > 0); //Neighboring search. Every N times.
-        const bool is_time_to_print_results = r_process_info[IS_TIME_TO_PRINT];
 
         if (r_process_info[SEARCH_CONTROL] > 0) {
 
@@ -241,7 +240,8 @@ namespace Kratos {
             }
 
             //if (r_process_info[BOUNDING_BOX_OPTION] == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
-            if (is_time_to_print_results && r_process_info[CONTACT_MESH_OPTION] == 1) {
+
+            if (r_process_info[CONTACT_MESH_OPTION]) {
                 CreateContactElements();
                 InitializeContactElements();
             }
@@ -644,6 +644,35 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
+    void ContinuumExplicitSolverStrategy::BreakAlmostBrokenSpheres() {
+
+        KRATOS_TRY
+
+        const int maximum_allowed_number_of_intact_bonds = (int) GetModelPart().GetProcessInfo()[MAX_NUMBER_OF_INTACT_BONDS_TO_CONSIDER_A_SPHERE_BROKEN];
+
+        #pragma omp parallel for
+        for (int i = 0; i < (int) mListOfSphericContinuumParticles.size(); i++) {
+
+            int number_of_intact_bonds = 0;
+
+            for (int j = 0; j < (int) mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize; j++) {
+
+                if (!mListOfSphericContinuumParticles[i]->mIniNeighbourFailureId[j]) number_of_intact_bonds++;
+                if (number_of_intact_bonds > maximum_allowed_number_of_intact_bonds) break;
+            }
+
+            if (number_of_intact_bonds <= maximum_allowed_number_of_intact_bonds) {
+
+                for (int j = 0; j < (int) mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize; j++) {
+
+                    if (!mListOfSphericContinuumParticles[i]->mIniNeighbourFailureId[j]) mListOfSphericContinuumParticles[i]->mIniNeighbourFailureId[j] = 8;
+                }
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
     void ContinuumExplicitSolverStrategy::SetInitialDemContacts() {
         KRATOS_TRY
 
@@ -703,6 +732,8 @@ namespace Kratos {
                 }
             }
         }
+
+        BreakAlmostBrokenSpheres();
     }
 
     void ContinuumExplicitSolverStrategy::FinalizeSolutionStepFEM() {
