@@ -16,7 +16,7 @@
 /* System includes */
 #include <stdexcept>
 #include <sstream>
-
+#include <assert.h>
 
 /* External includes */
 
@@ -579,7 +579,9 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 
 #define KRATOS_VERSION_AS_INT (KRATOS_MAJOR_VERSION*10+KRATOS_MINOR_VERSION)
-#define KRATOS_TO_BE_REMOVED_IN_VERSION(major_version, minor_version) static_assert((major_version*10+minor_version) > KRATOS_VERSION_AS_INT, "This method is deprecated for the current version. Please remove");
+#define KRATOS_TO_BE_REMOVED_IN_VERSION(major_version, minor_version) \
+    if((major_version*10+minor_version) <= KRATOS_VERSION_AS_INT) std::cout << "\nWARNING:: This method is deprecated for the current version. Please remove" << std::endl; \
+    assert((major_version*10+minor_version) > KRATOS_VERSION_AS_INT);
 
 // The following block defines the macro KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
 // If written in a file, for the following lines of code the compiler will not print warnings of type 'deprecated function'.
