@@ -99,14 +99,14 @@ public:
         const bool IODebug = false
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
-          mpGidIO(nullptr)
+          mpIO(nullptr)
     {
         // Set local flags
         mOptions.Set(BaseMortarConvergenceCriteria::COMPUTE_DYNAMIC_FACTOR, ComputeDynamicFactor);
         mOptions.Set(BaseMortarConvergenceCriteria::IO_DEBUG, IODebug);
 
         if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
-            mpGidIO = Kratos::make_shared<GidIOBaseType>("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
+            mpIO = Kratos::make_shared<GidIOBaseType>("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
         }
     }
 
@@ -114,7 +114,7 @@ public:
     BaseMortarConvergenceCriteria( BaseMortarConvergenceCriteria const& rOther )
       :BaseType(rOther),
        mOptions(rOther.mOptions),
-       mpGidIO(rOther.mpGidIO)
+       mpIO(rOther.mpIO)
     {
     }
 
@@ -220,33 +220,33 @@ public:
             const double label = static_cast<double>(nl_iter);
 
             if (nl_iter == 1) {
-                mpGidIO->InitializeMesh(label);
-                mpGidIO->WriteMesh(rModelPart.GetMesh());
-                mpGidIO->FinalizeMesh();
-                mpGidIO->InitializeResults(label, rModelPart.GetMesh());
+                mpIO->InitializeMesh(label);
+                mpIO->WriteMesh(rModelPart.GetMesh());
+                mpIO->FinalizeMesh();
+                mpIO->InitializeResults(label, rModelPart.GetMesh());
             }
 
-            mpGidIO->WriteNodalFlags(INTERFACE, "INTERFACE", rModelPart.Nodes(), label);
-            mpGidIO->WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
-            mpGidIO->WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
-            mpGidIO->WriteNodalFlags(ISOLATED, "ISOLATED", rModelPart.Nodes(), label);
-            mpGidIO->WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
-            mpGidIO->WriteNodalResultsNonHistorical(DYNAMIC_FACTOR, rModelPart.Nodes(), label);
-            mpGidIO->WriteNodalResultsNonHistorical(AUGMENTED_NORMAL_CONTACT_PRESSURE, rModelPart.Nodes(), label);
-            mpGidIO->WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
+            mpIO->WriteNodalFlags(INTERFACE, "INTERFACE", rModelPart.Nodes(), label);
+            mpIO->WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
+            mpIO->WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
+            mpIO->WriteNodalFlags(ISOLATED, "ISOLATED", rModelPart.Nodes(), label);
+            mpIO->WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
+            mpIO->WriteNodalResultsNonHistorical(DYNAMIC_FACTOR, rModelPart.Nodes(), label);
+            mpIO->WriteNodalResultsNonHistorical(AUGMENTED_NORMAL_CONTACT_PRESSURE, rModelPart.Nodes(), label);
+            mpIO->WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
             if (rModelPart.Nodes().begin()->SolutionStepsDataHas(VELOCITY_X)) {
-                mpGidIO->WriteNodalResults(VELOCITY, rModelPart.Nodes(), label, 0);
-                mpGidIO->WriteNodalResults(ACCELERATION, rModelPart.Nodes(), label, 0);
+                mpIO->WriteNodalResults(VELOCITY, rModelPart.Nodes(), label, 0);
+                mpIO->WriteNodalResults(ACCELERATION, rModelPart.Nodes(), label, 0);
             }
             if (r_nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
-                mpGidIO->WriteNodalResults(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, rModelPart.Nodes(), label, 0);
+                mpIO->WriteNodalResults(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, rModelPart.Nodes(), label, 0);
             else if (r_nodes_array.begin()->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER_X))
-                mpGidIO->WriteNodalResults(VECTOR_LAGRANGE_MULTIPLIER, rModelPart.Nodes(), label, 0);
-            mpGidIO->WriteNodalResults(WEIGHTED_GAP, rModelPart.Nodes(), label, 0);
+                mpIO->WriteNodalResults(VECTOR_LAGRANGE_MULTIPLIER, rModelPart.Nodes(), label, 0);
+            mpIO->WriteNodalResults(WEIGHTED_GAP, rModelPart.Nodes(), label, 0);
             if (frictional_problem) {
-                mpGidIO->WriteNodalFlags(SLIP, "SLIP", rModelPart.Nodes(), label);
-                mpGidIO->WriteNodalResults(WEIGHTED_SLIP, rModelPart.Nodes(), label, 0);
-                mpGidIO->WriteNodalResultsNonHistorical(AUGMENTED_TANGENT_CONTACT_PRESSURE, rModelPart.Nodes(), label);
+                mpIO->WriteNodalFlags(SLIP, "SLIP", rModelPart.Nodes(), label);
+                mpIO->WriteNodalResults(WEIGHTED_SLIP, rModelPart.Nodes(), label, 0);
+                mpIO->WriteNodalResultsNonHistorical(AUGMENTED_TANGENT_CONTACT_PRESSURE, rModelPart.Nodes(), label);
             }
         }
 
@@ -281,12 +281,12 @@ public:
         // Update normal of the conditions
         MortarUtilities::ComputeNodesMeanNormalModelPart(rModelPart.GetSubModelPart("Contact"));
 
-        // GiD IO for debugging
+        // IO for debugging
         if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
-            mpGidIO->CloseResultFile();
+            mpIO->CloseResultFile();
             std::ostringstream new_name ;
             new_name << "POST_LINEAR_ITER_STEP=""POST_LINEAR_ITER_STEP=" << rModelPart.GetProcessInfo()[STEP];
-            mpGidIO->ChangeOutputName(new_name.str());
+            mpIO->ChangeOutputName(new_name.str());
         }
     }
 
@@ -306,9 +306,9 @@ public:
         const TSystemVectorType& rb
         ) override
     {
-        // GiD IO for debugging
+        // IO for debugging
         if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
-            mpGidIO->FinalizeResults();
+            mpIO->FinalizeResults();
         }
     }
 
@@ -378,7 +378,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    GidIOBaseType::Pointer mpGidIO; /// The pointer to the debugging GidIO
+    GidIOBaseType::Pointer mpIO; /// The pointer to the debugging IO
 
     ///@}
     ///@name Private Operators
