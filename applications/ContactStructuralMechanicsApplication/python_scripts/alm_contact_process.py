@@ -262,6 +262,16 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         # We call to the base process
         super(ALMContactProcess, self).ExecuteFinalize()
 
+    def _set_additional_parameters(self, param):
+        """ This sets additional parameters for the search
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        param -- The parameters where to set additional values
+        """
+        param.AddEmptyValue("pure_slip")
+        param["pure_slip"].SetBool(self.pure_slip)
+
     def _get_condition_name(self):
         """ This method returns the condition name
 
