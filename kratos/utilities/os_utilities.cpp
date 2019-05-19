@@ -12,7 +12,7 @@
 
 // System includes
 #include <stdio.h>  /* defines FILENAME_MAX */
-#ifdef _WIN32
+#ifdef KRATOS_COMPILED_IN_WINDOWS
 #include <direct.h>
 #define GetCurrentDir _getcwd
 #else
