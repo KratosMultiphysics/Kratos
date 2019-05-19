@@ -69,6 +69,7 @@ public:
     /// Local Flags
     KRATOS_DEFINE_LOCAL_FLAG( PRINTING_OUTPUT );
     KRATOS_DEFINE_LOCAL_FLAG( TABLE_IS_INITIALIZED );
+    KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
 
     /// The base class definition (and it subclasses)
     typedef BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >          BaseType;
@@ -165,7 +166,7 @@ public:
         BaseType::PostCriteria(rModelPart, rDofSet, rA, rDx, rb);
 
         // Compute the active set
-        const array_1d<std::size_t, 2> is_converged = ActiveSetUtilities::ComputePenaltyFrictionalActiveSet(rModelPart);
+        const array_1d<std::size_t, 2> is_converged = ActiveSetUtilities::ComputePenaltyFrictionalActiveSet(rModelPart, BaseType::mOptions.Is(PenaltyFrictionalMortarConvergenceCriteria::PURE_SLIP));
 
         // We save to the process info if the active set has converged
         const bool active_set_converged = (is_converged[0] + is_converged[1]) == 0 ? true : false;
@@ -355,6 +356,10 @@ template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags PenaltyFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(3));
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags PenaltyFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(3, false));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags PenaltyFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::PURE_SLIP(Kratos::Flags::Create(4));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags PenaltyFrictionalMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_PURE_SLIP(Kratos::Flags::Create(4, false));
 
 }  // namespace Kratos
 
