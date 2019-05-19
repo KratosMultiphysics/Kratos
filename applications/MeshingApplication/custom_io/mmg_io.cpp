@@ -89,15 +89,7 @@ void MmgIO<TMMGLibrary>::ReadModelPart(ModelPart& rModelPart)
 
     // Read JSON of colors
     std::unordered_map<IndexType,std::vector<std::string>> colors;  /// Where the sub model parts IDs are stored
-    std::ifstream infile(mFilename + ".json");
-    KRATOS_ERROR_IF_NOT(infile.good()) << "Materials file: " << mFilename  + ".json" << " cannot be found" << std::endl;
-    std::stringstream buffer;
-    buffer << infile.rdbuf();
-    Parameters json_text(buffer.str());
-    for (auto it_param = json_text.begin(); it_param != json_text.end(); ++it_param) {
-        const std::vector<std::string>& r_sub_model_part_names = it_param->GetStringArray();
-        colors.insert(std::pair<IndexType,std::vector<std::string>>({std::stoi(it_param.name()), r_sub_model_part_names}));
-    }
+    AssignUniqueModelPartCollectionTagUtility::ReadTagsFromJson(mFilename, colors);
 
     // Create the submodelparts
     const std::string& r_main_name = rModelPart.Name();
@@ -179,23 +171,7 @@ void MmgIO<TMMGLibrary>::WriteModelPart(ModelPart& rModelPart)
     mMmmgUtilities.OutputSol(mFilename);
 
     // Writing the colors to a JSON
-    Parameters color_json;
-    for (auto& r_color : colors) {
-        Parameters names_array;
-        names_array.AddEmptyArray("model_part_names");
-        for (auto& r_model_part_name : r_color.second) {
-            names_array["model_part_names"].Append(r_model_part_name);
-        }
-        color_json.AddValue(std::to_string(r_color.first), names_array["model_part_names"]);
-    }
-
-    const std::string& r_json_text = color_json.PrettyPrintJsonString();
-
-    std::filebuf buffer;
-    buffer.open(mFilename + ".json",std::ios::out);
-    std::ostream os(&buffer);
-    os << r_json_text;
-    buffer.close();
+    AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(mFilename, colors);
 
     KRATOS_CATCH("");
 }
