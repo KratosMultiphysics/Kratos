@@ -137,7 +137,7 @@ array_1d<std::size_t, 2> ComputePenaltyFrictionalActiveSet(
                     if (augmented_tangent_pressure < mu * std::abs(augmented_normal_pressure)) { // STICK CASE
 //                         KRATOS_WARNING_IF("ComputePenaltyFrictionalActiveSet", norm_2(r_gt) > Tolerance) << "In case of stick should be zero, if not this means that is not properly working. Node ID: " << it_node->Id() << std::endl;
 //                         noalias(it_node->FastGetSolutionStepValue(WEIGHTED_SLIP)) = zero_array; // NOTE: In case of stick should be zero, if not this means that is not properly working
-                        KRATOS_WARNING_IF("ComputePenaltyFrictionalActiveSet", PureSlip) << "This node is supposed to be on STICK state. Currently working on pure slip. Node ID: " << it_node->Id() << "\tTangent pressure: " << augmented_tangent_pressure << "\tNormal x friction coeff." << mu * std::abs(augmented_normal_pressure)  << std::endl;
+                        KRATOS_WARNING_IF("ComputePenaltyFrictionalActiveSet", PureSlip) << "This node is supposed to be on STICK state. Currently working on pure slip. Node ID: " << it_node->Id() << "\tTangent pressure: " << augmented_tangent_pressure << "\tNormal x friction coeff.: " << mu * std::abs(augmented_normal_pressure)  << std::endl;
                         if (it_node->Is(SLIP) && !PureSlip) {
                             it_node->Set(SLIP, false);
                             #pragma omp atomic
@@ -157,7 +157,7 @@ array_1d<std::size_t, 2> ComputePenaltyFrictionalActiveSet(
                     noalias(it_node->FastGetSolutionStepValue(WEIGHTED_SLIP)) = zero_array;
                     if (it_node->Is(ACTIVE)) {
                         it_node->Set(ACTIVE, false);
-                        it_node->Set(SLIP, false);
+                        it_node->Set(SLIP, PureSlip);
                         is_converged_0 += 1;
                     }
                 }
@@ -339,7 +339,7 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
                     if (augmented_tangent_pressure <= - mu * augmented_normal_pressure) { // STICK CASE // FIXME: Check the <=
 //                             KRATOS_WARNING_IF("ComputeALMFrictionalActiveSet", norm_2(r_gt) > Tolerance) << "In case of stick should be zero, if not this means that is not properly working. Node ID: " << it_node->Id() << std::endl;
 //                             noalias(it_node->FastGetSolutionStepValue(WEIGHTED_SLIP)) = zero_array; // NOTE: In case of stick should be zero, if not this means that is not properly working
-                        KRATOS_WARNING_IF("ComputeALMFrictionalActiveSet", PureSlip) << "This node is supposed to be on STICK state. Currently working on pure slip. Node ID: " << it_node->Id() << "\tTangent pressure: " << augmented_tangent_pressure << "\tNormal x friction coeff." << mu * std::abs(augmented_normal_pressure)  << std::endl;
+                        KRATOS_WARNING_IF("ComputeALMFrictionalActiveSet", PureSlip) << "This node is supposed to be on STICK state. Currently working on pure slip. Node ID: " << it_node->Id() << "\tTangent pressure: " << augmented_tangent_pressure << "\tNormal x friction coeff.: " << mu * std::abs(augmented_normal_pressure)  << std::endl;
                         if (it_node->Is(SLIP) && !PureSlip) {
                             it_node->Set(SLIP, false);
                             #pragma omp atomic
@@ -356,7 +356,7 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
                     noalias(it_node->FastGetSolutionStepValue(WEIGHTED_SLIP)) = zero_array;
                     if (it_node->Is(ACTIVE)) {
                         it_node->Set(ACTIVE, false);
-                        it_node->Set(SLIP, false);
+                        it_node->Set(SLIP, PureSlip);
                         #pragma omp atomic
                         is_converged_0 += 1;
                     }
