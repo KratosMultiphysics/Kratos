@@ -42,7 +42,7 @@ void AssignUniqueModelPartCollectionTagUtility::ComputeTags(
     IndexIndexMapType& rCondTags,
     IndexIndexMapType& rElemTags,
     IndexStringMapType& rCollections
-)
+    )
 {
     // Initialize and create the auxiliary maps
     IndexIndexSetMapType aux_node_tags, aux_cond_tags, aux_elem_tags;
@@ -165,7 +165,7 @@ void AssignUniqueModelPartCollectionTagUtility::ComputeTags(
 /***********************************************************************************/
 
 /// This functions gets the "colors" from an existing json file
-void AssignUniqueModelPartCollectionTagUtility::ReadTagsFromJson(
+Parameters AssignUniqueModelPartCollectionTagUtility::ReadTagsFromJson(
     const std::string& rFilename,
     IndexStringMapType& rCollections
     )
@@ -174,18 +174,20 @@ void AssignUniqueModelPartCollectionTagUtility::ReadTagsFromJson(
     KRATOS_ERROR_IF_NOT(infile.good()) << "Materials file: " << rFilename  + ".json" << " cannot be found" << std::endl;
     std::stringstream buffer;
     buffer << infile.rdbuf();
-    Parameters json_text(buffer.str());
-    for (auto it_param = json_text.begin(); it_param != json_text.end(); ++it_param) {
+    Parameters color_json(buffer.str());
+    for (auto it_param = color_json.begin(); it_param != color_json.end(); ++it_param) {
         const std::vector<std::string>& r_sub_model_part_names = it_param->GetStringArray();
         rCollections.insert(std::pair<IndexType,std::vector<std::string>>({std::stoi(it_param.name()), r_sub_model_part_names}));
     }
+
+    return color_json;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 /// This functions writes the "colors" to a new json file
-void AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(
+Parameters AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(
     const std::string& rFilename,
     const IndexStringMapType& rCollections
     )
@@ -207,6 +209,8 @@ void AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(
     std::ostream os(&buffer);
     os << r_json_text;
     buffer.close();
+
+    return color_json;
 }
 
 /***********************************************************************************/
