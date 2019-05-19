@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include "meshing_application.h"
 #include "includes/io.h"
 #include "includes/model_part.h"
 #include "custom_utilities/mmg_utilities.h"
@@ -271,8 +270,6 @@ private:
     std::string mFilename;                       /// The name of the file
     Parameters mThisParameters;                  /// The parameters (can be used for general pourposes)
     Flags mOptions;                              /// Configuration flags
-
-    IndexType mEchoLevel = 0;                    /// The echo level
 
     MmgUtilities<TMMGLibrary> mMmmgUtilities;    /// The MMG utilities class
 

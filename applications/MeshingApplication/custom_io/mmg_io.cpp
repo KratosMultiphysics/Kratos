@@ -69,8 +69,7 @@ MmgIO<TMMGLibrary>::MmgIO(
     if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOuputFile(rFilename + ".time");
 
     /* We restart the MMG mesh and solution */
-    mEchoLevel = mThisParameters["echo_level"].GetInt();
-    mMmmgUtilities.SetEchoLevel(mEchoLevel);
+    mMmmgUtilities.SetEchoLevel(mThisParameters["echo_level"].GetInt());
     mMmmgUtilities.InitMesh();
 }
 
