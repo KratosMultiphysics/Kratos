@@ -1583,6 +1583,7 @@ Parameters BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::GetDefaul
         "id_name"                              : "",
         "consider_gap_threshold"               : false,
         "predict_correct_lagrange_multiplier"  : false,
+        "pure_slip"                            : false,
         "debug_mode"                           : false,
         "octree_search_parameters" : {
             "bounding_box_factor"    : 0.1,

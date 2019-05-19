@@ -100,14 +100,16 @@ public:
 
     /// Default constructors
     explicit PenaltyFrictionalMortarConvergenceCriteria(
+        const bool PureSlip = false,
         const bool PrintingOutput = false,
         const bool ComputeDynamicFactor = true,
-        const bool GiDIODebug = false
-        ) : BaseType(ComputeDynamicFactor, GiDIODebug)
+        const bool IODebug = false
+        ) : BaseType(ComputeDynamicFactor, IODebug)
     {
         // Set local flags
         BaseType::mOptions.Set(PenaltyFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT, PrintingOutput);
         BaseType::mOptions.Set(PenaltyFrictionalMortarConvergenceCriteria::TABLE_IS_INITIALIZED, false);
+        BaseType::mOptions.Set(PenaltyFrictionalMortarConvergenceCriteria::PURE_SLIP, PureSlip);
     }
 
     ///Copy constructor

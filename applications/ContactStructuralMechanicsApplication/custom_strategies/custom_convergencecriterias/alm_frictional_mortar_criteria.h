@@ -100,14 +100,16 @@ public:
 
     /// Default constructors
     explicit ALMFrictionalMortarConvergenceCriteria(
+        const bool PureSlip = false,
         const bool PrintingOutput = false,
         const bool ComputeDynamicFactor = false,
-        const bool GiDIODebug = false
-        ) : BaseType(ComputeDynamicFactor, GiDIODebug)
+        const bool IODebug = false
+        ) : BaseType(ComputeDynamicFactor, IODebug)
     {
         // Set local flags
         BaseType::mOptions.Set(ALMFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT, PrintingOutput);
         BaseType::mOptions.Set(ALMFrictionalMortarConvergenceCriteria::TABLE_IS_INITIALIZED, false);
+        BaseType::mOptions.Set(ALMFrictionalMortarConvergenceCriteria::PURE_SLIP, PureSlip);
     }
 
     ///Copy constructor
