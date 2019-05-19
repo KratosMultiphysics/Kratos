@@ -135,7 +135,7 @@ class KRATOS_API(KRATOS_CORE) AssignUniqueModelPartCollectionTagUtility
      * @param rFilename Map where the nodes id and tags are stored
      * @param rCollections Map where the tags and associated submodelparts collections are stored
      */
-    static void ReadTagsFromJson(
+    static Parameters ReadTagsFromJson(
         const std::string& rFilename,
         IndexStringMapType& rCollections
         );
@@ -145,7 +145,7 @@ class KRATOS_API(KRATOS_CORE) AssignUniqueModelPartCollectionTagUtility
      * @param rFilename Map where the nodes id and tags are stored
      * @param rCollections Map where the tags and associated submodelparts collections are stored
      */
-    static void WriteTagsToJson(
+    static Parameters WriteTagsToJson(
         const std::string& rFilename,
         const IndexStringMapType& rCollections
         );
