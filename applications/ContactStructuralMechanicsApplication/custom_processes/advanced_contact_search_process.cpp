@@ -431,7 +431,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectALMF
     )
 {
     if (norm_2(ItNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-        if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+        if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || BaseType::mOptions.Is(BaseType::PURE_SLIP)) {
             ItNode->Set(SLIP, true);
         } else {
             ItNode->Set(SLIP, false);
@@ -548,7 +548,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictALMF
     )
 {
     if (norm_2(ItNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-        if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+        if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || BaseType::mOptions.Is(BaseType::PURE_SLIP)) {
             ItNode->Set(SLIP, true);
         } else {
             ItNode->Set(SLIP, false);

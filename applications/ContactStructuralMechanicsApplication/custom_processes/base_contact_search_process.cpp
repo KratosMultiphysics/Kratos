@@ -1059,7 +1059,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                     if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && FrictionalProblem) {
                         NodeType& r_node = r_slave_geometry[i_node];
                         if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-                            if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+                            if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
                                 r_node.Set(SLIP, true);
                             } else {
                                 r_node.Set(SLIP, false);
@@ -1067,7 +1067,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                         }
                     }  else if (mTypeSolution == TypeSolution::FrictionlessPenaltyMethod) {
                         NodeType& r_node = r_slave_geometry[i_node];
-                        if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+                        if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
                             r_node.Set(SLIP, true);
                         } else {
                             r_node.Set(SLIP, false);
@@ -1082,7 +1082,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                     if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && FrictionalProblem) {
                         NodeType& r_node = r_slave_geometry[i_node];
                         if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-                            if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+                            if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
                                 r_node.Set(SLIP, true);
                             } else {
                                 r_node.Set(SLIP, false);
@@ -1090,7 +1090,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                         }
                     } else if (mTypeSolution == TypeSolution::FrictionlessPenaltyMethod) {
                         NodeType& r_node = r_slave_geometry[i_node];
-                        if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+                        if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
                             r_node.Set(SLIP, true);
                         } else {
                             r_node.Set(SLIP, false);
@@ -1107,7 +1107,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
             if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && FrictionalProblem) {
                 NodeType& r_node = r_slave_geometry[i_node];
                 if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
-                    if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+                    if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
                         r_node.Set(SLIP, true);
                     } else {
                         r_node.Set(SLIP, false);
@@ -1115,7 +1115,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                 }
             } else if (mTypeSolution == TypeSolution::FrictionlessPenaltyMethod) {
                 NodeType& r_node = r_slave_geometry[i_node];
-                if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+                if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
                     r_node.Set(SLIP, true);
                 } else {
                     r_node.Set(SLIP, false);
@@ -1320,7 +1320,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
 
     // Set SLIP flag
     if (mrMainModelPart.Is(SLIP)) {
-        if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance) {
+        if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || mOptions.Is(BaseContactSearchProcess::PURE_SLIP)) {
             ItNode->Set(SLIP, true);
         } else {
             ItNode->Set(SLIP, false);
