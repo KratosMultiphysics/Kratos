@@ -158,6 +158,7 @@ array_1d<std::size_t, 2> ComputePenaltyFrictionalActiveSet(
                     if (it_node->Is(ACTIVE)) {
                         it_node->Set(ACTIVE, false);
                         it_node->Set(SLIP, PureSlip);
+                        #pragma omp atomic
                         is_converged_0 += 1;
                     }
                 }
