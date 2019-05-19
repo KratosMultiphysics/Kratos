@@ -53,7 +53,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class DisplacementLagrangeMultiplierContactCriteria
+ * @class BaseMortarConvergenceCriteria
  * @ingroup ContactStructuralMechanicsApplication
  * @brief Custom convergence criteria for the mortar condition
  * @author Vicente Mataix Ferrandiz
@@ -68,6 +68,10 @@ public:
 
     /// Pointer definition of BaseMortarConvergenceCriteria
     KRATOS_CLASS_POINTER_DEFINITION( BaseMortarConvergenceCriteria );
+
+    /// Local Flags
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_DYNAMIC_FACTOR );
+    KRATOS_DEFINE_LOCAL_FLAG( IO_DEBUG );
 
     /// The base class definition (and it subclasses)
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
@@ -95,17 +99,22 @@ public:
         const bool IODebug = false
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
-          mComputeDynamicFactor(ComputeDynamicFactor),
-          mIODebug(IODebug),
           mpGidIO(nullptr)
     {
-        if (mIODebug)
+        // Set local flags
+        mOptions.Set(BaseMortarConvergenceCriteria::COMPUTE_DYNAMIC_FACTOR, ComputeDynamicFactor);
+        mOptions.Set(BaseMortarConvergenceCriteria::IO_DEBUG, IODebug);
+
+        if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
             mpGidIO = Kratos::make_shared<GidIOBaseType>("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
+        }
     }
 
     ///Copy constructor
     BaseMortarConvergenceCriteria( BaseMortarConvergenceCriteria const& rOther )
-      :BaseType(rOther)
+      :BaseType(rOther),
+       mOptions(rOther.mOptions),
+       mpGidIO(rOther.mpGidIO)
     {
     }
 
@@ -157,7 +166,7 @@ public:
         }
 
         // In dynamic case
-        if ( dynamic_case && mComputeDynamicFactor) {
+        if ( dynamic_case && mOptions.Is(BaseMortarConvergenceCriteria::COMPUTE_DYNAMIC_FACTOR)) {
             ComputeDynamicFactorProcess compute_dynamic_factor_process( r_contact_model_part );
             compute_dynamic_factor_process.Execute();
         }
@@ -205,7 +214,7 @@ public:
         ContactUtilities::ComputeExplicitContributionConditions(rModelPart.GetSubModelPart("ComputingContact"));
 
         // GiD IO for debugging
-        if (mIODebug) {
+        if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
             const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
             const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
             const double label = static_cast<double>(nl_iter);
@@ -273,7 +282,7 @@ public:
         MortarUtilities::ComputeNodesMeanNormalModelPart(rModelPart.GetSubModelPart("Contact"));
 
         // GiD IO for debugging
-        if (mIODebug) {
+        if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
             mpGidIO->CloseResultFile();
             std::ostringstream new_name ;
             new_name << "POST_LINEAR_ITER_STEP=""POST_LINEAR_ITER_STEP=" << rModelPart.GetProcessInfo()[STEP];
@@ -298,8 +307,9 @@ public:
         ) override
     {
         // GiD IO for debugging
-        if (mIODebug)
+        if (mOptions.Is(BaseMortarConvergenceCriteria::IO_DEBUG)) {
             mpGidIO->FinalizeResults();
+        }
     }
 
     ///@}
@@ -326,6 +336,8 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    Flags mOptions; /// Local flags
 
     ///@}
     ///@name Protected Operators
@@ -366,8 +378,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool mComputeDynamicFactor;     /// If we compute the dynamic factor
-    bool mIODebug;                  /// If we generate an output gid file in order to debug
     GidIOBaseType::Pointer mpGidIO; /// The pointer to the debugging GidIO
 
     ///@}
@@ -426,8 +436,18 @@ private:
 
 }; // Class BaseMortarConvergenceCriteria
 
-///@name Explicit Specializations
+///@name Local flags creation
 ///@{
+
+/// Local Flags
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::COMPUTE_DYNAMIC_FACTOR(Kratos::Flags::Create(0));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_COMPUTE_DYNAMIC_FACTOR(Kratos::Flags::Create(0, false));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::IO_DEBUG(Kratos::Flags::Create(1));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_IO_DEBUG(Kratos::Flags::Create(1, false));
 
 }  // namespace Kratos
 
