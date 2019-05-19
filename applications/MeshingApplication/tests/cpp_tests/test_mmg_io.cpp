@@ -13,21 +13,13 @@
 #ifdef INCLUDE_MMG
 // System includes
 #include<iostream>
-#include <stdio.h>  /* defines FILENAME_MAX */
-// #define WINDOWS  /* uncomment this line to use it for windows.*/
-#ifdef WINDOWS
-#include <direct.h>
-#define GetCurrentDir _getcwd
-#else
-#include <unistd.h>
-#define GetCurrentDir getcwd
-#endif
 
 // External includes
 
 // Project includes
 #include "testing/testing.h"
 #include "includes/checks.h"
+#include "utilities/os_utilities.h"
 #include "includes/kratos_flags.h"
 #include "containers/model.h"
 #include "meshing_application_variables.h"
@@ -37,16 +29,6 @@ namespace Kratos
 {
     namespace Testing
     {
-        /**
-         * This provides the current directory
-         */
-        std::string GetCurrentWorkingDir() {
-            char buff[FILENAME_MAX];
-            GetCurrentDir( buff, FILENAME_MAX );
-            std::string current_working_dir(buff);
-            return current_working_dir;
-        }
-
         /**
         * Checks the correct work of the level set MMG IO
         * Test triangle
@@ -91,7 +73,7 @@ namespace Kratos
 
             // Compute read/write
             Parameters params = Parameters(R"({ "echo_level" : 0 })" );
-            MmgIO<MMGLibrary::MMG2D> mmg_io(GetCurrentWorkingDir() + "/mmg_output_2d");
+            MmgIO<MMGLibrary::MMG2D> mmg_io(OSUtilities::GetCurrentWorkingDir() + "/mmg_output_2d");
             mmg_io.WriteModelPart(r_model_part);
 
             Model this_aux_model;
@@ -106,9 +88,9 @@ namespace Kratos
                 KRATOS_CHECK(r_aux_model_part.HasSubModelPart(r_sub_model_part_name));
             }
 
-            remove((GetCurrentWorkingDir() + "/mmg_output_2d.mesh").c_str());
-            remove((GetCurrentWorkingDir() + "/mmg_output_2d.sol").c_str());
-            remove((GetCurrentWorkingDir() + "/mmg_output_2d.json").c_str());
+            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_2d.mesh").c_str());
+            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_2d.sol").c_str());
+            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_2d.json").c_str());
         }
 
         /**
@@ -174,7 +156,7 @@ namespace Kratos
 
             // Compute read/write
             Parameters params = Parameters(R"({ "echo_level" : 0 })" );
-            MmgIO<MMGLibrary::MMG3D> mmg_io(GetCurrentWorkingDir() + "/mmg_output_3d");
+            MmgIO<MMGLibrary::MMG3D> mmg_io(OSUtilities::GetCurrentWorkingDir() + "/mmg_output_3d");
             mmg_io.WriteModelPart(r_model_part);
 
             Model this_aux_model;
@@ -189,9 +171,9 @@ namespace Kratos
                 KRATOS_CHECK(r_aux_model_part.HasSubModelPart(r_sub_model_part_name));
             }
 
-            remove((GetCurrentWorkingDir() + "/mmg_output_3d.mesh").c_str());
-            remove((GetCurrentWorkingDir() + "/mmg_output_3d.sol").c_str());
-            remove((GetCurrentWorkingDir() + "/mmg_output_3d.json").c_str());
+            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_3d.mesh").c_str());
+            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_3d.sol").c_str());
+            remove((OSUtilities::GetCurrentWorkingDir() + "/mmg_output_3d.json").c_str());
         }
     } // namespace Testing
 }  // namespace Kratos.
