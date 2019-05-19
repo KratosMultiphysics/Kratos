@@ -105,6 +105,13 @@ public:
     /// Pointer definition of BaseContactSearchProcess
     KRATOS_CLASS_POINTER_DEFINITION( BaseContactSearchProcess );
 
+    /// Local Flags
+    KRATOS_DEFINE_LOCAL_FLAG( INVERTED_SEARCH );
+    KRATOS_DEFINE_LOCAL_FLAG( CREATE_AUXILIAR_CONDITIONS );
+    KRATOS_DEFINE_LOCAL_FLAG( MULTIPLE_SEARCHS );
+    KRATOS_DEFINE_LOCAL_FLAG( PREDEFINE_MASTER_SLAVE );
+    KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
+
     ///@}
     ///@name  Enum's
     ///@{
@@ -272,10 +279,7 @@ protected:
     std::string mConditionName;        /// The name of the condition to be created
     PointVector mPointListDestination; /// A list that contents the all the points (from nodes) from the modelpart
 
-    bool mInvertedSearch;              /// The search will be done inverting the way master and slave/master is assigned
-    bool mCreateAuxiliarConditions;    /// If the auxiliar conditions are created or not
-    bool mMultipleSearchs;             /// If we consider multiple serach or not
-    bool mPredefinedMasterSlave;       /// If the master/slave sides are predefined
+    Flags mOptions;                    /// Local flags
 
     ///@}
     ///@name Protected Operators
