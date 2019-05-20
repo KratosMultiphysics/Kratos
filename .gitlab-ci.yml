@@ -9,7 +9,7 @@ build linux_master:
     only: 
         refs:
             - master
-            - merge_requests
+        - merge_requests
     script:
         - cp scripts/build/gitlab/build_and_test_master.sh build.sh
         - bash build.sh
