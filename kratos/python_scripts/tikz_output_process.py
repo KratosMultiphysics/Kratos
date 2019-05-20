@@ -143,7 +143,6 @@ class TikZOutputProcess(KratosMultiphysics.Process):
             time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
             with open(name_file + "_TIME_" + str(time) + ".tex", 'w') as output:
                 output.write(outputstring)
-                output.close()
         else:
             step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
             with open(name_file + "_STEP_" + str(step) + ".tex", 'w') as output:
