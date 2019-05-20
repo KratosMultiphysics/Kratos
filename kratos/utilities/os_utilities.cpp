@@ -4,14 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // Project includes
-#include "utilities/os_utilities.h" # has to be included before using KRATOS_COMPILED_IN_WINDOWS
+#include "utilities/os_utilities.h" // Has to be included before using KRATOS_COMPILED_IN_WINDOWS
 
 // System includes
 #include <sys/stat.h>
