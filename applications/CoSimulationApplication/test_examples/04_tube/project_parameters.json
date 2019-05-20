@@ -68,7 +68,19 @@
                 ],
                 "settings" :
                 {
-                    "echo_level": 1
+                    "echo_level": 1,
+                    "l": 0.05,
+                    "d": 0.005,
+                    "rhof": 1000.0,
+                    "ureference": 1.0,
+                    "uamplitude": 0.1,
+                    "uperiod": 1.0,
+                    "utype": 1,
+                    "e": 300000.0,
+                    "h": 0.001,
+                    "m": 100,
+                    "newtonmax": 10,
+                    "newtontol": 1e-12
                 }
             },
             {
@@ -92,7 +104,13 @@
                 ],
                 "settings":
                 {
-                    "echo_level": 1
+                    "echo_level": 1,
+                    "l": 0.05,
+                    "d": 0.005,
+                    "rhof": 1000.0,
+                    "e": 300000.0,
+                    "h": 0.001,
+                    "m": 100
                 }
             }
         ]
