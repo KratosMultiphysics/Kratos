@@ -318,9 +318,9 @@ public:
         }
 
         // Synchronize the maximum and minimum distance values
-        auto &r_communicator = r_distance_model_part.GetCommunicator();
-        r_communicator.MaxAll(max_dist);
-        r_communicator.MinAll(min_dist);
+        const auto &r_communicator = r_distance_model_part.GetCommunicator().GetDataCommunicator();
+        max_dist = r_communicator.MaxAll(max_dist);
+        min_dist = r_communicator.MinAll(min_dist);
 
         // Assign the max dist to all of the non-fixed positive nodes
         // and the minimum one to the non-fixed negatives
@@ -431,7 +431,7 @@ protected:
 
     void ValidateInput()
     {
-        const Communicator& r_comm = mr_base_model_part.GetCommunicator();
+        const DataCommunicator& r_comm = mr_base_model_part.GetCommunicator().GetDataCommunicator();
         int num_elements = mr_base_model_part.NumberOfElements();
         int num_nodes = mr_base_model_part.NumberOfNodes();
 
@@ -444,11 +444,8 @@ protected:
             << "In 3D the element type is expected to be a tetrahedron" << std::endl;
         }
 
-        r_comm.SumAll(num_nodes);
-        KRATOS_ERROR_IF(num_nodes == 0) << "The model part has no nodes." << std::endl;
-
-        r_comm.SumAll(num_elements);
-        KRATOS_ERROR_IF(num_elements == 0) << "The model Part has no elements." << std::endl;
+        KRATOS_ERROR_IF(r_comm.SumAll(num_nodes) == 0) << "The model part has no nodes." << std::endl;
+        KRATOS_ERROR_IF(r_comm.SumAll(num_elements) == 0) << "The model Part has no elements." << std::endl;
 
         // Check that required nodal variables are present
         VariableUtils().CheckVariableExists<Variable<double > >(DISTANCE, mr_base_model_part.Nodes());

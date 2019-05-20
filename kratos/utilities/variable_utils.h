@@ -710,9 +710,7 @@ public:
             sum_value += it_node->GetValue(rVar);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -758,9 +756,7 @@ public:
             sum_value += it_node->GetSolutionStepValue(rVar, rBuffStep);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -804,9 +800,7 @@ public:
             sum_value += it_cond->GetValue(rVar);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -850,9 +844,7 @@ public:
             sum_value += it_elem->GetValue(rVar);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
