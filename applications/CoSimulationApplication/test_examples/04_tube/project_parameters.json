@@ -6,15 +6,18 @@
         "echo_level" : 1,
         "data_structure" : "pyKratos"
     },
-    "coupled_solver_settings" :
+    "coupled_solver" :
     {
-        "name" : "elastic_pipe",
         "type" : "gauss_seidel",
         "settings" :
         {
             "echo_level" : 1,
 		    "num_coupling_iterations" : 20,
             "start_coupling_time" : 0.25
+        },
+        "predictor" :
+        {
+            "type" : "linear"
         },
         "convergence_accelerator" :
         {
@@ -26,6 +29,7 @@
             },
             "settings" :
             {
+                "min_significant" : 1e-10
             }
         },
         "convergence_criterion" :
@@ -41,89 +45,56 @@
                 "tolerance": 1e-6
             }
         },
-        "participants" :
+        "solver_interface" :
         [
             {
                 "name" : "pipe_flow",
-                "input_data_list" : [],
-                "output_data_list" : []
-            },
-            {
-                "name" : "pipe_structure",
-                "input_data_list" :
+                "type" : "pipe_interfaces.pipe_flow_solver",
+                "data_input" :
                 [
                     {
-                        "from_solver" : "pipe_flow",
-                        "data_name"   : "PRESSURE",
-                        "destination_data" : "PRESSURE",
-                        "mapper_settings" :
-                        {
-                            "type" : "nearest_neighbor",
-                            "flags" : ["swap_sign"]
-                        },
-                        "filters" : []
+                        "name" : "DISPLACEMENT",
+                        "geometry_name" : "wall",
+                        "dimension" : 1
                     }
                 ],
-                "output_data_list" :
+                "data_output" :
                 [
                     {
-                        "to_solver" : "pipe_flow",
-                        "data_name" : "DISPLACEMENT",
-                        "origin_data" : "DISPLACEMENT",
-                        "mapper_settings" :
-                        {
-                            "type" : "nearest_neighbor",
-                            "flags" : []
-                        },
-                        "filters" : []
+                        "name" : "PRESSURE",
+                        "geometry_name" : "wall",
+                        "dimension" : 1
                     }
-                ]
+                ],
+                "settings" :
+                {
+                    "echo_level": 1
+                }
+            },
+            {
+                "name": "pipe_structure",
+                "type": "pipe_interfaces.pipe_structure_solver",
+                "data_input":
+                [
+                    {
+                        "name": "PRESSURE",
+                        "geometry_name": "wall",
+                        "dimension": 1
+                    }
+                ],
+                "data_output" :
+                [
+                    {
+                        "name": "DISPLACEMENT",
+                        "geometry_name": "wall",
+                        "dimension": 1
+                    }
+                ],
+                "settings":
+                {
+                    "echo_level": 1
+                }
             }
         ]
-    },
-    "solvers" :
-    {
-        "pipe_flow" :
-        {
-            "solver_type" : "pipe_interfaces.pipe_flow_solver",
-            "data" :
-            [
-                {
-                    "name" : "DISPLACEMENT",
-                    "geometry_name" : "wall",
-                    "dimension"       : 1
-                },
-                {
-                    "name" : "PRESSURE",
-                    "geometry_name" : "wall",
-                    "dimension"       : 1
-                }
-            ],
-            "settings" :
-            {
-                "echo_level": 1
-            }
-        },
-        "pipe_structure" :
-        {
-            "solver_type" : "pipe_interfaces.pipe_structure_solver",
-            "data" :
-            [
-                {
-                    "name" : "DISPLACEMENT",
-                    "geometry_name" : "wall",
-                    "dimension"       : 1
-                },
-                {
-                    "name" : "PRESSURE",
-                    "geometry_name" : "wall",
-                    "dimension"       : 1
-                }
-            ],
-            "settings" :
-            {
-                "echo_level"  : 1
-            }
-        }
     }
 }

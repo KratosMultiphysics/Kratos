@@ -5,19 +5,15 @@ from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import Impor
 
 
 class CoSimulationAnalysis(object):
-    """
-    The base class for the CoSimulation-AnalysisStage
-    """
-    def __init__(self, settings):
-        self.settings = settings
-        self.flush_stdout = False
+    def __init__(self, parameters):
+        self.parameters = parameters
 
         self.echo_level = 0
-        if "echo_level" in self.settings["problem_data"]:
-            self.echo_level = self.settings["problem_data"]["echo_level"].GetInt()
+        if "echo_level" in self.parameters["problem_data"]:
+            self.echo_level = self.parameters["problem_data"]["echo_level"].GetInt()
 
-        self.end_time = self.settings["problem_data"]["end_time"].GetDouble()
-        self.time = self.settings["problem_data"]["start_time"].GetDouble()
+        self.end_time = self.parameters["problem_data"]["end_time"].GetDouble()
+        self.time = self.parameters["problem_data"]["start_time"].GetDouble()
         self.step = 0
 
     def Run(self):
@@ -67,18 +63,8 @@ class CoSimulationAnalysis(object):
         return self._solver
 
     def _CreateSolver(self):
-        if "coupled_solver_settings" in self.settings.keys():
-            import KratosMultiphysics.CoSimulationApplication.custom_coupled_solvers.coupled_solver_factory as coupled_solver_factory
-            self._solver = coupled_solver_factory.CreateCoupledSolver(self.settings)
-            return self._solver
-        elif "solvers" in self.settings.keys():
-            num_solvers = len(self.settings["solvers"])
-            if num_solvers > 1 or num_solvers == 0:
-                raise Exception("More than one or no solvers defined without coupled solver!")
-            else:
-                import KratosMultiphysics.CoSimulationApplication.custom_solver_interfaces.co_simulation_solver_factory as solver_factory
-                self._solver = solver_factory.CreateSolverInterface("Solver", self.settings["solvers"][0])
-                return self._solver
+        self._solver = cs_tools.CreateInstance(self.parameters["coupled_solver"], "coupled_solver")
+        return self._solver
 
 
 if __name__ == '__main__':

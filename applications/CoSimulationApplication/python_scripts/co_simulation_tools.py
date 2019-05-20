@@ -45,6 +45,14 @@ def ImportDataStructure(parameters_file_name):
     return cs_data_structure
 
 
+## CreateInstance: Creates an instance of a given class in a given category
+def CreateInstance(settings, object_package):
+    object_type = settings["type"].GetString()
+    object_module_full = "KratosMultiphysics.CoSimulationApplication."+object_package+"."+object_type
+    object_module = __import__(object_module_full, fromlist=[object_type])
+    return object_module.Create(settings)
+
+
 ## InnerProduct : Computes the inner product for two give vectors (as python lists)
 #
 #  @param list_one   First vector (as a list)
@@ -52,7 +60,7 @@ def ImportDataStructure(parameters_file_name):
 def InnerProduct(list_one, list_two):
     result = 0.0
     num_entries = len(list_one)
-    if(len(list_one) == len(list_two)):
+    if len(list_one) == len(list_two):
         for i in range(num_entries):
             component_one = list_one[i]
             component_two = list_two[i]
