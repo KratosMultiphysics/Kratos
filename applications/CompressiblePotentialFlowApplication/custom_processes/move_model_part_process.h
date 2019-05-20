@@ -13,6 +13,7 @@
 #ifndef KRATOS_MOVE_MODEL_PART_PROCESS_H
 #define KRATOS_MOVE_MODEL_PART_PROCESS_H
 
+#include "includes/define.h"
 
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
@@ -32,7 +33,7 @@ public:
 
     // Constructor for MoveModelPartProcess Process
     MoveModelPartProcess(ModelPart& rModelPart,
-                     Paramaters& ThisParameters
+                     Parameters ThisParameters
                     ):
         Process(),
         mrModelPart(rModelPart)
@@ -40,13 +41,25 @@ public:
         Parameters default_parameters = Parameters(R"(
         {
             "origin"                        : [0.0,0.0,0.0],
+            "rotation_point"                : [0.0,0.0,0.0],
             "rotation_angle"                : 0.0,
             "sizing_multiplier"             : 1.0
 
         })" );
+        bool assign_rotation_point = false;
+        if (ThisParameters.Has("rotation_point")) {
+            assign_rotation_point = true;
+        }
         ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
+
         mOrigin = ThisParameters["origin"].GetVector();
+        if (assign_rotation_point){
+            mRotationPoint = ThisParameters["rotation_point"].GetVector();
+        }
+        else{
+            mRotationPoint = mOrigin;
+        }
         mRotationAngle = ThisParameters["rotation_angle"].GetDouble();
         mSizingMultiplier = ThisParameters["sizing_multiplier"].GetDouble();
     }
@@ -60,29 +73,29 @@ public:
         Execute();
     }
 
-    /// Check elements to make sure that their jacobian is positive and conditions to ensure that their face normals point outwards
     void Execute() override
     {
         KRATOS_TRY;
 
+        for(auto it_node=mrModelPart.NodesBegin(); it_node!=mrModelPart.NodesEnd(); ++it_node){
+            array_1d<double, 3>& coordinates = it_node->Coordinates();
+
+            for (std::size_t i_dim = 0; i_dim<mOrigin.size();i_dim++){
+                coordinates[i_dim] = mSizingMultiplier*coordinates[i_dim]+mOrigin[i_dim];
+            }
+
+
+            if (mRotationAngle != 0.0){
+                // X-Y plane rotation
+                coordinates[0] = mRotationPoint[0]+std::cos(mRotationAngle)*(coordinates[0]-mRotationPoint[0])-
+                                sin(mRotationAngle)*(coordinates[1]-mRotationPoint[1]);
+                coordinates[1] = mRotationPoint[1]+sin(mRotationAngle)*(coordinates[0]-mRotationPoint[0])-
+                                cos(mRotationAngle)*(coordinates[1]-mRotationPoint[1]);
+            }
+        }
+
         KRATOS_CATCH("");
     }
-
-
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
 
     /// Turn back information as a string.
     std::string Info() const override
@@ -102,15 +115,6 @@ public:
         this->PrintInfo(rOStream);
     }
 
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -122,6 +126,7 @@ private:
 
     ModelPart& mrModelPart;
     Vector mOrigin;
+    Vector mRotationPoint;
     double mRotationAngle;
     double mSizingMultiplier;
     Parameters mrOptions;
