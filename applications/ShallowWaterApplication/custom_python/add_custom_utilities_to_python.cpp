@@ -19,7 +19,6 @@
 // Project includes
 #include "add_custom_utilities_to_python.h"
 #include "custom_utilities/move_shallow_water_particle_utility.h"
-#include "custom_utilities/shallow_water_variables_utility.h"
 #include "custom_utilities/estimate_dt_utility.h"
 #include "custom_utilities/replicate_model_part_utility.h"
 #include "custom_utilities/shallow_water_utilities.h"
@@ -50,18 +49,6 @@ namespace Python
         .def("CopyScalarVarToPreviousTimeStep", &MoveShallowWaterParticleUtility<2>::CopyScalarVarToPreviousTimeStep)
         .def("CopyVectorVarToPreviousTimeStep", &MoveShallowWaterParticleUtility<2>::CopyVectorVarToPreviousTimeStep)
         .def("ExecuteParticlesPrintingTool", &MoveShallowWaterParticleUtility<2>::ExecuteParticlesPrintingTool)
-        ;
-
-    py::class_< ShallowWaterVariablesUtility > (m, "ShallowWaterVariablesUtility")
-        .def(py::init<ModelPart&>())
-        .def(py::init<ModelPart&, double&>())
-        .def("ComputeFreeSurfaceElevation", &ShallowWaterVariablesUtility::ComputeFreeSurfaceElevation)
-        .def("ComputeHeightFromFreeSurface", &ShallowWaterVariablesUtility::ComputeHeightFromFreeSurface)
-        .def("ComputeVelocity", &ShallowWaterVariablesUtility::ComputeVelocity)
-        .def("CheckDryConservedVariables", &ShallowWaterVariablesUtility::CheckDryConservedVariables)
-        .def("CheckDryPrimitiveVariables", &ShallowWaterVariablesUtility::CheckDryPrimitiveVariables)
-        .def("SetDryWetState", &ShallowWaterVariablesUtility::SetDryWetState)
-        .def("DeactivateDryElements", &ShallowWaterVariablesUtility::DeactivateDryElements)
         ;
 
     py::class_< ShallowWaterUtilities > (m, "ShallowWaterUtilities")

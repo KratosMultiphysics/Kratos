@@ -48,7 +48,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
             "interval"                    : [0.0,"End"],
             "variable_name"               : "DISPLACEMENT",
             "search_parameters" : {
-                "type_search"                 : "in_radius",
+                "type_search"                 : "in_radius_with_obb",
                 "search_factor"               : 3.5,
                 "active_check_factor"         : 0.01,
                 "max_number_results"          : 1000,
@@ -56,7 +56,14 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
                 "dynamic_search"              : false,
                 "database_step_update"        : 999999999,
                 "debug_mode"                  : false,
-                "check_gap"                   : "check_mapping"
+                "check_gap"                   : "check_mapping",
+                "octree_search_parameters" : {
+                    "bounding_box_factor"             : 0.1,
+                    "debug_obb"                       : false,
+                    "OBB_intersection_type"           : "SeparatingAxisTheorem",
+                    "lower_bounding_box_coefficient"  : 0.0,
+                    "higher_bounding_box_coefficient" : 1.0
+                }
             },
             "integration_order"           : 2
         }

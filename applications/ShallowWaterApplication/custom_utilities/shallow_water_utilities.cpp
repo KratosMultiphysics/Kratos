@@ -17,6 +17,7 @@
 
 
 // Project includes
+#include "shallow_water_application_variables.h"
 #include "shallow_water_utilities.h"
 
 
