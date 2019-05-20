@@ -304,7 +304,7 @@ namespace Kratos
             IndexStringMapType collections;
             collections_utility.ComputeTags(nodes_tags, conds_tags, elems_tags, collections);
 
-            const std::string filename = "test";
+            const std::string filename = OSUtilities::GetCurrentWorkingDir() + "test";
 
             const Parameters param_write = AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(filename, collections);
             const Parameters param_read = AssignUniqueModelPartCollectionTagUtility::ReadTagsFromJson(filename, collections);
