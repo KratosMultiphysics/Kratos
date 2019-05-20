@@ -18,6 +18,7 @@
 #include <stdio.h>  /* defines FILENAME_MAX */
 #ifdef KRATOS_COMPILED_IN_WINDOWS
 #include <direct.h>
+#include "Shlwapi.h"
 #define GetCurrentDir _getcwd
 #else
 #include <unistd.h>
@@ -47,7 +48,14 @@ std::string GetCurrentWorkingDir()
 
 void RemoveOnCurrentWorkingDir(const std::string& rFileName)
 {
+#ifdef KRATOS_COMPILED_IN_WINDOWS
+	if (IsDirExist(rFileName)) // It is a directory
+		RemoveDirectoryA((GetCurrentWorkingDir() + "\\" + rFileName).c_str());
+	else  // It is a file
+		remove((GetCurrentWorkingDir() + "\\" + rFileName).c_str());
+#else
     remove((GetCurrentWorkingDir() + "/" + rFileName).c_str());
+#endif
 }
 
 /***********************************************************************************/
