@@ -11,9 +11,9 @@ class CoSimulationAnalysis(object):
 
         self.echo_level = self.settings["echo_level"].GetInt()
 
-        self.step = 0
-        self.time = self.settings["start_time"].GetDouble()
-        self.end_time = self.settings["end_time"].GetDouble()
+        self.start_step = self.settings["start_step"].GetInt()
+        self.stop_step = self.settings["stop_step"].GetInt()
+        self.step = self.start_step
 
         self._coupled_solver = cs_tools.CreateInstance(self.parameters["coupled_solver"])
 
@@ -28,9 +28,7 @@ class CoSimulationAnalysis(object):
         self._coupled_solver.PrintInfo()
 
     def RunSolutionLoop(self):
-        while self.time < self.end_time:
-            self.step += 1
-            self.time = self._coupled_solver.AdvanceInTime(self.time)
+        for self.step in range(self.start_step, self.stop_step):
             self._coupled_solver.InitializeSolutionStep()
             self._coupled_solver.Predict()
             self._coupled_solver.SolveSolutionStep()

@@ -17,8 +17,9 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         self._predictor = cs_tools.CreateInstance(self.parameters["predictor"])
         self._convergence_accelerator = cs_tools.CreateInstance(self.parameters["convergence_accelerator"])
         self._convergence_criterion = cs_tools.CreateInstance(self.parameters["convergence_criterion"])
-        self._solver_interfaces[0] = cs_tools.CreateInstance(self.parameters["solver_interfaces"][0])
-        self._solver_interfaces[1] = cs_tools.CreateInstance(self.parameters["solver_interfaces"][1])
+        self._solver_interfaces = []
+        self._solver_interfaces.append(cs_tools.CreateInstance(self.parameters["solver_interfaces"][0]))
+        self._solver_interfaces.append(cs_tools.CreateInstance(self.parameters["solver_interfaces"][1]))
 
         self._components = {self._predictor, self._convergence_accelerator, self._convergence_criterion,
                             self._solver_interfaces[0], self._solver_interfaces[1]}
@@ -36,8 +37,7 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
             component.InitializeSolutionStep()
 
     def Predict(self):
-        for solver_name, solver in self.participating_solvers.items():
-            solver.Predict()
+        pass
 
     def SolveSolutionStep(self):
         pass
@@ -49,18 +49,6 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
     def OutputSolutionStep(self):
         for component in self._components:
             component.OutputSolutionStep()
-
-    def AdvanceInTime(self, current_time):
-        new_time = 0.0
-        for solver_name, solver in self.participating_solvers.items():
-            new_time = max(solver.AdvanceInTime(current_time), new_time)
-
-        if self.start_coupling_time > new_time:
-            self.coupling_started = False
-        else:
-            self.coupling_started = True
-
-        return new_time
 
     def Check(self):
         for component in self._components:

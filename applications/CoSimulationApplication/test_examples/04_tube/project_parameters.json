@@ -2,8 +2,8 @@
     "settings" :
     {
         "echo_level" : 1,
-        "start_time" : 0.0,
-        "end_time" : 10.0,
+        "start_step" : 1,
+        "stop_step" : 11,
         "data_structure" : "pyKratos"
     },
     "coupled_solver" :
