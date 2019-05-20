@@ -178,6 +178,38 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeAnd, KratosMPICoreFastSuite)
     KRATOS_CHECK_EQUAL(r_center.Is(PERIODIC), rank_is_even); // This one should be left untouched
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeNodalFlags, KratosMPICoreFastSuite)
+{
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    MPIDataCommunicator world_comm(MPI_COMM_WORLD);
+    Internals::ModelPartForMPICommunicatorTests(r_model_part, world_comm);
+
+    const int rank = world_comm.Rank();
+    const bool rank_is_even( (rank % 2) == 0 );
+
+    for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
+    {
+        i_node->Set(INLET, rank_is_even);
+        i_node->Set(OUTLET, rank_is_even);
+        i_node->Set(PERIODIC, !rank_is_even);
+    }
+
+    r_model_part.GetCommunicator().SynchronizeNodalFlags();
+    // End result: the entire Flags are copied from owner rank to ghost copies (both defined status and values)
+    for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
+    {
+        int owner_rank = i_node->FastGetSolutionStepValue(PARTITION_INDEX, 0);
+        bool owner_is_even = ((owner_rank % 2) == 0);
+        KRATOS_CHECK_EQUAL(i_node->Is(INLET), owner_is_even);
+        KRATOS_CHECK_EQUAL(i_node->Is(OUTLET), owner_is_even);
+        KRATOS_CHECK_EQUAL(i_node->Is(PERIODIC), !owner_is_even);
+        KRATOS_CHECK_EQUAL(i_node->IsDefined(SLIP), false); // this one was never set
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableAssembly, KratosMPICoreFastSuite)
 {
     Model model;
