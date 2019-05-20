@@ -82,8 +82,12 @@ typedef Kratos::shared_ptr<a > SharedPointer; \
 typedef Kratos::weak_ptr<a > WeakPointer; \
 typedef Kratos::unique_ptr<a > UniquePointer
 
+namespace Kratos {
+template< class T > class GlobalPointer;
+}
+
 #define KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(a) typedef Kratos::intrusive_ptr<a > Pointer; \
-typedef Kratos::intrusive_weak_ptr<a > WeakPointer; \
+typedef Kratos::GlobalPointer<a > WeakPointer; \
 typedef Kratos::unique_ptr<a > UniquePointer
 
 #endif /* KRATOS_MEMORY_H_INCLUDED  defined */

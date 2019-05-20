@@ -102,10 +102,13 @@ void ExecuteFinalizeSolutionStep()
             const double Distance2 = std::pow(DemPosition[0]-mCylinderCenter[0],2)
                                     + std::pow(DemPosition[1]-mCylinderCenter[1],2);
 
-            if( (Distance2 >= std::pow(mMinRadius,2)) && (Distance2 <= std::pow(mMaxRadius,2)) )
+            Element* p_element = ptr_itElem->get();
+            SphericContinuumParticle* pDemElem = dynamic_cast<SphericContinuumParticle*> (p_element);
+
+            if( (pDemElem->IsNot(DEMFlags::STICKY))
+                && (Distance2 >= std::pow(mMinRadius,2))
+                && (Distance2 <= std::pow(mMaxRadius,2)) )
             {
-                Element* p_element = ptr_itElem->get();
-                SphericContinuumParticle* pDemElem = dynamic_cast<SphericContinuumParticle*> (p_element);
                 BoundedMatrix<double, 3, 3> stress_tensor = (*(pDemElem->mSymmStressTensor));
                 Vector principal_stresses(3);
                 noalias(principal_stresses) = AuxiliaryFunctions::EigenValuesDirectMethod(stress_tensor);
