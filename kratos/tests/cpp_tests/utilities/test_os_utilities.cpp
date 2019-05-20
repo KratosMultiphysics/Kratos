@@ -52,7 +52,7 @@ KRATOS_TEST_CASE_IN_SUITE(IsDirExist, KratosCoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(SeveralUtilities, KratosCoreFastSuite)
 {
     // Create dir
-    const std::string name = "AUXILIAR_RIDICULOUS_NAME";
+    const std::string name = "auxiliar_ridiculous_name";
     OSUtilities::CreateDir(name);
 
     // We check
