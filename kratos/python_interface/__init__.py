@@ -1,5 +1,5 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import os.path
+import os
 import sys
 from . import kratos_globals
 
@@ -22,19 +22,35 @@ def __ModuleInitDetail():
     and the parallel DataCommunicator are initialized when the Kernel is built.
     It is defined as a function to avoid polluting the Kratos namespace with local variables.
     """
-    using_mpi = "--using-mpi" in sys.argv[1:]
-    if using_mpi:
-        try:
+    mpi_detected = (                         # Probing the environment to see if this is an MPI run
+        "OMPI_COMM_WORLD_SIZE" in os.environ # OpenMPI implementation detected
+        or "PMI_SIZE" in os.environ          # Intel MPI detected
+        or "MPI_LOCALNRANKS" in os.environ   # Recent mpich detected
+    )
+    mpi_requested = "--using-mpi" in sys.argv[1:] # Forcing MPI initialization through command-line flag
+
+    using_mpi = False
+    if mpi_detected or mpi_requested:
+        if "mpi" in os.listdir(os.path.dirname(__file__)):
             import KratosMultiphysics.mpi
             mpi.InitializeMPIParallelRun()
-        except ModuleNotFoundError:
-            msg = [
-                "\nRequesting MPI support through the \"--using-mpi\" command line option, ",
-                "\nbut the mpi environment could not be initialized. The most likely cause ",
-                "\nfor this warning is that this Kratos installation was compiled without ",
-                "\nMPI support."
-            ]
-            Logger.PrintWarning("KRATOS INITIALIZATION WARNING:", "".join(msg))
+            using_mpi = True
+        else:
+            if mpi_requested:
+                msg = [
+                    "\nThe MPI module could not be initialized."
+                    "\nRequesting MPI support through the \"--using-mpi\" command line option, ",
+                    "\nbut the Kratos mpi module could not be initialized. The most likely cause ",
+                    "\nfor this warning is that this Kratos installation was compiled without ",
+                    "\nMPI support."
+                ]
+                raise Exception("".join(msg))
+            else: # if mpi_detected
+                msg = [
+                    "\nThis appears to be an MPI run, but the Kratos mpi module could not be found."
+                    "\nMPI was not initialized. Running in serial mode."
+                ]
+                Logger.PrintWarning("KRATOS INITIALIZATION WARNING:", "".join(msg))
 
     return kratos_globals.KratosGlobalsImpl(Kernel(using_mpi), KratosPaths.kratos_applications)
 
