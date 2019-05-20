@@ -150,7 +150,7 @@ void BuildMatrix(Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMdo
     }
 }
 
-void CheckRowSum(SparseSpaceType::MatrixType& rM, const std::string& rBaseFileName)
+void CheckRowSum(const SparseSpaceType::MatrixType& rM, const std::string& rBaseFileName)
 {
     SparseSpaceType::VectorType unit_vector(SparseSpaceType::Size2(rM));
     SparseSpaceType::Set(unit_vector, 1.0);
