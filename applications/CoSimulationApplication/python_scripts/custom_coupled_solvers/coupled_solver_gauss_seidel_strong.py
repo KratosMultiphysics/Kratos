@@ -16,14 +16,12 @@ class GaussSeidelIterativeStrongCoupledSolver(CoSimulationBaseCoupledSolver):
         # Importing the Participant modules
         self.participants_setting_dict = self.full_settings["coupled_solver_settings"]["participants"]
         self.participating_solver_names = []
-        for participant in range(0,self.number_of_participants) :
+        for participant in range(0, self.number_of_participants) :
             self.participating_solver_names.append(self.participants_setting_dict[participant]['name'])
 
-        #Comment how the settings are specified has to be consistent!
-        ### Making the convergence accelerator for this strategy
         self._CreateFilters(self.participants_setting_dict)
 
-        ### Creating the convergence criterion
+        # Creating the convergence criterion
         self.convergence_criteria_list = self._CreateConvergenceCriteria(self.settings["convergence_criteria"])
 
     def Initialize(self):

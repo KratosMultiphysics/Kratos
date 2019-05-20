@@ -25,6 +25,11 @@ class CoSimulationAnalysis(object):
         self.RunSolutionLoop()
         self.Finalize()
 
+    def Initialize(self):
+        self._GetSolver().Initialize()
+        self._GetSolver().Check()
+        self._GetSolver().PrintInfo()
+
     def RunSolutionLoop(self):
         while self.time < self.end_time:
             self.InitializeSolutionStep()
@@ -33,25 +38,12 @@ class CoSimulationAnalysis(object):
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
-    def Initialize(self):
-        self._GetSolver().Initialize()
-        self._GetSolver().Check()
-        self._GetSolver().PrintInfo()
-
     def Finalize(self):
         self._GetSolver().Finalize()
-
-    def PrintInfo(self):
-        self._GetSolver().PrintInfo()
 
     def InitializeSolutionStep(self):
         self.step += 1
         self.time = self._GetSolver().AdvanceInTime(self.time)
-
-        cs_tools.PrintInfo(cs_tools.bcolors.GREEN + cs_tools.bcolors.BOLD +
-                           "CoSimulationAnalysis", "Time = {0:.10f}".format(self.time) +
-                           " | Step = " + str(self.step) + cs_tools.bcolors.ENDC)
-
         self._GetSolver().InitializeSolutionStep()
 
     def Predict(self):
@@ -65,6 +57,9 @@ class CoSimulationAnalysis(object):
 
     def OutputSolutionStep(self):
         self._GetSolver().OutputSolutionStep()
+
+    def PrintInfo(self):
+        self._GetSolver().PrintInfo()
 
     def _GetSolver(self):
         if not hasattr(self, '_solver'):
