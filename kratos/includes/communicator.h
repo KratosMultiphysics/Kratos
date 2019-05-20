@@ -477,60 +477,70 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Barrier() const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    void Barrier() const
     {
         mrDataCommunicator.Barrier();
     }
 
-    virtual bool SumAll(int& rValue) const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    bool SumAll(int& rValue) const
     {
         rValue = mrDataCommunicator.SumAll(rValue);
         return true;
     }
 
-    virtual bool SumAll(double& rValue) const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    bool SumAll(double& rValue) const
     {
         rValue = mrDataCommunicator.SumAll(rValue);
         return true;
     }
 
-    virtual bool SumAll(array_1d<double, 3>& rValue) const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    bool SumAll(array_1d<double, 3>& rValue) const
     {
         rValue = mrDataCommunicator.SumAll(rValue);
         return true;
     }
 
-    virtual bool MinAll(int& rValue) const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    bool MinAll(int& rValue) const
     {
         rValue = mrDataCommunicator.MinAll(rValue);
         return true;
     }
 
-    virtual bool MinAll(double& rValue) const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    bool MinAll(double& rValue) const
     {
         rValue = mrDataCommunicator.MinAll(rValue);
         return true;
     }
 
-    virtual bool MaxAll(int& rValue) const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    bool MaxAll(int& rValue) const
     {
         rValue = mrDataCommunicator.MaxAll(rValue);
         return true;
     }
 
-    virtual bool MaxAll(double& rValue) const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    bool MaxAll(double& rValue) const
     {
         rValue = mrDataCommunicator.MaxAll(rValue);
         return true;
     }
 
-    virtual bool ScanSum(const double& send_partial, double& receive_accumulated) const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    bool ScanSum(const double& send_partial, double& receive_accumulated) const
     {
         receive_accumulated = mrDataCommunicator.ScanSum(send_partial);
         return true;
     }
 
-    virtual bool ScanSum(const int& send_partial, int& receive_accumulated) const
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
+    bool ScanSum(const int& send_partial, int& receive_accumulated) const
     {
         receive_accumulated = mrDataCommunicator.ScanSum(send_partial);
         return true;
@@ -890,6 +900,11 @@ public:
     }
 
     virtual bool SynchronizeAndNodalFlags(const Flags& TheFlags)
+    {
+        return true;
+    }
+
+    virtual bool SynchronizeNodalFlags()
     {
         return true;
     }

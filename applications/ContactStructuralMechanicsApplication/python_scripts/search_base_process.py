@@ -421,9 +421,20 @@ class SearchBaseProcess(KM.Process):
         search_parameters["predefined_master_slave"].SetBool(self.predefined_master_slave)
         search_parameters["id_name"].SetString(key)
 
+        # Setting additional parameters
+        self._set_additional_parameters(search_parameters)
+
         # We create the search process
         self.search_utility_list[key] = CSMA.ContactSearchProcess(self.computing_model_part, search_parameters)
 
+    def _set_additional_parameters(self, param):
+        """ This sets additional parameters for the search
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        param -- The parameters where to set additional values
+        """
+        pass
 
     def _get_enum_flag(self, param, label, dictionary):
         """ Parse enums settings using an auxiliary dictionary of acceptable values.
