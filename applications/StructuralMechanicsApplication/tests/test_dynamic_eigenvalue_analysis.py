@@ -5,6 +5,11 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+try:
+    import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
+    eigen_solvers_is_available = True
+except ImportError:
+    eigen_solvers_is_available = False
 
 #Test of eigenvalue analysis and modal decomposition with beam elements according to:
 #C. Petersen, Dynamic der Baukonstruktionen, Viehweg Verlag, 2000, p. 252
@@ -146,6 +151,8 @@ class TestDynamicEigenvalueAnalysis(BaseTestDynamicEigenvalueAnalysis):
 
     def test_dynamic_eigenvalue_analysis(self):
 
+        if not eigen_solvers_is_available:
+            self.skipTest("Missing required application: EigenSolversApplication")
         reference_eigenvalues = [115.1882,3056.9526]
         current_model = KratosMultiphysics.Model()
         mp = self._set_up_system(current_model)
