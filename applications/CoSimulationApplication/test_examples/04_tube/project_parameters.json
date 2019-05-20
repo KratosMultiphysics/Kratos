@@ -2,40 +2,45 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time"   : 10.0,
+        "end_time" : 10.0,
         "echo_level" : 1,
         "data_structure" : "pyKratos"
     },
     "coupled_solver_settings" :
     {
         "name" : "elastic_pipe",
-        "solver_type" : "gauss_seidel_strong",
-        "echo_level" : 1,
-		"num_coupling_iterations" : 20,
-        "start_coupling_time" : 0.25,
-        "convergence_accelerators" :
-        [
+        "type" : "gauss_seidel",
+        "settings" :
+        {
+            "echo_level" : 1,
+		    "num_coupling_iterations" : 20,
+            "start_coupling_time" : 0.25
+        },
+        "convergence_accelerator" :
+        {
+            "type" : "iqnils",
+            "data" :
             {
-                "type"          : "iqnils",
-                "data" :
-                {
-                    "solver"        : "pipe_flow",
-                    "data_name"     : "MESH_DISPLACEMENT"
-                },
-                "settings" :
-                {
-                }
-            }
-        ],
-        "convergence_criteria" :
-        [
+                "solver" : "pipe_flow",
+                "data_name" : "DISPLACEMENT"
+            },
+            "settings" :
             {
-                "solver"        : "pipe_flow",
-                "data_name"     : "MESH_DISPLACEMENT",
-                "abs_tolerance" : 1e-6,
-                "rel_tolerance" : 1e-4
             }
-        ],
+        },
+        "convergence_criterion" :
+        {
+            "type" : "relative",
+            "data" :
+            {
+                "solver": "pipe_flow",
+                "data_name": "DISPLACEMENT"
+            },
+            "settings" :
+            {
+                "tolerance": 1e-6
+            }
+        },
         "participants" :
         [
             {
@@ -81,16 +86,6 @@
         "pipe_flow" :
         {
             "solver_type" : "pipe_interfaces.pipe_flow_solver",
-            "settings" :
-            {
-                "echo_level"  : 1,
-                "working_directory" : "CFD",
-                "input_file"  : "pipe_flow.json"
-            },
-            "io_settings" :
-            {
-                "io_type"     : "None"
-            },
             "data" :
             [
                 {
@@ -103,21 +98,15 @@
                     "geometry_name" : "wall",
                     "dimension"       : 1
                 }
-            ]
+            ],
+            "settings" :
+            {
+                "echo_level": 1
+            }
         },
         "pipe_structure" :
         {
             "solver_type" : "pipe_interfaces.pipe_structure_solver",
-            "settings" :
-            {
-                "echo_level"  : 1,
-                "working_directory" : "CSD",
-                "input_file"  : "pipe_structure.json"
-            },
-            "io_settings" :
-            {
-                "io_type"     : "None"
-            },
             "data" :
             [
                 {
@@ -130,7 +119,11 @@
                     "geometry_name" : "wall",
                     "dimension"       : 1
                 }
-            ]
+            ],
+            "settings" :
+            {
+                "echo_level"  : 1
+            }
         }
     }
 }

@@ -11,10 +11,6 @@ cs_data_structure = cs_tools.cs_data_structure
 #  This class is intended to server as the base class for all the coupled solvers.
 class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
 
-    ## The constructor
-    #
-
-    #  @param custom_settings     parameters for configuring the CoSimulationBaseCoupledSolver
     def __init__(self, custom_settings):
         self.full_settings = custom_settings
         self.settings = custom_settings['coupled_solver_settings']
@@ -30,10 +26,10 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         }
         """)
         self.settings.ValidateAndAssignDefaults(default_settings)
-        self.number_of_participants = self.settings['participants'].size()
         self.echo_level = self.settings["echo_level"].GetInt()
 
         # Get the participating solvers a map with their names and objects
+        self.number_of_participants = self.settings['participants'].size()
         self.participating_solvers = self._CreateSolvers(self.full_settings['solvers'])
         self.solver_settings = self._GetSolverCoSimulationDetails(self.settings["participants"])
 
@@ -46,54 +42,30 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         else:
             self.coupling_started = True
 
-    ## Initialize : Initialize function. Called only once
-    #               all member variables are initialized here.
-
     def Initialize(self):
         for solver_name, solver in self.participating_solvers.items():
             solver.Initialize()
-
-    ## Finalize : Finalize function. Called only once
-    #               all member variables are finalized here.
 
     def Finalize(self):
         for solver_name, solver in self.participating_solvers.items():
             solver.Finalize()
 
-    ## Predict : Predict the solution of the next solution step.
-    #
-
     def Predict(self):
         for solver_name, solver in self.participating_solvers.items():
             solver.Predict()
-
-    ## InitializeSolutionStep : Called once in the beginning of the solution step
-    #
 
     def InitializeSolutionStep(self):
         for solver_name, solver in self.participating_solvers.items():
             solver.InitializeSolutionStep()
 
-    ## FinalizeSolutionStep : Called once at the end of the solution step
-    #
-
     def FinalizeSolutionStep(self):
         for solver_name, solver in self.participating_solvers.items():
             solver.FinalizeSolutionStep()
-
-    ## OutputSolutionStep : Called once at the end of the solution step.
-    #                       The output of the solvers and / or co-simulation output
-    #                       can be performed in this function.
-    #
 
     def OutputSolutionStep(self):
         for solver_name, solver in self.participating_solvers.items():
             solver.OutputSolutionStep()
 
-    ## AdvanceInTime :  This function will advance the current solver to the given current_time
-    #
-    #  @param self                      The object pointer.
-    #  @current_time                    The time to which the current solver should advance
     def AdvanceInTime(self, current_time):
         new_time = 0.0
         for solver_name, solver in self.participating_solvers.items():
@@ -106,29 +78,14 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
 
         return new_time
 
-    ## SolveSolutionStep : This function implements the coupling workflow
-    #                      specific to the coupled solver by using
-    #                      functions of its participating solvers in a specific
-    #                      order.
-    #
     def SolveSolutionStep(self):
         err_msg = 'Calling "SolveSolutionStep" of the "CoSimulationBaseCouplingSolver"!\n'
         err_msg += 'This function has to be implemented in the derived class!'
         raise NotImplementedError(err_msg)
 
-    ## Check : Called once at the beginning of simulation.
-    #          Necessary setup of the solver can be verified here.
-    #          IMPORTANT : Check the time step sizes and other setting of
-    #                       participating solvers.
-    #
-
     def Check(self):
         for solver_name, solver in self.participating_solvers.items():
             solver.Check()
-
-    ## PrintInfo : Function to display information about the
-    #              specifics of the coupled solver.
-    #
 
     def PrintInfo(self):
         cs_tools.PrintInfo("The class", self.__class__.__name__," has the following participants")
@@ -188,8 +145,6 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
 
                 solver.ExportCouplingInterfaceData(solver_data, to_solver)
 
-    ## _CreateSolvers : Private Function to make the participating solver objects
-    #
     def _CreateSolvers(self, SolversDataMap):
         solvers_map = collections.OrderedDict()
         import KratosMultiphysics.CoSimulationApplication.custom_solver_interfaces.co_simulation_solver_factory as cs_solver_factory
@@ -200,10 +155,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
 
         return solvers_map
 
-    ## _GetSolverCoSimulationDetails : Private Function to obtain a dict of setting with solver
-    #                                  name as key
-    #
-    def _GetSolverCoSimulationDetails(self,co_simulation_solver_settings):
+    def _GetSolverCoSimulationDetails(self, co_simulation_solver_settings):
         num_solvers = co_simulation_solver_settings.size()
         solver_cs_details = {}
         for i_solver in range(num_solvers):
