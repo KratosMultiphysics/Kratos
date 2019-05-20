@@ -64,7 +64,11 @@ bool IsDirExist(const std::string& rFolderName)
 
 int CreateDir(const std::string& rFolderName)
 {
+#ifdef KRATOS_COMPILED_IN_WINDOWS
+    const int status = mkdir(rFolderName.c_str());
+#else
     const int status = mkdir(rFolderName.c_str(),0777);
+#endif
     return status;
 }
 
