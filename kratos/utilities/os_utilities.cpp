@@ -46,25 +46,65 @@ std::string GetCurrentWorkingDir()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RemoveOnCurrentWorkingDir(const std::string& rFileName)
+void Remove(const std::string& rFileName)
 {
+    const char* name = rFileName.c_str();
+    const bool is_dir = DirExist(rFileName);
+
 #ifdef KRATOS_COMPILED_IN_WINDOWS
-	if (IsDirExist(rFileName)) // It is a directory
-		RemoveDirectoryA((GetCurrentWorkingDir() + "\\" + rFileName).c_str());
-	else  // It is a file
-		remove((GetCurrentWorkingDir() + "\\" + rFileName).c_str());
+    if (is_dir) // It is a directory
+        RemoveDirectoryA(name);
+    else  // It is a file
+        remove(name);
 #else
-    remove((GetCurrentWorkingDir() + "/" + rFileName).c_str());
+    if (is_dir) // It is a directory
+        rmdir(name);
+    else  // It is a file
+        remove(name);
 #endif
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool IsDirExist(const std::string& rFolderName)
+void RemoveOnCurrentWorkingDir(const std::string& rFileName)
+{
+    Remove(AppendFolderFile(GetCurrentWorkingDir(), rFileName));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::string AppendFolderFile(
+    const std::string& rFolderName,
+    const std::string& rFileName
+    )
+{
+#ifdef KRATOS_COMPILED_IN_WINDOWS
+    return rFolderName + "\\" + rFileName;
+#else
+    return rFolderName + "/" + rFileName;
+#endif
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool FileExist(const std::string& rFileName)
 {
     struct stat buffer;
-    return (stat (rFolderName.c_str(), &buffer) == 0);
+    stat(rFileName.c_str(), &buffer);
+    return S_ISREG(buffer.st_mode);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool DirExist(const std::string& rFolderName)
+{
+    struct stat buffer;
+    stat(rFolderName.c_str(), &buffer);
+    return S_ISDIR(buffer.st_mode);
 }
 
 /***********************************************************************************/

@@ -56,17 +56,40 @@ namespace OSUtilities
     std::string KRATOS_API(KRATOS_CORE) GetCurrentWorkingDir();
 
     /**
+     * @brief This method removes a file
+     * @param rFileName The name of the file to be removed
+     */
+    void KRATOS_API(KRATOS_CORE) Remove(const std::string& rFileName);
+
+    /**
      * @brief This method removes a file on the current working directory
      * @param rFileName The name of the file to be removed
      */
     void KRATOS_API(KRATOS_CORE) RemoveOnCurrentWorkingDir(const std::string& rFileName);
 
     /**
+     * @brief This method appends the name of the folder and the file
+     * @param rFolderName The name of the directory to be appended
+     * @param rFileName The name of the file to be appended
+     */
+    std::string KRATOS_API(KRATOS_CORE) AppendFolderFile(
+        const std::string& rFolderName,
+        const std::string& rFileName
+        );
+
+    /**
+     * @brief This method checks if the file exists
+     * @param rFileName The name of the file to be checked
+     * @return True if exists, false otherwise
+     */
+    bool KRATOS_API(KRATOS_CORE) FileExist(const std::string& rFileName);
+
+    /**
      * @brief This method checks if the directory exists
      * @param rFolderName The name of the directory to be checked
      * @return True if exists, false otherwise
      */
-    bool KRATOS_API(KRATOS_CORE) IsDirExist(const std::string& rFolderName);
+    bool KRATOS_API(KRATOS_CORE) DirExist(const std::string& rFolderName);
 
     /**
      * @brief This method creates a new directory

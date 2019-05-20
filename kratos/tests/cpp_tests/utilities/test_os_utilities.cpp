@@ -35,15 +35,15 @@ KRATOS_TEST_CASE_IN_SUITE(GetCurrentWorkingDir, KratosCoreFastSuite)
 }
 
 /**
-* Checks the correct work of IsDirExist
+* Checks the correct work of DirExist
 */
-KRATOS_TEST_CASE_IN_SUITE(IsDirExist, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DirExist, KratosCoreFastSuite)
 {
     // Getting current directory
     const std::string current_dir = OSUtilities::GetCurrentWorkingDir();
 
     // We check
-    KRATOS_CHECK(OSUtilities::IsDirExist(current_dir));
+    KRATOS_CHECK(OSUtilities::DirExist(current_dir));
 }
 
 /**
@@ -56,13 +56,13 @@ KRATOS_TEST_CASE_IN_SUITE(SeveralUtilities, KratosCoreFastSuite)
     OSUtilities::CreateDir(name);
 
     // We check
-    KRATOS_CHECK(OSUtilities::IsDirExist(name));
+    KRATOS_CHECK(OSUtilities::DirExist(name));
 
     // Remove dir
     OSUtilities::RemoveOnCurrentWorkingDir(name);
 
     // We check
-    KRATOS_CHECK(!OSUtilities::IsDirExist(name));
+    KRATOS_CHECK(!OSUtilities::DirExist(name));
 }
 
 }   // namespace Testing
