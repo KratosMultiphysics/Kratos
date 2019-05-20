@@ -92,8 +92,7 @@ void BruteForcePointLocator::CheckResults(const std::string& rObjectName,
                                           const Point& rThePoint,
                                           const int LocalObjectFound) const
 {
-    int global_objects_found = LocalObjectFound;
-    mrModelPart.GetCommunicator().SumAll(global_objects_found);
+    int global_objects_found = mrModelPart.GetCommunicator().GetDataCommunicator().SumAll(LocalObjectFound);
 
     if (global_objects_found > 1) {
         KRATOS_WARNING_IF_ALL_RANKS("BruteForcePointLocator", LocalObjectFound == 1) << "More than one " << rObjectName << " found for Point:" << rThePoint << std::endl; // TODO pass data-comm from the modelpart to the logger once available
