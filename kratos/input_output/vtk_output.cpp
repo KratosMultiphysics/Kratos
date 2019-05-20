@@ -18,7 +18,8 @@
 // External includes
 
 // Project includes
-#include "vtk_output.h"
+#include "input_output/vtk_output.h"
+#include "utilities/os_utilities.h"
 #include "containers/model.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 
@@ -159,6 +160,10 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
         ss << std::setprecision(mDefaultPrecision) << std::setfill('0')
            << rModelPart.GetProcessInfo()[TIME];
         label = ss.str();
+    } else if(output_control == "nl_iteration_number") {
+        ss << std::setprecision(mDefaultPrecision) << std::setfill('0')
+           << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
+        label = ss.str();
     } else {
         KRATOS_ERROR << "Option for \"output_control_type\": " << output_control
             <<" not recognised!\nPossible output_control_type options "
@@ -166,9 +171,15 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
     }
 
     // Putting everything together
+    const std::string& r_folder_name = mOutputSettings["folder_name"].GetString();
+    const bool directory_exists = OSUtilities::IsDirExist(r_folder_name);
+    if (!directory_exists) {
+        KRATOS_WARNING("VtkOutput") << "Folder: " << r_folder_name << " does not exist. We will try to create it" << std::endl;
+        OSUtilities::CreateDir(r_folder_name);
+    }
     std::string output_file_name;
     if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
-        output_file_name += mOutputSettings["folder_name"].GetString() + "/";
+        output_file_name += r_folder_name + "/";
     }
     const std::string& custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
     output_file_name += custom_name_prefix + model_part_name + "_" + std::to_string(rank) + "_" + label + ".vtk";
