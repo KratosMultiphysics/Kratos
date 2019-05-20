@@ -66,7 +66,6 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         self.do_remeshing = settings["remeshing_flag"].GetBool()
         self.step = 0
         self.max_iter = settings["maximum_iterations"].GetInt()
-        self.print_output_flag = settings["print_output"].GetBool()
 
         self.metric_parameters = settings["metric_parameters"]
         self.distance_modification_parameters = settings["distance_modification_parameters"]
@@ -209,6 +208,3 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         '''
         KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.GEOMETRY_DISTANCE, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.DISTANCE, self.main_model_part.Nodes)
-
-
-
