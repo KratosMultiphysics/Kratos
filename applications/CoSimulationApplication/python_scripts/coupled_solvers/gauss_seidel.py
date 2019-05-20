@@ -55,6 +55,6 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
             component.Check()
 
     def PrintInfo(self):
-        cs_tools.PrintInfo("The class ", self.__class__.__name__, " has the following components:")
+        cs_tools.PrintInfo("The coupled solver ", self.__class__.__name__, " has the following components:")
         for component in self._components:
             component.PrintInfo()

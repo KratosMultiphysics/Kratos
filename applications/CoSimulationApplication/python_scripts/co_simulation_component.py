@@ -1,5 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes backward compatible with python 2.6 and 2.7
 
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+
 
 class CoSimulationComponent(object):
     def __init__(self):
@@ -30,4 +32,4 @@ class CoSimulationComponent(object):
         pass
 
     def PrintInfo(self):
-        pass
+        cs_tools.PrintInfo("The component ", self.__class__.__name__)

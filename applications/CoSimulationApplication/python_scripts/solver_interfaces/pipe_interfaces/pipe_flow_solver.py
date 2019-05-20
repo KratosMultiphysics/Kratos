@@ -1,6 +1,5 @@
 import numpy as np
 import math as m
-import os
 from scipy.linalg import solve_banded
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_component import CoSimulationComponent
