@@ -255,6 +255,7 @@ void ExtendPressureConditionProcess<TDim>::ResetFlagOnElements()
     for(int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
         auto it_elem = mrModelPart.ElementsBegin() + i;
         it_elem->SetValue(SMOOTHING, false);
+    }
 }
 
 /***********************************************************************************/
