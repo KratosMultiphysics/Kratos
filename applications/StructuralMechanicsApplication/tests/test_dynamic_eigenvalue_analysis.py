@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 try:
