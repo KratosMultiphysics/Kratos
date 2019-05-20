@@ -28,13 +28,13 @@ class EigenSolver(MechanicalSolver):
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "scheme_type"         : "dynamic",
+            "compute_modal_decomposition": false,
             "eigensolver_settings" : {
                 "solver_type"           : "eigen_eigensystem",
                 "max_iteration"         : 1000,
                 "tolerance"             : 1e-6,
                 "number_of_eigenvalues" : 5,
-                "echo_level"            : 1,
-                "compute_modal_decomposition": false
+                "echo_level"            : 1
             }
         }""")
         this_defaults.AddMissingParameters(super(EigenSolver, cls).GetDefaultSettings())
@@ -72,7 +72,7 @@ class EigenSolver(MechanicalSolver):
         eigen_scheme = self.get_solution_scheme() # The scheme defines the matrices of the eigenvalue problem.
         builder_and_solver = self.get_builder_and_solver() # The eigensolver is created here.
         computing_model_part = self.GetComputingModelPart()
-        compute_modal_decomposition = self.settings["eigensolver_settings"]["compute_modal_decomposition"].GetBool()
+        compute_modal_decomposition = self.settings["compute_modal_decomposition"].GetBool()
 
         return StructuralMechanicsApplication.EigensolverStrategy(computing_model_part,
                                                                   eigen_scheme,

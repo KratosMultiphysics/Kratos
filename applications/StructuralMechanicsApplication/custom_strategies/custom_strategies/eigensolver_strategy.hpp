@@ -435,7 +435,7 @@ public:
         this->AssignVariables(Eigenvalues,Eigenvectors);
 
 
-        if (mComputeModalDecompostion == true) {
+        if (mComputeModalDecompostion) {
             ComputeModalDecomposition(Eigenvectors);
         }
 
