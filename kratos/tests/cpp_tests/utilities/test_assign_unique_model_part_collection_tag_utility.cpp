@@ -323,7 +323,7 @@ namespace Kratos
                 }
             }
 
-            remove((OSUtilities::GetCurrentWorkingDir() + "/" + filename + ".json").c_str());
+            OSUtilities::RemoveOnCurrentWorkingDir(filename + ".json");
         }
 
     } // namespace Testing
