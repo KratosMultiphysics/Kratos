@@ -105,6 +105,13 @@ public:
     /// Pointer definition of BaseContactSearchProcess
     KRATOS_CLASS_POINTER_DEFINITION( BaseContactSearchProcess );
 
+    /// Local Flags
+    KRATOS_DEFINE_LOCAL_FLAG( INVERTED_SEARCH );
+    KRATOS_DEFINE_LOCAL_FLAG( CREATE_AUXILIAR_CONDITIONS );
+    KRATOS_DEFINE_LOCAL_FLAG( MULTIPLE_SEARCHS );
+    KRATOS_DEFINE_LOCAL_FLAG( PREDEFINE_MASTER_SLAVE );
+    KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
+
     ///@}
     ///@name  Enum's
     ///@{
@@ -185,12 +192,12 @@ public:
     /**
      * @brief This function clears the mortar conditions already created
      */
-    void ClearMortarConditions();
+    virtual void ClearMortarConditions();
 
     /**
      * @brief This method checks that the contact model part is unique (so the model parts contain unique contact pairs)
      */
-    void CheckContactModelParts();
+    virtual void CheckContactModelParts();
 
     /**
      * @brief This function creates a lists  points ready for the Mortar method
@@ -220,7 +227,7 @@ public:
     /**
      * @brief This resets the contact operators
      */
-    void ResetContactOperators();
+     virtual void ResetContactOperators();
 
     ///@}
     ///@name Access
@@ -269,12 +276,10 @@ protected:
     Parameters mThisParameters;        /// The configuration parameters
     CheckGap mCheckGap;                /// If the gap is checked during the search
     TypeSolution mTypeSolution;        /// The solution type
-    bool mInvertedSearch;              /// The search will be done inverting the way master and slave/master is assigned
     std::string mConditionName;        /// The name of the condition to be created
-    bool mCreateAuxiliarConditions;    /// If the auxiliar conditions are created or not
     PointVector mPointListDestination; /// A list that contents the all the points (from nodes) from the modelpart
-    bool mMultipleSearchs;             /// If we consider multiple serach or not
-    bool mPredefinedMasterSlave;       /// If the master/slave sides are predefined
+
+    Flags mOptions;                    /// Local flags
 
     ///@}
     ///@name Protected Operators
@@ -283,6 +288,12 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method cleans the model part
+     * @param rModelPart The model part of interest
+     */
+    virtual void CleanModelPart(ModelPart& rModelPart);
 
     /**
      * @brief This method checks the pairing
@@ -316,6 +327,28 @@ protected:
      * @param ItNode The node iterator to set
      */
     virtual void SetInactiveNode(NodesArrayType::iterator ItNode);
+
+    /**
+     * @brief This method add a new pair to the computing model part
+     * @param rComputingModelPart The modelpart  used in the assemble of the system
+     * @param rConditionId The ID of the new condition to be created
+     * @param pCondSlave The pointer to the slave condition
+     * @param rSlaveNormal The normal of the slave condition
+     * @param pCondMaster The pointer to the master condition
+     * @param rMasterNormal The normal of the master condition
+     * @param pIndexesPairs The map of indexes considered
+     * @param pProperties The pointer to the Properties of the condition
+     */
+    virtual bool AddPairing(
+        ModelPart& rComputingModelPart,
+        IndexType& rConditionId,
+        GeometricalObject::Pointer pCondSlave,
+        const array_1d<double, 3>& rSlaveNormal,
+        GeometricalObject::Pointer pCondMaster,
+        const array_1d<double, 3>& rMasterNormal,
+        IndexMap::Pointer pIndexesPairs,
+        Properties::Pointer pProperties
+        );
 
     /**
      * @brief This converts the framework string to an enum
@@ -469,28 +502,6 @@ private:
         Properties::Pointer pProperties,
         const double ActiveCheckFactor,
         const bool FrictionalProblem
-        );
-
-    /**
-     * @brief This method add a new pair to the computing model part
-     * @param rComputingModelPart The modelpart  used in the assemble of the system
-     * @param rConditionId The ID of the new condition to be created
-     * @param pCondSlave The pointer to the slave condition
-     * @param rSlaveNormal The normal of the slave condition
-     * @param pCondMaster The pointer to the master condition
-     * @param rMasterNormal The normal of the master condition
-     * @param pIndexesPairs The map of indexes considered
-     * @param pProperties The pointer to the Properties of the condition
-     */
-    inline void AddPairing(
-        ModelPart& rComputingModelPart,
-        IndexType& rConditionId,
-        GeometricalObject::Pointer pCondSlave,
-        const array_1d<double, 3>& rSlaveNormal,
-        GeometricalObject::Pointer pCondMaster,
-        const array_1d<double, 3>& rMasterNormal,
-        IndexMap::Pointer pIndexesPairs,
-        Properties::Pointer pProperties
         );
 
     /**

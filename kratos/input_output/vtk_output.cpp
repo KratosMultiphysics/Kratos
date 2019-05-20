@@ -248,11 +248,8 @@ void VtkOutput::WriteConditionsAndElementsToFile(const ModelPart& rModelPart, st
 {
     const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
 
-    int num_elements = static_cast<int>(r_local_mesh.NumberOfElements());
-    rModelPart.GetCommunicator().SumAll(num_elements);
-
-    int num_conditions = static_cast<int>(r_local_mesh.NumberOfConditions());
-    rModelPart.GetCommunicator().SumAll(num_conditions);
+    int num_elements = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
+    int num_conditions = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfConditions()));
 
     if (num_elements > 0) {
         if (num_conditions > 0 && rModelPart.GetCommunicator().MyPID() == 0) {
@@ -423,8 +420,7 @@ void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofst
     Parameters element_data_value_variables = mOutputSettings["element_data_value_variables"];
     Parameters element_flags = mOutputSettings["element_flags"];
 
-    int num_elements = static_cast<int>(r_local_mesh.NumberOfElements());
-    rModelPart.GetCommunicator().SumAll(num_elements);
+    int num_elements = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
 
     if (num_elements > 0) {
         // write cells header
@@ -457,11 +453,8 @@ void VtkOutput::WriteConditionResultsToFile(const ModelPart& rModelPart, std::of
     Parameters condition_results = mOutputSettings["condition_data_value_variables"];
     Parameters condition_flags = mOutputSettings["condition_flags"];
 
-    int num_elements = static_cast<int>(r_local_mesh.NumberOfElements());
-    rModelPart.GetCommunicator().SumAll(num_elements);
-
-    int num_conditions = static_cast<int>(r_local_mesh.NumberOfConditions());
-    rModelPart.GetCommunicator().SumAll(num_conditions);
+    int num_elements = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
+    int num_conditions = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(static_cast<int>(r_local_mesh.NumberOfConditions())));
 
     if (num_elements == 0 && num_conditions > 0) { // TODO: Can we have conditions and elements at the same time?
         // Write cells header

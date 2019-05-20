@@ -67,11 +67,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     ;
 
     // Active set utilities
-    py::class_<ActiveSetUtilities, typename ActiveSetUtilities::Pointer>(m, "ActiveSetUtilities")
-    .def(py::init<>())
-    .def("ComputePenaltyFrictionlessActiveSet",&ActiveSetUtilities::ComputePenaltyFrictionlessActiveSet)
-    .def("ComputePenaltyFrictionalActiveSet",&ActiveSetUtilities::ComputePenaltyFrictionalActiveSet)
-    ;
+    m.def("ComputePenaltyFrictionlessActiveSet",&ActiveSetUtilities::ComputePenaltyFrictionlessActiveSet);
+    m.def("ComputePenaltyFrictionalActiveSet",&ActiveSetUtilities::ComputePenaltyFrictionalActiveSet);
 
     // Interface preprocess
     py::class_<InterfacePreprocessCondition, typename InterfacePreprocessCondition::Pointer>(m, "InterfacePreprocessCondition")

@@ -143,12 +143,18 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         self.frictional_law = self.contact_settings["frictional_law"].GetString()
 
         # If we compute a frictional contact simulation
-        if self.contact_settings["contact_type"].GetString() == "Frictional":
+        contact_type = self.contact_settings["contact_type"].GetString()
+        if contact_type == "Frictional" or contact_type == "FrictionalPureSlip":
             self.is_frictional = True
+            if contact_type == "FrictionalPureSlip":
+                self.pure_slip = True
+            else:
+                self.pure_slip = False
             if self.normal_variation == CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION:
                 self.normal_variation = CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE
         else:
             self.is_frictional = False
+            self.pure_slip = False
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -255,6 +261,16 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
 
         # We call to the base process
         super(ALMContactProcess, self).ExecuteFinalize()
+
+    def _set_additional_parameters(self, param):
+        """ This sets additional parameters for the search
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        param -- The parameters where to set additional values
+        """
+        param.AddEmptyValue("pure_slip")
+        param["pure_slip"].SetBool(self.pure_slip)
 
     def _get_condition_name(self):
         """ This method returns the condition name
