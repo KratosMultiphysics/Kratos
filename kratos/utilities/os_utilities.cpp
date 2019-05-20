@@ -11,7 +11,7 @@
 //
 
 // Project includes
-#include "utilities/os_utilities.h"
+#include "utilities/os_utilities.h" # has to be included before using KRATOS_COMPILED_IN_WINDOWS
 
 // System includes
 #include <sys/stat.h>
