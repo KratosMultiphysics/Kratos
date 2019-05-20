@@ -4,10 +4,9 @@ cs_data_structure = cs_tools.cs_data_structure
 
 
 def Create(parameters):
-    return PredictorLinear(parameters)
+    return ConvergenceCriterionRelative(parameters)
 
 
-class PredictorLinear(CoSimulationComponent):
-    def __init__(self, _unused):
-        self.data_prev_iter = []
-        self.data_current_iter = []
+class ConvergenceCriterionRelative(CoSimulationComponent):
+    def __init__(self, parameters):
+        self.parameters = parameters
