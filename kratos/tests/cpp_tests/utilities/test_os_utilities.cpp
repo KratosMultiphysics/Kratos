@@ -19,6 +19,9 @@
 namespace Kratos {
 namespace Testing {
 
+/**
+* Checks the correct work of GetCurrentWorkingDir
+*/
 KRATOS_TEST_CASE_IN_SUITE(GetCurrentWorkingDir, KratosCoreFastSuite)
 {
     // Using directly the utilities
@@ -29,6 +32,37 @@ KRATOS_TEST_CASE_IN_SUITE(GetCurrentWorkingDir, KratosCoreFastSuite)
 
     // We check
     KRATOS_CHECK_STRING_EQUAL(current_dir, external_current_dir);
+}
+
+/**
+* Checks the correct work of IsDirExist
+*/
+KRATOS_TEST_CASE_IN_SUITE(IsDirExist, KratosCoreFastSuite)
+{
+    // Getting current directory
+    const std::string current_dir = OSUtilities::GetCurrentWorkingDir();
+
+    // We check
+    KRATOS_CHECK(OSUtilities::IsDirExist(current_dir));
+}
+
+/**
+* Checks the correct work of several utilities
+*/
+KRATOS_TEST_CASE_IN_SUITE(SeveralUtilities, KratosCoreFastSuite)
+{
+    // Create dir
+    const std::string name = "AUXILIAR_RIDICULOUS_NAME";
+    OSUtilities::CreateDir(name);
+
+    // We check
+    KRATOS_CHECK(OSUtilities::IsDirExist(name));
+
+    // Remove dir
+    OSUtilities::RemoveOnCurrentWorkingDir(name);
+
+    // We check
+    KRATOS_CHECK(!OSUtilities::IsDirExist(name));
 }
 
 }   // namespace Testing
