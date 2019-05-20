@@ -147,7 +147,6 @@ class TikZOutputProcess(KratosMultiphysics.Process):
             step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
             with open(name_file + "_STEP_" + str(step) + ".tex", 'w') as output:
                 output.write(outputstring)
-                output.close()
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
