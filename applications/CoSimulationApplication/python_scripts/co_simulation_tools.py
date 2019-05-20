@@ -30,8 +30,8 @@ def ImportDataStructure(parameters_file_name):
     # Read data_structure from parameter file if present
     with open(parameters_file_name, 'r') as parameter_file:
         parameters = json.load(parameter_file)
-        if 'data_structure' in parameters['problem_data'].keys():
-            data_structure_name = parameters['problem_data']['data_structure']
+        if 'data_structure' in parameters['settings'].keys():
+            data_structure_name = parameters['settings']['data_structure']
 
     # Initialize cs_data_structure and import corresponding module
     if cs_data_structure is None:
@@ -46,9 +46,9 @@ def ImportDataStructure(parameters_file_name):
 
 
 ## CreateInstance: Creates an instance of a given class in a given category
-def CreateInstance(settings, object_package):
+def CreateInstance(settings):
     object_type = settings["type"].GetString()
-    object_module_full = "KratosMultiphysics.CoSimulationApplication."+object_package+"."+object_type
+    object_module_full = "KratosMultiphysics.CoSimulationApplication."+object_type
     object_module = __import__(object_module_full, fromlist=[object_type])
     return object_module.Create(settings)
 

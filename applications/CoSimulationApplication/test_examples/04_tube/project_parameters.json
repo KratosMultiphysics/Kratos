@@ -1,27 +1,26 @@
 {
-    "problem_data" :
+    "settings" :
     {
+        "echo_level" : 1,
         "start_time" : 0.0,
         "end_time" : 10.0,
-        "echo_level" : 1,
         "data_structure" : "pyKratos"
     },
     "coupled_solver" :
     {
-        "type" : "gauss_seidel",
+        "type" : "coupled_solvers.gauss_seidel",
         "settings" :
         {
             "echo_level" : 1,
-		    "num_coupling_iterations" : 20,
-            "start_coupling_time" : 0.25
+		    "num_coupling_iterations" : 20
         },
         "predictor" :
         {
-            "type" : "linear"
+            "type" : "predictors.linear"
         },
         "convergence_accelerator" :
         {
-            "type" : "iqnils",
+            "type" : "convergence_accelerators.iqnils",
             "data" :
             {
                 "solver" : "pipe_flow",
@@ -34,7 +33,7 @@
         },
         "convergence_criterion" :
         {
-            "type" : "relative",
+            "type" : "convergence_criteria.relative",
             "data" :
             {
                 "solver": "pipe_flow",
@@ -45,11 +44,11 @@
                 "tolerance": 1e-6
             }
         },
-        "solver_interface" :
+        "solver_interfaces" :
         [
             {
                 "name" : "pipe_flow",
-                "type" : "pipe_interfaces.pipe_flow_solver",
+                "type" : "solver_interfaces.pipe_interfaces.pipe_flow_solver",
                 "data_input" :
                 [
                     {
@@ -73,7 +72,7 @@
             },
             {
                 "name": "pipe_structure",
-                "type": "pipe_interfaces.pipe_structure_solver",
+                "type": "solver_interfaces.pipe_interfaces.pipe_structure_solver",
                 "data_input":
                 [
                     {

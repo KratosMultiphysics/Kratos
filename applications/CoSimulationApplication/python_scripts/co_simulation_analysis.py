@@ -7,14 +7,15 @@ from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import Impor
 class CoSimulationAnalysis(object):
     def __init__(self, parameters):
         self.parameters = parameters
+        self.settings = parameters["settings"]
 
-        self.echo_level = 0
-        if "echo_level" in self.parameters["problem_data"]:
-            self.echo_level = self.parameters["problem_data"]["echo_level"].GetInt()
+        self.echo_level = self.settings["echo_level"].GetInt()
 
-        self.end_time = self.parameters["problem_data"]["end_time"].GetDouble()
-        self.time = self.parameters["problem_data"]["start_time"].GetDouble()
         self.step = 0
+        self.time = self.settings["start_time"].GetDouble()
+        self.end_time = self.settings["end_time"].GetDouble()
+
+        self._coupled_solver = cs_tools.CreateInstance(self.parameters["coupled_solver"])
 
     def Run(self):
         self.Initialize()
@@ -22,49 +23,22 @@ class CoSimulationAnalysis(object):
         self.Finalize()
 
     def Initialize(self):
-        self._GetSolver().Initialize()
-        self._GetSolver().Check()
-        self._GetSolver().PrintInfo()
+        self._coupled_solver.Initialize()
+        self._coupled_solver.Check()
+        self._coupled_solver.PrintInfo()
 
     def RunSolutionLoop(self):
         while self.time < self.end_time:
-            self.InitializeSolutionStep()
-            self.Predict()
-            self.SolveSolutionStep()
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
+            self.step += 1
+            self.time = self._coupled_solver.AdvanceInTime(self.time)
+            self._coupled_solver.InitializeSolutionStep()
+            self._coupled_solver.Predict()
+            self._coupled_solver.SolveSolutionStep()
+            self._coupled_solver.FinalizeSolutionStep()
+            self._coupled_solver.OutputSolutionStep()
 
     def Finalize(self):
-        self._GetSolver().Finalize()
-
-    def InitializeSolutionStep(self):
-        self.step += 1
-        self.time = self._GetSolver().AdvanceInTime(self.time)
-        self._GetSolver().InitializeSolutionStep()
-
-    def Predict(self):
-        self._GetSolver().Predict()
-
-    def SolveSolutionStep(self):
-        self._GetSolver().SolveSolutionStep()
-
-    def FinalizeSolutionStep(self):
-        self._GetSolver().FinalizeSolutionStep()
-
-    def OutputSolutionStep(self):
-        self._GetSolver().OutputSolutionStep()
-
-    def PrintInfo(self):
-        self._GetSolver().PrintInfo()
-
-    def _GetSolver(self):
-        if not hasattr(self, '_solver'):
-            self._solver = self._CreateSolver()
-        return self._solver
-
-    def _CreateSolver(self):
-        self._solver = cs_tools.CreateInstance(self.parameters["coupled_solver"], "coupled_solver")
-        return self._solver
+        self._coupled_solver.Finalize()
 
 
 if __name__ == '__main__':
