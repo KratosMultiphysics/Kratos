@@ -1,3 +1,4 @@
+from KratosMultiphysics.CoSimulationApplication.co_simulation_component import CoSimulationComponent
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 cs_data_structure = cs_tools.cs_data_structure
 
@@ -6,7 +7,7 @@ def Create(parameters):
     return CoupledSolverGaussSeidel(parameters)
 
 
-class CoupledSolverGaussSeidel(object):
+class CoupledSolverGaussSeidel(CoSimulationComponent):
     def __init__(self, parameters):
         self.parameters = parameters
         self.settings = parameters["settings"]
@@ -31,8 +32,8 @@ class CoupledSolverGaussSeidel(object):
             component.Finalize()
 
     def InitializeSolutionStep(self):
-        for solver_name, solver in self.participating_solvers.items():
-            solver.InitializeSolutionStep()
+        for component in self._components:
+            component.InitializeSolutionStep()
 
     def Predict(self):
         for solver_name, solver in self.participating_solvers.items():
@@ -42,12 +43,12 @@ class CoupledSolverGaussSeidel(object):
         pass
 
     def FinalizeSolutionStep(self):
-        for solver_name, solver in self.participating_solvers.items():
-            solver.FinalizeSolutionStep()
+        for component in self._components:
+            component.FinalizeSolutionStep()
 
     def OutputSolutionStep(self):
-        for solver_name, solver in self.participating_solvers.items():
-            solver.OutputSolutionStep()
+        for component in self._components:
+            component.OutputSolutionStep()
 
     def AdvanceInTime(self, current_time):
         new_time = 0.0
@@ -62,10 +63,10 @@ class CoupledSolverGaussSeidel(object):
         return new_time
 
     def Check(self):
-        for solver_name, solver in self.participating_solvers.items():
-            solver.Check()
+        for component in self._components:
+            component.Check()
 
     def PrintInfo(self):
-        cs_tools.PrintInfo("The class", self.__class__.__name__," has the following participants")
-        for solver_name, solver in self.participating_solvers.items():
-            solver.PrintInfo()
+        cs_tools.PrintInfo("The class ", self.__class__.__name__, " has the following components:")
+        for component in self._components:
+            component.PrintInfo()
