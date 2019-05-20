@@ -17,8 +17,8 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #  @param custom_settings     parameters for configuring the CoSimulationBaseCoupledSolver
     def __init__(self, custom_settings):
         self.full_settings = custom_settings
-        self.settings= custom_settings['coupled_solver_settings']
-        default_setting = cs_data_structure.Parameters("""
+        self.settings = custom_settings['coupled_solver_settings']
+        default_settings = cs_data_structure.Parameters("""
         {
             "name" : "",
             "solver_type" : "gauss_seidel_strong",
@@ -29,7 +29,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
             "convergence_criteria" : []
         }
         """)
-        self.settings.ValidateAndAssignDefaults(default_setting)
+        self.settings.ValidateAndAssignDefaults(default_settings)
         self.number_of_participants = self.settings['participants'].size()
         self.echo_level = self.settings["echo_level"].GetInt()
 
@@ -112,7 +112,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #                      order.
     #
     def SolveSolutionStep(self):
-        err_msg  = 'Calling "SolveSolutionStep" of the "CoSimulationBaseCouplingSolver"!\n'
+        err_msg = 'Calling "SolveSolutionStep" of the "CoSimulationBaseCouplingSolver"!\n'
         err_msg += 'This function has to be implemented in the derived class!'
         raise NotImplementedError(err_msg)
 

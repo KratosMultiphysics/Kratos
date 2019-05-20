@@ -19,7 +19,7 @@ class CoSimulationBaseSolver(object):
     #  @param self                      The object pointer.
     #  @param cs_solver_settings     python dictionary : with the solver settings.
     def __init__(self, solver_name, cs_solver_settings):
-        default_setting = cs_data_structure.Parameters("""
+        default_settings = cs_data_structure.Parameters("""
         {
             "solver_type" : "",
             "io_settings": {},
@@ -30,11 +30,11 @@ class CoSimulationBaseSolver(object):
         """)
         self.name = solver_name
         self.cs_solver_settings = cs_solver_settings
-        self.cs_solver_settings.ValidateAndAssignDefaults(default_setting)
+        self.cs_solver_settings.ValidateAndAssignDefaults(default_settings)
         self.SetEchoLevel(self.cs_solver_settings["echo_level"].IsInt())
         self.data_map = self._GetDataMap()
         self.geo_names = self._GetGeometryNames()
-        self.model = cs_data_structure.Model() ## Where all the co-simulation meshes are stored.
+        self.model = cs_data_structure.Model() # Where all the co-simulation meshes are stored.
         # This is the map of all the geometries that a solver can have
         self.geometry_map = {}
         self.io_is_initialized = False

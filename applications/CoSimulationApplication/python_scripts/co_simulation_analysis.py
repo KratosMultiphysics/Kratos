@@ -8,16 +8,16 @@ class CoSimulationAnalysis(object):
     """
     The base class for the CoSimulation-AnalysisStage
     """
-    def __init__(self, cs_settings):
-        self.cs_settings = cs_settings
+    def __init__(self, settings):
+        self.settings = settings
         self.flush_stdout = False
 
         self.echo_level = 0
-        if "echo_level" in self.cs_settings["problem_data"]:
-            self.echo_level = self.cs_settings["problem_data"]["echo_level"].GetInt()
+        if "echo_level" in self.settings["problem_data"]:
+            self.echo_level = self.settings["problem_data"]["echo_level"].GetInt()
 
-        self.end_time = self.cs_settings["problem_data"]["end_time"].GetDouble()
-        self.time = self.cs_settings["problem_data"]["start_time"].GetDouble()
+        self.end_time = self.settings["problem_data"]["end_time"].GetDouble()
+        self.time = self.settings["problem_data"]["start_time"].GetDouble()
         self.step = 0
 
     def Run(self):
@@ -67,17 +67,17 @@ class CoSimulationAnalysis(object):
         return self._solver
 
     def _CreateSolver(self):
-        if "coupled_solver_settings" in self.cs_settings.keys():
+        if "coupled_solver_settings" in self.settings.keys():
             import KratosMultiphysics.CoSimulationApplication.custom_coupled_solvers.coupled_solver_factory as coupled_solver_factory
-            self._solver = coupled_solver_factory.CreateCoupledSolver(self.cs_settings)
+            self._solver = coupled_solver_factory.CreateCoupledSolver(self.settings)
             return self._solver
-        elif "solvers" in self.cs_settings.keys():
-            num_solvers = len(self.cs_settings["solvers"])
+        elif "solvers" in self.settings.keys():
+            num_solvers = len(self.settings["solvers"])
             if num_solvers > 1 or num_solvers == 0:
                 raise Exception("More than one or no solvers defined without coupled solver!")
             else:
                 import KratosMultiphysics.CoSimulationApplication.custom_solver_interfaces.co_simulation_solver_factory as solver_factory
-                self._solver = solver_factory.CreateSolverInterface("Solver", self.cs_settings["solvers"][0])
+                self._solver = solver_factory.CreateSolverInterface("Solver", self.settings["solvers"][0])
                 return self._solver
 
 
