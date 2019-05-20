@@ -38,7 +38,7 @@
         "initial_conditions_process_list"  : [],
         "boundary_conditions_process_list" : [
             {
-            "python_module" : "initialize_geometry",
+            "python_module" : "level_set_remeshing_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.Parts_Parts_Auto1",

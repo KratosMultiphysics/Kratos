@@ -8,13 +8,12 @@ import time
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return InitializeGeometryProcess(Model, settings["Parameters"])
+    return LevelSetRemeshingProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-class InitializeGeometryProcess(KratosMultiphysics.Process):
+class LevelSetRemeshingProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
-        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Initialize Geometry process')
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name": "insert_model_part",
@@ -67,14 +66,14 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(MeshingApplication.METRIC_TENSOR_2D, self.main_model_part.Nodes)
 
     def ExecuteInitialize(self):
-        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Executing Initialize Geometry')
+        KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Executing Initialize Geometry')
         self._InitializeSkinModelPart()
         self._CalculateDistance()
 
         ini_time=time.time()
         while self.step < self.max_iter and self.do_remeshing:
             self.step += 1
-            KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','##### Executing refinement #', self.step, ' #####')
+            KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','##### Executing refinement #', self.step, ' #####')
             self._ExtendDistance()
             self._RefineMesh()
             self._CalculateDistance()
@@ -82,7 +81,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         self._ModifyFinalDistance()
         self._ExtendDistance()
         self._CopyAndDeleteDefaultDistance()
-        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Elapsed time: ',time.time()-ini_time)
+        KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Elapsed time: ',time.time()-ini_time)
 
         ''' ############################################################################################# '''
         ''' THIS FUNCTION CALL IS TEMPORARY AND WILL BE REMOVED ONCE THE EMBEDDED WAKE PROCESS IS DEFINED '''
@@ -105,13 +104,13 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         self.moving_parameters["rotation_angle"].SetDouble(angle)
         CompressiblePotentialFlow.MoveModelPartProcess(self.skin_model_part, self.moving_parameters).Execute()
 
-        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','InitializeSkin time: ',time.time()-ini_time)
+        KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','InitializeSkin time: ',time.time()-ini_time)
 
     def _CalculateDistance(self):
         ''' This function calculate the distance to skin for every node in the main_model_part.'''
         ini_time=time.time()
         KratosMultiphysics.CalculateDistanceToSkinProcess2D(self.main_model_part, self.skin_model_part).Execute()
-        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','CalculateDistance time: ',time.time()-ini_time)
+        KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','CalculateDistance time: ',time.time()-ini_time)
 
     def _ExtendDistance(self):
         ''' This function extends the distance field to all the nodes of the main_model_part in order to
@@ -143,7 +142,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             maximum_iterations)
         variational_distance_process.Execute()
 
-        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Variational distance process time: ',time.time()-ini_time)
+        KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Variational distance process time: ',time.time()-ini_time)
 
 
     def _RefineMesh(self):
@@ -172,7 +171,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         mmg_process = MeshingApplication.MmgProcess2D(self.main_model_part, mmg_parameters)
         mmg_process.Execute()
 
-        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Remesh time: ',time.time()-ini_time)
+        KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Remesh time: ',time.time()-ini_time)
 
     def _UpdateParameters(self):
         ''' This process updates remeshing parameters in case more than one iteration is performed'''
@@ -186,7 +185,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.main_model_part)
         find_nodal_h.Execute()
         KratosMultiphysics.FluidDynamicsApplication.DistanceModificationProcess(self.main_model_part,self.distance_modification_parameters).Execute()
-        KratosMultiphysics.Logger.PrintInfo('InitializeGeometry','Modify distance time: ',time.time()-ini_time)
+        KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Modify distance time: ',time.time()-ini_time)
 
     def _CopyAndDeleteDefaultDistance(self):
         ''' This function copies the distance field to an auxiliary distance variable and sets
