@@ -92,7 +92,7 @@ public:
         ModelPart& rModelPart,
         SchemePointerType pScheme,
         BuilderAndSolverPointerType pBuilderAndSolver,
-        bool ComputeModalDecomposition
+        bool ComputeModalDecomposition = false
         )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
     {
