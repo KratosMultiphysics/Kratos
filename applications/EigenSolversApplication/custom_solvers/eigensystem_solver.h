@@ -64,7 +64,8 @@ class EigensystemSolver
             "normalize_eigenvectors": false,
             "max_iteration": 1000,
             "tolerance": 1e-6,
-            "echo_level": 1
+            "echo_level": 1,
+            "compute_modal_decomposition": false
         })");
 
         mParam.ValidateAndAssignDefaults(default_params);

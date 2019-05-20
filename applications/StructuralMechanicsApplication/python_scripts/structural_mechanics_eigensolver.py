@@ -33,7 +33,8 @@ class EigenSolver(MechanicalSolver):
                 "max_iteration"         : 1000,
                 "tolerance"             : 1e-6,
                 "number_of_eigenvalues" : 5,
-                "echo_level"            : 1
+                "echo_level"            : 1,
+                "compute_modal_decomposition": false
             }
         }""")
         this_defaults.AddMissingParameters(super(EigenSolver, cls).GetDefaultSettings())
@@ -55,6 +56,7 @@ class EigenSolver(MechanicalSolver):
             err_msg += "Available options are: \"dynamic\""
             raise Exception(err_msg)
 
+
         return solution_scheme
 
     def _create_linear_solver(self):
@@ -70,7 +72,9 @@ class EigenSolver(MechanicalSolver):
         eigen_scheme = self.get_solution_scheme() # The scheme defines the matrices of the eigenvalue problem.
         builder_and_solver = self.get_builder_and_solver() # The eigensolver is created here.
         computing_model_part = self.GetComputingModelPart()
+        compute_modal_decomposition = self.settings["eigensolver_settings"]["compute_modal_decomposition"].GetBool()
 
         return StructuralMechanicsApplication.EigensolverStrategy(computing_model_part,
                                                                   eigen_scheme,
-                                                                  builder_and_solver)
+                                                                  builder_and_solver,
+                                                                  compute_modal_decomposition)
