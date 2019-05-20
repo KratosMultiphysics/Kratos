@@ -5,8 +5,8 @@
 //                   Multi-Physics FemDem Application
 //
 //  License:             BSD License
-//                               Kratos default license:
-//kratos/license.txt
+//  Kratos default license:
+//  kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
 //
@@ -28,11 +28,13 @@ void ExpandWetNodesProcess::Execute()
 {
     int extrapolated_elements = 1;
     int pressure_id;
+    auto& r_process_info = mrModelPart.GetProcessInfo();
+    const std::size_t dimension = r_process_info[DOMAIN_SIZE]
     while (extrapolated_elements > 0) {
         extrapolated_elements = 0;
 
         //#pragma omp parallel for
-        for(int i = 0; i<static_cast<int>(mrModelPart.Elements().size()); i++) {
+        for(int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
             auto it_elem = mrModelPart.ElementsBegin() + i;
             
             bool element_done = it_elem->GetValue(PRESSURE_EXPANDED);
@@ -128,7 +130,7 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
     auto& r_sub_model_part = mrModelPart.GetSubModelPart("SkinModelPart");
 
     #pragma omp parallel for
-    for(int i = 0; i<static_cast<int>(r_sub_model_part.Nodes().size()); i++) {
+    for (int i = 0; i < static_cast<int>(r_sub_model_part.Nodes().size()); i++) {
         auto it_node = r_sub_model_part.NodesBegin() + i;
         it_node->SetValue(IS_SKIN, true);
     }
@@ -138,7 +140,7 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
         expanded_elements = 0;
 
         //#pragma omp parallel for
-        for(int i = 0; i<static_cast<int>(mrModelPart.Elements().size()); i++) {
+        for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
             auto it_elem = mrModelPart.ElementsBegin() + i;
             auto& r_geometry = it_elem->GetGeometry();
 
@@ -159,14 +161,14 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
                        expanded_elements++;
                        it_elem->SetValue(PRESSURE_EXPANDED, true);
                        r_process_info[RECONSTRUCT_PRESSURE_LOAD] = 1;
-                   }
+                    }
                }
             }
         }
     }
 
     #pragma omp parallel for
-    for(int i = 0; i<static_cast<int>(mrModelPart.Elements().size()); i++) {
+    for (int i = 0; i<static_cast<int>(mrModelPart.Elements().size()); i++) {
         auto it_elem = mrModelPart.ElementsBegin() + i;
         it_elem->SetValue(PRESSURE_EXPANDED, false);
     }
