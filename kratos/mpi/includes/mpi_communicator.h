@@ -1803,6 +1803,7 @@ private:
         }
 
         KRATOS_WARNING_IF_ALL_RANKS("MPICommunicator", position > rBuffer.size())
+        << GetDataCommunicator()
         << "Error in estimating receive buffer size." << std::endl;
     }
 
