@@ -20,7 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/mpm_base_load_condition.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_base_load_condition.h"
 
 namespace Kratos
 {
@@ -45,7 +45,7 @@ namespace Kratos
 ///@{
 
 class MPMGridSurfaceLoadCondition3D
-    : public MPMBaseLoadCondition
+    : public MPMGridBaseLoadCondition
 {
 public:
 
@@ -232,12 +232,12 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMBaseLoadCondition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMGridBaseLoadCondition );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMBaseLoadCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMGridBaseLoadCondition );
     }
 
 
