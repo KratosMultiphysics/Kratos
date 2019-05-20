@@ -78,19 +78,19 @@ public:
         KRATOS_TRY;
 
         for(auto it_node=mrModelPart.NodesBegin(); it_node!=mrModelPart.NodesEnd(); ++it_node){
-            array_1d<double, 3>& coordinates = it_node->Coordinates();
+            array_1d<double, 3>& r_coordinates = it_node->Coordinates();
 
             for (std::size_t i_dim = 0; i_dim<mOrigin.size();i_dim++){
-                coordinates[i_dim] = mSizingMultiplier*coordinates[i_dim]+mOrigin[i_dim];
+                r_coordinates[i_dim] = mSizingMultiplier*r_coordinates[i_dim]+mOrigin[i_dim];
             }
 
-
             if (mRotationAngle != 0.0){
+                array_1d<double, 3> old_coordinates = r_coordinates;
                 // X-Y plane rotation
-                coordinates[0] = mRotationPoint[0]+std::cos(mRotationAngle)*(coordinates[0]-mRotationPoint[0])-
-                                sin(mRotationAngle)*(coordinates[1]-mRotationPoint[1]);
-                coordinates[1] = mRotationPoint[1]+sin(mRotationAngle)*(coordinates[0]-mRotationPoint[0])-
-                                cos(mRotationAngle)*(coordinates[1]-mRotationPoint[1]);
+                r_coordinates[0] = mRotationPoint[0]+cos(mRotationAngle)*(old_coordinates[0]-mRotationPoint[0])-
+                                sin(mRotationAngle)*(old_coordinates[1]-mRotationPoint[1]);
+                r_coordinates[1] = mRotationPoint[1]+sin(mRotationAngle)*(old_coordinates[0]-mRotationPoint[0])-
+                                cos(mRotationAngle)*(old_coordinates[1]-mRotationPoint[1]);
             }
         }
 
