@@ -11,6 +11,7 @@
 //
 
 // Project includes
+#include "input_output/logger.h"
 #include "utilities/os_utilities.h" // Has to be included before using KRATOS_COMPILED_IN_WINDOWS
 
 // System includes
@@ -52,6 +53,8 @@ void RemoveFile(const std::string& rFileName)
     if (is_file) { // It is a file
         const char* name = rFileName.c_str();
         remove(name);
+    } else {
+        KRATOS_WARNING("OSUtilities") << "This is a folder. Please use RemoveDir" << std::endl;
     }
 }
 
@@ -77,6 +80,8 @@ void RemoveDir(const std::string& rFolderName)
 #else
         rmdir(name);
 #endif
+    } else {
+        KRATOS_WARNING("OSUtilities") << "This is a file. Please use RemoveFile" << std::endl;
     }
 }
 
