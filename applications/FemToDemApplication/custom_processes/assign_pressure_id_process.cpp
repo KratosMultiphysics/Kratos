@@ -40,7 +40,6 @@ void AssignPressureIdProcess::Execute()
     for (IndexType i = 0; i < submodel_parts_names.size(); ++i) {
         const IndexType string_size = submodel_parts_names[i].size();
         if (submodel_parts_names[i].substr(0, 11) == mPressureName.substr(0, 11)) {
-
             int pressure_id;
             if (submodel_parts_names[i].size() == ref_string_size) { // from 1 to 9
                 pressure_id = std::stoi(submodel_parts_names[i].substr(string_size - 1, string_size));
@@ -60,7 +59,7 @@ void AssignPressureIdProcess::AssignPressureIdToNodes(
     // Loop over nodes of that submodel to assign prressure id
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.GetSubModelPart(rSubModelPartName).Nodes().size()); i++) {
-        auto it_node = mrModelPart.NodesBegin() + i;
+        auto it_node = mrModelPart.GetSubModelPart(rSubModelPartName).NodesBegin() + i;
         it_node->SetValue(PRESSURE_ID, PressureId);
     }
 }
