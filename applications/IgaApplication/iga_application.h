@@ -25,6 +25,7 @@
 #include "custom_elements/shell_kl_discrete_element.h"
 #include "custom_elements/iga_shell_3p_element.h"
 #include "custom_elements/iga_shell_5p_element.h"
+#include "custom_elements/iga_shell_5p_element_pre_int.h"
 
 #include "custom_conditions/coupling_penalty_discrete_condition.h"
 #include "custom_conditions/support_penalty_curve_discrete_condition.h"
@@ -177,6 +178,7 @@ private:
     const ShellKLDiscreteElement mShellKLDiscreteElement;
     const IgaShell3pElement mIgaShell3pElement;
     const IgaShell5pElement mIgaShell5pElement;
+    const IgaShell5pElementPreInt mIgaShell5pElementPreInt;
 
     const CouplingPenaltyDiscreteCondition mCouplingPenaltyDiscreteCondition;
 

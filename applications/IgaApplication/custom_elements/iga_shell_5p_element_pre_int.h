@@ -1,5 +1,5 @@
-#if !defined(KRATOS_IGA_SHELL_5p_ELEMENT_H_INCLUDED)
-#define  KRATOS_IGA_SHELL_5p_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_IGA_SHELL_5p_ELEMENT_PRE_INT_H_INCLUDED)
+#define  KRATOS_IGA_SHELL_5p_ELEMENT_PRE_INT_H_INCLUDED
 
 
 // System includes
@@ -20,32 +20,32 @@ namespace Kratos
 /// Short class definition.
 /** Kirchhoff-Love Shell. Optimized for Isogeometric Analysis by Kiendl et al. .
 */
-class IgaShell5pElement
+class IgaShell5pElementPreInt
     : public BaseDiscreteElement
 {
 public:
     ///@name Type Definitions
     ///@{
-    /// Counted pointer of IgaShell5pElement
-    KRATOS_CLASS_POINTER_DEFINITION(IgaShell5pElement);
+    /// Counted pointer of IgaShell5pElementPreInt
+    KRATOS_CLASS_POINTER_DEFINITION(IgaShell5pElementPreInt);
     ///@}
     ///@name Life Cycle
     ///@{
     /// Default constructor.
     // Constructor using an array of nodes
-    IgaShell5pElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    IgaShell5pElementPreInt(IndexType NewId, GeometryType::Pointer pGeometry)
         : BaseDiscreteElement(NewId, pGeometry)
     {};
     // Constructor using an array of nodes with properties
-    IgaShell5pElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    IgaShell5pElementPreInt(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseDiscreteElement(NewId, pGeometry, pProperties)
     {};
 
     // default constructor necessary for serialization
-    IgaShell5pElement() : BaseDiscreteElement() {};
+    IgaShell5pElementPreInt() : BaseDiscreteElement() {};
 
     /// Destructor.
-    virtual ~IgaShell5pElement() override
+    virtual ~IgaShell5pElementPreInt() override
     {};
 
     /**
@@ -61,7 +61,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_shared<IgaShell5pElement>(
+        return Kratos::make_shared<IgaShell5pElementPreInt>(
             NewId, pGeom, pProperties);
     };
 
@@ -71,7 +71,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_shared< IgaShell5pElement >(
+        return Kratos::make_shared< IgaShell5pElementPreInt >(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -160,9 +160,6 @@ private:
     ///@}
 	///@name Member Variables
 	///@{
-    // curvilinear coordinate zeta (theta3)
-    double mZeta;
-
     /**
         * Internal variables used for metric transformation
         */
@@ -331,18 +328,27 @@ private:
         const Matrix& rDw_alpha_Dbeta,
         const Vector& rDw_D1,
         const Vector& rDw_D2,
-        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure);
 
     void CalculateStrain(
         Vector& rStrainVector,
-        const Vector& rgab,
+        const Vector& rgab);
+
+    void CalculateCurvature(
+        Vector& rCurvatureVector,
         const Vector& rCurvature);
 
     void CalculateStrainRM(
         Vector& rStrainVectorRM,
         const Vector& rShearDifferenceVector,
+        const Vector& rg1,
+        const Vector& rg2);
+
+    void CalculateCurvatureRM(
+        Vector& rCurvatureVectorRM,
         const Vector& rDw_D1,
         const Vector& rDw_D2,
         const Vector& rg1,
@@ -352,17 +358,24 @@ private:
         const Vector rCurvilinearStrain,
         Vector& rCartesianStrain);
 
-	void CalculateB(
+	void CalculateBMembrane(
 		Matrix& rB,
 		const MetricVariables& rMetric);
     
-    void CalculateSecondVariations(
-        SecondVariations& rSecondVariations,
+	void CalculateBCurvature(
+		Matrix& rB,
+		const MetricVariables& rMetric);
+
+    void CalculateSecondVariationStrainCurvature(
+        SecondVariations& rSecondVariationsMembrane,
+        SecondVariations& rSecondVariationsCurvature,
         const MetricVariables& rMetric);
 
     void CalculateVariationsRM(        
-        Matrix& rB,
-        SecondVariations& rSecondVariations,
+        Matrix& rBMembraneRM,
+        Matrix& rBCurvatureRM,
+        SecondVariations& rSecondVariationsMembraneRM,
+        SecondVariations& rSecondVariationsCurvatureRM,
         const Vector& rShearDifferenceVector,
         const Vector& rDw_D1,
         const Vector& rDw_D2,
@@ -371,12 +384,6 @@ private:
         const MetricVariables& rActualMetric,
         const bool& rCalculateStiffnessMatrixFlag);
     
-    /**
-     * @brief Calculates Differential Volume of the reference configuration
-     * @detail Needed for Gaussian quadrature
-     */
-	void CalculateDifferentialVolume(
-		double& rdV);
     /**
      * @brief Stress recovery
      */
@@ -404,9 +411,9 @@ private:
 
     ///@}
 
-};     // Class IgaShell5pElement
+};     // Class IgaShell5pElementPreInt
 ///@}
 
 }  // namespace Kratos.
 
-#endif // KRATOS_IGA_SHELL_5p_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_IGA_SHELL_5p_ELEMENT_PRE_INT_H_INCLUDED  defined
