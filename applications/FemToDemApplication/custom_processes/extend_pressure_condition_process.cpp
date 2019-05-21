@@ -21,6 +21,9 @@ ExtendPressureConditionProcess<TDim>::ExtendPressureConditionProcess(
     ModelPart& rModelPart)
     : mrModelPart(rModelPart)
 {
+    auto& r_process_info = mrModelPart.GetProcessInfo();
+    const std::size_t dimension = r_process_info[DOMAIN_SIZE];
+	mPressureName = (dimension == 2) ? "Normal_Load" : "Pressure_Load";
 }
 
 /***********************************************************************************/
@@ -48,7 +51,7 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads2Nodes(
     )
 {
     std::string sub_model_name;
-	sub_model_name = "Normal_Load-auto-" + std::to_string(PressureId);
+	sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
     auto& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_name);
     ModelPart::PropertiesType::Pointer p_properties = r_sub_model_part.pGetProperties(1);
     auto& r_geom = (*itElem)->GetGeometry();
@@ -91,7 +94,7 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
     )
 {
     std::string sub_model_name;
-	sub_model_name = "Normal_Load-auto-" + std::to_string(PressureId);
+	sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
     auto& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_name);
     ModelPart::PropertiesType::Pointer p_properties = r_sub_model_part.pGetProperties(1);
 
@@ -235,7 +238,7 @@ void ExtendPressureConditionProcess<TDim>::RemovePreviousLineLoads()
     std::vector<std::string> submodel_parts_names = mrModelPart.GetSubModelPartNames();
     std::vector<std::string> pressure_sub_models;
     for (IndexType i = 0; i < submodel_parts_names.size(); ++i) {
-        if (submodel_parts_names[i].substr(0, 11) == "Normal_Load") {
+        if (submodel_parts_names[i].substr(0, 11) == mPressureName) {
             // Remove the line loads
             auto& r_sub_model = mrModelPart.GetSubModelPart(submodel_parts_names[i]);
             for (auto it_cond = r_sub_model.ConditionsBegin(); it_cond != r_sub_model.ConditionsEnd(); it_cond++) {

@@ -162,7 +162,7 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
                        it_elem->SetValue(PRESSURE_EXPANDED, true);
                        r_process_info[RECONSTRUCT_PRESSURE_LOAD] = 1;
                     }
-               }
+                }
             }
         }
     }
@@ -174,6 +174,7 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
     }
 }
 
-
+/***********************************************************************************/
+/***********************************************************************************/
 
 } // namespace Kratos
