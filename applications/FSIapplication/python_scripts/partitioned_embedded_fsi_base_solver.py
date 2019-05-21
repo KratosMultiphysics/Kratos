@@ -84,11 +84,6 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         #TODO: REMOVE THIS! ONLY ADDED FOR DEBUGGING WITHOUT MODIFYING THE JSON WHEN THE FM-ALE ALGORITHM IS SWITCHED OFF.
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
-        #TODO: ADD FOR DEBUGGING
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LINEAR_MOMENTUM)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_MOMENTUM)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE_OLD_IT)
 
         # FSI coupling required variables addition
         self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
@@ -347,7 +342,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # structure_gid_output.ExecuteBeforeSolutionLoop()
         # structure_skin_gid_output.ExecuteBeforeSolutionLoop()
 
-        ## Wall non-linear coupling iteration ##
+        ## Non-linear coupling iteration ##
         nl_it = 0
         while (nl_it < self.max_nl_it and self.fluid_solver._TimeBufferIsInitialized()):
             nl_it += 1
@@ -567,13 +562,6 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self.fluid_solver.FinalizeSolutionStep()
         self.structure_solver.FinalizeSolutionStep()
         self._get_convergence_accelerator().FinalizeSolutionStep()
-
-        # TODO: REMOVE AFTER DEBUGGING
-        for node in self.fluid_solver.GetComputingModelPart().Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.LINEAR_MOMENTUM, node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1))
-            node.SetSolutionStepValue(KratosMultiphysics.ANGULAR_MOMENTUM, node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 2))
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 1))
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE_OLD_IT, node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 2))
 
     def SetEchoLevel(self, structure_echo_level, fluid_echo_level):
         self.fluid_solver.SetEchoLevel(self, fluid_echo_level)
