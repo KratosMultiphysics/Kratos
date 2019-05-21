@@ -332,9 +332,9 @@ protected:
      * @brief This method add a new pair to the computing model part
      * @param rComputingModelPart The modelpart  used in the assemble of the system
      * @param rConditionId The ID of the new condition to be created
-     * @param pCondSlave The pointer to the slave condition
+     * @param pObjectSlave The pointer to the slave condition
      * @param rSlaveNormal The normal of the slave condition
-     * @param pCondMaster The pointer to the master condition
+     * @param pObjectMaster The pointer to the master condition
      * @param rMasterNormal The normal of the master condition
      * @param pIndexesPairs The map of indexes considered
      * @param pProperties The pointer to the Properties of the condition
@@ -342,9 +342,9 @@ protected:
     virtual bool AddPairing(
         ModelPart& rComputingModelPart,
         IndexType& rConditionId,
-        GeometricalObject::Pointer pCondSlave,
+        GeometricalObject::Pointer pObjectSlave,
         const array_1d<double, 3>& rSlaveNormal,
-        GeometricalObject::Pointer pCondMaster,
+        GeometricalObject::Pointer pObjectMaster,
         const array_1d<double, 3>& rMasterNormal,
         IndexMap::Pointer pIndexesPairs,
         Properties::Pointer pProperties
@@ -482,9 +482,9 @@ private:
      * @brief This method checks the potential pairing between two conditions/geometries (auxiliar one)
      * @param rComputingModelPart The modelpart  used in the assemble of the system
      * @param rConditionId The ID of the new condition to be created
-     * @param pCondSlave The pointer to the slave condition
+     * @param pObjectSlave The pointer to the slave condition
      * @param rSlaveNormal The normal of the slave condition
-     * @param pCondMaster The pointer to the master condition
+     * @param pObjectMaster The pointer to the master condition
      * @param rMasterNormal The normal of the master condition
      * @param pIndexesPairs The id sets of potential pairs
      * @param pProperties The pointer to the Properties of the condition
@@ -494,9 +494,9 @@ private:
     void AddPotentialPairing(
         ModelPart& rComputingModelPart,
         IndexType& rConditionId,
-        GeometricalObject::Pointer pCondSlave,
+        GeometricalObject::Pointer pObjectSlave,
         const array_1d<double, 3>& rSlaveNormal,
-        GeometricalObject::Pointer pCondMaster,
+        GeometricalObject::Pointer pObjectMaster,
         const array_1d<double, 3>& rMasterNormal,
         IndexMap::Pointer pIndexesPairs,
         Properties::Pointer pProperties,
