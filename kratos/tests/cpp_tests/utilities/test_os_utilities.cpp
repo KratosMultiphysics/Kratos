@@ -63,7 +63,6 @@ KRATOS_TEST_CASE_IN_SUITE(SeveralUtilities, KratosCoreFastSuite)
 
     // We check
     KRATOS_CHECK(!OSUtilities::IsDir(name));
-    KRATOS_CHECK(!OSUtilities::IsFile(name));
 }
 
 }   // namespace Testing
