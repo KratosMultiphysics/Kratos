@@ -29,10 +29,12 @@ class ApplySlipProcess(KratosMultiphysics.Process):
         #TODO: Remove the IS_STRUCTURE variable set as soon as the flag SLIP migration is done
         #TODO: Remove the MESH_VELOCITY variable as soon the scheme doesn't use it
         for node in self.model_part.Nodes:
+            node.Set(KratosMultiphysics.SLIP)
             node.SetValue(KratosMultiphysics.IS_STRUCTURE,1.0)
             node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0,1.0)
             node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,0,[0.0, 0.0, 0.0])
 
     def ExecuteInitializeSolutionStep(self):
-        KratosMultiphysics.VariableUtils().SetVectorVar(KratosMultiphysics.IS_STRUCTURE, 0.0, self.model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.IS_STRUCTURE, 0.0, self.model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLIP, False, self.model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetVectorVar(KratosMultiphysics.MESH_VELOCITY, [0.0, 0.0, 0.0], self.model_part.Nodes)
