@@ -159,7 +159,7 @@ template< const SizeType TDim, const SizeType TNumNodes, const FrictionalCase TF
 typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::MortarConditionMatrices MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::AddExplicitContributionOfMortarFrictionalCondition(
     PairedCondition* pCondition,
     ProcessInfo& rCurrentProcessInfo,
-    MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
+    const MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
     const IndexType IntegrationOrder,
     const bool AxisymmetricCase,
     const bool ComputeNodalArea
@@ -314,6 +314,99 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     return this_mortar_condition_matrices;
 
     KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< const SizeType TDim, const SizeType TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster>
+void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::ComputePreviousMortarOperators(
+    PairedCondition* pCondition,
+    ProcessInfo& rCurrentProcessInfo,
+    MortarOperator<TNumNodes, TNumNodesMaster>& rPreviousMortarOperators,
+    const IndexType IntegrationOrder,
+    const bool AxisymmetricCase
+    )
+{
+    // We "save" the mortar operator for the next step
+    // The slave geometry
+    GeometryType& r_slave_geometry = pCondition->GetGeometry();
+    const array_1d<double, 3>& r_normal_slave = pCondition->GetValue(NORMAL);
+
+    // Create and initialize condition variables
+    GeneralVariables kinematic_variables;
+
+    // Create the dual LM operator
+    BoundedMatrix<double, TNumNodes, TNumNodes> Ae;
+
+    // We call the exact integration utility
+    const double distance_threshold = rCurrentProcessInfo[DISTANCE_THRESHOLD];
+    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold);
+
+    // The master geometry
+    GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
+
+    // The normal of the master condition
+    const array_1d<double, 3>& r_normal_master = pCondition->GetValue(PAIRED_NORMAL);
+
+    // Reading integration points
+    ConditionArrayListType conditions_points_slave;
+    const bool is_inside = integration_utility.GetExactIntegration(r_slave_geometry, r_normal_slave, r_master_geometry, r_normal_master, conditions_points_slave);
+
+    double integration_area;
+    integration_utility.GetTotalArea(r_slave_geometry, conditions_points_slave, integration_area);
+
+    const double geometry_area = r_slave_geometry.Area();
+    if (is_inside && ((integration_area/geometry_area) > 1.0e-5)) {
+        IntegrationMethod this_integration_method = pCondition->GetIntegrationMethod();
+
+        // Initialize general variables for the current master element
+        kinematic_variables.Initialize();
+
+        // Initialize the mortar operators
+        rPreviousMortarOperators.Initialize();
+
+        const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+        const bool dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
+
+        for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
+            PointerVector<PointType> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+            array_1d<BelongType, TDim> belong_array;
+            for (IndexType i_node = 0; i_node < TDim; ++i_node) {
+                PointType global_point;
+                r_slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+                points_array(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
+                belong_array[i_node] = conditions_points_slave[i_geom][i_node].GetBelong();
+            }
+
+            DecompositionType decomp_geom( points_array );
+
+            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
+
+            if (bad_shape == false) {
+                const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
+
+                // Integrating the mortar operators
+                for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
+                    // We compute the local coordinates
+
+                    const PointType local_point_decomp = PointType(integration_points_slave[point_number].Coordinates());
+                    PointType local_point_parent;
+                    PointType gp_global;
+                    decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
+                    r_slave_geometry.PointLocalCoordinates(local_point_parent, gp_global);
+
+                    // Calculate the kinematic variables
+                    ExplicitCalculateKinematics(pCondition, kinematic_variables, Ae, r_normal_master, local_point_decomp, local_point_parent, decomp_geom, dual_LM);
+
+                    const double axisymmetric_coefficient = AxisymmetricCase ? AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(pCondition, kinematic_variables.NSlave) : 1.0;
+                    const double integration_weight = integration_points_slave[point_number].Weight() * axisymmetric_coefficient;
+
+                    rPreviousMortarOperators.CalculateMortarOperators(kinematic_variables, integration_weight);
+                }
+            }
+        }
+    }
 }
 
 /***********************************************************************************/
