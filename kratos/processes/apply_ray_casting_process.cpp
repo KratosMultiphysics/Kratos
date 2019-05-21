@@ -26,25 +26,30 @@ namespace Kratos
 	template<std::size_t TDim>
 	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
 		ModelPart& rVolumePart,
-		ModelPart& rSkinPart) : mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)), mIsSearchStructureAllocated(true), mCharacteristicLength(1.00)
-	{
-
-	}
-
-	template<std::size_t TDim>
-	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
-		ModelPart& rVolumePart,
-		ModelPart& rSkinPart,
-		const double ExtraRayOffset)
-		: mExtraRayOffset(ExtraRayOffset), mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)), mIsSearchStructureAllocated(true), mCharacteristicLength(1.00)
+		ModelPart& rSkinPart)
+		: mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)),
+		  mIsSearchStructureAllocated(true)
 	{
 	}
 
-	template<std::size_t TDim>
+	template <std::size_t TDim>
 	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
-		FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
-		const double ExtraRayOffset)
-		: mExtraRayOffset(ExtraRayOffset), mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess), mIsSearchStructureAllocated(false), mCharacteristicLength(1.00)
+		ModelPart &rVolumePart,
+		ModelPart &rSkinPart,
+		const double RelativeTolerance)
+		: mRelativeTolerance(RelativeTolerance),
+		  mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)),
+		  mIsSearchStructureAllocated(true)
+	{
+	}
+
+	template <std::size_t TDim>
+	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
+		FindIntersectedGeometricalObjectsProcess &TheFindIntersectedObjectsProcess,
+		const double RelativeTolerance)
+		: mRelativeTolerance(RelativeTolerance),
+		  mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess),
+		  mIsSearchStructureAllocated(false)
 	{
 	}
 
@@ -61,7 +66,7 @@ namespace Kratos
         if(mIsSearchStructureAllocated) // we have not initialized it yet
             mpFindIntersectedObjectsProcess->Initialize();
 
-        CalculateCharacteristicLength();
+		this->SetRayCastingTolerances();
 
 		ModelPart& ModelPart1 = mpFindIntersectedObjectsProcess->GetModelPart1();
 
@@ -465,6 +470,16 @@ namespace Kratos
 		mCharacteristicLength = norm_2(max_point - min_point);
 		KRATOS_ERROR_IF(mCharacteristicLength < std::numeric_limits<double>::epsilon()) << "Domain characteristic length is close to zero. Check if there is any node in the model part." << std::endl;
 	}
+
+	template <std::size_t TDim>
+	void ApplyRayCastingProcess<TDim>::SetRayCastingTolerances()
+	{
+		this->CalculateCharacteristicLength();
+		mEpsilon = mRelativeTolerance * mCharacteristicLength;
+		mExtraRayOffset = 2.0 * mRelativeTolerance * mCharacteristicLength;
+	}
+
+
 
 	template class Kratos::ApplyRayCastingProcess<2>;
 	template class Kratos::ApplyRayCastingProcess<3>;

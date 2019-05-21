@@ -71,25 +71,26 @@ public:
 
     /**
      * @brief Construct a new ApplyRayCastingProcess object using volume and skin model parts
-     * Constructor with user defined extra rays epsilon, used to
-     * generate the extra rays when voting is required for coloring
+     *
      * @param rVolumePart model part containing the volume elements
      * @param rSkinPart model part containing the skin to compute
      * the distance to as conditions
-     * @param ExtraRaysEpsilon user-defined extra rays epsilon
+     * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size
      */
     ApplyRayCastingProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-        const double ExtraRaysEpsilon);
+        const double RelativeTolerance);
 
     /**
-     * @brief Construct a new ApplyRayCastingProcess object using an already created search structure
-     * This constructor is used by
+     * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
+     *
+     * @param TheFindIntersectedObjectsProcess reference to the already created search structure
+     * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size
      */
     ApplyRayCastingProcess(
         FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
-        const double ExtraRaysEpsilon);
+        const double RelativeTolerance);
 
     /// Destructor.
     ~ApplyRayCastingProcess() override;
@@ -185,11 +186,12 @@ private:
     ///@name Member Variables
     ///@{
 
-    const double mEpsilon = 1.0e-12;
-    const double mExtraRayOffset = 1.0e-8;
+    double mEpsilon = 1.0e-12;
+    double mExtraRayOffset = 1.0e-8;
+    double mRelativeTolerance = 1.0e-12;
     FindIntersectedGeometricalObjectsProcess* mpFindIntersectedObjectsProcess;
     bool mIsSearchStructureAllocated;
-    double mCharacteristicLength;
+    double mCharacteristicLength = 1.0;
 
     ///@}
     ///@name Private Operators
@@ -252,6 +254,12 @@ private:
      * points as characteristic length.
      */
     void CalculateCharacteristicLength();
+
+    /**
+     * @brief Set the Ray Casting Tolerances values
+     * This method sets the ray casting tolerances values according to the domain bounding box size
+     */
+    void SetRayCastingTolerances();
 
     ///@}
     ///@name Private  Access
