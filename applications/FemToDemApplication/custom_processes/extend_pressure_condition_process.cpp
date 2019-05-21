@@ -179,7 +179,37 @@ void ExtendPressureConditionProcess<3>::GeneratePressureLoads3WetNodes(
     ModelPart::ElementsContainerType::ptr_iterator itElem
     )
 {
+    std::string sub_model_name;
+	sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
+    auto& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_name);
+    ModelPart::PropertiesType::Pointer p_properties = r_sub_model_part.pGetProperties(1);
+    auto& r_geom = (*itElem)->GetGeometry();
 
+    const IndexType id_1 = (NonWetLocalIdNode == 0) ? 0 : (NonWetLocalIdNode == 1) ? 1 : (NonWetLocalIdNode == 2) ? 2 : 3;
+    const IndexType id_2 = (NonWetLocalIdNode == 0) ? 1 : (NonWetLocalIdNode == 1) ? 2 : (NonWetLocalIdNode == 2) ? 3 : 0;
+    const IndexType id_3 = (NonWetLocalIdNode == 0) ? 2 : (NonWetLocalIdNode == 1) ? 3 : (NonWetLocalIdNode == 2) ? 0 : 1;
+    const IndexType id_4 = (NonWetLocalIdNode == 0) ? 3 : (NonWetLocalIdNode == 1) ? 0 : (NonWetLocalIdNode == 2) ? 1 : 2;
+
+    std::vector<IndexType> condition_nodes_id(3);
+    condition_nodes_id[0] = r_geom[id_2].Id();
+    condition_nodes_id[1] = r_geom[id_3].Id();
+    condition_nodes_id[2] = r_geom[id_4].Id();
+    rMaximumConditionId++;
+
+    // Adding the nodes to the SubModelPart
+    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
+    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_2].Id()));
+    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_4].Id()));
+
+    // We create the Line Load Condition
+    const auto& r_pressure_condition = r_sub_model_part.CreateNewCondition(
+                                        "SurfaceLoadCondition3D3N",
+                                        rMaximumConditionId,
+                                        condition_nodes_id,
+                                        p_properties, 0);
+
+    // Adding the conditions to the computing model part
+    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_pressure_condition);
 }
 
 /***********************************************************************************/
@@ -247,18 +277,22 @@ void ExtendPressureConditionProcess<3>::CreateNewConditions()
                 }
             }
             if (wet_nodes_counter == 3) {
+                // KRATOS_WATCH((*it_elem)->Id())
+                // KRATOS_WATCH((*it_elem)->Id())
                 this->GeneratePressureLoads3WetNodes(non_wet_local_id_node, pressure_id, maximum_condition_id, it_elem);
+                r_process_info[INTERNAL_PRESSURE_ITERATION] = 10;
+                (*it_elem)->SetValue(SMOOTHING, true);
             }
         }
     }
 }
 /***********************************************************************************/
 /***********************************************************************************/
-template <>
-void ExtendPressureConditionProcess<2>::Execute()
+template <SizeType TDim>
+void ExtendPressureConditionProcess<TDim>::Execute()
 {
     // We search the neighbours for the generation of line loads
-    auto find_neigh = FindElementalNeighboursProcess(mrModelPart, 2, 5);
+    auto find_neigh = FindElementalNeighboursProcess(mrModelPart, TDim, 5);
     find_neigh.Execute();
     auto& r_process_info = mrModelPart.GetProcessInfo();
 
@@ -274,29 +308,11 @@ void ExtendPressureConditionProcess<2>::Execute()
 
 /***********************************************************************************/
 /***********************************************************************************/
-template <>
-void ExtendPressureConditionProcess<3>::Execute()
-{
-    auto& r_process_info = mrModelPart.GetProcessInfo();
-
-    // Remove previous line loads-> Only the 1st iteration
-    if (r_process_info[INTERNAL_PRESSURE_ITERATION] == 1) {
-        this->RemovePreviousLineLoads();
-        this->ResetFlagOnElements();
-    }
-
-    // Generate the new ones
-    this->CreateNewConditions();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
 template <SizeType TDim>
 void ExtendPressureConditionProcess<TDim>::RemovePreviousLineLoads()
 {
     // We remove only the line loads of all the SubModels
-    std::vector<std::string> submodel_parts_names = mrModelPart.GetSubModelPartNames();
-    std::vector<std::string> pressure_sub_models;
+    const std::vector<std::string> submodel_parts_names = mrModelPart.GetSubModelPartNames();
     for (IndexType i = 0; i < submodel_parts_names.size(); ++i) {
         if (submodel_parts_names[i].substr(0, 8) == mPressureName.substr(0, 8)) {
             // Remove the line loads

@@ -58,7 +58,8 @@ void ExpandWetNodesProcess::Execute()
         it_elem->SetValue(PRESSURE_EXPANDED, false);
     }
 
-	this->ExpandWetNodesIfTheyAreSkin();
+    if (dimension == 2) 
+        this->ExpandWetNodesIfTheyAreSkin();
 }
 
 /***********************************************************************************/
