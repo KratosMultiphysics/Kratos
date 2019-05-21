@@ -83,8 +83,6 @@ class BaseTestDynamicEigenvalueAnalysis(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.ROTATION_Z, True, mp.Nodes)
 
     def _solve_eigenvalue_problem(self,mp,echo=0):
-        eigen_system_solver_settings = KratosMultiphysics.Parameters("""{ }""")
-
         eigensolver_settings = KratosMultiphysics.Parameters("""
         {
             "max_iteration"         : 1000,
@@ -96,7 +94,7 @@ class BaseTestDynamicEigenvalueAnalysis(KratosUnittest.TestCase):
         }
         """)
 
-        eigen_solver = KratosMultiphysics.EigenSolversApplication.EigensystemSolver(eigensolver_settings)
+        eigen_solver = EigenSolversApplication.EigensystemSolver(eigensolver_settings)
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(eigen_solver)
         eigen_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
         compute_modal_decomposition = eigensolver_settings["compute_modal_decomposition"].GetBool()
