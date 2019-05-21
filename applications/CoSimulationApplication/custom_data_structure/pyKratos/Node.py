@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division 
-class Node:
 
+
+class Node:
     def __init__(self, Id, coordinates):
         self.variables = []
         self.coordinates = coordinates
@@ -29,7 +30,7 @@ class Node:
                 self.variables[i][key] = self.variables[i - 1][key]
 
     def SetValue(self):
-        pass # For non historical values
+        pass
 
     def GetValue(self):
         pass
@@ -41,23 +42,19 @@ class Node:
         pass
 
     def GetSolutionStepValue(self, variable, step):
-        if(isinstance(variable, list)):
+        if isinstance(variable, list):
             return [self.variables[step][variable[1]],  self.variables[step][variable[2]], self.variables[step][variable[3]]]
         else:
             return self.variables[step][variable]
 
     def SetSolutionStepValue(self, variable, step, value):
-        if(isinstance(variable, list)):
+        if isinstance(variable, list):
             for i in range(1, len(variable)):
                 if variable[i] in list(self.variables[step].keys()):
                         self.variables[step][variable[i]] = value[i-1]
                 else:
-                    raise Exception(
-                        "trying to set an non-existing variable with name ",
-                        variable,
-                        " on node ",
-                        self.Id)
+                    raise Exception("Trying to set an non-existing variable with name ", variable, " on node ", self.Id)
 
     def __str__(self):
-        return  "Node #{0} with {1}".format(self.Id, self.variables)
+        return "Node #{0} with {1}".format(self.Id, self.variables)
 

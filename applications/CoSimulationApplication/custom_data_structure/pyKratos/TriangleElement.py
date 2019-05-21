@@ -1,19 +1,18 @@
 from __future__ import print_function, absolute_import, division 
-import math
+
 from numpy import *
 from .Element import *
 
 
 class Triangle(Element):
-
     def __init__(self, node_list):
-        if(len(node_list) != 3):
-            raise Exception("wrong number of nodes! should be 3!!")
+        if len(node_list) != 3:
+            raise Exception("Wrong number of nodes, should be 3")
         self.nodes = node_list
 
         for node in self.nodes:
-            if(node.Id < 0):
-                raise Exception("node with Id lesser than 0 found")
+            if node.Id < 0:
+                raise Exception("Node with Id lesser than 0 found")
 
 
     def ShapeFunctions(self, order=1):
@@ -46,7 +45,7 @@ class Triangle(Element):
 
         DN_DX /= detJ
 
-        if(order == 1):  # give back 1 single integration point
+        if order == 1:  # gives back 1 single integration point
             one_third = 1.0 / 3.0
             Ncontainer = [array([one_third, one_third, one_third])]
 
@@ -54,7 +53,7 @@ class Triangle(Element):
             weights = [Area]
             derivatives = [DN_DX]
 
-        elif(order == 2):  # gives back 3 integration points
+        elif order == 2:  # gives back 3 integration points
             one_sixt = 1.0 / 6.0
             two_third = 2.0 / 3.0
             Ncontainer.append(array([one_sixt, one_sixt, two_third]))

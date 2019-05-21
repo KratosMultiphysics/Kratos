@@ -14,14 +14,13 @@ class Parameters(object):
     def Initialize(self):
         pass
 
-
     def size(self):
         return len(self.parameters)
 
     def ValidateAndAssignDefaults(self, defaults, recursive=False):
         for key, val in self.parameters.items():
             # Check if the current entry also exists in the defaults
-            if not key in defaults.keys():
+            if key not in defaults.keys():
                 err_msg = 'The item with name "' + key + '" is present in this '
                 err_msg += 'self.parameters\nbut NOT in the defaults!\n'
                 err_msg += 'self.parameters are:\n'
@@ -67,7 +66,7 @@ class Parameters(object):
             a.Initialize()
             return a
         else:
-            a.parameters = {"a_py_kratos":self.parameters[key]}
+            a.parameters = {"a_py_kratos": self.parameters[key]}
             a.Initialize()
             return a
 
@@ -112,7 +111,7 @@ class Parameters(object):
         return isinstance(self.parameters['a_py_kratos'], str)
 
     def Has(self, param):
-        return (param in self.parameters)
+        return param in self.parameters
 
     def AddValue(self, key, value):
         if isinstance(self.parameters, dict):

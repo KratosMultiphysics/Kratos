@@ -4,27 +4,24 @@ from .Variables import *
 
 
 class ModelPart:
-
     def __init__(self, name="default", buffer_size=1):
         self.NodesMap = {}  # empty dictionary
         self.Properties = {}  # empty dictionary
         self.ElementsMap = {}  # empty dictionary
         self.buffer_size = buffer_size
         self.solution_step_variables = []
-        if("." in name):
+        if "." in name:
             RuntimeError("Name of the modelpart cannot contain a . (dot) Please rename ! ")
-        if(name == ""):
+        if name == "":
             RuntimeError("No empty names for modelpart are allowed. Please rename ! ")
 
         self.Name = name
         self.ProcessInfo = {TIME: 0.0, DELTA_TIME: 0.0}  # empty dictionary
 
         self.Nodes = list(self.NodesMap.values())
-    def RemoveNode(self):
-        pass
 
     def AddNodalSolutionStepVariable(self, variable):
-        if(isinstance(variable, list)): # For vector variables
+        if isinstance(variable, list):  # For vector variables
             self.solution_step_variables.append(variable[1])
             self.solution_step_variables.append(variable[2])
             self.solution_step_variables.append(variable[3])
@@ -38,7 +35,7 @@ class ModelPart:
         self.ProcessInfo[TIME] = time
         self.ProcessInfo[DELTA_TIME] = time-old_time
 
-    # function to create a list of nodes and give it to the model part
+    # Function to create a list of nodes and give it to the model part
     def AddNodes(self, dict_of_nodes):
         for node_id, coords in list(dict_of_nodes.items()):
             if node_id in list(self.NodesMap.keys()):
@@ -70,7 +67,7 @@ class ModelPart:
         self.Nodes = list(self.NodesMap.values())
 
     def AddNode(self, node):
-        if(type(node) == Node):
+        if type(node) == Node:
             self.NodesMap[node.Id] = node
             self.Nodes = list(self.NodesMap.values())
         else:
@@ -84,9 +81,7 @@ class ModelPart:
 
     def GetNode(self, id):
         RuntimeError("Check if the node returned here is by reference !")
-        #return self.NodesMap[id]
 
-    # add properties
     def AddProperties(self, dict_of_properties):
         self.Properties.update(dict_of_properties)
 
@@ -97,6 +92,9 @@ class ModelPart:
         pass
 
     def RemoveElement(self):
+        pass
+
+    def RemoveNode(self):
         pass
 
     def HasNodalSolutionStepVariable(self):
@@ -110,4 +108,3 @@ class ModelPart:
 
     def __str__(self):
         return "ModelPart:\n    Number of Nodes: {0}\n    Nunber of Elements: {1}".format(len(self.NodesMap), len(self.ElementsMap))
-
