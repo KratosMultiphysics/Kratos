@@ -53,7 +53,7 @@
                 "data_input" :
                 [
                     {
-                        "name" : "DISPLACEMENT",
+                        "name" : "DISPLACEMENT_Y",
                         "geometry_name" : "wall",
                         "dimension" : 1
                     }
@@ -97,7 +97,7 @@
                 "data_output" :
                 [
                     {
-                        "name": "DISPLACEMENT",
+                        "name": "DISPLACEMENT_Y",
                         "geometry_name": "wall",
                         "dimension": 1
                     }

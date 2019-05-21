@@ -5,16 +5,31 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 
 class CoSimulationComponent(object):
     def __init__(self):
-        pass
+        self.initialized = False
+        self.initialized_solution_step = False
 
     def Initialize(self):
-        pass
+        if self.initialized:
+            Exception("Already initialized")
+        else:
+            self.initialized = True
 
     def Finalize(self):
-        pass
+        if self.initialized_solution_step:
+            Exception("Solution step not finalized")
+        if self.initialized:
+            self.initialized = False
+        else:
+            Exception("Not initialized")
 
     def InitializeSolutionStep(self):
-        pass
+        if self.initialized:
+            if self.initialized_solution_step:
+                Exception("Already solution step initialized")
+            else:
+                self.initialized_solution_step = True
+        else:
+            Exception("Not initialized")
 
     def Predict(self):
         pass
@@ -23,7 +38,13 @@ class CoSimulationComponent(object):
         pass
 
     def FinalizeSolutionStep(self):
-        pass
+        if self.initialized:
+            if self.initialized_solution_step:
+                self.initialized_solution_step = False
+            else:
+                Exception("Solution step not initialized")
+        else:
+            Exception("Not initialized")
 
     def OutputSolutionStep(self):
         pass

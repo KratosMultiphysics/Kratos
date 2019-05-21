@@ -9,4 +9,5 @@ def Create(parameters):
 
 class ConvergenceCriterionRelative(CoSimulationComponent):
     def __init__(self, parameters):
+        super().__init__()
         self.parameters = parameters

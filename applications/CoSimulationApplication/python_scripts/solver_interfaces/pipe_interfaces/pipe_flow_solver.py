@@ -16,6 +16,8 @@ class SolverInterfacePipeFlow(CoSimulationComponent):
     Au = 4  # Number of terms above diagonal in matrix
 
     def __init__(self, parameters):
+        super().__init__()
+
         self.parameters = parameters
         self.settings = parameters["settings"]
 
@@ -51,27 +53,26 @@ class SolverInterfacePipeFlow(CoSimulationComponent):
         self.a = np.ones(self.m + 2) * m.pi * self.d ** 2 / 4.0  # Area of cross section
         self.an = np.ones(self.m + 2) * m.pi * self.d ** 2 / 4.0  # Previous area of cross section
 
-        self.initialized = False
-        self.initializedstep = False
+        # ModelPart of interface
+        self.model = cs_data_structure.Model()
+        self.model_part = self.model = self.model.CreateModelPart("pipe_flow")
+        self.variable_disp = cs_data_structure.VariableDouble("DISPLACEMENT_Y")
+        self.model_part.AddNodalSolutionStepVariable(self.variable_disp)
+        self.variable_pres = cs_data_structure.VariableDouble("PRESSURE")
+        self.model_part.AddNodalSolutionStepVariable(self.variable_pres)
+        for i in range(len(self.z)):
+            self.model_part.CreateNewNode(i, 0.0, 0.0, self.z[i])
 
     def Initialize(self):
-        if self.initialized:
-            Exception("Already initialized")
-        else:
-            self.initialized = True
+        super().Initialize()
 
     def InitializeSolutionStep(self):
-        if self.initialized:
-            if self.initializedstep:
-                Exception("Step ongoing")
-            else:
-                self.n += 1
-                self.initializedstep = True
-                self.un = np.array(self.u)
-                self.pn = np.array(self.p)
-                self.an = np.array(self.a)
-        else:
-            Exception("Not initialized")
+        super().InitializeSolutionStep()
+
+        self.n += 1
+        self.un = np.array(self.u)
+        self.pn = np.array(self.p)
+        self.an = np.array(self.a)
 
     def calculate(self, a):
         # Input does not contain boundary conditions
@@ -105,19 +106,10 @@ class SolverInterfacePipeFlow(CoSimulationComponent):
         return np.array(p)
 
     def FinalizeSolutionStep(self):
-        if self.initialized:
-            if self.initializedstep:
-                self.initializedstep = False
-            else:
-                Exception("No step ongoing")
-        else:
-            Exception("Not initialized")
+        super().FinalizeSolutionStep()
 
     def Finalize(self):
-        if self.initialized:
-            self.initialized = False
-        else:
-            Exception("Not initialized")
+        super().Finalize()
 
     def GetBoundary(self):
         if self.utype == 1:
@@ -210,30 +202,3 @@ class SolverInterfacePipeFlow(CoSimulationComponent):
         j[PipeFlow.Au + (2 * self.m + 3) - (2 * self.m + 3), 2 * self.m + 3] = 1.0  # [2*m+3, 2*m+3]
 
         return j
-
-    def getinputgrid(self):
-        return self.z
-
-    def setinputgrid(self, z):
-        if np.linalg.norm(self.z - z) / np.linalg.norm(self.z) > np.finfo(float).eps:
-            Exception("Mapper not implemented")
-
-    def getoutputgrid(self):
-        return self.z
-
-    def setoutputgrid(self, z):
-        if np.linalg.norm(self.z - z) / np.linalg.norm(self.z) > np.finfo(float).eps:
-            Exception("Mapper not implemented")
-
-    def getinputdata(self):
-        a = self.a[1:self.m + 1]
-        return np.array(a)
-
-    def gettimestep(self):
-        return self.dt
-
-    def settimestep(self, dt):
-        if self.initializedstep:
-            Exception("Step ongoing")
-        else:
-            self.dt = dt
