@@ -33,29 +33,20 @@ AssignPressureIdProcess::AssignPressureIdProcess(
 void AssignPressureIdProcess::Execute() 
 {
     std::vector<std::string> submodel_parts_names = mrModelPart.GetSubModelPartNames();
-    std::vector<std::string> pressure_sub_models;
-
     auto& r_process_info = mrModelPart.GetProcessInfo();
     const std::size_t dimension = r_process_info[DOMAIN_SIZE];
+    const IndexType ref_string_size = (dimension == 2) ? 18 : 20;
 
     for (IndexType i = 0; i < submodel_parts_names.size(); ++i) {
         const IndexType string_size = submodel_parts_names[i].size();
-        KRATOS_WATCH(submodel_parts_names[i].substr(0, 11))
-        KRATOS_WATCH(mPressureName.substr(0, 11))
         if (submodel_parts_names[i].substr(0, 11) == mPressureName.substr(0, 11)) {
 
             int pressure_id;
-
-            if (dimension == 2) { // 2D
-                if (submodel_parts_names[i].size() == 18) { // from 1 to 9
-                    pressure_id = std::stoi(submodel_parts_names[i].substr(string_size - 1, string_size));
-                } else { // from 10 to 99
-                    pressure_id = std::stoi(submodel_parts_names[i].substr(string_size - 2, string_size));
-                }            
-            } else { // 3D
-
+            if (submodel_parts_names[i].size() == ref_string_size) { // from 1 to 9
+                pressure_id = std::stoi(submodel_parts_names[i].substr(string_size - 1, string_size));
+            } else { // from 10 to 99
+                pressure_id = std::stoi(submodel_parts_names[i].substr(string_size - 2, string_size));
             }
-
             this->AssignPressureIdToNodes(submodel_parts_names[i], pressure_id);
         }
     }
