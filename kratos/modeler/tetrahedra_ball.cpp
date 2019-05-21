@@ -11,10 +11,10 @@
 //
 
 // System includes
-#include <algorithm>
-#include <limits>
+
 
 // External includes 
+
 
 // Project includes
 #include "modeler/tetrahedra_ball.h"
@@ -43,7 +43,7 @@ namespace Kratos
 		double min_quality = std::numeric_limits<double>::max();
 		for (auto i_tetraheron = mTetrahedra.begin(); i_tetraheron != mTetrahedra.end(); i_tetraheron++) {
 			min_quality = std::min(min_quality, (*i_tetraheron)->Quality(QualityCriteria));
-		}
+			}
 
 		return min_quality;
 	}
