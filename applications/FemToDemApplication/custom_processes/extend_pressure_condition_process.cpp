@@ -28,8 +28,8 @@ ExtendPressureConditionProcess<TDim>::ExtendPressureConditionProcess(
 
 /***********************************************************************************/
 /***********************************************************************************/
-template <>
-void ExtendPressureConditionProcess<2>::GetMaximumConditionIdOnSubmodelPart(
+template <SizeType TDim>
+void ExtendPressureConditionProcess<TDim>::GetMaximumConditionIdOnSubmodelPart(
     int& rMaximumConditionId
 )
 {
@@ -171,6 +171,19 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
 
 /***********************************************************************************/
 /***********************************************************************************/
+template<>
+void ExtendPressureConditionProcess<3>::GeneratePressureLoads3WetNodes(
+    const int NonWetLocalIdNode,
+    const int PressureId,
+    int& rMaximumConditionId,
+    ModelPart::ElementsContainerType::ptr_iterator itElem
+    )
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 template <>
 void ExtendPressureConditionProcess<2>::CreateNewConditions()
 {
@@ -213,7 +226,31 @@ void ExtendPressureConditionProcess<2>::CreateNewConditions()
 template <>
 void ExtendPressureConditionProcess<3>::CreateNewConditions()
 {
-    
+    auto& r_process_info = mrModelPart.GetProcessInfo();
+    int maximum_condition_id;
+    this->GetMaximumConditionIdOnSubmodelPart(maximum_condition_id);
+    r_process_info[INTERNAL_PRESSURE_ITERATION] = 0;
+
+    // Loop over the elements (all active, the inactive have been removed in GeneratingDEM)
+    for (auto it_elem = mrModelPart.Elements().ptr_begin(); it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
+        if (!(*it_elem)->GetValue(SMOOTHING)) {
+            // We count how many nodes are wet
+            auto& r_geometry = (*it_elem)->GetGeometry();
+            int wet_nodes_counter = 0, non_wet_local_id_node = 10, pressure_id;
+
+            for (IndexType local_id = 0; local_id < r_geometry.PointsNumber(); ++local_id) {
+                if (r_geometry[local_id].GetValue(PRESSURE_ID) != 0) {
+                    wet_nodes_counter++;
+                    pressure_id = r_geometry[local_id].GetValue(PRESSURE_ID);
+                } else {
+                    non_wet_local_id_node = local_id;
+                }
+            }
+            if (wet_nodes_counter == 3) {
+                this->GeneratePressureLoads3WetNodes(non_wet_local_id_node, pressure_id, maximum_condition_id, it_elem);
+            }
+        }
+    }
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -248,7 +285,7 @@ void ExtendPressureConditionProcess<3>::Execute()
         this->ResetFlagOnElements();
     }
 
-    // Genearte the new ones
+    // Generate the new ones
     this->CreateNewConditions();
 }
 
@@ -264,7 +301,10 @@ void ExtendPressureConditionProcess<TDim>::RemovePreviousLineLoads()
         if (submodel_parts_names[i].substr(0, 8) == mPressureName.substr(0, 8)) {
             // Remove the line loads
             auto& r_sub_model = mrModelPart.GetSubModelPart(submodel_parts_names[i]);
-            for (auto it_cond = r_sub_model.ConditionsBegin(); it_cond != r_sub_model.ConditionsEnd(); it_cond++) {
+
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(r_sub_model.Conditions().size()); i++) {
+                auto it_cond = r_sub_model.ConditionsBegin() + i;
                 it_cond->Set(TO_ERASE, true);
             }
         }

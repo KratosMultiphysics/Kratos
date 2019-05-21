@@ -67,6 +67,12 @@ public:
         int& rMaximumConditionId,
         ModelPart::ElementsContainerType::ptr_iterator itElem);
 
+    void GeneratePressureLoads3WetNodes(
+        const int NonWetLocalIdNode,
+        const int PressureId,
+        int& rMaximumConditionId,
+        ModelPart::ElementsContainerType::ptr_iterator itElem);
+
     void GetPressureId(
         ModelPart::ElementsContainerType::ptr_iterator itElem,
         int& rPressureId);
