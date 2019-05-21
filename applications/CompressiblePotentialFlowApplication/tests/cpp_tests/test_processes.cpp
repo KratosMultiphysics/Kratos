@@ -14,8 +14,6 @@
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
-#include "includes/model_part.h"
-#include "processes/process.h"
 #include "custom_processes/move_model_part_process.h"
 
 namespace Kratos {
@@ -43,12 +41,13 @@ namespace Kratos {
             "sizing_multiplier"             : 2.0
 
         })" );
-      double pi = 3.1415926535897;
+
       moving_parameters.AddEmptyValue("rotation_angle");
-      moving_parameters["rotation_angle"].SetDouble(pi/2);
+      moving_parameters["rotation_angle"].SetDouble(Globals::Pi/2);
 
       MoveModelPartProcess MoveModelPartProcess(model_part, moving_parameters);
       MoveModelPartProcess.Execute();
+
       Matrix reference = ZeroMatrix(3,3);
       reference(0,0) = 5.0; reference(0,1) = 5.0;
       reference(1,0) = 5.0; reference(1,1) = 7.0;
