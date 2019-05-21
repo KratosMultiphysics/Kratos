@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#if !defined(KRATOS_PRIMITIVE_VAR_ELEM_H_INCLUDED)
-#define  KRATOS_PRIMITIVE_VAR_ELEM_H_INCLUDED
+#ifndef KRATOS_PRIMITIVE_VAR_ELEM_H_INCLUDED
+#define KRATOS_PRIMITIVE_VAR_ELEM_H_INCLUDED
 
 // System includes
 
@@ -22,9 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/variables.h"
 #include "includes/serializer.h"
-#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -95,14 +93,14 @@ public:
     virtual Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_shared< PrimitiveVarElement <TNumNodes> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive< PrimitiveVarElement <TNumNodes> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("")
     }
 
     virtual Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_shared< PrimitiveVarElement <TNumNodes> >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< PrimitiveVarElement <TNumNodes> >(NewId, pGeom, pProperties);
         KRATOS_CATCH("")
     }
 

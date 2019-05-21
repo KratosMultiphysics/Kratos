@@ -56,14 +56,14 @@ namespace Kratos
 /**
  */
 template< class TVarType >
-class EmbeddedNodalVariableCalculationElementSimplex : public Element
+class KRATOS_API(KRATOS_CORE) EmbeddedNodalVariableCalculationElementSimplex : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of EmbeddedNodalVariableCalculationElementSimplex
-    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedNodalVariableCalculationElementSimplex);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EmbeddedNodalVariableCalculationElementSimplex);
 
     /// Node type (default is: Node<3>)
     typedef Node <3> NodeType;
@@ -160,7 +160,7 @@ public:
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<EmbeddedNodalVariableCalculationElementSimplex<TVarType>>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     /**

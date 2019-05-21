@@ -59,7 +59,7 @@ public:
     typedef GeometryData::SizeType                      SizeType;
 
     // Counted pointer of BoundaryCondition
-    KRATOS_CLASS_POINTER_DEFINITION( BoundaryCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BoundaryCondition );
     ///@}
 
 protected:

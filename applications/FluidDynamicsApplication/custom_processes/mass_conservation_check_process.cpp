@@ -75,19 +75,14 @@ std::string MassConservationCheckProcess::Initialize(){
     double pos_vol = 0.0;
     double neg_vol = 0.0;
     double inter_area = 0.0;
-    const auto& comm = mrModelPart.GetCommunicator();
+    const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
 
     ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area );
 
-    comm.Barrier();
-    if ( comm.SumAll(pos_vol) && comm.SumAll(neg_vol) && comm.SumAll(inter_area)  ){
-        // if communication was successful
-        this->mInitialPositiveVolume = pos_vol;
-        this->mInitialNegativeVolume = neg_vol;
-        this->mTheoreticalNegativeVolume = neg_vol;
-    } else {
-        KRATOS_DEBUG_ERROR << "Communication failed in MassConservationCheckProcess::Initialize()";
-    }
+    this->mInitialPositiveVolume = r_comm.SumAll(pos_vol);
+    this->mInitialNegativeVolume = r_comm.SumAll(neg_vol);
+    this->mTheoreticalNegativeVolume = neg_vol;
+    inter_area = r_comm.SumAll(inter_area);
 
     std::string output_line =   "------ Initial values ----------------- \n";
     output_line +=              "  positive volume (air)   = " + std::to_string(this->mInitialPositiveVolume) + "\n";
@@ -112,11 +107,16 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
     double net_inflow_outlet = ComputeFlowOverBoundary(OUTLET);
 
     // computing global quantities via MPI communication
-    const auto& comm = mrModelPart.GetCommunicator();
+    const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
+    std::vector<double> local_data{pos_vol, neg_vol, inter_area, net_inflow_inlet, net_inflow_outlet};
+    std::vector<double> remote_sum{0, 0, 0, 0, 0};
+    r_comm.SumAll(local_data, remote_sum);
 
-    comm.Barrier();
-    KRATOS_ERROR_IF_NOT( comm.SumAll(pos_vol) && comm.SumAll(neg_vol) && comm.SumAll(inter_area) && comm.SumAll(net_inflow_inlet) && comm.SumAll(net_inflow_outlet) )
-    << "Communication failed in MassConservationCheckProcess::ExecuteInTimeStep()";
+    pos_vol = remote_sum[0];
+    neg_vol = remote_sum[1];
+    inter_area = remote_sum[2];
+    net_inflow_inlet = remote_sum[3];
+    net_inflow_outlet = remote_sum[4];
 
     // making a "time step forwards" and updating the
     const double current_time = mrModelPart.GetProcessInfo()[TIME];
@@ -662,9 +662,9 @@ Triangle2D3<Node<3>>::Pointer MassConservationCheckProcess::GenerateAuxTriangle(
                             std::abs(coord1_transformed[2] - coord3_transformed[2])<1.0e-7 );
 
     // creating auxiliary nodes based on the transformed position
-    Node<3UL>::Pointer node1 = Kratos::make_shared<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 2, coord1_transformed[0], coord1_transformed[1] );
-    Node<3UL>::Pointer node2 = Kratos::make_shared<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 3, coord2_transformed[0], coord2_transformed[1] );
-    Node<3UL>::Pointer node3 = Kratos::make_shared<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 4, coord3_transformed[0], coord3_transformed[1] );
+    Node<3UL>::Pointer node1 = Kratos::make_intrusive<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 2, coord1_transformed[0], coord1_transformed[1] );
+    Node<3UL>::Pointer node2 = Kratos::make_intrusive<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 3, coord2_transformed[0], coord2_transformed[1] );
+    Node<3UL>::Pointer node3 = Kratos::make_intrusive<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 4, coord3_transformed[0], coord3_transformed[1] );
 
     // finally creating the desired Triangle2D3 based on the nodes
     Triangle2D3<Node<3>>::Pointer aux_2D_triangle = Kratos::make_shared< Triangle2D3<Node<3> > >( node1, node2, node3 );

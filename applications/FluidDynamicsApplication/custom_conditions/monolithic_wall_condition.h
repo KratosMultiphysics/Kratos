@@ -74,7 +74,7 @@ public:
     ///@{
 
     /// Pointer definition of MonolithicWallCondition
-    KRATOS_CLASS_POINTER_DEFINITION(MonolithicWallCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MonolithicWallCondition);
 
     typedef Node < 3 > NodeType;
 
@@ -180,14 +180,14 @@ public:
       */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<MonolithicWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<MonolithicWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     Condition::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< MonolithicWallCondition >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< MonolithicWallCondition >(NewId, pGeom, pProperties);
     }
     
     /**

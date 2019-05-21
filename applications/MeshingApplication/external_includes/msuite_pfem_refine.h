@@ -28,7 +28,7 @@
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/line_2d_2.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 #include "processes/node_erase_process.h"
 #include "spatial_containers/spatial_containers.h"
 
