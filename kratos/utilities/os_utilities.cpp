@@ -52,36 +52,66 @@ std::string GetCurrentWorkingDir()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void Remove(const std::string& rFileName)
+void RemoveFile(const std::string& rFileName)
 {
     const char* name = rFileName.c_str();
-    const bool is_dir = DirExist(rFileName);
+    remove(name);
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void RemoveFileInCurrentWorkingDir(const std::string& rFileName)
+{
+    RemoveFile(JoinPath(GetCurrentWorkingDir(), rFileName));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void RemoveDir(const std::string& rFolderName)
+{
+    const char* name = rFolderName.c_str();
 #ifdef KRATOS_COMPILED_IN_WINDOWS
-    if (is_dir) // It is a directory
-        RemoveDirectoryA(name);
-    else  // It is a file
-        remove(name);
+    RemoveDirectoryA(name);
 #else
-    if (is_dir) // It is a directory
-        rmdir(name);
-    else  // It is a file
-        remove(name);
+    rmdir(name);
 #endif
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void RemoveOnCurrentWorkingDir(const std::string& rFileName)
+void RemoveDirInCurrentWorkingDir(const std::string& rFolderName)
 {
-    Remove(AppendFolderFile(GetCurrentWorkingDir(), rFileName));
+    RemoveDir(JoinPath(GetCurrentWorkingDir(), rFolderName));
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::string AppendFolderFile(
+void Remove(const std::string& rFileName)
+{
+    const bool is_dir = IsDir(rFileName);
+
+    if (is_dir) // It is a directory
+        RemoveDir(rFileName);
+    else  // It is a file
+        RemoveFile(rFileName);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void RemoveInCurrentWorkingDir(const std::string& rFileName)
+{
+    Remove(JoinPath(GetCurrentWorkingDir(), rFileName));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::string JoinPath(
     const std::string& rFolderName,
     const std::string& rFileName
     )
@@ -96,7 +126,7 @@ std::string AppendFolderFile(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool FileExist(const std::string& rFileName)
+bool IsFile(const std::string& rFileName)
 {
     struct stat buffer;
     stat(rFileName.c_str(), &buffer);
@@ -106,7 +136,7 @@ bool FileExist(const std::string& rFileName)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool DirExist(const std::string& rFolderName)
+bool IsDir(const std::string& rFolderName)
 {
     struct stat buffer;
     stat(rFolderName.c_str(), &buffer);

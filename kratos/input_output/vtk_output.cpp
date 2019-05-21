@@ -172,7 +172,7 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
 
     // Putting everything together
     const std::string& r_folder_name = mOutputSettings["folder_name"].GetString();
-    const bool directory_exists = OSUtilities::DirExist(r_folder_name);
+    const bool directory_exists = OSUtilities::IsDir(r_folder_name);
     if (!directory_exists) {
         KRATOS_WARNING("VtkOutput") << "Folder: " << r_folder_name << " does not exist. We will try to create it" << std::endl;
         OSUtilities::CreateDir(r_folder_name);
