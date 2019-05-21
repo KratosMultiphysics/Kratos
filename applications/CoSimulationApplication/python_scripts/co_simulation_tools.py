@@ -1,23 +1,7 @@
-import math
 cs_data_structure = None
 
-## Class contains definition of colors. This is to be used as a struct
-#
-# Example usage print(bcolors.HEADER + "This is a header in header color" + bcolor.ENDC)
-# IMPORTANT : The end of the print statement should always contain bcolor.ENDC
-class bcolors:
-    HEADER    = '\033[95m'
-    BLUE      = '\033[94m'
-    GREEN     = '\033[92m'
-    MEGENTA   = '\033[96m'
-    WARNING   = '\033[93m'
-    FAIL      = '\033[91m'
-    ENDC      = '\033[0m'
-    BOLD      = '\033[1m'
-    UNDERLINE = '\033[4m'
 
-
-## ImportDataStructure : Imports the data structure which is specified in the parameters file
+# ImportDataStructure: Imports the data structure which is specified in the parameters file
 #
 #  @param parameters_file_name   The JSON file name which contains the settings for the co-simulation
 def ImportDataStructure(parameters_file_name):
@@ -45,7 +29,9 @@ def ImportDataStructure(parameters_file_name):
     return cs_data_structure
 
 
-## CreateInstance: Creates an instance of a given class in a given category
+# CreateInstance: Creates an instance of a given class based on a settings dictionary
+#
+#  @param settings  The settings dictionary, with the key "type"
 def CreateInstance(settings):
     object_type = settings["type"].GetString()
     object_module_full = "KratosMultiphysics.CoSimulationApplication."+object_type
@@ -53,7 +39,7 @@ def CreateInstance(settings):
     return object_module.Create(settings)
 
 
-## InnerProduct : Computes the inner product for two give vectors (as python lists)
+# InnerProduct: Computes the inner product for two given vectors (as python lists)
 #
 #  @param list_one   First vector (as a list)
 #  @param list_two   Second vector (as a list)
@@ -68,78 +54,89 @@ def InnerProduct(list_one, list_two):
 
     return result
 
-## CalculateNorm : Calculates the two norm of the list (residual) passed in
-#                       Variants of this class can use numpy for calculating this norm.
-#
-#  @param self            The object pointer
-#  @param residual_list   The list of the residual
-def CalculateNorm(residual_list): ## Can use numpy here.
-    norm = 0.0
-    num_entries = len(residual_list)
-    for residual in residual_list:
-        norm += residual * residual
 
-    norm = math.sqrt(norm)/num_entries
+# CalculateNorm: Calculates the L2-norm of the list
+#
+#  @param list   Vector (as a list)
+def CalculateNorm(list):
+    norm = 0.0
+    for value in list:
+        norm += value*value
+
     return norm
 
 
-## GetDataAsList : Converts the data as a python list.
+# GetDataAsList : Converts the data to a python list.
 #                       variants of this class can use numpy array
 #
 #  @param solver        The solver from which data is to be obtained.
-#  @param data_name     The name of the data which is to be obtained as a list
+#  @param data_name     The name of the data which is to be obtained as a list.
 def GetDataAsList(solver, data_name):
     data = []
     data_def = solver.data_map[data_name]
     data_mesh = solver.model[data_def["geometry_name"].GetString()]
     data_variable = cs_data_structure.KratosGlobals.GetVariable(data_name)
     for node in data_mesh.Nodes:
-        data_value = node.GetSolutionStepValue(data_variable, 0) #TODO what if non-historical?
+        data_value = node.GetSolutionStepValue(data_variable, 0)
         for value in data_value:
             data.append(value)
 
     return data
 
-## ApplyUpdateToData : Apply the update provided to the data with name data_name
+
+# ApplyUpdateToData : Apply the update provided to the data with name data_name
 #
 #  @param solver        The solver from which data is to be obtained.
 #  @param data_name     The name of the data to which the update is to be applied
-#  @param update        The update list which is to be applied to the data with name data_name
+#  @param updated_datal  The update list which is to be applied to the data with name data_name
 def ApplyUpdateToData(solver, data_name, updated_data):
     data_def = solver.data_map[data_name]
     data_mesh = solver.model[data_def["geometry_name"].GetString()]
     data_variable = cs_data_structure.KratosGlobals.GetVariable(data_name)
     index = 0
-    for node in data_mesh.Nodes: # #TODO local nodes to also work in MPI?
+    for node in data_mesh.Nodes:
         updated_value = []
         value = node.GetSolutionStepValue(data_variable,0)
-        # TODO @aditya the data might also be non-historical => GetValue
         for i, value_i in enumerate(value):
-            #updated_value.append(0.0)
             updated_value.append(updated_data[index])
             index = index + 1
 
         node.SetSolutionStepValue(data_variable, 0, updated_value)
 
-## PrintInfo : Printing information with a label
+
+# Class contains definition of colors. This is to be used as a struct.
+#
+# Example usage: print(bcolors.HEADER + "This is a header in header color" + bcolor.ENDC)
+# IMPORTANT: The end of the print statement should always contain bcolor.ENDC
+class bcolors:
+    HEADER    = '\033[95m'
+    BLUE      = '\033[94m'
+    GREEN     = '\033[92m'
+    MEGENTA   = '\033[96m'
+    WARNING   = '\033[93m'
+    FAIL      = '\033[91m'
+    ENDC      = '\033[0m'
+    BOLD      = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
+# PrintInfo: Printing information with a label
 #
 #  @param label         The label for the print
 #  @param args          The arguments to be printed
 def PrintInfo(label, *args):
-    print(label, " ".join(map(str,args)))
+    print(label, " ".join(map(str, args)))
 
-## PrintInfo : Printing a warning with a label
+
+# PrintWarning: Printing a warning with a label
 #
 #  @param label         The label for the print
 #  @param args          The arguments to be printed
 def PrintWarning(label, *args):
-    print(label, " ".join(map(str,args)))
+    print(label, " ".join(map(str, args)))
 
 
-
-## Class CouplingInterfaceData: Class to hold different properties of the data field contributed in
-#                           CoSimulation.
-#
+# Class CouplingInterfaceData: Class to hold different properties of the data field contributed in CoSimulation.
 class CouplingInterfaceData(object):
     def __init__(self, custom_config, solver):
 
@@ -166,16 +163,14 @@ class CouplingInterfaceData(object):
 
     def ApplyFilters(self):
         for filter in self.filters:
-            #filter.InitializeNonLinearIteration()
             filter.Apply()
-            #filter.FinalizeNonLinearIteration()
 
     def GetPythonList(self):
         data = []
         data_mesh = self.solver.model[self.geometry_name]
         data_variable = cs_data_structure.KratosGlobals.GetVariable(self.name)
         for node in data_mesh.Nodes:
-            data_value = node.GetSolutionStepValue(data_variable,0) #TODO what if non-historical?
+            data_value = node.GetSolutionStepValue(data_variable, 0)
             for value in data_value:
                 data.append(value)
         return data
@@ -187,10 +182,9 @@ class CouplingInterfaceData(object):
         data_mesh = self.solver.model[self.geometry_name]
         data_variable = cs_data_structure.KratosGlobals.GetVariable(self.name)
         index = 0
-        for node in data_mesh.Nodes: # #TODO: local nodes to also work in MPI?
+        for node in data_mesh.Nodes:
             updated_value = []
             value = node.GetSolutionStepValue(data_variable, 0)
-            # TODO: aditya the data might also be non-historical => GetValue
             for value_i in value:
                 updated_value.append(update[index])
                 index = index + 1
