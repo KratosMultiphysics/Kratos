@@ -384,7 +384,7 @@ namespace Kratos
 
 		// Call the line - line intersection util
 		array_1d<double,3> int_pt = ZeroVector(3);
-		const double tolerance = 1.0e-6*rGeometry.Length();
+		const double tolerance = mEpsilon;
 		const int is_intersected =  IntersectionUtilities::ComputeLineLineIntersection(
 			rGeometry,
 			ray_pt_1,
@@ -417,7 +417,7 @@ namespace Kratos
 
 		// Call the line - triangle intersection util
 		array_1d<double,3> int_pt = ZeroVector(3);
-		const double tolerance = 1.0e-6*std::sqrt(rGeometry.Length());
+		const double tolerance = mEpsilon;
 		const int is_intersected = IntersectionUtilities::ComputeTriangleLineIntersection(
 			rGeometry,
 			ray_pt_1,
