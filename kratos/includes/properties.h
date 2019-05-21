@@ -315,7 +315,13 @@ public:
      */
     Properties::Pointer pGetSubProperty(IndexType SubPropertyIndex)
     {
-        return mSubPropertiesList(SubPropertyIndex);
+        if (mSubPropertiesList.find(SubPropertyIndex) != mSubPropertiesList.end()) {
+            return mSubPropertiesList(SubPropertyIndex);
+        } else {
+            KRATOS_WARNING("Properties") << "Subproperty ID: " << SubPropertyIndex << " is not defined on the current Properties ID: " << this->Id() << " creating a new one with ID: " << SubPropertyIndex << std::endl;
+            AddSubProperty(Kratos::make_shared<Properties>(SubPropertyIndex));
+            return mSubPropertiesList(SubPropertyIndex);
+        }
     }
 
     /**
@@ -325,7 +331,13 @@ public:
      */
     Properties& GetSubProperty(IndexType SubPropertyIndex)
     {
-        return *(mSubPropertiesList(SubPropertyIndex));
+        if (mSubPropertiesList.find(SubPropertyIndex) != mSubPropertiesList.end()) {
+            return *(mSubPropertiesList(SubPropertyIndex));
+        } else {
+            KRATOS_WARNING("Properties") << "Subproperty ID: " << SubPropertyIndex << " is not defined on the current Properties ID: " << this->Id() << " creating a new one with ID: " << SubPropertyIndex << std::endl;
+            AddSubProperty(Kratos::make_shared<Properties>(SubPropertyIndex));
+            return *(mSubPropertiesList(SubPropertyIndex));
+        }
     }
 
     /**
@@ -335,7 +347,11 @@ public:
      */
     Properties& GetSubProperty(IndexType SubPropertyIndex) const
     {
-        return *(mSubPropertiesList.find(SubPropertyIndex));
+        if (mSubPropertiesList.find(SubPropertyIndex) != mSubPropertiesList.end()) {
+            return *(mSubPropertiesList.find(SubPropertyIndex));
+        } else {
+            KRATOS_ERROR << "Subproperty ID: " << SubPropertyIndex << " is not defined on the current Properties ID: " << this->Id() << std::endl;
+        }
     }
 
     /**
