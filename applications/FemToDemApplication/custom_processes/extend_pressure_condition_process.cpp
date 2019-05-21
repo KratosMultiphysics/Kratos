@@ -150,22 +150,23 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
         const IndexType id_2 = alone_edge_local_id == 0 ? 1 : alone_edge_local_id == 1 ? 2 : 0;
         const IndexType id_3 = alone_edge_local_id == 0 ? 2 : alone_edge_local_id == 1 ? 0 : 1;
 
-        std::vector<IndexType> condition_nodes_id(2);
-        auto& r_geom = (*itElem)->GetGeometry();
-        condition_nodes_id[0] = r_geom[id_3].Id();
-        condition_nodes_id[1] = r_geom[id_2].Id();
-        rMaximumConditionId++;
+        // std::vector<IndexType> condition_nodes_id(2);
+        // auto& r_geom = (*itElem)->GetGeometry();
+        // condition_nodes_id[0] = r_geom[id_3].Id();
+        // condition_nodes_id[1] = r_geom[id_2].Id();
+        // rMaximumConditionId++;
 
-        r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_2].Id()));
-        r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
+        // r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_2].Id()));
+        // r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
 
-        const auto& r_line_cond = r_sub_model_part.CreateNewCondition(
-                                        "LineLoadCondition2D2N",
-                                        rMaximumConditionId,
-                                        condition_nodes_id,
-                                        p_properties, 0);
+        // const auto& r_line_cond = r_sub_model_part.CreateNewCondition(
+        //                                 "LineLoadCondition2D2N",
+        //                                 rMaximumConditionId,
+        //                                 condition_nodes_id,
+        //                                 p_properties, 0);
 
-        mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond);
+        // mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond);
+        this->CreateLineLoads(id_3, id_2, itElem, r_sub_model_part, p_properties, rMaximumConditionId);
     }
 }
 
@@ -267,7 +268,7 @@ void ExtendPressureConditionProcess<3>::CreatePressureLoads(
 /***********************************************************************************/
 /***********************************************************************************/
 template <>
-void ExtendPressureConditionProcess<3>::CreateLineLoads(
+void ExtendPressureConditionProcess<2>::CreateLineLoads(
     const int Id1,
     const int Id2,
 	ModelPart::ElementsContainerType::ptr_iterator itElem,
@@ -276,7 +277,22 @@ void ExtendPressureConditionProcess<3>::CreateLineLoads(
     int& rMaximumConditionId
     )
 {
+    std::vector<IndexType> condition_nodes_id(2);
+    auto& r_geom = (*itElem)->GetGeometry();
+    condition_nodes_id[0] = r_geom[Id1].Id();
+    condition_nodes_id[1] = r_geom[Id2].Id();
+    rMaximumConditionId++;
 
+    rSubModelPart.AddNode(mrModelPart.pGetNode(r_geom[Id1].Id()));
+    rSubModelPart.AddNode(mrModelPart.pGetNode(r_geom[Id2].Id()));
+
+    const auto& r_line_cond = rSubModelPart.CreateNewCondition(
+                                    "LineLoadCondition2D2N",
+                                    rMaximumConditionId,
+                                    condition_nodes_id,
+                                    pProperties, 0);
+
+    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_line_cond);
 }
 /***********************************************************************************/
 /***********************************************************************************/
