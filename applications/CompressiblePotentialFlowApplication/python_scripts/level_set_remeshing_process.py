@@ -83,14 +83,14 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         self._CopyAndDeleteDefaultDistance()
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Elapsed time: ',time.time()-ini_time)
 
-        ''' ############################################################################################# '''
-        ''' THIS FUNCTION CALL IS TEMPORARY AND WILL BE REMOVED ONCE THE EMBEDDED WAKE PROCESS IS DEFINED '''
+        #############################################################################################
+        #THIS FUNCTION CALL IS TEMPORARY AND WILL BE REMOVED ONCE THE EMBEDDED WAKE PROCESS IS DEFINED
         # Find nodal neigbours util call
         avg_elem_num = 10
         avg_node_num = 10
         KratosMultiphysics.FindNodalNeighboursProcess(
             self.main_model_part, avg_elem_num, avg_node_num).Execute()
-        ''' ############################################################################################## '''
+        ##############################################################################################
 
     def _InitializeSkinModelPart(self):
         ''' This function loads and moves the skin_model_part in the main_model_part to the desired initial point (origin).
@@ -119,7 +119,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         # Construct the variational distance calculation process
         maximum_iterations = 2 #TODO: Make this user-definable
 
-        ''' Defining linear solver to be used by the variational distance process'''
+        ###Defining linear solver to be used by the variational distance process###
         from KratosMultiphysics import python_linear_solver_factory #Linear solver for variational distance process
         linear_solver_settings=KratosMultiphysics.Parameters("""
         {
