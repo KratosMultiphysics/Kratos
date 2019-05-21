@@ -246,8 +246,14 @@ public:
     virtual Pointer Clone (IndexType NewId) const
     {
         KRATOS_TRY
-        KRATOS_ERROR << "Clone not implemented in MasterSlaveConstraintBaseClass" << std::endl;
-        return nullptr;
+
+        KRATOS_WARNING("MasterSlaveConstraint") << " Call base class constraint Clone " << std::endl;
+        MasterSlaveConstraint::Pointer p_new_const = Kratos::make_shared<MasterSlaveConstraint>(*this);
+        p_new_const->SetId(NewId);
+        p_new_const->SetData(this->GetData());
+        p_new_const->Set(Flags(*this));
+        return p_new_const;
+
         KRATOS_CATCH("");
     }
 
@@ -310,13 +316,13 @@ public:
 
     /**
      * @brief Determines the constrant's slave and master list of DOFs
-     * @param rSlaveDofList The list of slave DOFs
-     * @param rMasterDofList The list of slave DOFs
+     * @param rSlaveDofsVector The list of slave DOFs
+     * @param rMasterDofsVector The list of slave DOFs
      * @param rCurrentProcessInfo The current process info instance
      */
     virtual void GetDofList(
-        DofPointerVectorType& rSlaveDofList,
-        DofPointerVectorType& rMasterDofList,
+        DofPointerVectorType& rSlaveDofsVector,
+        DofPointerVectorType& rMasterDofsVector,
         const ProcessInfo& rCurrentProcessInfo
         ) const
     {
@@ -325,13 +331,13 @@ public:
 
     /**
      * @brief Determines the constrant's slave and master list of DOFs
-     * @param rSlaveDofList The list of slave DOFs
-     * @param rMasterDofList The list of slave DOFs
+     * @param rSlaveDofsVector The list of slave DOFs
+     * @param rMasterDofsVector The list of slave DOFs
      * @param rCurrentProcessInfo The current process info instance
      */
     virtual void SetDofList(
-        const DofPointerVectorType& rSlaveDofList,
-        const DofPointerVectorType& rMasterDofList,
+        const DofPointerVectorType& rSlaveDofsVector,
+        const DofPointerVectorType& rMasterDofsVector,
         const ProcessInfo& rCurrentProcessInfo
         )
     {
@@ -370,7 +376,7 @@ public:
      * @brief This method returns the slave dof vector
      * @return The vector containing the slave dofs
      */
-    virtual void SetSlaveDofsVector(const DofPointerVectorType& rSlaveDofList)
+    virtual void SetSlaveDofsVector(const DofPointerVectorType& rSlaveDofsVector)
     {
         KRATOS_ERROR << "SetSlaveDofsVector not implemented in MasterSlaveConstraintBaseClass" << std::endl;
     }
@@ -388,7 +394,7 @@ public:
      * @brief This method returns the slave dof vector
      * @return The vector containing the slave dofs
      */
-    virtual void SetMasterDofsVector(const DofPointerVectorType& rMasterDofList)
+    virtual void SetMasterDofsVector(const DofPointerVectorType& rMasterDofsVector)
     {
         KRATOS_ERROR << "SetMasterDofsVector not implemented in MasterSlaveConstraintBaseClass" << std::endl;
     }

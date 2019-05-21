@@ -321,9 +321,11 @@ public:
     {
         KRATOS_TRY
 
-        MasterSlaveConstraint::Pointer p_constraint = Kratos::make_shared<LinearMasterSlaveConstraint>(*this);
-        p_constraint->SetData(this->GetData());
-        return p_constraint;
+        MasterSlaveConstraint::Pointer p_new_const = Kratos::make_shared<LinearMasterSlaveConstraint>(*this);
+        p_new_const->SetId(NewId);
+        p_new_const->SetData(this->GetData());
+        p_new_const->Set(Flags(*this));
+        return p_new_const;
 
         KRATOS_CATCH("");
     }
@@ -335,13 +337,13 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     void GetDofList(
-        DofPointerVectorType& rSlaveDofList,
-        DofPointerVectorType& rMasterDofList,
+        DofPointerVectorType& rSlaveDofsVector,
+        DofPointerVectorType& rMasterDofsVector,
         const ProcessInfo& rCurrentProcessInfo
         ) const override
     {
-        rSlaveDofList = mSlaveDofsVector;
-        rMasterDofList = mMasterDofsVector;
+        rSlaveDofsVector = mSlaveDofsVector;
+        rMasterDofsVector = mMasterDofsVector;
     }
 
     /**
@@ -351,13 +353,13 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     void SetDofList(
-        const DofPointerVectorType& rSlaveDofList,
-        const DofPointerVectorType& rMasterDofList,
+        const DofPointerVectorType& rSlaveDofsVector,
+        const DofPointerVectorType& rMasterDofsVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        mSlaveDofsVector = rSlaveDofList;
-        mMasterDofsVector = rMasterDofList;
+        mSlaveDofsVector = rSlaveDofsVector;
+        mMasterDofsVector = rMasterDofsVector;
     }
 
     /**
@@ -398,9 +400,9 @@ public:
      * @brief This method returns the slave dof vector
      * @return The vector containing the slave dofs
      */
-    void SetSlaveDofsVector(const DofPointerVectorType& rSlaveDofList) override
+    void SetSlaveDofsVector(const DofPointerVectorType& rSlaveDofsVector) override
     {
-        mSlaveDofsVector = rSlaveDofList;
+        mSlaveDofsVector = rSlaveDofsVector;
     }
 
     /**
@@ -416,9 +418,9 @@ public:
      * @brief This method returns the slave dof vector
      * @return The vector containing the slave dofs
      */
-    void SetMasterDofsVector(const DofPointerVectorType& rMasterDofList) override
+    void SetMasterDofsVector(const DofPointerVectorType& rMasterDofsVector) override
     {
-        mMasterDofsVector = rMasterDofList;
+        mMasterDofsVector = rMasterDofsVector;
     }
 
     /**
@@ -470,7 +472,12 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
+        if (mRelationMatrix.size1() != rRelationMatrix.size1() || mRelationMatrix.size2() != rRelationMatrix.size2())
+            mRelationMatrix.resize(rRelationMatrix.size1(), mRelationMatrix.size2());
         noalias(mRelationMatrix) = rRelationMatrix;
+
+        if (mConstantVector.size() != rConstantVector.size())
+            mConstantVector.resize(rConstantVector.size());
         noalias(mConstantVector) = rConstantVector;
     }
 
@@ -487,7 +494,12 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) const override
     {
+        if (rRelationMatrix.size1() != mRelationMatrix.size1() || rRelationMatrix.size2() != mRelationMatrix.size2())
+            rRelationMatrix.resize(mRelationMatrix.size1(), mRelationMatrix.size2());
         noalias(rRelationMatrix) = mRelationMatrix;
+
+        if (rConstantVector.size() != mConstantVector.size())
+            rConstantVector.resize(mConstantVector.size());
         noalias(rConstantVector) = mConstantVector;
     }
 
