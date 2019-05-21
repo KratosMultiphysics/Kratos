@@ -15,7 +15,7 @@ class DummyCoSimulationSolver(CoSimulationBaseSolver):
         self.name = name
         self.dummy_model_part = self.model.CreateModelPart('dummy_model_part')
         for variable_name in self.data_map.keys():
-            if(not data_structure.KratosGlobals.HasVariable(variable_name)):
+            if not data_structure.KratosGlobals.HasVariable(variable_name):
                 self.variable_obj = data_structure.Array1DVariable3(variable_name)
                 self.dummy_model_part.AddNodalSolutionStepVariable(self.variable_obj)
             else:
@@ -27,7 +27,7 @@ class DummyCoSimulationSolver(CoSimulationBaseSolver):
 
     def Initialize(self):
         self.InitializeIO()
-        ## Setting initial value for the data
+        # Setting initial value for the data
         data_value = [DummyCoSimulationSolver.dummy_solver_count, DummyCoSimulationSolver.dummy_solver_count, DummyCoSimulationSolver.dummy_solver_count]
         for node in self.dummy_model_part.Nodes:
             for data_name in self.data_map.keys():
@@ -35,7 +35,6 @@ class DummyCoSimulationSolver(CoSimulationBaseSolver):
                 node.SetSolutionStepValue(data_structure.MESH_DISPLACEMENT, 0,  [data+random.uniform(0,0.99) for data in data_value])
 
     def PrintInfo(self):
-        #cs_tools.PrintInfo( self.data_map.keys() )
         cs_tools.PrintInfo(cs_tools.bcolors.BLUE+"This is an object of DummyCoSimulationSolver with name", self.name + cs_tools.bcolors.ENDC)
 
     def AdvanceInTime(self, current_time):
@@ -46,7 +45,7 @@ class DummyCoSimulationSolver(CoSimulationBaseSolver):
         return 0.2
 
     def SolveSolutionStep(self):
-        ## Setting initial value for the data
+        # Setting initial value for the data
         data_value = [DummyCoSimulationSolver.dummy_solver_count, DummyCoSimulationSolver.dummy_solver_count, DummyCoSimulationSolver.dummy_solver_count]
         for node in self.dummy_model_part.Nodes:
             for data_name in self.data_map.keys():
