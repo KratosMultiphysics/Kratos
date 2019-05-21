@@ -900,8 +900,8 @@ struct RadiusCompare{
   template<class TRefrenceType>
 bool operator()(const TRefrenceType  ptr_a, const TRefrenceType ptr_b)
     {
-      double a_radi = ptr_a.lock()->FastGetSolutionStepValue(PARTICLE_RADIUS);
-      double b_radi = ptr_b.lock()->FastGetSolutionStepValue(PARTICLE_RADIUS);
+      double a_radi = ptr_a.get()->FastGetSolutionStepValue(PARTICLE_RADIUS);
+      double b_radi = ptr_b.get()->FastGetSolutionStepValue(PARTICLE_RADIUS);
 	return (a_radi > b_radi);
     }
 };

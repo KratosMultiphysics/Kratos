@@ -204,6 +204,7 @@ class Algorithm(object):
                 self.dem_solution.SolverSolve()
 
                 DemFem.DemStructuresCouplingUtilities().MarkBrokenSpheres(self.dem_solution.spheres_model_part)
+
                 center = Kratos.Array3()
                 center[0] = 0.0
                 center[1] = 0.0
