@@ -54,7 +54,7 @@ void RemoveFile(const std::string& rFileName)
         const char* name = rFileName.c_str();
         remove(name);
     } else {
-        KRATOS_WARNING("OSUtilities") << "This is a folder. Please use RemoveDir" << std::endl;
+        KRATOS_WARNING("OSUtilities") << "\"" << rFileName << "\" could not be removed because it is not a file" << std::endl;
     }
 }
 
