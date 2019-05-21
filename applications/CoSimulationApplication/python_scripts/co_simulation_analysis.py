@@ -30,7 +30,6 @@ class CoSimulationAnalysis(object):
     def RunSolutionLoop(self):
         for self.step in range(self.start_step, self.stop_step):
             self._coupled_solver.InitializeSolutionStep()
-            self._coupled_solver.Predict()
             self._coupled_solver.SolveSolutionStep()
             self._coupled_solver.FinalizeSolutionStep()
             self._coupled_solver.OutputSolutionStep()

@@ -31,12 +31,6 @@ class CoSimulationComponent(object):
         else:
             Exception("Not initialized")
 
-    def Predict(self):
-        pass
-
-    def SolveSolutionStep(self):
-        pass
-
     def FinalizeSolutionStep(self):
         if self.initialized:
             if self.initialized_solution_step:

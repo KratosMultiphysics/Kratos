@@ -36,9 +36,6 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         for component in self._components:
             component.InitializeSolutionStep()
 
-    def Predict(self):
-        pass
-
     def SolveSolutionStep(self):
         pass
 
