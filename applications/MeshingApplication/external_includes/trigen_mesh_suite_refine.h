@@ -24,7 +24,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 
 
 
@@ -560,6 +560,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIGEN_MODELER_H_INCLUDED  defined 
+#endif // KRATOS_TRIGEN_MODELER_H_INCLUDED  defined
 
 

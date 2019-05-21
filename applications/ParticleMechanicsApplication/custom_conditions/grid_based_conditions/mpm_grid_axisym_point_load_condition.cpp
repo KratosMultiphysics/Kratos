@@ -54,7 +54,7 @@ Condition::Pointer MPMGridAxisymPointLoadCondition::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<MPMGridAxisymPointLoadCondition>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<MPMGridAxisymPointLoadCondition>( NewId, pGeom, pProperties );
 }
 
 //************************************************************************************
@@ -66,7 +66,7 @@ Condition::Pointer MPMGridAxisymPointLoadCondition::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<MPMGridAxisymPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<MPMGridAxisymPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 //******************************* DESTRUCTOR *****************************************

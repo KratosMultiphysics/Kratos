@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -36,28 +36,51 @@ DistanceModificationProcess::DistanceModificationProcess(
     const bool CheckAtEachStep,
     const bool NegElemDeactivation,
     const bool RecoverOriginalDistance)
-    : Process(), mrModelPart(rModelPart) {
-
+    : Process(),
+      mrModelPart(rModelPart)
+{
+    // Member variables initialization
     mDistanceThreshold = DistanceThreshold;
     mCheckAtEachStep = CheckAtEachStep;
     mNegElemDeactivation = NegElemDeactivation;
     mRecoverOriginalDistance = RecoverOriginalDistance;
+
+    // Initialize the EMBEDDED_IS_ACTIVE variable flag to 0
+    this->InitializeEmbeddedIsActive();
 }
 
 DistanceModificationProcess::DistanceModificationProcess(
     ModelPart& rModelPart,
     Parameters& rParameters)
-    : Process(), mrModelPart(rModelPart)
+    : Process(),
+      mrModelPart(rModelPart)
 {
+    // Check default settings
     this->CheckDefaultsAndProcessSettings(rParameters);
+
+    // Initialize the EMBEDDED_IS_ACTIVE variable flag to 0
+    this->InitializeEmbeddedIsActive();
 }
 
 DistanceModificationProcess::DistanceModificationProcess(
     Model &rModel,
     Parameters &rParameters)
-    : Process(), mrModelPart(rModel.GetModelPart(rParameters["model_part_name"].GetString()))
+    : Process(),
+      mrModelPart(rModel.GetModelPart(rParameters["model_part_name"].GetString()))
 {
+    // Check default settings
     this->CheckDefaultsAndProcessSettings(rParameters);
+
+    // Initialize the EMBEDDED_IS_ACTIVE variable flag to 0
+    this->InitializeEmbeddedIsActive();
+}
+
+void DistanceModificationProcess::InitializeEmbeddedIsActive()
+{
+    for (int i_node = 0; i_node < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node) {
+        auto it_node = mrModelPart.NodesBegin() + i_node;
+        it_node->SetValue(EMBEDDED_IS_ACTIVE, 0);
+    }
 }
 
 void DistanceModificationProcess::CheckDefaultsAndProcessSettings(Parameters &rParameters)
@@ -241,6 +264,9 @@ void DistanceModificationProcess::ModifyDistance() {
 
     // Syncronize data between partitions (the modified distance has always a lower value)
     mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
+
+    // Update the TO_SPLIT flag
+    this->SetContinuousDistanceToSplitFlag();
 }
 
 void DistanceModificationProcess::ModifyDiscontinuousDistance(){
@@ -309,6 +335,9 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
             }
         }
     }
+
+    // Update the TO_SPLIT flag
+    this->SetDiscontinuousDistanceToSplitFlag();
 }
 
 void DistanceModificationProcess::RecoverDeactivationPreviousState(){
@@ -348,6 +377,9 @@ void DistanceModificationProcess::RecoverOriginalDistance() {
     mModifiedDistancesValues.resize(0);
     mModifiedDistancesIDs.shrink_to_fit();
     mModifiedDistancesValues.shrink_to_fit();
+
+    // Restore the TO_SPLIT flag original status
+    this->SetContinuousDistanceToSplitFlag();
 }
 
 void DistanceModificationProcess::RecoverOriginalDiscontinuousDistance() {
@@ -363,6 +395,9 @@ void DistanceModificationProcess::RecoverOriginalDiscontinuousDistance() {
     mModifiedElementalDistancesValues.resize(0);
     mModifiedDistancesIDs.shrink_to_fit();
     mModifiedElementalDistancesValues.shrink_to_fit();
+
+    // Restore the TO_SPLIT flag original status
+    this->SetDiscontinuousDistanceToSplitFlag();
 }
 
 void DistanceModificationProcess::DeactivateFullNegativeElements() {
@@ -420,6 +455,30 @@ void DistanceModificationProcess::DeactivateFullNegativeElements() {
             it_node->FastGetSolutionStepValue(PRESSURE) = 0.0;
             it_node->FastGetSolutionStepValue(VELOCITY) = ZeroVector(3);
         }
+    }
+}
+
+void DistanceModificationProcess::SetContinuousDistanceToSplitFlag()
+{
+    #pragma omp parallel for
+    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem) {
+        auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+        auto &r_geom = it_elem->GetGeometry();
+        std::vector<double> elem_dist;
+        for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+            elem_dist.push_back(r_geom[i_node].FastGetSolutionStepValue(DISTANCE));
+        }
+        this->SetElementToSplitFlag(*it_elem, elem_dist);
+    }
+}
+
+void DistanceModificationProcess::SetDiscontinuousDistanceToSplitFlag()
+{
+    #pragma omp parallel for
+    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem) {
+        auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+        const auto &r_elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
+        this->SetElementToSplitFlag(*it_elem, r_elem_dist);
     }
 }
 

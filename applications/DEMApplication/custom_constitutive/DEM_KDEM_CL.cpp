@@ -9,12 +9,6 @@
 
 namespace Kratos {
 
-    void DEM_KDEM::Initialize() {
-
-        KRATOS_TRY
-        KRATOS_CATCH("")
-    }
-
     DEMContinuumConstitutiveLaw::Pointer DEM_KDEM::Clone() const {
         DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_KDEM(*this));
         return p_clone;
@@ -253,6 +247,16 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
+    double DEM_KDEM::GetTauZero(SphericContinuumParticle* element1) {
+
+        return element1->GetFastProperties()->GetContactTauZero();
+    }
+
+    double DEM_KDEM::GetInternalFricc(SphericContinuumParticle* element1) {
+
+        return element1->GetFastProperties()->GetContactInternalFricc();
+    }
+
     void DEM_KDEM::CalculateTangentialForces(double OldLocalElasticContactForce[3],
             double LocalElasticContactForce[3],
             double LocalElasticExtraContactForce[3],
@@ -289,8 +293,8 @@ namespace Kratos {
                 AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, element1->mNeighbourElasticExtraContactForces[i_neighbour_count], LocalCoordSystem, kt_el, calculation_area,  element1, element2);
             }
 
-            const double mTauZero = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactTauZero() + element2->GetFastProperties()->GetContactTauZero());
-            const double mInternalFriction = 0.5 * (element1->GetFastProperties()->GetContactInternalFricc() + element2->GetFastProperties()->GetContactInternalFricc());
+            const double mTauZero = 0.5 * 1e6 * (GetTauZero(element1) + GetTauZero(element2));
+            const double mInternalFriction = 0.5 * (GetInternalFricc(element1) + GetInternalFricc(element2));
 
             contact_tau = ShearForceNow / calculation_area;
             contact_sigma = LocalElasticContactForce[2] / calculation_area;
