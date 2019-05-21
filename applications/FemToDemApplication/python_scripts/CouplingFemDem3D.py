@@ -46,6 +46,13 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			self.InitializeMMGvariables()
 			self.RemeshingProcessMMG.ExecuteInitialize()
 
+		if self.FEM_Solution.ProjectParameters.Has("pressure_load_extrapolation") == False:
+			self.PressureLoad = False
+		else:
+			self.PressureLoad = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
+		if self.PressureLoad:
+			KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
+
         # for the dem contact forces coupling
 		self.InitializeDummyNodalForces()
 
@@ -110,7 +117,22 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		self.FEM_Solution.solver.Solve()
 		########################################################
 
+		if self.PressureLoad:
+			# This must be called before Generating DEM
+			self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECONSTRUCT_PRESSURE_LOAD] = 0 # It is modified inside
+			extend_wet_nodes_process = KratosFemDem.ExpandWetNodesProcess(self.FEM_Solution.main_model_part)
+			extend_wet_nodes_process.Execute()
+
 		self.GenerateDEM()            # we create the new DEM of this time step
+
+		if self.PressureLoad:
+			# we reconstruct the pressure load if necessary
+			if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECONSTRUCT_PRESSURE_LOAD] == 1:
+				self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.INTERNAL_PRESSURE_ITERATION] = 1
+				while self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.INTERNAL_PRESSURE_ITERATION] > 0:
+					KratosFemDem.ExtendPressureConditionProcess2D(self.FEM_Solution.main_model_part).Execute()
+
+
 		self.SpheresModelPart = self.ParticleCreatorDestructor.GetSpheresModelPart()
 		self.CheckForPossibleIndentations()
 
@@ -1006,6 +1028,13 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.NODAL_FORCE_APPLIED, False, self.FEM_Solution.main_model_part.Nodes)
 		# Initialize the "flag" RADIUS in all the nodes
 		KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, False, self.FEM_Solution.main_model_part.Nodes)
+
+		if self.FEM_Solution.ProjectParameters.Has("pressure_load_extrapolation") == False:
+			self.PressureLoad = False
+		else:
+			self.PressureLoad = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
+		if self.PressureLoad:
+			KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
 
 		# Remove DEMS from previous mesh
 		self.SpheresModelPart.Elements.clear()
