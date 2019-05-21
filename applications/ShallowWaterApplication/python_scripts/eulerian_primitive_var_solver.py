@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-import KratosMultiphysics
-import KratosMultiphysics.ShallowWaterApplication as Shallow
+import KratosMultiphysics as KM
+import KratosMultiphysics.ShallowWaterApplication as SW
 
 ## Import base class file
 from KratosMultiphysics.ShallowWaterApplication.shallow_water_base_solver import ShallowWaterBaseSolver
@@ -19,21 +19,17 @@ class EulerianPrimitiveVarSolver(ShallowWaterBaseSolver):
         self.min_buffer_size = 2
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(Shallow.HEIGHT, self.main_model_part)
+        KM.VariableUtils().AddDof(KM.VELOCITY_X, self.main_model_part)
+        KM.VariableUtils().AddDof(KM.VELOCITY_Y, self.main_model_part)
+        KM.VariableUtils().AddDof(SW.HEIGHT, self.main_model_part)
 
-        KratosMultiphysics.Logger.PrintInfo("::[EulerianPrimitiveVarSolver]::", "Shallow water solver DOFs added correctly.")
+        KM.Logger.PrintInfo("::[EulerianPrimitiveVarSolver]::", "Shallow water solver DOFs added correctly.")
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
-            # If all the nodes of an element are dry, set ACTIVE flag False
-            self.ShallowVariableUtils.SetDryWetState()
             # Solve equations on the mesh
             is_converged = self.solver.SolveSolutionStep()
-            # Compute free surface
-            self.ShallowVariableUtils.ComputeFreeSurfaceElevation()
-            # If water height is negative or close to zero, reset values
-            # self.ShallowVariableUtils.CheckDryPrimitiveVariables()
+            # Computing the free surface
+            SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.GetComputingModelPart())
 
             return is_converged

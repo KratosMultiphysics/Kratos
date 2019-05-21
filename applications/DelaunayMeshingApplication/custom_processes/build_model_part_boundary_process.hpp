@@ -56,9 +56,9 @@ typedef ModelPart::NodesContainerType NodesContainerType;
 typedef ModelPart::ElementsContainerType ElementsContainerType;
 typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
-typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
+typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 ///@}
 ///@name  Enum's
 ///@{
@@ -206,13 +206,14 @@ class BuildModelPartBoundaryProcess
   void CheckMasterElement(int Id, const Element::WeakPointer& old_nelem, const Element::WeakPointer& new_nelem)
   {
     if( mEchoLevel >= 1 ){
-      if(!old_nelem.expired()){
-        if(old_nelem.lock().get()->Id() != new_nelem.lock().get()->Id())
-          std::cout<<"Condition "<<Id<<" WARNING: master elements ("<<old_nelem.lock().get()->Id()<<" != "<<new_nelem.lock().get()->Id()<<")"<<std::endl;
-      }
-      else{
-        std::cout<<"Condition "<<Id<<" WARNING: master elements (expired != "<<new_nelem.lock().get()->Id()<<")"<<std::endl;
-      }
+      KRATOS_ERROR << "sorry weak pointers are not any longer supported " << std::endl;
+      // if(!old_nelem.expired()){
+      //   if(old_nelem->Id() != new_nelem->Id())
+      //     std::cout<<"Condition "<<Id<<" WARNING: master elements ("<<old_nelem->Id()<<" != "<<new_nelem->Id()<<")"<<std::endl;
+      // }
+      // else{
+      //   std::cout<<"Condition "<<Id<<" WARNING: master elements (expired != "<<new_nelem->Id()<<")"<<std::endl;
+      // }
     }
 
   }
@@ -220,14 +221,17 @@ class BuildModelPartBoundaryProcess
 
   void CheckMasterNode(int Id, const Node<3>::WeakPointer& old_nnode, const Node<3>::Pointer& new_nnode)
   {
+
     if( mEchoLevel >= 1 ){
-      if(!old_nnode.expired()){
-        if(old_nnode.lock().get()->Id() != new_nnode->Id())
-          std::cout<<"Condition "<<Id<<" WARNING: master nodes ("<<old_nnode.lock().get()->Id()<<" != "<<new_nnode->Id()<<")"<<std::endl;
-      }
-      else{
-        std::cout<<"Condition "<<Id<<" WARNING: master nodes (expired != "<<new_nnode->Id()<<")"<<std::endl;
-      }
+      KRATOS_ERROR << "sorry weak pointers are not any longer supported " << std::endl;
+
+      // if(!old_nnode.expired()){
+      //   if(old_nnode->Id() != new_nnode->Id())
+      //     std::cout<<"Condition "<<Id<<" WARNING: master nodes ("<<old_nnode->Id()<<" != "<<new_nnode->Id()<<")"<<std::endl;
+      // }
+      // else{
+      //   std::cout<<"Condition "<<Id<<" WARNING: master nodes (expired != "<<new_nnode->Id()<<")"<<std::endl;
+      // }
     }
 
   }
@@ -253,18 +257,20 @@ class BuildModelPartBoundaryProcess
         ++composite_conditions;
 
       if(mEchoLevel > 1){
-        std::cout<<" Masters::Condition ("<<i_cond.Id()<<")";
-        auto& MasterElements = i_cond.GetValue(MASTER_ELEMENTS);
-        if(MasterElements.size()!=0){
-          if(!MasterElements(0).expired())
-            std::cout<<" ME="<<MasterElements.front().Id()<<" (size:"<<MasterElements.size()<<")";
-        }
-        auto& MasterNodes = i_cond.GetValue(MASTER_NODES);
-        if(MasterNodes.size()!=0){
-          if(!MasterNodes(0).expired())
-            std::cout<<" MN= "<<MasterNodes.front().Id()<<" (size:"<<MasterNodes.size()<<")";
-        }
-        std::cout<<std::endl;
+        KRATOS_ERROR << "sorry weak pointers are not any longer supported " << std::endl;
+
+        // std::cout<<" Masters::Condition ("<<i_cond.Id()<<")";
+        // auto& MasterElements = i_cond.GetValue(MASTER_ELEMENTS);
+        // if(MasterElements.size()!=0){
+        //   if(!MasterElements(0).expired())
+        //     std::cout<<" ME="<<MasterElements.front().Id()<<" (size:"<<MasterElements.size()<<")";
+        // }
+        // auto& MasterNodes = i_cond.GetValue(MASTER_NODES);
+        // if(MasterNodes.size()!=0){
+        //   if(!MasterNodes(0).expired())
+        //     std::cout<<" MN= "<<MasterNodes.front().Id()<<" (size:"<<MasterNodes.size()<<")";
+        // }
+        // std::cout<<std::endl;
       }
 
       //********************************************************************
@@ -300,13 +306,20 @@ class BuildModelPartBoundaryProcess
           if( nElements1.size() == 0 || nElements2.size() == 0 )
             std::cout<<" NO SIZE in NEIGHBOUR_ELEMENTS "<<std::endl;
 
+          KRATOS_ERROR << "sorry weak pointers are not any longer supported " << std::endl;
+
+
           for(auto i_nelem(nElements1.begin()); i_nelem != nElements1.end(); ++i_nelem)
           {
-            if(!i_nelem.base()->expired()){
+            KRATOS_ERROR << "sorry weak pointers are not any longer supported " << std::endl;
+            //if(!i_nelem.base()->expired())
+            {
 
               for(auto j_nelem(nElements2.begin()); j_nelem != nElements2.end(); ++j_nelem)
               {
-                if(!j_nelem.base()->expired()){
+                //if(!j_nelem.base()->expired())
+                KRATOS_ERROR << "sorry weak pointers are not any longer supported " << std::endl;
+                {
 
                   if(j_nelem->Id() == i_nelem->Id() && !found){
 
@@ -377,16 +390,21 @@ class BuildModelPartBoundaryProcess
 
           for(auto i_nelem(nElements1.begin()); i_nelem != nElements1.end(); ++i_nelem)
           {
-            if(!i_nelem.base()->expired())
+            KRATOS_ERROR << "sorry weak pointers are not any longer supported " << std::endl;
+            //if(!i_nelem.base()->expired())
             {
               for(auto j_nelem(nElements2.begin()); j_nelem != nElements2.end(); ++j_nelem)
               {
-                if(!j_nelem.base()->expired()){
+                KRATOS_ERROR << "sorry weak pointers are not any longer supported " << std::endl;
+                //if(!j_nelem.base()->expired())
+                {
                   if(j_nelem->Id() == i_nelem->Id() && !found)
                   {
                     for(auto k_nelem(nElements3.begin()); k_nelem != nElements3.end(); ++k_nelem)
                     {
-                      if(!k_nelem.base()->expired()){
+                      KRATOS_ERROR << "sorry weak pointers are not any longer supported " << std::endl;
+                      //if(!k_nelem.base()->expired())
+                      {
                         if(k_nelem->Id() == i_nelem->Id() && !found)
                         {
                           auto& rMasterElements = i_cond.GetValue(MASTER_ELEMENTS);
@@ -455,18 +473,19 @@ class BuildModelPartBoundaryProcess
       //********************************************************************
 
       if(mEchoLevel > 1){
-        std::cout<<" SearchResult::Condition ("<<i_cond.Id()<<")";
-        auto MasterElements = i_cond.GetValue(MASTER_ELEMENTS);
-        if(MasterElements.size()!=0){
-          if(!MasterElements(0).expired())
-            std::cout<<" ME="<<MasterElements.front().Id()<<" (size:"<<MasterElements.size()<<")";
-        }
-        auto MasterNodes = i_cond.GetValue(MASTER_NODES);
-        if(MasterNodes.size()!=0){
-          if(!MasterNodes(0).expired())
-            std::cout<<" MN= "<<MasterNodes.front().Id()<<" (size:"<<MasterNodes.size()<<")";
-        }
-        std::cout<<std::endl;
+        KRATOS_ERROR << "sorry weak pointers are not any longer supported " << std::endl;
+        // std::cout<<" SearchResult::Condition ("<<i_cond.Id()<<")";
+        // auto MasterElements = i_cond.GetValue(MASTER_ELEMENTS);
+        // if(MasterElements.size()!=0){
+        //   if(!MasterElements(0).expired())
+        //     std::cout<<" ME="<<MasterElements.front().Id()<<" (size:"<<MasterElements.size()<<")";
+        // }
+        // auto MasterNodes = i_cond.GetValue(MASTER_NODES);
+        // if(MasterNodes.size()!=0){
+        //   if(!MasterNodes(0).expired())
+        //     std::cout<<" MN= "<<MasterNodes.front().Id()<<" (size:"<<MasterNodes.size()<<")";
+        // }
+        // std::cout<<std::endl;
       }
 
       if(found)

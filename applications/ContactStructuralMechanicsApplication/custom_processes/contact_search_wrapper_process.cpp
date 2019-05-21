@@ -115,10 +115,14 @@ Parameters ContactSearchWrapperProcess::GetDefaultParameters()
         "id_name"                              : "",
         "consider_gap_threshold"               : false,
         "predict_correct_lagrange_multiplier"  : false,
+        "pure_slip"                            : false,
         "debug_mode"                           : false,
         "octree_search_parameters" : {
-            "bounding_box_factor"    : 0.1,
-            "debug_obb"              : false
+            "bounding_box_factor"             : 0.1,
+            "debug_obb"                       : false,
+            "OBB_intersection_type"           : "SeparatingAxisTheorem",
+            "lower_bounding_box_coefficient"  : 0.0,
+            "higher_bounding_box_coefficient" : 1.0
             }
     })" );
 

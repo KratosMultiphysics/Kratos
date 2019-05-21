@@ -259,10 +259,10 @@ public:
 		double EdgeLength;
 		array_1d<double,3> Edge;
 		GeometryType& rGeom = this->GetGeometry();
-		WeakPointerVector<Element> ElementCandidates;
+		GlobalPointersVector<Element> ElementCandidates;
 		for (SizeType i = 0; i < TNumNodes; i++)
 		{
-			WeakPointerVector<Element>& rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+			GlobalPointersVector<Element>& rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
 			for (SizeType j = 0; j < rNodeElementCandidates.size(); j++)
 			{
 				ElementCandidates.push_back(rNodeElementCandidates(j));
@@ -576,7 +576,7 @@ protected:
 
 	ElementPointerType pGetElement()
 	{
-		return mpElement.lock();
+		return mpElement->shared_from_this();
 	}
 
 	template< class TVariableType >

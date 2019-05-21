@@ -34,9 +34,7 @@ void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
 {
     const int num_nodes_local = rModelPartCommunicator.LocalMesh().NumberOfNodes();
 
-    int num_nodes_accumulated;
-
-    rModelPartCommunicator.ScanSum(num_nodes_local, num_nodes_accumulated);
+    int num_nodes_accumulated = rModelPartCommunicator.GetDataCommunicator().ScanSum(num_nodes_local);
 
     const int start_equation_id = num_nodes_accumulated - num_nodes_local;
 
@@ -74,7 +72,7 @@ double ComputeSearchRadius(ModelPart& rModelPart, const int EchoLevel)
         max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Nodes());
     }
 
-    rModelPart.GetCommunicator().MaxAll(max_element_size); // Compute the maximum among the partitions
+    max_element_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(max_element_size); // Compute the maximum among the partitions
     return max_element_size * search_safety_factor;
 }
 

@@ -33,6 +33,7 @@
 #include "includes/kratos_flags.h"
 #include "custom_solvers/time_integration_methods/time_integration_methods_container.hpp"
 #include "custom_utilities/shell_cross_section.hpp"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {

@@ -53,7 +53,7 @@ public:
     ///@{
 
     // Counted pointer of MPMGridSurfaceLoadCondition3D
-    KRATOS_CLASS_POINTER_DEFINITION( MPMGridSurfaceLoadCondition3D );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMGridSurfaceLoadCondition3D );
 
 #if KRATOS_USE_AMATRIX
     typedef MatrixRow<const Matrix> RowMatrix;
