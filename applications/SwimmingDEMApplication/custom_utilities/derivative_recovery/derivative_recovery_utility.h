@@ -61,9 +61,8 @@ class KRATOS_API(SWIMMING_DEM_APPLICATION) RecoveryVariablesContainer
     typedef array_1d<double, 3> Vector3;
     typedef Variable<Matrix> MatrixVarType;
     typedef VariableComponent<VectorComponentAdaptor<Vector3> > ComponentVarType;
-    typedef std::pair<std::string, std::string> PairOfVariablesType;
-    typedef std::vector<PairOfVariablesType> VariablePairsVectorType;
-    typedef std::map<std::string, VariablePairsVectorType> VariablesMapType;
+    typedef std::tuple<std::string, std::string, std::string> VariablesOperatorTupleType;
+    typedef std::vector<VariablesOperatorTupleType> VariableTuplesVectorType;
 
     KRATOS_CLASS_POINTER_DEFINITION(RecoveryVariablesContainer);
     ///@}
@@ -73,29 +72,25 @@ class KRATOS_API(SWIMMING_DEM_APPLICATION) RecoveryVariablesContainer
     /// Constructor with Kratos parameters.
     RecoveryVariablesContainer()
     {
-        mVariables["gradient"] = VariablePairsVectorType();
-        mVariables["divergence"] = VariablePairsVectorType();
-        mVariables["laplacian"] = VariablePairsVectorType();
-        mVariables["rotational"] = VariablePairsVectorType();
-        mVariables["material_derivative"] = VariablePairsVectorType();
+
     }
 
     void AddRecoveryPair(const std::string OperatorName,
                          const std::string VariableName,
                          const std::string DerivativeVariableName)
     {
-        const auto new_pair = PairOfVariablesType(VariableName, DerivativeVariableName);
-        mVariables[OperatorName].push_back(new_pair);
+        const auto new_tuple = std::make_tuple(VariableName, DerivativeVariableName, OperatorName);
+        mVariables.push_back(new_tuple);
     }
 
-    const VariablePairsVectorType& GetVariables(const std::string Operator)
+    const VariableTuplesVectorType& GetVariables()
     {
-        return mVariables[Operator];
+        return mVariables;
     }
 
     private:
 
-    VariablesMapType mVariables;
+    VariableTuplesVectorType mVariables;
 };
 
 class KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecoveryUtility

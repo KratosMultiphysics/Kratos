@@ -101,24 +101,26 @@ void DerivativeRecoveryUtility::Recover()
 {
     KRATOS_TRY;
 
-    for (auto pair : mVariablesContainer.GetVariables("gradient")){
-        this->CalculateGradient(pair.first, pair.second);
-    }
+    for (auto var_deriv_operator_tuple : mVariablesContainer.GetVariables()){
+        const auto var_name = std::get<0>(var_deriv_operator_tuple);
+        const auto deriv_var_name = std::get<1>(var_deriv_operator_tuple);
+        const auto operator_name = std::get<2>(var_deriv_operator_tuple);
 
-    for (auto pair : mVariablesContainer.GetVariables("divergence")){
-        this->CalculateDivergence(pair.first, pair.second);
-    }
-
-    for (auto pair : mVariablesContainer.GetVariables("rotational")){
-        this->CalculateRotational(pair.first, pair.second);
-    }
-
-    for (auto pair : mVariablesContainer.GetVariables("material_derivative")){
-        this->CalculateMaterialDerivative(pair.first, pair.second);
-    }
-
-    for (auto pair : mVariablesContainer.GetVariables("laplacian")){
-        this->CalculateLaplacian(pair.first, pair.second);
+        if (operator_name == "gradient"){
+            this->CalculateGradient(var_name, deriv_var_name);
+        }
+        if (operator_name == "divergence"){
+            this->CalculateDivergence(var_name, deriv_var_name);
+        }
+        if (operator_name== "rotational"){
+            this->CalculateRotational(var_name, deriv_var_name);
+        }
+        if (operator_name == "material_derivative"){
+            this->CalculateMaterialDerivative(var_name, deriv_var_name);
+        }
+        if (operator_name == "laplacian"){
+            this->CalculateLaplacian(var_name, deriv_var_name);
+        }
     }
 
     KRATOS_CATCH("");
