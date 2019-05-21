@@ -473,11 +473,12 @@ public:
         ) override
     {
         if (mRelationMatrix.size1() != rRelationMatrix.size1() || mRelationMatrix.size2() != rRelationMatrix.size2())
-            mRelationMatrix.resize(rRelationMatrix.size1(), mRelationMatrix.size2());
+            mRelationMatrix.resize(rRelationMatrix.size1(), rRelationMatrix.size2(), false);
+
         noalias(mRelationMatrix) = rRelationMatrix;
 
         if (mConstantVector.size() != rConstantVector.size())
-            mConstantVector.resize(rConstantVector.size());
+            mConstantVector.resize(rConstantVector.size(), false);
         noalias(mConstantVector) = rConstantVector;
     }
 
@@ -495,11 +496,11 @@ public:
         ) const override
     {
         if (rRelationMatrix.size1() != mRelationMatrix.size1() || rRelationMatrix.size2() != mRelationMatrix.size2())
-            rRelationMatrix.resize(mRelationMatrix.size1(), mRelationMatrix.size2());
+            rRelationMatrix.resize(mRelationMatrix.size1(), mRelationMatrix.size2(), false);
         noalias(rRelationMatrix) = mRelationMatrix;
 
         if (rConstantVector.size() != mConstantVector.size())
-            rConstantVector.resize(mConstantVector.size());
+            rConstantVector.resize(mConstantVector.size(), false);
         noalias(rConstantVector) = mConstantVector;
     }
 
