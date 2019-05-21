@@ -54,8 +54,11 @@ std::string GetCurrentWorkingDir()
 
 void RemoveFile(const std::string& rFileName)
 {
-    const char* name = rFileName.c_str();
-    remove(name);
+    const bool is_file = IsFile(rFileName);
+    if (is_file) { // It is a file
+        const char* name = rFileName.c_str();
+        remove(name);
+    }
 }
 
 /***********************************************************************************/
@@ -71,12 +74,16 @@ void RemoveFileInCurrentWorkingDir(const std::string& rFileName)
 
 void RemoveDir(const std::string& rFolderName)
 {
-    const char* name = rFolderName.c_str();
+    const bool is_dir = IsDir(rFolderName);
+
+    if (is_dir) { // It is a directory
+        const char* name = rFolderName.c_str();
 #ifdef KRATOS_COMPILED_IN_WINDOWS
-    RemoveDirectoryA(name);
+        RemoveDirectoryA(name);
 #else
-    rmdir(name);
+        rmdir(name);
 #endif
+    }
 }
 
 /***********************************************************************************/
