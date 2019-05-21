@@ -34,7 +34,7 @@ void ExpandWetNodesProcess::Execute()
         extrapolated_elements = 0;
 
         //#pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
+        for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
             auto it_elem = mrModelPart.ElementsBegin() + i;
             
             bool element_done = it_elem->GetValue(PRESSURE_EXPANDED);
