@@ -39,6 +39,16 @@ class SolverInterfacePipeStructure(CoSimulationComponent):
         self.a0 = m.pi * self.d ** 2 / 4.0  # Reference area of cross section
         self.c02 = self.cmk2 - self.p0 / 2.0  # Wave speed squared with reference pressure
 
+        # ModelPart of interface
+        self.model = cs_data_structure.Model()
+        self.model_part = self.model = self.model.CreateModelPart("pipe_flow")
+        self.variable_pres = cs_data_structure.VariableDouble("PRESSURE")
+        self.model_part.AddNodalSolutionStepVariable(self.variable_pres)
+        self.variable_disp = cs_data_structure.VariableDouble("DISPLACEMENT_Y")
+        self.model_part.AddNodalSolutionStepVariable(self.variable_disp)
+        for i in range(len(self.z)):
+            self.model_part.CreateNewNode(i, 0.0, 0.0, self.z[i])
+
     def Initialize(self):
         super().Initialize()
 
