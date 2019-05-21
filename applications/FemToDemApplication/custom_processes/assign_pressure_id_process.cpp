@@ -19,8 +19,8 @@ namespace Kratos {
 
 
 AssignPressureIdProcess::AssignPressureIdProcess(
-    ModelPart &r_model_part)
-    : mr_model_part(r_model_part) 
+    ModelPart& r_model_part)
+    : mrModelPart(r_model_part) 
 {
 }
 
@@ -29,7 +29,7 @@ AssignPressureIdProcess::AssignPressureIdProcess(
 
 void AssignPressureIdProcess::Execute() 
 {
-    std::vector<std::string> submodel_parts_names = mr_model_part.GetSubModelPartNames();
+    std::vector<std::string> submodel_parts_names = mrModelPart.GetSubModelPartNames();
     std::vector<std::string> pressure_sub_models;
 
     for (IndexType i = 0; i < submodel_parts_names.size(); ++i) {
@@ -53,8 +53,8 @@ void AssignPressureIdProcess::AssignPressureIdToNodes(
     )
 {
     // Loop over nodes of that submodel to assign prressure id
-    for (auto it = mr_model_part.GetSubModelPart(rSubModelPartName).NodesBegin(); 
-      it != mr_model_part.GetSubModelPart(rSubModelPartName).NodesEnd(); ++it) {
+    for (auto it = mrModelPart.GetSubModelPart(rSubModelPartName).NodesBegin(); 
+      it != mrModelPart.GetSubModelPart(rSubModelPartName).NodesEnd(); ++it) {
 		(*it).SetValue(PRESSURE_ID, PressureId);
     }
 }
