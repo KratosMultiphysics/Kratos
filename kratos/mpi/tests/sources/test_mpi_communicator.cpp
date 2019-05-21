@@ -178,6 +178,38 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeAnd, KratosMPICoreFastSuite)
     KRATOS_CHECK_EQUAL(r_center.Is(PERIODIC), rank_is_even); // This one should be left untouched
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeNodalFlags, KratosMPICoreFastSuite)
+{
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    MPIDataCommunicator world_comm(MPI_COMM_WORLD);
+    Internals::ModelPartForMPICommunicatorTests(r_model_part, world_comm);
+
+    const int rank = world_comm.Rank();
+    const bool rank_is_even( (rank % 2) == 0 );
+
+    for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
+    {
+        i_node->Set(INLET, rank_is_even);
+        i_node->Set(OUTLET, rank_is_even);
+        i_node->Set(PERIODIC, !rank_is_even);
+    }
+
+    r_model_part.GetCommunicator().SynchronizeNodalFlags();
+    // End result: the entire Flags are copied from owner rank to ghost copies (both defined status and values)
+    for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
+    {
+        int owner_rank = i_node->FastGetSolutionStepValue(PARTITION_INDEX, 0);
+        bool owner_is_even = ((owner_rank % 2) == 0);
+        KRATOS_CHECK_EQUAL(i_node->Is(INLET), owner_is_even);
+        KRATOS_CHECK_EQUAL(i_node->Is(OUTLET), owner_is_even);
+        KRATOS_CHECK_EQUAL(i_node->Is(PERIODIC), !owner_is_even);
+        KRATOS_CHECK_EQUAL(i_node->IsDefined(SLIP), false); // this one was never set
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableAssembly, KratosMPICoreFastSuite)
 {
     Model model;
@@ -568,6 +600,41 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSyncToMin, Kra
     KRATOS_CHECK_EQUAL(r_center.FastGetSolutionStepValue(TEMPERATURE,0), 0.0);
     KRATOS_CHECK_EQUAL( r_local.FastGetSolutionStepValue(TEMPERATURE,0), expected_local);
     KRATOS_CHECK_EQUAL( r_ghost.FastGetSolutionStepValue(TEMPERATURE,0), expected_ghost);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataariableSyncToMin, KratosMPICoreFastSuite)
+{
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    MPIDataCommunicator comm_world(MPI_COMM_WORLD);
+    Internals::ModelPartForMPICommunicatorTests(r_model_part, comm_world);
+    int rank = comm_world.Rank();
+    int size = comm_world.Size();
+
+    for (auto i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); ++i_node)
+    {
+        i_node->SetValue(TEMPERATURE, 10.0*rank);
+    }
+
+    Communicator& r_comm = r_model_part.GetCommunicator();
+
+    // center is local to rank 0 and ghost in all other ranks
+    Node<3>& r_center = r_model_part.Nodes()[1];
+    // local and ghost nodes are each known in two ranks
+    const unsigned int local_id = rank + 2;
+    unsigned int ghost_id = (size == 1) || (rank != size-1) ? rank + 3 : 2;
+    Node<3>& r_local = r_model_part.Nodes()[local_id];
+    Node<3>& r_ghost = r_model_part.Nodes()[ghost_id];
+
+    int expected_local = (rank > 0) ? 10.0*(rank-1) : 0.0;
+    int expected_ghost = (rank + 1 < size) ? 10.0*rank : 0.0;
+
+    r_comm.SynchronizeNonHistoricalDataToMin(TEMPERATURE);
+    KRATOS_CHECK_EQUAL(r_center.GetValue(TEMPERATURE), 0.0);
+    KRATOS_CHECK_EQUAL( r_local.GetValue(TEMPERATURE), expected_local);
+    KRATOS_CHECK_EQUAL( r_ghost.GetValue(TEMPERATURE), expected_ghost);
 }
 
 

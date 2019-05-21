@@ -385,22 +385,22 @@ private:
 ///@name Input and output
 ///@{
 
-// /****************************** INPUT STREAM FUNCTION ******************************/
-// /***********************************************************************************/
-//
-// template<class TPointType, class TPointerType>
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   AdvancedContactSearchProcess& rThis);
-//
-// /***************************** OUTPUT STREAM FUNCTION ******************************/
-// /***********************************************************************************/
-//
-// template<class TPointType, class TPointerType>
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const AdvancedContactSearchProcess& rThis)
-// {
-//     return rOStream;
-// }
+/****************************** INPUT STREAM FUNCTION ******************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster = TNumNodes>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>& rThis);
+
+/***************************** OUTPUT STREAM FUNCTION ******************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster = TNumNodes>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>& rThis)
+{
+    return rOStream;
+}
 
 ///@}
 

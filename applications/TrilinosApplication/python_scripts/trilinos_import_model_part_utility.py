@@ -8,7 +8,7 @@ import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 
 
-class TrilinosImportModelPartUtility():
+class TrilinosImportModelPartUtility(object):
 
     def __init__(self, main_model_part, settings):
         self.main_model_part = main_model_part
