@@ -330,18 +330,34 @@ public:
 
     /**
      * @brief Determines the constrant's slvae and master list of DOFs
-     * @param rSlaveDofList The list of slave DOFs
-     * @param rMasterDofList The list of slave DOFs
+     * @param rSlaveDofsVector The list of slave DOFs
+     * @param rMasterDofsVector The list of slave DOFs
      * @param rCurrentProcessInfo The current process info instance
      */
     void GetDofList(
-        DofPointerVectorType& rSlaveDofsVector,
-        DofPointerVectorType& rMasterDofsVector,
+        DofPointerVectorType& rSlaveDofList,
+        DofPointerVectorType& rMasterDofList,
         const ProcessInfo& rCurrentProcessInfo
         ) const override
     {
-        rSlaveDofsVector = mSlaveDofsVector;
-        rMasterDofsVector = mMasterDofsVector;
+        rSlaveDofList = mSlaveDofsVector;
+        rMasterDofList = mMasterDofsVector;
+    }
+
+    /**
+     * @brief Determines the constrant's slave and master list of DOFs
+     * @param rSlaveDofsVector The list of slave DOFs
+     * @param rMasterDofsVector The list of slave DOFs
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void SetDofList(
+        const DofPointerVectorType& rSlaveDofList,
+        const DofPointerVectorType& rMasterDofList,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        mSlaveDofsVector = rSlaveDofList;
+        mMasterDofsVector = rMasterDofList;
     }
 
     /**
@@ -382,9 +398,27 @@ public:
      * @brief This method returns the slave dof vector
      * @return The vector containing the slave dofs
      */
+    void SetSlaveDofsVector(const DofPointerVectorType& rSlaveDofList) override
+    {
+        mSlaveDofsVector = rSlaveDofList;
+    }
+
+    /**
+     * @brief This method returns the slave dof vector
+     * @return The vector containing the slave dofs
+     */
     const DofPointerVectorType& GetMasterDofsVector() const override
     {
         return mMasterDofsVector;
+    }
+
+    /**
+     * @brief This method returns the slave dof vector
+     * @return The vector containing the slave dofs
+     */
+    void SetMasterDofsVector(const DofPointerVectorType& rMasterDofList) override
+    {
+        mMasterDofsVector = rMasterDofList;
     }
 
     /**
@@ -425,20 +459,36 @@ public:
     }
 
     /**
+     * @brief This method allows to set the Local System in case is not computed on tunning time (internal variable)
+     * @param rRelationMatrix the matrix which relates the master and slave degree of freedom
+     * @param rConstant The constant vector (one entry for each slave)
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void SetLocalSystem(
+        const MatrixType& rRelationMatrix,
+        const VectorType& rConstantVector,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        noalias(mRelationMatrix) = rRelationMatrix;
+        noalias(mConstantVector) = rConstantVector;
+    }
+
+    /**
      * @brief This is called during the assembling process in order
      * @details To calculate the relation between the master and slave.
-     * @param rTransformationMatrix the matrix which relates the master and slave degree of freedom
+     * @param rRelationMatrix the matrix which relates the master and slave degree of freedom
      * @param rConstant The constant vector (one entry for each slave)
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateLocalSystem(
-        MatrixType& rTransformationMatrix,
+        MatrixType& rRelationMatrix,
         VectorType& rConstantVector,
         const ProcessInfo& rCurrentProcessInfo
-        ) override
+        ) const override
     {
-        rTransformationMatrix = mRelationMatrix;
-        rConstantVector = mConstantVector;
+        noalias(rRelationMatrix) = mRelationMatrix;
+        noalias(rConstantVector) = mConstantVector;
     }
 
     ///@}
