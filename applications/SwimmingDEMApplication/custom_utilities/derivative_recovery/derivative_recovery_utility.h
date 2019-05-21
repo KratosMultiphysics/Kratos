@@ -198,11 +198,7 @@ protected:
 
     virtual void CalculateDivergence(const ArrayVarType& rVectorVariable, const ComponentVarType& rDivergenceVariable){}
 
-    virtual void CalculateLaplacian(const DoubleVarType& rScalarVariable, const DoubleVarType& rLaplacianVariable){}
-
-    virtual void CalculateLaplacian(const ComponentVarType& rScalarComponent, const DoubleVarType& rLaplacianVariable){}
-
-    virtual void CalculateLaplacian(const ArrayVarType& rVectorVariable, const ArrayVarType& rLaplacianVariable){}
+    virtual void CalculateRotational(const ArrayVarType rVectorVariable, const ArrayVarType& rRotationalVariable){}
 
     virtual void CalculateMaterialDerivative(const DoubleVarType& rVariable, const DoubleVarType& rMaterialDerivativeVariable){}
 
@@ -210,7 +206,11 @@ protected:
 
     virtual void CalculateMaterialDerivative(const ArrayVarType& rVectorVariable, const ArrayVarType& rMaterialDerivativeVariable){}
 
-    virtual void CalculateRotational(const ArrayVarType rVectorVariable, const ArrayVarType& rRotationalVariable){}
+    virtual void CalculateLaplacian(const DoubleVarType& rScalarVariable, const DoubleVarType& rLaplacianVariable){}
+
+    virtual void CalculateLaplacian(const ComponentVarType& rScalarComponent, const DoubleVarType& rLaplacianVariable){}
+
+    virtual void CalculateLaplacian(const ArrayVarType& rVectorVariable, const ArrayVarType& rLaplacianVariable){}
 
     virtual void CheckDefaultsAndSettings(Parameters rParameters){};
 

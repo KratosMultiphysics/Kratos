@@ -10,8 +10,8 @@ class LinearStandardTestAnalysis(RecoveryTestAnalysis):
         super(LinearStandardTestAnalysis, self).__init__(model, varying_parameters)
 
     def SetOperators(self):
-        self.scalar_variable_operator_names = ['gradient']
-        self.vector_variable_operator_names = ['divergence', 'rotational', 'gradient']
+        self.scalar_variable_operator_names = ['gradient', 'laplacian']
+        self.vector_variable_operator_names = ['divergence', 'rotational', 'gradient', 'laplacian']
         GetVariable = RecoveryTestAnalysis.GetVariableByName
         self.vars_man.fluid_vars += [GetVariable('PRESSURE_GRADIENT'),
                                      GetVariable('PRESSURE_GRADIENT_ERROR'),
@@ -19,8 +19,12 @@ class LinearStandardTestAnalysis(RecoveryTestAnalysis):
                                      GetVariable('VELOCITY_DIVERGENCE'),
                                      GetVariable('VORTICITY_ERROR'),
                                      GetVariable('SCALAR_GRADIENT'),
+                                     GetVariable('SCALAR_LAPLACIAN'),
+                                     GetVariable('SCALAR_LAPLACIAN_ERROR'),
                                      GetVariable('VECTOR_GRADIENT'),
-                                     GetVariable('VECTOR_GRADIENT_ERROR')]
+                                     GetVariable('VECTOR_GRADIENT_ERROR'),
+                                     GetVariable('VELOCITY_LAPLACIAN'),
+                                     GetVariable('VELOCITY_LAPLACIAN_ERROR')]
 
     def SetFieldsToImpose(self):
 

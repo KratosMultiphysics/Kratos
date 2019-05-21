@@ -340,11 +340,18 @@ void EthierPressureField::CalculateGradient(const double time, const array_1d<do
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void EthierPressureField::CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian, const int i_thread)
+double EthierPressureField::CalculateLaplacian(const double time,
+                                               const array_1d<double, 3>& coor,
+                                               const int i_thread)
 {
-    laplacian[0] = 0.0;
-    laplacian[1] = 0.0;
-    laplacian[2] = 0.0;
+    return 0.0;
+}
+
+double EthierPressureField::CalculateLaplacian(const double time,
+                                               const DenseVector<double>& coor,
+                                               const int i_thread)
+{
+    return 0.0;
 }
 
 double EthierPressureField::U(const int i)

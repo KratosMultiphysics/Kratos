@@ -116,12 +116,12 @@ virtual void CalculateConvectiveDerivative(const double time,
 
 void CalculateLaplacian(const double time,
                         const array_1d<double, 3>& coor,
-                        array_1d<double, 3>& lapl,
+                        array_1d<double, 3>& laplacian,
                         const int i_thread = 0) override;
 
 void CalculateLaplacian(const double time,
                         const DenseVector<double>& coor,
-                        DenseVector<double>& result,
+                        DenseVector<double>& laplacian,
                         const int i_thread = 0) override;
 
 virtual void CalculateAccelerationFollowingTheParticle(const double time,

@@ -57,6 +57,7 @@ void DerivativeRecoveryUtility::ReadAllVariablePairs(Parameters rVariablesForRec
     this->ReadVariablePairs("divergence", rVariablesForRecovery);
     this->ReadVariablePairs("rotational", rVariablesForRecovery);
     this->ReadVariablePairs("material_derivative", rVariablesForRecovery);
+    this->ReadVariablePairs("laplacian", rVariablesForRecovery);
 }
 
 void DerivativeRecoveryUtility::ReadVariablePairs(std::string OperatorName, Parameters rVariablesForRecovery)

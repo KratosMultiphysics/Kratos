@@ -143,7 +143,12 @@ class SwimmingDEMSolver(PythonSolver):
                     },
                     "rotational" : {
                         "VELOCITY" : "VORTICITY"
+                    },
+                    "laplacian" : {
+                        "VELOCITY" : "VELOCITY_LAPLACIAN",
+                        "PRESSURE" : "SCALAR_LAPLACIAN"
                     }
+
                 }
         }""")
 

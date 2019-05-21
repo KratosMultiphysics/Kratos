@@ -289,9 +289,21 @@ void UpdateCoordinates(const double time, const DenseVector<double>& coor, const
 //***************************************************************************************************************
 //***************************************************************************************************************
 double Evaluate(const double time, const array_1d<double, 3>& coor, const int i_thread) override;
+
 double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor, const int i_thread) override;
-void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient, const int i_thread) override;
-void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian, const int i_thread) override;
+
+void CalculateGradient(const double time,
+                       const array_1d<double, 3>& coor,
+                       array_1d<double, 3>& gradient,
+                       const int i_thread) override;
+
+double CalculateLaplacian(const double time,
+                          const array_1d<double, 3>& coor,
+                          const int i_thread) override;
+
+double CalculateLaplacian(const double time,
+                          const DenseVector<double>& coor,
+                          const int i_thread) override;
 
 //***************************************************************************************************************
 //***************************************************************************************************************

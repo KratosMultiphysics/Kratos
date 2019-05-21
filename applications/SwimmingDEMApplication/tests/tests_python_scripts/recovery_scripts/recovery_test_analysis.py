@@ -204,10 +204,16 @@ class RecoveryTestAnalysis(SwimmingDEMAnalysis):
                     error = operator.GetError()
                     node.SetSolutionStepValue(GetVariable('MATERIAL_ACCELERATION_ERROR'), error)
                 elif name == 'laplacian':
-                    self.flow_field.CalculateLaplacian(0., coor, operator.local_exact_value, 0)
-                    operator.local_calculated_value = node.GetSolutionStepValue(GetVariable('VELOCITY_LAPLACIAN'))
-                    error = operator.GetError()
-                    node.SetSolutionStepValue(GetVariable('VELOCITY_LAPLACIAN_ERROR'), error)
+                    if operator.type == 'scalar':
+                        operator.local_exact_value = self.pressure_field.CalculateLaplacian(0., coor, 0)
+                        operator.local_calculated_value = node.GetSolutionStepValue(GetVariable('SCALAR_LAPLACIAN'))
+                        error = operator.GetError()
+                        node.SetSolutionStepValue(GetVariable('SCALAR_LAPLACIAN_ERROR'), error)
+                    else:
+                        self.flow_field.CalculateLaplacian(self.time, coor, operator.local_exact_value, 0)
+                        operator.local_calculated_value = node.GetSolutionStepValue(GetVariable('VELOCITY_LAPLACIAN'))
+                        error = operator.GetError()
+                        node.SetSolutionStepValue(GetVariable('VELOCITY_LAPLACIAN_ERROR'), error)
                 elif name == 'divergence':
                     operator.local_exact_value = self.flow_field.CalculateDivergence(self.time, coor, 0)
                     operator.local_calculated_value = node.GetSolutionStepValue(GetVariable('VELOCITY_DIVERGENCE'))

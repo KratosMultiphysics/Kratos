@@ -54,7 +54,6 @@ void LinearRealField::CalculateGradient(const double time,
     gradient[2] = mA[2]->Evaluate(time);
 }
 
-
 // template<>
 // double Evaluate(const double time,
 //                 const array_1d<double, 3>& coor,

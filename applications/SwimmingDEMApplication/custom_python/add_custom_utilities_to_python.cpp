@@ -168,11 +168,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     typedef void (RealField::*TCalculateGradient)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
     TCalculateGradient CalculateGradientScalar = &RealField::CalculateGradient;
 
+    typedef double (RealField::*TCalculateLaplacian)(const double, const DenseVector<double>&, const int);
+    TCalculateLaplacian CalculateLaplacianScalar = &RealField::CalculateLaplacian;
+
     py::class_<RealField, RealField::Pointer> (m, "RealField")
         .def(py::init<>())
         .def("Evaluate", EvaluateScalar)
         .def("CalculateTimeDerivative", CalculateTimeDerivativeScalar)
         .def("CalculateGradient", CalculateGradientScalar)
+        .def("CalculateLaplacian", CalculateLaplacianScalar)
         ;
 
     py::class_<LinearRealField, LinearRealField::Pointer, RealField > (m, "LinearRealField")

@@ -48,10 +48,6 @@ void CalculateGradient(const double time,
                        array_1d<double, 3>& gradient,
                        const int i_thread){}
 
-void CalculateLaplacian(const double time,
-                        const array_1d<double, 3>& coor,
-                        array_1d<double, 3>& laplacian,
-                        const int i_thread){}
 
 //***************************************************************************************************************
 //***************************************************************************************************************

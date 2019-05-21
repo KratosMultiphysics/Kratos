@@ -126,48 +126,33 @@ protected:
 
 void AddPartialTimeDerivative(const DoubleVarType& rVariable, const DoubleVarType& rTimeDerivativeVariable) override;
 
-// void AddPartialTimeDerivative(const DoubleVarType& rScalarVariable, const DoubleVarType& rTimeDerivativeVariable) override;
-
-// void AddPartialTimeDerivative(const ComponentVarType& rScalarComponent, const DoubleVarType& rTimeDerivativeVariable) override;
+void AddPartialTimeDerivative(const ComponentVarType& rScalarComponent, const DoubleVarType& rTimeDerivativeVariable) override;
 
 void AddPartialTimeDerivative(const ArrayVarType& rVectorVariable, const ArrayVarType& rTimeDerivativeVariable) override;
 
 void CalculateGradient(const DoubleVarType& rScalarVariable, const ArrayVarType& rGradientVariable) override;
 
+void CalculateGradient(const ComponentVarType& rScalarVariable, const ArrayVarType& rGradientVariable) override;
+
 void CalculateGradient(const ArrayVarType& rVectorVariable, const TensorVarType& rGradientVariable) override;
-// void CalculateGradient(const VariableData& rVariable, const VariableData& rGradientVariable) override;
-
-// // void CalculateGradient(const ArrayVarType& rVariable
-// //                        const ArrayVarType& rGradient0Variable,
-// //                        const ArrayVarType& rGradient1Variable,
-// //                        const ArrayVarType& rGradient2Variable,) override;
-
-// // void CalculateGradient(const ArrayVarType& rVectorVariable,
-// //                        const ArrayVarType& rComponent0GradientVariable,
-// //                        const ArrayVarType& rComponent1GradientVariable,
-// //                        const ArrayVarType& rComponent2GradientVariable) override;
 
 void CalculateDivergence(const ArrayVarType& rVectorVariable, const DoubleVarType& rDivergenceVariable) override;
 
-// void CalculateLaplacian(const VariableData& rVariable, const VariableData& rLaplacianVariable) override;
-
-// // void CalculateLaplacian(const ComponentVarType& rScalarComponent, const DoubleVarType& rLaplacianVariable) override;
-
-// // void CalculateLaplacian(const ArrayVarType& rVectorComponent, const ArrayVarType& rLaplacianVariable) override;
-
-void CalculateMaterialDerivative(const DoubleVarType& rVariable, const DoubleVarType& rMaterialDerivativeVariable) override;
-
-// // void CalculateMaterialDerivative(const DoubleVarType& rScalarVariable, const DoubleVarType& rMaterialDerivativeVariable) override;
-
-// // void CalculateMaterialDerivative(const ComponentVarType& rScalarComponent, const DoubleVarType& rMaterialDerivativeVariable) override;
-
-void CalculateMaterialDerivative(const ArrayVarType& rScalarComponent, const ArrayVarType& rMaterialDerivativeVariable) override;
+void CalculateDivergence(const ArrayVarType& rVectorVariable, const ComponentVarType& rDivergenceVariable) override;
 
 void CalculateRotational(const ArrayVarType rVectorVariable, const ArrayVarType& rRotationalVariable) override;
 
-// // void CalculateRotational(const ArrayVarType rVectorVariable, const ArrayVarType& rRotationalVariable) override;
+void CalculateMaterialDerivative(const DoubleVarType& rVariable, const DoubleVarType& rMaterialDerivativeVariable) override;
 
-// void CheckDefaultsAndSettings(Parameters rParameters) override;
+void CalculateMaterialDerivative(const ComponentVarType& rVariable, const DoubleVarType& rMaterialDerivativeVariable) override;
+
+void CalculateMaterialDerivative(const ArrayVarType& rScalarComponent, const ArrayVarType& rMaterialDerivativeVariable) override;
+
+void CalculateLaplacian(const DoubleVarType& rVariable, const DoubleVarType& rLaplacianVariable) override;
+
+void CalculateLaplacian(const ComponentVarType& rScalarComponent, const DoubleVarType& rLaplacianVariable) override;
+
+void CalculateLaplacian(const ArrayVarType& rVectorComponent, const ArrayVarType& rLaplacianVariable) override;
 
 void CheckDefaultsAndSettings(Parameters rParameters) override;
 
@@ -190,34 +175,21 @@ private:
     ///@name Private Operations
     ///@{
 
-    // template<class TVariable, class TDerivedVariable>
-    // void AddPartialTimeDerivative(const TVariable& rVariable, const TDerivedVariable& rTimeDerivativeVariable);
-
-    // template<>
-    // void AddPartialTimeDerivative(const DoubleVarType& rVariable, const DoubleVarType& rTimeDerivativeVariable);
-
-    // template<ComponentVarType, DoubleVarType>
-    // void AddPartialTimeDerivative(const ComponentVarType& rVariable, const DoubleVarType& rTimeDerivativeVariable);
-
-    // template<ArrayVarType, ArrayVarType>
-    // void AddPartialTimeDerivative(const ArrayVarType& rVariable, const ArrayVarType& rTimeDerivativeVariable);
+    template<class TScalarVariable>
+    void AddScalarPartialTimeDerivative(const TScalarVariable& rScalarVariable, const DoubleVarType& rGradientVariable);
 
     template<class TScalarVariable>
     void CalculateScalarGradient(const TScalarVariable& rScalarVariable, const ArrayVarType& rGradientVariable);
 
-
     template<class TScalarVariable>
-    void AddScalarPartialTimeDerivative(const TScalarVariable& rScalarVariable, const DoubleVarType& rGradientVariable);
-
-    // template<class TVariable, class TDerivedVariable>
-    // void CalculateMaterialDerivative(const TVariable& rVariable, const TDerivedVariable& rMaterialDerivativeVariable);
+    void CalculateDivergenceAsScalar(const ArrayVarType& rVariable, const TScalarVariable& rDivergenceVariable);
 
     template<class TScalarVariable>
     void CalculateScalarMaterialDerivative(const TScalarVariable& rScalarVariable, const DoubleVarType& rMaterialDerivativeVariable);
 
-    // template<ArrayVarType, ArrayVarType>
-    // void CalculateMaterialDerivative(const ArrayVarType& rVectorVariable,
-    //                                  const ArrayVarType& rMaterialDerivativeVariable);
+    template<class TScalarVariable>
+    void CalculateScalarLaplacian(const TScalarVariable& rScalarVariable, const DoubleVarType& rLaplacianVariable);
+
     ///@}
     ///@name Private  Access
     ///@{

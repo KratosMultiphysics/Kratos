@@ -110,24 +110,18 @@ virtual void CalculateGradient(const double time,
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-virtual void CalculateLaplacian(const double time,
-                                const array_1d<double, 3>& coor,
-                                array_1d<double, 3>& laplacian,
-                                const int i_thread = 0)
+virtual double CalculateLaplacian(const double time,
+                                  const array_1d<double, 3>& coor,
+                                  const int i_thread = 0)
 {
-    laplacian[0] = 0.0;
-    laplacian[1] = 0.0;
-    laplacian[2] = 0.0;
+    return 0.0;
 }
 
-virtual void CalculateLaplacian(const double time,
-                               const DenseVector<double>& coor,
-                               DenseVector<double>& laplacian,
-                               const int i_thread = 0)
+virtual double CalculateLaplacian(const double time,
+                                  const DenseVector<double>& coor,
+                                  const int i_thread = 0)
 {
-    laplacian[0] = 0.0;
-    laplacian[1] = 0.0;
-    laplacian[2] = 0.0;
+    return 0.0;
 }
 
 //***************************************************************************************************************
