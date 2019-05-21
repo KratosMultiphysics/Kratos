@@ -24,6 +24,7 @@ set( KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/adjoint_potential_flow_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_incompressible_potential_flow_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/incompressible_potential_flow_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/move_model_part_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_potential_response_function.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_lift_response_function_coordinates_jump.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/potential_flow_utilities.cpp
