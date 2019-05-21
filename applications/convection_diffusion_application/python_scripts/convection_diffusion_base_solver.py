@@ -98,7 +98,8 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Construction finished")
 
-    def GetDefaultSettings(self):
+    @classmethod
+    def GetDefaultSettings(cls):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name" : "ThermalModelPart",
@@ -162,7 +163,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             "buffer_size" : -1
         }
         """)
-
+        default_settings.AddMissingParameters(super(ConvectionDiffusionBaseSolver,cls).GetDefaultSettings())
         return default_settings
 
     def AddVariables(self, target_model_part=None):
