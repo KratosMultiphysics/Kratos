@@ -56,7 +56,7 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads2Nodes(
     auto& r_geom = (*itElem)->GetGeometry();
 
     // We check some things...
-    GlobalPointersVector<Element>& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
+    auto& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
     if (r_elem_neigb[NonWetLocalIdNode].Id() == (*itElem)->Id()) {
         const IndexType id_1 = NonWetLocalIdNode == 0 ? 0 : NonWetLocalIdNode == 1 ? 1 : 2;
         const IndexType id_2 = NonWetLocalIdNode == 0 ? 1 : NonWetLocalIdNode == 1 ? 2 : 0;
@@ -172,6 +172,58 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
 /***********************************************************************************/
 /***********************************************************************************/
 template<>
+void ExtendPressureConditionProcess<3>::GeneratePressureLoads4WetNodes(
+    const int PressureId,
+    int& rMaximumConditionId,
+    ModelPart::ElementsContainerType::ptr_iterator itElem
+    )
+{
+    std::string sub_model_name;
+	sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
+    auto& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_name);
+    ModelPart::PropertiesType::Pointer p_properties = r_sub_model_part.pGetProperties(1);
+    auto& r_geom = (*itElem)->GetGeometry();
+    const int id = (*itElem)->Id();
+
+    // We only create pressure loads when the surface is skin
+    auto& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
+
+    // Loop over the faces
+    for (int i = 0; i < r_elem_neigb.size(); i++) {
+        if (r_elem_neigb[i].Id() == id) { // it is skin face
+            // The associated node to this skin face is excluded
+            const int excluded_local_id_node = i;
+
+            const IndexType id_1 = (excluded_local_id_node == 0) ? 1 : (excluded_local_id_node == 1) ? 2 : (excluded_local_id_node == 2) ? 3 : 0;
+            const IndexType id_2 = (excluded_local_id_node == 0) ? 2 : (excluded_local_id_node == 1) ? 3 : (excluded_local_id_node == 2) ? 0 : 1;
+            const IndexType id_3 = (excluded_local_id_node == 0) ? 3 : (excluded_local_id_node == 1) ? 0 : (excluded_local_id_node == 2) ? 1 : 2;
+
+            std::vector<IndexType> condition_nodes_id(3);
+            condition_nodes_id[0] = r_geom[id_1].Id();
+            condition_nodes_id[1] = r_geom[id_2].Id();
+            condition_nodes_id[2] = r_geom[id_3].Id();
+            rMaximumConditionId++;
+
+            // Adding the nodes to the SubModelPart
+            r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_1].Id()));
+            r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_2].Id()));
+            r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
+
+            // We create the Line Load Condition
+            const auto& r_pressure_condition = r_sub_model_part.CreateNewCondition(
+                                                "SurfaceLoadCondition3D3N",
+                                                rMaximumConditionId,
+                                                condition_nodes_id,
+                                                p_properties, 0);
+
+            // Adding the conditions to the computing model part
+            mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_pressure_condition); 
+        }
+    }
+}
+/***********************************************************************************/
+/***********************************************************************************/
+template<>
 void ExtendPressureConditionProcess<3>::GeneratePressureLoads3WetNodes(
     const int NonWetLocalIdNode,
     const int PressureId,
@@ -190,26 +242,30 @@ void ExtendPressureConditionProcess<3>::GeneratePressureLoads3WetNodes(
     const IndexType id_3 = (NonWetLocalIdNode == 0) ? 2 : (NonWetLocalIdNode == 1) ? 3 : (NonWetLocalIdNode == 2) ? 0 : 1;
     const IndexType id_4 = (NonWetLocalIdNode == 0) ? 3 : (NonWetLocalIdNode == 1) ? 0 : (NonWetLocalIdNode == 2) ? 1 : 2;
 
-    std::vector<IndexType> condition_nodes_id(3);
-    condition_nodes_id[0] = r_geom[id_2].Id();
-    condition_nodes_id[1] = r_geom[id_3].Id();
-    condition_nodes_id[2] = r_geom[id_4].Id();
-    rMaximumConditionId++;
+    // We only create pressure loads when the surface is skin
+    auto& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
+    if (r_elem_neigb[NonWetLocalIdNode].Id() == (*itElem)->Id()) {
+        std::vector<IndexType> condition_nodes_id(3);
+        condition_nodes_id[0] = r_geom[id_2].Id();
+        condition_nodes_id[1] = r_geom[id_3].Id();
+        condition_nodes_id[2] = r_geom[id_4].Id();
+        rMaximumConditionId++;
 
-    // Adding the nodes to the SubModelPart
-    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
-    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_2].Id()));
-    r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_4].Id()));
+        // Adding the nodes to the SubModelPart
+        r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_3].Id()));
+        r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_2].Id()));
+        r_sub_model_part.AddNode(mrModelPart.pGetNode(r_geom[id_4].Id()));
 
-    // We create the Line Load Condition
-    const auto& r_pressure_condition = r_sub_model_part.CreateNewCondition(
-                                        "SurfaceLoadCondition3D3N",
-                                        rMaximumConditionId,
-                                        condition_nodes_id,
-                                        p_properties, 0);
+        // We create the Line Load Condition
+        const auto& r_pressure_condition = r_sub_model_part.CreateNewCondition(
+                                            "SurfaceLoadCondition3D3N",
+                                            rMaximumConditionId,
+                                            condition_nodes_id,
+                                            p_properties, 0);
 
-    // Adding the conditions to the computing model part
-    mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_pressure_condition);
+        // Adding the conditions to the computing model part
+        mrModelPart.GetSubModelPart("computing_domain").AddCondition(r_pressure_condition);        
+    }
 }
 
 /***********************************************************************************/
@@ -277,9 +333,11 @@ void ExtendPressureConditionProcess<3>::CreateNewConditions()
                 }
             }
             if (wet_nodes_counter == 3) {
-                // KRATOS_WATCH((*it_elem)->Id())
-                // KRATOS_WATCH((*it_elem)->Id())
                 this->GeneratePressureLoads3WetNodes(non_wet_local_id_node, pressure_id, maximum_condition_id, it_elem);
+                r_process_info[INTERNAL_PRESSURE_ITERATION] = 10;
+                (*it_elem)->SetValue(SMOOTHING, true);
+            } else if (wet_nodes_counter == 4) {
+                this->GeneratePressureLoads4WetNodes(pressure_id, maximum_condition_id, it_elem);
                 r_process_info[INTERNAL_PRESSURE_ITERATION] = 10;
                 (*it_elem)->SetValue(SMOOTHING, true);
             }
@@ -302,7 +360,7 @@ void ExtendPressureConditionProcess<TDim>::Execute()
         this->ResetFlagOnElements();
     }
 
-    // Genearte the new ones
+    // Generate the new ones
     this->CreateNewConditions();
 }
 
