@@ -694,15 +694,15 @@ private:
      * chosen and stores them in the corresponding variables. Can be activated by setting
      * bool variable exposed to the python interface.
      */
-    void ComputeModalDecomposition(DenseMatrixType& rEigenvectors)
+    void ComputeModalDecomposition(const DenseMatrixType& rEigenvectors)
     {
-        SparseMatrixType& rMassMatrix = this->GetMassMatrix();
+        const SparseMatrixType& rMassMatrix = this->GetMassMatrix();
         SparseMatrixType m_temp = ZeroMatrix(rEigenvectors.size1(),rEigenvectors.size2());
         boost::numeric::ublas::axpy_prod(rEigenvectors,rMassMatrix,m_temp,true);
         Matrix modal_mass_matrix = ZeroMatrix(m_temp.size1(),m_temp.size1());
         boost::numeric::ublas::axpy_prod(m_temp,trans(rEigenvectors),modal_mass_matrix);
 
-        SparseMatrixType& rStiffnessMatrix = this->GetStiffnessMatrix();
+        const SparseMatrixType& rStiffnessMatrix = this->GetStiffnessMatrix();
         SparseMatrixType k_temp = ZeroMatrix(rEigenvectors.size1(),rEigenvectors.size2());
         boost::numeric::ublas::axpy_prod(rEigenvectors,rStiffnessMatrix,k_temp,true);
         Matrix modal_stiffness_matrix = ZeroMatrix(k_temp.size1(),k_temp.size1());
@@ -712,8 +712,8 @@ private:
         rModelPart.GetProcessInfo()[MODAL_MASS_MATRIX] = modal_mass_matrix;
         rModelPart.GetProcessInfo()[MODAL_STIFFNESS_MATRIX] = modal_stiffness_matrix;
 
-        KRATOS_INFO("ModalMassMatrix")<<modal_mass_matrix<<std::endl;
-        KRATOS_INFO("ModalStiffnessMatrix")<<modal_stiffness_matrix<<std::endl;
+        KRATOS_INFO("ModalMassMatrix")      << modal_mass_matrix << std::endl;
+        KRATOS_INFO("ModalStiffnessMatrix") << modal_stiffness_matrix << std::endl;
 
     }
 
