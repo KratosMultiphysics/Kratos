@@ -768,22 +768,22 @@ template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 bool BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId,
-    GeometricalObject::Pointer pCondSlave,
+    GeometricalObject::Pointer pObjectSlave,
     const array_1d<double, 3>& rSlaveNormal,
-    GeometricalObject::Pointer pCondMaster,
+    GeometricalObject::Pointer pObjectMaster,
     const array_1d<double, 3>& rMasterNormal,
     IndexMap::Pointer pIndexesPairs,
     Properties::Pointer pProperties
     )
 {
-    pIndexesPairs->AddId(pCondMaster->Id());
+    pIndexesPairs->AddId(pObjectMaster->Id());
 
     if (mOptions.Is(BaseContactSearchProcess::CREATE_AUXILIAR_CONDITIONS)) { // We add the ID and we create a new auxiliar condition
         ++rConditionId;
-        Condition::Pointer p_auxiliar_condition = rComputingModelPart.CreateNewCondition(mConditionName, rConditionId, pCondSlave->GetGeometry(), pProperties);
+        Condition::Pointer p_auxiliar_condition = rComputingModelPart.CreateNewCondition(mConditionName, rConditionId, pObjectSlave->GetGeometry(), pProperties);
         // We set the geometrical values
-        pIndexesPairs->SetNewEntityId(pCondMaster->Id(), rConditionId);
-        p_auxiliar_condition->SetValue(PAIRED_GEOMETRY, pCondMaster->pGetGeometry());
+        pIndexesPairs->SetNewEntityId(pObjectMaster->Id(), rConditionId);
+        p_auxiliar_condition->SetValue(PAIRED_GEOMETRY, pObjectMaster->pGetGeometry());
         p_auxiliar_condition->SetValue(NORMAL, rSlaveNormal);
         p_auxiliar_condition->SetValue(PAIRED_NORMAL, rMasterNormal);
         // We activate the condition and initialize it
@@ -1022,9 +1022,9 @@ template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPotentialPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId,
-    GeometricalObject::Pointer pCondSlave,
+    GeometricalObject::Pointer pObjectSlave,
     const array_1d<double, 3>& rSlaveNormal,
-    GeometricalObject::Pointer pCondMaster,
+    GeometricalObject::Pointer pObjectMaster,
     const array_1d<double, 3>& rMasterNormal,
     IndexMap::Pointer pIndexesPairs,
     Properties::Pointer pProperties,
@@ -1033,14 +1033,14 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
     )
 {
     // Slave geometry
-    GeometryType& r_slave_geometry = pCondSlave->GetGeometry();
+    GeometryType& r_slave_geometry = pObjectSlave->GetGeometry();
 
     // Auxiliar bool
     bool at_least_one_node_potential_contact = false;
 
     if (mCheckGap == CheckGap::DirectCheck) {
         // Master geometry
-        GeometryType& r_geom_master = pCondMaster->GetGeometry();
+        GeometryType& r_geom_master = pObjectMaster->GetGeometry();
 
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             if (r_slave_geometry[i_node].IsNot(ACTIVE)) {
@@ -1125,7 +1125,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
     }
 
     if (at_least_one_node_potential_contact)
-        AddPairing(rComputingModelPart, rConditionId, pCondSlave, rSlaveNormal, pCondMaster, rMasterNormal, pIndexesPairs, pProperties);
+        AddPairing(rComputingModelPart, rConditionId, pObjectSlave, rSlaveNormal, pObjectMaster, rMasterNormal, pIndexesPairs, pProperties);
 }
 
 /***********************************************************************************/
