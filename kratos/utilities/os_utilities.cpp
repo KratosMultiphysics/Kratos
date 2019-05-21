@@ -81,7 +81,7 @@ void RemoveDir(const std::string& rFolderName)
         rmdir(name);
 #endif
     } else {
-        KRATOS_WARNING("OSUtilities") << "This is a file. Please use RemoveFile" << std::endl;
+        KRATOS_WARNING("OSUtilities") << "\"" << rFolderName << "\" could not be removed because it is not a folder" << std::endl;
     }
 }
 
