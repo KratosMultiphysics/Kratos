@@ -82,8 +82,6 @@ public:
 protected:
     // Member Variables
     ModelPart& mrModelPart;
-    std::vector<IndexType> mNodeIdContainer;
-    std::vector<int> mNodePressureIdContainer;
     std::string mPressureName;
 
 };  // Class

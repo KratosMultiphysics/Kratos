@@ -34,9 +34,8 @@ void ExtendPressureConditionProcess<2>::GetMaximumConditionIdOnSubmodelPart(
 )
 {
     rMaximumConditionId = 0;
-    for (auto it_cond = mrModelPart.ConditionsBegin();
-         it_cond != mrModelPart.ConditionsEnd(); it_cond++) {
-        if (((*it_cond)).Id() > rMaximumConditionId) rMaximumConditionId = ((*it_cond)).Id();
+    for (auto it_cond = mrModelPart.ConditionsBegin(); it_cond != mrModelPart.ConditionsEnd(); it_cond++) {
+        rMaximumConditionId = (((*it_cond)).Id() > rMaximumConditionId) ? ((*it_cond)).Id() : rMaximumConditionId;
     }
 }
 
@@ -181,7 +180,7 @@ void ExtendPressureConditionProcess<2>::CreateNewConditions()
     r_process_info[INTERNAL_PRESSURE_ITERATION] = 0;
 
     // Loop over the elements (all active, the inactive have been removed in GeneratingDEM)
-    for (auto it_elem = mrModelPart.Elements().ptr_begin();  it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
+    for (auto it_elem = mrModelPart.Elements().ptr_begin(); it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
         if (!(*it_elem)->GetValue(SMOOTHING)) {
             // We count how many nodes are wet
             auto& r_geometry = (*it_elem)->GetGeometry();
@@ -262,8 +261,6 @@ void ExtendPressureConditionProcess<TDim>::RemovePreviousLineLoads()
     std::vector<std::string> submodel_parts_names = mrModelPart.GetSubModelPartNames();
     std::vector<std::string> pressure_sub_models;
     for (IndexType i = 0; i < submodel_parts_names.size(); ++i) {
-        KRATOS_WATCH(submodel_parts_names[i].substr(0, 8))
-        KRATOS_WATCH(mPressureName.substr(0, 8))
         if (submodel_parts_names[i].substr(0, 8) == mPressureName.substr(0, 8)) {
             // Remove the line loads
             auto& r_sub_model = mrModelPart.GetSubModelPart(submodel_parts_names[i]);
