@@ -136,12 +136,7 @@ bool IsFile(const std::string& rFileName)
 {
     struct stat buffer;
     stat(rFileName.c_str(), &buffer);
-
-#ifndef S_ISREG
     return (((buffer.st_mode) & S_IFMT) == S_IFREG);
-#else
-    return S_ISREG(buffer.st_mode);
-#endif
 }
 
 /***********************************************************************************/
@@ -151,11 +146,7 @@ bool IsDir(const std::string& rFolderName)
 {
     struct stat buffer;
     stat(rFolderName.c_str(), &buffer);
-#ifndef S_ISDIR
     return (((buffer.st_mode) & S_IFMT) == S_IFDIR);
-#else
-    return S_ISDIR(buffer.st_mode);
-#endif
 }
 
 /***********************************************************************************/
