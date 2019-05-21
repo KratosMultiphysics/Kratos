@@ -338,8 +338,9 @@ protected:
      * @param rMasterNormal The normal of the master condition
      * @param pIndexesPairs The map of indexes considered
      * @param pProperties The pointer to the Properties of the condition
+     * @return The new created condition
      */
-    virtual bool AddPairing(
+    virtual Condition::Pointer AddPairing(
         ModelPart& rComputingModelPart,
         IndexType& rConditionId,
         GeometricalObject::Pointer pObjectSlave,
@@ -539,6 +540,16 @@ private:
         ModelPart& rContactModelPart,
         ModelPart& rComputingModelPart,
         IndexType& rConditionId
+        );
+
+    /**
+     * @brief This method creates a debug file for normals
+     * @param rModelPart The corresponding model part
+     * @param rName The begining of the file name
+     */
+    void CreateDebugFile(
+        ModelPart& rModelPart,
+        const std::string& rName
         );
 
     /**
