@@ -182,7 +182,7 @@ void ExtendPressureConditionProcess<2>::CreateNewConditions()
 
     // Loop over the elements (all active, the inactive have been removed in GeneratingDEM)
     for (auto it_elem = mrModelPart.Elements().ptr_begin();  it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
-        if ((*it_elem)->GetValue(SMOOTHING) == false) {
+        if (!(*it_elem)->GetValue(SMOOTHING)) {
             // We count how many nodes are wet
             auto& r_geometry = (*it_elem)->GetGeometry();
             int wet_nodes_counter = 0, non_wet_local_id_node = 10, pressure_id;
@@ -212,11 +212,35 @@ void ExtendPressureConditionProcess<2>::CreateNewConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 template <>
+void ExtendPressureConditionProcess<3>::CreateNewConditions()
+{
+    
+}
+/***********************************************************************************/
+/***********************************************************************************/
+template <>
 void ExtendPressureConditionProcess<2>::Execute()
 {
     // We search the neighbours for the generation of line loads
     auto find_neigh = FindElementalNeighboursProcess(mrModelPart, 2, 5);
     find_neigh.Execute();
+    auto& r_process_info = mrModelPart.GetProcessInfo();
+
+    // Remove previous line loads-> Only the 1st iteration
+    if (r_process_info[INTERNAL_PRESSURE_ITERATION] == 1) {
+        this->RemovePreviousLineLoads();
+        this->ResetFlagOnElements();
+    }
+
+    // Genearte the new ones
+    this->CreateNewConditions();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template <>
+void ExtendPressureConditionProcess<3>::Execute()
+{
     auto& r_process_info = mrModelPart.GetProcessInfo();
 
     // Remove previous line loads-> Only the 1st iteration
@@ -238,7 +262,9 @@ void ExtendPressureConditionProcess<TDim>::RemovePreviousLineLoads()
     std::vector<std::string> submodel_parts_names = mrModelPart.GetSubModelPartNames();
     std::vector<std::string> pressure_sub_models;
     for (IndexType i = 0; i < submodel_parts_names.size(); ++i) {
-        if (submodel_parts_names[i].substr(0, 11) == mPressureName) {
+        KRATOS_WATCH(submodel_parts_names[i].substr(0, 8))
+        KRATOS_WATCH(mPressureName.substr(0, 8))
+        if (submodel_parts_names[i].substr(0, 8) == mPressureName.substr(0, 8)) {
             // Remove the line loads
             auto& r_sub_model = mrModelPart.GetSubModelPart(submodel_parts_names[i]);
             for (auto it_cond = r_sub_model.ConditionsBegin(); it_cond != r_sub_model.ConditionsEnd(); it_cond++) {
@@ -276,13 +302,6 @@ void ExtendPressureConditionProcess<TDim>::GetPressureId(
             break;
         }
     }
-}
-/***********************************************************************************/
-/***********************************************************************************/
-template <>
-void ExtendPressureConditionProcess<3>::Execute()
-{
-    // Todo implementation in 3D
 }
 
 /***********************************************************************************/
