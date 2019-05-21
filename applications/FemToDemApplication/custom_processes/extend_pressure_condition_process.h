@@ -82,6 +82,14 @@ public:
         ModelPart::PropertiesType::Pointer pProperties,
         int& rMaximumConditionId);
 
+    void CreateLineLoads(
+        const int Id1,
+        const int Id2,
+        ModelPart::ElementsContainerType::ptr_iterator itElem,
+        ModelPart& rSubModelPart,
+        ModelPart::PropertiesType::Pointer pProperties,
+        int& rMaximumConditionId);
+
     void GeneratePressureLoads4WetNodes(
         const int PressureId,
         int& rMaximumConditionId,

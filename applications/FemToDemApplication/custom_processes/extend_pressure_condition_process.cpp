@@ -267,6 +267,20 @@ void ExtendPressureConditionProcess<3>::CreatePressureLoads(
 /***********************************************************************************/
 /***********************************************************************************/
 template <>
+void ExtendPressureConditionProcess<3>::CreateLineLoads(
+    const int Id1,
+    const int Id2,
+	ModelPart::ElementsContainerType::ptr_iterator itElem,
+	ModelPart& rSubModelPart,
+    ModelPart::PropertiesType::Pointer pProperties,
+    int& rMaximumConditionId
+    )
+{
+
+}
+/***********************************************************************************/
+/***********************************************************************************/
+template <>
 void ExtendPressureConditionProcess<2>::CreateNewConditions()
 {
     auto& r_process_info = mrModelPart.GetProcessInfo();
