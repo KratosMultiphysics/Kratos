@@ -29,7 +29,7 @@ void ExpandWetNodesProcess::Execute()
     int extrapolated_elements = 1;
     int pressure_id;
     auto& r_process_info = mrModelPart.GetProcessInfo();
-    const std::size_t dimension = r_process_info[DOMAIN_SIZE]
+	const std::size_t dimension = r_process_info[DOMAIN_SIZE];
     while (extrapolated_elements > 0) {
         extrapolated_elements = 0;
 
@@ -121,10 +121,10 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
     // Evaluating according dimension
     if (dimension == 2) {
         auto skin_process = SkinDetectionProcess<2>(mrModelPart, skin_process_parameters);
-	    skin_process.Execute();
+        skin_process.Execute();
     } else {
-	    auto skin_process = SkinDetectionProcess<3>(mrModelPart, skin_process_parameters);
-	    skin_process.Execute();
+        auto skin_process = SkinDetectionProcess<3>(mrModelPart, skin_process_parameters);
+        skin_process.Execute();
     }
     
     auto& r_sub_model_part = mrModelPart.GetSubModelPart("SkinModelPart");
@@ -150,13 +150,13 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
             auto& r_process_info = mrModelPart.GetProcessInfo();
 
             if (this->ElementHasWetNodes(it_elem, node_pressure_id, number_of_wet_nodes) && !element_done) {
-               // Loop over the nodes
-               for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+                // Loop over the nodes
+                for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
                    auto& r_node = r_geometry[i];
                    const int reference_pressure_id = node_pressure_id;
                    node_pressure_id = r_node.GetValue(PRESSURE_ID);
 
-                   if (node_pressure_id == 0 && r_node.GetValue(IS_SKIN)) {
+                    if (node_pressure_id == 0 && r_node.GetValue(IS_SKIN)) {
                        r_node.SetValue(PRESSURE_ID, reference_pressure_id);
                        expanded_elements++;
                        it_elem->SetValue(PRESSURE_EXPANDED, true);
