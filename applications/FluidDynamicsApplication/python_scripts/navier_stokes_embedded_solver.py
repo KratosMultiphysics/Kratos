@@ -371,8 +371,8 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             # Set the virtual mesh values from the background mesh
             self._set_virtual_mesh_values()
 
-            # Fluid solver step initialization
-            (self.solver).InitializeSolutionStep()
+        # Call the base solver InitializeSolutionStep()
+        super(NavierStokesEmbeddedMonolithicSolver, self).InitializeSolutionStep()
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
@@ -385,11 +385,11 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             return True
 
     def FinalizeSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            # Fluid solver finalize solution step
-            (self.solver).FinalizeSolutionStep()
+        # Call the base solver FinalizeSolutionStep()
+        super(NavierStokesEmbeddedMonolithicSolver, self).FinalizeSolutionStep()
 
-            # Do the FM-ALE end of step operations
+        # Do the FM-ALE end of step operations
+        if self._TimeBufferIsInitialized():
             self._finalize_fm_ale_step()
 
     def _set_physical_properties(self):
