@@ -124,8 +124,11 @@ class FEMDEM_Solution:
         self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.FEM_Solution.step
         self.FEM_Solution.main_model_part.CloneTimeStep(self.FEM_Solution.time)
 
-        neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
-        neighbour_elemental_finder.Execute()
+        if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]: # The neighbours have changed
+            neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
+            neighbour_elemental_finder.Execute()
+            # We reset the flag
+            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = False
 
         if self.DoRemeshing:
             is_remeshing = self.CheckIfHasRemeshed()
@@ -519,9 +522,6 @@ class FEMDEM_Solution:
     def CheckForPossibleIndentations(self): # Verifies if an element has indentations between its DEM
 
         FEM_elements = self.FEM_Solution.main_model_part.Elements
-
-        # We reset the flag
-        self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = False
 
         for Element in FEM_elements:
             is_active     = True
