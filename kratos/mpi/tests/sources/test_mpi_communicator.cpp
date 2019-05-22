@@ -16,8 +16,8 @@
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "mpi/includes/mpi_communicator.h"
+#include "mpi/utilities/parallel_fill_communicator.h"
 
-#include "../applications/TrilinosApplication/custom_utilities/parallel_fill_communicator.h"
 
 #include "testing/testing.h"
 
