@@ -41,7 +41,7 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
     Parameters default_parameters = Parameters(R"(
     {
         "minimal_size"                        : 0.01,
-        "maximal_size"                        : 1.0,
+        "maximal_size"                        : 10.0,
         "refinement_strategy"                 : "maximum_strategy",
         "maximum_strategy":
         {
@@ -56,8 +56,8 @@ MetricDivergenceFreeProcess<TDim>::MetricDivergenceFreeProcess(
     })"
     );
 
-    ThisParameters.ValidateAndAssignDefaults(default_parameters);
-
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    KRATOS_WATCH(ThisParameters);
     mMinSize = ThisParameters["minimal_size"].GetDouble();
     mMaxSize = ThisParameters["maximal_size"].GetDouble();
     mRefinementStrategy = ThisParameters["refinement_strategy"].GetString();
@@ -98,6 +98,10 @@ void MetricDivergenceFreeProcess<TDim>::Execute()
             (nodes_array.begin() + i)->SetValue(tensor_variable, zero_array);
     }
 
+    // /******************************************************************************
+    // --2-- Initialize what is needed for each refinement strategy --2--
+    // ******************************************************************************/
+
     // Selection refinement strategy
     if (mRefinementStrategy == "maximum_strategy") {
         // Iteration over all nodes to find maximum value of divergence
@@ -112,15 +116,10 @@ void MetricDivergenceFreeProcess<TDim>::Execute()
             KRATOS_WATCH(mDivergenceFreeMaxValue);
             }
         }
-
     }
 
-
-
-
-
     // /******************************************************************************
-    // --2-- Calculate metric (for each node) --2--
+    // --3-- Calculate metric --3--
     // ******************************************************************************/
     CalculateMetric();
 }
@@ -182,58 +181,6 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // #pragma omp parallel for
-    // for(int i_node = 0; i_node < num_nodes; ++i_node) {
-    //     auto it_node = nodes_array.begin() + i_node;
-    //     /**************************************************************************
-    //     ** Determine nodal element size h:
-    //     ** if mAverageNodalH == true : the nodal element size is averaged from the element size of neighboring elements
-    //     ** if mAverageNodalH == false: the nodal element size is the minimum element size from neighboring elements
-    //     */
-    //     double h_min = 0.0;
-    //     auto& neigh_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
-    //     for(auto i_neighbour_elements = neigh_elements.begin(); i_neighbour_elements != neigh_elements.end(); i_neighbour_elements++){
-    //         const double element_h = i_neighbour_elements->GetValue(ELEMENT_H);
-    //         if(mAverageNodalH == false) {
-    //             if(h_min == 0.0 || h_min > element_h)
-    //                 h_min = element_h;
-    //         } else {
-    //             h_min += element_h;
-    //         }
-    //     }
-
-    //     // Average Nodal H
-    //     if(mAverageNodalH) h_min = h_min/static_cast<double>(neigh_elements.size());
-
-    //     // Set metric
-    //     BoundedMatrix<double, TDim, TDim> metric_matrix = ZeroMatrix(TDim, TDim);
-    //     for(IndexType i = 0;i < TDim; ++i)
-    //         metric_matrix(i,i) = 1.0/std::pow(h_min, 2);
-
-    //     // Transform metric matrix to a vector
-    //     const TensorArrayType metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
-
-    //     // Setting value
-    //     it_node->SetValue(tensor_variable, metric);
-
-    //     KRATOS_INFO_IF("MetricDivergenceFreeProcess", mEchoLevel > 2) << "Node " << it_node->Id() << " has metric: "<< metric << std::endl;
-    // }
-// }
 
 /***********************************************************************************/
 /***********************************************************************************/
