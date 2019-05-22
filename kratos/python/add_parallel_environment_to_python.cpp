@@ -26,7 +26,7 @@ void AddParallelEnvironmentToPython(pybind11::module &m)
 {
     namespace py = pybind11;
 
-    py::class_<ParallelEnvironment>(m,"ParallelEnvironment")
+    py::class_<ParallelEnvironment, std::unique_ptr<ParallelEnvironment, py::nodelete>>(m,"ParallelEnvironment")
     .def_property_readonly("MakeDefault", [](const ParallelEnvironment& self) { return ParallelEnvironment::MakeDefault; } )
     .def_property_readonly("DoNotMakeDefault", [](const ParallelEnvironment& self) { return ParallelEnvironment::DoNotMakeDefault; } )
     .def_static("RegisterDataCommunicator", &ParallelEnvironment::RegisterDataCommunicator)
