@@ -185,23 +185,23 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         # We define the condition name to be used
         if self.contact_settings["contact_type"].GetString() == "Frictionless":
             if self.normal_variation == CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES:
-                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
+                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool():
                     condition_name = "PenaltyNVFrictionlessAxisymMortarContact"
                 else:
                     condition_name = "PenaltyNVFrictionlessMortarContact"
             else:
-                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
+                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool():
                     condition_name = "PenaltyFrictionlessAxisymMortarContact"
                 else:
                     condition_name = "PenaltyFrictionlessMortarContact"
-        elif self.is_frictional is True:
+        elif self.is_frictional:
             if self.normal_variation == CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES:
-                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
+                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool():
                     condition_name = "PenaltyNVFrictionalAxisymMortarContact"
                 else:
                     condition_name = "PenaltyNVFrictionalMortarContact"
             else:
-                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
+                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool():
                     condition_name = "PenaltyFrictionalAxisymMortarContact"
                 else:
                     condition_name = "PenaltyFrictionalMortarContact"
