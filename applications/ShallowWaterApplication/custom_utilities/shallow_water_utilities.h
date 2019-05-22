@@ -89,6 +89,12 @@ public:
 
     void IdentifySolidBoundary(ModelPart& rModelPart, double SeaWaterLevel, Flags SolidBoundaryFlag);
 
+    void IdentifyWetDomain(ModelPart& rModelPart, Flags WetFlag, double Thickness = 0.0);
+
+    void DeactivateDryElements(ModelPart& rModelPart, Flags WetFlag);
+
+    void ComputeVisualizationWaterDepth(ModelPart& rModelPart, Flags WetFlag);
+
     ///@}
     ///@name Access
     ///@{

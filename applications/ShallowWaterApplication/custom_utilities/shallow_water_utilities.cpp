@@ -111,4 +111,57 @@ void ShallowWaterUtilities::IdentifySolidBoundary(ModelPart& rSkinModelPart, dou
     }
 }
 
+void ShallowWaterUtilities::IdentifyWetDomain(ModelPart& rModelPart, Flags WetFlag, double Thickness)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+    {
+        auto it_node = rModelPart.NodesBegin() + i;
+        const double height = it_node->FastGetSolutionStepValue(HEIGHT);
+        it_node->Set(WetFlag, (height > Thickness));
+    }
+
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfElements()); ++i)
+    {
+        auto it_elem = rModelPart.ElementsBegin() + i;
+
+        bool wet_element = false;
+        for(auto& node : it_elem->GetGeometry())
+        {
+            if (node.Is(WetFlag)) {
+                wet_element = true;  // It means there is almost a wet node
+                break;
+            }
+        }
+
+        it_elem->Set(WetFlag, wet_element);
+    }
+}
+
+void ShallowWaterUtilities::DeactivateDryElements(ModelPart& rModelPart, Flags WetFlag)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfElements()); ++i)
+    {
+        auto it_elem = rModelPart.ElementsBegin() + i;
+        it_elem->Set(ACTIVE, it_elem->Is(WetFlag));
+    }
+}
+
+void ShallowWaterUtilities::ComputeVisualizationWaterDepth(ModelPart& rModelPart, Flags WetFlag)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+    {
+        auto it_node = rModelPart.NodesBegin() + i;
+        if (it_node->Is(WetFlag)) {
+            it_node->SetValue(WATER_DEPTH, it_node->FastGetSolutionStepValue(HEIGHT));
+        }
+        else {
+            it_node->SetValue(WATER_DEPTH, 0.0);
+        }
+    }
+}
+
 }  // namespace Kratos.

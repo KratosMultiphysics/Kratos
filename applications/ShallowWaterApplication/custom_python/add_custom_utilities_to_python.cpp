@@ -59,6 +59,9 @@ namespace Python
         .def("ComputeMomentum", &ShallowWaterUtilities::ComputeMomentum)
         .def("FlipScalarVariable", &ShallowWaterUtilities::FlipScalarVariable)
         .def("IdentifySolidBoundary", &ShallowWaterUtilities::IdentifySolidBoundary)
+        .def("IdentifyWetDomain", &ShallowWaterUtilities::IdentifyWetDomain)
+        .def("DeactivateDryElements", &ShallowWaterUtilities::DeactivateDryElements)
+        .def("ComputeVisualizationWaterDepth", &ShallowWaterUtilities::ComputeVisualizationWaterDepth)
         ;
 
     py::class_< EstimateDtShallow > (m, "EstimateDtShallow")
