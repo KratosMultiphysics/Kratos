@@ -15,6 +15,12 @@ class KratosPaths(object):
 sys.path.append(KratosPaths.kratos_libs)
 from Kratos import *
 
+# adding the scripts in "kratos/python_scripts" such that they are treated as a regular python-module
+__path__.append(KratosPaths.kratos_scripts)
+# To be purely pythonic, the following line should be removed
+# and all imports of files in python_scrips should be made relative to the KratosMultiphysics module.
+sys.path.append(KratosPaths.kratos_scripts)
+
 def __ModuleInitDetail():
     """
     Configure the parallel environment.
@@ -31,7 +37,8 @@ def __ModuleInitDetail():
 
     using_mpi = False
     if mpi_detected or mpi_requested:
-        if "mpi" in os.listdir(os.path.dirname(__file__)):
+        from kratos_utilities import IsMPIAvailable
+        if IsMPIAvailable():
             import KratosMultiphysics.mpi
             mpi.InitializeMPIParallelRun()
             using_mpi = True
@@ -55,12 +62,6 @@ def __ModuleInitDetail():
     return kratos_globals.KratosGlobalsImpl(Kernel(using_mpi), KratosPaths.kratos_applications)
 
 KratosGlobals = __ModuleInitDetail()
-
-# adding the scripts in "kratos/python_scripts" such that they are treated as a regular python-module
-__path__.append(KratosPaths.kratos_scripts)
-# To be purely pythonic, the following line should be removed
-# and all imports of files in python_scrips should be made relative to the KratosMultiphysics module.
-sys.path.append(KratosPaths.kratos_scripts)
 
 def _ImportApplicationAsModule(application, application_name, application_folder, mod_path):
     Kernel = KratosGlobals.Kernel
