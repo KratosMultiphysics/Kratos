@@ -90,7 +90,6 @@ namespace Kratos
         KRATOS_ERROR_IF(rOriginModelPart.NumberOfElements() == 0) << "Origin model part has no elements.";
 
         // Check that the origin model part has the required variables
-        KRATOS_ERROR_IF(!rOriginModelPart.HasNodalSolutionStepVariable(DISPLACEMENT)) << "Missing required DISPLACEMENT variable in origin model part." << std::endl;
         KRATOS_ERROR_IF(!rOriginModelPart.HasNodalSolutionStepVariable(MESH_VELOCITY)) << "Missing required MESH_VELOCITY variable in origin model part." << std::endl;
         KRATOS_ERROR_IF(!rOriginModelPart.HasNodalSolutionStepVariable(MESH_DISPLACEMENT)) << "Missing required MESH_DISPLACEMENT variable in origin model part." << std::endl;
 
