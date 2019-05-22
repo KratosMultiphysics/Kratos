@@ -20,6 +20,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_processes/kutta_condition_process.h"
 #include "custom_processes/move_model_part_process.h"
+#include "custom_processes/compute_embedded_lift_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -36,6 +37,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<MoveModelPartProcess, MoveModelPartProcess::Pointer, Process >
         (m, "MoveModelPartProcess")
         .def(py::init<ModelPart&, Parameters>())
+        ;
+
+    py::class_<ComputeEmbeddedLiftProcess, ComputeEmbeddedLiftProcess::Pointer, Process >
+        (m, "ComputeEmbeddedLiftProcess")
+        .def(py::init<ModelPart&, array_1d<double,3>&>())
         ;
 }
 

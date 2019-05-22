@@ -30,8 +30,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ComputeEmbeddedLiftProcess);
 
     // Constructor for ComputeEmbeddedLiftProcess Process
-    ComputeEmbeddedLiftProcess(ModelPart& rModelPart, Parameters ThisParameters);
-    ComputeLiftLevelSetProcess(ModelPart& rModelPart, Vector& rResultForce):
+    ComputeEmbeddedLiftProcess(ModelPart& rModelPart, array_1d<double,3>& rResultForce);
 
     /// Destructor.
     ~ComputeEmbeddedLiftProcess() = default;
@@ -78,7 +77,7 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-    Vector& mrResultForce;
+    array_1d<double,3>& mrResultForce;
 
 }; // Class Process
 } // namespace Kratos

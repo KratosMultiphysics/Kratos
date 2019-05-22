@@ -25,8 +25,8 @@
 namespace Kratos
 {
 // Constructor for ComputeEmbeddedLiftProcess Process
-ComputeEmbeddedLiftProcess::ComputeLiftLevelSetProcess(ModelPart& rModelPart,
-                Vector& rResultForce
+ComputeEmbeddedLiftProcess::ComputeEmbeddedLiftProcess(ModelPart& rModelPart,
+                array_1d<double,3>& rResultForce
                 ):
         Process(),
         mrModelPart(rModelPart),
