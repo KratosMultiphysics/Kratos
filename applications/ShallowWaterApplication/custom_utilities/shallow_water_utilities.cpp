@@ -74,4 +74,41 @@ void ShallowWaterUtilities::FlipScalarVariable(Variable<double>& rOriginVariable
     }
 }
 
+void ShallowWaterUtilities::IdentifySolidBoundary(ModelPart& rSkinModelPart, double SeaWaterLevel, Flags SolidBoundaryFlag)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rSkinModelPart.NumberOfNodes()); ++i)
+    {
+        auto it_node = rSkinModelPart.NodesBegin() + i;
+        if (it_node->FastGetSolutionStepValue(TOPOGRAPHY) < SeaWaterLevel)
+        {
+            it_node->Set(SolidBoundaryFlag, true);
+        }
+        else
+        {
+            auto topography_gradient = it_node->FastGetSolutionStepValue(TOPOGRAPHY_GRADIENT);
+            auto normal = it_node->FastGetSolutionStepValue(NORMAL);
+            double sign = inner_prod(normal, topography_gradient);
+            // NOTE: Normal is positive outwards
+            // NOTE: The flowstream is opposite to the topography gradient
+            // An inwards flow will produce a positive sign: a SOLID boundary
+            it_node->Set(SolidBoundaryFlag, (sign >= 0.0));
+        }
+    }
+
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rSkinModelPart.NumberOfConditions()); ++i)
+    {
+        auto it_cond = rSkinModelPart.ConditionsBegin() + i;
+        bool is_solid = true;
+        for (auto& node : it_cond->GetGeometry())
+        {
+            if (node.IsNot(SolidBoundaryFlag)) {
+                is_solid = false;
+            }
+        }
+        it_cond->Set(SolidBoundaryFlag, is_solid);
+    }
+}
+
 }  // namespace Kratos.
