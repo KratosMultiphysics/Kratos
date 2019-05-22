@@ -181,6 +181,8 @@ class Algorithm(object):
             DemFem.ComputeDEMFaceLoadUtility().ClearDEMFaceLoads(self.skin_mp)
 
             self.outer_walls_model_part = self.model["Structure.SurfacePressure3D_lateral_pressure"]
+
+            DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearch(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
             DemFem.DemStructuresCouplingUtilities().ComputeSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
 
             '''self.outer_walls_model_part_1 = self.model["Structure.SurfacePressure3D_sigmaXpos"]
@@ -202,6 +204,7 @@ class Algorithm(object):
                 self.dem_solution.SolverSolve()
 
                 DemFem.DemStructuresCouplingUtilities().MarkBrokenSpheres(self.dem_solution.spheres_model_part)
+
                 center = Kratos.Array3()
                 center[0] = 0.0
                 center[1] = 0.0

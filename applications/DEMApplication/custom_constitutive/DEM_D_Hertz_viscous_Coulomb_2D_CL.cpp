@@ -6,8 +6,6 @@
 
 namespace Kratos {
 
-    void DEM_D_Hertz_viscous_Coulomb2D::Initialize(const ProcessInfo& r_process_info){}
-
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_Hertz_viscous_Coulomb2D::Clone() const {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_Hertz_viscous_Coulomb2D(*this));
         return p_clone;
@@ -34,8 +32,8 @@ namespace Kratos {
         mKn = 0.7854 * equiv_young;           //KRATOS_M_PI_4 = 0.7854
         //mKt = 4.0 * equiv_shear * mKn / equiv_young;
         mKt = mKn * ((1-my_poisson)/(1-0.5*my_poisson)) ;
-    }    
-    
+    }
+
     void DEM_D_Hertz_viscous_Coulomb2D::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
 
         const double my_young      = element->GetYoung(); //Get equivalent Young's Modulus

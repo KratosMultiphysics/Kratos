@@ -26,7 +26,6 @@
 #include "includes/key_hash.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-#include "utilities/variable_utils.h"
 #include "custom_utilities/mmg_utilities.h"
 #include "containers/variables_list.h"
 #include "meshing_application.h"
@@ -300,7 +299,7 @@ private:
 
     ModelPart& mrThisModelPart;                                      /// The model part to compute
     Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
-    NodeType::DofsContainerType  mDofs;                              /// Storage for the dof of the node
+    NodeType::DofsContainerType mDofs;                               /// Storage for the dof of the node
 
     MmgUtilities<TMMGLibrary> mMmmgUtilities;                        /// The MMG utilities class
 
@@ -380,11 +379,6 @@ private:
     void ExecuteRemeshing();
 
     /**
-     * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
-     */
-    void ReorderAllIds();
-
-    /**
      * @brief After we have transfer the information from the previous modelpart we initilize the elements and conditions
      */
     void InitializeElementsAndConditions();
@@ -399,16 +393,6 @@ private:
      * @brief It frees the memory used during all the process
      */
     void FreeMemory();
-
-    /**
-     * @brief This function generates a list of submodelparts to be able to reassign flags after remesh
-     */
-    void CreateAuxiliarSubModelPartForFlags();
-
-    /**
-     * @brief This function assigns the flags and clears the auxiliar sub model part for flags
-     */
-    void AssignAndClearAuxiliarSubModelPartForFlags();
 
     /**
      * @brief It sets to zero the entity data, using the variables from the orginal model part

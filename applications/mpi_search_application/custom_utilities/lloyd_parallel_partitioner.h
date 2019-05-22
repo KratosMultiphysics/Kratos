@@ -91,7 +91,7 @@ public:
     typedef typename Configure::PointerContactType        PointerContactType;
     // typedef typename Configure::PointerTypeIterator       PointerTypeIterator;
 
-    typedef WeakPointerVector<Element> ParticleWeakVector;
+    typedef GlobalPointersVector<Element> ParticleWeakVector;
 
     // Search Structures
     typedef Cell<Configure> CellType;
