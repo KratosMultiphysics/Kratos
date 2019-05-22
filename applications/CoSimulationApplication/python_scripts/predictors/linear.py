@@ -7,11 +7,23 @@ def Create(parameters):
     return PredictorLinear(parameters)
 
 
+# Class PredictorLinear: Linear extrapolation based on the last two time steps, assuming constant time step size.
 class PredictorLinear(CoSimulationComponent):
     def __init__(self, _unused):
         super().__init__()
-        self.data_prev_iter = []
-        self.data_current_iter = []
+        self.data_prev = []
+        self.data_last = []
+
+    def Initialize(self, x):
+        super().Initialize()
+
+        self.data_last = x
+        self.data_prev = x
 
     def Predict(self):
+        # return 2*self.data_last-self.data_prev
         return 1
+
+    def Update(self, x):
+        self.data_prev = self.data_last
+        self.data_last = x
