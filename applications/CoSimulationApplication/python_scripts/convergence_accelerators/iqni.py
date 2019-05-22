@@ -11,3 +11,9 @@ class ConvergenceAcceleratorIQNI(CoSimulationComponent):
     def __init__(self, parameters):
         super().__init__()
         self.parameters = parameters
+
+    def Predict(self, r):
+        return 1
+
+    def Update(self, x, xt):
+        pass

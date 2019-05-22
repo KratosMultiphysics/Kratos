@@ -57,7 +57,7 @@ class SolverInterfacePipeStructure(CoSimulationComponent):
 
         self.n += 1
 
-    def calculate(self, p):
+    def Calculate(self, p):
         # Independent rings model
         self.p = p
         for i in range(len(self.p)):

@@ -9,10 +9,13 @@ def Create(parameters):
 
 class CoupledSolverGaussSeidel(CoSimulationComponent):
     def __init__(self, parameters):
+        super().__init__()
+
         self.parameters = parameters
         self.settings = parameters["settings"]
 
         self.echo_level = self.settings["echo_level"].GetInt()
+        self.num_coupling_iterations = self.settings["num_coupling_iterations"].GetInt()
 
         self._predictor = cs_tools.CreateInstance(self.parameters["predictor"])
         self._convergence_accelerator = cs_tools.CreateInstance(self.parameters["convergence_accelerator"])
@@ -25,29 +28,57 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
                             self._solver_interfaces[0], self._solver_interfaces[1]}
 
     def Initialize(self):
+        super().Initialize()
+
         for component in self._components:
             component.Initialize()
 
     def Finalize(self):
+        super().Finalize()
+
         for component in self._components:
             component.Finalize()
 
     def InitializeSolutionStep(self):
+        super().InitializeSolutionStep()
+
         for component in self._components:
             component.InitializeSolutionStep()
 
     def SolveSolutionStep(self):
-        pass
+        # Coupling iteration loop
+        r = 0
+        x = 0
+        for k in range(0, self.num_coupling_iterations):
+            if k == 1:
+                x = self._predictor.Predict()
+            else:
+                dx = self._convergence_accelerator.Predict(r)
+                x += dx
+            y = self._solver_interfaces[0].Calculate(x)
+            xt = self._solver_interfaces[1].Calculate(y)
+            r = xt - x
+            self._convergence_accelerator.Update(x, xt)
+
+            self._convergence_criterion.Add(r)
+            if self._convergence_criterion.IsSatisfied():
+                break
 
     def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
+
         for component in self._components:
             component.FinalizeSolutionStep()
 
     def OutputSolutionStep(self):
+        super().OutputSolutionStep()
+
         for component in self._components:
             component.OutputSolutionStep()
 
     def Check(self):
+        super().Check()
+
         for component in self._components:
             component.Check()
 

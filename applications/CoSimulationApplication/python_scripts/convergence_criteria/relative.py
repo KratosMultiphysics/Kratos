@@ -11,3 +11,9 @@ class ConvergenceCriterionRelative(CoSimulationComponent):
     def __init__(self, parameters):
         super().__init__()
         self.parameters = parameters
+
+    def Add(self, r):
+        pass
+
+    def IsSatisfied(self):
+        return True

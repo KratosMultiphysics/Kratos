@@ -39,10 +39,10 @@ class SolverInterfacePipeFlow(CoSimulationComponent):
         self.z = np.arange(self.dz / 2.0, l, self.dz)  # Data is stored in cell centers
 
         self.n = 0  # Time step
-        self.dt = 0.0  # Time step size
+        self.dt = self.settings["dt"].GetDouble()  # Time step size
         self.alpha = 0.0  # Numerical damping parameter due to central discretization of pressure in momentum equation
 
-        self.newtonmax = self.settings["newtonmax"].GetDouble()  # Maximal number of Newton iterations
+        self.newtonmax = self.settings["newtonmax"].GetInt()  # Maximal number of Newton iterations
         self.newtontol = self.settings["newtontol"].GetDouble()  # Tolerance of Newton iterations
 
         # Initialization
@@ -74,7 +74,7 @@ class SolverInterfacePipeFlow(CoSimulationComponent):
         self.pn = np.array(self.p)
         self.an = np.array(self.a)
 
-    def calculate(self, a):
+    def Calculate(self, a):
         # Input does not contain boundary conditions
         self.a[1:self.m + 1] = a
         self.a[0] = self.a[1]
@@ -88,7 +88,7 @@ class SolverInterfacePipeFlow(CoSimulationComponent):
             for s in range(self.newtonmax):
                 j = self.GetJacobian()
                 b = -f
-                x = solve_banded((PipeFlow.Al, PipeFlow.Au), j, b)
+                x = solve_banded((self.Al, self.Au), j, b)
                 self.u += x[0::2]
                 self.p += x[1::2]
                 self.u[0] = self.GetBoundary()
@@ -155,50 +155,50 @@ class SolverInterfacePipeFlow(CoSimulationComponent):
 
     def GetJacobian(self):
         usign = self.u[1:self.m + 1] > 0
-        j = np.zeros((PipeFlow.Al + PipeFlow.Au + 1, 2 * self.m + 4))
-        j[PipeFlow.Au + 0 - 0, 0] = 1.0  # [0,0]
-        j[PipeFlow.Au + 1 - 1, 1] = 1.0  # [1,1]
-        j[PipeFlow.Au + 1 - 3, 3] = -2.0  # [1,3]
-        j[PipeFlow.Au + 1 - 5, 5] = 1.0  # [1,5]
+        j = np.zeros((self.Al + self.Au + 1, 2 * self.m + 4))
+        j[self.Au + 0 - 0, 0] = 1.0  # [0,0]
+        j[self.Au + 1 - 1, 1] = 1.0  # [1,1]
+        j[self.Au + 1 - 3, 3] = -2.0  # [1,3]
+        j[self.Au + 1 - 5, 5] = 1.0  # [1,5]
 
-        j[PipeFlow.Au + 2, 0:2 * self.m + 0:2] = -(self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0  # [2*i, 2*(i-1)]
-        j[PipeFlow.Au + 3, 0:2 * self.m + 0:2] = (-((self.u[1:self.m + 1] + 2.0 * self.u[0:self.m]) * usign
+        j[self.Au + 2, 0:2 * self.m + 0:2] = -(self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0  # [2*i, 2*(i-1)]
+        j[self.Au + 3, 0:2 * self.m + 0:2] = (-((self.u[1:self.m + 1] + 2.0 * self.u[0:self.m]) * usign
                                                     + self.u[1:self.m + 1] * (1.0 - usign))
                                                   * (self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0)  # [2*i+1, 2*(i-1)]
-        j[PipeFlow.Au + 1, 1:2 * self.m + 1:2] = -self.alpha  # [2*i, 2*(i-1)+1]
-        j[PipeFlow.Au + 2, 1:2 * self.m + 1:2] = -(self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0  # [2*i+1, 2*(i-1)+1]
+        j[self.Au + 1, 1:2 * self.m + 1:2] = -self.alpha  # [2*i, 2*(i-1)+1]
+        j[self.Au + 2, 1:2 * self.m + 1:2] = -(self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0  # [2*i+1, 2*(i-1)+1]
 
-        j[PipeFlow.Au + 0, 2:2 * self.m + 2:2] = ((self.a[1:self.m + 1] + self.a[2:self.m + 2]) / 4.0
+        j[self.Au + 0, 2:2 * self.m + 2:2] = ((self.a[1:self.m + 1] + self.a[2:self.m + 2]) / 4.0
                                                   - (self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0)  # [2*i, 2*i]
-        j[PipeFlow.Au + 1, 2:2 * self.m + 2:2] = (self.dz / self.dt * self.a[1:self.m + 1]
+        j[self.Au + 1, 2:2 * self.m + 2:2] = (self.dz / self.dt * self.a[1:self.m + 1]
                                                   + ((2.0 * self.u[1:self.m + 1] + self.u[2:self.m + 2]) * usign
                                                      + self.u[2:self.m + 2] * (1.0 - usign))
                                                   * (self.a[1:self.m + 1] + self.a[2:self.m + 2]) / 4.0
                                                   - (self.u[0:self.m] * usign
                                                      + (2.0 * self.u[1:self.m + 1] + self.u[0:self.m]) * (1.0 - usign))
                                                   * (self.a[1:self.m + 1] + self.a[0:self.m]) / 4.0)  # [2*i+1, 2*i]
-        j[PipeFlow.Au - 1, 3:2 * self.m + 3:2] = 2.0 * self.alpha  # [2*i, 2*i+1]
-        j[PipeFlow.Au + 0, 3:2 * self.m + 3:2] = (-(self.a[1:self.m + 1] + self.a[2:self.m + 2])
+        j[self.Au - 1, 3:2 * self.m + 3:2] = 2.0 * self.alpha  # [2*i, 2*i+1]
+        j[self.Au + 0, 3:2 * self.m + 3:2] = (-(self.a[1:self.m + 1] + self.a[2:self.m + 2])
                                                   + (self.a[1:self.m + 1] + self.a[0:self.m])) / 4.0  # [2*i+1, 2*i+1]
 
-        j[PipeFlow.Au - 2, 4:2 * self.m + 4:2] = (self.a[1:self.m + 1] + self.a[2:self.m + 2]) / 4.0  # [2*i, 2*(i+1)]
-        j[PipeFlow.Au - 1, 4:2 * self.m + 4:2] = ((self.u[1:self.m + 1] * usign + (self.u[1:self.m + 1]
+        j[self.Au - 2, 4:2 * self.m + 4:2] = (self.a[1:self.m + 1] + self.a[2:self.m + 2]) / 4.0  # [2*i, 2*(i+1)]
+        j[self.Au - 1, 4:2 * self.m + 4:2] = ((self.u[1:self.m + 1] * usign + (self.u[1:self.m + 1]
                                                                                    + 2.0 * self.u[2:self.m + 2])
                                                    * (1.0 - usign))
                                                   * (self.a[1:self.m + 1]
                                                      + self.a[2:self.m + 2]) / 4.0)  # [2*i+1, 2*(i+1)]
-        j[PipeFlow.Au - 3, 5:2 * self.m + 5:2] = -self.alpha  # [2*i, 2*(i+1)+1]
-        j[PipeFlow.Au - 2, 5:2 * self.m + 5:2] = (self.a[1:self.m + 1]
+        j[self.Au - 3, 5:2 * self.m + 5:2] = -self.alpha  # [2*i, 2*(i+1)+1]
+        j[self.Au - 2, 5:2 * self.m + 5:2] = (self.a[1:self.m + 1]
                                                   + self.a[2:self.m + 2]) / 4.0  # [2*i+1, 2*(i+1)+1]
 
-        j[PipeFlow.Au + (2 * self.m + 2) - (2 * self.m + 2), 2 * self.m + 2] = 1.0  # [2*m+2, 2*m+2]
-        j[PipeFlow.Au + (2 * self.m + 2) - (2 * self.m), 2 * self.m] = -2.0  # [2*m+2, 2*m]
-        j[PipeFlow.Au + (2 * self.m + 2) - (2 * self.m - 2), 2 * self.m - 2] = 1.0  # [2*m+2, 2*m-2]
-        j[PipeFlow.Au + (2 * self.m + 3) - (2 * self.m + 2), 2 * self.m + 2] = (-(m.sqrt(self.cmk2
+        j[self.Au + (2 * self.m + 2) - (2 * self.m + 2), 2 * self.m + 2] = 1.0  # [2*m+2, 2*m+2]
+        j[self.Au + (2 * self.m + 2) - (2 * self.m), 2 * self.m] = -2.0  # [2*m+2, 2*m]
+        j[self.Au + (2 * self.m + 2) - (2 * self.m - 2), 2 * self.m - 2] = 1.0  # [2*m+2, 2*m-2]
+        j[self.Au + (2 * self.m + 3) - (2 * self.m + 2), 2 * self.m + 2] = (-(m.sqrt(self.cmk2
                                                                                          - self.pn[self.m + 1] / 2.0)
                                                                                   - (self.u[self.m + 1]
                                                                                      - self.un[self.n + 1])
                                                                                   / 4.0))  # [2*m+3, 2*m+2]
-        j[PipeFlow.Au + (2 * self.m + 3) - (2 * self.m + 3), 2 * self.m + 3] = 1.0  # [2*m+3, 2*m+3]
+        j[self.Au + (2 * self.m + 3) - (2 * self.m + 3), 2 * self.m + 3] = 1.0  # [2*m+3, 2*m+3]
 
         return j
