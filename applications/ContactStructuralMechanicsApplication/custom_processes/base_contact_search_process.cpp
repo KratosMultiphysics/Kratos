@@ -765,7 +765,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-bool BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
+Condition::Pointer BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId,
     GeometricalObject::Pointer pObjectSlave,
@@ -778,7 +778,8 @@ bool BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
 {
     pIndexesPairs->AddId(pObjectMaster->Id());
 
-    if (mOptions.Is(BaseContactSearchProcess::CREATE_AUXILIAR_CONDITIONS)) { // We add the ID and we create a new auxiliar condition
+    // We add the ID and we create a new auxiliar condition
+    if (mOptions.Is(BaseContactSearchProcess::CREATE_AUXILIAR_CONDITIONS)) { // TODO: Check this!!
         ++rConditionId;
         Condition::Pointer p_auxiliar_condition = rComputingModelPart.CreateNewCondition(mConditionName, rConditionId, pObjectSlave->GetGeometry(), pProperties);
         // We set the geometrical values
@@ -789,10 +790,10 @@ bool BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPairing(
         // We activate the condition and initialize it
         p_auxiliar_condition->Set(ACTIVE, true);
         p_auxiliar_condition->Initialize();
-        // TODO: Check this!!
+        return p_auxiliar_condition;
     }
 
-    return true;
+    return nullptr;
 }
 
 /***********************************************************************************/
@@ -1418,28 +1419,14 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreateAu
     IndexType& rConditionId
     )
 {
-    // Iterate in the conditions and create the new ones
-    ConditionsArrayType& r_conditions_array = rContactModelPart.Conditions();
-
     // In case of debug mode
-    if (mThisParameters["debug_mode"].GetBool()) {
-        std::filebuf debug_buffer;
-        debug_buffer.open("original_conditions_normal_debug_" + rContactModelPart.Name() + "_step=" + std::to_string( rContactModelPart.GetProcessInfo()[STEP]) + ".out",std::ios::out);
-        std::ostream os(&debug_buffer);
-        for (const auto& cond : r_conditions_array) {
-            const array_1d<double, 3>& r_normal = cond.GetValue(NORMAL);
-            os << "Condition " << cond.Id() << "\tNodes ID:";
-            for (auto& r_node : cond.GetGeometry()) {
-                os << "\t" << r_node.Id();
-            }
-            os << "\tNORMAL: " << r_normal[0] << "\t" << r_normal[1] << "\t" << r_normal[2] <<"\n";
-        }
-        debug_buffer.close();
-    }
+    CreateDebugFile(rContactModelPart, "original_conditions_normal_debug_");
 
-    // Actually creating the new conditions
+    // Iterate in the conditions and create the new ones
+    auto& r_conditions_array = rContactModelPart.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
     for(IndexType i = 0; i < r_conditions_array.size(); ++i) {
-        auto it_cond = r_conditions_array.begin() + i;
+        auto it_cond = it_cond_begin + i;
         if (it_cond->Is(SLAVE) == !mOptions.Is(BaseContactSearchProcess::INVERTED_SEARCH)) {
             IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
             for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
@@ -1452,20 +1439,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreateAu
     }
 
     // In case of debug mode
-    if (mThisParameters["debug_mode"].GetBool()) {
-        std::filebuf debug_buffer;
-        debug_buffer.open("created_conditions_normal_debug_" + rContactModelPart.Name() + "_step=" + std::to_string( rContactModelPart.GetProcessInfo()[STEP]) + ".out",std::ios::out);
-        std::ostream os(&debug_buffer);
-        for (const auto& cond : rComputingModelPart.Conditions()) {
-            const array_1d<double, 3>& r_normal = cond.GetValue(NORMAL);
-            os << "Condition " << cond.Id() << "\tNodes ID:";
-            for (auto& r_node : cond.GetGeometry()) {
-                os << "\t" << r_node.Id();
-            }
-            os << "\tNORMAL: " << r_normal[0] << "\t" << r_normal[1] << "\t" << r_normal[2] <<"\n";
-        }
-        debug_buffer.close();
-    }
+    CreateDebugFile(rContactModelPart, "created_conditions_normal_debug_");
 }
 
 /***********************************************************************************/
@@ -1545,6 +1519,32 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ResetContactOpe
     }
 
     mrMainModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreateDebugFile(
+    ModelPart& rModelPart,
+    const std::string& rName
+    )
+{
+    if (mThisParameters["debug_mode"].GetBool()) {
+        ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
+        std::filebuf debug_buffer;
+        debug_buffer.open(rName + rModelPart.Name() + "_step=" + std::to_string( rModelPart.GetProcessInfo()[STEP]) + ".out",std::ios::out);
+        std::ostream os(&debug_buffer);
+        for (const auto& r_cond : r_conditions_array) {
+            const array_1d<double, 3>& r_normal = r_cond.GetValue(NORMAL);
+            os << "Condition " << r_cond.Id() << "\tNodes ID:";
+            for (auto& r_node : r_cond.GetGeometry()) {
+                os << "\t" << r_node.Id();
+            }
+            os << "\tNORMAL: " << r_normal[0] << "\t" << r_normal[1] << "\t" << r_normal[2] <<"\n";
+        }
+        debug_buffer.close();
+    }
 }
 
 /***********************************************************************************/
