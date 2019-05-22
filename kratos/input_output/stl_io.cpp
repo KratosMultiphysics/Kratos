@@ -69,15 +69,24 @@ namespace Kratos
         std::getline(*mpInputStream, word); // Reading solid name to be the model part name
 
         word.erase(word.begin(), std::find_if(word.begin(), word.end(), [](int ch) {return !std::isspace(ch);})); // Triming the leading spaces
+    	size_t comment_position = word.find("COMMENT");
+ 
+	    if (comment_position != std::string::npos)
+            word.erase(comment_position); // Removing the comment
+        
+        word.erase(word.find_last_not_of(" \t\n\r\f\v") + 1); // triming the trailing whitespaces 
+
+	
 
         if(word == "") // empty solid name is valid in STL format
             word = "main";
+
+        KRATOS_INFO("Input") << "Reading Solid '" << word << "'" << std::endl;
 
         auto& sub_model_part = rThisModelPart.CreateSubModelPart(word);
 
         *mpInputStream >> word; // Reading facet or endsolid
         
-        KRATOS_WATCH(word);
         while(word == "facet"){
             ReadFacet(sub_model_part);
             *mpInputStream >> word; // Reading facet or endsolid
