@@ -77,7 +77,6 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
 
         ## Add specific MPI variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        KratosMPI.mpi.world.barrier()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Variables for the AdjointVMSMonolithicMPISolver added correctly in each processor.")
 
@@ -96,7 +95,6 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
 
     def AddDofs(self):
         super(self.__class__, self).AddDofs()
-        KratosMPI.mpi.world.barrier()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "DOFs for the AdjointVMSMonolithicMPISolver added correctly in all processors.")
 
