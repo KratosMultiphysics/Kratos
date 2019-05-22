@@ -97,7 +97,7 @@ FemDem3DElement::~FemDem3DElement()
 
 void FemDem3DElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 {
-	if (rCurrentProcessInfo[RECOMPUTE_NEIGHBOURS]) {
+	if (rCurrentProcessInfo[RECOMPUTE_NEIGHBOURS] != 0) {
 		this->ComputeEdgeNeighbours(rCurrentProcessInfo);
 	}
 
@@ -233,13 +233,14 @@ void FemDem3DElement::UpdateDataBase()
 void FemDem3DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 {
 	this->UpdateDataBase();
+	rCurrentProcessInfo[RECOMPUTE_NEIGHBOURS] = 0;
 
 	if (mDamage >= 0.98) {
 		this->Set(ACTIVE, false);
 
 		// We set a flag to generate the DEM 
 		rCurrentProcessInfo[GENERATE_DEM] = true;
-		rCurrentProcessInfo[RECOMPUTE_NEIGHBOURS] = true;
+		rCurrentProcessInfo[RECOMPUTE_NEIGHBOURS] += 1;
 	}
 }
 
