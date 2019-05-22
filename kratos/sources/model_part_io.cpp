@@ -173,7 +173,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void ModelPartIO::WriteProperties(PropertiesContainerType& rThisProperties)
+    void ModelPartIO::WriteProperties(PropertiesContainerType const& rThisProperties)
     {
         std::string aux_string;
         const std::string string_to_remove = "This properties contains 0 tables";
@@ -555,24 +555,13 @@ namespace Kratos
     }
 
 
-    /// Read the input file and create the nodal connectivities graph, stored in CSR format.
-    /**
-        * This function produces input for Metis' nodal graph partitioning algorithms.
-        * The nodal graph is stored as a (compressed) matrix where index (i,j) is non-zero if
-        * there is an edge in the mesh joining nodes i and j (note that nodes are numbered from zero here,
-        * to make integration with Metis simpler).
-        * @param NodeIndices After call, will point to C array of size NumNodes+1 containing the
-        * first CSR array: entries related to node k are stored between positions (*NodeIndices)[k]
-        * and (*NodeIndices)[k+1] of *NodeConnectivities.
-        * @param NodeConnectivities After call, will point to a C array of size (*NodeIndices)[NumNodes].
-        * entries between (*NodeIndices)[k] and (*NodeIndices)[k+1] are a list of all nodes connected
-        * to node k (counting from 0).
-        * @return Number of nodes.
-        */
-    std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& aux_connectivities)
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnectivities)
     {
         // 1. Define an auxiliary vector of vectors
-        //ConnectivitiesContainerType aux_connectivities(0);
+        //ConnectivitiesContainerType rAuxConnectivities(0);
 
         // 2. Fill the auxiliary vector by reading elemental and conditional connectivities
         ResetInput();
@@ -583,17 +572,27 @@ namespace Kratos
             if(mpStream->eof())
                 break;
             ReadBlockName(word);
-            if (word == "Elements")
-                FillNodalConnectivitiesFromElementBlock(aux_connectivities);
-            else if (word == "Conditions")
-                FillNodalConnectivitiesFromConditionBlock(aux_connectivities);
-            else
+            if (word == "Nodes") {
+                // This call does nothing useful for ModelPartIO itself
+                // but, if a derived class reorders nodes, it gives
+                // a chance to the derived class to process and renumber
+                // the nodes before reading elements/conditions.
+                ScanNodeBlock();
+            }
+            else if (word == "Elements") {
+                FillNodalConnectivitiesFromElementBlock(rAuxConnectivities);
+            }
+            else if (word == "Conditions") {
+                FillNodalConnectivitiesFromConditionBlock(rAuxConnectivities);
+            }
+            else {
                 SkipBlock(word);
+            }
         }
 
         // Check that node indices are consecutive
         unsigned int n = 0;
-        for (ConnectivitiesContainerType::iterator inode = aux_connectivities.begin(); inode != aux_connectivities.end(); inode++)
+        for (ConnectivitiesContainerType::iterator inode = rAuxConnectivities.begin(); inode != rAuxConnectivities.end(); inode++)
         {
             n++;
             if (inode->size() == 0)
@@ -606,17 +605,17 @@ namespace Kratos
 
         // 3. Sort each entry in the auxiliary connectivities vector, remove duplicates
         SizeType num_entries = 0;
-        for (ConnectivitiesContainerType::iterator it = aux_connectivities.begin(); it != aux_connectivities.end(); it++)
+        for (ConnectivitiesContainerType::iterator it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++)
         {
             std::sort(it->begin(),it->end());
             std::vector<SizeType>::iterator unique_end = std::unique(it->begin(),it->end());
             it->resize(unique_end - it->begin());
             num_entries += it->size();
         }
-        SizeType num_nodes = aux_connectivities.size();
+        SizeType num_nodes = rAuxConnectivities.size();
 
         /*// 4. Write connectivity data in CSR format
-        SizeType num_nodes = aux_connectivities.size();
+        SizeType num_nodes = rAuxConnectivities.size();
         *NodeIndices = new int[num_nodes+1];
         (*NodeIndices)[0] = 0;
         *NodeConnectivities = new int[num_entries];
@@ -624,7 +623,7 @@ namespace Kratos
         SizeType i = 0;
         SizeType aux_index = 0;
 
-        for (ConnectivitiesContainerType::iterator it = aux_connectivities.begin(); it != aux_connectivities.end(); it++)
+        for (ConnectivitiesContainerType::iterator it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++)
         {
             for (std::vector<SizeType>::iterator entry_it = it->begin(); entry_it != it->end(); entry_it++)
                 (*NodeConnectivities)[aux_index++] = (*entry_it - 1); // substract 1 to make Ids start from 0
@@ -1115,7 +1114,7 @@ namespace Kratos
             ExtractValue(word, y);
             ReadWord(word);
             ExtractValue(word, z);
-            NodeType::Pointer temp_node = Kratos::make_shared< NodeType >( ReorderedNodeId(temp_id), x, y, z);
+            NodeType::Pointer temp_node = Kratos::make_intrusive< NodeType >( ReorderedNodeId(temp_id), x, y, z);
             temp_node->X0() = temp_node->X();
             temp_node->Y0() = temp_node->Y();
             temp_node->Z0() = temp_node->Z();
@@ -4717,6 +4716,26 @@ namespace Kratos
         partitions[NumberOfThreads] = number_of_rows;
         for(unsigned int i = 1; i<NumberOfThreads; i++)
             partitions[i] = partitions[i-1] + partition_size ;
+    }
+
+    void ModelPartIO::ScanNodeBlock()
+    {
+        std::string word;
+        SizeType node_id;
+        while(!mpStream->eof())
+        {
+            ReadWord(word);
+            if(CheckEndBlock("Nodes", word))
+                break;
+
+            ExtractValue(word, node_id);
+            // Pass read id to reordering ("initialize" the reordering for this node)
+            ReorderedNodeId(node_id);
+
+            ReadWord(word); // skip X coordinate
+            ReadWord(word); // skip Y
+            ReadWord(word); // skip Z
+        }
     }
 
     /// Unaccessible assignment operator.

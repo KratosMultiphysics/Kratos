@@ -28,7 +28,7 @@ Element::Pointer IgaTrussElement::Create(
 {
     auto geometry = GetGeometry().Create(ThisNodes);
 
-    return Kratos::make_shared<IgaTrussElement>(NewId, geometry,
+    return Kratos::make_intrusive<IgaTrussElement>(NewId, geometry,
         pProperties);
 }
 

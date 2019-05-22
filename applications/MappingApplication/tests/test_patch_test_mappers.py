@@ -257,9 +257,9 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         inverse_map_results_vector     = [[0.0,-0.1,0.4], [2.25,2.15,2.65], [11/3,10.7/3,12.2/3], [4.0,3.9,4.4]]
 
         map_results_scalar_conservative = [0.2, 0.0, 0.9, 1.033333333333337, 14/3]
-        map_results_vector_conservative     = [[0.0,0.1,-0.3], [0.0,0.0,0.0], [0.75,0.825,0.525], [0.0,0.0,0.0], [1.6+7/3,1.7+7.3/3,1.3+6.1/3]]
-        inverse_map_results_scalar_conservative     = [999, 1.95, 999, 0.0]
-        inverse_map_results_vector_conservative     = [[999,999,999], [2.25,2.15,2.65], [999,999,999], [0.0,0.0,0.0]]
+        map_results_vector_conservative     = [[0.0,0.1,-0.3], [0.0,0.0,0.0], [0.75,0.825,0.525], [11/12,0.975,0.741666666667], [13/3,4.5,23/6]]
+        inverse_map_results_scalar_conservative     = [0.46, 2.72, 4.0866666666666, 37/30]
+        inverse_map_results_vector_conservative     = [[1.0,0.82,1.72], [3.2,3.04,3.84], [67/15,4.34,373/75], [4/3,1.3,22/15]]
 
         results = [map_results_scalar, map_results_vector]
         results.extend([inverse_map_results_scalar, inverse_map_results_vector])
@@ -274,7 +274,7 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         self._execute_non_constant_value_test(results)
 
         # # Test conservative Mapping
-        self._execute_non_constant_value_test(results_conservative, True) # TODO check the values!
+        self._execute_non_constant_value_test(results_conservative, True)
 
     def __CheckValuesSum(self, mp1, mp2, var1, var2, value_is_historical=True):
         var_type = KM.KratosGlobals.GetVariableType(var1.Name())

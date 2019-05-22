@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -170,6 +170,14 @@ private:
 
     void CheckDefaultsAndProcessSettings(Parameters &rParameters);
 
+    /**
+     * @brief Initialize the EMBEDDED_IS_ACTIVE variable
+     * This method initializes the non historical variable EMBEDDED_IS_ACTIVE.
+     * It needs to be called in the constructor to do a threadsafe initialization
+     * of such nodal variable before any other operation is done.
+     */
+    void InitializeEmbeddedIsActive();
+
     void ModifyDistance();
 
     void ModifyDiscontinuousDistance();
@@ -181,6 +189,31 @@ private:
     void RecoverOriginalDiscontinuousDistance();
 
     void DeactivateFullNegativeElements();
+
+    template<class TDistancesVectorType>
+    void SetElementToSplitFlag(
+        Element &rElem,
+        const TDistancesVectorType& rDistancesVector)
+    {
+        unsigned int n_pos = 0;
+        unsigned int n_neg = 0;
+        for (double i_dist : rDistancesVector) {
+            if (i_dist < 0.0) {
+                n_neg++;
+            } else {
+                n_pos++;
+            }
+        }
+        if (n_neg != 0 && n_pos != 0) {
+            rElem.Set(TO_SPLIT, true);
+        } else {
+            rElem.Set(TO_SPLIT, false);
+        }
+    }
+
+    void SetContinuousDistanceToSplitFlag();
+
+    void SetDiscontinuousDistanceToSplitFlag();
 
     ///@}
     ///@name Private  Access

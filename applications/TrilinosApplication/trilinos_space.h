@@ -27,6 +27,7 @@
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
 #include "EpetraExt_CrsMatrixIn.h"
+#include <EpetraExt_VectorIn.h>
 #include <EpetraExt_RowMatrixOut.h>
 #include <EpetraExt_MultiVectorOut.h>
 
@@ -492,28 +493,27 @@ public:
 
     //***********************************************************************
 
-    static void GatherValues(const VectorType& x, const std::vector<std::size_t>& IndexArray, double* pValues)
+    static void GatherValues(const VectorType& rX, const std::vector<int>& IndexArray, double* pValues)
     {
         KRATOS_TRY
         double tot_size = IndexArray.size();
 
         //defining a map as needed
-        Epetra_Map dof_update_map(-1, tot_size, &(*(IndexArray.begin())), 0, x.Comm());
+        Epetra_Map dof_update_map(-1, tot_size, &(*(IndexArray.begin())), 0, rX.Comm());
 
         //defining the importer class
-        Epetra_Import importer(dof_update_map, x.Map());
+        Epetra_Import importer(dof_update_map, rX.Map());
 
         //defining a temporary vector to gather all of the values needed
         Epetra_Vector temp(importer.TargetMap());
 
         //importing in the new temp vector the values
-        int ierr = temp.Import(x, importer, Insert);
+        int ierr = temp.Import(rX, importer, Insert);
         if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
 
+        temp.ExtractCopy(&pValues);
 
-        temp.ExtractView(&pValues);
-
-        x.Comm().Barrier();
+        rX.Comm().Barrier();
         KRATOS_CATCH("")
 
     }
@@ -571,6 +571,37 @@ public:
         delete pp;
 
         return paux;
+        KRATOS_CATCH("");
+    }
+
+    VectorPointerType ReadMatrixMarketVector(const std::string& rFileName, Epetra_MpiComm& rComm, int N)
+    {
+        KRATOS_TRY
+
+        Epetra_Map my_map(N, 0, rComm);
+        Epetra_Vector* pv = nullptr;
+
+        int error_code = EpetraExt::MatrixMarketFileToVector(rFileName.c_str(), my_map, pv);
+
+        KRATOS_ERROR_IF(error_code != 0) << "error thrown while reading Matrix Market Vector file " << rFileName << " error code is: " << error_code;
+
+        rComm.Barrier();
+
+        IndexType num_my_rows = my_map.NumMyElements();
+        std::vector<int> gids(num_my_rows);
+        my_map.MyGlobalElements(gids.data());
+
+        std::vector<double> values(num_my_rows);
+        pv->ExtractCopy(values.data());
+
+        VectorPointerType final_vector = Kratos::make_shared<VectorType>(my_map);
+        int ierr = final_vector->ReplaceGlobalValues(gids.size(),gids.data(), values.data());
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found with code ierr = " << ierr << std::endl;
+
+        final_vector->GlobalAssemble();
+
+        delete pv;
+        return final_vector;
         KRATOS_CATCH("");
     }
 

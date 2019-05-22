@@ -890,7 +890,7 @@ namespace Kratos
 
 		  int nf=0;
 		  //loop on neighbours and erase if they are too close
-		  for( WeakPointerVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin(); i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
+		  for( GlobalPointersVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin(); i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
 		    {
 
 			//KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
@@ -1183,8 +1183,8 @@ namespace Kratos
 	  iNode->GetSolutionStepValue(DIAMETER)=color;
 
 	ModelPart::NodesContainerType front_nodes;
-	WeakPointerVector<Element >& r_neighbour_elements = iNode->GetValue(NEIGHBOUR_ELEMENTS);
-	for(WeakPointerVector<Element >::iterator i_neighbour_element = r_neighbour_elements.begin() ; i_neighbour_element != r_neighbour_elements.end() ; i_neighbour_element++)
+	GlobalPointersVector<Element >& r_neighbour_elements = iNode->GetValue(NEIGHBOUR_ELEMENTS);
+	for(GlobalPointersVector<Element >::iterator i_neighbour_element = r_neighbour_elements.begin() ; i_neighbour_element != r_neighbour_elements.end() ; i_neighbour_element++)
 	  {
 	    if(i_neighbour_element->GetValue(DIAMETER) < 0 )
 	      {
@@ -1207,8 +1207,8 @@ namespace Kratos
 	    ModelPart::NodesContainerType new_front_nodes;
 	    for(ModelPart::NodesContainerType::iterator i_node = front_nodes.begin() ; i_node != front_nodes.end() ; i_node++)
 	      {
-		WeakPointerVector<Element >& r_neighbour_elements = i_node->GetValue(NEIGHBOUR_ELEMENTS);
-		for(WeakPointerVector<Element >::iterator i_neighbour_element = r_neighbour_elements.begin() ; i_neighbour_element != r_neighbour_elements.end() ; i_neighbour_element++)
+		GlobalPointersVector<Element >& r_neighbour_elements = i_node->GetValue(NEIGHBOUR_ELEMENTS);
+		for(GlobalPointersVector<Element >::iterator i_neighbour_element = r_neighbour_elements.begin() ; i_neighbour_element != r_neighbour_elements.end() ; i_neighbour_element++)
 		  {
 		    if(i_neighbour_element->GetValue(DIAMETER) < 0  )
 		      {

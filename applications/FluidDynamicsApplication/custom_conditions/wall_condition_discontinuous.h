@@ -100,7 +100,7 @@ public:
     ///@{
 
     /// Pointer definition of WallConditionDiscontinuous
-    KRATOS_CLASS_POINTER_DEFINITION(WallConditionDiscontinuous);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(WallConditionDiscontinuous);
 
     typedef Node < 3 > NodeType;
 
@@ -206,14 +206,14 @@ public:
       */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<WallConditionDiscontinuous>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<WallConditionDiscontinuous>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
 
 
     Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<WallConditionDiscontinuous>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<WallConditionDiscontinuous>(NewId, pGeom, pProperties);
     }
 
 

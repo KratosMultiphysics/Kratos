@@ -15,14 +15,12 @@
 
 
 // System includes
-#include <iostream>
 
 
 // External includes
 
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
