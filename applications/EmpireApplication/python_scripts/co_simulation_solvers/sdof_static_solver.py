@@ -59,6 +59,7 @@ class SDoFStaticSolver(CoSimulationBaseSolver):
         initial_values = self.initial_displacement
         self.dx = initial_values
         self.x_old = 0.0
+        self.b = 0.0
 
         #x contain: displacement and dx is not used here
 
@@ -76,13 +77,13 @@ class SDoFStaticSolver(CoSimulationBaseSolver):
 
     def SolveSolutionStep(self):
         # self.x_old = self.x
-        # b = self.force
-        self.x = self.force/self.stiffness
+        self.b += self.force
+        self.dx = self.force/self.stiffness
 
-        # self.x = self.dx + self.x_old
-        # self.x_old = self.x
+        self.x = self.dx + self.x_old
+        self.x_old = self.x
         # self.dx = 2
-        print('force = ', self.force)
+        print('force = ', self.b)
         print('stiffness = ', self.stiffness)
         print('displacement = ', self.x)
 
