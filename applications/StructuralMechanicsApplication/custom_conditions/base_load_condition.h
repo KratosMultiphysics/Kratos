@@ -261,30 +261,6 @@ public:
         ) override;
 
     /**
-     * @brief Get on rVariable a array_1d Value
-     * @param rVariable Internal values
-     * @param rCurrentProcessInfo The current process information
-     * @param rOutput The values of interest (array_1d)
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Calculate a array_1d Variable
-     * @param rVariable Internal values
-     * @param rCurrentProcessInfo The current process information
-     * @param rOutput The values of interest (array_1d)
-     */
-    void CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector< array_1d<double, 3 > >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning of the calculations, so to verify that nothing is missing from the input or that no common error is found.
      * @param rCurrentProcessInfo The current process info instance
