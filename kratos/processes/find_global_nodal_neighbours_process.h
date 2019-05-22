@@ -147,7 +147,7 @@ public:
                 auto& neighbours = it->GetValue(NEIGHBOUR_NODES);
                 neighbours.shrink_to_fit();
                 std::sort(neighbours.ptr_begin(), neighbours.ptr_end(),
-                          [](GlobalPointer<Node<3>>& gp1, GlobalPointer<Node<3>>& gp2)
+                          [](GlobalPointer<Node<3>> const& gp1, GlobalPointer<Node<3>> const& gp2)
                             {
                                 return gp1->Id() < gp2->Id();
                             }

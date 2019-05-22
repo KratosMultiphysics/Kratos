@@ -11,8 +11,8 @@
 //                   Pablo Becker
 //
 
-#if !defined(KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED)
-#define  KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
+#ifndef KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
+#define KRATOS_MOVE_SHALLOW_WATER_PARTICLE_UTILITY_H_INCLUDED
 
 ///@defgroup MoveShallowWaterParticleUtility
 ///@brief Utility to move particles on the eulerian mesh with an
@@ -38,6 +38,7 @@
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
 #include "utilities/math_utils.h"
+#include "includes/global_pointer_variables.h"
 #include "processes/node_erase_process.h"
 
 #include "utilities/geometry_utilities.h"
@@ -56,7 +57,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/point.h"
 
-#include "shallow_water_application.h"
+#include "shallow_water_application_variables.h"
 #include "shallow_water_particle.h"
 
 #include "utilities/openmp_utils.h"
@@ -856,25 +857,6 @@ public:
     }
 
 
-    /// AddUniqueWeakPointer
-    template< class TDataType >
-    void AddUniqueWeakPointer
-        (GlobalPointersVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
-    {
-        typename GlobalPointersVector< TDataType >::iterator i = v.begin();
-        typename GlobalPointersVector< TDataType >::iterator endit = v.end();
-        while ( i != endit && (i)->Id() != (candidate.lock())->Id())
-        {
-            i++;
-        }
-        if( i == endit )
-        {
-            v.push_back(candidate);
-        }
-
-    }
-
-
     /// Fill an element with particles
     /** This function is to be executed after moving particles and
      * before tranferring data from lagrangian particles to eulerian mesh
@@ -1474,7 +1456,7 @@ private:
             bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
             if (is_found_2)
             {
-                pElement=Element::Pointer(((neighb_elems(i))));
+                pElement = neighb_elems[i].shared_from_this();
                 return true;
             }
         }
@@ -1488,14 +1470,14 @@ private:
             //loop over the candidate elements and check if the particle falls within
             for(SizeType i = 0; i< results_found; i++)
             {
-                Geometry<Node<3> >& geom = (*(ResultBegin+i))->GetGeometry();
+                Geometry<Node<3> >& geom = (*(ResultBegin + i))->GetGeometry();
 
                 //find local position
                 bool is_found_3 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
 
                 if (is_found_3)
                 {
-                    pElement=Element::Pointer((*(ResultBegin+i)));
+                    pElement = (*(ResultBegin + i))->shared_from_this();
                     return true;
                 }
             }
@@ -1555,7 +1537,7 @@ private:
             bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],aux_N);
             if (is_found_2)
             {
-                pElement = Element::Pointer(((rElementsInTrajectory(i))));
+                pElement = rElementsInTrajectory[i].shared_from_this();
                 N = aux_N;
                 rCheckFromElementNumber = i+1 ; //now i element matches pElement, so to avoid cheching twice the same element we send the counter to the following element.
                 return true;
@@ -1570,7 +1552,7 @@ private:
             bool is_found_2 = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
             if (is_found_2)
             {
-                pElement=Element::Pointer(((neighb_elems(i))));
+                pElement = neighb_elems[i].shared_from_this();
                 if (rNumberOfElementsInTrajectory<20)
                 {
                     rElementsInTrajectory(rNumberOfElementsInTrajectory) = pElement;
@@ -1590,14 +1572,14 @@ private:
             //loop over the candidate elements and check if the particle falls within
             for(SizeType i = 0; i< results_found; i++)
             {
-                Geometry<Node<3> >& geom = (*(ResultBegin+i))->GetGeometry();
+                Geometry<Node<3> >& geom = (*(ResultBegin + i))->GetGeometry();
 
                 //find local position
                 bool is_found = CalculatePosition(geom,rPosition[0],rPosition[1],rPosition[2],N);
 
                 if (is_found)
                 {
-                    pElement=Element::Pointer((*(ResultBegin+i)));
+                    pElement = (*(ResultBegin + i))->shared_from_this();
                     if (rNumberOfElementsInTrajectory<20)
                     {
                         rElementsInTrajectory(rNumberOfElementsInTrajectory) = pElement;

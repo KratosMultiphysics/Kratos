@@ -58,6 +58,14 @@ def GetListOfAvailableApplications():
 
     return apps
 
+def IsMPIAvailable():
+    """Check if the KratosMPI module (the MPI core) is available.
+    """
+    kratos_path = GetKratosMultiphysicsPath()
+    import os
+
+    return "mpi" in os.listdir(kratos_path)
+
 def IsApplicationAvailable(application_name):
     """Returns whether an application is available
     """

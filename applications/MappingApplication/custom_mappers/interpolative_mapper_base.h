@@ -215,10 +215,11 @@ protected:
     */
     void Initialize()
     {
-        ValidateInput();
         InitializeInterfaceCommunicator();
         InitializeInterface();
     }
+
+    void ValidateInput();
 
 private:
     ///@name Member Variables
@@ -243,7 +244,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void ValidateInput();
+
 
     void InitializeInterfaceCommunicator();
 
