@@ -30,6 +30,8 @@ namespace Kratos
 		: mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)),
 		  mIsSearchStructureAllocated(true)
 	{
+
+		this->SetRayCastingTolerances();
 	}
 
 	template <std::size_t TDim>
@@ -41,6 +43,8 @@ namespace Kratos
 		  mpFindIntersectedObjectsProcess(new FindIntersectedGeometricalObjectsProcess(rVolumePart, rSkinPart)),
 		  mIsSearchStructureAllocated(true)
 	{
+
+		this->SetRayCastingTolerances();
 	}
 
 	template <std::size_t TDim>
@@ -51,6 +55,8 @@ namespace Kratos
 		  mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess),
 		  mIsSearchStructureAllocated(false)
 	{
+
+		this->SetRayCastingTolerances();
 	}
 
 	template<std::size_t TDim>
@@ -60,12 +66,19 @@ namespace Kratos
             delete mpFindIntersectedObjectsProcess;
 	}
 
+
 	template<std::size_t TDim>
-	void ApplyRayCastingProcess<TDim>::Execute()
+	void ApplyRayCastingProcess<TDim>::Initialize()
 	{
         if(mIsSearchStructureAllocated) // we have not initialized it yet
             mpFindIntersectedObjectsProcess->Initialize();
+	}
 
+	template<std::size_t TDim>
+	void ApplyRayCastingProcess<TDim>::Execute()
+	{
+        Initialize();
+        
 		this->SetRayCastingTolerances();
 
 		ModelPart& ModelPart1 = mpFindIntersectedObjectsProcess->GetModelPart1();

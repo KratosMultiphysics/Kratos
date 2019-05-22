@@ -113,6 +113,12 @@ public:
     ///@{
 
     /**
+     * @brief Initialize method
+     * This method calls the initialize of the octree if it is not given from the constructor.
+     */
+    void Initialize();
+
+    /**
      * @brief Computes the raycasting distance for a node
      * This method computes the raycasting distance for a given node. It casts a ray
      * in the x and y (as well as z in 3D) directions and computes the distance from
