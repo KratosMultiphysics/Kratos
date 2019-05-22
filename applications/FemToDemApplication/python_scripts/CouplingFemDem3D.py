@@ -123,7 +123,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			extend_wet_nodes_process = KratosFemDem.ExpandWetNodesProcess(self.FEM_Solution.main_model_part)
 			extend_wet_nodes_process.Execute()
 
-		self.GenerateDEM()            # we create the new DEM of this time step
+		if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]:
+			self.GenerateDEM() # we create the new DEM of this time step
 
 		if self.PressureLoad:
 			# we reconstruct the pressure load if necessary
@@ -134,7 +135,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 
 		self.SpheresModelPart = self.ParticleCreatorDestructor.GetSpheresModelPart()
-		self.CheckForPossibleIndentations()
+		if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]:
+			self.CheckForPossibleIndentations()
 
 		self.UpdateDEMVariables()     # We update coordinates, displ and velocities of the DEM according to FEM
 
@@ -177,18 +179,18 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		# Loop Over Elements to find the INACTIVE ones and generate the DEM only once
 		for Element in FEM_elements:
 			is_active     = True
-			DEM_Generated = Element.GetValue(KratosFemDem.DEM_GENERATED)
+			dem_generated = Element.GetValue(KratosFemDem.DEM_GENERATED)
 
 			if Element.IsDefined(KratosMultiphysics.ACTIVE):
 				is_active = Element.Is(KratosMultiphysics.ACTIVE)
 
-			NumberOfDEM = 0         # Number of nodes with DEM Associated
+			number_of_dem = 0         # Number of nodes with DEM Associated
 			for node in range(0, self.number_of_nodes_element): # Loop over nodes of the FE
 				Node = Element.GetNodes()[node]
 				if Node.GetValue(KratosFemDem.IS_DEM) == True:
-					NumberOfDEM += 1
+					number_of_dem += 1
 
-			if is_active == False and DEM_Generated == False: # Let's generate the remaining DEM of this FE
+			if is_active == False and dem_generated == False: # Let's generate the remaining DEM of this FE
 
 				# print("elemento eliminado: " , Element.Id)
 				dist01  = self.CalculateDistanceBetweenNodes(Element.GetNodes()[0], Element.GetNodes()[1])
@@ -199,7 +201,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 				dist23  = self.CalculateDistanceBetweenNodes(Element.GetNodes()[2], Element.GetNodes()[3])
 
 				# --------------------- 1ST SCENARIO -----------------------------
-				if NumberOfDEM == 0: # we must create 4 DEM
+				if number_of_dem == 0: # we must create 4 DEM
 
 					# Look to the Node 1 ---------------------------------------------
 					Radius1 = self.GetMinimumValue3(dist01, dist02, dist03) * 0.5
@@ -238,7 +240,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					Element.SetValue(KratosFemDem.DEM_GENERATED, True)
 					Element.Set(KratosMultiphysics.TO_ERASE, True)
 				# --------------------- 2ND SCENARIO -----------------------------
-				elif NumberOfDEM == 3: # we must create 1 DEM
+				elif number_of_dem == 3: # we must create 1 DEM
 
 					localId = 0 # Local Id of the node without DEM
 					for index in range(0, 4):
@@ -290,7 +292,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					Element.Set(KratosMultiphysics.TO_ERASE, True)
 
 				# --------------------- 3RD SCENARIO -----------------------------
-				elif NumberOfDEM == 1: # we must create 3 DEM
+				elif number_of_dem == 1: # we must create 3 DEM
 
 					localId = 0 # Local Id of the node with DEM
 					for index in range(0, 4):
@@ -401,15 +403,15 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					Element.Set(KratosMultiphysics.TO_ERASE, True)
 
 				# --------------------- 4RD SCENARIO -----------------------------
-				elif NumberOfDEM == 2: # we must create 2 DEM
+				elif number_of_dem == 2: # we must create 2 DEM
 
-					NodesWithDEMId = []
+					nodes_with_dem_id = []
 
 					for index in range(0,4):
 						if Element.GetNodes()[index].GetValue(KratosFemDem.IS_DEM) == True:
-							NodesWithDEMId.append(index)
+							nodes_with_dem_id.append(index)
 
-					if NodesWithDEMId[0] == 0 and NodesWithDEMId[1] == 1: # edge 0-1
+					if nodes_with_dem_id[0] == 0 and nodes_with_dem_id[1] == 1: # edge 0-1
 
 						# Radius of existing DEM
 						R0 = Element.GetNodes()[0].GetValue(KratosMultiphysics.RADIUS)
@@ -433,7 +435,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Element.GetNodes()[3].SetValue(KratosFemDem.IS_DEM, True)        # Has an asociated DEM now
 						Element.GetNodes()[3].SetValue(KratosMultiphysics.RADIUS, R3)
 
-					elif NodesWithDEMId[0] == 0 and NodesWithDEMId[1] == 2: # edge 0-2
+					elif nodes_with_dem_id[0] == 0 and nodes_with_dem_id[1] == 2: # edge 0-2
 
 						# Radius of existing DEM
 						R0 = Element.GetNodes()[0].GetValue(KratosMultiphysics.RADIUS)
@@ -457,7 +459,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Element.GetNodes()[3].SetValue(KratosFemDem.IS_DEM, True)        # Has an asociated DEM now
 						Element.GetNodes()[3].SetValue(KratosMultiphysics.RADIUS, R3)
 
-					elif NodesWithDEMId[0] == 0 and NodesWithDEMId[1] == 3: # edge 0-3
+					elif nodes_with_dem_id[0] == 0 and nodes_with_dem_id[1] == 3: # edge 0-3
 
 						# Radius of existing DEM
 						R0 = Element.GetNodes()[0].GetValue(KratosMultiphysics.RADIUS)
@@ -481,7 +483,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Element.GetNodes()[2].SetValue(KratosFemDem.IS_DEM, True)        # Has an asociated DEM now
 						Element.GetNodes()[2].SetValue(KratosMultiphysics.RADIUS, R2)
 
-					elif NodesWithDEMId[0] == 1 and NodesWithDEMId[1] == 3: # edge 1-3
+					elif nodes_with_dem_id[0] == 1 and nodes_with_dem_id[1] == 3: # edge 1-3
 
 						# Radius of existing DEM
 						R1 = Element.GetNodes()[1].GetValue(KratosMultiphysics.RADIUS)
@@ -505,7 +507,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Element.GetNodes()[2].SetValue(KratosFemDem.IS_DEM, True)        # Has an asociated DEM now
 						Element.GetNodes()[2].SetValue(KratosMultiphysics.RADIUS, R2)
 
-					elif NodesWithDEMId[0] == 2 and NodesWithDEMId[1] == 3: # edge 2-3
+					elif nodes_with_dem_id[0] == 2 and nodes_with_dem_id[1] == 3: # edge 2-3
 
 						# Radius of existing DEM
 						R2 = Element.GetNodes()[2].GetValue(KratosMultiphysics.RADIUS)
@@ -528,7 +530,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Element.GetNodes()[1].SetValue(KratosFemDem.IS_DEM, True)        # Has an asociated DEM now
 						Element.GetNodes()[1].SetValue(KratosMultiphysics.RADIUS, R1)
 
-					elif NodesWithDEMId[0] == 1 and NodesWithDEMId[1] == 2: # edge 1-2
+					elif nodes_with_dem_id[0] == 1 and nodes_with_dem_id[1] == 2: # edge 1-2
 
 						# Radius of existing DEM
 						R1 = Element.GetNodes()[1].GetValue(KratosMultiphysics.RADIUS)
@@ -556,7 +558,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					Element.Set(KratosMultiphysics.TO_ERASE, True)
 
 				# --------------------- 5RD SCENARIO -----------------------------
-				elif NumberOfDEM == 4: # we avoid posible indentations
+				elif number_of_dem == 4: # we avoid posible indentations
 
 					R0  = Element.GetNodes()[0].GetValue(KratosMultiphysics.RADIUS)
 					R1  = Element.GetNodes()[1].GetValue(KratosMultiphysics.RADIUS)
@@ -636,7 +638,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					raise Exception("Error in generating the dem...")
 
 			# Case with all the DEM generated by the surrounding Elems
-			elif is_active == False and DEM_Generated == True:
+			elif is_active == False and dem_generated == True:
 				Element.Set(KratosMultiphysics.TO_ERASE, True)
 
 		self.RemoveAloneDEMElements()
@@ -672,28 +674,31 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		FEM_elements = self.FEM_Solution.main_model_part.Elements
 
+		# We reset the flag
+		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = False
+
 		for Element in FEM_elements:
 
 			is_active     = True
-			DEM_Generated = Element.GetValue(KratosFemDem.DEM_GENERATED)
+			dem_generated = Element.GetValue(KratosFemDem.DEM_GENERATED)
 
 			if Element.IsDefined(KratosMultiphysics.ACTIVE):
 				is_active = Element.Is(KratosMultiphysics.ACTIVE)
 
-			NumberOfDEM = 0              # Number of nodes with DEM Associated
-			NodesWithDEMLocalId = []     # Local Id of the nodes with DEM
+			number_of_dem = 0              # Number of nodes with DEM Associated
+			nodes_with_dem_local_id = []     # Local Id of the nodes with DEM
 			Radius = []
 			Ids = []
 
 			for index in range(0, 4): # Loop over nodes of the FE
 				Node = Element.GetNodes()[index]
 				if Node.GetValue(KratosFemDem.IS_DEM) == True:
-					NumberOfDEM += 1
-					NodesWithDEMLocalId.append(index)
+					number_of_dem += 1
+					nodes_with_dem_local_id.append(index)
 					Radius.append(Node.GetValue(KratosMultiphysics.RADIUS))
 					Ids.append(Node.Id)
 
-			if NumberOfDEM > 1 and is_active == True and DEM_Generated == False:  # Case in which the DEM have been generated by its neighbours
+			if number_of_dem > 1 and is_active == True and dem_generated == False:  # Case in which the DEM have been generated by its neighbours
 
 				dist01  = self.CalculateDistanceBetweenNodes(Element.GetNodes()[0], Element.GetNodes()[1])
 				dist02  = self.CalculateDistanceBetweenNodes(Element.GetNodes()[0], Element.GetNodes()[2])
@@ -707,7 +712,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 							[dist02, dist12, 0, dist23],
 							[dist03, dist13, dist23, 0]]
 
-				for index in range(2, NumberOfDEM + 1):
+				for index in range(2, number_of_dem + 1):
 
 					R1 = Radius[index - 2]
 					R2 = Radius[index - 1]
@@ -715,8 +720,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					Id1 = Ids[index - 2]
 					Id2 = Ids[index - 1]
 
-					LocalId1 = NodesWithDEMLocalId[index - 2]
-					LocalId2 = NodesWithDEMLocalId[index - 1]
+					LocalId1 = nodes_with_dem_local_id[index - 2]
+					LocalId2 = nodes_with_dem_local_id[index - 1]
 
 					Distance = Distances[LocalId1][LocalId2]
 
@@ -730,7 +735,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Element.GetNodes()[LocalId2].SetValue(KratosMultiphysics.RADIUS, R2)
 
 
-					if NumberOfDEM >= 3 and index == 3: # we add a connection
+					if number_of_dem >= 3 and index == 3: # we add a connection
 
 						R1 = Radius[index - 3]
 						R2 = Radius[index - 1]
@@ -738,8 +743,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Id1 = Ids[index - 3]
 						Id2 = Ids[index - 1]
 
-						LocalId1 = NodesWithDEMLocalId[index - 3]
-						LocalId2 = NodesWithDEMLocalId[index - 1]
+						LocalId1 = nodes_with_dem_local_id[index - 3]
+						LocalId2 = nodes_with_dem_local_id[index - 1]
 
 						Distance = Distances[LocalId1][LocalId2]
 
@@ -752,7 +757,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 							Element.GetNodes()[LocalId1].SetValue(KratosMultiphysics.RADIUS, R1)
 							Element.GetNodes()[LocalId2].SetValue(KratosMultiphysics.RADIUS, R2)
 
-					if NumberOfDEM == 4 and index == 4: # we add a connection
+					if number_of_dem == 4 and index == 4: # we add a connection
 
 						R1 = Radius[index - 3]
 						R2 = Radius[index - 1]
@@ -760,8 +765,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Id1 = Ids[index - 3]
 						Id2 = Ids[index - 1]
 
-						LocalId1 = NodesWithDEMLocalId[index - 3]
-						LocalId2 = NodesWithDEMLocalId[index - 1]
+						LocalId1 = nodes_with_dem_local_id[index - 3]
+						LocalId2 = nodes_with_dem_local_id[index - 1]
 
 						Distance = Distances[LocalId1][LocalId2]
 
