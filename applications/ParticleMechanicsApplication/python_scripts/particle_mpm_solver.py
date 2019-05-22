@@ -286,6 +286,9 @@ class ParticleMPMSolver(PythonSolver):
     def _add_variables_to_model_part(self, model_part):
         # Add displacements
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)
+
+        model_part.AddNodalSolutionStepVariable(KratosParticle.WEIGHTED_VECTOR_RESIDUAL)
 
         # Add dynamic variables
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
@@ -375,6 +378,10 @@ class ParticleMPMSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X,KratosParticle.WEIGHTED_VECTOR_RESIDUAL_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y,KratosParticle.WEIGHTED_VECTOR_RESIDUAL_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z,KratosParticle.WEIGHTED_VECTOR_RESIDUAL_Z, model_part)
 
         if self.settings["pressure_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosParticle.PRESSURE_REACTION, model_part)
