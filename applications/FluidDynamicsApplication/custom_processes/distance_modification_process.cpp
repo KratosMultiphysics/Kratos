@@ -444,7 +444,7 @@ void DistanceModificationProcess::DeactivateFullNegativeElements() {
     // Set to zero and fix the DOFs in the remaining inactive nodes
     #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node){
-        auto it_node = rNodes.begin() + i_node;
+        ModelPart::NodesContainerType::iterator it_node = rNodes.begin() + i_node;
         if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
             // Fix the nodal DOFs
             it_node->Fix(PRESSURE);
@@ -454,10 +454,6 @@ void DistanceModificationProcess::DeactivateFullNegativeElements() {
             // Set to zero the nodal DOFs
             it_node->FastGetSolutionStepValue(PRESSURE) = 0.0;
             it_node->FastGetSolutionStepValue(VELOCITY) = ZeroVector(3);
-            // for (std::size_t step = 0; step < mrModelPart.GetBufferSize(); ++step) {
-            //     it_node->FastGetSolutionStepValue(PRESSURE, step) = 0.0;
-            //     it_node->FastGetSolutionStepValue(VELOCITY, step) = ZeroVector(3);
-            // }
         }
     }
 }
