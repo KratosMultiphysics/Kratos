@@ -73,22 +73,33 @@ public:
     ///@{
 
     /**
-     * @brief Construct a new Constant Relaxation Convergence Accelerator object
-     * Constructor with json string settings
-     * @param rConvAcceleratorParameters json string encapsulating the settings
+     * @brief Get the Default Settings object
+     * This method returns the default parameters for this convergence accelerator.
+     * Note that it is required to be static since it is called during
+     * the construction of the object so no instantation exists yet.
+     * @return Parameters Default parameters json string
      */
-    ConstantRelaxationConvergenceAccelerator(Parameters& rConvAcceleratorParameters)
+    static Parameters GetDefaultSettings()
     {
-        Parameters default_parameters(R"(
+        Parameters default_settings(R"(
         {
             "solver_type": "constant_relaxation",
             "w": 0.5
         }
         )");
 
-        rConvAcceleratorParameters.ValidateAndAssignDefaults(default_parameters);
+        return default_settings;
+    }
 
-        mOmega = rConvAcceleratorParameters["w"].GetDouble();
+    /**
+     * @brief Construct a new Constant Relaxation Convergence Accelerator object
+     * Constructor with json string settings
+     * @param rConvAcceleratorParameters json string encapsulating the settings
+     */
+    ConstantRelaxationConvergenceAccelerator(Parameters &rConvAcceleratorParameters)
+    : BaseType(),
+      mOmega([] (Parameters x) -> double {x.ValidateAndAssignDefaults(GetDefaultSettings()); return x["w"].GetDouble();} (rConvAcceleratorParameters))
+    {
     }
 
     /**
@@ -96,9 +107,10 @@ public:
      * Constructor with given relaxation factor
      * @param rOmega relaxation factor
      */
-    ConstantRelaxationConvergenceAccelerator(double rOmega = 0.5)
+    ConstantRelaxationConvergenceAccelerator(const double rOmega = 0.5)
+    : BaseType(),
+      mOmega(rOmega)
     {
-        mOmega = rOmega;
     }
 
     /**
@@ -106,7 +118,7 @@ public:
      * Explicitly deleted constant relaxation copy constructor
      * @param rOther constant relaxation convergence accelerator to be copied
      */
-    ConstantRelaxationConvergenceAccelerator(const ConstantRelaxationConvergenceAccelerator& rOther) = delete;
+    ConstantRelaxationConvergenceAccelerator(const ConstantRelaxationConvergenceAccelerator &rOther) = delete;
 
     /**
      * @brief Destroy the Constant Relaxation Convergence Accelerator object
@@ -131,8 +143,8 @@ public:
      * @param rResidualVector: Residual vector from the residual evaluation
      * @param rIterationGuess: Current iteration guess
      */
-    void UpdateSolution(const VectorType& rResidualVector,
-                        VectorType& rIterationGuess) override
+    void UpdateSolution(const VectorType &rResidualVector,
+                        VectorType &rIterationGuess) override
     {
         KRATOS_TRY;
 
@@ -158,37 +170,6 @@ public:
     ///@{
 
     ///@}
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    double mOmega;
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 private:
     ///@name Static Member Variables
     ///@{
@@ -196,6 +177,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    const double mOmega;
 
     ///@}
     ///@name Private Operators
