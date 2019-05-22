@@ -800,7 +800,7 @@ private:
         for (IndexType i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove) {
             if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
                 for (auto& id : geometrical_objects_to_erase ) {
-                    auto p_cond = r_root_model_part.pGetElement(id);
+                    auto p_cond = r_root_model_part.pGetCondition(id);
                     p_cond->Set(TO_ERASE, true);
                 }
             } else {
