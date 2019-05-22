@@ -1,10 +1,9 @@
-from KratosMultiphysics.CoSimulationApplication.co_simulation_component import CoSimulationComponent
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 cs_data_structure = cs_tools.cs_data_structure
 
 
 # Class CoSimulationInterface: Holds the different ModelParts of the interface.
-class CoSimulationInterface(CoSimulationComponent):
+class CoSimulationInterface(object):
     def __init__(self, model_parts):
         super().__init__()
 

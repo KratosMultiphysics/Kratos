@@ -54,18 +54,21 @@ class SolverInterfacePipeFlow(CoSimulationComponent):
         self.a = np.ones(self.m + 2) * m.pi * self.d ** 2 / 4.0  # Area of cross section
         self.an = np.ones(self.m + 2) * m.pi * self.d ** 2 / 4.0  # Previous area of cross section
 
-        # ModelPart of interface
+        # ModelParts
         self.model = cs_data_structure.Model()
-        self.model_part = self.model = self.model.CreateModelPart("pipe_flow")
+        self.model_part_in = self.model.CreateModelPart("pipe_flow_in")
         self.variable_disp = cs_data_structure.VariableDouble("DISPLACEMENT_Y")
-        self.model_part.AddNodalSolutionStepVariable(self.variable_disp)
+        self.model_part_in.AddNodalSolutionStepVariable(self.variable_disp)
+        self.model_part_out = self.model.CreateModelPart("pipe_flow_out")
         self.variable_pres = cs_data_structure.VariableDouble("PRESSURE")
-        self.model_part.AddNodalSolutionStepVariable(self.variable_pres)
+        self.model_part_out.AddNodalSolutionStepVariable(self.variable_pres)
         for i in range(len(self.z)):
-            self.model_part.CreateNewNode(i, 0.0, 0.0, self.z[i])
+            self.model_part_in.CreateNewNode(i, 0.0, 0.0, self.z[i])
+            self.model_part_out.CreateNewNode(i, 0.0, 0.0, self.z[i])
 
-        # Interface
-        self.interface = CoSimulationInterface([self.model_part])
+        # Interfaces
+        self.interface_in = CoSimulationInterface([self.model_part_in])
+        self.interface_out = CoSimulationInterface([self.model_part_out])
 
     def Initialize(self):
         super().Initialize()
@@ -115,10 +118,16 @@ class SolverInterfacePipeFlow(CoSimulationComponent):
     def Finalize(self):
         super().Finalize()
 
-    def GetInterface(self):
-        return self.interface
+    def GetInterfaceIn(self):
+        return self.interface_in
 
-    def SetInterface(self):
+    def SetInterfaceIn(self):
+        Exception("This solver interface provides no mapping.")
+
+    def GetInterfaceOut(self):
+        return self.interface_out
+
+    def SetInterfaceOut(self):
         Exception("This solver interface provides no mapping.")
 
     def GetBoundary(self):

@@ -25,11 +25,11 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
         self._solver_interfaces.append(cs_tools.CreateInstance(self.parameters["solver_interfaces"][0]))
         self._solver_interfaces.append(cs_tools.CreateInstance(self.parameters["solver_interfaces"][1]))
 
-        self.master_solver_interface = self.settings["master_solver_interface"].GetInt()
-        self._interface = self._solver_interfaces[self.master_solver_interface].GetInterface()
-
         self._components = {self._predictor, self._convergence_accelerator, self._convergence_criterion,
-                            self._solver_interfaces[0], self._solver_interfaces[1], self._interface}
+                            self._solver_interfaces[0], self._solver_interfaces[1]}
+
+        self.master_solver_interface = self.settings["master_solver_interface"].GetInt()
+        self.x = self._solver_interfaces[self.master_solver_interface].GetInterfaceIn()
 
     def Initialize(self):
         super().Initialize()
@@ -51,18 +51,16 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
 
     def SolveSolutionStep(self):
         # Coupling iteration loop
-        r = 0
-        x = 0
         for k in range(0, self.num_coupling_iterations):
-            if k == 1:
-                x = self._predictor.Predict()
+            if k == 0:
+                self.x = self._predictor.Predict()
             else:
-                dx = self._convergence_accelerator.Predict(r)
-                x += dx
-            y = self._solver_interfaces[0].Calculate(x)
+                dx = self._convergence_accelerator.Predict(self.r)
+                self.x += dx
+            y = self._solver_interfaces[0].Calculate(self.x)
             xt = self._solver_interfaces[1].Calculate(y)
-            r = xt - x
-            self._convergence_accelerator.Update(x, xt)
+            r = xt - self.x
+            self._convergence_accelerator.Update(self.x, xt)
 
             self._convergence_criterion.Add(r)
             if self._convergence_criterion.IsSatisfied():
