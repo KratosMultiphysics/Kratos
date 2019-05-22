@@ -17,6 +17,7 @@
 
 // Project includes
 #include "processes/voxel_mesh_generator_process.h"
+#include "processes/apply_ray_casting_process.h"
 #include "geometries/geometry.h"
 #include "geometries/point.h"
 #include "geometries/triangle_2d_3.h"
@@ -52,7 +53,10 @@ namespace Kratos
                 "elements_properties_id":0,
                 "conditions_properties_id":0,
                 "element_name": "PLEASE SPECIFY IT",
-                "condition_name": "PLEASE SPECIFY IT"
+                "condition_name": "PLEASE SPECIFY IT",
+				"inside_color": -1,
+				"outside_color": 1,
+				"apply_outside_color": true
             }  )");
 
 		TheParameters["element_name"]; // Should be given by caller! if not thorws an error
@@ -71,7 +75,9 @@ namespace Kratos
 		mElementName = TheParameters["element_name"].GetString();
 		mConditionName = TheParameters["condition_name"].GetString();
         mCreateSkinSubModelPart = TheParameters["create_skin_sub_model_part"].GetBool();
-
+		mInsideColor = TheParameters["inside_color"].GetDouble();
+        mOutsideColor = TheParameters["outside_color"].GetDouble();
+		mApplyOutsideColor = TheParameters["apply_outside_color"].GetBool();
         mCellSizes = mMaxPoint - mMinPoint;
         for(int i = 0 ; i < 3 ; i++)
             mCellSizes[i] /= mNumberOfDivisions[i];
@@ -88,13 +94,12 @@ namespace Kratos
 		// Initialize the intersected objects process
 		mFindIntersectedObjectsProcess.Initialize();
 
-		// Reset the nodal distance values
-		const double initial_distance = 1.0;
-
-		#pragma omp parallel for
-		for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfNodes()); ++k) {
-			ModelPart::NodesContainerType::iterator itNode = mrVolumePart.NodesBegin() + k;
-			itNode->GetSolutionStepValue(DISTANCE) = initial_distance;
+		if(mApplyOutsideColor){
+			#pragma omp parallel for
+			for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfNodes()); ++k) {
+				ModelPart::NodesContainerType::iterator itNode = mrVolumePart.NodesBegin() + k;
+				itNode->GetSolutionStepValue(DISTANCE) = mOutsideColor;
+			}
 		}
 
 	}
@@ -203,6 +208,8 @@ namespace Kratos
 	void VoxelMeshGeneratorProcess::CalculateRayDistances()
 	{
         const auto nodes_begin = mrVolumePart.NodesBegin();
+		ApplyRayCastingProcess<3> ray_casting_process(mrVolumePart, mrSkinPart);
+		ray_casting_process.Initialize();
 
         #pragma omp parallel for
 		for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
@@ -218,14 +225,12 @@ namespace Kratos
                         previous_cell_was_empty = true;
                     }
                     else{
-                        const double ray_distance = this->DistancePositionInSpace(r_node);
-                        if (ray_distance * node_distance < 0.0) {
-                            node_distance = -node_distance;
+                        const double ray_distance = ray_casting_process.DistancePositionInSpace(r_node);
+                        if (ray_distance < 0.0) {
+                            node_distance = mInsideColor;
+							previous_cell_color = mInsideColor;
                         }
-                        if(ray_distance*previous_cell_color < 0.00){
-                            previous_cell_color = -previous_cell_color;     
-                        }
-                        if(mCellIsEmpty[index]){
+                       if(mCellIsEmpty[index]){
                             previous_cell_was_empty = true;
                         }
                         else {

@@ -155,6 +155,10 @@ namespace Kratos
 
           const double mExtraRaysEpsilon = 1.0e-8;
 
+          double mInsideColor;
+          double mOutsideColor;
+          bool mApplyOutsideColor;
+
 
       ///@}
       ///@name Private Operations
