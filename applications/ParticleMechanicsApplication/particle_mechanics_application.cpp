@@ -85,6 +85,10 @@ namespace Kratos
         mMPMParticlePenaltyDirichletCondition2D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
         mMPMParticlePenaltyDirichletCondition3D4N( 0, Condition::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
         mMPMParticlePenaltyDirichletCondition3D8N( 0, Condition::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) ),
+        mMPMParticleLagrangeDirichletCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+        mMPMParticleLagrangeDirichletCondition2D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+        mMPMParticleLagrangeDirichletCondition3D4N( 0, Condition::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+        mMPMParticleLagrangeDirichletCondition3D8N( 0, Condition::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) ),
         mMPMParticlePointLoadCondition2D3N(0, Condition::GeometryType::Pointer(new Triangle2D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
         mMPMParticlePointLoadCondition3D4N(0, Condition::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Condition::GeometryType::PointsArrayType(4)))),
         mMPMParticlePointLoadCondition2D4N(0, Condition::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Condition::GeometryType::PointsArrayType(4)))),
@@ -126,6 +130,10 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition2D4N", mMPMParticlePenaltyDirichletCondition2D4N)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition3D4N", mMPMParticlePenaltyDirichletCondition3D4N)
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition3D8N", mMPMParticlePenaltyDirichletCondition3D8N)
+        KRATOS_REGISTER_CONDITION( "MPMParticleLagrangeDirichletCondition2D3N", mMPMParticleLagrangeDirichletCondition2D3N)
+        KRATOS_REGISTER_CONDITION( "MPMParticleLagrangeDirichletCondition2D4N", mMPMParticleLagrangeDirichletCondition2D4N)
+        KRATOS_REGISTER_CONDITION( "MPMParticleLagrangeDirichletCondition3D4N", mMPMParticleLagrangeDirichletCondition3D4N)
+        KRATOS_REGISTER_CONDITION( "MPMParticleLagrangeDirichletCondition3D8N", mMPMParticleLagrangeDirichletCondition3D8N)
         KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition2D3N", mMPMParticlePointLoadCondition2D3N )
         KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition3D4N", mMPMParticlePointLoadCondition3D4N )
         KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition2D4N", mMPMParticlePointLoadCondition2D4N )
@@ -187,12 +195,17 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_COORD )
         KRATOS_REGISTER_VARIABLE( MPC_CONDITION_ID )
         KRATOS_REGISTER_VARIABLE( MPC_IS_NEUMANN )
+        KRATOS_REGISTER_VARIABLE( MPC_IS_PENALTY )
         KRATOS_REGISTER_VARIABLE( MPC_AREA )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_NORMAL )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_DISPLACEMENT )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_VELOCITY )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_ACCELERATION )
         KRATOS_REGISTER_VARIABLE( PARTICLES_PER_CONDITION )
+
+        // Lagrange
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL )           // The integrated vector residual
+
 
         // Registering grid node variable
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_MOMENTUM )
