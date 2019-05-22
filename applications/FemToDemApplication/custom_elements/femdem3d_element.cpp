@@ -97,9 +97,10 @@ FemDem3DElement::~FemDem3DElement()
 
 void FemDem3DElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 {
-	if (rCurrentProcessInfo[RECOMPUTE_NEIGHBOURS]) 
+	if (rCurrentProcessInfo[RECOMPUTE_NEIGHBOURS]) {
 		this->ComputeEdgeNeighbours(rCurrentProcessInfo);
-		rCurrentProcessInfo[RECOMPUTE_NEIGHBOURS] = false;
+	}
+
 	this->InitializeInternalVariablesAfterMapping();
 }
 

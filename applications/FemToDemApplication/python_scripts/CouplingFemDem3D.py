@@ -58,6 +58,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		# Just to find neighbours the 1st time
 		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = True
+		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECOMPUTE_NEIGHBOURS] = True
 
 		KratosMultiphysics.Logger.PrintInfo(" /$$$$$$$$ /$$$$$$$$ /$$      /$$  /$$$$$$  /$$$$$$$  /$$$$$$$$ /$$      /$$")
 		KratosMultiphysics.Logger.PrintInfo("| $$_____/| $$_____/| $$$    /$$$ /$$__  $$| $$__  $$| $$_____/| $$$    /$$$")
