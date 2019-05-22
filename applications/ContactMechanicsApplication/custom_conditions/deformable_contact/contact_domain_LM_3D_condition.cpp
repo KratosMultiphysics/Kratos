@@ -482,7 +482,7 @@ namespace Kratos
     noalias(F) = ZeroMatrix(3,3);
 
     //a.- Assign initial 2nd Piola Kirchhoff stress:
-    Condition* MasterCondition = GetValue(MASTER_CONDITION).lock().get();
+    Condition* MasterCondition = GetValue(MASTER_CONDITION).get();
 
     //Get previous mechanics stored in the master node/condition
     Vector StressVector;
@@ -670,7 +670,7 @@ namespace Kratos
     noalias(F) = ZeroMatrix(3,3);
 
     //a.- Assign initial 2nd Piola Kirchhoff stress:
-    Condition* MasterCondition = GetValue(MASTER_CONDITION).lock().get();
+    Condition* MasterCondition = GetValue(MASTER_CONDITION).get();
 
     //Get previous mechanics stored in the master node/condition
     Vector StressVector;

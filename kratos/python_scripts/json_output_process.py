@@ -72,6 +72,9 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         else:
             self.sub_model_part = self.model.GetModelPart(model_part_name)
 
+        if self.sub_model_part.GetCommunicator().TotalProcesses() > 1: # mpi-execution
+            raise Exception("This process cannot be used for writing output in MPI!")
+
         # If we consider any flag
         flag_name = self.params["check_for_flag"].GetString()
         if flag_name != "":

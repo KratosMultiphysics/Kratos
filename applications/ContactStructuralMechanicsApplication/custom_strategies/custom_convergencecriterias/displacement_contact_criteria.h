@@ -64,6 +64,10 @@ public:
     /// Pointer definition of DisplacementContactCriteria
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementContactCriteria );
 
+    /// Local Flags
+    KRATOS_DEFINE_LOCAL_FLAG( PRINTING_OUTPUT );
+    KRATOS_DEFINE_LOCAL_FLAG( TABLE_IS_INITIALIZED );
+
     /// The base class definition (and it subclasses)
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
     typedef typename BaseType::TDataType                    TDataType;
@@ -99,10 +103,12 @@ public:
         const TDataType DispAbsTolerance,
         const bool PrintingOutput = false
         )
-        : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
-        mPrintingOutput(PrintingOutput),
-        mTableIsInitialized(false)
+        : BaseType()
     {
+        // Set local flags
+        mOptions.Set(DisplacementContactCriteria::PRINTING_OUTPUT, PrintingOutput);
+        mOptions.Set(DisplacementContactCriteria::TABLE_IS_INITIALIZED, false);
+
         // The displacement solution
         mDispRatioTolerance = DispRatioTolerance;
         mDispAbsTolerance = DispAbsTolerance;
@@ -113,8 +119,7 @@ public:
      * @param ThisParameters The configuration parameters
      */
     explicit DisplacementContactCriteria( Parameters ThisParameters = Parameters(R"({})"))
-        : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
-          mTableIsInitialized(false)
+        : BaseType()
     {
         // The default parameters
         Parameters default_parameters = Parameters(R"(
@@ -131,17 +136,17 @@ public:
         mDispRatioTolerance = ThisParameters["displacement_relative_tolerance"].GetDouble();
         mDispAbsTolerance = ThisParameters["displacement_absolute_tolerance"].GetDouble();
 
-        // Additional flags -> NOTE: Replace for a real flag?¿
-        mPrintingOutput = ThisParameters["print_convergence_criterion"].GetBool();
+        // Set local flags
+        mOptions.Set(DisplacementContactCriteria::PRINTING_OUTPUT, ThisParameters["print_convergence_criterion"].GetBool());
+        mOptions.Set(DisplacementContactCriteria::TABLE_IS_INITIALIZED, false);
     }
 
     // Copy constructor.
     DisplacementContactCriteria( DisplacementContactCriteria const& rOther )
       :BaseType(rOther)
+      ,mOptions(rOther.mOptions)
       ,mDispRatioTolerance(rOther.mDispRatioTolerance)
       ,mDispAbsTolerance(rOther.mDispAbsTolerance)
-      ,mPrintingOutput(rOther.mPrintingOutput)
-      ,mTableIsInitialized(rOther.mTableIsInitialized)
     {
     }
 
@@ -174,13 +179,17 @@ public:
             TDataType disp_solution_norm = 0.0, disp_increase_norm = 0.0;
             IndexType disp_dof_num(0);
 
-            // Loop over Dofs
-            #pragma omp parallel for reduction(+:disp_solution_norm,disp_increase_norm,disp_dof_num)
-            for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
-                auto it_dof = rDofSet.begin() + i;
+            // First iterator
+            const auto it_dof_begin = rDofSet.begin();
 
-                std::size_t dof_id;
-                TDataType dof_value, dof_incr;
+            // Auxiliar values
+            std::size_t dof_id = 0;
+            TDataType dof_value = 0.0, dof_incr = 0.0;
+
+            // Loop over Dofs
+            #pragma omp parallel for reduction(+:disp_solution_norm,disp_increase_norm,disp_dof_num,dof_id,dof_value,dof_incr)
+            for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
+                auto it_dof = it_dof_begin + i;
 
                 if (it_dof->IsFree()) {
                     dof_id = it_dof->EquationId();
@@ -213,7 +222,7 @@ public:
                     Table  << disp_ratio  << mDispRatioTolerance  << disp_abs  << mDispAbsTolerance;
                 } else {
                     std::cout.precision(4);
-                    if (mPrintingOutput == false) {
+                    if (mOptions.IsNot(DisplacementContactCriteria::PRINTING_OUTPUT)) {
                         KRATOS_INFO("DisplacementContactCriteria") << BOLDFONT("DoF ONVERGENCE CHECK") << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl;
                         KRATOS_INFO("DisplacementContactCriteria") << BOLDFONT("\tDISPLACEMENT: RATIO = ") << disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
                     } else {
@@ -231,12 +240,12 @@ public:
                     if (r_process_info.Has(TABLE_UTILITY)) {
                         TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
                         auto& table = p_table->GetTable();
-                        if (mPrintingOutput == false)
+                        if (mOptions.IsNot(DisplacementContactCriteria::PRINTING_OUTPUT))
                             table << BOLDFONT(FGRN("       Achieved"));
                         else
                             table << "Achieved";
                     } else {
-                        if (mPrintingOutput == false)
+                        if (mOptions.IsNot(DisplacementContactCriteria::PRINTING_OUTPUT))
                             KRATOS_INFO("DisplacementContactCriteria") << BOLDFONT("\tDoF") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
                         else
                             KRATOS_INFO("DisplacementContactCriteria") << "\tDoF convergence is achieved" << std::endl;
@@ -248,12 +257,12 @@ public:
                     if (r_process_info.Has(TABLE_UTILITY)) {
                         TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
                         auto& table = p_table->GetTable();
-                        if (mPrintingOutput == false)
+                        if (mOptions.IsNot(DisplacementContactCriteria::PRINTING_OUTPUT))
                             table << BOLDFONT(FRED("   Not achieved"));
                         else
                             table << "Not achieved";
                     } else {
-                        if (mPrintingOutput == false)
+                        if (mOptions.IsNot(DisplacementContactCriteria::PRINTING_OUTPUT))
                             KRATOS_INFO("DisplacementContactCriteria") << BOLDFONT("\tDoF") << " convergence is " << BOLDFONT(FRED(" not achieved")) << std::endl;
                         else
                             KRATOS_INFO("DisplacementContactCriteria") << "\tDoF convergence is not achieved" << std::endl;
@@ -275,7 +284,7 @@ public:
         BaseType::mConvergenceCriteriaIsInitialized = true;
 
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-        if (r_process_info.Has(TABLE_UTILITY) && mTableIsInitialized == false) {
+        if (r_process_info.Has(TABLE_UTILITY) && mOptions.IsNot(DisplacementContactCriteria::TABLE_IS_INITIALIZED)) {
             TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
             auto& table = p_table->GetTable();
             table.AddColumn("DP RATIO", 10);
@@ -283,7 +292,7 @@ public:
             table.AddColumn("ABS", 10);
             table.AddColumn("EXP. ABS", 10);
             table.AddColumn("CONVERGENCE", 15);
-            mTableIsInitialized = true;
+            mOptions.Set(DisplacementContactCriteria::TABLE_IS_INITIALIZED, true);
         }
     }
 
@@ -341,8 +350,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool mPrintingOutput;          /// If the colors and bold are printed
-    bool mTableIsInitialized;      /// If the table is already initialized
+    Flags mOptions; /// Local flags
 
     TDataType mDispRatioTolerance; /// The ratio threshold for the norm of the displacement
     TDataType mDispAbsTolerance;   /// The absolute value threshold for the norm of the displacement
@@ -371,11 +379,20 @@ private:
     ///@name Unaccessible methods
     ///@{
     ///@}
-};
+};  // Kratos DisplacementContactCriteria
 
-///@} // Kratos classes
+///@name Local flags creation
+///@{
 
-///@} // Application group
+/// Local Flags
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementContactCriteria<TSparseSpace, TDenseSpace>::PRINTING_OUTPUT(Kratos::Flags::Create(1));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementContactCriteria<TSparseSpace, TDenseSpace>::NOT_PRINTING_OUTPUT(Kratos::Flags::Create(1, false));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementContactCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(2));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags DisplacementContactCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(2, false));
 }
 
 #endif	/* KRATOS_DISPLACEMENT_CONTACT_CRITERIA_H */

@@ -24,7 +24,7 @@ class XdmfOutput(object):
     '''Output that creates the xdmf-file for the given h5-files.'''
 
     def __call__(self, model_part, hdf5_file):
-        model_part.GetCommunicator().Barrier()
+        model_part.GetCommunicator().GetDataCommunicator().Barrier()
         # write xdmf only on one rank!
         if model_part.GetCommunicator().MyPID() == 0:
             WriteXdmfFile(hdf5_file.GetFileName())

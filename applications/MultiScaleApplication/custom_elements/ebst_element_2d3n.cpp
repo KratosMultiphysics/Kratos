@@ -140,7 +140,7 @@ void EBSTElement2D3N::EquationIdVector(
 {
     KRATOS_TRY
 
-    WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
+    GlobalPointersVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
 
     unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neigb);
     unsigned int dim = number_of_nodes * 3;
@@ -181,7 +181,7 @@ void EBSTElement2D3N::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& 
 {
     KRATOS_TRY
 
-    WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
+    GlobalPointersVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
     ElementalDofList.resize(0);
 
     //nodes of the central element
@@ -212,7 +212,7 @@ void EBSTElement2D3N::GetValuesVector(
     Vector& values,
     int Step)
 {
-    WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
+    GlobalPointersVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
     unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neigb);
 
     const unsigned int MatSize = number_of_nodes * 3;
@@ -251,7 +251,7 @@ void EBSTElement2D3N::GetFirstDerivativesVector(
     Vector& values,
     int Step)
 {
-    WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
+    GlobalPointersVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
     unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neigb);
 
     const unsigned int MatSize = number_of_nodes * 3;
@@ -290,7 +290,7 @@ void EBSTElement2D3N::GetSecondDerivativesVector(
     Vector& values,
     int Step)
 {
-    WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
+    GlobalPointersVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
     unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neigb);
 
     const unsigned int MatSize = number_of_nodes * 3;
@@ -396,7 +396,7 @@ void EBSTElement2D3N::CalculateMassMatrix(
 {
     KRATOS_TRY
 
-    WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
+    GlobalPointersVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
 
     //rMassMatrix.resize(0,0);
     // LUMPED MASS MATRIX
@@ -433,7 +433,7 @@ void EBSTElement2D3N::CalculateDampingMatrix(
 {
     KRATOS_TRY
 
-    WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
+    GlobalPointersVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
 
     //rMassMatrix.resize(0,0);
     // LUMPED MASS MATRIX
@@ -535,7 +535,7 @@ void EBSTElement2D3N::GetValueOnIntegrationPoints(const Variable<Matrix>& rVaria
 		boost::numeric::ublas::bounded_matrix<double, 18, 18 > msK;
 		boost::numeric::ublas::bounded_matrix<double, 6, 3 > ms_coord;
 
-		WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
+		GlobalPointersVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
 
 		//fill the aux matrix of coordinates
 		for (unsigned int i = 0; i < 3; i++)
@@ -846,7 +846,7 @@ void EBSTElement2D3N::CalculateAll(
     boost::numeric::ublas::bounded_matrix<double, 18, 18 > msK;
     boost::numeric::ublas::bounded_matrix<double, 6, 3 > ms_coord;
 
-    WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
+    GlobalPointersVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
 
     //fill the aux matrix of coordinates
     for (unsigned int i = 0; i < 3; i++)
@@ -1104,7 +1104,7 @@ bool EBSTElement2D3N::HasNeighbour(unsigned int index, const Node < 3 > & neighb
         return true;
 }
 
-unsigned int EBSTElement2D3N::NumberOfActiveNeighbours(WeakPointerVector< Node < 3 > >& neighbs)
+unsigned int EBSTElement2D3N::NumberOfActiveNeighbours(GlobalPointersVector< Node < 3 > >& neighbs)
 {
     unsigned int active_neighbours = 0;
     for (unsigned int i = 0; i < neighbs.size(); i++)
@@ -1128,9 +1128,9 @@ void EBSTElement2D3N::Initialize()
     boost::numeric::ublas::bounded_matrix<double, 6, 2 > ms_loc_der_patch;
 
     //find the "nodal neighbours" given the elemental neighbours
-    WeakPointerVector< Element >& elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+    GlobalPointersVector< Element >& elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
     if (elem_neigb.size() == 0) KRATOS_THROW_ERROR(std::logic_error, "the neighbour elements are not calculated", "")
-        WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
+        GlobalPointersVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
     nodal_neigb.resize(3);
     Geometry< Node < 3 > >& center_geom = GetGeometry();
     /*KRATOS_WATCH(this->GetValue(NEIGHBOUR_ELEMENTS).size());

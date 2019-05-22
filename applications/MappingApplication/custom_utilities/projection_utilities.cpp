@@ -148,7 +148,7 @@ PairingIndex ProjectOnSurface(const GeometryType& rGeometry,
         Vector edge_sf_values;
         double edge_distance;
 
-        for (const auto& r_edge : const_cast<GeometryType&>(rGeometry).Edges()) { // TODO update this after #4767
+        for (const auto& r_edge : rGeometry.GenerateEdges()) {
 
             const PairingIndex edge_index = ProjectOnLine(r_edge, rPointToProject, LocalCoordTol, edge_sf_values, edge_eq_ids, edge_distance);
 
@@ -176,7 +176,7 @@ PairingIndex ProjectIntoVolume(const GeometryType& rGeometry,
     array_1d<double, 3> local_coords;
     PairingIndex pairing_index;
 
-    if (rGeometry.IsInside(rPointToProject, local_coords)) {
+    if (rGeometry.IsInside(rPointToProject, local_coords, 1e-14)) {
         pairing_index = PairingIndex::Volume_Inside;
         rGeometry.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
         FillEquationIdVector(rGeometry, rEquationIds);
@@ -201,7 +201,7 @@ PairingIndex ProjectIntoVolume(const GeometryType& rGeometry,
         Vector face_sf_values;
         double face_distance;
 
-        for (const auto& r_face : const_cast<GeometryType&>(rGeometry).Faces()) { // TODO update this after #4767
+        for (const auto& r_face : rGeometry.GenerateFaces()) {
 
             const PairingIndex face_index = ProjectOnSurface(r_face, rPointToProject, LocalCoordTol, face_sf_values, face_eq_ids, face_distance);
 

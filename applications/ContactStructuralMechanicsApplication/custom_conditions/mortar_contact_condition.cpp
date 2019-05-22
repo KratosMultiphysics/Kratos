@@ -90,8 +90,6 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 
     BaseType::Initialize();
 
-    mIntegrationOrder = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
-
     // We reset the ISOLATED flag
     this->Set(ISOLATED, false);
 
@@ -246,7 +244,8 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 {
     KRATOS_TRY;
 
-    MortarExplicitContributionUtilities<TDim, TNumNodes, FrictionalCase::FRICTIONLESS_PENALTY, TNormalVariation, TNumNodesMaster>::AddExplicitContributionOfMortarCondition(this, rCurrentProcessInfo, mIntegrationOrder, IsAxisymmetric(), false);
+    const IndexType integration_order = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
+    MortarExplicitContributionUtilities<TDim, TNumNodes, FrictionalCase::FRICTIONLESS_PENALTY, TNormalVariation, TNumNodesMaster>::AddExplicitContributionOfMortarCondition(this, rCurrentProcessInfo, integration_order, IsAxisymmetric(), false);
 
     KRATOS_CATCH( "" );
 }
@@ -313,8 +312,9 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
     MortarConditionMatrices mortar_operators;
 
     // We call the exact integration utility
+    const IndexType integration_order = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
     const double distance_threshold = rCurrentProcessInfo[DISTANCE_THRESHOLD];
-    IntegrationUtility integration_utility = IntegrationUtility (mIntegrationOrder, distance_threshold);
+    IntegrationUtility integration_utility = IntegrationUtility (integration_order, distance_threshold);
 
     // The master geometry
     const GeometryType& r_master_geometry = this->GetPairedGeometry();
@@ -347,8 +347,8 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
         for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
             PointerVector< PointType > points_array(TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
             array_1d<BelongType, TDim> belong_array;
+            PointType global_point;
             for (IndexType i_node = 0; i_node < TDim; ++i_node) {
-                PointType global_point;
                 r_slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
                 points_array(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
                 belong_array[i_node] = conditions_points_slave[i_geom][i_node].GetBelong();
@@ -362,14 +362,13 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
                 const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
 
                 // Integrating the mortar operators
+                PointType local_point_parent, gp_global;
                 for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
                     // We reset the derivatives
                     derivative_data.ResetDerivatives();
 
                     // We compute the local coordinates
                     const PointType local_point_decomp = PointType(integration_points_slave[point_number].Coordinates());
-                    PointType local_point_parent;
-                    PointType gp_global;
                     decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
                     r_slave_geometry.PointLocalCoordinates(local_point_parent, gp_global);
 

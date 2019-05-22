@@ -74,7 +74,7 @@ public:
             }
         }
         //syncronoze
-        ThisModelPart.GetCommunicator().MaxAll(is_exit);
+        is_exit = ThisModelPart.GetCommunicator().GetDataCommunicator().MaxAll(is_exit);
         if(is_exit == 1.0)
             return 1.0;
 
@@ -101,7 +101,7 @@ public:
             }
         }
         //syncronoze
-        ThisModelPart.GetCommunicator().MaxAll(is_dry_node);
+        is_dry_node = ThisModelPart.GetCommunicator().GetDataCommunicator().MaxAll(is_dry_node);
 
         //assign smagorinsky at air element
         AirSmagorinskey(ThisModelPart, C_Smagorinsky);
@@ -194,8 +194,8 @@ public:
 
         }
         //syncronoze
-        ThisModelPart.GetCommunicator().SumAll(wet_nodes);
-        ThisModelPart.GetCommunicator().SumAll(node_size);
+        wet_nodes = ThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(wet_nodes);
+        node_size = ThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(node_size);
         double filling_percent = 0.0;
 
         if(wet_nodes != 0) filling_percent = 100.0*double(wet_nodes)/double(node_size);
@@ -238,8 +238,8 @@ public:
         }
 
         //syncronoze
-        ThisModelPart.GetCommunicator().SumAll(wet_nodes);
-        ThisModelPart.GetCommunicator().SumAll(node_size);
+        wet_nodes = ThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(wet_nodes);
+        node_size = ThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(node_size);
         double filling_percent = 0.0;
 
         if(wet_nodes != 0) filling_percent = 100.0*double(wet_nodes)/double(node_size);
@@ -575,7 +575,7 @@ public:
                 net_input -= Velocity[0]*AreaNormal[0] + Velocity[1]*AreaNormal[1] + Velocity[2]*AreaNormal[2];
             }
         }
-        ThisModelPart.GetCommunicator().SumAll(net_input);
+        net_input = ThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(net_input);
 
         ProcessInfo& CurrentProcessInfo = ThisModelPart.GetProcessInfo();
         const double delta_t = CurrentProcessInfo[DELTA_TIME];
@@ -704,7 +704,7 @@ public:
 	  }
 
         //syncronoze
-        ThisModelPart.GetCommunicator().MinAll(is_wet);
+        is_wet = ThisModelPart.GetCommunicator().GetDataCommunicator().MinAll(is_wet);
 
 		//If there is a dry node then do extrapolation for velocity
 		if(is_wet == 0.0)
@@ -957,9 +957,7 @@ public:
 
         }
         //syncronoze
-        ThisModelPart.GetCommunicator().MaxAll(is_dry_node);
-
-        return is_dry_node;
+        return ThisModelPart.GetCommunicator().GetDataCommunicator().MaxAll(is_dry_node);
 
         KRATOS_CATCH("")
     }
@@ -1068,9 +1066,7 @@ public:
 
 		}
 
-		ThisModelPart.GetCommunicator().MaxAll(h_max);
-
-		return h_max;
+		return ThisModelPart.GetCommunicator().GetDataCommunicator().MaxAll(h_max);
 
 		KRATOS_CATCH("");
 	}
@@ -1110,8 +1106,8 @@ public:
 		}
 		double n = static_cast<double>(n_edges);
 
-		ThisModelPart.GetCommunicator().SumAll(h_avg);
-		ThisModelPart.GetCommunicator().SumAll(n);
+		h_avg = ThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(h_avg);
+		n = ThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(n);
 		h_avg /= n;
 		return h_avg;
 
@@ -1323,11 +1319,8 @@ private:
             }
         }
         //syncronoze
-        ThisModelPart.GetCommunicator().SumAll(wetvol);
-        ThisModelPart.GetCommunicator().SumAll(cutare);
-
-        wet_volume = wetvol;
-        cutted_area = cutare;
+        wet_volume = ThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(wetvol);
+        cutted_area = ThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(cutare);
 
         KRATOS_CATCH("")
     }
@@ -1397,11 +1390,8 @@ private:
             }
         }
         //syncronoze
-        ThisModelPart.GetCommunicator().SumAll(wetvol);
-        ThisModelPart.GetCommunicator().SumAll(cutare);
-
-        wet_volume = wetvol;
-        cutted_area = cutare;
+        wet_volume = ThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(wetvol);
+        cutted_area = ThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(cutare);
 
         KRATOS_CATCH("")
     }
@@ -1468,11 +1458,8 @@ private:
             }
         }
         //syncronoze
-        ThisModelPart.GetCommunicator().SumAll(wetvol);
-        ThisModelPart.GetCommunicator().SumAll(cutare);
-
-        pos_volume = wetvol;
-        cutted_area = cutare;
+        pos_volume = ThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(wetvol);
+        cutted_area = ThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(cutare);
 
         KRATOS_CATCH("")
     }
