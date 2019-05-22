@@ -36,9 +36,13 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         # set type of boundary
         if (self.imposition_type == "penalty" or self.imposition_type == "Penalty"):
             self.penalty_factor = settings["penalty_factor"].GetDouble()
+            self.is_penalty_condition = True
+        elif (self.imposition_type == "lagrange" or self.imposition_type == "Lagrange"):
+            self.is_penalty_condition = False
+            self.penalty_factor = 0
         else:
             err_msg =  "The requested type of Dirichlet boundary imposition: \"" + self.imposition_type + "\" is not available!\n"
-            err_msg += "Available option is: \"penalty\"."
+            err_msg += "Available option is: \"penalty\"or \"lagrange\"."
             raise Exception(err_msg)
 
         # check constraint
@@ -90,6 +94,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 condition.Set(KratosMultiphysics.MODIFIED, self.modified_normal)
                 condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
                 condition.SetValue(KratosParticle.MPC_IS_NEUMANN, self.is_neumann_boundary)
+                condition.SetValue(KratosParticle.MPC_IS_PENALTY, self.is_penalty_condition)
                 condition.SetValue(KratosParticle.PENALTY_FACTOR, self.penalty_factor)
                 condition.SetValue(self.variable, self.vector)
         else:
